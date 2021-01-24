@@ -158,14 +158,46 @@ class CQChartsCmds : public QObject {
 #define CQCHARTS_DEF_CMD(NAME) \
 class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
  public: \
-  CQCharts##NAME##Cmd(CQChartsCmds *cmds) : CQChartsCmdProc(cmds->cmdBase()), cmds_(cmds) { } \
+  using CmdArg   = CQTclCmd::CmdArg; \
+  using CmdGroup = CQTclCmd::CmdGroup; \
 \
-  bool exec(CQChartsCmdArgs &args) override; \
+  enum class ArgType { \
+    None     = int(CmdArg::Type::None), \
+    Boolean  = int(CmdArg::Type::Boolean), \
+    Integer  = int(CmdArg::Type::Integer), \
+    Real     = int(CmdArg::Type::Real), \
+    String   = int(CmdArg::Type::String), \
+    SBool    = int(CmdArg::Type::SBool), \
+    Enum     = int(CmdArg::Type::Enum), \
+    Color    = int(CmdArg::Type::Extra) + 1, \
+    Font     = int(CmdArg::Type::Extra) + 2, \
+    LineDash = int(CmdArg::Type::Extra) + 3, \
+    Length   = int(CmdArg::Type::Extra) + 4, \
+    Position = int(CmdArg::Type::Extra) + 5, \
+    Rect     = int(CmdArg::Type::Extra) + 6, \
+    Polygon  = int(CmdArg::Type::Extra) + 7, \
+    Align    = int(CmdArg::Type::Extra) + 8, \
+    Sides    = int(CmdArg::Type::Extra) + 9, \
+    Column   = int(CmdArg::Type::Extra) + 10, \
+    Row      = int(CmdArg::Type::Extra) + 11, \
+    Reals    = int(CmdArg::Type::Extra) + 12 \
+  }; \
 \
-  void addArgs(CQChartsCmdArgs &args) override; \
+ public: \
+  CQCharts##NAME##Cmd(CQChartsCmds *cmds) : \
+   CQChartsCmdProc(cmds->cmdBase()), cmds_(cmds) { } \
+\
+  bool execCmd(CQChartsCmdArgs &args) override; \
+\
+  void addCmdArgs(CQChartsCmdArgs &args) override; \
 \
   QStringList getArgValues(const QString &arg, \
                            const NameValueMap &nameValueMap=NameValueMap()) override; \
+\
+  CmdArg &addArg(CQChartsCmdArgs &args, const QString &name, ArgType type, \
+                 const QString &argDesc="", const QString &desc="") { \
+    return args.addCmdArg(name, int(type), argDesc, desc); \
+  } \
 \
   CQChartsCmds *cmds() const { return cmds_; } \
 \

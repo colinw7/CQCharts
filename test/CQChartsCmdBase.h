@@ -6,29 +6,36 @@
 #include <QVariant>
 #include <vector>
 
-class CQChartsCmdProc;
 class CQTcl;
+
+class CQChartsCmdProc;
 
 /*!
  * \brief Command Base Class
  * \ingroup Charts
  */
-class CQChartsCmdBase {
+class CQChartsCmdBase : public CQTclCmd::Mgr {
  public:
-  using Args = std::vector<QString>;
-  using Vars = std::vector<QVariant>;
+  using CmdProc = CQChartsCmdProc;
+  using Args    = std::vector<QString>;
 
  public:
   CQChartsCmdBase(CQCharts *charts);
  ~CQChartsCmdBase();
 
+  //---
+
   void addCommands();
 
-  void addCommand(const QString &name, CQChartsCmdProc *proc);
+  //---
 
-  bool processCmd(const QString &name, const Vars &vars);
+  void addCommand(const QString &name, CmdProc *proc);
 
-  CQChartsCmdProc *getCommand(const QString &cmd) const;
+  CmdProc *getCommand(const QString &cmd) const;
+
+  CQTclCmd::Cmd *createCmd(const QString &name) override;
+
+  CQTclCmd::CmdArgs *createArgs(const QString &name, const Vars &vars) override;
 
   //---
 
@@ -39,14 +46,6 @@ class CQChartsCmdBase {
   void parseScriptLine(const QString &line);
 
   //---
-
-  bool help(const QString &pattern, bool verbose, bool hidden);
-
-  void helpAll(bool verbose, bool hidden);
-
-  //---
-
-  CQTcl *qtcl() const { return qtcl_; }
 
  public:
   QStringList stringToCmds(const QString &str) const;
@@ -80,54 +79,55 @@ class CQChartsCmdBase {
   //---
 
  private:
-  using CommandNames = std::vector<QString>;
-  using CommandProcs = std::map<QString, CQChartsCmdProc *>;
-
-  CQCharts*    charts_       { nullptr };
-  bool         continueFlag_ { false };
-  CQTcl*       qtcl_         { nullptr };
-  CommandNames commandNames_;
-  CommandProcs commandProcs_;
+  CQCharts* charts_       { nullptr };
+  bool      continueFlag_ { false };
 };
 
 //---
 
-class CQChartsTclCmd;
+class CQChartsTclCmd : public CQTclCmd::Cmd {
+ public:
+  CQChartsTclCmd(CQChartsCmdBase *cmdBase, const QString &name);
+
+  CQChartsCmdBase *cmdBase() const { return cmdBase_; }
+
+ private:
+  CQChartsCmdBase *cmdBase_ { nullptr };
+};
+
+//---
 
 /*!
  * \brief Command Callback Proc Base
  * \ingroup Charts
  */
-class CQChartsCmdProc {
+class CQChartsCmdProc : public CQTclCmd::CmdProc {
  public:
-  using Vars         = std::vector<QVariant>;
-  using NameValueMap = std::map<QString, QString>;
+  using CmdBase = CQChartsCmdBase;
 
  public:
-  CQChartsCmdProc(CQChartsCmdBase *cmdBase) :
-   cmdBase_(cmdBase) {
-  }
+  CQChartsCmdProc(CmdBase *cmdBase);
 
   virtual ~CQChartsCmdProc() { }
 
-  const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  CmdBase *cmdBase() const { return cmdBase_; }
 
-  CQChartsTclCmd *tclCmd() const { return tclCmd_; }
-  void setTclCmd(CQChartsTclCmd *tclCmd) { tclCmd_ = tclCmd; }
-
-  virtual bool exec(CQChartsCmdArgs &args) = 0;
-
-  virtual void addArgs(CQChartsCmdArgs & /*args*/) { }
-
-  virtual QStringList getArgValues(const QString& /*arg*/, const NameValueMap& /*nameValueMap*/) {
-    return QStringList();
+  bool exec(CQTclCmd::CmdArgs &args) override {
+    return execCmd((CQChartsCmdArgs &) args);
   }
 
+  void addArgs(CQTclCmd::CmdArgs &args) override {
+    addCmdArgs((CQChartsCmdArgs &) args);
+  }
+
+  //---
+
+  virtual bool execCmd(CQChartsCmdArgs &args) = 0;
+
+  virtual void addCmdArgs(CQChartsCmdArgs & /*args*/) { }
+
  protected:
-  CQChartsCmdBase* cmdBase_ { nullptr };
-  QString          name_;
-  CQChartsTclCmd*  tclCmd_  { nullptr };
+  CmdBase* cmdBase_ { nullptr };
 };
 
 //---
@@ -178,14 +178,46 @@ class CQChartsCmdBaseSlot : public QObject {
 #define CQCHARTS_BASE_DEF_CMD(NAME) \
 class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
  public: \
-  CQChartsBase##NAME##Cmd(CQChartsCmdBase *cmdBase) : CQChartsCmdProc(cmdBase) { } \
+  using CmdArg   = CQTclCmd::CmdArg; \
+  using CmdGroup = CQTclCmd::CmdGroup; \
 \
-  bool exec(CQChartsCmdArgs &args) override; \
+  enum class ArgType { \
+    None     = int(CmdArg::Type::None), \
+    Boolean  = int(CmdArg::Type::Boolean), \
+    Integer  = int(CmdArg::Type::Integer), \
+    Real     = int(CmdArg::Type::Real), \
+    String   = int(CmdArg::Type::String), \
+    SBool    = int(CmdArg::Type::SBool), \
+    Enum     = int(CmdArg::Type::Enum), \
+    Color    = int(CmdArg::Type::Extra) + 1, \
+    Font     = int(CmdArg::Type::Extra) + 2, \
+    LineDash = int(CmdArg::Type::Extra) + 3, \
+    Length   = int(CmdArg::Type::Extra) + 4, \
+    Position = int(CmdArg::Type::Extra) + 5, \
+    Rect     = int(CmdArg::Type::Extra) + 6, \
+    Polygon  = int(CmdArg::Type::Extra) + 7, \
+    Align    = int(CmdArg::Type::Extra) + 8, \
+    Sides    = int(CmdArg::Type::Extra) + 9, \
+    Column   = int(CmdArg::Type::Extra) + 10, \
+    Row      = int(CmdArg::Type::Extra) + 11, \
+    Reals    = int(CmdArg::Type::Extra) + 12 \
+  }; \
 \
-  void addArgs(CQChartsCmdArgs &args) override; \
+ public: \
+  CQChartsBase##NAME##Cmd(CQChartsCmdBase *cmdBase) : \
+   CQChartsCmdProc(cmdBase) { } \
+\
+  bool execCmd(CQChartsCmdArgs &args) override; \
+\
+  void addCmdArgs(CQChartsCmdArgs &args) override; \
 \
   QStringList getArgValues(const QString &arg, \
                            const NameValueMap &nameValueMap=NameValueMap()) override; \
+\
+  CmdArg &addArg(CQChartsCmdArgs &args, const QString &name, ArgType type, \
+                 const QString &argDesc="", const QString &desc="") { \
+    return args.addCmdArg(name, int(type), argDesc, desc); \
+  } \
 };
 
 //---
@@ -216,6 +248,8 @@ CQCHARTS_BASE_DEF_CMD(Perf)
 CQCHARTS_BASE_DEF_CMD(Assert)
 
 CQCHARTS_BASE_DEF_CMD(Shell)
+
+CQCHARTS_BASE_DEF_CMD(Exit)
 
 CQCHARTS_BASE_DEF_CMD(Help)
 CQCHARTS_BASE_DEF_CMD(Complete)

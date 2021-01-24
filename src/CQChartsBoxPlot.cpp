@@ -146,7 +146,7 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  CQChartsColumns columns;
+  Columns columns;
 
   int nc = details->numColumns();
 

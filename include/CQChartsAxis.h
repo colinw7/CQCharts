@@ -51,14 +51,17 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
 
   // options
-  Q_PROPERTY(CQChartsAxisSide side             READ side               WRITE setSide            )
-  Q_PROPERTY(CQChartsOptReal  position         READ position           WRITE setPosition        )
-  Q_PROPERTY(bool             requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
+  Q_PROPERTY(CQChartsAxisSide side     READ side     WRITE setSide    )
+  Q_PROPERTY(CQChartsOptReal  position READ position WRITE setPosition)
+
+  Q_PROPERTY(bool requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
 
   Q_PROPERTY(CQChartsAxisValueType valueType READ valueType WRITE setValueType)
 
-  Q_PROPERTY(QString        format          READ format            WRITE setFormat         )
-  Q_PROPERTY(double         maxFitExtent    READ maxFitExtent      WRITE setMaxFitExtent   )
+  Q_PROPERTY(QString format       READ format       WRITE setFormat      )
+  Q_PROPERTY(double  maxFitExtent READ maxFitExtent WRITE setMaxFitExtent)
+
+  // tick calc
   Q_PROPERTY(CQChartsOptInt tickIncrement   READ tickIncrement     WRITE setTickIncrement  )
   Q_PROPERTY(CQChartsOptInt majorIncrement  READ majorIncrement    WRITE setMajorIncrement )
   Q_PROPERTY(double         start           READ start             WRITE setStart          )
@@ -94,10 +97,11 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr);
 
   // label
-  Q_PROPERTY(CQChartsOptString label     READ label     WRITE setLabel    )
-  Q_PROPERTY(QString           labelStr  READ labelStr  WRITE setLabelStr )
-  Q_PROPERTY(QString           defLabel  READ defLabel  WRITE setDefLabel )
-  Q_PROPERTY(QString           userLabel READ userLabel WRITE setUserLabel)
+  Q_PROPERTY(CQChartsOptString label          READ label            WRITE setLabel         )
+  Q_PROPERTY(QString           labelStr       READ labelStr         WRITE setLabelStr      )
+  Q_PROPERTY(QString           defLabel       READ defLabel         WRITE setDefLabel      )
+  Q_PROPERTY(QString           userLabel      READ userLabel        WRITE setUserLabel     )
+  Q_PROPERTY(bool              scaleLabelFont READ isScaleLabelFont WRITE setScaleLabelFont)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel, axesLabel)
 
@@ -158,11 +162,17 @@ class CQChartsAxis : public CQChartsObj,
   using OptInt                 = CQChartsOptInt;
   using OptString              = CQChartsOptString;
   using PaintDevice            = CQChartsPaintDevice;
+  using TextOptions            = CQChartsTextOptions;
   using Column                 = CQChartsColumn;
   using Angle                  = CQChartsAngle;
   using Alpha                  = CQChartsAlpha;
+  using PenBrush               = CQChartsPenBrush;
   using PenData                = CQChartsPenData;
   using BrushData              = CQChartsBrushData;
+  using Length                 = CQChartsLength;
+  using LineDash               = CQChartsLineDash;
+  using Font                   = CQChartsFont;
+  using Color                  = CQChartsColor;
 
  public:
   CQChartsAxis(const Plot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -298,6 +308,10 @@ class CQChartsAxis : public CQChartsObj,
   // get/set user label
   const QString &userLabel() const { return userLabel_; }
   void setUserLabel(const QString &str);
+
+  // get/set scale label font
+  bool isScaleLabelFont() const { return scaleLabelFont_; }
+  void setScaleLabelFont(bool b);
 
   //---
 
@@ -590,9 +604,10 @@ class CQChartsAxis : public CQChartsObj,
   double        maxFitExtent_   { 10 };    //!< max extent percent for fit
 
   // label
-  bool      labelDisplayed_ { true }; //!< show label
-  OptString label_;                   //!< label
-  QString   userLabel_;               //!< user label
+  bool      labelDisplayed_ { true };  //!< show label
+  OptString label_;                    //!< label
+  QString   userLabel_;                //!< user label
+  bool      scaleLabelFont_ { false }; //!< scale label font fo fit
 
   // grid (lines and gap fill)
   GridLinesDisplayed gridLinesDisplayed_ { GridLinesDisplayed::NONE }; //!< grid lines displayed

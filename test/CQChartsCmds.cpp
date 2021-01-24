@@ -246,39 +246,36 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 
 void
 CQChartsLoadChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
   // input data type
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-csv" , CQChartsCmdArg::Type::Boolean, "load csv file");
-  argv.addCmdArg("-tsv" , CQChartsCmdArg::Type::Boolean, "load tsv file");
-  argv.addCmdArg("-json", CQChartsCmdArg::Type::Boolean, "load json file");
-  argv.addCmdArg("-data", CQChartsCmdArg::Type::Boolean, "load gnuplot file");
-  argv.addCmdArg("-expr", CQChartsCmdArg::Type::Boolean, "use expression model");
-  argv.addCmdArg("-var" , CQChartsCmdArg::Type::String , "load from tcl variable(s)");
-  argv.addCmdArg("-tcl" , CQChartsCmdArg::Type::String , "load from tcl data");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-csv" , ArgType::Boolean, "load csv file");
+  addArg(argv, "-tsv" , ArgType::Boolean, "load tsv file");
+  addArg(argv, "-json", ArgType::Boolean, "load json file");
+  addArg(argv, "-data", ArgType::Boolean, "load gnuplot file");
+  addArg(argv, "-expr", ArgType::Boolean, "use expression model");
+  addArg(argv, "-var" , ArgType::String , "load from tcl variable(s)");
+  addArg(argv, "-tcl" , ArgType::String , "load from tcl data");
   argv.endCmdGroup();
 
   // input data control
-  argv.addCmdArg("-comment_header"     , CQChartsCmdArg::Type::Boolean,
-                 "first comment is horizontal header");
-  argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean,
-                 "first line is horizontal header");
-  argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean,
-                 "first column is vertical header");
+  addArg(argv, "-comment_header"     , ArgType::Boolean, "first comment is horizontal header");
+  addArg(argv, "-first_line_header"  , ArgType::Boolean, "first line is horizontal header");
+  addArg(argv, "-first_column_header", ArgType::Boolean, "first column is vertical header");
 
-  argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "separator char for csv");
-  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "columns to load");
-  argv.addCmdArg("-transpose", CQChartsCmdArg::Type::Boolean, "transpose tcl data");
+  addArg(argv, "-separator", ArgType::String , "separator char for csv");
+  addArg(argv, "-columns"  , ArgType::String , "columns to load");
+  addArg(argv, "-transpose", ArgType::Boolean, "transpose tcl data");
 
-  argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of expression rows");
-  argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maximum number of file rows");
-  argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
-  argv.addCmdArg("-filter_type", CQChartsCmdArg::Type::String , "filter expression type");
-  argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
-  argv.addCmdArg("-name"       , CQChartsCmdArg::Type::String , "name for model");
+  addArg(argv, "-num_rows"   , ArgType::Integer, "number of expression rows");
+  addArg(argv, "-max_rows"   , ArgType::Integer, "maximum number of file rows");
+  addArg(argv, "-filter"     , ArgType::String , "filter expression");
+  addArg(argv, "-filter_type", ArgType::String , "filter expression type");
+  addArg(argv, "-column_type", ArgType::String , "column type");
+  addArg(argv, "-name"       , ArgType::String , "name for model");
 
-  argv.addCmdArg("filename", CQChartsCmdArg::Type::String, "file name");
+  addArg(argv, "filename", ArgType::String, "file name");
 }
 
 QStringList
@@ -291,7 +288,7 @@ getArgValues(const QString &, const NameValueMap &)
 // load model from data
 bool
 CQChartsLoadChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -451,32 +448,31 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsProcessChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::String, "model_id").setRequired();
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column,
-                 "column for delete, modify, calc, query, analyze");
+  addArg(argv, "-model" , ArgType::String, "model_id").setRequired();
+  addArg(argv, "-column", ArgType::Column, "column for delete, modify, calc, query, analyze");
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-add"         , CQChartsCmdArg::Type::Boolean, "add column");
-  argv.addCmdArg("-delete"      , CQChartsCmdArg::Type::Boolean, "delete column");
-  argv.addCmdArg("-modify"      , CQChartsCmdArg::Type::Boolean, "modify column values");
-  argv.addCmdArg("-calc"        , CQChartsCmdArg::Type::Boolean, "calc column");
-  argv.addCmdArg("-query"       , CQChartsCmdArg::Type::Boolean, "query column");
-  argv.addCmdArg("-analyze"     , CQChartsCmdArg::Type::Boolean, "analyze data");
-  argv.addCmdArg("-replace"     , CQChartsCmdArg::Type::String , "replace value");
-  argv.addCmdArg("-replace_null", CQChartsCmdArg::Type::Boolean, "replace null values");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-add"         , ArgType::Boolean, "add column");
+  addArg(argv, "-delete"      , ArgType::Boolean, "delete column");
+  addArg(argv, "-modify"      , ArgType::Boolean, "modify column values");
+  addArg(argv, "-calc"        , ArgType::Boolean, "calc column");
+  addArg(argv, "-query"       , ArgType::Boolean, "query column");
+  addArg(argv, "-analyze"     , ArgType::Boolean, "analyze data");
+  addArg(argv, "-replace"     , ArgType::String , "replace value");
+  addArg(argv, "-replace_null", ArgType::Boolean, "replace null values");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
-  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "type data for add/modify");
-  argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
-  argv.addCmdArg("-vars"  , CQChartsCmdArg::Type::String, "variables for expression");
-  argv.addCmdArg("-tcl"   , CQChartsCmdArg::Type::String, "tcl data for add/modify");
-  argv.addCmdArg("-value" , CQChartsCmdArg::Type::String, "value for replace and replace null");
+  addArg(argv, "-header", ArgType::String, "header label for add/modify");
+  addArg(argv, "-type"  , ArgType::String, "type data for add/modify");
+  addArg(argv, "-expr"  , ArgType::String, "expression for add/modify/calc/query");
+  addArg(argv, "-vars"  , ArgType::String, "variables for expression");
+  addArg(argv, "-tcl"   , ArgType::String, "tcl data for add/modify");
+  addArg(argv, "-value" , ArgType::String, "value for replace and replace null");
 
-  argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
-  argv.addCmdArg("-debug", CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
+  addArg(argv, "-force", ArgType::Boolean, "force modify of original data");
+  addArg(argv, "-debug", ArgType::Boolean, "debug expression evaulation");
 }
 
 QStringList
@@ -490,7 +486,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsProcessChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -850,14 +846,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsDefineChartsProcCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-svg"   , CQChartsCmdArg::Type::Boolean, "define svg proc");
-  argv.addCmdArg("-script", CQChartsCmdArg::Type::Boolean, "define script proc");
+  addArg(argv, "-svg"   , ArgType::Boolean, "define svg proc");
+  addArg(argv, "-script", ArgType::Boolean, "define script proc");
 
-  argv.addCmdArg("name", CQChartsCmdArg::Type::String, "proc name").setRequired();
-  argv.addCmdArg("args", CQChartsCmdArg::Type::String, "proc args").setRequired();
-  argv.addCmdArg("body", CQChartsCmdArg::Type::String, "proc body").setRequired();
+  addArg(argv, "name", ArgType::String, "proc name").setRequired();
+  addArg(argv, "args", ArgType::String, "proc args").setRequired();
+  addArg(argv, "body", ArgType::String, "proc body").setRequired();
 }
 
 QStringList
@@ -869,7 +865,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsDefineChartsProcCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -917,16 +913,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsMeasureChartsTextCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-name", CQChartsCmdArg::Type::String , "value name").setRequired();
-  argv.addCmdArg("-text", CQChartsCmdArg::Type::String , "text string");
-  argv.addCmdArg("-html", CQChartsCmdArg::Type::Boolean, "is html");
+  addArg(argv, "-name", ArgType::String , "value name").setRequired();
+  addArg(argv, "-text", ArgType::String , "text string");
+  addArg(argv, "-html", ArgType::Boolean, "is html");
 }
 
 QStringList
@@ -944,7 +940,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsMeasureChartsTextCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -1046,14 +1042,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsEncodeChartsTextCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-csv", CQChartsCmdArg::Type::Boolean, "encode text for csv");
-  argv.addCmdArg("-tsv", CQChartsCmdArg::Type::Boolean, "encode text for tsv");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-csv", ArgType::Boolean, "encode text for csv");
+  addArg(argv, "-tsv", ArgType::Boolean, "encode text for tsv");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text string");
+  addArg(argv, "-text", ArgType::String, "text string");
 }
 
 QStringList
@@ -1065,7 +1061,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsEncodeChartsTextCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsEncodeChartsTextCmd::exec");
 
@@ -1096,7 +1092,7 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsViewCmd::
-addArgs(CQChartsCmdArgs &)
+addCmdArgs(CQChartsCmdArgs &)
 {
 }
 
@@ -1109,7 +1105,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsCreateChartsViewCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCreateChartsViewCmd::exec");
 
@@ -1133,9 +1129,9 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsRemoveChartsViewCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
+  addArg(argv, "-view", ArgType::String, "view_id").setRequired();
 }
 
 QStringList
@@ -1149,7 +1145,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsRemoveChartsViewCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsRemoveChartsViewCmd::exec");
 
@@ -1183,29 +1179,29 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPlotCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String, "model_id").setRequired();
-  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String, "view_id" ).setRequired();
-  argv.addCmdArg("-type" , CQChartsCmdArg::Type::String, "type"    ).setRequired();
-  argv.addCmdArg("-id"   , CQChartsCmdArg::Type::String, "plot id" );
+  addArg(argv, "-model", ArgType::String, "model_id").setRequired();
+  addArg(argv, "-view" , ArgType::String, "view_id" ).setRequired();
+  addArg(argv, "-type" , ArgType::String, "type"    ).setRequired();
+  addArg(argv, "-id"   , ArgType::String, "plot id" );
 
-  argv.addCmdArg("-where"    , CQChartsCmdArg::Type::String, "filter");
-  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String, "columns");
-  argv.addCmdArg("-parameter", CQChartsCmdArg::Type::String, "name value").setHidden(true);
+  addArg(argv, "-where"    , ArgType::String, "filter");
+  addArg(argv, "-columns"  , ArgType::String, "columns");
+  addArg(argv, "-parameter", ArgType::String, "name value").setHidden(true);
 
-  argv.addCmdArg("-xintegral", CQChartsCmdArg::Type::SBool).setHidden(true);
-  argv.addCmdArg("-yintegral", CQChartsCmdArg::Type::SBool).setHidden(true);
-  argv.addCmdArg("-xlog"     , CQChartsCmdArg::Type::SBool).setHidden(true);
-  argv.addCmdArg("-ylog"     , CQChartsCmdArg::Type::SBool).setHidden(true);
+  addArg(argv, "-xintegral", ArgType::SBool).setHidden(true);
+  addArg(argv, "-yintegral", ArgType::SBool).setHidden(true);
+  addArg(argv, "-xlog"     , ArgType::SBool).setHidden(true);
+  addArg(argv, "-ylog"     , ArgType::SBool).setHidden(true);
 
-  argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "title");
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-position"  , CQChartsCmdArg::Type::String, "position box");
-  argv.addCmdArg("-xmin"      , CQChartsCmdArg::Type::Real  , "x");
-  argv.addCmdArg("-ymin"      , CQChartsCmdArg::Type::Real  , "y");
-  argv.addCmdArg("-xmax"      , CQChartsCmdArg::Type::Real  , "x");
-  argv.addCmdArg("-ymax"      , CQChartsCmdArg::Type::Real  , "y");
+  addArg(argv, "-title"     , ArgType::String, "title");
+  addArg(argv, "-properties", ArgType::String, "name_values");
+  addArg(argv, "-position"  , ArgType::String, "position box");
+  addArg(argv, "-xmin"      , ArgType::Real  , "x");
+  addArg(argv, "-ymin"      , ArgType::Real  , "y");
+  addArg(argv, "-xmax"      , ArgType::Real  , "x");
+  addArg(argv, "-ymax"      , ArgType::Real  , "y");
 }
 
 QStringList
@@ -1221,7 +1217,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPlotCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -1493,13 +1489,13 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsRemoveChartsPlotCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
+  addArg(argv, "-view", ArgType::String, "view_id").setRequired();
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot_id");
-  argv.addCmdArg("-all" , CQChartsCmdArg::Type::Boolean);
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-plot", ArgType::String, "plot_id");
+  addArg(argv, "-all" , ArgType::Boolean);
   argv.endCmdGroup();
 }
 
@@ -1515,7 +1511,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsRemoveChartsPlotCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsRemoveChartsPlotCmd::exec");
 
@@ -1557,20 +1553,20 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsGetChartsPropertyCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
-  argv.addCmdArg("-key_item"  , CQChartsCmdArg::Type::String, "key item name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-model"     , ArgType::String, "model_id");
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
+  addArg(argv, "-key_item"  , ArgType::String, "key item name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-object", CQChartsCmdArg::Type::String , "object id");
-  argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "property name");
-  argv.addCmdArg("-data"  , CQChartsCmdArg::Type::String , "return property name data");
-  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
+  addArg(argv, "-object", ArgType::String , "object id");
+  addArg(argv, "-name"  , ArgType::String , "property name");
+  addArg(argv, "-data"  , ArgType::String , "return property name data");
+  addArg(argv, "-hidden", ArgType::Boolean, "include hidden data").setHidden(true);
 }
 
 QStringList
@@ -1587,7 +1583,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsGetChartsPropertyCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -1998,20 +1994,20 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsSetChartsPropertyCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
-  argv.addCmdArg("-key_item"  , CQChartsCmdArg::Type::String, "key item name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-model"     , ArgType::String, "model_id");
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
+  addArg(argv, "-key_item"  , ArgType::String, "key item name");
   argv.endCmdGroup();
 
-//argv.addCmdArg("-object", CQChartsCmdArg::Type::String , "object id");
-  argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "property name");
-  argv.addCmdArg("-value" , CQChartsCmdArg::Type::String , "property view");
-//argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
+//addArg(argv, "-object", ArgType::String , "object id");
+  addArg(argv, "-name"  , ArgType::String , "property name");
+  addArg(argv, "-value" , ArgType::String , "property view");
+//addArg(argv, "-hidden", ArgType::Boolean, "include hidden data").setHidden(true);
 }
 
 QStringList
@@ -2028,7 +2024,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsSetChartsPropertyCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -2111,11 +2107,11 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPaletteCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-theme"  , CQChartsCmdArg::Type::String , "new theme name");
-  argv.addCmdArg("-palette", CQChartsCmdArg::Type::String , "new named name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-theme"  , ArgType::String , "new theme name");
+  addArg(argv, "-palette", ArgType::String , "new named name");
   argv.endCmdGroup();
 }
 
@@ -2128,7 +2124,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPaletteCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -2177,16 +2173,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsGetChartsPaletteCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-theme"    , CQChartsCmdArg::Type::String , "get theme data");
-  argv.addCmdArg("-palette"  , CQChartsCmdArg::Type::String , "get named palette data");
-  argv.addCmdArg("-interface", CQChartsCmdArg::Type::Boolean, "get interface data");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-theme"    , ArgType::String , "get theme data");
+  addArg(argv, "-palette"  , ArgType::String , "get named palette data");
+  addArg(argv, "-interface", ArgType::Boolean, "get interface data");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name").setRequired();
-  argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "value name data");
+  addArg(argv, "-name", ArgType::String, "value name").setRequired();
+  addArg(argv, "-data", ArgType::String, "value name data");
 }
 
 QStringList
@@ -2198,7 +2194,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsGetChartsPaletteCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -2459,17 +2455,17 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsSetChartsPaletteCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-theme"    , CQChartsCmdArg::Type::String , "get theme data");
-  argv.addCmdArg("-palette"  , CQChartsCmdArg::Type::String , "get named palette data");
-  argv.addCmdArg("-interface", CQChartsCmdArg::Type::Boolean, "get interface data");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-theme"    , ArgType::String , "get theme data");
+  addArg(argv, "-palette"  , ArgType::String , "get named palette data");
+  addArg(argv, "-interface", ArgType::Boolean, "get interface data");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-name" , CQChartsCmdArg::Type::String, "value name").setRequired();
-  argv.addCmdArg("-value", CQChartsCmdArg::Type::String, "value").setRequired();
-  argv.addCmdArg("-data" , CQChartsCmdArg::Type::String, "value name data");
+  addArg(argv, "-name" , ArgType::String, "value name").setRequired();
+  addArg(argv, "-value", ArgType::String, "value").setRequired();
+  addArg(argv, "-data" , ArgType::String, "value name data");
 }
 
 QStringList
@@ -2481,7 +2477,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsSetChartsPaletteCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -2818,15 +2814,15 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsGroupChartsPlotsCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
+  addArg(argv, "-view", ArgType::String, "view name").setRequired();
 
-  argv.addCmdArg("-x1x2"     , CQChartsCmdArg::Type::Boolean, "use shared x range");
-  argv.addCmdArg("-y1y2"     , CQChartsCmdArg::Type::Boolean, "use shared y range");
-  argv.addCmdArg("-overlay"  , CQChartsCmdArg::Type::Boolean, "overlay (shared x and/or y range)");
-  argv.addCmdArg("-tabbed"   , CQChartsCmdArg::Type::Boolean, "tabbed (one shown at a time)");
-  argv.addCmdArg("-composite", CQChartsCmdArg::Type::Boolean, "create composite plot");
+  addArg(argv, "-x1x2"     , ArgType::Boolean, "use shared x range");
+  addArg(argv, "-y1y2"     , ArgType::Boolean, "use shared y range");
+  addArg(argv, "-overlay"  , ArgType::Boolean, "overlay (shared x and/or y range)");
+  addArg(argv, "-tabbed"   , ArgType::Boolean, "tabbed (one shown at a time)");
+  addArg(argv, "-composite", ArgType::Boolean, "create composite plot");
 }
 
 QStringList
@@ -2840,7 +2836,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsGroupChartsPlotsCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -2949,14 +2945,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsPlaceChartsPlotsCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
+  addArg(argv, "-view", ArgType::String, "view name").setRequired();
 
-  argv.addCmdArg("-vertical"  , CQChartsCmdArg::Type::Boolean, "place vertical");
-  argv.addCmdArg("-horizontal", CQChartsCmdArg::Type::Boolean, "place horizontal");
-  argv.addCmdArg("-rows"      , CQChartsCmdArg::Type::Integer, "place using n rows");
-  argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::Integer, "place using n columns");
+  addArg(argv, "-vertical"  , ArgType::Boolean, "place vertical");
+  addArg(argv, "-horizontal", ArgType::Boolean, "place horizontal");
+  addArg(argv, "-rows"      , ArgType::Integer, "place using n rows");
+  addArg(argv, "-columns"   , ArgType::Integer, "place using n columns");
 }
 
 QStringList
@@ -2970,7 +2966,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsPlaceChartsPlotsCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsPlaceChartsPlotsCmd::exec");
 
@@ -3014,12 +3010,12 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsFoldChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"    , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-column"   , CQChartsCmdArg::Type::Column , "column to fold");
-  argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "hier separator char");
-  argv.addCmdArg("-keep"     , CQChartsCmdArg::Type::Boolean, "keep fold column");
+  addArg(argv, "-model"    , ArgType::String , "model_id");
+  addArg(argv, "-column"   , ArgType::Column , "column to fold");
+  addArg(argv, "-separator", ArgType::String , "hier separator char");
+  addArg(argv, "-keep"     , ArgType::Boolean, "keep fold column");
 }
 
 QStringList
@@ -3033,7 +3029,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsFoldChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3124,14 +3120,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsFlattenChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"       , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-group"       , CQChartsCmdArg::Type::Column, "grouping column id");
-  argv.addCmdArg("-sum_columns" , CQChartsCmdArg::Type::String, "columns to calculate sum");
-  argv.addCmdArg("-mean_columns", CQChartsCmdArg::Type::String, "columns to calculate mean");
-  argv.addCmdArg("-default_op"  , CQChartsCmdArg::Type::String, "default operation");
-  argv.addCmdArg("-column_ops"  , CQChartsCmdArg::Type::String, "operations and columns to use");
+  addArg(argv, "-model"       , ArgType::String, "model_id");
+  addArg(argv, "-group"       , ArgType::Column, "grouping column id");
+  addArg(argv, "-sum_columns" , ArgType::String, "columns to calculate sum");
+  addArg(argv, "-mean_columns", ArgType::String, "columns to calculate mean");
+  addArg(argv, "-default_op"  , ArgType::String, "default operation");
+  addArg(argv, "-column_ops"  , ArgType::String, "operations and columns to use");
 }
 
 QStringList
@@ -3145,7 +3141,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsFlattenChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3295,14 +3291,14 @@ exec(CQChartsCmdArgs &argv)
 // copy model to new model
 void
 CQChartsCopyChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
   // TODO: columns, allow add row index ?
 
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-filter", CQChartsCmdArg::Type::String , "filter expression");
-  argv.addCmdArg("-rows"  , CQChartsCmdArg::Type::Integer, "number of rows");
-  argv.addCmdArg("-debug" , CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
+  addArg(argv, "-model" , ArgType::String , "model_id");
+  addArg(argv, "-filter", ArgType::String , "filter expression");
+  addArg(argv, "-rows"  , ArgType::Integer, "number of rows");
+  addArg(argv, "-debug" , ArgType::Boolean, "debug expression evaulation");
 }
 
 QStringList
@@ -3316,7 +3312,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCopyChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3375,10 +3371,10 @@ exec(CQChartsCmdArgs &argv)
 // join models to create new model
 void
 CQChartsJoinChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-models" , CQChartsCmdArg::Type::String, "model_ids");
-  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String, "columns");
+  addArg(argv, "-models" , ArgType::String, "model_ids");
+  addArg(argv, "-columns", ArgType::String, "columns");
 }
 
 QStringList
@@ -3390,7 +3386,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsJoinChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3468,10 +3464,10 @@ exec(CQChartsCmdArgs &argv)
 // join models to create new model
 void
 CQChartsGroupChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String, "columns");
+  addArg(argv, "-model"  , ArgType::String, "model_id");
+  addArg(argv, "-columns", ArgType::String, "columns");
 }
 
 QStringList
@@ -3485,7 +3481,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsGroupChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3543,14 +3539,14 @@ exec(CQChartsCmdArgs &argv)
 // TODO: combine with export. Support vertical header
 void
 CQChartsWriteChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"    , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-header"   , CQChartsCmdArg::Type::SBool  , "show header");
-  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "columns to ouput");
-  argv.addCmdArg("-max_rows" , CQChartsCmdArg::Type::Integer, "maximum number of rows to write");
-  argv.addCmdArg("-max_width", CQChartsCmdArg::Type::Integer, "maximum column width");
-  argv.addCmdArg("-hier"     , CQChartsCmdArg::Type::SBool  , "output hierarchically");
+  addArg(argv, "-model"    , ArgType::String , "model_id");
+  addArg(argv, "-header"   , ArgType::SBool  , "show header");
+  addArg(argv, "-columns"  , ArgType::String , "columns to ouput");
+  addArg(argv, "-max_rows" , ArgType::Integer, "maximum number of rows to write");
+  addArg(argv, "-max_width", ArgType::Integer, "maximum column width");
+  addArg(argv, "-hier"     , ArgType::SBool  , "output hierarchically");
 }
 
 QStringList
@@ -3564,7 +3560,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsWriteChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3885,11 +3881,11 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsSortChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Column , "column to sort");
-  argv.addCmdArg("-decreasing", CQChartsCmdArg::Type::Boolean, "invert sort");
+  addArg(argv, "-model"     , ArgType::String , "model_id");
+  addArg(argv, "-column"    , ArgType::Column , "column to sort");
+  addArg(argv, "-decreasing", ArgType::Boolean, "invert sort");
 }
 
 QStringList
@@ -3903,7 +3899,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsSortChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -3953,12 +3949,12 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsFilterChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String , "filter expression");
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column");
-  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String , "filter type");
+  addArg(argv, "-model" , ArgType::String , "model_id");
+  addArg(argv, "-expr"  , ArgType::String , "filter expression");
+  addArg(argv, "-column", ArgType::Column , "column");
+  addArg(argv, "-type"  , ArgType::String , "filter type");
 }
 
 QStringList
@@ -3975,7 +3971,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsFilterChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4057,11 +4053,11 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsCorrelationModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-flip"   , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
-  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String , "columns to correlate");
+  addArg(argv, "-model"  , ArgType::String , "model_id");
+  addArg(argv, "-flip"   , ArgType::Boolean, "correlate rows instead of columns");
+  addArg(argv, "-columns", ArgType::String , "columns to correlate");
 }
 
 QStringList
@@ -4075,7 +4071,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsCorrelationModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4142,14 +4138,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsFoldedModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"       , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-column"      , CQChartsCmdArg::Type::Column , "column to fold");
-  argv.addCmdArg("-fold_keep"   , CQChartsCmdArg::Type::Boolean, "keep folded column");
-  argv.addCmdArg("-fold_data"   , CQChartsCmdArg::Type::Boolean, "show folded column child data");
-  argv.addCmdArg("-bucket_count", CQChartsCmdArg::Type::Integer, "bucket count");
-  argv.addCmdArg("-bucket_delta", CQChartsCmdArg::Type::Real   , "bucket delta");
+  addArg(argv, "-model"       , ArgType::String , "model_id");
+  addArg(argv, "-column"      , ArgType::Column , "column to fold");
+  addArg(argv, "-fold_keep"   , ArgType::Boolean, "keep folded column");
+  addArg(argv, "-fold_data"   , ArgType::Boolean, "show folded column child data");
+  addArg(argv, "-bucket_count", ArgType::Integer, "bucket count");
+  addArg(argv, "-bucket_delta", ArgType::Real   , "bucket delta");
 }
 
 QStringList
@@ -4163,7 +4159,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsFoldedModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4261,16 +4257,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsBucketModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to bucket");
-  argv.addCmdArg("-multi" , CQChartsCmdArg::Type::Boolean, "multiple bucket columns");
-  argv.addCmdArg("-start" , CQChartsCmdArg::Type::Real   , "bucket start");
-  argv.addCmdArg("-delta" , CQChartsCmdArg::Type::Real   , "bucket delta");
-  argv.addCmdArg("-min"   , CQChartsCmdArg::Type::Real   , "bucket min");
-  argv.addCmdArg("-max"   , CQChartsCmdArg::Type::Real   , "bucket max");
-  argv.addCmdArg("-count" , CQChartsCmdArg::Type::Integer, "number of buckets");
+  addArg(argv, "-model" , ArgType::String , "model_id");
+  addArg(argv, "-column", ArgType::Column , "column to bucket");
+  addArg(argv, "-multi" , ArgType::Boolean, "multiple bucket columns");
+  addArg(argv, "-start" , ArgType::Real   , "bucket start");
+  addArg(argv, "-delta" , ArgType::Real   , "bucket delta");
+  addArg(argv, "-min"   , ArgType::Real   , "bucket min");
+  addArg(argv, "-max"   , ArgType::Real   , "bucket max");
+  addArg(argv, "-count" , ArgType::Integer, "number of buckets");
 }
 
 QStringList
@@ -4284,7 +4280,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsBucketModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4381,13 +4377,13 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsSubsetModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-left"  , CQChartsCmdArg::Type::Column , "left (start) column");
-  argv.addCmdArg("-right" , CQChartsCmdArg::Type::Column , "right (end) column");
-  argv.addCmdArg("-top"   , CQChartsCmdArg::Type::Integer, "top (start) row");
-  argv.addCmdArg("-bottom", CQChartsCmdArg::Type::Integer, "bottom (end) row");
+  addArg(argv, "-model" , ArgType::String , "model_id");
+  addArg(argv, "-left"  , ArgType::Column , "left (start) column");
+  addArg(argv, "-right" , ArgType::Column , "right (end) column");
+  addArg(argv, "-top"   , ArgType::Integer, "top (start) row");
+  addArg(argv, "-bottom", ArgType::Integer, "bottom (end) row");
 }
 
 QStringList
@@ -4401,7 +4397,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsSubsetModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4465,9 +4461,9 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsTransposeModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String, "model_id");
+  addArg(argv, "-model", ArgType::String, "model_id");
 }
 
 QStringList
@@ -4481,7 +4477,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsTransposeModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4526,20 +4522,20 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsSummaryModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"      , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maxumum rows");
-  argv.addCmdArg("-random"     , CQChartsCmdArg::Type::Boolean, "random rows");
-  argv.addCmdArg("-sorted"     , CQChartsCmdArg::Type::Boolean, "sorted rows");
-  argv.addCmdArg("-sort_column", CQChartsCmdArg::Type::Integer, "sort column");
-  argv.addCmdArg("-sort_role"  , CQChartsCmdArg::Type::String , "sort role");
-  argv.addCmdArg("-sort_order" , CQChartsCmdArg::Type::Enum   , "sort order").
+  addArg(argv, "-model"      , ArgType::String , "model_id");
+  addArg(argv, "-max_rows"   , ArgType::Integer, "maxumum rows");
+  addArg(argv, "-random"     , ArgType::Boolean, "random rows");
+  addArg(argv, "-sorted"     , ArgType::Boolean, "sorted rows");
+  addArg(argv, "-sort_column", ArgType::Integer, "sort column");
+  addArg(argv, "-sort_role"  , ArgType::String , "sort role");
+  addArg(argv, "-sort_order" , ArgType::Enum   , "sort order").
    addNameValue("ascending" , Qt::AscendingOrder ).
    addNameValue("descending", Qt::DescendingOrder);
-  argv.addCmdArg("-paged"      , CQChartsCmdArg::Type::Boolean, "paged");
-  argv.addCmdArg("-page_size"  , CQChartsCmdArg::Type::Integer, "page size");
-  argv.addCmdArg("-page_number", CQChartsCmdArg::Type::Integer, "page number");
+  addArg(argv, "-paged"      , ArgType::Boolean, "paged");
+  addArg(argv, "-page_size"  , ArgType::Integer, "page size");
+  addArg(argv, "-page_number", ArgType::Integer, "page number");
 }
 
 QStringList
@@ -4554,7 +4550,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsSummaryModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4644,11 +4640,11 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsCollapseModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::String, "columns to calculate sum");
-  argv.addCmdArg("-mean" , CQChartsCmdArg::Type::String, "columns to calculate mean");
+  addArg(argv, "-model", ArgType::String, "model_id");
+  addArg(argv, "-sum"  , ArgType::String, "columns to calculate sum");
+  addArg(argv, "-mean" , ArgType::String, "columns to calculate mean");
 }
 
 QStringList
@@ -4662,7 +4658,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsCollapseModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4782,14 +4778,14 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPivotModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"         , CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-hcolumns"      , CQChartsCmdArg::Type::String , "horizontal columns");
-  argv.addCmdArg("-vcolumns"      , CQChartsCmdArg::Type::String , "vertical columns");
-  argv.addCmdArg("-dcolumn"       , CQChartsCmdArg::Type::String , "data column");
-  argv.addCmdArg("-value_type"    , CQChartsCmdArg::Type::String , "value type");
-  argv.addCmdArg("-include_totals", CQChartsCmdArg::Type::Boolean, "include totals");
+  addArg(argv, "-model"         , ArgType::String , "model_id");
+  addArg(argv, "-hcolumns"      , ArgType::String , "horizontal columns");
+  addArg(argv, "-vcolumns"      , ArgType::String , "vertical columns");
+  addArg(argv, "-dcolumn"       , ArgType::String , "data column");
+  addArg(argv, "-value_type"    , ArgType::String , "value type");
+  addArg(argv, "-include_totals", ArgType::Boolean, "include totals");
 }
 
 QStringList
@@ -4803,7 +4799,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPivotModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -4923,10 +4919,10 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsStatsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String, "columns");
+  addArg(argv, "-model"  , ArgType::String, "model_id");
+  addArg(argv, "-columns", ArgType::String, "columns");
 }
 
 QStringList
@@ -4940,7 +4936,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsStatsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -5137,10 +5133,10 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsDataModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
-  argv.addCmdArg("-columns", CQChartsCmdArg::Type::Integer, "number of columns");
+  addArg(argv, "-rows"   , ArgType::Integer, "number of rows");
+  addArg(argv, "-columns", ArgType::Integer, "number of columns");
 }
 
 QStringList
@@ -5152,7 +5148,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsCreateChartsDataModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCreateChartsDataModelCmd::exec");
 
@@ -5196,13 +5192,13 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsExportChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-to"     , CQChartsCmdArg::Type::String, "destination format");
-  argv.addCmdArg("-file"   , CQChartsCmdArg::Type::String, "file name");
-  argv.addCmdArg("-hheader", CQChartsCmdArg::Type::SBool , "output horizontal header");
-  argv.addCmdArg("-vheader", CQChartsCmdArg::Type::SBool , "output vertical header");
+  addArg(argv, "-model"  , ArgType::String, "model_id");
+  addArg(argv, "-to"     , ArgType::String, "destination format");
+  addArg(argv, "-file"   , ArgType::String, "file name");
+  addArg(argv, "-hheader", ArgType::SBool , "output horizontal header");
+  addArg(argv, "-vheader", ArgType::SBool , "output vertical header");
 }
 
 QStringList
@@ -5217,7 +5213,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsExportChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -5278,9 +5274,9 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsRemoveChartsModelCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String, "model_id");
+  addArg(argv, "-model", ArgType::String, "model_id");
 }
 
 QStringList
@@ -5294,7 +5290,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsRemoveChartsModelCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -5335,33 +5331,33 @@ exec(CQChartsCmdArgs &argv)
 // get charts data
 void
 CQChartsGetChartsDataCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-type"      , CQChartsCmdArg::Type::String, "type name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-model"     , ArgType::String, "model_id");
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-type"      , ArgType::String, "type name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-object", CQChartsCmdArg::Type::String, "object id");
+  addArg(argv, "-object", ArgType::String, "object id");
 
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column name or number");
-  argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
-  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
-  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::String , "model index");
+  addArg(argv, "-column", ArgType::Column , "column name or number");
+  addArg(argv, "-header", ArgType::Boolean, "get header data");
+  addArg(argv, "-row"   , ArgType::Row    , "row number or id");
+  addArg(argv, "-ind"   , ArgType::String , "model index");
 
-  argv.addCmdArg("-role", CQChartsCmdArg::Type::String, "role id");
+  addArg(argv, "-role", ArgType::String, "role id");
 
-  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "option name").setRequired();
-  argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "option data");
+  addArg(argv, "-name", ArgType::String, "option name").setRequired();
+  addArg(argv, "-data", ArgType::String, "option data");
 
-  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
+  addArg(argv, "-hidden", ArgType::Boolean, "include hidden data").setHidden(true);
 
-  argv.addCmdArg("-sync", CQChartsCmdArg::Type::Boolean, "sync before query").setHidden(true);
+  addArg(argv, "-sync", ArgType::Boolean, "sync before query").setHidden(true);
 
-  argv.addCmdArg("-quiet", CQChartsCmdArg::Type::Boolean, "fail quietly").setHidden(true);
+  addArg(argv, "-quiet", ArgType::Boolean, "fail quietly").setHidden(true);
 }
 
 QStringList
@@ -5435,7 +5431,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
 
 bool
 CQChartsGetChartsDataCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -6429,30 +6425,30 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsSetChartsDataCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-type"      , CQChartsCmdArg::Type::String, "type name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-model"     , ArgType::String, "model_id");
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-type"      , ArgType::String, "type name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-object", CQChartsCmdArg::Type::String, "object id");
+  addArg(argv, "-object", ArgType::String, "object id");
 
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column name or number");
-  argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
-  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
-  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::String , "model index");
+  addArg(argv, "-column", ArgType::Column , "column name or number");
+  addArg(argv, "-header", ArgType::Boolean, "get header data");
+  addArg(argv, "-row"   , ArgType::Row    , "row number or id");
+  addArg(argv, "-ind"   , ArgType::String , "model index");
 
-  argv.addCmdArg("-role", CQChartsCmdArg::Type::String, "role id");
+  addArg(argv, "-role", ArgType::String, "role id");
 
-  argv.addCmdArg("-name" , CQChartsCmdArg::Type::String, "option name");
-  argv.addCmdArg("-value", CQChartsCmdArg::Type::String, "option value");
-  argv.addCmdArg("-data" , CQChartsCmdArg::Type::String, "option data");
+  addArg(argv, "-name" , ArgType::String, "option name");
+  addArg(argv, "-value", ArgType::String, "option value");
+  addArg(argv, "-data" , ArgType::String, "option data");
 
-  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
+  addArg(argv, "-hidden", ArgType::Boolean, "include hidden data").setHidden(true);
 }
 
 QStringList
@@ -6472,7 +6468,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 // set charts data
 bool
 CQChartsSetChartsDataCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -6757,48 +6753,39 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsArrowAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
+  addArg(argv, "-start", ArgType::Position, "start position");
+  addArg(argv, "-end"  , ArgType::Position, "end position");
 
-  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "connecting line width");
+  addArg(argv, "-line_width", ArgType::Length, "connecting line width");
 
-  argv.addCmdArg("-fhead", CQChartsCmdArg::Type::String, "start arrow head type");
-  argv.addCmdArg("-thead", CQChartsCmdArg::Type::String, "end arrow head type");
+  addArg(argv, "-fhead", ArgType::String, "start arrow head type");
+  addArg(argv, "-thead", ArgType::String, "end arrow head type");
 
-  argv.addCmdArg("-angle", CQChartsCmdArg::Type::String,
-                 "arrow head angle");
-  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::String,
-                 "arrow head back angle").setHidden();
-  argv.addCmdArg("-length", CQChartsCmdArg::Type::String,
-                 "arrow head length");
-  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::String,
-                 "use line for arrow head").setHidden();
+  addArg(argv, "-angle", ArgType::String, "arrow head angle");
+  addArg(argv, "-back_angle", ArgType::String, "arrow head back angle").setHidden();
+  addArg(argv, "-length", ArgType::String, "arrow head length");
+  addArg(argv, "-line_ends", ArgType::String, "use line for arrow head").setHidden();
 
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
-                 "background is filled" ).setHidden();
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
-                 "background fill color").setHidden();
+  addArg(argv, "-filled"    , ArgType::SBool, "background is filled" ).setHidden();
+  addArg(argv, "-fill_color", ArgType::Color, "background fill color").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
-                 "border stroke width").setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color , "border stroke color").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length, "border stroke width").setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -6813,7 +6800,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsArrowAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7060,22 +7047,22 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsArcAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
+  addArg(argv, "-start", ArgType::Position, "start position");
+  addArg(argv, "-end"  , ArgType::Position, "end position");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7090,7 +7077,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsArcAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
 /*
   auto errorMsg = [&](const QString &msg) {
@@ -7177,23 +7164,23 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsAxisAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name").setRequired();
+  addArg(argv, "-plot", ArgType::String, "plot name").setRequired();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Real, "start");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Real, "end");
+  addArg(argv, "-start", ArgType::Real, "start");
+  addArg(argv, "-end"  , ArgType::Real, "end");
 
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Real, "position");
+  addArg(argv, "-position", ArgType::Real, "position");
 
-  argv.addCmdArg("-direction", CQChartsCmdArg::Type::String, "Direction");
+  addArg(argv, "-direction", ArgType::String, "Direction");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7207,7 +7194,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsAxisAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7306,47 +7293,38 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsEllipseAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-center", CQChartsCmdArg::Type::Position, "center");
+  addArg(argv, "-center", ArgType::Position, "center");
 
-  argv.addCmdArg("-rx", CQChartsCmdArg::Type::Length, "x radius");
-  argv.addCmdArg("-ry", CQChartsCmdArg::Type::Length, "y radius");
+  addArg(argv, "-rx", ArgType::Length, "x radius");
+  addArg(argv, "-ry", ArgType::Length, "y radius");
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
-                 "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
+  addArg(argv, "-corner_size" , ArgType::Length, "corner size" ).setHidden();
+  addArg(argv, "-border_sides", ArgType::Sides , "border sides").setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7361,7 +7339,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsEllipseAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7472,19 +7450,19 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsAnnotationGroupCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7499,7 +7477,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsAnnotationGroupCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
 #if 0
   auto errorMsg = [&](const QString &msg) {
@@ -7580,28 +7558,28 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsImageAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
-  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::Position, "position");
+  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image file");
-  argv.addCmdArg("-icon" , CQChartsCmdArg::Type::String, "icon file");
-  argv.addCmdArg("-svg"  , CQChartsCmdArg::Type::String, "svg file");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-image", ArgType::String, "image file");
+  addArg(argv, "-icon" , ArgType::String, "icon file");
+  addArg(argv, "-svg"  , ArgType::String, "svg file");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7616,7 +7594,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsImageAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7744,21 +7722,21 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPathAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-path", CQChartsCmdArg::Type::String, "path string");
+  addArg(argv, "-path", ArgType::String, "path string");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7773,7 +7751,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPathAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7865,21 +7843,21 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsKeyAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column, "column for unique item values");
+  addArg(argv, "-column", ArgType::Column, "column for unique item values");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -7894,7 +7872,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsKeyAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -7985,27 +7963,27 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPieSliceAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
+  addArg(argv, "-position", ArgType::Position, "point position");
 
-  argv.addCmdArg("-inner_radius", CQChartsCmdArg::Type::Length, "inner radius");
-  argv.addCmdArg("-outer_radius", CQChartsCmdArg::Type::Length, "outer radius");
+  addArg(argv, "-inner_radius", ArgType::Length, "inner radius");
+  addArg(argv, "-outer_radius", ArgType::Length, "outer radius");
 
-  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::String, "start angle");
-  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::String, "span angle");
+  addArg(argv, "-start_angle", ArgType::String, "start angle");
+  addArg(argv, "-span_angle" , ArgType::String, "span angle");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8020,7 +7998,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPieSliceAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8113,40 +8091,33 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPointAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
+  addArg(argv, "-position", ArgType::Position, "point position");
 
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "symbol type");
-  argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "symbol size");
+  addArg(argv, "-type", ArgType::String, "symbol type");
+  addArg(argv, "-size", ArgType::Length, "symbol size");
 
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
-                 "symbol background is filled" ).setHidden();
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
-                 "symbol background fill color").setHidden();
-  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real ,
-                 "symbol background fill alpha").setHidden();
+  addArg(argv, "-filled"    , ArgType::SBool, "symbol background is filled" ).setHidden();
+  addArg(argv, "-fill_color", ArgType::Color, "symbol background fill color").setHidden();
+  addArg(argv, "-fill_alpha", ArgType::Real , "symbol background fill alpha").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
-                 "symbol border stroke visible").setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
-                 "symbol border stroke color"  ).setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real  ,
-                 "symbol border stroke alpha"  ).setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
-                 "symbol border stroke width"  ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool , "symbol border stroke visible").setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color , "symbol border stroke color"  ).setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real  , "symbol border stroke alpha"  ).setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length, "symbol border stroke width"  ).setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8162,7 +8133,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPointAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8275,21 +8246,21 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPointSetAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
+  addArg(argv, "-values", ArgType::Reals, "values");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8304,7 +8275,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPointSetAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8391,41 +8362,32 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPolygonAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
+  addArg(argv, "-points", ArgType::Polygon, "points string").setRequired();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
-                 "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8440,7 +8402,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPolygonAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8548,41 +8510,32 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsPolylineAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
+  addArg(argv, "-points", ArgType::Polygon, "points string").setRequired();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
-                 "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8597,7 +8550,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsPolylineAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8705,50 +8658,41 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsRectangleAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-rectangle" , CQChartsCmdArg::Type::Rect, "rectangle bounding box");
+  addArg(argv, "-rectangle" , ArgType::Rect, "rectangle bounding box");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start").setHidden();
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  ).setHidden();
+  addArg(argv, "-start", ArgType::Position, "start").setHidden();
+  addArg(argv, "-end"  , ArgType::Position, "end"  ).setHidden();
 
-  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin" ).setHidden();
-  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding").setHidden();
+  addArg(argv, "-margin" , ArgType::Real, "margin" ).setHidden();
+  addArg(argv, "-padding", ArgType::Real, "padding").setHidden();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
-                 "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
+  addArg(argv, "-corner_size" , ArgType::Length, "corner size" ).setHidden();
+  addArg(argv, "-border_sides", ArgType::Sides , "border sides").setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8763,7 +8707,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsRectangleAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -8910,55 +8854,46 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsTextAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
-  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::Position, "position");
+  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
 
-  argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
+  addArg(argv, "-text", ArgType::String, "text");
 
-  argv.addCmdArg("-font"    , CQChartsCmdArg::Type::String , "font");
-  argv.addCmdArg("-color"   , CQChartsCmdArg::Type::Color  , "color");
-  argv.addCmdArg("-alpha"   , CQChartsCmdArg::Type::Real   , "alpha");
-  argv.addCmdArg("-angle"   , CQChartsCmdArg::Type::String , "angle");
-  argv.addCmdArg("-contrast", CQChartsCmdArg::Type::SBool  , "contrast");
-  argv.addCmdArg("-align"   , CQChartsCmdArg::Type::Align  , "align string");
-  argv.addCmdArg("-html"    , CQChartsCmdArg::Type::Boolean, "html text");
+  addArg(argv, "-font"    , ArgType::String , "font");
+  addArg(argv, "-color"   , ArgType::Color  , "color");
+  addArg(argv, "-alpha"   , ArgType::Real   , "alpha");
+  addArg(argv, "-angle"   , ArgType::String , "angle");
+  addArg(argv, "-contrast", ArgType::SBool  , "contrast");
+  addArg(argv, "-align"   , ArgType::Align  , "align string");
+  addArg(argv, "-html"    , ArgType::Boolean, "html text");
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
-                 "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
+  addArg(argv, "-corner_size" , ArgType::Length, "corner size" ).setHidden();
+  addArg(argv, "-border_sides", ArgType::Sides , "border sides").setHidden();
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -8973,7 +8908,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsTextAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9113,23 +9048,23 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsValueSetAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect, "rectangle");
+  addArg(argv, "-rectangle", ArgType::Rect, "rectangle");
 
-  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
+  addArg(argv, "-values", ArgType::Reals, "values");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -9144,7 +9079,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsValueSetAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9230,27 +9165,27 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsButtonAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "position");
+  addArg(argv, "-position", ArgType::Position, "position");
 
-  argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
+  addArg(argv, "-text", ArgType::String, "text");
 
-  argv.addCmdArg("-font" , CQChartsCmdArg::Type::String, "font");
-  argv.addCmdArg("-color", CQChartsCmdArg::Type::Color , "color");
-  argv.addCmdArg("-alpha", CQChartsCmdArg::Type::Real  , "alpha");
+  addArg(argv, "-font" , ArgType::String, "font");
+  addArg(argv, "-color", ArgType::Color , "color");
+  addArg(argv, "-alpha", ArgType::Real  , "alpha");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -9265,7 +9200,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsButtonAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9367,24 +9302,24 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsWidgetAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
-  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::Position, "position");
+  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
 
-  argv.addCmdArg("-widget", CQChartsCmdArg::Type::String, "widget path");
+  addArg(argv, "-widget", ArgType::String, "widget path");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -9399,7 +9334,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsWidgetAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9513,16 +9448,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name").setRequired();;
+  addArg(argv, "-plot", ArgType::String, "plot name").setRequired();;
 
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+  addArg(argv, "-group", ArgType::String, "annotation group");
 
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  addArg(argv, "-properties", ArgType::String, "name_values");
 }
 
 QStringList
@@ -9536,7 +9471,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
 #if 0
   auto errorMsg = [&](const QString &msg) {
@@ -9613,17 +9548,17 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsRemoveChartsAnnotationCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
   // -view or -plot needed for -all
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String , "annotation id");
-  argv.addCmdArg("-all", CQChartsCmdArg::Type::Boolean, "all annotations");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-id" , ArgType::String , "annotation id");
+  addArg(argv, "-all", ArgType::Boolean, "all annotations");
   argv.endCmdGroup();
 }
 
@@ -9639,7 +9574,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsRemoveChartsAnnotationCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9696,25 +9631,25 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsAddChartsKeyItemCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String , "item id");
+  addArg(argv, "-id", ArgType::String , "item id");
 
-  argv.addCmdArg("-row"  , CQChartsCmdArg::Type::Integer, "item row");
-  argv.addCmdArg("-col"  , CQChartsCmdArg::Type::Integer, "item column");
-  argv.addCmdArg("-nrows", CQChartsCmdArg::Type::Integer, "item row count");
-  argv.addCmdArg("-ncols", CQChartsCmdArg::Type::Integer, "item column count");
+  addArg(argv, "-row"  , ArgType::Integer, "item row");
+  addArg(argv, "-col"  , ArgType::Integer, "item column");
+  addArg(argv, "-nrows", ArgType::Integer, "item row count");
+  addArg(argv, "-ncols", ArgType::Integer, "item column count");
 
-  argv.addCmdArg("-text"    , CQChartsCmdArg::Type::String, "item text");
-  argv.addCmdArg("-color"   , CQChartsCmdArg::Type::Color , "item color");
-  argv.addCmdArg("-symbol"  , CQChartsCmdArg::Type::Color , "item symbol");
-  argv.addCmdArg("-gradient", CQChartsCmdArg::Type::String, "item gradient");
+  addArg(argv, "-text"    , ArgType::String, "item text");
+  addArg(argv, "-color"   , ArgType::Color , "item color");
+  addArg(argv, "-symbol"  , ArgType::Color , "item symbol");
+  addArg(argv, "-gradient", ArgType::String, "item gradient");
 }
 
 QStringList
@@ -9730,7 +9665,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsAddChartsKeyItemCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -9928,16 +9863,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsConnectChartsSignalCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
-  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-from", CQChartsCmdArg::Type::String, "from connection name");
-  argv.addCmdArg("-to"  , CQChartsCmdArg::Type::String, "to procedure name");
+  addArg(argv, "-from", ArgType::String, "from connection name");
+  addArg(argv, "-to"  , ArgType::String, "to procedure name");
 }
 
 QStringList
@@ -9953,7 +9888,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsConnectChartsSignalCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -10100,16 +10035,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsPrintChartsImageCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-file", CQChartsCmdArg::Type::String, "filename").setRequired();
+  addArg(argv, "-file", ArgType::String, "filename").setRequired();
 
-  argv.addCmdArg("-layer", CQChartsCmdArg::Type::String, "layer name");
+  addArg(argv, "-layer", ArgType::String, "layer name");
 }
 
 QStringList
@@ -10124,7 +10059,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsPrintChartsImageCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -10188,15 +10123,15 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsWriteChartsDataCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type");
-  argv.addCmdArg("-file", CQChartsCmdArg::Type::String, "filename");
+  addArg(argv, "-type", ArgType::String, "type");
+  addArg(argv, "-file", ArgType::String, "filename");
 }
 
 QStringList
@@ -10211,7 +10146,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsWriteChartsDataCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -10318,9 +10253,9 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsShowChartsLoadModelDlgCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
+  addArg(argv, "-modal", ArgType::Boolean, "show modal");
 }
 
 QStringList
@@ -10332,7 +10267,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsShowChartsLoadModelDlgCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsShowChartsLoadModelDlgCmd::exec");
 
@@ -10361,9 +10296,9 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsShowChartsManageModelsDlgCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
+  addArg(argv, "-modal", ArgType::Boolean, "show modal");
 }
 
 QStringList
@@ -10375,7 +10310,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsShowChartsManageModelsDlgCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsShowChartsManageModelsDlgCmd::exec");
 
@@ -10404,11 +10339,11 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsShowChartsCreatePlotDlgCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String , "model_id" );
-  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name" );
-  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
+  addArg(argv, "-model", ArgType::String , "model_id" );
+  addArg(argv, "-view" , ArgType::String , "view name" );
+  addArg(argv, "-modal", ArgType::Boolean, "show modal");
 }
 
 QStringList
@@ -10423,7 +10358,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsShowChartsCreatePlotDlgCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
@@ -10474,7 +10409,7 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsShowChartsTextDlgCmd::
-addArgs(CQChartsCmdArgs &)
+addCmdArgs(CQChartsCmdArgs &)
 {
 }
 
@@ -10487,7 +10422,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsShowChartsTextDlgCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsShowChartsTextDlgCmd::exec");
 
@@ -10514,7 +10449,7 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsShowChartsHelpDlgCmd::
-addArgs(CQChartsCmdArgs &)
+addCmdArgs(CQChartsCmdArgs &)
 {
 }
 
@@ -10527,7 +10462,7 @@ getArgValues(const QString &, const NameValueMap &)
 
 bool
 CQChartsShowChartsHelpDlgCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsShowChartsHelpDlgCmd::exec");
 
@@ -10574,16 +10509,16 @@ exec(CQChartsCmdArgs &argv)
 
 void
 CQChartsTestEditCmd::
-addArgs(CQChartsCmdArgs &argv)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type").setMultiple(true);
+  addArg(argv, "-type", ArgType::String, "type").setMultiple(true);
 
-  argv.addCmdArg("-editable", CQChartsCmdArg::Type::SBool, "editable");
+  addArg(argv, "-editable", ArgType::SBool, "editable");
 
 }
 
@@ -10599,7 +10534,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 
 bool
 CQChartsTestEditCmd::
-exec(CQChartsCmdArgs &argv)
+execCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);

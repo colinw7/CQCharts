@@ -530,7 +530,7 @@ draw(CQChartsPaintDevice *device)
 
     auto tc = interpTextColor(ColorInd());
 
-    plot()->setPen(penBrush, CQChartsPenData(true, tc, textAlpha()));
+    plot()->setPen(penBrush, PenData(true, tc, textAlpha()));
 
     device->setPen(penBrush.pen);
 
@@ -577,7 +577,7 @@ draw(CQChartsPaintDevice *device)
 
     auto tc = subTitle_->interpTextColor(ColorInd());
 
-    plot()->setPen(penBrush, CQChartsPenData(true, tc, subTitle_->textAlpha()));
+    plot()->setPen(penBrush, PenData(true, tc, subTitle_->textAlpha()));
 
     device->setPen(penBrush.pen);
 

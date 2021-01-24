@@ -24,6 +24,8 @@ CQChartsCmdsSlot.cpp \
 CQChartsInitData.cpp \
 CQChartsReadLine.cpp \
 CQChartsTest.cpp \
+\
+CQTclCmd.cpp \
 
 HEADERS += \
 CQAppWindow.h \
@@ -39,6 +41,8 @@ CQChartsInput.h \
 CQChartsNameValueData.h \
 CQChartsReadLine.h \
 CQChartsTest.h \
+\
+CQTclCmd.h \
 
 DESTDIR     = ../bin
 OBJECTS_DIR = ../obj

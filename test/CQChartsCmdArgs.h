@@ -13,14 +13,15 @@
 #include <CQChartsReals.h>
 #include <CQChartsAngle.h>
 
-#include <CQChartsCmdArg.h>
-#include <CQChartsCmdGroup.h>
-
-#include <CQTclUtil.h>
+#include <CQTclCmd.h>
+//#include <CQTclUtil.h>
 #include <CQAlignEdit.h>
 #include <CQStrParse.h>
 
+#include <tcl.h>
+
 #include <boost/optional.hpp>
+
 #include <set>
 
 //------
@@ -29,1208 +30,124 @@
  * \brief base class for handling command arguments
  * \ingroup Charts
  */
-class CQChartsCmdBaseArgs {
+class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
  public:
-  using CmdGroup = CQChartsCmdGroup;
-  using CmdArg   = CQChartsCmdArg;
-  using Args     = std::vector<QVariant>;
-  using OptReal  = boost::optional<double>;
-  using OptInt   = boost::optional<int>;
-  using OptBool  = boost::optional<bool>;
+  using Polygon = CQChartsGeom::Polygon;
+  using Point   = CQChartsGeom::Point;
 
-  /*!
-   * \brief command argument
-   * \ingroup Charts
-   */
-  class Arg {
-   public:
-    Arg(const QVariant &var=QVariant()) :
-     var_(var) {
-      QString varStr = toString(var_);
+  //---
 
-      isOpt_ = (varStr.length() && varStr[0] == '-');
-    }
-
-  //QString  str() const { assert(! isOpt_); return toString(var_); }
-    QVariant var() const { assert(! isOpt_); return var_; }
-
-    bool isOpt() const { return isOpt_; }
-    void setIsOpt(bool b) { isOpt_ = b; }
-
-    QString opt() const { assert(isOpt_); return toString(var_).mid(1); }
-
-   private:
-    QVariant var_;             //!< arg value
-    bool     isOpt_ { false }; //!< is option
+  //! types
+  enum class Type {
+    None     = int(CQTclCmd::CmdArg::Type::None),
+    Boolean  = int(CQTclCmd::CmdArg::Type::Boolean),
+    Integer  = int(CQTclCmd::CmdArg::Type::Integer),
+    Real     = int(CQTclCmd::CmdArg::Type::Real),
+    String   = int(CQTclCmd::CmdArg::Type::String),
+    SBool    = int(CQTclCmd::CmdArg::Type::SBool),
+    Enum     = int(CQTclCmd::CmdArg::Type::Enum),
+    Color    = int(CQTclCmd::CmdArg::Type::Extra) + 1,
+    Font     = int(CQTclCmd::CmdArg::Type::Extra) + 2,
+    LineDash = int(CQTclCmd::CmdArg::Type::Extra) + 3,
+    Length   = int(CQTclCmd::CmdArg::Type::Extra) + 4,
+    Position = int(CQTclCmd::CmdArg::Type::Extra) + 5,
+    Rect     = int(CQTclCmd::CmdArg::Type::Extra) + 6,
+    Polygon  = int(CQTclCmd::CmdArg::Type::Extra) + 7,
+    Align    = int(CQTclCmd::CmdArg::Type::Extra) + 8,
+    Sides    = int(CQTclCmd::CmdArg::Type::Extra) + 9,
+    Column   = int(CQTclCmd::CmdArg::Type::Extra) + 10,
+    Row      = int(CQTclCmd::CmdArg::Type::Extra) + 11,
+    Reals    = int(CQTclCmd::CmdArg::Type::Extra) + 12
   };
 
-  //---
-
  public:
-  CQChartsCmdBaseArgs(const QString &cmdName, const Args &argv) :
-   cmdName_(cmdName), argv_(argv), argc_(argv_.size()) {
-  }
+  CQChartsCmdBaseArgs(const QString &cmdName, const Args &argv);
 
   //---
 
-  // start command group
-  CmdGroup &startCmdGroup(CmdGroup::Type type) {
-    int ind = cmdGroups_.size() + 1;
-
-    cmdGroups_.emplace_back(ind, type);
-
-    groupInd_ = ind;
-
-    return cmdGroups_.back();
-  }
-
-  // end command group
-  void endCmdGroup() {
-    groupInd_ = -1;
-  }
-
-  //---
-
-  // add argument
-  CmdArg &addCmdArg(const QString &name, CmdArg::Type type,
-                    const QString &argDesc="", const QString &desc="") {
-    int ind = cmdArgs_.size() + 1;
-
-    cmdArgs_.emplace_back(ind, name, type, argDesc, desc);
-
-    CmdArg &cmdArg = cmdArgs_.back();
-
-    cmdArg.setGroupInd(groupInd_);
-
-    return cmdArg;
-  }
-
-  //---
-
-  // has processed last argument
-  bool eof() const { return (i_ >= argc_); }
-
-  // move to first argument
-  void rewind() { i_ = 0; }
-
-  // get next arg
-  const Arg &getArg() {
-    assert(i_ < argc_);
-
-    lastArg_ = Arg(argv_[i_++]);
-
-    return lastArg_;
-  }
-
-  //---
-
-  // get string or string list value of current option
-  bool getOptValue(QStringList &strs) {
-    if (eof()) return false;
-
-    strs = toStringList(argv_[i_++]);
-
-    return true;
-  }
-
-  // get string value of current option
-  bool getOptValue(QString &str) {
-    if (eof()) return false;
-
-    str = toString(argv_[i_++]);
-
-    return true;
-  }
-
-  // get integer value of current option
-  bool getOptValue(int &i) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    i = CQChartsUtil::toInt(str, ok);
-
-    return ok;
-  }
-
-  // get real value of current option
-  bool getOptValue(double &r) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    r = CQChartsUtil::toReal(str, ok);
-
-    return ok;
-  }
-
-  // get optional real value of current option
-  bool getOptValue(OptReal &r) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    r = CQChartsUtil::toReal(str, ok);
-
-    return ok;
-  }
-
-  // get optional boolean value of current option
-  bool getOptValue(bool &b) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    str = str.toLower();
-
-    bool ok;
-
-    b = stringToBool(str, &ok);
-
-    return ok;
-  }
-
-  // get generic value of current option
-  template<typename T>
-  bool getOptValue(T &t) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    t = T(str);
-
-    return true;
-  }
-
-  // get font value of current option
-  bool getOptValue(CQChartsFont &f) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    f = CQChartsFont(str);
-
-    return true;
-  }
-
-  // get font value of current option
-  bool getOptValue(QFont &f) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    f = QFont(str);
-
-    return true;
-  }
+  using CQTclCmd::CmdArgs::getOptValue;
 
   // get alignment value of current option
-  bool getOptValue(Qt::Alignment &a) {
-    QString str;
+  bool getOptValue(Qt::Alignment &a);
 
-    if (! getOptValue(str))
-      return false;
+  // get font value of current option
+  //bool getOptValue(QFont &f);
 
-    a = CQAlignEdit::fromString(str);
-
-    return true;
-  }
+  // get font value of current option
+  bool getOptValue(CQChartsFont &f);
 
   // get length value of current option
-  bool getOptValue(CQChartsLength &l) {
-    return getOptValue<CQChartsLength>(l);
-  }
+  bool getOptValue(CQChartsLength &l);
 
   // get position value of current option
-  bool getOptValue(CQChartsPosition &p) {
-    return getOptValue<CQChartsPosition>(p);
-  }
+  bool getOptValue(CQChartsPosition &p);
 
   // get rect value of current option
-  bool getOptValue(CQChartsRect &r) {
-    return getOptValue<CQChartsRect>(r);
-  }
+  bool getOptValue(CQChartsRect &r);
 
   // get color value of current option
-  bool getOptValue(CQChartsColor &c) {
-    return getOptValue<CQChartsColor>(c);
-  }
+  bool getOptValue(CQChartsColor &c);
 
   // get line dash value of current option
-  bool getOptValue(CQChartsLineDash &d) {
-    return getOptValue<CQChartsLineDash>(d);
-  }
+  bool getOptValue(CQChartsLineDash &d);
 
   // get polygon value of current option
-  bool getOptValue(CQChartsGeom::Polygon &poly) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    poly = stringToPolygon(str);
-
-    return poly.size();
-  }
+  bool getOptValue(Polygon &poly);
 
   // get reals value of current option
-  bool getOptValue(CQChartsReals &r) {
-    return getOptValue<CQChartsReals>(r);
-  }
+  bool getOptValue(CQChartsReals &r);
 
   //---
 
-  // get/set debug
-  bool isDebug() const { return debug_; }
-  void setDebug(bool b) { debug_ = b; }
-
-  //---
-
-  // parse command arguments
-  bool parse() {
-    bool rc;
-
-    return parse(rc);
-  }
-
-  bool parse(bool &rc) {
-    rc = false;
-
-    // clear parsed values
-    parseInt_ .clear();
-    parseReal_.clear();
-    parseStr_ .clear();
-    parseBool_.clear();
-    parseArgs_.clear();
-
-    //---
-
-    using Names      = std::set<QString>;
-    using GroupNames = std::map<int, Names>;
-
-    GroupNames groupNames;
-
-    //---
-
-    bool help       = false;
-    bool showHidden = false;
-    bool allowOpt   = true;
-
-    while (! eof()) {
-      // get next arg
-      auto arg = getArg();
-
-      if (! allowOpt && arg.isOpt())
-        arg.setIsOpt(false);
-
-      // handle option (starts with '-')
-      if (arg.isOpt()) {
-        // get option name
-        QString opt = arg.opt();
-
-        //---
-
-        // flag if help option
-        if (opt == "help") {
-          help = true;
-          continue;
-        }
-
-        // flag if hidden option (don't skip argument for command)
-        if (opt == "hidden") {
-          showHidden = true;
-        }
-
-        // Thandle '--' for no more options
-        if (opt == "-") {
-          allowOpt = false;
-          continue;
-        }
-
-        //---
-
-        // get arg data for option (flag error if not found)
-        auto *cmdArg = getCmdOpt(opt);
-
-        if (! cmdArg) {
-          if (opt != "hidden")
-            return this->error();
-        }
-
-        //---
-
-        // record option for associated group (if any)
-        if (cmdArg->groupInd() >= 0) {
-          groupNames[cmdArg->groupInd()].insert(cmdArg->name());
-        }
-
-        //---
-
-        // handle bool option (no value)
-        if      (cmdArg->type() == CmdArg::Type::Boolean) {
-          parseBool_[opt] = true;
-        }
-        // handle integer option
-        else if (cmdArg->type() == CmdArg::Type::Integer) {
-          int i = 0;
-
-          if (getOptValue(i)) {
-            parseInt_[opt] = i;
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle real option
-        else if (cmdArg->type() == CmdArg::Type::Real) {
-          double r = 0.0;
-
-          if (getOptValue(r)) {
-            parseReal_[opt] = r;
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle string option
-        else if (cmdArg->type() == CmdArg::Type::String) {
-          if (cmdArg->isMultiple()) {
-            QStringList strs;
-
-            if (getOptValue(strs)) {
-              for (int i = 0; i < strs.length(); ++i)
-                parseStr_[opt].push_back(strs[i]);
-            }
-            else
-              return valueError(opt);
-          }
-          else {
-            QString str;
-
-            if (getOptValue(str))
-              parseStr_[opt].push_back(str);
-            else
-              return valueError(opt);
-          }
-        }
-        // handle string bool option
-        else if (cmdArg->type() == CmdArg::Type::SBool) {
-          bool b;
-
-          if (getOptValue(b)) {
-            parseBool_[opt] = b;
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle enum option (string)
-        else if (cmdArg->type() == CmdArg::Type::Enum) {
-          QString str;
-
-          if (getOptValue(str)) {
-            bool found = false;
-
-            for (auto &nv : cmdArg->nameValues()) {
-              if (str == nv.first) {
-                parseInt_[opt] = nv.second;
-                found = true;
-                break;
-              }
-            }
-
-            if (! found) {
-              QString msg =
-                QString("Invalid value '%1' for '-%2' should be one of :\n ").arg(str).arg(opt);
-              for (auto &nv : cmdArg->nameValues())
-                msg += " " + nv.first;
-              errorMsg(msg);
-              return false;
-            }
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle color option (string)
-        else if (cmdArg->type() == CmdArg::Type::Color) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle line dash option (string)
-        else if (cmdArg->type() == CmdArg::Type::LineDash) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle length option (string)
-        else if (cmdArg->type() == CmdArg::Type::Length) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle position option (string)
-        else if (cmdArg->type() == CmdArg::Type::Position) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle rect option (string)
-        else if (cmdArg->type() == CmdArg::Type::Rect) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle polygon option (string)
-        else if (cmdArg->type() == CmdArg::Type::Polygon) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle align option (string)
-        else if (cmdArg->type() == CmdArg::Type::Align) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle sides option (string)
-        else if (cmdArg->type() == CmdArg::Type::Sides) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle column option (string)
-        else if (cmdArg->type() == CmdArg::Type::Column) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle row option (string)
-        else if (cmdArg->type() == CmdArg::Type::Row) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // handle position option (string)
-        else if (cmdArg->type() == CmdArg::Type::Reals) {
-          QString str;
-
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
-          }
-          else {
-            return valueError(opt);
-          }
-        }
-        // invalid type (assert ?)
-        else {
-          std::cerr << "Invalid type for '" << opt.toStdString() << "'\n";
-          continue;
-        }
-      }
-      // handle argument (no '-')
-      else {
-        // save argument
-        parseArgs_.push_back(arg.var());
-      }
-    }
-
-    //---
-
-    // if help option specified ignore other options and process help
-    if (help) {
-      this->help(showHidden);
-
-      if (! isDebug()) {
-        rc = true;
-
-        return false;
-      }
-    }
-
-    //---
-
-    // check options specified for cmd groups
-    for (const auto &cmdGroup : cmdGroups_) {
-      int groupInd = cmdGroup.ind();
-
-      auto p = groupNames.find(groupInd);
-
-      // handle no options for required group
-      if (p == groupNames.end()) {
-        if (cmdGroup.isRequired()) {
-          std::string names = getGroupArgNames(groupInd).join(", ").toStdString();
-          std::cerr << "One of " << names << " required\n";
-          return false;
-        }
-      }
-      // handle multiple options for one of group
-      else {
-        const Names &names = (*p).second;
-
-        if (names.size() > 1) {
-          std::string names = getGroupArgNames(groupInd).join(", ").toStdString();
-          std::cerr << "Only one of " << names << " allowed\n";
-          return false;
-        }
-      }
-    }
-
-    //---
-
-    // display parsed data for debug
-    if (isDebug()) {
-      for (auto &pi : parseInt_) {
-        std::cerr << pi.first.toStdString() << "=" << pi.second << "\n";
-      }
-      for (auto &pr : parseReal_) {
-        std::cerr << pr.first.toStdString() << "=" << pr.second << "\n";
-      }
-      for (auto &ps : parseStr_) {
-        const QString     &name   = ps.first;
-        const QStringList &values = ps.second;
-
-        for (int i = 0; i < ps.second.length(); ++i) {
-          std::cerr << name.toStdString() << "=" << values[i].toStdString() << "\n";
-        }
-      }
-      for (auto &ps : parseBool_) {
-        std::cerr << ps.first.toStdString() << "=" << ps.second << "\n";
-      }
-      for (auto &a : parseArgs_) {
-        std::cerr << toString(a).toStdString() << "\n";
-      }
-    }
-
-    //---
-
-    rc = true;
-
-    return true;
-  }
-
-  //---
-
-  // check if option found by parse
-  bool hasParseArg(const QString &name) const {
-    if      (parseInt_ .find(name) != parseInt_ .end()) return true;
-    else if (parseReal_.find(name) != parseReal_.end()) return true;
-    else if (parseStr_ .find(name) != parseStr_ .end()) return true;
-    else if (parseBool_.find(name) != parseBool_.end()) return true;
-
-    return false;
-  }
-
-  //---
-
-  // get parsed int for option (default returned if not found)
-  int getParseInt(const QString &name, int def=0) const {
-    auto p = parseInt_.find(name);
-    if (p == parseInt_.end()) return def;
-
-    return (*p).second;
-  }
-
-  // get parsed optional int for option
-  OptInt getParseOptInt(const QString &name) const {
-    auto p = parseInt_.find(name);
-    if (p == parseInt_.end()) return OptInt();
-
-    return OptInt((*p).second);
-  }
-
-  // get parsed real for option (default returned if not found)
-  double getParseReal(const QString &name, double def=0.0) const {
-    auto p = parseReal_.find(name);
-    if (p == parseReal_.end()) return def;
-
-    return (*p).second;
-  }
-
-  // get parsed optional real for option
-  OptReal getParseOptReal(const QString &name) const {
-    auto p = parseReal_.find(name);
-    if (p == parseReal_.end()) return OptReal();
-
-    return OptReal((*p).second);
-  }
-
-  // get number of parsed strings for option
-  int getNumParseStrs(const QString &name) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return 0;
-
-    return (*p).second.size();
-  }
-
-  // get parsed strings for option
-  QStringList getParseStrs(const QString &name) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return QStringList();
-
-    return (*p).second;
-  }
-
-  // get parsed string for option (if multiple return first) (default returned if not found)
-  QString getParseStr(const QString &name, const QString &def="") const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    return (*p).second[0];
-  }
-
-  // get parsed boolean for option (default returned if not found)
-  bool getParseBool(const QString &name, bool def=false) const {
-    auto p = parseBool_.find(name);
-    if (p == parseBool_.end()) return def;
-
-    return (*p).second;
-  }
-
-  // get parsed optional boolean for option
-  OptBool getParseOptBool(const QString &name) const {
-    auto p = parseBool_.find(name);
-    if (p == parseBool_.end()) return OptBool();
-
-    return OptBool((*p).second);
-  }
-
-  // get parsed polygon value for option
-  CQChartsGeom::Polygon getParsePoly(const QString &name,
-      const CQChartsGeom::Polygon &def=CQChartsGeom::Polygon()) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    QString value = (*p).second[0];
-
-    CQChartsGeom::Polygon poly;
-
-    if (! parsePoly(value, poly))
-      return def;
-
-    return poly;
-  }
+  bool handleParseArg(CQTclCmd::CmdArg *cmdArg, const QString &opt) override;
 
   // get parsed align value for option
-  Qt::Alignment getParseAlign(const QString &name, Qt::Alignment def=Qt::AlignCenter) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
+  Qt::Alignment getParseAlign(const QString &name, Qt::Alignment def=Qt::AlignCenter) const;
 
-    return CQAlignEdit::fromString((*p).second[0]);
-  }
+  // get parsed polygon value for option
+  Polygon getParsePoly(const QString &name, const Polygon &def=Polygon()) const;
 
-  // get parsed generic value for option
-  template<typename T>
-  T getParseValue(const QString &name, const T &def=T()) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    return T((*p).second[0]);
-  }
+  //---
 
   // get parsed font for option (default returned if not found)
-  CQChartsFont getParseFont(const QString &name, const CQChartsFont &def=CQChartsFont()) const {
-    return getParseValue<CQChartsFont>(name, def);
-  }
+  CQChartsFont getParseFont(const QString &name, const CQChartsFont &def=CQChartsFont()) const;
 
   // get parsed font for option (default returned if not found)
-  QFont getParseFont(const QString &name, const QFont &def=QFont()) const {
-    return getParseValue<QFont>(name, def);
-  }
+  //QFont getParseFont(const QString &name, const QFont &def=QFont()) const;
 
   // get parsed color for option (default returned if not found)
-  CQChartsColor
-  getParseColor(const QString &name, const CQChartsColor &def=CQChartsColor()) const {
-    return getParseValue<CQChartsColor>(name, def);
-  }
+  CQChartsColor getParseColor(const QString &name, const CQChartsColor &def=CQChartsColor()) const;
 
   // get parsed alpha for option (default returned if not found)
-  CQChartsAlpha
-  getParseAlpha(const QString &name, const CQChartsAlpha &def=CQChartsAlpha()) const {
-    return getParseValue<CQChartsAlpha>(name, def);
-  }
+  CQChartsAlpha getParseAlpha(const QString &name, const CQChartsAlpha &def=CQChartsAlpha()) const;
 
   // get parsed angle for option (default returned if not found)
-  CQChartsAngle
-  getParseAngle(const QString &name, const CQChartsAngle &def=CQChartsAngle()) const {
-    return getParseValue<CQChartsAngle>(name, def);
-  }
+  CQChartsAngle getParseAngle(const QString &name, const CQChartsAngle &def=CQChartsAngle()) const;
 
   // get parsed line dash for option (default returned if not found)
-  CQChartsLineDash
-  getParseLineDash(const QString &name, const CQChartsLineDash &def=CQChartsLineDash()) const {
-    return getParseValue<CQChartsLineDash>(name, def);
-  }
+  CQChartsLineDash getParseLineDash(const QString &name,
+                                    const CQChartsLineDash &def=CQChartsLineDash()) const;
 
   // get parsed line side for option (default returned if not found)
-  CQChartsSides getParseSides(const QString &name, const CQChartsSides &def=CQChartsSides()) const {
-    return getParseValue<CQChartsSides>(name, def);
-  }
+  CQChartsSides getParseSides(const QString &name, const CQChartsSides &def=CQChartsSides()) const;
 
   //---
-
-  // get parsed args (non options)
-  const Args &getParseArgs() const { return parseArgs_; }
-
-  //---
-
-  // get arg data for option
-  CmdArg *getCmdOpt(const QString &name) {
-    for (auto &cmdArg : cmdArgs_) {
-      if (cmdArg.isOpt() && cmdArg.name() == name)
-        return &cmdArg;
-    }
-
-    return nullptr;
-  }
-
-  //---
-
-  QStringList getCmdArgNames() const {
-    QStringList names;
-
-    for (auto &cmdArg : cmdArgs_) {
-      if (cmdArg.isOpt())
-        names.push_back("-" + cmdArg.name());
-    }
-
-    return names;
-  }
-
-  //---
-
-  // handle missing value error
-  bool valueError(const QString &opt) {
-    errorMsg(QString("Missing value for '-%1'").arg(opt));
-    return false;
-  }
-
-  // handle invalid option/arg error
-  bool error() {
-    if (lastArg_.isOpt())
-      errorMsg("Invalid option '" + lastArg_.opt() + "'");
-    else
-      errorMsg("Invalid arg '" + toString(lastArg_.var()) + "'");
-    return false;
-  }
-
-  //---
-
-  // display help
-  void help(bool showHidden=false) const {
-    using GroupIds = std::set<int>;
-
-    GroupIds groupInds;
-
-    std::cerr << cmdName_.toStdString() << "\n";
-
-    for (auto &cmdArg : cmdArgs_) {
-      if (! showHidden && cmdArg.isHidden())
-        continue;
-
-      int groupInd = cmdArg.groupInd();
-
-      if (groupInd > 0) {
-        auto p = groupInds.find(groupInd);
-
-        if (p == groupInds.end()) {
-          std::cerr << "  ";
-
-          helpGroup(groupInd, showHidden);
-
-          std::cerr << "\n";
-
-          groupInds.insert(groupInd);
-        }
-        else
-          continue;
-      }
-      else {
-        std::cerr << "  ";
-
-        if (! cmdArg.isRequired())
-          std::cerr << "[";
-
-        helpArg(cmdArg);
-
-        if (! cmdArg.isRequired())
-          std::cerr << "]";
-
-        std::cerr << "\n";
-      }
-    }
-
-    std::cerr << "  [-help]\n";
-  }
-
-  // display help for group
-  void helpGroup(int groupInd, bool showHidden) const {
-    const CmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
-
-    if (! cmdGroup.isRequired())
-      std::cerr << "[";
-
-    CmdArgs cmdArgs;
-
-    getGroupCmdArgs(groupInd, cmdArgs);
-
-    int i = 0;
-
-    for (const auto &cmdArg : cmdArgs) {
-      if (! showHidden && cmdArg.isHidden())
-        continue;
-
-      if (i > 0)
-        std::cerr << "|";
-
-      helpArg(cmdArg);
-
-      ++i;
-    }
-
-    if (! cmdGroup.isRequired())
-      std::cerr << "]";
-  }
-
-  // display help for arg
-  void helpArg(const CmdArg &cmdArg) const {
-    if (cmdArg.isOpt()) {
-      std::cerr << "-" << cmdArg.name().toStdString() << " ";
-
-      if (cmdArg.type() != CmdArg::Type::Boolean)
-        std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
-    }
-    else {
-      std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
-    }
-  }
-
-  //---
-
-  // variant to string list
-  static QStringList toStringList(const QVariant &var) {
-    QStringList strs;
-
-    if (var.type() == QVariant::List) {
-      QList<QVariant> vars = var.toList();
-
-      for (int i = 0; i < vars.length(); ++i) {
-        QString str = toString(vars[i]);
-
-        strs.push_back(str);
-      }
-    }
-    else {
-      strs.push_back(var.toString());
-    }
-
-    return strs;
-  }
-
-  //---
-
-  // variant to string
-  static QString toString(const QVariant &var) {
-    if (var.type() == QVariant::List) {
-      QList<QVariant> vars = var.toList();
-
-      QStringList strs;
-
-      for (int i = 0; i < vars.length(); ++i) {
-        QString str = toString(vars[i]);
-
-        strs.push_back(str);
-      }
-
-      CQTcl tcl;
-
-      return tcl.mergeList(strs);
-    }
-    else
-      return var.toString();
-  }
-
-  //---
-
-  // string to bool
-  static bool stringToBool(const QString &str, bool *ok) {
-    QString lstr = str.toLower();
-
-    if (lstr == "0" || lstr == "false" || lstr == "no") {
-      *ok = true;
-      return false;
-    }
-
-    if (lstr == "1" || lstr == "true" || lstr == "yes") {
-      *ok = true;
-      return true;
-    }
-
-    *ok = false;
-
-    return false;
-  }
-
- private:
-  // string to polygon
-  CQChartsGeom::Polygon stringToPolygon(const QString &str) const {
-    CQChartsGeom::Polygon poly;
-
-    CQStrParse parse(str);
-
-    while (! parse.eof()) {
-      parse.skipSpace();
-
-      QString xstr;
-
-      if (! parse.readNonSpace(xstr))
-        break;
-
-      parse.skipSpace();
-
-      QString ystr;
-
-      if (! parse.readNonSpace(ystr))
-        break;
-
-      parse.skipSpace();
-
-      double x, y;
-
-      if (! CQChartsUtil::toReal(xstr, x))
-        break;
-
-      if (! CQChartsUtil::toReal(ystr, y))
-        break;
-
-      CQChartsGeom::Point p(x, y);
-
-      poly.addPoint(p);
-    }
-
-    return poly;
-  }
-
-  // parse polygon from string
-  bool parsePoly(const QString &str, CQChartsGeom::Polygon &poly) const {
-    CQStrParse parse(str);
-
-    return parsePoly(parse, poly);
-  }
-
-  // parse polygon at parse position
-  bool parsePoly(CQStrParse &parse, CQChartsGeom::Polygon &poly) const {
-    parse.skipSpace();
-
-    if (parse.isChar('{')) {
-      int pos1 = parse.getPos();
-
-      parse.skipChar();
-
-      parse.skipSpace();
-
-      if (parse.isChar('{')) {
-        parse.setPos(pos1);
-
-        if (! parse.skipBracedString())
-          return false;
-
-        int pos2 = parse.getPos();
-
-        QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
-
-        return parsePoly(str, poly);
-      }
-
-      parse.setPos(pos1);
-    }
-
-    //--
-
-    while (! parse.eof()) {
-      CQChartsGeom::Point p;
-
-      if (! parsePoint(parse, p))
-        return false;
-
-      poly.addPoint(p);
-    }
-
-    return true;
-  }
-
-  // parse point from string
-  bool parsePoint(const QString &str, CQChartsGeom::Point &pos) const {
-    CQStrParse parse(str);
-
-    return parsePoint(parse, pos);
-  }
-
-  // parse point at parse position
-  bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &pos) const {
-    parse.skipSpace();
-
-    if (parse.isChar('{')) {
-      int pos1 = parse.getPos();
-
-      if (! parse.skipBracedString())
-        return false;
-
-      int pos2 = parse.getPos();
-
-      QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
-
-      return parsePoint(str, pos);
-    }
-
-    QString xstr;
-
-    if (! parse.readNonSpace(xstr))
-      return false;
-
-    parse.skipSpace();
-
-    QString ystr;
-
-    if (! parse.readNonSpace(ystr))
-      return false;
-
-    parse.skipSpace();
-
-    double x, y;
-
-    if (! CQChartsUtil::toReal(xstr, x))
-      return false;
-
-    if (! CQChartsUtil::toReal(ystr, y))
-      return false;
-
-    pos = CQChartsGeom::Point(x, y);
-
-    return true;
-  }
-
- private:
-  using CmdArgs     = std::vector<CmdArg>;
-  using CmdGroups   = std::vector<CmdGroup>;
-  using NameInt     = std::map<QString, int>;
-  using NameReal    = std::map<QString, double>;
-  using NameString  = std::map<QString, QString>;
-  using NameStrings = std::map<QString, QStringList>;
-  using NameBool    = std::map<QString, bool>;
-
- private:
-  // get option names for group
-  QStringList getGroupArgNames(int groupInd) const {
-    CmdArgs cmdArgs;
-
-    getGroupCmdArgs(groupInd, cmdArgs);
-
-    QStringList names;
-
-    for (const auto &cmdArg : cmdArgs)
-      names << cmdArg.name();
-
-    return names;
-  }
-
-  // get option datas for group
-  void getGroupCmdArgs(int groupInd, CmdArgs &cmdArgs) const {
-    for (auto &cmdArg : cmdArgs_) {
-      int groupInd1 = cmdArg.groupInd();
-
-      if (groupInd1 != groupInd)
-        continue;
-
-      cmdArgs.push_back(cmdArg);
-    }
-  }
-
- private:
-  // display error message
-  void errorMsg(const QString &msg) {
-    std::cerr << msg.toStdString() << "\n";
-  }
 
  protected:
-  QString     cmdName_;             //! command name being processed
-  bool        debug_     { false }; //! is debug
-  Args        argv_;                //! input args
-  int         i_         { 0 };     //! current arg
-  int         argc_      { 0 };     //! number of args
-  Arg         lastArg_;             //! last processed arg
-  CmdArgs     cmdArgs_;             //! command argument data
-  CmdGroups   cmdGroups_;           //! command argument groups
-  int         groupInd_  { -1 };    //! current group index
-  NameInt     parseInt_;            //! parsed option integers
-  NameReal    parseReal_;           //! parsed option reals
-  NameStrings parseStr_;            //! parsed option strings
-  NameBool    parseBool_;           //! parsed option booleans
-  Args        parseArgs_;           //! parsed arguments
+  // string to polygon
+  Polygon stringToPolygon(const QString &str) const;
+
+  // parse polygon from string
+  bool parsePoly(const QString &str, Polygon &poly) const;
+
+  // parse polygon at parse position
+  bool parsePoly(CQStrParse &parse, Polygon &poly) const;
+
+  // parse point from string
+  bool parsePoint(const QString &str, Point &pos) const;
+
+  // parse point at parse position
+  bool parsePoint(CQStrParse &parse, Point &pos) const;
 };
 
 //------
@@ -1318,14 +235,12 @@ modelStringToValue(const QString &str, QAbstractItemModel *model) {
 //---
 
 /*!
- * \brief derived class for handling command arguments (adds charts classes)
+ * \brief derived class for handling command arguments (adds extra classes)
  * \ingroup Charts
  */
 class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
  public:
-  CQChartsCmdArgs(const QString &cmdName, const Args &argv) :
-   CQChartsCmdBaseArgs(cmdName, argv) {
-  }
+  CQChartsCmdArgs(const QString &cmdName, const Args &argv);
 
   // get parsed generic value for option of view/plot command
   template<typename T>
@@ -1337,35 +252,20 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return CQChartsCmdUtil::viewPlotStringToValue<T>((*p).second[0], view, plot);
   }
 
-  CQChartsLength
-  getParseLength(CQChartsView *view, CQChartsPlot *plot, const QString &name,
-                 const CQChartsLength &def=CQChartsLength()) const {
-    return getParseValue<CQChartsLength>(view, plot, name, def);
-  }
+  CQChartsLength getParseLength(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                                const CQChartsLength &def=CQChartsLength()) const;
 
-  CQChartsPosition
-  getParsePosition(CQChartsView *view, CQChartsPlot *plot, const QString &name,
-                   const CQChartsPosition &def=CQChartsPosition()) const {
-    return getParseValue<CQChartsPosition>(view, plot, name, def);
-  }
+  CQChartsPosition getParsePosition(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                                    const CQChartsPosition &def=CQChartsPosition()) const;
 
-  CQChartsRect
-  getParseRect(CQChartsView *view, CQChartsPlot *plot, const QString &name,
-               const CQChartsRect &def=CQChartsRect()) const {
-    return getParseValue<CQChartsRect>(view, plot, name, def);
-  }
+  CQChartsRect getParseRect(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                            const CQChartsRect &def=CQChartsRect()) const;
 
-  CQChartsMargin
-  getParseMargin(CQChartsView *view, CQChartsPlot *plot, const QString &name,
-                 const CQChartsMargin &def=CQChartsMargin()) const {
-    return getParseValue<CQChartsMargin>(view, plot, name, def);
-  }
+  CQChartsMargin getParseMargin(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                                const CQChartsMargin &def=CQChartsMargin()) const;
 
-  CQChartsPoints
-  getParsePoints(CQChartsView *view, CQChartsPlot *plot, const QString &name,
-                 const CQChartsPoints &def=CQChartsPoints()) const {
-    return getParseValue<CQChartsPoints>(view, plot, name, def);
-  }
+  CQChartsPoints getParsePoints(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                                const CQChartsPoints &def=CQChartsPoints()) const;
 
   //---
 
@@ -1378,24 +278,11 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return CQChartsCmdUtil::modelStringToValue<T>((*p).second[0], model);
   }
 
-  CQChartsColumn
-  getParseColumn(const QString &name, QAbstractItemModel *model,
-                 const CQChartsColumn &def=CQChartsColumn()) const {
-    return getParseValue<CQChartsColumn>(model, name, def);
-  }
+  CQChartsColumn getParseColumn(const QString &name, QAbstractItemModel *model,
+                                const CQChartsColumn &def=CQChartsColumn()) const;
 
 #if 0
-  CQChartsColumn getParseColumn(const QString &name, QAbstractItemModel *model) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return CQChartsColumn();
-
-    CQChartsColumn column;
-
-    if (! CQChartsModelUtil::stringToColumn(model, (*p).second[0], column))
-      return CQChartsColumn();
-
-    return column;
-  }
+  CQChartsColumn getParseColumn(const QString &name, QAbstractItemModel *model) const;
 #endif
 
   // get parsed generic value for option of view/plot command
@@ -1416,38 +303,14 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return T((*p).second[0]);
   }
 
-  CQChartsRow
-  getParseRow(const QString &name, CQChartsPlot *plot=nullptr,
-              const CQChartsRow &def=CQChartsRow()) const {
-    return getParseValue<CQChartsRow>(plot, name, def);
-  }
+  CQChartsRow getParseRow(const QString &name, CQChartsPlot *plot=nullptr,
+                          const CQChartsRow &def=CQChartsRow()) const;
 
 #if 0
-  CQChartsRow getParseRow(const QString &name, CQChartsPlot *plot=nullptr) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return -1;
-
-    QString rowName = (*p).second[0];
-
-    bool ok;
-
-    int irow = CQChartsUtil::toInt(rowName, ok);
-
-    if (! ok) {
-      if (plot)
-        irow = plot->getRowForId(rowName);
-      else
-        irow = -1;
-    }
-
-    return CQChartsRow(irow);
-  }
+  CQChartsRow getParseRow(const QString &name, CQChartsPlot *plot=nullptr) const;
 #endif
 
-  CQChartsReals
-  getParseReals(const QString &name, const CQChartsReals &def=CQChartsReals()) const {
-    return getParseValue<CQChartsReals>(name, def);
-  }
+  CQChartsReals getParseReals(const QString &name, const CQChartsReals &def=CQChartsReals()) const;
 };
 
 #endif

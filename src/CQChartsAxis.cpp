@@ -23,7 +23,7 @@ int boolFactor(bool b) { return (b ? 1 : -1); }
 //------
 
 CQChartsAxis::
-CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
+CQChartsAxis(const Plot *plot, Qt::Orientation direction, double start, double end) :
  CQChartsObj(plot->charts()),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
  CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
@@ -54,10 +54,10 @@ init()
 
   editHandles_ = std::make_unique<CQChartsEditHandles>(plot_, CQChartsEditHandles::Mode::MOVE);
 
-  CQChartsColor themeFg   (CQChartsColor::Type::INTERFACE_VALUE, 1);
-  CQChartsColor themeGray1(CQChartsColor::Type::INTERFACE_VALUE, 0.7);
-  CQChartsColor themeGray2(CQChartsColor::Type::INTERFACE_VALUE, 0.3);
-  CQChartsColor themeGray3(CQChartsColor::Type::INTERFACE_VALUE, 0.3);
+  Color themeFg   (Color::Type::INTERFACE_VALUE, 1);
+  Color themeGray1(Color::Type::INTERFACE_VALUE, 0.7);
+  Color themeGray2(Color::Type::INTERFACE_VALUE, 0.3);
+  Color themeGray3(Color::Type::INTERFACE_VALUE, 0.3);
 
   setAxesLabelTextColor    (themeFg);
   setAxesTickLabelTextColor(themeFg);
@@ -66,10 +66,10 @@ init()
 
   // init grid
   setAxesMajorGridLinesColor(themeGray2);
-  setAxesMajorGridLinesDash (CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setAxesMajorGridLinesDash (LineDash(LineDash::Lengths({2, 2}), 0));
 
   setAxesMinorGridLinesColor(themeGray2);
-  setAxesMinorGridLinesDash (CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setAxesMinorGridLinesDash (LineDash(LineDash::Lengths({2, 2}), 0));
 
   setAxesGridFillColor(themeGray3);
   setAxesGridFillAlpha(Alpha(0.5));
@@ -78,7 +78,7 @@ init()
 
   //---
 
-  setAxesTickLabelTextFont(CQChartsFont().decFontSize(4));
+  setAxesTickLabelTextFont(Font().decFontSize(4));
 }
 
 //---
@@ -243,7 +243,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
     addProp(path, "end"  , "", "Axis end position");
   }
 
-  addProp(path, "includeZero"   , "", "Axis force include zero", true);
+  addProp(path, "includeZero", "", "Axis force include zero", true);
 
   addProp(path, "valueStart", "", "Axis custom start position");
   addProp(path, "valueEnd"  , "", "Axis custom end position");
@@ -323,6 +323,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   auto labelPath     = path + "/label";
   auto labelTextPath = labelPath + "/text";
+
+  addProp(labelPath, "scaleLabelFont", "", "Scale label font to match length");
 
   addProp(labelTextPath, "labelStr" , "string"   , "Axis label text string");
   addProp(labelTextPath, "defLabel" , "defString", "Axis label text default string");
@@ -650,7 +652,7 @@ setFormat(const QString &formatStr)
   CQChartsUtil::testAndSet(formatStr_, formatStr, [&]() {
 #if 0
     if (column().isValid()) {
-      auto *plot = const_cast<CQChartsPlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       if (! plot->setColumnTypeStr(column(), typeStr))
         return false;
@@ -707,6 +709,13 @@ CQChartsAxis::
 setUserLabel(const QString &str)
 {
   CQChartsUtil::testAndSet(userLabel_, str, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setScaleLabelFont(bool b)
+{
+  CQChartsUtil::testAndSet(scaleLabelFont_, b, [&]() { redraw(); } );
 }
 
 //---
@@ -930,7 +939,7 @@ valueStr(double pos) const
 
 QString
 CQChartsAxis::
-valueStr(const CQChartsPlot *plot, double pos) const
+valueStr(const Plot *plot, double pos) const
 {
   using ModelIndex = CQChartsModelIndex;
 
@@ -971,7 +980,7 @@ valueStr(const CQChartsPlot *plot, double pos) const
 
       QModelIndex parent; // TODO: support parent
 
-      ModelIndex columnInd(const_cast<CQChartsPlot *>(plot), row, column(), parent);
+      ModelIndex columnInd(const_cast<Plot *>(plot), row, column(), parent);
 
       bool ok;
 
@@ -997,7 +1006,7 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  auto *plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<Plot *>(plot_);
 
   plot->updateMargins();
 }
@@ -1016,7 +1025,7 @@ void
 CQChartsAxis::
 redraw(bool wait)
 {
-  auto *plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<Plot *>(plot_);
 
   if (plot) {
     if (wait) {
@@ -1046,7 +1055,7 @@ void
 CQChartsAxis::
 updatePlotRange()
 {
-  auto *plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<Plot *>(plot_);
 
   plot->updateRange();
 }
@@ -1055,7 +1064,7 @@ void
 CQChartsAxis::
 updatePlotRangeAndObjs()
 {
-  auto *plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<Plot *>(plot_);
 
   plot->updateRangeAndObjs();
 }
@@ -1147,7 +1156,7 @@ isDrawGrid() const
 
 void
 CQChartsAxis::
-drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
+drawGrid(const Plot *plot, PaintDevice *device) const
 {
   if (! isDrawGrid())
     return;
@@ -1192,7 +1201,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 
     //---
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     auto fillColor = interpAxesGridFillColor(ColorInd());
 
@@ -1316,7 +1325,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 
 void
 CQChartsAxis::
-drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device) const
+drawAt(double pos, const Plot *plot, PaintDevice *device) const
 {
   auto *th = const_cast<CQChartsAxis *>(this);
 
@@ -1331,7 +1340,7 @@ drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 
 void
 CQChartsAxis::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool forceColor) const
+draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 {
   usePen_     = usePen;
   forceColor_ = forceColor;
@@ -1497,7 +1506,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool fo
             if (isIntegral() && ! CMathUtil::isInteger(pos2))
               continue;
 
-             double mpos2 = mapPos(pos2);
+            double mpos2 = mapPos(pos2);
 
             // draw minor tick line
             if (mpos2 >= amin && mpos2 <= amax) {
@@ -1684,7 +1693,7 @@ getTickLabelsPositions(std::set<int> &positions) const
 
 void
 CQChartsAxis::
-calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
+calcPos(const Plot *plot, double &apos1, double &apos2) const
 {
   if (position().isSet()) {
     apos1 = position().real();
@@ -1725,10 +1734,9 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-         double apos, double amin, double amax) const
+drawLine(const Plot *, PaintDevice *device, double apos, double amin, double amax) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto lc = interpAxesLinesColor(ColorInd());
 
@@ -1750,10 +1758,9 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-                  double apos, double dmin, double dmax) const
+drawMajorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, double dmax) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto lc = interpAxesMajorGridLinesColor(ColorInd());
 
@@ -1776,10 +1783,9 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-                  double apos, double dmin, double dmax) const
+drawMinorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, double dmax) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto lc = interpAxesMinorGridLinesColor(ColorInd());
 
@@ -1802,7 +1808,7 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+drawMajorTickLine(const Plot *plot, PaintDevice *device,
                   double apos, double tpos, bool inside) const
 {
   drawTickLine(plot, device, apos, tpos, inside, /*major*/true);
@@ -1810,7 +1816,7 @@ drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+drawMinorTickLine(const Plot *plot, PaintDevice *device,
                   double apos, double tpos, bool inside) const
 {
   drawTickLine(plot, device, apos, tpos, inside, /*major*/false);
@@ -1818,7 +1824,7 @@ drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+drawTickLine(const Plot *plot, PaintDevice *device,
              double apos, double tpos, bool inside, bool major) const
 {
   int tlen = (major ? majorTickLen() : minorTickLen());
@@ -1840,7 +1846,7 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   //---
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto lc = interpAxesLinesColor(ColorInd());
 
@@ -1910,7 +1916,7 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+drawTickLabel(const Plot *plot, PaintDevice *device,
               double apos, double tpos, double value, bool inside) const
 {
   auto text = valueStr(plot, value);
@@ -1958,7 +1964,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         tyo = tgap;
       else
         tyo = tlen2 + tgap;
-     }
+    }
 
     //---
 
@@ -2021,7 +2027,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        CQChartsTextOptions options;
+        TextOptions options;
 
         options.angle      = angle;
         options.align      = align;
@@ -2130,7 +2136,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        CQChartsTextOptions options;
+        TextOptions options;
 
         options.angle      = angle;
         options.align      = align;
@@ -2268,7 +2274,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        CQChartsTextOptions options;
+        TextOptions options;
 
         options.angle      = angle;
         options.align      = align;
@@ -2377,7 +2383,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        CQChartsTextOptions options;
+        TextOptions options;
 
         options.angle      = angle;
         options.align      = align;
@@ -2439,7 +2445,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
+drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 {
   int n = axisTickLabelDrawDatas_.size();
   if (n < 1) return;
@@ -2476,7 +2482,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device) co
 
   //---
 
-  CQChartsPenBrush tpenBrush;
+  PenBrush tpenBrush;
 
   auto tc = interpAxesTickLabelTextColor(ColorInd());
 
@@ -2497,7 +2503,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device) co
 
     auto p1 = plot->pixelToWindow(data.p);
 
-    CQChartsTextOptions options;
+    TextOptions options;
 
     // html not supported (axis code controls string)
     options.angle         = data.angle;
@@ -2523,7 +2529,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device) co
 
 void
 CQChartsAxis::
-drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos,
+drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
               double amin, double amax, const QString &text, bool allowHtml) const
 {
   if (! text.length())
@@ -2539,7 +2545,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
   //---
 
-  CQChartsPenBrush tpenBrush;
+  PenBrush tpenBrush;
 
   auto tc = interpAxesLabelTextColor(ColorInd());
 
@@ -2552,9 +2558,36 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
   view()->setPlotPainterFont(plot, device, axesLabelTextFont());
 
+  //---
+
+  auto html = ((allowHtml || isAllowHtmlLabels()) && isAxesLabelTextHtml());
+
+  if (isScaleLabelFont()) {
+    TextOptions options;
+
+    options.html = html;
+
+    auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+
+    auto len = Length(amax - amin, CQChartsUnits::PLOT);
+
+    double plen = 0.0;
+
+    if (isHorizontal())
+      plen = plot_->lengthPixelWidth(len);
+    else
+      plen = plot_->lengthPixelHeight(len);
+
+    double fontScale = (psize.width() > 0.0 ? plen/psize.width() : 1.0);
+
+    if (fontScale < 1.0)
+      device->setFont(CQChartsUtil::scaleFontSize(device->font(), fontScale));
+  }
+
+  //---
+
   auto clipLength = plot_->lengthPixelWidth(axesLabelTextClipLength());
   auto clipElide  = axesLabelTextClipElide();
-  auto html       = ((allowHtml || isAllowHtmlLabels()) && isAxesLabelTextHtml());
 
   QFontMetricsF fm(device->font());
 
@@ -2566,7 +2599,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
   double tw = 0.0;
 
   if (html) {
-    CQChartsTextOptions options;
+    TextOptions options;
 
     options.html = true;
 
@@ -2600,7 +2633,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       // angle, align not supported
       // formatted not supported (axis code controls string)
       // html supported only for user label or annotation axis
-      CQChartsTextOptions options;
+      TextOptions options;
 
       options.angle         = Angle();
       options.align         = Qt::AlignLeft;
@@ -2643,7 +2676,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       // angle, align not supported
       // formatted not supported (axis code controls string)
       // html supported only for user label or annotation axis
-      CQChartsTextOptions options;
+      TextOptions options;
 
       options.angle         = Angle();
       options.align         = Qt::AlignLeft;
@@ -2700,7 +2733,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
     //double tx = lbbox_.getXMin() - tgap - td;
       double tx = lbbox_.getXMin() - tgap;
 
-      CQChartsTextOptions options;
+      TextOptions options;
 
       options.angle         = Angle(90.0);
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
@@ -2749,7 +2782,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       double tx = lbbox_.getXMax() + tgap + ta + td;
 #endif
 
-      CQChartsTextOptions options;
+      TextOptions options;
 
       options.angle         = Angle(90.0);
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
@@ -2796,7 +2829,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
 CQChartsGeom::Point
 CQChartsAxis::
-windowToPixel(const CQChartsPlot *plot, double x, double y) const
+windowToPixel(const Plot *plot, double x, double y) const
 {
   if (isHorizontal())
     return plot->windowToPixel(Point(x, y));

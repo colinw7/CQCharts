@@ -68,8 +68,8 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  Column          nameColumn;
-  CQChartsColumns numericColumns;
+  Column  nameColumn;
+  Columns numericColumns;
 
   for (int c = 0; c < details->numColumns(); ++c) {
     const auto *columnDetails = details->columnDetails(Column(c));
