@@ -1216,6 +1216,13 @@ CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon) :
 {
 }
 
+void
+CQChartsPolyShapeAnnotation::
+setPolygon(const Polygon &polygon)
+{
+  CQChartsUtil::testAndSet(polygon_, polygon, [&]() { emitDataChanged(); } );
+}
+
 //------
 
 CQChartsRectangleAnnotation::
@@ -1331,54 +1338,42 @@ void
 CQChartsRectangleAnnotation::
 setShapeType(const ShapeType &s)
 {
-  shapeType_ = s;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(shapeType_, s, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsRectangleAnnotation::
 setNumSides(int n)
 {
-  numSides_ = n;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(numSides_, n, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsRectangleAnnotation::
 setAngle(const Angle &a)
 {
-  angle_ = a;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(angle_, a, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsRectangleAnnotation::
 setLineWidth(const Length &l)
 {
-  lineWidth_ = l;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(lineWidth_, l, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsRectangleAnnotation::
 setSymbolType(const Symbol &t)
 {
-  symbolType_ = t;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(symbolType_, t, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsRectangleAnnotation::
 setSymbolSize(const Length &s)
 {
-  symbolSize_ = s;
-
-  emitDataChanged();
+  CQChartsUtil::testAndSet(symbolSize_, s, [&]() { emitDataChanged(); } );
 }
 
 //---
@@ -1633,6 +1628,13 @@ CQChartsEllipseAnnotation(Plot *plot, const Position &center, const Length &xRad
 CQChartsEllipseAnnotation::
 ~CQChartsEllipseAnnotation()
 {
+}
+
+void
+CQChartsEllipseAnnotation::
+setCenter(const Position &c)
+{
+  CQChartsUtil::testAndSet(center_, c, [&]() { emitDataChanged(); } );
 }
 
 void
@@ -3491,6 +3493,20 @@ CQChartsArrowAnnotation::
 
 void
 CQChartsArrowAnnotation::
+setStart(const Position &p)
+{
+  CQChartsUtil::testAndSet(start_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArrowAnnotation::
+setEnd(const Position &p)
+{
+  CQChartsUtil::testAndSet(end_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArrowAnnotation::
 init()
 {
   setObjectName(QString("arrow.%1").arg(ind()));
@@ -3959,6 +3975,20 @@ CQChartsArcAnnotation::
 
 void
 CQChartsArcAnnotation::
+setStart(const Position &p)
+{
+  CQChartsUtil::testAndSet(start_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcAnnotation::
+setEnd(const Position &p)
+{
+  CQChartsUtil::testAndSet(end_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcAnnotation::
 init()
 {
   setObjectName(QString("arc.%1").arg(ind()));
@@ -4222,6 +4252,13 @@ CQChartsPointAnnotation::
 
 void
 CQChartsPointAnnotation::
+setPosition(const Position &p)
+{
+  CQChartsUtil::testAndSet(position_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPointAnnotation::
 init()
 {
   setObjectName(QString("point.%1").arg(ind()));
@@ -4437,6 +4474,13 @@ CQChartsPieSliceAnnotation(Plot *plot, const Position &position, const Length &i
 CQChartsPieSliceAnnotation::
 ~CQChartsPieSliceAnnotation()
 {
+}
+
+void
+CQChartsPieSliceAnnotation::
+setPosition(const Position &p)
+{
+  CQChartsUtil::testAndSet(position_, p, [&]() { emitDataChanged(); } );
 }
 
 void
@@ -5258,6 +5302,13 @@ CQChartsValueSetAnnotation(Plot *plot, const Rect &rectangle, const Reals &value
 CQChartsValueSetAnnotation::
 ~CQChartsValueSetAnnotation()
 {
+}
+
+void
+CQChartsValueSetAnnotation::
+setRectangle(const Rect &rectangle)
+{
+  CQChartsUtil::testAndSet(rectangle_, rectangle, [&]() { emitDataChanged(); } );
 }
 
 void

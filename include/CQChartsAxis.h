@@ -97,11 +97,12 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr);
 
   // label
-  Q_PROPERTY(CQChartsOptString label          READ label            WRITE setLabel         )
-  Q_PROPERTY(QString           labelStr       READ labelStr         WRITE setLabelStr      )
-  Q_PROPERTY(QString           defLabel       READ defLabel         WRITE setDefLabel      )
-  Q_PROPERTY(QString           userLabel      READ userLabel        WRITE setUserLabel     )
-  Q_PROPERTY(bool              scaleLabelFont READ isScaleLabelFont WRITE setScaleLabelFont)
+  Q_PROPERTY(CQChartsOptString label            READ label            WRITE setLabel           )
+  Q_PROPERTY(QString           labelStr         READ labelStr         WRITE setLabelStr        )
+  Q_PROPERTY(QString           defLabel         READ defLabel         WRITE setDefLabel        )
+  Q_PROPERTY(QString           userLabel        READ userLabel        WRITE setUserLabel       )
+  Q_PROPERTY(bool              scaleLabelFont   READ isScaleLabelFont WRITE setScaleLabelFont  )
+  Q_PROPERTY(CQChartsLength    scaleLabelExtent READ scaleLabelExtent WRITE setScaleLabelExtent)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel, axesLabel)
 
@@ -312,6 +313,10 @@ class CQChartsAxis : public CQChartsObj,
   // get/set scale label font
   bool isScaleLabelFont() const { return scaleLabelFont_; }
   void setScaleLabelFont(bool b);
+
+  // get/set scale label extent
+  const Length &scaleLabelExtent() const { return scaleLabelExtent_; }
+  void setScaleLabelExtent(const Length &l);
 
   //---
 
@@ -604,10 +609,11 @@ class CQChartsAxis : public CQChartsObj,
   double        maxFitExtent_   { 10 };    //!< max extent percent for fit
 
   // label
-  bool      labelDisplayed_ { true };  //!< show label
-  OptString label_;                    //!< label
-  QString   userLabel_;                //!< user label
-  bool      scaleLabelFont_ { false }; //!< scale label font fo fit
+  bool      labelDisplayed_   { true };  //!< show label
+  OptString label_;                      //!< label
+  QString   userLabel_;                  //!< user label
+  bool      scaleLabelFont_   { false }; //!< scale label font fo fit length
+  Length    scaleLabelExtent_;           //!< extent to extend length for scale label
 
   // grid (lines and gap fill)
   GridLinesDisplayed gridLinesDisplayed_ { GridLinesDisplayed::NONE }; //!< grid lines displayed

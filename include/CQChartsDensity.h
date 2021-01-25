@@ -57,13 +57,13 @@ class CQChartsDensity : public QObject {
 
   //! get/set draw type
   const DrawType &drawType() const { return drawType_; }
-  void setDrawType(const DrawType &v) { drawType_ = v; emit dataChanged(); }
+  void setDrawType(const DrawType &t);
 
   //---
 
   //! get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
-  void setOrientation(const Qt::Orientation &v) { orientation_ = v; emit dataChanged(); }
+  void setOrientation(const Qt::Orientation &o);
 
   bool isHorizontal() const { return orientation() == Qt::Horizontal; }
   bool isVertical  () const { return orientation() == Qt::Vertical  ; }
@@ -72,17 +72,17 @@ class CQChartsDensity : public QObject {
 
   //! get/set x values
   const XVals &xvals() const { return xvals_; }
-  void setXVals(const XVals &xvals) { xvals_ = xvals; invalidate(); }
+  void setXVals(const XVals &xvals);
 
   const Points &opoints() const { return opoints_; }
 
   //! get/set num samples
   int numSamples() const { return numSamples_; }
-  void setNumSamples(int i) { numSamples_ = i; invalidate(); }
+  void setNumSamples(int i);
 
   //! get/set smooth parameter
   double smoothParameter() const { return smoothParameter_; }
-  void setSmoothParameter(double r) { smoothParameter_ = r; invalidate(); }
+  void setSmoothParameter(double r);
 
   //---
 
@@ -144,12 +144,7 @@ class CQChartsDensity : public QObject {
                             const Qt::Orientation &orientation);
 
  private:
-  void invalidate() {
-    initialized_ = false;
-    calced_      = false;
-
-    emit dataChanged();
-  }
+  void invalidate();
 
   void constCalc() const;
   void calc();

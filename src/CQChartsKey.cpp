@@ -3175,6 +3175,13 @@ drawBorder(PaintDevice *device, bool usePenBrush)
 
 void
 CQChartsSymbolMapKey::
+invalidate()
+{
+  emit dataChanged();
+}
+
+void
+CQChartsSymbolMapKey::
 getSymbolBoxes(BBoxes &pbboxes) const
 {
   // symbol sizes

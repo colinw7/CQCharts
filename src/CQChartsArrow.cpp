@@ -26,6 +26,183 @@ CQChartsArrow(Plot *plot, const Point &from, const Point &to) :
 
 void
 CQChartsArrow::
+setVisible(bool b)
+{
+  visible_ = b; emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrom(const Point &v)
+{
+  from_ = v; emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTo(const Point &v)
+{
+  to_ = v; emit dataChanged();
+}
+
+#if 0
+void
+CQChartsArrow::
+setRelative(bool b)
+{
+  data_.setRelative(b); emit dataChanged();
+}
+#endif
+
+//---
+
+void
+CQChartsArrow::
+setLineWidth(const Length &l)
+{
+  data_.setLineWidth(l); emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
+setFrontVisible(bool b)
+{
+  data_.setFHead(b); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrontType(const HeadType &type)
+{
+  data_.setFHeadType((ArrowData::HeadType) type); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrontAngle(const Angle &a)
+{
+  data_.setFrontAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrontBackAngle(const Angle &a)
+{
+  data_.setFrontBackAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrontLength(const Length &l)
+{
+  data_.setFrontLength(l); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setFrontLineEnds(bool b)
+{
+  data_.setFrontLineEnds(b); emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
+setTailVisible(bool b)
+{
+  data_.setTHead(b); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTailType(const HeadType &type)
+{
+  data_.setTHeadType((ArrowData::HeadType) type); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTailAngle(const Angle &a)
+{
+  data_.setTailAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTailBackAngle(const Angle &a)
+{
+  data_.setTailBackAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTailLength(const Length &l)
+{
+  data_.setTailLength(l); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setTailLineEnds(bool b)
+{
+  data_.setTailLineEnds(b); emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
+setAngle(const Angle &a)
+{
+  data_.setAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setBackAngle(const Angle &a)
+{
+  data_.setBackAngle(a); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setLength(const Length &l)
+{
+  data_.setLength(l); emit dataChanged();
+}
+
+void
+CQChartsArrow::
+setLineEnds(bool b)
+{
+  data_.setLineEnds(b); emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
+setRectilinear(bool b)
+{
+  rectilinear_ = b; emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
+setData(const ArrowData &data)
+{
+  data_ = data; emit dataChanged();
+}
+
+//---
+
+void
+CQChartsArrow::
 init()
 {
   setFilled (true);

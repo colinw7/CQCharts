@@ -13,6 +13,51 @@ CQChartsDensity()
 
 void
 CQChartsDensity::
+setDrawType(const DrawType &t)
+{
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { emit dataChanged(); } );
+}
+
+void
+CQChartsDensity::
+setOrientation(const Qt::Orientation &o)
+{
+  CQChartsUtil::testAndSet(orientation_, o, [&]() { emit dataChanged(); } );
+}
+
+void
+CQChartsDensity::
+setXVals(const XVals &xvals)
+{
+  xvals_ = xvals; invalidate();
+}
+
+void
+CQChartsDensity::
+setNumSamples(int i)
+{
+  CQChartsUtil::testAndSet(numSamples_, i, [&]() { invalidate(); } );
+}
+
+void
+CQChartsDensity::
+setSmoothParameter(double r)
+{
+  CQChartsUtil::testAndSet(smoothParameter_, r, [&]() { invalidate(); } );
+}
+
+void
+CQChartsDensity::
+invalidate()
+{
+  initialized_ = false;
+  calced_      = false;
+
+  emit dataChanged();
+}
+
+void
+CQChartsDensity::
 constCalc() const
 {
   const_cast<CQChartsDensity *>(this)->calc();

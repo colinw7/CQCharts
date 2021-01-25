@@ -99,90 +99,88 @@ class CQChartsArrow : public QObject,
 
   // get/set visible
   bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; emit dataChanged(); }
+  void setVisible(bool b);
 
   //---
 
   // get/set from/to point
   const Point &from() const { return from_; }
-  void setFrom(const Point &v) { from_ = v; emit dataChanged(); }
+  void setFrom(const Point &v);
 
   const Point &to() const { return to_; }
-  void setTo(const Point &v) { to_ = v; emit dataChanged(); }
+  void setTo(const Point &v);
 
 //bool isRelative() const { return data_.isRelative(); }
-//void setRelative(bool b) { data_.setRelative(b); emit dataChanged(); }
+//void setRelative(bool b);
 
   //---
 
   // get/set line width
   const Length &lineWidth() const { return data_.lineWidth(); }
-  void setLineWidth(const Length &l) { data_.setLineWidth(l); emit dataChanged(); }
+  void setLineWidth(const Length &l);
 
   //---
 
   // get/set front head data
   bool isFrontVisible() const { return data_.isFHead(); }
-  void setFrontVisible(bool b) { data_.setFHead(b); emit dataChanged(); }
+  void setFrontVisible(bool b);
 
   HeadType frontType() const { return (HeadType) data_.fheadType(); }
-  void setFrontType(const HeadType &type) {
-    data_.setFHeadType((ArrowData::HeadType) type); emit dataChanged(); }
+  void setFrontType(const HeadType &type);
 
   const Angle &frontAngle() const { return data_.frontAngle(); }
-  void setFrontAngle(const Angle &a) { data_.setFrontAngle(a); emit dataChanged(); }
+  void setFrontAngle(const Angle &a);
 
   const Angle &frontBackAngle() const { return data_.frontBackAngle(); }
-  void setFrontBackAngle(const Angle &a) { data_.setFrontBackAngle(a); emit dataChanged(); }
+  void setFrontBackAngle(const Angle &a);
 
   const Length &frontLength() const { return data_.frontLength(); }
-  void setFrontLength(const Length &l) { data_.setFrontLength(l); emit dataChanged(); }
+  void setFrontLength(const Length &l);
 
   bool isFrontLineEnds() const { return data_.isFrontLineEnds(); }
-  void setFrontLineEnds(bool b) { data_.setFrontLineEnds(b); emit dataChanged(); }
+  void setFrontLineEnds(bool b);
 
   //---
 
   // get/set tail head data
   bool isTailVisible() const { return data_.isTHead(); }
-  void setTailVisible(bool b) { data_.setTHead(b); emit dataChanged(); }
+  void setTailVisible(bool b);
 
   HeadType tailType() const { return (HeadType) data_.theadType(); }
-  void setTailType(const HeadType &type) {
-    data_.setTHeadType((ArrowData::HeadType) type); emit dataChanged(); }
+  void setTailType(const HeadType &type);
 
   const Angle &tailAngle() const { return data_.tailAngle(); }
-  void setTailAngle(const Angle &a) { data_.setTailAngle(a); emit dataChanged(); }
+  void setTailAngle(const Angle &a);
 
   const Angle &tailBackAngle() const { return data_.tailBackAngle(); }
-  void setTailBackAngle(const Angle &a) { data_.setTailBackAngle(a); emit dataChanged(); }
+  void setTailBackAngle(const Angle &a);
 
   const Length &tailLength() const { return data_.tailLength(); }
-  void setTailLength(const Length &l) { data_.setTailLength(l); emit dataChanged(); }
+  void setTailLength(const Length &l);
 
   bool isTailLineEnds() const { return data_.isTailLineEnds(); }
-  void setTailLineEnds(bool b) { data_.setTailLineEnds(b); emit dataChanged(); }
+  void setTailLineEnds(bool b);
 
   //---
 
   // get/set tail & head data
   const Angle &angle() const { return data_.angle(); }
-  void setAngle(const Angle &a) { data_.setAngle(a); emit dataChanged(); }
+  void setAngle(const Angle &a);
 
   const Angle &backAngle() const { return data_.backAngle(); }
-  void setBackAngle(const Angle &a) { data_.setBackAngle(a); emit dataChanged(); }
+  void setBackAngle(const Angle &a);
 
   const Length &length() const { return data_.length(); }
-  void setLength(const Length &l) { data_.setLength(l); emit dataChanged(); }
+  void setLength(const Length &l);
 
   bool isLineEnds() const { return data_.isTailLineEnds(); }
-  void setLineEnds(bool b) { data_.setLineEnds(b); emit dataChanged(); }
+  void setLineEnds(bool b);
 
   //---
 
   //! get/set is rectilinear
   bool isRectilinear() const { return rectilinear_; }
-  void setRectilinear(bool b) { rectilinear_ = b; emit dataChanged(); }
+  void setRectilinear(bool b);
 
   //---
 
@@ -199,7 +197,7 @@ class CQChartsArrow : public QObject,
 
   // get/set arrow data
   const ArrowData &data() const { return data_; }
-  void setData(const ArrowData &data) { data_ = data; emit dataChanged(); }
+  void setData(const ArrowData &data);
 
   //---
 

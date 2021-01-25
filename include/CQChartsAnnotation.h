@@ -457,7 +457,7 @@ class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
   CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon=Polygon());
 
   const Polygon &polygon() const { return polygon_; }
-  void setPolygon(const Polygon &polygon) { polygon_ = polygon; emit dataChanged(); }
+  void setPolygon(const Polygon &polygon);
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
@@ -643,7 +643,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   //---
 
   const Position &center() const { return center_; }
-  void setCenter(const Position &c) { center_ = c; emit dataChanged(); }
+  void setCenter(const Position &c);
 
   const Length &xRadius() const { return xRadius_; }
   void setXRadius(const Length &r) { xRadius_ = r; }
@@ -1145,13 +1145,13 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   //---
 
   const Position &start() const { return start_; }
-  void setStart(const Position &p) { start_ = p; emit dataChanged(); }
+  void setStart(const Position &p);
 
   const ObjRef &startObjRef() const { return startObjRef_; }
   void setStartObjRef(const ObjRef &o) { startObjRef_ = o; }
 
   const Position &end() const { return end_; }
-  void setEnd(const Position &p) { end_ = p; emit dataChanged(); }
+  void setEnd(const Position &p);
 
   const ObjRef &endObjRef() const { return endObjRef_; }
   void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
@@ -1255,7 +1255,7 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
 
   //! get/set start rectangle
   const Position &start() const { return start_; }
-  void setStart(const Position &p) { start_ = p; emit dataChanged(); }
+  void setStart(const Position &p);
 
   //! get/set start object reference
   const ObjRef &startObjRef() const { return startObjRef_; }
@@ -1263,7 +1263,7 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
 
   //! get/set end rectangle
   const Position &end() const { return end_; }
-  void setEnd(const Position &p) { end_ = p; emit dataChanged(); }
+  void setEnd(const Position &p);
 
   //! get/set end object reference
   const ObjRef &endObjRef() const { return endObjRef_; }
@@ -1374,7 +1374,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   //---
 
   const Position &position() const { return position_; }
-  void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
+  void setPosition(const Position &p);
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
@@ -1453,7 +1453,7 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   //---
 
   const Position &position() const { return position_; }
-  void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
+  void setPosition(const Position &p);
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
@@ -1790,7 +1790,7 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   //---
 
   const Rect &rectangle() const { return rectangle_; }
-  void setRectangle(const Rect &rectangle) { rectangle_ = rectangle; emit dataChanged(); }
+  void setRectangle(const Rect &rectangle);
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }

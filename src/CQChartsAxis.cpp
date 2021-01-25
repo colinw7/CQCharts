@@ -324,7 +324,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   auto labelPath     = path + "/label";
   auto labelTextPath = labelPath + "/text";
 
-  addProp(labelPath, "scaleLabelFont", "", "Scale label font to match length");
+  addProp(labelPath, "scaleLabelFont"  , "", "Scale label font to match length");
+  addProp(labelPath, "scaleLabelExtent", "", "Extent to length for scale label font");
 
   addProp(labelTextPath, "labelStr" , "string"   , "Axis label text string");
   addProp(labelTextPath, "defLabel" , "defString", "Axis label text default string");
@@ -716,6 +717,13 @@ CQChartsAxis::
 setScaleLabelFont(bool b)
 {
   CQChartsUtil::testAndSet(scaleLabelFont_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setScaleLabelExtent(const Length &l)
+{
+  CQChartsUtil::testAndSet(scaleLabelExtent_, l, [&]() { redraw(); } );
 }
 
 //---
@@ -2574,9 +2582,9 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     double plen = 0.0;
 
     if (isHorizontal())
-      plen = plot_->lengthPixelWidth(len);
+      plen = plot_->lengthPixelWidth (len) + plot_->lengthPixelWidth (scaleLabelExtent());
     else
-      plen = plot_->lengthPixelHeight(len);
+      plen = plot_->lengthPixelHeight(len) + plot_->lengthPixelHeight(scaleLabelExtent());
 
     double fontScale = (psize.width() > 0.0 ? plen/psize.width() : 1.0);
 

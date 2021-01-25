@@ -1061,9 +1061,7 @@ class CQChartsSymbolMapKey : public QObject {
   void setBBox(const BBox &b) { bbox_ = b; }
 
  private:
-  void invalidate() {
-    emit dataChanged();
-  }
+  void invalidate();
 
  signals:
   void dataChanged();

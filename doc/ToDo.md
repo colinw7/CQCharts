@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + auto analyze data, pick best plot type by weight, display plots in tabbed group
  + all overlay plots forward to first overlay plot and collect data for all plots
    + e.g. insideInd_, insideObjs_, sizeInsideObjs_ (assert if wrong plot)
    + better and consistent naming convention for overlay and specific plot routines
