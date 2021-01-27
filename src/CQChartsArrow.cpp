@@ -26,6 +26,28 @@ CQChartsArrow(Plot *plot, const Point &from, const Point &to) :
 
 void
 CQChartsArrow::
+init()
+{
+  setFilled (true);
+  setStroked(false);
+}
+
+CQCharts *
+CQChartsArrow::
+charts() const
+{
+  if      (plot())
+    return plot()->charts();
+  else if (view())
+    return view()->charts();
+  else
+    return nullptr;
+}
+
+//---
+
+void
+CQChartsArrow::
 setVisible(bool b)
 {
   visible_ = b; emit dataChanged();
@@ -200,26 +222,6 @@ setData(const ArrowData &data)
 }
 
 //---
-
-void
-CQChartsArrow::
-init()
-{
-  setFilled (true);
-  setStroked(false);
-}
-
-CQCharts *
-CQChartsArrow::
-charts() const
-{
-  if      (plot())
-    return plot()->charts();
-  else if (view())
-    return view()->charts();
-  else
-    return nullptr;
-}
 
 bool
 CQChartsArrow::

@@ -1,20 +1,14 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
-#include <CQChartsPlotModelVisitor.h>
 #include <CQChartsView.h>
 #include <CQChartsObj.h>
 #include <CQChartsColor.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsObjData.h>
 #include <CQChartsGroupData.h>
-#include <CQChartsPosition.h>
-#include <CQChartsRect.h>
-#include <CQChartsPolygon.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
-#include <CQChartsImage.h>
-#include <CQChartsWidget.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
@@ -25,6 +19,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
+#include <CQChartsPlotModelVisitor.h>
 
 #include <QAbstractItemModel>
 #include <QFrame>
@@ -76,6 +71,9 @@ class CQChartsModelColumnDetails;
 class CQChartsModelData;
 class CQChartsEditHandles;
 class CQChartsTableTip;
+class CQChartsPolygon;
+class CQChartsRect;
+class CQChartsPosition;
 class CQChartsPoints;
 class CQChartsReals;
 class CQChartsPlotControlIFace;
@@ -424,6 +422,7 @@ class CQChartsPlot : public CQChartsObj,
   using PlotKey       = CQChartsPlotKey;
   using EditHandles   = CQChartsEditHandles;
   using PlotParameter = CQChartsPlotParameter;
+  using PropertyModel = CQPropertyViewModel;
 
   using Font        = CQChartsFont;
   using Color       = CQChartsColor;
@@ -826,8 +825,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  Axis *xAxis() const { return xAxis_; }
-  Axis *yAxis() const { return yAxis_; }
+  Axis *xAxis() const { return xAxis_.get(); }
+  Axis *yAxis() const { return yAxis_.get(); }
 
   virtual Axis *mappedXAxis() const { return xAxis(); }
   virtual Axis *mappedYAxis() const { return yAxis(); }
@@ -847,9 +846,9 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  PlotKey *key() const { return keyObj_; }
+  PlotKey *key() const { return keyObj_.get(); }
 
-  Title *title() const { return titleObj_; }
+  Title *title() const { return titleObj_.get(); }
 
   virtual void emitTitleChanged();
 
@@ -1014,8 +1013,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // properties
-  const CQPropertyViewModel *propertyModel() const;
-  CQPropertyViewModel *propertyModel();
+  const PropertyModel *propertyModel() const;
+  PropertyModel *propertyModel();
 
   // add plot properties to model
   virtual void addProperties();
@@ -2849,15 +2848,18 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   //*! \brief update (threading) data
+  using ThreadObjP = std::unique_ptr<ThreadObj>;
+  using TimerP     = QPointer<QTimer>;
+
   struct UpdateData {
     std::atomic<int> state       { 0 };
     std::atomic<int> interrupt   { 0 };
-    ThreadObj*       rangeThread { nullptr };
-    ThreadObj*       objsThread  { nullptr };
-    ThreadObj*       drawThread  { nullptr };
+    ThreadObjP       rangeThread;
+    ThreadObjP       objsThread;
+    ThreadObjP       drawThread;
     LockData         lockData;
     bool             updateObjs  { false };
-    QTimer*          timer       { nullptr };
+    TimerP           timer;
     int              timeout     { 10 };
     DrawBusyData     drawBusy;
   };
@@ -2988,8 +2990,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //! \brief animation data
   struct AnimateData {
-    QTimer* timer   { nullptr };
-    int     tickLen { 30 };
+    TimerP timer;
+    int    tickLen { 30 };
   };
 
   //---
@@ -3022,25 +3024,34 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  protected:
-  View*                view_          { nullptr }; //!< parent view
-  PlotType*            type_          { nullptr }; //!< plot type data
-  ModelP               model_;                     //!< abstract model
-  bool                 modelNameSet_  { false };   //!< model name set from plot
-  CQPropertyViewModel* propertyModel_ { nullptr }; //!< property model
+  using DisplayRangeP  = std::unique_ptr<DisplayRange>;
+  using EditHandlesP   = std::unique_ptr<EditHandles>;
+  using TitleP         = std::unique_ptr<Title>;
+  using AxisP          = std::unique_ptr<Axis>;
+  using PlotKeyP       = std::unique_ptr<PlotKey>;
+  using PropertyModelP = std::unique_ptr<PropertyModel>;
+
+  View*     view_ { nullptr }; //!< parent view
+  PlotType* type_ { nullptr }; //!< plot type data
+  ModelP    model_;            //!< abstract model
+
+  PropertyModelP propertyModel_; //!< property model
+
+  bool modelNameSet_ { false }; //!< model name set from plot
 
   // name
   QString name_; //!< custom name
 
   // ranges
-  BBox          viewBBox_        { 0, 0, 1, 1 }; //!< view box
-  BBox          innerViewBBox_   { 0, 0, 1, 1 }; //!< inner view box
-  PlotMargin    innerMargin_;                    //!< inner margin
-  PlotMargin    outerMargin_;                    //!< outer margin
-  DisplayRange* displayRange_    { nullptr };    //!< value range mapping
-  Range         calcDataRange_;                  //!< calc data range
-  Range         dataRange_;                      //!< data range
-  Range         outerDataRange_;                 //!< outer data range
-  ZoomData      zoomData_;                       //!< zoom data
+  BBox          viewBBox_       { 0, 0, 1, 1 }; //!< view box
+  BBox          innerViewBBox_  { 0, 0, 1, 1 }; //!< inner view box
+  PlotMargin    innerMargin_;                   //!< inner margin
+  PlotMargin    outerMargin_;                   //!< outer margin
+  DisplayRangeP displayRange_;                  //!< value range mapping
+  Range         calcDataRange_;                 //!< calc data range
+  Range         dataRange_;                     //!< data range
+  Range         outerDataRange_;                //!< outer data range
+  ZoomData      zoomData_;                      //!< zoom data
 
   // override range
   OptReal xmin_; //!< xmin override
@@ -3063,13 +3074,13 @@ class CQChartsPlot : public CQChartsObj,
   Sides fitBorderSides_   { "tlbr" }; //!< fit border sides
 
   // title
-  Title*  titleObj_  { nullptr }; //!< title object
-  QString titleStr_;              //!< title string
-  QString fileName_;              //!< associated data filename
+  TitleP  titleObj_; //!< title object
+  QString titleStr_; //!< title string
+  QString fileName_; //!< associated data filename
 
   // axes
-  Axis* xAxis_ { nullptr }; //!< x axis object
-  Axis* yAxis_ { nullptr }; //!< y axis object
+  AxisP xAxis_; //!< x axis object
+  AxisP yAxis_; //!< y axis object
 
   using AxisSideDelta = std::map<CQChartsAxisSide::Type, double>;
 
@@ -3077,8 +3088,8 @@ class CQChartsPlot : public CQChartsObj,
   AxisSideDelta yAxisSideDelta_;
 
   // key
-  PlotKey* keyObj_   { nullptr }; //!< key object
-  bool     colorKey_ { false };   //!< use color column for key
+  PlotKeyP keyObj_;             //!< key object
+  bool     colorKey_ { false }; //!< use color column for key
 
   // columns
   Column  xValueColumn_;   //!< x axis value column
@@ -3160,14 +3171,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  using PlotObjTree = CQChartsPlotObjTree;
+  using PlotObjTree  = CQChartsPlotObjTree;
+  using PlotObjTreeP = std::unique_ptr<PlotObjTree>;
 
   //! \brief object tree data
   struct ObjTreeData {
-    bool         init   { false };   //!< needs init obj tree
-    PlotObjTree* tree   { nullptr }; //!< plot object quad tree
-    bool         isSet  { false };   //!< is plot object quad tree set
-    bool         notify { false };   //!< is plot object quad tree notify
+    bool         init   { false }; //!< needs init obj tree
+    PlotObjTreeP tree;             //!< plot object quad tree
+    bool         isSet  { false }; //!< is plot object quad tree set
+    bool         notify { false }; //!< is plot object quad tree notify
   };
 
   ObjTreeData objTreeData_; //!< object tree data
@@ -3189,8 +3201,8 @@ class CQChartsPlot : public CQChartsObj,
   IndexColumnRows selIndexColumnRows_; //!< sel model indices (by col/row)
 
   // edit handles
-  EditHandles* editHandles_ { nullptr }; //!< edit controls
-  bool         editing_     { false };   //!< is editing
+  EditHandlesP editHandles_;           //!< edit controls
+  bool         editing_     { false }; //!< is editing
 
   // annotations
   Annotations annotations_;      //!< extra annotations

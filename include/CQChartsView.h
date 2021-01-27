@@ -262,6 +262,7 @@ class CQChartsView : public QFrame,
   using PenData     = CQChartsPenData;
   using BrushData   = CQChartsBrushData;
   using ColorInd    = CQChartsUtil::ColorInd;
+  using RegionMgr   = CQChartsRegionMgr;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -500,7 +501,7 @@ class CQChartsView : public QFrame,
   //---
 
   // property model
-  CQPropertyViewModel *propertyModel() const { return propertyModel_; }
+  CQPropertyViewModel *propertyModel() const { return propertyModel_.get(); }
 
   //---
 
@@ -531,7 +532,7 @@ class CQChartsView : public QFrame,
   //---
 
   // view key
-  CQChartsViewKey *key() const { return keyObj_; }
+  CQChartsViewKey *key() const { return keyObj_.get(); }
 
   //---
 
@@ -589,6 +590,7 @@ class CQChartsView : public QFrame,
   using ValueSetAnnotation  = CQChartsValueSetAnnotation;
   using WidgetAnnotation    = CQChartsWidgetAnnotation;
   using Buffer              = CQChartsBuffer;
+  using BufferP             = std::unique_ptr<Buffer>;
   using Layer               = CQChartsLayer;
 
   // get annotations
@@ -735,10 +737,10 @@ class CQChartsView : public QFrame,
   //---
 
   // get buffers
-  Buffer *bgBuffer() const { return bgBuffer_; }
-  Buffer *fgBuffer() const { return fgBuffer_; }
+  Buffer *bgBuffer() const { return bgBuffer_.get(); }
+  Buffer *fgBuffer() const { return fgBuffer_.get(); }
 
-  Buffer *overlayBuffer() const { return overlayBuffer_; }
+  Buffer *overlayBuffer() const { return overlayBuffer_.get(); }
 
   // get/set draw layer type
   const Layer::Type &drawLayerType() const { return drawLayerType_; }
@@ -1008,7 +1010,7 @@ class CQChartsView : public QFrame,
 
   //---
 
-  CQChartsRegionMgr *regionMgr() const { return regionMgr_; }
+  RegionMgr *regionMgr() const { return regionMgr_.get(); }
 
   //---
 
@@ -1427,8 +1429,13 @@ class CQChartsView : public QFrame,
     QRubberBand* rubberBand_ { nullptr };
   };
 
-  using DisplayRange  = CQChartsDisplayRange;
-  using PropertyModel = CQPropertyViewModel;
+  using DisplayRange   = CQChartsDisplayRange;
+  using DisplayRangeP  = std::unique_ptr<DisplayRange>;
+  using PropertyModel  = CQPropertyViewModel;
+  using PropertyModelP = std::unique_ptr<PropertyModel>;
+  using ViewKey        = CQChartsViewKey;
+  using ViewKeyP       = std::unique_ptr<ViewKey>;
+  using RegionMgrP     = std::unique_ptr<RegionMgr>;
 
   using EditAnnotationDlg = CQChartsEditAnnotationDlg;
   using EditAxisDlg       = CQChartsEditAxisDlg;
@@ -1444,31 +1451,42 @@ class CQChartsView : public QFrame,
 
   static QSize defSizeHint_;
 
-  CQCharts*        charts_            { nullptr };      //!< parent charts
-  Window*          window_            { nullptr };      //!< parent window
-  QImage*          image_             { nullptr };      //!< image buffer
-  QPainter*        ipainter_          { nullptr };      //!< image painter
-  DisplayRange*    displayRange_      { nullptr };      //!< display range
-  PropertyModel*   propertyModel_     { nullptr };      //!< property model
-  QString          id_;                                 //!< view id
-  QString          title_;                              //!< view title
-  CQChartsViewKey* keyObj_            { nullptr };      //!< key object
-  Plots            plots_;                              //!< child plots
-  int              currentPlotInd_    { -1 };           //!< current plot index
-  Annotations      annotations_;                        //!< annotations
-  Mode             mode_              { Mode::SELECT }; //!< mouse mode
-  SelectData       selectData_;                         //!< select sub mode data
-  HighlightData    selectedHighlight_;                  //!< select highlight
-  HighlightData    insideHighlight_;                    //!< inside highlight
-  bool             overlayFade_       { false };        //!< overlay fade
-  Alpha            overlayFadeAlpha_  { 0.5 };          //!< overlay fade alpha
-  RegionData       regionData_;                         //!< region sub mode
-  QString          defaultPalette_;                     //!< default palette
-  ScrollData       scrollData_;                         //!< scroll data
-  bool             antiAlias_         { true };         //!< anti alias
-//bool             showTable_         { false };        //!< show table with plot
-  bool             bufferLayers_      { true };         //!< buffer draw layers
-  bool             preview_           { false };        //!< preview
+  CQCharts* charts_ { nullptr }; //!< parent charts
+  Window*   window_ { nullptr }; //!< parent window
+
+  // draw data
+  QImage*        image_         { nullptr }; //!< image buffer
+  QPainter*      ipainter_      { nullptr }; //!< image painter
+  DisplayRangeP  displayRange_;              //!< display range
+
+  PropertyModelP propertyModel_; //!< property model
+
+  QString id_; //!< view id
+
+  // child objects
+  QString     title_;                 //!< view title (TODO: object)
+  ViewKeyP    keyObj_;                //!< key object
+  Plots       plots_;                 //!< child plots
+  int         currentPlotInd_ { -1 }; //!< current plot index
+  Annotations annotations_;           //!< annotations
+
+  Mode mode_ { Mode::SELECT }; //!< mouse mode
+
+  // select/highlight data
+  SelectData    selectData_;        //!< select sub mode data
+  HighlightData selectedHighlight_; //!< select highlight
+  HighlightData insideHighlight_;   //!< inside highlight
+
+  bool  overlayFade_      { false }; //!< overlay fade
+  Alpha overlayFadeAlpha_ { 0.5 };   //!< overlay fade alpha
+
+  RegionData regionData_;                //!< region sub mode
+  QString    defaultPalette_;            //!< default palette
+  ScrollData scrollData_;                //!< scroll data
+  bool       antiAlias_       { true };  //!< anti alias
+//bool       showTable_       { false }; //!< show table with plot
+  bool       bufferLayers_    { true };  //!< buffer draw layers
+  bool       preview_         { false }; //!< preview
 
   // fonts
   bool   scaleFont_  { true }; //!< auto scale font
@@ -1482,15 +1500,18 @@ class CQChartsView : public QFrame,
   CQChartsViewToolTip*  toolTip_  { nullptr }; //!< mouse tooltip
   CQChartsViewFloatTip* floatTip_ { nullptr }; //!< float tooltip
 
-  bool        plotSeparators_ { false };             //!< show plot separators
-  bool        handDrawn_      { false };             //!< is handdrawn
-  double      handRoughness_  { 1.0 };               //!< handdrawn roughness
-  double      handFillDelta_  { 16 };                //!< handdrawn fill delta
-  SizeData    sizeData_;                             //!< size control
-  PosTextType posTextType_    { PosTextType::PLOT }; //!< position text type
-  BBox        prect_          { 0, 0, 100, 100 };    //!< plot rect
-  double      aspect_         { 1.0 };               //!< current aspect
-  MouseData   mouseData_;                            //!< mouse data
+  bool plotSeparators_ { false }; //!< show plot separators
+
+  // handdrawn data
+  bool   handDrawn_     { false }; //!< is handdrawn
+  double handRoughness_ { 1.0 };   //!< handdrawn roughness
+  double handFillDelta_ { 16 };    //!< handdrawn fill delta
+
+  SizeData    sizeData_;                          //!< size control
+  PosTextType posTextType_ { PosTextType::PLOT }; //!< position text type
+  BBox        prect_       { 0, 0, 100, 100 };    //!< plot rect
+  double      aspect_      { 1.0 };               //!< current aspect
+  MouseData   mouseData_;                         //!< mouse data
 
   // mouse search data
   int     searchTimeout_ { 10 };      //!< search timeout
@@ -1514,9 +1535,9 @@ class CQChartsView : public QFrame,
   QSize viewSizeHint_; //!< view size hint
 
   // draw layer buffers
-  Buffer*            bgBuffer_      { nullptr };         //!< buffer for view bg
-  Buffer*            fgBuffer_      { nullptr };         //!< buffer for view fg
-  Buffer*            overlayBuffer_ { nullptr };         //!< buffer for view overlays
+  BufferP            bgBuffer_;                          //!< buffer for view bg
+  BufferP            fgBuffer_;                          //!< buffer for view fg
+  BufferP            overlayBuffer_ ;                    //!< buffer for view overlays
   LayerType          drawLayerType_ { LayerType::NONE }; //!< current draw layer type
   mutable std::mutex painterMutex_;                      //!< painter mutex
 
@@ -1526,10 +1547,10 @@ class CQChartsView : public QFrame,
   EditKeyDlg*        editKeyDlg_        { nullptr }; //!< edit key dialog
   EditTitleDlg*      editTitleDlg_      { nullptr }; //!< edit title dialog
 
-  QString              scriptSelectProc_;              //!< script select proc
-  Annotations          pressAnnotations_;              //!< press annotations
-  CQChartsDocument*    noDataText_        { nullptr }; //!< no data text
-  bool                 updateNoData_      { true };    //!< no data needs update
+  QString           scriptSelectProc_;              //!< script select proc
+  Annotations       pressAnnotations_;              //!< press annotations
+  CQChartsDocument* noDataText_        { nullptr }; //!< no data text
+  bool              updateNoData_      { true };    //!< no data needs update
 
   // separator data
   Separators separators_;                  //!< plot separator widgets
@@ -1537,7 +1558,7 @@ class CQChartsView : public QFrame,
   bool       plotsHorizontal_   { false }; //!< plots are horizontal
   bool       plotsVertical_     { false }; //!< plots are vertical
 
-  CQChartsRegionMgr* regionMgr_ { nullptr }; //!< region widget manager
+  RegionMgrP regionMgr_; //!< region widget manager
 };
 
 //------

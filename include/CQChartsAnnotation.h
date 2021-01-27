@@ -740,10 +740,11 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   void initSmooth() const;
 
  private:
-  using Smooth = CQChartsSmooth;
+  using Smooth  = CQChartsSmooth;
+  using SmoothP = std::unique_ptr<Smooth>;
 
-  bool    roundedLines_ { false };   //!< draw rounded (smooth) lines
-  Smooth* smooth_       { nullptr }; //!< smooth object
+  bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
+  SmoothP smooth_;                 //!< smooth object
 };
 
 //---
@@ -810,9 +811,10 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
  private:
   using Smooth = CQChartsSmooth;
+  using SmoothP = std::unique_ptr<Smooth>;
 
-  bool    roundedLines_ { false };   //!< draw rounded (smooth) lines
-  Smooth* smooth_       { nullptr }; //!< smooth object
+  bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
+  SmoothP smooth_;                 //!< smooth object
 };
 
 //---
@@ -1124,7 +1126,6 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
  public:
   using Position = CQChartsPosition;
-  using ObjRef   = CQChartsObjRef;
 
  public:
   CQChartsArrowAnnotation(View *view, const Position &start=Position(Point(0, 0)),
@@ -1232,7 +1233,6 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
   };
 
   using Position = CQChartsPosition;
-  using ObjRef   = CQChartsObjRef;
   using Length   = CQChartsLength;
 
  public:
@@ -1350,7 +1350,6 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
  public:
   using Position = CQChartsPosition;
-  using ObjRef   = CQChartsObjRef;
   using Symbol   = CQChartsSymbol;
   using PenBrush = CQChartsPenBrush;
   using ColorInd = CQChartsUtil::ColorInd;
@@ -1535,7 +1534,7 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   //---
 
-  Axis *axis() const { return axis_; }
+  Axis *axis() const { return axis_.get(); }
 
   //---
 
@@ -1579,8 +1578,10 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  ObjRef objRef_;             //!< object ref
-  Axis*  axis_   { nullptr }; //!< axis
+  using AxisP = std::unique_ptr<Axis>;
+
+  ObjRef objRef_; //!< object ref
+  AxisP  axis_;   //!< axis
 };
 
 //---
@@ -1825,13 +1826,14 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  using Density = CQChartsDensity;
+  using Density  = CQChartsDensity;
+  using DensityP = std::unique_ptr<Density>;
 
   Rect     rectangle_;                      //!< rectangle
   ObjRef   objRef_;                         //!< object ref
   Reals    values_;                         //!< real values
   DrawType drawType_ { DrawType::DENSITY }; //!< draw type
-  Density* density_  { nullptr };           //!< density object
+  DensityP density_;                        //!< density object
 };
 
 //---

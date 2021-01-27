@@ -801,7 +801,7 @@ editMoveBy(const Point &f)
 
 void
 CQChartsAnnotation::
-calcPenBrush(CQChartsPenBrush &penBrush)
+calcPenBrush(PenBrush &penBrush)
 {
   // set pen and brush
   auto bgColor     = interpFillColor  (ColorInd());
@@ -1525,7 +1525,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -1737,7 +1737,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -1808,7 +1808,6 @@ CQChartsPolygonAnnotation(Plot *plot, const Polygon &polygon) :
 CQChartsPolygonAnnotation::
 ~CQChartsPolygonAnnotation()
 {
-  delete smooth_;
 }
 
 void
@@ -1951,7 +1950,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -2033,7 +2032,7 @@ initSmooth() const
 
     const auto &polygon = polygon_.polygon();
 
-    th->smooth_ = new Smooth(polygon, /*sorted*/false);
+    th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
   }
 }
 
@@ -2069,7 +2068,6 @@ CQChartsPolylineAnnotation(Plot *plot, const Polygon &polygon) :
 CQChartsPolylineAnnotation::
 ~CQChartsPolylineAnnotation()
 {
-  delete smooth_;
 }
 
 void
@@ -2229,7 +2227,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto strokeColor = interpStrokeColor(ColorInd());
 
@@ -2314,7 +2312,7 @@ initSmooth() const
 
     const auto &polygon = polygon_.polygon();
 
-    th->smooth_ = new Smooth(polygon, /*sorted*/false);
+    th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
   }
 }
 
@@ -2625,7 +2623,7 @@ draw(PaintDevice *device)
   //---
 
   // set rect pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -3082,7 +3080,7 @@ draw(PaintDevice *device)
   //---
 
   // set rect pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -3392,7 +3390,7 @@ draw(PaintDevice *device)
   //---
 
   // set rect pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -3776,7 +3774,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto bgColor     = arrow()->interpFillColor  (ColorInd());
   auto strokeColor = arrow()->interpStrokeColor(ColorInd());
@@ -4128,7 +4126,7 @@ draw(PaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush);
 
@@ -4636,20 +4634,18 @@ CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction, double start, doub
 {
   init();
 
-  axis_ = new Axis(plot, direction, start, end);
+  axis_ = std::make_unique<Axis>(plot, direction, start, end);
 
   axis_->setAnnotation     (true);
   axis_->setAllowHtmlLabels(true);
 
-  connect(axis_, SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
-
-  connect(axis_, SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
+  connect(axis_.get(), SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
+  connect(axis_.get(), SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
 }
 
 CQChartsAxisAnnotation::
 ~CQChartsAxisAnnotation()
 {
-  delete axis_;
 }
 
 void
@@ -5331,15 +5327,13 @@ void
 CQChartsValueSetAnnotation::
 updateValues()
 {
-  delete density_;
-
-  density_ = new CQChartsDensity;
+  density_ = std::make_unique<CQChartsDensity>();
 
   density_->setDrawType(CQChartsDensity::DrawType::WHISKER);
 
   density_->setXVals(values_.reals());
 
-  connect(density_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+  connect(density_.get(), SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
 }
 
 void
@@ -5356,7 +5350,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   auto addDensityProp = [&](const QString &path, const QString &name, const QString &alias,
                             const QString &desc) {
-    return &(model->addProperty(path, density_, name, alias)->setDesc(desc));
+    return &(model->addProperty(path, density_.get(), name, alias)->setDesc(desc));
   };
 
   //---

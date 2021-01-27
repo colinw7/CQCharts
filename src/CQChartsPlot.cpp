@@ -83,7 +83,7 @@ init()
 
   //---
 
-  propertyModel_ = new CQPropertyViewModel;
+  propertyModel_ = std::make_unique<CQPropertyViewModel>();
 
   //---
 
@@ -92,20 +92,20 @@ init()
   queueUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_PLOT_QUEUE"    , queueUpdate_);
   bufferSymbols_ = CQChartsEnv::getInt ("CQ_CHARTS_BUFFER_SYMBOLS", bufferSymbols_);
 
-  displayRange_ = new DisplayRange();
+  displayRange_ = std::make_unique<DisplayRange>();
 
   displayRange_->setPixelAdjust(0.0);
 
   bool objTreeWait = CQChartsEnv::getBool("CQ_CHARTS_OBJ_TREE_WAIT", false);
 
-  objTreeData_.tree = new CQChartsPlotObjTree(this, objTreeWait);
+  objTreeData_.tree = std::make_unique<CQChartsPlotObjTree>(this, objTreeWait);
 
   animateData_.tickLen = CQChartsEnv::getInt("CQ_CHARTS_TICK_LEN", animateData_.tickLen);
 
   debugUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE"   , debugUpdate_  );
   debugQuadTree_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
 
-  editHandles_ = new EditHandles(view());
+  editHandles_ = std::make_unique<EditHandles>(view());
 
   //--
 
@@ -173,9 +173,9 @@ init()
   ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
   ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
 
-  updateData_.rangeThread = new ThreadObj("updateRange");
-  updateData_.objsThread  = new ThreadObj("updateObjs" );
-  updateData_.drawThread  = new ThreadObj("drawObjs"   );
+  updateData_.rangeThread = std::make_unique<ThreadObj>("updateRange");
+  updateData_.objsThread  = std::make_unique<ThreadObj>("updateObjs" );
+  updateData_.drawThread  = std::make_unique<ThreadObj>("drawObjs"   );
 
   updateData_.rangeThread->setDebug(debugUpdate_);
   updateData_.objsThread ->setDebug(debugUpdate_);
@@ -201,26 +201,6 @@ term()
 
   for (auto &annotation : annotations())
     delete annotation;
-
-  delete objTreeData_.tree;
-
-  delete propertyModel_;
-
-  delete displayRange_;
-
-  delete titleObj_;
-  delete keyObj_;
-  delete xAxis_;
-  delete yAxis_;
-
-  delete editHandles_;
-
-  delete animateData_.timer;
-
-  delete updateData_.timer;
-  delete updateData_.rangeThread;
-  delete updateData_.objsThread;
-  delete updateData_.drawThread;
 }
 
 //---
@@ -407,8 +387,6 @@ void
 CQChartsPlot::
 stopAnimateTimer()
 {
-  delete animateData_.timer;
-
   animateData_.timer = nullptr;
 }
 
@@ -737,7 +715,7 @@ CQChartsPlot::
 applyVisibleFilter()
 {
   if (visibleFilterStr().length()) {
-    auto *expr = new CQChartsModelExprMatch;
+    auto expr = std::unique_ptr<CQChartsModelExprMatch>();
 
     expr->setModel(model().data());
 
@@ -755,8 +733,6 @@ applyVisibleFilter()
 
       plotObj->setVisible(visible);
     }
-
-    delete expr;
   }
   else {
     for (auto &plotObj : plotObjects())
@@ -2789,14 +2765,14 @@ const CQPropertyViewModel *
 CQChartsPlot::
 propertyModel() const
 {
-  return propertyModel_;
+  return propertyModel_.get();
 }
 
 CQPropertyViewModel *
 CQChartsPlot::
 propertyModel()
 {
-  return propertyModel_;
+  return propertyModel_.get();
 }
 
 void
@@ -3481,7 +3457,7 @@ void
 CQChartsPlot::
 addXAxis()
 {
-  xAxis_ = new CQChartsAxis(this, Qt::Horizontal, 0.0, 1.0);
+  xAxis_ = std::make_unique<Axis>(this, Qt::Horizontal, 0.0, 1.0);
 
   xAxis_->setObjectName("xaxis");
 }
@@ -3490,7 +3466,7 @@ void
 CQChartsPlot::
 addYAxis()
 {
-  yAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
+  yAxis_ = std::make_unique<Axis>(this, Qt::Vertical, 0.0, 1.0);
 
   yAxis_->setObjectName("yaxis");
 }
@@ -3501,7 +3477,7 @@ void
 CQChartsPlot::
 addKey()
 {
-  keyObj_ = new CQChartsPlotKey(this);
+  keyObj_ = std::make_unique<PlotKey>(this);
 }
 
 void
@@ -3620,7 +3596,7 @@ addTitle()
 {
   assert(! titleObj_);
 
-  titleObj_ = new CQChartsTitle(this);
+  titleObj_ = std::make_unique<CQChartsTitle>(this);
 
   title()->setTextStr(titleStr());
 }
@@ -8442,6 +8418,9 @@ void
 CQChartsPlot::
 wheelHScroll(int delta)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->wheelHScroll(delta);
+
   double panFactor = 0.50;
 
   if      (delta > 0)
@@ -8454,6 +8433,9 @@ void
 CQChartsPlot::
 wheelVScroll(int delta)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->wheelVScroll(delta);
+
   double panFactor = 0.50;
 
   if      (delta > 0)
@@ -8466,6 +8448,9 @@ void
 CQChartsPlot::
 wheelZoom(const Point &pp, int delta)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->wheelZoom(pp, delta);
+
   double zoomFactor = 1.10;
 
   auto pp1 = pixelToWindow(pp);
@@ -8486,6 +8471,9 @@ void
 CQChartsPlot::
 panLeft(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->panLeft(f);
+
   if (! allowPanX())
     return;
 
@@ -8521,6 +8509,9 @@ void
 CQChartsPlot::
 panRight(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->panRight(f);
+
   if (! allowPanX())
     return;
 
@@ -8556,6 +8547,9 @@ void
 CQChartsPlot::
 panUp(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->panUp(f);
+
   if (! allowPanY())
     return;
 
@@ -8591,6 +8585,9 @@ void
 CQChartsPlot::
 panDown(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->panDown(f);
+
   if (! allowPanY())
     return;
 
@@ -8626,6 +8623,9 @@ void
 CQChartsPlot::
 pan(double dx, double dy)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->pan(dx, dy);
+
   if (allowPanX())
     setDataOffsetX(dataOffsetX() + dx/getDataRange().getWidth());
 
@@ -8645,6 +8645,9 @@ void
 CQChartsPlot::
 zoomIn(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->zoomIn(f);
+
   if (allowZoomX())
     setDataScaleX(dataScaleX()*f);
 
@@ -8660,6 +8663,9 @@ void
 CQChartsPlot::
 zoomOut(double f)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->zoomOut(f);
+
   if (allowZoomX())
     setDataScaleX(dataScaleX()/f);
 
@@ -8675,6 +8681,12 @@ void
 CQChartsPlot::
 zoomTo(const BBox &bbox)
 {
+  if (isOverlay() && ! isFirstPlot()) {
+    auto bbox1 = firstPlot()->pixelToWindow(windowToPixel(bbox));
+
+    return firstPlot()->zoomTo(bbox1);
+  }
+
   if (! dataRange_.isSet())
     return;
 
@@ -8722,6 +8734,12 @@ void
 CQChartsPlot::
 unzoomTo(const BBox &bbox)
 {
+  if (isOverlay() && ! isFirstPlot()) {
+    auto bbox1 = firstPlot()->pixelToWindow(windowToPixel(bbox));
+
+    return firstPlot()->unzoomTo(bbox1);
+  }
+
   if (! dataRange_.isSet())
     return;
 
@@ -8762,6 +8780,9 @@ bool
 CQChartsPlot::
 isZoomFull() const
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->isZoomFull();
+
   if (allowZoomX() && ! CMathUtil::realEq(dataScaleX(), 1.0))
     return false;
 
@@ -8781,6 +8802,9 @@ void
 CQChartsPlot::
 zoomFull(bool notify)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->zoomFull();
+
   if (allowZoomX())
     setDataScaleX(1.0);
 
@@ -8800,6 +8824,12 @@ void
 CQChartsPlot::
 centerAt(const Point &c)
 {
+  if (isOverlay() && ! isFirstPlot()) {
+    auto c1 = firstPlot()->pixelToWindow(windowToPixel(c));
+
+    return firstPlot()->centerAt(c1);
+  }
+
   if (! dataRange_.isSet())
     return;
 
@@ -12001,71 +12031,63 @@ CQChartsAnnotationGroup *
 CQChartsPlot::
 addAnnotationGroup()
 {
-  return addAnnotationT<CQChartsAnnotationGroup>(new CQChartsAnnotationGroup(this));
+  return addAnnotationT<AnnotationGroup>(new AnnotationGroup(this));
 }
 
 CQChartsArrowAnnotation *
 CQChartsPlot::
 addArrowAnnotation(const Position &start, const Position &end)
 {
-  return addAnnotationT<CQChartsArrowAnnotation>(
-    new CQChartsArrowAnnotation(this, start, end));
+  return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
 }
 
 CQChartsArcAnnotation *
 CQChartsPlot::
 addArcAnnotation(const Position &start, const Position &end)
 {
-  return addAnnotationT<CQChartsArcAnnotation>(
-    new CQChartsArcAnnotation(this, start, end));
+  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
 }
 
 CQChartsAxisAnnotation *
 CQChartsPlot::
 addAxisAnnotation(Qt::Orientation direction, double start, double end)
 {
-  return addAnnotationT<CQChartsAxisAnnotation>(
-    new CQChartsAxisAnnotation(this, direction, start, end));
+  return addAnnotationT<AxisAnnotation>(new AxisAnnotation(this, direction, start, end));
 }
 
 CQChartsEllipseAnnotation *
 CQChartsPlot::
 addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
 {
-  return addAnnotationT<CQChartsEllipseAnnotation>(
-    new CQChartsEllipseAnnotation(this, center, xRadius, yRadius));
+  return addAnnotationT<EllipseAnnotation>(new EllipseAnnotation(this, center, xRadius, yRadius));
 }
 
 CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const Position &pos, const Image &image)
 {
-  return addAnnotationT<CQChartsImageAnnotation>(
-    new CQChartsImageAnnotation(this, pos, image));
+  return addAnnotationT<ImageAnnotation>(new ImageAnnotation(this, pos, image));
 }
 
 CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const Rect &rect, const Image &image)
 {
-  return addAnnotationT<CQChartsImageAnnotation>(
-    new CQChartsImageAnnotation(this, rect, image));
+  return addAnnotationT<ImageAnnotation>(new ImageAnnotation(this, rect, image));
 }
 
 CQChartsPathAnnotation *
 CQChartsPlot::
 addPathAnnotation(const Path &path)
 {
-  return addAnnotationT<CQChartsPathAnnotation>(
-    new CQChartsPathAnnotation(this, path));
+  return addAnnotationT<PathAnnotation>(new PathAnnotation(this, path));
 }
 
 CQChartsKeyAnnotation *
 CQChartsPlot::
 addKeyAnnotation(const Column &column)
 {
-  return addAnnotationT<CQChartsKeyAnnotation>(
-    new CQChartsKeyAnnotation(this, column));
+  return addAnnotationT<KeyAnnotation>(new KeyAnnotation(this, column));
 }
 
 CQChartsPieSliceAnnotation *
@@ -12073,80 +12095,71 @@ CQChartsPlot::
 addPieSliceAnnotation(const Position &pos, const Length &innerRadius, const Length &outerRadius,
                       const Angle &startAngle, const Angle &spanAngle)
 {
-  return addAnnotationT<CQChartsPieSliceAnnotation>(
-    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
+  return addAnnotationT<PieSliceAnnotation>(
+    new PieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
 }
 
 CQChartsPointAnnotation *
 CQChartsPlot::
 addPointAnnotation(const Position &pos, const Symbol &type)
 {
-  return addAnnotationT<CQChartsPointAnnotation>(
-    new CQChartsPointAnnotation(this, pos, type));
+  return addAnnotationT<PointAnnotation>(new PointAnnotation(this, pos, type));
 }
 
 CQChartsPointSetAnnotation *
 CQChartsPlot::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  return addAnnotationT<CQChartsPointSetAnnotation>(
-    new CQChartsPointSetAnnotation(this, values));
+  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, values));
 }
 
 CQChartsPolygonAnnotation *
 CQChartsPlot::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  return addAnnotationT<CQChartsPolygonAnnotation>(
-    new CQChartsPolygonAnnotation(this, points));
+  return addAnnotationT<PolygonAnnotation>(new PolygonAnnotation(this, points));
 }
 
 CQChartsPolylineAnnotation *
 CQChartsPlot::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  return addAnnotationT<CQChartsPolylineAnnotation>(
-    new CQChartsPolylineAnnotation(this, points));
+  return addAnnotationT<PolylineAnnotation>(new PolylineAnnotation(this, points));
 }
 
 CQChartsRectangleAnnotation *
 CQChartsPlot::
 addRectangleAnnotation(const Rect &rect)
 {
-  return addAnnotationT<CQChartsRectangleAnnotation>(
-    new CQChartsRectangleAnnotation(this, rect));
+  return addAnnotationT<RectangleAnnotation>(new RectangleAnnotation(this, rect));
 }
 
 CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const Position &pos, const QString &text)
 {
-  return addAnnotationT<CQChartsTextAnnotation>(
-    new CQChartsTextAnnotation(this, pos, text));
+  return addAnnotationT<TextAnnotation>(new TextAnnotation(this, pos, text));
 }
 
 CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const Rect &rect, const QString &text)
 {
-  return addAnnotationT<CQChartsTextAnnotation>(
-    new CQChartsTextAnnotation(this, rect, text));
+  return addAnnotationT<TextAnnotation>(new TextAnnotation(this, rect, text));
 }
 
 CQChartsValueSetAnnotation *
 CQChartsPlot::
 addValueSetAnnotation(const Rect &rectangle, const CQChartsReals &values)
 {
-  return addAnnotationT<CQChartsValueSetAnnotation>(
-    new CQChartsValueSetAnnotation(this, rectangle, values));
+  return addAnnotationT<ValueSetAnnotation>(new ValueSetAnnotation(this, rectangle, values));
 }
 
 CQChartsButtonAnnotation *
 CQChartsPlot::
 addButtonAnnotation(const Position &pos, const QString &text)
 {
-  return addAnnotationT<CQChartsButtonAnnotation>(
-    new CQChartsButtonAnnotation(this, pos, text));
+  return addAnnotationT<ButtonAnnotation>(new ButtonAnnotation(this, pos, text));
 }
 
 CQChartsWidgetAnnotation *
@@ -12208,24 +12221,21 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
 
   //---
 
-  return addAnnotationT<CQChartsWidgetAnnotation>(
-    new CQChartsWidgetAnnotation(this, pos, widget));
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, pos, widget));
 }
 
 CQChartsWidgetAnnotation *
 CQChartsPlot::
 addWidgetAnnotation(const Rect &rect, const Widget &widget)
 {
-  return addAnnotationT<CQChartsWidgetAnnotation>(
-    new CQChartsWidgetAnnotation(this, rect, widget));
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
 
 CQChartsSymbolMapKeyAnnotation *
 CQChartsPlot::
 addSymbolMapKeyAnnotation()
 {
-  return addAnnotationT<CQChartsSymbolMapKeyAnnotation>(
-    new CQChartsSymbolMapKeyAnnotation(this));
+  return addAnnotationT<SymbolMapKeyAnnotation>(new SymbolMapKeyAnnotation(this));
 }
 
 void

@@ -120,13 +120,13 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
 
-  bgBuffer_      = new CQChartsBuffer(this);
-  fgBuffer_      = new CQChartsBuffer(this);
-  overlayBuffer_ = new CQChartsBuffer(this);
+  bgBuffer_      = std::make_unique<CQChartsBuffer>(this);
+  fgBuffer_      = std::make_unique<CQChartsBuffer>(this);
+  overlayBuffer_ = std::make_unique<CQChartsBuffer>(this);
 
   //---
 
-  displayRange_ = new CQChartsDisplayRange;
+  displayRange_ = std::make_unique<CQChartsDisplayRange>();
 
   double vr = viewportRange();
 
@@ -134,12 +134,12 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  propertyModel_ = new CQPropertyViewModel;
+  propertyModel_ = std::make_unique<CQPropertyViewModel>();
 
   //---
 
   if (charts_->hasViewKey()) {
-    keyObj_ = new CQChartsViewKey(this);
+    keyObj_ = std::make_unique<ViewKey>(this);
 
     keyObj_->setVisible(false);
   }
@@ -212,7 +212,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  regionMgr_ = new CQChartsRegionMgr(this);
+  regionMgr_ = std::make_unique<CQChartsRegionMgr>(this);
 }
 
 CQChartsView::
@@ -223,16 +223,8 @@ CQChartsView::
 
   //---
 
-  delete bgBuffer_;
-  delete fgBuffer_;
-  delete overlayBuffer_;
-
   delete ipainter_;
   delete image_;
-
-  delete keyObj_;
-
-  delete displayRange_;
 
   for (auto &plot : plots_)
     delete plot;
@@ -242,8 +234,6 @@ CQChartsView::
 
   for (auto &probeBand : probeData_.bands)
     delete probeBand;
-
-  delete propertyModel_;
 
   delete popupMenu_;
 
@@ -1324,63 +1314,56 @@ CQChartsAnnotationGroup *
 CQChartsView::
 addAnnotationGroup()
 {
-  return addAnnotationT<CQChartsAnnotationGroup>(new CQChartsAnnotationGroup(this));
+  return addAnnotationT<AnnotationGroup>(new AnnotationGroup(this));
 }
 
 CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const Position &start, const Position &end)
 {
-  return addAnnotationT<CQChartsArrowAnnotation>(
-    new CQChartsArrowAnnotation(this, start, end));
+  return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
 }
 
 CQChartsArcAnnotation *
 CQChartsView::
 addArcAnnotation(const Position &start, const Position &end)
 {
-  return addAnnotationT<CQChartsArcAnnotation>(
-    new CQChartsArcAnnotation(this, start, end));
+  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
 }
 
 CQChartsEllipseAnnotation *
 CQChartsView::
 addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
 {
-  return addAnnotationT<CQChartsEllipseAnnotation>(
-    new CQChartsEllipseAnnotation(this, center, xRadius, yRadius));
+  return addAnnotationT<EllipseAnnotation>(new EllipseAnnotation(this, center, xRadius, yRadius));
 }
 
 CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const Position &pos, const Image &image)
 {
-  return addAnnotationT<CQChartsImageAnnotation>(
-    new CQChartsImageAnnotation(this, pos, image));
+  return addAnnotationT<ImageAnnotation>(new ImageAnnotation(this, pos, image));
 }
 
 CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsRect &rect, const Image &image)
 {
-  return addAnnotationT<CQChartsImageAnnotation>(
-    new CQChartsImageAnnotation(this, rect, image));
+  return addAnnotationT<ImageAnnotation>(new ImageAnnotation(this, rect, image));
 }
 
 CQChartsPathAnnotation *
 CQChartsView::
 addPathAnnotation(const Path &path)
 {
-  return addAnnotationT<CQChartsPathAnnotation>(
-    new CQChartsPathAnnotation(this, path));
+  return addAnnotationT<PathAnnotation>(new PathAnnotation(this, path));
 }
 
 CQChartsKeyAnnotation *
 CQChartsView::
 addKeyAnnotation()
 {
-  return addAnnotationT<CQChartsKeyAnnotation>(
-    new CQChartsKeyAnnotation(this));
+  return addAnnotationT<KeyAnnotation>(new KeyAnnotation(this));
 }
 
 CQChartsPieSliceAnnotation *
@@ -1389,96 +1372,85 @@ addPieSliceAnnotation(const Position &pos, const Length &innerRadius,
                       const Length &outerRadius, const CQChartsAngle &startAngle,
                       const CQChartsAngle &spanAngle)
 {
-  return addAnnotationT<CQChartsPieSliceAnnotation>(
-    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
+  return addAnnotationT<PieSliceAnnotation>(
+    new PieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
 }
 
 CQChartsPointAnnotation *
 CQChartsView::
 addPointAnnotation(const Position &pos, const CQChartsSymbol &type)
 {
-  return addAnnotationT<CQChartsPointAnnotation>(
-    new CQChartsPointAnnotation(this, pos, type));
+  return addAnnotationT<PointAnnotation>(new PointAnnotation(this, pos, type));
 }
 
 CQChartsPointSetAnnotation *
 CQChartsView::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  return addAnnotationT<CQChartsPointSetAnnotation>(
-    new CQChartsPointSetAnnotation(this, values));
+  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, values));
 }
 
 CQChartsPolygonAnnotation *
 CQChartsView::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  return addAnnotationT<CQChartsPolygonAnnotation>(
-    new CQChartsPolygonAnnotation(this, points));
+  return addAnnotationT<PolygonAnnotation>(new PolygonAnnotation(this, points));
 }
 
 CQChartsPolylineAnnotation *
 CQChartsView::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  return addAnnotationT<CQChartsPolylineAnnotation>(
-    new CQChartsPolylineAnnotation(this, points));
+  return addAnnotationT<PolylineAnnotation>(new PolylineAnnotation(this, points));
 }
 
 CQChartsRectangleAnnotation *
 CQChartsView::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  return addAnnotationT<CQChartsRectangleAnnotation>(
-    new CQChartsRectangleAnnotation(this, rect));
+  return addAnnotationT<RectangleAnnotation>(new RectangleAnnotation(this, rect));
 }
 
 CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const Position &pos, const QString &text)
 {
-  return addAnnotationT<CQChartsTextAnnotation>(
-    new CQChartsTextAnnotation(this, pos, text));
+  return addAnnotationT<TextAnnotation>(new TextAnnotation(this, pos, text));
 }
 
 CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  return addAnnotationT<CQChartsTextAnnotation>(
-    new CQChartsTextAnnotation(this, rect, text));
+  return addAnnotationT<TextAnnotation>(new TextAnnotation(this, rect, text));
 }
 
 CQChartsValueSetAnnotation *
 CQChartsView::
 addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values)
 {
-  return addAnnotationT<CQChartsValueSetAnnotation>(
-    new CQChartsValueSetAnnotation(this, rectangle, values));
+  return addAnnotationT<ValueSetAnnotation>(new ValueSetAnnotation(this, rectangle, values));
 }
 
 CQChartsButtonAnnotation *
 CQChartsView::
 addButtonAnnotation(const Position &pos, const QString &text)
 {
-  return addAnnotationT<CQChartsButtonAnnotation>(
-    new CQChartsButtonAnnotation(this, pos, text));
+  return addAnnotationT<ButtonAnnotation>(new ButtonAnnotation(this, pos, text));
 }
 
 CQChartsWidgetAnnotation *
 CQChartsView::
 addWidgetAnnotation(const Position &pos, const CQChartsWidget &widget)
 {
-  return addAnnotationT<CQChartsWidgetAnnotation>(
-    new CQChartsWidgetAnnotation(this, pos, widget));
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, pos, widget));
 }
 
 CQChartsWidgetAnnotation *
 CQChartsView::
 addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
 {
-  return addAnnotationT<CQChartsWidgetAnnotation>(
-    new CQChartsWidgetAnnotation(this, rect, widget));
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
 
 void
