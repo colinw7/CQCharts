@@ -35,10 +35,10 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setUnique().setTip("X value column");
+    setRequired().setUnique().setPropPath("columns.x").setTip("X value column");
 
   addColumnsParameter("y", "Y", "yColumns").
-    setNumeric().setRequired().setTip("Y value columns");
+    setNumeric().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").
     setTip("Draw horizontal");
@@ -230,7 +230,7 @@ addProperties()
   addProp("columns", "yColumns", "y", "Y columns");
 
   // options
-  addProp("options", "horizontal", "", "Draw horizontally");
+  addProp("options", "orientation", "", "Draw horizontal or vertical");
 
   // points
   addProp("points", "points", "visible", "Points visible");

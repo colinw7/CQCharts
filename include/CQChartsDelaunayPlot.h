@@ -27,6 +27,12 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  //---
+
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
+
+  //---
+
   Plot *create(View *view, const ModelP &model) const override;
 };
 

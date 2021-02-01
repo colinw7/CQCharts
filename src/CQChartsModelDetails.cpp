@@ -333,6 +333,9 @@ correlation(const CQChartsColumn &column1, const CQChartsColumn &column2) const
   details1->valueSet()->reals(r1);
   details2->valueSet()->reals(r2);
 
+  if (r1.size() != r2.size())
+    return 0.0;
+
   return CMathCorrelation::calc(r1, r2);
 }
 

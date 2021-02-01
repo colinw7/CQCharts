@@ -33,7 +33,8 @@ addParameters()
 {
   startParameterGroup("Data");
 
-  addColumnsParameter("columns", "Columns", "columns").setRequired().setTip("Columns");
+  addColumnsParameter("columns", "Columns", "columns").
+    setRequired().setPropPath("columns.columns").setTip("Columns");
 
   endParameterGroup();
 

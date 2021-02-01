@@ -26,7 +26,7 @@ class CQChartsPreviewPlot : public QFrame {
 
   bool isEnabled() const;
 
-  void updatePlot(const ModelP &model, const PlotType *type, const QString &filter);
+  void updatePlot(const ModelP &model, const PlotType *type, const QString &filter="");
 
   void resetPlot();
 

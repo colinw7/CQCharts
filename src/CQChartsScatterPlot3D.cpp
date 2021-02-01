@@ -35,27 +35,27 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setNumeric().setTip("X Value Column");
+    setRequired().setNumeric().setPropPath("columns.x").setTip("X Value Column");
   addColumnParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setTip("Y Value Column");
+    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
   addColumnParameter("z", "Z", "zColumn").
-    setRequired().setNumeric().setTip("Z Value Column");
+    setRequired().setNumeric().setPropPath("columns.z").setTip("Z Value Column");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Optional Name Column").setString();
+    setString().setPropPath("columns.name").setTip("Optional Name Column").setString();
   addColumnParameter("label", "Label", "labelColumn").
-    setTip("Custom Label").setString();
+    setPropPath("columns.label").setTip("Custom Label").setString();
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
-    setTip("Custom Symbol Type").setMapped().
+    setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
     setMapMinMax(CQChartsSymbol::minFillValue(), CQChartsSymbol::maxFillValue());
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-    setTip("Custom Symbol Size").setMapped().
+    setPropPath("columns.symbolSize").setTip("Custom Symbol Size").setMapped().
     setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
-    setTip("Custom Font Size for Label").setMapped().
+    setPropPath("columns.fontSize").setTip("Custom Font Size for Label").setMapped().
     setMapMinMax(CQChartsFontSize::minValue(), CQChartsFontSize::maxValue());
 
   //--

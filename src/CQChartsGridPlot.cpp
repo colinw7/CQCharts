@@ -32,11 +32,16 @@ addParameters()
 {
   startParameterGroup("Data");
 
-  addColumnParameter ("name"  , "Name"  , "nameColumn"  ).setRequired().setTip("Name");
-  addColumnParameter ("label" , "Label" , "labelColumn" ).setOptional().setTip("Label");
-  addColumnParameter ("row"   , "Row"   , "rowColumn"   ).setOptional().setTip("Row");
-  addColumnParameter ("column", "Column", "columnColumn").setOptional().setTip("Column");
-  addColumnsParameter("values", "Values", "valueColumns").setRequired().setTip("Values");
+  addColumnParameter ("name"  , "Name"  , "nameColumn"  ).
+    setRequired().setPropPath("columns.name").setTip("Name");
+  addColumnParameter ("label" , "Label" , "labelColumn" ).
+    setOptional().setPropPath("columns.label").setTip("Label");
+  addColumnParameter ("row"   , "Row"   , "rowColumn"   ).
+    setOptional().setPropPath("columns.row").setTip("Row");
+  addColumnParameter ("column", "Column", "columnColumn").
+    setOptional().setPropPath("columns.column").setTip("Column");
+  addColumnsParameter("values", "Values", "valueColumns").
+    setRequired().setPropPath("columns.values").setTip("Values");
 
   endParameterGroup();
 

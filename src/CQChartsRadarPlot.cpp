@@ -29,10 +29,10 @@ addParameters()
   startParameterGroup("Radar");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setBasic().setTip("Name column");
+    setString().setBasic().setPropPath("columns.name").setTip("Name column");
 
-  addColumnsParameter("value", "Value", "valueColumns").
-   setNumeric().setRequired().setTip("Value column");
+  addColumnsParameter("values", "Value", "valueColumns").
+   setNumeric().setRequired().setPropPath("columns.values").setTip("Value columns");
 
   endParameterGroup();
 

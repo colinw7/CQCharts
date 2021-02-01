@@ -29,21 +29,21 @@ addParameters()
 
   // columns
   addColumnParameter ("x", "X", "xColumn").
-    setRequired().setMonotonic().setNumeric().setTip("X Value Column");
+    setRequired().setMonotonic().setNumeric().setPropPath("columns.x").setTip("X Value Column");
   addColumnsParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setTip("Y Value Column");
+    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
 
   addColumnsParameter("min", "Min", "minColumn").
-    setNumeric().setTip("Min Value Column");
+    setNumeric().setPropPath("columns.min").setTip("Min Value Column");
   addColumnsParameter("max", "Max", "maxColumn").
-    setNumeric().setTip("Max Value Column");
+    setNumeric().setPropPath("columns.max").setTip("Max Value Column");
 
   addColumnsParameter("innerBar", "InnerBar", "innerBarColumn").
-    setTip("Inner Fill Column");
+    setPropPath("columns.innerBar").setTip("Inner Fill Column");
   addColumnsParameter("outerBar", "OuterBar", "outerBarColumn").
-    setNumeric().setTip("Outer Bar Column");
+    setNumeric().setPropPath("columns.outerBar").setTip("Outer Bar Column");
   addColumnsParameter("outerBubble", "OuterBubble", "outerBubbleColumn").
-    setNumeric().setTip("Outer Bubble Column");
+    setNumeric().setPropPath("columns.outerBubble").setTip("Outer Bubble Column");
 
   endParameterGroup();
 

@@ -52,7 +52,7 @@ create(View *view, const ModelP &model) const
 
 CQChartsContourPlot::
 CQChartsContourPlot(View *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("delaunay"), model),
+ CQChartsPlot(view, view->charts()->plotType("contour"), model),
  CQChartsObjContourShapeData<CQChartsContourPlot>(this)
 {
 }

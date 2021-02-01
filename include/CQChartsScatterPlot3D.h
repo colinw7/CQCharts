@@ -21,7 +21,7 @@ class CQChartsScatterPlot3DType : public CQChartsPlot3DType {
  public:
   CQChartsScatterPlot3DType();
 
-  QString name() const override { return "scatter3D"; }
+  QString name() const override { return "scatter3d"; }
   QString desc() const override { return "Scatter3D"; }
 
   void addParameters() override;

@@ -33,12 +33,12 @@ addParameters()
 
   // name, desc, propName, attributes, default
   addColumnsParameter("x", "X", "xColumns").
-    setRequired().setUnique().setTip("X Key Column(s)");
+    setRequired().setUnique().setPropPath("columns.x").setTip("X Key Column(s)");
   addColumnsParameter("y", "Y", "yColumns").
-    setRequired().setUnique().setTip("Y Key Column(s)");
+    setRequired().setUnique().setPropPath("columns.y").setTip("Y Key Column(s)");
 
   addColumnParameter("value", "Value", "valueColumn").
-    setRequired().setNumeric().setTip("Value Column");
+    setRequired().setNumeric().setPropPath("columns.value").setTip("Value Column");
 
   // options
   addBoolParameter("orientation", "Orientation", "orientation").setTip("Pivot orientation");

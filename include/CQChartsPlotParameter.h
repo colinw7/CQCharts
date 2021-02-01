@@ -171,19 +171,19 @@ class CQChartsPlotParameter : public QObject {
 
   virtual ~CQChartsPlotParameter() { }
 
-  //! get/set name
+  //! get/set parameter name
   const QString &name() const { return name_; }
   CQChartsPlotParameter &setName(const QString &s) { name_ = s; return *this; }
 
-  //! get/set description
+  //! get/set parameter description
   const QString &desc() const { return desc_; }
   CQChartsPlotParameter &setDesc(const QString &s) { desc_ = s; return *this; }
 
-  //! get/set type
+  //! get/set parameter type
   const Type &type() const { return type_; }
   CQChartsPlotParameter &setType(const Type &s) { type_ = s; return *this; }
 
-  //! get/set type name
+  //! get/set parameter type name
   QString typeName() const;
   CQChartsPlotParameter &setTypeName(const QString &name);
 

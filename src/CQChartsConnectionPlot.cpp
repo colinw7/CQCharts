@@ -23,8 +23,9 @@ addParameters()
   startParameterGroup("Connection List");
 
   addColumnParameter("node", "Node", "nodeColumn").setBasic().
-    setNumeric().setTip("Node Id Column");
+    setNumeric().setPropPath("columns.node").setTip("Node Id Column");
   addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
+    setPropPath("columns.connections").
     setTip("List of Connection Pairs (Ids from id column and connection value)").setDiscriminator();
 
   endParameterGroup();
@@ -35,16 +36,16 @@ addParameters()
   startParameterGroup("Link/Path Value");
 
   addColumnParameter("link", "Link", "linkColumn").setBasic().
-    setTip("Name pair for Source/Target connection").setDiscriminator();
+    setPropPath("columns.link").setTip("Name pair for Source/Target connection").setDiscriminator();
   addColumnParameter("path", "Path", "pathColumn").setBasic().
-    setTip("Path for connection hierarchy").setDiscriminator();
+    setPropPath("columns.path").setTip("Path for connection hierarchy").setDiscriminator();
   addColumnParameter("from", "From", "fromColumn").setBasic().
-    setTip("From connection node").setDiscriminator();
+    setPropPath("columns.from").setTip("From connection node").setDiscriminator();
   addColumnParameter("to"  , "To", "toColumn").setBasic().
-    setTip("To connection node").setDiscriminator();
+    setPropPath("columns.to").setTip("To connection node").setDiscriminator();
 
   addColumnParameter("value", "Value", "valueColumn").setBasic().
-    setNumeric().setTip("Connection value");
+    setNumeric().setPropPath("columns.value").setTip("Connection value");
 
   endParameterGroup();
 
@@ -53,18 +54,18 @@ addParameters()
   startParameterGroup("General");
 
   addColumnParameter("depth", "Depth", "depthColumn").setBasic().
-    setNumeric().setTip("Connection depth");
+    setNumeric().setPropPath("columns.depth").setTip("Connection depth");
 #ifdef CQCHARTS_GRAPH_PATH_ID
   addColumnParameter("pathId", "PathId", "pathIdColumn").
-    setString().setTip("Path Id");
+    setString().setPropPath("columns.pathId").setTip("Path Id");
 #endif
   addColumnParameter("attributes", "Attributes", "attributesColumn").
-    setString().setTip("Node/Edge attributes");
+    setString().setPropPath("columns.attributes").setTip("Node/Edge attributes");
 
   addColumnParameter("group", "Group", "groupColumn").
-    setNumeric().setTip("Group column");
+    setNumeric().setPropPath("columns.group").setTip("Group column");
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Optional node name");
+    setString().setPropPath("columns.name").setTip("Optional node name");
 
   endParameterGroup();
 

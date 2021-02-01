@@ -2,6 +2,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 #include <set>
@@ -334,5 +335,36 @@ print() const
     }
 
     std::cerr << "\n";
+  }
+}
+
+void
+CQChartsAnalyzeModel::
+initPlot(CQChartsPlot *plot)
+{
+  auto *type = plot->type();
+  assert(type);
+
+  analyzeType(type);
+
+  const auto &analyzeModelData = this->analyzeModelData(type);
+
+  for (const auto &nc : analyzeModelData.parameterNameColumn) {
+    const auto &paramName = nc.first;
+    const auto &column    = nc.second;
+
+    const auto &param = type->getParameter(paramName);
+
+    auto propPath = param.propPath();
+
+    if (! propPath.length())
+      std::cerr << "No property path for parameter '" << paramName.toStdString() <<
+                   "' for '" << type->name().toStdString() << "'\n";
+
+    if (! plot->setProperty(propPath, column.toString()))
+      std::cerr << "Failed to set property path '" << propPath.toStdString() <<
+                   "' for parameter '" << paramName.toStdString() <<
+                   "' for '" << type->name().toStdString() <<
+                   "' to '" << column.toString().toStdString() << "'\n";
   }
 }

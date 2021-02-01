@@ -36,16 +36,19 @@ void
 CQChartsModelViewHolder::
 init()
 {
-  if (! charts() || view_)
-    return;
+  assert(charts_);
 
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
 #ifdef CQCHARTS_MODEL_VIEW
+  assert(! view_);
+
   view_ = new CQChartsModelView(charts(), this);
 
   layout->addWidget(view_);
 #else
+  assert(! stack_);
+
   stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
   table_ = new CQChartsTable(charts(), this);

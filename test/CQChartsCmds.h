@@ -314,6 +314,8 @@ CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
 CQCHARTS_DEF_CMD(TestEdit)
 
+CQCHARTS_DEF_CMD(DataFrame)
+
 //---
 
 #endif

@@ -137,7 +137,7 @@ setName(const QString &s)
   if (s != name_) {
     name_ = s;
 
-    emit dataChanged();
+    emitDataChanged();
   }
 }
 
@@ -176,7 +176,7 @@ setFilename(const QString &filename)
 
     fileWatcher_->addFile(filename_);
 
-    emit dataChanged();
+    emitDataChanged();
   }
 }
 
@@ -196,7 +196,7 @@ fileChangedSlot(const QString &)
   else
     return;
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 QString
@@ -284,7 +284,7 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -294,7 +294,7 @@ modelLayoutChangedSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -304,7 +304,7 @@ modelResetSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -314,7 +314,7 @@ modelRowsInsertedSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -324,7 +324,7 @@ modelRowsRemovedSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -334,7 +334,7 @@ modelColumnsInsertedSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 void
@@ -344,7 +344,7 @@ modelColumnsRemovedSlot()
   if (details_)
     details_->reset();
 
-  emit modelChanged();
+  emitModelChanged();
 }
 
 CQChartsModelData::ModelP
@@ -369,6 +369,20 @@ CQChartsModelData::
 emitDeleted()
 {
   emit deleted();
+}
+
+void
+CQChartsModelData::
+emitModelChanged()
+{
+  emit modelChanged();
+}
+
+void
+CQChartsModelData::
+emitDataChanged()
+{
+  emit dataChanged();
 }
 
 //---
@@ -730,7 +744,7 @@ setSummaryEnabled(bool b)
   if (b != summaryEnabled_) {
     summaryEnabled_ = b;
 
-    emit dataChanged();
+    emitDataChanged();
   }
 }
 

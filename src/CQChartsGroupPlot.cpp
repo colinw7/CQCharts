@@ -19,11 +19,11 @@ addParameters()
   startParameterGroup("Grouping");
 
   if (isGroupRequired())
-    addColumnParameter("group", "Group", "groupColumn").
-     setRequired().setGroupable().setBasic().setTip("Group column");
+    addColumnParameter("group", "Group", "groupColumn").setRequired().
+     setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
   else
     addColumnParameter("group", "Group", "groupColumn").
-     setGroupable().setBasic().setTip("Group column");
+     setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
 
   if (allowRowGrouping())
     addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").

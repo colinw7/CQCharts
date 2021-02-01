@@ -29,9 +29,9 @@ addParameters()
   startParameterGroup("Word Cloud");
 
   addColumnParameter("value", "Value", "valueColumn").
-   setRequired().setTip("Value column");
+   setRequired().setPropPath("columns.value").setTip("Value column");
   addColumnParameter("count", "Count", "countColumn").
-   setTip("Count column");
+   setPropPath("columns.count").setTip("Count column");
 
   endParameterGroup();
 
@@ -163,8 +163,8 @@ addProperties()
   addBaseProperties();
 
   // columns
-  addProp("column", "valueColumn", "value", "Value column");
-  addProp("column", "countColumn", "count", "Count column");
+  addProp("columns", "valueColumn", "value", "Value column");
+  addProp("columns", "countColumn", "count", "Count column");
 
   // text
 //addProp("text", "textVisible", "visible", "Text visible");

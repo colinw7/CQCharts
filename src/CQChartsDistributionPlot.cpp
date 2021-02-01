@@ -38,14 +38,14 @@ addParameters()
   startParameterGroup("Distribution");
 
   // values (auto bucketed)
-  addColumnsParameter("value", "Value", "valueColumns").
-    setRequired().setNumeric().setTip("Value column(s)");
+  addColumnsParameter("values", "Values", "valueColumns").
+    setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Custom group name");
+    setString().setPropPath("columns.name").setTip("Custom group name");
 
   addColumnParameter("data", "Data", "dataColumn").
-    setTip("Extra data column");
+    setPropPath("columns.data").setTip("Extra data column");
 
   // bucket
   addBoolParameter("bucketed", "Bucketed", "bucketed", true).

@@ -27,12 +27,16 @@ addParameters()
 {
   startParameterGroup("Hier Scatter");
 
-  addColumnParameter("x", "X", "xColumn").setTip("X Value").setRequired().setNumeric();
-  addColumnParameter("y", "Y", "yColumn").setTip("Y Value").setRequired().setNumeric();
+  addColumnParameter("x", "X", "xColumn").
+    setPropPath("columns.x").setTip("X Value").setRequired().setNumeric();
+  addColumnParameter("y", "Y", "yColumn").
+    setPropPath("columns.y").setTip("Y Value").setRequired().setNumeric();
 
-  addColumnParameter("name", "Name", "nameColumn").setTip("Value Name").setString();
+  addColumnParameter("name", "Name", "nameColumn").
+    setPropPath("columns.name").setTip("Value Name").setString();
 
-  addColumnsParameter("group", "Group", "groupColumns").setTip("Group Name(s)");
+  addColumnsParameter("group", "Group", "groupColumns").
+    setPropPath("columns.group").setTip("Group Name(s)");
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
    setTip("Show Text Label at Point");

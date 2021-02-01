@@ -2755,6 +2755,9 @@ void
 CQChartsView::
 wheelEvent(QWheelEvent *e)
 {
+  if (isPreview())
+    return;
+
   Point pp(e->pos());
 
   auto w = pixelToWindow(pp);

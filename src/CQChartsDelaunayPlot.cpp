@@ -2,6 +2,9 @@
 #include <CQChartsGrahamHull.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
@@ -26,14 +29,14 @@ addParameters()
   startParameterGroup("Delaunay");
 
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setNumeric().setTip("X Value Column");
+    setRequired().setNumeric().setPropPath("columns.x").setTip("X Value Column");
   addColumnParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setTip("Y Value Column");
+    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
 
   addColumnParameter("name" , "Name" , "nameColumn").
-    setString().setTip("Optional Name Column");
+    setString().setPropPath("columns.name").setTip("Optional Name Column");
   addColumnParameter("value", "Value", "valueColumn").
-    setString().setTip("Optional Value Column");
+    setString().setPropPath("columns.value").setTip("Optional Value Column");
 
   addBoolParameter("delaunay", "Delaunay", "delaunay").
     setTip("Draw Delaunay");
@@ -62,6 +65,35 @@ description() const
      p("None.").
     h3("Example").
      p(IMG("images/delaunay.png"));
+}
+
+void
+CQChartsDelaunayPlotType::
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
+{
+  auto *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn xColumn, yColumn;
+
+  int nc = details->numColumns();
+
+  for (int i = 0; i < nc; ++i) {
+    auto *columnDetails = details->columnDetails(Column(i));
+
+    if (columnDetails && columnDetails->isNumeric()) {
+      if      (! xColumn.isValid())
+        xColumn = columnDetails->column();
+      else if (! yColumn.isValid())
+        yColumn = columnDetails->column();
+    }
+  }
+
+  if (xColumn.isValid())
+    analyzeModelData.parameterNameColumn["x"] = xColumn;
+
+  if (yColumn.isValid())
+    analyzeModelData.parameterNameColumn["y"] = yColumn;
 }
 
 CQChartsPlot *

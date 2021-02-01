@@ -7,6 +7,7 @@
 
 class CQCharts;
 class CQChartsPlotType;
+class CQChartsPlot;
 class CQChartsModelData;
 
 /*!
@@ -17,6 +18,7 @@ class CQChartsAnalyzeModel {
  public:
   using ModelData        = CQChartsModelData;
   using PlotType         = CQChartsPlotType;
+  using Plot             = CQChartsPlot;
   using AnalyzeModelData = CQChartsAnalyzeModelData;
 
  public:
@@ -34,6 +36,8 @@ class CQChartsAnalyzeModel {
   const AnalyzeModelData &analyzeModelData(const PlotType *type);
 
   void print() const;
+
+  void initPlot(Plot *plot);
 
  private:
   bool analyzeType(PlotType *type, AnalyzeModelData &analyzeModelData);

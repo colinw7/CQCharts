@@ -1,0 +1,15 @@
+# https://www.kaggle.com/roshansharma/who-suicide-analysis/data
+
+set model [model -file data/who_suicide_statistics.csv -first_line_header]
+
+echo "No. of Countries available for analysis [$model -get num_unique -column country]"
+
+#set details [model_details -model [$model -get id]]
+
+$model -set name -column sex -value gender
+$model -set name -column suicides_no -value suicides
+
+$model -set replace_null -column suicides -value 0
+$model -set replace_null -column population -value 1664090
+
+$model -get correlation -column suicides -data population

@@ -39,12 +39,12 @@ addParameters()
 
   // columns
   addColumnParameter ("x", "X", "xColumn").
-    setRequired().setMonotonic().setNumeric().setTip("X Value Column");
+    setRequired().setMonotonic().setNumeric().setPropPath("columns.x").setTip("X Value Column");
   addColumnsParameter("y", "Y", "yColumns").
-    setRequired().setNumeric().setTip("Y Value Column(s)");
+    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column(s)");
 
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setTip("Optional Label Column");
+    setString().setPropPath("columns.label").setTip("Optional Label Column");
 
   //---
 

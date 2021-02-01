@@ -21,10 +21,10 @@ addParameters()
   startParameterGroup("Dendrogram");
 
   addColumnParameter("name", "name", "nameColumn").
-   setString().setRequired().setTip("Name column");
+   setString().setRequired().setPropPath("columns.name").setTip("Name column");
 
   addColumnParameter("value", "Value", "valueColumn").
-   setNumeric().setRequired().setTip("Value column");
+   setNumeric().setRequired().setPropPath("columns.value").setTip("Value column");
 
   endParameterGroup();
 

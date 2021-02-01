@@ -32,13 +32,13 @@ addParameters()
 
   // value, name columns
   addColumnParameter("value", "Value", "valueColumn").
-    setNumeric().setRequired().setTip("Value column");
+    setNumeric().setRequired().setPropPath("columns.value").setTip("Value column");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setBasic().setTip("Name column");
+    setBasic().setPropPath("columns.name").setTip("Name column");
 
   addColumnParameter("position", "Position", "positionColumn").
-    setNumeric().setTip("Position column");
+    setNumeric().setPropPath("columns.position").setTip("Position column");
 
   endParameterGroup();
 
@@ -183,6 +183,8 @@ addProperties()
   addProp("columns", "valueColumn"   , "value"   , "Value column");
   addProp("columns", "nameColumn"    , "name"    , "Name column");
   addProp("columns", "positionColumn", "position", "Position column");
+
+  addGroupingProperties();
 
   //---
 

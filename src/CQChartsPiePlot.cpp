@@ -29,17 +29,17 @@ addParameters()
   startParameterGroup("Pie");
 
   // args: name, desc, propName, attributes, default
-  addColumnsParameter("value", "Value", "valueColumns").
-    setRequired().setNumeric().setTip("Value column(s)");
+  addColumnsParameter("values", "Value", "valueColumns").
+    setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
 
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setBasic().setTip("Custom label column");
+    setString().setBasic().setPropPath("columns.label").setTip("Custom label column");
 
   addColumnParameter("radius", "Radius", "radiusColumn").
-    setNumeric().setTip("Custom radius column");
+    setNumeric().setPropPath("columns.radius").setTip("Custom radius column");
 
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
-    setString().setTip("Custom key label column");
+    setString().setPropPath("columns.keyLabel").setTip("Custom key label column");
 
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
   addBoolParameter("count", "Count", "count").setTip("Display value counts");

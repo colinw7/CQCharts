@@ -16,7 +16,7 @@ class CQChartsContourPlotType : public CQChartsPlotType {
  public:
   CQChartsContourPlotType();
 
-  QString name() const override { return "contoue"; }
+  QString name() const override { return "contour"; }
   QString desc() const override { return "Contour"; }
 
   Dimension dimension() const override { return Dimension::TWO_D; }

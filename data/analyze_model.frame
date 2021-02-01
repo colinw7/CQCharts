@@ -1,0 +1,11 @@
+set model [model -file data/boxplot.csv -first_line_header]
+
+$model -analyze all
+
+set plot [plot -model [$model -get id] -type xy]
+
+set types {adjacency barchart boxplot bubble chord composite contour correlation delaunay dendrogram distribution empty forcedirected graph grid hierbubble hierscatter image parallel pie pivot radar sankey scatter scatter3d strip sunburst table treemap wheel wordCloud xy}
+
+foreach type $types {
+  $plot -set type -value $type
+}

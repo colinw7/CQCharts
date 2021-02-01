@@ -164,7 +164,7 @@ execCmd(CQChartsCmdArgs &argv)
   QWidget *parentWidget = nullptr;
 
   if (argv.hasParseArg("parent")) {
-    QString parentName = argv.getParseStr("parent");
+    auto parentName = argv.getParseStr("parent");
 
     auto *parent = CQUtil::nameToObject(parentName);
 
@@ -325,7 +325,7 @@ execCmd(CQChartsCmdArgs &argv)
   QWidget *parentWidget = nullptr;
 
   if (argv.hasParseArg("parent")) {
-    QString parentName = argv.getParseStr("parent");
+    auto parentName = argv.getParseStr("parent");
 
     parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
@@ -522,7 +522,7 @@ execCmd(CQChartsCmdArgs &argv)
     return errorMsg(QString("No object '%1'").arg(objectName));
 
   if (propName == "items" && qobject_cast<QComboBox *>(obj)) {
-    QComboBox *combo = qobject_cast<QComboBox *>(obj);
+    auto *combo = qobject_cast<QComboBox *>(obj);
 
     QStringList strs;
 
@@ -1301,7 +1301,7 @@ void
 CQChartsCmdBaseSlot::
 clicked(bool b)
 {
-  QString args = (b ? "1" : "0");
+  auto args = QString(b ? "1" : "0");
 
   execProc(args);
 }
@@ -1332,7 +1332,7 @@ void
 CQChartsCmdBaseSlot::
 textEdited(const QString &s)
 {
-  QString args = QString("{%1}").arg(s);
+  auto args = QString("{%1}").arg(s);
 
   execProc(args);
 }
@@ -1355,7 +1355,7 @@ void
 CQChartsCmdBaseSlot::
 currentIndexChanged(const QString &s)
 {
-  QString args = QString("{%1}").arg(s);
+  auto args = QString("{%1}").arg(s);
 
   execProc(args);
 }
@@ -1373,7 +1373,7 @@ void
 CQChartsCmdBaseSlot::
 execProc(const QString &args)
 {
-  QString cmd = procName_;
+  auto cmd = procName_;
 
   if (args != "")
    cmd += " " + args;

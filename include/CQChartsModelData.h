@@ -152,6 +152,8 @@ class CQChartsModelData : public QObject {
   //---
 
   void emitDeleted();
+  void emitModelChanged();
+  void emitDataChanged();
 
   //---
 

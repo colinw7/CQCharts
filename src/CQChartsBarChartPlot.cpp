@@ -30,13 +30,13 @@ addParameters()
   startParameterGroup("Bar Chart");
 
   // values
-  addColumnsParameter("value", "Value", "valueColumns").
-    setRequired().setNumeric().setTip("Value column(s)");
+  addColumnsParameter("values", "Values", "valueColumns").
+    setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
 
-  addColumnParameter("name" , "Name" , "nameColumn" ).
-    setString().setBasic().setTip("Custom group name");
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setBasic().setPropPath("columns.name").setTip("Custom group name");
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setTip("Bar data label");
+    setString().setPropPath("columns.label").setTip("Bar data label");
 
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
