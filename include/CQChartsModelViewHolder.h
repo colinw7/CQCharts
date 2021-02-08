@@ -55,6 +55,9 @@ class CQChartsModelViewHolder : public QFrame {
 
   QItemSelectionModel *selectionModel();
 
+  void showColumn(int column);
+  void hideColumn(int column);
+
  signals:
   void filterChanged();
 

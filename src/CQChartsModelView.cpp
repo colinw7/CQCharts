@@ -565,8 +565,10 @@ getModelData()
   if (! modelData_) {
     modelData_ = charts_->getModelData(model_);
 
-    if (modelData_)
+    if (modelData_) {
       connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+      connect(modelData_, SIGNAL(deleted()), this, SLOT(resetModelData()));
+    }
   }
 
   return modelData_;
@@ -585,8 +587,10 @@ void
 CQChartsModelView::
 resetModelData()
 {
-  if (modelData_)
+  if (modelData_) {
     disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+    disconnect(modelData_, SIGNAL(deleted()), this, SLOT(resetModelData()));
+  }
 
   modelData_ = nullptr;
 

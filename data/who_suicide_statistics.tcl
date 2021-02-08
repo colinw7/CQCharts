@@ -39,11 +39,11 @@ echo "  $corr"
 echo ""
 echo "Suicides in 15-24 age group"
 
-set model1 [copy_charts_model -model $model -filter {$suicides > 5000 && $age == "15-24 years"}]
+set manyYoungSuicidesModel [copy_charts_model -model $model -filter {$suicides > 5000 && $age == "15-24 years"}]
 
-sort_charts_model -model $model1 -column suicides -decreasing
+sort_charts_model -model $manyYoungSuicidesModel -column suicides -decreasing
 
-write_charts_model -model $model1 -max_rows 40 -columns {country suicides gender year}
+write_charts_model -model $manyYoungSuicidesModel -max_rows 40 -columns {country suicides gender year}
 
 # display top 10 countries wrt suicides
 echo ""
@@ -92,42 +92,42 @@ if {0} {
 set view1 [create_charts_view]
 
 # display scatter plot of population vs suicides
-set plot1 [create_charts_plot -view $view1 -model $model -type scatter -columns {{x population} {y suicides}}]
+set populationSuicidesScatterPlot [create_charts_plot -view $view1 -model $model -type scatter -columns {{x population} {y suicides}}]
 
 # display scatter plot of year vs suicides
-set plot2 [create_charts_plot -view $view1 -model $model -type scatter -columns {{x year} {y suicides}}]
+set yearSuicidesScatterPlot [create_charts_plot -view $view1 -model $model -type scatter -columns {{x year} {y suicides}}]
 
-place_charts_plots -view $view1 -columns 2 [list $plot1 $plot2]
+place_charts_plots -view $view1 -columns 2 [list $populationSuicidesScatterPlot $yearSuicidesScatterPlot]
 }
 
 #---
 
 if {0} {
-# display box plot of suicides per country
 set view2 [create_charts_view]
 
-set plot3 [create_charts_plot -view $view2 -model $model -type boxplot -columns {{value suicides} {group country}}]
+# display box plot of suicides per country
+set suicidesCountryBoxPlot [create_charts_plot -view $view2 -model $model -type boxplot -columns {{values suicides} {group country}}]
 
-set_charts_property -plot $plot3 -name filter.expression -value {$suicides > 1000}
-set_charts_property -plot $plot3 -name options.horizontal -value 1
-set_charts_property -plot $plot3 -name labels.visible -value 0
-set_charts_property -plot $plot3 -name key.visible -value 0
+set_charts_property -plot $suicidesCountryBoxPlot -name filter.expression -value {$suicides > 1000}
+set_charts_property -plot $suicidesCountryBoxPlot -name options.orientation -value horizontal
+set_charts_property -plot $suicidesCountryBoxPlot -name labels.visible -value 0
+set_charts_property -plot $suicidesCountryBoxPlot -name key.visible -value 0
 
 # display box plot of suicides per gender
-set plot4 [create_charts_plot -view $view2 -model $model -type boxplot -columns {{value suicides} {group gender}}]
+set suicidesGenderBoxPlot [create_charts_plot -view $view2 -model $model -type boxplot -columns {{values suicides} {group gender}}]
 
-set_charts_property -plot $plot4 -name options.horizontal -value 1
-set_charts_property -plot $plot4 -name labels.visible -value 0
-set_charts_property -plot $plot4 -name key.visible -value 0
+set_charts_property -plot $suicidesGenderBoxPlot -name options.orientation -value horizontal
+set_charts_property -plot $suicidesGenderBoxPlot -name labels.visible -value 0
+set_charts_property -plot $suicidesGenderBoxPlot -name key.visible -value 0
 
 # display box plot of suicides per age
-set plot5 [create_charts_plot -view $view2 -model $model -type boxplot -columns {{value suicides} {group age}}]
+set suicidesAgeBoxPlot [create_charts_plot -view $view2 -model $model -type boxplot -columns {{values suicides} {group age}}]
 
-set_charts_property -plot $plot5 -name options.horizontal -value 1
-set_charts_property -plot $plot5 -name labels.visible -value 0
-set_charts_property -plot $plot5 -name key.visible -value 0
+set_charts_property -plot $suicidesAgeBoxPlot -name options.orientation -value horizontal
+set_charts_property -plot $suicidesAgeBoxPlot -name labels.visible -value 0
+set_charts_property -plot $suicidesAgeBoxPlot -name key.visible -value 0
 
-place_charts_plots -view $view2 -columns 3 [list $plot3 $plot4 $plot5]
+place_charts_plots -view $view2 -columns 3 [list $suicidesCountryBoxPlot $suicidesGenderBoxPlot $suicidesAgeBoxPlot]
 }
 
 #---
@@ -136,14 +136,14 @@ if {0} {
 # display suicides per country
 set view3 [create_charts_view]
 
-set model5 [load_charts_model -csv data/world.csv -comment_header \
+set worldModel [load_charts_model -csv data/world.csv -comment_header \
   -column_type {{{1 polygon_list}}}]
 
-set_charts_data -model $model5 -column 0 -header -name value -value country
+set_charts_data -model $worldModel -column 0 -header -name value -value country
 
-set model6 [join_charts_model -models [list $model5 $countrySuicidesModel] -columns {country}]
+set worldSuicidesModel [join_charts_model -models [list $worldModel $countrySuicidesModel] -columns {country}]
 
-set plot6 [create_charts_plot -view $view3 -model $model6 -type geometry -columns {{geometry geometry} {value 2} {name country}}]
+set worldSuicidesGeometryPlot [create_charts_plot -view $view3 -model $worldSuicidesModel -type geometry -columns {{geometry geometry} {value 2} {name country}}]
 }
 
 #---
@@ -152,22 +152,22 @@ if {0} {
 # display barchart of top 10 coutries wrt suicides
 sort_charts_model -model $countrySuicidesModel -column {suicides (Sum)} -decreasing
 
-set model7 [copy_charts_model -model $countrySuicidesModel -rows 10]
+set countrySuicidesTop10Model [copy_charts_model -model $countrySuicidesModel -rows 10]
 
 set view4 [create_charts_view]
 
-set plot7 [create_charts_plot -view $view4 -model $model7 -type barchart -columns {{name country} {value 1}}]
+set yeatSuicidesSumBarChart [create_charts_plot -view $view4 -model $countrySuicidesTop10Model -type barchart -columns {{name country} {value 1}}]
 }
 
 #---
 
 if {0} {
-# display barchart of top 10 coutries wrt suicides
+# display xy plot of top 10 coutries wrt suicides
 set view5 [create_charts_view]
 
 sort_charts_model -model $yearSuicidesModel -column {year}
 
-set plot8 [create_charts_plot -view $view5 -model $yearSuicidesModel -type xy -columns {{x year} {y {{suicides (Sum)}}}}]
+set yeatSuicidesSumXYPlot [create_charts_plot -view $view5 -model $yearSuicidesModel -type xy -columns {{x year} {y {{suicides (Sum)}}}}]
 }
 
 #---
@@ -177,21 +177,21 @@ if {0} {
 set view6 [create_charts_view]
 
 if {0} {
-set plot8 [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type piechart -columns {{value {{suicides (Sum)}}} {label gender}}]
+set suicidesGenderPieChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type piechart -columns {{value {{suicides (Sum)}}} {label gender}}]
 }
 
 if {0} {
-set plot9 [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type barchart -columns {{value {{suicides (Sum)}}} {name gender}}]
+set suicidesGenderBarChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type barchart -columns {{value {{suicides (Sum)}}} {name gender}}]
 }
 }
 
 #---
 
 if {0} {
-set model8 \
+set ageCountModel \
  [flatten_charts_model -model $model -group age -column_ops {{count age}}]
 
-write_charts_model -model $model8 -max_rows 10
+write_charts_model -model $ageCountModel -max_rows 10
 }
 
 #---

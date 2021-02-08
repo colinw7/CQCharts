@@ -376,7 +376,7 @@ struct FlattenData {
 FilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
                           const FlattenData &flattenData);
 
-inline FlattenOp stringToOp(const QString &str) {
+inline FlattenOp flattenStringToOp(const QString &str) {
   if      (str == "sum"   ) return FlattenOp::SUM;
   else if (str == "mean"  ) return FlattenOp::MEAN;
   else if (str == "avg"   ) return FlattenOp::MEAN;

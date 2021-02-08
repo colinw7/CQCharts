@@ -372,6 +372,22 @@ addParameter(CQChartsPlotParameter *parameter)
   return *parameter1;
 }
 
+CQChartsPlotParameter *
+CQChartsPlotType::
+getColumnParameter(const QString &name) const
+{
+  for (const auto &parameter : parameters()) {
+    if (parameter->type() != CQChartsPlotParameter::Type::COLUMN &&
+        parameter->type() != CQChartsPlotParameter::Type::COLUMN_LIST)
+      continue;
+
+    if (parameter->name() == name)
+      return parameter;
+  }
+
+  return nullptr;
+}
+
 void
 CQChartsPlotType::
 addProperty(const QString &name, const QString &propName, const QString &desc)

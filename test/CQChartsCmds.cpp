@@ -34,6 +34,10 @@
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
 
+#ifdef CQCHARTS_DATA_FRAME
+#include <CQChartsDataFrame.h>
+#endif
+
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
@@ -52,10 +56,6 @@
 #include <CQSortModel.h>
 #include <CQDataModel.h>
 
-#ifdef CQCHARTS_DATA_FRAME
-#include <CQDataFrame.h>
-#endif
-
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -69,7 +69,7 @@
 #include <QTextDocument>
 #include <QAbstractTextDocumentLayout>
 #include <QLabel>
-#include <QVBoxLayout>
+#include <QGridLayout>
 #include <QFont>
 #include <fstream>
 
@@ -538,8 +538,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId = argv.getParseStr("model");
-
   auto header = argv.getParseStr("header");
   auto type   = argv.getParseStr("type");
   auto expr   = argv.getParseStr("expr");
@@ -547,6 +545,8 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -797,18 +797,24 @@ execCmd(CQChartsCmdArgs &argv)
   else if (argv.hasParseArg("replace")) {
     auto oldValue = argv.getParseStr("replace");
 
+    //---
+
     if (! argv.hasParseArg("column"))
       return errorMsg("Missing column for -replace");
-
-    if (! argv.hasParseArg("value"))
-      return errorMsg("Missing value for -replace");
 
     auto column = argv.getParseColumn("column", model.data());
 
     if (! column.isValid())
       return errorMsg("Invalid/missing column for -replace");
 
+    //---
+
+    if (! argv.hasParseArg("value"))
+      return errorMsg("Missing value for -replace");
+
     auto newValue = argv.getParseStr("value");
+
+    //---
 
     int n = modelData->replaceValue(column, oldValue, newValue);
 
@@ -818,15 +824,19 @@ execCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("column"))
       return errorMsg("Missing column for -replace_null");
 
-    if (! argv.hasParseArg("value"))
-      return errorMsg("Missing value for -replace_null");
-
     auto column = argv.getParseColumn("column", model.data());
 
     if (! column.isValid())
       return errorMsg("Invalid/missing column for -replace_null");
 
+    //---
+
+    if (! argv.hasParseArg("value"))
+      return errorMsg("Missing value for -replace_null");
+
     auto value = argv.getParseStr("value");
+
+    //---
 
     int n = modelData->replaceNullValues(column, value);
 
@@ -1243,7 +1253,6 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   auto viewName    = argv.getParseStr    ("view");
-  auto modelId     = argv.getParseStr    ("model");
   auto typeName    = argv.getParseStr    ("type");
   auto id          = argv.getParseStr    ("id");
   auto filterStr   = argv.getParseStr    ("where");
@@ -1264,6 +1273,8 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
 
   CQChartsCmds::ModelP model;
@@ -1700,9 +1711,8 @@ execCmd(CQChartsCmdArgs &argv)
         return cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
-        auto names = QStringList() <<
+        static auto names = QStringList() <<
           "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
-
         return cmdBase_->setCmdRc(names);
       }
       else
@@ -1851,9 +1861,8 @@ execCmd(CQChartsCmdArgs &argv)
           return cmdBase_->setCmdRc(is_style);
         }
         else if (data == "?") {
-          auto names = QStringList() <<
+          static auto names = QStringList() <<
             "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
-
           return cmdBase_->setCmdRc(names);
         }
         else
@@ -1936,9 +1945,8 @@ execCmd(CQChartsCmdArgs &argv)
         return cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
-        auto names = QStringList() <<
+        static auto names = QStringList() <<
           "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
-
         return cmdBase_->setCmdRc(names);
       }
       else
@@ -2259,9 +2267,7 @@ execCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "?") {
-      auto names = QStringList() <<
-        "palettes" << "themes" << "color_models";
-
+      static auto names = QStringList() << "palettes" << "themes" << "color_models";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2300,13 +2306,11 @@ execCmd(CQChartsCmdArgs &argv)
 
     else if (nameStr == "?") {
 #if 0
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
         "name" << "desc" << "palettes" << "select_color" << "inside_color";
 #else
-      auto names = QStringList() <<
-        "name" << "desc" << "palettes";
+      static auto names = QStringList() << "name" << "desc" << "palettes";
 #endif
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2407,15 +2411,13 @@ execCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "cube_negative"  ) { return cmdBase_->setCmdRc(palette->isCubeNegative()); }
 
     else if (nameStr == "?") {
-      auto names = QStringList() <<
-        "name" << "desc" << "color_type" << "color_model" <<
-        "red_model" << "green_model" << "blue_model" << "gray" <<
-        "red_negative" << "green_negative" << "blue_negative" <<
+      static auto names = QStringList() <<
+        "name" << "desc" << "color_type" << "color_model" << "red_model" << "green_model" <<
+        "blue_model" << "gray" << "red_negative" << "green_negative" << "blue_negative" <<
         "red_min" << "red_max" << "green_min" << "green_max" << "blue_min" << "blue_max" <<
-        "colors" << "color" << "distinct" << "interp_color" <<
-        "red_function" << "green_function" << "blue_function" <<
-        "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative";
-
+        "colors" << "color" << "distinct" << "interp_color" << "red_function" <<
+        "green_function" << "blue_function" << "cube_start" << "cube_cycles" <<
+        "cube_saturation" << "cube_negative";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2444,9 +2446,7 @@ execCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(c);
     }
     else if (nameStr == "?") {
-      auto names = QStringList() <<
-        "is_dark" << "interp_color";
-
+      static auto names = QStringList() << "is_dark" << "interp_color";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2584,13 +2584,11 @@ execCmd(CQChartsCmdArgs &argv)
       theme->moveNamedPalette(valueStr, pos);
     }
     else if (nameStr == "?") {
-      auto names = QStringList() <<
-        "name" << "desc" << "palettes" <<
+      static auto names = QStringList() << "name" << "desc" << "palettes" <<
 #if 0
         "select_color" << "inside_color" <<
 #endif
         "add_palette" << "remove_palette" << "set_palette" << "move_palette";
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2760,14 +2758,13 @@ execCmd(CQChartsCmdArgs &argv)
     }
 
     else if (nameStr == "?") {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
         "name" << "desc" << "color_type" << "color_model" <<
         "red_model" << "green_model" << "blue_model" <<
         "red_min" << "red_max" << "green_min" << "green_max" << "blue_min" << "blue_max" <<
         "distinct" << "red_function" << "green_function" << "blue_function" <<
         "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative" <<
         "defined_colors";
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -2788,9 +2785,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
 
     else if (nameStr == "?") {
-      auto names = QStringList() <<
-        "dark";
-
+      static auto names = QStringList() << "dark";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -3210,7 +3205,7 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsModelUtil::FlattenOp defOp = CQChartsModelUtil::FlattenOp::NONE;
 
   if (argv.hasParseArg("default_op"))
-    defOp = CQChartsModelUtil::stringToOp(argv.getParseStr("default_op"));
+    defOp = CQChartsModelUtil::flattenStringToOp(argv.getParseStr("default_op"));
 
   //---
 
@@ -3235,7 +3230,7 @@ execCmd(CQChartsCmdArgs &argv)
         continue;
       }
 
-      auto flattenOp = CQChartsModelUtil::stringToOp(strs1[0]);
+      auto flattenOp = CQChartsModelUtil::flattenStringToOp(strs1[0]);
 
       if (flattenOp == CQChartsModelUtil::FlattenOp::NONE) {
         errorMsg(QString("Invalid column op '%1'").arg(strs1[0]));
@@ -3282,13 +3277,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto *filterModel = CQChartsModelUtil::flattenModel(charts(), model.data(), flattenData);
 
-  CQChartsCmds::ModelP dataModelP(filterModel);
+  CQChartsCmds::ModelP filterModelP(filterModel);
 
-  auto *dataModelData = charts()->initModelData(dataModelP);
+  auto *filterModelData = charts()->initModelData(filterModelP);
 
   //---
 
-  return cmdBase_->setCmdRc(dataModelData->id());
+  return cmdBase_->setCmdRc(filterModelData->id());
 }
 
 //------
@@ -3346,8 +3341,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId = argv.getParseStr("model");
-
   CQChartsModelData::CopyData copyData;
 
   copyData.filter = argv.getParseStr("filter");
@@ -3357,6 +3350,8 @@ execCmd(CQChartsCmdArgs &argv)
   //------
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -3364,7 +3359,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsCmds::ModelP newModelP(newModel);
 
-  auto newModelData = charts()->initModelData(newModelP);
+  auto *newModelData = charts()->initModelData(newModelP);
 
   //---
 
@@ -3457,7 +3452,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsCmds::ModelP newModelP(newModel);
 
-  auto newModelData = charts()->initModelData(newModelP);
+  auto *newModelData = charts()->initModelData(newModelP);
 
   //---
 
@@ -3532,7 +3527,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsCmds::ModelP newModelP(newModel);
 
-  auto newModelData = charts()->initModelData(newModelP);
+  auto *newModelData = charts()->initModelData(newModelP);
 
   //---
 
@@ -3585,11 +3580,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get model
   auto modelId = argv.getParseStr("model");
 
-  //---
-
-  // get model
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -3704,24 +3697,16 @@ execCmd(CQChartsCmdArgs &argv)
           str += QString("%1").arg(str1, w);
         }
 
-        for (int i = 0; i < maxDepth_; ++i)
-          std::cout << " ";
-
-        std::cout << " ";
-
-        std::cout << str.toStdString() << "\n";
+        std::cout << QString(maxDepth_, ' ').toStdString();
+        std::cout << " " << str.toStdString() << "\n";
       }
 
       for (const auto &row : rows_) {
         int d1 = row.depth;
         int d2 = maxDepth_ - d1;
 
-        for (int i = 0; i < d1; ++i)
-          std::cout << ".";
-
-        for (int i = 0; i < d2; ++i)
-          std::cout << " ";
-
+        std::cout << QString(d1, '.').toStdString();
+        std::cout << QString(d2, ' ').toStdString();
         std::cout << " ";
 
         //---
@@ -3924,12 +3909,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId    = argv.getParseStr ("model");
   bool decreasing = argv.getParseBool("decreasing");
 
   //------
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -3945,7 +3931,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   Qt::SortOrder order = (decreasing ? Qt::DescendingOrder : Qt::AscendingOrder);
 
-  cmds()->sortModel(model, column.column(), order);
+  CQChartsCmds::sortModel(model, column.column(), order);
 
   return true;
 }
@@ -3996,7 +3982,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId = argv.getParseStr("model");
   auto expr    = argv.getParseStr("expr");
   auto type    = argv.getParseStr("type");
 
@@ -4006,10 +3991,14 @@ execCmd(CQChartsCmdArgs &argv)
   //------
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
   auto model = modelData->currentModel();
+
+  //---
 
   auto *modelFilter = qobject_cast<CQChartsModelFilter *>(model.data());
 
@@ -4096,12 +4085,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId = argv.getParseStr ("model");
-  bool flip    = argv.getParseBool("flip");
+  bool flip = argv.getParseBool("flip");
 
   //---
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -5082,8 +5072,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto columnNames = QStringList() <<
-   "name" << "mean" << "min" << "lower_median" << "median" << "upper_median" << "max" << "outliers";
+  static auto columnNames = QStringList() <<
+    "name" << "mean" << "min" << "lower_median" << "median" << "upper_median" <<
+    "max" << "outliers";
 
   int nc1 = columnNames.size();
   int nr1 = columnDatas.size();
@@ -5234,17 +5225,20 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId  = argv.getParseStr ("model");
   auto toName   = argv.getParseStr ("to", "csv");
   auto filename = argv.getParseStr ("file", "");
   bool hheader  = argv.getParseBool("hheader", true);
   bool vheader  = argv.getParseBool("vheader", false);
 
-  //------
+  //---
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
+
+  //---
 
   std::ofstream fos; bool isFile = false;
 
@@ -5311,13 +5305,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get model
   auto modelId = argv.getParseStr("model");
 
-  //------
-
-  // get model
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
+
+  //---
 
   if (! charts()->removeModelData(modelData))
     return errorMsg("Failed to remove model");
@@ -5392,37 +5386,31 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       return names;
     }
     else if (hasView) {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
        "plots" << "annotations" << "selected_objects" << "view_width" << "view_height" <<
        "pixel_width" << "pixel_height" << "pixel_position" << "properties";
-
       return names;
     }
     else if (hasType) {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
        "properties" << "parameters" << "parameter.<parameter_name>" << "<property_name>";
-
       return names;
     }
     else if (hasPlot) {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
        "model" << "view" << "value" << "map" << "annotations" << "objects" <<
        "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
        "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors";
-
       return names;
     }
     else if (hasAnnotation) {
-      auto names = QStringList() <<
-       "view" << "plot" << "properties";
-
+      static auto names = QStringList() << "view" << "plot" << "properties";
       return names;
     }
     else {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
        "models" << "views" << "plot_types" << "plots" << "annotations" << "current_model" <<
        "column_types" << "column_type.names" << "column_type.descs" << "annotation_types";
-
       return names;
     }
   }
@@ -5481,9 +5469,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   // model data
   if      (argv.hasParseArg("model")) {
+    // get model
     auto modelId = argv.getParseStr("model");
 
-    // get model
     auto *modelData = cmds()->getModelDataOrCurrent(modelId);
     if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -6517,9 +6505,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   // model data
   if      (argv.hasParseArg("model")) {
+    // get model
     auto modelId = argv.getParseStr("model");
 
-    // get model
     auto *modelData = cmds()->getModelDataOrCurrent(modelId);
     if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -6638,10 +6626,9 @@ execCmd(CQChartsCmdArgs &argv)
     }
 #endif
     else if (name == "?") {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
        "value" << "column_type" << "meta" << "name" <<
        "process_expression" /* << "property.<name>" */;
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -6664,9 +6651,7 @@ execCmd(CQChartsCmdArgs &argv)
       view->setScriptSelectProc(value);
     }
     else if (name == "?") {
-      auto names = QStringList() <<
-       "fit";
-
+      static auto names = QStringList() << "fit";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -6731,9 +6716,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // plot object property
     else if (name == "?") {
-      auto names = QStringList() <<
-       "updates_enabled" << "set_hidden";
-
+      static auto names = QStringList() << "updates_enabled" << "set_hidden";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -9963,9 +9946,8 @@ execCmd(CQChartsCmdArgs &argv)
                       createCmdsSlot(), SLOT(selectPress(const CQChartsGeom::Point &)));
     }
     else if (fromName == "?") {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
         "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged";
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -9988,9 +9970,8 @@ execCmd(CQChartsCmdArgs &argv)
                       createCmdsSlot(), SLOT(keyEventPress(const QString &)));
     }
     else if (fromName == "?") {
-      auto names = QStringList() <<
+      static auto names = QStringList() <<
         "objIdPressed" << "annotationIdPressed" << "selectionChanged" << "keyEventPress";
-
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -10002,9 +9983,7 @@ execCmd(CQChartsCmdArgs &argv)
                       createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
     }
     else if (fromName == "?") {
-      auto names = QStringList() <<
-        "annotationIdPressed";
-
+      static auto names = QStringList() << "annotationIdPressed";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -10020,9 +9999,7 @@ execCmd(CQChartsCmdArgs &argv)
                       createCmdsSlot(), SLOT(interfaceThemeChanged()));
     }
     else if (fromName == "?") {
-      auto names = QStringList() <<
-        "themeChanged" << "interfaceThemeChanged";
-
+      static auto names = QStringList() << "themeChanged" << "interfaceThemeChanged";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -10215,8 +10192,7 @@ execCmd(CQChartsCmdArgs &argv)
         annotation->write(isFile ? fos : std::cout);
     }
     else if (type == "?") {
-      auto names = QStringList() << "" << "annotations";
-
+      static auto names = QStringList() << "" << "annotations";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -10238,8 +10214,7 @@ execCmd(CQChartsCmdArgs &argv)
         annotation->write(isFile ? fos : std::cout);
     }
     else if (type == "?") {
-      auto names = QStringList() << "plots" << "annotations";
-
+      static auto names = QStringList() << "plots" << "annotations";
       return cmdBase_->setCmdRc(names);
     }
     else {
@@ -10381,12 +10356,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto modelId  = argv.getParseStr("model");
   auto viewName = argv.getParseStr("view");
 
   //---
 
   // get model
+  auto modelId = argv.getParseStr("model");
+
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
@@ -10741,912 +10717,6 @@ execCmd(CQChartsCmdArgs &argv)
 //------
 
 #ifdef CQCHARTS_DATA_FRAME
-#include <CQDataFrameWidget.h>
-#include <CQChartsModelViewHolder.h>
-#include <CQChartsPreviewPlot.h>
-#include <CQChartsModelDetailsTable.h>
-
-namespace CQDataFrame {
-
-CQDATA_FRAME_TCL_CMD(Model)
-CQDATA_FRAME_TCL_CMD(ModelDetails)
-CQDATA_FRAME_TCL_CMD(Plot)
-
-CQDATA_FRAME_INST_TCL_CMD(Model)
-CQDATA_FRAME_INST_TCL_CMD(ModelDetails)
-CQDATA_FRAME_INST_TCL_CMD(Plot)
-
-class ModelWidget : public Widget {
- public:
-  ModelWidget(Area *area, CQCharts *charts) :
-   Widget(area), charts_(charts) {
-    setObjectName("model");
-  }
-
-  QString id() const override { return QString("model.%1").arg(pos()); }
-
-  CQCharts *charts() const { return charts_; }
-  void setCharts(CQCharts *charts) { charts_ = charts; }
-
-  CQChartsModelData *modelData() const { return modelData_; }
-
-  void setModelData(CQChartsModelData *modelData) {
-    modelData_ = modelData;
-
-    modelView_->setModel(modelData_->model(), /*hierarchical*/false);
-  }
-
-  void addWidgets() override {
-    auto *layout = new QVBoxLayout(contents_);
-    layout->setMargin(0); layout->setSpacing(0);
-
-    modelView_ = new CQChartsModelViewHolder(charts_);
-
-    layout->addWidget(modelView_);
-  }
-
-  void setExpanded(bool b) override {
-    modelView_->setVisible(b);
-
-    Widget::setExpanded(b);
-  }
-
-  QSize contentsSizeHint() const override { return QSize(-1, 400); }
-  QSize contentsSize() const override { return QSize(400, 400); }
-
- private:
-  void draw(QPainter* /*painter*/, int /*dx*/, int /*dy*/) override {
-  }
-
- private:
-  CQCharts*                charts_    { nullptr };
-  CQChartsModelData*       modelData_ { nullptr };
-  CQChartsModelViewHolder* modelView_ { nullptr };
-};
-
-class ModelFactory : public WidgetFactory {
- public:
-  ModelFactory(CQChartsDataFrameCmd *cmd) :
-   cmd_(cmd) {
-  }
-
-  const char *name() const override { return "model"; }
-
-  CQChartsDataFrameCmd *cmd() const { return cmd_; }
-
-  void addTclCommand(Frame *frame) override {
-    auto *cmd = new ModelTclCmd(frame);
-
-    frame->tclCmdMgr()->addCommand("model", cmd);
-
-    cmd->setData(this);
-  }
-
-  Widget *addWidget(Area *area) override {
-    return makeWidget<ModelWidget>(area, cmd_->charts());
-  }
-
- private:
-  CQChartsDataFrameCmd *cmd_ { nullptr };
-};
-
-void
-ModelTclCmd::
-addArgs(CQTclCmd::CmdArgs &argv)
-{
-  addArg(argv, "-file", ArgType::String, "file name");
-
-  addArg(argv, "-comment_header"   , ArgType::Boolean,
-                 "first comment line is header");
-  addArg(argv, "-first_line_header", ArgType::Boolean,
-                 "first line is header");
-}
-
-QStringList
-ModelTclCmd::
-getArgValues(const QString &option, const NameValueMap &nameValueMap)
-{
-  QStringList strs;
-
-  if (option == "file") {
-    auto p = nameValueMap.find("file");
-
-    QString file = (p != nameValueMap.end() ? (*p).second : "");
-
-    return Frame::s_completeFile(file);
-  }
-
-  return strs;
-}
-
-bool
-ModelTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  auto *factory = static_cast<ModelFactory *>(data());
-  auto *cmd     = factory->cmd();
-
-  auto fileName = argv.getParseStr("file");
-
-  CQChartsInputData inputData;
-
-  if (argv.hasParseArg("comment_header"))
-    inputData.commentHeader = true;
-
-  if (argv.hasParseArg("first_line_header"))
-    inputData.firstLineHeader = true;
-
-  CQChartsFileType fileType { CQChartsFileType::CSV };
-
-  if (! cmd->cmds()->loadFileModel(fileName, fileType, inputData))
-    return false;
-
-  auto *charts    = cmd->charts();
-  auto *modelData = charts->currentModelData();
-
-  if (! modelData)
-    return false;
-
-  modelData->addSummaryModel();
-
-  auto *area = frame_->larea();
-
-  auto *widget = makeWidget<ModelWidget>(area, charts);
-
-  widget->setModelData(modelData);
-
-  //---
-
-  auto *instCmd = new ModelInstTclCmd(frame_, widget->id());
-
-  instCmd->setData(widget);
-
-  frame_->tclCmdMgr()->addCommand(widget->id(), instCmd);
-
-  return frame_->setCmdRc(widget->id());
-}
-
-//---
-
-void
-ModelInstTclCmd::
-addArgs(CQTclCmd::CmdArgs &argv)
-{
-  addArg(argv, "-get"    , ArgType::String, "get named value");
-  addArg(argv, "-set"    , ArgType::String, "set named value");
-  addArg(argv, "-column" , ArgType::String, "get value for specified column");
-  addArg(argv, "-value"  , ArgType::String, "value for set");
-  addArg(argv, "-data"   , ArgType::String, "extra data value for get/set");
-  addArg(argv, "-analyze", ArgType::String, "analyze model for specified types");
-}
-
-QStringList
-ModelInstTclCmd::
-getArgValues(const QString &, const NameValueMap &)
-{
-  return QStringList();
-}
-
-bool
-ModelInstTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  auto *widget = static_cast<ModelWidget *>(data());
-  if (! widget) return false;
-
-  auto *charts = widget->charts();
-
-  auto errorMsg = [&](const QString &msg) {
-    charts->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  auto *modelData = widget->modelData();
-  if (! modelData) return false;
-
-  auto *pmodel = modelData->model().data();
-
-  auto *details = modelData->details();
-
-  //---
-
-  if      (argv.hasParseArg("get")) {
-    auto name = argv.getParseStr("get");
-
-    if (argv.hasParseArg("column")) {
-      auto columnName = argv.getParseStr("column");
-
-      CQChartsColumn column;
-
-      if (! CQChartsModelUtil::stringToColumn(pmodel, columnName, column))
-        return errorMsg("Invalid column");
-
-      auto *columnDetails = details->columnDetails(column);
-
-      if      (name == "column_name") {
-        bool ok;
-
-        auto var = CQChartsModelUtil::modelHeaderValue(pmodel, column, Qt::DisplayRole, ok);
-
-        return frame_->setCmdRc(var);
-      }
-      else if (name == "num_unique") {
-        return frame_->setCmdRc(columnDetails ? columnDetails->numUnique() : 0);
-      }
-      else if (name == "num_null") {
-        return frame_->setCmdRc(columnDetails ? columnDetails->numNull() : 0);
-      }
-      else if (name == "correlation") {
-        if (! argv.hasParseArg("data"))
-          return errorMsg("No data specified");
-
-        auto data = argv.getParseStr("data");
-
-        CQChartsColumn column1;
-
-        if (! CQChartsModelUtil::stringToColumn(pmodel, data, column1))
-          column1 = CQChartsColumn();
-
-        if (! column1.isValid())
-          return errorMsg("Invalid data column specified");
-
-        double c = details->correlation(column, column1);
-
-        return frame_->setCmdRc(c);
-      }
-      else if (name == "?") {
-        auto names = QStringList() << "column_name" << "num_unique" << "num_null";
-
-        return frame_->setCmdRc(names);
-      }
-      else
-        return errorMsg("Invalid -get name for column");
-    }
-    else {
-      auto modelDetailValues = [&](std::function<QVariant(CQChartsModelColumnDetails *)> f,
-                                     const QVariant &defValue=QVariant()) {
-        QVariantList vars;
-
-        int nc = modelData->model()->columnCount();
-
-        for (int ic = 0; ic < nc; ++ic) {
-          CQChartsColumn c(ic);
-
-          auto *columnDetails = details->columnDetails(c);
-
-          auto var = (columnDetails ? f(columnDetails) : defValue);
-
-          vars.push_back(var);
-        }
-
-        return vars;
-      };
-
-      //---
-
-      if      (name == "id")
-        frame_->setCmdRc(modelData->id());
-      else if (name == "num_columns")
-        return frame_->setCmdRc(modelData->model()->columnCount());
-      else if (name == "num_rows")
-        return frame_->setCmdRc(modelData->model()->rowCount());
-      else if (name == "column_names") {
-        QVariantList vars;
-
-        int nc = modelData->model()->columnCount();
-
-        for (int ic = 0; ic < nc; ++ic) {
-          CQChartsColumn c(ic);
-
-          bool ok;
-
-          auto var = CQChartsModelUtil::modelHeaderValue(pmodel, c, Qt::DisplayRole, ok);
-
-          vars.push_back(var);
-        }
-
-        return frame_->setCmdRc(vars);
-      }
-      else if (name == "num_unique") {
-        auto vars = modelDetailValues(
-          [](CQChartsModelColumnDetails *columnDetails) {
-            return columnDetails->numUnique(); },
-          QVariant(0)
-        );
-
-        return frame_->setCmdRc(vars);
-      }
-      else if (name == "num_null") {
-        auto vars = modelDetailValues(
-          [](CQChartsModelColumnDetails *columnDetails) {
-            return columnDetails->numNull(); },
-          QVariant(0)
-        );
-
-        return frame_->setCmdRc(vars);
-      }
-      else if (name == "?") {
-        auto names = QStringList() <<
-          "id" << "num_columns" << "num_rows" << "column_names" << "num_unique" << "num_null";
-
-        return frame_->setCmdRc(names);
-      }
-      else
-        return errorMsg("Invalid -get name for columns");
-    }
-  }
-  else if (argv.hasParseArg("set")) {
-    auto name  = argv.getParseStr("set");
-    auto value = argv.getParseStr("value");
-
-    if (argv.hasParseArg("column")) {
-      auto columnName = argv.getParseStr("column");
-
-      CQChartsColumn column;
-
-      if (! CQChartsModelUtil::stringToColumn(pmodel, columnName, column))
-        return errorMsg("Invalid column");
-
-      if      (name == "name") {
-        CQChartsModelUtil::setModelHeaderValue(pmodel, column.column(), Qt::Horizontal, value);
-      }
-      else if (name == "replace_null") {
-        int n = modelData->replaceNullValues(column, value);
-
-        return frame_->setCmdRc(n);
-      }
-      else if (name == "?") {
-        auto names = QStringList() << "name" << "replace_null";
-
-        return frame_->setCmdRc(names);
-      }
-      else
-        return errorMsg("invalid -set name for column");
-    }
-    else {
-      return errorMsg("invalid -set name for columns");
-    }
-  }
-  else if (argv.hasParseArg("analyze")) {
-    CQChartsAnalyzeModel analyzeModel(widget->charts(), modelData);
-
-    analyzeModel.analyze();
-
-    std::cout << "<html>\n";
-    std::cout << "<table>\n";
-
-    std::cout << "<tr>";
-    std::cout << "<th>Type</th>";
-    std::cout << "<th>Columns</th>";
-    std::cout << "</tr>\n";
-
-    const auto &typeAnalyzeModelData = analyzeModel.typeAnalyzeModelData();
-
-    for (const auto &tnc : typeAnalyzeModelData) {
-      QVariantList cvars;
-
-      const auto &typeName = tnc.first;
-
-      std::cout << "<tr>";
-      std::cout << "<td>" << typeName.toStdString() << "</td>";
-
-      QVariantList tncvars;
-
-      std::cout << "<td>";
-
-      const auto &analyzeModelData = tnc.second;
-
-      for (const auto &nc : analyzeModelData.parameterNameColumn) {
-        const auto &paramName = nc.first;
-        const auto &column    = nc.second;
-
-        QVariantList ncvars;
-
-        std::cout << " " << paramName.toStdString();
-        std::cout << "=" << column.toString().toStdString();
-      }
-
-      std::cout << "</td>";
-      std::cout << "</tr>\n";
-    }
-
-    std::cout << "</table>\n";
-    std::cout << "</html>\n";
-
-    return true;
-  }
-  else
-    return errorMsg("invalid argument");
-
-  return true;
-}
-
-//---
-
-class PlotWidget : public Widget {
- public:
-  PlotWidget(Area *area, CQCharts *charts) :
-   Widget(area), charts_(charts) {
-    setObjectName("plot");
-  }
-
-  QString id() const override { return QString("plot.%1").arg(pos()); }
-
-  CQCharts *charts() const { return charts_; }
-  void setCharts(CQCharts *charts) { charts_ = charts; }
-
-  void setModelData(CQChartsModelData *modelData) {
-    modelData_ = modelData;
-  }
-
-  CQChartsPreviewPlot *previewPlot() { return previewPlot_; }
-
-  CQChartsPlot *plot() { return (previewPlot_ ? previewPlot()->plot() : nullptr); }
-
-  void setType(const QString &typeName) {
-    typeName_ = typeName;
-
-    if (! charts_->isPlotType(typeName_))
-      return;
-
-    auto *plotType = charts_->plotType(typeName_);
-
-    // get model to use (current or summary)
-    CQChartsCmds::ModelP previewModel;
-
-    auto *summaryModel = modelData_->summaryModel();
-
-    if (modelData_->isSummaryEnabled() && summaryModel)
-      previewModel = modelData_->summaryModelP();
-    else
-      previewModel = modelData_->model();
-
-    previewPlot_->updatePlot(previewModel, plotType);
-  }
-
-  void addWidgets() override {
-    auto *layout = new QVBoxLayout(contents_);
-    layout->setMargin(0); layout->setSpacing(0);
-
-    previewPlot_ = new CQChartsPreviewPlot(charts_);
-
-    layout->addWidget(previewPlot_);
-  }
-
-  QSize contentsSizeHint() const override { return QSize(-1, 400); }
-  QSize contentsSize() const override { return QSize(400, 400); }
-
- private:
-  void draw(QPainter* /*painter*/, int /*dx*/, int /*dy*/) override {
-  }
-
- private:
-  CQCharts*            charts_      { nullptr };
-  CQChartsModelData*   modelData_   { nullptr };
-  QString              typeName_;
-  CQChartsPreviewPlot* previewPlot_ { nullptr };
-};
-
-class PlotFactory : public WidgetFactory {
- public:
-  PlotFactory(CQChartsDataFrameCmd *cmd) :
-   cmd_(cmd) {
-  }
-
-  const char *name() const override { return "plot"; }
-
-  CQChartsDataFrameCmd *cmd() const { return cmd_; }
-
-  void addTclCommand(Frame *frame) override {
-    auto *cmd = new PlotTclCmd(frame);
-
-    frame->tclCmdMgr()->addCommand("plot", cmd);
-
-    cmd->setData(this);
-  }
-
-  Widget *addWidget(Area *area) override {
-    return makeWidget<PlotWidget>(area, cmd_->charts());
-  }
-
- private:
-  CQChartsDataFrameCmd *cmd_ { nullptr };
-};
-
-void
-PlotTclCmd::
-addArgs(CQTclCmd::CmdArgs &argv)
-{
-  addArg(argv, "-model", ArgType::String, "model name");
-  addArg(argv, "-type" , ArgType::String, "plot type");
-}
-
-QStringList
-PlotTclCmd::
-getArgValues(const QString &, const NameValueMap &)
-{
-  return QStringList();
-}
-
-bool
-PlotTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  auto *factory = static_cast<PlotFactory *>(data());
-  auto *cmd     = factory->cmd();
-
-  auto modelName = argv.getParseStr("model");
-  auto typeName  = argv.getParseStr("type");
-
-  auto *charts = cmd->charts();
-
-  CQChartsModelData *modelData = nullptr;
-
-  if (modelName != "")
-    modelData = cmd->cmds()->getModelDataOrCurrent(modelName);
-  else
-    modelData = charts->currentModelData();
-
-  if (! modelData)
-    return false;
-
-  auto *area = frame_->larea();
-
-  auto *widget = makeWidget<PlotWidget>(area, charts);
-
-  widget->setModelData(modelData);
-
-  widget->setType(typeName);
-
-  //---
-
-  auto *plotType = charts->plotType(typeName);
-
-  if (plotType) {
-    auto *plot = widget->plot();
-
-    CQChartsAnalyzeModel analyzeModel(charts, modelData);
-
-    analyzeModel.initPlot(plot);
-  }
-
-  //---
-
-  auto *instCmd = new PlotInstTclCmd(frame_, widget->id());
-
-  instCmd->setData(widget);
-
-  frame_->tclCmdMgr()->addCommand(widget->id(), instCmd);
-
-  return frame_->setCmdRc(widget->id());
-}
-
-//---
-
-void
-PlotInstTclCmd::
-addArgs(CQTclCmd::CmdArgs &argv)
-{
-  addArg(argv, "-get"         , ArgType::String, "get named value");
-  addArg(argv, "-set"         , ArgType::String, "set named value");
-  addArg(argv, "-get_property", ArgType::String, "get named property");
-  addArg(argv, "-set_property", ArgType::String, "set named property");
-  addArg(argv, "-value"       , ArgType::String, "value for set");
-}
-
-QStringList
-PlotInstTclCmd::
-getArgValues(const QString &, const NameValueMap &)
-{
-  return QStringList();
-}
-
-bool
-PlotInstTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  auto *widget = static_cast<PlotWidget *>(data());
-  assert(widget);
-
-  auto *charts = widget->charts();
-
-  auto errorMsg = [&](const QString &msg) {
-    charts->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  auto *plot = widget->plot();
-  assert(plot);
-
-  if      (argv.hasParseArg("get")) {
-    auto name = argv.getParseStr("get");
-
-    if      (name == "type") {
-      auto *type = plot->type();
-
-      return frame_->setCmdRc(type->name());
-    }
-    else if (name == "?") {
-      auto names = QStringList() << "type";
-
-      return frame_->setCmdRc(names);
-    }
-    else
-      return errorMsg("Invalid -get name");
-  }
-  else if (argv.hasParseArg("set")) {
-    auto name  = argv.getParseStr("set");
-    auto value = argv.getParseStr("value");
-
-    if      (name == "type") {
-      auto typeName = CQChartsCmds::fixTypeName(value);
-
-      if (! charts->isPlotType(typeName))
-        return errorMsg(QString("Invalid plot type '%1'").arg(typeName));
-
-      widget->setType(typeName);
-
-      plot = widget->plot(); // new plot
-
-      //---
-
-      auto *plotType = charts->plotType(typeName);
-
-      if (plotType) {
-        CQChartsAnalyzeModel analyzeModel(charts, plot->getModelData());
-
-        analyzeModel.initPlot(plot);
-      }
-    }
-    else if (name == "?") {
-      auto names = QStringList() << "type";
-
-      return frame_->setCmdRc(names);
-    }
-    else
-      return errorMsg("Invalid -set name");
-  }
-  else if (argv.hasParseArg("get_property")) {
-    auto name = argv.getParseStr("get_property");
-
-    QVariant value;
-
-    if (! plot->getTclProperty(name, value))
-      return errorMsg(QString("Failed to get property '%1'").arg(name));
-
-    bool rc;
-
-    return frame_->setCmdRc(CQChartsVariant::toString(value, rc));
-  }
-  else if (argv.hasParseArg("set_property")) {
-    auto name  = argv.getParseStr("set_property");
-    auto value = argv.getParseStr("value");
-
-    if (! plot->setProperty(name, value))
-      return errorMsg(QString("Failed to set property '%1' to '%2'").arg(name).arg(value));
-  }
-
-  return true;
-}
-
-//---
-
-class ModelDetailsWidget : public Widget {
- public:
-  ModelDetailsWidget(Area *area, CQCharts *charts) :
-   Widget(area), charts_(charts) {
-    setObjectName("model_details");
-  }
-
-  QString id() const override { return QString("model_details.%1").arg(pos()); }
-
-  CQCharts *charts() const { return charts_; }
-  void setCharts(CQCharts *charts) { charts_ = charts; }
-
-  CQChartsModelData *modelData() const { return modelData_; }
-
-  void setModelData(CQChartsModelData *modelData) {
-    modelData_ = modelData;
-
-    modelDetails_->setModelData(modelData_);
-  }
-
-  void addWidgets() override {
-    auto *layout = new QVBoxLayout(contents_);
-    layout->setMargin(0); layout->setSpacing(0);
-
-    modelDetails_ = new CQChartsModelDetailsTable();
-
-    layout->addWidget(modelDetails_);
-  }
-
-  void setExpanded(bool b) override {
-    modelDetails_->setVisible(b);
-
-    Widget::setExpanded(b);
-  }
-
-  QSize contentsSizeHint() const override { return QSize(-1, 400); }
-  QSize contentsSize() const override { return QSize(400, 400); }
-
- private:
-  void draw(QPainter* /*painter*/, int /*dx*/, int /*dy*/) override {
-  }
-
- private:
-  CQCharts*                  charts_       { nullptr };
-  CQChartsModelData*         modelData_    { nullptr };
-  CQChartsModelDetailsTable* modelDetails_ { nullptr };
-};
-
-class ModelDetailsFactory : public WidgetFactory {
- public:
-  ModelDetailsFactory(CQChartsDataFrameCmd *cmd) :
-   cmd_(cmd) {
-  }
-
-  const char *name() const override { return "model_details"; }
-
-  CQChartsDataFrameCmd *cmd() const { return cmd_; }
-
-  void addTclCommand(Frame *frame) override {
-    auto *cmd = new ModelDetailsTclCmd(frame);
-
-    frame->tclCmdMgr()->addCommand("model_details", cmd);
-
-    cmd->setData(this);
-  }
-
-  Widget *addWidget(Area *area) override {
-    return makeWidget<ModelDetailsWidget>(area, cmd_->charts());
-  }
-
- private:
-  CQChartsDataFrameCmd *cmd_ { nullptr };
-};
-
-void
-ModelDetailsTclCmd::
-addArgs(CQTclCmd::CmdArgs &argv)
-{
-  addArg(argv, "-model", ArgType::String, "model name");
-}
-
-QStringList
-ModelDetailsTclCmd::
-getArgValues(const QString &option, const NameValueMap &nameValueMap)
-{
-  QStringList strs;
-
-  if (option == "file") {
-    auto p = nameValueMap.find("file");
-
-    QString file = (p != nameValueMap.end() ? (*p).second : "");
-
-    return Frame::s_completeFile(file);
-  }
-
-  return strs;
-}
-
-bool
-ModelDetailsTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  auto *factory = static_cast<ModelFactory *>(data());
-  auto *cmd     = factory->cmd();
-
-  auto modelName = argv.getParseStr("model");
-
-  auto *charts = cmd->charts();
-
-  CQChartsModelData *modelData = nullptr;
-
-  if (modelName != "")
-    modelData = cmd->cmds()->getModelDataOrCurrent(modelName);
-  else
-    modelData = charts->currentModelData();
-
-  if (! modelData)
-    return false;
-
-  auto *area = frame_->larea();
-
-  auto *widget = makeWidget<ModelDetailsWidget>(area, charts);
-
-  widget->setModelData(modelData);
-
-  //---
-
-  auto *instCmd = new ModelDetailsInstTclCmd(frame_, widget->id());
-
-  instCmd->setData(widget);
-
-  frame_->tclCmdMgr()->addCommand(widget->id(), instCmd);
-
-  return frame_->setCmdRc(widget->id());
-}
-
-//---
-
-void
-ModelDetailsInstTclCmd::
-addArgs(CQTclCmd::CmdArgs &)
-{
-}
-
-QStringList
-ModelDetailsInstTclCmd::
-getArgValues(const QString &, const NameValueMap &)
-{
-  return QStringList();
-}
-
-bool
-ModelDetailsInstTclCmd::
-exec(CQTclCmd::CmdArgs &argv)
-{
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  return true;
-}
-
-}
-
 void
 CQChartsDataFrameCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11665,7 +10735,7 @@ getArgValues(const QString &option, const NameValueMap &nameValueMap)
 
     QString file = (p != nameValueMap.end() ? (*p).second : "");
 
-    return CQDataFrame::Frame::s_completeFile(file);
+    return CQDataFrame::completeFile(file);
   }
 
   return strs;
@@ -11675,10 +10745,6 @@ bool
 CQChartsDataFrameCmd::
 execCmd(CQChartsCmdArgs &argv)
 {
-  static CQDataFrame::Frame *frame;
-
-  //---
-
   CQPerfTrace trace("CQChartsDataFrameCmd::exec");
 
   addArgs(argv);
@@ -11690,22 +10756,14 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (! frame) {
-    frame = new CQDataFrame::Frame;
-
-    frame->addWidgetFactory(new CQDataFrame::ModelFactory       (this));
-    frame->addWidgetFactory(new CQDataFrame::PlotFactory        (this));
-    frame->addWidgetFactory(new CQDataFrame::ModelDetailsFactory(this));
-  }
-
-  frame->show();
+  CQDataFrame::showFrame(this);
 
   //---
 
   if (argv.hasParseArg("file")) {
     auto fileName = argv.getParseStr("file");
 
-    frame->load(fileName);
+    CQDataFrame::loadFrameFile(fileName);
   }
 
   return true;

@@ -167,3 +167,31 @@ selectionModel()
     return tree_->selectionModel();
 #endif
 }
+
+void
+CQChartsModelViewHolder::
+showColumn(int column)
+{
+#ifdef CQCHARTS_MODEL_VIEW
+  return view_->showColumn(column);
+#else
+  if (! hierarchical_)
+    return table_->showColumn(column);
+  else
+    return tree_->showColumn(column);
+#endif
+}
+
+void
+CQChartsModelViewHolder::
+hideColumn(int column)
+{
+#ifdef CQCHARTS_MODEL_VIEW
+  return view_->hideColumn(column);
+#else
+  if (! hierarchical_)
+    return table_->hideColumn(column);
+  else
+    return tree_->hideColumn(column);
+#endif
+}

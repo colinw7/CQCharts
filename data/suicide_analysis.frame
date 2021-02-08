@@ -1,15 +1,222 @@
 # https://www.kaggle.com/roshansharma/who-suicide-analysis/data
 
+# load model
 set model [model -file data/who_suicide_statistics.csv -first_line_header]
+#set modelId [$model -get id]
 
 echo "No. of Countries available for analysis [$model -get num_unique -column country]"
 
-#set details [model_details -model [$model -get id]]
+# show details (TODO: slows down script)
+#set details [model_details -model $model]
 
-$model -set name -column sex -value gender
-$model -set name -column suicides_no -value suicides
+# rename some values
+$model -set replace_data -column 0 -value "United States of America" -data "United States"
+$model -set replace_data -column 0 -value "Russian Federation" -data "Russia"
+$model -set replace_data -column 0 -value "Republic of Korea" -data "North Korea"
+$model -set replace_data -column 0 -value "Republic of Moldova" -data "Moldova"
+$model -set replace_data -column 0 -value "Venezuela (Bolivarian Republic of)" -data "Venezuela"
 
+# rename columns
+$model -set header_name -column sex -value gender
+$model -set header_name -column suicides_no -value suicides
+
+# get null value percentage
+set nc [$model -get num_columns]
+set nr [$model -get num_rows]
+
+echo "Null Value Percentage per Column"
+
+for {set c 0} {$c < $nc} {incr c} {
+  set column_name [$model -get header_name -column $c]
+
+  set num_null [$model -get num_null -column $c]
+
+  echo "  $column_name : [expr {(100.0*$num_null)/$nr}]"
+}
+
+# get correlation of suicides and population
 $model -set replace_null -column suicides -value 0
 $model -set replace_null -column population -value 1664090
 
-$model -get correlation -column suicides -data population
+set correlation [$model -get correlation -column suicides -data population]
+
+echo "Correlation Between Suicides and Population : $correlation"
+
+#---
+
+# display suicides > 5000 in 15-24 age group
+set manyYoungSuicidesModel [$model -filter {$suicides > 5000 && $age == "15-24 years"}]
+
+$manyYoungSuicidesModel -sort decreasing -column suicides
+
+#---
+
+# display suicides grouped by country
+set countrySuicidesModel [$model -flatten country -value {{sum suicides}}]
+#set countrySuicidesModelId [$countrySuicidesModel -get id]
+
+$countrySuicidesModel -sort decreasing -column {suicides (Sum)}
+
+#$countrySuicidesModel -set column_visible -column year -value 0
+#$countrySuicidesModel -set column_visible -column gender -value 0
+#$countrySuicidesModel -set column_visible -column age -value 0
+#$countrySuicidesModel -set column_visible -column population -value 0
+
+#---
+
+# display suicides grouped by year
+set yearSuicidesModel [$model -flatten year -value {{sum suicides}}]
+
+$yearSuicidesModel -sort decreasing -column {suicides (Sum)}
+
+#$yearSuicidesModel -set column_visible -column country -value 0
+#$yearSuicidesModel -set column_visible -column gender -value 0
+#$yearSuicidesModel -set column_visible -column age -value 0
+#$yearSuicidesModel -set column_visible -column population -value 0
+
+#---
+
+# display suicides grouped by gender
+set genderSuicidesStatsModel [$model -flatten gender -value {{min suicides} {median suicides} {max suicides} {sum suicides}}]
+#set genderSuicidesStatsModelId [$genderSuicidesStatsModel -get id]
+
+#$genderSuicidesStatsModel -set column_visible -column country -value 0
+#$genderSuicidesStatsModel -set column_visible -column year -value 0
+#$genderSuicidesStatsModel -set column_visible -column age -value 0
+#$genderSuicidesStatsModel -set column_visible -column population -value 0
+
+#---
+
+if {0} {
+# display scatter plot of population vs suicides
+set populationSuicidesScatterPlot [plot -model $model -type scatter -columns {{x population} {y suicides}}]
+
+# display scatter plot of year vs suicides
+set yearSuicidesScatterPlot [plot -model $model -type scatter -columns {{x year} {y suicides}}]
+}
+
+#---
+
+if {0} {
+# display box plot of suicides per country
+set suicidesCountryBoxPlot [plot -model $model -type boxplot -columns {{values suicides} {group country}}]
+
+$suicidesCountryBoxPlot -set_property filter.expression -value {$suicides > 1000}
+$suicidesCountryBoxPlot -set_property options.orientation -value horizontal
+$suicidesCountryBoxPlot -set_property labels.visible -value 0
+$suicidesCountryBoxPlot -set_property key.visible -value 0
+
+# display box plot of suicides per gender
+set suicidesGenderBoxPlot [plot -model $model -type boxplot -columns {{values suicides} {group gender}}]
+
+$suicidesGenderBoxPlot -set_property options.orientation -value horizontal
+$suicidesGenderBoxPlot -set_property labels.visible -value 0
+$suicidesGenderBoxPlot -set_property key.visible -value 0
+
+# display box plot of suicides per age
+set suicidesAgeBoxPlot [plot -model $model -type boxplot -columns {{values suicides} {group age}}]
+
+$suicidesAgeBoxPlot -set_property options.orientation -value horizontal
+$suicidesAgeBoxPlot -set_property labels.visible -value 0
+$suicidesAgeBoxPlot -set_property key.visible -value 0
+}
+
+#---
+
+if {0} {
+# display suicides per country
+set worldModel [model -file data/world.csv -comment_header]
+#set worldModelId [$worldModel -get id]
+
+$worldModel -set header_name -value country -column 0
+$worldModel -set column_type -value polygon_list -column 1
+
+set worldSuicidesModel [$worldModel -join $countrySuicidesModel -column {country}]
+#set worldSuicidesModelId [$worldSuicidesModel -get id]
+
+set worldSuicidesGeometryPlot [plot -model $worldSuicidesModel -type geometry -columns {{geometry geometry} {value 2} {name country}}]
+}
+
+#---
+
+if {0} {
+# display barchart of top 10 coutries wrt suicides
+$countrySuicidesModel -sort decreasing -column {suicides (Sum)}
+
+set countrySuicidesTop10Model [$countrySuicidesModel -filter "#nr=10"]
+#set countrySuicidesTop10ModelId [$countrySuicidesModel -get id]
+
+set yearSuicidesSumBarChart [plot -model $countrySuicidesTop10Model -type barchart -columns {{name country} {values 1}}]
+}
+
+#---
+
+if {0} {
+# display xy plot of top 10 coutries wrt suicides
+$yearSuicidesModel -sort increasing -column {year}
+#set yearSuicidesModelId [$yearSuicidesModel -get id]
+
+set yearSuicidesSumXYPlot [plot -model $yearSuicidesModel -type xy -columns {{x year} {y {{suicides (Sum)}}}}]
+}
+
+#---
+
+# display piechart of suicides wrt gender
+if {0} {
+set suicidesGenderPieChart [plot -model $genderSuicidesStatsModel -type piechart -columns {{values {{suicides (Sum)}}} {label gender}}]
+
+set suicidesGenderBarChart [plot -model $genderSuicidesStatsModel -type barchart -columns {{values {{suicides (Sum)}}} {name gender}}]
+}
+
+#---
+
+if {0} {
+set ageCountModel [$model -flatten age -value {{count age}}]
+#set ageCountModelId [$genderSuicidesStatsModel -get id]
+}
+
+#---
+
+if {0} {
+set usaModel    [$model -filter {$country == "United States"}]
+set russiaModel [$model -filter {$country == "Russia"}]
+set japanModel  [$model -filter {$country == "Japan"}]
+
+if {0} {
+set usaYearModel    [$usaModel    -flatten year -value {{sum suicides}}]
+set russiaYearModel [$russiaModel -flatten year -value {{sum suicides}}]
+set japanYearModel  [$japanModel  -flatten year -value {{sum suicides}}]
+
+set usaYearlySuicidesBarChart [plot -model $usaYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
+set russiaYearlySuicidesBarChart [plot -model $russiaYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
+set japanYearlySuicidesBarChart [plot -model $japanYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
+}
+
+#---
+
+if {0} {
+set usaAgeModel    [$usaModel    -flatten age -value {{sum suicides}}]
+set russiaAgeModel [$russiaModel -flatten age -value {{sum suicides}}]
+set japanAgeModel  [$japanModel  -flatten age -value {{sum suicides}}]
+
+set usaAgeSuicidesBarChart [plot -model $usaAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
+set russiaAgeSuicidesBarChart [plot -model $russiaAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
+set japanAgeSuicidesBarChart [plot -model $japanAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
+}
+}
+
+#---
+
+if {0} {
+#set yearSuicidesScatterPlot [plot -model $model -type scatter -columns {{x year} {y suicides}}]
+#set genderSuicidesScatterPlot [plot -model $model -type scatter -columns {{x gender} {y suicides}}]
+
+set genderSuicidesBoxPlot [plot -model $model -type boxplot -columns {{group gender} {values suicides}}]
+}
+
+#---
+
+if {0} {
+set model7 [$model -flatten 1 -value {{sum 4}}]
+set model8 [$model -flatten 2 -value {{sum 4}}]
+}

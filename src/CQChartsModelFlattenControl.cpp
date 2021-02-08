@@ -135,7 +135,7 @@ applySlot()
     auto opStr = parts[0].toLower();
     int  c1    = parts[1].toInt();
 
-    auto flattenOp = CQChartsModelUtil::stringToOp(opStr);
+    auto flattenOp = CQChartsModelUtil::flattenStringToOp(opStr);
 
     if (flattenOp == CQChartsModelUtil::FlattenOp::NONE)
       continue;

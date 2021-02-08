@@ -75,8 +75,8 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  bool sortModel(ModelP &model, const QString &args);
-  bool sortModel(ModelP &model, int column, Qt::SortOrder order);
+  static bool sortModel(ModelP &model, const QString &args);
+  static bool sortModel(ModelP &model, int column, Qt::SortOrder order);
 
   //---
 
@@ -187,6 +187,8 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
   CQCharts##NAME##Cmd(CQChartsCmds *cmds) : \
    CQChartsCmdProc(cmds->cmdBase()), cmds_(cmds) { } \
 \
+  CQCharts *charts() const { return cmds_->charts(); } \
+\
   bool execCmd(CQChartsCmdArgs &args) override; \
 \
   void addCmdArgs(CQChartsCmdArgs &args) override; \
@@ -200,8 +202,6 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
   } \
 \
   CQChartsCmds *cmds() const { return cmds_; } \
-\
-  CQCharts *charts() const { return cmds_->charts(); } \
 \
  private: \
   CQChartsCmds* cmds_ { nullptr }; \
@@ -314,7 +314,9 @@ CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
 CQCHARTS_DEF_CMD(TestEdit)
 
+#ifdef CQCHARTS_DATA_FRAME
 CQCHARTS_DEF_CMD(DataFrame)
+#endif
 
 //---
 

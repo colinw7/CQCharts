@@ -229,6 +229,10 @@ class CQChartsPlotType : public QObject {
 
   //---
 
+  CQChartsPlotParameter *getColumnParameter(const QString &name) const;
+
+  //---
+
   void addProperty(const QString &name, const QString &propName, const QString &desc);
 
   void propertyNames(QStringList &names) const;

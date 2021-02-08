@@ -25,6 +25,10 @@ class CQChartsCmdBase : public CQTclCmd::Mgr {
 
   //---
 
+  CQCharts *charts() const { return charts_; } \
+
+  //---
+
   void addCommands();
 
   //---
@@ -110,7 +114,13 @@ class CQChartsCmdProc : public CQTclCmd::CmdProc {
 
   virtual ~CQChartsCmdProc() { }
 
+  //--
+
   CmdBase *cmdBase() const { return cmdBase_; }
+
+  CQCharts *charts() const { return cmdBase_->charts(); } \
+
+  //--
 
   bool exec(CQTclCmd::CmdArgs &args) override {
     return execCmd((CQChartsCmdArgs &) args);

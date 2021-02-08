@@ -33,12 +33,13 @@ addParameters()
 
   // required object geometry
   addColumnParameter("geometry", "Geometry", "geometryColumn").
-   setRequired().setTip("Polygon List, Polygon, Rect or Path geometry");
+   setRequired().setPropPath("columns.geometry").
+   setTip("Polygon List, Polygon, Rect or Path geometry");
 
   // optional value, name, style
-  addColumnParameter("value", "Value", "valueColumn").setBasic();
-  addColumnParameter("name" , "Name" , "nameColumn" ).setBasic();
-  addColumnParameter("style", "Style", "styleColumn");
+  addColumnParameter("name" , "Name" , "nameColumn" ).setPropPath("columns.name").setBasic();
+  addColumnParameter("value", "Value", "valueColumn").setPropPath("columns.value").setBasic();
+  addColumnParameter("style", "Style", "styleColumn").setPropPath("columns.style");
 
   endParameterGroup();
 
