@@ -128,6 +128,9 @@ setText(const QString &text)
   setWidgetPalette(label_      );
   setWidgetPalette(lockButton_ );
   setWidgetPalette(queryButton_);
+
+  if (isVisible())
+    resize(sizeHint());
 }
 
 void

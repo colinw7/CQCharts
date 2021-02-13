@@ -3,6 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Quick controls on plot for all 'major' parameters
+   + test with scatter plot for symbol size, ...
+   + need start/end slider widget for data/pixel ranges 
+ + overlapping obj/annotation select with cycle needs better code and consistent order
+ + allow row select which object match optimization
  + auto analyze data, pick best plot type by weight, display plots in tabbed group
  + all overlay plots forward to first overlay plot and collect data for all plots
    + e.g. insideInd_, insideObjs_, sizeInsideObjs_ (assert if wrong plot)

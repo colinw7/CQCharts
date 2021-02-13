@@ -216,7 +216,7 @@ createDataFrame()
   //--
 
   // auto analyze model data
-  QCheckBox *autoAnalyzeCheck =
+  auto *autoAnalyzeCheck =
     CQUtil::makeLabelWidget<QCheckBox>("Auto Analyze", "autoAnalyzeCheck");
 
   autoAnalyzeCheck->setChecked(isAutoAnalyzeModel());
@@ -1005,11 +1005,9 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
     //---
 
-    CQChartsPlotType::Parameters parameters =
-      type->groupParameters(parameterGroup->groupId());
+    auto parameters = type->groupParameters(parameterGroup->groupId());
 
-    CQChartsPlotType::ParameterGroups parameterGroups =
-      type->groupParameterGroups(parameterGroup->groupId());
+    auto parameterGroups = type->groupParameterGroups(parameterGroup->groupId());
 
     assert(! parameters.empty() || ! parameterGroups.empty());
 
@@ -1055,11 +1053,9 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
     int ng1 = childGroups1.size();
 
     for (const auto &parameterGroup1 : childGroups1) {
-      CQChartsPlotType::Parameters parameters1 =
-        type->groupParameters(parameterGroup1->groupId());
+      auto parameters1 = type->groupParameters(parameterGroup1->groupId());
 
-      CQChartsPlotType::ParameterGroups parameterGroups1 =
-        type->groupParameterGroups(parameterGroup1->groupId());
+      auto parameterGroups1 = type->groupParameterGroups(parameterGroup1->groupId());
 
       assert(! parameters1.empty() || ! parameterGroups1.empty());
 
@@ -1341,9 +1337,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   // add column edit
   int col = 0;
 
-  CQChartsColumnLineEdit *columnEdit =
-    addColumnEdit(layout, row, col, parameter->desc(), parameter->name() + "Column",
-                  "Column Name or Number");
+  auto *columnEdit = addColumnEdit(layout, row, col, parameter->desc(),
+                                   parameter->name() + "Column", "Column Name or Number");
 
   auto column = parameter->defValue().value<CQChartsColumn>();
 
@@ -1465,9 +1460,9 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   // add column edit
   int col = 0;
 
-  CQChartsColumnsLineEdit *columnsEdit =
-    addColumnsEdit(layout, row, col, parameter->desc(), parameter->name() + "Columns",
-                   "Column Names or Numbers", isBasic);
+  auto *columnsEdit = addColumnsEdit(layout, row, col, parameter->desc(),
+                                     parameter->name() + "Columns",
+                                     "Column Names or Numbers", isBasic);
 
   auto columns = parameter->defValue().value<CQChartsColumns>();
 
@@ -1679,8 +1674,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-  QLabel *label =
-    CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
+  auto *label = CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
 
   editLayout->addWidget(label);
 

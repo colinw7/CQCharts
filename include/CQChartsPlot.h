@@ -420,6 +420,7 @@ class CQChartsPlot : public CQChartsObj,
   using Axis          = CQChartsAxis;
   using Title         = CQChartsTitle;
   using PlotKey       = CQChartsPlotKey;
+  using PlotKeyItem   = CQChartsKeyItem;
   using EditHandles   = CQChartsEditHandles;
   using PlotParameter = CQChartsPlotParameter;
   using PropertyModel = CQPropertyViewModel;
@@ -1884,7 +1885,7 @@ class CQChartsPlot : public CQChartsObj,
   bool keySelectPress  (PlotKey *key  , const Point &w, SelMod selMod);
   bool titleSelectPress(Title   *title, const Point &w, SelMod selMod);
 
-  bool annotationsSelectPress(const Point &w, SelMod selMod);
+//bool annotationsSelectPress(const Point &w, SelMod selMod);
 
   Obj *objectsSelectPress(const Point &w, SelMod selMod);
 
@@ -1937,7 +1938,7 @@ class CQChartsPlot : public CQChartsObj,
   bool axisEditSelect (Axis    *axis , const Point &w);
   bool titleEditSelect(Title   *title, const Point &w);
 
-  bool annotationsEditSelect(const Point &w);
+//bool annotationsEditSelect(const Point &w);
 
   bool objectsEditSelect(const Point &w, bool inside);
 
@@ -2714,29 +2715,29 @@ class CQChartsPlot : public CQChartsObj,
   void controlColumnsChanged();
 
   // key signals (key, key item pressed)
-  void keyItemPressed(CQChartsKeyItem *);
+  void keyItemPressed(PlotKeyItem *);
   void keyItemIdPressed(const QString &);
 
-  void keyPressed(CQChartsPlotKey *);
+  void keyPressed(PlotKey *);
   void keyIdPressed(const QString &);
 
   // title signals (title changed)
   void titleChanged();
 
   // title signals (title pressed)
-  void titlePressed(CQChartsTitle *);
+  void titlePressed(Title *);
   void titleIdPressed(const QString &);
 
   // annotation signals (annotation pressed)
-  void annotationPressed(CQChartsAnnotation *);
+  void annotationPressed(Annotation *);
   void annotationIdPressed(const QString &);
 
   // object signals (object pressed)
-  void objPressed(CQChartsPlotObj *);
+  void objPressed(PlotObj *);
   void objIdPressed(const QString &);
 
   // pressed
-  void selectPressSignal(const CQChartsGeom::Point &p);
+  void selectPressSignal(const Point &p);
 
   // zoom/pan changed
   void zoomPanChanged();
@@ -3164,10 +3165,39 @@ class CQChartsPlot : public CQChartsObj,
   // objects
   PlotObjs plotObjs_; //!< plot objects
 
-  // inside
-  int        insideInd_     { 0 }; //!< current inside object ind
-  ObjSet     insideObjs_;          //!< inside plot objects
-  SizeObjSet sizeInsideObjs_;      //!< inside plot objects
+  //---
+
+  // inside data
+  struct InsideData {
+    Point      p;             //!< inside point
+    int        ind     { 0 }; //!< current inside object ind
+    ObjSet     objs;          //!< inside plot objects
+    SizeObjSet sizeObjs;      //!< inside plot objects
+
+    void clear() {
+      p   = Point();
+      ind = 0;
+
+      objs    .clear();
+      sizeObjs.clear();
+    }
+
+    void nextInd() {
+      ++ind;
+
+      if (ind >= int(sizeObjs.size()))
+        ind = 0;
+    }
+
+    void prevInd() {
+      --ind;
+
+      if (ind < 0)
+        ind = int(sizeObjs.size()) - 1;
+    }
+  };
+
+  InsideData insideData_;
 
   //---
 

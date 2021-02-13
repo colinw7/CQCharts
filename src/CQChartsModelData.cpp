@@ -710,8 +710,7 @@ foldedModels() const
   if (! foldProxyModel_)
     return FoldedModels();
 
-  QSortFilterProxyModel *proxyModel =
-    qobject_cast<QSortFilterProxyModel *>(foldProxyModel_.data());
+  auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(foldProxyModel_.data());
   if (! proxyModel) return FoldedModels();
 
   auto *foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
@@ -2075,8 +2074,7 @@ groupColumns(const Columns &groupColumns)
   for (const auto &groupColumn : groupColumnSet) {
     bool ok;
 
-    QString columnName =
-      CQChartsModelUtil::modelHHeaderString(model, CQChartsColumn(groupColumn), ok);
+    auto columnName = CQChartsModelUtil::modelHHeaderString(model, CQChartsColumn(groupColumn), ok);
 
     for (int r = 0; r < nr; ++r, ++r1) {
       int c1 = 0;

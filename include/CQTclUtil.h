@@ -101,10 +101,10 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::PointF) {
     const QPointF &p = var.value<QPointF>();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
-    Tcl_Obj *xObj = Tcl_NewDoubleObj(p.x());
-    Tcl_Obj *yObj = Tcl_NewDoubleObj(p.y());
+    auto *xObj = Tcl_NewDoubleObj(p.x());
+    auto *yObj = Tcl_NewDoubleObj(p.y());
 
     Tcl_ListObjAppendElement(interp, obj, xObj);
     Tcl_ListObjAppendElement(interp, obj, yObj);
@@ -114,12 +114,12 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::RectF) {
     const QRectF &r = var.value<QRectF>();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
-    Tcl_Obj *x1Obj = Tcl_NewDoubleObj(r.left  ());
-    Tcl_Obj *y1Obj = Tcl_NewDoubleObj(r.bottom());
-    Tcl_Obj *x2Obj = Tcl_NewDoubleObj(r.right ());
-    Tcl_Obj *y2Obj = Tcl_NewDoubleObj(r.top   ());
+    auto *x1Obj = Tcl_NewDoubleObj(r.left  ());
+    auto *y1Obj = Tcl_NewDoubleObj(r.bottom());
+    auto *x2Obj = Tcl_NewDoubleObj(r.right ());
+    auto *y2Obj = Tcl_NewDoubleObj(r.top   ());
 
     Tcl_ListObjAppendElement(interp, obj, x1Obj);
     Tcl_ListObjAppendElement(interp, obj, y1Obj);
@@ -131,13 +131,13 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::PolygonF) {
     const QPolygonF &p = var.value<QPolygonF>();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
     for (int i = 0; i < p.length(); ++i) {
       const QPointF &p1 = p[i];
 
-      Tcl_Obj *xObj = Tcl_NewDoubleObj(p1.x());
-      Tcl_Obj *yObj = Tcl_NewDoubleObj(p1.y());
+      auto *xObj = Tcl_NewDoubleObj(p1.x());
+      auto *yObj = Tcl_NewDoubleObj(p1.y());
 
       Tcl_ListObjAppendElement(interp, obj, xObj);
       Tcl_ListObjAppendElement(interp, obj, yObj);
@@ -151,10 +151,10 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     int row = ind.row   ();
     int col = ind.column();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
-    Tcl_Obj *robj = Tcl_NewIntObj(row);
-    Tcl_Obj *cobj = Tcl_NewIntObj(col);
+    auto *robj = Tcl_NewIntObj(row);
+    auto *cobj = Tcl_NewIntObj(col);
 
     Tcl_ListObjAppendElement(interp, obj, robj);
     Tcl_ListObjAppendElement(interp, obj, cobj);
@@ -164,12 +164,12 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::StringList) {
     QStringList strs = var.value<QStringList>();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
     int ns = strs.length();
 
     for (int i = 0; i < ns; ++i) {
-      Tcl_Obj *sobj = variantToObj(interp, strs[i]);
+      auto *sobj = variantToObj(interp, strs[i]);
 
       Tcl_ListObjAppendElement(interp, obj, sobj);
     }
@@ -179,7 +179,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::List) {
     QVariantList vars = var.value<QVariantList>();
 
-    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+    auto *obj = Tcl_NewListObj(0, nullptr);
 
     int nv = vars.length();
 
@@ -187,7 +187,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
       if (! vars[i].isValid())
         continue;
 
-      Tcl_Obj *sobj = variantToObj(interp, vars[i]);
+      auto *sobj = variantToObj(interp, vars[i]);
 
       Tcl_ListObjAppendElement(interp, obj, sobj);
     }
@@ -219,7 +219,7 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
     ltype = Tcl_GetObjType("list");
   }
 
-  Tcl_Obj *obj1 = const_cast<Tcl_Obj *>(obj);
+  auto *obj1 = const_cast<Tcl_Obj *>(obj);
 
   double real    = 0.0;
   int    integer = 0;
@@ -228,7 +228,7 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
 
   QVariant var;
 
-  const Tcl_ObjType *type = obj1->typePtr;
+  const auto *type = obj1->typePtr;
 
   if (type) {
     if      (type == itype) {
@@ -283,12 +283,12 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
 //---
 
 inline QString variantListToString(const QVariantList &vars) {
-  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+  auto *obj = Tcl_NewListObj(0, nullptr);
 
   for (int i = 0; i < vars.length(); ++i) {
     const QVariant &var = vars[i];
 
-    Tcl_Obj *obj1 = variantToObj(nullptr, var);
+    auto *obj1 = variantToObj(nullptr, var);
 
     Tcl_ListObjAppendElement(nullptr, obj, obj1);
   }
@@ -310,8 +310,8 @@ inline QString variantListToString(const QVariantList &vars) {
 
 inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &var) {
   if (var.isValid()) {
-    Tcl_Obj *nameObj  = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
-    Tcl_Obj *valueObj = variantToObj(interp, var );
+    auto *nameObj  = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
+    auto *valueObj = variantToObj(interp, var );
 
     Tcl_ObjSetVar2(interp, nameObj, nullptr, valueObj, TCL_GLOBAL_ONLY);
 
@@ -322,9 +322,9 @@ inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &v
 //---
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
-  Tcl_Obj *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
+  auto *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
 
-  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
+  auto *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
 
   Tcl_DecrRefCount(nameObj);
 
@@ -337,9 +337,9 @@ inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
 //---
 
 inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
-  Tcl_Obj *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
+  auto *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
 
-  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
+  auto *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
 
   Tcl_DecrRefCount(nameObj);
 
@@ -373,7 +373,7 @@ inline void setResult(Tcl_Interp *interp, const QVariant &var) {
 //---
 
 inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
-  Tcl_Obj *obj = variantToObj(interp, strs);
+  auto *obj = variantToObj(interp, strs);
 
   Tcl_SetObjResult(interp, obj);
 }
@@ -381,7 +381,7 @@ inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
 //---
 
 inline void setResult(Tcl_Interp *interp, const QVariantList &vars) {
-  Tcl_Obj *obj = variantToObj(interp, vars);
+  auto *obj = variantToObj(interp, vars);
 
   Tcl_SetObjResult(interp, obj);
 }
@@ -389,9 +389,9 @@ inline void setResult(Tcl_Interp *interp, const QVariantList &vars) {
 //---
 
 inline QVariant getResult(Tcl_Interp *interp) {
-  Tcl_Obj *res = Tcl_GetObjResult(interp);
+  auto *res = Tcl_GetObjResult(interp);
 
-  Tcl_Obj *res1 = Tcl_DuplicateObj(res);
+  auto *res1 = Tcl_DuplicateObj(res);
 
   QVariant var = variantFromObj(interp, res);
 
@@ -474,7 +474,7 @@ class CQTcl : public CTcl {
   }
 
   Tcl_Command createExprCommand(const QString &name, ObjCmdProc proc, ObjCmdData data) {
-    QString mathName = "tcl::mathfunc::" + name;
+    auto mathName = "tcl::mathfunc::" + name;
 
     return createObjCommandI(mathName, proc, data);
   }
@@ -521,10 +521,10 @@ class CQTcl : public CTcl {
     }
 
     if (showResult) {
-      QVariant res = getResult();
+      auto res = getResult();
 
       if (res.isValid()) {
-        QString resStr = resToString(res);
+        auto resStr = resToString(res);
 
         if (resStr.length())
           std::cout << resStr.toStdString() << "\n";
@@ -631,7 +631,7 @@ class CQTcl : public CTcl {
  private:
   static char *traceProc(ClientData data, Tcl_Interp *, const char *name1,
                          const char *, int flags) {
-    CQTcl *th = static_cast<CQTcl *>(data);
+    auto *th = static_cast<CQTcl *>(data);
     assert(th);
 
     th->handleTrace(name1, flags);

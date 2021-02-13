@@ -466,9 +466,8 @@ isKey() const
 
   bool ok;
 
-  QVariant value =
-    CQChartsModelUtil::modelHeaderValue(
-      model, column_, static_cast<int>(CQBaseModelRole::Key), ok);
+  auto value = CQChartsModelUtil::modelHeaderValue(model, column_,
+                 static_cast<int>(CQBaseModelRole::Key), ok);
 
   return (ok && value.toBool());
 }
@@ -1821,7 +1820,7 @@ columnColor(const QVariant &var, CQChartsColor &color) const
 
   auto *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnColorType *colorType =
+  const auto *colorType =
     dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModelType::COLOR));
 
   bool converted;

@@ -1280,7 +1280,9 @@ class Polygon {
 
   explicit Polygon(const BBox &bbox) {
    qpoly_ << bbox.getLL().qpoint();
+   qpoly_ << bbox.getLR().qpoint();
    qpoly_ << bbox.getUR().qpoint();
+   qpoly_ << bbox.getUL().qpoint();
   }
 
   const QPolygonF &qpoly() const { return qpoly_; }

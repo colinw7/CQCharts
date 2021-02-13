@@ -1565,8 +1565,7 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QModelIndex ind1 =
-      plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
+    auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
 
     auto *plot = const_cast<Plot *>(plot_);
 

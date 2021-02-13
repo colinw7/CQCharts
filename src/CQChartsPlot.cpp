@@ -2867,11 +2867,10 @@ addBaseProperties()
 #endif
 
   // debug
-  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG")) {
-    addProp("debug", "showBoxes"        , "", "Show object bounding boxes");
-    addProp("debug", "showSelectedBoxes", "", "Show selected object bounding boxes");
-    addProp("debug", "followMouse"      , "", "Enable mouse tracking");
-  }
+  addProp("debug", "showBoxes"        , "", "Show object bounding boxes"         , /*hidden*/true);
+  addProp("debug", "showSelectedBoxes", "", "Show selected object bounding boxes", /*hidden*/true);
+
+  addProp("debug", "followMouse", "", "Enable mouse tracking", /*hidden*/true);
 
   //------
 
@@ -5248,8 +5247,7 @@ clearInsideObjects()
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->clearInsideObjects();
 
-  insideObjs_    .clear();
-  sizeInsideObjs_.clear();
+  insideData_.clear();
 }
 
 void
@@ -5280,19 +5278,21 @@ updateInsideObjects(const Point &w, Constraints constraints)
 
   //---
 
+  insideData_.p = w;
+
   // get objects and annotations at point
   Objs objs;
 
-  groupedObjsAtPoint(w, objs, constraints);
+  groupedObjsAtPoint(insideData_.p, objs, constraints);
 
   //---
 
   // check if changed
   bool changed = false;
 
-  if (objs.size() == insideObjs_.size()) {
+  if (objs.size() == insideData_.objs.size()) {
     for (const auto &obj : objs) {
-      if (insideObjs_.find(obj) == insideObjs_.end()) {
+      if (insideData_.objs.find(obj) == insideData_.objs.end()) {
         changed = true;
         break;
       }
@@ -5307,7 +5307,7 @@ updateInsideObjects(const Point &w, Constraints constraints)
   // if changed update inside objects
   if (changed) {
     // reset current inside index
-    insideInd_ = 0;
+    insideData_.ind = 0;
 
     //---
 
@@ -5317,12 +5317,12 @@ updateInsideObjects(const Point &w, Constraints constraints)
     //---
 
     // set new inside objects (and inside objects sorted by size)
-    sizeInsideObjs_.clear();
+    insideData_.sizeObjs.clear();
 
     for (const auto &obj : objs) {
-      insideObjs_.insert(obj);
+      insideData_.objs.insert(obj);
 
-      sizeInsideObjs_[obj->rect().area()].insert(obj);
+      insideData_.sizeObjs[obj->rect().area()].insert(obj);
     }
 
     // set current inside obj
@@ -5343,7 +5343,7 @@ resetInsideObjs()
 
   //---
 
-  insideObjs_.clear();
+  insideData_.clear();
 
   if (isOverlay()) {
     Plots oplots;
@@ -5365,8 +5365,6 @@ resetInsideObjs()
     for (auto &annotation : annotations())
       annotation->setInside(false);
   }
-
-  sizeInsideObjs_.clear();
 }
 
 CQChartsObj *
@@ -5381,9 +5379,9 @@ insideObject() const
   // get nth inside object
   int i = 0;
 
-  for (const auto &sizeObjs : sizeInsideObjs_) {
-    for (const auto &obj : sizeObjs.second) {
-      if (i == insideInd_)
+  for (const auto &sizeObj : insideData_.sizeObjs) {
+    for (const auto &obj : sizeObj.second) {
+      if (i == insideData_.ind)
         return obj;
 
       ++i;
@@ -5403,10 +5401,7 @@ nextInsideInd()
   //---
 
   // cycle to next inside object
-  ++insideInd_;
-
-  if (insideInd_ >= int(insideObjs_.size()))
-    insideInd_ = 0;
+  insideData_.nextInd();
 }
 
 void
@@ -5419,19 +5414,18 @@ prevInsideInd()
   //---
 
   // cycle to prev inside object
-  --insideInd_;
-
-  if (insideInd_ < 0)
-    insideInd_ = int(insideObjs_.size()) - 1;
+  insideData_.prevInd();
 }
 
 void
 CQChartsPlot::
 setInsideObject()
 {
+  // get nth inside object
   auto *insideObj = insideObject();
 
-  for (auto &obj : insideObjs_) {
+  // update object is inside (TODO: update all objs state ?)
+  for (auto &obj : insideData_.objs) {
     if (obj == insideObj)
       obj->setInside(true);
   }
@@ -5448,8 +5442,8 @@ insideObjectText() const
 
   QString objText;
 
-  for (const auto &sizeObjs : sizeInsideObjs_) {
-    for (const auto &obj : sizeObjs.second) {
+  for (const auto &sizeObj : insideData_.sizeObjs) {
+    for (const auto &obj : sizeObj.second) {
       if (obj->isInside()) {
         if (objText != "")
           objText += " ";
@@ -5638,8 +5632,10 @@ selectPress(const Point &w, SelMod selMod)
 
   //---
 
+#if 0
   if (annotationsSelectPress(w, selMod))
     return true;
+#endif
 
   //---
 
@@ -5736,6 +5732,7 @@ titleSelectPress(CQChartsTitle *title, const Point &w, SelMod selMod)
   return false;
 }
 
+#if 0
 bool
 CQChartsPlot::
 annotationsSelectPress(const Point &w, SelMod selMod)
@@ -5765,6 +5762,7 @@ annotationsSelectPress(const Point &w, SelMod selMod)
 
   return false;
 }
+#endif
 
 CQChartsObj *
 CQChartsPlot::
@@ -5799,6 +5797,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   Obj *selectObj = nullptr;
 
   if (isFollowMouse()) {
+    // get nth inside object
     selectObj = insideObject();
 
     // TODO: handle overlay
@@ -5832,13 +5831,24 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
     //---
 
-    auto *selectPlotObj = dynamic_cast<PlotObj *>(selectObj);
+    auto *selectPlotObj    = dynamic_cast<PlotObj    *>(selectObj);
+    auto *selectAnnotation = dynamic_cast<Annotation *>(selectObj);
 
     if (selectPlotObj) {
       selectPlotObj->selectPress(w, selMod);
 
       emit objPressed  (selectPlotObj);
       emit objIdPressed(selectPlotObj->id());
+    }
+    else if (selectAnnotation) {
+      selectAnnotation->mousePress(w, selMod); // TODO: needed
+
+      selectAnnotation->selectPress(w, selMod);
+
+      drawForeground();
+
+      emit annotationPressed  (selectAnnotation);
+      emit annotationIdPressed(selectAnnotation->id());
     }
 
     // potential crash if signals cause objects to be deleted (defer !!!)
@@ -5944,7 +5954,7 @@ selectMove(const Point &w, Constraints constraints, bool first)
 
   //---
 
-  // select grouped annotation
+  // notify annotations under point annotation
   Annotations annotations;
 
   groupedAnnotationsAtPoint(w, annotations);
@@ -6110,8 +6120,10 @@ editPress(const Point &p, const Point &w, bool inside)
   if (titleEditSelect(title(), w))
     return true;
 
+#if 0
   if (annotationsEditSelect(w))
     return true;
+#endif
 
   if (objectsEditSelect(w, inside))
     return true;
@@ -6402,6 +6414,7 @@ titleEditSelect(CQChartsTitle *title, const Point &w)
   return false;
 }
 
+#if 0
 bool
 CQChartsPlot::
 annotationsEditSelect(const Point &w)
@@ -6433,6 +6446,7 @@ annotationsEditSelect(const Point &w)
 
   return false;
 }
+#endif
 
 bool
 CQChartsPlot::
@@ -6466,21 +6480,41 @@ objectsEditSelect(const Point &w, bool inside)
   // select/deselect plot
   // (to select point must be inside a plot object)
   for (const auto &obj : objs) {
-    auto *plotObj = dynamic_cast<PlotObj *>(obj);
-    if (! plotObj) continue;
+    auto *plotObj    = dynamic_cast<PlotObj    *>(obj);
+    auto *annotation = dynamic_cast<Annotation *>(obj);
 
-    if (! plotObj->isEditable())
-      continue;
+    if (plotObj) {
+      if (! plotObj->isEditable())
+        continue;
 
-    if (! plotObj->isSelected()) {
-      selectOneObj(plotObj, /*allObjs*/true);
-      return true;
+      if (! plotObj->isSelected()) {
+        selectOneObj(plotObj, /*allObjs*/true);
+        return true;
+      }
+
+      if (plotObj->editPress(w)) {
+        setDragObj(DragObjType::OBJECT, plotObj);
+        invalidateOverlay();
+        return true;
+      }
     }
+    else if (annotation) {
+      if (! annotation->isVisible() || ! annotation->isEditable())
+        continue;
 
-    if (plotObj->editPress(w)) {
-      setDragObj(DragObjType::OBJECT, plotObj);
-      invalidateOverlay();
-      return true;
+      if (! annotation->contains(w))
+        continue;
+
+      if (! annotation->isSelected()) {
+        selectOneObj(annotation, /*allObjs*/true);
+        return true;
+      }
+
+      if (annotation->editPress(w)) {
+        setDragObj(DragObjType::ANNOTATION, annotation);
+        invalidateOverlay();
+        return true;
+      }
     }
   }
 
@@ -6546,12 +6580,14 @@ deselectAllObjs()
   if (isOverlay()) {
     processOverlayPlots([&](Plot *plot) {
       for (auto &plotObj : plot->plotObjects())
-        plotObj->setSelected(false);
+        if (plotObj->isSelected())
+          plotObj->setSelected(false);
     });
   }
   else {
     for (auto &plotObj : plotObjects())
-      plotObj->setSelected(false);
+      if (plotObj->isSelected())
+        plotObj->setSelected(false);
   }
 
   //---
@@ -8393,7 +8429,7 @@ void
 CQChartsPlot::
 cycleNextPrev(bool prev)
 {
-  if (! insideObjs_.empty()) {
+  if (! insideData_.sizeObjs.empty()) {
     // TODO: handle overlay
     if (! prev)
       nextInsideInd();
@@ -8882,13 +8918,14 @@ plotTipText(const Point &p, QString &tip, bool single) const
   Objs tipObjs;
 
   if (isFollowMouse()) {
-    objNum = insideInd_;
+    objNum = insideData_.ind;
 
+    // get nth inside object
     tipObj = insideObject();
 
     tipObjs.clear();
 
-    for (const auto &obj : insideObjs_)
+    for (const auto &obj : insideData_.objs)
       tipObjs.push_back(obj);
   }
   else {

@@ -89,8 +89,7 @@ addMenuActions(QMenu *menu)
 
   auto *selectMenu = addMenu("Select");
 
-  QActionGroup *selectActionGroup =
-    addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
+  auto *selectActionGroup = addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
 
   auto addSelectAction = [&](const QString &name, bool checked) {
     auto *action = new QAction(name, selectMenu);
@@ -111,8 +110,7 @@ addMenuActions(QMenu *menu)
 
   auto *exportMenu = addMenu("Export");
 
-  QActionGroup *exportActionGroup =
-    addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
+  auto *exportActionGroup = addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
 
   auto addExportAction = [&](const QString &name) {
     auto *action = new QAction(name, exportMenu);

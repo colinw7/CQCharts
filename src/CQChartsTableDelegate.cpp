@@ -350,8 +350,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type =
-    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
+  auto type = (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
     auto var = modelP()->data(index);
@@ -384,8 +383,7 @@ click(const QModelIndex &index) const
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type =
-    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
+  auto type = (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
     auto var = modelP()->data(index);

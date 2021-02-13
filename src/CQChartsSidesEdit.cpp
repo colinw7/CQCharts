@@ -120,8 +120,8 @@ sizeHint() const
 
   initStyleOption(opt);
 
-  QRect popupRect =
-    style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
+  auto popupRect = style()->subControlRect(QStyle::CC_ComboBox, &opt,
+                                           QStyle::SC_ComboBoxArrow, this);
 
   return QSize(fs.width() + popupRect.width(), fs.height());
 }

@@ -1309,8 +1309,8 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return var;
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
-    QVariant var =
-      CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, CQBaseModelRole::Group, ok);
+    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical,
+                                             CQBaseModelRole::Group, ok);
 
     return var;
   }

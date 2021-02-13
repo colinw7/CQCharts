@@ -2551,9 +2551,8 @@ addKeyItems(PlotKey *key)
       for (int iv = 0; iv < nv; ++iv) {
         auto value = columnDetails->uniqueValue(iv);
 
-        CQChartsDistKeyColorBox *colorBox =
-          addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
-                    value.toString()).first;
+        auto *colorBox = addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
+                                   value.toString()).first;
 
         bool ok;
 

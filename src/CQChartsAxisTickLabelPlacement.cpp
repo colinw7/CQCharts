@@ -55,8 +55,7 @@ QStringList
 CQChartsAxisTickLabelPlacement::
 enumNames() const
 {
-  static QStringList names =
-    QStringList() << "MIDDLE" << "BOTTOM_LEFT" << "TOP_RIGHT" << "BETWEEN";
+  static auto names = QStringList() << "MIDDLE" << "BOTTOM_LEFT" << "TOP_RIGHT" << "BETWEEN";
 
   return names;
 }

@@ -607,8 +607,7 @@ drawXLabels(PaintDevice *device) const
 
     bool ok;
 
-    QString name =
-      CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
     double px = 0.0;
@@ -634,8 +633,7 @@ drawXLabels(PaintDevice *device) const
 
     bool ok;
 
-    QString name =
-      CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
     Point p(c + 0.5, 0);
@@ -706,8 +704,7 @@ drawYLabels(PaintDevice *device) const
 
     bool ok;
 
-    QString name =
-      CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
     double px = 0.0;
@@ -733,8 +730,7 @@ drawYLabels(PaintDevice *device) const
 
     bool ok;
 
-    QString name =
-      CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
     Point p(0, (nc - 1 - c) + 0.5);
@@ -783,8 +779,8 @@ calcExtraFitBBox() const
 
       bool ok;
 
-      QString name =
-        CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+      auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col,
+                                                        Qt::DisplayRole, ok);
       if (! name.length()) continue;
 
       CQChartsTextOptions options;
@@ -818,8 +814,8 @@ calcExtraFitBBox() const
 
       bool ok;
 
-      QString name =
-        CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
+      auto name = CQChartsModelUtil::modelHHeaderString(correlationModel_, col,
+                                                        Qt::DisplayRole, ok);
       if (! name.length()) continue;
 
       CQChartsTextOptions options;
@@ -890,12 +886,10 @@ calcTipId() const
   bool ok;
 
   if (row_ != col_) {
-    QString xname =
-      CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
-        CQChartsColumn(row_), Qt::DisplayRole, ok);
-    QString yname =
-      CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
-        CQChartsColumn(col_), Qt::DisplayRole, ok);
+    auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+                   CQChartsColumn(row_), Qt::DisplayRole, ok);
+    auto yname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+                   CQChartsColumn(col_), Qt::DisplayRole, ok);
 
     if (xname.length())
       tableTip.addTableRow("X", xname);
@@ -906,9 +900,8 @@ calcTipId() const
     tableTip.addTableRow("Value", value());
   }
   else {
-    QString xname =
-      CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
-        CQChartsColumn(row_), Qt::DisplayRole, ok);
+    auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+                   CQChartsColumn(row_), Qt::DisplayRole, ok);
 
     if (xname.length())
       tableTip.addTableRow("Name", xname);
@@ -986,9 +979,8 @@ draw(PaintDevice *device) const
     if      (type == CQChartsCorrelationPlot::DiagonalType::NAME) {
       bool ok;
 
-      QString xname =
-        CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
-          CQChartsColumn(row_), Qt::DisplayRole, ok);
+      auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+                     CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
         drawCellLabel(device, xname);
@@ -1015,9 +1007,8 @@ draw(PaintDevice *device) const
 
       bool ok;
 
-      QString xname =
-        CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
-          CQChartsColumn(row_), Qt::DisplayRole, ok);
+      auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+                     CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
         drawCellLabel(device, xname);
@@ -1055,8 +1046,7 @@ draw(PaintDevice *device) const
   else {
     bool isLower = (row_ > col_);
 
-    CQChartsCorrelationPlot::OffDiagonalType type =
-      (isLower ? plot_->lowerDiagonalType() : plot_->upperDiagonalType());
+    auto type = (isLower ? plot_->lowerDiagonalType() : plot_->upperDiagonalType());
 
     if      (type == CQChartsCorrelationPlot::OffDiagonalType::PIE) {
       Angle a1, a2;

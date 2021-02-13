@@ -40,8 +40,7 @@ void
 CQChartsAxisTickLabelPlacementEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsAxisTickLabelPlacement axisTickLabelPlacement =
-    var.value<CQChartsAxisTickLabelPlacement>();
+  auto axisTickLabelPlacement = var.value<CQChartsAxisTickLabelPlacement>();
 
   setAxisTickLabelPlacement(axisTickLabelPlacement);
 }
@@ -50,8 +49,7 @@ QString
 CQChartsAxisTickLabelPlacementEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisTickLabelPlacement axisTickLabelPlacement =
-    var.value<CQChartsAxisTickLabelPlacement>();
+  auto axisTickLabelPlacement = var.value<CQChartsAxisTickLabelPlacement>();
 
   return axisTickLabelPlacement.toString();
 }
@@ -76,8 +74,7 @@ QString
 CQChartsAxisTickLabelPlacementPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisTickLabelPlacement axisTickLabelPlacement =
-    var.value<CQChartsAxisTickLabelPlacement>();
+  auto axisTickLabelPlacement = var.value<CQChartsAxisTickLabelPlacement>();
 
   return axisTickLabelPlacement.toString();
 }

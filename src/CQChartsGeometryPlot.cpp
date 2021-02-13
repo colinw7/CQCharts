@@ -445,8 +445,8 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
     bool converted;
 
-    QVariant rvar =
-      CQChartsModelUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
+    auto rvar = CQChartsModelUtil::columnUserData(charts(), model, geometryColumn(),
+                                                  var, converted);
 
     bool ok3;
 

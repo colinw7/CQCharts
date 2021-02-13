@@ -62,8 +62,8 @@ createEdit(QWidget *parent)
 {
   auto *item = CQPropertyViewMgrInst->editItem();
 
-  CQChartsPropertyViewTree *tree =
-    (parent ? qobject_cast<CQChartsPropertyViewTree *>(parent->parentWidget()) : nullptr);
+  auto *tree = (parent ?
+    qobject_cast<CQChartsPropertyViewTree *>(parent->parentWidget()) : nullptr);
 
   CQChartsPlot *plot;
   CQChartsView *view;

@@ -1379,8 +1379,7 @@ initPlotsFrame(QFrame *plotsFrame)
     return button;
   };
 
-  CQGroupBox *controlPlotsGroup =
-    CQUtil::makeLabelWidget<CQGroupBox>("Control", "controlPlotsGroup");
+  auto *controlPlotsGroup = CQUtil::makeLabelWidget<CQGroupBox>("Control", "controlPlotsGroup");
 
   plotsFrameLayout->addWidget(controlPlotsGroup);
 
