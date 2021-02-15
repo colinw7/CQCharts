@@ -28,6 +28,7 @@ class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
+class CQChartsPlotCustomControls;
 class CQChartsViewError;
 class CQChartsPlotControlFrame;
 
@@ -236,11 +237,15 @@ class CQChartsViewSettings : public QFrame {
 
   using FilterEdit           = CQChartsViewSettingsFilterEdit;
   using ModelTable           = CQChartsViewSettingsModelTable;
+  using ModelDetailsWidget   = CQChartsModelDetailsWidget;
   using PlotTable            = CQChartsViewSettingsPlotTable;
   using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;
   using PlotAnnotationsTable = CQChartsViewSettingsPlotAnnotationsTable;
   using ViewLayerTable       = CQChartsViewSettingsViewLayerTable;
   using PlotLayerTable       = CQChartsViewSettingsPlotLayerTable;
+  using PlotControlFrame     = CQChartsPlotControlFrame;
+  using PlotCustomControls   = CQChartsPlotCustomControls;
+  using ViewError            = CQChartsViewError;
 
   struct PropertiesWidgets {
     CQTabSplit*           propertiesSplit  { nullptr }; //!< properties split
@@ -252,13 +257,13 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    ModelTable*                 modelTable    { nullptr }; //!< model table widget
-    QFrame*                     detailsFrame  { nullptr }; //!< model details frame widget
-    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details widget
-    QPushButton*                loadButton    { nullptr }; //!< load model button
-    QPushButton*                editButton    { nullptr }; //!< edit model button
-    QPushButton*                removeButton  { nullptr }; //!< remove model button
-    QPushButton*                plotButton    { nullptr }; //!< plot model button
+    ModelTable*         modelTable    { nullptr }; //!< model table widget
+    QFrame*             detailsFrame  { nullptr }; //!< model details frame widget
+    ModelDetailsWidget* detailsWidget { nullptr }; //!< model details widget
+    QPushButton*        loadButton    { nullptr }; //!< load model button
+    QPushButton*        editButton    { nullptr }; //!< edit model button
+    QPushButton*        removeButton  { nullptr }; //!< remove model button
+    QPushButton*        plotButton    { nullptr }; //!< plot model button
   };
 
   struct PlotsWidgets {
@@ -319,25 +324,33 @@ class CQChartsViewSettings : public QFrame {
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
-  CQTabWidget*              tab_                { nullptr }; //!< settings/palette tab
-  PropertiesWidgets         propertiesWidgets_;              //!< properties widgets
-  CQChartsPlotControlFrame* controlFrame_       { nullptr }; //!< control widgets
-  ModelsWidgets             modelsWidgets_;                  //!< models widgets
-  PlotsWidgets              plotsWidgets_;                   //!< plots widgets
-  AnnotationsWidgets        annotationsWidgets_;             //!< annotations widgets
-  ObjectsWidgets            objectsWidgets_;                 //!< objects widgets
-  ThemeWidgets              themeWidgets_;                   //!< theme widgets
-  LayersWidgets             layersWidgets_;                  //!< layers widgets
-  QTextEdit*                queryText_          { nullptr }; //!< query text
-  CQChartsViewError*        error_              { nullptr }; //!< error widget
+  CQTabWidget*        tab_                { nullptr }; //!< settings/palette tab
+  PropertiesWidgets   propertiesWidgets_;              //!< properties widgets
+  PlotControlFrame*   quickControlFrame_  { nullptr }; //!< quick control widgets
+  QFrame*             customControlFrame_ { nullptr }; //!< custon control widgets
+  PlotCustomControls* plotCustomControls_ { nullptr }; //!< plot custon controls
+  ModelsWidgets       modelsWidgets_;                  //!< models widgets
+  PlotsWidgets        plotsWidgets_;                   //!< plots widgets
+  AnnotationsWidgets  annotationsWidgets_;             //!< annotations widgets
+  ObjectsWidgets      objectsWidgets_;                 //!< objects widgets
+  ThemeWidgets        themeWidgets_;                   //!< theme widgets
+  LayersWidgets       layersWidgets_;                  //!< layers widgets
+  QTextEdit*          queryText_          { nullptr }; //!< query text
+  ViewError*          error_              { nullptr }; //!< error widget
 
   // dialogs
-  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
-  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
-  CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog
-  CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //!< edit plot key dialog
-  CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
-  CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
+  using CreateAnnotationDlg = CQChartsCreateAnnotationDlg;
+  using EditAnnotationDlg   = CQChartsEditAnnotationDlg;
+  using EditTitleDlg        = CQChartsEditTitleDlg;
+  using EditKeyDlg          = CQChartsEditKeyDlg;
+  using EditAxisDlg         = CQChartsEditAxisDlg;
+
+  CreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
+  EditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
+  EditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog
+  EditKeyDlg*          editKeyDlg_          { nullptr }; //!< edit plot key dialog
+  EditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
+  EditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
 
   QString plotId_; //!< current plot id
 

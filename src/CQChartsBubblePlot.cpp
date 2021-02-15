@@ -918,6 +918,19 @@ createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is
   return new NodeObj(this, node, hierObj, rect, is);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsBubblePlot::
+createCustomControls()
+{
+  auto *controls = new CQChartsBubbleCustomControls;
+
+  controls->setPlot(this);
+
+  return controls;
+}
+
 //------
 
 CQChartsBubbleHierObj::
@@ -1559,4 +1572,23 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     return plot->interpColor(c, ColorInd(colorId(), n));
   else
     return plot->interpColor(c, colorInd);
+}
+
+//------
+
+CQChartsBubbleCustomControls::
+CQChartsBubbleCustomControls(QWidget *widget) :
+ CQChartsGroupPlotCustomControls(widget)
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets();
+}
+
+void
+CQChartsBubbleCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsBubblePlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
 }

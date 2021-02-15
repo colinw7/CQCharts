@@ -233,6 +233,23 @@ bucketName(int ind) const
   return bucketer_.bucketName(ind);
 }
 
+QVariant
+CQChartsColumnBucket::
+bucketValue(int ind) const
+{
+  if      (columnType() == ColumnType::REAL) {
+    return valueSet_->rvals().ivalue(ind);
+  }
+  else if (columnType() == ColumnType::INTEGER) {
+    return valueSet_->ivals().ivalue(ind);
+  }
+  else if (columnType() == ColumnType::STRING) {
+    return valueSet_->svals().ivalue(ind);
+  }
+  else
+    return "";
+}
+
 QString
 CQChartsColumnBucket::
 iname(int ind) const

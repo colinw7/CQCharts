@@ -52,14 +52,14 @@ set_charts_data -model $model -column "Android Ver"  -name column_type -value {r
 proc cat_dist { model } {
   set view [create_charts_view]
   set plot [create_charts_plot -view $view -model $model -type distribution \
-    -columns {{value Category}}]
+    -columns {{values Category}}]
   return $plot
 }
 
 proc install_dist { model } {
   set view [create_charts_view]
   set plot [create_charts_plot -view $view -model $model -type distribution \
-    -columns {{value Installs}}]
+    -columns {{values Installs}}]
   return $plot
 }
 
@@ -74,7 +74,7 @@ proc bar_installs { model } {
 proc dist_installs { model } {
   set view [create_charts_view]
   set plot [create_charts_plot -view $view -model $model -type distribution \
-    -columns {{value Category} {data Installs}} \
+    -columns {{values Category} {data Installs}} \
     -properties {{options.valueType SUM}}]
   return $plot
 }
@@ -82,14 +82,14 @@ proc dist_installs { model } {
 proc size_dist { model } {
   set view [create_charts_view]
   set plot [create_charts_plot -view $view -model $model -type distribution \
-    -columns {{value Size}}]
+    -columns {{values Size}}]
   return $plot
 }
 
 proc category_type_distribution { model } {
   set view [create_charts_view]
   set plot [create_charts_plot -view $view -model $model -type distribution \
-    -columns {{group Type} {value Category}}]
+    -columns {{group Type} {values Category}}]
   return $plot
 }
 

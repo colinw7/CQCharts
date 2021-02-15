@@ -25,8 +25,8 @@ foreach values $values {
 
   set ann [create_charts_value_set_annotation -plot $plot -rectangle $rect -values $values]
 
-  set_charts_property -annotation $ann -name drawType    -value WHISKER_BAR
-  set_charts_property -annotation $ann -name orientation -value Vertical
+  set_charts_property -annotation $ann -name density.drawType    -value WHISKER_BAR
+  set_charts_property -annotation $ann -name density.orientation -value Vertical
 
   set px [expr {(1.0*($x - 1))/$n}]
 

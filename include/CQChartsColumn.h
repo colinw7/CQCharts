@@ -1,6 +1,7 @@
 #ifndef CQChartsColumn_H
 #define CQChartsColumn_H
 
+#include <CQChartsTmpl.h>
 #include <cassert>
 #include <QString>
 #include <QStringList>
@@ -20,7 +21,7 @@
  *
  * The column can also specify the role of the data extracted from the model
  */
-class CQChartsColumn {
+class CQChartsColumn : public ComparatorBase<CQChartsColumn> {
  public:
   enum class Type {
     NONE,
@@ -140,18 +141,10 @@ class CQChartsColumn {
 
   //---
 
-  static int cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs);
+  int cmp(const CQChartsColumn &c) const;
 
-  friend bool operator==(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
-    return cmp(lhs, rhs) == 0;
-  }
-
-  friend bool operator!=(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  friend bool operator<(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
-    return cmp(lhs, rhs) < 0;
+  friend int cmp(const CQChartsColumn &c1, const CQChartsColumn &c2) {
+    return c1.cmp(c2);
   }
 
   //---

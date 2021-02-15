@@ -56,6 +56,27 @@ setRangeMax(double r)
 
 void
 CQDoubleRangeSlider::
+setRangeMinMax(double min, double max)
+{
+  if (min != range_.min || max != range_.max) {
+    range_.min = min;
+    range_.max = max;
+
+    if (range_.min > range_.max)
+      std::swap(range_.min, range_.max);
+
+    updateTip();
+
+    update();
+
+    emit rangeChanged(rangeMin(), rangeMax());
+  }
+}
+
+//---
+
+void
+CQDoubleRangeSlider::
 setSliderMin(double r, bool force)
 {
   if (force || r != slider_.min) {
@@ -94,6 +115,45 @@ setSliderMax(double r, bool force)
     else
       emit sliderRangeChanged(sliderMin(), sliderMax());
   }
+}
+
+void
+CQDoubleRangeSlider::
+setSliderMinMax(double min, double max, bool force)
+{
+  if (force || min != slider_.min || max != slider_.max) {
+    slider_.min = min;
+    slider_.max = max;
+
+    if (slider_.min > slider_.max)
+      std::swap(slider_.min, slider_.max);
+
+    updateTip();
+
+    update();
+
+    if (pressed_)
+      emit sliderRangeChanging(sliderMin(), sliderMax());
+    else
+      emit sliderRangeChanged(sliderMin(), sliderMax());
+  }
+}
+
+//---
+
+void
+CQDoubleRangeSlider::
+setLinearGradient(const QLinearGradient &lg)
+{
+  lg_    = lg;
+  lgSet_ = true;
+}
+
+void
+CQDoubleRangeSlider::
+clearLinearGradient()
+{
+  lgSet_ = false;
 }
 
 //---
@@ -234,8 +294,8 @@ paintEvent(QPaintEvent *)
     painter.setPen  (palette().color(QPalette::WindowText));
     painter.setBrush(Qt::NoBrush);
 
-    painter.drawText(xl        , yt + fm.ascent(), minStr);
-    painter.drawText(xr - twMax, yt + fm.ascent(), maxStr);
+    painter.drawText(xl        , yt + fm.ascent() + 1, minStr);
+    painter.drawText(xr - twMax, yt + fm.ascent() + 1, maxStr);
 
     xs1_ = xl + twMin + 2;
     xs2_ = xr - twMax - 2;
@@ -256,17 +316,33 @@ paintEvent(QPaintEvent *)
   QColor bg3 = blendColors(bg1, fg0, 0.8);
 
   painter.setPen  (Qt::NoPen);
-  painter.setBrush(bg2);
+  painter.setBrush(lgSet_ ? QBrush(lg_) : QBrush(bg2));
 
   painter.drawRoundedRect(QRect(xs1_, yt, xs2_ - xs1_ + 1, yb - yt + 1), 3, 3);
 
   int xs3 = valueToPixel(sliderMin());
   int xs4 = valueToPixel(sliderMax());
 
-  painter.setPen  (fg1);
-  painter.setBrush(bg3);
+  if (lgSet_) {
+    bg3.setAlphaF(0.3);
 
-  painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
+    painter.setPen  (Qt::NoPen);
+    painter.setBrush(bg3);
+
+    painter.drawRoundedRect(QRect(xs1_, yt, xs3  - xs1_ + 1, yb - yt + 1), 1, 1);
+    painter.drawRoundedRect(QRect(xs4 , yt, xs2_ - xs4  + 1, yb - yt + 1), 1, 1);
+
+    painter.setPen  (fg1);
+    painter.setBrush(Qt::NoBrush);
+
+    painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
+  }
+  else {
+    painter.setPen  (fg1);
+    painter.setBrush(bg3);
+
+    painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
+  }
 
   painter.setPen  (fg1);
   painter.setBrush(palette().color(QPalette::Button));
@@ -302,7 +378,7 @@ paintEvent(QPaintEvent *)
     }
 
     if (xs5 >= 0)
-      painter.drawText(xs5, yt + fm.ascent(), sminStr);
+      painter.drawText(xs5, yt + fm.ascent() + 1, sminStr);
 
     int xs6 = xs4 + bs;
 
@@ -314,7 +390,7 @@ paintEvent(QPaintEvent *)
     }
 
     if (xs6 >= 0)
-      painter.drawText(xs6, yt + fm.ascent(), smaxStr);
+      painter.drawText(xs6, yt + fm.ascent() + 1, smaxStr);
   }
 }
 

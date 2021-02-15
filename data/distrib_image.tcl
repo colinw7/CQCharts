@@ -5,7 +5,7 @@ set_charts_data -model $model -column 1 -name column_type -value {{color}}
 set_charts_data -model $model -column 2 -name column_type -value {{image}}
 
 set plot [create_charts_plot -type distribution -model $model \
-  -columns {{value 0} {color 1} {image 2}}]
+  -columns {{values 0} {color 1} {image 2}}]
 
 set_charts_property -plot $plot -name fill.visible -value 0
 set_charts_property -plot $plot -name stroke.visible -value 0

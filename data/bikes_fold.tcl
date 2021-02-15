@@ -43,7 +43,7 @@ write_charts_model -model $model3
 set view2 [create_charts_view]
 
 set plot2 [create_charts_plot -view $view2 -type distribution -model $model2 \
- -columns {{value {3 4 5 6 7 8 9 10}} {name 0} {color 0}}]
+ -columns {{values {3 4 5 6 7 8 9 10}} {name 0} {color 0}}]
 
 set_charts_property -plot $plot2 -name bucket.enabled    -value false
 set_charts_property -plot $plot2 -name options.valueType -value SUM

@@ -55,4 +55,4 @@ set_charts_property -plot $plot -name options.skipEmpty -value 1
 }
 
 set plot [create_charts_plot -model $model -type distribution \
-  -columns {{value Datum[%Y]}} -title "space missions"]
+  -columns {{values Datum[%Y]}} -title "space missions"]

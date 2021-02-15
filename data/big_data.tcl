@@ -12,7 +12,7 @@ set plot3 [create_charts_plot -type scatter -columns {{x 0} {y 1}} -title "Scatt
 
 #set plot4 [create_charts_plot -type bubble -columns {{name 0} {value 1}} -title "Bubble (100000 points)"]
 
-#set plot5 [create_charts_plot -type distribution -columns {{value 1}} \
+#set plot5 [create_charts_plot -type distribution -columns {{values 1}} \
 # -title "Distribution (100000 Points)"]
 
 #print_chart -plot $plot1 -file xy_100000.png

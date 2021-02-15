@@ -165,31 +165,14 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 //---
 
-bool
-CQChartsPlotObj::
-isSelectIndex(const QModelIndex &ind) const
-{
-  Indices inds;
-
-  getHierSelectIndices(inds);
-
-  for (auto &ind1 : inds) {
-    auto ind2 = plot()->normalizeIndex(ind1);
-
-    if (ind == ind2)
-      return true;
-  }
-
-  return false;
-}
-
+// are any of the normalized indices in object's select indices
 bool
 CQChartsPlotObj::
 isSelectIndices(const Indices &indices) const
 {
   Indices inds;
 
-  getHierSelectIndices(inds);
+  getSelectIndices(inds);
 
   for (auto &ind1 : inds) {
     auto ind2 = plot()->normalizeIndex(ind1);
@@ -201,13 +184,35 @@ isSelectIndices(const Indices &indices) const
   return false;
 }
 
-void
+#if 0
+// is normalized index in object's select indices
+bool
 CQChartsPlotObj::
-getSelectIndices(Indices &indices) const
+isSelectIndex(const QModelIndex &ind) const
 {
   Indices inds;
 
-  getHierSelectIndices(inds);
+  getSelectIndices(inds);
+
+  for (auto &ind1 : inds) {
+    auto ind2 = plot()->normalizeIndex(ind1);
+
+    if (ind == ind2)
+      return true;
+  }
+
+  return false;
+}
+#endif
+
+// get object select indices (normalized)
+void
+CQChartsPlotObj::
+getNormalizedSelectIndices(Indices &indices) const
+{
+  Indices inds;
+
+  getSelectIndices(inds);
 
   for (auto &ind1 : inds) {
     auto ind2 = plot()->normalizeIndex(ind1);
@@ -216,21 +221,24 @@ getSelectIndices(Indices &indices) const
   }
 }
 
+// add object select indices (normalized) to plot selection buffer to use
+// in cross select from objects to selection model
 void
 CQChartsPlotObj::
 addSelectIndices(Plot *plot)
 {
   Indices inds;
 
-  getSelectIndices(inds);
+  getNormalizedSelectIndices(inds);
 
   for (const auto &ind : inds)
     plot->addSelectIndex(ind);
 }
 
+// get object select indices (non-normalized) from object's columns
 void
 CQChartsPlotObj::
-getHierSelectIndices(Indices &inds) const
+getSelectIndices(Indices &inds) const
 {
   getObjSelectIndices(inds);
 
@@ -244,6 +252,7 @@ getHierSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, plot()->colorColumn());
 }
 
+// add plot object's indices to array for specified (new) column
 void
 CQChartsPlotObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
@@ -254,6 +263,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
   }
 }
 
+// add model index to array
 void
 CQChartsPlotObj::
 addSelectIndex(Indices &inds, const ModelIndex &ind) const
@@ -261,6 +271,7 @@ addSelectIndex(Indices &inds, const ModelIndex &ind) const
   addSelectIndex(inds, ind.row(), ind.column(), ind.parent());
 }
 
+// add model index data to array (ignore if column not right type)
 void
 CQChartsPlotObj::
 addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
@@ -272,15 +283,18 @@ addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
 
   auto ind = plot()->selectIndex(row, CQChartsColumn(column.column()), parent);
 
-  addSelectIndex(inds, ind);
+  //addSelectIndex(inds, ind);
+  inds.insert(ind);
 }
 
+/*
 void
 CQChartsPlotObj::
 addSelectIndex(Indices &inds, const QModelIndex &ind) const
 {
   inds.insert(ind);
 }
+*/
 
 //---
 

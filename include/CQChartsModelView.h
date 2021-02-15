@@ -75,7 +75,7 @@ class CQChartsModelView : public CQModelView {
 
   void selectionSlot();
 
-  void selectionBehaviorSlot(QAction *action);
+  //void selectionBehaviorSlot(QAction *action);
 
   void exportSlot(QAction *action);
 

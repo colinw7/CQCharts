@@ -1060,17 +1060,26 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  controlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>("controlFrame");
+  quickControlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>("quickControlFrame");
 
-  propertiesWidgets_.propertiesSplit->addWidget(controlFrame_, "Quick Controls");
+  propertiesWidgets_.propertiesSplit->addWidget(quickControlFrame_, "Quick Controls");
 
   //---
 
-  int i1 = INT_MAX*0.4;
-  int i3 = INT_MAX*0.1;
-  int i2 = INT_MAX - i1 - i3;
+  customControlFrame_ = CQUtil::makeWidget<QFrame>("customControlFrame");
 
-  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
+  (void) CQUtil::makeLayout<QVBoxLayout>(customControlFrame_);
+
+  propertiesWidgets_.propertiesSplit->addWidget(customControlFrame_, "Custom Controls");
+
+  //---
+
+  int i1 = INT_MAX*0.2;
+  int i3 = INT_MAX*0.1;
+  int i4 = INT_MAX*0.2;
+  int i2 = INT_MAX - i1 - i3 - i4;
+
+  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3, i4}));
 }
 
 void
@@ -2647,37 +2656,52 @@ updatePlotControls()
   // add controls for plot and child plots
   auto *plot = currentPlot();
 
-  controlFrame_->setPlot(plot);
-
-  controlFrame_->setPlotControls();
+  quickControlFrame_->setPlot(plot);
+  quickControlFrame_->setPlotControls();
 
   //---
 
-  if (controlFrame_->numIFaces() > 0) {
-    if (! propertiesWidgets_.propertiesSplit->hasWidget(controlFrame_)) {
-      propertiesWidgets_.propertiesSplit->addWidget(controlFrame_, "Quick Controls");
+  delete plotCustomControls_;
 
-      controlFrame_->setVisible(true);
+  plotCustomControls_ = (plot ? plot->createCustomControls() : nullptr);
 
-      int i1 = INT_MAX*0.4;
-      int i3 = INT_MAX*0.1;
-      int i2 = INT_MAX - i1 - i3;
+  if (plotCustomControls_)
+    customControlFrame_->layout()->addWidget(plotCustomControls_);
 
-      propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
+  //---
+
+  int viewSize   = INT_MAX*0.2; // view
+  int quickSize  = 0;
+  int customSize = (plotCustomControls_ ? INT_MAX*0.2 : 0); // custom controls
+
+  if (quickControlFrame_->numIFaces() > 0) {
+    if (! propertiesWidgets_.propertiesSplit->hasWidget(quickControlFrame_)) {
+      propertiesWidgets_.propertiesSplit->addWidget(quickControlFrame_, "Quick Controls");
+
+      quickSize = INT_MAX*0.1; // quick controls
+
+      quickControlFrame_->setVisible(true);
     }
   }
   else {
-    if (propertiesWidgets_.propertiesSplit->hasWidget(controlFrame_)) {
-      propertiesWidgets_.propertiesSplit->removeWidget(controlFrame_, /*delete*/false);
+    if (propertiesWidgets_.propertiesSplit->hasWidget(quickControlFrame_)) {
+      propertiesWidgets_.propertiesSplit->removeWidget(quickControlFrame_, /*delete*/false);
 
-      controlFrame_->setVisible(false);
-
-      int i1 = INT_MAX*0.4;
-      int i2 = INT_MAX - i1;
-
-      propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2}));
+      quickControlFrame_->setVisible(false);
     }
   }
+
+  int plotSize = INT_MAX - viewSize - quickSize - customSize; // plot
+
+  QList<int> sizes;
+
+  sizes << viewSize;
+  sizes << plotSize;
+
+  if (quickSize ) sizes << quickSize;
+  if (customSize) sizes << customSize;
+
+  propertiesWidgets_.propertiesSplit->setSizes(sizes);
 }
 
 //------

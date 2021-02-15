@@ -4,11 +4,12 @@
 #include <CQChartsTip.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
+#include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -464,6 +465,8 @@ createObjs(PlotObjs &objs) const
   //---
 
   th->groupObjs_.clear();
+
+  th->updateColumnNames();
 
   //---
 
@@ -1243,6 +1246,19 @@ createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const
   return new CQChartsPieObj(this, rect, ind, ig);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsPiePlot::
+createCustomControls()
+{
+  auto *controls = new CQChartsPieCustomControls;
+
+  controls->setPlot(this);
+
+  return controls;
+}
+
 //------
 
 CQChartsPieObj::
@@ -1267,15 +1283,57 @@ QString
 CQChartsPieObj::
 calcTipId() const
 {
+  CQChartsTableTip tableTip;
+
+  plot()->addNoTipColumns(tableTip);
+
+  //---
+
+  auto addColumnRowValue = [&](const CQChartsColumn &column, const QString &header,
+                               const QString &value="") {
+    if (column.isValid() && tableTip.hasColumn(column))
+      return;
+
+    QString value1 = value;
+
+    if (! value1.length()) {
+      if (column.isValid()) {
+        ModelIndex columnInd(const_cast<CQChartsPiePlot *>(plot_),
+                             modelInd().row(), column, modelInd().parent());
+
+        bool ok;
+
+        value1 = plot_->modelString(columnInd, ok);
+        if (! ok) return;
+      }
+    }
+
+    if (! value1.length())
+      return;
+
+    QString headerStr = header;
+
+    if (column.isValid()) {
+      headerStr = plot_->columnHeaderName(column, /*tip*/true);
+
+      if (headerStr == "")
+        headerStr = header;
+    }
+
+    tableTip.addTableRow(headerStr, value1);
+
+    if (column.isValid())
+      tableTip.addColumn(column);
+  };
+
+  //---
+
+  // get tip values
   QString groupName, label, valueStr;
 
   calcTipData(groupName, label, valueStr);
 
-  //---
-
-  // set tip values
-  CQChartsTableTip tableTip;
-
+  // add tip values
   if (groupName.length())
     tableTip.addTableRow("Group", groupName);
 
@@ -1285,6 +1343,11 @@ calcTipId() const
   if (optRadius()) {
     tableTip.addTableRow("Radius", *optRadius());
   }
+
+  //---
+
+  // add color column
+  addColumnRowValue(plot_->colorColumn(), "Color");
 
   //---
 
@@ -2135,4 +2198,23 @@ CQChartsPieTextObj::
 CQChartsPieTextObj(const CQChartsPiePlot *plot) :
  CQChartsRotatedTextBoxObj(const_cast<CQChartsPiePlot *>(plot)), plot_(plot)
 {
+}
+
+//------
+
+CQChartsPieCustomControls::
+CQChartsPieCustomControls(QWidget *widget) :
+ CQChartsGroupPlotCustomControls(widget)
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets ();
+}
+
+void
+CQChartsPieCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsPiePlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
 }

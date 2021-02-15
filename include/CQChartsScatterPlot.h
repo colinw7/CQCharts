@@ -163,7 +163,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
     Symbol symbolType { Symbol::Type::NONE }; //!< symbol type
     Length symbolSize { Units::NONE, 0.0 };   //!< symbol size
     Color  color;                             //!< symbol fill color
-    Alpha  alpha      { -1 };                 //!< symbol fill alpha
+    Alpha  alpha;                             //!< symbol fill alpha
     Length fontSize   { Units::NONE, 0.0 };   //!< font size
     Font   font;                              //!< text font
   };
@@ -792,6 +792,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setYDensity(bool b);
   void setYWhisker(bool b);
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls() override;
+
  private:
   //! symbol map key daya
   struct SymbolMapKeyData {
@@ -861,6 +864,26 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
+};
+
+//---
+
+class CQChartsScatterCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsScatterCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private slots:
+  void symbolSizeColumnSlot();
+  void symbolSizeRangeSlot(double min, double max);
+
+ private:
+  CQChartsScatterPlot* plot_                  { nullptr };
+  CQChartsColumnCombo* symbolSizeColumnCombo_ { nullptr };
+  CQDoubleRangeSlider* symbolSizeRange_       { nullptr };
 };
 
 #endif

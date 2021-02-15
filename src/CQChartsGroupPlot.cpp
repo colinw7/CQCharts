@@ -2,6 +2,7 @@
 #include <CQChartsColumnBucket.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsColumnCombo.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -691,6 +692,35 @@ groupIndName(int ind, bool hier) const
   }
 }
 
+CQChartsPlot::ColumnType
+CQChartsGroupPlot::
+groupType() const
+{
+  if (! groupBucket_)
+    return ColumnType::STRING;
+
+  if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
+      groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+    return groupBucket_->columnType();
+
+  return ColumnType::STRING;
+}
+
+QVariant
+CQChartsGroupPlot::
+groupIndValue(int ind) const
+{
+  if (! groupBucket_)
+    return QVariant();
+
+  if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
+      groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+    return groupBucket_->bucketValue(ind);
+  }
+
+  return QVariant();
+}
+
 //---
 
 void
@@ -699,4 +729,44 @@ printGroup() const
 {
   if (groupBucket_)
     groupBucket_->print(std::cerr);
+}
+
+//------
+
+CQChartsGroupPlotCustomControls::
+CQChartsGroupPlotCustomControls(QWidget *widget) :
+ CQChartsPlotCustomControls(widget)
+{
+}
+
+void
+CQChartsGroupPlotCustomControls::
+addGroupColumnWidgets()
+{
+  groupColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("groupColumnCombo");
+
+  connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
+
+  makeLabelWidget("Group", groupColumnCombo_);
+}
+
+void
+CQChartsGroupPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsGroupPlot *>(plot);
+
+  if (groupColumnCombo_)
+    groupColumnCombo_->setModelColumn(plot_->getModelData(), plot_->groupColumn());
+
+  //---
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsGroupPlotCustomControls::
+groupColumnSlot()
+{
+  plot_->setGroupColumn(groupColumnCombo_->getColumn());
 }

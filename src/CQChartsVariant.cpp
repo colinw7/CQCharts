@@ -195,7 +195,7 @@ int cmp(const QVariant &var1, const QVariant &var2) {
       auto color1 = var1.value<CQChartsColor>();
       auto color2 = var2.value<CQChartsColor>();
 
-      return CQChartsColor::cmp(color1, color2);
+      return cmp(color1, color2);
     }
   }
 

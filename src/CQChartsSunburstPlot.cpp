@@ -441,7 +441,7 @@ initRoots()
 
   //---
 
-  if (isFollowViewExpand()) {
+  if (isHierarchical() && isFollowViewExpand()) {
     std::set<QModelIndex> indSet;
 
     expandedModelIndices(indSet);

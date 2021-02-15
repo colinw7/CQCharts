@@ -42,6 +42,7 @@ class CQChartsKeyColorBox;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
+class CQChartsPlotCustomControls;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -181,7 +182,9 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
 
   // alpha map
-  Q_PROPERTY(bool alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
+  Q_PROPERTY(bool   alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
+  Q_PROPERTY(double alphaMapMin READ alphaMapMin   WRITE setAlphaMapMin)
+  Q_PROPERTY(double alphaMapMax READ alphaMapMax   WRITE setAlphaMapMax)
 
   // rectangle and data range
   Q_PROPERTY(CQChartsGeom::BBox viewRect READ viewBBox WRITE setViewBBox)
@@ -1821,6 +1824,12 @@ class CQChartsPlot : public CQChartsObj,
   bool isAlphaMapped() const { return alphaColumnData_.mapped; }
   void setAlphaMapped(bool b);
 
+  double alphaMapMin() const { return alphaColumnData_.map_min; }
+  void setAlphaMapMin(double r);
+
+  double alphaMapMax() const { return alphaColumnData_.map_max; }
+  void setAlphaMapMax(double r);
+
  protected:
   double alphaMapDataMin() const { return alphaColumnData_.data_min; }
   double alphaMapDataMax() const { return alphaColumnData_.data_max; }
@@ -2705,8 +2714,8 @@ class CQChartsPlot : public CQChartsObj,
   void connectDataChanged();
 
   // current connected plot changed
-  void currentPlotChanged(Plot *plot);
-  void currentPlotIdChanged(const QString &id);
+  void currentPlotChanged(CQChartsPlot *);
+  void currentPlotIdChanged(const QString &);
 
   // layers changed (active, valid)
   void layersChanged();
@@ -2715,29 +2724,29 @@ class CQChartsPlot : public CQChartsObj,
   void controlColumnsChanged();
 
   // key signals (key, key item pressed)
-  void keyItemPressed(PlotKeyItem *);
+  void keyItemPressed(CQChartsKeyItem *);
   void keyItemIdPressed(const QString &);
 
-  void keyPressed(PlotKey *);
+  void keyPressed(CQChartsPlotKey *);
   void keyIdPressed(const QString &);
 
   // title signals (title changed)
   void titleChanged();
 
   // title signals (title pressed)
-  void titlePressed(Title *);
+  void titlePressed(CQChartsTitle *);
   void titleIdPressed(const QString &);
 
   // annotation signals (annotation pressed)
-  void annotationPressed(Annotation *);
+  void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
   // object signals (object pressed)
-  void objPressed(PlotObj *);
+  void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
   // pressed
-  void selectPressSignal(const Point &p);
+  void selectPressSignal(const CQChartsGeom::Point &p);
 
   // zoom/pan changed
   void zoomPanChanged();
@@ -2751,9 +2760,12 @@ class CQChartsPlot : public CQChartsObj,
   // emitted when selection changed
   void selectionChanged();
 
-  // mitted when errors cleared or added
+  // emitted when errors cleared or added
   void errorsCleared();
   void errorAdded();
+
+  // emitted when color details changed (color column, color range, color palette)
+  void colorDetailsChanged();
 
  protected:
   //! \brief RAII class to enable/disable no update state
@@ -2812,6 +2824,9 @@ class CQChartsPlot : public CQChartsObj,
 
  public:
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
+
+ public:
+  virtual CQChartsPlotCustomControls *createCustomControls() { return nullptr; }
 
  protected:
   //*! \brief update state enum
@@ -3295,5 +3310,49 @@ CQCHARTS_NAMED_SHAPE_DATA(Node, node)
 CQCHARTS_NAMED_LINE_DATA(Edge, edge)
 CQCHARTS_NAMED_POINT_DATA(Dot, dot)
 CQCHARTS_NAMED_POINT_DATA(Rug, rug)
+
+//------
+
+class CQChartsColumnCombo;
+class CQDoubleRangeSlider;
+class CQChartsPaletteNameEdit;
+
+class QGridLayout;
+
+class CQChartsPlotCustomControls : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsPlotCustomControls(QWidget *widget=nullptr);
+
+  virtual void setPlot(CQChartsPlot *plot);
+
+  void addColorColumnWidgets();
+
+  void makeLabelWidget(const QString &label, QWidget *w);
+
+  void updateColorDetails();
+
+ private slots:
+  void colorDetailsSlot();
+
+  void colorColumnSlot();
+  void colorRangeSlot();
+  void colorPaletteSlot();
+
+ private:
+  void updateColorPaletteGradient();
+
+ private:
+  QFrame*      widgetFrame_  { nullptr };
+  QGridLayout* widgetLayout_ { nullptr };
+
+  int row_ { 0 };
+
+  CQChartsPlot*            plot_             { nullptr };
+  CQChartsColumnCombo*     colorColumnCombo_ { nullptr };
+  CQDoubleRangeSlider*     colorRange_       { nullptr };
+  CQChartsPaletteNameEdit* colorPaletteEdit_ { nullptr };
+};
 
 #endif

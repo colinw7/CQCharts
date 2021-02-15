@@ -84,6 +84,15 @@ setModelData(CQChartsModelData *modelData)
 
 void
 CQChartsColumnCombo::
+setModelColumn(CQChartsModelData *modelData, const Column &column)
+{
+  setModelData(modelData);
+
+  setColumn(column);
+}
+
+void
+CQChartsColumnCombo::
 updateItems()
 {
   clear();

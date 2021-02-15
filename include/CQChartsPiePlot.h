@@ -584,6 +584,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls() override;
+
  private:
   struct GroupData {
     GroupData(const QString &name) :
@@ -632,6 +635,20 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Point       center_;                      //!< center point
   GroupDatas  groupDatas_;                  //!< data per group
   GroupObjs   groupObjs_;                   //!< group objects
+};
+
+//---
+
+class CQChartsPieCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsPieCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  CQChartsPiePlot* plot_ { nullptr };
 };
 
 #endif

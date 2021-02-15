@@ -142,7 +142,7 @@ struct RealCmp {
 //! compare colors
 struct ColorCmp {
   bool operator()(const CQChartsColor &lhs, const CQChartsColor &rhs) const {
-    return (CQChartsColor::cmp(lhs, rhs) < 0);
+    return (lhs < rhs);
   }
 
   bool operator()(const QColor &lhs, const QColor &rhs) const {

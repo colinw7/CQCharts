@@ -14,6 +14,8 @@ class CQChartsXYPolylineObj;
 class CQChartsArrow;
 class CQChartsGrahamHull;
 
+class CQCheckBox;
+
 //---
 
 /*!
@@ -1051,6 +1053,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   int numSets() const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls() override;
+
  private:
   using Arrow = CQChartsArrow;
 
@@ -1106,6 +1111,30 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
 
   mutable int maxNumPoints_ { 0 };
+};
+
+//---
+
+class CQChartsColumnCombo;
+
+class CQChartsXYCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsXYCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private slots:
+  void pointsSlot(int);
+  void linesSlot(int);
+  void fillUnderSlot(int);
+
+ private:
+  CQChartsXYPlot* plot_           { nullptr };
+  CQCheckBox*     pointsCheck_    { nullptr };
+  CQCheckBox*     linesCheck_     { nullptr };
+  CQCheckBox*     fillUnderCheck_ { nullptr };
 };
 
 #endif

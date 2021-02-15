@@ -599,6 +599,9 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
                                  const BBox &rect, const ColorInd &is) const;
 
  protected:
+  CQChartsPlotCustomControls *createCustomControls() override;
+
+ protected:
   struct PlaceData {
     Point  offset { 0, 0 }; //!< draw offset
     double scale  { 1.0 };  //!< draw scale
@@ -640,6 +643,20 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   GroupHierNodes groupHierNodes_;        //!< hier group nodes
 
   mutable bool marginSet_ { false }; //!< is margin set
+};
+
+//---
+
+class CQChartsBubbleCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsBubbleCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  CQChartsBubblePlot* plot_ { nullptr };
 };
 
 #endif

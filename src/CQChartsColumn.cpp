@@ -217,29 +217,29 @@ fromString(const QString &s)
 
 int
 CQChartsColumn::
-cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
+cmp(const CQChartsColumn &c) const
 {
-  if (lhs.type_ < rhs.type_) return -1;
-  if (lhs.type_ > rhs.type_) return  1;
+  if (type_ < c.type_) return -1;
+  if (type_ > c.type_) return  1;
 
-  if (lhs.column_ < rhs.column_) return -1;
-  if (lhs.column_ > rhs.column_) return  1;
+  if (column_ < c.column_) return -1;
+  if (column_ > c.column_) return  1;
 
-  if (lhs.role_ < rhs.role_) return -1;
-  if (lhs.role_ > rhs.role_) return  1;
+  if (role_ < c.role_) return -1;
+  if (role_ > c.role_) return  1;
 
-  if (lhs.expr_ != rhs.expr_) {
-    if (! lhs.expr_) return -1;
-    if (! rhs.expr_) return  1;
+  if (expr_ != c.expr_) {
+    if (!   expr_) return -1;
+    if (! c.expr_) return  1;
 
-    return strcmp(lhs.expr_, rhs.expr_);
+    return strcmp(expr_, c.expr_);
   }
 
-  if (lhs.name_ != rhs.name_) {
-    if (! lhs.name_) return -1;
-    if (! rhs.name_) return  1;
+  if (name_ != c.name_) {
+    if (!   name_) return -1;
+    if (! c.name_) return  1;
 
-    return strcmp(lhs.name_, rhs.name_);
+    return strcmp(name_, c.name_);
   }
 
   return 0;

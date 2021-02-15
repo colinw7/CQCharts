@@ -51,7 +51,7 @@ set plot7 [create_charts_plot -model $model7 -type dendrogram \
 set model8 [load_charts_model -tsv data/scatter.tsv -first_line_header]
 
 set plot8 [create_charts_plot -model $model8 -type distribution \
-  -columns {{value sepalLength} {group species}} \
+  -columns {{values sepalLength} {group species}} \
   -properties {{xaxis.userLabel {Sepal Length}}}]
 
 # Force Directed Plot

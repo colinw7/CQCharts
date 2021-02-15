@@ -34,7 +34,11 @@ void
 CQChartsPaletteNameEdit::
 setCharts(const CQCharts *charts)
 {
-  const auto *theme = charts->theme();
+  connectSlots(false);
+
+  charts_ = charts;
+
+  const auto *theme = charts_->theme();
 
   int n = theme->numPalettes();
 
@@ -44,14 +48,8 @@ setCharts(const CQCharts *charts)
 
   for (int i = 0; i < n; ++i)
     combo_->addItem(theme->palette(i)->name());
-}
 
-void
-CQChartsPaletteNameEdit::
-connectSlots(bool b)
-{
-  CQChartsWidgetUtil::connectDisconnect(b,
-    combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 }
 
 const CQChartsPaletteName &
@@ -72,6 +70,23 @@ setPaletteName(const CQChartsPaletteName &name)
   combo_->setCurrentIndex(combo_->findText(name_.toString()));
 
   connectSlots(true);
+}
+
+void
+CQChartsPaletteNameEdit::
+setChartsPaletteName(CQCharts *charts, const CQChartsPaletteName &name)
+{
+  setCharts(charts);
+
+  setPaletteName(name);
+}
+
+void
+CQChartsPaletteNameEdit::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
 }
 
 void

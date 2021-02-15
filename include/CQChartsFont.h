@@ -1,6 +1,7 @@
 #ifndef CQChartsFont_H
 #define CQChartsFont_H
 
+#include <CQChartsTmpl.h>
 #include <cassert>
 #include <QFont>
 #include <iostream>
@@ -15,7 +16,7 @@ class QObject;
  *  . An explicit font
  *  . An derived modified inherited font
  */
-class CQChartsFont {
+class CQChartsFont : public ComparatorBase<CQChartsFont> {
  public:
   enum class Type {
     NONE,
@@ -177,7 +178,7 @@ class CQChartsFont {
     return 0;
   }
 
-  static int cmp(const CQChartsFont &lhs, const CQChartsFont &rhs) {
+  friend int cmp(const CQChartsFont &lhs, const CQChartsFont &rhs) {
     if (lhs.type_ != rhs.type_) return (lhs.type_ < rhs.type_ ? -1 : 1);
 
     if (lhs.type_ == Type::FONT) {
@@ -188,18 +189,6 @@ class CQChartsFont {
     }
 
     return 0;
-  }
-
-  friend bool operator==(const CQChartsFont &lhs, const CQChartsFont &rhs) {
-    return (cmp(lhs, rhs) == 0);
-  }
-
-  friend bool operator!=(const CQChartsFont &lhs, const CQChartsFont &rhs) {
-    return (cmp(lhs, rhs) != 0);
-  }
-
-  friend bool operator<(const CQChartsFont &lhs, const CQChartsFont &rhs) {
-    return (cmp(lhs, rhs) < 0);
   }
 
   //---

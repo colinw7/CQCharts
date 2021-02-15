@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Optional clipping for objects
  + Quick controls on plot for all 'major' parameters
    + test with scatter plot for symbol size, ...
    + need start/end slider widget for data/pixel ranges 
@@ -131,7 +132,6 @@ TODO:
  + Better pattern fills (pattern shape as fill)
  + Recalc margin from current value on resize as may have changed due to font change
  + Auto size title/axis to outer margin
- + Pie chart mouse over center label
  + Better handling of scaled (icon) images like SVG
  + tcl proc to run command with current location ? tcl state machine to add annotation ?
  + filterObjs for all connection types (chord, ...)
@@ -621,6 +621,8 @@ Box Plot
 
 Bubble Plot
  + Combine with Hier Bubble Plot
+ + Text Scale Factor (reduce bbox size by factor to fit circle)
+ + Color quick controls
 
 Chord Plot
  + Control gap between sections
@@ -650,6 +652,8 @@ Hier Bubble Plot
  + Pop top is off by one level
  + Better coloring algorithm ?
  + How handle non-cumulative values (percentages)
+ + Value labels include color column.
+ + Tip for color column should be column name
 
 Image Plot
  + Allow sub set of model ?
@@ -666,6 +670,9 @@ Pie Chart
  + Key by group and by value (see bar chart)
  + Group Labels 
  + Add gap between sections
+ + Mouse over center label
+ + Color Column Quick Control
+ + Color included in tip
 
 Radar Plot
  + Add Key
@@ -727,6 +734,7 @@ Tree map
  + Color Key
  + Color fixed size box by value
  + Show size with label
+ + Html scaled not working
 
 XY Plot
  + Use color set for color column to allow explict colors and colors from data

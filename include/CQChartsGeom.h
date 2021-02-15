@@ -1,6 +1,8 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <CQChartsTmpl.h>
+
 #include <CQUtil.h>
 #include <CMathUtil.h>
 #include <QRectF>
@@ -1444,7 +1446,7 @@ namespace CQChartsGeom {
  * | m10 m11 m12 |
  * \ m20 m21 m22 /
  */
-class Matrix {
+class Matrix : public ComparatorBase<Matrix> {
  public:
   enum class Type {
     IDENTITY
@@ -2223,12 +2225,9 @@ class Matrix {
     return 0;
   }
 
-  friend bool operator< (const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) <  0; }
-  friend bool operator<=(const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) <= 0; }
-  friend bool operator> (const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) >  0; }
-  friend bool operator>=(const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) >= 0; }
-  friend bool operator==(const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) == 0; }
-  friend bool operator!=(const Matrix &lhs, const Matrix &rhs) { return lhs.cmp(rhs) != 0; }
+  friend int cmp(const Matrix &m1, const Matrix &m2) {
+    return m1.cmp(m2);
+  }
 
  private:
   static bool realEq(double r1, double r2) {
@@ -2309,7 +2308,7 @@ namespace CQChartsGeom {
  * \brief Point class
  * \ingroup Charts
  */
-class Point3D {
+class Point3D : public ComparatorBase<Point3D> {
  public:
   Point3D() = default;
 
@@ -2349,8 +2348,8 @@ class Point3D {
     return 0;
   }
 
-  friend bool operator<(const Point3D &lhs, const Point3D &rhs) {
-    return lhs.cmp(rhs) < 0;
+  friend int cmp(const Point3D &p1, const Point3D &p2) {
+    return p1.cmp(p2);
   }
 
   //---

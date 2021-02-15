@@ -19,21 +19,29 @@ class CQChartsPaletteNameEdit : public QFrame {
  public:
   CQChartsPaletteNameEdit(QWidget *parent=nullptr);
 
+  //! get/set charts
+  const CQCharts *charts() const { return charts_; }
+  void setCharts(const CQCharts *charts);
+
+  //! get/set palette name
   const CQChartsPaletteName &paletteName() const;
   void setPaletteName(const CQChartsPaletteName &name);
 
-  void setCharts(const CQCharts *charts);
+  //! convenience functio to set charts and palette name
+  void setChartsPaletteName(CQCharts *charts, const CQChartsPaletteName &name);
 
  private:
   void connectSlots(bool b);
 
  signals:
+  //! emitted when palette name changed
   void nameChanged();
 
  private slots:
   void comboChanged();
 
  private:
+  const CQCharts*     charts_ { nullptr };
   CQChartsPaletteName name_;
   QComboBox*          combo_ { nullptr };
 };

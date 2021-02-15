@@ -6,11 +6,12 @@
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsDataLabel.h>
-#include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
+#include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -854,7 +855,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
             headerStr = header;
         }
 
-        valueData.setNameValue(headerStr, value);
+        valueData.setNameColumnValue(headerStr, column, value);
       };
 
       // save other name values for tip
@@ -903,6 +904,40 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   }
 }
 
+//----
+
+int
+CQChartsBarChartPlot::
+numValueSets() const
+{
+  return valueData_.valueSets.size();
+}
+
+const CQChartsBarChartPlot::ValueSet &
+CQChartsBarChartPlot::
+valueSet(int i) const
+{
+  assert(i >= 0 && i < int(valueData_.valueSets.size()));
+
+  if (valueData_.sortedInds.empty()) {
+    auto *th = const_cast<CQChartsBarChartPlot *>(this);
+
+    for (const auto &vi : valueData_.valueInds)
+      th->valueData_.sortedInds.push_back(vi.second);
+  }
+
+  int i1 = valueData_.sortedInds[i];
+
+  return valueData_.valueSets[i1];
+}
+
+int
+CQChartsBarChartPlot::
+numSetValues() const
+{
+  return (! valueData_.valueSets.empty() ? valueData_.valueSets[0].numValues() : 0);
+}
+
 void
 CQChartsBarChartPlot::
 initGroupValueSet() const
@@ -941,6 +976,16 @@ groupValueSetI(int groupInd)
 
   auto name = groupIndName(groupInd);
 
+  auto type = groupType();
+
+  if (type == ColumnType::REAL || type == ColumnType::INTEGER) {
+    auto value = groupIndValue(groupInd);
+
+    valueData_.valueInds[value] = ind;
+  }
+  else
+    valueData_.valueInds[name] = ind;
+
   valueData_.valueSets.emplace_back(name, ind);
 
   valueData_.valueGroupInd[groupInd] = ind;
@@ -948,6 +993,8 @@ groupValueSetI(int groupInd)
   const auto &valueSet = &valueData_.valueSets.back();
 
   valueSet->setGroupInd(groupInd);
+
+  assert(valueData_.valueInds.size() == valueData_.valueSets.size());
 
   return valueSet;
 }
@@ -1698,7 +1745,7 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
-//------
+//---
 
 double
 CQChartsBarChartPlot::
@@ -1714,7 +1761,7 @@ getPanY(bool is_shift) const
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
 }
 
-//------
+//---
 
 CQChartsBarChartObj *
 CQChartsBarChartPlot::
@@ -1722,6 +1769,19 @@ createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig, const Col
              const QModelIndex &ind) const
 {
   return new CQChartsBarChartObj(this, rect, is, ig, iv, ind);
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsBarChartPlot::
+createCustomControls()
+{
+  auto *controls = new CQChartsBarChartCustomControls;
+
+  controls->setPlot(this);
+
+  return controls;
 }
 
 //------
@@ -1750,9 +1810,31 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
+  plot()->addNoTipColumns(tableTip);
+
+  //---
+
   auto addOptColumnRow = [&](const CQChartsColumn &column, const QString &header,
-                             const QString &value) {
-    if (! value.length()) return;
+                             const QString &value="") {
+    if (column.isValid() && tableTip.hasColumn(column))
+      return;
+
+    QString value1 = value;
+
+    if (! value1.length()) {
+      if (column.isValid()) {
+        ModelIndex columnInd(const_cast<CQChartsBarChartPlot *>(plot_),
+                             modelInd().row(), column, modelInd().parent());
+
+        bool ok;
+
+        value1 = plot_->modelString(columnInd, ok);
+        if (! ok) return;
+      }
+    }
+
+    if (! value1.length())
+      return;
 
     QString headerStr = header;
 
@@ -1763,12 +1845,16 @@ calcTipId() const
         headerStr = header;
     }
 
-    tableTip.addTableRow(headerStr, value);
+    tableTip.addTableRow(headerStr, value1);
+
+    if (column.isValid())
+      tableTip.addColumn(column);
   };
 
   auto addOptColumnsRow = [&](const CQChartsColumns &columns, const QString &header,
                               const QString &value) {
-    if (! value.length()) return;
+    if (! value.length())
+      return;
 
     QString headerStr = header;
 
@@ -1782,20 +1868,31 @@ calcTipId() const
     tableTip.addTableRow(headerStr, value);
   };
 
+  //---
+
   addOptColumnRow (plot_->groupColumn (), "Group", this->groupStr());
   addOptColumnRow (plot_->nameColumn  (), "Name" , this->nameStr ());
   addOptColumnsRow(plot_->valueColumns(), "Value", this->valueStr());
+  addOptColumnRow (plot_->colorColumn (), "Color");
 
   //---
 
   const auto &value = this->value();
 
-  for (const auto &nameValue : value->nameValues()) {
-    const auto &name  = nameValue.first;
-    const auto &value = nameValue.second;
+  for (const auto &pcv : value->nameColumnValueMap()) {
+    const auto &column = pcv.second.column;
+
+    if (column.isValid() && tableTip.hasColumn(column))
+      continue;
+
+    const auto &name  = pcv.first;
+    const auto &value = pcv.second.value;
 
     if (value.length())
       tableTip.addTableRow(name, value);
+
+    if (column.isValid())
+      tableTip.addColumn(column);
   }
 
   //---
@@ -2529,4 +2626,23 @@ CQChartsBarKeyText::
 isSetHidden() const
 {
   return plot_->CQChartsPlot::isSetHidden(ic_.i);
+}
+
+//------
+
+CQChartsBarChartCustomControls::
+CQChartsBarChartCustomControls(QWidget *widget) :
+ CQChartsGroupPlotCustomControls(widget)
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets();
+}
+
+void
+CQChartsBarChartCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
 }

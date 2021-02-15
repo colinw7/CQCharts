@@ -93,10 +93,11 @@ addMenuActions(QMenu *menu)
     return actionGroup;
   };
 
-  auto addAction = [&](const QString &name, const char *slotName) {
+  auto addAction = [&](const QString &name, const char *slotName=nullptr) {
     auto *action = new QAction(name, menu);
 
-    connect(action, SIGNAL(triggered()), this, slotName);
+    if (slotName)
+      connect(action, SIGNAL(triggered()), this, slotName);
 
     menu->addAction(action);
   };
@@ -486,13 +487,11 @@ scrollTo(const QModelIndex &index, ScrollHint hint)
   CQModelView::scrollTo(index, hint);
 }
 
+#if 0
 void
 CQChartsModelView::
 selectionBehaviorSlot(QAction *action)
 {
-  Q_UNUSED(action)
-
-#if 0
   if      (action->text() == "Items")
     setSelectionBehavior(SelectItems);
   else if (action->text() == "Rows")
@@ -501,8 +500,8 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectColumns);
   else
     assert(false);
-#endif
 }
+#endif
 
 void
 CQChartsModelView::

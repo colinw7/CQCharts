@@ -91,6 +91,8 @@ class CQChartsColumnBucket {
 
   QString bucketName(int ind) const;
 
+  QVariant bucketValue(int ind) const;
+
   int numUnique() const;
 
   int imin() const;

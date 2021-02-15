@@ -23,10 +23,12 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsWidgetUtil.h>
+#include <CQChartsColumnCombo.h>
+#include <CQChartsPaletteNameEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
@@ -42,6 +44,7 @@
 #include <CQColorsPalette.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
+#include <CQDoubleRangeSlider.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
 
@@ -52,6 +55,8 @@
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QTextBrowser>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <QPainter>
 
 //------
@@ -428,6 +433,7 @@ CQChartsPlot::
 selectionSlot(QItemSelectionModel *sm)
 {
   // get selected (normalized) indices from selection model
+  // TODO: optimize for row select or column select ?
   PlotObj::Indices selectIndices;
 
   getSelectIndices(sm, selectIndices);
@@ -715,7 +721,7 @@ CQChartsPlot::
 applyVisibleFilter()
 {
   if (visibleFilterStr().length()) {
-    auto expr = std::unique_ptr<CQChartsModelExprMatch>();
+    auto expr = std::make_unique<CQChartsModelExprMatch>();
 
     expr->setModel(model().data());
 
@@ -2822,7 +2828,7 @@ addBaseProperties()
   addProp("columns", "noTipColumns"  , "notips"  , "No Tip columns");
   addProp("columns", "visibleColumn" , "visible" , "Visible column");
   addProp("columns", "colorColumn"   , "color"   , "Color column");
-  addProp("columns", "alphaColumn"   , "color"   , "Alpha column");
+  addProp("columns", "alphaColumn"   , "alpha"   , "Alpha column");
   addProp("columns", "fontColumn"    , "font"    , "Font column");
   addProp("columns", "imageColumn"   , "image"   , "Image column");
   addProp("columns", "controlColumns", "controls", "Control columns");
@@ -5160,10 +5166,15 @@ columnHeaderName(const Column &column, bool tip) const
 
   bool ok;
 
-  auto str = (tip ? modelHHeaderTip(column, ok) : modelHHeaderString(column, ok));
-  if (! ok) return "";
+  if (tip) {
+    auto str = modelHHeaderTip(column, ok);
+    if (ok && str.length()) return str;
+  }
 
-  return str;
+  auto str = modelHHeaderString(column, ok);
+  if (ok && str.length()) return str;
+
+  return QString();
 }
 
 void
@@ -5181,6 +5192,9 @@ void
 CQChartsPlot::
 setColumnHeaderName(const Column &column, const QString &def)
 {
+  if (! column.isValid())
+    return;
+
   bool ok;
 
   auto str = modelHHeaderString(column, ok);
@@ -7438,7 +7452,9 @@ void
 CQChartsPlot::
 setColorColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
@@ -7459,21 +7475,27 @@ void
 CQChartsPlot::
 setColorMapMin(double r)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
 CQChartsPlot::
 setColorMapMax(double r)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
 CQChartsPlot::
 setColorMapPalette(const PaletteName &name)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
@@ -7618,7 +7640,7 @@ columnValueColor(const QVariant &var, Color &color) const
     double r1;
 
     if (isColorMapped())
-      r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), 0.0, 1.0);
+      r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), colorMapMin(), colorMapMax());
     else
       r1 = r;
 
@@ -7645,7 +7667,7 @@ columnValueColor(const QVariant &var, Color &color) const
       int n = columnDetails->numUnique();
       int i = columnDetails->valueInd(var);
 
-      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+      double r = CMathUtil::map(i, 0, n - 1, colorMapMin(), colorMapMax());
 
       color = colorFromPaletteValue(r);
     }
@@ -7676,9 +7698,23 @@ setAlphaMapped(bool b)
   CQChartsUtil::testAndSet(alphaColumnData_.mapped, b, [&]() { updateObjs(); } );
 }
 
+void
+CQChartsPlot::
+setAlphaMapMin(double r)
+{
+  CQChartsUtil::testAndSet(alphaColumnData_.map_min, r, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsPlot::
+setAlphaMapMax(double r)
+{
+  CQChartsUtil::testAndSet(alphaColumnData_.map_max, r, [&]() { updateObjs(); } );
+}
+
 //---
 
-// get color from colorColumn at specified row
+// get alpha from alphaColumn at specified row
 bool
 CQChartsPlot::
 alphaColumnAlpha(int row, const QModelIndex &parent, Alpha &alpha) const
@@ -7722,7 +7758,7 @@ columnValueAlpha(const QVariant &var, Alpha &alpha) const
     double r1;
 
     if (isAlphaMapped())
-      r1 = CMathUtil::map(r, alphaMapDataMin(), alphaMapDataMax(), 0.0, 1.0);
+      r1 = CMathUtil::map(r, alphaMapDataMin(), alphaMapDataMax(), alphaMapMin(), alphaMapMax());
     else
       r1 = r;
 
@@ -7746,7 +7782,7 @@ columnValueAlpha(const QVariant &var, Alpha &alpha) const
       int n = columnDetails->numUnique();
       int i = columnDetails->valueInd(var);
 
-      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+      double r = CMathUtil::map(i, 0, n - 1, alphaMapMin(), alphaMapMax());
 
       alpha = Alpha(r);
 
@@ -7924,9 +7960,10 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
       int n = columnDetails->numUnique();
       int i = columnDetails->valueInd(var);
 
-      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+      int i1 = (int) CMathUtil::map(i, 0, n - 1,
+                                    symbolTypeData.map_min, symbolTypeData.map_max);
 
-      symbolType = Symbol::interpOutline(r);
+      symbolType = Symbol::outlineFromInt(i1);
     }
     else {
       auto str = CQChartsVariant::toString(var, ok);
@@ -10295,6 +10332,10 @@ hasBackgroundI() const
       if (oplot->hasBackground())
         return true;
   }
+  else {
+    if (hasBackground())
+      return true;
+  }
 
   return false;
 }
@@ -12499,13 +12540,10 @@ getObjectInds(const QString &objectId) const
   if (plotObj) {
     PlotObj::Indices inds1;
 
-    plotObj->getSelectIndices(inds1); // normalized
+    plotObj->getSelectIndices(inds1); // unnormalized
 
-    for (auto &ind1 : inds1) {
-      auto ind2 = unnormalizeIndex(ind1);
-
-      inds.push_back(ind2);
-    }
+    for (auto &ind1 : inds1)
+      inds.push_back(ind1);
   }
 
   return inds;
@@ -13030,7 +13068,7 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
   else
     penBrush.altColor = QColor();
 
-  if (brushData.pattern().altAlpha().isValid())
+  if (brushData.pattern().altAlpha().isSet())
     penBrush.altAlpha = brushData.pattern().altAlpha().value();
   else
     penBrush.altAlpha = 1.0;
@@ -15537,4 +15575,166 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
+}
+
+//------
+
+CQChartsPlotCustomControls::
+CQChartsPlotCustomControls(QWidget *widget) :
+ QFrame(widget)
+{
+  setObjectName("customControls");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //---
+
+  widgetFrame_  = CQUtil::makeWidget<QFrame>("widgetFrame");
+  widgetLayout_ = CQUtil::makeLayout<QGridLayout>(widgetFrame_);
+
+  layout->addWidget(widgetFrame_);
+
+  //---
+
+  row_ = 0;
+
+  //---
+
+  layout->addStretch(1);
+}
+
+void
+CQChartsPlotCustomControls::
+addColorColumnWidgets()
+{
+  colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
+
+  connect(colorColumnCombo_, SIGNAL(columnChanged()), this, SLOT(colorColumnSlot()));
+
+  makeLabelWidget("Color", colorColumnCombo_);
+
+  //---
+
+  colorRange_ = CQUtil::makeWidget<CQDoubleRangeSlider>("colorRange");
+
+  connect(colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
+
+  makeLabelWidget("Color Range", colorRange_);
+
+  //---
+
+  colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
+
+  connect(colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
+
+  makeLabelWidget("Color Palette", colorPaletteEdit_);
+}
+
+void
+CQChartsPlotCustomControls::
+makeLabelWidget(const QString &label, QWidget *w)
+{
+  widgetLayout_->addWidget(new QLabel(label), row_, 0);
+  widgetLayout_->addWidget(w                , row_, 1); ++row_;
+}
+
+void
+CQChartsPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  auto *plot1 = plot_;
+
+  plot_ = plot;
+
+  if (colorColumnCombo_) {
+    if (plot1)
+      disconnect(plot1, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+
+    updateColorDetails();
+
+    if (plot_)
+      connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+  }
+}
+
+void
+CQChartsPlotCustomControls::
+colorDetailsSlot()
+{
+  // plot color details changed
+  assert(colorColumnCombo_);
+
+  updateColorDetails();
+}
+
+void
+CQChartsPlotCustomControls::
+updateColorDetails()
+{
+  disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+
+  //---
+
+  colorColumnCombo_->setModelColumn(plot_->getModelData(), plot_->colorColumn());
+
+  //---
+
+  colorRange_->setRangeMinMax(0.0, 1.0);
+  colorRange_->setSliderMinMax(plot_->colorMapMin(), plot_->colorMapMax());
+
+  colorPaletteEdit_->setChartsPaletteName(plot_->charts(), plot_->colorMapPalette());
+
+  //---
+
+  disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+}
+
+void
+CQChartsPlotCustomControls::
+colorColumnSlot()
+{
+  plot_->setColorColumn(colorColumnCombo_->getColumn());
+}
+
+void
+CQChartsPlotCustomControls::
+colorRangeSlot()
+{
+  plot_->setColorMapMin(colorRange_->sliderMin());
+  plot_->setColorMapMax(colorRange_->sliderMax());
+}
+
+void
+CQChartsPlotCustomControls::
+colorPaletteSlot()
+{
+  plot_->setColorMapPalette(colorPaletteEdit_->paletteName());
+
+  updateColorPaletteGradient();
+}
+
+void
+CQChartsPlotCustomControls::
+updateColorPaletteGradient()
+{
+  auto paletteName = plot_->colorMapPalette();
+
+  if (! paletteName.isValid())
+    paletteName = plot_->defaultPalette();
+
+  auto *colorPalette = paletteName.palette();
+
+  if (colorPalette) {
+    QLinearGradient lg(0, 0.5, 1, 0.5);
+
+    lg.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+    colorPalette->setLinearGradient(lg, 1.0, paletteName.min(), paletteName.max());
+
+    colorRange_->setLinearGradient(lg);
+  }
+  else
+    colorRange_->clearLinearGradient();
+
+  colorRange_->update();
 }

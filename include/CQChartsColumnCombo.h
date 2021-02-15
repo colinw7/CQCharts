@@ -22,15 +22,23 @@ class CQChartsColumnCombo : public QComboBox {
  public:
   CQChartsColumnCombo(QWidget *parent=nullptr);
 
+  //! get set allow no column
   bool isAllowNone() const { return allowNone_; }
   void setAllowNone(bool b);
 
+  //! get/set current column
   Column getColumn() const;
   void setColumn(const Column &column);
 
+  //! get/set model data
+  CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *model);
 
+  //! convenience routine to set model and column
+  void setModelColumn(CQChartsModelData *modelData, const Column &column);
+
  signals:
+  //! emitted when column changed
   void columnChanged();
 
  private slots:

@@ -16,23 +16,45 @@ class CQDoubleRangeSlider : public CQRangeSlider {
  public:
   CQDoubleRangeSlider(QWidget *parent=nullptr);
 
+  //---
+
+  //! get/set range extent min/max
   double rangeMin() const { return range_.min; }
   void setRangeMin(double r);
 
   double rangeMax() const { return range_.max; }
   void setRangeMax(double r);
 
+  void setRangeMinMax(double min, double max);
+
+  //---
+
+  //! get/set slider min/max (in extent)
   double sliderMin() const { return slider_.min; }
   void setSliderMin(double r, bool force=false);
 
   double sliderMax() const { return slider_.max; }
   void setSliderMax(double r, bool force=false);
 
+  void setSliderMinMax(double min, double max, bool force=false);
+
+  //---
+
+  //! get/set delta (click delta)
   double sliderDelta() const { return sliderDelta_; }
   void setSliderDelta(double r) { sliderDelta_ = r; }
 
+  //! get/set label decimal places
   int decimalPlaces() const { return decimalPlaces_; }
   void setDecimalPlaces(int i) { decimalPlaces_ = i; }
+
+  //---
+
+  //! set/clear linear gradient
+  void setLinearGradient(const QLinearGradient &lg);
+  void clearLinearGradient();
+
+  //---
 
   void mousePressEvent  (QMouseEvent *) override;
   void mouseMoveEvent   (QMouseEvent *) override;
@@ -83,6 +105,9 @@ class CQDoubleRangeSlider : public CQRangeSlider {
 
   double sliderDelta_   { 0.01 };
   int    decimalPlaces_ { 3 };
+
+  QLinearGradient lg_;
+  bool            lgSet_ { false };
 };
 
 #endif

@@ -10,7 +10,7 @@ enum class CQChartsSelMod {
 };
 
 namespace CQChartsSymbolSize {
-  inline double minValue() { return 5.0; }
+  inline double minValue() { return 3.0; }
   inline double maxValue() { return 64.0; }
 
   inline double maxPixelValue() { return 1000.0; }

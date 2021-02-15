@@ -17,14 +17,18 @@
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsColumnCombo.h>
 #include <CQCharts.h>
 
 #include <CQUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CQCheckBox.h>
 
 #include <QMenu>
+#include <QLabel>
+#include <QVBoxLayout>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -2806,6 +2810,19 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   arrowObj_->write(os, plotVarName);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsXYPlot::
+createCustomControls()
+{
+  auto *controls = new CQChartsXYCustomControls;
+
+  controls->setPlot(this);
+
+  return controls;
+}
+
 //------
 
 CQChartsXYBiLineObj::
@@ -4613,4 +4630,65 @@ interpTextColor(const ColorInd &ind) const
     c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
 
   return c;
+}
+
+//------
+
+CQChartsXYCustomControls::
+CQChartsXYCustomControls(QWidget *widget) :
+ CQChartsGroupPlotCustomControls(widget)
+{
+  addGroupColumnWidgets();
+
+  //---
+
+  pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
+  linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
+  fillUnderCheck_ = CQUtil::makeWidget<CQCheckBox>("fillUnderCheck");
+
+  makeLabelWidget("Points"    , pointsCheck_);
+  makeLabelWidget("Lines"     , linesCheck_);
+  makeLabelWidget("Fill Under", fillUnderCheck_);
+
+  connect(pointsCheck_   , SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
+  connect(linesCheck_    , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
+  connect(fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
+}
+
+void
+CQChartsXYCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
+
+  //---
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  //---
+
+  pointsCheck_   ->setChecked(plot_->isPoints());
+  linesCheck_    ->setChecked(plot_->isLines());
+  fillUnderCheck_->setChecked(plot_->isFillUnderFilled());
+}
+
+void
+CQChartsXYCustomControls::
+pointsSlot(int state)
+{
+  plot_->setPoints(state);
+}
+
+void
+CQChartsXYCustomControls::
+linesSlot(int state)
+{
+  plot_->setLines(state);
+}
+
+void
+CQChartsXYCustomControls::
+fillUnderSlot(int state)
+{
+  plot_->setFillUnderFilled(state);
 }

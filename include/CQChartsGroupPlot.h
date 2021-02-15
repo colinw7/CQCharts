@@ -112,6 +112,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   //---
 
+  // group data
   void initGroupData(const Columns &dataColumns, const Column &nameColumn, bool hier=false) const;
 
   using GroupInds = std::vector<int>;
@@ -123,6 +124,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
   bool getGroupInds(GroupInds &inds) const;
 
   QString groupIndName(int ind, bool hier=false) const;
+
+  ColumnType groupType() const;
+
+  QVariant groupIndValue(int ind) const;
 
   void setModelGroupInd(const ModelIndex &ind, int groupInd);
 
@@ -157,6 +162,26 @@ class CQChartsGroupPlot : public CQChartsPlot {
   GroupData          groupData_;               //!< grouping data
   Bucket*            groupBucket_ { nullptr }; //!< group column bucket
   mutable std::mutex mutex_;                   //!< mutex
+};
+
+//------
+
+class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsGroupPlotCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+  void addGroupColumnWidgets();
+
+ private slots:
+  void groupColumnSlot();
+
+ private:
+  CQChartsGroupPlot*   plot_             { nullptr };
+  CQChartsColumnCombo* groupColumnCombo_ { nullptr };
 };
 
 #endif

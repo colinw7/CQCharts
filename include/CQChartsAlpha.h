@@ -19,17 +19,24 @@ class CQChartsAlpha {
   //! default constructor
   CQChartsAlpha() = default;
 
+  //! create from string
   explicit CQChartsAlpha(const QString &s);
 
-  explicit CQChartsAlpha(double a) :
-   a_(a) {
-  }
-
-  double value() const { return a_; }
-  void setValue(double a) { a_ = a; }
+  //! create from value
+  explicit CQChartsAlpha(double a);
 
   //---
 
+  //! get/set value (optionally clamped to valid range)
+  double value(bool clamp=true) const;
+  void setValue(double a);
+
+  //---
+
+  // get is set
+  bool isSet() const { return set_; }
+
+  // get is valid value
   bool isValid() const { return a_ >= 0.0 && a_ <= 1.0; }
 
   //---
@@ -46,12 +53,13 @@ class CQChartsAlpha {
 
   //---
 
+  //! convert to/from string
   QString toString() const;
-
   bool fromString(const QString &s);
 
  private:
-  double a_ { 1.0 }; //!< alpha
+  double a_   { 1.0 };   //!< alpha
+  bool   set_ { false }; //!< is set
 };
 
 //---

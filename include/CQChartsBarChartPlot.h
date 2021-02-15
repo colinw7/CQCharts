@@ -48,7 +48,18 @@ class CQChartsBarChartPlot;
  */
 class CQChartsBarChartValue {
  public:
-  using NameValues = std::map<QString, QString>;
+  struct ColumnValue {
+    ColumnValue() = default;
+
+    ColumnValue(const CQChartsColumn &column, const QString &value) :
+     column(column), value(value) {
+    }
+
+    CQChartsColumn column;
+    QString        value;
+  };
+
+  using NameColumnValueMap = std::map<QString, ColumnValue>;
 
  public:
   //! value index
@@ -75,19 +86,23 @@ class CQChartsBarChartValue {
   const QString &groupName() const { return groupName_; }
   void setGroupName(const QString &s) { groupName_ = s; }
 
-  const NameValues &nameValues() const { return nameValues_; }
-  void setNameValues(const NameValues &v) { nameValues_ = v; }
+  //---
 
-  void setNameValue(const QString &name, const QString &value) {
-    nameValues_[name] = value;
+  const NameColumnValueMap &nameColumnValueMap() const { return nameColumnValueMap_; }
+  void setNameColumnValueMap(const NameColumnValueMap &v) { nameColumnValueMap_ = v; }
+
+  void setNameColumnValue(const QString &name, const CQChartsColumn &column, const QString &value) {
+    nameColumnValueMap_[name] = ColumnValue(column, value);
   }
 
   QString getNameValue(const QString &name) const {
-    auto p = nameValues_.find(name);
-    if (p == nameValues_.end()) return "";
+    auto p = nameColumnValueMap_.find(name);
+    if (p == nameColumnValueMap_.end()) return "";
 
-    return (*p).second;
+    return (*p).second.value;
   }
+
+  //---
 
   void calcRange(ValueInd &minInd, ValueInd &maxInd, double &mean, double &sum) const {
     assert(! valueInds_.empty());
@@ -115,10 +130,10 @@ class CQChartsBarChartValue {
   }
 
  private:
-  ValueInds  valueInds_;  //!< value indices
-  QString    valueName_;  //!< value name
-  QString    groupName_;  //!< group name
-  NameValues nameValues_; //!< name values
+  ValueInds          valueInds_;          //!< value indices
+  QString            valueName_;          //!< value name
+  QString            groupName_;          //!< group name
+  NameColumnValueMap nameColumnValueMap_; //!< name values
 };
 
 //------
@@ -548,30 +563,31 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  protected:
   using ValueSet      = CQChartsBarChartValueSet;
   using ValueSets     = std::vector<ValueSet>;
+  using ValueInds     = std::map<QVariant, int>;
   using ValueNames    = std::vector<QString>;
   using ValueGroupInd = std::map<int, int>;
+  using SortedInds    = std::vector<int>;
 
   struct ValueData {
     ValueSets     valueSets;     //!< value sets
+    ValueInds     valueInds;     //!< value inds
     ValueGroupInd valueGroupInd; //!< group ind to value index map
+    SortedInds    sortedInds;    //!< sorted value inds (by group value)
 
     void clear() {
       valueSets    .clear();
+      valueInds    .clear();
       valueGroupInd.clear();
+      sortedInds   .clear();
     }
   };
 
  public:
-  int numValueSets() const { return valueData_.valueSets.size(); }
+  int numValueSets() const;
 
-  const ValueSet &valueSet(int i) const {
-    assert(i >= 0 && i < int(valueData_.valueSets.size()));
-    return valueData_.valueSets[i];
-  }
+  const ValueSet &valueSet(int i) const;
 
-  int numSetValues() const {
-    return (! valueData_.valueSets.empty() ? valueData_.valueSets[0].numValues() : 0);
-  }
+  int numSetValues() const;
 
  protected:
   void initGroupValueSet() const;
@@ -584,6 +600,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   virtual BarObj *createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig,
                                const ColorInd &iv, const QModelIndex &ind) const;
+
+ protected:
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
   struct DotLineData {
@@ -606,6 +625,20 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   DotLineData    dotLineData_;          //!< dot line data
   mutable double barWidth_     { 1.0 }; //!< minimum bar width
   ValueData      valueData_;            //!< value data
+};
+
+//---
+
+class CQChartsBarChartCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsBarChartCustomControls(QWidget *widget=nullptr);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  CQChartsBarChartPlot* plot_ { nullptr };
 };
 
 #endif

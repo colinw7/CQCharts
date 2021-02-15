@@ -1,6 +1,7 @@
 #ifndef CQChartsColorStops_H
 #define CQChartsColorStops_H
 
+#include <CQChartsTmpl.h>
 #include <QStringList>
 #include <vector>
 
@@ -8,7 +9,7 @@
  * \brief class to contain color stop values
  * \ingroup Charts
  */
-class CQChartsColorStops {
+class CQChartsColorStops : public ComparatorBase<CQChartsColorStops> {
  public:
   static void registerMetaType();
 
@@ -81,21 +82,10 @@ class CQChartsColorStops {
 
   //---
 
-  static int cmp(const CQChartsColorStops &lhs, const CQChartsColorStops &rhs);
+  int cmp(const CQChartsColorStops &s) const;
 
-  //! operator ==
-  friend bool operator==(const CQChartsColorStops &lhs, const CQChartsColorStops &rhs) {
-    return (cmp(lhs, rhs) == 0);
-  }
-
-  //! operator !=
-  friend bool operator!=(const CQChartsColorStops &lhs, const CQChartsColorStops &rhs) {
-    return (cmp(lhs, rhs) != 0);
-  }
-
-  //! operator <
-  friend bool operator<(const CQChartsColorStops &lhs, const CQChartsColorStops &rhs) {
-    return (cmp(lhs, rhs) < 0);
+  friend int cmp(const CQChartsColorStops &s1, const CQChartsColorStops &s2) {
+    return s1.cmp(s2);
   }
 
   //---

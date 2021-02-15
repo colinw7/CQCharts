@@ -68,23 +68,23 @@ fromString(const QString &str)
 
 int
 CQChartsColorStops::
-cmp(const CQChartsColorStops &lhs, const CQChartsColorStops &rhs)
+cmp(const CQChartsColorStops &s) const
 {
-  if (lhs.units_ != rhs.units_) {
-    return (lhs.units_ == Units::ABSOLUTE ? -1 : 1);
+  if (units_ != s.units_) {
+    return (units_ == Units::ABSOLUTE ? -1 : 1);
   }
 
-  int n1 = lhs.values_.size();
-  int n2 = rhs.values_.size();
+  int n1 =   values_.size();
+  int n2 = s.values_.size();
 
   if (n1 != n2)
     return n1 - n2;
 
   for (int i = 0; i < n1; ++i) {
-    if (lhs.values_[i] == rhs.values_[i])
+    if (values_[i] == s.values_[i])
       continue;
 
-    return (lhs.values_[i] < rhs.values_[i] ? -1 : 1);
+    return (values_[i] < s.values_[i] ? -1 : 1);
   }
 
   return 0;

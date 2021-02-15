@@ -6158,6 +6158,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! objectId.length())
         return errorMsg("Missing object id");
 
+      // get object indices (unnormalized)
       auto inds = plot->getObjectInds(objectId);
 
       QVariantList vars;

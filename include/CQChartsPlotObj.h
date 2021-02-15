@@ -288,26 +288,38 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   // select
-  bool isSelectIndex(const QModelIndex &ind) const;
+
+ public:
+  // are any of the normalized indices in object's select indices
   bool isSelectIndices(const Indices &inds) const;
 
-  void addSelectIndices(Plot *plot);
+//bool isSelectIndex(const QModelIndex &ind) const;
 
-  void getHierSelectIndices(Indices &inds) const;
-
+  // get object select indices (non-normalized) from object's columns
   void getSelectIndices(Indices &inds) const;
 
-  virtual void getObjSelectIndices(Indices &) const { }
+  // get object select indices (normalized)
+  void getNormalizedSelectIndices(Indices &inds) const;
 
+  // add object select indices (normalized) to plot selection buffer to use
+  // in cross select from objects to selection model
+  void addSelectIndices(Plot *plot);
+
+  // add plot object's indices to array for specified (new) column
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
 
+  // add model index to array
   void addSelectIndex(Indices &inds, const ModelIndex &ind) const;
+
+  // add model index data to array (ignore if column not right type)
   void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                       const QModelIndex &parent=QModelIndex()) const;
-  void addSelectIndex(Indices &inds, const QModelIndex &ind) const;
 
-  //---
+ protected:
+  // get select indices for object
+  virtual void getObjSelectIndices(Indices &) const { }
 
+ public:
   // draw background, middle, foreground
   virtual void drawBg(PaintDevice *) const;
   virtual void draw  (PaintDevice *) const;

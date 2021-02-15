@@ -54,7 +54,7 @@ set dist_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
   set plot [create_charts_plot -view $view2 -model $model -type distribution \
-    -columns [list [list value $c]]]
+    -columns [list [list values $c]]]
 
   lappend dist_plots $plot
 

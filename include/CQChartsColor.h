@@ -1,6 +1,7 @@
 #ifndef CQChartsColor_H
 #define CQChartsColor_H
 
+#include <CQChartsTmpl.h>
 #include <cassert>
 #include <QColor>
 #include <iostream>
@@ -38,7 +39,7 @@ class QObject;
  *
  * Only an explicit named color can be converted without state.
  */
-class CQChartsColor {
+class CQChartsColor : public ComparatorBase<CQChartsColor> {
  public:
   enum class Type {
     NONE,
@@ -224,7 +225,7 @@ class CQChartsColor {
   }
 
   //! compare two colors
-  static int cmp(const CQChartsColor &lhs, const CQChartsColor &rhs) {
+  friend int cmp(const CQChartsColor &lhs, const CQChartsColor &rhs) {
     if (lhs.type_   != rhs.type_  ) return (lhs.type_   < rhs.type_   ? -1 : 1);
     if (lhs.ind_    != rhs.ind_   ) return (lhs.ind_    < rhs.ind_    ? -1 : 1);
     if (lhs.scale_  != rhs.scale_ ) return (lhs.scale_  < rhs.scale_  ? -1 : 1);
@@ -238,21 +239,6 @@ class CQChartsColor {
     }
 
     return 0;
-  }
-
-  //! operator ==
-  friend bool operator==(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    return (cmp(lhs, rhs) == 0);
-  }
-
-  //! operator !=
-  friend bool operator!=(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    return (cmp(lhs, rhs) != 0);
-  }
-
-  //! operator <
-  friend bool operator<(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    return (cmp(lhs, rhs) < 0);
   }
 
   //---

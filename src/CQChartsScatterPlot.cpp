@@ -17,6 +17,8 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBivariateDensity.h>
+#include <CQChartsColumnCombo.h>
+#include <CQChartsPaletteNameEdit.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -24,8 +26,11 @@
 #include <CQColorsPalette.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
+#include <CQDoubleRangeSlider.h>
 
 #include <QMenu>
+#include <QLabel>
+#include <QVBoxLayout>
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -1331,11 +1336,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional symbol fill alpha
-        Alpha symbolAlpha(-1.0);
+        Alpha symbolAlpha;
 
         if (alphaColumn().isValid()) {
           if (! alphaColumnAlpha(valuePoint.row, valuePoint.ind.parent(), symbolAlpha))
-            symbolAlpha = Alpha(-1.0);
+            symbolAlpha = Alpha();
         }
 
         if (symbolAlpha.isValid())
@@ -3273,6 +3278,19 @@ drawSymbolMapKey(PaintDevice *device) const
 #endif
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsScatterPlot::
+createCustomControls()
+{
+  auto *controls = new CQChartsScatterCustomControls;
+
+  controls->setPlot(this);
+
+  return controls;
+}
+
 //------
 
 CQChartsScatterPointObj::
@@ -3492,7 +3510,7 @@ calcTipId() const
   //---
 
   // add alpha column
-  if (valuePoint.alpha.isValid())
+  if (valuePoint.alpha.isSet())
     tableTip.addTableRow(plot_->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
   else
     addColumnRowValue(plot_->alphaColumn());
@@ -3694,7 +3712,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot_->interpColor(color, ic);
 
-    c.setAlphaF(plot_->symbolFillAlpha().value());
+    if (plot_->symbolFillAlpha().isSet())
+      c.setAlphaF(plot_->symbolFillAlpha().value());
 
     penBrush.brush.setColor(c);
   }
@@ -3702,7 +3721,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // override symbol fill alpha for custom alpha
   auto alpha = this->alpha();
 
-  if (alpha.isValid()) {
+  if (alpha.isSet()) {
     auto c = penBrush.brush.color();
 
     c.setAlphaF(alpha.value());
@@ -4077,7 +4096,8 @@ fillBrush() const
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  c.setAlphaF(plot->symbolFillAlpha().value());
+  if (plot->symbolFillAlpha().isSet())
+    c.setAlphaF(plot->symbolFillAlpha().value());
 
   int ih = hideIndex();
 
@@ -4114,4 +4134,64 @@ CQChartsScatterHexKeyItem(Plot *plot, int n) :
   setMinValue(0);
   setMaxValue(n);
   setInteger (true);
+}
+
+//------
+
+CQChartsScatterCustomControls::
+CQChartsScatterCustomControls(QWidget *widget) :
+ CQChartsGroupPlotCustomControls(widget)
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets();
+
+  //---
+
+  symbolSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolSizeColumnCombo");
+
+  connect(symbolSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(symbolSizeColumnSlot()));
+
+  makeLabelWidget("Symbol Size", symbolSizeColumnCombo_);
+
+  //---
+
+  symbolSizeRange_ = CQUtil::makeWidget<CQDoubleRangeSlider>("symbolSizeRange");
+
+  connect(symbolSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
+          this, SLOT(symbolSizeRangeSlot(double, double)));
+
+  makeLabelWidget("Symbol Size Range", symbolSizeRange_);
+}
+
+void
+CQChartsScatterCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  //---
+
+  symbolSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolSizeColumn());
+
+  //---
+
+  symbolSizeRange_->setRangeMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
+  symbolSizeRange_->setSliderMinMax(plot_->symbolSizeMapMin(), plot_->symbolSizeMapMax());
+}
+
+void
+CQChartsScatterCustomControls::
+symbolSizeColumnSlot()
+{
+  plot_->setSymbolSizeColumn(symbolSizeColumnCombo_->getColumn());
+}
+
+void
+CQChartsScatterCustomControls::
+symbolSizeRangeSlot(double min, double max)
+{
+  plot_->setSymbolSizeMapMin(min);
+  plot_->setSymbolSizeMapMax(max);
 }
