@@ -21,7 +21,9 @@
  *
  * The column can also specify the role of the data extracted from the model
  */
-class CQChartsColumn : public ComparatorBase<CQChartsColumn> {
+class CQChartsColumn :
+  public CQChartsComparatorBase<CQChartsColumn> ,
+  public CQChartsToStringBase<CQChartsColumn> {
  public:
   enum class Type {
     NONE,
@@ -149,16 +151,6 @@ class CQChartsColumn : public ComparatorBase<CQChartsColumn> {
 
   //---
 
-  void print(std::ostream &os) const;
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsColumn &l) {
-    l.print(os);
-
-    return os;
-  }
-
-  //---
-
  public:
   using Columns = std::vector<CQChartsColumn>;
 
@@ -184,7 +176,9 @@ class CQChartsColumn : public ComparatorBase<CQChartsColumn> {
  * \brief manage list of columns or single column
  * \ingroup Charts
  */
-class CQChartsColumns {
+class CQChartsColumns :
+  public CQChartsEqBase<CQChartsColumns>,
+  public CQChartsToStringBase<CQChartsColumns> {
  public:
   using Columns = std::vector<CQChartsColumn>;
 
@@ -304,6 +298,8 @@ class CQChartsColumns {
       column_ = columns_[0];
   }
 
+  //---
+
   friend bool operator==(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {
     int nl = lhs.columns_.size();
     int nr = rhs.columns_.size();
@@ -320,10 +316,6 @@ class CQChartsColumns {
     }
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

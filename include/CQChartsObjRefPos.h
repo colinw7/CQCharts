@@ -8,7 +8,9 @@
  * \brief ObjRef Position class
  * ingroup Charts
  */
-class CQChartsObjRefPos {
+class CQChartsObjRefPos :
+  public CQChartsEqBase<CQChartsObjRefPos>,
+  public CQChartsToStringBase<CQChartsObjRefPos> {
  public:
   static void registerMetaType();
 
@@ -46,21 +48,7 @@ class CQChartsObjRefPos {
     return true;
   }
 
-  friend bool operator!=(const CQChartsObjRefPos &lhs, const CQChartsObjRefPos &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
   //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsObjRefPos &l) {
-    l.print(os);
-
-    return os;
-  }
 
  private:
   ObjRef   objRef_;

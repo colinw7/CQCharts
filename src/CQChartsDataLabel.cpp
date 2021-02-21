@@ -104,13 +104,13 @@ draw(PaintDevice *device, const BBox &bbox, const QString &str, const Position &
 
   plot()->setPenBrush(penBrush, PenData(true, tc, textAlpha()), BrushData(false));
 
-  draw(device, bbox, str, position, penBrush);
+  draw(device, bbox, str, position, penBrush, textFont());
 }
 
 void
 CQChartsDataLabel::
 draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
-     const Position &position, const PenBrush &penBrush) const
+     const Position &position, const PenBrush &penBrush, const Font &font) const
 {
   const_cast<CQChartsDataLabel *>(this)->setBBox(bbox);
 
@@ -118,7 +118,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
   device->save();
 
-  plot()->view()->setPlotPainterFont(plot(), device, textFont());
+  plot()->view()->setPlotPainterFont(plot(), device, font);
 
   //---
 

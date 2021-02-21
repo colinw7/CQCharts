@@ -2,6 +2,7 @@
 #define CQChartsRectPlacer_H
 
 #include <CQChartsQuadTree.h>
+#include <CQChartsTmpl.h>
 
 #include <map>
 #include <set>
@@ -11,7 +12,7 @@
 
 class CQChartsRectPlacer {
  public:
-  class Rect {
+  class Rect : public CQChartsPrintBase<Rect> {
    public:
     Rect() = default;
 
@@ -51,10 +52,6 @@ class CQChartsRectPlacer {
     }
 
     //---
-
-    friend std::ostream &operator<<(std::ostream &os, const Rect &r) {
-      r.print(os); return os;
-    }
 
     void print(std::ostream &os) const {
       os << xmin_ << " " << ymin_ << " " << xmax_ << " " << ymax_;

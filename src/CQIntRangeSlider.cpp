@@ -56,6 +56,27 @@ setRangeMax(int i)
 
 void
 CQIntRangeSlider::
+setRangeMinMax(int min, int max)
+{
+  if (min != range_.min || max != range_.max) {
+    range_.min = min;
+    range_.max = max;
+
+    if (range_.min > range_.max)
+      std::swap(range_.min, range_.max);
+
+    updateTip();
+
+    update();
+
+    emit rangeChanged(rangeMin(), rangeMax());
+  }
+}
+
+//---
+
+void
+CQIntRangeSlider::
 setSliderMin(int i, bool force)
 {
   if (force || i != slider_.min) {
@@ -84,6 +105,28 @@ setSliderMax(int i, bool force)
       return;
 
     slider_.max = i;
+
+    updateTip();
+
+    update();
+
+    if (pressed_)
+      emit sliderRangeChanging(sliderMin(), sliderMax());
+    else
+      emit sliderRangeChanged(sliderMin(), sliderMax());
+  }
+}
+
+void
+CQIntRangeSlider::
+setSliderMinMax(int min, int max, bool force)
+{
+  if (force || min != slider_.min || max != slider_.max) {
+    slider_.min = min;
+    slider_.max = max;
+
+    if (slider_.min > slider_.max)
+      std::swap(slider_.min, slider_.max);
 
     updateTip();
 
@@ -151,6 +194,20 @@ keyPressEvent(QKeyEvent *e)
     setSliderMax(clampValue(deltaValue(sliderMax(), -1)), /*force*/true);
   else if (e->key() == Qt::Key_Up)
     setSliderMax(clampValue(deltaValue(sliderMax(),  1)), /*force*/true);
+}
+
+void
+CQIntRangeSlider::
+fixSliderValues()
+{
+  int i1 = sliderMin();
+  int i2 = sliderMax();
+
+  if (i1 > i2)
+    std::swap(i1, i2);
+
+  setSliderMin(clampValue(i1), /*force*/true);
+  setSliderMax(clampValue(i2), /*force*/true);
 }
 
 int

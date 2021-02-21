@@ -1,6 +1,7 @@
 #ifndef CQChartsImage_H
 #define CQChartsImage_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 #include <QImage>
 #include <QIcon>
@@ -10,7 +11,8 @@
  * \brief Image Data
  * \ingroup Charts
  */
-class CQChartsImage {
+class CQChartsImage :
+  public CQChartsEqBase<CQChartsImage> {
  public:
   static void registerMetaType();
 
@@ -70,10 +72,6 @@ class CQChartsImage {
 
   friend bool operator==(const CQChartsImage &lhs, const CQChartsImage &rhs) {
     return ((lhs.type() == rhs.type()) && (lhs.fileName() == rhs.fileName()));
-  }
-
-  friend bool operator!=(const CQChartsImage &lhs, const CQChartsImage &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

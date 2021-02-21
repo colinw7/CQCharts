@@ -1011,7 +1011,8 @@ calcExtraFitBBox() const
 
   auto position = dataLabel()->position();
 
-  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
+  if (position != CQChartsDataLabel::Position::TOP_OUTSIDE &&
+      position != CQChartsDataLabel::Position::BOTTOM_OUTSIDE)
     return bbox;
 
   if (dataLabel()->isVisible()) {
@@ -1775,9 +1776,9 @@ createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig, const Col
 
 CQChartsPlotCustomControls *
 CQChartsBarChartPlot::
-createCustomControls()
+createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsBarChartCustomControls;
+  auto *controls = new CQChartsBarChartCustomControls(charts);
 
   controls->setPlot(this);
 
@@ -2631,8 +2632,8 @@ isSetHidden() const
 //------
 
 CQChartsBarChartCustomControls::
-CQChartsBarChartCustomControls(QWidget *widget) :
- CQChartsGroupPlotCustomControls(widget)
+CQChartsBarChartCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts)
 {
   addGroupColumnWidgets();
   addColorColumnWidgets();

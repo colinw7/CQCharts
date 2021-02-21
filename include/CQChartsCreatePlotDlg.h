@@ -20,6 +20,7 @@ class CQChartsModelData;
 class CQChartsModelDetailsWidget;
 class CQChartsModelChooser;
 class CQChartsPreviewPlot;
+class CQChartsEnumParameterCombo;
 class CQChartsLineEdit;
 
 class CQSummaryModel;
@@ -87,32 +88,28 @@ class CQChartsCreatePlotDlg : public QDialog {
     QToolButton* formatUpdate { nullptr };
   };
 
-  struct ColumnEditData {
-    ColumnCombo*    basicEdit    { nullptr };
-    ColumnLineEdit* advancedEdit { nullptr };
-  };
-
   struct PlotData {
     using Names        = std::set<QString>;
-    using ColumnEdits  = std::map<QString, ColumnEditData>;
+    using ColumnEdits  = std::map<QString, CQChartsColumnParameterEdit *>;
     using ColumnsEdits = std::map<QString, ColumnsLineEdit*>;
-    using LineEdits    = std::map<QString, LineEdit*>;
-    using WidgetEdits  = std::map<QString, QWidget*>;
     using FormatEdits  = std::map<QString, FormatEditData>;
-    using Combos       = std::map<QString, QComboBox*>;
-    using CheckBoxes   = std::map<QString, QCheckBox*>;
     using MapEdits     = std::map<QString, MapEditData>;
+    using StringEdits  = std::map<QString, CQChartsStringParameterEdit *>;
+    using RealEdits    = std::map<QString, CQChartsRealParameterEdit *>;
+    using IntEdits     = std::map<QString, CQChartsIntParameterEdit *>;
+    using EnumEdits    = std::map<QString, CQChartsEnumParameterEdit *>;
+    using BoolEdits    = std::map<QString, CQChartsBoolParameterEdit *>;
 
     Names        names;
     ColumnEdits  columnEdits;
     ColumnsEdits columnsEdits;
-    MapEdits     mappedEdits;
     FormatEdits  formatEdits;
-    Combos       enumEdits;
-    CheckBoxes   boolEdits;
-    LineEdits    stringEdits;
-    WidgetEdits  realEdits;
-    WidgetEdits  intEdits;
+    MapEdits     mappedEdits;
+    StringEdits  stringEdits;
+    RealEdits    realEdits;
+    IntEdits     intEdits;
+    EnumEdits    enumEdits;
+    BoolEdits    boolEdits;
     QPushButton* okButton { nullptr };
     int          ind      { -1 };
   };
@@ -149,10 +146,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   void addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
                         PlotParameter *parameter, bool isBasic);
 
-  void addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                                   PlotParameter *parameter);
   void addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                              PlotParameter *parameter);
+                              PlotParameter *parameter, bool isBasic);
   void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
                                PlotParameter *parameter, bool isBasic);
 
@@ -161,13 +156,6 @@ class CQChartsCreatePlotDlg : public QDialog {
   void addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
   void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
   void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
-
-  ColumnLineEdit* addColumnEdit(QLayout *grid, int &row, int &column, const QString &name,
-                                const QString &objName, const QString &placeholderText) const;
-
-  ColumnsLineEdit* addColumnsEdit(QLayout *grid, int &row, int &column, const QString &name,
-                                  const QString &objName, const QString &placeholderText,
-                                  bool isBasic) const;
 
   LineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
                         const QString &objName, const QString &placeholderText) const;
@@ -187,7 +175,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   bool parseParameterEnumEdit(PlotParameter *parameter, const PlotData &plotData, int &i);
   bool parseParameterBoolEdit(PlotParameter *parameter, const PlotData &plotData, bool &b);
 
-  bool columnLineEditValue(const ColumnEditData &editData, Column &column,
+  bool columnLineEditValue(CQChartsColumnParameterEdit *editData, Column &column,
                            const Column &defColumn=Column()) const;
   bool columnsLineEditValue(ColumnsLineEdit *le, Columns &columns,
                             const Columns &defColumns=Columns()) const;

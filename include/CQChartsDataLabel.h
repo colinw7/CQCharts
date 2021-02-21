@@ -23,22 +23,23 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_ENUMS(Position)
 
  public:
-  enum Position {
-    TOP_INSIDE,
-    TOP_OUTSIDE,
-    CENTER,
-    BOTTOM_INSIDE,
-    BOTTOM_OUTSIDE,
-    LEFT_INSIDE,
-    LEFT_OUTSIDE,
-    RIGHT_INSIDE,
-    RIGHT_OUTSIDE
+  enum class Position {
+    TOP_INSIDE     = int(CQChartsLabelPosition::TOP_INSIDE),
+    TOP_OUTSIDE    = int(CQChartsLabelPosition::TOP_OUTSIDE),
+    CENTER         = int(CQChartsLabelPosition::CENTER),
+    BOTTOM_INSIDE  = int(CQChartsLabelPosition::BOTTOM_INSIDE),
+    BOTTOM_OUTSIDE = int(CQChartsLabelPosition::BOTTOM_OUTSIDE),
+    LEFT_INSIDE    = int(CQChartsLabelPosition::LEFT_INSIDE),
+    LEFT_OUTSIDE   = int(CQChartsLabelPosition::LEFT_OUTSIDE),
+    RIGHT_INSIDE   = int(CQChartsLabelPosition::RIGHT_INSIDE),
+    RIGHT_OUTSIDE  = int(CQChartsLabelPosition::RIGHT_OUTSIDE)
   };
 
   using Plot        = CQChartsPlot;
   using BoxObj      = CQChartsBoxObj;
   using PaintDevice = CQChartsPaintDevice;
   using PenBrush    = CQChartsPenBrush;
+  using Font        = CQChartsFont;
   using Angle       = CQChartsAngle;
   using Margin      = CQChartsGeom::Margin;
   using BBox        = CQChartsGeom::BBox;
@@ -98,11 +99,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   static Position flipPosition(const Position &position) {
     switch (position) {
-      case TOP_INSIDE    : return BOTTOM_INSIDE;
-      case TOP_OUTSIDE   : return BOTTOM_OUTSIDE;
-      case BOTTOM_INSIDE : return TOP_INSIDE;
-      case BOTTOM_OUTSIDE: return TOP_OUTSIDE;
-      default            : return position;
+      case Position::TOP_INSIDE    : return Position::BOTTOM_INSIDE;
+      case Position::TOP_OUTSIDE   : return Position::BOTTOM_OUTSIDE;
+      case Position::BOTTOM_INSIDE : return Position::TOP_INSIDE;
+      case Position::BOTTOM_OUTSIDE: return Position::TOP_OUTSIDE;
+      default                      : return position;
     }
   }
 
@@ -118,7 +119,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   void draw(PaintDevice *device, const BBox &qrect, const QString &str,
             const Position &position) const;
   void draw(PaintDevice *device, const BBox &qrect, const QString &str,
-            const Position &position, const PenBrush &tpen) const;
+            const Position &position, const PenBrush &tpen, const Font &font) const;
 
   //---
 

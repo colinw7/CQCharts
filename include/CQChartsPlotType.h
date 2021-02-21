@@ -168,7 +168,7 @@ class CQChartsPlotType : public QObject {
 
   bool hasParameter(const QString &name) const;
 
-  const Parameter &getParameter(const QString &name) const;
+  const Parameter *getParameter(const QString &name) const;
 
   //---
 

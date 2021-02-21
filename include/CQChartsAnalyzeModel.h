@@ -35,7 +35,7 @@ class CQChartsAnalyzeModel {
 
   const AnalyzeModelData &analyzeModelData(const PlotType *type);
 
-  void print() const;
+  void print(std::ostream &os) const;
 
   void initPlot(Plot *plot);
 

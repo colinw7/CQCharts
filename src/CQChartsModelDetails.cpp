@@ -1177,9 +1177,9 @@ initCache() const
     if (initializing_.load())
       return;
 
-    assert(! initializing_.load());
-
     std::unique_lock<std::mutex> initLock(initMutex_);
+
+    assert(! initializing_.load());
 
     if (! initialized_) {
       initializing_.store(true);
@@ -1636,9 +1636,9 @@ initType() const
     if (initializing_.load())
       return rc;
 
-    assert(! initializing_.load());
-
     std::unique_lock<std::mutex> initLock(initMutex_);
+
+    assert(! initializing_.load());
 
     if (! typeInitialized_) {
       initializing_.store(true);

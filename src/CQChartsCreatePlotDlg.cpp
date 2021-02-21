@@ -956,7 +956,7 @@ addPlotWidgets(PlotType *type, int ind)
 
   basicPlotData.ind = ind;
 
-  //------
+  //---
 
   // add widgets for type
   auto *advancedFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
@@ -1265,12 +1265,8 @@ CQChartsCreatePlotDlg::
 addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
                  CQChartsPlotParameter *parameter, bool isBasic)
 {
-  if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-    if (isBasic)
-      addParameterBasicColumnEdit(plotData, layout, row, parameter);
-    else
-      addParameterColumnEdit(plotData, layout, row, parameter);
-  }
+  if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN)
+    addParameterColumnEdit(plotData, layout, row, parameter, isBasic);
   else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST)
     addParameterColumnsEdit(plotData, layout, row, parameter, isBasic);
   else
@@ -1298,157 +1294,127 @@ addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
 
 void
 CQChartsCreatePlotDlg::
-addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                            CQChartsPlotParameter *parameter)
+addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                       CQChartsPlotParameter *parameter, bool isBasic)
 {
   auto objName = parameter->name() + "Column";
 
-  auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
-
-  auto *columnCombo = CQUtil::makeWidget<CQChartsColumnCombo>(objName + "Combo");
-
-  auto column = parameter->defValue().value<CQChartsColumn>();
-
-  columnCombo->setModelData(modelData_);
-  columnCombo->setColumn   (column);
-
-  plotData.columnEdits[parameter->name()].basicEdit = columnCombo;
-
-  connect(columnCombo, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
-
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    columnCombo->setToolTip(tip);
-
-  //---
-
-  layout->addWidget(label      , row, 0);
-  layout->addWidget(columnCombo, row, 1);
-
-  ++row;
-}
-
-void
-CQChartsCreatePlotDlg::
-addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                       CQChartsPlotParameter *parameter)
-{
-  // add column edit
-  int col = 0;
-
-  auto *columnEdit = addColumnEdit(layout, row, col, parameter->desc(),
-                                   parameter->name() + "Column", "Column Name or Number");
-
-  auto column = parameter->defValue().value<CQChartsColumn>();
+  auto *label      = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
+  auto *columnEdit = new CQChartsColumnParameterEdit(parameter, isBasic);
 
   columnEdit->setModelData(modelData_);
-  columnEdit->setColumn   (column);
 
-  plotData.columnEdits[parameter->name()].advancedEdit = columnEdit;
+  plotData.columnEdits[parameter->name()] = columnEdit;
 
   connect(columnEdit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
-  auto tip = parameter->tip();
+  //---
 
-  if (tip.length())
-    columnEdit->setToolTip(tip);
+  layout->addWidget(label     , row, 0);
+  layout->addWidget(columnEdit, row, 1);
 
-  //----
+  //---
 
-  // add format edit
-  FormatEditData formatEditData;
+  if (! isBasic) {
+    int col = 2;
 
-  formatEditData.formatEdit =
-    addStringEdit(layout, row, col, "", parameter->name() + "Format", "Column Format");
+    // add format edit
+    FormatEditData formatEditData;
 
-  formatEditData.formatEdit->setToolTip("Column format");
+    formatEditData.formatEdit =
+      addStringEdit(layout, row, col, "", parameter->name() + "Format", "Column Format");
 
-  connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
-          this, SLOT(validateSlot()));
+    formatEditData.formatEdit->setToolTip("Column format");
 
-  //--
+    connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
+            this, SLOT(validateSlot()));
 
-  // add format update button
-  formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
+    //--
 
-  formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
+    // add format update button
+    formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
 
-  connect(formatEditData.formatUpdate, SIGNAL(clicked()),
-          this, SLOT(updateFormatSlot()));
+    formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
-  formatEditData.formatUpdate->setToolTip("Get current column format");
+    connect(formatEditData.formatUpdate, SIGNAL(clicked()),
+            this, SLOT(updateFormatSlot()));
 
-  layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
+    formatEditData.formatUpdate->setToolTip("Get current column format");
 
-  plotData.formatEdits[parameter->name()] = formatEditData;
+    layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
 
-  //----
+    plotData.formatEdits[parameter->name()] = formatEditData;
 
-  // add attributes tip label
-  auto is = formatEditData.formatUpdate->iconSize();
+    //---
 
-  auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
+    // add attributes tip label
+    auto is = formatEditData.formatUpdate->iconSize();
 
-  attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
-  attributesLabel->setToolTip(parameter->attributes().summary());
+    auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
-  layout->addWidget(attributesLabel, row, col); ++col;
+    attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
+    attributesLabel->setToolTip(parameter->attributes().summary());
 
-  //----
+    layout->addWidget(attributesLabel, row, col); ++col;
+  }
+
+  //---
 
   ++row;
 
-  //----
+  //---
 
-  // add mapping widgets
-  if (parameter->isMapped()) {
-    MapEditData mapEditData;
+  if (! isBasic) {
+    // add mapping widgets
+    if (parameter->isMapped()) {
+      MapEditData mapEditData;
 
-    col = 1;
+      int col = 1;
 
-    auto *mapLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
+      auto *mapLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-    //---
+      //---
 
-    // add map check
-    mapEditData.mappedCheck = CQUtil::makeLabelWidget<QCheckBox>("Mapped", "mapped");
+      // add map check
+      mapEditData.mappedCheck = CQUtil::makeLabelWidget<QCheckBox>("Mapped", "mapped");
 
-    connect(mapEditData.mappedCheck, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+      connect(mapEditData.mappedCheck, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
-    mapEditData.mappedCheck->setToolTip("Remap column values from actual range to specific range");
+      mapEditData.mappedCheck->
+        setToolTip("Remap column values from actual range to specific range");
 
-    //--
+      //---
 
-    // add map min/max
-    mapEditData.mapMinSpin = CQUtil::makeWidget<CQRealSpin>("mapMin");
-    mapEditData.mapMaxSpin = CQUtil::makeWidget<CQRealSpin>("mapMax");
+      // add map min/max
+      mapEditData.mapMinSpin = CQUtil::makeWidget<CQRealSpin>("mapMin");
+      mapEditData.mapMaxSpin = CQUtil::makeWidget<CQRealSpin>("mapMax");
 
-    connect(mapEditData.mapMinSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
-    connect(mapEditData.mapMaxSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
+      connect(mapEditData.mapMinSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
+      connect(mapEditData.mapMaxSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
 
-    mapEditData.mapMinSpin->setToolTip("Min value for mapped values");
-    mapEditData.mapMaxSpin->setToolTip("Max value for mapped values");
+      mapEditData.mapMinSpin->setToolTip("Min value for mapped values");
+      mapEditData.mapMaxSpin->setToolTip("Max value for mapped values");
 
-    //--
+      //--
 
-    mapLayout->addWidget(mapEditData.mappedCheck);
-    mapLayout->addWidget(mapEditData.mapMinSpin);
-    mapLayout->addWidget(mapEditData.mapMaxSpin);
-    mapLayout->addStretch(1);
+      mapLayout->addWidget(mapEditData.mappedCheck);
+      mapLayout->addWidget(mapEditData.mapMinSpin);
+      mapLayout->addWidget(mapEditData.mapMaxSpin);
+      mapLayout->addStretch(1);
 
-    plotData.mappedEdits[parameter->name()] = mapEditData;
+      plotData.mappedEdits[parameter->name()] = mapEditData;
 
-    layout->addLayout(mapLayout, row, col, 1, 2);
+      layout->addLayout(mapLayout, row, col, 1, 2);
 
-    ++row;
+      ++row;
 
-    //---
+      //---
 
-    mapEditData.mappedCheck->setChecked(false);
+      mapEditData.mappedCheck->setChecked(false);
 
-    mapEditData.mapMinSpin->setValue(parameter->attributes().mapMin());
-    mapEditData.mapMaxSpin->setValue(parameter->attributes().mapMax());
+      mapEditData.mapMinSpin->setValue(parameter->attributes().mapMin());
+      mapEditData.mapMaxSpin->setValue(parameter->attributes().mapMax());
+    }
   }
 }
 
@@ -1457,12 +1423,13 @@ CQChartsCreatePlotDlg::
 addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
                         CQChartsPlotParameter *parameter, bool isBasic)
 {
-  // add column edit
-  int col = 0;
+  auto objName = parameter->name() + "Columns";
 
-  auto *columnsEdit = addColumnsEdit(layout, row, col, parameter->desc(),
-                                     parameter->name() + "Columns",
-                                     "Column Names or Numbers", isBasic);
+  auto *label       = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
+  auto *columnsEdit = new CQChartsColumnsLineEdit(nullptr, isBasic);
+
+  columnsEdit->setObjectName(objName + "Edit" );
+  columnsEdit->setPlaceholderText("Column Names or Numbers");
 
   auto columns = parameter->defValue().value<CQChartsColumns>();
 
@@ -1478,10 +1445,17 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   if (tip.length())
     columnsEdit->setToolTip(tip);
 
-  //----
+  //---
 
-  // add format edit
+  layout->addWidget(label      , row, 0);
+  layout->addWidget(columnsEdit, row, 1);
+
+  //---
+
   if (! isBasic) {
+    int col = 2;
+
+    // add format edit
     FormatEditData formatEditData;
 
     formatEditData.formatEdit =
@@ -1508,7 +1482,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     plotData.formatEdits[parameter->name()] = formatEditData;
 
-    //----
+    //---
 
     // add attributes tip label
     auto is = formatEditData.formatUpdate->iconSize();
@@ -1521,7 +1495,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
     layout->addWidget(attributesLabel, row, col); ++col;
   }
 
-  //----
+  //---
 
   ++row;
 }
@@ -1531,17 +1505,10 @@ CQChartsCreatePlotDlg::
 addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
                        CQChartsPlotParameter *parameter)
 {
-  bool ok;
-
-  auto str = CQChartsVariant::toString(parameter->defValue(), ok);
-
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
-
-  auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(parameter->name() + "_edit");
-
-  edit->setText(str);
+  auto *edit  = new CQChartsStringParameterEdit(parameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);
@@ -1551,11 +1518,6 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
   plotData.stringEdits[parameter->name()] = edit;
 
   connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
-
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    edit->setToolTip(tip);
 }
 
 void
@@ -1563,50 +1525,19 @@ CQChartsCreatePlotDlg::
 addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
                      CQChartsPlotParameter *parameter)
 {
-  bool ok;
-
-  double r = CQChartsVariant::toReal(parameter->defValue(), ok);
-
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
+  auto *edit  = new CQChartsRealParameterEdit(parameter);
 
   editLayout->addWidget(label);
-
-  CQRealSpin       *spinEdit = nullptr;
-  CQChartsLineEdit *lineEdit = nullptr;
-
-  QWidget *edit = nullptr;
-
-  if (parameter->isRequired()) {
-    spinEdit = CQUtil::makeWidget<CQRealSpin>("spinEdit");
-    edit     = spinEdit;
-
-    spinEdit->setValue(r);
-
-    connect(spinEdit, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
-  }
-  else {
-    lineEdit = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-    edit     = lineEdit;
-
-    lineEdit->setText(QString("%1").arg(r));
-
-    connect(lineEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
-  }
-
-  edit->setObjectName(parameter->name() + "_edit");
-
   editLayout->addWidget(edit);
 
   layout->addLayout(editLayout);
 
   plotData.realEdits[parameter->name()] = edit;
 
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    edit->setToolTip(tip);
+  connect(edit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 }
 
 void
@@ -1614,50 +1545,19 @@ CQChartsCreatePlotDlg::
 addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
                     CQChartsPlotParameter *parameter)
 {
-  bool ok;
-
-  long i = CQChartsVariant::toInt(parameter->defValue(), ok);
-
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
+  auto *edit  = new CQChartsIntParameterEdit(parameter);;
+
+ connect(edit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 
   editLayout->addWidget(label);
-
-  CQIntegerSpin    *spinEdit = nullptr;
-  CQChartsLineEdit *lineEdit = nullptr;
-
-  QWidget *edit = nullptr;
-
-  if (parameter->isRequired()) {
-    spinEdit = CQUtil::makeWidget<CQIntegerSpin>("spinEdit");
-    edit     = spinEdit;
-
-    spinEdit->setValue(int(i));
-
-    connect(spinEdit, SIGNAL(valueChanged(int)), this, SLOT(validateSlot()));
-  }
-  else {
-    lineEdit = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-    edit     = lineEdit;
-
-    lineEdit->setText(QString("%1").arg(i));
-
-    connect(lineEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
-  }
-
-  edit->setObjectName(parameter->name() + "_edit");
-
   editLayout->addWidget(edit);
 
   layout->addLayout(editLayout);
 
   plotData.intEdits[parameter->name()] = edit;
-
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    edit->setToolTip(tip);
 }
 
 void
@@ -1668,36 +1568,23 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
   auto *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
 
-  bool ok;
-
-  long i = CQChartsVariant::toInt(eparameter->defValue(), ok);
+  //---
 
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
+  auto *combo = new CQChartsEnumParameterEdit(eparameter);
 
   editLayout->addWidget(label);
-
-  auto *combo = CQUtil::makeWidget<QComboBox>(eparameter->name() + "_combo");
-
-  auto names = eparameter->names();
-
-  combo->addItems(names);
-
-  combo->setCurrentIndex(combo->findText(eparameter->valueName(int(i))));
-
-  connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(validateSlot()));
-
   editLayout->addWidget(combo);
 
   layout->addLayout(editLayout);
 
   plotData.enumEdits[eparameter->name()] = combo;
 
-  auto tip = eparameter->tip();
+  //---
 
-  if (tip.length())
-    combo->setToolTip(tip);
+  connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(validateSlot()));
 }
 
 void
@@ -1705,22 +1592,13 @@ CQChartsCreatePlotDlg::
 addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                      CQChartsPlotParameter *parameter)
 {
-  bool b = parameter->defValue().toBool();
+  auto *edit = new CQChartsBoolParameterEdit(parameter);
 
-  auto *checkBox = CQUtil::makeLabelWidget<QCheckBox>(parameter->desc(), parameter->name());
+  layout->addWidget(edit);
 
-  checkBox->setChecked(b);
+  plotData.boolEdits[parameter->name()] = edit;
 
-  layout->addWidget(checkBox);
-
-  plotData.boolEdits[parameter->name()] = checkBox;
-
-  connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
-
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    checkBox->setToolTip(tip);
+  connect(edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 }
 
 CQChartsLineEdit *
@@ -1728,13 +1606,8 @@ CQChartsCreatePlotDlg::
 addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
             const QString &objName, const QString &placeholderText) const
 {
-  QLabel *label = nullptr;
-
-  if (name != "") {
-    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
-  }
-
-  auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
+  auto *label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
+  auto *edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
 
   edit->setPlaceholderText(placeholderText);
 
@@ -1763,81 +1636,8 @@ CQChartsCreatePlotDlg::
 addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
               const QString &objName, const QString &placeholderText) const
 {
-  QLabel *label = nullptr;
-
-  if (name != "")
-    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
-
-  auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
-
-  edit->setPlaceholderText(placeholderText);
-
-  auto *grid    = qobject_cast<QGridLayout *>(layout);
-  auto *blayout = qobject_cast<QBoxLayout  *>(layout);
-
-  if      (grid) {
-    if (label) {
-      grid->addWidget(label, row, column); ++column;
-    }
-
-    grid->addWidget(edit, row, column); ++column;
-  }
-  else if (blayout) {
-    if (label)
-      blayout->addWidget(label);
-
-    blayout->addWidget(edit);
-  }
-
-  return edit;
-}
-
-CQChartsColumnLineEdit *
-CQChartsCreatePlotDlg::
-addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
-              const QString &objName, const QString &placeholderText) const
-{
-  QLabel *label = nullptr;
-
-  if (name != "")
-    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
-
-  auto *edit = CQUtil::makeWidget<CQChartsColumnLineEdit>(objName + "Edit" );
-
-  edit->setPlaceholderText(placeholderText);
-
-  auto *grid    = qobject_cast<QGridLayout *>(layout);
-  auto *blayout = qobject_cast<QBoxLayout  *>(layout);
-
-  if      (grid) {
-    if (label) {
-      grid->addWidget(label, row, column); ++column;
-    }
-
-    grid->addWidget(edit, row, column); ++column;
-  }
-  else if (blayout) {
-    if (label)
-      blayout->addWidget(label);
-
-    blayout->addWidget(edit);
-  }
-
-  return edit;
-}
-
-CQChartsColumnsLineEdit *
-CQChartsCreatePlotDlg::
-addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
-               const QString &objName, const QString &placeholderText, bool isBasic) const
-{
-  QLabel *label = nullptr;
-
-  if (name != "")
-    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
-
-  auto *edit = new CQChartsColumnsLineEdit(nullptr, isBasic);
-  edit->setObjectName(objName + "Edit" );
+  auto *label = (name != "" ? CQUtil::makeLabelWidget<QLabel>(name, objName + "Label") : nullptr);
+  auto *edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
 
   edit->setPlaceholderText(placeholderText);
 
@@ -2077,22 +1877,12 @@ validateSlot()
         auto column = nc.second;
 
         if (pe != plotData.columnEdits.end()) {
-          if (isAdvanced()) {
-            auto *edit = (*pe).second.advancedEdit;
+          auto *edit = (*pe).second;
 
-            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
-              edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
+          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+            edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
-            edit->setColumn(column);
-          }
-          else {
-            auto *edit = (*pe).second.basicEdit;
-
-            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
-              edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
-
-            edit->setColumn(column);
-          }
+          edit->setColumn(column);
         }
         else {
           auto pe = plotData.columnsEdits.find(nc.first);
@@ -3019,18 +2809,7 @@ parseParameterRealEdit(PlotParameter *parameter, const PlotData &plotData, doubl
   auto p = plotData.realEdits.find(parameter->name());
   assert(p != plotData.realEdits.end());
 
-  auto *edit = (*p).second;
-
-  auto *spinEdit = qobject_cast<CQRealSpin       *>(edit);
-  auto *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
-
-  if (spinEdit)
-    r = spinEdit->value();
-  else {
-    bool ok;
-
-    r = CQChartsUtil::toReal(lineEdit->text(), ok);
-  }
+  r = (*p).second->value();
 
   return true;
 }
@@ -3042,18 +2821,7 @@ parseParameterIntEdit(PlotParameter *parameter, const PlotData &plotData, int &i
   auto p = plotData.intEdits.find(parameter->name());
   assert(p != plotData.intEdits.end());
 
-  auto *edit = (*p).second;
-
-  auto *spinEdit = qobject_cast<CQIntegerSpin    *>(edit);
-  auto *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
-
-  if (spinEdit)
-    i = spinEdit->value();
-  else {
-    bool ok;
-
-    i = (int) CQChartsUtil::toInt(lineEdit->text(), ok);
-  }
+  i = (*p).second->value();
 
   return true;
 }
@@ -3068,7 +2836,7 @@ parseParameterEnumEdit(PlotParameter *parameter, const PlotData &plotData, int &
   auto p = plotData.enumEdits.find(eparameter->name());
   assert(p != plotData.enumEdits.end());
 
-  i = eparameter->nameValue((*p).second->currentText());
+  i = (*p).second->currentValue();
 
   return true;
 }
@@ -3087,21 +2855,10 @@ parseParameterBoolEdit(PlotParameter *parameter, const PlotData &plotData, bool 
 
 bool
 CQChartsCreatePlotDlg::
-columnLineEditValue(const ColumnEditData &editData, CQChartsColumn &column,
+columnLineEditValue(CQChartsColumnParameterEdit *edit, CQChartsColumn &column,
                     const CQChartsColumn &defColumn) const
 {
-  if (isAdvanced()) {
-    if (! editData.advancedEdit)
-      return false;
-
-    column = editData.advancedEdit->column();
-  }
-  else {
-    if (! editData.basicEdit)
-      return false;
-
-    column = editData.basicEdit->getColumn();
-  }
+  column = edit->getColumn();
 
   if (! column.isValid())
     column = defColumn;

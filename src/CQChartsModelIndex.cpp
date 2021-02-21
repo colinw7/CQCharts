@@ -22,10 +22,11 @@ CQChartsModelIndex(int row, const CQChartsColumn &column, const QModelIndex &par
 #endif
 
 CQChartsModelIndex::
-CQChartsModelIndex(CQChartsPlot *plot, int row, const CQChartsColumn &column,
-                   const QModelIndex &parent) :
- plot_(plot), row_(row), column_(column), parent_(parent)
+CQChartsModelIndex(const CQChartsPlot *plot, int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, bool normalized) :
+ plot_(plot), row_(row), column_(column), parent_(parent), normalized_(normalized)
 {
+  assert(plot_->isNormalizedIndex(*this) == normalized_);
 }
 
 bool
@@ -49,6 +50,31 @@ toString() const
     strs += QVariant(parent_).toString();
 
   return CQTcl::mergeList(strs);
+}
+
+QString
+CQChartsModelIndex::
+id() const
+{
+  QString id;
+
+  QModelIndex parent = parent_;
+
+  while (parent.isValid()) {
+    if (id != "")
+      id += ":";
+
+    id += QString("%1").arg(parent.row());
+
+    parent = parent.parent();
+  }
+
+  if (id != "")
+    id += ":";
+
+  id += QString("%1:%2").arg(row()).arg(column().column());
+
+  return id;
 }
 
 bool

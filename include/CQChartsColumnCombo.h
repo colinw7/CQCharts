@@ -17,7 +17,8 @@ class CQChartsColumnCombo : public QComboBox {
   Q_PROPERTY(CQChartsColumn column    READ getColumn   WRITE setColumn   )
 
  public:
-  using Column = CQChartsColumn;
+  using ModelData = CQChartsModelData;
+  using Column    = CQChartsColumn;
 
  public:
   CQChartsColumnCombo(QWidget *parent=nullptr);
@@ -31,11 +32,11 @@ class CQChartsColumnCombo : public QComboBox {
   void setColumn(const Column &column);
 
   //! get/set model data
-  CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *model);
+  const ModelData *modelData() const { return modelData_; }
+  void setModelData(const ModelData *model);
 
   //! convenience routine to set model and column
-  void setModelColumn(CQChartsModelData *modelData, const Column &column);
+  void setModelColumn(ModelData *modelData, const Column &column);
 
  signals:
   //! emitted when column changed
@@ -45,8 +46,11 @@ class CQChartsColumnCombo : public QComboBox {
   void updateItems();
 
  private:
-  CQChartsModelData *modelData_ { nullptr };
-  bool               allowNone_ { true };
+  void connectSlots(bool b);
+
+ private:
+  const ModelData *modelData_ { nullptr };
+  bool             allowNone_ { true };
 };
 
 #endif

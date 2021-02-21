@@ -540,9 +540,7 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
-
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
 
       Polygon poly;
 

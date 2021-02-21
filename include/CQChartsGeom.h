@@ -23,7 +23,9 @@ namespace CQChartsGeom {
  * \brief Point class
  * \ingroup Charts
  */
-class Point {
+class Point :
+  public CQChartsEqBase<Point>,
+  public CQChartsToStringBase<Point> {
  public:
   Point() = default;
 
@@ -110,10 +112,6 @@ class Point {
 
   friend bool operator==(const Point &lhs, const Point &rhs) {
     return lhs.equal(rhs, 1E-6);
-  }
-
-  friend bool operator!=(const Point &lhs, const Point &rhs) {
-    return ! (lhs == rhs);
   }
 
   //------
@@ -230,15 +228,6 @@ class Point {
   QString toString() const;
   bool fromString(const QString &s);
 
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const Point &point) {
-    point.print(os);
-
-    return os;
-  }
 
  public:
   double x { 0 };
@@ -262,7 +251,8 @@ namespace CQChartsGeom {
  * \brief Size class
  * \ingroup Charts
  */
-class Size {
+class Size :
+  public CQChartsEqBase<Size> {
  public:
   Size() = default;
 
@@ -304,10 +294,6 @@ class Size {
             lhs.size_.height() == rhs.size_.height());
   }
 
-  friend bool operator!=(const Size &lhs, const Size &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
  private:
   QSizeF size_;
   bool   set_ { false };
@@ -331,7 +317,9 @@ namespace CQChartsGeom {
  * \brief Bounding Box class
  * \ingroup Charts
  */
-class BBox {
+class BBox :
+  public CQChartsEqBase<BBox>,
+  public CQChartsToStringBase<BBox> {
  public:
   BBox() = default;
 
@@ -987,24 +975,10 @@ class BBox {
     return (lhs.pmin_ == rhs.pmin_ && lhs.pmax_ == rhs.pmax_);
   }
 
-  friend bool operator!=(const BBox &lhs, const BBox &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
   //---
 
   QString toString() const;
   bool fromString(const QString &s);
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const BBox &bbox) {
-    bbox.print(os);
-
-    return os;
-  }
 
  private:
   Point pmin_;
@@ -1031,7 +1005,9 @@ namespace CQChartsGeom {
  *
  * TODO: enforce min/max order always ? Same as BBox
  */
-class Range {
+class Range :
+  public CQChartsEqBase<Range>,
+  public CQChartsToStringBase<Range> {
  public:
   Range() = default;
 
@@ -1180,6 +1156,8 @@ class Range {
     }
   }
 
+  //---
+
   friend bool operator==(const Range &lhs, const Range &rhs) {
     if (! lhs.set_ && ! rhs.set_) return true;
     if (! lhs.set_ || ! rhs.set_) return false;
@@ -1188,9 +1166,7 @@ class Range {
             lhs.x2_ == rhs.x2_ && lhs.y2_ == rhs.y2_);
   }
 
-  friend bool operator!=(const Range &lhs, const Range &rhs) {
-    return ! (lhs == rhs);
-  }
+  //---
 
   void equalScale(double aspect) {
     Point c = center();
@@ -1226,14 +1202,8 @@ class Range {
             (point.y >= y1_ && point.y <= y2_));
   }
 
-  void print(std::ostream &os) const {
-    os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const Range &range) {
-    range.print(os);
-
-    return os;
+  QString toString() const {
+    return QString("%1 %2 %3 %4").arg(x1_).arg(y1_).arg(x2_).arg(y2_);
   }
 
   Range &operator+=(const Range &r) {
@@ -1272,7 +1242,8 @@ namespace CQChartsGeom {
  * \brief Polygon class
  * \ingroup Charts
  */
-class Polygon {
+class Polygon :
+  public CQChartsEqBase<Polygon> {
  public:
   Polygon() = default;
 
@@ -1316,13 +1287,13 @@ class Polygon {
 
   BBox boundingBox() const { return BBox(qpoly_.boundingRect()); }
 
+  //---
+
   friend bool operator==(const Polygon &lhs, const Polygon &rhs) {
     return (lhs.qpoly_ == rhs.qpoly_ );
   }
 
-  friend bool operator!=(const Polygon &lhs, const Polygon &rhs) {
-    return ! operator==(lhs, rhs);
-  }
+  //---
 
   double area() const { return CQUtil::polygonArea(qpoly_); }
 
@@ -1446,7 +1417,9 @@ namespace CQChartsGeom {
  * | m10 m11 m12 |
  * \ m20 m21 m22 /
  */
-class Matrix : public ComparatorBase<Matrix> {
+class Matrix :
+  public CQChartsComparatorBase<Matrix>,
+  public CQChartsToStringBase<Matrix> {
  public:
   enum class Type {
     IDENTITY
@@ -1511,28 +1484,12 @@ class Matrix : public ComparatorBase<Matrix> {
 
   //------
 
-#if 0
-  std::string toString() const {
-    std::ostringstream ss;
-
-    ss << *this;
-
-    return ss.str();
+  QString toString() const {
+    return QString("{{ %1 %2 %3 } { %4_ %5 %6 } { %7 %8 %9}}").
+             arg(m00_).arg(m01_).arg(m02_).
+             arg(m10_).arg(m11_).arg(m12_).
+             arg(m20_).arg(m21_).arg(m22_);
   }
-
-  // output
-  void print(std::ostream &os) const {
-    os << "{{" << m00_ << " " << m01_ << " " << m02_ << "}" <<
-          " {" << m10_ << " " << m11_ << " " << m12_ << "}" <<
-          " {" << m20_ << " " << m21_ << " " << m22_ << "}}";
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
-    matrix.print(os);
-
-    return os;
-  }
-#endif
 
   //------
 
@@ -2308,7 +2265,8 @@ namespace CQChartsGeom {
  * \brief Point class
  * \ingroup Charts
  */
-class Point3D : public ComparatorBase<Point3D> {
+class Point3D :
+  public CQChartsComparatorBase<Point3D> {
  public:
   Point3D() = default;
 

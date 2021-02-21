@@ -246,10 +246,8 @@ createObjs(PlotObjs &objs) const
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
-        auto *plot = const_cast<CQChartsWordCloudPlot *>(plot_);
-
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
-        ModelIndex countModelInd(plot, data.row, plot_->countColumn(), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+        ModelIndex countModelInd(plot_, data.row, plot_->countColumn(), data.parent);
 
         bool ok1;
         auto name = plot_->modelString(valueModelInd, ok1);

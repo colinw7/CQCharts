@@ -144,9 +144,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
   // symbol type map
-  Q_PROPERTY(bool symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
-  Q_PROPERTY(int  symbolTypeMapMin READ symbolTypeMapMin   WRITE setSymbolTypeMapMin)
-  Q_PROPERTY(int  symbolTypeMapMax READ symbolTypeMapMax   WRITE setSymbolTypeMapMax)
+  Q_PROPERTY(bool    symbolTypeMapped  READ isSymbolTypeMapped WRITE setSymbolTypeMapped )
+  Q_PROPERTY(int     symbolTypeMapMin  READ symbolTypeMapMin   WRITE setSymbolTypeMapMin )
+  Q_PROPERTY(int     symbolTypeMapMax  READ symbolTypeMapMax   WRITE setSymbolTypeMapMax )
+  Q_PROPERTY(QString symbolTypeSetName READ symbolTypeSetName  WRITE setSymbolTypeSetName)
 
   // symbol size map
   Q_PROPERTY(bool    symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped  )
@@ -208,6 +209,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using Alpha      = CQChartsAlpha;
   using ColorInd   = CQChartsUtil::ColorInd;
   using PenBrush   = CQChartsPenBrush;
+  using Symbol     = CQChartsSymbol;
 
  public:
   CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);
@@ -239,6 +241,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   int symbolTypeMapMax() const;
   void setSymbolTypeMapMax(int i);
 
+  const QString &symbolTypeSetName() const;
+  void setSymbolTypeSetName(const QString &s);
+
   //---
 
   // symbol size column and map
@@ -256,6 +261,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   const QString &symbolSizeMapUnits() const;
   void setSymbolSizeMapUnits(const QString &s);
+
+  virtual void setFixedSymbolSize(const Length &s) = 0;
+  virtual const Length &fixedSymbolSize() const = 0;
+
+  virtual void setFixedSymbolType(const Symbol &s) = 0;
+  virtual const Symbol &fixedSymbolType() const = 0;
 
   //---
 
@@ -308,8 +319,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsAxisRug::Side &xRugSide() const;
   void setXRugSide(const CQChartsAxisRug::Side &s);
 
-  const CQChartsSymbol &xRugSymbolType() const;
-  void setXRugSymbolType(const CQChartsSymbol &s);
+  const Symbol &xRugSymbolType() const;
+  void setXRugSymbolType(const Symbol &s);
 
   const Length &xRugSymbolSize() const;
   void setXRugSymbolSize(const Length &l);
@@ -322,8 +333,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsAxisRug::Side &yRugSide() const;
   void setYRugSide(const CQChartsAxisRug::Side &s);
 
-  const CQChartsSymbol &yRugSymbolType() const;
-  void setYRugSymbolType(const CQChartsSymbol &s);
+  const Symbol &yRugSymbolType() const;
+  void setYRugSymbolType(const Symbol &s);
 
   const Length &yRugSymbolSize() const;
   void setYRugSymbolSize(const Length &l);
@@ -361,7 +372,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // data labels
   bool isPointLabels() const;
 
-  void setDataLabelFont(const CQChartsFont &font);
+  CQChartsLabelPosition dataLabelPosition() const;
+  void setDataLabelPosition(CQChartsLabelPosition position);
+
+  Font dataLabelFont() const;
+  void setDataLabelFont(const Font &font, bool notify=true);
 
   //---
 
@@ -374,7 +389,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   void initSymbolTypeData() const;
-  bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
+  bool columnSymbolType(int row, const QModelIndex &parent,
+                        Symbol &symbolType, OptBool &symbolFilled) const;
 
   //---
 
@@ -458,6 +474,13 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
  protected slots:
   void dataLabelChanged();
 
+ signals:
+  // emitted when symbol size details changed (symbol size column, symbol size range)
+  void symbolSizeDetailsChanged();
+
+  // emitted when symbol size details changed (symbol size column, symbol size range)
+  void symbolTypeDetailsChanged();
+
  protected:
   struct BestFitData {
     bool      visible         { false };                 //!< show fit
@@ -504,6 +527,55 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   RugP xRug_; //! x rug
   RugP yRug_; //! y rug
+};
+
+//---
+
+class CQChartsLengthEdit;
+class CQChartsSymbolEdit;
+class CQChartsSymbolSetEdit;
+class CQIntRangeSlider;
+
+class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsPointPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+  void addSymbolSizeWidgets();
+
+ protected slots:
+  void symbolSizeDetailsSlot();
+  void symbolTypeDetailsSlot();
+
+  void symbolSizeByColumnSlot();
+  void symbolSizeLengthSlot();
+  void symbolSizeColumnSlot();
+  void symbolSizeRangeSlot(double min, double max);
+
+  void symbolTypeSlot();
+  void symbolTypeColumnSlot();
+  void symbolTypeRangeSlot(int min, int max);
+  void symbolTypeSetSlot(const QString &name);
+
+ protected:
+  void updateWidgets();
+
+  void connectSlots(bool b);
+
+ private:
+  using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
+
+  CQChartsPointPlot*     plot_                  { nullptr };
+  CQChartsLengthEdit*    symbolSizeLengthEdit_  { nullptr };
+  CQChartsColumnCombo*   symbolSizeColumnCombo_ { nullptr };
+  CQDoubleRangeSlider*   symbolSizeRange_       { nullptr };
+  CQChartsSymbolEdit*    symbolTypeEdit_        { nullptr };
+  CQChartsColumnCombo*   symbolTypeColumnCombo_ { nullptr };
+  CQIntRangeSlider*      symbolTypeRange_       { nullptr };
+  CQChartsSymbolSetEdit* symbolTypeSetEdit_     { nullptr };
 };
 
 #endif

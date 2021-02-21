@@ -1,6 +1,7 @@
 #ifndef CQChartsSymbol_H
 #define CQChartsSymbol_H
 
+#include <CQChartsTmpl.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <QStringList>
@@ -10,7 +11,8 @@
  * \brief Symbol Data
  * \ingroup Charts
  */
-class CQChartsSymbol {
+class CQChartsSymbol :
+  public CQChartsEqBase<CQChartsSymbol> {
  public:
   enum class Type {
     NONE,
@@ -42,23 +44,20 @@ class CQChartsSymbol {
 
   static QStringList typeNames();
 
+  //---
+
   static int minOutlineValue() { return (int) Type::CROSS; }
   static int maxOutlineValue() { return (int) Type::IPENTAGON; }
 
-  static int minFillValue() { return (int) Type::TRIANGLE; }
-  static int maxFillValue() { return (int) Type::IPENTAGON; }
 
+#if 0
   static CQChartsSymbol interpOutline(double r) {
     return CQChartsSymbol((CQChartsSymbol::Type)
       int(CMathUtil::map(r, 0, 1, minOutlineValue(), maxOutlineValue())));
   }
+#endif
 
-  static CQChartsSymbol interpFilled(double r) {
-    return CQChartsSymbol((CQChartsSymbol::Type)
-      int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
-  }
-
-  static CQChartsSymbol outlineFromInt(int i) {
+  static CQChartsSymbol interpOutline(int i) {
     int len = maxOutlineValue() - minOutlineValue() + 1;
 
     int n = (i - minOutlineValue())/len;
@@ -69,6 +68,16 @@ class CQChartsSymbol {
 
     return (CQChartsSymbol::Type) i1;
   }
+
+  static int minFillValue() { return (int) Type::TRIANGLE; }
+  static int maxFillValue() { return (int) Type::IPENTAGON; }
+
+#if 0
+  static CQChartsSymbol interpFilled(double r) {
+    return CQChartsSymbol((CQChartsSymbol::Type)
+      int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
+  }
+#endif
 
  public:
   CQChartsSymbol() = default;
@@ -90,10 +99,6 @@ class CQChartsSymbol {
 
   friend bool operator==(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
     return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
  private:

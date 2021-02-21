@@ -1463,8 +1463,8 @@ calcExtraFitBBox() const
   // add data labels
   auto position = dataLabel()->position();
 
-  if (position == CQChartsDataLabel::TOP_OUTSIDE ||
-      position == CQChartsDataLabel::BOTTOM_OUTSIDE) {
+  if (position == CQChartsDataLabel::Position::TOP_OUTSIDE ||
+      position == CQChartsDataLabel::Position::BOTTOM_OUTSIDE) {
     for (const auto &plotObj : plotObjs_) {
       auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 

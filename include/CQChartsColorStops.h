@@ -9,7 +9,8 @@
  * \brief class to contain color stop values
  * \ingroup Charts
  */
-class CQChartsColorStops : public ComparatorBase<CQChartsColorStops> {
+class CQChartsColorStops :
+  public CQChartsComparatorBase<CQChartsColorStops> {
  public:
   static void registerMetaType();
 

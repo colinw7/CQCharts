@@ -76,4 +76,16 @@ enum class CQChartsFilterModelType {
   SELECTED
 };
 
+enum class CQChartsLabelPosition {
+  TOP_INSIDE,
+  TOP_OUTSIDE,
+  CENTER,
+  BOTTOM_INSIDE,
+  BOTTOM_OUTSIDE,
+  LEFT_INSIDE,
+  LEFT_OUTSIDE,
+  RIGHT_INSIDE,
+  RIGHT_OUTSIDE
+};
+
 #endif

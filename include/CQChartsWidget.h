@@ -1,6 +1,7 @@
 #ifndef CQChartsWidget_H
 #define CQChartsWidget_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 #include <QWidget>
 #include <QPointer>
@@ -10,7 +11,8 @@
  * \brief Widget Data
  * \ingroup Charts
  */
-class CQChartsWidget {
+class CQChartsWidget :
+  public CQChartsEqBase<CQChartsWidget> {
  public:
   static void registerMetaType();
 
@@ -71,10 +73,6 @@ class CQChartsWidget {
 
   friend bool operator==(const CQChartsWidget &lhs, const CQChartsWidget &rhs) {
     return (lhs.path() == rhs.path());
-  }
-
-  friend bool operator!=(const CQChartsWidget &lhs, const CQChartsWidget &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
  private:

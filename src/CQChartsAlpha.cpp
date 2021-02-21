@@ -33,7 +33,7 @@ double
 CQChartsAlpha::
 value(bool clamp) const
 {
-  assert(set_);
+  assert(isSet());
 
   if (! clamp)
     return a_;
@@ -49,6 +49,16 @@ setValue(double a)
   set_ = true;
 
   assert(isValid());
+}
+
+double
+CQChartsAlpha::
+valueOr(double defValue, bool clamp) const
+{
+  if (isSet())
+    return value(clamp);
+
+  return defValue;
 }
 
 QString

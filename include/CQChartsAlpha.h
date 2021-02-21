@@ -1,6 +1,7 @@
 #ifndef CQChartsAlpha_H
 #define CQChartsAlpha_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 
 /*!
@@ -9,7 +10,9 @@
  *
  * TODO: support percent value e.g. 50%
  */
-class CQChartsAlpha {
+class CQChartsAlpha :
+  public CQChartsEqBase<CQChartsAlpha>,
+  public CQChartsToStringBase<CQChartsAlpha> {
  public:
   static void registerMetaType();
 
@@ -31,6 +34,9 @@ class CQChartsAlpha {
   double value(bool clamp=true) const;
   void setValue(double a);
 
+  //! get value if set, or return default value if not set
+  double valueOr(double defValue, bool clamp=true) const;
+
   //---
 
   // get is set
@@ -44,11 +50,6 @@ class CQChartsAlpha {
   //! operator ==
   friend bool operator==(const CQChartsAlpha &lhs, const CQChartsAlpha &rhs) {
     return std::abs(lhs.a_ - rhs.a_) < 1E-6;
-  }
-
-  //! operator !=
-  friend bool operator!=(const CQChartsAlpha &lhs, const CQChartsAlpha &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

@@ -245,13 +245,6 @@ cmp(const CQChartsColumn &c) const
   return 0;
 }
 
-void
-CQChartsColumn::
-print(std::ostream &os) const
-{
-  os << toString().toStdString();
-}
-
 bool
 CQChartsColumn::
 stringToColumns(const QString &str, Columns &columns)

@@ -1283,3 +1283,7 @@
  + add barchart support to table plot
 # 12/21/2020
  + fix issues with cross select into table from overlay plot
+# 2/21/2021
+ + add support for custom plot controls for improved interface
+ + add reusable paramter editors
+ + add support for symbol sets

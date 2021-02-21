@@ -49,7 +49,7 @@ alphaToWidgets()
 {
   connectSlots(false);
 
-  this->setValue(alpha_.value());
+  this->setValue(alpha_.valueOr(1.0));
 
   connectSlots(true);
 }

@@ -460,10 +460,8 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsWheelPlot *>(plot_);
-
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       bool ok1;
       auto x = plot_->modelReal(xModelInd, ok1);
@@ -481,7 +479,7 @@ createObjs(PlotObjs &objs) const
       pointData.point = Point(x, y);
 
       if (plot_->minColumn().isValid()) {
-        ModelIndex minModelInd(plot, data.row, plot_->minColumn(), data.parent);
+        ModelIndex minModelInd(plot_, data.row, plot_->minColumn(), data.parent);
 
         bool ok;
         auto min = plot_->modelReal(minModelInd, ok);
@@ -494,7 +492,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (plot_->maxColumn().isValid()) {
-        ModelIndex maxModelInd(plot, data.row, plot_->maxColumn(), data.parent);
+        ModelIndex maxModelInd(plot_, data.row, plot_->maxColumn(), data.parent);
 
         bool ok;
         auto max = plot_->modelReal(maxModelInd, ok);
@@ -507,7 +505,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (plot_->innerBarColumn().isValid()) {
-        ModelIndex innerBarModelInd(plot, data.row, plot_->innerBarColumn(), data.parent);
+        ModelIndex innerBarModelInd(plot_, data.row, plot_->innerBarColumn(), data.parent);
 
         bool ok;
         auto innerBar = plot_->modelValue(innerBarModelInd, ok);
@@ -517,7 +515,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (plot_->outerBarColumn().isValid()) {
-        ModelIndex outerBarModelInd(plot, data.row, plot_->outerBarColumn(), data.parent);
+        ModelIndex outerBarModelInd(plot_, data.row, plot_->outerBarColumn(), data.parent);
 
         bool ok;
         auto outerBar = plot_->modelReal(outerBarModelInd, ok);
@@ -530,7 +528,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (plot_->outerBubbleColumn().isValid()) {
-        ModelIndex outerBubbleModelInd(plot, data.row, plot_->outerBubbleColumn(), data.parent);
+        ModelIndex outerBubbleModelInd(plot_, data.row, plot_->outerBubbleColumn(), data.parent);
 
         bool ok;
         auto outerBubble = plot_->modelReal(outerBubbleModelInd, ok);

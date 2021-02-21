@@ -225,12 +225,6 @@ class CQChartsBezier2 {
                   p2_.x << ", " << p2_.y << "] [" <<
                   p3_.x << ", " << p3_.y << "]]";
   }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsBezier2 &bezier) {
-    bezier.print(os);
-
-    return os;
-  }
 #endif
 
  private:
@@ -858,12 +852,6 @@ class CQChartsBezier3 {
                   p2_.x << ", " << p2_.y << "] [" <<
                   p3_.x << ", " << p3_.y << "] [" <<
                   p4_.x << ", " << p4_.y << "]]";
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsBezier3 &bezier) {
-    bezier.print(os);
-
-    return os;
   }
 #endif
 

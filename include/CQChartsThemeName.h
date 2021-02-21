@@ -1,6 +1,7 @@
 #ifndef CQChartsThemeName_H
 #define CQChartsThemeName_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 
 class CQColorsTheme;
@@ -9,7 +10,9 @@ class CQColorsTheme;
  * \brief theme name
  * \ingroup Charts
  */
-class CQChartsThemeName {
+class CQChartsThemeName :
+  public CQChartsEqBase<CQChartsThemeName>,
+  public CQChartsToStringBase<CQChartsThemeName> {
  public:
   static void registerMetaType();
 
@@ -54,21 +57,7 @@ class CQChartsThemeName {
     return true;
   }
 
-  friend bool operator!=(const CQChartsThemeName &lhs, const CQChartsThemeName &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
   //---
-
-  void print(std::ostream &os) const {
-    os << name().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsThemeName &l) {
-    l.print(os);
-
-    return os;
-  }
 
  private:
   QString        name_;

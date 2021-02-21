@@ -314,11 +314,9 @@ calcRange() const
 
       //---
 
-      auto *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
-
       // get x, y value
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       double x, y;
 
@@ -548,11 +546,9 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        auto *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
-
         // get x, y value
-        ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
-        ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
+        ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+        ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
         double x, y;
 
@@ -570,7 +566,7 @@ createObjs(PlotObjs &objs) const
         // get optional name
         bool ok;
 
-        ModelIndex nameModelInd(plot, data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameModelInd(plot_, data.row, plot_->nameColumn(), data.parent);
 
         auto name = plot_->modelString(nameModelInd, ok);
 

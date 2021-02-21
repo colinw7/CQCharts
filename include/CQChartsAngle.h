@@ -1,6 +1,7 @@
 #ifndef CQChartsAngle_H
 #define CQChartsAngle_H
 
+#include <CQChartsTmpl.h>
 #include <CMathUtil.h>
 #include <QString>
 
@@ -10,7 +11,9 @@
  *
  * TODO: support postfix for type of degrees/radians
  */
-class CQChartsAngle {
+class CQChartsAngle :
+  public CQChartsEqBase<CQChartsAngle>,
+  public CQChartsToStringBase<CQChartsAngle> {
  public:
   static void registerMetaType();
 
@@ -84,11 +87,6 @@ class CQChartsAngle {
   //! operator ==
   friend bool operator==(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
     return (lhs.a_ == rhs.a_);
-  }
-
-  //! operator !=
-  friend bool operator!=(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

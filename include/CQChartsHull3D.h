@@ -259,12 +259,6 @@ class CQChartsHull3D {
     void print(std::ostream &os=std::cout) const {
       os << "(" << x() << ", " << y() << ", " << z() << ")";
     }
-
-    friend std::ostream &operator<<(std::ostream &os, const Vertex &v) {
-      v.print(os);
-
-      return os;
-    }
 #endif
 
    private:
@@ -375,12 +369,6 @@ class CQChartsHull3D {
     void print(std::ostream &os=std::cout) const {
       os << "(" << *start() << ", " << *end() << ")";
     }
-
-    friend std::ostream &operator<<(std::ostream &os, const Edge &e) {
-      e.print(os);
-
-      return os;
-    }
 #endif
 
    private:
@@ -463,12 +451,6 @@ class CQChartsHull3D {
 #if 0
     void print(std::ostream &os=std::cout) const {
       os << "(" << *vertex_[0] << ", " << *vertex_[1] << ", " << *vertex_[2] << ")";
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, const Face &f) {
-      f.print(os);
-
-      return os;
     }
 #endif
 

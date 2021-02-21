@@ -1,6 +1,7 @@
 #ifndef CQChartsOptReal_H
 #define CQChartsOptReal_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -9,7 +10,8 @@
  * \brief Optional real
  * \ingroup Charts
  */
-class CQChartsOptReal {
+class CQChartsOptReal :
+  public CQChartsEqBase<CQChartsOptReal> {
  public:
   static void registerMetaType();
 
@@ -64,10 +66,6 @@ class CQChartsOptReal {
     if (lhs.value_ != rhs.value_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsOptReal &lhs, const CQChartsOptReal &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

@@ -750,12 +750,10 @@ calcTableSize() const
 
       //---
 
-      auto *plot = const_cast<CQChartsTablePlot *>(plot_);
-
       for (int i = 0; i < tableData_.nc; ++i) {
         const auto &c = plot_->columns().getColumn(i);
 
-        ModelIndex ind(plot, data.row, c, data.parent);
+        ModelIndex ind(plot_, data.row, c, data.parent);
 
         bool ok;
 
@@ -1697,9 +1695,7 @@ createTableObjData() const
 
       //---
 
-      auto *plot = const_cast<CQChartsTablePlot *>(plot_);
-
-      ModelIndex ind(plot, data.row, c, data.parent);
+      ModelIndex ind(plot_, data.row, c, data.parent);
 
       bool ok;
 
@@ -2181,8 +2177,7 @@ QString
 CQChartsTableCellObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).
-           arg(cellObjData_.ind.row()).arg(cellObjData_.ind.column().column());
+  return QString("%1:%2").arg(typeName()).arg(cellObjData_.ind.id());
 }
 
 QString

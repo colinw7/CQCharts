@@ -88,7 +88,7 @@ class CQPropertyViewItem;
 
 class CQThreadObject;
 
-class QSortFilterProxyModel;
+class QAbstractProxyModel;
 class QItemSelectionModel;
 class QTextBrowser;
 class QRubberBand;
@@ -119,9 +119,9 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 //----
 
-CQCHARTS_NAMED_SHAPE_DATA(Plot, plot)
-CQCHARTS_NAMED_SHAPE_DATA(Data, data)
-CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)
+CQCHARTS_NAMED_SHAPE_DATA(Plot, plot) // plot area
+CQCHARTS_NAMED_SHAPE_DATA(Data, data) // data area
+CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)   // fit are
 
 /*!
  * \brief Base class for Plot
@@ -452,6 +452,7 @@ class CQChartsPlot : public CQChartsObj,
   using DisplayRange = CQChartsDisplayRange;
   using ValueSet     = CQChartsValueSet;
   using OptReal      = CQChartsOptReal;
+  using OptBool      = boost::optional<bool>;
   using PenBrush     = CQChartsPenBrush;
   using Sides        = CQChartsSides;
   using PlotMargin   = CQChartsPlotMargin;
@@ -1070,6 +1071,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool isNormalizedIndex(const ModelIndex &ind) const;
+
   ModelIndex  normalizeIndex(const ModelIndex &ind) const;
   QModelIndex normalizeIndex(const QModelIndex &ind) const;
 
@@ -1078,8 +1081,9 @@ class CQChartsPlot : public CQChartsObj,
 
   QAbstractItemModel *sourceModel() const;
 
-  void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
-                   QAbstractItemModel* &sourceModel) const;
+  using ProxyModels = std::vector<QAbstractProxyModel *>;
+
+  void proxyModels(ProxyModels &proxyModels, QAbstractItemModel* &sourceModel) const;
 
   //---
 
@@ -1534,19 +1538,20 @@ class CQChartsPlot : public CQChartsObj,
 
   //! \brief symbol type (column) data
   struct SymbolTypeData {
-    Column column;             //!< symbol type column
-    bool   valid    { false }; //!< symbol type valid
-    bool   mapped   { false }; //!< symbol type values mapped
-    int    data_min { 0 };     //!< model data min
-    int    data_max { 1 };     //!< model data max
-    int    map_min  { 0 };     //!< mapped size min
-    int    map_max  { 1 };     //!< mapped size max
+    Column  column;             //!< symbol type column
+    bool    valid    { false }; //!< symbol type valid
+    bool    mapped   { false }; //!< symbol type values mapped
+    int     data_min { 0 };     //!< model data min
+    int     data_max { 1 };     //!< model data max
+    int     map_min  { 0 };     //!< mapped size min
+    int     map_max  { 1 };     //!< mapped size max
+    QString setName;            //!< symbol set name
   };
 
   void initSymbolTypeData(SymbolTypeData &symbolTypeData) const;
 
   bool columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
-                        Symbol &symbolType) const;
+                        Symbol &symbolType, OptBool &symbolFilled) const;
 
   //---
 
@@ -2826,7 +2831,7 @@ class CQChartsPlot : public CQChartsObj,
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  public:
-  virtual CQChartsPlotCustomControls *createCustomControls() { return nullptr; }
+  virtual CQChartsPlotCustomControls *createCustomControls(CQCharts *) { return nullptr; }
 
  protected:
   //*! \brief update state enum
@@ -3313,46 +3318,57 @@ CQCHARTS_NAMED_POINT_DATA(Rug, rug)
 
 //------
 
+class CQChartsColorLineEdit;
 class CQChartsColumnCombo;
 class CQDoubleRangeSlider;
 class CQChartsPaletteNameEdit;
 
+class CQTabSplit;
 class QGridLayout;
 
 class CQChartsPlotCustomControls : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsPlotCustomControls(QWidget *widget=nullptr);
+  CQChartsPlotCustomControls(CQCharts *charts);
+
+  virtual ~CQChartsPlotCustomControls() { }
 
   virtual void setPlot(CQChartsPlot *plot);
 
-  void addColorColumnWidgets();
+  void addColorColumnWidgets(const QString &title="Color");
 
-  void makeLabelWidget(const QString &label, QWidget *w);
+  virtual CQChartsColor getColorValue() { return color_; }
+  virtual void setColorValue(const CQChartsColor &c) { color_ = c; }
 
-  void updateColorDetails();
-
- private slots:
+ protected slots:
   void colorDetailsSlot();
 
+  void colorSlot();
   void colorColumnSlot();
   void colorRangeSlot();
   void colorPaletteSlot();
 
- private:
+ protected:
+  void updateWidgets();
+
+  void connectSlots(bool b);
+
   void updateColorPaletteGradient();
 
- private:
-  QFrame*      widgetFrame_  { nullptr };
-  QGridLayout* widgetLayout_ { nullptr };
+ protected:
+  CQCharts*   charts_ { nullptr };
+  CQTabSplit* split_  { nullptr };
 
   int row_ { 0 };
 
   CQChartsPlot*            plot_             { nullptr };
+  CQChartsColorLineEdit*   colorEdit_        { nullptr };
   CQChartsColumnCombo*     colorColumnCombo_ { nullptr };
   CQDoubleRangeSlider*     colorRange_       { nullptr };
   CQChartsPaletteNameEdit* colorPaletteEdit_ { nullptr };
+
+  CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
 };
 
 #endif

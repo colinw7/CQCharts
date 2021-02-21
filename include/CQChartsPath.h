@@ -11,7 +11,9 @@ class CQChartsPlot;
  * \brief Geometric Path data
  * \ingroup Charts
  */
-class CQChartsPath {
+class CQChartsPath :
+  public CQChartsEqBase<CQChartsPath>,
+  public CQChartsToStringBase<CQChartsPath> {
  public:
   static void registerMetaType();
 
@@ -101,22 +103,6 @@ class CQChartsPath {
     if (*lhs.path_ == *rhs.path_) return true;
 
     return false;
-  }
-
-  friend bool operator!=(const CQChartsPath &lhs, const CQChartsPath &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsPath &c) {
-    c.print(os);
-
-    return os;
   }
 
   //---

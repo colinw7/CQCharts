@@ -1,6 +1,7 @@
 #ifndef CQChartsStyle_H
 #define CQChartsStyle_H
 
+#include <CQChartsTmpl.h>
 #include <QBrush>
 #include <QPen>
 #include <iostream>
@@ -11,7 +12,9 @@ class CQChartsPlot;
  * \brief Pen/Brush Style
  * \ingroup Charts
  */
-class CQChartsStyle {
+class CQChartsStyle :
+  public CQChartsEqBase<CQChartsStyle>,
+  public CQChartsToStringBase<CQChartsStyle> {
  public:
   static void registerMetaType();
 
@@ -81,22 +84,6 @@ class CQChartsStyle {
     }
 
     return false;
-  }
-
-  friend bool operator!=(const CQChartsStyle &lhs, const CQChartsStyle &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsStyle &c) {
-    c.print(os);
-
-    return os;
   }
 
   //---

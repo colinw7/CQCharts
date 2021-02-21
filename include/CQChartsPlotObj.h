@@ -295,9 +295,6 @@ class CQChartsPlotObj : public CQChartsObj {
 
 //bool isSelectIndex(const QModelIndex &ind) const;
 
-  // get object select indices (non-normalized) from object's columns
-  void getSelectIndices(Indices &inds) const;
-
   // get object select indices (normalized)
   void getNormalizedSelectIndices(Indices &inds) const;
 
@@ -316,6 +313,9 @@ class CQChartsPlotObj : public CQChartsObj {
                       const QModelIndex &parent=QModelIndex()) const;
 
  protected:
+  // get object select indices (non-normalized) from object's columns
+  void getSelectIndices(Indices &inds) const;
+
   // get select indices for object
   virtual void getObjSelectIndices(Indices &) const { }
 

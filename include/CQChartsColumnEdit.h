@@ -25,8 +25,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   void setPlot(CQChartsPlot *plot) override;
 
-  CQChartsModelData *modelData() const;
-  void setModelData(CQChartsModelData *model);
+  const CQChartsModelData *modelData() const;
+  void setModelData(const CQChartsModelData *model);
 
   const Column &column() const;
   void setColumn(const Column &c);
@@ -74,8 +74,8 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
-  CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *model);
+  const CQChartsModelData *modelData() const { return modelData_; }
+  void setModelData(const CQChartsModelData *model);
 
   const Column &column() const;
   void setColumn(const Column &c);
@@ -102,17 +102,17 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  CQChartsModelData*   modelData_      { nullptr }; //!< model data
-  Column               column_;                     //!< column
-  CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
-  QComboBox*           typeCombo_      { nullptr }; //!< type combo
-  CQChartsColumnCombo* columnCombo_    { nullptr }; //!< column combo
-  CQChartsLineEdit*    roleEdit_       { nullptr }; //!< role edit
-  CQChartsLineEdit*    indexEdit_      { nullptr }; //!< index edit
-  CQChartsLineEdit*    expressionEdit_ { nullptr }; //!< expression edit
-  WidgetLabels         widgetLabels_;               //!< widget labels
-  int                  widgetHeight_   { 100 };
-  bool                 connected_      { false };   //!< is connected
+  const CQChartsModelData* modelData_      { nullptr }; //!< model data
+  Column                   column_;                     //!< column
+  CQChartsLineEdit*        nameEdit_       { nullptr }; //!< name edit
+  QComboBox*               typeCombo_      { nullptr }; //!< type combo
+  CQChartsColumnCombo*     columnCombo_    { nullptr }; //!< column combo
+  CQChartsLineEdit*        roleEdit_       { nullptr }; //!< role edit
+  CQChartsLineEdit*        indexEdit_      { nullptr }; //!< index edit
+  CQChartsLineEdit*        expressionEdit_ { nullptr }; //!< expression edit
+  WidgetLabels             widgetLabels_;               //!< widget labels
+  int                      widgetHeight_   { 100 };
+  bool                     connected_      { false };   //!< is connected
 };
 
 //------

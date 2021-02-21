@@ -8,7 +8,8 @@
  * \brief plot margin
  * \ingroup Charts
  */
-class CQChartsMargin {
+class CQChartsMargin :
+  public CQChartsEqBase<CQChartsMargin> {
  public:
   static void registerMetaType();
 
@@ -92,10 +93,6 @@ class CQChartsMargin {
   friend bool operator==(const CQChartsMargin &lhs, const CQChartsMargin &rhs) {
     return (lhs.left_  == rhs.left_  && lhs.top_    == rhs.top_ &&
             lhs.right_ == rhs.right_ && lhs.bottom_ == rhs.bottom_);
-  }
-
-  friend bool operator!=(const CQChartsMargin &lhs, const CQChartsMargin &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
  protected:

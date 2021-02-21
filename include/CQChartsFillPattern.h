@@ -24,7 +24,9 @@
  *  Image, Texture, MASK
  *   uses image (texture is gray scale colored by fill color, mask is b/w with dark fg)
  */
-class CQChartsFillPattern {
+class CQChartsFillPattern :
+  public CQChartsEqBase<CQChartsFillPattern>,
+  public CQChartsToStringBase<CQChartsFillPattern> {
  public:
   enum class Type {
     NONE,
@@ -153,21 +155,6 @@ class CQChartsFillPattern {
             lhs.angle   () == rhs.angle   () &&
             lhs.altColor() == rhs.altColor() &&
             lhs.altAlpha() == rhs.altAlpha());
-  }
-
-  friend bool operator!=(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillPattern &t) {
-    t.print(os);
-    return os;
-  }
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
   }
 
  private:

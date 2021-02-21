@@ -213,6 +213,7 @@ CQChartsFillUnder.cpp \
 CQChartsPaletteName.cpp \
 \
 CQChartsSymbol.cpp \
+CQChartsSymbolSet.cpp \
 CQChartsImage.cpp \
 CQChartsWidget.cpp \
 CQChartsPath.cpp \
@@ -308,6 +309,7 @@ CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
 CQChartsSymbolDataEdit.cpp \
 CQChartsSymbolEdit.cpp \
+CQChartsSymbolSetEdit.cpp \
 CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
 CQChartsTitleLocationEdit.cpp \
@@ -480,6 +482,7 @@ HEADERS += \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
+../include/CQChartsSymbolSet.h \
 ../include/CQChartsImage.h \
 ../include/CQChartsWidget.h \
 ../include/CQChartsPath.h \
@@ -661,6 +664,7 @@ HEADERS += \
 ../include/CQChartsStrokeDataEdit.h \
 ../include/CQChartsSymbolDataEdit.h \
 ../include/CQChartsSymbolEdit.h \
+../include/CQChartsSymbolSetEdit.h \
 ../include/CQChartsTextBoxDataEdit.h \
 ../include/CQChartsTextDataEdit.h \
 ../include/CQChartsTitleLocationEdit.h \

@@ -411,10 +411,8 @@ calcRange() const
 
       //---
 
-      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
-
       // init group
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
 
       int groupInd = plot_->rowGroupInd(xModelInd);
 
@@ -440,11 +438,9 @@ calcRange() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
-
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
-      ModelIndex zModelInd(plot, data.row, plot_->zColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
 
       xModelInd.setCellCol(col);
       yModelInd.setCellCol(col);
@@ -903,11 +899,9 @@ addNameValues() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
-
-      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
-      ModelIndex zModelInd(plot, data.row, plot_->zColumn(), data.parent);
+      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
 
       xModelInd.setCellCol(col);
       yModelInd.setCellCol(col);
@@ -964,7 +958,7 @@ addNameValues() const
       QString name;
 
       if (plot_->nameColumn().isValid()) {
-        ModelIndex nameColumnInd(plot, data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameColumnInd(plot_, data.row, plot_->nameColumn(), data.parent);
 
         bool ok;
 
@@ -985,6 +979,8 @@ addNameValues() const
       }
 
       //---
+
+      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
 
       Point3D p(x, y, z);
 
@@ -1557,9 +1553,7 @@ calcTipId() const
   auto addColumnRowValue = [&](const CQChartsColumn &column) {
     if (! column.isValid()) return;
 
-    auto *plot = const_cast<CQChartsScatterPlot3D *>(scatterPlot());
-
-    ModelIndex columnInd(plot, modelInd().row(), column, modelInd().parent());
+    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
 
     bool ok;
 

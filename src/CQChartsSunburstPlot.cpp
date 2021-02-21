@@ -561,14 +561,12 @@ loadHier(HierNode *root) const
 
       //---
 
-      auto *plot = const_cast<Plot *>(plot_);
-
       double size = 1.0;
 
       QModelIndex valueInd;
 
       if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
         valueInd = plot_->modelIndex(valueModelInd);
 
@@ -594,9 +592,7 @@ loadHier(HierNode *root) const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex nameModelInd(plot, data.row, plot_->nameColumns().column(), data.parent);
+      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -683,14 +679,12 @@ loadFlat(HierNode *root) const
 
       //---
 
-      auto *plot = const_cast<Plot *>(plot_);
-
       double size = 1.0;
 
       QModelIndex valueInd;
 
       if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
         valueInd = plot_->modelIndex(valueModelInd);
 
@@ -708,7 +702,7 @@ loadFlat(HierNode *root) const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);

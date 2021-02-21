@@ -24,6 +24,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CQTabSplit.h>
 #include <CQCheckBox.h>
 
 #include <QMenu>
@@ -725,9 +726,7 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsXYPlot *>(plot_);
-
-      ModelIndex ind(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex ind(plot_, data.row, plot_->xColumn(), data.parent);
 
       // init group
       (void) plot_->rowGroupInd(ind);
@@ -1120,9 +1119,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsXYPlot *>(plot_);
-
-      ModelIndex ind(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex ind(plot_, data.row, plot_->xColumn(), data.parent);
 
       // get group
       int groupInd = plot_->rowGroupInd(ind);
@@ -1733,9 +1730,10 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         // set optional symbol type
         CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
+        OptBool        symbolFilled;
 
         if (symbolTypeColumn().isValid()) {
-          if (! columnSymbolType(ip, xind1.parent(), symbolType))
+          if (! columnSymbolType(ip, xind1.parent(), symbolType, symbolFilled))
             symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
         }
 
@@ -2814,9 +2812,9 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsPlotCustomControls *
 CQChartsXYPlot::
-createCustomControls()
+createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsXYCustomControls;
+  auto *controls = new CQChartsXYCustomControls(charts);
 
   controls->setPlot(this);
 
@@ -3212,7 +3210,7 @@ fontSize() const
     fontSize = extraData()->fontSize;
 
   if (! fontSize.isValid()) {
-    double dataLabelFontSize = plot()->dataLabel()->textFont().pointSizeF();
+    double dataLabelFontSize = plot()->dataLabelFont().pointSizeF();
 
     fontSize = Length(dataLabelFontSize, CQChartsUnits::PIXEL);
   }
@@ -3407,9 +3405,7 @@ calcTipId() const
     if (tableTip.hasColumn(column))
       return;
 
-    auto *plot = const_cast<CQChartsXYPlot *>(plot_);
-
-    ModelIndex columnModelInd(plot, modelInd().row(), column, modelInd().parent());
+    ModelIndex columnModelInd(plot_, modelInd().row(), column, modelInd().parent());
 
     bool ok;
 
@@ -3700,8 +3696,9 @@ draw(PaintDevice *device) const
 
   //---
 
-  // set (temp) font
-  auto font = dataLabel->textFont();
+  // get font
+  auto font  = plot_->dataLabelFont();
+  auto font1 = font;
 
   if (fontSize.isValid()) {
     double fontPixelSize = plot_->lengthPixelHeight(fontSize);
@@ -3709,12 +3706,14 @@ draw(PaintDevice *device) const
     // scale to font size
     fontPixelSize = plot_->limitFontSize(fontPixelSize);
 
-    auto font1 = font;
-
     font1.setPointSizeF(fontPixelSize);
-
-    const_cast<Plot *>(plot_)->setDataLabelFont(font1);
   }
+
+  //---
+
+  // set (temp) font
+  //if (fontSize.isValid())
+  //  const_cast<Plot *>(plot_)->setDataLabelFont(font1, /*update*/false);
 
   //---
 
@@ -3722,19 +3721,18 @@ draw(PaintDevice *device) const
   auto ps = plot()->windowToPixel(pos_);
 
   // TODO: better symbol bounding box
-  double sx = 16.0;
-  double sy = 16.0;
+  double sx = 16.0, sy = 16.0;
 
-  BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  dataLabel->draw(device, ebbox, label_, dataLabel->position(), penBrush);
+  dataLabel->draw(device, plot_->pixelToWindow(ptbbox), label_,
+                  (CQChartsDataLabel::Position) plot_->dataLabelPosition(), penBrush, font1);
 
   //---
 
-  // reset font
-  if (fontSize.isValid()) {
-    const_cast<Plot *>(plot_)->setDataLabelFont(font);
-  }
+  // reset (temp) font
+  //if (fontSize.isValid())
+  //  const_cast<Plot *>(plot_)->setDataLabelFont(font, /*update*/false);
 
   // draw text
   plot()->view()->setPlotPainterFont(plot(), device, font);
@@ -4635,10 +4633,19 @@ interpTextColor(const ColorInd &ind) const
 //------
 
 CQChartsXYCustomControls::
-CQChartsXYCustomControls(QWidget *widget) :
- CQChartsGroupPlotCustomControls(widget)
+CQChartsXYCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts)
 {
-  addGroupColumnWidgets();
+  // options group
+  auto *optionsFrame  = CQUtil::makeWidget<QFrame>("optionsFrame");
+  auto *optionsLayout = CQUtil::makeLayout<QGridLayout>(optionsFrame, 2, 2);
+
+  int optionsRow = 0;
+
+  auto addOptionsWidget = [&](const QString &label, QWidget *w) {
+    optionsLayout->addWidget(new QLabel(label), optionsRow, 0);
+    optionsLayout->addWidget(w                , optionsRow, 1); ++optionsRow;
+  };
 
   //---
 
@@ -4646,13 +4653,33 @@ CQChartsXYCustomControls(QWidget *widget) :
   linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
   fillUnderCheck_ = CQUtil::makeWidget<CQCheckBox>("fillUnderCheck");
 
-  makeLabelWidget("Points"    , pointsCheck_);
-  makeLabelWidget("Lines"     , linesCheck_);
-  makeLabelWidget("Fill Under", fillUnderCheck_);
+  addOptionsWidget("Points"    , pointsCheck_);
+  addOptionsWidget("Lines"     , linesCheck_);
+  addOptionsWidget("Fill Under", fillUnderCheck_);
 
-  connect(pointsCheck_   , SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
-  connect(linesCheck_    , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
-  connect(fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
+  //---
+
+  split_->addWidget(optionsFrame, "Options");
+
+  //---
+
+  addGroupColumnWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsXYCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    pointsCheck_   , SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    linesCheck_    , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
 }
 
 void
@@ -4661,15 +4688,28 @@ setPlot(CQChartsPlot *plot)
 {
   plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
 
+  updateWidgets();
+}
+
+void
+CQChartsXYCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
   //---
 
-  CQChartsGroupPlotCustomControls::setPlot(plot);
+  CQChartsGroupPlotCustomControls::setPlot(plot_);
 
   //---
 
   pointsCheck_   ->setChecked(plot_->isPoints());
   linesCheck_    ->setChecked(plot_->isLines());
   fillUnderCheck_->setChecked(plot_->isFillUnderFilled());
+
+  //---
+
+  connectSlots(true);
 }
 
 void

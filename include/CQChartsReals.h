@@ -9,7 +9,9 @@
  * \brief Reals class
  * ingroup Charts
  */
-class CQChartsReals {
+class CQChartsReals :
+  public CQChartsEqBase<CQChartsReals>,
+  public CQChartsToStringBase<CQChartsReals> {
  public:
   static void registerMetaType();
 
@@ -53,22 +55,6 @@ class CQChartsReals {
     }
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsReals &lhs, const CQChartsReals &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsReals &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

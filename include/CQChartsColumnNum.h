@@ -1,13 +1,15 @@
 #ifndef CQChartsColumnNum_H
 #define CQChartsColumnNum_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 
 /*!
  * \brief Class to store column number
  * \ingroup Charts
  */
-class CQChartsColumnNum {
+class CQChartsColumnNum :
+  public CQChartsComparatorBase<CQChartsColumnNum> {
  public:
   static void registerMetaType();
 
@@ -36,16 +38,14 @@ class CQChartsColumnNum {
 
   //---
 
-  friend bool operator==(const CQChartsColumnNum &lhs, const CQChartsColumnNum &rhs) {
-    return (lhs.column_ == rhs.column_);
+  int cmp(const CQChartsColumnNum &c) const {
+    if (column_ < c.column_) return -1;
+    if (column_ > c.column_) return  1;
+    return 0;
   }
 
-  friend bool operator!=(const CQChartsColumnNum &lhs, const CQChartsColumnNum &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  friend bool operator<(const CQChartsColumnNum &lhs, const CQChartsColumnNum &rhs) {
-    return (lhs.column_ < rhs.column_);
+  friend int cmp(const CQChartsColumnNum &c1, const CQChartsColumnNum &c2) {
+    return c1.cmp(c2);
   }
 
   //---

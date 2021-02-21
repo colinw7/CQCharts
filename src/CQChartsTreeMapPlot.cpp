@@ -731,10 +731,8 @@ loadHier() const
 
       double size = 1.0;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
       if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
@@ -750,7 +748,7 @@ loadHier() const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
@@ -767,9 +765,7 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex nameModelInd(plot, data.row, plot_->nameColumns().column(), data.parent);
+      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -868,13 +864,11 @@ loadFlat() const
                                       plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
       QString     name;
       QModelIndex nameInd;
 
       if (plot_->idColumn().isValid()) {
-        ModelIndex idModelInd(plot, data.row, plot_->idColumn(), data.parent);
+        ModelIndex idModelInd(plot_, data.row, plot_->idColumn(), data.parent);
 
         bool ok;
 
@@ -897,7 +891,7 @@ loadFlat() const
       double size = 1.0;
 
       if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
@@ -913,7 +907,7 @@ loadFlat() const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
@@ -1567,9 +1561,7 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
 
-    auto *plot = const_cast<Plot *>(plot_);
-
-    ModelIndex colorInd1(plot, ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 

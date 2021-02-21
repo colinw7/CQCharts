@@ -9,7 +9,9 @@
 #include <iostream>
 
 //! Rectangle class
-class CQChartsRect {
+class CQChartsRect :
+  public CQChartsEqBase<CQChartsRect>,
+  public CQChartsToStringBase<CQChartsRect> {
  public:
   static void registerMetaType();
 
@@ -79,22 +81,6 @@ class CQChartsRect {
     if (lhs.bbox_  != rhs.bbox_ ) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsRect &lhs, const CQChartsRect &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsRect &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

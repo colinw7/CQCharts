@@ -2,6 +2,7 @@
 #define CQChartsLength_H
 
 #include <CQChartsTypes.h>
+#include <CQChartsTmpl.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <iostream>
@@ -11,7 +12,9 @@
  * \brief Length class
  * \ingroup Charts
  */
-class CQChartsLength {
+class CQChartsLength :
+  public CQChartsEqBase<CQChartsLength>,
+  public CQChartsToStringBase<CQChartsLength> {
  public:
   static void registerMetaType();
 
@@ -73,22 +76,6 @@ class CQChartsLength {
     if (lhs.value_ != rhs.value_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsLength &lhs, const CQChartsLength &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsLength &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

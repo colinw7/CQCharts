@@ -1,6 +1,7 @@
 #ifndef CQChartsFillUnder_H
 #define CQChartsFillUnder_H
 
+#include <CQChartsTmpl.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <QStringList>
@@ -10,7 +11,9 @@
  * \brief fill under side
  * \ingroup Charts
  */
-class CQChartsFillUnderSide {
+class CQChartsFillUnderSide :
+  public CQChartsEqBase<CQChartsFillUnderSide>,
+  public CQChartsToStringBase<CQChartsFillUnderSide> {
  public:
   enum Type {
     BOTH,
@@ -73,22 +76,6 @@ class CQChartsFillUnderSide {
     return true;
   }
 
-  friend bool operator!=(const CQChartsFillUnderSide &lhs, const CQChartsFillUnderSide &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillUnderSide &l) {
-    l.print(os);
-
-    return os;
-  }
-
   //---
 
  private:
@@ -104,7 +91,9 @@ class CQChartsFillUnderSide {
  * \brief fill under position
  * \ingroup Charts
  */
-class CQChartsFillUnderPos {
+class CQChartsFillUnderPos :
+  public CQChartsEqBase<CQChartsFillUnderSide>,
+  public CQChartsToStringBase<CQChartsFillUnderPos> {
  public:
   enum Type {
     NONE,
@@ -190,22 +179,6 @@ class CQChartsFillUnderPos {
     }
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsFillUnderPos &lhs, const CQChartsFillUnderPos &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillUnderPos &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

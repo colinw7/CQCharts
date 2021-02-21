@@ -4397,7 +4397,7 @@ draw(PaintDevice *device)
               strokeData.width(), strokeData.dash()),
     BrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
 
-  bool isSolid = (fillData.isVisible() && symbolData.type() != CQChartsSymbol::Type::DOT);
+  bool isSolid = (fillData.isVisible() && symbolData.type().type() != CQChartsSymbol::Type::DOT);
 
   if (isSolid)
     updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
@@ -4427,7 +4427,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
 
-  if (symbolType() != Symbol::Type::NONE)
+  if (symbolType().type() != Symbol::Type::NONE)
     os << " -type {" << symbolType().toString().toStdString() << "}";
 
   if (symbolData.size().isSet())

@@ -659,12 +659,10 @@ loadModel() const
         for (const auto &ind : modelInds) {
           ModelIndex nameModelInd;
 
-          auto *plot = const_cast<Plot *>(plot_);
-
-          if (plot->nameColumn().isValid())
-            nameModelInd = ModelIndex(plot, ind.row(), plot_->nameColumn(), ind.parent());
+          if (plot_->nameColumn().isValid())
+            nameModelInd = ModelIndex(plot_, ind.row(), plot_->nameColumn(), ind.parent());
           else
-            nameModelInd = ModelIndex(plot, ind.row(), plot_->idColumn(), ind.parent());
+            nameModelInd = ModelIndex(plot_, ind.row(), plot_->idColumn(), ind.parent());
 
           auto nameInd  = plot_->modelIndex(nameModelInd);
           auto nameInd1 = plot_->normalizeIndex(nameInd);
@@ -679,9 +677,7 @@ loadModel() const
       if (plot_->valueColumn().isGroup())
         return plot_->currentRoot();
 
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex ind(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex ind(plot_, data.row, plot_->valueColumn(), data.parent);
 
       std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
 
@@ -700,14 +696,12 @@ loadModel() const
       if (! plot_->nameColumn().isValid() && ! plot_->idColumn().isValid())
         return false;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
       ModelIndex nameModelInd;
 
       if (plot_->nameColumn().isValid())
-        nameModelInd = ModelIndex(plot, data.row, plot_->nameColumn(), data.parent);
+        nameModelInd = ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
       else
-        nameModelInd = ModelIndex(plot, data.row, plot_->idColumn(), data.parent);
+        nameModelInd = ModelIndex(plot_, data.row, plot_->idColumn(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -723,9 +717,7 @@ loadModel() const
       if (! plot_->valueColumn().isValid())
         return true;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
       if (plot_->valueColumn().isGroup()) {
         int groupInd = plot_->rowGroupInd(valueModelInd);
@@ -922,9 +914,9 @@ createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is
 
 CQChartsPlotCustomControls *
 CQChartsBubblePlot::
-createCustomControls()
+createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsBubbleCustomControls;
+  auto *controls = new CQChartsBubbleCustomControls(charts);
 
   controls->setPlot(this);
 
@@ -1577,8 +1569,8 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 //------
 
 CQChartsBubbleCustomControls::
-CQChartsBubbleCustomControls(QWidget *widget) :
- CQChartsGroupPlotCustomControls(widget)
+CQChartsBubbleCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts)
 {
   addGroupColumnWidgets();
   addColorColumnWidgets();

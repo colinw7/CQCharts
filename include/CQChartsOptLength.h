@@ -10,7 +10,9 @@
  * \brief Optional length
  * \ingroup Charts
  */
-class CQChartsOptLength {
+class CQChartsOptLength :
+  public CQChartsEqBase<CQChartsOptLength>,
+  public CQChartsPrintBase<CQChartsOptLength> {
  public:
   static void registerMetaType();
 
@@ -80,10 +82,6 @@ class CQChartsOptLength {
     return true;
   }
 
-  friend bool operator!=(const CQChartsOptLength &lhs, const CQChartsOptLength &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
   //---
 
   void print(std::ostream &os) const {
@@ -91,12 +89,6 @@ class CQChartsOptLength {
       os << "<unset>";
     else
       os << *value_;
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsOptLength &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

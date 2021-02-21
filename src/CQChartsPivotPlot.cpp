@@ -489,7 +489,8 @@ calcExtraFitBBox() const
 
   auto position = dataLabel()->position();
 
-  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
+  if (position != CQChartsDataLabel::Position::TOP_OUTSIDE &&
+      position != CQChartsDataLabel::Position::BOTTOM_OUTSIDE)
     return bbox;
 
   if (dataLabel()->isVisible()) {

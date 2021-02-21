@@ -27,7 +27,7 @@ class CQChartsPaletteNameEdit : public QFrame {
   const CQChartsPaletteName &paletteName() const;
   void setPaletteName(const CQChartsPaletteName &name);
 
-  //! convenience functio to set charts and palette name
+  //! convenience function to set charts and palette name
   void setChartsPaletteName(CQCharts *charts, const CQChartsPaletteName &name);
 
  private:

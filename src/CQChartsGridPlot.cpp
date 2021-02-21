@@ -215,12 +215,10 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsGridPlot *>(plot_);
-
       int row = data.row/std::max(nx_, 1);
 
       if (plot_->rowColumn().isValid()) {
-        ModelIndex rowModelInd(plot, data.row, plot_->rowColumn(), data.parent);
+        ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
 
         bool ok1;
         row = plot_->modelInteger(rowModelInd, ok1);
@@ -233,7 +231,7 @@ calcRange() const
       int column = data.row % std::max(nx_, 1);
 
       if (plot_->columnColumn().isValid()) {
-        ModelIndex columnModelInd(plot, data.row, plot_->columnColumn(), data.parent);
+        ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
 
         bool ok2;
         column = plot_->modelInteger(columnModelInd, ok2);
@@ -244,7 +242,7 @@ calcRange() const
       }
 
       for (int i = 0; i < plot_->valueColumns().count(); ++i) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumns().getColumn(i), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumns().getColumn(i), data.parent);
 
         bool ok4;
         auto value = plot_->modelReal(valueModelInd, ok4);
@@ -310,11 +308,7 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsGridPlot *>(plot_);
-
-      //---
-
-      ModelIndex nameModelInd(plot, data.row, plot_->nameColumn(), data.parent);
+      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumn(), data.parent);
 
       bool ok1;
       auto name = plot_->modelString(nameModelInd, ok1);
@@ -325,7 +319,7 @@ createObjs(PlotObjs &objs) const
       QString label;
 
       if (plot_->labelColumn().isValid()) {
-        ModelIndex labelModelInd(plot, data.row, plot_->labelColumn(), data.parent);
+        ModelIndex labelModelInd(plot_, data.row, plot_->labelColumn(), data.parent);
 
         bool ok1;
         label = plot_->modelString(labelModelInd, ok1);
@@ -336,7 +330,7 @@ createObjs(PlotObjs &objs) const
       int row = data.row/std::max(nx_, 1);
 
       if (plot_->rowColumn().isValid()) {
-        ModelIndex rowModelInd(plot, data.row, plot_->rowColumn(), data.parent);
+        ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
 
         bool ok2;
         row = plot_->modelInteger(rowModelInd, ok2);
@@ -351,7 +345,7 @@ createObjs(PlotObjs &objs) const
       int column = data.row % std::max(nx_, 1);
 
       if (plot_->columnColumn().isValid()) {
-        ModelIndex columnModelInd(plot, data.row, plot_->columnColumn(), data.parent);
+        ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
 
         bool ok3;
         column = plot_->modelInteger(columnModelInd, ok3);
@@ -368,7 +362,7 @@ createObjs(PlotObjs &objs) const
       Values values;
 
       for (int i = 0; i < plot_->valueColumns().count(); ++i) {
-        ModelIndex valueModelInd(plot, data.row, plot_->valueColumns().getColumn(i), data.parent);
+        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumns().getColumn(i), data.parent);
 
         bool ok4;
         auto value = plot_->modelReal(valueModelInd, ok4);

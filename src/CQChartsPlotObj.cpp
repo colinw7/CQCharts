@@ -175,9 +175,12 @@ isSelectIndices(const Indices &indices) const
   getSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    auto ind2 = plot()->normalizeIndex(ind1);
+    //auto ind2 = plot()->normalizeIndex(ind1);
 
-    if (indices.find(ind2) != indices.end())
+    //if (indices.find(ind2) != indices.end())
+    //  return true;
+
+    if (indices.find(ind1) != indices.end())
       return true;
   }
 
@@ -195,9 +198,12 @@ isSelectIndex(const QModelIndex &ind) const
   getSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    auto ind2 = plot()->normalizeIndex(ind1);
+    //auto ind2 = plot()->normalizeIndex(ind1);
 
-    if (ind == ind2)
+    //if (ind == ind2)
+    //  return true;
+
+    if (ind == ind1)
       return true;
   }
 
@@ -215,9 +221,11 @@ getNormalizedSelectIndices(Indices &indices) const
   getSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    auto ind2 = plot()->normalizeIndex(ind1);
+    //auto ind2 = plot()->normalizeIndex(ind1);
 
-    indices.insert(ind2);
+    //indices.insert(ind2);
+
+    indices.insert(ind1);
   }
 }
 
@@ -235,7 +243,7 @@ addSelectIndices(Plot *plot)
     plot->addSelectIndex(ind);
 }
 
-// get object select indices (non-normalized) from object's columns
+// get object select indices (normalized) from object's columns
 void
 CQChartsPlotObj::
 getSelectIndices(Indices &inds) const

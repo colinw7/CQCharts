@@ -306,10 +306,8 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
-
-      ModelIndex xInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
@@ -414,10 +412,8 @@ createObjs(PlotObjs &objs) const
     const RMinMax &valueRange() const { return valueRange_; }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
-
-      ModelIndex xInd(plot, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
@@ -432,7 +428,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      ModelIndex valueInd(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
       bool ok3;
 
@@ -754,9 +750,7 @@ calcId() const
   QString name1;
 
   if (plot_->nameColumn().isValid()) {
-    auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
-
-    ModelIndex nameInd(plot, modelInd().row(), plot_->nameColumn(), modelInd().parent());
+    ModelIndex nameInd(plot_, modelInd().row(), plot_->nameColumn(), modelInd().parent());
 
     bool ok;
     name1 = plot_->modelString(nameInd, ok);
@@ -777,9 +771,7 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (plot_->nameColumn().isValid()) {
-    auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
-
-    ModelIndex nameInd(plot, modelInd().row(), plot_->nameColumn(), modelInd().parent());
+    ModelIndex nameInd(plot_, modelInd().row(), plot_->nameColumn(), modelInd().parent());
 
     bool ok;
     auto name = plot_->modelString(nameInd, ok);

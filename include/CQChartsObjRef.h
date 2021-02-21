@@ -10,7 +10,9 @@
  * \brief ObjRef class
  * ingroup Charts
  */
-class CQChartsObjRef {
+class CQChartsObjRef :
+  public CQChartsEqBase<CQChartsObjRef>,
+  public CQChartsToStringBase<CQChartsObjRef> {
  public:
   enum class Location {
     CENTER,
@@ -59,22 +61,6 @@ class CQChartsObjRef {
   friend bool operator==(const CQChartsObjRef &lhs, const CQChartsObjRef &rhs) {
     if (lhs.name_ != rhs.name_) return false;
     return true;
-  }
-
-  friend bool operator!=(const CQChartsObjRef &lhs, const CQChartsObjRef &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsObjRef &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

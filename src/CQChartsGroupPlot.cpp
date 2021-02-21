@@ -5,7 +5,11 @@
 #include <CQChartsColumnCombo.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQTabSplit.h>
 #include <CQPerfMonitor.h>
+
+#include <QGridLayout>
+#include <QLabel>
 
 CQChartsGroupPlotType::
 CQChartsGroupPlotType() :
@@ -734,8 +738,8 @@ printGroup() const
 //------
 
 CQChartsGroupPlotCustomControls::
-CQChartsGroupPlotCustomControls(QWidget *widget) :
- CQChartsPlotCustomControls(widget)
+CQChartsGroupPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts)
 {
 }
 
@@ -743,11 +747,28 @@ void
 CQChartsGroupPlotCustomControls::
 addGroupColumnWidgets()
 {
+  // group group
+  auto *groupFrame  = CQUtil::makeWidget<QFrame>("groupFrame");
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupFrame, 2, 2);
+
+  int groupRow = 0;
+
+  auto addGroupWidget = [&](const QString &label, QWidget *w) {
+    groupLayout->addWidget(new QLabel(label), groupRow, 0);
+    groupLayout->addWidget(w                , groupRow, 1); ++groupRow;
+  };
+
+  //---
+
   groupColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("groupColumnCombo");
+
+  addGroupWidget("Column", groupColumnCombo_);
 
   connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
 
-  makeLabelWidget("Group", groupColumnCombo_);
+  //---
+
+  split_->addWidget(groupFrame, "Group");
 }
 
 void

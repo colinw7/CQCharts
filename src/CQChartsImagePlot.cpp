@@ -265,10 +265,8 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<Plot *>(plot_);
-
       for (int col = 0; col < numCols(); ++col) {
-        ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
+        ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
 
         if (columnTypes_[col] == CQBaseModelType::IMAGE) {
           valueRange_.add(0.0);
@@ -362,12 +360,10 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<Plot *>(plot_);
-
       x_ = 0.0;
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        ModelIndex columnModelInd(plot, data.row, Column(ic), data.parent);
+        ModelIndex columnModelInd(plot_, data.row, Column(ic), data.parent);
 
         auto ind = plot_->modelIndex(columnModelInd);
 

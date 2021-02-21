@@ -24,16 +24,16 @@ class CQChartsModelIndex {
  public:
   CQChartsModelIndex() = default;
 
-  //CQChartsModelIndex(int row, const Column &column,
-  //                   const QModelIndex &parent=QModelIndex());
+//CQChartsModelIndex(int row, const Column &column,
+//                   const QModelIndex &parent=QModelIndex());
 
-  CQChartsModelIndex(Plot *plot, int row, const Column &column,
-                     const QModelIndex &parent=QModelIndex());
+  CQChartsModelIndex(const Plot *plot, int row, const Column &column,
+                     const QModelIndex &parent=QModelIndex(), bool normalized=false);
 
   //---
 
   const Plot *plot() const { return plot_; }
-  void setPlot(Plot *p) { plot_ = p; }
+  void setPlot(const Plot *p) { plot_ = p; }
 
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
@@ -58,8 +58,12 @@ class CQChartsModelIndex {
 
   bool fromString(const QString &s);
 
+  //---
+
+  QString id() const;
+
  private:
-  Plot*       plot_       { nullptr };
+  const Plot* plot_       { nullptr };
   int         row_        { -1 };
   Column      column_;
   QModelIndex parent_;

@@ -988,7 +988,7 @@ valueStr(const Plot *plot, double pos) const
 
       QModelIndex parent; // TODO: support parent
 
-      ModelIndex columnInd(const_cast<Plot *>(plot), row, column(), parent);
+      ModelIndex columnInd(plot, row, column(), parent);
 
       bool ok;
 

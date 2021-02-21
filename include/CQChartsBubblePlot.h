@@ -145,9 +145,13 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   //! get is placed
   virtual bool placed() const { return placed_; }
 
+  //---
+
   //! sort by radius
   friend bool operator<(const Node &n1, const Node &n2) { return n1.r_ < n2.r_; }
   friend bool operator>(const Node &n1, const Node &n2) { return n1.r_ > n2.r_; }
+
+  //---
 
   //! interp color
   virtual QColor interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd,
@@ -599,7 +603,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
                                  const BBox &rect, const ColorInd &is) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls() override;
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  protected:
   struct PlaceData {
@@ -651,7 +655,7 @@ class CQChartsBubbleCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsBubbleCustomControls(QWidget *widget=nullptr);
+  CQChartsBubbleCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 

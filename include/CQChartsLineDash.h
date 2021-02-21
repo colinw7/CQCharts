@@ -1,6 +1,7 @@
 #ifndef CQChartsLineDash_H
 #define CQChartsLineDash_H
 
+#include <CQChartsTmpl.h>
 #include <CLineDash.h>
 #include <QVector>
 
@@ -13,7 +14,9 @@
  * \brief line dash
  * \ingroup Charts
  */
-class CQChartsLineDash {
+class CQChartsLineDash :
+  public CQChartsEqBase<CQChartsLineDash>,
+  public CQChartsToStringBase<CQChartsLineDash> {
  public:
   using QLengths = QVector<qreal>;
   using Lengths  = std::vector<double>;
@@ -40,11 +43,15 @@ class CQChartsLineDash {
 
   CQChartsLineDash &operator=(const CQChartsLineDash &dash);
 
-  bool operator==(const CQChartsLineDash &dash) const;
+  //---
 
-  bool operator!=(const CQChartsLineDash &dash) const {
-    return ! operator==(dash);
+  friend bool operator==(const CQChartsLineDash &lhs, const CQChartsLineDash &rhs) {
+    return lhs.operator==(rhs);
   }
+
+  bool operator==(const CQChartsLineDash &d) const;
+
+  //---
 
   void scale(double factor);
 
@@ -68,17 +75,15 @@ class CQChartsLineDash {
 
   CLineDash lineDash() const;
 
+  //---
+
   QString toString() const;
 
   bool fromString(const QString &str);
 
+  //---
+
   bool isValid() const { return true; }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsLineDash &dash) {
-    os << dash.toString().toStdString();
-
-    return os;
-  }
 
  private:
   void init(const Lengths &lengths, double offset);

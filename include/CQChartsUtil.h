@@ -23,6 +23,14 @@ class CQStrParse;
 
 namespace CQChartsUtil {
 
+enum class TriState {
+  FALSE,
+  TRUE,
+  UNKNOWN
+};
+
+//---
+
 using BBox  = CQChartsGeom::BBox;
 using Range = CQChartsGeom::Range;
 

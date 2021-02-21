@@ -618,19 +618,17 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      auto *plot = const_cast<Plot *>(plot_);
-
       bool ok;
 
       if (plot_->nameColumns().column().isValid()) {
-        ModelIndex nameColumnInd(plot, data.row, plot_->nameColumns().column(), data.parent);
+        ModelIndex nameColumnInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
 
         nameInd = plot_->modelIndex(nameColumnInd);
 
         name = plot_->modelString(nameColumnInd, ok);
       }
       else {
-        ModelIndex idColumnInd(plot, data.row, plot_->idColumn(), data.parent);
+        ModelIndex idColumnInd(plot_, data.row, plot_->idColumn(), data.parent);
 
         nameInd = plot_->modelIndex(idColumnInd);
 
@@ -646,9 +644,7 @@ loadHier() const
       if (! plot_->valueColumn().isValid())
         return true;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
       if (! plot_->getValueSize(valueModelInd, size))
         return false;
@@ -768,9 +764,7 @@ loadFlat() const
       if (! plot_->valueColumn().isValid())
         return true;
 
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
       if (! plot_->getValueSize(valueModelInd, size))
         return false;

@@ -318,12 +318,12 @@ analyzeModelData(const CQChartsPlotType *type)
 
 void
 CQChartsAnalyzeModel::
-print() const
+print(std::ostream &os) const
 {
   for (const auto &tnc : typeAnalyzeModelData_) {
     const auto &typeName = tnc.first;
 
-    std::cerr << typeName.toStdString() << "\n";
+    os << typeName.toStdString() << "\n";
 
     const auto &analyzeModelData = tnc.second;
 
@@ -331,10 +331,10 @@ print() const
       const auto &name   = nc.first;
       const auto &column = nc.second;
 
-      std::cerr << " " << name.toStdString() << "=" << column.column();
+      os << " " << name.toStdString() << "=" << column.column();
     }
 
-    std::cerr << "\n";
+    os << "\n";
   }
 }
 
@@ -353,9 +353,9 @@ initPlot(CQChartsPlot *plot)
     const auto &paramName = nc.first;
     const auto &column    = nc.second;
 
-    const auto &param = type->getParameter(paramName);
+    const auto *param = type->getParameter(paramName);
 
-    auto propPath = param.propPath();
+    auto propPath = param->propPath();
 
     if (! propPath.length())
       std::cerr << "No property path for parameter '" << paramName.toStdString() <<

@@ -1,6 +1,7 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
 
 CQChartsColumnCombo::
 CQChartsColumnCombo(QWidget *parent) :
@@ -10,8 +11,7 @@ CQChartsColumnCombo(QWidget *parent) :
 
   setToolTip("Column Name");
 
-  connect(this, SIGNAL(currentIndexChanged(int)),
-          this, SIGNAL(columnChanged()));
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SIGNAL(columnChanged()));
 
   setModelData(nullptr);
 }
@@ -32,6 +32,11 @@ CQChartsColumn
 CQChartsColumnCombo::
 getColumn() const
 {
+  CQChartsColumn c;
+
+  if (! modelData_)
+    return c;
+
   auto var = itemData(currentIndex());
 
   bool ok;
@@ -41,13 +46,17 @@ getColumn() const
   if (icolumn < 0)
     icolumn = -1;
 
-  return CQChartsColumn(int(icolumn));
+  c = CQChartsColumn(int(icolumn));
+
+  return c;
 }
 
 void
 CQChartsColumnCombo::
 setColumn(const CQChartsColumn &column)
 {
+  assert(modelData_);
+
   int icolumn = column.column();
 
   int ind = findData(QVariant(icolumn));
@@ -60,26 +69,34 @@ setColumn(const CQChartsColumn &column)
 
 void
 CQChartsColumnCombo::
-setModelData(CQChartsModelData *modelData)
+setModelData(const CQChartsModelData *modelData)
 {
   if (modelData == modelData_)
     return;
 
-  if (modelData_) {
-    disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateItems()));
-    disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(updateItems()));
-    disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
-  }
+  connectSlots(false);
 
   modelData_ = modelData;
 
-  if (modelData_) {
-    connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateItems()));
-    connect(modelData_, SIGNAL(modelChanged()), this, SLOT(updateItems()));
-    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
-  }
+  connectSlots(true);
 
   updateItems();
+}
+
+void
+CQChartsColumnCombo::
+connectSlots(bool b)
+{
+  if (modelData_) {
+    auto *modelData = const_cast<CQChartsModelData *>(modelData_);
+
+    CQChartsWidgetUtil::connectDisconnect(b,
+      modelData, SIGNAL(dataChanged()), this, SLOT(updateItems()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      modelData, SIGNAL(modelChanged()), this, SLOT(updateItems()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      modelData, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
+  }
 }
 
 void

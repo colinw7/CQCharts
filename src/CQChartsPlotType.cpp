@@ -157,17 +157,17 @@ hasParameter(const QString &name) const
   return false;
 }
 
-const CQChartsPlotParameter &
+const CQChartsPlotParameter *
 CQChartsPlotType::
 getParameter(const QString &name) const
 {
   for (auto &parameter : parameters_)
     if (parameter->name() == name)
-      return *parameter;
+      return parameter;
 
   assert(false);
 
-  return *parameters_[0];
+  return nullptr;
 }
 
 CQChartsPlotType::Parameters

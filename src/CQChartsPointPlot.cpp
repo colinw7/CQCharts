@@ -9,9 +9,19 @@
 #include <CQChartsGrahamHull.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
+#include <CQChartsColumnCombo.h>
+#include <CQChartsSymbolEdit.h>
+#include <CQChartsSymbolSetEdit.h>
+#include <CQChartsLengthEdit.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQTabSplit.h>
+#include <CQDoubleRangeSlider.h>
+#include <CQIntRangeSlider.h>
+
+#include <QLabel>
+#include <QGridLayout>
 
 CQChartsPointPlotType::
 CQChartsPointPlotType() :
@@ -313,7 +323,9 @@ void
 CQChartsPointPlot::
 setSymbolTypeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
+    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+  } );
 }
 
 bool
@@ -327,7 +339,9 @@ void
 CQChartsPointPlot::
 setSymbolTypeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() {
+    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+  } );
 }
 
 int
@@ -341,7 +355,9 @@ void
 CQChartsPointPlot::
 setSymbolTypeMapMin(int i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() {
+    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+  } );
 }
 
 int
@@ -355,7 +371,39 @@ void
 CQChartsPointPlot::
 setSymbolTypeMapMax(int i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() {
+    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+  } );
+}
+
+const QString &
+CQChartsPointPlot::
+symbolTypeSetName() const
+{
+  return symbolTypeData_.setName;
+}
+
+void
+CQChartsPointPlot::
+setSymbolTypeSetName(const QString &name)
+{
+  CQChartsUtil::testAndSet(symbolTypeData_.setName, name, [&]() {
+    auto *symbolSetMgr = charts()->symbolSetMgr();
+    auto *symbolSet    = symbolSetMgr->symbolSet(name);
+
+    if (symbolSet) {
+      setSymbolTypeMapMin(0);
+      setSymbolTypeMapMax(symbolSet->numSymbols() - 1);
+    }
+    else {
+      setSymbolTypeMapMin(CQChartsSymbol::minFillValue());
+      setSymbolTypeMapMax(CQChartsSymbol::maxFillValue());
+    }
+
+    updateObjs();
+
+    emit symbolTypeDetailsChanged();
+  } );
 }
 
 //---
@@ -371,7 +419,9 @@ void
 CQChartsPointPlot::
 setSymbolSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
 }
 
 bool
@@ -385,7 +435,9 @@ void
 CQChartsPointPlot::
 setSymbolSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
 }
 
 double
@@ -399,7 +451,9 @@ void
 CQChartsPointPlot::
 setSymbolSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
 }
 
 double
@@ -413,7 +467,9 @@ void
 CQChartsPointPlot::
 setSymbolSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
 }
 
 const QString &
@@ -427,7 +483,9 @@ void
 CQChartsPointPlot::
 setSymbolSizeMapUnits(const QString &s)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
 }
 
 //---
@@ -515,9 +573,10 @@ initSymbolTypeData() const
 
 bool
 CQChartsPointPlot::
-columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const
+columnSymbolType(int row, const QModelIndex &parent,
+                 CQChartsSymbol &symbolType, OptBool &symbolFilled) const
 {
-  return CQChartsPlot::columnSymbolType(row, parent, symbolTypeData_, symbolType);
+  return CQChartsPlot::columnSymbolType(row, parent, symbolTypeData_, symbolType, symbolFilled);
 }
 
 //------
@@ -574,18 +633,43 @@ setPointLabels(bool b)
   }
 }
 
+CQChartsLabelPosition
+CQChartsPointPlot::
+dataLabelPosition() const
+{
+  return (CQChartsLabelPosition) dataLabel()->position();
+}
+
 void
 CQChartsPointPlot::
-setDataLabelFont(const CQChartsFont &font)
+setDataLabelPosition(CQChartsLabelPosition position)
 {
-  NoUpdate noUpdate(this);
+  dataLabel()->setPosition((CQChartsDataLabel::Position) position);
+}
 
+CQChartsFont
+CQChartsPointPlot::
+dataLabelFont() const
+{
+  return dataLabel()->textFont();
+}
+
+void
+CQChartsPointPlot::
+setDataLabelFont(const CQChartsFont &font, bool notify)
+{
   auto *dataLabel = this->dataLabel();
 
-  CQChartsWidgetUtil::AutoDisconnect dataChangeDisconnect(
-    dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  if (! notify) {
+    NoUpdate noUpdate(this);
 
-  dataLabel->setTextFont(font);
+    CQChartsWidgetUtil::AutoDisconnect dataChangeDisconnect(
+      dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+
+    dataLabel->setTextFont(font);
+  }
+  else
+    dataLabel->setTextFont(font);
 }
 
 //---
@@ -1227,4 +1311,261 @@ getHull() const
   }
 
   return hull;
+}
+
+//------
+
+CQChartsPointPlotCustomControls::
+CQChartsPointPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts)
+{
+}
+
+void
+CQChartsPointPlotCustomControls::
+addSymbolSizeWidgets()
+{
+  // symbol size group
+  auto *symbolSizeFrame  = CQUtil::makeWidget<QFrame>("symbolSizeFrame");
+  auto *symbolSizeLayout = CQUtil::makeLayout<QGridLayout>(symbolSizeFrame, 2, 2);
+
+  int symbolSizeRow = 0;
+
+  auto addSymbolSizeWidget = [&](const QString &label, QWidget *w) {
+    symbolSizeLayout->addWidget(new QLabel(label), symbolSizeRow, 0);
+    symbolSizeLayout->addWidget(w                , symbolSizeRow, 1); ++symbolSizeRow;
+  };
+
+  //---
+
+  // symbol size widgets
+  symbolSizeLengthEdit_  = CQUtil::makeWidget<CQChartsLengthEdit>("symbolSizeLengthEdit");
+  symbolSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolSizeColumnCombo");
+  symbolSizeRange_       = CQUtil::makeWidget<CQDoubleRangeSlider>("symbolSizeRange");
+
+  addSymbolSizeWidget("Size"  , symbolSizeLengthEdit_);
+  addSymbolSizeWidget("Column", symbolSizeColumnCombo_);
+  addSymbolSizeWidget("Range" , symbolSizeRange_);
+
+  //---
+
+  split_->addWidget(symbolSizeFrame, "Symbol Size");
+
+  //---
+
+  // symbol type group
+  auto *symbolTypeFrame  = CQUtil::makeWidget<QFrame>("symbolTypeFrame");
+  auto *symbolTypeLayout = CQUtil::makeLayout<QGridLayout>(symbolTypeFrame, 2, 2);
+
+  int symbolTypeRow = 0;
+
+  auto addSymbolTypeWidget = [&](const QString &label, QWidget *w) {
+    symbolTypeLayout->addWidget(new QLabel(label), symbolTypeRow, 0);
+    symbolTypeLayout->addWidget(w                , symbolTypeRow, 1); ++symbolTypeRow;
+  };
+
+  //---
+
+  // symbol type widget
+  symbolTypeEdit_        = CQUtil::makeWidget<CQChartsSymbolEdit>("symbolTypeEdit");
+  symbolTypeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolTypeColumnCombo");
+  symbolTypeRange_       = CQUtil::makeWidget<CQIntRangeSlider>("symbolTypeRange");
+  symbolTypeSetEdit_     = CQUtil::makeWidget<CQChartsSymbolSetEdit>("symbolSetEdit");
+
+  symbolTypeSetEdit_->setCharts(charts_);
+
+  addSymbolTypeWidget("Type"  , symbolTypeEdit_);
+  addSymbolTypeWidget("Column", symbolTypeColumnCombo_);
+  addSymbolTypeWidget("Range" , symbolTypeRange_);
+  addSymbolTypeWidget("Set"   , symbolTypeSetEdit_);
+
+  //---
+
+  split_->addWidget(symbolTypeFrame, "Symbol Type");
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsPointPlotCustomControls::
+connectSlots(bool b)
+{
+  if (plot_) {
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
+  }
+
+  if (symbolSizeLengthEdit_) {
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolSizeLengthEdit_, SIGNAL(lengthChanged()), this, SLOT(symbolSizeLengthSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(symbolSizeColumnSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
+      this, SLOT(symbolSizeRangeSlot(double, double)));
+  }
+
+  if (symbolTypeEdit_) {
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolTypeEdit_, SIGNAL(symbolChanged()), this, SLOT(symbolTypeSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolTypeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(symbolTypeColumnSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolTypeRange_, SIGNAL(sliderRangeChanged(int, int)),
+      this, SLOT(symbolTypeRangeSlot(int, int)));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolTypeSetEdit_, SIGNAL(setChanged(const QString &)),
+      this, SLOT(symbolTypeSetSlot(const QString &)));
+  }
+}
+
+void
+CQChartsPointPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  if (plot_) {
+    disconnect(plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
+    disconnect(plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
+  }
+
+  plot_ = dynamic_cast<CQChartsPointPlot *>(plot);
+
+  if (plot_) {
+    connect(plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
+    connect(plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
+  }
+
+  updateWidgets();
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolSizeDetailsSlot()
+{
+  // plot symbol size details changed
+  updateWidgets();
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolTypeDetailsSlot()
+{
+  // plot symbol type details changed
+  updateWidgets();
+}
+
+void
+CQChartsPointPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  if (symbolSizeLengthEdit_) {
+    auto hasColumn = symbolSizeColumnCombo_->getColumn().isValid();
+
+    symbolSizeLengthEdit_->setEnabled(! hasColumn);
+    symbolSizeRange_     ->setEnabled(hasColumn);
+
+    symbolSizeLengthEdit_->setLength(plot_->fixedSymbolSize());
+
+    symbolSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolSizeColumn());
+
+    symbolSizeRange_->setRangeMinMax(CQChartsSymbolSize::minValue(),
+                                     CQChartsSymbolSize::maxValue());
+    symbolSizeRange_->setSliderMinMax(plot_->symbolSizeMapMin(), plot_->symbolSizeMapMax());
+  }
+
+  if (symbolTypeEdit_) {
+    auto hasColumn = symbolTypeColumnCombo_->getColumn().isValid();
+
+    symbolTypeEdit_   ->setEnabled(! hasColumn);
+    symbolTypeRange_  ->setEnabled(hasColumn);
+    symbolTypeSetEdit_->setEnabled(hasColumn);
+
+    symbolTypeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolTypeColumn());
+
+    auto *symbolSetMgr = charts_->symbolSetMgr();
+    auto *symbolSet    = symbolSetMgr->symbolSet(plot_->symbolTypeSetName());
+
+    symbolTypeSetEdit_->setSymbolSetName(symbolSet ? symbolSet->name() : "");
+
+    int typeVal1 = (symbolSet ?                           0 : CQChartsSymbol::minOutlineValue());
+    int typeVal2 = (symbolSet ? symbolSet->numSymbols() - 1 : CQChartsSymbol::maxOutlineValue());
+
+    symbolTypeRange_->setRangeMinMax(typeVal1, typeVal2);
+    symbolTypeRange_->setSliderMinMax(plot_->symbolTypeMapMin(), plot_->symbolTypeMapMax());
+
+    symbolTypeRange_->fixSliderValues();
+  }
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolSizeByColumnSlot()
+{
+  updateWidgets();
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolSizeLengthSlot()
+{
+  plot_->setFixedSymbolSize(symbolSizeLengthEdit_->length());
+
+  // TODO: need plot signal
+  updateWidgets();
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolSizeColumnSlot()
+{
+  plot_->setSymbolSizeColumn(symbolSizeColumnCombo_->getColumn());
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolSizeRangeSlot(double min, double max)
+{
+  plot_->setSymbolSizeMapMin(min);
+  plot_->setSymbolSizeMapMax(max);
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolTypeSlot()
+{
+  plot_->setFixedSymbolType(symbolTypeEdit_->symbol());
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolTypeColumnSlot()
+{
+  plot_->setSymbolTypeColumn(symbolTypeColumnCombo_->getColumn());
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolTypeRangeSlot(int min, int max)
+{
+  plot_->setSymbolTypeMapMin(min);
+  plot_->setSymbolTypeMapMax(max);
+}
+
+void
+CQChartsPointPlotCustomControls::
+symbolTypeSetSlot(const QString &name)
+{
+  plot_->setSymbolTypeSetName(name);
 }

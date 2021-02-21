@@ -738,13 +738,11 @@ initLinkConnectionObjs() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
-
       // Get group value
       int group = data.row;
 
       if (plot_->groupColumn().isValid()) {
-        ModelIndex groupModelInd(plot, data.row, plot_->groupColumn(), data.parent);
+        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
 
         bool ok1;
         group = (int) plot_->modelInteger(groupModelInd, ok1);

@@ -26,6 +26,8 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPaletteNameEdit.h>
+#include <CQChartsSymbolSet.h>
+#include <CQChartsColorEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
@@ -45,6 +47,8 @@
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 #include <CQDoubleRangeSlider.h>
+#include <CQGroupBox.h>
+#include <CQTabSplit.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
 
@@ -53,7 +57,7 @@
 
 #include <QApplication>
 #include <QItemSelectionModel>
-#include <QSortFilterProxyModel>
+#include <QAbstractProxyModel>
 #include <QTextBrowser>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -7912,7 +7916,7 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
 bool
 CQChartsPlot::
 columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
-                 Symbol &symbolType) const
+                 Symbol &symbolType, OptBool &symbolFilled) const
 {
   if (! symbolTypeData.valid)
     return false;
@@ -7926,21 +7930,59 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   auto var = modelValue(symbolTypeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
+  auto uniqueInd = [&]() {
+    int i = 0, n = 1;
+
+    // use index of value in unique values to generate value in range
+    // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+    auto *columnDetails = this->columnDetails(symbolTypeData.column);
+
+    if (columnDetails) {
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorType::userData
+      // TODO: use map min/max
+      n = columnDetails->numUnique();
+      i = columnDetails->valueInd(var);
+    }
+
+    return std::pair<int, int>(i, n);
+  };
+
+  auto *symbolSetMgr = charts()->symbolSetMgr();
+  auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName);
+
+  auto interpInd = [&](int i) {
+    if (symbolSet) {
+      const auto &symbolData = symbolSet->interpI(i);
+
+      symbolType   = symbolData.symbol;
+      symbolFilled = symbolData.filled;
+    }
+    else
+      symbolType = Symbol::interpOutline(i);
+  };
+
+  auto mapData = [&](int i, int imin, int imax) {
+    // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
+    return (int) CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max);
+  };
+
   if (CQChartsVariant::isNumeric(var)) {
     int i = (int) CQChartsVariant::toInt(var, ok);
     if (! ok) return false;
 
     if (symbolTypeData.mapped) {
-      // map value in range (symbolTypeData.data_min, symbolTypeData.data_max) to
-      // (symbolTypeData.map_min, symbolTypeData.map_max)
-      int i1 = (int) CMathUtil::map(i, symbolTypeData.data_min, symbolTypeData.data_max,
-                                    symbolTypeData.map_min, symbolTypeData.map_max);
-
-      symbolType = Symbol::outlineFromInt(i1);
+      interpInd(mapData(i, symbolTypeData.data_min, symbolTypeData.data_max));
     }
     else {
       // use value directly for type
-      symbolType = Symbol::outlineFromInt(i);
+      if (symbolSet) {
+        auto ind = uniqueInd();
+
+        interpInd(mapData(ind.first, 0, ind.second - 1));
+      }
+      else
+        interpInd(i);
     }
   }
   else if (CQChartsVariant::isSymbol(var)) {
@@ -7949,21 +7991,9 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   }
   else {
     if (symbolTypeData.mapped) {
-      // use index of value in unique values to generate value in range
-      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
-      auto *columnDetails = this->columnDetails(symbolTypeData.column);
-      if (! columnDetails) return false;
+      auto ind = uniqueInd();
 
-      // use unique index/count of edit values (which may have been converted)
-      // not same as CQChartsColumnColorType::userData
-      // TODO: use map min/max
-      int n = columnDetails->numUnique();
-      int i = columnDetails->valueInd(var);
-
-      int i1 = (int) CMathUtil::map(i, 0, n - 1,
-                                    symbolTypeData.map_min, symbolTypeData.map_max);
-
-      symbolType = Symbol::outlineFromInt(i1);
+      interpInd(mapData(ind.first, 0, ind.second - 1));
     }
     else {
       auto str = CQChartsVariant::toString(var, ok);
@@ -12540,7 +12570,7 @@ getObjectInds(const QString &objectId) const
   if (plotObj) {
     PlotObj::Indices inds1;
 
-    plotObj->getSelectIndices(inds1); // unnormalized
+    plotObj->getNormalizedSelectIndices(inds1); // normalized
 
     for (auto &ind1 : inds1)
       inds.push_back(ind1);
@@ -13534,6 +13564,24 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
 //------
 
+bool
+CQChartsPlot::
+isNormalizedIndex(const ModelIndex &ind) const
+{
+  assert(ind.plot() == this);
+
+  if (ind.parent().model()) {
+    ProxyModels         proxyModels;
+    QAbstractItemModel* sourceModel;
+
+    this->proxyModels(proxyModels, sourceModel);
+
+    return (ind.parent().model() == sourceModel);
+  }
+  else
+    return false; // default index (from plot model) should be unnormalized
+}
+
 CQChartsPlot::ModelIndex
 CQChartsPlot::
 normalizeIndex(const ModelIndex &ind) const
@@ -13586,10 +13634,12 @@ normalizeIndex(const QModelIndex &ind) const
   auto *model = this->model().data();
   assert(model);
 
-  std::vector<QSortFilterProxyModel *> proxyModels;
-  QAbstractItemModel*                  sourceModel;
+  ProxyModels         proxyModels;
+  QAbstractItemModel* sourceModel;
 
   this->proxyModels(proxyModels, sourceModel);
+
+  // assert(ind.model() != sourceModel); // TODO: assert
 
   auto ind1 = ind;
 
@@ -13614,10 +13664,12 @@ unnormalizeIndex(const QModelIndex &ind) const
   auto *model = this->model().data();
   assert(model);
 
-  std::vector<QSortFilterProxyModel *> proxyModels;
-  QAbstractItemModel*                  sourceModel;
+  ProxyModels         proxyModels;
+  QAbstractItemModel* sourceModel;
 
   this->proxyModels(proxyModels, sourceModel);
+
+  // assert(ind.model() == sourceModel); // TODO: assert
 
   auto ind1 = ind;
 
@@ -13638,8 +13690,8 @@ QAbstractItemModel *
 CQChartsPlot::
 sourceModel() const
 {
-  std::vector<QSortFilterProxyModel *> proxyModels;
-  QAbstractItemModel*                  sourceModel;
+  ProxyModels         proxyModels;
+  QAbstractItemModel* sourceModel;
 
   this->proxyModels(proxyModels, sourceModel);
 
@@ -13648,14 +13700,13 @@ sourceModel() const
 
 void
 CQChartsPlot::
-proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
-            QAbstractItemModel* &sourceModel) const
+proxyModels(ProxyModels &proxyModels, QAbstractItemModel* &sourceModel) const
 {
   // map index in source model (non-proxy model), to proxy model
   auto *model = this->model().data();
   assert(model);
 
-  auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(model);
 
   if (proxyModel) {
     while (proxyModel) {
@@ -13663,7 +13714,7 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
 
       sourceModel = proxyModel->sourceModel();
 
-      proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+      proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
     }
   }
   else
@@ -13692,9 +13743,7 @@ addColumnValues(const Column &column, ValueSet &valueSet) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<Plot *>(plot_);
-
-      ModelIndex columnInd(plot, data.row, column_, data.parent);
+      ModelIndex columnInd(plot_, data.row, column_, data.parent);
 
       bool ok;
 
@@ -13889,13 +13938,17 @@ modelIndex(int row, const Column &column, const QModelIndex &parent,
     auto *model = this->model().data();
     if (! model) return QModelIndex();
 
+    assert(! parent.model() || parent.model() == model);
+
     return model->index(row, column.column(), parent);
   }
   else {
-    std::vector<QSortFilterProxyModel *> proxyModels;
-    QAbstractItemModel*                  sourceModel;
+    ProxyModels         proxyModels;
+    QAbstractItemModel* sourceModel;
 
     this->proxyModels(proxyModels, sourceModel);
+
+    assert(! parent.model() || parent.model() == sourceModel);
 
     return sourceModel->index(row, column.column(), parent);
   }
@@ -14581,8 +14634,8 @@ selectIndex(int row, const Column &column, const QModelIndex &parent) const
   if (column.type() != Column::Type::DATA && column.type() != Column::Type::DATA_INDEX)
     return QModelIndex();
 
-  std::vector<QSortFilterProxyModel *> proxyModels;
-  QAbstractItemModel*                  sourceModel;
+  ProxyModels         proxyModels;
+  QAbstractItemModel* sourceModel;
 
   this->proxyModels(proxyModels, sourceModel);
 
@@ -15580,8 +15633,8 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 //------
 
 CQChartsPlotCustomControls::
-CQChartsPlotCustomControls(QWidget *widget) :
- QFrame(widget)
+CQChartsPlotCustomControls(CQCharts *charts) :
+ QFrame(nullptr), charts_(charts)
 {
   setObjectName("customControls");
 
@@ -15589,10 +15642,12 @@ CQChartsPlotCustomControls(QWidget *widget) :
 
   //---
 
-  widgetFrame_  = CQUtil::makeWidget<QFrame>("widgetFrame");
-  widgetLayout_ = CQUtil::makeLayout<QGridLayout>(widgetFrame_);
+  split_ = CQUtil::makeWidget<CQTabSplit>("split");
 
-  layout->addWidget(widgetFrame_);
+  split_->setOrientation(Qt::Vertical);
+  split_->setGrouped(true);
+
+  layout->addWidget(split_);
 
   //---
 
@@ -15605,56 +15660,73 @@ CQChartsPlotCustomControls(QWidget *widget) :
 
 void
 CQChartsPlotCustomControls::
-addColorColumnWidgets()
+addColorColumnWidgets(const QString &title)
 {
+  // color group
+  auto *colorFrame  = CQUtil::makeWidget<QFrame>("colorGroup");
+  auto *colorLayout = CQUtil::makeLayout<QGridLayout>(colorFrame, 2, 2);
+
+  int colorRow = 0;
+
+  auto addColorWidget = [&](const QString &label, QWidget *w) {
+    colorLayout->addWidget(new QLabel(label), colorRow, 0);
+    colorLayout->addWidget(w                , colorRow, 1); ++colorRow;
+  };
+
+  //---
+
+  colorEdit_        = CQUtil::makeWidget<CQChartsColorLineEdit>("colorEdit_");
   colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
-
-  connect(colorColumnCombo_, SIGNAL(columnChanged()), this, SLOT(colorColumnSlot()));
-
-  makeLabelWidget("Color", colorColumnCombo_);
-
-  //---
-
-  colorRange_ = CQUtil::makeWidget<CQDoubleRangeSlider>("colorRange");
-
-  connect(colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
-
-  makeLabelWidget("Color Range", colorRange_);
-
-  //---
-
+  colorRange_       = CQUtil::makeWidget<CQDoubleRangeSlider>("colorRange");
   colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
 
-  connect(colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
+  addColorWidget("Color"  , colorEdit_);
+  addColorWidget("Column" , colorColumnCombo_);
+  addColorWidget("Range"  , colorRange_);
+  addColorWidget("Palette", colorPaletteEdit_);
 
-  makeLabelWidget("Color Palette", colorPaletteEdit_);
+  //---
+
+  split_->addWidget(colorFrame, title);
+
+  //---
+
+  connectSlots(true);
 }
 
 void
 CQChartsPlotCustomControls::
-makeLabelWidget(const QString &label, QWidget *w)
+connectSlots(bool b)
 {
-  widgetLayout_->addWidget(new QLabel(label), row_, 0);
-  widgetLayout_->addWidget(w                , row_, 1); ++row_;
+  if (plot_)
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+
+  if (colorEdit_) {
+    CQChartsWidgetUtil::connectDisconnect(b,
+      colorEdit_, SIGNAL(colorChanged()), this, SLOT(colorSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      colorColumnCombo_, SIGNAL(columnChanged()), this, SLOT(colorColumnSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
+  }
 }
 
 void
 CQChartsPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  auto *plot1 = plot_;
+  if (plot_)
+    disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
 
   plot_ = plot;
 
-  if (colorColumnCombo_) {
-    if (plot1)
-      disconnect(plot1, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+  if (plot_)
+    connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
 
-    updateColorDetails();
-
-    if (plot_)
-      connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
-  }
+  updateWidgets();
 }
 
 void
@@ -15662,31 +15734,44 @@ CQChartsPlotCustomControls::
 colorDetailsSlot()
 {
   // plot color details changed
-  assert(colorColumnCombo_);
-
-  updateColorDetails();
+  updateWidgets();
 }
 
 void
 CQChartsPlotCustomControls::
-updateColorDetails()
+updateWidgets()
 {
-  disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+  connectSlots(false);
 
   //---
 
-  colorColumnCombo_->setModelColumn(plot_->getModelData(), plot_->colorColumn());
+  if (colorEdit_) {
+    auto hasColumn = colorColumnCombo_->getColumn().isValid();
+
+    colorEdit_       ->setEnabled(! hasColumn);
+    colorRange_      ->setEnabled(hasColumn);
+    colorPaletteEdit_->setEnabled(hasColumn);
+
+    colorEdit_->setColor(getColorValue());
+
+    colorColumnCombo_->setModelColumn(plot_->getModelData(), plot_->colorColumn());
+
+    colorRange_->setRangeMinMax(0.0, 1.0);
+    colorRange_->setSliderMinMax(plot_->colorMapMin(), plot_->colorMapMax());
+
+    colorPaletteEdit_->setChartsPaletteName(plot_->charts(), plot_->colorMapPalette());
+  }
 
   //---
 
-  colorRange_->setRangeMinMax(0.0, 1.0);
-  colorRange_->setSliderMinMax(plot_->colorMapMin(), plot_->colorMapMax());
+  connectSlots(true);
+}
 
-  colorPaletteEdit_->setChartsPaletteName(plot_->charts(), plot_->colorMapPalette());
-
-  //---
-
-  disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+void
+CQChartsPlotCustomControls::
+colorSlot()
+{
+  setColorValue(colorEdit_->color());
 }
 
 void

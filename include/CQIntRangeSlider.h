@@ -15,20 +15,39 @@ class CQIntRangeSlider : public CQRangeSlider {
  public:
   CQIntRangeSlider(QWidget *parent=nullptr);
 
+  //---
+
+  //! get/set range extent min/max
   int rangeMin() const { return range_.min; }
   void setRangeMin(int i);
 
   int rangeMax() const { return range_.max; }
   void setRangeMax(int i);
 
+  void setRangeMinMax(int min, int max);
+
+  //---
+
+  //! get/set slider min/max (in extent)
   int sliderMin() const { return slider_.min; }
   void setSliderMin(int i, bool force=false);
 
   int sliderMax() const { return slider_.max; }
   void setSliderMax(int i, bool force=false);
 
+  void setSliderMinMax(int min, int max, bool force=false);
+
+  //---
+
+  //! get/set delta (click delta)
   int sliderDelta() const { return sliderDelta_; }
   void setSliderDelta(int i) { sliderDelta_ = i; }
+
+  //---
+
+  void fixSliderValues();
+
+  //---
 
   void mousePressEvent  (QMouseEvent *) override;
   void mouseMoveEvent   (QMouseEvent *) override;

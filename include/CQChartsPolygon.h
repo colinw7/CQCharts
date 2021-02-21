@@ -10,7 +10,9 @@
  * \brief Polygon class
  * \ingroup Charts
  */
-class CQChartsPolygon {
+class CQChartsPolygon :
+  public CQChartsEqBase<CQChartsPolygon>,
+  public CQChartsToStringBase<CQChartsPolygon> {
  public:
   using Polygon = CQChartsGeom::Polygon;
   using Point   = CQChartsGeom::Point;
@@ -126,22 +128,6 @@ class CQChartsPolygon {
     if (lhs.polygon_ != rhs.polygon_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsPolygon &lhs, const CQChartsPolygon &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsPolygon &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

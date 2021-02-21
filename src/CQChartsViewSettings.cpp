@@ -968,6 +968,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   propertiesWidgets_.propertiesSplit->setOrientation(Qt::Vertical);
   propertiesWidgets_.propertiesSplit->setGrouped(true);
+  propertiesWidgets_.propertiesSplit->setState(CQTabSplit::State::TAB);
 
   propertiesLayout->addWidget(propertiesWidgets_.propertiesSplit);
 
@@ -2653,6 +2654,9 @@ void
 CQChartsViewSettings::
 updatePlotControls()
 {
+  auto *view   = window_->view();
+  auto *charts = view->charts();
+
   // add controls for plot and child plots
   auto *plot = currentPlot();
 
@@ -2663,7 +2667,7 @@ updatePlotControls()
 
   delete plotCustomControls_;
 
-  plotCustomControls_ = (plot ? plot->createCustomControls() : nullptr);
+  plotCustomControls_ = (plot ? plot->createCustomControls(charts) : nullptr);
 
   if (plotCustomControls_)
     customControlFrame_->layout()->addWidget(plotCustomControls_);

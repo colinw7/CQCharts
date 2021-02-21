@@ -243,12 +243,10 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
-
       for (int iv = 0; iv < nv_; ++iv) {
         const auto &column = plot_->valueColumns().getColumn(iv);
 
-        ModelIndex ind(plot, data.row, column, data.parent);
+        ModelIndex ind(plot_, data.row, column, data.parent);
 
         double value;
 
@@ -606,12 +604,10 @@ addKeyItems(PlotKey *key)
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
-
       QString name;
 
       if (plot_->nameColumn().isValid()) {
-        ModelIndex nameInd(plot, data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameInd(plot_, data.row, plot_->nameColumn(), data.parent);
 
         bool ok;
 

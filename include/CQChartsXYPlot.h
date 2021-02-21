@@ -746,6 +746,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using Alpha    = CQChartsAlpha;
   using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
+  using Symbol   = CQChartsSymbol;
 
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
@@ -831,6 +832,16 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // draw line on key
   bool isKeyLine() const { return keyLine_; }
   void setKeyLine(bool b);
+
+  //---
+
+  void setFixedSymbolSize(const Length &s) override { setSymbolSize(s); }
+  const Length &fixedSymbolSize() const override { return symbolSize(); }
+
+  void setFixedSymbolType(const Symbol &s) override { setSymbolType(s); }
+  const Symbol &fixedSymbolType() const override { return symbolType(); }
+
+  //---
 
  private:
   void resetBestFit() override;
@@ -1054,7 +1065,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   int numSets() const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls() override;
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  private:
   using Arrow = CQChartsArrow;
@@ -1121,9 +1132,14 @@ class CQChartsXYCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsXYCustomControls(QWidget *widget=nullptr);
+  CQChartsXYCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+  void updateWidgets();
 
  private slots:
   void pointsSlot(int);

@@ -387,7 +387,7 @@ void
 CQChartsPlotSymbolMgr::
 drawSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  if (type != CQChartsSymbol::Type::NONE)
+  if (type.type() != CQChartsSymbol::Type::NONE)
     symbols.drawSymbol(type, renderer);
 }
 
@@ -395,7 +395,7 @@ void
 CQChartsPlotSymbolMgr::
 strokeSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  if (type != CQChartsSymbol::Type::NONE)
+  if (type.type() != CQChartsSymbol::Type::NONE)
     symbols.strokeSymbol(type, renderer);
 }
 
@@ -403,7 +403,7 @@ void
 CQChartsPlotSymbolMgr::
 fillSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  if (type != CQChartsSymbol::Type::NONE)
+  if (type.type() != CQChartsSymbol::Type::NONE)
     symbols.fillSymbol(type, renderer);
 }
 

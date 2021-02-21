@@ -43,6 +43,7 @@
 #include <CQChartsWidget.h>
 #include <CQChartsModelIndex.h>
 
+// editors
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsArrowDataEdit.h>
@@ -88,6 +89,7 @@
 #include <CQChartsOptPositionEdit.h>
 #include <CQChartsOptRectEdit.h>
 
+// types
 #include <CQChartsPolygonList.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsSides.h>
@@ -113,11 +115,13 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsHtml.h>
 
+// dialogs
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
 #include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 
+// widgets
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelDetailsTable.h>
@@ -125,13 +129,19 @@
 #include <CQChartsModelColumnDataControl.h>
 #include <CQChartsModelExprControl.h>
 
+// colors
 #include <CQColorsPalette.h>
 #include <CQColorsTheme.h>
 #include <CQColors.h>
 
+// symbols
+#include <CQChartsSymbolSet.h>
+
+// property view
 #include <CQPropertyView.h>
 #include <CQPropertyViewItem.h>
 
+// generic widgets
 #include <CQIntRangeSlider.h>
 #include <CQDoubleRangeSlider.h>
 #include <CQTimeRangeSlider.h>
@@ -424,6 +434,8 @@ CQCharts::
 
   delete plotTypeMgr_;
   delete columnTypeMgr_;
+
+  delete symbolSetMgr_;
 }
 
 void
@@ -432,6 +444,7 @@ init()
 {
   plotTypeMgr_   = new CQChartsPlotTypeMgr;
   columnTypeMgr_ = new CQChartsColumnTypeMgr(this);
+  symbolSetMgr_  = new CQChartsSymbolSetMgr(this);
 
   //---
 
@@ -495,6 +508,7 @@ init()
 
   //---
 
+  // add data types and widget factories
   static bool typesInitialized = false;
 
   if (! typesInitialized) {
@@ -559,96 +573,136 @@ init()
     //---
 
     // add widget factories
+    auto *widgetMgr = CQWidgetFactoryMgrInst;
 
     // controls
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotControlFrame",
+    widgetMgr->addWidgetFactory("CQChartsPlotControlFrame",
       new CQWidgetFactoryT<CQChartsPlotControlFrame>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotRealControl",
+    widgetMgr->addWidgetFactory("CQChartsPlotRealControl",
       new CQWidgetFactoryT<CQChartsPlotRealControl>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotIntControl",
+    widgetMgr->addWidgetFactory("CQChartsPlotIntControl",
       new CQWidgetFactoryT<CQChartsPlotIntControl>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotTimeControl",
+    widgetMgr->addWidgetFactory("CQChartsPlotTimeControl",
       new CQWidgetFactoryT<CQChartsPlotTimeControl>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotValueControl",
+    widgetMgr->addWidgetFactory("CQChartsPlotValueControl",
       new CQWidgetFactoryT<CQChartsPlotValueControl>());
 
     // model view
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelViewHolder",
+    widgetMgr->addWidgetFactory("CQChartsModelViewHolder",
       new CQWidgetFactoryNoArgsT<CQChartsModelViewHolder>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelDetailsTable",
+    widgetMgr->addWidgetFactory("CQChartsModelDetailsTable",
       new CQWidgetFactoryNoArgsT<CQChartsModelDetailsTable>());
 
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelColumnDataControl",
+    widgetMgr->addWidgetFactory("CQChartsModelColumnDataControl",
       new CQWidgetFactoryNoArgsT<CQChartsModelColumnDataControl>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelExprControl",
+    widgetMgr->addWidgetFactory("CQChartsModelExprControl",
       new CQWidgetFactoryNoArgsT<CQChartsModelExprControl>());
 #if 0
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelFoldControl",
+    widgetMgr->addWidgetFactory("CQChartsModelFoldControl",
       new CQWidgetFactoryNoArgsT<CQChartsModelFoldControl>());
 #endif
 
     // other edits (all ?)
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAlphaEdit",
-      new CQWidgetFactoryT<CQChartsAlphaEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAngleEdit",
-      new CQWidgetFactoryT<CQChartsAngleEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsColorEdit",
-      new CQWidgetFactoryT<CQChartsColorEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsFontEdit",
-      new CQWidgetFactoryT<CQChartsFontEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsLengthEdit",
+    widgetMgr->addWidgetFactory("CQChartsAlphaEdit", new CQWidgetFactoryT<CQChartsAlphaEdit>());
+    widgetMgr->addWidgetFactory("CQChartsAngleEdit", new CQWidgetFactoryT<CQChartsAngleEdit>());
+    widgetMgr->addWidgetFactory("CQChartsColorEdit", new CQWidgetFactoryT<CQChartsColorEdit>());
+    widgetMgr->addWidgetFactory("CQChartsFontEdit" , new CQWidgetFactoryT<CQChartsFontEdit>());
+
+    widgetMgr->addWidgetFactory("CQChartsLengthEdit",
       new CQWidgetFactoryT<CQChartsLengthEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPositionEdit",
+    widgetMgr->addWidgetFactory("CQChartsPositionEdit",
       new CQWidgetFactoryT<CQChartsPositionEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsSymbolEdit",
+    widgetMgr->addWidgetFactory("CQChartsSymbolEdit",
       new CQWidgetFactoryT<CQChartsSymbolEdit>());
 
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEditGroup",
+    widgetMgr->addWidgetFactory("CQChartsPlotPropertyEditGroup",
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEditGroup>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEdit",
+    widgetMgr->addWidgetFactory("CQChartsPlotPropertyEdit",
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEdit>());
 
     // basic
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQIntRangeSlider",
-      new CQWidgetFactoryT<CQIntRangeSlider>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQDoubleRangeSlider",
-      new CQWidgetFactoryT<CQDoubleRangeSlider>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQTimeRangeSlider",
-      new CQWidgetFactoryT<CQTimeRangeSlider>());
+    widgetMgr->addWidgetFactory("CQIntRangeSlider"   , new CQWidgetFactoryT<CQIntRangeSlider>());
+    widgetMgr->addWidgetFactory("CQDoubleRangeSlider", new CQWidgetFactoryT<CQDoubleRangeSlider>());
+    widgetMgr->addWidgetFactory("CQTimeRangeSlider"  , new CQWidgetFactoryT<CQTimeRangeSlider>());
 
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQAlignEdit",
-      new CQWidgetFactoryT<CQAlignEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQCheckBox",
-      new CQWidgetFactoryT<CQAlignEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQColorEdit",
-      new CQWidgetFactoryT<CQColorEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQCustomCombo",
-      new CQWidgetFactoryT<CQCustomCombo>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQDragLabel",
-      new CQWidgetFactoryT<CQDragLabel>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQFilename",
-      new CQWidgetFactoryT<CQFilename>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQFontEdit",
-      new CQWidgetFactoryT<CQFontEdit>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQGroupBox",
-      new CQWidgetFactoryT<CQGroupBox>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQIconCombo",
-      new CQWidgetFactoryT<CQIconCombo>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQIntegerSpin",
-      new CQWidgetFactoryT<CQIntegerSpin>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQRadioButtons",
-      new CQWidgetFactoryT<CQRadioButtons>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQRealSpin",
-      new CQWidgetFactoryT<CQRealSpin>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQSwitch",
-      new CQWidgetFactoryT<CQSwitch>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQTableWidget",
-      new CQWidgetFactoryT<CQTableWidget>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQTabWidget",
-      new CQWidgetFactoryT<CQTabWidget>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQWinWidget",
-      new CQWidgetFactoryT<CQWinWidget>());
+    widgetMgr->addWidgetFactory("CQAlignEdit"   , new CQWidgetFactoryT<CQAlignEdit>());
+    widgetMgr->addWidgetFactory("CQCheckBox"    , new CQWidgetFactoryT<CQAlignEdit>());
+    widgetMgr->addWidgetFactory("CQColorEdit"   , new CQWidgetFactoryT<CQColorEdit>());
+    widgetMgr->addWidgetFactory("CQCustomCombo" , new CQWidgetFactoryT<CQCustomCombo>());
+    widgetMgr->addWidgetFactory("CQDragLabel"   , new CQWidgetFactoryT<CQDragLabel>());
+    widgetMgr->addWidgetFactory("CQFilename"    , new CQWidgetFactoryT<CQFilename>());
+    widgetMgr->addWidgetFactory("CQFontEdit"    , new CQWidgetFactoryT<CQFontEdit>());
+    widgetMgr->addWidgetFactory("CQGroupBox"    , new CQWidgetFactoryT<CQGroupBox>());
+    widgetMgr->addWidgetFactory("CQIconCombo"   , new CQWidgetFactoryT<CQIconCombo>());
+    widgetMgr->addWidgetFactory("CQIntegerSpin" , new CQWidgetFactoryT<CQIntegerSpin>());
+    widgetMgr->addWidgetFactory("CQRadioButtons", new CQWidgetFactoryT<CQRadioButtons>());
+    widgetMgr->addWidgetFactory("CQRealSpin"    , new CQWidgetFactoryT<CQRealSpin>());
+    widgetMgr->addWidgetFactory("CQSwitch"      , new CQWidgetFactoryT<CQSwitch>());
+    widgetMgr->addWidgetFactory("CQTableWidget" , new CQWidgetFactoryT<CQTableWidget>());
+    widgetMgr->addWidgetFactory("CQTabWidget"   , new CQWidgetFactoryT<CQTabWidget>());
+    widgetMgr->addWidgetFactory("CQWinWidget"   , new CQWidgetFactoryT<CQWinWidget>());
   }
+
+  //---
+
+  // add symbol sets
+  auto *allSymbolSet = new CQChartsSymbolSet("all");
+
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::DOT      , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::CROSS    , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::PLUS     , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::Y        , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::HLINE    , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::VLINE    , false);
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , true );
+  allSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, true );
+
+  auto *outlineSymbolSet = new CQChartsSymbolSet("outline");
+
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::CROSS    , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::PLUS     , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::Y        , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, false);
+
+  auto *filledSymbolSet = new CQChartsSymbolSet("filled");
+
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , true);
+  filledSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, true);
+
+  symbolSetMgr_->addSymbolSet(allSymbolSet);
+  symbolSetMgr_->addSymbolSet(outlineSymbolSet);
+  symbolSetMgr_->addSymbolSet(filledSymbolSet);
 }
 
 //---

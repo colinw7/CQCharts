@@ -16,7 +16,9 @@ class QObject;
  *  . An explicit font
  *  . An derived modified inherited font
  */
-class CQChartsFont : public ComparatorBase<CQChartsFont> {
+class CQChartsFont :
+  public CQChartsComparatorBase<CQChartsFont>,
+  public CQChartsToStringBase<CQChartsFont> {
  public:
   enum class Type {
     NONE,
@@ -189,18 +191,6 @@ class CQChartsFont : public ComparatorBase<CQChartsFont> {
     }
 
     return 0;
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsFont &c) {
-    c.print(os);
-
-    return os;
   }
 
   //---

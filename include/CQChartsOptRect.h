@@ -10,7 +10,8 @@
  * \brief Optional rectangle
  * \ingroup Charts
  */
-class CQChartsOptRect {
+class CQChartsOptRect :
+  public CQChartsEqBase<CQChartsOptRect> {
  public:
   static void registerMetaType();
 
@@ -78,10 +79,6 @@ class CQChartsOptRect {
     if (lhs.value_ != rhs.value_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsOptRect &lhs, const CQChartsOptRect &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

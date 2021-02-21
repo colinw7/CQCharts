@@ -10,7 +10,9 @@
  * \brief Position class
  * ingroup Charts
  */
-class CQChartsPosition {
+class CQChartsPosition :
+  public CQChartsEqBase<CQChartsPosition>,
+  public CQChartsToStringBase<CQChartsPosition> {
  public:
   static void registerMetaType();
 
@@ -86,22 +88,6 @@ class CQChartsPosition {
     if (lhs.p_     != rhs.p_    ) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsPosition &lhs, const CQChartsPosition &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsPosition &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

@@ -1,6 +1,7 @@
 #ifndef CQChartsPaletteName_H
 #define CQChartsPaletteName_H
 
+#include <CQChartsTmpl.h>
 #include <cassert>
 #include <QColor>
 #include <iostream>
@@ -13,7 +14,8 @@ class QObject;
  * \brief class to contain palette name
  * \ingroup Charts
  */
-class CQChartsPaletteName {
+class CQChartsPaletteName :
+  public CQChartsEqBase<CQChartsPaletteName> {
  public:
   static void registerMetaType();
 
@@ -53,11 +55,6 @@ class CQChartsPaletteName {
   //! operator ==
   friend bool operator==(const CQChartsPaletteName &lhs, const CQChartsPaletteName &rhs) {
     return (lhs.name_ == rhs.name_);
-  }
-
-  //! operator !=
-  friend bool operator!=(const CQChartsPaletteName &lhs, const CQChartsPaletteName &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
  private:

@@ -10,7 +10,9 @@
  * \brief Points class
  * ingroup Charts
  */
-class CQChartsPoints {
+class CQChartsPoints :
+  public CQChartsEqBase<CQChartsPoints>,
+  public CQChartsToStringBase<CQChartsPoints> {
  public:
   static void registerMetaType();
 
@@ -55,22 +57,6 @@ class CQChartsPoints {
     }
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsPoints &lhs, const CQChartsPoints &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsPoints &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

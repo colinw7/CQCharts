@@ -17,6 +17,7 @@ class CQChartsPlotType;
 class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
+class CQChartsSymbolSetMgr;
 class CQChartsInterfaceTheme;
 class CQChartsExprTcl;
 class CQColorsPalette;
@@ -143,6 +144,10 @@ class CQCharts : public QObject {
   //---
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
+
+  //---
+
+  CQChartsSymbolSetMgr *symbolSetMgr() const { return symbolSetMgr_; }
 
   //---
 
@@ -375,6 +380,7 @@ class CQCharts : public QObject {
   CQChartsColumnTypeMgr*   columnTypeMgr_   { nullptr }; //!< column type manager
   CQChartsInterfaceTheme*  interfaceTheme_  { nullptr }; //!< interface theme
   CQChartsThemeName        plotTheme_;                   //!< plot theme name
+  CQChartsSymbolSetMgr*    symbolSetMgr_    { nullptr };
   QColor                   contrastColor_;               //!< color for contrast color calc
   int                      currentModelInd_ { -1 };      //!< current model index
   ModelDatas               modelDatas_;                  //!< model datas

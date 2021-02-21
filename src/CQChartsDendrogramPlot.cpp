@@ -212,10 +212,8 @@ calcRange() const
 
       //---
 
-      auto *plot = const_cast<CQChartsDendrogramPlot *>(plot_);
-
-      ModelIndex nameModelInd (plot, data.row, plot_->nameColumn (), data.parent);
-      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex nameModelInd (plot_, data.row, plot_->nameColumn (), data.parent);
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
     //auto nameInd  = modelIndex(nameModelInd);
     //auto nameInd1 = normalizeIndex(nameInd);

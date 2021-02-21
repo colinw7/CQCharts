@@ -1,6 +1,7 @@
 #ifndef CQChartsSide_H
 #define CQChartsSide_H
 
+#include <CQChartsTmpl.h>
 #include <QString>
 #include <iostream>
 
@@ -8,7 +9,9 @@
  * \brief Box sides class
  * \ingroup Charts
  */
-class CQChartsSides {
+class CQChartsSides :
+  public CQChartsEqBase<CQChartsSides>,
+  public CQChartsToStringBase<CQChartsSides> {
  public:
   enum class Side {
     NONE   = 0,
@@ -98,22 +101,6 @@ class CQChartsSides {
     if (lhs.sides_ != rhs.sides_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsSides &lhs, const CQChartsSides &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsSides &l) {
-    l.print(os);
-
-    return os;
   }
 
   //---

@@ -39,7 +39,9 @@ class QObject;
  *
  * Only an explicit named color can be converted without state.
  */
-class CQChartsColor : public ComparatorBase<CQChartsColor> {
+class CQChartsColor :
+  public CQChartsComparatorBase<CQChartsColor>,
+  public CQChartsToStringBase<CQChartsColor> {
  public:
   enum class Type {
     NONE,
@@ -239,20 +241,6 @@ class CQChartsColor : public ComparatorBase<CQChartsColor> {
     }
 
     return 0;
-  }
-
-  //---
-
-  //! print color (debug)
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
-
-  //! ostream operator <<
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsColor &c) {
-    c.print(os);
-
-    return os;
   }
 
   //---

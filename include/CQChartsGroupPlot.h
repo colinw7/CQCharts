@@ -170,7 +170,7 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsGroupPlotCustomControls(QWidget *widget=nullptr);
+  CQChartsGroupPlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 

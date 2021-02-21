@@ -319,7 +319,7 @@ addProperties()
   addLineProperties("grid/stroke", "gridLines", "Grid");
 
   // explode
-  addProp("explode", "explodeStyle"   , "style"   , "Explode style");
+  addProp("explode", "explodeStyle"   , "style"   , "Explode style", true); // TODO
   addProp("explode", "explodeSelected", "selected", "Explode selected segments");
   addProp("explode", "explodeRadius"  , "radius"  , "Explode radius")->setMinValue(0.0);
 
@@ -1250,9 +1250,9 @@ createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const
 
 CQChartsPlotCustomControls *
 CQChartsPiePlot::
-createCustomControls()
+createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsPieCustomControls;
+  auto *controls = new CQChartsPieCustomControls(charts);
 
   controls->setPlot(this);
 
@@ -1981,7 +1981,7 @@ draw(PaintDevice *device) const
 
   if (plot_->isDonut()) {
     ri = 0.0;
-    ro = std::min(std::max(plot_->innerRadius()*ro, 0.0), 1.0);
+    ro = std::min(std::max(plot_->innerRadius()*plot_->outerRadius(), 0.0), 1.0);
   }
   else {
     ri = 0.0;
@@ -2203,8 +2203,8 @@ CQChartsPieTextObj(const CQChartsPiePlot *plot) :
 //------
 
 CQChartsPieCustomControls::
-CQChartsPieCustomControls(QWidget *widget) :
- CQChartsGroupPlotCustomControls(widget)
+CQChartsPieCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts)
 {
   addGroupColumnWidgets();
   addColorColumnWidgets ();

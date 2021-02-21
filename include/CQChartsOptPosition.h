@@ -10,7 +10,8 @@
  * \brief Optional position
  * \ingroup Charts
  */
-class CQChartsOptPosition {
+class CQChartsOptPosition :
+  public CQChartsEqBase<CQChartsOptPosition> {
  public:
   static void registerMetaType();
 
@@ -78,10 +79,6 @@ class CQChartsOptPosition {
     if (lhs.value_ != rhs.value_) return false;
 
     return true;
-  }
-
-  friend bool operator!=(const CQChartsOptPosition &lhs, const CQChartsOptPosition &rhs) {
-    return ! operator==(lhs, rhs);
   }
 
   //---

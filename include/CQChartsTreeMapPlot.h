@@ -119,6 +119,8 @@ class CQChartsTreeMapNode {
 
   HierNode *rootNode(HierNode *root) const;
 
+  //---
+
   friend bool operator<(const Node &n1, const Node &n2) {
     return n1.hierSize() < n2.hierSize();
   }
@@ -126,6 +128,8 @@ class CQChartsTreeMapNode {
   friend bool operator>(const Node &n1, const Node &n2) {
     return n1.hierSize() > n2.hierSize();
   }
+
+  //---
 
   virtual QColor interpColor(const Plot *plot, const Color &c,
                              const ColorInd &colorInd, int n) const;

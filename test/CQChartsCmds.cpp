@@ -792,7 +792,7 @@ execCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(tvars);
     }
 
-    analyzeModel.print();
+    analyzeModel.print(std::cerr);
   }
   else if (argv.hasParseArg("replace")) {
     auto oldValue = argv.getParseStr("replace");
@@ -5983,19 +5983,19 @@ execCmd(CQChartsCmdArgs &argv)
       if (! type->hasParameter(data))
         return errorMsg("No parameter '" + data + "'");
 
-      const auto &parameter = type->getParameter(data);
+      const auto *parameter = type->getParameter(data);
 
       auto name1 = name.mid(10);
 
       if (name1 == "properties") {
         QStringList names;
 
-        parameter.propertyNames(names);
+        parameter->propertyNames(names);
 
         return cmdBase_->setCmdRc(names);
       }
-      else if (parameter.hasProperty(name1)) {
-        return cmdBase_->setCmdRc(parameter.getPropertyValue(name1));
+      else if (parameter->hasProperty(name1)) {
+        return cmdBase_->setCmdRc(parameter->getPropertyValue(name1));
       }
       else
         return errorMsg("Invalid type name 'parameter." + name1 + "' specified");

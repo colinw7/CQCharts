@@ -57,14 +57,15 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsFont   font       READ font       WRITE setFont      )
 
  public:
-  using Plot   = CQChartsScatterPlot;
-  using Column = CQChartsColumn;
-  using Image  = CQChartsImage;
-  using Symbol = CQChartsSymbol;
-  using Length = CQChartsLength;
-  using Color  = CQChartsColor;
-  using Font   = CQChartsFont;
-  using Units  = CQChartsUnits;
+  using Plot    = CQChartsScatterPlot;
+  using Column  = CQChartsColumn;
+  using Image   = CQChartsImage;
+  using Symbol  = CQChartsSymbol;
+  using Length  = CQChartsLength;
+  using Color   = CQChartsColor;
+  using Font    = CQChartsFont;
+  using Units   = CQChartsUnits;
+  using OptBool = boost::optional<bool>;
 
  public:
   CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect,
@@ -115,6 +116,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Symbol symbolType() const;
   void setSymbolType(const Symbol &s) { extraData().symbolType = s; }
 
+  // symbol filled
+  bool symbolFilled() const;
+  void setSymbolFilled(const OptBool &b) { extraData().symbolFilled = b; }
+
   // symbol size
   Length symbolSize() const;
   void setSymbolSize(const Length &s) { extraData().symbolSize = s; }
@@ -160,12 +165,13 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   struct ExtraData {
-    Symbol symbolType { Symbol::Type::NONE }; //!< symbol type
-    Length symbolSize { Units::NONE, 0.0 };   //!< symbol size
-    Color  color;                             //!< symbol fill color
-    Alpha  alpha;                             //!< symbol fill alpha
-    Length fontSize   { Units::NONE, 0.0 };   //!< font size
-    Font   font;                              //!< text font
+    Symbol  symbolType { Symbol::Type::NONE }; //!< symbol type
+    Length  symbolSize { Units::NONE, 0.0 };   //!< symbol size
+    OptBool symbolFilled;                      //!< optional symbol fill override
+    Color   color;                             //!< symbol fill color
+    Alpha   alpha;                             //!< symbol fill alpha
+    Length  fontSize   { Units::NONE, 0.0 };   //!< font size
+    Font    font;                              //!< text font
   };
 
  private:
@@ -501,6 +507,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
+  using Symbol   = CQChartsSymbol;
 
  public:
   CQChartsScatterPlot(View *view, const ModelP &model);
@@ -609,6 +616,15 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  void setFixedSymbolSize(const Length &s) override { setSymbolSize(s); }
+  const Length &fixedSymbolSize() const override { return symbolSize(); }
+
+  void setFixedSymbolType(const Symbol &s) override { setSymbolType(s); }
+  const Symbol &fixedSymbolType() const override { return symbolType(); }
+
+
+  //---
+
   void addNameValue(int groupInd, const QString &name, const Point &p, int row,
                     const QModelIndex &xind, const Color &color=Color());
 
@@ -705,10 +721,19 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  void preDrawObjs (PaintDevice *) const override;
+  void postDrawObjs(PaintDevice *) const override;
+
+  //---
+
   void drawXAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
   void drawYAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
 
   //---
+
+  void addDataLabelData(const BBox &bbox, const QString &text,
+                        const CQChartsLabelPosition &position,
+                        const PenBrush &penBrush, const Font &font);
 
  private:
   using AxisBoxWhisker = CQChartsAxisBoxWhisker;
@@ -764,12 +789,19 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void clearDensityData();
 
+  //---
+
+  void drawDataLabelDatas(PaintDevice *device) const;
+
  private:
   void calcDensityMap(int groupInd);
 
   static void calcDensityMapThread(CQChartsScatterPlot *plot, int groupInd);
 
   void calcDensityMapImpl(int groupInd);
+
+ signals:
+  void customDataChanged();
 
  public slots:
   // set plot type
@@ -793,7 +825,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setYWhisker(bool b);
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls() override;
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  private:
   //! symbol map key daya
@@ -864,26 +896,66 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
+
+  // cached labels
+  struct DataLabelData {
+    BBox                  bbox;
+    QString               text;
+    CQChartsLabelPosition position;
+    PenBrush              penBrush;
+    Font                  font;
+  };
+
+  using DataLabelDatas = std::vector<DataLabelData>;
+
+  DataLabelDatas dataLabelDatas_;
 };
 
 //---
 
-class CQChartsScatterCustomControls : public CQChartsGroupPlotCustomControls {
+class CQChartsEnumParameterEdit;
+class CQChartsFontLineEdit;
+class CQEnumCombo;
+class CQCheckBox;
+
+class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsScatterCustomControls(QWidget *widget=nullptr);
+  CQChartsScatterPlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 
- private slots:
-  void symbolSizeColumnSlot();
-  void symbolSizeRangeSlot(double min, double max);
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
 
  private:
-  CQChartsScatterPlot* plot_                  { nullptr };
-  CQChartsColumnCombo* symbolSizeColumnCombo_ { nullptr };
-  CQDoubleRangeSlider* symbolSizeRange_       { nullptr };
+  void connectSlots(bool b);
+
+  void updateWidgets();
+
+ private slots:
+  void columnSlot();
+
+  void pointLabelsSlot();
+  void labelColumnSlot();
+  void positionSlot();
+  void fontSlot();
+  void fontSizeColumnSlot();
+  void fontSizeRangeSlot(double, double);
+
+ private:
+  using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
+
+  CQChartsScatterPlot*       plot_                { nullptr };
+  ColumnEdits                columnEdits_;
+  CQChartsEnumParameterEdit* plotTypeCombo_       { nullptr };
+  CQCheckBox*                pointLabelsCheck_    { nullptr };
+  CQChartsColumnCombo*       labelColumnCombo_    { nullptr };
+  CQEnumCombo*               positionEdit_        { nullptr };
+  CQChartsFontLineEdit*      fontEdit_            { nullptr };
+  CQChartsColumnCombo*       fontSizeColumnCombo_ { nullptr };
+  CQDoubleRangeSlider*       fontSizeRange_       { nullptr };
 };
 
 #endif
