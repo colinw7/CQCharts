@@ -1203,8 +1203,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
     addStr(str2);
   }
   else {
-    BBox bbox2(bbox.getXMin(), bbox.getYMin() + h,
-               bbox.getXMax(), bbox.getYMax());
+    BBox bbox2(bbox.getXMin(), bbox.getYMin() + h, bbox.getXMax(), bbox.getYMax());
 
     QStringList strs2;
 
@@ -1235,8 +1234,7 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &str
   if (stroked) {
     auto color = strokeColor;
 
-    if (strokeAlpha.isSet())
-      color.setAlphaF(strokeAlpha.value());
+    CQChartsDrawUtil::setColorAlpha(color, strokeAlpha);
 
     pen.setColor(color);
 
@@ -1261,8 +1259,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
               const FillPattern &pattern) {
   auto color = fillColor;
 
-  if (fillAlpha.isSet())
-    color.setAlphaF(fillAlpha.value());
+  CQChartsDrawUtil::setColorAlpha(color, fillAlpha);
 
   // calc brush (fill)
   if (filled) {
@@ -1281,7 +1278,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       if (pattern.altColor().isValid()) {
         QColor altColor = pattern.altColor().color();
 
-        altColor.setAlphaF(pattern.altAlpha().value());
+        CQChartsDrawUtil::setColorAlpha(altColor, pattern.altAlpha());
 
         lg.setColorAt(1, altColor);
       }
@@ -1309,7 +1306,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       if (pattern.altColor().isValid()) {
         QColor altColor = pattern.altColor().color();
 
-        altColor.setAlphaF(pattern.altAlpha().value());
+        CQChartsDrawUtil::setColorAlpha(altColor, pattern.altAlpha());
 
         rg.setColorAt(1, altColor);
       }

@@ -451,6 +451,14 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   PlotType plotType() const { return plotType_; }
 
   bool isNormal () const { return (plotType() == PlotType::NORMAL ); }
@@ -552,7 +560,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
 
   void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-                    Range &dataRange) const;
+                    Range &dataRange, int columnInd) const;
 
   void initRangeAxes() const;
   void initRangeAxesI();
@@ -629,16 +637,39 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
 //---
 
-class CQChartsBarChartCustomControls : public CQChartsGroupPlotCustomControls {
+class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsBarChartCustomControls(CQCharts *charts);
+  CQChartsBarChartPlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 
  private:
-  CQChartsBarChartPlot* plot_ { nullptr };
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void orientationSlot();
+  void plotTypeSlot();
+  void valueTypeSlot();
+
+  void percentSlot();
+  void skipEmptySlot();
+  void dotLinesSlot();
+  void colorBySetSlot();
+
+ private:
+  CQChartsBarChartPlot*      plot_            { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
+  CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
+  CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
+  CQChartsBoolParameterEdit* percentCheck_    { nullptr };
+  CQChartsBoolParameterEdit* skipEmptyCheck_  { nullptr };
+  CQChartsBoolParameterEdit* dotLinesCheck_   { nullptr };
+  CQChartsBoolParameterEdit* colorBySetCheck_ { nullptr };
 };
 
 #endif

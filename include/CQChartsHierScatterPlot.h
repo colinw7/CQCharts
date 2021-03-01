@@ -295,6 +295,14 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   //! get/set text labels
   bool isTextLabels() const;
   void setTextLabels(bool b);
@@ -376,6 +384,9 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   void resetCurrentGroup();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using PointGroup = CQChartsHierScatterPointGroup;
 
@@ -391,6 +402,26 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   QString            xname_;                       //!< x name
   QString            yname_;                       //!< y name
   GroupValueSets     groupValueSets_;              //!< group value sets
+};
+
+//---
+
+class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsHierScatterPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsHierScatterPlot* plot_ { nullptr };
 };
 
 #endif

@@ -84,6 +84,8 @@ class CQChartsViewSettings : public QFrame {
   CQChartsPlot *currentPlot(bool remap=true) const;
 
  signals:
+  void objectsPropertyItemChanged(QObject *obj, const QString &path);
+
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private slots:
@@ -327,8 +329,8 @@ class CQChartsViewSettings : public QFrame {
   CQTabWidget*        tab_                { nullptr }; //!< settings/palette tab
   PropertiesWidgets   propertiesWidgets_;              //!< properties widgets
   PlotControlFrame*   quickControlFrame_  { nullptr }; //!< quick control widgets
-  QFrame*             customControlFrame_ { nullptr }; //!< custon control widgets
-  PlotCustomControls* plotCustomControls_ { nullptr }; //!< plot custon controls
+  QFrame*             customControlFrame_ { nullptr }; //!< custom control widgets
+  PlotCustomControls* plotCustomControls_ { nullptr }; //!< plot custom controls
   ModelsWidgets       modelsWidgets_;                  //!< models widgets
   PlotsWidgets        plotsWidgets_;                   //!< plots widgets
   AnnotationsWidgets  annotationsWidgets_;             //!< annotations widgets

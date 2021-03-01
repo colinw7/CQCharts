@@ -47,27 +47,46 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_OBJECT
 
   // columns
+  //  hier :
+  //    linkColumn, valueColumn
+  //  link :
+  //    groupColumn, linkColumn, valueColumn, nameColumn, depthColumn, attributesColumn
+  //  connections :
+  //    groupColumn, nodeColumn, connectionsColumn, nameColumn, attributesColumn
+  //  path :
+  //    pathColumn, valueColumn
+  //  from/to :
+  //    groupColumn, fromColumn, toColumn, valueColumn, depthColumn, attributesColumn,
+  //    [pathIdColumn]
+  //  table :
+  //    groupColumn, linkColumn
+  Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
+
   Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
 
   Q_PROPERTY(CQChartsColumn linkColumn READ linkColumn WRITE setLinkColumn)
+
   Q_PROPERTY(CQChartsColumn pathColumn READ pathColumn WRITE setPathColumn)
+
   Q_PROPERTY(CQChartsColumn fromColumn READ fromColumn WRITE setFromColumn)
   Q_PROPERTY(CQChartsColumn toColumn   READ toColumn   WRITE setToColumn  )
 
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn depthColumn READ depthColumn WRITE setDepthColumn)
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn)
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
   Q_PROPERTY(CQChartsColumn pathIdColumn     READ pathIdColumn     WRITE setPathIdColumn    )
 #endif
   Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
 
-  Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
-  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn)
+  //---
 
   // link separator
   Q_PROPERTY(QString separator READ separator WRITE setSeparator)
+
+  //---
 
   // options
   Q_PROPERTY(bool   symmetric READ isSymmetric WRITE setSymmetric)
@@ -76,7 +95,22 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(double minValue  READ minValue    WRITE setMinValue )
   Q_PROPERTY(bool   propagate READ isPropagate WRITE setPropagate)
 
+  //---
+
+  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType)
+
+  Q_ENUMS(ColumnDataType)
+
  public:
+  enum ColumnDataType {
+    HIER,
+    LINK,
+    CONNECTIONS,
+    PATH,
+    FROM_TO,
+    TABLE
+  };
+
   using ColumnArray = std::vector<Column>;
   using OptInt      = CQChartsOptInt;
   using Alpha       = CQChartsAlpha;
@@ -144,6 +178,11 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   const ColumnArray &modelColumns() const { return modelColumns_; }
 
   //---
@@ -177,6 +216,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //! get/set propagate values
   bool isPropagate() const { return propagateData_.active; }
   void setPropagate(bool b);
+
+  //---
+
+  ColumnDataType calcColumnDataType() const;
 
   //---
 
@@ -519,6 +562,31 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   double  minValue_  { -1 };    //!< user min value
 
   PropagateData propagateData_;
+};
+
+//------
+
+class CQEnumCombo;
+
+class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsConnectionPlotCustomControls(CQCharts *charts, const QString &plotType);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+  void addConnectionColumnWidgets();
+
+ public slots:
+  void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b);
+
+ private:
+  CQChartsConnectionPlot* plot_             { nullptr };
+  CQEnumCombo*            columnsTypeCombo_ { nullptr };
 };
 
 #endif

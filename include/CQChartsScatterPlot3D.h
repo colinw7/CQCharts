@@ -274,6 +274,11 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   // customization columns
   const Column &symbolTypeColumn() const;
   void setSymbolTypeColumn(const Column &c);
@@ -402,6 +407,9 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
  protected slots:
   void dataLabelChanged();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Points      = std::vector<Point3D>;
   using GroupPoints = std::map<int, Points>;
@@ -463,6 +471,26 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   using GroupObj = std::map<int, GroupData>;
 
   mutable GroupObj groupObj_;
+};
+
+//---
+
+class CQChartsScatterPlot3DCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsScatterPlot3DCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsScatterPlot3D* plot_ { nullptr };
 };
 
 #endif

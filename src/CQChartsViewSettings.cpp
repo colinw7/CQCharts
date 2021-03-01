@@ -1225,8 +1225,7 @@ initPlotsFrame(QFrame *plotsFrame)
   auto *controlLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame, 2, 2);
 
   plotsWidgets_.createButton =
-    createButton("Plot...", "plot", "Create Plot from Current Model",
-                 SLOT(createPlotSlot()));
+    createButton("Plot...", "plot", "Create Plot from Current Model", SLOT(createPlotSlot()));
 
   controlLayout->addWidget(plotsWidgets_.createButton);
   controlLayout->addStretch(1);
@@ -1572,8 +1571,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   //--
 
   // create view/plot annotation buttons
-  auto *controlGroup =
-    CQUtil::makeLabelWidget<CQGroupBox>("View/Plot Control", "controlGroup");
+  auto *controlGroup = CQUtil::makeLabelWidget<CQGroupBox>("View/Plot Control", "controlGroup");
 
   annotationsFrameLayout->addWidget(controlGroup);
 
@@ -3061,6 +3059,10 @@ void
 CQChartsViewSettings::
 updatePlotObjects()
 {
+  if (objectsWidgets_.propertyModel)
+    disconnect(objectsWidgets_.propertyModel, SIGNAL(valueChanged(QObject *, const QString &)),
+               this, SIGNAL(objectsPropertyItemChanged(QObject *, const QString &)));
+
   objectsWidgets_.propertyTree->propertyTree()->setPropertyModel(nullptr);
 
   delete objectsWidgets_.propertyModel;
@@ -3095,6 +3097,10 @@ updatePlotObjects()
   }
 
   objectsWidgets_.propertyTree->propertyTree()->setPropertyModel(objectsWidgets_.propertyModel);
+
+  if (objectsWidgets_.propertyModel)
+    connect(objectsWidgets_.propertyModel, SIGNAL(valueChanged(QObject *, const QString &)),
+            this, SIGNAL(objectsPropertyItemChanged(QObject *, const QString &)));
 }
 
 //------
@@ -3412,8 +3418,7 @@ CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree) :
           this, SLOT(replaceFilterSlot(const QString &)));
   connect(filterEdit_, SIGNAL(addFilter(const QString &)),
           this, SLOT(addFilterSlot(const QString &)));
-  connect(filterEdit_, SIGNAL(escapePressed()),
-          this, SLOT(hideFilterSlot()));
+  connect(filterEdit_, SIGNAL(escapePressed()), this, SLOT(hideFilterSlot()));
 
   connect(filterEdit_, SIGNAL(replaceSearch(const QString &)),
           this, SLOT(replaceSearchSlot(const QString &)));

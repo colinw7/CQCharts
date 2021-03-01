@@ -44,18 +44,18 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void setVisible(bool b) override { CQChartsBoxObj::setVisible(b); textBoxDataInvalidate(); }
+  void setVisible(bool b) override { CQChartsBoxObj::setVisible(b); textBoxObjInvalidate(); }
 
   //---
 
   const QString &textStr() const { return textStr_; }
-  void setTextStr(const QString &s) { textStr_ = s; textBoxDataInvalidate(); }
+  void setTextStr(const QString &s) { textStr_ = s; textBoxObjInvalidate(); }
 
   //---
 
 #if 0
   void setTextFontSize(double s) {
-    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f); boxDataInvalidate(); }
+    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f); textBoxObjInvalidate(); }
 #endif
 
   //---
@@ -70,7 +70,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  virtual void textBoxDataInvalidate();
+  virtual void textBoxObjInvalidate();
 
   //---
 
@@ -80,7 +80,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   void init();
 
   void textDataInvalidate(bool) override {
-    textBoxDataInvalidate();
+    textBoxObjInvalidate();
   }
 
  protected:

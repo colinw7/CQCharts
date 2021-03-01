@@ -107,7 +107,7 @@ class CQChartsObjLineData {
   };
 
  private:
-  void lineDataInvalidate(bool reload=false) {
+  virtual void lineDataInvalidate(bool reload=false) {
     CQChartsInvalidator(lineDataObj_).invalidate(reload);
   }
 
@@ -222,7 +222,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
  private: \
-  void LNAME##LineDataInvalidate(bool reload=false) { \
+  virtual void LNAME##LineDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##LineDataObj_).invalidate(reload); \
   } \
 \
@@ -388,7 +388,7 @@ class CQChartsObjPointData {
   };
 
  private:
-  void pointDataInvalidate(bool reload=false) {
+  virtual void pointDataInvalidate(bool reload=false) {
     CQChartsInvalidator(pointDataObj_).invalidate(reload);
   }
 
@@ -556,7 +556,7 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
  private: \
-  void LNAME##PointDataInvalidate(bool reload=false) { \
+  virtual void LNAME##PointDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##PointDataObj_).invalidate(reload); \
   } \
 \
@@ -639,7 +639,7 @@ class CQChartsObj##UNAME##FillData { \
   } \
 \
  private: \
-  void LNAME##FillDataInvalidate(bool reload=false) { \
+  virtual void LNAME##FillDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##FillDataObj_).invalidate(reload); \
   } \
 \
@@ -942,7 +942,7 @@ class CQChartsObj##UNAME##TextData { \
   } \
 \
  private: \
-  void LNAME##TextDataInvalidate(bool reload=false) { \
+  virtual void LNAME##TextDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##TextDataObj_).invalidate(reload); \
   } \
 \
@@ -1057,7 +1057,7 @@ class CQChartsObjStrokeData {
   //---
 
  private:
-  void strokeDataInvalidate(bool reload=false) {
+  virtual void strokeDataInvalidate(bool reload=false) {
     CQChartsInvalidator(strokeDataObj_).invalidate(reload);
   }
 
@@ -1208,7 +1208,7 @@ class CQChartsObjShapeData {
   };
 
  private:
-  void shapeDataInvalidate(bool reload=false) {
+  virtual void shapeDataInvalidate(bool reload=false) {
     CQChartsInvalidator(shapeDataObj_).invalidate(reload);
   }
 
@@ -1376,7 +1376,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
  private: \
-  void LNAME##ShapeDataInvalidate(bool reload=false) { \
+  virtual void LNAME##ShapeDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##ShapeDataObj_).invalidate(reload); \
   } \
 \
@@ -1549,7 +1549,7 @@ class CQChartsObjBoxData {
   };
 
  private:
-  void boxDataInvalidate(bool reload=false) {
+  virtual void boxDataInvalidate(bool reload=false) {
     CQChartsInvalidator(boxDataObj_).invalidate(reload);
   }
 

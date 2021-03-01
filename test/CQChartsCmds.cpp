@@ -10940,7 +10940,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
 
       if (! plot->setParameter(parameter, var)) {
         (void) errorMsg("Failed to set parameter " + parameter->propName() +
-                        "'" + var.toString() + "'");
+                        " '" + var.toString() + "'");
         continue;
       }
     }

@@ -67,6 +67,8 @@ class CQChartsWheelPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   bool isPrioritySort() const override { return true; }
 
   QString description() const override;
@@ -413,6 +415,11 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r);
 
@@ -534,6 +541,9 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
   double dx() const { return dx_; }
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   Column xColumn_;   //!< x column
   Column yColumn_;   //!< y column
@@ -587,6 +597,26 @@ class CQChartsWheelPlot : public CQChartsPlot {
   mutable PolarPoint movePoint_;
   mutable PointObj*  moveObj_ { nullptr };
   mutable QString    moveTip_;
+};
+
+//---
+
+class CQChartsWheelPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsWheelPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsWheelPlot* plot_ { nullptr };
 };
 
 #endif

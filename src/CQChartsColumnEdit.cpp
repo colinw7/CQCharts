@@ -501,7 +501,8 @@ columnToWidgets()
   else {
     typeCombo_->setCurrentIndex(0);
 
-    columnCombo_->setColumn(column_);
+    if (modelData_)
+      columnCombo_->setColumn(column_);
 
     expressionEdit_->setText("");
   }

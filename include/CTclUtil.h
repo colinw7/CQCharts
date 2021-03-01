@@ -262,7 +262,7 @@ class CTcl {
 
     if (rc != TCL_OK) {
       if (showError)
-        std::cerr << errorInfo(rc) << std::endl;
+        outputError(errorInfo(rc));
     }
 
     if (showResult) {
@@ -315,6 +315,10 @@ class CTcl {
     std::cerr << ") " << name << "\n";
   }
 
+  virtual void outputError(const std::string &msg) {
+    std::cerr << msg << "\n";
+  }
+
   void processEvents() {
     while (Tcl_DoOneEvent(TCL_DONT_WAIT));
   }
@@ -333,6 +337,18 @@ class CTcl {
 
   void setResult(const std::string &rc) {
     Tcl_SetObjResult(interp(), Tcl_NewStringObj(rc.c_str(), rc.size()));
+  }
+
+  void setResult(const std::vector<int> &rc) {
+    auto *obj = Tcl_NewListObj(0, nullptr);
+
+    for (const auto &i : rc) {
+      auto *iobj = Tcl_NewIntObj(i);
+
+      Tcl_ListObjAppendElement(interp(), obj, iobj);
+    }
+
+    Tcl_SetObjResult(interp(), obj);
   }
 
   //---

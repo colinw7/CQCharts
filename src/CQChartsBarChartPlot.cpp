@@ -12,6 +12,7 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -30,7 +31,7 @@ addParameters()
 {
   startParameterGroup("Bar Chart");
 
-  // values
+  // values, name and label columns
   addColumnsParameter("values", "Values", "valueColumns").
     setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
 
@@ -40,7 +41,10 @@ addParameters()
     setString().setPropPath("columns.label").setTip("Bar data label");
 
   // options
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
+  addEnumParameter("orientation", "Orientation", "orientation").
+    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("NORMAL" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
@@ -83,7 +87,7 @@ description() const
     h3("Summary").
      p("Draws bars with heights from a set of values.").
     h3("Columns").
-     p("The bar heights are taken from the values in the " + B("Value") + " column.").
+     p("The bar heights are taken from the values in the " + B("Values") + " column.").
      p("An optional name can be supplied in the " + B("Name") + " column to specify the label "
        "to use on the axis below the bar.").
      p("An optional label can be drawn with the bar to show extra values using "
@@ -96,6 +100,8 @@ description() const
      p("Enabling the " + B("Row Grouping") + " option groups bars by column header name "
        "instead of the normal " + B("Group") + " columns.").
     h3("Options").
+     p("The bars can drawn vertically (default) or horizontally using the " + B("Orientation") +
+       " option.").
      p("Selecting the " + B("Stacked") + " Plot Type places grouped bars on top of each other "
       "instead of the " + B("Normal") + " side by side placement.").
      p("Selecting the " + B("Range") + " Value Type draws a bar for the range (min/max) of "
@@ -104,8 +110,7 @@ description() const
        "bar to the maximum of the grouped values.").
      p("Enabling the " + B("Percent") + " option rescales the values to a percentage of the "
        "maximum and minimum of the values.").
-     p("Enabling the " + B("Horizontal") + " option draws the bars horizontally instead "
-       "of vertically.").
+     p("Enabling the " + B("Skip Empty") + " option skips bars with zero values.").
      p("Enabling the " + B("Dot Lines") + " option draws the bars as a single line with a "
        "circle symbol at the end.").
      p("Enabling the " + B("Color by Set") + " option colors bars in the same group the same "
@@ -176,6 +181,48 @@ CQChartsBarChartPlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsBarChartPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name" ) c = this->nameColumn();
+  else if (name == "label") c = this->labelColumn();
+  else                      c = CQChartsBarPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsBarChartPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name" ) this->setNameColumn(c);
+  else if (name == "label") this->setLabelColumn(c);
+  else                      CQChartsBarPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsBarChartPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else                  c = CQChartsBarPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsBarChartPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else                  CQChartsBarPlot::setNamedColumns(name, c);
 }
 
 //---
@@ -398,8 +445,8 @@ calcRange() const
   //---
 
   // init grouping
-  //   non-range use group columns for grouping
-  if (! isValueRange())
+  //   individual values use group columns for grouping
+  if (isValueValue())
     initGroupData(valueColumns(), nameColumn());
   else
     initGroupData(Columns(), nameColumn());
@@ -430,7 +477,7 @@ calcRange() const
 
   //---
 
-  int ns = (! isValueRange() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? valueColumns().count() : 1);
   int nv = numValueSets();
 
   int ng = numGroups();
@@ -463,10 +510,9 @@ calcRange() const
   //---
 
   if (ng > 0) {
-    // if single value column (ns == 1) and summary value (min, max, mean) for values
+    // if single value column (ns == 1) and summary value (range, min, max, mean) for values
     // per group then single bar
-    if (ns == 1 && (isValueRange() || isValueMin() || isValueMax() ||
-                    isValueMean() || isValueSum())) {
+    if (ns == 1 && ! isValueValue()) {
       dataRange = Range();
 
       updateRange(-0.5, 0);
@@ -544,7 +590,7 @@ void
 CQChartsBarChartPlot::
 initRangeAxesI()
 {
-  int ns = (! isValueRange() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? valueColumns().count() : 1);
 //int nv = numValueSets();
 
   int ng = numGroups();
@@ -608,24 +654,43 @@ void
 CQChartsBarChartPlot::
 addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
 {
-  // add value for each column (non-range)
-  if (! isValueRange()) {
+  // add value for each column (individual values)
+  if (isValueValue()) {
+    int ic = 0;
+
     for (const auto &column : valueColumns()) {
       Columns columns { column };
 
-      addRowColumn(data, columns, dataRange);
+      addRowColumn(data, columns, dataRange, ic);
+
+      ++ic;
     }
   }
   // add all values for columns (range)
   else {
-    addRowColumn(data, this->valueColumns(), dataRange);
+    int ng = numGroups();
+
+    if (ng > 1) {
+      addRowColumn(data, this->valueColumns(), dataRange, -1);
+    }
+    else {
+      int ic = 0;
+
+      for (const auto &column : valueColumns()) {
+        Columns columns { column };
+
+        addRowColumn(data, columns, dataRange, ic);
+
+        ++ic;
+      }
+    }
   }
 }
 
 void
 CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-             Range &dataRange) const
+             Range &dataRange, int columnInd) const
 {
   auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
@@ -655,7 +720,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   ModelIndex ind;
 
-  if (! isValueRange()) {
+  if (isValueValue()) {
     assert(valueColumns.count() > 0);
 
     const auto &valueColumn = valueColumns.column();
@@ -671,8 +736,14 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   // get optional group for value
   int groupInd = rowGroupInd(ind);
 
+  if (groupInd < 0)
+    groupInd = columnInd;
+
   // get group name
   auto groupName = groupIndName(groupInd);
+
+  if (groupName == "")
+    groupName = QString::number(groupInd);
 
   //---
 
@@ -804,7 +875,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   //---
 
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   if (ns > 1) {
     // set value data group name and value name
@@ -976,6 +1047,9 @@ groupValueSetI(int groupInd)
 
   auto name = groupIndName(groupInd);
 
+  if (name == "")
+    name = QString::number(groupInd);
+
   auto type = groupType();
 
   if (type == ColumnType::REAL || type == ColumnType::INTEGER) {
@@ -1048,7 +1122,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   //---
@@ -1110,10 +1184,9 @@ createObjs(PlotObjs &objs) const
 
     //---
 
-    // if single value column (ns == 1) and summary value (min, max, mean) for values
+    // if single value column (ns == 1) and summary value (range, min, max, mean) for values
     // per group then single bar
-    if (ns == 1 && (isValueRange() || isValueMin() || isValueMax() ||
-                    isValueMean() || isValueSum())) {
+    if (ns == 1 && ! isValueValue()) {
       double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
 
       if (valueSet.calcStats(min, max, mean, sum)) {
@@ -1352,7 +1425,7 @@ initObjAxesI()
 
   //---
 
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   //---
@@ -1384,7 +1457,7 @@ initObjAxesI()
 
         // skip empty value sets (TODO: all value types ?)
         if (valueSet.numValues() == 0 && isSkipEmpty()) {
-          if (isValueRange() || isValueMin() || isValueMax() || isValueMean() || isValueSum())
+          if (! isValueValue())
             continue;
         }
 
@@ -1492,7 +1565,7 @@ addKeyItems(PlotKey *key)
 
   //---
 
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if (ns > 1) {
@@ -1534,7 +1607,7 @@ addKeyItems(PlotKey *key)
 
           // skip empty value sets (TODO: all value types ?)
           if (valueSet.numValues() == 0 && isSkipEmpty()) {
-            if (isValueRange() || isValueMin() || isValueMax() || isValueMean() || isValueSum())
+            if (! isValueValue())
               continue;
           }
 
@@ -1640,7 +1713,7 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1675,7 +1748,7 @@ bool
 CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
-  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1778,9 +1851,11 @@ CQChartsPlotCustomControls *
 CQChartsBarChartPlot::
 createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsBarChartCustomControls(charts);
+  auto *controls = new CQChartsBarChartPlotCustomControls(charts);
 
   controls->setPlot(this);
+
+  controls->updateWidgets();
 
   return controls;
 }
@@ -1824,8 +1899,7 @@ calcTipId() const
 
     if (! value1.length()) {
       if (column.isValid()) {
-        ModelIndex columnInd(const_cast<CQChartsBarChartPlot *>(plot_),
-                             modelInd().row(), column, modelInd().parent());
+        ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
 
         bool ok;
 
@@ -2189,14 +2263,14 @@ drawFg(PaintDevice *device) const
 
     (void) valueSet->calcStats(min, max, mean, sum);
 
-    if      (plot_->isValueMin())
-      minLabel = plot_->valueStr(min);
-    else if (plot_->isValueMax())
-      minLabel = plot_->valueStr(max);
-    else if (plot_->isValueRange()) {
+    if      (plot_->isValueRange()) {
       minLabel = plot_->valueStr(min);
       maxLabel = plot_->valueStr(max);
     }
+    else if (plot_->isValueMin())
+      minLabel = plot_->valueStr(min);
+    else if (plot_->isValueMax())
+      minLabel = plot_->valueStr(max);
     else if (plot_->isValueMean())
       minLabel = plot_->valueStr(mean);
     else if (plot_->isValueSum())
@@ -2291,7 +2365,7 @@ calcBarColor() const
   QColor barColor;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
+    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
 
     if (ns > 1) {
       if (plot_->isColorBySet())
@@ -2407,7 +2481,7 @@ fillBrush() const
   QColor barColor;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
+    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
 
     if (ns > 1) {
       if (plot_->isColorBySet()) {
@@ -2492,7 +2566,7 @@ tipText(const Point &, QString &tip) const
 
   double posSum = 0.0, negSum = 0.0;
 
-  int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
+  int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
   int nv = plot_->numValueSets();
 
   if (ns > 1) {
@@ -2631,19 +2705,153 @@ isSetHidden() const
 
 //------
 
-CQChartsBarChartCustomControls::
-CQChartsBarChartCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts)
+CQChartsBarChartPlotCustomControls::
+CQChartsBarChartPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "barchart")
 {
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  // values, name and label columns
+  addColumnWidgets(QStringList() << "values" << "name" << "label", optionsFrame);
+
+  //---
+
+  orientationCombo_ = createEnumEdit("orientation");
+  plotTypeCombo_    = createEnumEdit("plotType");
+  valueTypeCombo_   = createEnumEdit("valueType");
+
+  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_   );
+  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_  );
+
+  percentCheck_    = createBoolEdit("percent");
+  skipEmptyCheck_  = createBoolEdit("skipEmpty");
+  dotLinesCheck_   = createBoolEdit("dotLines");
+  colorBySetCheck_ = createBoolEdit("colorBySet");
+
+  addFrameWidget(optionsFrame, "Percent"     , percentCheck_);
+  addFrameWidget(optionsFrame, "Skip Empty"  , skipEmptyCheck_);
+  addFrameWidget(optionsFrame, "Dot Lines"   , dotLinesCheck_);
+  addFrameWidget(optionsFrame, "Color by Set", colorBySetCheck_);
+
+  //---
+
   addGroupColumnWidgets();
   addColorColumnWidgets();
+
+  //---
+
+  connectSlots(true);
 }
 
 void
-CQChartsBarChartCustomControls::
+CQChartsBarChartPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    percentCheck_, SIGNAL(stateChanged(int)), this, SLOT(percentSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    skipEmptyCheck_, SIGNAL(stateChanged(int)), this, SLOT(skipEmptySlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    dotLinesCheck_, SIGNAL(stateChanged(int)), this, SLOT(dotLinesSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsBarChartPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   plot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  orientationCombo_->setCurrentValue((int) plot_->orientation());
+  plotTypeCombo_   ->setCurrentValue((int) plot_->plotType());
+  valueTypeCombo_  ->setCurrentValue((int) plot_->valueType());
+
+  percentCheck_   ->setChecked(plot_->isPercent());
+  skipEmptyCheck_ ->setChecked(plot_->isSkipEmpty());
+  dotLinesCheck_  ->setChecked(plot_->isDotLines());
+  colorBySetCheck_->setChecked(plot_->isColorBySet());
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+//---
+
+void
+CQChartsBarChartPlotCustomControls::
+orientationSlot()
+{
+  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+plotTypeSlot()
+{
+  plot_->setPlotType((CQChartsBarChartPlot::PlotType) plotTypeCombo_->currentValue());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+valueTypeSlot()
+{
+  plot_->setValueType((CQChartsBarChartPlot::ValueType) valueTypeCombo_->currentValue());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+percentSlot()
+{
+  plot_->setPercent(percentCheck_->isChecked());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+skipEmptySlot()
+{
+  plot_->setSkipEmpty(skipEmptyCheck_->isChecked());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+dotLinesSlot()
+{
+  plot_->setDotLines(dotLinesCheck_->isChecked());
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+colorBySetSlot()
+{
+  plot_->setColorBySet(colorBySetCheck_->isChecked());
 }

@@ -204,6 +204,14 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   // get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &orient);
@@ -272,6 +280,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
   // set horizontal
   void setHorizontal(bool b);
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   enum class RangeType {
     NONE,
@@ -295,6 +306,26 @@ class CQChartsParallelPlot : public CQChartsPlot,
   double             max_tw_          { 0.0 };             //!< max text width
   BBox               axesBBox_;                            //!< axes bbox
   RangeType          rangeType_       { RangeType::NONE }; //!< current range type
+};
+
+//---
+
+class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsParallelPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsParallelPlot* plot_ { nullptr };
 };
 
 #endif

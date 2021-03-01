@@ -196,11 +196,11 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   const DiagonalType &diagonalType() const { return diagonalType_; }
   void setDiagonalType(const DiagonalType &t);
 
-  const OffDiagonalType &lowerDiagonalType() const { return lowerDiagonalType_; }
-  void setLowerDiagonalType(const OffDiagonalType &t);
-
   const OffDiagonalType &upperDiagonalType() const { return upperDiagonalType_; }
   void setUpperDiagonalType(const OffDiagonalType &t);
+
+  const OffDiagonalType &lowerDiagonalType() const { return lowerDiagonalType_; }
+  void setLowerDiagonalType(const OffDiagonalType &t);
 
   //---
 
@@ -255,6 +255,9 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void drawXLabels(PaintDevice *device) const;
   void drawYLabels(PaintDevice *device) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   CQChartsFilterModel*      correlationModel_  { nullptr }; //!< correlation model
   ModelP                    correlationModelP_;             //!< correlation model shared pointer
@@ -267,6 +270,36 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   DiagonalType              diagonalType_      { DiagonalType::NAME };
   OffDiagonalType           upperDiagonalType_ { OffDiagonalType::PIE };
   OffDiagonalType           lowerDiagonalType_ { OffDiagonalType::SHADE };
+};
+
+//---
+
+class CQChartsEnumParameterEdit;
+
+class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsCorrelationPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void diagonalTypeSlot();
+  void upperDiagonalTypeSlot();
+  void lowerDiagonalTypeSlot();
+
+ private:
+  CQChartsCorrelationPlot*   plot_                   { nullptr };
+  CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };
+  CQChartsEnumParameterEdit* upperDiagonalTypeCombo_ { nullptr };
+  CQChartsEnumParameterEdit* lowerDiagonalTypeCombo_ { nullptr };
 };
 
 #endif

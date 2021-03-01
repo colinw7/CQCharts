@@ -34,6 +34,8 @@ class CQChartsChordPlotType : public CQChartsConnectionPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -500,6 +502,9 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   virtual EdgeObj* createEdgeObj(const BBox &rect, const ChordData &data,
                                  int to, const OptReal &value) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using ArcObjs  = std::vector<ArcObj *>;
   using EdgeObjs = std::vector<EdgeObj *>;
@@ -521,6 +526,26 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   ArcObjs            arcObjs_;                    //!< arc objects
   EdgeObjs           edgeObjs_;                   //!< edge objects
   int                maxNodeDepth_   { -1 };      //!< max node depth
+};
+
+//---
+
+class CQChartsChordPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsChordPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsChordPlot* plot_ { nullptr };
 };
 
 #endif

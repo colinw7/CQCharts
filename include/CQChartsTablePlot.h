@@ -182,6 +182,11 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   CQSummaryModel *summaryModel() const { return summaryModel_; }
 
   //---
@@ -380,6 +385,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   void pageSizeSlot();
   void pageNumSlot();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   //! column data
   struct ColumnData {
@@ -577,6 +585,26 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
  private:
   const Plot*       plot_ { nullptr }; //!< parent plot
   Plot::CellObjData cellObjData_;
+};
+
+//---
+
+class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsTablePlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsTablePlot* plot_ { nullptr };
 };
 
 #endif

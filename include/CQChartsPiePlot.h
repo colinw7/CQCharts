@@ -33,6 +33,8 @@ class CQChartsPiePlotType : public CQChartsGroupPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -639,13 +641,19 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
 //---
 
-class CQChartsPieCustomControls : public CQChartsGroupPlotCustomControls {
+class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsPieCustomControls(CQCharts *charts);
+  CQChartsPiePlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
 
  private:
   CQChartsPiePlot* plot_ { nullptr };

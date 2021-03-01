@@ -265,7 +265,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! handle box obj data changed
-  void boxDataInvalidate() override { emitDataChanged(); }
+  void boxObjInvalidate() override { emitDataChanged(); }
 
   void invalidate();
 

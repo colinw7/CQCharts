@@ -36,7 +36,6 @@ addParameters()
   // columns
   addColumnParameter("x", "X", "xColumn").
     setRequired().setUnique().setPropPath("columns.x").setTip("X value column");
-
   addColumnsParameter("y", "Y", "yColumns").
     setNumeric().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
@@ -179,6 +178,46 @@ CQChartsParallelPlot::
 setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsParallelPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if (name == "x") c = this->xColumn();
+  else             c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsParallelPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if (name == "x") this->setXColumn(c);
+  else             CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsParallelPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "y") c = this->yColumns();
+  else             c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsParallelPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "y") this->setYColumns(c);
+  else             CQChartsPlot::setNamedColumns(name, c);
 }
 
 //---
@@ -1059,6 +1098,21 @@ createPointObj(const BBox &rect, double yval, double x, double y, const QModelIn
   return new CQChartsParallelPointObj(this, rect, yval, x, y, ind, is, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsParallelPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsParallelPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsParallelLineObj::
@@ -1430,4 +1484,53 @@ draw(PaintDevice *device) const
   //---
 
   //plot->setNormalizedRange(device);
+}
+
+//------
+
+CQChartsParallelPlotCustomControls::
+CQChartsParallelPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "parallel")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "x" << "y", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsParallelPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsParallelPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsParallelPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

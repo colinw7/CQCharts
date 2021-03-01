@@ -2,6 +2,9 @@
 #define CQChartsTmpl_H
 
 // implement <, <=, >, >=, == and != using cmp function
+//
+// cmp must be implemented as:
+//   friend int cmp(const T &lhs, const T &rhs) { ... }
 template<typename T>
 class CQChartsComparatorBase {
  public:

@@ -97,9 +97,9 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
 
 void
 CQChartsTextBoxObj::
-textBoxDataInvalidate()
+textBoxObjInvalidate()
 {
-  boxDataInvalidate();
+  boxObjInvalidate();
 }
 
 //---

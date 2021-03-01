@@ -256,6 +256,41 @@ setFontSizeColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsScatterPlot3D::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "x"         ) c = this->xColumn();
+  else if (name == "y"         ) c = this->yColumn();
+  else if (name == "z"         ) c = this->zColumn();
+  else if (name == "name"      ) c = this->nameColumn();
+  else if (name == "label"     ) c = this->labelColumn();
+  else if (name == "symbolType") c = this->symbolTypeColumn();
+  else if (name == "symbolSize") c = this->symbolSizeColumn();
+  else if (name == "fontSize"  ) c = this->fontSizeColumn();
+  else                           c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsScatterPlot3D::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "x"         ) this->setXColumn(c);
+  else if (name == "y"         ) this->setYColumn(c);
+  else if (name == "z"         ) this->setZColumn(c);
+  else if (name == "name"      ) this->setNameColumn(c);
+  else if (name == "label"     ) this->setLabelColumn(c);
+  else if (name == "symbolType") this->setSymbolTypeColumn(c);
+  else if (name == "symbolSize") this->setSymbolSizeColumn(c);
+  else if (name == "fontSize"  ) this->setFontSizeColumn(c);
+  else                           CQChartsPlot::setNamedColumn(name, c);
+}
+
+//---
+
 void
 CQChartsScatterPlot3D::
 setDrawSymbols(bool b)
@@ -1414,6 +1449,21 @@ createPointObj(int groupInd, const BBox &rect, const Point3D &pos,
   return new CQChartsScatterPoint3DObj(this, groupInd, rect, pos, is, ig, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsScatterPlot3D::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsScatterPlot3DCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsScatterPoint3DObj::
@@ -1630,7 +1680,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot_->interpColor(color, ic);
 
-    c.setAlphaF(scatterPlot()->symbolFillAlpha().value());
+    CQChartsDrawUtil::setColorAlpha(c, scatterPlot()->symbolFillAlpha());
 
     penBrush.brush.setColor(c);
   }
@@ -1730,7 +1780,7 @@ fillBrush() const
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  c.setAlphaF(plot->symbolFillAlpha().value());
+  CQChartsDrawUtil::setColorAlpha(c, plot->symbolFillAlpha());
 
   int ih = hideIndex();
 
@@ -1745,4 +1795,61 @@ CQChartsScatterKeyColor3D::
 hideIndex() const
 {
   return (groupInd_ >= 0 ? groupInd_ : ic_.i);
+}
+
+//------
+
+CQChartsScatterPlot3DCustomControls::
+CQChartsScatterPlot3DCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "scatter3d")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() <<
+    "x" << "y" << "z" << "name" << "label" <<
+    "symbolType" << "symbolSize" << "fontSize", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsScatterPlot3DCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsScatterPlot3DCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
+  plot_ = dynamic_cast<CQChartsScatterPlot3D *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+}
+
+void
+CQChartsScatterPlot3DCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

@@ -131,7 +131,7 @@ draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
 
 void
 CQChartsBoxObj::
-boxDataInvalidate()
+boxObjInvalidate()
 {
   if      (plot())
     plot()->drawObjs();

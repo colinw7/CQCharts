@@ -228,6 +228,11 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   bool isColorByValue() const { return valueStyle_ == ValueStyle::COLOR; }
   void setColorByValue(bool b);
 
@@ -299,6 +304,9 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Geometries = std::vector<Geometry>;
 
@@ -330,6 +338,26 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   // shapes
   Geometries geometries_; //!< geometry shapes
+};
+
+//---
+
+class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsGeometryPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsGeometryPlot* plot_ { nullptr };
 };
 
 #endif

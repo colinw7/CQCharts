@@ -7,8 +7,10 @@
 
 #include <CQRealSpin.h>
 #include <CQIntegerSpin.h>
+#include <CQCheckBox.h>
 
 #include <QHBoxLayout>
+#include <QCheckBox>
 
 CQChartsPlotParameter::
 CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type,
@@ -105,7 +107,7 @@ CQChartsColumnParameterEdit::
 CQChartsColumnParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic) :
  parameter_(parameter)
 {
-  auto objName = parameter->name() + "Column";
+  auto objName = parameter->name() + "ColumnEdit";
 
   setObjectName(objName);
 
@@ -177,6 +179,27 @@ setColumn(const CQChartsColumn &column)
     combo_->setColumn(column);
   else if (edit_)
     edit_->setColumn(column);
+}
+
+//---
+
+CQChartsColumnsParameterEdit::
+CQChartsColumnsParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic) :
+ CQChartsColumnsLineEdit(nullptr, isBasic), parameter_(parameter)
+{
+  setObjectName(parameter->name() + "ColumnsEdit");
+
+  setPlaceholderText("Column Names or Numbers");
+
+  auto columns = parameter->defValue().value<CQChartsColumns>();
+
+  if (columns.isValid())
+    setColumns(columns);
+
+  auto tip = parameter->tip();
+
+  if (tip.length())
+    setToolTip(tip);
 }
 
 //---
@@ -360,19 +383,60 @@ currentValue() const
 //---
 
 CQChartsBoolParameterEdit::
-CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter) :
+CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter, bool choice) :
  parameter_(parameter)
 {
   setObjectName(parameter_->name() + "Bool");
 
   bool b = parameter->defValue().toBool();
 
-  setText(parameter->desc());
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+
+  if (choice) {
+    choice_ = CQUtil::makeWidget<CQCheckBox>("choice");
+
+    connect(choice_, SIGNAL(stateChanged(int)), this, SIGNAL(stateChanged(int)));
+
+    layout->addWidget(choice_);
+  }
+  else {
+    check_ = CQUtil::makeWidget<QCheckBox>("check");
+
+    connect(check_, SIGNAL(stateChanged(int)), this, SIGNAL(stateChanged(int)));
+
+    check_->setText(parameter->desc());
+
+    layout->addWidget(check_);
+  }
 
   setChecked(b);
 
   auto tip = parameter->tip();
 
-  if (tip.length())
-    setToolTip(tip);
+  if (tip.length()) {
+    if (choice_)
+      choice_->setToolTip(tip);
+    else
+      check_->setToolTip(tip);
+  }
+}
+
+bool
+CQChartsBoolParameterEdit::
+isChecked() const
+{
+  if (choice_)
+    return choice_->isChecked();
+  else
+    return check_->isChecked();
+}
+
+void
+CQChartsBoolParameterEdit::
+setChecked(bool b)
+{
+  if (choice_)
+    choice_->setChecked(b);
+  else
+    check_->setChecked(b);
 }

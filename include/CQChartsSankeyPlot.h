@@ -1390,6 +1390,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void printStats();
 
  protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
+ protected:
   // placement
   Align  align_              { Align::JUSTIFY };     //!< align
   Spread spread_             { Spread::FIRST_LAST }; //!< spread
@@ -1498,6 +1501,26 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using DrawTexts = std::vector<DrawText *>;
 
   mutable DrawTexts drawTexts_;
+};
+
+//---
+
+class CQChartsSankeyPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsSankeyPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsSankeyPlot* plot_ { nullptr };
 };
 
 #endif

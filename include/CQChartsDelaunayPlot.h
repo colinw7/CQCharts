@@ -25,6 +25,8 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -166,6 +168,11 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   // voronoi
   bool isDelaunay() const { return delaunay_; }
 
@@ -221,6 +228,9 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   virtual PointObj *createPointObj(const BBox &rect, double x, double y, double value,
                                    const QModelIndex &ind, const ColorInd &iv) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Delaunay = CQChartsDelaunay;
 
@@ -235,6 +245,32 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   RMinMax   valueRange_;                 //!< value range
   Delaunay* delaunayData_   { nullptr }; //!< delaunay data
   QString   yname_;                      //!< y name
+};
+
+//---
+
+class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsDelaunayPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void delaunaySlot();
+  void voronoiSlot();
+
+ private:
+  CQChartsDelaunayPlot*      plot_          { nullptr };
+  CQChartsBoolParameterEdit* delaunayCheck_ { nullptr };
+  CQChartsBoolParameterEdit* voronoiCheck_  { nullptr };
 };
 
 #endif

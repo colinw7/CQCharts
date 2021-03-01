@@ -293,6 +293,31 @@ setYColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsScatterPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "x"   ) c = this->xColumn();
+  else if (name == "y"   ) c = this->yColumn();
+  else if (name == "name") c = this->nameColumn();
+  else                     c = CQChartsPointPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsScatterPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "x"   ) this->setXColumn(c);
+  else if (name == "y"   ) this->setYColumn(c);
+  else if (name == "name") this->setNameColumn(c);
+  else                     CQChartsPointPlot::setNamedColumn(name, c);
+}
+
+//---
+
 void
 CQChartsScatterPlot::
 setGridNumX(int n)
@@ -570,13 +595,16 @@ CQChartsScatterPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    auto *item = addProp(path, name, alias, desc);
+                          const QString &desc, bool hidden=false) {
+    auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -3068,6 +3096,7 @@ initWhiskerData() const
 {
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
+  // add group points
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
       return;
@@ -3127,6 +3156,7 @@ initWhiskerData() const
 
   //---
 
+  // add group grid cells
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
       return;
@@ -3262,9 +3292,13 @@ drawSymbolMapKey(PaintDevice *device) const
 
   auto a = symbolMapKeyAlpha();
 
-  auto fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a.value());
-  auto fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
-  auto fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
+  auto fillColor1 = interpSymbolFillColor(ColorInd(1.0));
+  auto fillColor2 = interpSymbolFillColor(ColorInd(0.5));
+  auto fillColor3 = interpSymbolFillColor(ColorInd(0.0));
+
+  CQChartsDrawUtil::setColorAlpha(fillColor1, a);
+  CQChartsDrawUtil::setColorAlpha(fillColor2, a);
+  CQChartsDrawUtil::setColorAlpha(fillColor3, a);
 
   auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
     PenBrush penBrush;
@@ -3343,6 +3377,8 @@ createCustomControls(CQCharts *charts)
   auto *controls = new CQChartsScatterPlotCustomControls(charts);
 
   controls->setPlot(this);
+
+  controls->updateWidgets();
 
   return controls;
 }
@@ -3522,14 +3558,13 @@ calcTipId() const
 
   //---
 
-  auto addColumnRowValue = [&](const CQChartsColumn &column) {
+  auto addColumnRowValue = [&](const Column &column) {
     if (! column.isValid()) return;
 
     if (tableTip.hasColumn(column))
       return;
 
-    ModelIndex columnInd(const_cast<CQChartsScatterPlot *>(plot_),
-                         modelInd().row(), column, modelInd().parent());
+    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
 
     bool ok;
 
@@ -3708,7 +3743,7 @@ drawDataLabel(PaintDevice *) const
 
   //---
 
-  // get custon font size (from font column)
+  // get custom font size (from font column)
   auto fontSize = this->fontSize();
 
   //---
@@ -3777,8 +3812,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot_->interpColor(color, ic);
 
-    if (plot_->symbolFillAlpha().isSet())
-      c.setAlphaF(plot_->symbolFillAlpha().value());
+    CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
 
     penBrush.brush.setColor(c);
   }
@@ -3789,7 +3823,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (alpha.isSet()) {
     auto c = penBrush.brush.color();
 
-    c.setAlphaF(alpha.value());
+    CQChartsDrawUtil::setColorAlpha(c, alpha);
 
     penBrush.brush.setColor(c);
   }
@@ -4161,8 +4195,7 @@ fillBrush() const
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  if (plot->symbolFillAlpha().isSet())
-    c.setAlphaF(plot->symbolFillAlpha().value());
+  CQChartsDrawUtil::setColorAlpha(c, plot->symbolFillAlpha());
 
   int ih = hideIndex();
 
@@ -4205,78 +4238,31 @@ CQChartsScatterHexKeyItem(Plot *plot, int n) :
 
 CQChartsScatterPlotCustomControls::
 CQChartsScatterPlotCustomControls(CQCharts *charts) :
- CQChartsPointPlotCustomControls(charts)
+ CQChartsPointPlotCustomControls(charts, "scatter")
 {
-  auto *plotType = charts_->plotType("scatter");
-  assert(plotType);
-
-  //---
-
   // options group
-  auto *optionsFrame  = CQUtil::makeWidget<QFrame>("optionsFrame");
-  auto *optionsLayout = CQUtil::makeLayout<QGridLayout>(optionsFrame, 2, 2);
-
-  int optionsRow = 0;
-
-  auto addOptionsWidget = [&](const QString &label, QWidget *w) {
-    optionsLayout->addWidget(new QLabel(label), optionsRow, 0);
-    optionsLayout->addWidget(w                , optionsRow, 1); ++optionsRow;
-  };
+  auto optionsFrame = createGroupFrame("Options");
 
   //---
 
-  auto columnParameters = QStringList() << "x" << "y" << "name";
-
-  for (const auto &name : columnParameters) {
-    const auto *parameter = plotType->getParameter(name);
-    assert(parameter->type() == CQChartsPlotParameter::Type::COLUMN);
-
-    auto *columnEdit = new CQChartsColumnParameterEdit(parameter, /*isBasic*/true);
-
-    addOptionsWidget(parameter->desc(), columnEdit);
-
-    columnEdits_.push_back(columnEdit);
-  }
+  addColumnWidgets(QStringList() << "x" << "y" << "name", optionsFrame);
 
   //---
 
-  const auto *parameter = plotType->getParameter("plotType");
-  assert(parameter->type() == CQChartsPlotParameter::Type::ENUM);
+  plotTypeCombo_ = createEnumEdit("plotType");
 
-  const auto *eparameter = dynamic_cast<const CQChartsEnumParameter *>(parameter);
-  assert(eparameter);
-
-  plotTypeCombo_ = new CQChartsEnumParameterEdit(eparameter);
-
-  addOptionsWidget("Plot Type", plotTypeCombo_);
-
-  // TODO: connect
-
-  //---
-
-  split_->addWidget(optionsFrame, "Options");
+  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
 
   //---
 
   addGroupColumnWidgets();
-
-  //---
-
   addColorColumnWidgets("Symbol Color");
   addSymbolSizeWidgets();
 
   //---
 
   // point labels group
-  auto *pointLabelsFrame  = CQUtil::makeWidget<QFrame>("pointLabelsFrame");
-  auto *pointLabelsLayout = CQUtil::makeLayout<QGridLayout>(pointLabelsFrame, 2, 2);
-
-  int pointLabelsRow = 0;
-
-  auto addPointLabelWidget = [&](const QString &label, QWidget *w) {
-    pointLabelsLayout->addWidget(new QLabel(label), pointLabelsRow, 0);
-    pointLabelsLayout->addWidget(w                , pointLabelsRow, 1); ++pointLabelsRow;
-  };
+  auto pointLabelsFrame = createGroupFrame("Symbol Label");
 
   //--
 
@@ -4290,18 +4276,14 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
   positionEdit_->setPropName("position");
 
-  addPointLabelWidget("Visible"     , pointLabelsCheck_);
-  addPointLabelWidget("Label Column", labelColumnCombo_);
-  addPointLabelWidget("Position"    , positionEdit_);
-  addPointLabelWidget("Font (Size)" , fontEdit_);
-  addPointLabelWidget("Size Column" , fontSizeColumnCombo_);
-  addPointLabelWidget("Size Range"  , fontSizeRange_);
+  addFrameWidget(pointLabelsFrame, "Visible"     , pointLabelsCheck_);
+  addFrameWidget(pointLabelsFrame, "Label Column", labelColumnCombo_);
+  addFrameWidget(pointLabelsFrame, "Position"    , positionEdit_);
+  addFrameWidget(pointLabelsFrame, "Font (Size)" , fontEdit_);
+  addFrameWidget(pointLabelsFrame, "Size Column" , fontSizeColumnCombo_);
+  addFrameWidget(pointLabelsFrame, "Size Range"  , fontSizeRange_);
 
-  // color, constrast, ...
-
-  //---
-
-  split_->addWidget(pointLabelsFrame, "Symbol Label");
+  // color, contrast, ...
 
   //---
 
@@ -4312,9 +4294,8 @@ void
 CQChartsScatterPlotCustomControls::
 connectSlots(bool b)
 {
-  for (auto *columnEdit : columnEdits_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      columnEdit, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
 
   CQChartsWidgetUtil::connectDisconnect(b,
     pointLabelsCheck_, SIGNAL(stateChanged(int)), this, SLOT(pointLabelsSlot()));
@@ -4329,6 +4310,8 @@ connectSlots(bool b)
   CQChartsWidgetUtil::connectDisconnect(b,
     fontSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
     this, SLOT(fontSizeRangeSlot(double, double)));
+
+  CQChartsPointPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -4340,7 +4323,7 @@ setPlot(CQChartsPlot *plot)
 
   plot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
 
-  updateWidgets();
+  CQChartsPointPlotCustomControls::setPlot(plot);
 
   if (plot_)
     connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
@@ -4368,28 +4351,7 @@ updateWidgets()
 
   //---
 
-  CQChartsGroupPlotCustomControls::setPlot(plot_);
-  CQChartsPointPlotCustomControls::setPlot(plot_);
-
-  //---
-
-  auto namedColumn = [&](const QString &name) {
-    CQChartsColumn c;
-    if      (name == "x"   ) c = plot_->xColumn();
-    else if (name == "y"   ) c = plot_->yColumn();
-    else if (name == "name") c = plot_->nameColumn();
-    else assert(false);
-    return c;
-  };
-
-  for (auto *columnEdit : columnEdits_) {
-    auto *parameter = columnEdit->parameter();
-
-    columnEdit->setModelData(plot_->getModelData());
-    columnEdit->setColumn   (namedColumn(parameter->name()));
-  }
-
-  //---
+  plotTypeCombo_->setCurrentValue((int) plot_->plotType());
 
   bool hasLabelColumn = plot_->labelColumn().isValid();
   bool hasSizeColumn  = plot_->fontSizeColumn().isValid();
@@ -4410,25 +4372,18 @@ updateWidgets()
 
   //---
 
+  CQChartsPointPlotCustomControls::updateWidgets();
+
+  //---
+
   connectSlots(true);
 }
 
 void
 CQChartsScatterPlotCustomControls::
-columnSlot()
+plotTypeSlot()
 {
-  auto *columnEdit = qobject_cast<CQChartsColumnParameterEdit *>(sender());
-
-  auto *parameter = columnEdit->parameter();
-
-  auto setNamedColumn = [&](const QString &name, const CQChartsColumn &c) {
-    if      (name == "x"   ) plot_->setXColumn(c);
-    else if (name == "y"   ) plot_->setYColumn(c);
-    else if (name == "name") plot_->setNameColumn(c);
-    else assert(false);
-  };
-
-  setNamedColumn(parameter->name(), columnEdit->getColumn());
+  plot_->setPlotType((CQChartsScatterPlot::PlotType) plotTypeCombo_->currentValue());
 }
 
 void
@@ -4444,7 +4399,6 @@ labelColumnSlot()
 {
   plot_->setLabelColumn(labelColumnCombo_->getColumn());
 
-  // TODO: need plot signal
   updateWidgets();
 }
 
@@ -4454,7 +4408,7 @@ positionSlot()
 {
   plot_->setDataLabelPosition((CQChartsLabelPosition) positionEdit_->currentIndex());
 
-  // TODO: need plot signal
+  // TODO: need plot signal (property signal ?)
   updateWidgets();
 }
 

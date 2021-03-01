@@ -17,6 +17,7 @@
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQPropertyViewModel.h>
 #include <CQPerfMonitor.h>
 
 CQChartsAdjacencyPlotType::
@@ -45,7 +46,8 @@ description() const
    h2("Adjacency Plot").
     h3("Summary").
      p("Draws connectivity information between two different sets of data as a "
-       "matrix where the color of the cells represents the group and connectivity.").
+       "matrix where the color of the cells represents the group (color) and "
+       "connectivity (alpha).").
     h3("Columns").
      p("Connection information can be supplied using:").
      ul({ LI("A list of connections in the " + B("Connections") + " column with the "
@@ -188,8 +190,16 @@ CQChartsAdjacencyPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  auto hideProp = [&](QObject *obj, const QString &path) {
+    auto *item = propertyModel()->propertyItem(obj, path);
+    CQCharts::setItemIsHidden(item);
   };
 
   //---
@@ -216,14 +226,19 @@ addProperties()
   addFillProperties("emptyCell/fill"  , "emptyCellFill"  , "Empty cell");
   addLineProperties("emptyCell/stroke", "emptyCellStroke", "Empty cell");
 
-  addProp("emptyCell/stroke", "cornerSize", "cornerSize", "Empty cell box corner size");
+  addProp("emptyCell/stroke", "emptyCellCornerSize", "cornerSize",
+          "Empty cell box corner size");
 
   // text
-//addProp("text", "textVisible", "visible", "Text is visible");
+  addProp("text", "textVisible", "visible", "Text is visible");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  hideProp(this, "text.font");
 }
 
 CQChartsGeom::Range
@@ -277,26 +292,26 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  bool rc      = true;
+  auto columnDataType = calcColumnDataType();
+
+  bool rc      = false;
   bool addObjs = true;
 
-  if (isHierarchical())
+  if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
-  else {
-    if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs();
-    else if (connectionsColumn().isValid()) {
-      rc = initConnectionObjs(objs);
+  else if (columnDataType == ColumnDataType::LINK)
+    rc = initLinkObjs();
+  else if (columnDataType == ColumnDataType::CONNECTIONS) {
+    rc = initConnectionObjs(objs);
 
-      addObjs = false;
-    }
-    else if (pathColumn().isValid())
-      rc = initPathObjs();
-    else if (fromColumn().isValid() && toColumn().isValid())
-      rc = initFromToObjs();
-    else
-      rc = initTableObjs();
+    addObjs = false;
   }
+  else if (columnDataType == ColumnDataType::PATH)
+    rc = initPathObjs();
+  else if (columnDataType == ColumnDataType::FROM_TO)
+    rc = initFromToObjs();
+  else if (columnDataType == ColumnDataType::TABLE)
+    rc = initTableObjs();
 
   if (! rc)
     return false;
@@ -730,19 +745,23 @@ initConnectionObjs(PlotObjs &objs) const
 
   //---
 
-  if (factor_ < 0.0)
-    th->initFactor();
+  if (isTextVisible()) {
+    if (fontFactor_ <= 0.0)
+      th->initFontFactor();
+  }
+  else
+    th->fontFactor_ = 0.0;
 
   //---
 
   int nn = numVisibleNodes();
 
-  if (nn + maxLen()*factor_ > 0)
-    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
+  if (nn + maxLen()*fontFactor_ > 0.0)
+    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*fontFactor_);
   else
     th->nodeData_.scale = 1.0;
 
-  double tsize = maxLen()*factor_*scale();
+  double tsize = maxLen()*fontFactor_*scale();
 
   //---
 
@@ -944,15 +963,15 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   else if (sortType() == SortType::GROUP) {
     std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
         if (lhs->group() != rhs->group())
-          return lhs->group() < rhs->group();
+          return (lhs->group() < rhs->group());
 
         return lhs->name() < rhs->name();
       });
   }
   else if (sortType() == SortType::COUNT) {
     std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
-        if (lhs->value().real() != rhs->value().real())
-          return lhs->value().real() < rhs->value().real();
+        if (lhs->value() != rhs->value())
+          return (lhs->value() < rhs->value());
 
         return lhs->name() < rhs->name();
       });
@@ -993,19 +1012,23 @@ createNameNodeObjs(PlotObjs &objs) const
 
   //---
 
-  if (factor_ < 0.0)
-    th->initFactor();
+  if (isTextVisible()) {
+    if (fontFactor_ <= 0.0)
+      th->initFontFactor();
+  }
+  else
+    th->fontFactor_ = 0.0;
 
   //---
 
   int nn = numVisibleNodes();
 
-  if (nn + maxLen()*factor_ > 0)
-    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
+  if (nn + maxLen()*fontFactor_ > 0.0)
+    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*fontFactor_);
   else
     th->nodeData_.scale = 1.0;
 
-  double tsize = maxLen()*factor_*scale();
+  double tsize = maxLen()*fontFactor_*scale();
 
   //---
 
@@ -1080,33 +1103,39 @@ createCellObj(AdjacencyNode *node1, AdjacencyNode *node2, double value,
 
 void
 CQChartsAdjacencyPlot::
-initFactor()
+initFontFactor()
 {
   QFontMetricsF fm(view_->QWidget::font());
 
+  // get height
   double th = fm.height();
 
+  // get max width
   double twMax = 0.0;
 
   for (auto &node : sortedNodes_) {
     const auto &str = node->name();
 
+    // TODO: use clipped text width
     double tw = fm.width(str) + 4;
 
     twMax = std::max(twMax, tw);
   }
 
-  factor_ = 1.1*twMax/(maxLen()*th);
+  // calc font factor from max width and max label length
+  fontFactor_ = 1.1*twMax/(maxLen()*th);
 }
 
 void
 CQChartsAdjacencyPlot::
 autoFit()
 {
+  CQChartsPlot::autoFit();
+
   int tries = 3;
 
   for (int i = 0; i < tries; ++i) {
-    factor_ = drawFactor();
+    fontFactor_ = drawFontFactor();
 
     updateObjs();
   }
@@ -1140,94 +1169,96 @@ execDrawBackground(PaintDevice *device) const
   auto pxs = windowToPixelWidth (scale());
   auto pys = windowToPixelHeight(scale());
 
-  double xts = maxLen()*factor_*pxs;
-  double yts = maxLen()*factor_*pys;
+  double xts = maxLen()*fontFactor_*pxs;
+  double yts = maxLen()*fontFactor_*pys;
 
   //---
 
-  // set font
-  double ts = std::min(pxs, pys);
-
-  auto font = this->textFont().calcFont();
-
-  font.setPixelSize(ts >= 1.0 ? int(ts) : 1);
-
-  device->setFont(font);
-
-  QFontMetricsF fm(device->font());
-
-  //---
-
-  // draw text
-  auto tc = interpTextColor(ColorInd());
-
-  setPen(device, PenData(true, tc, textAlpha()));
-
-  //---
-
-  double twMax = 0.0;
-
-  // draw row labels
-  double px = po.x + lengthPixelWidth (bgMargin());
-  double py = po.y + lengthPixelHeight(bgMargin()) + yts;
-
-  for (auto &node : sortedNodes_) {
-    const auto &str = node->name();
-
-    double tw = fm.width(str) + 4;
-
-    twMax = std::max(twMax, tw);
-
-    Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
-
-    CQChartsTextOptions options;
-
-    options.angle         = Angle();
-    options.align         = Qt::AlignLeft;
-    options.contrast      = isTextContrast();
-    options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = lengthPixelWidth(textClipLength());
-    options.clipElide     = textClipElide();
-
-    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str,
-                                      options, /*centered*/false);
-
-    py += pys;
-  }
-
-  // save draw factor
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
-  th->nodeData_.drawFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
+  if (isTextVisible()) {
+    // set font
+    double ts = std::min(pxs, pys);
 
-  // draw column labels
-  px = po.x + lengthPixelWidth (bgMargin()) + xts;
-  py = po.y + lengthPixelHeight(bgMargin()) + yts;
+    auto font = this->textFont().calcFont();
 
-  for (auto &node : sortedNodes_) {
-    Point p1(px + pxs/2, py - 2);
+    font.setPixelSize(ts >= 1.0 ? int(ts) : 1);
 
-    CQChartsTextOptions options;
+    device->setFont(font);
 
-    options.angle         = Angle(90.0);
-    options.align         = Qt::AlignHCenter | Qt::AlignBottom;
-    options.contrast      = isTextContrast();
-    options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = lengthPixelWidth(textClipLength());
-    options.clipElide     = textClipElide();
+    QFontMetricsF fm(device->font());
 
-    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), node->name(),
-                                      options, /*centered*/ true);
+    //---
 
-    px += pxs;
+    // draw text
+    auto tc = interpTextColor(ColorInd());
+
+    setPen(device, PenData(true, tc, textAlpha()));
+
+    //---
+
+    double twMax = 0.0;
+
+    // draw row labels
+    double px = po.x + lengthPixelWidth (bgMargin());
+    double py = po.y + lengthPixelHeight(bgMargin()) + yts;
+
+    for (auto &node : sortedNodes_) {
+      const auto &str = node->name();
+
+      double tw = fm.width(str) + 4;
+
+      twMax = std::max(twMax, tw);
+
+      Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
+
+      CQChartsTextOptions options;
+
+      options.angle         = Angle();
+      options.align         = Qt::AlignLeft;
+      options.contrast      = isTextContrast();
+      options.contrastAlpha = textContrastAlpha();
+      options.clipLength    = lengthPixelWidth(textClipLength());
+      options.clipElide     = textClipElide();
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str,
+                                        options, /*centered*/false);
+
+      py += pys;
+    }
+
+    // save draw font factor
+    th->nodeData_.drawFontFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
+
+    // draw column labels
+    px = po.x + lengthPixelWidth (bgMargin()) + xts;
+    py = po.y + lengthPixelHeight(bgMargin()) + yts;
+
+    for (auto &node : sortedNodes_) {
+      Point p1(px + pxs/2, py - 2);
+
+      CQChartsTextOptions options;
+
+      options.angle         = Angle(90.0);
+      options.align         = Qt::AlignHCenter | Qt::AlignBottom;
+      options.contrast      = isTextContrast();
+      options.contrastAlpha = textContrastAlpha();
+      options.clipLength    = lengthPixelWidth(textClipLength());
+      options.clipElide     = textClipElide();
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), node->name(),
+                                        options, /*centered*/ true);
+
+      px += pxs;
+    }
   }
 
   //---
 
   int nn = numVisibleNodes();
 
-  px = po.x + lengthPixelWidth (bgMargin()) + xts;
-  py = po.y + lengthPixelHeight(bgMargin()) + yts;
+  double px = po.x + lengthPixelWidth (bgMargin()) + xts;
+  double py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   //---
 
@@ -1321,6 +1352,21 @@ interpGroupColor(int group) const
   ColorInd ig(group, maxGroup() + 1);
 
   return interpPaletteColor(ig);
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsAdjacencyPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsAdjacencyPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
 }
 
 //------
@@ -1435,45 +1481,59 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // get fill color for node
-  auto nodeFillColor = [&](AdjacencyNode *node) {
+  auto nodeFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
     auto colorType = plot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
-             colorType == CQChartsPlot::ColorType::GROUP)
-      return plot_->interpFillColor(ColorInd(node->group(), plot_->maxGroup() + 1));
+             colorType == CQChartsPlot::ColorType::GROUP) {
+      if (plot_->colorColumn().isValid()) {
+        auto ind1 = srcNode->ind(destNode->id());
+
+        ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+        Color indColor;
+
+        if (plot_->modelIndexColor(ind2, indColor))
+          return plot_->interpColor(indColor, ColorInd());
+      }
+
+      return plot_->interpFillColor(ColorInd(srcNode->group(), plot_->maxGroup() + 1));
+    }
     else if (colorType == CQChartsPlot::ColorType::INDEX)
-      return plot_->interpFillColor(ColorInd(node->id(), plot_->numNodes()));
+      return plot_->interpFillColor(ColorInd(srcNode->id(), plot_->numNodes()));
     else
       return plot_->interpFillColor(colorInd);
   };
 
-  auto nodesFillColor = [&](AdjacencyNode *node1, AdjacencyNode *node2) {
-    if  (node1 == node2)
-      return nodeFillColor(node1);
+  auto nodesFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
+    if  (srcNode == destNode)
+      return nodeFillColor(srcNode, destNode);
     else
-      return CQChartsUtil::blendColors(nodeFillColor(node1), nodeFillColor(node2), 0.5);
+      return CQChartsUtil::blendColors(nodeFillColor(srcNode, destNode),
+                                       nodeFillColor(destNode, srcNode), 0.5);
   };
 
   //---
 
   // get stroke color for node
-  auto nodeStrokeColor = [&](AdjacencyNode *node) {
+  auto nodeStrokeColor = [&](AdjacencyNode *srcNode, AdjacencyNode * /*destNode*/) {
     auto colorType = plot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
              colorType == CQChartsPlot::ColorType::GROUP)
-      return plot_->interpStrokeColor(ColorInd(node->group(), plot_->maxGroup() + 1));
+      return plot_->interpStrokeColor(ColorInd(srcNode->group(), plot_->maxGroup() + 1));
     else if (colorType == CQChartsPlot::ColorType::INDEX)
-      return plot_->interpStrokeColor(ColorInd(node->id(), plot_->numNodes()));
+      return plot_->interpStrokeColor(ColorInd(srcNode->id(), plot_->numNodes()));
     else
       return plot_->interpStrokeColor(colorInd);
   };
 
-  auto nodesStrokeColor = [&](AdjacencyNode *node1, AdjacencyNode *node2) {
-    if  (node1 == node2)
-      return nodeStrokeColor(node1);
+  auto nodesStrokeColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
+    if  (srcNode == destNode)
+      return nodeStrokeColor(srcNode, destNode);
     else
-      return CQChartsUtil::blendColors(nodeStrokeColor(node1), nodeStrokeColor(node2), 0.5);
+      return CQChartsUtil::blendColors(nodeStrokeColor(srcNode, destNode),
+                                       nodeStrokeColor(destNode, srcNode), 0.5);
   };
 
   //---
@@ -1538,4 +1598,62 @@ yColorValue(bool relative) const
     return node2()->id();
   else
     return CMathUtil::map(node2()->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
+}
+
+//------
+
+CQChartsAdjacencyPlotCustomControls::
+CQChartsAdjacencyPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "adjacency")
+{
+  addColorColumnWidgets("Cell Color");
+
+  addConnectionColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsAdjacencyPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsConnectionPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsAdjacencyPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsAdjacencyPlot *>(plot);
+
+  CQChartsConnectionPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsAdjacencyPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+CQChartsColor
+CQChartsAdjacencyPlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsAdjacencyPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

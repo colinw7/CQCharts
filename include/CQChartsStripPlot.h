@@ -173,6 +173,9 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
                                    const QModelIndex &ind, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Values = std::vector<double>;
 
@@ -199,6 +202,20 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
   IMinMax    posRange_;              //!< position range
   PosValues  posValues_;             //!< position values
   PosYValues posYValues_;            //!< position values per mapped y
+};
+
+//---
+
+class CQChartsStripPlotCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsStripPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  CQChartsStripPlot* plot_ { nullptr };
 };
 
 #endif

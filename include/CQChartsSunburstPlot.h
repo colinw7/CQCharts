@@ -32,6 +32,8 @@ class CQChartsSunburstPlotType : public CQChartsHierPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -508,6 +510,9 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popSlot();
   void popTopSlot();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   double    innerRadius_      { 0.5 };            //!< inner radius
   double    outerRadius_      { 1.0 };            //!< outer radius
@@ -520,6 +525,26 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   int       colorId_          { -1 };             //!< current color id
   int       numColorIds_      { 0 };              //!< num used color ids
   bool      colorById_        { true };           //!< color by id
+};
+
+//---
+
+class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsSunburstPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsSunburstPlot* plot_ { nullptr };
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -38,11 +39,8 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn").
     setString().setPropPath("columns.value").setTip("Optional Value Column");
 
-  addBoolParameter("delaunay", "Delaunay", "delaunay").
-    setTip("Draw Delaunay");
-
-  addBoolParameter("voronoi", "Voronoi", "voronoi").
-    setTip("Draw Voronoi");
+  addBoolParameter("delaunay", "Delaunay", "delaunay").setTip("Draw Delaunay");
+  addBoolParameter("voronoi" , "Voronoi" , "voronoi" ).setTip("Draw Voronoi" );
 
   endParameterGroup();
 
@@ -187,6 +185,33 @@ CQChartsDelaunayPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsDelaunayPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "x"    ) c = this->xColumn();
+  else if (name == "y"    ) c = this->yColumn();
+  else if (name == "name" ) c = this->nameColumn();
+  else if (name == "value") c = this->valueColumn();
+  else                      c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsDelaunayPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "x"    ) this->setXColumn(c);
+  else if (name == "y"    ) this->setYColumn(c);
+  else if (name == "name" ) this->setNameColumn(c);
+  else if (name == "value") this->setValueColumn(c);
+  else                      CQChartsPlot::setNamedColumn(name, c);
 }
 
 //---
@@ -428,17 +453,21 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      ModelIndex valueInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      double value = 0.0;
 
-      bool ok3;
+      if (plot_->valueColumn().isValid()) {
+        ModelIndex valueInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
-      double value = plot_->modelReal(valueInd, ok3);
+        bool ok3;
 
-      if (ok3)
-        valueRange_.add(value);
-      else {
-        addDataError(xInd, "Bad Value");
-        value = 0.0;
+        value = plot_->modelReal(valueInd, ok3);
+
+        if (ok3)
+          valueRange_.add(value);
+        else {
+          addDataError(valueInd, "Bad Value");
+          value = 0.0;
+        }
       }
 
       //---
@@ -731,6 +760,21 @@ createPointObj(const BBox &rect, double x, double y, double value, const QModelI
   return new CQChartsDelaunayPointObj(this, rect, x, y, value, ind, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsDelaunayPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsDelaunayPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsDelaunayPointObj::
@@ -867,4 +911,85 @@ draw(PaintDevice *device) const
   Point p(x_, y_);
 
   CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize);
+}
+
+//------
+
+CQChartsDelaunayPlotCustomControls::
+CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "delaunay")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  static auto columnNames = QStringList() << "x" << "y" << "name" << "value";
+
+  addColumnWidgets(columnNames, optionsFrame);
+
+  //---
+
+  delaunayCheck_ = createBoolEdit("delaunay");
+  voronoiCheck_  = createBoolEdit("voronoi" );
+
+  addFrameWidget(optionsFrame, "Delaunay", delaunayCheck_);
+  addFrameWidget(optionsFrame, "Voronoi" , voronoiCheck_ );
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    delaunayCheck_, SIGNAL(stateChanged(int)), this, SLOT(delaunaySlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    voronoiCheck_, SIGNAL(stateChanged(int)), this, SLOT(voronoiSlot()));
+
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsDelaunayPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  delaunayCheck_->setChecked(plot_->isDelaunay());
+  voronoiCheck_ ->setChecked(plot_->isVoronoi ());
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+delaunaySlot()
+{
+  plot_->setDelaunay(delaunayCheck_->isChecked());
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+voronoiSlot()
+{
+  plot_->setVoronoi(voronoiCheck_->isChecked());
 }

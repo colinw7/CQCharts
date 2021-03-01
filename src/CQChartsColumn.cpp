@@ -77,29 +77,31 @@ CQChartsColumn &
 CQChartsColumn::
 operator=(const CQChartsColumn &rhs)
 {
-  delete [] expr_;
-  delete [] name_;
+  if (&rhs != this) {
+    delete [] expr_;
+    delete [] name_;
 
-  type_   = rhs.type_;
-  column_ = rhs.column_;
-  role_   = rhs.role_;
-  expr_   = nullptr;
-  name_   = nullptr;
+    type_   = rhs.type_;
+    column_ = rhs.column_;
+    role_   = rhs.role_;
+    expr_   = nullptr;
+    name_   = nullptr;
 
-  if (rhs.hasExpr() || rhs.hasIndex()) {
-    int len = strlen(rhs.expr_);
+    if (rhs.hasExpr() || rhs.hasIndex()) {
+      int len = strlen(rhs.expr_);
 
-    expr_ = new char [len + 1];
+      expr_ = new char [len + 1];
 
-    memcpy(expr_, rhs.expr_, len + 1);
-  }
+      memcpy(expr_, rhs.expr_, len + 1);
+    }
 
-  if (rhs.hasName()) {
-    int len = strlen(rhs.name_);
+    if (rhs.hasName()) {
+      int len = strlen(rhs.name_);
 
-    name_ = new char [len + 1];
+      name_ = new char [len + 1];
 
-    memcpy(name_, rhs.name_, len + 1);
+      memcpy(name_, rhs.name_, len + 1);
+    }
   }
 
   return *this;

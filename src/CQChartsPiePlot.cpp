@@ -32,13 +32,10 @@ addParameters()
   // args: name, desc, propName, attributes, default
   addColumnsParameter("values", "Value", "valueColumns").
     setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
-
   addColumnParameter("label", "Label", "labelColumn").
     setString().setBasic().setPropPath("columns.label").setTip("Custom label column");
-
   addColumnParameter("radius", "Radius", "radiusColumn").
     setNumeric().setPropPath("columns.radius").setTip("Custom radius column");
-
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
     setString().setPropPath("columns.keyLabel").setTip("Custom key label column");
 
@@ -1252,9 +1249,11 @@ CQChartsPlotCustomControls *
 CQChartsPiePlot::
 createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsPieCustomControls(charts);
+  auto *controls = new CQChartsPiePlotCustomControls(charts);
 
   controls->setPlot(this);
+
+  controls->updateWidgets();
 
   return controls;
 }
@@ -1298,8 +1297,7 @@ calcTipId() const
 
     if (! value1.length()) {
       if (column.isValid()) {
-        ModelIndex columnInd(const_cast<CQChartsPiePlot *>(plot_),
-                             modelInd().row(), column, modelInd().parent());
+        ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
 
         bool ok;
 
@@ -2202,19 +2200,52 @@ CQChartsPieTextObj(const CQChartsPiePlot *plot) :
 
 //------
 
-CQChartsPieCustomControls::
-CQChartsPieCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts)
+CQChartsPiePlotCustomControls::
+CQChartsPiePlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "pie")
 {
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "values" << "label" << "radius" << "keyLabel", optionsFrame);
+
+  //---
+
   addGroupColumnWidgets();
-  addColorColumnWidgets ();
+  addColorColumnWidgets();
+
+  connectSlots(true);
 }
 
 void
-CQChartsPieCustomControls::
+CQChartsPiePlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsGroupPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsPiePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   plot_ = dynamic_cast<CQChartsPiePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsPiePlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

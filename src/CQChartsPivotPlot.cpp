@@ -36,7 +36,6 @@ addParameters()
     setRequired().setUnique().setPropPath("columns.x").setTip("X Key Column(s)");
   addColumnsParameter("y", "Y", "yColumns").
     setRequired().setUnique().setPropPath("columns.y").setTip("Y Key Column(s)");
-
   addColumnParameter("value", "Value", "valueColumn").
     setRequired().setNumeric().setPropPath("columns.value").setTip("Value Column");
 
@@ -162,6 +161,48 @@ CQChartsPivotPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updatePivot(); updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsPivotPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if (name == "value") c = this->valueColumn();
+  else                 c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsPivotPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if (name == "value") this->setValueColumn(c);
+  else                 CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsPivotPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if      (name == "x") c = this->xColumns();
+  else if (name == "y") c = this->yColumns();
+  else                  c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsPivotPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if      (name == "x") this->setXColumns(c);
+  else if (name == "y") this->setYColumns(c);
+  else                  CQChartsPlot::setNamedColumns(name, c);
 }
 
 //---
@@ -1168,6 +1209,21 @@ createCellObj(const BBox &rect, const QModelIndices &inds, const ColorInd &ir, c
   return new CQChartsPivotCellObj(this, rect, inds, ir, ic, name, value, hnorm, vnorm, valid);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsPivotPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsPivotPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsPivotBarObj::
@@ -1918,4 +1974,53 @@ CQChartsPivotKeyText::
 CQChartsPivotKeyText(PivotPlot *plot, const QString &name) :
  CQChartsKeyText(plot, name, ColorInd())
 {
+}
+
+//------
+
+CQChartsPivotPlotCustomControls::
+CQChartsPivotPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "pivot")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "x" << "y" << "value", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsPivotPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsPivotPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsPivotPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsPivotPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

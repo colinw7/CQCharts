@@ -149,6 +149,29 @@ setCountColumn(const Column &c)
 
 //------
 
+CQChartsColumn
+CQChartsWordCloudPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "value") c = this->valueColumn();
+  else if (name == "count") c = this->countColumn();
+  else                      c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsWordCloudPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "value") this->setValueColumn(c);
+  else if (name == "count") this->setCountColumn(c);
+  else                      CQChartsPlot::setNamedColumn(name, c);
+}
+
+//------
+
 void
 CQChartsWordCloudPlot::
 addProperties()
@@ -306,6 +329,21 @@ createObj(const BBox &rect, const QString &name, const QModelIndex &ind, const C
   return new CQChartsWordObj(this, rect, name, ind, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsWordCloudPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsWordCloudPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsWordObj::
@@ -421,4 +459,53 @@ writeScriptData(ScriptPaintDevice *device) const
   calcPenBrush(penBrush_, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
+}
+
+//------
+
+CQChartsWordCloudPlotCustomControls::
+CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "wordCloud")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "value" << "count", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsWordCloudPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

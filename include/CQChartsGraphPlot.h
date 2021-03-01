@@ -30,6 +30,8 @@ class CQChartsGraphPlotType : public CQChartsConnectionPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -1249,6 +1251,9 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   void printStats();
 
  protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
+ protected:
   friend class CQChartsGraphPlotNode;
 
  protected:
@@ -1286,6 +1291,30 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   double           edgeMargin_    { 0.01 };  //!< edge bounding box margin
   bool             pressed_       { false }; //!< mouse pressed
   int              numGroups_     { 1 };     //!< node number of groups
+};
+
+//---
+
+class CQChartsGraphPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsGraphPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
+  CQChartsGraphPlot* plot_ { nullptr };
 };
 
 #endif

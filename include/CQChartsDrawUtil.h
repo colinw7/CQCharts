@@ -527,6 +527,12 @@ inline void visitPath(const QPainterPath &path, PathVisitor &visitor) {
   visitor.term();
 }
 
+//---
+
+inline void setColorAlpha(QColor &c, const CQChartsAlpha &a) {
+  c.setAlphaF(a.valueOr(1.0));
+}
+
 }
 
 #endif

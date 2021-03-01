@@ -22,7 +22,6 @@ addParameters()
 
   addColumnParameter("name", "name", "nameColumn").
    setString().setRequired().setPropPath("columns.name").setTip("Name column");
-
   addColumnParameter("value", "Value", "valueColumn").
    setNumeric().setRequired().setPropPath("columns.value").setTip("Value column");
 
@@ -149,6 +148,29 @@ CQChartsDendrogramPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsDendrogramPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name" ) c = this->nameColumn();
+  else if (name == "value") c = this->valueColumn();
+  else                      c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsDendrogramPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name" ) this->setNameColumn(c);
+  else if (name == "value") this->setValueColumn(c);
+  else                      CQChartsPlot::setNamedColumn(name, c);
 }
 
 //---
@@ -555,6 +577,21 @@ createNodeObj(CQChartsDendrogram::Node *node, const BBox &rect) const
   return new CQChartsDendrogramNodeObj(this, node, rect);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsDendrogramPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsDendrogramPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsDendrogramNodeObj::
@@ -690,4 +727,53 @@ draw(PaintDevice *device) const
   options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, options);
+}
+
+//------
+
+CQChartsDendrogramPlotCustomControls::
+CQChartsDendrogramPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "dendrogram")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "name" << "value", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsDendrogramPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

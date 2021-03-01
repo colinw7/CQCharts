@@ -6,16 +6,16 @@
 #include <CQChartsAnalyzeModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
-#include <CQChartsNamePair.h>
-#include <CQChartsConnectionList.h>
-#include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
+#include <CQCharts.h>
+#include <CQChartsConnectionList.h>
+#include <CQChartsNamePair.h>
+#include <CQChartsValueSet.h>
+#include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
-#include <CQChartsDrawUtil.h>
 #include <CQChartsEditHandles.h>
-#include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsRand.h>
 
@@ -562,22 +562,22 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  bool rc = true;
+  auto columnDataType = calcColumnDataType();
 
-  if (isHierarchical())
+  bool rc = false;
+
+  if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
-  else {
-    if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs();
-    else if (connectionsColumn().isValid())
-      rc = initConnectionObjs();
-    else if (pathColumn().isValid())
-      rc = initPathObjs();
-    else if (fromColumn().isValid() && toColumn().isValid())
-      rc = initFromToObjs();
-    else
-      rc = initTableObjs();
-  }
+  else if (columnDataType == ColumnDataType::LINK)
+    rc = initLinkObjs();
+  else if (columnDataType == ColumnDataType::CONNECTIONS)
+    rc = initConnectionObjs();
+  else if (columnDataType == ColumnDataType::PATH)
+    rc = initPathObjs();
+  else if (columnDataType == ColumnDataType::FROM_TO)
+    rc = initFromToObjs();
+  else if (columnDataType == ColumnDataType::TABLE)
+    rc = initTableObjs();
 
   if (! rc)
     return false;
@@ -3109,6 +3109,21 @@ createEdgeObj(const BBox &rect, Edge *edge) const
   return new EdgeObj(this, rect, edge);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsSankeyPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsSankeyPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsSankeyPlotNode::
@@ -5034,7 +5049,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     fillColor = fillColor1;
 
-    fillColor2.setAlphaF(plot()->edgeFillAlpha().value());
+    CQChartsDrawUtil::setColorAlpha(fillColor2, plot()->edgeFillAlpha());
 
     fillPattern.setType    (CQChartsFillPattern::Type::LGRADIENT);
     fillPattern.setAltColor(fillColor2);
@@ -5229,4 +5244,48 @@ scale(double fx, double fy)
 
     node->moveBy(Point(xc - p1.x, yc - p1.y));
   }
+}
+
+//------
+
+CQChartsSankeyPlotCustomControls::
+CQChartsSankeyPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "sankey")
+{
+  addColorColumnWidgets("Cell Color");
+
+  addConnectionColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsSankeyPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsConnectionPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsSankeyPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsSankeyPlot *>(plot);
+
+  CQChartsConnectionPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsSankeyPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

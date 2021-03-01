@@ -248,6 +248,27 @@ setColumns(const Columns &c)
 
 //---
 
+CQChartsColumns
+CQChartsTablePlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "columns") c = this->columns();
+  else                   c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsTablePlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "columns") this->setColumns(c);
+  else                   CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
+
 void
 CQChartsTablePlot::
 setFont(const Font &f)
@@ -1920,6 +1941,21 @@ createCellObj(const CellObjData &cellObjData) const
   return new CQChartsTableCellObj(this, cellObjData);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsTablePlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsTablePlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsTableHeaderObj::
@@ -2391,4 +2427,53 @@ rectIntersect(const BBox &r, bool inside) const
     return r.inside(rect);
   else
     return r.overlaps(rect);
+}
+
+//------
+
+CQChartsTablePlotCustomControls::
+CQChartsTablePlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "table")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "columns", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsTablePlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsTablePlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsTablePlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsTablePlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

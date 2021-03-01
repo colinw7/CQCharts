@@ -36,6 +36,9 @@ class CQChartsXYPlotType : public CQChartsPointPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool supportsIdColumn   () const override { return true; }
+  bool supportsImageColumn() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -778,6 +781,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   //! get/set map x column
   bool isMapXColumn() const { return mapXColumn_; }
   void setMapXColumn(bool b);
@@ -1010,6 +1021,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
+ signals:
+  void customDataChanged();
+
  public slots:
   //! set points visible
   void setPointsSlot(bool b);
@@ -1128,29 +1142,32 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
 class CQChartsColumnCombo;
 
-class CQChartsXYCustomControls : public CQChartsGroupPlotCustomControls {
+class CQChartsXYPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsXYCustomControls(CQCharts *charts);
+  CQChartsXYPlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 
  private:
   void connectSlots(bool b);
 
-  void updateWidgets();
+ public slots:
+  void updateWidgets() override;
 
  private slots:
   void pointsSlot(int);
   void linesSlot(int);
   void fillUnderSlot(int);
+  void stackedSlot(int);
 
  private:
   CQChartsXYPlot* plot_           { nullptr };
   CQCheckBox*     pointsCheck_    { nullptr };
   CQCheckBox*     linesCheck_     { nullptr };
   CQCheckBox*     fillUnderCheck_ { nullptr };
+  CQCheckBox*     stackedCheck_   { nullptr };
 };
 
 #endif

@@ -1,7 +1,6 @@
 #include <CQChartsCorrelationPlot.h>
 #include <CQChartsCorrelationModel.h>
 #include <CQChartsView.h>
-#include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
@@ -14,6 +13,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -29,6 +29,30 @@ void
 CQChartsCorrelationPlotType::
 addParameters()
 {
+  // options
+  addEnumParameter("diagonalType", "Diagonal Cell Type", "diagonalType").
+    addNameValue("NONE"   , int(CQChartsCorrelationPlot::DiagonalType::NONE   )).
+    addNameValue("NAME"   , int(CQChartsCorrelationPlot::DiagonalType::NAME   )).
+    addNameValue("MIN_MAX", int(CQChartsCorrelationPlot::DiagonalType::MIN_MAX)).
+    addNameValue("DENSITY", int(CQChartsCorrelationPlot::DiagonalType::DENSITY)).
+    setTip("Diagonal Cell Type");
+  addEnumParameter("upperDiagonalType", "Upper Diagonal Cell Type", "upperDiagonalType").
+    addNameValue("NONE"      , int(CQChartsCorrelationPlot::OffDiagonalType::NONE      )).
+    addNameValue("PIE"       , int(CQChartsCorrelationPlot::OffDiagonalType::PIE       )).
+    addNameValue("SHADE"     , int(CQChartsCorrelationPlot::OffDiagonalType::SHADE     )).
+    addNameValue("ELLIPSE"   , int(CQChartsCorrelationPlot::OffDiagonalType::ELLIPSE   )).
+    addNameValue("POINTS"    , int(CQChartsCorrelationPlot::OffDiagonalType::POINTS    )).
+    addNameValue("CONFIDENCE", int(CQChartsCorrelationPlot::OffDiagonalType::CONFIDENCE)).
+    setTip("Upper Diagonal Cell Type");
+  addEnumParameter("lowerDiagonalType", "Lower Diagonal Cell Type", "lowerDiagonalType").
+    addNameValue("NONE"      , int(CQChartsCorrelationPlot::OffDiagonalType::NONE      )).
+    addNameValue("PIE"       , int(CQChartsCorrelationPlot::OffDiagonalType::PIE       )).
+    addNameValue("SHADE"     , int(CQChartsCorrelationPlot::OffDiagonalType::SHADE     )).
+    addNameValue("ELLIPSE"   , int(CQChartsCorrelationPlot::OffDiagonalType::ELLIPSE   )).
+    addNameValue("POINTS"    , int(CQChartsCorrelationPlot::OffDiagonalType::POINTS    )).
+    addNameValue("CONFIDENCE", int(CQChartsCorrelationPlot::OffDiagonalType::CONFIDENCE)).
+    setTip("Lower Diagonal Cell Type");
+
   CQChartsPlotType::addParameters();
 }
 
@@ -853,6 +877,21 @@ createCellObj(const BBox &rect, int row, int col, double value, const QModelInde
   return new CQChartsCorrelationCellObj(this, rect, row, col, value, ind);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsCorrelationPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsCorrelationPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsCorrelationCellObj::
@@ -1315,4 +1354,96 @@ CQChartsCorrelationCellObj::
 yColorValue(bool) const
 {
   return col_;
+}
+
+//------
+
+CQChartsCorrelationPlotCustomControls::
+CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "correlation")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  diagonalTypeCombo_      = createEnumEdit("diagonalType");
+  upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");
+  lowerDiagonalTypeCombo_ = createEnumEdit("lowerDiagonalType");
+
+  addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
+  addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
+  addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    upperDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(upperDiagonalTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    lowerDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(lowerDiagonalTypeSlot()));
+
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsCorrelationPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  diagonalTypeCombo_     ->setCurrentValue((int) plot_->diagonalType());
+  upperDiagonalTypeCombo_->setCurrentValue((int) plot_->upperDiagonalType());
+  lowerDiagonalTypeCombo_->setCurrentValue((int) plot_->lowerDiagonalType());
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+diagonalTypeSlot()
+{
+  plot_->setDiagonalType((CQChartsCorrelationPlot::DiagonalType)
+                         diagonalTypeCombo_->currentValue());
+
+  updateWidgets();
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+upperDiagonalTypeSlot()
+{
+  plot_->setUpperDiagonalType((CQChartsCorrelationPlot::OffDiagonalType)
+                              upperDiagonalTypeCombo_->currentValue());
+
+  updateWidgets();
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+lowerDiagonalTypeSlot()
+{
+  plot_->setLowerDiagonalType((CQChartsCorrelationPlot::OffDiagonalType)
+                              lowerDiagonalTypeCombo_->currentValue());
+
+  updateWidgets();
 }

@@ -33,7 +33,7 @@ class CQChartsHelpDlgMgr {
 
  ~CQChartsHelpDlgMgr() { }
 
-  void showDialog(CQCharts *charts);
+  CQChartsHelpDlg *showDialog(CQCharts *charts);
 
   const TclCommands &tclCommands() const { return tclCommands_; }
 

@@ -210,9 +210,19 @@ CQChartsPointPlot::
 addPointProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
+
+  //auto hideProp = [&](QObject *obj, const QString &path) {
+  //  auto *item = propertyModel()->propertyItem(obj, path);
+  //  CQCharts::setItemIsHidden(item);
+  //};
+
+  //---
 
   // columns
   addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
@@ -235,6 +245,10 @@ addPointProperties()
   addProp("mapping/fontSize", "fontSizeMapMin"  , "min"    , "Font size map min value");
   addProp("mapping/fontSize", "fontSizeMapMax"  , "max"    , "Font size map max value");
   addProp("mapping/fontSize", "fontSizeMapUnits", "units"  , "Font size map units");
+
+  //---
+
+  //hideProp(this, "scaling.equal");
 }
 
 void
@@ -1316,8 +1330,8 @@ getHull() const
 //------
 
 CQChartsPointPlotCustomControls::
-CQChartsPointPlotCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts)
+CQChartsPointPlotCustomControls(CQCharts *charts, const QString &plotType) :
+ CQChartsGroupPlotCustomControls(charts, plotType)
 {
 }
 
@@ -1328,6 +1342,8 @@ addSymbolSizeWidgets()
   // symbol size group
   auto *symbolSizeFrame  = CQUtil::makeWidget<QFrame>("symbolSizeFrame");
   auto *symbolSizeLayout = CQUtil::makeLayout<QGridLayout>(symbolSizeFrame, 2, 2);
+
+  symbolSizeLayout->setColumnStretch(1, 1);
 
   int symbolSizeRow = 0;
 
@@ -1356,6 +1372,8 @@ addSymbolSizeWidgets()
   // symbol type group
   auto *symbolTypeFrame  = CQUtil::makeWidget<QFrame>("symbolTypeFrame");
   auto *symbolTypeLayout = CQUtil::makeLayout<QGridLayout>(symbolTypeFrame, 2, 2);
+
+  symbolTypeLayout->setColumnStretch(1, 1);
 
   int symbolTypeRow = 0;
 
@@ -1439,7 +1457,7 @@ setPlot(CQChartsPlot *plot)
     connect(plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
   }
 
-  updateWidgets();
+  CQChartsGroupPlotCustomControls::setPlot(plot);
 }
 
 void

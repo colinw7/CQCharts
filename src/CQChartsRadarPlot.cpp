@@ -30,7 +30,6 @@ addParameters()
 
   addColumnParameter("name", "Name", "nameColumn").
     setString().setBasic().setPropPath("columns.name").setTip("Name column");
-
   addColumnsParameter("values", "Value", "valueColumns").
    setNumeric().setRequired().setPropPath("columns.values").setTip("Value columns");
 
@@ -164,7 +163,47 @@ setValueColumns(const Columns &c)
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
-//------
+//---
+
+CQChartsColumn
+CQChartsRadarPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if (name == "name") c = this->nameColumn();
+  else             c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsRadarPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if (name == "name") this->setNameColumn(c);
+  else             CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsRadarPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else             c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsRadarPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else                  CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
 
 void
 CQChartsRadarPlot::
@@ -838,6 +877,21 @@ createObj(const BBox &rect, const QString &name, const Polygon &poly,
   return new CQChartsRadarObj(this, rect, name, poly, nameValues, ind, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsRadarPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsRadarPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsRadarObj::
@@ -1044,4 +1098,53 @@ writeScriptData(ScriptPaintDevice *device) const
   calcPenBrush(penBrush_, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
+}
+
+//------
+
+CQChartsRadarPlotCustomControls::
+CQChartsRadarPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "radar")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "name" << "values", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsRadarPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsRadarPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsRadarPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsRadarPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

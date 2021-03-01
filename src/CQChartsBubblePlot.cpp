@@ -916,9 +916,11 @@ CQChartsPlotCustomControls *
 CQChartsBubblePlot::
 createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsBubbleCustomControls(charts);
+  auto *controls = new CQChartsBubblePlotCustomControls(charts);
 
   controls->setPlot(this);
+
+  controls->updateWidgets();
 
   return controls;
 }
@@ -1568,16 +1570,16 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 
 //------
 
-CQChartsBubbleCustomControls::
-CQChartsBubbleCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts)
+CQChartsBubblePlotCustomControls::
+CQChartsBubblePlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "bubble")
 {
   addGroupColumnWidgets();
   addColorColumnWidgets();
 }
 
 void
-CQChartsBubbleCustomControls::
+CQChartsBubblePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   plot_ = dynamic_cast<CQChartsBubblePlot *>(plot);

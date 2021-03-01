@@ -636,7 +636,7 @@ setEditHandlesBBox() const
 
 void
 CQChartsTitle::
-textBoxDataInvalidate()
+textBoxObjInvalidate()
 {
   if (! isDrawn())
     setBBox(BBox());

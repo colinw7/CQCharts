@@ -299,27 +299,27 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
+  auto columnDataType = calcColumnDataType();
+
   th->nameDataMap_.clear();
 
-  bool rc      = true;
+  bool rc      = false;
   bool addObjs = true;
 
-  if (isHierarchical())
+  if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
-  else {
-    if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs();
-    else if (connectionsColumn().isValid())
-      rc = initConnectionObjs();
-    else if (pathColumn().isValid())
-      rc = initPathObjs();
-    else if (fromColumn().isValid() && toColumn().isValid())
-      rc = initFromToObjs();
-    else {
-      rc = initTableObjs(objs);
+  else if (columnDataType == ColumnDataType::LINK)
+    rc = initLinkObjs();
+  else if (columnDataType == ColumnDataType::CONNECTIONS)
+    rc = initConnectionObjs();
+  else if (columnDataType == ColumnDataType::PATH)
+    rc = initPathObjs();
+  else if (columnDataType == ColumnDataType::FROM_TO)
+    rc = initFromToObjs();
+  else if (columnDataType == ColumnDataType::TABLE) {
+    rc = initTableObjs(objs);
 
-      addObjs = false;
-    }
+    addObjs = false;
   }
 
   if (! rc)
@@ -1079,6 +1079,21 @@ createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &va
   return new CQChartsChordEdgeObj(this, rect, data, to, value);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsChordPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsChordPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsChordArcObj::
@@ -1663,4 +1678,46 @@ CQChartsChordEdgeObj::
 toObj() const
 {
   return plot_->arcObject(to());
+}
+
+//------
+
+CQChartsChordPlotCustomControls::
+CQChartsChordPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "chord")
+{
+  addConnectionColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsChordPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsConnectionPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsChordPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsChordPlot *>(plot);
+
+  CQChartsConnectionPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsChordPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

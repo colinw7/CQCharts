@@ -35,6 +35,8 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool supportsIdColumn() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -554,7 +556,18 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_ENUMS(PointsType)
   Q_ENUMS(ErrorBarType)
 
+  //---
+
+  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType)
+
+  Q_ENUMS(ColumnDataType)
+
  public:
+  enum ColumnDataType {
+    RAW,
+    CALCULATED
+  };
+
   enum class PointsType {
     NONE,
     JITTER,
@@ -628,6 +641,14 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   QString groupSetColumnName(const QString &def="") const;
   QString valueColumnName   (const QString &def="value") const;
   QString groupColumnName   (const QString &def="") const;
+
+  //---
+
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  CQChartsColumns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
 
   //---
 
@@ -718,6 +739,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   int numGroupWhiskers() const { return groupWhiskers_.size(); }
 
   const GroupSetWhiskerMap &groupWhiskers() const { return groupWhiskers_; }
+
+  //---
+
+  ColumnDataType calcColumnDataType() const;
 
   //---
 
@@ -841,6 +866,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
                                    const QModelIndex &ind, const ColorInd &is,
                                    const ColorInd &ig, const ColorInd &iv) const;
 
+  //---
+
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   Columns valueColumns_;      //!< value columns
   Column  nameColumn_;        //!< name column
@@ -879,6 +908,46 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   WhiskerDataList    whiskerDataList_;                               //!< whisker data
   bool               isWhiskersGrouped_ { false };                   //!< is grouped whiskers
   bool               forceNoYAxis_      { false };                   //!< force no y axis
+};
+
+//---
+
+class CQEnumCombo;
+
+class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsBoxPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ public slots:
+  void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b);
+
+ private slots:
+  void orientationSlot();
+  void pointsTypeSlot();
+
+  void normalizedSlot();
+  void notchedSlot();
+  void colorBySetSlot();
+  void violinSlot();
+  void errorBarSlot();
+
+ private:
+  CQChartsBoxPlot*           plot_             { nullptr };
+  CQEnumCombo*               columnsTypeCombo_ { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
+  CQChartsEnumParameterEdit* pointsTypeCombo_  { nullptr };
+  CQChartsBoolParameterEdit* normalizedCheck_  { nullptr };
+  CQChartsBoolParameterEdit* notchedCheck_     { nullptr };
+  CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
+  CQChartsBoolParameterEdit* violinCheck_      { nullptr };
+  CQChartsBoolParameterEdit* errorBarCheck_    { nullptr };
 };
 
 #endif

@@ -23,6 +23,7 @@ proc objPressed { view plot id } {
 set model [load_charts_model -csv data/sankey.csv -comment_header \
  -column_type {{{0 name_pair}}}]
 
-set plot [create_charts_plot -model $model -type adjacency -columns {{link 0} {value 1}}]
+set plot [create_charts_plot -model $model -type adjacency \
+  -columns {{link 0} {value 1}} -title "Adjacency Budget"]
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed

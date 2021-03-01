@@ -568,10 +568,10 @@ class CQChartsPlotParameterGroup : public QObject {
 
 //---
 
+#include <CQChartsColumnsEdit.h>
 #include <CQChartsLineEdit.h>
 
 #include <QComboBox>
-#include <QCheckBox>
 
 class CQChartsColumnCombo;
 class CQChartsColumnLineEdit;
@@ -600,6 +600,20 @@ class CQChartsColumnParameterEdit : public QFrame {
   const CQChartsPlotParameter* parameter_ { nullptr };
   CQChartsColumnCombo*         combo_     { nullptr };
   CQChartsColumnLineEdit*      edit_      { nullptr };
+};
+
+//---
+
+class CQChartsColumnsParameterEdit : public CQChartsColumnsLineEdit {
+  Q_OBJECT
+
+ public:
+  CQChartsColumnsParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic);
+
+  const CQChartsPlotParameter *parameter() const { return parameter_; }
+
+ private:
+  const CQChartsPlotParameter* parameter_ { nullptr };
 };
 
 //---
@@ -669,14 +683,29 @@ class CQChartsEnumParameterEdit : public QComboBox {
 
 //---
 
-class CQChartsBoolParameterEdit : public QCheckBox {
+class CQCheckBox;
+class QCheckBox;
+
+class CQChartsBoolParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter);
+  CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter, bool choice=false);
+
+  bool isChecked() const;
+  void setChecked(bool b);
 
  private:
   const CQChartsPlotParameter* parameter_ { nullptr };
+
+ signals:
+  void stateChanged(int);
+
+ private:
+  QCheckBox*  check_  { nullptr };
+  CQCheckBox* choice_ { nullptr };
 };
+
+//---
 
 #endif

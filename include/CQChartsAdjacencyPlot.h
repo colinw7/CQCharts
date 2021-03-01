@@ -3,8 +3,8 @@
 
 #include <CQChartsConnectionPlot.h>
 #include <CQChartsPlotType.h>
-#include <CQChartsObjData.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsObjData.h>
 #include <CQChartsConnectionList.h>
 
 //------
@@ -32,6 +32,8 @@ class CQChartsAdjacencyPlotType : public CQChartsConnectionPlotType {
   bool hasKey () const override { return false; } // TODO: value range key
 
   bool canProbe() const override { return false; }
+
+  bool canEqualScale() const override { return true; }
 
   QString description() const override;
 
@@ -350,7 +352,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   double scale() const { return nodeData_.scale; }
 
-  double drawFactor() const { return nodeData_.drawFactor; }
+  double drawFontFactor() const { return nodeData_.drawFontFactor; }
 
   //---
 
@@ -375,7 +377,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void initFactor();
+  void initFontFactor();
 
   void autoFit() override;
 
@@ -455,17 +457,23 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   void createNameNodeObjs(PlotObjs &objs) const;
 
+
+  //---
+
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using NodeMap   = std::map<int, AdjacencyNode*>;
   using NodeArray = std::vector<AdjacencyNode*>;
 
   struct NodeData {
-    double maxValue   { 0 };   //!< max node value
-    int    maxGroup   { 0 };   //!< max node group
-    int    maxNode    { 0 };   //!< max node ind
-    int    maxLen     { 0 };   //!< max text length
-    double scale      { 1.0 }; //!< box size
-    double drawFactor { 1.0 }; //!< saved font factor
+    double maxValue       { 0 };   //!< max node value
+    int    maxGroup       { 0 };   //!< max node group
+    int    maxNode        { 0 };   //!< max node ind
+    int    maxLen         { 0 };   //!< max text length
+    double scale          { 1.0 }; //!< box size
+    double drawFontFactor { 1.0 }; //!< saved font factor
   };
 
  private:
@@ -480,11 +488,35 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   Length      bgMargin_      { "2px" };           //!< background margin
   NodeMap     nodes_;                             //!< all nodes
   NameNodeMap nameNodeMap_;                       //!< name node map
-  double      factor_        { -1.0 };            //!< font factor
+  double      fontFactor_    { -1.0 };            //!< font factor
   CellObj*    insideObj_     { nullptr };         //!< last inside object
   NodeArray   sortedNodes_;                       //!< sorted nodes
   NodeData    nodeData_;                          //!< node data
   int         maxNodeDepth_  { -1 };
+};
+
+//---
+
+class CQChartsAdjacencyPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsAdjacencyPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
+  CQChartsAdjacencyPlot* plot_ { nullptr };
 };
 
 #endif

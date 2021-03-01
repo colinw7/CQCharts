@@ -53,28 +53,28 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   //--
 
   void setVisible(bool b) override {
-    CQChartsTextBoxObj::setVisible(b); textBoxDataInvalidate();
+    CQChartsTextBoxObj::setVisible(b); textBoxObjInvalidate();
   }
 
   //! position
   const Position &position() const { return position_; }
-  void setPosition(const Position &p) { position_ = p; textBoxDataInvalidate(); }
+  void setPosition(const Position &p) { position_ = p; textBoxObjInvalidate(); }
 
   //! direction
   const Qt::Orientation &direction() const { return direction_; }
-  void setDirection(const Qt::Orientation &v) { direction_ = v; textBoxDataInvalidate(); }
+  void setDirection(const Qt::Orientation &v) { direction_ = v; textBoxObjInvalidate(); }
 
   //! clip by rectangle
   bool isClip() const { return clip_; }
-  void setClip(bool b) { clip_ = b; textBoxDataInvalidate(); }
+  void setClip(bool b) { clip_ = b; textBoxObjInvalidate(); }
 
   //! draw clipped text
   bool drawClipped() const { return drawClipped_; }
-  void setDrawClipped(bool b) { drawClipped_ = b; textBoxDataInvalidate(); }
+  void setDrawClipped(bool b) { drawClipped_ = b; textBoxObjInvalidate(); }
 
   //! move clipped text
   bool moveClipped() const { return moveClipped_; }
-  void setMoveClipped(bool b) { moveClipped_ = b; textBoxDataInvalidate(); }
+  void setMoveClipped(bool b) { moveClipped_ = b; textBoxObjInvalidate(); }
 
   //! send signal
   bool isSendSignal() const { return sendSignal_; }
@@ -136,7 +136,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  void textBoxDataInvalidate() override;
+  void textBoxObjInvalidate() override;
 
   //---
 

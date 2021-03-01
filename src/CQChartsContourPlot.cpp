@@ -7,11 +7,14 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QMenu>
+#include <QLabel>
+#include <QGridLayout>
 
 CQChartsContourPlotType::
 CQChartsContourPlotType()
@@ -22,6 +25,11 @@ void
 CQChartsContourPlotType::
 addParameters()
 {
+  addBoolParameter("solid", "Solid", "solid").
+    setTip("Draw solid contours").setPropPath("contour.solid");
+
+  //---
+
   CQChartsPlotType::addParameters();
 }
 
@@ -377,4 +385,76 @@ drawContour(PaintDevice *device) const
   contour_->setNumContourLevels(numContourLevels());
 
   contour_->drawContour(device);
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsContourPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsContourPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
+//------
+
+CQChartsContourPlotCustomControls::
+CQChartsContourPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "contour")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  solidCheck_ = createBoolEdit("solid");
+
+  addFrameWidget(optionsFrame, "Solid", solidCheck_);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsContourPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    solidCheck_, SIGNAL(stateChanged(int)), this, SLOT(solidSlot()));
+}
+
+void
+CQChartsContourPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsContourPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsContourPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  solidCheck_->setChecked(plot_->isSolid());
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsContourPlotCustomControls::
+solidSlot()
+{
+  plot_->setSolid(solidCheck_->isChecked());
 }

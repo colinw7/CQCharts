@@ -652,7 +652,7 @@ drawContrastText(PaintDevice *device, const Point &p, const QString &text, const
 //auto icolor = CQChartsUtil::invColor(pen.color());
   auto icolor = CQChartsUtil::bwColor(pen.color());
 
-  icolor.setAlphaF(alpha.value());
+  setColorAlpha(icolor, alpha);
 
   //---
 

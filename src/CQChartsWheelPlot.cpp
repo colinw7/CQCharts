@@ -28,21 +28,21 @@ addParameters()
   startParameterGroup("Wheel");
 
   // columns
-  addColumnParameter ("x", "X", "xColumn").
+  addColumnParameter("x", "X", "xColumn").
     setRequired().setMonotonic().setNumeric().setPropPath("columns.x").setTip("X Value Column");
-  addColumnsParameter("y", "Y", "yColumn").
+  addColumnParameter("y", "Y", "yColumn").
     setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
 
-  addColumnsParameter("min", "Min", "minColumn").
+  addColumnParameter("min", "Min", "minColumn").
     setNumeric().setPropPath("columns.min").setTip("Min Value Column");
-  addColumnsParameter("max", "Max", "maxColumn").
+  addColumnParameter("max", "Max", "maxColumn").
     setNumeric().setPropPath("columns.max").setTip("Max Value Column");
 
-  addColumnsParameter("innerBar", "InnerBar", "innerBarColumn").
+  addColumnParameter("innerBar", "InnerBar", "innerBarColumn").
     setPropPath("columns.innerBar").setTip("Inner Fill Column");
-  addColumnsParameter("outerBar", "OuterBar", "outerBarColumn").
+  addColumnParameter("outerBar", "OuterBar", "outerBarColumn").
     setNumeric().setPropPath("columns.outerBar").setTip("Outer Bar Column");
-  addColumnsParameter("outerBubble", "OuterBubble", "outerBubbleColumn").
+  addColumnParameter("outerBubble", "OuterBubble", "outerBubbleColumn").
     setNumeric().setPropPath("columns.outerBubble").setTip("Outer Bubble Column");
 
   endParameterGroup();
@@ -213,6 +213,39 @@ CQChartsWheelPlot::
 setOuterBubbleColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outerBubbleColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//------
+
+CQChartsColumn
+CQChartsWheelPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "x"          ) c = this->xColumn();
+  else if (name == "y"          ) c = this->yColumn();
+  else if (name == "min"        ) c = this->minColumn();
+  else if (name == "max"        ) c = this->maxColumn();
+  else if (name == "innerBar"   ) c = this->innerBarColumn();
+  else if (name == "outerBar"   ) c = this->outerBarColumn();
+  else if (name == "outerBubble") c = this->outerBubbleColumn();
+  else                            c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsWheelPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "x"          ) this->setXColumn(c);
+  else if (name == "y"          ) this->setYColumn(c);
+  else if (name == "min"        ) this->setMinColumn(c);
+  else if (name == "max"        ) this->setMaxColumn(c);
+  else if (name == "innerBar"   ) this->setInnerBarColumn(c);
+  else if (name == "outerBar"   ) this->setOuterBarColumn(c);
+  else if (name == "outerBubble") this->setOuterBubbleColumn(c);
+  else                            CQChartsPlot::setNamedColumn(name, c);
 }
 
 //------
@@ -879,8 +912,7 @@ execDrawForeground(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  setPenBrush(penBrush,
-    PenData(true, lc, gridAlpha()), BrushData(false));
+  setPenBrush(penBrush, PenData(true, lc, gridAlpha()), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -972,8 +1004,7 @@ execDrawOverlay(PaintDevice *device) const
   // draw mouse position
   auto lc = interpColor(lineColor(), ColorInd());
 
-  setPenBrush(penBrush,
-    PenData(false), BrushData(true, lc, lineAlpha()));
+  setPenBrush(penBrush, PenData(false), BrushData(true, lc, lineAlpha()));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1000,8 +1031,7 @@ execDrawOverlay(PaintDevice *device) const
 
   auto tc = interpColor(textColor(), ColorInd());
 
-  setPenBrush(penBrush,
-    PenData(true, tc), BrushData(false));
+  setPenBrush(penBrush, PenData(true, tc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1086,6 +1116,21 @@ createOuterBubbleObj(const BBox &rect, const PointData &pointData,
                      const QModelIndex &ind, const ColorInd &iv)
 {
   return new CQChartsOuterBubbleObj(this, rect, pointData, ind, iv);
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsWheelPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsWheelPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
 }
 
 //------
@@ -1487,8 +1532,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     fc = c.color();
   }
 
-  plot_->setPenBrush(penBrush,
-    PenData(false), BrushData(true, fc, Alpha(0.3)));
+  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1623,8 +1667,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto fc = plot_->interpColor(plot_->outerBarColor(), ColorInd());
 
-  plot_->setPenBrush(penBrush,
-    PenData(false), BrushData(true, fc, Alpha(0.3)));
+  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1742,8 +1785,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto fc = plot_->interpColor(plot_->outerBubbleColor(), ColorInd());
 
-  plot_->setPenBrush(penBrush,
-    PenData(true, fc), BrushData(true, fc, Alpha(0.3)));
+  plot_->setPenBrush(penBrush, PenData(true, fc), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1756,4 +1798,54 @@ writeScriptData(ScriptPaintDevice *device) const
   calcPenBrush(penBrush_, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
+}
+
+//------
+
+CQChartsWheelPlotCustomControls::
+CQChartsWheelPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "wheel")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() <<
+    "x" << "y" << "min" << "max" << "innerBar" << "outerBar" << "outerBubble", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsWheelPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsWheelPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsWheelPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsWheelPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

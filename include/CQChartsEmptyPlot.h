@@ -63,6 +63,9 @@ class CQChartsEmptyPlot : public CQChartsPlot {
   //---
 
   bool addMenuItems(QMenu *menu) override;
+
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 };
 
 #endif

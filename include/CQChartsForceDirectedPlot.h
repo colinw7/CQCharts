@@ -289,6 +289,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get unique index for string
   int getStringId(const QString &str) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Node            = CQChartsSpringyNode;
   using NodeMap         = std::map<int, Node *>;
@@ -321,6 +324,26 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double nodeMass_     { 1.0 };   //!< node mass
   double widthScale_   { 1.0 };   //!< width scale
   int    maxNodeDepth_ { 0 };     //!< max node depth
+};
+
+//---
+
+class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsForceDirectedPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsForceDirectedPlot* plot_ { nullptr };
 };
 
 #endif

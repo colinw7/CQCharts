@@ -247,6 +247,9 @@ class CQChartsImagePlot : public CQChartsPlot,
   virtual ImageObj *createImageObj(const BBox &rect, int row, int col,
                                    const Image &image, const QModelIndex &ind) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   CellStyle cellStyle_       { CellStyle::RECT }; //!< cell style
   bool      cellLabels_      { false };           //!< cell labels
@@ -259,6 +262,30 @@ class CQChartsImagePlot : public CQChartsPlot,
   double    maxValue_        { 0.0 };             //!< max value
   double    minBalloonSize_  { 0.1 };             //!< min balloon size (cell fraction)
   double    maxBalloonSize_  { 1.0 };             //!< max balloon size (cell fraction)
+};
+
+//---
+
+class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsImagePlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void cellStyleSlot();
+
+ private:
+  CQChartsImagePlot*         plot_           { nullptr };
+  CQChartsEnumParameterEdit* cellStyleCombo_ { nullptr };
 };
 
 #endif

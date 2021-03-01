@@ -32,6 +32,8 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -160,10 +162,16 @@ class CQChartsRadarPlot : public CQChartsPlot,
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
-  //---
-
   const Columns &valueColumns() const { return valueColumns_; }
   void setValueColumns(const Columns &c);
+
+  //---
+
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
 
   //---
 
@@ -210,6 +218,9 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   Qt::Alignment alignForPosition(double x, double y) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   class ValueData {
    public:
@@ -251,6 +262,26 @@ class CQChartsRadarPlot : public CQChartsPlot,
   Angle      angleExtent_  { 360.0 }; //!< angle extent
   ValueDatas valueDatas_;             //!< value
   double     valueRadius_  { 1.0 };   //!< max value (radius)
+};
+
+//---
+
+class CQChartsRadarPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsRadarPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsRadarPlot* plot_ { nullptr };
 };
 
 #endif

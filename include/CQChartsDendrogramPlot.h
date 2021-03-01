@@ -124,6 +124,11 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   double circleSize() const { return circleSize_; }
   void setCircleSize(double r);
 
@@ -169,6 +174,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   using Dendrogram = CQChartsDendrogram;
 
@@ -177,6 +185,26 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Dendrogram* dendrogram_  { nullptr }; //!< dendrogram class
   double      circleSize_  { 8.0 };     //!< circle size
   double      textMargin_  { 4.0 };     //!< text margin
+};
+
+//---
+
+class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsDendrogramPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsDendrogramPlot* plot_ { nullptr };
 };
 
 #endif

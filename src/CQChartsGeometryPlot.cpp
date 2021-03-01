@@ -225,6 +225,33 @@ setStyleColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsGeometryPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "geometry") c = this->geometryColumn();
+  else if (name == "name"    ) c = this->nameColumn();
+  else if (name == "value"   ) c = this->valueColumn();
+  else if (name == "style"   ) c = this->styleColumn();
+  else                         c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsGeometryPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "geometry") this->setGeometryColumn(c);
+  else if (name == "name"    ) this->setNameColumn(c);
+  else if (name == "value"   ) this->setValueColumn(c);
+  else if (name == "style"   ) this->setStyleColumn(c);
+  else                         CQChartsPlot::setNamedColumn(name, c);
+}
+
+//---
+
 void
 CQChartsGeometryPlot::
 setColorByValue(bool b)
@@ -707,6 +734,21 @@ createGeometryObj(const BBox &rect, const Polygons &polygons,
   return new CQChartsGeometryObj(this, rect, polygons, ind, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsGeometryPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsGeometryPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsGeometryObj::
@@ -917,4 +959,55 @@ CQChartsGeometryShape(const QString &str)
     type = Type::PATH;
   else
     type = Type::NONE;
+}
+
+//------
+
+CQChartsGeometryPlotCustomControls::
+CQChartsGeometryPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "geometry")
+{
+   // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  static auto columnNames = QStringList() << "geometry" << "name" << "value" << "style";
+
+  addColumnWidgets(columnNames, optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsGeometryPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsGeometryPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsGeometryPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsGeometryPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

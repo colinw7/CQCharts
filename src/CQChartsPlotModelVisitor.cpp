@@ -89,8 +89,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
   using ModelIndex = CQChartsModelIndex;
 
   if (plot_->visibleColumn().isValid()) {
-    ModelIndex visibleColumnInd(const_cast<CQChartsPlot *>(plot_),
-                                data.row, plot_->visibleColumn(), data.parent);
+    ModelIndex visibleColumnInd(plot_, data.row, plot_->visibleColumn(), data.parent);
 
     bool ok;
 

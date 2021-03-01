@@ -10,6 +10,7 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -25,6 +26,12 @@ void
 CQChartsImagePlotType::
 addParameters()
 {
+  // options
+  addEnumParameter("cellStyle", "Cell Style", "cellStyle").
+    addNameValue("RECT"   , int(CQChartsImagePlot::CellStyle::RECT   )).
+    addNameValue("BALLOON", int(CQChartsImagePlot::CellStyle::BALLOON)).
+    setTip("Cell Style");
+
   CQChartsPlotType::addParameters();
 }
 
@@ -799,6 +806,21 @@ createImageObj(const BBox &rect, int row, int col, const Image &image,
   return new CQChartsImageObj(this, rect, row, col, image, ind);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsImagePlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsImagePlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsImageObj::
@@ -1035,4 +1057,67 @@ yColorValue(bool relative) const
     return col_;
   else
     return CMathUtil::map(row_, 0.0, 1.0*plot_->numRows(), 0.0, 1.0);
+}
+
+//------
+
+CQChartsImagePlotCustomControls::
+CQChartsImagePlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "image")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  cellStyleCombo_ = createEnumEdit("cellStyle");
+
+  addFrameWidget(optionsFrame, "Cell Style", cellStyleCombo_);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsImagePlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    cellStyleCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(cellStyleSlot()));
+
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsImagePlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsImagePlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsImagePlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  cellStyleCombo_->setCurrentValue((int) plot_->cellStyle());
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsImagePlotCustomControls::
+cellStyleSlot()
+{
+  plot_->setCellStyle((CQChartsImagePlot::CellStyle) cellStyleCombo_->currentValue());
+
+  updateWidgets();
 }

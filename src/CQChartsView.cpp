@@ -136,6 +136,9 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   propertyModel_ = std::make_unique<CQPropertyViewModel>();
 
+  connect(propertyModel_.get(), SIGNAL(valueChanged(QObject *, const QString &)),
+          this, SLOT(propertyItemChanged(QObject *, const QString &)));
+
   //---
 
   if (charts_->hasViewKey()) {
@@ -337,9 +340,8 @@ addProperties()
 
   // text
   addStyleProp("text", "scaleFont" , "scaled", "Scale font to view size");
-  addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->
-    setMinValue(0.001);
-  addStyleProp("text", "font"      , "font"   , "Global text font");
+  addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->setMinValue(0.001);
+  addStyleProp("text", "font"      , "font"  , "Global text font");
 
   // tip
   addStyleProp("tip", "floatTip", "float", "Use floating tip");
@@ -3223,9 +3225,8 @@ showProbeLines(const Point &p)
           QString tip;
 
           if (isProbeNamed())
-            tip = QString("%1: %2").
-              arg(yval.label.length() ? yval.label : "Y").
-              arg(yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
+            tip = QString("%1: %2").arg(yval.label.length() ? yval.label : "Y").
+                    arg(yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
           else
             tip = (yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
 
@@ -3243,9 +3244,8 @@ showProbeLines(const Point &p)
           QString tip;
 
           if (isProbeNamed())
-            tip = QString("%1: %2").
-              arg(xval.label.length() ? xval.label : "X").
-              arg(xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value));
+            tip = QString("%1: %2").arg(xval.label.length() ? xval.label : "X").
+                    arg(xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value));
           else
             tip = (xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value));
 
@@ -4482,6 +4482,12 @@ drawPlots(QPainter *painter)
 
 void
 CQChartsView::
+propertyItemChanged(QObject *, const QString &)
+{
+}
+
+void
+CQChartsView::
 updateNoData()
 {
   updateNoData_ = true;
@@ -4842,8 +4848,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
           opc = CQChartsUtil::invColor(bc);
       }
 
-      setPen(penBrush,
-        PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
 
       if (outline)
         setBrush(penBrush, BrushData(false));
@@ -4901,8 +4906,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
 
     Alpha alpha(pc.alphaF());
 
-    setPen(penBrush,
-      PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+    setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
 
     charts()->resetContrastColor();
   }
@@ -4997,8 +5001,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
 
     Alpha alpha(pc.alphaF());
 
-    setPen(penBrush,
-      PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+    setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
 
     charts()->resetContrastColor();
   }
@@ -5828,6 +5831,14 @@ showMenu(const Point &p)
 
   //---
 
+  if (hasPlots) {
+    popupMenu->addSeparator();
+
+    addAction(popupMenu, "Help", SLOT(helpSlot()));
+  }
+
+  //---
+
   popupMenu->popup(mapToGlobal(p.qpointi()));
 }
 
@@ -6269,7 +6280,12 @@ helpSlot()
 {
   auto *charts = this->charts();
 
-  CQChartsHelpDlgMgrInst->showDialog(charts);
+  auto *dlg = CQChartsHelpDlgMgrInst->showDialog(charts);
+
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+
+  if (currentPlot)
+    dlg->setCurrentSection(QString("plot_types/%1").arg(currentPlot->type()->name()));
 }
 
 //------
@@ -6585,10 +6601,8 @@ writeSVG(const QString &filename, Plot *plot)
 
   // svg block
   os << "<svg xmlns=\"http://www.w3.org/2000/svg\""
-        " xmlns:xlink=\"http://www.w3.org/1999/xlink\""
-        " version=\"1.2\""
-        " width=\"" << width() << "\""
-        " height=\"" << height() << "\">\n";
+        " xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.2\""
+        " width=\"" << width() << "\" height=\"" << height() << "\">\n";
 
   //---
 
@@ -6705,38 +6719,36 @@ writeScript(const QString &filename, Plot *plot)
   //---
 
   os << "\n";
-  os <<
-  "Charts.prototype.init = function() {\n"
-  "  this.canvas = document.getElementById(\"canvas\");\n"
-  "  this.gc = this.canvas.getContext(\"2d\");\n"
-  "\n";
+  os << "Charts.prototype.init = function() {\n";
+  os << "  this.canvas = document.getElementById(\"canvas\");\n";
+  os << "  this.gc = this.canvas.getContext(\"2d\");\n";
+  os << "\n";
 
   os << "  this.pwidth = " << width(); os << ";\n";
   os << "  this.pheight = " << height(); os << ";\n";
   os << "  this.aspect = " << aspect(); os << ";\n";
   os << "\n";
 
-  os <<
-  "  this.canvas.width  = window.innerWidth;\n"
-  "  this.canvas.height = window.innerHeight;\n"
-  "\n"
-  "  this.invertX = 0;\n"
-  "  this.invertY = 0;\n"
-  "\n"
-  "  this.vxmin = 0.0;\n"
-  "  this.vymin = 0.0;\n"
-  "  this.vxmax = 100.0;\n"
-  "  this.vymax = 100.0;\n"
-  "\n"
-  "  this.xmin = 0.0;\n"
-  "  this.ymin = 0.0;\n"
-  "  this.xmax = 1.0;\n"
-  "  this.ymax = 1.0;\n"
-  "\n"
-  "  this.canvas.addEventListener(\"mousedown\", this.eventMouseDown, false);\n"
-  "  this.canvas.addEventListener(\"mousemove\", this.eventMouseMove, false);\n"
-  "  this.canvas.addEventListener(\"mouseup\"  , this.eventMouseUp  , false);\n"
-  "\n";
+  os << "  this.canvas.width  = window.innerWidth;\n";
+  os << "  this.canvas.height = window.innerHeight;\n";
+  os << "\n";
+  os << "  this.invertX = 0;\n";
+  os << "  this.invertY = 0;\n";
+  os << "\n";
+  os << "  this.vxmin = 0.0;\n";
+  os << "  this.vymin = 0.0;\n";
+  os << "  this.vxmax = 100.0;\n";
+  os << "  this.vymax = 100.0;\n";
+  os << "\n";
+  os << "  this.xmin = 0.0;\n";
+  os << "  this.ymin = 0.0;\n";
+  os << "  this.xmax = 1.0;\n";
+  os << "  this.ymax = 1.0;\n";
+  os << "\n";
+  os << "  this.canvas.addEventListener(\"mousedown\", this.eventMouseDown, false);\n";
+  os << "  this.canvas.addEventListener(\"mousemove\", this.eventMouseMove, false);\n";
+  os << "  this.canvas.addEventListener(\"mouseup\"  , this.eventMouseUp  , false);\n";
+  os << "\n";;
 
   //---
 

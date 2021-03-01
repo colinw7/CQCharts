@@ -34,6 +34,10 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
+  bool supportsIdColumn() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -640,6 +644,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
  private:
   void updateCurrentRoot();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
+ private:
   struct TitleData {
     bool      visible     { true };  //!< show title bar (header)
     bool      autoHide    { true };  //!< auto hide if larger than max extent
@@ -673,6 +681,26 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   mutable int in_                 { 0 };       //!< current node index
   double      windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
   double      windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+};
+
+//---
+
+class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsTreeMapPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsTreeMapPlot* plot_ { nullptr };
 };
 
 #endif

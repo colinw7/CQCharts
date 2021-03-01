@@ -540,7 +540,7 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsPointPlotCustomControls(CQCharts *charts);
+  CQChartsPointPlotCustomControls(CQCharts *charts, const QString &plotType);
 
   void setPlot(CQChartsPlot *plot) override;
 
@@ -560,9 +560,10 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void symbolTypeRangeSlot(int min, int max);
   void symbolTypeSetSlot(const QString &name);
 
- protected:
-  void updateWidgets();
+ public slots:
+  void updateWidgets() override;
 
+ protected:
   void connectSlots(bool b);
 
  private:

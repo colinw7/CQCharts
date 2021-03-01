@@ -36,6 +36,10 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
+  bool supportsIdColumn() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -651,11 +655,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
 //---
 
-class CQChartsBubbleCustomControls : public CQChartsGroupPlotCustomControls {
+class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsBubbleCustomControls(CQCharts *charts);
+  CQChartsBubblePlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
 

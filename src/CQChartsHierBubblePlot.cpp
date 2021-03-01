@@ -185,6 +185,9 @@ addProperties()
     CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED |
     CQChartsTextOptions::ValueType::CLIP_LENGTH |
     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -1189,6 +1192,21 @@ createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is
   return new NodeObj(this, node, hierObj, rect, is);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsHierBubblePlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsHierBubblePlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsHierBubbleHierObj::
@@ -1853,4 +1871,46 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     return plot->interpColor(c, ColorInd(colorId(), n));
   else
     return plot->interpColor(c, colorInd);
+}
+
+//------
+
+CQChartsHierBubblePlotCustomControls::
+CQChartsHierBubblePlotCustomControls(CQCharts *charts) :
+ CQChartsHierPlotCustomControls(charts, "hierbubble")
+{
+  addHierColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsHierBubblePlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsHierPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsHierBubblePlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsHierBubblePlot *>(plot);
+
+  CQChartsHierPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsHierBubblePlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsHierPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

@@ -7,8 +7,14 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQEnumCombo.h>
+#include <CQTabSplit.h>
+
+#include <QLabel>
+#include <QGridLayout>
 
 CQChartsConnectionPlotType::
 CQChartsConnectionPlotType()
@@ -344,6 +350,45 @@ setNameColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsConnectionPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "group"      ) c = this->groupColumn();
+  else if (name == "node"       ) c = this->nodeColumn();
+  else if (name == "connections") c = this->connectionsColumn();
+  else if (name == "link"       ) c = this->linkColumn();
+  else if (name == "path"       ) c = this->pathColumn();
+  else if (name == "from"       ) c = this->fromColumn();
+  else if (name == "to"         ) c = this->toColumn();
+  else if (name == "value"      ) c = this->valueColumn();
+  else if (name == "depth"      ) c = this->depthColumn();
+  else if (name == "name"       ) c = this->nameColumn();
+  else                            c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsConnectionPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "group"      ) this->setGroupColumn(c);
+  else if (name == "node"       ) this->setNodeColumn(c);
+  else if (name == "connections") this->setConnectionsColumn(c);
+  else if (name == "link"       ) this->setLinkColumn(c);
+  else if (name == "path"       ) this->setPathColumn(c);
+  else if (name == "from"       ) this->setFromColumn(c);
+  else if (name == "to"         ) this->setToColumn(c);
+  else if (name == "value"      ) this->setValueColumn(c);
+  else if (name == "depth"      ) this->setDepthColumn(c);
+  else if (name == "name"       ) this->setNameColumn(c);
+  else                            CQChartsPlot::setNamedColumn(name, c);
+}
+
+//---
+
 void
 CQChartsConnectionPlot::
 setSeparator(const QString &s)
@@ -422,13 +467,32 @@ addProperties()
 
   addProp("options", "separator", "", "Model link value separator");
   addProp("options", "symmetric", "", "Model values are symmetric");
-  addProp("options", "sorted"   , "", "Sort values by size");
+  addProp("options", "sorted"   , "", "Sort values by size (table columns)");
   addProp("options", "maxDepth" , "", "Max Node depth");
   addProp("options", "minValue" , "", "Min Node value");
   addProp("options", "propagate", "", "Propagate values up hierarchy");
 }
 
 //---
+
+CQChartsConnectionPlot::ColumnDataType
+CQChartsConnectionPlot::
+calcColumnDataType() const
+{
+  if (isHierarchical())
+    return ColumnDataType::HIER;
+
+  if      (linkColumn().isValid() && valueColumn().isValid())
+    return ColumnDataType::LINK;
+  else if (connectionsColumn().isValid())
+    return ColumnDataType::CONNECTIONS;
+  else if (pathColumn().isValid())
+    return ColumnDataType::PATH;
+  else if (fromColumn().isValid() && toColumn().isValid())
+    return ColumnDataType::FROM_TO;
+  else
+    return ColumnDataType::TABLE;
+}
 
 bool
 CQChartsConnectionPlot::
@@ -1365,4 +1429,96 @@ groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
   groupData.value = groupVar;
 
   return true;
+}
+
+//------
+
+CQChartsConnectionPlotCustomControls::
+CQChartsConnectionPlotCustomControls(CQCharts *charts, const QString &plotType) :
+ CQChartsPlotCustomControls(charts, plotType)
+{
+}
+
+void
+CQChartsConnectionPlotCustomControls::
+addConnectionColumnWidgets()
+{
+  // connections group
+  auto connectionsFrame = createGroupFrame("Connections");
+
+  //---
+
+  columnsTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("columnsTypeCombo");
+
+  columnsTypeCombo_->setPropName("columnDataType");
+
+  addFrameWidget(connectionsFrame, "Columns Type", columnsTypeCombo_);
+
+  //---
+
+  static auto columnNames = QStringList() <<
+   "group" << "node" << "connections" << "link" << "path" << "from" << "to" <<
+   "value" << "depth" << "name";
+
+  addColumnWidgets(columnNames, connectionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsConnectionPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsConnectionPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsConnectionPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsConnectionPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  columnsTypeCombo_->setObj(plot_);
+
+  auto type = plot_->calcColumnDataType();
+
+  if      (type == CQChartsConnectionPlot::ColumnDataType::HIER) {
+    showColumnWidgets(QStringList() << "link" << "value");
+  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::LINK) {
+    showColumnWidgets(QStringList() << "group" << "link" << "value" << "name" << "depth");
+  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::CONNECTIONS) {
+    showColumnWidgets(QStringList() << "group" << "node" << "connection" << "name");
+  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::PATH) {
+    showColumnWidgets(QStringList() << "path" << "value");
+  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::FROM_TO) {
+    showColumnWidgets(QStringList() << "group" << "from" << "to" << "value" << "depth");
+  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::TABLE) {
+    showColumnWidgets(QStringList() << "group" << "link");
+  }
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

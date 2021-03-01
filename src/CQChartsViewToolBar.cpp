@@ -283,9 +283,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  viewSettingsButton_ =
-    createCheckedButton("settings", "OPTIONS", "Show/Hide View Settings",
-                        SLOT(viewSettingsSlot(bool)), true);
+  viewSettingsButton_ = createCheckedButton("settings", "OPTIONS", "Show/Hide View Settings",
+                                            SLOT(viewSettingsSlot(bool)), true);
 
   layout->addWidget(viewSettingsButton_);
 
@@ -293,9 +292,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   bool showTable = (window_ && window_->isDataTable());
 
-  viewTableButton_ =
-    createCheckedButton("table", "TABLE", "Show/Hide View Table",
-                        SLOT(viewTableSlot(bool)), showTable);
+  viewTableButton_ = createCheckedButton("table", "TABLE", "Show/Hide View Table",
+                                         SLOT(viewTableSlot(bool)), showTable);
 
   layout->addWidget(viewTableButton_);
 

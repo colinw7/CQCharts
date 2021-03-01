@@ -1796,6 +1796,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //--
 
+  virtual Column getNamedColumn(const QString &name) const;
+  virtual void setNamedColumn(const QString &name, const Column &c);
+
+  virtual Columns getNamedColumns(const QString &name) const;
+  virtual void setNamedColumns(const QString &name, const Columns &c);
+
  public:
   // coloring
   const ColorType &colorType() const { return colorColumnData_.colorType; }
@@ -2007,6 +2013,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual double getZoomFactor(bool is_shift) const;
 
  public slots:
+  void propertyItemChanged(QObject *, const QString &);
+
   void updateSlot();
   void updateObjsSlot();
 
@@ -2831,7 +2839,7 @@ class CQChartsPlot : public CQChartsObj,
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  public:
-  virtual CQChartsPlotCustomControls *createCustomControls(CQCharts *) { return nullptr; }
+  virtual CQChartsPlotCustomControls *createCustomControls(CQCharts *) = 0;
 
  protected:
   //*! \brief update state enum
@@ -3318,6 +3326,10 @@ CQCHARTS_NAMED_POINT_DATA(Rug, rug)
 
 //------
 
+class CQChartsColumnParameterEdit;
+class CQChartsColumnsParameterEdit;
+class CQChartsEnumParameterEdit;
+class CQChartsBoolParameterEdit;
 class CQChartsColorLineEdit;
 class CQChartsColumnCombo;
 class CQDoubleRangeSlider;
@@ -3330,16 +3342,38 @@ class CQChartsPlotCustomControls : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsPlotCustomControls(CQCharts *charts);
+  CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType);
 
   virtual ~CQChartsPlotCustomControls() { }
 
+  virtual CQChartsPlot *plot() const { return plot_; }
   virtual void setPlot(CQChartsPlot *plot);
+
+  //---
+
+  struct FrameData {
+    QFrame*      frame  { nullptr };
+    QGridLayout* layout { nullptr };
+    int          row    { 0 };
+  };
+
+  FrameData createGroupFrame(const QString &name);
+
+  void addColumnWidgets(const QStringList &columnNames, FrameData &frameData);
+
+  void showColumnWidgets(const QStringList &columnNames);
 
   void addColorColumnWidgets(const QString &title="Color");
 
+  void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
+
+  //---
+
   virtual CQChartsColor getColorValue() { return color_; }
   virtual void setColorValue(const CQChartsColor &c) { color_ = c; }
+
+ public slots:
+  virtual void updateWidgets();
 
  protected slots:
   void colorDetailsSlot();
@@ -3349,20 +3383,32 @@ class CQChartsPlotCustomControls : public QFrame {
   void colorRangeSlot();
   void colorPaletteSlot();
 
+  void columnSlot();
+  void columnsSlot();
+
  protected:
-  void updateWidgets();
+  CQChartsPlotType *plotType() const;
+
+  CQChartsBoolParameterEdit *createBoolEdit(const QString &name);
+  CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
 
   void connectSlots(bool b);
 
   void updateColorPaletteGradient();
 
  protected:
+  using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
+  using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
+
   CQCharts*   charts_ { nullptr };
   CQTabSplit* split_  { nullptr };
 
   int row_ { 0 };
 
+  QString                  plotType_;
   CQChartsPlot*            plot_             { nullptr };
+  ColumnEdits              columnEdits_;
+  ColumnsEdits             columnsEdits_;
   CQChartsColorLineEdit*   colorEdit_        { nullptr };
   CQChartsColumnCombo*     colorColumnCombo_ { nullptr };
   CQDoubleRangeSlider*     colorRange_       { nullptr };

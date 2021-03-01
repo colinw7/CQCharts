@@ -96,12 +96,39 @@ class CQChartsContourPlot : public CQChartsPlot,
  private:
   void drawContour(PaintDevice *) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   CQChartsContour *contour_          { nullptr };
   int              nx_               { 0 };
   int              ny_               { 0 };
   bool             solid_            { false };
   int              numContourLevels_ { 10 };
+};
+
+//---
+
+class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsContourPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void solidSlot();
+
+ private:
+  CQChartsContourPlot*       plot_       { nullptr };
+  CQChartsBoolParameterEdit* solidCheck_ { nullptr };
 };
 
 #endif

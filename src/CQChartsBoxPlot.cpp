@@ -17,6 +17,8 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CQEnumCombo.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <QMenu>
 
@@ -75,11 +77,16 @@ addParameters()
 
   //---
 
+  // options
   addBoolParameter("normalized", "Normalized", "normalized").
     setBasic().setTip("Normalize data ranges");
 
-  addBoolParameter("orientation", "Orientation", "orientation").setTip("Draw bar direction");
-  addBoolParameter("notched"    , "Notched"    , "notched"    ).setTip("Draw notch on bar");
+  addEnumParameter("orientation", "Orientation", "orientation").
+    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    setTip("Draw bar orientation");
+
+  addBoolParameter("notched", "Notched", "notched").setTip("Draw notch on bar");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
@@ -302,6 +309,62 @@ CQChartsBoxPlot::
 setOutliersColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsBoxPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name"       ) c = this->nameColumn();
+  else if (name == "set"        ) c = this->setColumn();
+  else if (name == "x"          ) c = this->xColumn();
+  else if (name == "min"        ) c = this->minColumn();
+  else if (name == "lowerMedian") c = this->lowerMedianColumn();
+  else if (name == "median"     ) c = this->medianColumn();
+  else if (name == "upperMedian") c = this->upperMedianColumn();
+  else if (name == "max"        ) c = this->maxColumn();
+  else if (name == "outliers"   ) c = this->outliersColumn();
+  else                            c = CQChartsGroupPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsBoxPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name"       ) this->setNameColumn(c);
+  else if (name == "set"        ) this->setSetColumn(c);
+  else if (name == "x"          ) this->setXColumn(c);
+  else if (name == "min"        ) this->setMinColumn(c);
+  else if (name == "lowerMedian") this->setLowerMedianColumn(c);
+  else if (name == "median"     ) this->setMedianColumn(c);
+  else if (name == "upperMedian") this->setUpperMedianColumn(c);
+  else if (name == "max"        ) this->setMaxColumn(c);
+  else if (name == "outliers"   ) this->setOutliersColumn(c);
+  else                            CQChartsGroupPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsBoxPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else                  c = CQChartsGroupPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsBoxPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else                  CQChartsGroupPlot::setNamedColumns(name, c);
 }
 
 //---
@@ -569,6 +632,18 @@ CQChartsBoxPlot::
 setErrorBarType(const ErrorBarType &t)
 {
   CQChartsUtil::testAndSet(errorBarType_, t, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsBoxPlot::ColumnDataType
+CQChartsBoxPlot::
+calcColumnDataType() const
+{
+  if (isPreCalc())
+    return ColumnDataType::CALCULATED;
+  else
+    return ColumnDataType::RAW;
 }
 
 //---
@@ -2007,6 +2082,21 @@ createPointObj(const BBox &rect, int setId, int groupInd, const Point &p, const 
   return new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, p, ind, is, ig, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsBoxPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsBoxPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsBoxPlotWhiskerObj::
@@ -3225,7 +3315,7 @@ checkDrawBBox(const BBox &bbox) const
 
 bool
 CQChartsBoxPlotObj::
-drawHText(PaintDevice *device, double xl, double xr, double y,
+drawHText(PaintDevice *device, double pxl, double pxr, double py,
           const QString &text, bool onLeft, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
@@ -3234,34 +3324,25 @@ drawHText(PaintDevice *device, double xl, double xr, double y,
   if (invertX)
     onLeft = ! onLeft;
 
-  double x = ((onLeft && ! invertX) || (! onLeft && invertX) ? xl : xr);
+  double px = ((onLeft && ! invertX) || (! onLeft && invertX) ? pxl : pxr);
 
   plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
-  double fa = fm.ascent ();
-  double fd = fm.descent();
-  double yf = (fa - fd)/2.0;
-
-  Point tp;
-
-  if (onLeft)
-    tp = Point(x - margin - fm.width(text), y + yf);
-  else
-    tp = Point(x + margin, y + yf);
+  auto tp = (onLeft ? Point(px - margin - fm.width(text), py) : Point(px + margin, py));
 
   // only support contrast
   CQChartsTextOptions options;
 
   options.angle         = Angle();
-  options.align         = Qt::AlignLeft | Qt::AlignBottom;
+  options.align         = Qt::AlignLeft | Qt::AlignVCenter;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
-  auto tw = plot_->pixelToWindow(tp);
+  auto tw = plot_->pixelToWindow(tp); // left/midy
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
 
@@ -3280,7 +3361,7 @@ drawHText(PaintDevice *device, double xl, double xr, double y,
 
 bool
 CQChartsBoxPlotObj::
-drawVText(PaintDevice *device, double yb, double yt, double x, const QString &text,
+drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString &text,
           bool onBottom, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
@@ -3289,34 +3370,28 @@ drawVText(PaintDevice *device, double yb, double yt, double x, const QString &te
   if (invertY)
     onBottom = ! onBottom;
 
-  double y = ((onBottom && ! invertY) || (! onBottom && invertY) ? yb : yt);
+  double py = ((onBottom && ! invertY) || (! onBottom && invertY) ? pyb : pyt);
 
   plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
   double xf = fm.width(text)/2.0;
-  double fa = fm.ascent ();
-  double fd = fm.descent();
+  double yf = fm.height()/2.0;
 
-  Point tp;
-
-  if (onBottom)
-    tp = Point(x - xf, y + margin + fa);
-  else
-    tp = Point(x - xf, y - margin - fd);
+  auto tp = (onBottom ? Point(px - xf, py + margin + yf) : Point(px - xf, py - margin - yf));
 
   // only support contrast
   CQChartsTextOptions options;
 
   options.angle         = Angle();
-  options.align         = Qt::AlignLeft | Qt::AlignBottom;
+  options.align         = Qt::AlignLeft | Qt::AlignVCenter;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
-  auto tw = plot_->pixelToWindow(tp);
+  auto tw = plot_->pixelToWindow(tp); // left/midy
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
   auto size  = plot()->pixelToWindowSize(psize);
@@ -3481,9 +3556,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  auto pos = plot_->pixelToWindow(p_);
-
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pos, symbolSize);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
 }
 
 //------
@@ -3579,4 +3652,181 @@ interpTextColor(const ColorInd &ind) const
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+//------
+
+CQChartsBoxPlotCustomControls::
+CQChartsBoxPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "box")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  // columns type
+  columnsTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("columnsTypeCombo");
+
+  columnsTypeCombo_->setPropName("columnDataType");
+
+  addFrameWidget(optionsFrame, "Columns Type", columnsTypeCombo_);
+
+  //---
+
+  // values, name and label columns
+  static auto columnNames = QStringList() <<
+    "values" << "name" << "set" <<
+    "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers";
+
+  addColumnWidgets(columnNames, optionsFrame);
+
+  //---
+
+  orientationCombo_ = createEnumEdit("orientation");
+  pointsTypeCombo_  = createEnumEdit("pointsType");
+
+  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame, "Points Type", pointsTypeCombo_ );
+
+  normalizedCheck_ = createBoolEdit("normalized");
+  notchedCheck_    = createBoolEdit("notched");
+  colorBySetCheck_ = createBoolEdit("colorBySet");
+  violinCheck_     = createBoolEdit("violin");
+  errorBarCheck_   = createBoolEdit("errorBar");
+
+  addFrameWidget(optionsFrame, "Normalized"  , normalizedCheck_);
+  addFrameWidget(optionsFrame, "Notched"     , notchedCheck_);
+  addFrameWidget(optionsFrame, "Color By Set", colorBySetCheck_);
+  addFrameWidget(optionsFrame, "Violin"      , violinCheck_);
+  addFrameWidget(optionsFrame, "Error Bar"   , errorBarCheck_);
+
+  //---
+
+  addGroupColumnWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsBoxPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    pointsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(pointsTypeSlot()));
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    normalizedCheck_, SIGNAL(stateChanged(int)), this, SLOT(normalizedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    notchedCheck_, SIGNAL(stateChanged(int)), this, SLOT(notchedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    violinCheck_, SIGNAL(stateChanged(int)), this, SLOT(violinSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    errorBarCheck_, SIGNAL(stateChanged(int)), this, SLOT(errorBarSlot()));
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsBoxPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsBoxPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  columnsTypeCombo_->setObj(plot_);
+
+  auto type = plot_->calcColumnDataType();
+
+  if (type == CQChartsBoxPlot::ColumnDataType::RAW) {
+    showColumnWidgets(QStringList() << "values" << "name" << "set");
+  }
+  else {
+    showColumnWidgets(QStringList() <<
+      "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers");
+  }
+
+  //---
+
+  orientationCombo_->setCurrentValue((int) plot_->orientation());
+  pointsTypeCombo_ ->setCurrentValue((int) plot_->pointsType());
+
+  normalizedCheck_->setChecked(plot_->isNormalized());
+  notchedCheck_   ->setChecked(plot_->isNotched());
+  colorBySetCheck_->setChecked(plot_->isColorBySet());
+  violinCheck_    ->setChecked(plot_->isViolin());
+  errorBarCheck_  ->setChecked(plot_->isErrorBar());
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsBoxPlotCustomControls::
+orientationSlot()
+{
+  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+pointsTypeSlot()
+{
+  plot_->setPointsType((CQChartsBoxPlot::PointsType) pointsTypeCombo_->currentValue());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+normalizedSlot()
+{
+  plot_->setNormalized(normalizedCheck_->isChecked());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+notchedSlot()
+{
+  plot_->setNotched(notchedCheck_->isChecked());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+colorBySetSlot()
+{
+  plot_->setColorBySet(colorBySetCheck_->isChecked());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+violinSlot()
+{
+  plot_->setViolin(violinCheck_->isChecked());
+}
+
+void
+CQChartsBoxPlotCustomControls::
+errorBarSlot()
+{
+  plot_->setErrorBar(errorBarCheck_->isChecked());
 }

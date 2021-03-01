@@ -686,12 +686,12 @@ textAlignment(const Position &position)
 
 void
 CQChartsDataLabel::
-textBoxDataInvalidate()
+textBoxObjInvalidate()
 {
   if (isSendSignal())
     emit dataChanged();
   else
-    CQChartsTextBoxObj::textBoxDataInvalidate();
+    CQChartsTextBoxObj::textBoxObjInvalidate();
 }
 
 //---

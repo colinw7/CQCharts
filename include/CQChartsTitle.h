@@ -97,7 +97,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void boxDataInvalidate() override { redraw(); }
+  void boxObjInvalidate() override { redraw(); }
 
   //---
 
@@ -143,7 +143,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void updateLocation();
 
-  void textBoxDataInvalidate() override;
+  void textBoxObjInvalidate() override;
 
  private:
   struct FitData {

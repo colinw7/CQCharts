@@ -1357,6 +1357,21 @@ createNodeObj(const BBox &rect, Node *node) const
   return new NodeObj(this, rect, node);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsSunburstPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsSunburstPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsSunburstNodeObj::
@@ -1392,8 +1407,7 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     auto ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    ModelIndex colorModelInd(const_cast<CQChartsSunburstPlot *>(plot_),
-                             ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
@@ -1792,4 +1806,46 @@ CQChartsSunburstNodeCountCmp::
 operator()(const Node *n1, const Node *n2)
 {
   return n1->numNodes() < n2->numNodes();
+}
+
+//------
+
+CQChartsSunburstPlotCustomControls::
+CQChartsSunburstPlotCustomControls(CQCharts *charts) :
+ CQChartsHierPlotCustomControls(charts, "sunburst")
+{
+  addHierColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsHierPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsSunburstPlot *>(plot);
+
+  CQChartsHierPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsHierPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

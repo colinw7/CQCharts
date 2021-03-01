@@ -356,6 +356,14 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   const PlotType &plotType() const { return plotType_; }
   void setPlotType(const PlotType &v);
 
@@ -476,6 +484,9 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setPlotTypeSlot (bool b);
   void setValueTypeSlot(bool b);
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   Columns         xColumns_;                       //!< x columns
   Columns         yColumns_;                       //!< y columns
@@ -488,6 +499,26 @@ class CQChartsPivotPlot : public CQChartsPlot,
   bool            gridBars_    { true };           //!< draw bars on grid
   CQPivotModel*   pivotModel_  { nullptr };        //!< pivot model
   DataLabel*      dataLabel_   { nullptr };        //!< data label data
+};
+
+//---
+
+class CQChartsPivotPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsPivotPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsPivotPlot* plot_ { nullptr };
 };
 
 #endif

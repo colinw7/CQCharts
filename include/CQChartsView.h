@@ -1109,6 +1109,8 @@ class CQChartsView : public QFrame,
   void keyEventPress(const QString &);
 
  public slots:
+  void propertyItemChanged(QObject *, const QString &);
+
   void updateNoData();
 
   void editObjectSlot();

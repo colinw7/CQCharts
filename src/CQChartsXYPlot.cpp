@@ -284,21 +284,24 @@ void
 CQChartsXYPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsXYPlot::
 setYColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsXYPlot::
 setLabelColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -328,6 +331,52 @@ setMapXColumn(bool b)
 
 //---
 
+CQChartsColumn
+CQChartsXYPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "x"       ) c = this->xColumn();
+  else if (name == "label"   ) c = this->labelColumn();
+  else if (name == "vector_x") c = this->vectorXColumn();
+  else if (name == "vector_y") c = this->vectorYColumn();
+  else                         c = CQChartsPointPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsXYPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "x"       ) this->setXColumn(c);
+  else if (name == "label"   ) this->setLabelColumn(c);
+  else if (name == "vector_x") this->setVectorXColumn(c);
+  else if (name == "vector_y") this->setVectorYColumn(c);
+  else                         CQChartsPointPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsXYPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "y") c = this->yColumns();
+  else             c = CQChartsPointPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsXYPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "y") this->setYColumns(c);
+  else             CQChartsPointPlot::setNamedColumns(name, c);
+}
+
+//---
+
 void
 CQChartsXYPlot::
 resetBestFit()
@@ -346,7 +395,8 @@ void
 CQChartsXYPlot::
 setStacked(bool b)
 {
-  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(stacked_, b, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
@@ -2814,9 +2864,11 @@ CQChartsPlotCustomControls *
 CQChartsXYPlot::
 createCustomControls(CQCharts *charts)
 {
-  auto *controls = new CQChartsXYCustomControls(charts);
+  auto *controls = new CQChartsXYPlotCustomControls(charts);
 
   controls->setPlot(this);
+
+  controls->updateWidgets();
 
   return controls;
 }
@@ -3116,8 +3168,7 @@ draw(PaintDevice *device) const
   }
   else {
     plot()->setPenBrush(penBrush,
-      PenData  (false),
-      BrushData(true, strokeColor, plot()->impulseLinesAlpha()));
+      PenData(false), BrushData(true, strokeColor, plot()->impulseLinesAlpha()));
   }
 
   plot()->updateObjPenBrushState(this, penBrush);
@@ -3570,7 +3621,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot()->interpColor(color, ic);
 
-    c.setAlphaF(plot_->symbolFillAlpha().value());
+    CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
 
     penBrush.brush.setColor(c);
   }
@@ -3686,8 +3737,7 @@ draw(PaintDevice *device) const
 
   auto tc = dataLabel->interpTextColor(ColorInd());
 
-  plot()->setPenBrush(penBrush,
-    PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
+  plot()->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
 
   //---
 
@@ -4632,34 +4682,30 @@ interpTextColor(const ColorInd &ind) const
 
 //------
 
-CQChartsXYCustomControls::
-CQChartsXYCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts)
+CQChartsXYPlotCustomControls::
+CQChartsXYPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "xy")
 {
   // options group
-  auto *optionsFrame  = CQUtil::makeWidget<QFrame>("optionsFrame");
-  auto *optionsLayout = CQUtil::makeLayout<QGridLayout>(optionsFrame, 2, 2);
+  auto optionsFrame = createGroupFrame("Options");
 
-  int optionsRow = 0;
+  //---
 
-  auto addOptionsWidget = [&](const QString &label, QWidget *w) {
-    optionsLayout->addWidget(new QLabel(label), optionsRow, 0);
-    optionsLayout->addWidget(w                , optionsRow, 1); ++optionsRow;
-  };
+  static auto columnNames = QStringList() << "x" << "y" << "label";
+
+  addColumnWidgets(columnNames, optionsFrame);
 
   //---
 
   pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
   linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
   fillUnderCheck_ = CQUtil::makeWidget<CQCheckBox>("fillUnderCheck");
+  stackedCheck_   = CQUtil::makeWidget<CQCheckBox>("stackedCheck");
 
-  addOptionsWidget("Points"    , pointsCheck_);
-  addOptionsWidget("Lines"     , linesCheck_);
-  addOptionsWidget("Fill Under", fillUnderCheck_);
-
-  //---
-
-  split_->addWidget(optionsFrame, "Options");
+  addFrameWidget(optionsFrame, "Points"    , pointsCheck_);
+  addFrameWidget(optionsFrame, "Lines"     , linesCheck_);
+  addFrameWidget(optionsFrame, "Fill Under", fillUnderCheck_);
+  addFrameWidget(optionsFrame, "Stacked"   , stackedCheck_);
 
   //---
 
@@ -4671,7 +4717,7 @@ CQChartsXYCustomControls(CQCharts *charts) :
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 connectSlots(bool b)
 {
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -4680,32 +4726,41 @@ connectSlots(bool b)
     linesCheck_    , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
   CQChartsWidgetUtil::connectDisconnect(b,
     fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    stackedCheck_, SIGNAL(stateChanged(int)), this, SLOT(stackedSlot(int)));
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
 
-  updateWidgets();
+  CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 updateWidgets()
 {
   connectSlots(false);
 
   //---
 
-  CQChartsGroupPlotCustomControls::setPlot(plot_);
-
-  //---
-
   pointsCheck_   ->setChecked(plot_->isPoints());
   linesCheck_    ->setChecked(plot_->isLines());
   fillUnderCheck_->setChecked(plot_->isFillUnderFilled());
+  stackedCheck_  ->setChecked(plot_->isStacked());
+
+  stackedCheck_->setEnabled(plot_->yColumns().count() > 1);
 
   //---
 
@@ -4713,22 +4768,29 @@ updateWidgets()
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 pointsSlot(int state)
 {
   plot_->setPoints(state);
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 linesSlot(int state)
 {
   plot_->setLines(state);
 }
 
 void
-CQChartsXYCustomControls::
+CQChartsXYPlotCustomControls::
 fillUnderSlot(int state)
 {
   plot_->setFillUnderFilled(state);
+}
+
+void
+CQChartsXYPlotCustomControls::
+stackedSlot(int state)
+{
+  plot_->setStacked(state);
 }

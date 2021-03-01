@@ -110,6 +110,14 @@ class CQChartsGridPlot : public CQChartsPlot {
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &t);
 
@@ -140,6 +148,9 @@ class CQChartsGridPlot : public CQChartsPlot {
 
   virtual CellObj *createCellObj(const BBox &bbox, const QString &name, const QString &label,
                                  int row, int column, const RValues &values) const;
+
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  private:
   // columns
@@ -193,6 +204,26 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
   int         row_    { 0 };       //!< cell row
   int         column_ { 0 };       //!< cell column
   RValues     values_;             //!< values
+};
+
+//---
+
+class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsGridPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsGridPlot* plot_ { nullptr };
 };
 
 #endif

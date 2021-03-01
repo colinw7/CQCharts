@@ -1030,3 +1030,12 @@ setCurrentPlotInd(int i)
 {
   setCurrentPlot(childPlot(i));
 }
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsCompositePlot::
+createCustomControls(CQCharts *)
+{
+  return nullptr;
+}

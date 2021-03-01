@@ -738,8 +738,8 @@ printGroup() const
 //------
 
 CQChartsGroupPlotCustomControls::
-CQChartsGroupPlotCustomControls(CQCharts *charts) :
- CQChartsPlotCustomControls(charts)
+CQChartsGroupPlotCustomControls(CQCharts *charts, const QString &plotType) :
+ CQChartsPlotCustomControls(charts, plotType)
 {
 }
 
@@ -748,27 +748,15 @@ CQChartsGroupPlotCustomControls::
 addGroupColumnWidgets()
 {
   // group group
-  auto *groupFrame  = CQUtil::makeWidget<QFrame>("groupFrame");
-  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupFrame, 2, 2);
-
-  int groupRow = 0;
-
-  auto addGroupWidget = [&](const QString &label, QWidget *w) {
-    groupLayout->addWidget(new QLabel(label), groupRow, 0);
-    groupLayout->addWidget(w                , groupRow, 1); ++groupRow;
-  };
+  auto groupFrame = createGroupFrame("Group");
 
   //---
 
   groupColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("groupColumnCombo");
 
-  addGroupWidget("Column", groupColumnCombo_);
+  addFrameWidget(groupFrame, "Column", groupColumnCombo_);
 
   connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
-
-  //---
-
-  split_->addWidget(groupFrame, "Group");
 }
 
 void
@@ -777,12 +765,19 @@ setPlot(CQChartsPlot *plot)
 {
   plot_ = dynamic_cast<CQChartsGroupPlot *>(plot);
 
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsGroupPlotCustomControls::
+updateWidgets()
+{
   if (groupColumnCombo_)
     groupColumnCombo_->setModelColumn(plot_->getModelData(), plot_->groupColumn());
 
   //---
 
-  CQChartsPlotCustomControls::setPlot(plot);
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

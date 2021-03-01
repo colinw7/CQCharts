@@ -44,6 +44,14 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   ColumnType valueColumnType() const { return valueColumnType_; }
 
   //---
@@ -78,6 +86,28 @@ class CQChartsHierPlot : public CQChartsPlot {
   // options
   QString separator_        { "/" };   //!< hierarchical name separator
   bool    followViewExpand_ { false }; //!< follow view expand
+};
+
+//------
+
+class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsHierPlotCustomControls(CQCharts *charts, const QString &plotType);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+  void addHierColumnWidgets();
+
+ public slots:
+  void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b);
+
+ private:
+  CQChartsHierPlot* plot_ { nullptr };
 };
 
 #endif

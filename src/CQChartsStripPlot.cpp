@@ -620,6 +620,21 @@ createPointObj(const BBox &rect, int groupInd, const Point &p, const QModelIndex
   return new CQChartsStripPointObj(this, rect, groupInd, p, ind, ig, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsStripPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsStripPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsStripPointObj::
@@ -703,4 +718,23 @@ draw(PaintDevice *device) const
 
   // draw symbol
   CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
+}
+
+//------
+
+CQChartsStripPlotCustomControls::
+CQChartsStripPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "strip")
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets();
+}
+
+void
+CQChartsStripPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsStripPlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
 }

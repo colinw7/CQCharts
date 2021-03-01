@@ -43,7 +43,47 @@ setValueColumn(const Column &c)
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
-//----
+//---
+
+CQChartsColumn
+CQChartsHierPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if (name == "value") c = this->valueColumn();
+  else                 c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsHierPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if (name == "value") this->setValueColumn(c);
+  else                 CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsHierPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "name") c = this->nameColumns();
+  else                c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsHierPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "name") this->setNameColumns(c);
+  else                CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
 
 void
 CQChartsHierPlot::
@@ -97,6 +137,55 @@ addHierProperties()
   addProp("columns", "valueColumn", "value", "Data value column");
 
   addProp("options", "separator", "", "Separator for hierarchical path in name column");
+}
 
-  addColorMapProperties();
+//------
+
+CQChartsHierPlotCustomControls::
+CQChartsHierPlotCustomControls(CQCharts *charts, const QString &plotType) :
+ CQChartsPlotCustomControls(charts, plotType)
+{
+}
+
+void
+CQChartsHierPlotCustomControls::
+addHierColumnWidgets()
+{
+  // hier group
+  auto hierFrame = createGroupFrame("Hier");
+
+  static auto columnNames = QStringList() << "name" << "value";
+
+  addColumnWidgets(columnNames, hierFrame);
+}
+
+void
+CQChartsHierPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsHierPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsHierPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsHierPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

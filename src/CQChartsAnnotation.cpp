@@ -2790,7 +2790,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (textAlpha() != Alpha())
     os << " -alpha " << textAlpha().value();
 
-  if (textAngle() != CQChartsAngle())
+  if (textAngle() != Angle())
     os << " -angle " << textAngle().value();
 
   if (isTextContrast())

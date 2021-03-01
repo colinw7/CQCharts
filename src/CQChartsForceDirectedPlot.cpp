@@ -273,22 +273,23 @@ createObjs(PlotObjs &) const
 
   //---
 
-  bool rc = true;
+  // create objects
+  auto columnDataType = calcColumnDataType();
 
-  if (isHierarchical())
+  bool rc = false;
+
+  if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
-  else {
-    if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkConnectionObjs();
-    else if (connectionsColumn().isValid())
-      rc = initLinkConnectionObjs();
-    else if (pathColumn().isValid())
-      rc = initPathObjs();
-    else if (fromColumn().isValid() && toColumn().isValid())
-      rc = initFromToObjs();
-    else
-      rc = initTableObjs();
-  }
+  else if (columnDataType == ColumnDataType::LINK)
+    rc = initLinkConnectionObjs();
+  else if (columnDataType == ColumnDataType::CONNECTIONS)
+    rc = initLinkConnectionObjs();
+  else if (columnDataType == ColumnDataType::PATH)
+    rc = initPathObjs();
+  else if (columnDataType == ColumnDataType::FROM_TO)
+    rc = initFromToObjs();
+  else if (columnDataType == ColumnDataType::TABLE)
+    rc = initTableObjs();
 
   if (! rc)
     return false;
@@ -1401,4 +1402,61 @@ drawDeviceParts(PaintDevice *device) const
   //---
 
   device->restore();
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsForceDirectedPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsForceDirectedPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
+//------
+
+CQChartsForceDirectedPlotCustomControls::
+CQChartsForceDirectedPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "forcedirected")
+{
+  addConnectionColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsConnectionPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsForceDirectedPlot *>(plot);
+
+  CQChartsConnectionPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

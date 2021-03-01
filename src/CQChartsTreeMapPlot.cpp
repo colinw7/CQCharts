@@ -347,6 +347,9 @@ addProperties()
   addProp("text", "textClipped", "clipped"    , "Clip text to box");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::ALL);
+
+  // color map
+  addColorMapProperties();
 }
 
 //------
@@ -1277,6 +1280,21 @@ CQChartsTreeMapPlot::
 createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is) const
 {
   return new NodeObj(this, node, hierObj, rect, is);
+}
+
+//---
+
+CQChartsPlotCustomControls *
+CQChartsTreeMapPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsTreeMapPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
 }
 
 //------
@@ -2212,4 +2230,46 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     return plot->interpColor(c, ColorInd(colorId(), n));
   else
     return plot->interpColor(c, colorInd);
+}
+
+//------
+
+CQChartsTreeMapPlotCustomControls::
+CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
+ CQChartsHierPlotCustomControls(charts, "treemap")
+{
+  addHierColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsHierPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsTreeMapPlot *>(plot);
+
+  CQChartsHierPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsHierPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

@@ -116,6 +116,8 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool supportsImageColumn() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -615,6 +617,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   QString valueColumnName(const QString &def="value") const;
 
   //---
@@ -964,6 +974,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // pop out of all bar ranges
   void popTopSlot();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   /*!
    * \brief Density Data
@@ -1028,6 +1041,32 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double             barWidth_       { 1.0 };              //!< bar width
   mutable bool       visitModel_     { true };             //!< visit model
   mutable std::mutex mutex_;                               //!< mutex
+};
+
+//---
+
+class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsDistributionPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private slots:
+  void plotTypeSlot();
+  void valueTypeSlot();
+
+ private:
+  CQChartsDistributionPlot*  plot_           { nullptr };
+  CQChartsEnumParameterEdit* plotTypeCombo_  { nullptr };
+  CQChartsEnumParameterEdit* valueTypeCombo_ { nullptr };
 };
 
 #endif

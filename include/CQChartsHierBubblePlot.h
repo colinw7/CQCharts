@@ -36,6 +36,10 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
+  bool supportsIdColumn() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -578,6 +582,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   void updateCurrentRoot();
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   struct PlaceData {
     Point  offset { 0, 0 }; //!< draw offset
@@ -605,6 +612,26 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   PlaceData placeData_;                  //!< place data
   ColorData colorData_;                  //!< color data
   bool      colorById_       { true };   //!< color by id
+};
+
+//---
+
+class CQChartsHierBubblePlotCustomControls : public CQChartsHierPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsHierBubblePlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsHierBubblePlot* plot_ { nullptr };
 };
 
 #endif

@@ -402,7 +402,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   bool contains(const Point &p) const override;
 
-  void boxDataInvalidate() override;
+  void boxObjInvalidate() override;
 
   void redraw(bool queued=true) override;
 

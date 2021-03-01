@@ -168,6 +168,50 @@ setGroupColumns(const Columns &c)
 
 //---
 
+CQChartsColumn
+CQChartsHierScatterPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name") c = this->nameColumn();
+  else if (name == "x"   ) c = this->xColumn();
+  else if (name == "y"   ) c = this->yColumn();
+  else                     c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsHierScatterPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name") this->setNameColumn(c);
+  else if (name == "x"   ) this->setXColumn(c);
+  else if (name == "y"   ) this->setYColumn(c);
+  else                     CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsHierScatterPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "group") c = this->groupColumns();
+  else                 c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsHierScatterPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "group") this->setGroupColumns(c);
+  else                 CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
+
 bool
 CQChartsHierScatterPlot::
 isTextLabels() const
@@ -830,6 +874,21 @@ createPointObj(const BBox &rect, const Point &p, const ColorInd &iv) const
   return new CQChartsHierScatterPointObj(this, rect, p, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsHierScatterPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsHierScatterPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsHierScatterPointObj::
@@ -974,4 +1033,53 @@ fillBrush() const
   //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+//------
+
+CQChartsHierScatterPlotCustomControls::
+CQChartsHierScatterPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "hierscatter")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", optionsFrame);
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsHierScatterPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

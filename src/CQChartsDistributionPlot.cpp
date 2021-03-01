@@ -16,6 +16,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -212,6 +213,48 @@ CQChartsDistributionPlot::
 setDataColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(dataColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsDistributionPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name") c = this->nameColumn();
+  else if (name == "data") c = this->dataColumn();
+  else                     c = CQChartsBarPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsDistributionPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name") this->setNameColumn(c);
+  else if (name == "data") this->setDataColumn(c);
+  else                     CQChartsBarPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsDistributionPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else                  c = CQChartsBarPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsDistributionPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else                  CQChartsBarPlot::setNamedColumns(name, c);
 }
 
 //---
@@ -2561,7 +2604,7 @@ addKeyItems(PlotKey *key)
         if (ok) {
           auto c1 = interpColor(c, ColorInd());
 
-          c1.setAlphaF(barFillAlpha().value());
+          CQChartsDrawUtil::setColorAlpha(c1, barFillAlpha());
 
           colorBox->setColor(c1);
         }
@@ -3127,6 +3170,21 @@ createBarObj(const BBox &rect, int groupInd, const Bucket &bucket, const BarValu
   return new CQChartsDistributionBarObj(this, rect, groupInd, bucket, barValue, isLine, ig, iv);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsDistributionPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsDistributionPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsDistributionBarObj::
@@ -3689,7 +3747,7 @@ getBarColoredRects(ColorData &colorData) const
     if (plot_->colorColumnColor(ind.row(), ind.parent(), color)) {
       auto c1 = plot_->interpColor(color, ColorInd());
 
-      c1.setAlphaF(plot_->barFillAlpha().value());
+      CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha());
 
       color = c1;
     }
@@ -4498,4 +4556,90 @@ CQChartsDistributionPlot::Values::
 {
   delete valueSet;
   delete densityData;
+}
+
+//------
+
+CQChartsDistributionPlotCustomControls::
+CQChartsDistributionPlotCustomControls(CQCharts *charts) :
+ CQChartsGroupPlotCustomControls(charts, "distribution")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() << "values" << "name" << "data", optionsFrame);
+
+  //---
+
+  plotTypeCombo_  = createEnumEdit("plotType");
+  valueTypeCombo_ = createEnumEdit("valueType");
+
+  addFrameWidget(optionsFrame, "Plot Type" , plotTypeCombo_ );
+  addFrameWidget(optionsFrame, "Value Type", valueTypeCombo_);
+
+  //---
+
+  addGroupColumnWidgets();
+  addColorColumnWidgets ();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsDistributionPlot *>(plot);
+
+  CQChartsGroupPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  plotTypeCombo_ ->setCurrentValue((int) plot_->plotType());
+  valueTypeCombo_->setCurrentValue((int) plot_->valueType());
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+plotTypeSlot()
+{
+  plot_->setPlotType((CQChartsDistributionPlot::PlotType) plotTypeCombo_->currentValue());
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+valueTypeSlot()
+{
+  plot_->setValueType((CQChartsDistributionPlot::ValueType) valueTypeCombo_->currentValue());
 }

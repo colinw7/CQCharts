@@ -171,6 +171,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
   int currentPlotInd() const;
   void setCurrentPlotInd(int i);
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private slots:
   void currentPlotSlot();
 

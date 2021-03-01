@@ -1442,7 +1442,7 @@ contains(const Point &p) const
 
 void
 CQChartsPlotKey::
-boxDataInvalidate()
+boxObjInvalidate()
 {
   redraw();
 }

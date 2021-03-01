@@ -82,7 +82,8 @@ updateColumns(const CQChartsColumns &columns, bool updateText)
 {
   connectSlots(false);
 
-  dataEdit_->setColumns(columns);
+  if (columns.isValid())
+    dataEdit_->setColumns(columns);
 
   connectSlots(true);
 

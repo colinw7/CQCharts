@@ -77,6 +77,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      allowYAxisIntegral READ allowYAxisIntegral)
   Q_PROPERTY(bool      allowXLog          READ allowXLog         )
   Q_PROPERTY(bool      allowYLog          READ allowYLog         )
+  Q_PROPERTY(bool      canEqualScale      READ canEqualScale     )
   Q_PROPERTY(bool      isGroupType        READ isGroupType       )
   Q_PROPERTY(bool      isHierarchical     READ isHierarchical    )
   Q_PROPERTY(bool      canProbe           READ canProbe          )
@@ -144,6 +145,8 @@ class CQChartsPlotType : public QObject {
   virtual bool allowXLog() const { return true; }
   virtual bool allowYLog() const { return true; }
 
+  virtual bool canEqualScale() const { return false; }
+
   virtual QString description() const { return QString(); }
 
   virtual bool isGroupType() const { return false; }
@@ -153,6 +156,18 @@ class CQChartsPlotType : public QObject {
   virtual bool canProbe() const = 0;
 
   virtual bool canRectSelect() const { return true; }
+
+  //---
+
+  // column support
+  virtual bool supportsIdColumn() const { return true; } // TODO: always ?
+
+  virtual bool supportsColorColumn() const { return true; }
+  virtual bool supportsAlphaColumn() const { return false; }
+  virtual bool supportsFontColumn () const { return false; }
+  virtual bool supportsImageColumn() const { return false; }
+
+  //---
 
   virtual bool hasObjs() const { return true; }
 

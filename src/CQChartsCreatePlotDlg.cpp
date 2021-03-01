@@ -8,7 +8,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnEdit.h>
-#include <CQChartsColumnsEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelData.h>
@@ -63,19 +62,6 @@ void
 CQChartsCreatePlotDlg::
 init()
 {
-#if 0
-  auto createSep = [](const QString &name) {
-    auto *sep = CQUtil::makeWidget<QFrame>(name);
-
-    sep->setFixedHeight(4);
-    sep->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-
-    return sep;
-  };
-#endif
-
-  //---
-
   setObjectName("plotDlg");
 
   setWindowTitle(QString("Create Plot (Model %1)").arg(modelData_->ind()));
@@ -312,13 +298,11 @@ createTypeDataFrame()
 
   whereEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("whereEdit");
 
-  whereEdit_->setToolTip("Where Expression");
+  whereEdit_->setToolTip("Filter for input data");
 
   whereLayout->addWidget(whereEdit_);
 
   whereLayout->addStretch(1);
-
-  whereEdit_->setToolTip("Filter for input data");
 
   whereFrame_->setVisible(isAdvanced());
 
@@ -357,7 +341,7 @@ createTypeCombo()
   QStringList items;
 
   bool plotTypeHier = false;
-  auto plotTypeDim  = CQChartsPlotType::Dimension::NONE;
+  auto plotTypeDim  = PlotType::Dimension::NONE;
 
   QString title;
 
@@ -373,9 +357,9 @@ createTypeCombo()
     }
 
     if (dim != plotTypeDim) {
-      if      (dim == CQChartsPlotType::Dimension::ONE_D)
+      if      (dim == PlotType::Dimension::ONE_D)
         typeCombo->addTitle("1D");
-      else if (dim == CQChartsPlotType::Dimension::TWO_D)
+      else if (dim == PlotType::Dimension::TWO_D)
         typeCombo->addTitle("2D");
       else
         typeCombo->addTitle("Other");
@@ -552,7 +536,7 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
 
     int dim1 = 999;
 
-    if (dim != CQChartsPlotType::Dimension::NONE)
+    if (dim != PlotType::Dimension::NONE)
       dim1 = int(dim);
 
     hierDimPlotsTypeMap[plotType->isHierarchical()][dim1].push_back(plotType);
@@ -984,7 +968,7 @@ CQChartsCreatePlotDlg::
 addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &row, bool isBasic)
 {
   using GroupTab    = std::map<int, QTabWidget*>;
-  using ChildGroups = std::vector<CQChartsPlotParameterGroup *>;
+  using ChildGroups = std::vector<PlotParameterGroup *>;
 
   GroupTab    groupTab;
   ChildGroups childGroups;
@@ -995,7 +979,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
     if (parameterGroup->isHidden())
       continue;
 
-    if (isBasic && (parameterGroup->type() == CQChartsPlotParameterGroup::SECONDARY))
+    if (isBasic && (parameterGroup->type() == PlotParameterGroup::SECONDARY))
       continue;
 
     if (parameterGroup->parentGroupId() >= 0) {
@@ -1044,7 +1028,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
       if (parameterGroup1->isHidden())
         continue;
 
-      if (isBasic && (parameterGroup1->type() == CQChartsPlotParameterGroup::SECONDARY))
+      if (isBasic && (parameterGroup1->type() == PlotParameterGroup::SECONDARY))
         continue;
 
       childGroups1.push_back(parameterGroup1);
@@ -1143,7 +1127,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
 void
 CQChartsCreatePlotDlg::
-addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plotData,
+addParameterEdits(const PlotType::Parameters &parameters, PlotData &plotData,
                   QGridLayout *layout, int &row, bool isBasic)
 {
   // add column edits first
@@ -1162,18 +1146,18 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
 
     plotData.names.insert(parameter->name());
 
-    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN ||
-             parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST)
+    if      (parameter->type() == PlotParameter::Type::COLUMN ||
+             parameter->type() == PlotParameter::Type::COLUMN_LIST)
       addParameterEdit(plotData, layout, row, parameter, isBasic);
-    else if (parameter->type() == CQChartsPlotParameter::Type::STRING)
+    else if (parameter->type() == PlotParameter::Type::STRING)
       ++nstr;
-    else if (parameter->type() == CQChartsPlotParameter::Type::REAL)
+    else if (parameter->type() == PlotParameter::Type::REAL)
       ++nreal;
-    else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER)
+    else if (parameter->type() == PlotParameter::Type::INTEGER)
       ++nint;
-    else if (parameter->type() == CQChartsPlotParameter::Type::ENUM)
+    else if (parameter->type() == PlotParameter::Type::ENUM)
       ++nenum;
-    else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN)
+    else if (parameter->type() == PlotParameter::Type::BOOLEAN)
       ++nbool;
     else
       assert(false);
@@ -1190,9 +1174,9 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
       if (isBasic && (! parameter->isRequired() && ! parameter->isBasic()))
         continue;
 
-      if (parameter->type() == CQChartsPlotParameter::Type::STRING ||
-          parameter->type() == CQChartsPlotParameter::Type::REAL ||
-          parameter->type() == CQChartsPlotParameter::Type::INTEGER)
+      if (parameter->type() == PlotParameter::Type::STRING ||
+          parameter->type() == PlotParameter::Type::REAL ||
+          parameter->type() == PlotParameter::Type::INTEGER)
         addParameterEdit(plotData, strLayout, parameter, isBasic);
     }
 
@@ -1217,7 +1201,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
       if (isBasic && (! parameter->isRequired() && ! parameter->isBasic()))
         continue;
 
-      if (parameter->type() == CQChartsPlotParameter::Type::ENUM)
+      if (parameter->type() == PlotParameter::Type::ENUM)
         addParameterEdit(plotData, enumLayout, parameter, isBasic);
     }
 
@@ -1242,7 +1226,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
       if (isBasic && (! parameter->isRequired() && ! parameter->isBasic()))
         continue;
 
-      if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN)
+      if (parameter->type() == PlotParameter::Type::BOOLEAN)
         addParameterEdit(plotData, boolLayout, parameter, isBasic);
     }
 
@@ -1263,11 +1247,11 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
 void
 CQChartsCreatePlotDlg::
 addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                 CQChartsPlotParameter *parameter, bool isBasic)
+                 PlotParameter *parameter, bool isBasic)
 {
-  if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN)
+  if      (parameter->type() == PlotParameter::Type::COLUMN)
     addParameterColumnEdit(plotData, layout, row, parameter, isBasic);
-  else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST)
+  else if (parameter->type() == PlotParameter::Type::COLUMN_LIST)
     addParameterColumnsEdit(plotData, layout, row, parameter, isBasic);
   else
     assert(false);
@@ -1276,17 +1260,17 @@ addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
 void
 CQChartsCreatePlotDlg::
 addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
-                 CQChartsPlotParameter *parameter, bool /*isBasic*/)
+                 PlotParameter *parameter, bool /*isBasic*/)
 {
-  if      (parameter->type() == CQChartsPlotParameter::Type::STRING)
+  if      (parameter->type() == PlotParameter::Type::STRING)
     addParameterStringEdit(plotData, layout, parameter);
-  else if (parameter->type() == CQChartsPlotParameter::Type::REAL)
+  else if (parameter->type() == PlotParameter::Type::REAL)
     addParameterRealEdit(plotData, layout, parameter);
-  else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER)
+  else if (parameter->type() == PlotParameter::Type::INTEGER)
     addParameterIntEdit(plotData, layout, parameter);
-  else if (parameter->type() == CQChartsPlotParameter::Type::ENUM)
+  else if (parameter->type() == PlotParameter::Type::ENUM)
     addParameterEnumEdit(plotData, layout, parameter);
-  else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN)
+  else if (parameter->type() == PlotParameter::Type::BOOLEAN)
     addParameterBoolEdit(plotData, layout, parameter);
   else
     assert(false);
@@ -1295,7 +1279,7 @@ addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
 void
 CQChartsCreatePlotDlg::
 addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                       CQChartsPlotParameter *parameter, bool isBasic)
+                       PlotParameter *parameter, bool isBasic)
 {
   auto objName = parameter->name() + "Column";
 
@@ -1318,44 +1302,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   if (! isBasic) {
     int col = 2;
 
-    // add format edit
-    FormatEditData formatEditData;
-
-    formatEditData.formatEdit =
-      addStringEdit(layout, row, col, "", parameter->name() + "Format", "Column Format");
-
-    formatEditData.formatEdit->setToolTip("Column format");
-
-    connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
-            this, SLOT(validateSlot()));
-
-    //--
-
-    // add format update button
-    formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
-
-    formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
-
-    connect(formatEditData.formatUpdate, SIGNAL(clicked()),
-            this, SLOT(updateFormatSlot()));
-
-    formatEditData.formatUpdate->setToolTip("Get current column format");
-
-    layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
-
-    plotData.formatEdits[parameter->name()] = formatEditData;
-
-    //---
-
-    // add attributes tip label
-    auto is = formatEditData.formatUpdate->iconSize();
-
-    auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
-
-    attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
-    attributesLabel->setToolTip(parameter->attributes().summary());
-
-    layout->addWidget(attributesLabel, row, col); ++col;
+    addFormatEdit(plotData, parameter, layout, "Column", row, col);
   }
 
   //---
@@ -1421,29 +1368,18 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 void
 CQChartsCreatePlotDlg::
 addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                        CQChartsPlotParameter *parameter, bool isBasic)
+                        PlotParameter *parameter, bool isBasic)
 {
   auto objName = parameter->name() + "Columns";
 
   auto *label       = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
-  auto *columnsEdit = new CQChartsColumnsLineEdit(nullptr, isBasic);
-
-  columnsEdit->setObjectName(objName + "Edit" );
-  columnsEdit->setPlaceholderText("Column Names or Numbers");
-
-  auto columns = parameter->defValue().value<CQChartsColumns>();
+  auto *columnsEdit = new CQChartsColumnsParameterEdit(parameter, isBasic);
 
   columnsEdit->setModelData(modelData_);
-  columnsEdit->setColumns  (columns);
 
   plotData.columnsEdits[parameter->name()] = columnsEdit;
 
   connect(columnsEdit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
-
-  auto tip = parameter->tip();
-
-  if (tip.length())
-    columnsEdit->setToolTip(tip);
 
   //---
 
@@ -1455,44 +1391,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   if (! isBasic) {
     int col = 2;
 
-    // add format edit
-    FormatEditData formatEditData;
-
-    formatEditData.formatEdit =
-      addStringEdit(layout, row, col, "", parameter->name() + "Format", "Columns Format");
-
-    formatEditData.formatEdit->setToolTip("Columns format");
-
-    connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
-            this, SLOT(validateSlot()));
-
-    //--
-
-    // add format update button
-    formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
-
-    formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
-
-    connect(formatEditData.formatUpdate, SIGNAL(clicked()),
-            this, SLOT(updateFormatSlot()));
-
-    formatEditData.formatUpdate->setToolTip("Get current column format");
-
-    layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
-
-    plotData.formatEdits[parameter->name()] = formatEditData;
-
-    //---
-
-    // add attributes tip label
-    auto is = formatEditData.formatUpdate->iconSize();
-
-    auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
-
-    attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
-    attributesLabel->setToolTip(parameter->attributes().summary());
-
-    layout->addWidget(attributesLabel, row, col); ++col;
+    addFormatEdit(plotData, parameter, layout, "Columns", row, col);
   }
 
   //---
@@ -1502,8 +1401,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
 void
 CQChartsCreatePlotDlg::
-addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
-                       CQChartsPlotParameter *parameter)
+addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
@@ -1517,13 +1415,14 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   plotData.stringEdits[parameter->name()] = edit;
 
+  //---
+
   connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 }
 
 void
 CQChartsCreatePlotDlg::
-addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
-                     CQChartsPlotParameter *parameter)
+addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
@@ -1537,20 +1436,19 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   plotData.realEdits[parameter->name()] = edit;
 
+  //---
+
   connect(edit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 }
 
 void
 CQChartsCreatePlotDlg::
-addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
-                    CQChartsPlotParameter *parameter)
+addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
   auto *edit  = new CQChartsIntParameterEdit(parameter);;
-
- connect(edit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);
@@ -1558,12 +1456,15 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
   layout->addLayout(editLayout);
 
   plotData.intEdits[parameter->name()] = edit;
+
+  //---
+
+  connect(edit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 }
 
 void
 CQChartsCreatePlotDlg::
-addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
-                     CQChartsPlotParameter *parameter)
+addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
   auto *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
@@ -1589,8 +1490,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
 void
 CQChartsCreatePlotDlg::
-addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
-                     CQChartsPlotParameter *parameter)
+addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
   auto *edit = new CQChartsBoolParameterEdit(parameter);
 
@@ -1660,6 +1560,54 @@ addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
 
   return edit;
 }
+
+//---
+
+void
+CQChartsCreatePlotDlg::
+addFormatEdit(PlotData &plotData, PlotParameter *parameter, QGridLayout *layout,
+              const QString &name, int &row, int &col)
+{
+  FormatEditData formatEditData;
+
+  formatEditData.formatEdit =
+    addStringEdit(layout, row, col, "", parameter->name() + "Format", name + " Format");
+
+  formatEditData.formatEdit->setToolTip(name + " format");
+
+  connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
+          this, SLOT(validateSlot()));
+
+  //--
+
+  // add format update button
+  formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
+
+  formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
+
+  connect(formatEditData.formatUpdate, SIGNAL(clicked()),
+          this, SLOT(updateFormatSlot()));
+
+  formatEditData.formatUpdate->setToolTip("Get current " + name + " format");
+
+  layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
+
+  plotData.formatEdits[parameter->name()] = formatEditData;
+
+  //---
+
+  // add attributes tip label
+  auto is = formatEditData.formatUpdate->iconSize();
+
+  auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
+
+  attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
+  attributesLabel->setToolTip(parameter->attributes().summary());
+
+  layout->addWidget(attributesLabel, row, col); ++col;
+}
+
+//---
 
 void
 CQChartsCreatePlotDlg::
@@ -1753,7 +1701,7 @@ setXYMin(const QString &id)
   auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
                                    basicTypePlotData_   [type->name()]);
 
-  CQChartsColumn column;
+  Column column;
 
   auto colName = (id == "xmin" || id == "xmax" ? type->xColumnName() : type->yColumnName());
   if (colName == "") return;
@@ -1768,8 +1716,8 @@ setXYMin(const QString &id)
     if (parameter->name() != colName)
       continue;
 
-    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      auto column1 = parameter->defValue().value<CQChartsColumn>();
+    if      (parameter->type() == PlotParameter::Type::COLUMN) {
+      auto column1 = parameter->defValue().value<Column>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -1779,8 +1727,8 @@ setXYMin(const QString &id)
 
       column = column1;
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      auto columns = parameter->defValue().value<CQChartsColumns>();
+    else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
+      auto columns = parameter->defValue().value<Columns>();
 
       QString columnTypeStr;
 
@@ -1802,8 +1750,8 @@ setXYMin(const QString &id)
   auto *details = modelData_->details();
   if (! details) return;
 
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX)
     return;
 
   auto *columnDetails = details->columnDetails(column);
@@ -2046,12 +1994,12 @@ updateFormatSlot()
   if (! parameterName.length())
     return;
 
-  CQChartsColumn column;
+  Column column;
 
   auto pce = plotData.columnEdits.find(parameterName);
 
   if (pce != plotData.columnEdits.end()) {
-    CQChartsColumn defColumn;
+    Column defColumn;
 
     if (isAdvanced()) {
       if (! columnLineEditValue((*pce).second, column, defColumn))
@@ -2064,8 +2012,8 @@ updateFormatSlot()
     auto pce = plotData.columnsEdits.find(parameterName);
 
     if (pce != plotData.columnsEdits.end()) {
-      CQChartsColumns columns;
-      CQChartsColumns defColumns;
+      Columns columns;
+      Columns defColumns;
 
       if (! columnsLineEditValue((*pce).second, columns, defColumns))
         return;
@@ -2136,10 +2084,10 @@ validate(QStringList &msgs)
     if (plotData.names.find(parameter->name()) == plotData.names.end())
       continue;
 
-    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
+    if      (parameter->type() == PlotParameter::Type::COLUMN) {
       ++num_cols;
 
-      auto column = parameter->defValue().value<CQChartsColumn>();
+      auto column = parameter->defValue().value<Column>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2161,8 +2109,8 @@ validate(QStringList &msgs)
 
       bool rc1 = true;
 
-      if (column.type() == CQChartsColumn::Type::DATA ||
-          column.type() == CQChartsColumn::Type::DATA_INDEX) {
+      if (column.type() == Column::Type::DATA ||
+          column.type() == Column::Type::DATA_INDEX) {
         auto *columnDetails = details->columnDetails(column);
         assert(columnDetails);
 
@@ -2208,10 +2156,10 @@ validate(QStringList &msgs)
       else
         rc = rc1;
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
+    else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
       ++num_cols;
 
-      auto columns = parameter->defValue().value<CQChartsColumns>();
+      auto columns = parameter->defValue().value<Columns>();
 
       QString columnTypeStr;
 
@@ -2276,13 +2224,12 @@ updatePreviewSlot()
     CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
       modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
 
-    int  n = summaryEditData_.maxRows->value();
+    int n = summaryEditData_.maxRows->value();
+    if (n <= 0) return;
 
     bool random = (summaryEditData_.typeCombo->currentText() == "Random");
     bool sorted = (summaryEditData_.typeCombo->currentText() == "Sorted");
     bool paged  = (summaryEditData_.typeCombo->currentText() == "Paged" );
-
-    if (n <= 0) return;
 
     if (n != summaryModel->maxRows()) {
       summaryModel->setMode(CQSummaryModel::Mode::NORMAL);
@@ -2435,8 +2382,8 @@ applyPlot(Plot *plot, bool preview)
     if (plotData.names.find(parameter->name()) == plotData.names.end())
       continue;
 
-    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      auto column = parameter->defValue().value<CQChartsColumn>();
+    if      (parameter->type() == PlotParameter::Type::COLUMN) {
+      auto column = parameter->defValue().value<Column>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2476,8 +2423,8 @@ applyPlot(Plot *plot, bool preview)
         }
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      auto columns = parameter->defValue().value<CQChartsColumns>();
+    else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
+      auto columns = parameter->defValue().value<Columns>();
 
       QString columnTypeStr;
 
@@ -2501,7 +2448,7 @@ applyPlot(Plot *plot, bool preview)
         }
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::STRING) {
+    else if (parameter->type() == PlotParameter::Type::STRING) {
       bool ok;
 
       auto defStr = CQChartsVariant::toString(parameter->defValue(), ok);
@@ -2522,7 +2469,7 @@ applyPlot(Plot *plot, bool preview)
         }
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::REAL) {
+    else if (parameter->type() == PlotParameter::Type::REAL) {
       bool ok;
 
       double defValue = CQChartsVariant::toReal(parameter->defValue(), ok);
@@ -2540,7 +2487,7 @@ applyPlot(Plot *plot, bool preview)
         }
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
+    else if (parameter->type() == PlotParameter::Type::INTEGER) {
       bool ok;
 
       int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
@@ -2558,7 +2505,7 @@ applyPlot(Plot *plot, bool preview)
         }
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::ENUM) {
+    else if (parameter->type() == PlotParameter::Type::ENUM) {
       bool ok;
 
       int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
@@ -2574,7 +2521,7 @@ applyPlot(Plot *plot, bool preview)
           plot->setParameter(parameter, QVariant(defValue));
       }
     }
-    else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN) {
+    else if (parameter->type() == PlotParameter::Type::BOOLEAN) {
       bool defValue = parameter->defValue().toBool();
 
       bool b = defValue;
@@ -2726,7 +2673,7 @@ parseParameterColumnEdit(PlotParameter *parameter, const PlotData &plotData,
   //---
 
   // get column value
-  auto defColumn = parameter->defValue().value<CQChartsColumn>();
+  auto defColumn = parameter->defValue().value<Column>();
 
   auto pe = plotData.columnEdits.find(parameter->name());
   assert(pe != plotData.columnEdits.end());
@@ -2779,7 +2726,7 @@ parseParameterColumnsEdit(PlotParameter *parameter, const PlotData &plotData,
   //---
 
   // get columns value
-  auto defColumns = parameter->defValue().value<CQChartsColumns>();
+  auto defColumns = parameter->defValue().value<Columns>();
 
   auto pe = plotData.columnsEdits.find(parameter->name());
   assert(pe != plotData.columnsEdits.end());
@@ -2855,8 +2802,8 @@ parseParameterBoolEdit(PlotParameter *parameter, const PlotData &plotData, bool 
 
 bool
 CQChartsCreatePlotDlg::
-columnLineEditValue(CQChartsColumnParameterEdit *edit, CQChartsColumn &column,
-                    const CQChartsColumn &defColumn) const
+columnLineEditValue(CQChartsColumnParameterEdit *edit, Column &column,
+                    const Column &defColumn) const
 {
   column = edit->getColumn();
 

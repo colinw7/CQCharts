@@ -28,7 +28,7 @@ CQChartsHelpDlgMgr()
 {
 }
 
-void
+CQChartsHelpDlg *
 CQChartsHelpDlgMgr::
 showDialog(CQCharts *charts)
 {
@@ -44,6 +44,8 @@ showDialog(CQCharts *charts)
   dlg_->show();
 
   dlg_->raise();
+
+  return dlg_;
 }
 
 //---

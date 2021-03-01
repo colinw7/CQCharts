@@ -466,22 +466,22 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  bool rc = true;
+  auto columnDataType = calcColumnDataType();
 
-  if (isHierarchical())
+  bool rc = false;
+
+  if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
-  else {
-    if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs();
-    else if (connectionsColumn().isValid())
-      rc = initConnectionObjs();
-    else if (pathColumn().isValid())
-      rc = initPathObjs();
-    else if (fromColumn().isValid() && toColumn().isValid())
-      rc = initFromToObjs();
-    else
-      rc = initTableObjs();
-  }
+  else if (columnDataType == ColumnDataType::LINK)
+    rc = initLinkObjs();
+  else if (columnDataType == ColumnDataType::CONNECTIONS)
+    rc = initConnectionObjs();
+  else if (columnDataType == ColumnDataType::PATH)
+    rc = initPathObjs();
+  else if (columnDataType == ColumnDataType::FROM_TO)
+    rc = initFromToObjs();
+  else if (columnDataType == ColumnDataType::TABLE)
+    rc = initTableObjs();
 
   if (! rc)
     return false;
@@ -2500,6 +2500,21 @@ createGraphObj(const BBox &rect, Graph *graph) const
   return new GraphObj(this, rect, graph);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsGraphPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsGraphPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsGraphPlotNode::
@@ -4232,4 +4247,62 @@ scale(double fx, double fy)
 
   if (obj_)
     obj_->setRect(rect_);
+}
+
+//------
+
+CQChartsGraphPlotCustomControls::
+CQChartsGraphPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "graph")
+{
+  addColorColumnWidgets("Cell Color");
+
+  addConnectionColumnWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsGraphPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsConnectionPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsGraphPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsGraphPlot *>(plot);
+
+  CQChartsConnectionPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsGraphPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+CQChartsColor
+CQChartsGraphPlotCustomControls::
+getColorValue()
+{
+  return plot_->nodeFillColor();
+}
+
+void
+CQChartsGraphPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setNodeFillColor(c);
 }

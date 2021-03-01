@@ -1287,3 +1287,5 @@
  + add support for custom plot controls for improved interface
  + add reusable paramter editors
  + add support for symbol sets
+# 2/28/2021
+ + add more custom plot controls and infrastructure

@@ -147,6 +147,52 @@ setValueColumns(const Columns &c)
 
 //---
 
+CQChartsColumn
+CQChartsGridPlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name"  ) c = this->nameColumn();
+  else if (name == "label" ) c = this->labelColumn();
+  else if (name == "row"   ) c = this->rowColumn();
+  else if (name == "column") c = this->columnColumn();
+  else                       c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsGridPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name"  ) this->setNameColumn(c);
+  else if (name == "label" ) this->setLabelColumn(c);
+  else if (name == "row"   ) this->setRowColumn(c);
+  else if (name == "column") this->setColumnColumn(c);
+  else                       CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsGridPlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else                  c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsGridPlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else                  CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
+
 void
 CQChartsGridPlot::
 setDrawType(const DrawType &t)
@@ -419,6 +465,21 @@ createCellObj(const BBox &bbox, const QString &name, const QString &label,
   return new CQChartsGridCellObj(this, bbox, name, label, row, column, values);
 }
 
+//---
+
+CQChartsPlotCustomControls *
+CQChartsGridPlot::
+createCustomControls(CQCharts *charts)
+{
+  auto *controls = new CQChartsGridPlotCustomControls(charts);
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
 //------
 
 CQChartsGridCellObj::
@@ -623,4 +684,55 @@ void
 CQChartsGridCellObj::
 getObjSelectIndices(Indices &) const
 {
+}
+
+//------
+
+CQChartsGridPlotCustomControls::
+CQChartsGridPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "grid")
+{
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  addColumnWidgets(QStringList() <<
+    "name" << "label" << "row" << "column" << "values", optionsFrame);
+
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsGridPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+}
+
+void
+CQChartsGridPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = dynamic_cast<CQChartsGridPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsGridPlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
 }

@@ -31,6 +31,10 @@ class CQChartsScatterPlotType : public CQChartsPointPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool supportsAlphaColumn() const override { return true; }
+  bool supportsFontColumn () const override { return true; }
+  bool supportsImageColumn() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -72,7 +76,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           const Point &p, const ColorInd &is, const ColorInd &ig,
                           const ColorInd &iv);
 
-  const Plot *plot() const { return plot_; }
+  const auto *plot() const { return plot_; }
 
   int groupInd() const { return groupInd_; }
 
@@ -87,21 +91,21 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // position
-  const Point &point() const { return pos_; }
+  const auto &point() const { return pos_; }
 
   //---
 
   // name and associated column
-  const QString &name() const { return name_; }
+  const auto &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  const Column &nameColumn() const { return nameColumn_; }
+  const auto &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c) { nameColumn_ = c; }
 
   //---
 
   // image
-  const Image &image() const { return image_; }
+  const auto &image() const { return image_; }
   void setImage(const Image &i) { image_ = i; }
 
   //---
@@ -208,7 +212,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
-  const Points &points() const { return points_; }
+  const auto &points() const { return points_; }
 
   //---
 
@@ -313,7 +317,7 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
-  const QString name() const { return name_; }
+  const auto &name() const { return name_; }
 
   //---
 
@@ -356,7 +360,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &ic);
 
-  const Color &color() const { return color_; }
+  const auto &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
   bool selectPress(const Point &p, SelMod selMod) override;
@@ -521,23 +525,28 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // name, label, x, y columns
-  const Column &nameColumn() const { return nameColumn_; }
+  const auto &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
-  const Column &labelColumn() const { return labelColumn_; }
+  const auto &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const Column &c);
 
-  const Column &xColumn() const { return xColumn_; }
+  const auto &xColumn() const { return xColumn_; }
   void setXColumn(const Column &c);
 
-  const Column &yColumn() const { return yColumn_; }
+  const auto &yColumn() const { return yColumn_; }
   void setYColumn(const Column &c);
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   // get x/y column type
-  ColumnType xColumnType() const { return xColumnType_; }
-  ColumnType yColumnType() const { return yColumnType_; }
+  const auto &xColumnType() const { return xColumnType_; }
+  const auto &yColumnType() const { return yColumnType_; }
 
   // get x/y unique values
   bool isUniqueX() const { return uniqueX_; }
@@ -552,7 +561,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // plot type
-  PlotType plotType() const { return plotType_; }
+  const auto &plotType() const { return plotType_; }
 
   bool isNoType   () const { return (plotType() == PlotType::NONE      ); }
   bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS   ); }
@@ -594,12 +603,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   int gridNumY() const { return gridData_.ny(); }
   void setGridNumY(int n);
 
-  const GridCell &gridData() const { return gridData_; }
+  const auto &gridData() const { return gridData_; }
 
   //---
 
   // hex cells
-  const HexMap &hexMap() const { return hexMap_; }
+  const auto &hexMap() const { return hexMap_; }
   int hexMapMaxN() const { return hexMapMaxN_; }
 
   //---
@@ -665,8 +674,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  QString xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
-  QString yHeaderName(bool tip=false) const { return columnHeaderName(yColumn(), tip); }
+  auto xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
+  auto yHeaderName(bool tip=false) const { return columnHeaderName(yColumn(), tip); }
 
   void updateColumnNames() override;
 
@@ -932,10 +941,11 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  private:
   void connectSlots(bool b);
 
-  void updateWidgets();
+ public slots:
+  void updateWidgets() override;
 
  private slots:
-  void columnSlot();
+  void plotTypeSlot();
 
   void pointLabelsSlot();
   void labelColumnSlot();
@@ -945,10 +955,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void fontSizeRangeSlot(double, double);
 
  private:
-  using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
-
   CQChartsScatterPlot*       plot_                { nullptr };
-  ColumnEdits                columnEdits_;
   CQChartsEnumParameterEdit* plotTypeCombo_       { nullptr };
   CQCheckBox*                pointLabelsCheck_    { nullptr };
   CQChartsColumnCombo*       labelColumnCombo_    { nullptr };

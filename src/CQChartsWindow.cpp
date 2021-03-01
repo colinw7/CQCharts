@@ -189,8 +189,7 @@ CQChartsWindow(View *view) :
 
   filterEdit_ = new CQChartsFilterEdit;
 
-  connect(filterEdit_, SIGNAL(filterAnd(bool)),
-          this, SLOT(filterAndSlot(bool)));
+  connect(filterEdit_, SIGNAL(filterAnd(bool)), this, SLOT(filterAndSlot(bool)));
 
   connect(filterEdit_, SIGNAL(replaceFilter(const QString &)),
           this, SLOT(replaceFilterSlot(const QString &)));

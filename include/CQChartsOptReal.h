@@ -11,7 +11,7 @@
  * \ingroup Charts
  */
 class CQChartsOptReal :
-  public CQChartsEqBase<CQChartsOptReal> {
+  public CQChartsComparatorBase<CQChartsOptReal> {
  public:
   static void registerMetaType();
 
@@ -62,10 +62,15 @@ class CQChartsOptReal :
 
   //---
 
-  friend bool operator==(const CQChartsOptReal &lhs, const CQChartsOptReal &rhs) {
-    if (lhs.value_ != rhs.value_) return false;
+  friend int cmp(const CQChartsOptReal &lhs, const CQChartsOptReal &rhs) {
+    if (! lhs.isSet() && ! rhs.isSet()) return 0;
+    if (! lhs.isSet()) return -1;
+    if (! rhs.isSet()) return  1;
 
-    return true;
+    if (lhs.value_ < rhs.value_) return -1;
+    if (lhs.value_ > rhs.value_) return  1;
+
+    return 0;
   }
 
   //---

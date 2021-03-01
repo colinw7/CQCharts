@@ -47,13 +47,14 @@ class CQChartsCreatePlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  using Plot          = CQChartsPlot;
-  using PlotType      = CQChartsPlotType;
-  using ModelData     = CQChartsModelData;
-  using Column        = CQChartsColumn;
-  using Columns       = CQChartsColumns;
-  using PlotParameter = CQChartsPlotParameter;
-  using ModelP        = QSharedPointer<QAbstractItemModel>;
+  using Plot               = CQChartsPlot;
+  using PlotType           = CQChartsPlotType;
+  using ModelData          = CQChartsModelData;
+  using Column             = CQChartsColumn;
+  using Columns            = CQChartsColumns;
+  using PlotParameter      = CQChartsPlotParameter;
+  using PlotParameterGroup = CQChartsPlotParameterGroup;
+  using ModelP             = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsCreatePlotDlg(CQCharts *charts, ModelData *modelData);
@@ -161,6 +162,11 @@ class CQChartsCreatePlotDlg : public QDialog {
                         const QString &objName, const QString &placeholderText) const;
   LineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
                           const QString &objName, const QString &placeholderText) const;
+
+  void addFormatEdit(PlotData &plotData, PlotParameter *parameter, QGridLayout *layout,
+                     const QString &name, int &row, int &col);
+
+  //---
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 

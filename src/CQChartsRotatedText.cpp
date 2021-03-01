@@ -216,7 +216,7 @@ drawDelta(CQChartsPaintDevice *device, const Point &p, const QString &text,
   //auto icolor = CQChartsUtil::invColor(tc);
     auto icolor = CQChartsUtil::bwColor(tc);
 
-    icolor.setAlphaF(options.contrastAlpha.value());
+    CQChartsDrawUtil::setColorAlpha(icolor, options.contrastAlpha);
 
     // draw contrast outline
     device->setPen(icolor);

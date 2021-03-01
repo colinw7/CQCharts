@@ -32,6 +32,8 @@ class CQChartsWordCloudPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -137,6 +139,11 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   void addProperties() override;
 
   Range calcRange() const override;
@@ -155,9 +162,32 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
   bool columnValue(const ModelIndex &ind, double &value) const;
 
+ protected:
+  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+
  private:
   Column valueColumn_; //!< value column
   Column countColumn_; //!< count column
+};
+
+//---
+
+class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsWordCloudPlotCustomControls(CQCharts *charts);
+
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsWordCloudPlot* plot_ { nullptr };
 };
 
 #endif
