@@ -894,28 +894,48 @@ void
 CQChartsGeometryObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  // calc pen and brush
-  QColor fc;
-
-  double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
-
   auto colorInd = calcColorInd();
 
-  if (color().isValid()) {
-    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR)
-      fc = plot_->interpColor(color(), ColorInd(dv));
-    else
-      fc = plot_->interpColor(color(), colorInd);
-  }
-  else {
-    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR)
-      fc = plot_->interpColor(plot_->fillColor(), ColorInd(dv));
-    else
-      fc = plot_->interpFillColor(colorInd);
-  }
+  //---
 
+  // calc fill color
+  auto calcFillColor = [&]() {
+    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
+      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+
+      if (color().isValid())
+        return plot_->interpColor(color(), ColorInd(dv));
+      else
+        return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+    }
+
+    if  (color().isValid())
+      return plot_->interpColor(color(), colorInd);
+
+    if (plot_->colorColumn().isValid()) {
+      auto ind1 = modelInd();
+
+      ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+      Color indColor;
+
+      if (plot_->modelIndexColor(ind2, indColor))
+        return plot_->interpColor(indColor, colorInd);
+    }
+
+    return plot_->interpFillColor(colorInd);
+  };
+
+  auto fc = calcFillColor();
+
+  //---
+
+  // calc stroke color
   auto bc = plot_->interpStrokeColor(colorInd);
 
+  //---
+
+  // calc pen and brush
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
               plot_->strokeWidth(), plot_->strokeDash()),
@@ -978,6 +998,10 @@ CQChartsGeometryPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addColorColumnWidgets();
+
+  //---
+
   connectSlots(true);
 }
 
@@ -1010,4 +1034,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsGeometryPlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsGeometryPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

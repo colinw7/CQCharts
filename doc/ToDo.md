@@ -3,10 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + Optional clipping for objects
- + Quick controls on plot for all 'major' parameters
+ + Custom Controls for more (all) plots
+   + Include all 'major' parameters
    + test with scatter plot for symbol size, ...
    + need start/end slider widget for data/pixel ranges 
+ + Custom Controls as first tab/seprate tab
+ + Symbol Set editor
+ + Optional clipping for objects
  + overlapping obj/annotation select with cycle needs better code and consistent order
  + allow row select which object match optimization
  + auto analyze data, pick best plot type by weight, display plots in tabbed group
@@ -598,7 +601,15 @@ Plots General
 Combined Plots
  + Better builtin support for split plots
 
+Connection Plots
+ + Use derived column data type to improve interface to columns
+
 Adjacency Plot
+ + Title not visible
+ + Invert X/Y does not work
+ + More controls
+ + Elide should trim border text (?) or fail ?
+ + Hide more properties
  + X Border Width
  + Better Text Placement/Sizing (Iterative calc fit)
  + Hierarchical Adjacency (H/V headers are hierarchical trees)
@@ -609,6 +620,7 @@ Bar Chart
  + Allow hide sets as well as individual sub set types
  + Custom Data Labels (including hiding)
  + Whisker/Box for bar values
+ + Multiple columns with summary value (range, min, max) fails
 
 Box Plot
  + BoxObj master for boxes
@@ -737,6 +749,7 @@ Tree map
  + Html scaled not working
 
 XY Plot
+ + Fill under with no lines and rolling average should fill under rolling average
  + Use color set for color column to allow explict colors and colors from data
  + Diverging
  + Smooth fit

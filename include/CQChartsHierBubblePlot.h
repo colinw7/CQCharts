@@ -631,6 +631,10 @@ class CQChartsHierBubblePlotCustomControls : public CQChartsHierPlotCustomContro
   void updateWidgets() override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsHierBubblePlot* plot_ { nullptr };
 };
 

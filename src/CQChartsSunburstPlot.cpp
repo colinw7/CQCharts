@@ -1814,7 +1814,10 @@ CQChartsSunburstPlotCustomControls::
 CQChartsSunburstPlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "sunburst")
 {
-  addHierColumnWidgets();
+  addHierColumnWidgets ();
+  addColorColumnWidgets();
+
+  //---
 
   connectSlots(true);
 }
@@ -1848,4 +1851,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsSunburstPlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

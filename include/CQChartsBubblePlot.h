@@ -467,6 +467,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  CQChartsColumn getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //---
+
   ColumnType valueColumnType() const { return valueColumnType_; }
 
   //---
@@ -662,6 +667,16 @@ class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls 
   CQChartsBubblePlotCustomControls(CQCharts *charts);
 
   void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  void connectSlots(bool b);
+
+ public slots:
+  void updateWidgets() override;
+
+ private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
 
  private:
   CQChartsBubblePlot* plot_ { nullptr };

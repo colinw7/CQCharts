@@ -145,6 +145,29 @@ setValueColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsBubblePlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "name" ) c = this->nameColumn();
+  else if (name == "value") c = this->valueColumn();
+  else                      c = CQChartsGroupPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsBubblePlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "name" ) this->setNameColumn(c);
+  else if (name == "value") this->setValueColumn(c);
+  else                      CQChartsGroupPlot::setNamedColumn(name, c);
+}
+
+//---
+
 void
 CQChartsBubblePlot::
 setValueLabel(bool b)
@@ -1574,8 +1597,31 @@ CQChartsBubblePlotCustomControls::
 CQChartsBubblePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "bubble")
 {
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  //---
+
+  // values, name and label columns
+  static auto columnNames = QStringList() << "name" << "value";
+
+  addColumnWidgets(columnNames, optionsFrame);
+
+  //---
+
   addGroupColumnWidgets();
   addColorColumnWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+void
+CQChartsBubblePlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsGroupPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -1585,4 +1631,33 @@ setPlot(CQChartsPlot *plot)
   plot_ = dynamic_cast<CQChartsBubblePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+}
+
+void
+CQChartsBubblePlotCustomControls::
+updateWidgets()
+{
+  connectSlots(false);
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
+
+  //---
+
+  connectSlots(true);
+}
+
+CQChartsColor
+CQChartsBubblePlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsBubblePlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

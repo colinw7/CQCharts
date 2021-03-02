@@ -2239,6 +2239,9 @@ CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "treemap")
 {
   addHierColumnWidgets();
+  addColorColumnWidgets();
+
+  //---
 
   connectSlots(true);
 }
@@ -2272,4 +2275,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsTreeMapPlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

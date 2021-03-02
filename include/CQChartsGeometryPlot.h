@@ -357,6 +357,10 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsGeometryPlot* plot_ { nullptr };
 };
 

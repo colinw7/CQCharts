@@ -544,6 +544,10 @@ class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls
   void updateWidgets() override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsSunburstPlot* plot_ { nullptr };
 };
 

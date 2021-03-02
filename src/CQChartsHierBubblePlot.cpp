@@ -1879,7 +1879,10 @@ CQChartsHierBubblePlotCustomControls::
 CQChartsHierBubblePlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "hierbubble")
 {
-  addHierColumnWidgets();
+  addHierColumnWidgets ();
+  addColorColumnWidgets();
+
+  //---
 
   connectSlots(true);
 }
@@ -1913,4 +1916,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsHierBubblePlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsHierBubblePlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

@@ -700,6 +700,10 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
   void updateWidgets() override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsTreeMapPlot* plot_ { nullptr };
 };
 
