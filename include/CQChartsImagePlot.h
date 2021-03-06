@@ -27,6 +27,8 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool supportsColorColumn() const override { return false; };
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;

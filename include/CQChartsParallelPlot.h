@@ -324,8 +324,16 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
  public slots:
   void updateWidgets() override;
 
+ private slots:
+  void orientationSlot();
+
  private:
-  CQChartsParallelPlot* plot_ { nullptr };
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
+  CQChartsParallelPlot*      plot_            { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
 };
 
 #endif

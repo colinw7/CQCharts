@@ -52,7 +52,10 @@ description() const
     h3("Summary").
      p("Draws words in column by frequency.").
     h3("Columns").
-    p("The " + B("Value") + " column specifies the value column.").
+    p("The " + B("Value") + " column specifies the value (word) column.").
+    p("The optional " + B("Count") + " column specifies the number of instances "
+      "of the word. If not specified the number of occurences of each word in "
+      "the value column is used.").
     h3("Limitations").
      p("None.").
     h3("Example").
@@ -248,7 +251,21 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsWordCloud wordCloud;
+  // get words from model
+  struct WordData {
+    int         count { 1 };
+    QModelIndex ind;
+
+    WordData() = default;
+
+    WordData(int count, const QModelIndex &ind=QModelIndex()) :
+     count(count), ind(ind) {
+    }
+  };
+
+  using WordDatas = std::map<QString, WordData>;
+
+  WordDatas wordDatas;
 
   if (! countColumn().isValid()) {
     auto *modelData = getModelData();
@@ -258,14 +275,14 @@ createObjs(PlotObjs &objs) const
     const auto *columnDetails = details->columnDetails(valueColumn());
 
     for (const auto &valueCount : columnDetails->uniqueValueCounts()) {
-      wordCloud.addWord(valueCount.first.toString(), valueCount.second);
+      wordDatas[valueCount.first.toString()] = WordData(valueCount.second);
     }
   }
   else {
     class WordCloudModelVisitor : public ModelVisitor {
      public:
-      WordCloudModelVisitor(const CQChartsWordCloudPlot *plot, CQChartsWordCloud &wordCloud) :
-       plot_(plot), wordCloud_(wordCloud) {
+      WordCloudModelVisitor(const CQChartsWordCloudPlot *plot, WordDatas &wordDatas) :
+       plot_(plot), wordDatas_(wordDatas) {
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -280,26 +297,44 @@ createObjs(PlotObjs &objs) const
         int count = plot_->modelInteger(countModelInd, ok2);
         if (! ok2 || count < 1) return State::SKIP;
 
-        wordCloud_.addWord(name, count);
+        auto ind = plot_->normalizeIndex(plot_->modelIndex(valueModelInd));
+
+        auto p = wordDatas_.find(name);
+
+        if (p != wordDatas_.end())
+          (*p).second.count += count;
+        else
+          wordDatas_[name] = WordData(count, ind);
 
         return State::OK;
       }
 
      private:
       const CQChartsWordCloudPlot* plot_ { nullptr };
-      CQChartsWordCloud&           wordCloud_;
+      WordDatas&                   wordDatas_;
     };
 
-    WordCloudModelVisitor visitor(this, wordCloud);
+    WordCloudModelVisitor visitor(this, wordDatas);
 
     visitModel(visitor);
   }
+
+  //---
+
+  // place words
+  CQChartsWordCloud wordCloud;
+
+  for (const auto &pw : wordDatas)
+    wordCloud.addWord(pw.first, pw.second.count);
 
   wordCloud.setMinFontSize(windowToPixelWidth(0.02));
   wordCloud.setMaxFontSize(windowToPixelWidth(0.15));
 
   wordCloud.place(this);
 
+  //---
+
+  // create objects
   int i = 0;
   int n = wordCloud.wordDatas().size();
 
@@ -307,8 +342,12 @@ createObjs(PlotObjs &objs) const
     BBox rect(wordData->wordRect.xmin(), wordData->wordRect.ymin(),
               wordData->wordRect.xmax(), wordData->wordRect.ymax());
 
-    QModelIndex ind;
-    ColorInd    iv(i, n);
+    auto p = wordDatas.find(wordData->word);
+    assert(p != wordDatas.end());
+
+    QModelIndex ind = (*p).second.ind;
+
+    ColorInd iv(i, n);
 
     auto *obj = th->createObj(rect, wordData->word, ind, iv);
 
@@ -444,7 +483,23 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  auto textColor = plot_->interpTextColor(colorInd);
+  QColor textColor;
+
+  if (plot_->colorColumn().isValid() && plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    auto ind1 = modelInd();
+
+    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+    Color indColor;
+
+    if (plot_->modelIndexColor(ind2, indColor))
+      textColor = plot_->interpColor(indColor, colorInd);
+    else
+      textColor = plot_->interpTextColor(colorInd);
+  }
+  else {
+    textColor = plot_->interpTextColor(colorInd);
+  }
 
   plot_->setPen(penBrush, PenData(true, textColor, plot_->textAlpha()));
 
@@ -472,7 +527,12 @@ CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  // value and count columns
   addColumnWidgets(QStringList() << "value" << "count", optionsFrame);
+
+  //---
+
+  addColorColumnWidgets("Text Color");
 
   //---
 
@@ -508,4 +568,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsWordCloudPlotCustomControls::
+getColorValue()
+{
+  return plot_->textColor();
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setTextColor(c);
 }

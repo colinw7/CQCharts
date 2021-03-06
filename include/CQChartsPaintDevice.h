@@ -100,16 +100,16 @@ class CQChartsPaintDevice {
 
   virtual void setFillAngle(double) { }
 
-  virtual void fillPath  (const QPainterPath &, const QBrush &) { }
-  virtual void strokePath(const QPainterPath &, const QPen &) { }
-  virtual void drawPath  (const QPainterPath &) { }
+  virtual void fillPath  (const QPainterPath &, const QBrush &) { assert(false); }
+  virtual void strokePath(const QPainterPath &, const QPen &) { assert(false); }
+  virtual void drawPath  (const QPainterPath &) { assert(false); }
 
-  virtual void fillRect(const BBox &) { }
-  virtual void drawRect(const BBox &) { }
+  virtual void fillRect(const BBox &) { assert(false); }
+  virtual void drawRect(const BBox &) { assert(false); }
 
-  virtual void drawEllipse(const BBox &, const Angle& =Angle()) { }
+  virtual void drawEllipse(const BBox &, const Angle& =Angle()) { assert(false); }
 
-//virtual void drawArc(const BBox &, const Angle &, const Angle &) { }
+//virtual void drawArc(const BBox &, const Angle &, const Angle &) { assert(false); }
 
   //---
 
@@ -119,20 +119,20 @@ class CQChartsPaintDevice {
 
   //---
 
-  virtual void drawPolygon (const Polygon &) { }
-  virtual void drawPolyline(const Polygon &) { }
+  virtual void drawPolygon (const Polygon &) { assert(false); }
+  virtual void drawPolyline(const Polygon &) { assert(false); }
 
-  virtual void drawLine(const Point &, const Point &) { }
+  virtual void drawLine(const Point &, const Point &) { assert(false); }
 
   void drawRoundedLine(const Point &p1, const Point &p2, double w);
 
-  virtual void drawPoint(const Point &) { }
+  virtual void drawPoint(const Point &) { assert(false); }
 
-  virtual void drawText(const Point &, const QString &) { }
-  virtual void drawTransformedText(const Point &, const QString &) { }
+  virtual void drawText(const Point &, const QString &) { assert(false); }
+  virtual void drawTransformedText(const Point &, const QString &) { assert(false); }
 
-  virtual void drawImage(const Point &, const QImage &) { }
-  virtual void drawImageInRect(const BBox &, const Image &, bool = true) { }
+  virtual void drawImage(const Point &, const QImage &) { assert(false); }
+  virtual void drawImageInRect(const BBox &, const Image &, bool = true) { assert(false); }
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f) = 0;

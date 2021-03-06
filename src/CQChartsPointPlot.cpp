@@ -1439,6 +1439,8 @@ connectSlots(bool b)
       symbolTypeSetEdit_, SIGNAL(setChanged(const QString &)),
       this, SLOT(symbolTypeSetSlot(const QString &)));
   }
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -1521,6 +1523,10 @@ updateWidgets()
 
     symbolTypeRange_->fixSliderValues();
   }
+
+  //---
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
 
   //---
 

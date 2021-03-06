@@ -38,6 +38,18 @@ inline Tcl_Obj *createRealObj(double r) {
   return Tcl_NewDoubleObj(r);
 }
 
+inline Tcl_Obj *createIntsObj(Tcl_Interp *interp, const std::vector<int> &ivals) {
+  auto *obj = Tcl_NewListObj(0, nullptr);
+
+  for (const auto &i : ivals) {
+    auto *iobj = Tcl_NewIntObj(i);
+
+    Tcl_ListObjAppendElement(interp, obj, iobj);
+  }
+
+  return obj;
+}
+
 inline std::string stringFromObj(Tcl_Obj *obj) {
   int len = 0;
 
@@ -67,6 +79,15 @@ inline void createVar(Tcl_Interp *interp, const std::string &name, int value) {
 inline void createVar(Tcl_Interp *interp, const std::string &name, double value) {
   auto *nameObj  = createStrObj(name ); Tcl_IncrRefCount(nameObj);
   auto *valueObj = createRealObj(value);
+
+  Tcl_ObjSetVar2(interp, nameObj, nullptr, valueObj, TCL_GLOBAL_ONLY);
+
+  Tcl_DecrRefCount(nameObj);
+}
+
+inline void createVar(Tcl_Interp *interp, const std::string &name, const std::vector<int> &values) {
+  auto *nameObj  = createStrObj(name ); Tcl_IncrRefCount(nameObj);
+  auto *valueObj = createIntsObj(interp, values);
 
   Tcl_ObjSetVar2(interp, nameObj, nullptr, valueObj, TCL_GLOBAL_ONLY);
 
@@ -214,6 +235,10 @@ class CTcl {
 
   void createVar(const std::string &name, double value) {
     CTclUtil::createVar(interp(), name, value);
+  }
+
+  void createVar(const std::string &name, const std::vector<int> &values) {
+    CTclUtil::createVar(interp(), name, values);
   }
 
   std::string getVar(const std::string &name) const {

@@ -1060,13 +1060,15 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void updateWidgets() override;
 
  private slots:
+  void orientationSlot();
   void plotTypeSlot();
   void valueTypeSlot();
 
  private:
-  CQChartsDistributionPlot*  plot_           { nullptr };
-  CQChartsEnumParameterEdit* plotTypeCombo_  { nullptr };
-  CQChartsEnumParameterEdit* valueTypeCombo_ { nullptr };
+  CQChartsDistributionPlot*  plot_            { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
+  CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
+  CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
 };
 
 #endif

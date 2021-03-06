@@ -20,3 +20,5 @@
   + individual color map
 + column
   + column of model (input data) to use for data in plot
++ symbol
+  + symbol shape

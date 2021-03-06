@@ -98,10 +98,7 @@ bool
 CQChartsSymbol::
 fromString(const QString &s)
 {
-  auto type = nameToType(s);
-
-  if (type != Type::NONE)
-    type_ = nameToType(s);
+  type_ = nameToType(s);
 
   return (type_ != Type::NONE);
 }

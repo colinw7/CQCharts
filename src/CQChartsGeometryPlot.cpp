@@ -605,7 +605,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry custom color
-  // TODO: just call colorColumnColor
+  // TODO: just call colorColumnColor (duplicate code in calcPenBrush)
   if (colorColumn().isValid()) {
     ModelIndex colorInd(th, data.row, colorColumn(), data.parent);
 
@@ -615,6 +615,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       if (colorColumnColor(data.row, data.parent, c))
         geometry.color = c;
     }
+#if 0
     else {
       bool ok4;
 
@@ -623,6 +624,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       if (ok4)
         geometry.color = Color(str);
     }
+#endif
   }
 
   //---

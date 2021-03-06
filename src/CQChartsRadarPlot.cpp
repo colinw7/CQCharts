@@ -1079,8 +1079,24 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
+  QColor fillColor;
+
+  if (plot_->colorColumn().isValid() && plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    auto ind1 = modelInd();
+
+    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+    Color indColor;
+
+    if (plot_->modelIndexColor(ind2, indColor))
+      fillColor = plot_->interpColor(indColor, colorInd);
+    else
+      fillColor = plot_->interpFillColor(colorInd);
+  }
+  else
+    fillColor = plot_->interpFillColor(colorInd);
+
   auto strokeColor = plot_->interpStrokeColor(colorInd);
-  auto fillColor   = plot_->interpFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
@@ -1111,7 +1127,12 @@ CQChartsRadarPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  // name and values columns
   addColumnWidgets(QStringList() << "name" << "values", optionsFrame);
+
+  //---
+
+  addColorColumnWidgets("Fill Color");
 
   //---
 
@@ -1147,4 +1168,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsRadarPlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsRadarPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
 }

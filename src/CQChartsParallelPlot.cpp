@@ -13,6 +13,7 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -39,8 +40,10 @@ addParameters()
   addColumnsParameter("y", "Y", "yColumns").
     setNumeric().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal").
-    setTip("Draw horizontal");
+  addEnumParameter("orientation", "Orientation", "orientation").
+    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    setTip("Draw orientation");
 
   endParameterGroup();
 
@@ -59,6 +62,8 @@ description() const
    h2("Parallel Plot").
     h3("Summary").
      p("Draws lines through values of multiple column values for each row.").
+    h3("Columns").
+     p("An axis is drawn for each y column using a label from the x column").
     h3("Limitations").
      p("None.").
     h3("Example").
@@ -1300,6 +1305,18 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   plot_->setLineDataPen(penBrush.pen, colorInd);
 
+  if (plot_->colorColumn().isValid() &&
+      plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    auto ind1 = modelInd();
+
+    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+    Color indColor;
+
+    if (plot_->modelIndexColor(ind2, indColor))
+      penBrush.pen.setColor(plot_->interpColor(indColor, colorInd));
+  }
+
   plot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
@@ -1497,7 +1514,18 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  // x and y columns
   addColumnWidgets(QStringList() << "x" << "y", optionsFrame);
+
+  //---
+
+  orientationCombo_ = createEnumEdit("orientation");
+
+  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+
+  //---
+
+  addColorColumnWidgets("Line Color");
 
   //---
 
@@ -1508,6 +1536,9 @@ void
 CQChartsParallelPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+
   CQChartsPlotCustomControls::connectSlots(b);
 }
 
@@ -1528,9 +1559,32 @@ updateWidgets()
 
   //---
 
+  orientationCombo_->setCurrentValue((int) plot_->orientation());
+
   CQChartsPlotCustomControls::updateWidgets();
 
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsParallelPlotCustomControls::
+orientationSlot()
+{
+  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+}
+
+CQChartsColor
+CQChartsParallelPlotCustomControls::
+getColorValue()
+{
+  return plot_->linesColor();
+}
+
+void
+CQChartsParallelPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setLinesColor(c);
 }

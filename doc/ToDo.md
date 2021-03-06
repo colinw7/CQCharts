@@ -7,7 +7,6 @@ TODO:
    + Include all 'major' parameters
    + test with scatter plot for symbol size, ...
    + need start/end slider widget for data/pixel ranges 
- + Custom Controls as first tab/seprate tab
  + Symbol Set editor
  + Optional clipping for objects
  + overlapping obj/annotation select with cycle needs better code and consistent order
@@ -146,6 +145,10 @@ TODO:
  + Connection plots
    + propagate up optional and custom (sum, average, ...)
    + Add depth and min value filters (all connection data sources)
+   + how handle different src/dest values (bi-directional connection)
+   + more common code
+   + object for chord plot connection
+   + Connected Scatter Plot
  + Improve auto fit (tolerance) for xy plot
    + single value or both directions
  + Bar Plot auto inside/outside for data label
@@ -155,10 +158,6 @@ TODO:
    + Better paths
  + remove device->setBrush/setPen calls
  + Use PlotType/Plot class hierarchy for create plot dialog menu
- + Connection Plots
-   + how handle different src/dest values (bi-directional connection)
-   + more common code
-   + object for chord plot connection
  + Model
    + Bucket and Fold by Hier
  + Real iformat for % values ?
@@ -173,7 +172,6 @@ TODO:
    + break box into multiple normal rects
    + scatter labels using text obj
    + update object style without recreate
- + Connected Scatter Plot
  + Hand drawn shapes
    + https://shihn.ca/posts/2020/roughjs-algorithms/
  + Bezier through points
@@ -603,12 +601,15 @@ Combined Plots
 
 Connection Plots
  + Use derived column data type to improve interface to columns
+ + Support table format from image plot (rows/columns as from/to and cells as connection count
+ + Adjacency plot becomes same as image plot ?
 
 Adjacency Plot
  + Title not visible
  + Invert X/Y does not work
  + More controls
  + Elide should trim border text (?) or fail ?
+ + Move label text control (fixed size)
  + Hide more properties
  + X Border Width
  + Better Text Placement/Sizing (Iterative calc fit)
@@ -658,6 +659,8 @@ Force Directed Plot
 
 Geometry Plot
  + Color Key
+ + Font Size Column Support
+ + Label Scale to Fit ...
 
 Hier Bubble Plot
  + Pop to top
@@ -670,6 +673,9 @@ Hier Bubble Plot
 Image Plot
  + Allow sub set of model ?
  + Search and only matching (like tree map)
+ + Same/similar to table for connection plot ?
+ + Extra columns ?
+ + Support other connection formats ?
 
 Parallel Plot
  + Parallel needs x axis labels

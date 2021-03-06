@@ -2724,8 +2724,8 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
   valueTypeCombo_   = createEnumEdit("valueType");
 
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
-  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_   );
-  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_  );
+  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
+  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
 
   percentCheck_    = createBoolEdit("percent");
   skipEmptyCheck_  = createBoolEdit("skipEmpty");

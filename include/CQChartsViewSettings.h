@@ -52,6 +52,7 @@ class QTextEdit;
 class QLabel;
 class QGridLayout;
 class QButtonGroup;
+class QListWidget;
 class QTimer;
 
 /*!
@@ -209,12 +210,14 @@ class CQChartsViewSettings : public QFrame {
 
   void addWidgets();
 
+  void initControlsFrame   (QFrame *controlsFrame);
   void initPropertiesFrame (QFrame *propertiesFrame);
   void initModelsFrame     (QFrame *modelsFrame);
   void initPlotsFrame      (QFrame *plotsFrame);
   void initAnnotationsFrame(QFrame *annotationsFrame);
   void initObjectsFrame    (QFrame *objectsFrame);
   void initThemeFrame      (QFrame *themeFrame);
+  void initSymbolsFrame    (QFrame *symbolsFrame);
   void initLayersFrame     (QFrame *layersFrame);
   void initQueryFrame      (QFrame *queryFrame);
   void initErrorsFrame     (QFrame *errorsFrame);
@@ -336,6 +339,7 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets  annotationsWidgets_;             //!< annotations widgets
   ObjectsWidgets      objectsWidgets_;                 //!< objects widgets
   ThemeWidgets        themeWidgets_;                   //!< theme widgets
+  QListWidget*        symbolsList_        { nullptr }; //!< symbols list
   LayersWidgets       layersWidgets_;                  //!< layers widgets
   QTextEdit*          queryText_          { nullptr }; //!< query text
   ViewError*          error_              { nullptr }; //!< error widget

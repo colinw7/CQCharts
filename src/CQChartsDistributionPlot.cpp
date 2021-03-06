@@ -64,7 +64,10 @@ addParameters()
     setRequired().setTip("Number of automatic buckets");
 
   // options
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
+  addEnumParameter("orientation", "Orientation", "orientation").
+    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("NORMAL"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
@@ -4569,15 +4572,18 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  // values, name and data columns
   addColumnWidgets(QStringList() << "values" << "name" << "data", optionsFrame);
 
   //---
 
-  plotTypeCombo_  = createEnumEdit("plotType");
-  valueTypeCombo_ = createEnumEdit("valueType");
+  orientationCombo_ = createEnumEdit("orientation");
+  plotTypeCombo_    = createEnumEdit("plotType");
+  valueTypeCombo_   = createEnumEdit("valueType");
 
-  addFrameWidget(optionsFrame, "Plot Type" , plotTypeCombo_ );
-  addFrameWidget(optionsFrame, "Value Type", valueTypeCombo_);
+  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
+  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
 
   //---
 
@@ -4593,6 +4599,8 @@ void
 CQChartsDistributionPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -4618,8 +4626,9 @@ updateWidgets()
 
   //---
 
-  plotTypeCombo_ ->setCurrentValue((int) plot_->plotType());
-  valueTypeCombo_->setCurrentValue((int) plot_->valueType());
+  orientationCombo_->setCurrentValue((int) plot_->orientation());
+  plotTypeCombo_   ->setCurrentValue((int) plot_->plotType());
+  valueTypeCombo_  ->setCurrentValue((int) plot_->valueType());
 
   //---
 
@@ -4628,6 +4637,13 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+orientationSlot()
+{
+  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
 }
 
 void

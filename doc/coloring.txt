@@ -1,0 +1,31 @@
+Plot Objects are coloring using the following methods:
+
+Auto
+ + Automatically chooses best color for object using non-single index range of
+   + set, group or object index
+ + If color column specified then use
+   + color name if column if of color type
+   + color value (optionally mapped to 0->1 using column range) if numeric
+   + color index if non-numeric (?)
+ + Otherwise use object's fill color
+Set
+ + Always use set index
+Group
+ + Always use group index
+Index
+ + Always use value index
+X Value
+ + Use X Value in X Range (if chart has X column)
+ + X Stops (?)
+X Value
+ + Use Y Value in Y Range (if chart has Y column)
+ + Y Stops (?)
+
+Uses specified plot palette or default view palette
+
+Color of
+  + palette         : uses index interpolated into palette
+  + interface       : uses index interpolated into theme (grayscale) palette
+  + palette value   : uses fixed plot palette color
+  + interface value : uses fixed interface palette color
+  + color name      : fixed plot color

@@ -23,6 +23,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
+#include <CQChartsViewPlotPaintDevice.h>
 
 #include <CQChartsPlotControlWidgets.h>
 
@@ -61,6 +62,7 @@
 #include <QPainter>
 #include <QItemDelegate>
 #include <QFileDialog>
+#include <QListWidget>
 #include <QDir>
 #include <QTimer>
 
@@ -443,7 +445,7 @@ class CQChartsViewSettingsAnnotationsTable : public CQTableWidget {
       auto *item = items[i];
       if (item->column() != 0) continue;
 
-      CQChartsAnnotation *annotation = itemAnnotation(item);
+      auto *annotation = itemAnnotation(item);
 
       if (annotation)
         annotations.push_back(annotation);
@@ -819,6 +821,54 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
   }
 };
 
+//---
+
+class CQChartsSymbolsItemDelegate : public QItemDelegate {
+ public:
+  CQChartsSymbolsItemDelegate(QListWidget *list) :
+   QItemDelegate(list), list_(list) {
+  }
+
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &ind) const override {
+    if (ind.column() == 0) {
+      auto *item = list_->item(ind.row());
+      assert(item);
+
+      auto name = item->text();
+
+      CQChartsSymbol symbol(name);
+
+      QItemDelegate::drawBackground(painter, option, ind);
+
+      int s = option.rect.height() - 2;
+
+      CQChartsGeom::BBox bbox(option.rect.left()     + 2, option.rect.center().y() - s/2,
+                              option.rect.left() + s + 2, option.rect.center().y() + s/2);
+
+      CQChartsPixelPaintDevice device(painter);
+
+      painter->setBrush(Qt::green);
+
+      CQChartsDrawUtil::drawSymbol(&device, symbol, bbox);
+
+      QRect trect(option.rect.left () + s + 4, option.rect.top() + 2,
+                  option.rect.width() - s - 6, option.rect.height() - 4);
+
+      QItemDelegate::drawDisplay(painter, option, trect, name);
+    }
+    else
+      QItemDelegate::paint(painter, option, ind);
+  }
+
+  QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &ind) const override {
+    return QItemDelegate::sizeHint(option, ind);
+  }
+
+ private:
+  QListWidget *list_ { nullptr };
+};
+
 //------
 
 CQChartsViewSettings::
@@ -899,6 +949,9 @@ addWidgets()
 
   //--
 
+  // Controls
+  initControlsFrame(addTab("Controls"));
+
   // Properties Tab
   initPropertiesFrame(addTab("Properties"));
 
@@ -914,8 +967,11 @@ addWidgets()
   // Objects Tab
   initObjectsFrame(addTab("Objects"));
 
-  // Theme Tab
+  // Themes/Colors Tab
   initThemeFrame(addTab("Colors"));
+
+  // Symbols Tab
+  initSymbolsFrame(addTab("Symbols"));
 
   // Layers Tab
   initLayersFrame(addTab("Layers"));
@@ -940,6 +996,15 @@ addWidgets()
 }
 
 //------
+
+void
+CQChartsViewSettings::
+initControlsFrame(QFrame *controlsFrame)
+{
+  customControlFrame_ = controlsFrame;
+
+  (void) CQUtil::makeLayout<QVBoxLayout>(customControlFrame_);
+}
 
 void
 CQChartsViewSettings::
@@ -968,7 +1033,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   propertiesWidgets_.propertiesSplit->setOrientation(Qt::Vertical);
   propertiesWidgets_.propertiesSplit->setGrouped(true);
-  propertiesWidgets_.propertiesSplit->setState(CQTabSplit::State::TAB);
+//propertiesWidgets_.propertiesSplit->setState(CQTabSplit::State::TAB);
 
   propertiesLayout->addWidget(propertiesWidgets_.propertiesSplit);
 
@@ -1067,20 +1132,11 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  customControlFrame_ = CQUtil::makeWidget<QFrame>("customControlFrame");
+  int viewSize  = INT_MAX*0.3;
+  int quickSize = INT_MAX*0.1; // quick controls
+  int plotSize  = INT_MAX - viewSize - quickSize;
 
-  (void) CQUtil::makeLayout<QVBoxLayout>(customControlFrame_);
-
-  propertiesWidgets_.propertiesSplit->addWidget(customControlFrame_, "Custom Controls");
-
-  //---
-
-  int i1 = INT_MAX*0.2;
-  int i3 = INT_MAX*0.1;
-  int i4 = INT_MAX*0.2;
-  int i2 = INT_MAX - i1 - i3 - i4;
-
-  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3, i4}));
+  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({viewSize, plotSize, quickSize}));
 }
 
 void
@@ -1751,6 +1807,25 @@ initThemeFrame(QFrame *themeFrame)
 
   updatePalettes();
   //updatePaletteWidgets();
+}
+
+void
+CQChartsViewSettings::
+initSymbolsFrame(QFrame *symbolsFrame)
+{
+  auto *symbolsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolsFrame, 2, 2);
+
+  symbolsList_ = CQUtil::makeWidget<QListWidget>("symbolsList");
+
+  symbolsList_->setToolTip("All Symbols");
+
+  auto *symbolsDelegate = new CQChartsSymbolsItemDelegate(symbolsList_);
+
+  symbolsList_->setItemDelegate(symbolsDelegate);
+
+  symbolsList_->addItems(CQChartsSymbol::typeNames());
+
+  symbolsFrameLayout->addWidget(symbolsList_);
 }
 
 void
@@ -2672,9 +2747,8 @@ updatePlotControls()
 
   //---
 
-  int viewSize   = INT_MAX*0.2; // view
-  int quickSize  = 0;
-  int customSize = (plotCustomControls_ ? INT_MAX*0.2 : 0); // custom controls
+  int viewSize  = INT_MAX*0.3;
+  int quickSize = 0;
 
   if (quickControlFrame_->numIFaces() > 0) {
     if (! propertiesWidgets_.propertiesSplit->hasWidget(quickControlFrame_)) {
@@ -2693,15 +2767,13 @@ updatePlotControls()
     }
   }
 
-  int plotSize = INT_MAX - viewSize - quickSize - customSize; // plot
+  int plotSize = INT_MAX - viewSize - quickSize;
 
   QList<int> sizes;
 
-  sizes << viewSize;
-  sizes << plotSize;
+  sizes << viewSize << plotSize;
 
-  if (quickSize ) sizes << quickSize;
-  if (customSize) sizes << customSize;
+  if (quickSize) sizes << quickSize;
 
   propertiesWidgets_.propertiesSplit->setSizes(sizes);
 }

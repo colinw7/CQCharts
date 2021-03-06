@@ -187,6 +187,10 @@ class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsWordCloudPlot* plot_ { nullptr };
 };
 
