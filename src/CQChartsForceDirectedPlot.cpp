@@ -1160,7 +1160,7 @@ bool
 CQChartsForceDirectedPlot::
 selectPress(const Point &p, SelMod /*selMod*/)
 {
-  Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+  auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
   forceDirected_->setCurrentNode (nodePoint.first );
   forceDirected_->setCurrentPoint(nodePoint.second);
@@ -1185,7 +1185,7 @@ selectMove(const Point &p, Constraints constraints, bool first)
     return true;
   }
   else {
-    Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+    auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
     forceDirected_->setCurrentNode (nodePoint.first );
     forceDirected_->setCurrentPoint(nodePoint.second);
@@ -1211,14 +1211,17 @@ selectRelease(const Point &p)
   return true;
 }
 
-void
+bool
 CQChartsForceDirectedPlot::
 keyPress(int key, int modifier)
 {
   if (key == Qt::Key_S)
     setRunning(! isRunning());
-  else
-    CQChartsPlot::keyPress(key, modifier);
+  else {
+    return CQChartsPlot::keyPress(key, modifier);
+  }
+
+  return true;
 }
 
 bool
@@ -1226,7 +1229,7 @@ CQChartsForceDirectedPlot::
 plotTipText(const Point &p, QString &tip, bool /*single*/) const
 {
   if (! isRunning()) {
-    Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+    auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
     auto *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first);
     if (! node) return false;
@@ -1264,6 +1267,7 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
   return false;
 }
 
+#if 0
 void
 CQChartsForceDirectedPlot::
 draw(QPainter *painter)
@@ -1281,10 +1285,11 @@ draw(QPainter *painter)
     setGroupedUpdateState(UpdateState::DRAWN);
   }
 }
+#endif
 
 void
 CQChartsForceDirectedPlot::
-drawParts(QPainter *painter) const
+drawPlotParts(QPainter *painter) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 

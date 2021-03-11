@@ -1166,7 +1166,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void keyPress(int key, int modifier) override;
+  bool keyPress(int key, int modifier) override;
 
   //---
 

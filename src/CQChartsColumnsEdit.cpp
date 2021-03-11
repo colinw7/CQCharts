@@ -78,6 +78,13 @@ setColumns(const CQChartsColumns &columns)
 
 void
 CQChartsColumnsLineEdit::
+setNumericOnly(bool b)
+{
+  numericOnly_ = b;
+}
+
+void
+CQChartsColumnsLineEdit::
 updateColumns(const CQChartsColumns &columns, bool updateText)
 {
   connectSlots(false);

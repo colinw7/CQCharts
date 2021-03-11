@@ -464,6 +464,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  Columns getNamedColumns(const QString &name) const override;
+  void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
   bool isDonut() const { return donut_; }
 
   bool isCount() const { return count_; }

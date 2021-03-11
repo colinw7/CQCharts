@@ -123,6 +123,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool isBufferLayers() const override { return false; }
+
+  //---
+
   void init() override;
   void term() override;
 
@@ -227,15 +231,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool selectMove   (const Point &p, Constraints constraints, bool first=false) override;
   bool selectRelease(const Point &p) override;
 
-  void keyPress(int key, int modifier) override;
+  bool keyPress(int key, int modifier) override;
 
   bool plotTipText(const Point &p, QString &tip, bool single) const override;
 
   //---
 
-  void draw(QPainter *painter) override;
+//void draw(QPainter *painter) override;
 
-  void drawParts(QPainter *painter) const override;
+  void drawPlotParts(QPainter *painter) const override;
 
   void drawDeviceParts(PaintDevice *device) const override;
 

@@ -97,15 +97,18 @@ class CQChartsObj : public QObject {
 
   //! get/set visible
   virtual bool isVisible() const { return visible_; }
-  virtual void setVisible(bool b) { visible_ = b; dataInvalidate(); }
+  virtual void setVisible(bool b) {
+    visible_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //! set/get selected
   virtual bool isSelected() const { return selected_; }
-  virtual void setSelected(bool b) { selected_ = b; dataInvalidate(); }
+  virtual void setSelected(bool b) {
+    selected_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //! set/get inside
   virtual bool isInside() const { return inside_; }
-  virtual void setInside(bool b) { inside_ = b; dataInvalidate(); }
+  virtual void setInside(bool b) {
+    inside_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //---
 
@@ -130,6 +133,11 @@ class CQChartsObj : public QObject {
 
   //---
 
+  bool isNotificationsEnabled() const { return notificationsEnabled_; }
+  void setNotificationsEnabled(bool b) { notificationsEnabled_ = b; }
+
+  //---
+
   //! handle data change
   //! TODO: signal ?
   virtual void dataInvalidate() { }
@@ -141,17 +149,18 @@ class CQChartsObj : public QObject {
  protected:
   using OptString = boost::optional<QString>;
 
-  CQCharts*          charts_     { nullptr }; //!< charts
-  OptString          id_;                     //!< id
-  BBox               rect_;                   //!< bbox
-  OptString          tipId_;                  //!< tip id
-  bool               visible_    { true };    //!< is visible
-  bool               selected_   { false };   //!< is selected
-  bool               inside_     { false };   //!< is mouse inside
-  bool               editable_   { false };   //!< is editable
-  bool               selectable_ { true };    //!< is selectable
-  int                priority_   { 0 };       //!< priority
-  mutable std::mutex mutex_;                  //!< mutex for calc id/tip
+  CQCharts*          charts_               { nullptr }; //!< charts
+  OptString          id_;                               //!< id
+  BBox               rect_;                             //!< bbox
+  OptString          tipId_;                            //!< tip id
+  bool               visible_              { true };    //!< is visible
+  bool               selected_             { false };   //!< is selected
+  bool               inside_               { false };   //!< is mouse inside
+  bool               editable_             { false };   //!< is editable
+  bool               selectable_           { true };    //!< is selectable
+  bool               notificationsEnabled_ { true };    //!< is selectable
+  int                priority_             { 0 };       //!< priority
+  mutable std::mutex mutex_;                            //!< mutex for calc id/tip
 };
 
 #endif

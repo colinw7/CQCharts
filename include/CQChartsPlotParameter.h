@@ -593,6 +593,9 @@ class CQChartsColumnParameterEdit : public QFrame {
   CQChartsColumn getColumn() const;
   void setColumn(const CQChartsColumn &column);
 
+  bool isNumericOnly() const;
+  void setNumericOnly(bool b);
+
  signals:
   void columnChanged();
 

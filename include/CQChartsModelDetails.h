@@ -301,8 +301,8 @@ class CQChartsModelColumnDetails {
 //NameValues    namedImages_;
 
   // mutex
-  mutable std::mutex        initMutex_;    //!< mutex
-  mutable std::atomic<bool> initializing_; //!< initializing
+  mutable std::mutex        initMutex_;        //!< mutex
+  mutable std::atomic<bool> initializing_ { }; //!< initializing
 };
 
 #endif

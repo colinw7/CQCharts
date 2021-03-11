@@ -2425,7 +2425,7 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 
 //---
 
-void
+bool
 CQChartsGraphPlot::
 keyPress(int key, int modifier)
 {
@@ -2443,8 +2443,11 @@ keyPress(int key, int modifier)
   else if (key == Qt::Key_S) {
     printStats();
   }
-  else
-    CQChartsPlot::keyPress(key, modifier);
+  else {
+    return CQChartsPlot::keyPress(key, modifier);
+  }
+
+  return true;
 }
 
 void
@@ -3306,7 +3309,9 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  double xm = plot_->getCalcDataRange().xmid();
+  auto range = plot_->getCalcDataRange();
+
+  double xm = (range.isSet() ? range.xmid() : 0.0);
 
   double tx = (rect().getXMid() < xm - tw ?
     prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);

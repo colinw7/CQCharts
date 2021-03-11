@@ -2894,12 +2894,22 @@ execCmd(CQChartsCmdArgs &argv)
     for (auto &plot : plots)
       compositePlot->addPlot(plot);
 
-    if      (tabbed)
+    if      (tabbed) {
       compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::TABBED);
-    else if (x1x2)
+
+      compositePlot->setCommonXRange(false);
+      compositePlot->setCommonYRange(false);
+    }
+    else if (x1x2) {
       compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::X1X2);
-    else if (y1y2)
+
+      compositePlot->setCommonXRange(false);
+    }
+    else if (y1y2) {
       compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::Y1Y2);
+
+      compositePlot->setCommonYRange(false);
+    }
 
     double vr = CQChartsView::viewportRange();
 

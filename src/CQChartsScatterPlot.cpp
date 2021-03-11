@@ -4240,18 +4240,10 @@ CQChartsScatterPlotCustomControls::
 CQChartsScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPointPlotCustomControls(charts, "scatter")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns");
 
-  //---
-
-  addColumnWidgets(QStringList() << "x" << "y" << "name", optionsFrame);
-
-  //---
-
-  plotTypeCombo_ = createEnumEdit("plotType");
-
-  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
+  addColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
 
   //---
 
@@ -4284,6 +4276,15 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   addFrameWidget(pointLabelsFrame, "Size Range"  , fontSizeRange_);
 
   // color, contrast, ...
+
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options");
+
+  plotTypeCombo_ = createEnumEdit("plotType");
+
+  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
 
   //---
 

@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Composite Plot for all plots
+   + Fix issues with select / tooltip and crashes
+ + Improve Symbol Set in View Settings
  + Custom Controls for more (all) plots
    + Include all 'major' parameters
    + test with scatter plot for symbol size, ...

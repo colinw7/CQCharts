@@ -523,8 +523,12 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 
   const auto &dataRange = this->dataRange();
 
-  double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
-  double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
+  double sw = 0.01, sh = 0.01;
+
+  if (dataRange.isValid()) {
+    sw = (dataRange.xmax() - dataRange.xmin())/100.0;
+    sh = (dataRange.ymax() - dataRange.ymin())/100.0;
+  }
 
   auto xind1 = normalizeIndex(xind);
 

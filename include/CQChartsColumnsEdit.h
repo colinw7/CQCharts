@@ -15,7 +15,8 @@ class CQChartsModelData;
 class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
+  Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
+  Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
 
  public:
   CQChartsColumnsLineEdit(QWidget *parent=nullptr, bool isBasic=false);
@@ -27,6 +28,9 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
+
+  bool isNumericOnly() const { return numericOnly_; }
+  void setNumericOnly(bool b);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -50,8 +54,9 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   bool textToColumns(const QString &str, CQChartsColumns &columns) const;
 
  private:
-  CQChartsColumnsEdit *dataEdit_ { nullptr };
-  bool                 isBasic_  { false };
+  CQChartsColumnsEdit *dataEdit_    { nullptr };
+  bool                 isBasic_     { false };
+  bool                 numericOnly_ { false };
 };
 
 //------

@@ -1285,7 +1285,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void keyPress(int key, int modifier) override;
+  bool keyPress(int key, int modifier) override;
 
   //---
 

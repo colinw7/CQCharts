@@ -60,6 +60,7 @@
 #include <QTextBrowser>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QCheckBox>
 #include <QPainter>
 
 //------
@@ -107,9 +108,13 @@ init()
 
   displayRange_->setPixelAdjust(0.0);
 
+  //---
+
   bool objTreeWait = CQChartsEnv::getBool("CQ_CHARTS_OBJ_TREE_WAIT", false);
 
   objTreeData_.tree = std::make_unique<CQChartsPlotObjTree>(this, objTreeWait);
+
+  //---
 
   animateData_.tickLen = CQChartsEnv::getInt("CQ_CHARTS_TICK_LEN", animateData_.tickLen);
 
@@ -202,7 +207,7 @@ void
 CQChartsPlot::
 term()
 {
-  CQChartsPlot::clearPlotObjects();
+  clearPlotObjects1();
 
   for (auto &layer : layers_)
     delete layer.second;
@@ -256,6 +261,8 @@ startThreadTimer()
 
   if (isOverlay() && ! isFirstPlot())
     return;
+
+  //---
 
   if (! updateData_.timer) {
     updateData_.timer = new QTimer(this);
@@ -617,16 +624,27 @@ void
 CQChartsPlot::
 updateRange()
 {
+  if (parentPlot())
+    return parentPlot()->updateRange();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateRange1();
+
+  //---
+
+  updateRange1();
+}
+
+void
+CQChartsPlot::
+updateRange1()
+{
   if (! isUpdatesEnabled()) {
     execUpdateRange();
     return;
   }
 
-  if (parentPlot())
-    return parentPlot()->updateRange();
-
-  if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->updateRange();
+  //---
 
   if (isQueueUpdate()) {
     if (debugUpdate_)
@@ -650,16 +668,27 @@ void
 CQChartsPlot::
 updateRangeAndObjs()
 {
+  if (parentPlot())
+    return parentPlot()->updateRangeAndObjs();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateRangeAndObjs1();
+
+  //---
+
+  updateRangeAndObjs1();
+}
+
+void
+CQChartsPlot::
+updateRangeAndObjs1()
+{
   if (! isUpdatesEnabled()) {
     execUpdateRangeAndObjs();
     return;
   }
 
-  if (parentPlot())
-    return parentPlot()->updateRangeAndObjs();
-
-  if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->updateRangeAndObjs();
+  //---
 
   if (isQueueUpdate()) {
     if (debugUpdate_)
@@ -691,16 +720,27 @@ void
 CQChartsPlot::
 updateObjs()
 {
+  if (parentPlot())
+    return parentPlot()->updateObjs();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateObjs1();
+
+  //---
+
+  updateObjs1();
+}
+
+void
+CQChartsPlot::
+updateObjs1()
+{
   if (! isUpdatesEnabled()) {
     execUpdateObjs();
     return;
   }
 
-  if (parentPlot())
-    return parentPlot()->updateObjs();
-
-  if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->updateObjs();
+  //---
 
   if (isQueueUpdate()) {
     if (debugUpdate_)
@@ -814,14 +854,25 @@ void
 CQChartsPlot::
 drawObjs()
 {
-  if (! isUpdatesEnabled())
-    return;
-
   if (parentPlot())
     return parentPlot()->drawObjs();
 
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->drawObjs();
+    return firstPlot()->drawObjs1();
+
+  //---
+
+  drawObjs1();
+}
+
+void
+CQChartsPlot::
+drawObjs1()
+{
+  if (! isUpdatesEnabled())
+    return;
+
+  //---
 
   if (isQueueUpdate()) {
     if (debugUpdate_)
@@ -1420,7 +1471,7 @@ void
 CQChartsPlot::
 resetDataRange(bool updateRange, bool updateObjs)
 {
-  setDataRange(Range(), /*update*/false);
+  dataRange_ = Range();
 
   if (updateRange)
     this->execUpdateRange();
@@ -3664,9 +3715,8 @@ threadTimerSlot()
       // if ready then mark finished (handled)
       updateData_.rangeThread->finish();
 
-      // ensure all overlay plot ranges done
-      if (isOverlay())
-        waitRange();
+      // ensure all plot ranges done
+      waitRange();
 
       // need post update range
       applyDataRange();
@@ -3688,9 +3738,8 @@ threadTimerSlot()
       // if ready then mark finished (handled)
       updateData_.objsThread->finish();
 
-      // ensure all overlay plot objs done
-      if (isOverlay())
-        waitObjs();
+      // ensure all plot objs done
+      waitObjs();
 
       // post update objs
       postUpdateObjs();
@@ -3709,9 +3758,8 @@ threadTimerSlot()
       // if ready then mark finished (handled)
       updateData_.drawThread->finish();
 
-      // ensure all overlay draw done
-      if (isOverlay())
-        waitDraw();
+      // ensure all plot draw done
+      waitDraw();
 
       // post draw
       postDraw();
@@ -3942,6 +3990,9 @@ bool
 CQChartsPlot::
 isReady() const
 {
+  if (! isBufferLayers())
+    return true;
+
   auto updateState = const_cast<Plot *>(this)->updateState();
 
   return (updateState == UpdateState::READY || updateState == UpdateState::DRAWN);
@@ -3956,6 +4007,8 @@ clearRangeAndObjs()
   resetRange();
 
   clearPlotObjects();
+
+  clearInsideObjects();
 }
 
 void
@@ -4082,6 +4135,39 @@ interruptRange()
 
   setInterrupt(false);
 }
+
+//---
+
+#if 0
+void
+CQChartsPlot::
+waitDataRange()
+{
+  // ensure all overlay plot ranges done
+  if (isOverlay())
+    waitRange();
+}
+
+void
+CQChartsPlot::
+waitCalcObjs()
+{
+  // ensure all overlay plot objs done
+  if (isOverlay())
+    waitObjs();
+}
+
+void
+CQChartsPlot::
+waitDrawObjs()
+{
+  // ensure all overlay draw done
+  if (isOverlay())
+    waitDraw();
+}
+#endif
+
+//---
 
 void
 CQChartsPlot::
@@ -4405,6 +4491,8 @@ updateObjsThread()
   //---
 
   clearPlotObjects();
+
+  clearInsideObjects();
 
   initColorColumnData();
 
@@ -5104,7 +5192,7 @@ initObjs()
 {
   CQPerfTrace trace("CQChartsPlot::initObjs");
 
-  if (! plotObjs_.empty())
+  if (hasPlotObjs())
     return false;
 
   //---
@@ -5121,8 +5209,17 @@ initObjs()
 
 bool
 CQChartsPlot::
+hasPlotObjs() const
+{
+  return ! plotObjs_.empty();
+}
+
+bool
+CQChartsPlot::
 createObjs()
 {
+  //std::cerr << "createObjs " << calcName().toStdString() << "\n";
+
   resetExtraBBox();
 
   //---
@@ -5240,6 +5337,9 @@ initObjTree()
       plot->execInitObjTree();
     });
   }
+  else if (parentPlot()) {
+    parentPlot()->initObjTree();
+  }
   else {
     execInitObjTree();
   }
@@ -5249,6 +5349,8 @@ void
 CQChartsPlot::
 execInitObjTree()
 {
+  //std::cerr << "execInitObjTree " << calcName().toStdString() << "\n";
+
   CQPerfTrace trace("CQChartsPlot::execInitObjTree");
 
   if (objTreeData_.init) {
@@ -5263,7 +5365,18 @@ void
 CQChartsPlot::
 clearPlotObjects()
 {
-  CQPerfTrace trace("CQChartsPlot::clearPlotObjects");
+  // overlay ?
+
+  clearPlotObjects1();
+}
+
+void
+CQChartsPlot::
+clearPlotObjects1()
+{
+  //std::cerr << "clearPlotObjects1 " << calcName().toStdString() << "\n";
+
+  CQPerfTrace trace("CQChartsPlot::clearPlotObjects1");
 
   objTreeData_.tree->clearObjects();
 
@@ -5278,8 +5391,6 @@ clearPlotObjects()
 
   for (auto &plotObj : plotObjs)
     delete plotObj;
-
-  clearInsideObjects();
 }
 
 void
@@ -5287,7 +5398,19 @@ CQChartsPlot::
 clearInsideObjects()
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->clearInsideObjects();
+    return firstPlot()->clearInsideObjects1();
+
+  if (parentPlot())
+    return parentPlot()->clearInsideObjects();
+
+  clearInsideObjects1();
+}
+
+void
+CQChartsPlot::
+clearInsideObjects1()
+{
+  //std::cerr << "clearInsideObjects1 " << calcName().toStdString() << "\n";
 
   insideData_.clear();
 }
@@ -5296,6 +5419,32 @@ void
 CQChartsPlot::
 invalidateObjTree()
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->invalidateObjTree();
+
+  if (parentPlot())
+    return parentPlot()->invalidateObjTree();
+
+  //---
+
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (auto &oplot : oplots)
+      oplot->invalidateObjTree();
+  }
+  else
+    invalidateObjTree1();
+}
+
+void
+CQChartsPlot::
+invalidateObjTree1()
+{
+  //std::cerr << "invalidateObjTree1 " << calcName().toStdString() << "\n";
+
   objTreeData_.init = true;
 
   objTreeData_.tree->clearObjects();
@@ -5316,9 +5465,19 @@ CQChartsPlot::
 updateInsideObjects(const Point &w, Constraints constraints)
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->updateInsideObjects(w, constraints);
+    return firstPlot()->updateInsideObjects1(w, constraints);
 
-  //---
+  if (parentPlot())
+    return parentPlot()->updateInsideObjects(w, constraints);
+
+  return updateInsideObjects1(w, constraints);
+}
+
+bool
+CQChartsPlot::
+updateInsideObjects1(const Point &w, Constraints constraints)
+{
+  //std::cerr << "updateInsideObjects1 " << calcName().toStdString() << "\n";
 
   insideData_.p = w;
 
@@ -5369,6 +5528,8 @@ updateInsideObjects(const Point &w, Constraints constraints)
 
     // set current inside obj
     setInsideObject();
+
+    //std::cerr << "  #SizeObjs " << insideData_.numSizeObjs() << "\n";
   }
 
   //---
@@ -5381,9 +5542,21 @@ CQChartsPlot::
 resetInsideObjs()
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->resetInsideObjs();
+    return firstPlot()->resetInsideObjs1();
+
+  if (parentPlot())
+    return parentPlot()->resetInsideObjs();
 
   //---
+
+  resetInsideObjs1();
+}
+
+void
+CQChartsPlot::
+resetInsideObjs1()
+{
+  //std::cerr << "resetInsideObjs1 " << calcName().toStdString() << "\n";
 
   insideData_.clear();
 
@@ -5414,9 +5587,21 @@ CQChartsPlot::
 insideObject() const
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->insideObject();
+    return firstPlot()->insideObject1();
+
+  if (parentPlot())
+    return parentPlot()->insideObject();
 
   //---
+
+  return insideObject1();
+}
+
+CQChartsObj *
+CQChartsPlot::
+insideObject1() const
+{
+  //std::cerr << "insideObject1 " << calcName().toStdString() << "\n";
 
   // get nth inside object
   int i = 0;
@@ -5440,6 +5625,9 @@ nextInsideInd()
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->nextInsideInd();
 
+  if (parentPlot())
+    return parentPlot()->nextInsideInd();
+
   //---
 
   // cycle to next inside object
@@ -5453,6 +5641,9 @@ prevInsideInd()
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->prevInsideInd();
 
+  if (parentPlot())
+    return parentPlot()->prevInsideInd();
+
   //---
 
   // cycle to prev inside object
@@ -5463,6 +5654,14 @@ void
 CQChartsPlot::
 setInsideObject()
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->setInsideObject();
+
+  if (parentPlot())
+    return parentPlot()->setInsideObject();
+
+  //---
+
   // get nth inside object
   auto *insideObj = insideObject();
 
@@ -5478,9 +5677,21 @@ CQChartsPlot::
 insideObjectText() const
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->insideObjectText();
+    return firstPlot()->insideObjectText1();
+
+  if (parentPlot())
+    return parentPlot()->insideObjectText();
 
   //---
+
+  return insideObjectText1();
+}
+
+QString
+CQChartsPlot::
+insideObjectText1() const
+{
+  //std::cerr << "insideObjectText1 " << calcName().toStdString() << "\n";
 
   QString objText;
 
@@ -5658,11 +5869,6 @@ selectPress(const Point &w, SelMod selMod)
 {
   if (isOverlay() && ! isFirstPlot())
     return false;
-
-  //---
-
-  if (tabbedSelectPress(w, selMod))
-    return true;
 
   //---
 
@@ -7912,7 +8118,7 @@ bool
 CQChartsPlot::
 columnValueFont(const QVariant &var, Font &font) const
 {
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     // get real value
     bool ok;
     double r = CQChartsVariant::toReal(var, ok);
@@ -8045,7 +8251,7 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
     return (int) CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max);
   };
 
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     int i = (int) CQChartsVariant::toInt(var, ok);
     if (! ok) return false;
 
@@ -8164,7 +8370,7 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
   auto var = modelValue(symbolSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     if (symbolSizeData.mapped) {
       // map value in range (symbolSizeData.data_min, symbolSizeData.data_max) to
       // (symbolSizeData.map_min, symbolSizeData.map_max)
@@ -8288,7 +8494,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
   auto var = modelValue(fontSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     if (fontSizeData.mapped) {
       // map value in range (fontSizeData.map_min, fontSizeData.data_max) to
       // (fontSizeData.map_min, fontSizeData.map_max)
@@ -8440,7 +8646,7 @@ columnStr(const Column &column, double r) const
   return str;
 }
 
-void
+bool
 CQChartsPlot::
 keyPress(int key, int modifier)
 {
@@ -8496,8 +8702,11 @@ keyPress(int key, int modifier)
 
     centerAt(p);
   }
-  else
-    return;
+  else {
+    return false;
+  }
+
+  return true;
 }
 
 double
@@ -8586,6 +8795,14 @@ void
 CQChartsPlot::
 cycleNextPrev(bool prev)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->cycleNextPrev(prev);
+
+  if (parentPlot())
+    return parentPlot()->cycleNextPrev(prev);
+
+  //---
+
   if (! insideData_.sizeObjs.empty()) {
     // TODO: handle overlay
     if (! prev)
@@ -9065,6 +9282,11 @@ plotTipText(const Point &p, QString &tip, bool single) const
   if (isOverlay() && ! isFirstPlot())
     return false;
 
+  if (parentPlot())
+    return false;
+
+  //---
+
   //---
 
   int objNum  = 0;
@@ -9450,12 +9672,12 @@ void
 CQChartsPlot::
 draw(QPainter *painter)
 {
-  if (! view()->isBufferLayers()) {
+  if (! isBufferLayers()) {
     initGroupedPlotObjs();
 
     //---
 
-    drawParts(painter);
+    drawPlotParts(painter);
 
     //---
 
@@ -9504,6 +9726,20 @@ draw(QPainter *painter)
   else {
     this->drawLayers(painter);
   }
+}
+
+bool
+CQChartsPlot::
+isBufferLayers() const
+{
+  return view()->isBufferLayers();
+}
+
+void
+CQChartsPlot::
+drawPlotParts(QPainter *painter) const
+{
+  drawParts(painter);
 }
 
 void
@@ -10175,9 +10411,21 @@ void
 CQChartsPlot::
 drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
 {
+  auto *th = const_cast<Plot *>(this);
+
   device->setFont(tabbedFont().font());
 
+  th->tabData_.drawType = TabData::DrawType::TITLE;
+
   calcTabData(plots);
+
+  auto plotBBox = calcPlotPixelRect();
+
+  if (tabData_.ptw > plotBBox.getWidth()) {
+    th->tabData_.drawType = TabData::DrawType::CIRCLES;
+
+    calcTabData(plots);
+  }
 
   QFontMetrics fm(device->font());
 
@@ -10191,12 +10439,25 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
 
   auto drawTab = [&](const BBox &rect, bool current) {
     device->setBrush(interpColor(current ? currentFillColor : fillColor, ColorInd()));
+    device->setPen  (interpColor(borderColor, ColorInd()));
 
-    device->fillRect(rect);
+    if (tabData_.drawType == TabData::DrawType::TITLE) {
+      device->fillRect(rect);
+      device->drawRect(rect);
+    }
+    else {
+      QFontMetrics fm(tabbedFont().font());
 
-    device->setPen(interpColor(borderColor, ColorInd()));
+      int ps = fm.height();
 
-    device->drawRect(rect);
+      double xs = pixelToWindowWidth (ps - 4);
+      double ys = pixelToWindowHeight(ps - 4);
+
+      BBox rect1(rect.getXMid() - xs/2.0, rect.getYMid() - ys/2.0,
+                 rect.getXMid() + xs/2.0, rect.getYMid() + ys/2.0);
+
+      device->drawEllipse(rect1);
+    }
   };
 
   auto drawText = [&](const BBox &rect, const QString &text, bool current) {
@@ -10221,15 +10482,31 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
   int py = tabRect.getYMin();
 
   for (auto &plot : plots) {
-    double ptw1 = fm.width(plot->calcName()) + 2*tabData_.pxm;
+    BBox prect;
 
-    BBox prect(px, py, px + ptw1, py + tabData_.pth);
+    QString title;
+    double  ptw1 = 0.0;
+
+    if (tabData_.drawType == TabData::DrawType::TITLE) {
+      title = plot->titleStr();
+
+      if (! title.length())
+        title = plot->calcName();
+
+      ptw1  = fm.width(title) + 2*tabData_.pxm;
+      prect = BBox(px, py, px + ptw1, py + tabData_.pth);
+    }
+    else {
+      ptw1  = 4*tabData_.pxm;
+      prect = BBox(px, py, px + ptw1, py + tabData_.pth);
+    }
 
     plot->setTabRect(pixelToWindow(prect));
 
     drawTab(plot->tabRect(), plot == currentPlot);
 
-    drawText(plot->tabRect(), plot->calcName(), plot == currentPlot);
+    if (tabData_.drawType == TabData::DrawType::TITLE)
+      drawText(plot->tabRect(), title, plot == currentPlot);
 
     px += ptw1;
   }
@@ -11872,7 +12149,19 @@ void
 CQChartsPlot::
 waitTree()
 {
-  execWaitTree();
+  if      (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots)
+      oplot->execWaitTree();
+  }
+  else if (parentPlot()) {
+    parentPlot()->waitTree();
+  }
+  else
+    execWaitTree();
 }
 
 void
@@ -11891,6 +12180,8 @@ displayRangeBBox() const
 {
   if (parentPlot())
     return parentPlot()->displayRangeBBox();
+
+  //---
 
   // calc current (zoomed/panned) data range
   double xmin, ymin, xmax, ymax;
@@ -11957,8 +12248,19 @@ calcTabData(const Plots &plots) const
 
   th->tabData_.ptw = 0.0;
 
-  for (auto &plot : plots)
-    th->tabData_.ptw += fm.width(plot->calcName()) + 2*tabData_.pxm;
+  for (auto &plot : plots) {
+    if (tabData_.drawType == TabData::DrawType::TITLE) {
+      auto title = plot->titleStr();
+
+      if (! title.length())
+        title = plot->calcName();
+
+      th->tabData_.ptw += fm.width(title) + 2*tabData_.pxm;
+    }
+    else {
+      th->tabData_.ptw += 4*tabData_.pxm;
+    }
+  }
 
   th->tabData_.pth = fm.height() + 2*tabData_.pym;
 }
@@ -12737,8 +13039,10 @@ setLayerActive(const Layer::Type &type, bool b)
       plot->setLayerActive1(type, b);
     });
   }
-  else
+  else {
+    // composite ?
     setLayerActive1(type, b);
+  }
 }
 
 void
@@ -12755,6 +13059,22 @@ setLayerActive1(const Layer::Type &type, bool b)
 bool
 CQChartsPlot::
 isLayerActive(const Layer::Type &type) const
+{
+  if (isOverlay()) {
+    bool anyActive = processOverlayPlots([&](const Plot *plot) {
+      return plot->isLayerActive1(type);
+    }, false);
+
+    return anyActive;
+  }
+  else {
+    return isLayerActive1(type);
+  }
+}
+
+bool
+CQChartsPlot::
+isLayerActive1(const Layer::Type &type) const
 {
   auto *layer = getLayer(type);
 
@@ -12950,7 +13270,7 @@ beginPaint(Buffer *buffer, QPainter *painter, const QRectF &rect) const
 {
   drawBuffer_ = buffer->type();
 
-  if (! view()->isBufferLayers())
+  if (! isBufferLayers())
     return painter;
 
   // resize and clear
@@ -12969,7 +13289,7 @@ void
 CQChartsPlot::
 endPaint(Buffer *buffer) const
 {
-  if (! view()->isBufferLayers())
+  if (! isBufferLayers())
     return;
 
   buffer->endPaint(false);
@@ -15248,6 +15568,8 @@ pixelToWindowI(double px, double py, double &wx, double &wy) const
   if (parentPlot())
     return parentPlot()->pixelToWindowI(px, py, wx, wy);
 
+  //---
+
   auto pv = view()->pixelToWindow(Point(px, py));
 
   viewToWindowI(pv.x, pv.y, wx, wy);
@@ -15338,6 +15660,8 @@ windowToPixelI(double wx, double wy, double &px, double &py) const
 {
   if (parentPlot())
     return parentPlot()->windowToPixelI(wx, wy, px, py);
+
+  //---
 
   double vx, vy;
 
@@ -15738,6 +16062,10 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
+  titleWidget_ = CQUtil::makeLabelWidget<QLabel>("", "title");
+
+  layout->addWidget(titleWidget_);
+
   //---
 
   split_ = CQUtil::makeWidget<CQTabSplit>("split");
@@ -15763,8 +16091,13 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
   auto *plotType = this->plotType();
   assert(plotType);
 
+  bool isNumeric = false;
+
   for (const auto &name : columnNames) {
     const auto *parameter = plotType->getParameter(name);
+
+    if (parameter->isNumeric())
+      isNumeric = true;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
       auto *columnEdit = new CQChartsColumnParameterEdit(parameter, /*isBasic*/true);
@@ -15782,6 +16115,12 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
     }
     else
       assert(false);
+  }
+
+  if (isNumeric) {
+    numericCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Numeric Only", "numericCheck");
+
+    frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
   }
 }
 
@@ -15884,6 +16223,10 @@ connectSlots(bool b)
   for (auto *columnsEdit : columnsEdits_)
     CQChartsWidgetUtil::connectDisconnect(b,
       columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
+
+  if (numericCheck_)
+    CQChartsWidgetUtil::connectDisconnect(b,
+      numericCheck_, SIGNAL(stateChanged(int)), this, SLOT(numericOnlySlot(int)));
 }
 
 void
@@ -15925,6 +16268,25 @@ columnsSlot()
   auto *parameter   = columnsEdit->parameter();
 
   plot()->setNamedColumns(parameter->name(), columnsEdit->columns());
+}
+
+void
+CQChartsPlotCustomControls::
+numericOnlySlot(int state)
+{
+  for (auto *columnEdit : columnEdits_) {
+    auto *parameter = columnEdit->parameter();
+
+    if (parameter->isNumeric())
+      columnEdit->setNumericOnly(state);
+  }
+
+  for (auto *columnsEdit : columnsEdits_) {
+    auto *parameter = columnsEdit->parameter();
+
+    if (parameter->isNumeric())
+      columnsEdit->setNumericOnly(state);
+  }
 }
 
 CQChartsPlotType *
@@ -15997,6 +16359,15 @@ updateWidgets()
   connectSlots(false);
 
   //---
+
+  auto titleStr = plot()->titleStr();
+
+  if (titleStr == "")
+    titleStr = plot()->calcName();
+
+  titleWidget_->setText(QString("<b>%1</b>").arg(titleStr));
+
+  //----
 
   if (colorEdit_) {
     auto hasColumn = colorColumnCombo_->getColumn().isValid();

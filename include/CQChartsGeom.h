@@ -1025,6 +1025,8 @@ class Range :
   bool isSet() const { return set_; }
 
   bool isValid() const {
+    if (! isSet()) return false;
+
     return (! CMathUtil::isNaN(x1_) && ! CMathUtil::isNaN(y1_) &&
             ! CMathUtil::isNaN(x2_) && ! CMathUtil::isNaN(y2_));
   }

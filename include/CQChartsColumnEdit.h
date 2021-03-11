@@ -15,7 +15,8 @@ class CQChartsModelData;
 class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
+  Q_PROPERTY(CQChartsColumn column      READ column        WRITE setColumn     )
+  Q_PROPERTY(bool           numericOnly READ isNumericOnly WRITE setNumericOnly)
 
  public:
   using Column = CQChartsColumn;
@@ -30,6 +31,9 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   const Column &column() const;
   void setColumn(const Column &c);
+
+  bool isNumericOnly() const { return numericOnly_; }
+  void setNumericOnly(bool b);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -49,7 +53,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b);
 
  private:
-  CQChartsColumnEdit* dataEdit_ { nullptr };
+  CQChartsColumnEdit* dataEdit_    { nullptr };
+  bool                numericOnly_ { false };
 };
 
 //---

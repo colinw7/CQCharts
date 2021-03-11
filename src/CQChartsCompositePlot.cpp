@@ -182,6 +182,9 @@ updatePlots()
       if (! plot->isVisible())
         continue;
 
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+        continue;
+
       if (plot->xAxis())
         plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
 
@@ -221,6 +224,9 @@ calcRange() const
     if (! plot->isVisible())
       continue;
 
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
     auto dataRange1 = plot->calcRange();
 
     if (plot == currentPlot())
@@ -257,12 +263,51 @@ calcRange() const
   return dataRange;
 }
 
+//---
+
+void
+CQChartsCompositePlot::
+postUpdateObjs()
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    plot->postUpdateObjs();
+  }
+}
+
+//---
+
+bool
+CQChartsCompositePlot::
+hasPlotObjs() const
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    return plot->hasPlotObjs();
+  }
+
+  return false;
+}
+
 bool
 CQChartsCompositePlot::
 createObjs(PlotObjs &) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     plot->createObjs();
@@ -273,16 +318,108 @@ createObjs(PlotObjs &) const
 
 void
 CQChartsCompositePlot::
+resetInsideObjs()
+{
+  if (currentPlot())
+    currentPlot()->resetInsideObjs1();
+}
+
+void
+CQChartsCompositePlot::
 clearPlotObjects()
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
       continue;
 
-    plot->clearPlotObjects();
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    plot->clearPlotObjects1();
   }
 
-  CQChartsPlot::clearPlotObjects();
+  clearPlotObjects1();
+}
+
+void
+CQChartsCompositePlot::
+clearInsideObjects()
+{
+  for (auto &plot : plots_)
+    plot->clearInsideObjects1();
+
+  clearInsideObjects1();
+}
+
+void
+CQChartsCompositePlot::
+invalidateObjTree()
+{
+  for (auto &plot : plots_)
+    plot->invalidateObjTree1();
+
+  invalidateObjTree1();
+}
+
+bool
+CQChartsCompositePlot::
+updateInsideObjects(const Point &w, Constraints constraints)
+{
+  bool rc = false;
+
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    auto w1 = plot->pixelToWindow(windowToPixel(w));
+
+    if (! plot->updateInsideObjects1(w1, constraints))
+      rc = false;
+  }
+
+  if (! updateInsideObjects1(w, constraints))
+    rc = false;
+
+  return rc;
+}
+
+CQChartsPlot::Obj *
+CQChartsCompositePlot::
+insideObject() const
+{
+#if 0
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    return plot->insideObject1();
+  }
+#endif
+
+  return insideObject1();
+}
+
+QString
+CQChartsCompositePlot::
+insideObjectText() const
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    return plot->insideObjectText1();
+  }
+
+  return insideObjectText1();
 }
 
 void
@@ -291,6 +428,9 @@ initPlotObjs()
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     plot->initPlotObjs();
@@ -307,10 +447,10 @@ initObjTree()
     if (! plot->isVisible())
       continue;
 
-    plot->initObjTree();
+    plot->execInitObjTree();
   }
 
-  CQChartsPlot::initObjTree();
+  CQChartsPlot::execInitObjTree();
 }
 
 CQChartsGeom::BBox
@@ -321,6 +461,9 @@ calcExtraFitBBox() const
 
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     bbox += plot->calcExtraFitBBox();
@@ -335,6 +478,9 @@ updateAxisRanges(const BBox &adjustedRange)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     plot->updateAxisRanges(adjustedRange);
@@ -424,56 +570,37 @@ waitTree()
 
 bool
 CQChartsCompositePlot::
+hasBackground() const
+{
+  return checkCurrentPlots([&](const Plot *plot) { return plot->hasBackground(); });
+}
+
+bool
+CQChartsCompositePlot::
+hasForeground() const
+{
+  return checkCurrentPlots([&](const Plot *plot) { return plot->hasForeground(); });
+}
+
+bool
+CQChartsCompositePlot::
 hasTitle() const
 {
-  for (auto &plot : plots_) {
-    if (! plot->isVisible())
-      continue;
-
-    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-      continue;
-
-    if (plot->hasTitle())
-      return true;
-  }
-
-  return false;
+  return checkCurrentPlots([&](const Plot *plot) { return plot->hasTitle(); });
 }
 
 bool
 CQChartsCompositePlot::
 hasXAxis() const
 {
-  for (auto &plot : plots_) {
-    if (! plot->isVisible())
-      continue;
-
-    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-      continue;
-
-    if (plot->hasXAxis())
-      return true;
-  }
-
-  return false;
+  return checkCurrentPlots([&](const Plot *plot) { return plot->hasXAxis(); });
 }
 
 bool
 CQChartsCompositePlot::
 hasYAxis() const
 {
-  for (auto &plot : plots_) {
-    if (! plot->isVisible())
-      continue;
-
-    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-      continue;
-
-    if (plot->hasYAxis())
-      return true;
-  }
-
-  return false;
+  return checkCurrentPlots([&](const Plot *plot) { return plot->hasYAxis(); });
 }
 
 bool
@@ -495,6 +622,43 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 }
 
 //------
+
+bool
+CQChartsCompositePlot::
+isBufferLayers() const
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    return plot->isBufferLayers();
+  }
+
+  return CQChartsPlot::isBufferLayers();
+}
+
+void
+CQChartsCompositePlot::
+drawPlotParts(QPainter *painter) const
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    plot->drawPlotParts(painter);
+
+    if (! plot->isBufferLayers())
+      return;
+  }
+
+  CQChartsPlot::drawPlotParts(painter);
+}
 
 void
 CQChartsCompositePlot::
@@ -601,6 +765,9 @@ drawBgAxes(PaintDevice *device) const
       if (! plot->isVisible())
         continue;
 
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+        continue;
+
       plot->drawBgAxes(device);
     }
   }
@@ -608,6 +775,9 @@ drawBgAxes(PaintDevice *device) const
   else if (compositeType_ == CompositeType::Y1Y2) {
     for (auto &plot : plots_) {
       if (! plot->isVisible())
+        continue;
+
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
         continue;
 
       plot->drawBgAxes(device);
@@ -646,6 +816,9 @@ drawFgAxes(PaintDevice *device) const
       if (! plot->isVisible())
         continue;
 
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+        continue;
+
       plot->drawFgAxes(device);
 
       ++i;
@@ -660,6 +833,9 @@ drawFgAxes(PaintDevice *device) const
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
+        continue;
+
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
         continue;
 
       plot->drawFgAxes(device);
@@ -715,7 +891,8 @@ void
 CQChartsCompositePlot::
 setOverlayAxisLabels()
 {
-  setPlotsAxisNames(plots_, currentPlot());
+  if (currentPlot()->yAxis())
+    setPlotsAxisNames(plots_, currentPlot());
 }
 
 //------
@@ -816,6 +993,9 @@ resetKeyItems()
       if (! plot->isVisible())
         continue;
 
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+        continue;
+
       plot->resetKeyItems();
     }
   }
@@ -828,6 +1008,9 @@ resetKeyItems()
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
+        continue;
+
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
         continue;
 
       plot->doAddKeyItems(key());
@@ -863,7 +1046,9 @@ selectPress(const Point &w, SelMod selMod)
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    if (plot->selectPress(w, selMod))
+    auto w1 = plot->pixelToWindow(windowToPixel(w));
+
+    if (plot->selectPress(w1, selMod))
       return true;
   }
 
@@ -881,7 +1066,9 @@ selectMove(const Point &w, Constraints constraints, bool first)
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    if (plot->selectMove(w, constraints, first))
+    auto w1 = plot->pixelToWindow(windowToPixel(w));
+
+    if (plot->selectMove(w1, constraints, first))
       return true;
   }
 
@@ -899,7 +1086,9 @@ selectRelease(const Point &w)
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    if (plot->selectRelease(w))
+    auto w1 = plot->pixelToWindow(windowToPixel(w));
+
+    if (plot->selectRelease(w1))
       return true;
   }
 
@@ -908,12 +1097,33 @@ selectRelease(const Point &w)
 
 //------
 
+bool
+CQChartsCompositePlot::
+isLayerActive(const Layer::Type &type) const
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
+    if (plot->isLayerActive1(type))
+      return true;
+  }
+
+  return false;
+}
+
 void
 CQChartsCompositePlot::
 invalidateOverlay()
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     plot->execInvalidateOverlay();
@@ -930,6 +1140,9 @@ invalidateLayers()
     if (! plot->isVisible())
       continue;
 
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      continue;
+
     plot->execInvalidateLayers();
   }
 
@@ -942,6 +1155,9 @@ invalidateLayer(const CQChartsBuffer::Type &layerType)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
+      continue;
+
+    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
     plot->execInvalidateLayer(layerType);
@@ -1033,9 +1249,41 @@ setCurrentPlotInd(int i)
 
 //---
 
+void
+CQChartsCompositePlot::
+groupedObjsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const
+{
+  auto *currentPlot = this->currentPlot();
+
+  if (currentPlot) {
+    auto p1 = currentPlot->pixelToWindow(windowToPixel(p));
+
+    currentPlot->groupedObjsAtPoint(p1, objs, constraints);
+  }
+}
+
+//---
+
+bool
+CQChartsCompositePlot::
+keyPress(int key, int modifier)
+{
+  auto *currentPlot = this->currentPlot();
+
+  if (currentPlot && currentPlot->keyPress(key, modifier))
+    return true;
+
+  return CQChartsPlot::keyPress(key, modifier);
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsCompositePlot::
-createCustomControls(CQCharts *)
+createCustomControls(CQCharts *charts)
 {
+  if (currentPlot())
+    return currentPlot()->createCustomControls(charts);
+
   return nullptr;
 }

@@ -166,6 +166,50 @@ setKeyLabelColumn(const Column &c)
 
 //---
 
+CQChartsColumn
+CQChartsPiePlot::
+getNamedColumn(const QString &name) const
+{
+  Column c;
+  if      (name == "label"   ) c = this->labelColumn();
+  else if (name == "radius"  ) c = this->radiusColumn();
+  else if (name == "keyLabel") c = this->keyLabelColumn();
+  else                         c = CQChartsPlot::getNamedColumn(name);
+
+  return c;
+}
+
+void
+CQChartsPiePlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if      (name == "label"   ) this->setLabelColumn(c);
+  else if (name == "radius"  ) this->setRadiusColumn(c);
+  else if (name == "keyLabel") this->setKeyLabelColumn(c);
+  else                         CQChartsPlot::setNamedColumn(name, c);
+}
+
+CQChartsColumns
+CQChartsPiePlot::
+getNamedColumns(const QString &name) const
+{
+  Columns c;
+  if (name == "values") c = this->valueColumns();
+  else                  c = CQChartsPlot::getNamedColumns(name);
+
+  return c;
+}
+
+void
+CQChartsPiePlot::
+setNamedColumns(const QString &name, const Columns &c)
+{
+  if (name == "values") this->setValueColumns(c);
+  else             CQChartsPlot::setNamedColumns(name, c);
+}
+
+//---
+
 void
 CQChartsPiePlot::
 setDonut(bool b)

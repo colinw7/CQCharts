@@ -1,5 +1,6 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -43,7 +44,7 @@ getColumn() const
 
   long icolumn = CQChartsVariant::toInt(var, ok);
 
-  if (icolumn < 0)
+  if (! ok || icolumn < 0)
     icolumn = -1;
 
   c = CQChartsColumn(int(icolumn));
@@ -110,23 +111,49 @@ setModelColumn(CQChartsModelData *modelData, const Column &column)
 
 void
 CQChartsColumnCombo::
+setNumericOnly(bool b)
+{
+  numericOnly_ = b;
+
+  updateItems();
+}
+
+void
+CQChartsColumnCombo::
 updateItems()
 {
-  clear();
-
-  if (isAllowNone())
-    addItem("<none>", -1);
-
-  if (! modelData_)
+  if (! modelData_) {
+    clear();
     return;
+  }
 
-  int icolumn = modelData_->currentColumn();
+  int icolumn = getColumn().column();
+
+  if (icolumn < 0)
+    icolumn = modelData_->currentColumn();
 
   auto *model = modelData_->currentModel().data();
 
   int nc = model->columnCount();
 
+  const CQChartsModelDetails *details = nullptr;
+
+  if (isNumericOnly())
+    details = modelData_->details();
+
+  clear();
+
+  if (isAllowNone())
+    addItem("<none>", -1);
+
   for (int c = 0; c < nc; ++c) {
+    if (isNumericOnly()) {
+      const auto *columnDetails = (details ? details->columnDetails(Column(c)) : nullptr);
+
+      if (columnDetails && ! columnDetails->isNumeric())
+        continue;
+    }
+
     auto name = model->headerData(c, Qt::Horizontal).toString();
 
     QString label;

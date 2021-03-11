@@ -1258,7 +1258,9 @@ draw(PaintDevice *device) const
       auto *toObj = plot_->edgeObject(data_.from(), value.to);
       if (! toObj) continue;
 
+      toObj->setNotificationsEnabled(false);
       toObj->setInside(true); toObj->draw(device); toObj->setInside(false);
+      toObj->setNotificationsEnabled(true);
     }
 
     plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
@@ -1625,8 +1627,17 @@ draw(PaintDevice *device) const
   if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-    if (fromObj) { fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false); }
-    if (toObj  ) { toObj  ->setInside(true); toObj  ->draw(device); toObj  ->setInside(false); }
+    if (fromObj) {
+      fromObj->setNotificationsEnabled(false);
+      fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false);
+      fromObj->setNotificationsEnabled(true);
+    }
+
+    if (toObj) {
+      toObj->setNotificationsEnabled(false);
+      toObj->setInside(true); toObj->draw(device); toObj->setInside(false);
+      toObj->setNotificationsEnabled(true);
+    }
 
     plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
   }

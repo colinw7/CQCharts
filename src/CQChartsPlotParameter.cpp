@@ -181,6 +181,28 @@ setColumn(const CQChartsColumn &column)
     edit_->setColumn(column);
 }
 
+bool
+CQChartsColumnParameterEdit::
+isNumericOnly() const
+{
+  if      (combo_)
+    return combo_->isNumericOnly();
+  else if (edit_)
+    return edit_->isNumericOnly();
+  else
+    return false;
+}
+
+void
+CQChartsColumnParameterEdit::
+setNumericOnly(bool b)
+{
+  if      (combo_)
+    combo_->setNumericOnly(b);
+  else if (edit_)
+    edit_->setNumericOnly(b);
+}
+
 //---
 
 CQChartsColumnsParameterEdit::

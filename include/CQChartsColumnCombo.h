@@ -13,8 +13,9 @@ class CQChartsModelData;
 class CQChartsColumnCombo : public QComboBox {
   Q_OBJECT
 
-  Q_PROPERTY(bool           allowNone READ isAllowNone WRITE setAllowNone)
-  Q_PROPERTY(CQChartsColumn column    READ getColumn   WRITE setColumn   )
+  Q_PROPERTY(bool           allowNone   READ isAllowNone   WRITE setAllowNone  )
+  Q_PROPERTY(CQChartsColumn column      READ getColumn     WRITE setColumn     )
+  Q_PROPERTY(bool           numericOnly READ isNumericOnly WRITE setNumericOnly)
 
  public:
   using ModelData = CQChartsModelData;
@@ -30,6 +31,10 @@ class CQChartsColumnCombo : public QComboBox {
   //! get/set current column
   Column getColumn() const;
   void setColumn(const Column &column);
+
+  //! get/set numeric only
+  bool isNumericOnly() const { return numericOnly_; }
+  void setNumericOnly(bool b);
 
   //! get/set model data
   const ModelData *modelData() const { return modelData_; }
@@ -49,8 +54,9 @@ class CQChartsColumnCombo : public QComboBox {
   void connectSlots(bool b);
 
  private:
-  const ModelData *modelData_ { nullptr };
-  bool             allowNone_ { true };
+  const ModelData *modelData_   { nullptr };
+  bool             allowNone_   { true };
+  bool             numericOnly_ { false };
 };
 
 #endif

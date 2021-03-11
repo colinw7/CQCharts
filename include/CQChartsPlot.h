@@ -93,7 +93,9 @@ class QItemSelectionModel;
 class QTextBrowser;
 class QRubberBand;
 class QMenu;
+class QLabel;
 class QPainter;
+class QCheckBox;
 
 //----
 
@@ -535,6 +537,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void drawBackground();
   void drawForeground();
+
   void drawObjs();
 
   //---
@@ -935,6 +938,7 @@ class CQChartsPlot : public CQChartsObj,
 
   bool tabbedPlots(Plots &plots, bool visibleOnly=false) const;
 
+  // run const function on all overlay plots
   template<typename FUNCTION>
   void processOverlayPlots(FUNCTION f) const {
     const auto *plot = firstPlot();
@@ -946,6 +950,7 @@ class CQChartsPlot : public CQChartsObj,
     }
   }
 
+  // run non-const function on all overlay plots
   template<typename FUNCTION>
   void processOverlayPlots(FUNCTION f) {
     auto *plot = firstPlot();
@@ -957,6 +962,7 @@ class CQChartsPlot : public CQChartsObj,
     }
   }
 
+  // run const function on all overlay plots until result does not match boolean
   template<typename FUNCTION>
   bool processOverlayPlots(FUNCTION f, bool b) const {
     const auto *plot = firstPlot();
@@ -1371,7 +1377,7 @@ class CQChartsPlot : public CQChartsObj,
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
- private:
+ protected:
   void windowToPixelI(const Point &w, Point &p) const;
   void pixelToWindowI(const Point &p, Point &w) const;
 
@@ -1421,7 +1427,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void resetRange();
 
- private:
+ protected:
   // update data range (calls calcRange)
   void execUpdateRange();
 
@@ -1445,16 +1451,22 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void postObjTree() { }
 
- private:
+ protected:
   // recalc range and clear objects (objects updated on next redraw)
   void execUpdateRangeAndObjs();
 
   // update plot objects (clear objects, objects updated on next redraw)
   void execUpdateObjs();
 
- private:
+ protected:
   void startThreadTimer();
   void stopThreadTimer();
+
+  //---
+
+  void updateRange1();
+  void updateRangeAndObjs1();
+  void updateObjs1();
 
   //---
 
@@ -1472,8 +1484,19 @@ class CQChartsPlot : public CQChartsObj,
 
   void interruptRange();
 
+  //---
+
+  void drawObjs1();
+
  protected:
   bool isReady() const;
+
+#if 0
+ protected:
+  virtual void waitDataRange();
+  virtual void waitCalcObjs();
+  virtual void waitDrawObjs();
+#endif
 
  public:
   void syncAll();
@@ -1482,7 +1505,7 @@ class CQChartsPlot : public CQChartsObj,
   void syncObjs();
   void syncDraw();
 
- private:
+ protected:
   void syncState();
 
  protected:
@@ -1493,7 +1516,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual void waitObjs();
   virtual void waitTree();
 
- private:
+ protected:
   void execWaitRange();
 
   //---
@@ -1510,7 +1533,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void updatePlotObjs();
 
-  void resetInsideObjs();
+  virtual void resetInsideObjs();
+  void resetInsideObjs1();
 
   void updateGroupedDraw();
   void updateDraw();
@@ -1594,7 +1618,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
- private:
+ protected:
   // (re)initialize grouped plot objects
   void initGroupedPlotObjs();
 
@@ -1616,6 +1640,8 @@ class CQChartsPlot : public CQChartsObj,
 
   // create plot objects (called by initObjs)
   bool createObjs();
+
+  virtual bool hasPlotObjs() const;
 
   // create objects to be added to plot
   // TODO: need axis update as well
@@ -1692,19 +1718,19 @@ class CQChartsPlot : public CQChartsObj,
   void addPlotObject(PlotObj *obj);
 
   virtual void clearPlotObjects();
+  virtual void clearInsideObjects();
 
-  void clearInsideObjects();
+  virtual void invalidateObjTree();
 
-  void invalidateObjTree();
-
-  bool updateInsideObjects(const Point &w, Constraints constraints);
+  virtual bool updateInsideObjects(const Point &w, Constraints constraints);
 
   Obj *groupedInsideObject() const;
-  Obj *insideObject() const;
+
+  virtual Obj *insideObject() const;
 
   void setInsideObject();
 
-  QString insideObjectText() const;
+  virtual QString insideObjectText() const;
 
   void nextInsideInd();
   void prevInsideInd();
@@ -1971,7 +1997,7 @@ class CQChartsPlot : public CQChartsObj,
   void deselectAll();
 
   // handle key press
-  virtual void keyPress(int key, int modifier);
+  virtual bool keyPress(int key, int modifier);
 
   // get tip text at point (checked)
   bool tipText(const Point &p, QString &tip) const;
@@ -2223,9 +2249,8 @@ class CQChartsPlot : public CQChartsObj,
 
   Layer *initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active);
 
-  void setLayerActive(const Layer::Type &type, bool b);
-
-  bool isLayerActive(const Layer::Type &type) const;
+  virtual void setLayerActive(const Layer::Type &type, bool b);
+  virtual bool isLayerActive(const Layer::Type &type) const;
 
   //---
 
@@ -2255,14 +2280,26 @@ class CQChartsPlot : public CQChartsObj,
 
   Layer *getLayer(const Layer::Type &type) const;
 
- private:
+ protected:
   BBox adjustDataRangeBBox(const BBox &bbox) const;
 
   void setLayerActive1(const Layer::Type &type, bool b);
+  bool isLayerActive1(const Layer::Type &type) const;
 
   void invalidateLayer1(const Buffer::Type &layerType);
 
   void setLayersChanged(bool update);
+
+  void clearPlotObjects1();
+  void clearInsideObjects1();
+
+  void invalidateObjTree1();
+
+  bool updateInsideObjects1(const Point &w, Constraints constraints);
+
+  Obj *insideObject1() const;
+
+  QString insideObjectText1() const;
 
   void deselectAll1(bool &changed);
 
@@ -2302,7 +2339,10 @@ class CQChartsPlot : public CQChartsObj,
     bool custom          { false };
   };
 
-  // draw plot parts
+  // draw plot parts (from draw)
+  virtual void drawPlotParts(QPainter *painter) const;
+
+  // draw plot parts (from draw and thread)
   virtual void drawParts(QPainter *painter) const;
 
   // draw plot device parts
@@ -2538,7 +2578,7 @@ class CQChartsPlot : public CQChartsObj,
   void updateObjPenBrushState(const Obj *obj, const ColorInd &ic,
                               PenBrush &penBrush, DrawType drawType) const;
 
- private:
+ protected:
   void updateInsideObjPenBrushState  (const ColorInd &ic, PenBrush &penBrush,
                                       bool outline, DrawType drawType) const;
   void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
@@ -2658,6 +2698,9 @@ class CQChartsPlot : public CQChartsObj,
 
   // draw plot
   virtual void draw(QPainter *painter);
+
+ // does plot buffer layers
+  virtual bool isBufferLayers() const;
 
   // draw plot layer
   void drawLayer(QPainter *painter, Layer::Type type) const;
@@ -3223,6 +3266,15 @@ class CQChartsPlot : public CQChartsObj,
       if (ind < 0)
         ind = int(sizeObjs.size()) - 1;
     }
+
+    int numSizeObjs() const {
+      int n = 0;
+
+      for (const auto &po : sizeObjs)
+        n += po.second.size();
+
+      return n;
+    }
   };
 
   InsideData insideData_;
@@ -3281,10 +3333,16 @@ class CQChartsPlot : public CQChartsObj,
 
   //! \brief tab data
   struct TabData {
-    double pxm { 0.0 };
-    double pym { 0.0 };
-    double ptw { 0.0 };
-    double pth { 0.0 };
+    enum class DrawType {
+      TITLE,
+      CIRCLES
+    };
+
+    DrawType drawType { DrawType::TITLE };
+    double   pxm      { 0.0 };
+    double   pym      { 0.0 };
+    double   ptw      { 0.0 };
+    double   pth      { 0.0 };
   };
 
   TabData tabData_;
@@ -3386,6 +3444,8 @@ class CQChartsPlotCustomControls : public QFrame {
   void columnSlot();
   void columnsSlot();
 
+  void numericOnlySlot(int state);
+
  protected:
   CQChartsPlotType *plotType() const;
 
@@ -3407,8 +3467,10 @@ class CQChartsPlotCustomControls : public QFrame {
 
   QString                  plotType_;
   CQChartsPlot*            plot_             { nullptr };
+  QLabel*                  titleWidget_      { nullptr };
   ColumnEdits              columnEdits_;
   ColumnsEdits             columnsEdits_;
+  QCheckBox*               numericCheck_     { nullptr };
   CQChartsColorLineEdit*   colorEdit_        { nullptr };
   CQChartsColumnCombo*     colorColumnCombo_ { nullptr };
   CQDoubleRangeSlider*     colorRange_       { nullptr };

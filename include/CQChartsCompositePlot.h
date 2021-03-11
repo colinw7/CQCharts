@@ -89,11 +89,34 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   void addProperties() override;
 
+  //---
+
   Range calcRange() const override;
+
+  void postUpdateObjs() override;
+
+  //---
+
+  bool hasPlotObjs() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
+  //---
+
+  void resetInsideObjs() override;
+
+  //--
+
   void clearPlotObjects() override;
+  void clearInsideObjects() override;
+
+  void invalidateObjTree() override;
+
+  bool updateInsideObjects(const Point &w, Constraints constraints) override;
+
+  Obj *insideObject() const override;
+
+  QString insideObjectText() const override;
 
   void initPlotObjs() override;
 
@@ -116,6 +139,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
+  bool hasBackground() const override;
+  bool hasForeground() const override;
+
   bool hasTitle() const override;
 
   bool hasXAxis() const override;
@@ -124,6 +150,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
   bool hasObjs(const CQChartsLayer::Type &layerType) const override;
 
   //---
+
+  bool isBufferLayers() const override;
+
+  void drawPlotParts(QPainter *painter) const override;
 
   void drawBackgroundDeviceParts(PaintDevice *device,
                                  const BackgroundParts &bgParts) const override;
@@ -155,6 +185,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
+  bool isLayerActive(const Layer::Type &type) const override;
+
   void invalidateOverlay() override;
   void invalidateLayers() override;
   void invalidateLayer(const CQChartsBuffer::Type &layerType) override;
@@ -170,6 +202,32 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   int currentPlotInd() const;
   void setCurrentPlotInd(int i);
+
+  //---
+
+  void groupedObjsAtPoint(const Point &p, Objs &objs,
+                          const Constraints &constraints) const override;
+
+  //---
+
+  bool keyPress(int key, int modifier) override;
+
+ private:
+  template<typename FUNCTION>
+  bool checkCurrentPlots(FUNCTION f) const {
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
+      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+        continue;
+
+      if (f(plot))
+        return true;
+    }
+
+    return false;
+  }
 
  protected:
   CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;

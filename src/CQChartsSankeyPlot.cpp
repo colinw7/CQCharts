@@ -3004,7 +3004,7 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 
 //---
 
-void
+bool
 CQChartsSankeyPlot::
 keyPress(int key, int modifier)
 {
@@ -3059,8 +3059,11 @@ keyPress(int key, int modifier)
     adjustEdgeOverlaps(/*force*/true);
   }
 #endif
-  else
-    CQChartsPlot::keyPress(key, modifier);
+  else {
+    return CQChartsPlot::keyPress(key, modifier);
+  }
+
+  return true;
 }
 
 void
