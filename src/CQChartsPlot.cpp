@@ -256,13 +256,15 @@ startThreadTimer()
   if (isSequential())
     return;
 
-  if (parentPlot())
-    return;
-
   if (isOverlay() && ! isFirstPlot())
     return;
 
+  if (parentPlot())
+    return;
+
   //---
+
+  assert(! parentPlot());
 
   if (! updateData_.timer) {
     updateData_.timer = new QTimer(this);
@@ -278,6 +280,8 @@ void
 CQChartsPlot::
 stopThreadTimer()
 {
+  assert(! parentPlot());
+
   if (updateData_.timer) {
     if (updateData_.timer->isActive())
       updateData_.timer->stop();
@@ -528,6 +532,8 @@ calcVisible() const
   if (isTabbed() && ! isCurrent())
     return false;
 
+  //---
+
   return isVisible();
 }
 
@@ -562,11 +568,35 @@ setSelected(bool b)
 
 //---
 
+bool
+CQChartsPlot::
+isUpdatesEnabled() const
+{
+  if (parentPlot())
+    return parentPlot()->isUpdatesEnabled();
+
+  assert(! parentPlot());
+
+  return updatesData_.enabled == 0;
+}
+
 void
 CQChartsPlot::
 setUpdatesEnabled(bool b, bool update)
 {
+  if (parentPlot())
+    return parentPlot()->setUpdatesEnabled(b, update);
+
+  setUpdatesEnabled1(b, update);
+}
+
+void
+CQChartsPlot::
+setUpdatesEnabled1(bool b, bool update)
+{
   bool doUpdate = false;
+
+  assert(! parentPlot());
 
   {
   std::unique_lock<std::mutex> lock(updatesMutex_);
@@ -620,13 +650,28 @@ setUpdatesEnabled(bool b, bool update)
 
 //---
 
+bool
+CQChartsPlot::
+isUpdateRangeAndObjs() const
+{
+  assert(! parentPlot());
+
+  return updatesData_.updateRangeAndObjs;
+}
+
+bool
+CQChartsPlot::
+isUpdateObjs() const
+{
+  assert(! parentPlot());
+
+  return updatesData_.updateObjs;
+}
+
 void
 CQChartsPlot::
 updateRange()
 {
-  if (parentPlot())
-    return parentPlot()->updateRange();
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->updateRange1();
 
@@ -647,17 +692,7 @@ updateRange1()
   //---
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "updateRange : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
-    }
-
-    startThreadTimer();
+    startUpdateRange();
   }
   else {
     execUpdateRange();
@@ -666,11 +701,32 @@ updateRange1()
 
 void
 CQChartsPlot::
-updateRangeAndObjs()
+startUpdateRange()
 {
   if (parentPlot())
-    return parentPlot()->updateRangeAndObjs();
+    return parentPlot()->startUpdateRange();
 
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "updateRange : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+  }
+
+  startThreadTimer();
+}
+
+void
+CQChartsPlot::
+updateRangeAndObjs()
+{
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->updateRangeAndObjs1();
 
@@ -691,22 +747,36 @@ updateRangeAndObjs1()
   //---
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "updateRangeAndObjs : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
-    ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
-    }
-
-    startThreadTimer();
+    startUpdateRangeAndObjs();
   }
   else {
     execUpdateRangeAndObjs();
   }
+}
+
+void
+CQChartsPlot::
+startUpdateRangeAndObjs()
+{
+  if (parentPlot())
+    return parentPlot()->startUpdateRangeAndObjs();
+
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "updateRangeAndObjs : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
+  ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+  }
+
+  startThreadTimer();
 }
 
 void
@@ -720,11 +790,11 @@ void
 CQChartsPlot::
 updateObjs()
 {
-  if (parentPlot())
-    return parentPlot()->updateObjs();
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->updateObjs1();
+
+  if (parentPlot())
+    return parentPlot()->updateObjs();
 
   //---
 
@@ -743,21 +813,35 @@ updateObjs1()
   //---
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "updateObjs : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
-    }
-
-    startThreadTimer();
+    startUpdateObjs();
   }
   else {
     execUpdateObjs();
   }
+}
+
+void
+CQChartsPlot::
+startUpdateObjs()
+{
+  if (parentPlot())
+    return parentPlot()->startUpdateObjs();
+
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "updateObjs : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+  }
+
+  startThreadTimer();
 }
 
 //------
@@ -805,21 +889,37 @@ drawBackground()
     return firstPlot()->drawBackground();
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "drawBackground : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND];
-    }
-
-    startThreadTimer();
+    startUpdateDrawBackground();
   }
   else {
     invalidateLayer(Buffer::Type::BACKGROUND);
   }
 }
+
+void
+CQChartsPlot::
+startUpdateDrawBackground()
+{
+  if (parentPlot())
+    return parentPlot()->startUpdateDrawBackground();
+
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "drawBackground : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND];
+  }
+
+  startThreadTimer();
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -832,16 +932,7 @@ drawForeground()
     return firstPlot()->drawForeground();
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "drawForeground : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND];
-    }
-
-    startThreadTimer();
+    startUpdateDrawForeground();
   }
   else {
     invalidateLayer(Buffer::Type::FOREGROUND);
@@ -852,13 +943,38 @@ drawForeground()
 
 void
 CQChartsPlot::
-drawObjs()
+startUpdateDrawForeground()
 {
   if (parentPlot())
-    return parentPlot()->drawObjs();
+    return parentPlot()->startUpdateDrawForeground();
 
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "drawForeground : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND];
+  }
+
+  startThreadTimer();
+}
+
+//---
+
+void
+CQChartsPlot::
+drawObjs()
+{
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->drawObjs1();
+
+  if (parentPlot())
+    return parentPlot()->drawObjs();
 
   //---
 
@@ -875,19 +991,33 @@ drawObjs1()
   //---
 
   if (isQueueUpdate()) {
-    if (debugUpdate_)
-      std::cerr << "drawObjs : " << id().toStdString() << "\n";
-
-    {
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
-    }
-
-    startThreadTimer();
+    startUpdateDrawObjs();
   }
   else
     invalidateLayers();
+}
+
+void
+CQChartsPlot::
+startUpdateDrawObjs()
+{
+  if (parentPlot())
+    return parentPlot()->startUpdateDrawObjs();
+
+  //---
+
+  if (debugUpdate_)
+    std::cerr << "drawObjs : " << id().toStdString() << "\n";
+
+  assert(! parentPlot());
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
+  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+  }
+
+  startThreadTimer();
 }
 
 //---
@@ -1422,6 +1552,8 @@ invalidateOverlay()
   if (parentPlot())
     return parentPlot()->invalidateOverlay();
 
+  //---
+
   execInvalidateOverlay();
 }
 
@@ -1438,6 +1570,8 @@ const CQChartsDisplayRange &
 CQChartsPlot::
 displayRange() const
 {
+  assert(! isComposite());
+
   return *displayRange_;
 }
 
@@ -1447,16 +1581,29 @@ setDisplayRange(const DisplayRange &r)
 {
   assert(r.isValid());
 
+  assert(! isComposite());
+
   *displayRange_ = r;
 }
 
 //---
+
+const CQChartsGeom::Range &
+CQChartsPlot::
+dataRange() const
+{
+  assert(! isComposite());
+
+  return dataRange_;
+}
 
 void
 CQChartsPlot::
 setDataRange(const Range &r, bool update)
 {
   assert(r.isValid());
+
+  assert(! isComposite());
 
   CQChartsUtil::testAndSet(dataRange_, r, [&]() {
     if (debugUpdate_)
@@ -1471,6 +1618,8 @@ void
 CQChartsPlot::
 resetDataRange(bool updateRange, bool updateObjs)
 {
+  assert(! isComposite());
+
   dataRange_ = Range();
 
   if (updateRange)
@@ -1478,6 +1627,22 @@ resetDataRange(bool updateRange, bool updateObjs)
 
   if (updateObjs)
     this->updateObjs();
+}
+
+void
+CQChartsPlot::
+resetRange()
+{
+  Range r;
+
+  setDataRange(r, /*update*/false);
+}
+
+CQChartsGeom::Range
+CQChartsPlot::
+objTreeRange() const
+{
+  return dataRange();
 }
 
 //---
@@ -1493,9 +1658,6 @@ double
 CQChartsPlot::
 dataScaleX() const
 {
-  if (parentPlot())
-    return parentPlot()->dataScaleX();
-
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataScaleX();
@@ -1505,14 +1667,18 @@ dataScaleX() const
       return firstPlot()->dataScaleX();
   }
 
-  return zoomData_.dataScale.x;
+  return zoomData().dataScale.x;
 }
 
 void
 CQChartsPlot::
 setDataScaleX(double x)
 {
+  assert(x > 0.0);
+
   assert(allowZoomX());
+
+  assert(! isComposite());
 
   zoomData_.dataScale.x = x;
 }
@@ -1521,9 +1687,6 @@ double
 CQChartsPlot::
 dataScaleY() const
 {
-  if (parentPlot())
-    return parentPlot()->dataScaleY();
-
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataScaleY();
@@ -1533,14 +1696,18 @@ dataScaleY() const
       return firstPlot()->dataScaleY();
   }
 
-  return zoomData_.dataScale.y;
+  return zoomData().dataScale.y;
 }
 
 void
 CQChartsPlot::
 setDataScaleY(double y)
 {
+  assert(y > 0.0);
+
   assert(allowZoomY());
+
+  assert(! isComposite());
 
   zoomData_.dataScale.y = y;
 }
@@ -1549,9 +1716,6 @@ double
 CQChartsPlot::
 dataOffsetX() const
 {
-  if (parentPlot())
-    return parentPlot()->dataOffsetX();
-
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataOffsetX();
@@ -1561,13 +1725,15 @@ dataOffsetX() const
       return firstPlot()->dataOffsetX();
   }
 
-  return zoomData_.dataOffset.x;
+  return zoomData().dataOffset.x;
 }
 
 void
 CQChartsPlot::
 setDataOffsetX(double x)
 {
+  assert(! isComposite());
+
   zoomData_.dataOffset.x = x;
 }
 
@@ -1575,9 +1741,6 @@ double
 CQChartsPlot::
 dataOffsetY() const
 {
-  if (parentPlot())
-    return parentPlot()->dataOffsetY();
-
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataOffsetY();
@@ -1587,26 +1750,41 @@ dataOffsetY() const
       return firstPlot()->dataOffsetY();
   }
 
-  return zoomData_.dataOffset.y;
+  return zoomData().dataOffset.y;
 }
 
 void
 CQChartsPlot::
 setDataOffsetY(double y)
 {
+  assert(! isComposite());
+
   zoomData_.dataOffset.y = y;
 }
 
 //---
 
+const CQChartsPlot::ZoomData &
+CQChartsPlot::
+zoomData() const
+{
+  assert(! isComposite());
+
+  return zoomData_;
+}
+
 void
 CQChartsPlot::
 setZoomData(const ZoomData &zoomData)
 {
+  assert(! isComposite());
+
   zoomData_ = zoomData;
 
   applyDataRangeAndDraw();
 }
+
+//---
 
 void
 CQChartsPlot::
@@ -1643,31 +1821,67 @@ updateDataScaleY(double r)
 
 //---
 
-void
+const CQChartsOptReal &
 CQChartsPlot::
-setXMin(const OptReal &r)
+xmin() const
 {
-  CQChartsUtil::testAndSet(xmin_, r, [&]() { updateRangeAndObjs(); } );
+  return xmin_;
 }
 
 void
 CQChartsPlot::
-setXMax(const OptReal &r)
+setXMin(const OptReal &r)
 {
-  CQChartsUtil::testAndSet(xmax_, r, [&]() { updateRangeAndObjs(); } );
+  assert(! isComposite());
+
+  CQChartsUtil::testAndSet(xmin_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+const CQChartsOptReal &
+CQChartsPlot::
+ymin() const
+{
+  return ymin_;
 }
 
 void
 CQChartsPlot::
 setYMin(const OptReal &r)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(ymin_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+const CQChartsOptReal &
+CQChartsPlot::
+xmax() const
+{
+  return xmax_;
+}
+
+void
+CQChartsPlot::
+setXMax(const OptReal &r)
+{
+  assert(! isComposite());
+
+  CQChartsUtil::testAndSet(xmax_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+const CQChartsOptReal &
+CQChartsPlot::
+ymax() const
+{
+  return ymax_;
 }
 
 void
 CQChartsPlot::
 setYMax(const OptReal &r)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(ymax_, r, [&]() { updateRangeAndObjs(); } );
 }
 
@@ -1677,37 +1891,73 @@ void
 CQChartsPlot::
 setEveryEnabled(bool b)
 {
-  CQChartsUtil::testAndSet(everyData_.enabled, b, [&]() { updateObjs(); } );
+  auto everyData = this->everyData(); everyData.enabled = b; setEveryData(everyData);
 }
 
 void
 CQChartsPlot::
 setEveryStart(int i)
 {
-  CQChartsUtil::testAndSet(everyData_.start, i, [&]() { updateObjs(); } );
+  auto everyData = this->everyData(); everyData.start = i; setEveryData(everyData);
 }
 
 void
 CQChartsPlot::
 setEveryEnd(int i)
 {
-  CQChartsUtil::testAndSet(everyData_.end, i, [&]() { updateObjs(); } );
+  auto everyData = this->everyData(); everyData.end = i; setEveryData(everyData);
 }
 
 void
 CQChartsPlot::
 setEveryStep(int i)
 {
-  CQChartsUtil::testAndSet(everyData_.step, i, [&]() { updateObjs(); } );
+  auto everyData = this->everyData(); everyData.step = i; setEveryData(everyData);
+}
+
+const CQChartsPlot::EveryData &
+CQChartsPlot::
+everyData() const
+{
+  assert(! isComposite());
+
+  return everyData_;
+}
+
+void
+CQChartsPlot::
+setEveryData(const EveryData &everyData)
+{
+  assert(! isComposite());
+
+  CQChartsUtil::testAndSet(everyData_, everyData, [&]() { updateObjs(); } );
 }
 
 //---
+
+const QString &
+CQChartsPlot::
+filterStr() const
+{
+  assert(! isComposite());
+
+  return filterStr_;
+}
 
 void
 CQChartsPlot::
 setFilterStr(const QString &s)
 {
   CQChartsUtil::testAndSet(filterStr_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+const QString &
+CQChartsPlot::
+visibleFilterStr() const
+{
+  assert(! isComposite());
+
+  return visibleFilterStr_;
 }
 
 void
@@ -1719,19 +1969,41 @@ setVisibleFilterStr(const QString &s)
 
 //---
 
+bool
+CQChartsPlot::
+isSkipBad() const
+{
+  assert(! isComposite());
+
+  return skipBad_;
+}
+
 void
 CQChartsPlot::
 setSkipBad(bool b)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
 
+const QString &
+CQChartsPlot::
+titleStr() const
+{
+  assert(! isComposite());
+
+  return titleStr_;
+}
+
 void
 CQChartsPlot::
 setTitleStr(const QString &s)
 {
+  assert(! isComposite());
+
   if (title()) {
     // title calls drawForeground
     CQChartsUtil::testAndSet(titleStr_, s, [&]() { title()->setTextStr(titleStr_); } );
@@ -1771,6 +2043,38 @@ setYLabel(const QString &s)
 }
 
 //---
+
+CQChartsAxis *
+CQChartsPlot::
+xAxis() const
+{
+  assert(! isComposite());
+
+  return xAxis_.get();
+}
+
+CQChartsAxis *
+CQChartsPlot::
+yAxis() const
+{
+  assert(! isComposite());
+
+  return yAxis_.get();
+}
+
+CQChartsAxis *
+CQChartsPlot::
+mappedXAxis() const
+{
+  return xAxis();
+}
+
+CQChartsAxis *
+CQChartsPlot::
+mappedYAxis() const
+{
+  return yAxis();
+}
 
 void
 CQChartsPlot::
@@ -1829,22 +2133,76 @@ setPlotsAxisNames(const Plots &plots, Plot *axisPlot)
   }
 }
 
+//---
+
+void
+CQChartsPlot::
+clearAxisSideDelta()
+{
+  assert(! isComposite());
+
+  xAxisSideDelta_.clear();
+  yAxisSideDelta_.clear();
+}
+
 double
 CQChartsPlot::
 xAxisSideDelta(const CQChartsAxisSide::Type &side) const
 {
+  assert(! isComposite());
+
   auto p = xAxisSideDelta_.find(side);
 
   return (p != xAxisSideDelta_.end() ? (*p).second : 0.0);
+}
+
+void
+CQChartsPlot::
+setXAxisSideDelta(const CQChartsAxisSide::Type &side, double d)
+{
+  assert(! isComposite());
+
+  xAxisSideDelta_[side] = d;
 }
 
 double
 CQChartsPlot::
 yAxisSideDelta(const CQChartsAxisSide::Type &side) const
 {
+  assert(! isComposite());
+
   auto p = yAxisSideDelta_.find(side);
 
   return (p != yAxisSideDelta_.end() ? (*p).second : 0.0);
+}
+
+void
+CQChartsPlot::
+setYAxisSideDelta(const CQChartsAxisSide::Type &side, double d)
+{
+  assert(! isComposite());
+
+  yAxisSideDelta_[side] = d;
+}
+
+//---
+
+CQChartsPlotKey *
+CQChartsPlot::
+key() const
+{
+  assert(! isComposite());
+
+  return keyObj_.get();
+}
+
+CQChartsTitle *
+CQChartsPlot::
+title() const
+{
+  assert(! isComposite());
+
+  return titleObj_.get();
 }
 
 //---
@@ -1944,10 +2302,21 @@ isKeyVisibleAndNonEmpty() const
   return (key() && key()->isVisibleAndNonEmpty());
 }
 
+bool
+CQChartsPlot::
+isColorKey() const
+{
+  assert(! isComposite());
+
+  return colorKey_;
+}
+
 void
 CQChartsPlot::
 setColorKey(bool b)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(colorKey_, b, [&]() {
     resetSetHidden();
 
@@ -1961,20 +2330,51 @@ setColorKey(bool b)
 
 //---
 
+bool
+CQChartsPlot::
+isEqualScale() const
+{
+  assert(! isComposite());
+
+  return equalScale_;
+}
+
 void
 CQChartsPlot::
 setEqualScale(bool b)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(equalScale_, b, [&]() { updateRange(); });
 }
 
 //---
 
+bool
+CQChartsPlot::
+isAutoFit() const
+{
+  assert(! isComposite());
+
+  return autoFit_;
+}
+
 void
 CQChartsPlot::
 setAutoFit(bool b)
 {
+  assert(! isComposite());
+
   CQChartsUtil::testAndSet(autoFit_, b, [&]() { postResize(); });
+}
+
+const CQChartsPlotMargin &
+CQChartsPlot::
+fitMargin() const
+{
+  assert(! isComposite());
+
+  return fitMargin_;
 }
 
 // fit margin
@@ -1984,7 +2384,7 @@ setFitMarginLeft(const Length &l)
 {
   assert(l.isValid());
 
-  if (l != fitMargin_.left()) { fitMargin_.setLeft(l); postResize(); }
+  auto fitMargin = this->fitMargin(); fitMargin.setLeft(l); setFitMargin(fitMargin);
 }
 
 void
@@ -1993,7 +2393,7 @@ setFitMarginTop(const Length &t)
 {
   assert(t.isValid());
 
-  if (t != fitMargin_.top()) { fitMargin_.setTop(t); postResize(); }
+  auto fitMargin = this->fitMargin(); fitMargin.setTop(t); setFitMargin(fitMargin);
 }
 
 void
@@ -2002,7 +2402,7 @@ setFitMarginRight(const Length &r)
 {
   assert(r.isValid());
 
-  if (r != fitMargin_.right()) { fitMargin_.setRight(r); postResize(); }
+  auto fitMargin = this->fitMargin(); fitMargin.setRight(r); setFitMargin(fitMargin);
 }
 
 void
@@ -2011,14 +2411,57 @@ setFitMarginBottom(const Length &b)
 {
   assert(b.isValid());
 
-  if (b != fitMargin_.bottom()) { fitMargin_.setBottom(b); postResize(); }
+  auto fitMargin = this->fitMargin(); fitMargin.setBottom(b); setFitMargin(fitMargin);
 }
 
 void
 CQChartsPlot::
 setFitMargin(const PlotMargin &m)
 {
+  assert(! isComposite());
+
   if (m != fitMargin_) { fitMargin_ = m; postResize(); }
+}
+
+bool
+CQChartsPlot::
+needsAutoFit() const
+{
+  assert(! isComposite());
+
+  return needsAutoFit_;
+}
+
+void
+CQChartsPlot::
+setNeedsAutoFit(bool b)
+{
+  assert(! isComposite());
+
+  needsAutoFit_ = b;
+}
+
+void
+CQChartsPlot::
+resetExtraBBox() const
+{
+  assert(! isComposite());
+
+  extraFitBBox_ = BBox();
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+extraFitBBox() const
+{
+  assert(! isComposite());
+
+  if (extraFitBBox_.isSet())
+    return extraFitBBox_;
+
+  extraFitBBox_ = calcExtraFitBBox();
+
+  return extraFitBBox_;
 }
 
 //---
@@ -2039,10 +2482,21 @@ setShowSelectedBoxes(bool b)
 
 //---
 
+const CQChartsGeom::BBox &
+CQChartsPlot::
+viewBBox() const
+{
+  assert(! isComposite());
+
+  return viewBBox_;
+}
+
 void
 CQChartsPlot::
 setViewBBox(const BBox &bbox)
 {
+  assert(! isComposite());
+
   viewBBox_      = bbox;
   innerViewBBox_ = viewBBox_;
 
@@ -2055,9 +2509,6 @@ void
 CQChartsPlot::
 updateMargins(bool update)
 {
-  if (parentPlot())
-    return parentPlot()->updateMargins(update);
-
   if (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->updateMargins(update);
@@ -2080,6 +2531,8 @@ void
 CQChartsPlot::
 updateMargins(const PlotMargin &outerMargin)
 {
+  assert(! isComposite());
+
   innerViewBBox_ = outerMargin.adjustViewRange(this, calcViewBBox(), /*inside*/false);
 
   setPixelRange(innerViewBBox_);
@@ -2091,9 +2544,6 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRect() const
 {
-  if (parentPlot())
-    return parentPlot()->calcDataRect();
-
   return getCalcDataRange().bbox();
 }
 
@@ -2101,6 +2551,8 @@ CQChartsGeom::Range
 CQChartsPlot::
 getCalcDataRange() const
 {
+  assert(! isComposite());
+
   return calcDataRange_;
 }
 
@@ -2108,8 +2560,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 outerDataRect() const
 {
-  if (parentPlot())
-    return parentPlot()->outerDataRect();
+  assert(! isComposite());
 
   return outerDataRange_.bbox();
 }
@@ -2118,10 +2569,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 dataRect() const
 {
-  if (parentPlot())
-    return parentPlot()->dataRect();
-
-  return dataRange_.bbox();
+  return dataRange().bbox();
 }
 
 //---
@@ -2130,9 +2578,6 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcViewBBox() const
 {
-  if (parentPlot())
-    return parentPlot()->adjustedViewBBox(this);
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->calcViewBBox();
 
@@ -2141,20 +2586,12 @@ calcViewBBox() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-adjustedViewBBox(const Plot *) const
-{
-  return viewBBox();
-}
-
-CQChartsGeom::BBox
-CQChartsPlot::
 innerViewBBox() const
 {
-  if (parentPlot())
-    return parentPlot()->innerViewBBox();
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->innerViewBBox();
+
+  assert(! isComposite());
 
   return innerViewBBox_;
 }
@@ -2197,75 +2634,98 @@ aspect() const
 //---
 
 // inner margin
+const CQChartsPlotMargin &
+CQChartsPlot::
+innerMargin() const
+{
+  assert(! isComposite());
+
+  return innerMargin_;
+}
+
 void
 CQChartsPlot::
 setInnerMarginLeft(const Length &l)
 {
-  if (l != innerMargin_.left()) { innerMargin_.setLeft(l); applyDataRangeAndDraw(); }
+  auto innerMargin = this->innerMargin(); innerMargin.setLeft(l); setInnerMargin(innerMargin);
 }
 
 void
 CQChartsPlot::
 setInnerMarginTop(const Length &t)
 {
-  if (t != innerMargin_.top()) { innerMargin_.setTop(t); applyDataRangeAndDraw(); }
+  auto innerMargin = this->innerMargin(); innerMargin.setTop(t); setInnerMargin(innerMargin);
 }
 
 void
 CQChartsPlot::
 setInnerMarginRight(const Length &r)
 {
-  if (r != innerMargin_.right()) { innerMargin_.setRight(r); applyDataRangeAndDraw(); }
+  auto innerMargin = this->innerMargin(); innerMargin.setRight(r); setInnerMargin(innerMargin);
 }
 
 void
 CQChartsPlot::
 setInnerMarginBottom(const Length &b)
 {
-  if (b != innerMargin_.bottom()) { innerMargin_.setBottom(b); applyDataRangeAndDraw(); }
+  auto innerMargin = this->innerMargin(); innerMargin.setBottom(b); setInnerMargin(innerMargin);
 }
 
 void
 CQChartsPlot::
 setInnerMargin(const PlotMargin &m)
 {
+  assert(! isComposite());
+
   if (m != innerMargin_) { innerMargin_ = m; applyDataRangeAndDraw(); }
 }
 
 //---
 
+// outer margin
+const CQChartsPlotMargin &
+CQChartsPlot::
+outerMargin() const
+{
+  assert(! isComposite());
+
+  return outerMargin_;
+}
+
 void
 CQChartsPlot::
 setOuterMarginLeft(const Length &l)
 {
-  if (l != outerMargin_.left()) { outerMargin_.setLeft(l); updateMargins(); }
+  auto outerMargin = this->outerMargin(); outerMargin.setLeft(l); setOuterMargin(outerMargin);
 }
 
 void
 CQChartsPlot::
 setOuterMarginTop(const Length &t)
 {
-  if (t != outerMargin_.top()) { outerMargin_.setTop(t); updateMargins(); }
+  auto outerMargin = this->outerMargin(); outerMargin.setTop(t); setOuterMargin(outerMargin);
 }
 
 void
 CQChartsPlot::
 setOuterMarginRight(const Length &r)
 {
-  if (r != outerMargin_.right()) { outerMargin_.setRight(r); updateMargins(); }
+  auto outerMargin = this->outerMargin(); outerMargin.setRight(r); setOuterMargin(outerMargin);
 }
 
 void
 CQChartsPlot::
 setOuterMarginBottom(const Length &b)
 {
-  if (b != outerMargin_.bottom()) { outerMargin_.setBottom(b); updateMargins(); }
+  auto outerMargin = this->outerMargin(); outerMargin.setBottom(b); setOuterMargin(outerMargin);
 }
 
 void
 CQChartsPlot::
 setOuterMargin(const PlotMargin &m)
 {
+  assert(! isComposite());
+
   if (m != outerMargin_) { outerMargin_ = m; updateMargins(); }
 }
 
@@ -2317,6 +2777,8 @@ updateOverlay()
     plot->startThreadTimer();
 
     {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     plot->updatesData_.reset();
@@ -3682,13 +4144,15 @@ void
 CQChartsPlot::
 threadTimerSlot()
 {
-  if (parentPlot())
-    return parentPlot()->startThreadTimer();
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->startThreadTimer();
 
+  if (parentPlot())
+    return parentPlot()->startThreadTimer();
+
   //---
+
+  assert(! parentPlot());
 
   auto updateState = this->updateState();
   auto nextState   = UpdateState::INVALID;
@@ -3798,11 +4262,7 @@ threadTimerSlot()
 
   //---
 
-  if (objTreeData_.notify) {
-    objTreeData_.notify = false;
-
-    postObjTree();
-  }
+  doPostObjTree();
 
   //---
 
@@ -3883,6 +4343,19 @@ threadTimerSlot()
     view()->doUpdate();
 }
 
+void
+CQChartsPlot::
+doPostObjTree()
+{
+  assert(! isComposite());
+
+  if (objTreeData_.notify) {
+    objTreeData_.notify = false;
+
+    postObjTree();
+  }
+}
+
 CQChartsPlot::UpdateState
 CQChartsPlot::
 calcNextState() const
@@ -3890,6 +4363,8 @@ calcNextState() const
   auto *th = const_cast<Plot *>(this);
 
   auto nextState = UpdateState::INVALID;
+
+  assert(! parentPlot());
 
   std::unique_lock<std::mutex> lock(updatesMutex_);
 
@@ -3951,6 +4426,8 @@ void
 CQChartsPlot::
 setUpdateState(UpdateState state)
 {
+  assert(! parentPlot());
+
   updateData_.state.store((int) state);
 
   if (debugUpdate_) {
@@ -3977,6 +4454,13 @@ void
 CQChartsPlot::
 setInterrupt(bool b)
 {
+  if (parentPlot())
+    return parentPlot()->setInterrupt(b);
+
+  //---
+
+  assert(! parentPlot());
+
   if (b)
     updateData_.interrupt++;
   else {
@@ -4016,6 +4500,8 @@ CQChartsPlot::
 execUpdateRangeAndObjs()
 {
   if (! isUpdatesEnabled()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.updateRangeAndObjs = true;
@@ -4024,13 +4510,6 @@ execUpdateRangeAndObjs()
   }
 
   updateAndApplyRange(/*apply*/true, /*updateObjs*/true);
-}
-
-void
-CQChartsPlot::
-resetRange()
-{
-  dataRange_.reset();
 }
 
 //------
@@ -4082,22 +4561,7 @@ CQChartsPlot::
 updateAndApplyPlotRange1(bool updateObjs)
 {
   if (! isSequential()) {
-    LockMutex lock1(this, "updateAndApplyPlotRange");
-
-    // finish current threads
-    interruptRange();
-
-    //---
-
-    // start update range thread
-    updateData_.updateObjs   = updateObjs;
-    updateData_.drawBusy.ind = -100;
-
-    setGroupedUpdateState(UpdateState::CALC_RANGE);
-
-    updateData_.rangeThread->exec(updateRangeASync, this);
-
-    startThreadTimer();
+    startCalcRange(updateObjs);
   }
   else {
     updateRangeThread();
@@ -4125,8 +4589,44 @@ updateAndApplyPlotRange1(bool updateObjs)
 
 void
 CQChartsPlot::
+startCalcRange(bool updateObjs)
+{
+  if (parentPlot())
+    parentPlot()->startCalcRange(updateObjs);
+
+  //---
+
+  LockMutex lock1(this, "startCalcRange");
+
+  // finish current threads
+  interruptRange();
+
+  //---
+
+  assert(! parentPlot());
+
+  // start update range thread
+  updateData_.updateObjs   = updateObjs;
+  updateData_.drawBusy.ind = -100;
+
+  setGroupedUpdateState(UpdateState::CALC_RANGE);
+
+  updateData_.rangeThread->exec(updateRangeASync, this);
+
+  startThreadTimer();
+}
+
+//---
+
+void
+CQChartsPlot::
 interruptRange()
 {
+  if (parentPlot())
+    return parentPlot()->interruptRange();
+
+  //---
+
   setInterrupt(true);
 
   waitRange();
@@ -4245,6 +4745,8 @@ execWaitRange()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_RANGE) {
+    assert(! parentPlot());
+
     // if busy wait for range thread to finish
     if (updateData_.rangeThread->isBusy()) {
       (void) updateData_.rangeThread->term();
@@ -4281,6 +4783,22 @@ updateRangeThread()
 
   //---
 
+  updateAndAdjustRanges();
+
+  //---
+
+  assert(! parentPlot());
+
+  // mark thread done
+  updateData_.rangeThread->end();
+}
+
+void
+CQChartsPlot::
+updateAndAdjustRanges()
+{
+  assert(! isComposite());
+
   if (isOverlay())
     clearOverlayErrors();
 
@@ -4296,11 +4814,6 @@ updateRangeThread()
 
   if (isOverlay())
     updateOverlayRanges();
-
-  //---
-
-  // mark thread done
-  updateData_.rangeThread->end();
 }
 
 //------
@@ -4324,6 +4837,8 @@ CQChartsPlot::
 execUpdateObjs()
 {
   if (! isUpdatesEnabled()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.updateObjs = true;
@@ -4333,7 +4848,7 @@ execUpdateObjs()
 
   //---
 
-  if (! dataRange_.isSet()) {
+  if (! dataRange().isSet()) {
     execUpdateRangeAndObjs();
     return;
   }
@@ -4357,34 +4872,7 @@ CQChartsPlot::
 updatePlotObjs()
 {
   if (! isSequential()) {
-    LockMutex lock(this, "updatePlotObjs");
-
-    //---
-
-    auto updateState = this->updateState();
-
-    // if calc range still running then run update objects after finished
-    if (updateState == UpdateState::CALC_RANGE) {
-      if (isOverlay())
-        firstPlot()->updateData_.updateObjs = true;
-      //return;
-    }
-
-    //---
-
-    // finish update objs thread
-    interruptObjs();
-
-    //---
-
-    // start update objs thread
-    updateData_.drawBusy.ind = -100;
-
-    setGroupedUpdateState(UpdateState::CALC_OBJS);
-
-    updateData_.objsThread->exec(updateObjsASync, this);
-
-    startThreadTimer();
+    startCalcObjs();
   }
   else {
     // add objs
@@ -4404,8 +4892,56 @@ updatePlotObjs()
 
 void
 CQChartsPlot::
+startCalcObjs()
+{
+  if (parentPlot())
+    parentPlot()->startCalcObjs();
+
+  //---
+
+  LockMutex lock(this, "startCalcObjs");
+
+  //---
+
+  assert(! parentPlot());
+
+  auto updateState = this->updateState();
+
+  // if calc range still running then run update objects after finished
+  if (updateState == UpdateState::CALC_RANGE) {
+    if (isOverlay())
+      firstPlot()->updateData_.updateObjs = true;
+    //return;
+  }
+
+  //---
+
+  // finish update objs thread
+  interruptObjs();
+
+  //---
+
+  // start update objs thread
+  updateData_.drawBusy.ind = -100;
+
+  setGroupedUpdateState(UpdateState::CALC_OBJS);
+
+  updateData_.objsThread->exec(updateObjsASync, this);
+
+  startThreadTimer();
+}
+
+//---
+
+void
+CQChartsPlot::
 interruptObjs()
 {
+  if (parentPlot())
+    return parentPlot()->interruptObjs();
+
+  //---
+
   setInterrupt(true);
 
   waitObjs();
@@ -4450,6 +4986,8 @@ execWaitObjs()
 {
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitObjs\n";
+
+  assert(! parentPlot());
 
   auto updateState = this->updateState();
 
@@ -4500,6 +5038,8 @@ updateObjsThread()
 
   //---
 
+  assert(! parentPlot());
+
   // mark thread done
   updateData_.objsThread->end();
 }
@@ -4537,6 +5077,8 @@ CQChartsGeom::BBox
 CQChartsPlot::
 adjustDataRangeBBox(const BBox &bbox) const
 {
+  assert(! isComposite());
+
   // get center and x/y sizes
   auto c = bbox.getCenter();
 
@@ -4592,13 +5134,21 @@ CQChartsGeom::BBox
 CQChartsPlot::
 getDataRange() const
 {
-  if (parentPlot())
-    return parentPlot()->getDataRange();
+  if (dataRange().isSet())
+    return CQChartsUtil::rangeBBox(dataRange());
 
-  if (dataRange_.isSet())
-    return CQChartsUtil::rangeBBox(dataRange_);
-  else
-    return BBox(0.0, 0.0, 1.0, 1.0);
+  return BBox(0.0, 0.0, 1.0, 1.0);
+}
+
+//---
+
+bool
+CQChartsPlot::
+isApplyDataRange() const
+{
+  assert(! parentPlot());
+
+  return updatesData_.applyDataRange;
 }
 
 void
@@ -4636,6 +5186,8 @@ applyDataRange(bool propagate)
   //---
 
   if (! isUpdatesEnabled()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.applyDataRange = true;
@@ -4643,7 +5195,9 @@ applyDataRange(bool propagate)
     return;
   }
 
-  if (! dataRange_.isSet()) {
+  if (! dataRange().isSet()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.applyDataRange = true;
@@ -4887,6 +5441,8 @@ void
 CQChartsPlot::
 setPixelRange(const BBox &bbox)
 {
+  assert(! isComposite());
+
   displayRange_->setPixelRange(bbox.getXMin(), bbox.getYMax(), bbox.getXMax(), bbox.getYMin());
 }
 
@@ -4894,6 +5450,8 @@ void
 CQChartsPlot::
 resetWindowRange()
 {
+  assert(! isComposite());
+
   displayRange_->setWindowRange(0.0, 0.0, 1.0, 1.0);
 }
 
@@ -4901,6 +5459,8 @@ void
 CQChartsPlot::
 setWindowRange(const BBox &bbox)
 {
+  assert(! isComposite());
+
   displayRange_->setWindowRange(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 }
 
@@ -5057,13 +5617,6 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
   return ybbox;
 }
 
-void
-CQChartsPlot::
-resetExtraBBox() const
-{
-  extraFitBBox_ = BBox();
-}
-
 //------
 
 void
@@ -5071,6 +5624,8 @@ CQChartsPlot::
 addPlotObject(PlotObj *obj)
 {
   assert(obj);
+
+  assert(! isComposite());
 
   assert(! objTreeData_.tree->isBusy());
 
@@ -5114,10 +5669,12 @@ bool
 CQChartsPlot::
 initPlotRange()
 {
-  if (! dataRange_.isSet()) {
+  assert(! isComposite());
+
+  if (! dataRange().isSet()) {
     execUpdateRange();
 
-    if (! dataRange_.isSet())
+    if (! dataRange().isSet())
       return false;
   }
 
@@ -5134,10 +5691,16 @@ initPlotObjs()
 
   bool changed = initObjs();
 
+  assert(! isComposite());
+
   // ensure some range defined
-  if (! dataRange_.isSet()) {
-    dataRange_.updateRange(0, 0);
-    dataRange_.updateRange(1, 1);
+  if (! dataRange().isSet()) {
+    Range r;
+
+    r.updateRange(0, 0);
+    r.updateRange(1, 1);
+
+    setDataRange(r, /*update*/false);
 
     changed = true;
   }
@@ -5157,7 +5720,7 @@ initPlotObjs()
 
   // auto fit
   if (changed && isAutoFit()) {
-    //needsAutoFit_ = true;
+    //setNeedsAutoFit(true);
   }
 
   //---
@@ -5171,6 +5734,8 @@ CQChartsPlot::
 addNoDataObj()
 {
   CQPerfTrace trace("CQChartsPlot::addNoDataObj");
+
+  assert(! isComposite());
 
   // if no objects then add a no data object
   noData_ = false;
@@ -5211,6 +5776,8 @@ bool
 CQChartsPlot::
 hasPlotObjs() const
 {
+  assert(! isComposite());
+
   return ! plotObjs_.empty();
 }
 
@@ -5337,12 +5904,8 @@ initObjTree()
       plot->execInitObjTree();
     });
   }
-  else if (parentPlot()) {
-    parentPlot()->initObjTree();
-  }
-  else {
-    execInitObjTree();
-  }
+
+  execInitObjTree();
 }
 
 void
@@ -5352,6 +5915,8 @@ execInitObjTree()
   //std::cerr << "execInitObjTree " << calcName().toStdString() << "\n";
 
   CQPerfTrace trace("CQChartsPlot::execInitObjTree");
+
+  assert(! isComposite());
 
   if (objTreeData_.init) {
     objTreeData_.init = false;
@@ -5378,6 +5943,8 @@ clearPlotObjects1()
 
   CQPerfTrace trace("CQChartsPlot::clearPlotObjects1");
 
+  assert(! isComposite());
+
   objTreeData_.tree->clearObjects();
 
   PlotObjs plotObjs;
@@ -5403,6 +5970,8 @@ clearInsideObjects()
   if (parentPlot())
     return parentPlot()->clearInsideObjects();
 
+  //---
+
   clearInsideObjects1();
 }
 
@@ -5411,6 +5980,8 @@ CQChartsPlot::
 clearInsideObjects1()
 {
   //std::cerr << "clearInsideObjects1 " << calcName().toStdString() << "\n";
+
+  //assert(! isComposite()); no harm to clear child plots
 
   insideData_.clear();
 }
@@ -5445,6 +6016,8 @@ invalidateObjTree1()
 {
   //std::cerr << "invalidateObjTree1 " << calcName().toStdString() << "\n";
 
+  assert(! isComposite());
+
   objTreeData_.init = true;
 
   objTreeData_.tree->clearObjects();
@@ -5454,6 +6027,8 @@ CQChartsGeom::BBox
 CQChartsPlot::
 findEmptyBBox(double w, double h) const
 {
+  assert(! isComposite());
+
   return objTreeData_.tree->findEmptyBBox(w, h);
 }
 
@@ -5470,6 +6045,8 @@ updateInsideObjects(const Point &w, Constraints constraints)
   if (parentPlot())
     return parentPlot()->updateInsideObjects(w, constraints);
 
+  //---
+
   return updateInsideObjects1(w, constraints);
 }
 
@@ -5477,14 +6054,23 @@ bool
 CQChartsPlot::
 updateInsideObjects1(const Point &w, Constraints constraints)
 {
-  //std::cerr << "updateInsideObjects1 " << calcName().toStdString() << "\n";
-
-  insideData_.p = w;
-
   // get objects and annotations at point
   Objs objs;
 
   groupedObjsAtPoint(insideData_.p, objs, constraints);
+
+  return setInsideObjects(w, objs);
+}
+
+bool
+CQChartsPlot::
+setInsideObjects(const Point &w, Objs &objs)
+{
+  assert(! parentPlot());
+
+  //std::cerr << "updateInsideObjects1 " << calcName().toStdString() << "\n";
+
+  insideData_.p = w;
 
   //---
 
@@ -5558,7 +6144,7 @@ resetInsideObjs1()
 {
   //std::cerr << "resetInsideObjs1 " << calcName().toStdString() << "\n";
 
-  insideData_.clear();
+  clearInsideObjects1();
 
   if (isOverlay()) {
     Plots oplots;
@@ -5601,6 +6187,8 @@ CQChartsObj *
 CQChartsPlot::
 insideObject1() const
 {
+  assert(! parentPlot());
+
   //std::cerr << "insideObject1 " << calcName().toStdString() << "\n";
 
   // get nth inside object
@@ -5630,6 +6218,8 @@ nextInsideInd()
 
   //---
 
+  assert(! parentPlot());
+
   // cycle to next inside object
   insideData_.nextInd();
 }
@@ -5646,6 +6236,8 @@ prevInsideInd()
 
   //---
 
+  assert(! parentPlot());
+
   // cycle to prev inside object
   insideData_.prevInd();
 }
@@ -5661,6 +6253,8 @@ setInsideObject()
     return parentPlot()->setInsideObject();
 
   //---
+
+  assert(! parentPlot());
 
   // get nth inside object
   auto *insideObj = insideObject();
@@ -5691,6 +6285,8 @@ QString
 CQChartsPlot::
 insideObjectText1() const
 {
+  assert(! parentPlot());
+
   //std::cerr << "insideObjectText1 " << calcName().toStdString() << "\n";
 
   QString objText;
@@ -5715,6 +6311,11 @@ void
 CQChartsPlot::
 clearErrors()
 {
+  if (parentPlot())
+    return parentPlot()->clearErrors();
+
+  //---
+
   errorData_.clear();
 
   emit errorsCleared();
@@ -5724,6 +6325,11 @@ bool
 CQChartsPlot::
 hasErrors() const
 {
+  if (parentPlot())
+    return parentPlot()->hasErrors();
+
+  //---
+
   return errorData_.hasErrors();
 }
 
@@ -5731,6 +6337,11 @@ bool
 CQChartsPlot::
 addError(const QString &msg)
 {
+  if (parentPlot())
+    return parentPlot()->addError(msg);
+
+  //---
+
   if (! isPreview()) {
     Error err { msg };
 
@@ -5749,6 +6360,11 @@ bool
 CQChartsPlot::
 addColumnError(const Column &c, const QString &msg)
 {
+  if (parentPlot())
+    return parentPlot()->addColumnError(c, msg);
+
+  //---
+
   if (! isPreview()) {
     ColumnError err { c, msg };
 
@@ -5767,6 +6383,11 @@ bool
 CQChartsPlot::
 addDataError(const ModelIndex &ind, const QString &msg)
 {
+  if (parentPlot())
+    return parentPlot()->addDataError(ind, msg);
+
+  //---
+
   if (! isPreview()) {
     DataError err { ind, msg };
 
@@ -5785,6 +6406,11 @@ void
 CQChartsPlot::
 getErrors(QStringList &strs)
 {
+  if (parentPlot())
+    return parentPlot()->getErrors(strs);
+
+  //---
+
   if (! errorData_.globalErrors.empty()) {
     for (const auto &error : errorData_.globalErrors) {
       strs << error.msg;
@@ -5812,6 +6438,11 @@ void
 CQChartsPlot::
 addErrorsToWidget(QTextBrowser *text)
 {
+  if (parentPlot())
+    return parentPlot()->addErrorsToWidget(text);
+
+  //---
+
   CQChartsHtml html;
 
   if (! errorData_.globalErrors.empty()) {
@@ -6920,6 +7551,8 @@ bool
 CQChartsPlot::
 hasXAxis() const
 {
+  assert(! isComposite());
+
   return type()->hasXAxis();
 }
 
@@ -6927,6 +7560,8 @@ bool
 CQChartsPlot::
 hasYAxis() const
 {
+  assert(! isComposite());
+
   return type()->hasYAxis();
 }
 
@@ -7061,6 +7696,8 @@ editMove(const Point &p, const Point &w, bool /*first*/)
 
     if (isOverlay()) {
       processOverlayPlots([&](Plot *plot) {
+        assert(! plot->isComposite());
+
         if (mouseData_.dragObjType == DragObjType::PLOT)
           plot->viewBBox_.moveBy(Point(dx1, dy1));
         else {
@@ -7082,6 +7719,8 @@ editMove(const Point &p, const Point &w, bool /*first*/)
       });
     }
     else {
+      assert(! isComposite());
+
       if (mouseData_.dragObjType == DragObjType::PLOT)
         viewBBox_.moveBy(Point(dx1, dy1));
       else {
@@ -7598,10 +8237,23 @@ selectedPlotObjs(PlotObjs &plotObjs) const
   }
 }
 
+//---
+
+bool
+CQChartsPlot::
+isPlotObjTreeSet() const
+{
+  assert(! isComposite());
+
+  return objTreeData_.isSet;
+}
+
 void
 CQChartsPlot::
 setPlotObjTreeSet(bool b)
 {
+  assert(! isComposite());
+
   if (b != objTreeData_.isSet) {
     objTreeData_.isSet = b;
 
@@ -8803,6 +9455,8 @@ cycleNextPrev(bool prev)
 
   //---
 
+  assert(! parentPlot());
+
   if (! insideData_.sizeObjs.empty()) {
     // TODO: handle overlay
     if (! prev)
@@ -9097,7 +9751,9 @@ zoomTo(const BBox &bbox)
     return firstPlot()->zoomTo(bbox1);
   }
 
-  if (! dataRange_.isSet())
+  assert(! isComposite());
+
+  if (! dataRange().isSet())
     return;
 
   double w = bbox.getWidth ();
@@ -9106,14 +9762,14 @@ zoomTo(const BBox &bbox)
   if (w < 1E-50 || h < 1E-50) {
     double dataScale = 2*std::min(dataScaleX(), dataScaleY());
 
-    w = dataRange_.xsize()/dataScale;
-    h = dataRange_.ysize()/dataScale;
+    w = dataRange().xsize()/dataScale;
+    h = dataRange().ysize()/dataScale;
   }
 
   auto c = bbox.getCenter();
 
-  double w1 = dataRange_.xsize();
-  double h1 = dataRange_.ysize();
+  double w1 = dataRange().xsize();
+  double h1 = dataRange().ysize();
 
   double xscale = w1/w;
   double yscale = h1/h;
@@ -9127,7 +9783,7 @@ zoomTo(const BBox &bbox)
   if (allowZoomY())
     setDataScaleY(yscale);
 
-  auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
+  auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
   double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
@@ -9150,7 +9806,9 @@ unzoomTo(const BBox &bbox)
     return firstPlot()->unzoomTo(bbox1);
   }
 
-  if (! dataRange_.isSet())
+  assert(! isComposite());
+
+  if (! dataRange().isSet())
     return;
 
   double w = bbox.getWidth ();
@@ -9158,8 +9816,8 @@ unzoomTo(const BBox &bbox)
 
   auto c = bbox.getCenter();
 
-  double w1 = dataRange_.xsize();
-  double h1 = dataRange_.ysize();
+  double w1 = dataRange().xsize();
+  double h1 = dataRange().ysize();
 
   if (w1 < 1E-50 || h1 < 1E-50)
     return;
@@ -9173,7 +9831,7 @@ unzoomTo(const BBox &bbox)
   if (allowZoomY())
     setDataScaleY(yscale*dataScaleY());
 
-  auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
+  auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
   double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
@@ -9213,8 +9871,15 @@ CQChartsPlot::
 zoomFull(bool notify)
 {
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->zoomFull();
+    return firstPlot()->zoomFull1(notify);
 
+  zoomFull1(notify);
+}
+
+void
+CQChartsPlot::
+zoomFull1(bool notify)
+{
   if (allowZoomX())
     setDataScaleX(1.0);
 
@@ -9240,10 +9905,12 @@ centerAt(const Point &c)
     return firstPlot()->centerAt(c1);
   }
 
-  if (! dataRange_.isSet())
+  assert(! isComposite());
+
+  if (! dataRange().isSet())
     return;
 
-  auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
+  auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
   double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
@@ -9287,8 +9954,6 @@ plotTipText(const Point &p, QString &tip, bool single) const
 
   //---
 
-  //---
-
   int objNum  = 0;
   int numObjs = 0;
 
@@ -9297,6 +9962,8 @@ plotTipText(const Point &p, QString &tip, bool single) const
   Objs tipObjs;
 
   if (isFollowMouse()) {
+    assert(! parentPlot());
+
     objNum = insideData_.ind;
 
     // get nth inside object
@@ -9443,7 +10110,7 @@ groupedPlotObjsAtPoint(const Point &p, PlotObjs &plotObjs) const
       if (plot != this)
         p1 = plot->pixelToWindow(windowToPixel(p));
 
-      plot->objTreeData_.tree->objectsAtPoint(p1, plotObjs);
+      plot->plotObjsAtPoint(p1, plotObjs);
     });
   }
   else {
@@ -9455,6 +10122,8 @@ void
 CQChartsPlot::
 plotObjsAtPoint(const Point &p, PlotObjs &plotObjs) const
 {
+  assert(! isComposite());
+
   objTreeData_.tree->objectsAtPoint(p, plotObjs);
 }
 
@@ -9534,12 +10203,21 @@ groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) con
       if (plot != this)
         r1 = windowToPixel(plot->pixelToWindow(r));
 
-      plot->objTreeData_.tree->objectsIntersectRect(r1, plotObjs, inside);
+      plot->plotObjsIntersectRect(r1, plotObjs, inside);
     });
   }
   else {
-    objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
+    plotObjsIntersectRect(r, plotObjs, inside);
   }
+}
+
+void
+CQChartsPlot::
+plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const
+{
+  assert(! isComposite());
+
+  objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
 }
 
 void
@@ -9584,8 +10262,10 @@ objNearestPoint(const Point &p, PlotObj* &obj) const
 {
   obj = nullptr;
 
-  double tx = dataRange_.xsize()/32.0;
-  double ty = dataRange_.ysize()/32.0;
+  assert(! isComposite());
+
+  double tx = dataRange().xsize()/32.0;
+  double ty = dataRange().ysize()/32.0;
 
   return objTreeData_.tree->objectNearest(p, tx, ty, obj);
 }
@@ -9608,6 +10288,11 @@ postResize()
   if (isOverlay() && ! isFirstPlot())
     return;
 
+  if (parentPlot())
+    return parentPlot()->postResize();
+
+  //--
+
   applyDataRange();
 
   if (isEqualScale()) {
@@ -9624,7 +10309,7 @@ postResize()
   updateKeyPosition(/*force*/true);
 
   if (isAutoFit())
-    needsAutoFit_ = true;
+    setNeedsAutoFit(true);
 
   drawObjs();
 }
@@ -9642,7 +10327,9 @@ updateKeyPosition(bool force)
   if (force)
     key()->invalidateLayout();
 
-  if (! dataRange_.isSet())
+  assert(! isComposite());
+
+  if (! dataRange().isSet())
     return;
 
   key()->updatePlotLocation();
@@ -9772,38 +10459,7 @@ updateDraw()
   //---
 
   if (! isSequential()) {
-    // ignore draw until after calc range and objs finished
-    {
-      LockMutex lock(this, "draw::updateDraw");
-
-      auto updateState = this->updateState();
-
-      if (updateState == UpdateState::CALC_RANGE)
-        return;
-
-      if (updateState == UpdateState::CALC_OBJS)
-        return;
-
-      interruptDraw();
-    }
-
-    //---
-
-    {
-    LockMutex lock(this, "draw::updateDraw");
-
-    getBuffer(Buffer::Type::BACKGROUND)->setValid(false);
-    getBuffer(Buffer::Type::MIDDLE    )->setValid(false);
-    getBuffer(Buffer::Type::FOREGROUND)->setValid(false);
-
-    updateData_.drawBusy.ind = -100;
-
-    setGroupedUpdateState(UpdateState::DRAW_OBJS);
-
-    updateData_.drawThread->exec(drawASync, this);
-
-    startThreadTimer();
-    }
+    startDrawObjs();
   }
   else {
     // draw objs
@@ -9817,8 +10473,60 @@ updateDraw()
 
 void
 CQChartsPlot::
+startDrawObjs()
+{
+  if (parentPlot())
+    parentPlot()->startDrawObjs();
+
+  //---
+
+  // ignore draw until after calc range and objs finished
+  {
+    LockMutex lock(this, "startDrawObjs1");
+
+    auto updateState = this->updateState();
+
+    if (updateState == UpdateState::CALC_RANGE)
+      return;
+
+    if (updateState == UpdateState::CALC_OBJS)
+      return;
+
+    interruptDraw();
+  }
+
+  //---
+
+  assert(! parentPlot());
+
+  {
+  LockMutex lock(this, "startDrawObjs2");
+
+  getBuffer(Buffer::Type::BACKGROUND)->setValid(false);
+  getBuffer(Buffer::Type::MIDDLE    )->setValid(false);
+  getBuffer(Buffer::Type::FOREGROUND)->setValid(false);
+
+  updateData_.drawBusy.ind = -100;
+
+  setGroupedUpdateState(UpdateState::DRAW_OBJS);
+
+  updateData_.drawThread->exec(drawASync, this);
+
+  startThreadTimer();
+  }
+}
+
+//---
+
+void
+CQChartsPlot::
 interruptDraw()
 {
+  if (parentPlot())
+    return parentPlot()->interruptDraw();
+
+  //---
+
   setInterrupt(true);
 
   waitDraw();
@@ -9863,6 +10571,8 @@ execWaitDraw()
 {
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitDraw\n";
+
+  assert(! parentPlot());
 
   auto updateState = this->updateState();
 
@@ -9911,6 +10621,8 @@ drawThread()
 
   //---
 
+  assert(! parentPlot());
+
   // mark thread done
   updateData_.drawThread->end();
 }
@@ -9919,6 +10631,8 @@ void
 CQChartsPlot::
 drawBusy(QPainter *painter, const UpdateState &updateState) const
 {
+  assert(! parentPlot());
+
   if (updateData_.drawBusy.ind < 0) {
     ++updateData_.drawBusy.ind;
     return;
@@ -10008,6 +10722,8 @@ void
 CQChartsPlot::
 drawLayers(QPainter *painter) const
 {
+  assert(! parentPlot());
+
   for (auto &tb : buffers_) {
     auto *buffer = tb.second;
 
@@ -10020,6 +10736,8 @@ void
 CQChartsPlot::
 drawLayer(QPainter *painter, Layer::Type type) const
 {
+  assert(! parentPlot());
+
   auto *layer = getLayer(type);
 
   auto *buffer = getBuffer(layer->buffer());
@@ -10059,6 +10777,8 @@ drawBackgroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundParts");
 
+  assert(! parentPlot());
+
   auto *buffer = getBuffer(Buffer::Type::BACKGROUND);
   if (! buffer->isActive()) return;
 
@@ -10096,6 +10816,8 @@ drawBackgroundParts(QPainter *painter) const
     //---
 
     if (debugQuadTree_) {
+      assert(! isComposite());
+
       painter1->setPen(Qt::black);
 
       objTreeData_.tree->draw(painter1);
@@ -10174,7 +10896,7 @@ initAxisSizes()
     double bdelta = 0.0;
 
     for (auto &oplot : oplots) {
-      oplot->xAxisSideDelta_[CQChartsAxisSide::Type::BOTTOM_LEFT] = bdelta;
+      oplot->setXAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT, bdelta);
 
       if (! oplot->xAxis())
         continue;
@@ -10189,7 +10911,7 @@ initAxisSizes()
     double tdelta = 0.0;
 
     for (auto &oplot : oplots) {
-      oplot->xAxisSideDelta_[CQChartsAxisSide::Type::TOP_RIGHT] = tdelta;
+      oplot->setXAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT, tdelta);
 
       if (! oplot->xAxis())
         continue;
@@ -10220,7 +10942,7 @@ initAxisSizes()
     double ldelta = 0.0;
 
     for (auto &oplot : oplots) {
-      oplot->yAxisSideDelta_[CQChartsAxisSide::Type::BOTTOM_LEFT] = ldelta;
+      oplot->setYAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT, ldelta);
 
       if (! oplot->yAxis())
         continue;
@@ -10235,7 +10957,7 @@ initAxisSizes()
     double rdelta = 0.0;
 
     for (auto &oplot : oplots) {
-      oplot->yAxisSideDelta_[CQChartsAxisSide::Type::TOP_RIGHT] = rdelta;
+      oplot->setYAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT, rdelta);
 
       if (! oplot->yAxis())
         continue;
@@ -10253,6 +10975,8 @@ CQChartsPlot::
 drawMiddleParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawMiddleParts");
+
+  assert(! parentPlot());
 
   auto *buffer = getBuffer(Buffer::Type::MIDDLE);
   if (! buffer->isActive()) return;
@@ -10302,6 +11026,8 @@ CQChartsPlot::
 drawForegroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
+
+  assert(! parentPlot());
 
   auto *buffer = getBuffer(Buffer::Type::FOREGROUND);
   if (! buffer->isActive()) return;
@@ -10517,6 +11243,8 @@ CQChartsPlot::
 drawOverlayParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawOverlayParts");
+
+  assert(! parentPlot());
 
   auto *buffer = getBuffer(Buffer::Type::OVERLAY);
   if (! buffer->isActive()) return;
@@ -11292,7 +12020,7 @@ drawXAxis(PaintDevice *device) const
 
   //---
 
-  if (x1x2 || (isOverlay() && isShowAllXOverlayAxes())) {
+  if      (x1x2 || (isOverlay() && isShowAllXOverlayAxes())) {
     // always draw on first plot
     if (this != firstPlot()) return;
 
@@ -11352,6 +12080,16 @@ drawXAxis(PaintDevice *device) const
       tpos += oplot->xAxisHeight(CQChartsAxisSide::Type::TOP_RIGHT);
     }
   }
+  else if (parentPlot()) {
+    bool y1y2 = parentPlot()->isY1Y2();
+
+    if (y1y2) { // only draw x axis on first plot
+      if (parentPlot()->childPlotIndex(this) == 0)
+        drawXAxis1(device);
+    }
+    else
+      drawXAxis1(device);
+  }
   else {
     drawXAxis1(device);
   }
@@ -11398,7 +12136,7 @@ drawYAxis(PaintDevice *device) const
 
   //---
 
-  if (y1y2 || (isOverlay() && isShowAllYOverlayAxes())) {
+  if      (y1y2 || (isOverlay() && isShowAllYOverlayAxes())) {
     // always draw on first plot
     if (this != firstPlot()) return;
 
@@ -11469,6 +12207,16 @@ drawYAxis(PaintDevice *device) const
 
       rpos += w;
     }
+  }
+  else if (parentPlot()) {
+    bool x1x2 = parentPlot()->isX1X2();
+
+    if (x1x2) { // only draw x axis on first plot
+      if (parentPlot()->childPlotIndex(this) == 0)
+        drawYAxis1(device);
+    }
+    else
+      drawYAxis1(device);
   }
   else {
     drawYAxis1(device);
@@ -11596,6 +12344,10 @@ hasTitle() const
   if (isOverlay() && ! isFirstPlot())
     return false;
 
+  assert(! isComposite());
+
+  //---
+
   if (! title() || ! title()->isDrawn())
     return false;
 
@@ -11613,7 +12365,20 @@ drawTitle(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawTitle");
 
-  title()->draw(device);
+  if (parentPlot()) {
+    bool x1x2 = parentPlot()->isX1X2();
+    bool y1y2 = parentPlot()->isY1Y2();
+
+    if (x1x2 || y1y2) {
+      if (parentPlot()->childPlotIndex(this) == 0)
+        title()->draw(device);
+    }
+    else
+      title()->draw(device);
+  }
+  else {
+    title()->draw(device);
+  }
 }
 
 //---
@@ -11923,8 +12688,10 @@ drawBoxes(PaintDevice *device) const
 
   //---
 
+  assert(! isComposite());
+
   drawWindowColorBox(device, CQChartsUtil::rangeBBox(getCalcDataRange()), Qt::green);
-  drawWindowColorBox(device, CQChartsUtil::rangeBBox(dataRange_        ), Qt::green);
+  drawWindowColorBox(device, CQChartsUtil::rangeBBox(dataRange()       ), Qt::green);
   drawWindowColorBox(device, CQChartsUtil::rangeBBox(outerDataRange_   ), Qt::green);
 }
 
@@ -12168,8 +12935,11 @@ void
 CQChartsPlot::
 execWaitTree()
 {
-  if (! isPlotObjTreeSet())
+  assert(! isComposite());
+
+  if (! isPlotObjTreeSet()) {
     objTreeData_.tree->waitTree();
+  }
 }
 
 //---
@@ -12178,11 +12948,6 @@ CQChartsGeom::BBox
 CQChartsPlot::
 displayRangeBBox() const
 {
-  if (parentPlot())
-    return parentPlot()->displayRangeBBox();
-
-  //---
-
   // calc current (zoomed/panned) data range
   double xmin, ymin, xmax, ymax;
 
@@ -12272,7 +13037,7 @@ calcTabPixelRect() const
   auto pixelRect = calcPlotPixelRect();
 
   int px = pixelRect.getXMid() - tabData_.ptw/2;
-  int py = pixelRect.getYMax() - tabData_.pth - 2*tabData_.pym;
+  int py = pixelRect.getYMax() - tabData_.pth;
 
   return BBox(px, py, px + tabData_.ptw, py + tabData_.pth);
 }
@@ -12284,11 +13049,11 @@ CQChartsPlot::
 updateAutoFit()
 {
   // auto fit based on last draw
-  if (needsAutoFit_) {
+  if (needsAutoFit()) {
     if (calcNextState() != UpdateState::INVALID)
       return;
 
-    needsAutoFit_ = false;
+    setNeedsAutoFit(false);
 
     autoFit();
   }
@@ -12304,7 +13069,7 @@ autoFit()
   CQPerfTrace trace("CQChartsPlot::autoFit");
 
   if (! isZoomFull()) {
-    needsAutoFit_ = true;
+    setNeedsAutoFit(true);
 
     zoomFull(/*notify*/false);
 
@@ -12370,9 +13135,9 @@ autoFitOne()
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 #else
-  outerMargin_ = PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P"));
+  auto outerMargin = PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P"));
 
-  updateMargins();
+  setOuterMargin(outerMargin);
 
   //---
 
@@ -12403,10 +13168,10 @@ setFitBBox(const BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  outerMargin_ = PlotMargin(Length(left , Units::PERCENT), Length(top   , Units::PERCENT),
-                            Length(right, Units::PERCENT), Length(bottom, Units::PERCENT));
+  auto outerMargin = PlotMargin(Length(left , Units::PERCENT), Length(top   , Units::PERCENT),
+                                Length(right, Units::PERCENT), Length(bottom, Units::PERCENT));
 
-  updateMargins();
+  setOuterMargin(outerMargin);
 }
 
 CQChartsGeom::BBox
@@ -12519,18 +13284,6 @@ calcFitPixelRect() const
   auto pbbox = windowToPixel(bbox);
 
   return pbbox;
-}
-
-CQChartsGeom::BBox
-CQChartsPlot::
-extraFitBBox() const
-{
-  if (extraFitBBox_.isSet())
-    return extraFitBBox_;
-
-  extraFitBBox_ = calcExtraFitBBox();
-
-  return extraFitBBox_;
 }
 
 //------
@@ -13049,6 +13802,8 @@ void
 CQChartsPlot::
 setLayerActive1(const Layer::Type &type, bool b)
 {
+  assert(! parentPlot());
+
   auto *layer = getLayer(type);
 
   layer->setActive(b);
@@ -13067,18 +13822,31 @@ isLayerActive(const Layer::Type &type) const
 
     return anyActive;
   }
-  else {
-    return isLayerActive1(type);
-  }
+
+  if (parentPlot())
+    return parentPlot()->isLayerActive(type);
+
+  return isLayerActive1(type);
 }
 
 bool
 CQChartsPlot::
 isLayerActive1(const Layer::Type &type) const
 {
+  assert(! parentPlot());
+
   auto *layer = getLayer(type);
 
   return layer->isActive();
+}
+
+bool
+CQChartsPlot::
+isInvalidateLayers() const
+{
+  assert(! parentPlot());
+
+  return updatesData_.invalidateLayers;
 }
 
 void
@@ -13098,6 +13866,8 @@ CQChartsPlot::
 execInvalidateLayers()
 {
   if (! isUpdatesEnabled()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.invalidateLayers = true;
@@ -13106,6 +13876,8 @@ execInvalidateLayers()
   }
 
   //---
+
+  assert(! parentPlot());
 
   if (isOverlay()) {
     processOverlayPlots([&](Plot *plot) {
@@ -13142,6 +13914,8 @@ CQChartsPlot::
 execInvalidateLayer(const Buffer::Type &type)
 {
   if (! isUpdatesEnabled()) {
+    assert(! parentPlot());
+
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.invalidateLayers = true;
@@ -13165,6 +13939,8 @@ void
 CQChartsPlot::
 invalidateLayer1(const Buffer::Type &type)
 {
+  assert(! parentPlot());
+
 //std::cerr << "invalidateLayer1: " << Buffer::typeName(type) << "\n";
   auto *layer = getBuffer(type);
 
@@ -13181,6 +13957,8 @@ void
 CQChartsPlot::
 setLayersChanged(bool update)
 {
+  assert(! parentPlot());
+
   if (updateData_.rangeThread->isBusy())
     return;
 
@@ -15565,11 +16343,6 @@ void
 CQChartsPlot::
 pixelToWindowI(double px, double py, double &wx, double &wy) const
 {
-  if (parentPlot())
-    return parentPlot()->pixelToWindowI(px, py, wx, wy);
-
-  //---
-
   auto pv = view()->pixelToWindow(Point(px, py));
 
   viewToWindowI(pv.x, pv.y, wx, wy);
@@ -15658,11 +16431,6 @@ void
 CQChartsPlot::
 windowToPixelI(double wx, double wy, double &px, double &py) const
 {
-  if (parentPlot())
-    return parentPlot()->windowToPixelI(wx, wy, px, py);
-
-  //---
-
   double vx, vy;
 
   windowToViewI(wx, wy, vx, vy);
@@ -15931,7 +16699,7 @@ bool
 CQChartsPlot::
 contains(const Point &p) const
 {
-  return dataRange_.inside(p);
+  return dataRange().inside(p);
 }
 
 //------

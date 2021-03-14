@@ -1479,8 +1479,8 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->ymax()));
-  auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->ymax()));
+  auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->wheelYMax()));
+  auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->wheelYMax()));
 
   double ri = std::min(std::max(plot_->innerRadius(), 0.0), 1.0);
   double ro = std::min(std::max(plot_->outerRadius(), 0.0), 1.0);
@@ -1626,8 +1626,8 @@ draw(PaintDevice *device) const
   double ri = std::min(std::max(plot_->innerRadius(), 0.0), 1.0);
   double ro = std::min(std::max(plot_->outerRadius(), 0.0), 1.0);
 
-  auto tp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->ymax()));
-  auto tp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->ymax()));
+  auto tp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->wheelYMax()));
+  auto tp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->wheelYMax()));
 
   double r = plot_->outerBarRadius(pointData_.outerBar.real());
 

@@ -92,7 +92,7 @@ QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent) {
 
 //------
 
-CQBaseModelType
+ModelType
 calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, int maxRows)
 {
   CQPerfTrace trace("CQChartsUtil::calcColumnType");
@@ -148,10 +148,10 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
       return State::TERMINATE;
     }
 
-    CQBaseModelType columnType() {
-      if      (isInt_ ) return CQBaseModelType::INTEGER;
-      else if (isReal_) return CQBaseModelType::REAL;
-      else              return CQBaseModelType::STRING;
+    ModelType columnType() {
+      if      (isInt_ ) return ModelType::INTEGER;
+      else if (isReal_) return ModelType::REAL;
+      else              return ModelType::STRING;
     }
 
    private:
@@ -178,11 +178,11 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
                 CQChartsModelTypeData &columnTypeData, bool init) {
   assert(model);
 
-  auto setRetType = [&](const CQBaseModelType &type) {
+  auto setRetType = [&](const ModelType &type) {
     columnTypeData.type     = type;
     columnTypeData.baseType = type;
 
-    return (columnTypeData.type != CQBaseModelType::NONE);
+    return (columnTypeData.type != ModelType::NONE);
   };
 
   if (column.type() == CQChartsColumn::Type::DATA ||
@@ -192,7 +192,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     int icolumn = column.column();
 
     if (icolumn < 0 || icolumn >= model->columnCount())
-      return setRetType(CQBaseModelType::NONE);
+      return setRetType(ModelType::NONE);
 
     //---
 
@@ -216,7 +216,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     // TODO: cache (in plot ?), max visited values
 
     if (column.type() == CQChartsColumn::Type::HHEADER)
-      return setRetType(CQBaseModelType::STRING);
+      return setRetType(ModelType::STRING);
 
     auto *baseModel =
       qobject_cast<CQBaseModel *>(getBaseModel(const_cast<QAbstractItemModel *>(model)));
@@ -236,11 +236,11 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     return setRetType(columnType);
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
-    return setRetType(CQBaseModelType::INTEGER);
+    return setRetType(ModelType::INTEGER);
   }
   else {
     // TODO: for custom expression should determine expression result type (if possible)
-    return setRetType(CQBaseModelType::STRING);
+    return setRetType(ModelType::STRING);
   }
 }
 
@@ -636,12 +636,21 @@ setColumnTypeStrI(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
   // store in model
   auto columnType = typeData->type();
 
-  if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues)) {
+  if (! setColumnType(charts, model, column, columnType, nameValues)) {
     errorMsg = QString("Failed to set column type '%1'").arg(typeStr);
     return false;
   }
 
   return true;
+}
+
+bool
+setColumnType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+              const ModelType &type, const NameValues &nameValues)
+{
+  auto *columnTypeMgr = charts->columnTypeMgr();
+
+  return columnTypeMgr->setModelColumnType(model, column, type, nameValues);
 }
 
 //---

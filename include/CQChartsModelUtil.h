@@ -21,6 +21,8 @@ namespace CQChartsModelUtil {
 using Column        = CQChartsColumn;
 using ColumnType    = CQChartsColumnType;
 using ModelTypeData = CQChartsModelTypeData;
+using ModelType     = CQBaseModelType;
+using NameValues    = CQChartsNameValues;
 
 //---
 
@@ -32,7 +34,7 @@ int hierRowCount(CQCharts *charts, const QAbstractItemModel *model);
 
 QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent);
 
-CQBaseModelType calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows=-1);
+ModelType calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows=-1);
 
 //------
 
@@ -73,9 +75,13 @@ bool setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                       const Column &column, const QString &typeStr);
 
+// private
 bool setColumnTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &column,
                        const QString &typeName, const QString &typeStr, const QStringList &strs,
                        QString &errorMsg);
+
+bool setColumnType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                   const ModelType &type, const NameValues &nameValues=NameValues());
 
 //---
 
@@ -95,7 +101,7 @@ bool setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column
 
 #if 0
 void remapColumnTime(const QAbstractItemModel *model, const Column &column,
-                     ColumnType *typeData, const NameValues &nameValues);
+                     ColumnType *typeData, const CQChartsNameValues &nameValues);
 #endif
 
 }

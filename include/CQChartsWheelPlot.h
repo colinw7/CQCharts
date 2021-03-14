@@ -537,7 +537,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
   double outerBarRadius   (double value) const;
   double outerBubbleRadius(double value) const;
 
-  double ymax() const { return ymax_; }
+  double wheelYMax() const { return ymax_; }
 
   double dx() const { return dx_; }
 

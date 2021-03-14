@@ -102,6 +102,13 @@ setExpandWidth(bool b)
 
 void
 CQChartsTitle::
+setPosition(const Point &p)
+{
+  position_ = p;
+}
+
+void
+CQChartsTitle::
 redraw(bool wait)
 {
   plot_->emitTitleChanged();

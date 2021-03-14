@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + CQChartsModelUtil::setColumnType - non string version
  + Composite Plot for all plots
    + Fix issues with select / tooltip and crashes
  + Improve Symbol Set in View Settings

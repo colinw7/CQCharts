@@ -1151,6 +1151,9 @@ void
 CQChartsHierBubblePlot::
 drawBounds(PaintDevice *device, HierNode *hier) const
 {
+  if (! hier)
+    return;
+
   double xc = hier->x();
   double yc = hier->y();
   double r  = hier->radius();

@@ -1,0 +1,14 @@
+Support:
+  overlay : all plots same range
+  x1x2    : common y range
+  y1y2    : common x range
+  tabbed  : single plot at a time
+
+Composite plot directs all operations to current plot
+ + never access non-current plot display data (ranges, zoom, ...)
+ + uses common mouse over ... ?
+
+Use virtuals to override behavior (re-direct to current plot)
+
+TODO:
+  viewBBox_ is always composite plot with tab adjust

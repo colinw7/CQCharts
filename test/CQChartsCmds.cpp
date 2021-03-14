@@ -2888,6 +2888,16 @@ execCmd(CQChartsCmdArgs &argv)
     if (! plot)
       return errorMsg("Failed to create plot");
 
+    //---
+
+    double vr = CQChartsView::viewportRange();
+
+    CQChartsGeom::BBox bbox(0, 0, vr, vr);
+
+    view->addPlot(plot, bbox);
+
+    //---
+
     auto *compositePlot = qobject_cast<CQChartsCompositePlot *>(plot);
     assert(compositePlot);
 
@@ -2911,11 +2921,7 @@ execCmd(CQChartsCmdArgs &argv)
       compositePlot->setCommonYRange(false);
     }
 
-    double vr = CQChartsView::viewportRange();
-
-    CQChartsGeom::BBox bbox(0, 0, vr, vr);
-
-    view->addPlot(compositePlot, bbox);
+    //---
 
     return cmdBase_->setCmdRc(compositePlot->pathId());
   }

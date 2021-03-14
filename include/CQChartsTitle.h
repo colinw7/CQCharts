@@ -76,7 +76,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   //---
 
   const Point &position() const { return position_; }
-  void setPosition(const Point &p) { position_ = p; }
+  void setPosition(const Point &p);
 
   //---
 

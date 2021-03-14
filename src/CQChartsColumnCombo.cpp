@@ -56,7 +56,7 @@ void
 CQChartsColumnCombo::
 setColumn(const CQChartsColumn &column)
 {
-  assert(modelData_);
+  //assert(modelData_);
 
   int icolumn = column.column();
 

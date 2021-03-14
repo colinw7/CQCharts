@@ -476,7 +476,7 @@ setPlotType(PlotType type)
     case PlotType::NORMAL      : setNormal    (true); break;
     case PlotType::STACKED     : setStacked   (true); break;
     case PlotType::SIDE_BY_SIDE: setSideBySide(true); break;
-    case PlotType::OVERLAY     : setOverlay   (true); break;
+    case PlotType::OVERLAY     : setOverlaid  (true); break;
     case PlotType::DENSITY     : setDensity   (true); break;
     default                    : assert(false); break;
   }
@@ -507,7 +507,7 @@ setSideBySide(bool b)
 
 void
 CQChartsDistributionPlot::
-setOverlay(bool b)
+setOverlaid(bool b)
 {
   CQChartsUtil::testAndSet(plotType_,
     (b ? PlotType::OVERLAY : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
@@ -1038,7 +1038,7 @@ calcBucketRanges() const
 
   if (hasGroups()) {
     isStackedActive    = isStacked();
-    isOverlayActive    = isOverlay();
+    isOverlayActive    = isOverlaid();
     isSideBySideActive = isSideBySide();
   }
 
@@ -1626,7 +1626,7 @@ createObjs(PlotObjs &objs) const
 
   if (hasGroups()) {
     isStackedActive    = isStacked();
-    isOverlayActive    = isOverlay();
+    isOverlayActive    = isOverlaid();
     isSideBySideActive = isSideBySide();
   }
 
@@ -2796,7 +2796,7 @@ isConsistentBucketer() const
 {
   // use consistent bucketer when stacked/side by side
   if (hasGroups()) {
-    if (isStacked() || isOverlay() || isSideBySide() || isScatter())
+    if (isStacked() || isOverlaid() || isSideBySide() || isScatter())
       return true;
   }
 
@@ -2895,7 +2895,7 @@ addMenuItems(QMenu *menu)
 
     (void) addMenuCheckedAction(typeMenu, "Normal"    , isNormal    (), SLOT(setNormal    (bool)));
     (void) addMenuCheckedAction(typeMenu, "Stacked"   , isStacked   (), SLOT(setStacked   (bool)));
-    (void) addMenuCheckedAction(typeMenu, "Overlay"   , isOverlay   (), SLOT(setOverlay   (bool)));
+    (void) addMenuCheckedAction(typeMenu, "Overlay"   , isOverlaid  (), SLOT(setOverlaid  (bool)));
     (void) addMenuCheckedAction(typeMenu, "SideBySide", isSideBySide(), SLOT(setSideBySide(bool)));
   }
 
@@ -3995,7 +3995,7 @@ calcRect() const
   if (plot_->hasGroups()) {
     if      (plot_->isStacked()) {
     }
-    else if (plot_->isOverlay()) {
+    else if (plot_->isOverlaid()) {
     }
     // tight packing for side by side
     else if (plot_->isSideBySide()) {

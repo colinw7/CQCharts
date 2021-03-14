@@ -651,7 +651,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool isNormal    () const { return (plotType() == PlotType::NORMAL      ); }
   bool isStacked   () const { return (plotType() == PlotType::STACKED     ); }
   bool isSideBySide() const { return (plotType() == PlotType::SIDE_BY_SIDE); }
-  bool isOverlay   () const { return (plotType() == PlotType::OVERLAY     ); }
+  bool isOverlaid  () const { return (plotType() == PlotType::OVERLAY     ); }
   bool isDensity   () const { return (plotType() == PlotType::DENSITY     ); }
 
   ValueType valueType() const { return valueType_; }
@@ -931,7 +931,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void setNormal    (bool b);
   void setStacked   (bool b);
   void setSideBySide(bool b);
-  void setOverlay   (bool b);
+  void setOverlaid  (bool b);
 
   // set value type
   void setValueType(ValueType valueType);

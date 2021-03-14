@@ -517,17 +517,19 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool isUpdatesEnabled() const { return updatesData_.enabled == 0; }
-  void setUpdatesEnabled(bool b, bool update=true);
+  virtual bool isUpdatesEnabled() const;
+  virtual void setUpdatesEnabled(bool b, bool update=true);
 
   //---
 
-  bool isUpdateRangeAndObjs() const { return updatesData_.updateRangeAndObjs; }
-  bool isUpdateObjs() const { return updatesData_.updateObjs; }
+  virtual bool isUpdateRangeAndObjs() const;
+  virtual bool isUpdateObjs() const;
 
-  void updateRange();
-  void updateRangeAndObjs();
-  void updateObjs();
+  virtual void updateRange();
+  virtual void updateRangeAndObjs();
+  virtual void updateObjs();
+
+  virtual void updateAndAdjustRanges();
 
   //---
 
@@ -555,35 +557,42 @@ class CQChartsPlot : public CQChartsObj,
   const DisplayRange &displayRange() const;
   void setDisplayRange(const DisplayRange &r);
 
-  const Range &dataRange() const { return dataRange_; }
-  void setDataRange(const Range &r, bool update=true);
+  virtual const Range &dataRange() const;
+  virtual void setDataRange(const Range &r, bool update=true);
 
-  void resetDataRange(bool updateRange=true, bool updateObjs=true);
+  virtual void resetDataRange(bool updateRange=true, bool updateObjs=true);
 
-  virtual Range objTreeRange() const { return dataRange_; }
+  void resetRange();
+
+  virtual Range objTreeRange() const;
 
   //---
 
+ public:
   //! \brief zoom data
   struct ZoomData {
     Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
-  double dataScaleX() const;
-  void setDataScaleX(double r);
+  virtual double dataScaleX() const;
+  virtual void setDataScaleX(double r);
 
-  double dataScaleY() const;
-  void setDataScaleY(double r);
+  virtual double dataScaleY() const;
+  virtual void setDataScaleY(double r);
 
-  double dataOffsetX() const;
-  void setDataOffsetX(double x);
+  virtual double dataOffsetX() const;
+  virtual void setDataOffsetX(double x);
 
-  double dataOffsetY() const;
-  void setDataOffsetY(double y);
+  virtual double dataOffsetY() const;
+  virtual void setDataOffsetY(double y);
 
-  const ZoomData &zoomData() const { return zoomData_; }
-  void setZoomData(const ZoomData &zoomData);
+  //---
+
+  virtual const ZoomData &zoomData() const;
+  virtual void setZoomData(const ZoomData &zoomData);
+
+  //---
 
   void updateDataScale(double r);
   void updateDataScaleX(double r);
@@ -593,48 +602,52 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  const OptReal &xmin() const { return xmin_; }
-  void setXMin(const OptReal &r);
+ public:
+  virtual const OptReal &xmin() const;
+  virtual void setXMin(const OptReal &r);
 
-  const OptReal &xmax() const { return xmax_; }
-  void setXMax(const OptReal &r);
+  virtual const OptReal &ymin() const;
+  virtual void setYMin(const OptReal &r);
 
-  const OptReal &ymin() const { return ymin_; }
-  void setYMin(const OptReal &r);
+  virtual const OptReal &xmax() const;
+  virtual void setXMax(const OptReal &r);
 
-  const OptReal &ymax() const { return ymax_; }
-  void setYMax(const OptReal &r);
+  virtual const OptReal &ymax() const;
+  virtual void setYMax(const OptReal &r);
 
   //---
 
-  int isEveryEnabled() const { return everyData_.enabled; }
+ public:
+  int isEveryEnabled() const { return everyData().enabled; }
   void setEveryEnabled(bool b);
 
-  int everyStart() const { return everyData_.start; }
+  int everyStart() const { return everyData().start; }
   void setEveryStart(int i);
 
-  int everyEnd() const { return everyData_.end; }
+  int everyEnd() const { return everyData().end; }
   void setEveryEnd(int i);
 
-  int everyStep() const { return everyData_.step; }
+  int everyStep() const { return everyData().step; }
   void setEveryStep(int i);
 
   //---
 
-  const QString &filterStr() const { return filterStr_; }
-  void setFilterStr(const QString &s);
+ public:
+  virtual const QString &filterStr() const;
+  virtual void setFilterStr(const QString &s);
 
-  const QString &visibleFilterStr() const { return visibleFilterStr_; }
-  void setVisibleFilterStr(const QString &s);
-
-  //---
-
-  bool isSkipBad() const { return skipBad_; }
-  void setSkipBad(bool b);
+  virtual const QString &visibleFilterStr() const;
+  virtual void setVisibleFilterStr(const QString &s);
 
   //---
 
-  const QString &titleStr() const { return titleStr_; }
+  virtual bool isSkipBad() const;
+  virtual void setSkipBad(bool b);
+
+  //---
+
+ public:
+  const QString &titleStr() const;
   void setTitleStr(const QString &s);
 
   const QString &fileName() const { return fileName_; }
@@ -703,30 +716,32 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // key
-  bool isKeyVisible() const;
-  void setKeyVisible(bool b);
+ public:
+  virtual bool isKeyVisible() const;
+  virtual void setKeyVisible(bool b);
 
-  bool isKeyVisibleAndNonEmpty() const;
+  virtual bool isKeyVisibleAndNonEmpty() const;
 
-  bool isColorKey() const { return colorKey_; }
-  void setColorKey(bool b);
+  virtual bool isColorKey() const;
+  virtual void setColorKey(bool b);
 
   //---
 
-  bool isEqualScale() const { return equalScale_; }
-  void setEqualScale(bool b);
+  virtual bool isEqualScale() const;
+  virtual void setEqualScale(bool b);
 
-  bool isFollowMouse() const { return followMouse_; }
-  void setFollowMouse(bool b) { followMouse_ = b; }
+  virtual bool isFollowMouse() const { return followMouse_; }
+  virtual void setFollowMouse(bool b) { followMouse_ = b; }
 
   //---
 
   // fit
-  bool isAutoFit() const { return autoFit_; }
-  void setAutoFit(bool b);
+ public:
+  virtual bool isAutoFit() const;
+  virtual void setAutoFit(bool b);
 
-  const PlotMargin &fitMargin() const { return fitMargin_; }
-  void setFitMargin(const PlotMargin &m);
+  virtual const PlotMargin &fitMargin() const;
+  virtual void setFitMargin(const PlotMargin &m);
 
   const Length &fitMarginLeft() const { return fitMargin().left(); }
   void setFitMarginLeft(const Length &l);
@@ -740,8 +755,15 @@ class CQChartsPlot : public CQChartsObj,
   const Length &fitMarginBottom() const { return fitMargin().bottom(); }
   void setFitMarginBottom(const Length &b);
 
+  virtual void resetExtraBBox() const;
+
+ protected:
+  virtual bool needsAutoFit() const;
+  virtual void setNeedsAutoFit(bool b);
+
   //---
 
+ public:
   bool isPreview() const { return preview_; }
   void setPreview(bool b) { preview_ = b; }
 
@@ -771,14 +793,13 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // get/set bbox in view range
-  const BBox &viewBBox() const { return viewBBox_; }
-  void setViewBBox(const BBox &bbox);
+  virtual const BBox &viewBBox() const;
+  virtual void setViewBBox(const BBox &bbox);
 
-  BBox calcViewBBox() const;
-  virtual BBox adjustedViewBBox(const Plot *plot) const;
+  virtual BBox calcViewBBox() const;
 
   // get inner view bbox
-  BBox innerViewBBox() const;
+  virtual BBox innerViewBBox() const;
 
   // get/set data range
   BBox range() const;
@@ -795,7 +816,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // inner margin
-  const PlotMargin &innerMargin() const { return innerMargin_; }
+  const PlotMargin &innerMargin() const;
   void setInnerMargin(const PlotMargin &m);
 
   const Length &innerMarginLeft() const { return innerMargin().left(); }
@@ -811,7 +832,7 @@ class CQChartsPlot : public CQChartsObj,
   void setInnerMarginBottom(const Length &b);
 
   // outer margin
-  const PlotMargin &outerMargin() const { return outerMargin_; }
+  const PlotMargin &outerMargin() const;
   void setOuterMargin(const PlotMargin &m);
 
   const Length &outerMarginLeft() const { return outerMargin().left(); }
@@ -833,11 +854,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  Axis *xAxis() const { return xAxis_.get(); }
-  Axis *yAxis() const { return yAxis_.get(); }
+  virtual Axis *xAxis() const;
+  virtual Axis *yAxis() const;
 
-  virtual Axis *mappedXAxis() const { return xAxis(); }
-  virtual Axis *mappedYAxis() const { return yAxis(); }
+  virtual Axis *mappedXAxis() const;
+  virtual Axis *mappedYAxis() const;
 
   virtual bool xAxisName(QString &, const QString& ="") const { return false; }
   virtual bool yAxisName(QString &, const QString& ="") const { return false; }
@@ -847,20 +868,24 @@ class CQChartsPlot : public CQChartsObj,
 
   void initAxisSizes();
 
-  void clearAxisSideDelta() { xAxisSideDelta_.clear(); yAxisSideDelta_.clear(); }
+  virtual void clearAxisSideDelta();
 
-  double xAxisSideDelta(const CQChartsAxisSide::Type &side) const;
-  double yAxisSideDelta(const CQChartsAxisSide::Type &side) const;
+  virtual double xAxisSideDelta(const CQChartsAxisSide::Type &side) const;
+  virtual void setXAxisSideDelta(const CQChartsAxisSide::Type &side, double d);
+  virtual double yAxisSideDelta(const CQChartsAxisSide::Type &side) const;
+  virtual void setYAxisSideDelta(const CQChartsAxisSide::Type &side, double d);
 
   //---
 
-  PlotKey *key() const { return keyObj_.get(); }
+  virtual PlotKey *key() const;
 
-  Title *title() const { return titleObj_.get(); }
+  virtual Title *title() const;
 
   virtual void emitTitleChanged();
 
   //---
+
+  virtual bool isComposite() const { return false; }
 
   Plot *parentPlot() const { return connectData_.parent; }
   void setParentPlot(Plot *parent) { connectData_.parent = parent; }
@@ -874,19 +899,21 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // Connection (overlay, x1x2, y1y2, tabbed
-  bool isOverlay(bool checkVisible=true) const;
+  virtual bool isOverlay(bool checkVisible=true) const;
   void setOverlay(bool b, bool notify=true);
 
   void updateOverlay();
 
-  bool isX1X2(bool checkVisible=true) const;
+  virtual bool isX1X2(bool checkVisible=true) const;
   void setX1X2(bool b, bool notify=true);
 
-  bool isY1Y2(bool checkVisible=true) const;
+  virtual bool isY1Y2(bool checkVisible=true) const;
   void setY1Y2(bool b, bool notify=true);
 
-  bool isTabbed(bool checkVisible=true) const;
+  virtual bool isTabbed(bool checkVisible=true) const;
   void setTabbed(bool b, bool notify=true);
+
+  //---
 
   //! get/set show all overlay x axes
   bool isShowAllXOverlayAxes() const { return showAllXOverlayAxes_; }
@@ -996,20 +1023,20 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // invert x/y
-  bool isInvertX() const { return invertX_; }
-  void setInvertX(bool b);
+  virtual bool isInvertX() const { return invertX_; }
+  virtual void setInvertX(bool b);
 
-  bool isInvertY() const { return invertY_; }
-  void setInvertY(bool b);
+  virtual bool isInvertY() const { return invertY_; }
+  virtual void setInvertY(bool b);
 
   //---
 
   // log x/y
-  bool isLogX() const;
-  void setLogX(bool b);
+  virtual bool isLogX() const;
+  virtual void setLogX(bool b);
 
-  bool isLogY() const;
-  void setLogY(bool b);
+  virtual bool isLogY() const;
+  virtual void setLogY(bool b);
 
   //---
 
@@ -1378,17 +1405,19 @@ class CQChartsPlot : public CQChartsObj,
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
  protected:
+  // windowToViewI : view::windowToPixel
   void windowToPixelI(const Point &w, Point &p) const;
-  void pixelToWindowI(const Point &p, Point &w) const;
-
   void windowToPixelI(const BBox &wrect, BBox &prect) const;
+
+  // view:pixelToWindow : viewToWindowI
+  void pixelToWindowI(const Point &p, Point &w) const;
   void pixelToWindowI(const BBox &prect, BBox &wrect) const;
 
-  void pixelToWindowI(double px, double py, double &wx, double &wy) const;
-  void viewToWindowI (double vx, double vy, double &wx, double &wy) const;
+  virtual void pixelToWindowI(double px, double py, double &wx, double &wy) const;
+  virtual void viewToWindowI (double vx, double vy, double &wx, double &wy) const;
 
-  void windowToPixelI(double wx, double wy, double &px, double &py) const;
-  void windowToViewI (double wx, double wy, double &vx, double &vy) const;
+  virtual void windowToPixelI(double wx, double wy, double &px, double &py) const;
+  virtual void windowToViewI (double wx, double wy, double &vx, double &vy) const;
 
   //---
 
@@ -1422,10 +1451,6 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   void addTitle();
-
-  //---
-
-  void resetRange();
 
  protected:
   // update data range (calls calcRange)
@@ -1464,6 +1489,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  void setUpdatesEnabled1(bool b, bool update);
+
   void updateRange1();
   void updateRangeAndObjs1();
   void updateObjs1();
@@ -1485,6 +1512,16 @@ class CQChartsPlot : public CQChartsObj,
   void interruptRange();
 
   //---
+
+  void startUpdateRange();
+  void startUpdateRangeAndObjs();
+  void startUpdateObjs();
+  void startUpdateDrawBackground();
+  void startUpdateDrawForeground();
+  void startUpdateDrawObjs();
+  void startCalcRange(bool updateObjs);
+  void startCalcObjs();
+  void startDrawObjs();
 
   void drawObjs1();
 
@@ -1632,7 +1669,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void updateAutoFit();
 
-  void autoFitOne();
+  virtual void autoFitOne();
 
  public:
   // (re)initialize plot objects (called by initPlotObjs)
@@ -1660,7 +1697,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  BBox findEmptyBBox(double w, double h) const;
+  virtual BBox findEmptyBBox(double w, double h) const;
 
   //---
 
@@ -1679,11 +1716,10 @@ class CQChartsPlot : public CQChartsObj,
   void resetWindowRange();
   void setWindowRange(const BBox &bbox);
 
-  bool isApplyDataRange() const { return updatesData_.applyDataRange; }
+  virtual bool isApplyDataRange() const;
+  virtual void applyDataRangeAndDraw();
 
-  void applyDataRangeAndDraw();
-
-  void applyDataRange(bool propagate=true);
+  virtual void applyDataRange(bool propagate=true);
 
   Range adjustDataRange(const Range &range) const;
 
@@ -1708,8 +1744,6 @@ class CQChartsPlot : public CQChartsObj,
   BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
   BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
 
-  void resetExtraBBox() const;
-
   //---
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
@@ -1723,6 +1757,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual void invalidateObjTree();
 
   virtual bool updateInsideObjects(const Point &w, Constraints constraints);
+
+  bool setInsideObjects(const Point &w, Objs &objs);
 
   Obj *groupedInsideObject() const;
 
@@ -1781,8 +1817,12 @@ class CQChartsPlot : public CQChartsObj,
   bool isNoData() const { return noData_; }
   void setNoData(bool b) { noData_ = b; }
 
-  bool isPlotObjTreeSet() const { return objTreeData_.isSet; }
-  void setPlotObjTreeSet(bool b);
+  //---
+
+  virtual void doPostObjTree();
+
+  virtual bool isPlotObjTreeSet() const;
+  virtual void setPlotObjTreeSet(bool b);
 
   //----
 
@@ -2133,9 +2173,8 @@ class CQChartsPlot : public CQChartsObj,
   // auto fit
   virtual void autoFit();
 
-  void setFitBBox(const BBox &bbox);
-
   BBox fitBBox() const;
+  void setFitBBox(const BBox &bbox);
 
   virtual BBox dataFitBBox       () const; // get bounding box to fit data objects
   virtual BBox axesFitBBox       () const; // get bounding box to fit axes
@@ -2254,8 +2293,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool isInvalidateLayers() const { return updatesData_.invalidateLayers; }
-
+  virtual bool isInvalidateLayers() const;
   virtual void invalidateLayers();
 
  protected:
@@ -2281,7 +2319,7 @@ class CQChartsPlot : public CQChartsObj,
   Layer *getLayer(const Layer::Type &type) const;
 
  protected:
-  BBox adjustDataRangeBBox(const BBox &bbox) const;
+  virtual BBox adjustDataRangeBBox(const BBox &bbox) const;
 
   void setLayerActive1(const Layer::Type &type, bool b);
   bool isLayerActive1(const Layer::Type &type) const;
@@ -2304,6 +2342,8 @@ class CQChartsPlot : public CQChartsObj,
   void deselectAll1(bool &changed);
 
   //---
+
+  void zoomFull1(bool notify);
 
  public:
   virtual bool hasXAxis() const;
@@ -2871,7 +2911,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void annotationsAtPoint(const Point &p, Annotations &annotations) const;
 
-  void groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
+  virtual void groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
+  virtual void plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
 
   void annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const;
   void annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const;
@@ -3043,6 +3084,18 @@ class CQChartsPlot : public CQChartsObj,
     int  start   { 0 };
     int  end     { std::numeric_limits<int>::max() };
     int  step    { 1 };
+
+    friend bool operator==(const EveryData &lhs, const EveryData &rhs) {
+      if (lhs.enabled != rhs.enabled) return false;
+      if (lhs.start   != rhs.start  ) return false;
+      if (lhs.end     != rhs.end    ) return false;
+      if (lhs.step    != rhs.step   ) return false;
+      return true;
+    }
+
+    friend bool operator!=(const EveryData &lhs, const EveryData &rhs) {
+      return ! operator==(lhs, rhs);
+    }
   };
 
   //---
@@ -3072,12 +3125,12 @@ class CQChartsPlot : public CQChartsObj,
   struct UpdatesData {
     using StateFlag = std::map<UpdateState, int>;
 
-    int       enabled            { 0 };     //!< updates enabled
-    bool      updateRangeAndObjs { false }; //!< call execUpdateRangeAndObjs (on enable)
-    bool      updateObjs         { false }; //!< call execUpdateObjs (on enable)
-    bool      applyDataRange     { false }; //!< call applyDataRange (on enable)
-    bool      invalidateLayers   { false }; //!< call needsInvalidate invalidate (on enable)
-    StateFlag stateFlag;                    //!< state flags
+    std::atomic<int>  enabled            { 0 };     //!< updates enabled
+    std::atomic<bool> updateRangeAndObjs { false }; //!< call execUpdateRangeAndObjs (on enable)
+    std::atomic<bool> updateObjs         { false }; //!< call execUpdateObjs (on enable)
+    std::atomic<bool> applyDataRange     { false }; //!< call applyDataRange (on enable)
+    std::atomic<bool> invalidateLayers   { false }; //!< call needsInvalidate invalidate (on enable)
+    StateFlag         stateFlag;                    //!< state flags
 
     void reset() {
       updateRangeAndObjs = false;
@@ -3094,6 +3147,10 @@ class CQChartsPlot : public CQChartsObj,
   using ColumnNames = std::map<Column, QString>;
 
   //---
+
+ protected:
+  virtual const EveryData &everyData() const;
+  virtual void setEveryData(const EveryData &everyData);
 
  protected:
   using DisplayRangeP  = std::unique_ptr<DisplayRange>;
@@ -3132,11 +3189,10 @@ class CQChartsPlot : public CQChartsObj,
   OptReal ymax_; //!< ymax override
 
   // filter
-  EveryData everyData_;        //!< every data
-  QString   filterStr_;        //!< data filter
-  QString   visibleFilterStr_; //!< visible filter
-
-  bool skipBad_ { true }; //!< skip bad values
+  EveryData everyData_;                 //!< every data
+  QString   filterStr_;                 //!< data filter
+  QString   visibleFilterStr_;          //!< visible filter
+  bool      skipBad_          { true }; //!< skip bad values
 
   // borders
   Sides plotBorderSides_  { "tlbr" }; //!< plot border sides
