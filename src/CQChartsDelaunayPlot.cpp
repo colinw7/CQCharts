@@ -9,6 +9,7 @@
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -939,6 +940,8 @@ CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
 
   addFrameWidget(optionsFrame, "Delaunay", delaunayCheck_);
   addFrameWidget(optionsFrame, "Voronoi" , voronoiCheck_ );
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

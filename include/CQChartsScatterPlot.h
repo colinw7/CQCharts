@@ -76,7 +76,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           const Point &p, const ColorInd &is, const ColorInd &ig,
                           const ColorInd &iv);
 
-  const auto *plot() const { return plot_; }
+  const Plot *plot() const { return plot_; }
 
   int groupInd() const { return groupInd_; }
 
@@ -91,21 +91,21 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // position
-  const auto &point() const { return pos_; }
+  const Point &point() const { return pos_; }
 
   //---
 
   // name and associated column
-  const auto &name() const { return name_; }
+  const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  const auto &nameColumn() const { return nameColumn_; }
+  const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c) { nameColumn_ = c; }
 
   //---
 
   // image
-  const auto &image() const { return image_; }
+  const Image &image() const { return image_; }
   void setImage(const Image &i) { image_ = i; }
 
   //---
@@ -212,7 +212,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
-  const auto &points() const { return points_; }
+  const Points &points() const { return points_; }
 
   //---
 
@@ -317,7 +317,7 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
-  const auto &name() const { return name_; }
+  const QString &name() const { return name_; }
 
   //---
 
@@ -360,7 +360,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &ic);
 
-  const auto &color() const { return color_; }
+  const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
   bool selectPress(const Point &p, SelMod selMod) override;
@@ -446,10 +446,16 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
 
+  // color map key
+  Q_PROPERTY(bool colorMapKey READ isColorMapKey WRITE setColorMapKey)
+
   // symbol map key
-  Q_PROPERTY(bool          symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
-  Q_PROPERTY(CQChartsAlpha symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
-  Q_PROPERTY(double        symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
+  Q_PROPERTY(bool          symbolSizeMapKey
+             READ isSymbolSizeMapKey     WRITE setSymbolSizeMapKey      )
+  Q_PROPERTY(CQChartsAlpha symbolSizeMapKeyAlpha
+             READ symbolSizeMapKeyAlpha  WRITE setSymbolSizeMapKeyAlpha )
+  Q_PROPERTY(double        symbolSizeMapKeyMargin
+             READ symbolSizeMapKeyMargin WRITE setSymbolSizeMapKeyMargin)
 
   Q_ENUMS(PlotType)
 
@@ -525,16 +531,16 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // name, label, x, y columns
-  const auto &nameColumn() const { return nameColumn_; }
+  const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
-  const auto &labelColumn() const { return labelColumn_; }
+  const Column &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const Column &c);
 
-  const auto &xColumn() const { return xColumn_; }
+  const Column &xColumn() const { return xColumn_; }
   void setXColumn(const Column &c);
 
-  const auto &yColumn() const { return yColumn_; }
+  const Column &yColumn() const { return yColumn_; }
   void setYColumn(const Column &c);
 
   //---
@@ -545,8 +551,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // get x/y column type
-  const auto &xColumnType() const { return xColumnType_; }
-  const auto &yColumnType() const { return yColumnType_; }
+  const ColumnType &xColumnType() const { return xColumnType_; }
+  const ColumnType &yColumnType() const { return yColumnType_; }
 
   // get x/y unique values
   bool isUniqueX() const { return uniqueX_; }
@@ -561,7 +567,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // plot type
-  const auto &plotType() const { return plotType_; }
+  const PlotType &plotType() const { return plotType_; }
 
   bool isNoType   () const { return (plotType() == PlotType::NONE      ); }
   bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS   ); }
@@ -603,25 +609,31 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   int gridNumY() const { return gridData_.ny(); }
   void setGridNumY(int n);
 
-  const auto &gridData() const { return gridData_; }
+  const GridCell &gridData() const { return gridData_; }
 
   //---
 
   // hex cells
-  const auto &hexMap() const { return hexMap_; }
+  const HexMap &hexMap() const { return hexMap_; }
   int hexMapMaxN() const { return hexMapMaxN_; }
 
   //---
 
+  // color map key
+  bool isColorMapKey() const;
+  void setColorMapKey(bool b);
+
+  //---
+
   // symbol map key
-  bool isSymbolMapKey() const;
-  void setSymbolMapKey(bool b);
+  bool isSymbolSizeMapKey() const;
+  void setSymbolSizeMapKey(bool b);
 
-  const Alpha &symbolMapKeyAlpha() const;
-  void setSymbolMapKeyAlpha(const Alpha &a);
+  const Alpha &symbolSizeMapKeyAlpha() const;
+  void setSymbolSizeMapKeyAlpha(const Alpha &a);
 
-  double symbolMapKeyMargin() const;
-  void setSymbolMapKeyMargin(double r);
+  double symbolSizeMapKeyMargin() const;
+  void setSymbolSizeMapKeyMargin(double r);
 
   //---
 
@@ -674,8 +686,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  auto xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
-  auto yHeaderName(bool tip=false) const { return columnHeaderName(yColumn(), tip); }
+  QString xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
+  QString yHeaderName(bool tip=false) const { return columnHeaderName(yColumn(), tip); }
 
   void updateColumnNames() override;
 
@@ -792,7 +804,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawSymbolMapKey(PaintDevice *device) const;
+  void drawColorMapKey     (PaintDevice *device) const;
+  void drawSymbolSizeMapKey(PaintDevice *device) const;
 
   //---
 
@@ -837,8 +850,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  private:
-  //! symbol map key daya
-  struct SymbolMapKeyData {
+  //! symbol map key data
+  struct SymbolSizeMapKeyData {
     bool displayed { false }; //!< is symbol map key displayed
   };
 
@@ -897,8 +910,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   GroupNameHexData  groupNameHexData_;  //!< hex cell values
   GroupNamedDensity groupNamedDensity_; //!< group named density
 
-  // symbol map
-  CQChartsSymbolMapKey* symbolMapKey_ { nullptr }; //!< symbol map key
+  // color map key, symbol size map key
+  CQChartsColorMapKey*      colorMapKey_      { nullptr }; //!< color map key
+  CQChartsSymbolSizeMapKey* symbolSizeMapKey_ { nullptr }; //!< symbol size map key
 
   // axis side data
   using AxisSideSize = std::map<CQChartsAxisSide::Type, double>;

@@ -63,7 +63,7 @@ class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
-class CQChartsSymbolMapKeyAnnotation;
+class CQChartsSymbolSizeMapKeyAnnotation;
 
 class CQChartsPlotParameter;
 class CQChartsDisplayRange;
@@ -162,7 +162,7 @@ class CQChartsPlot : public CQChartsObj,
   // . visibleColumn used for individual row hide in model traversal
   // . colorColumn and alphaColumn used for custom color for data on row
   // . fontColumn used for custom font for data on row
-  // . fontColumn used for custom image for data on row
+  // . imageColumn used for custom image for data on row
   // . controlColumns used for controls for filters on data in specified column
   Q_PROPERTY(CQChartsColumn  idColumn       READ idColumn       WRITE setIdColumn      )
   Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
@@ -1430,27 +1430,28 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void addAxes();
+  virtual void addAxes();
 
-  void addXAxis();
-  void addYAxis();
+  virtual void addXAxis();
+  virtual void addYAxis();
 
   //---
 
-  void addKey();
+  virtual void addKey();
 
   virtual void resetKeyItems();
+  virtual void resetPlotKeyItems(Plot *plot);
 
   // add items to key
-  void doAddKeyItems(PlotKey *key);
+  virtual void doAddKeyItems(PlotKey *key);
 
   virtual void addKeyItems(PlotKey *) { }
 
-  bool addColorKeyItems(PlotKey *key);
+  virtual bool addColorKeyItems(PlotKey *key);
 
   //---
 
-  void addTitle();
+  virtual void addTitle();
 
  protected:
   // update data range (calls calcRange)
@@ -2150,7 +2151,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void updateKeyPosition(bool force=false);
+  virtual void updateKeyPosition(bool force=false);
+  virtual void updatePlotKeyPosition(Plot *plot, bool force=false);
+
+  //---
 
   BBox displayRangeBBox() const;
 
@@ -2210,7 +2214,7 @@ class CQChartsPlot : public CQChartsObj,
   using TextAnnotation         = CQChartsTextAnnotation;
   using ValueSetAnnotation     = CQChartsValueSetAnnotation;
   using WidgetAnnotation       = CQChartsWidgetAnnotation;
-  using SymbolMapKeyAnnotation = CQChartsSymbolMapKeyAnnotation;
+  using SymbolMapKeyAnnotation = CQChartsSymbolSizeMapKeyAnnotation;
 
   // get annotations
   const Annotations &annotations() const { return annotations_; }
@@ -2443,7 +2447,9 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawGroupedBgAxes(PaintDevice *device) const;
 
-  virtual void drawBgAxes(PaintDevice *device) const;
+  virtual void drawBgAxes (PaintDevice *device) const;
+  virtual bool drawBgXAxis(PaintDevice *device) const;
+  virtual bool drawBgYAxis(PaintDevice *device) const;
 
   // draw key on background
   virtual bool hasGroupedBgKey() const;
@@ -2480,7 +2486,9 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawGroupedFgAxes(PaintDevice *device) const;
 
-  virtual void drawFgAxes(PaintDevice *device) const;
+  virtual void drawFgAxes (PaintDevice *device) const;
+  virtual bool drawFgXAxis(PaintDevice *device) const;
+  virtual bool drawFgYAxis(PaintDevice *device) const;
 
   virtual void drawXGrid(PaintDevice *device) const;
   virtual void drawYGrid(PaintDevice *device) const;
@@ -3480,6 +3488,8 @@ class CQChartsPlotCustomControls : public QFrame {
   void addColorColumnWidgets(const QString &title="Color");
 
   void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
+
+  void addFrameRowStretch(FrameData &frameData);
 
   //---
 

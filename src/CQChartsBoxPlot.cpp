@@ -12,6 +12,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -3700,6 +3701,8 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Color By Set", colorBySetCheck_);
   addFrameWidget(optionsFrame, "Violin"      , violinCheck_);
   addFrameWidget(optionsFrame, "Error Bar"   , errorBarCheck_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

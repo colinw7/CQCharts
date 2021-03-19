@@ -24,6 +24,7 @@
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsSymbolSet.h>
@@ -1141,7 +1142,7 @@ writeScript(ScriptPaintDevice *device) const
   bool bgAxes = hasGroupedBgAxes();
   bool bgKey  = hasGroupedBgKey();
 
-  if (bgAxes) { os << "\n"; os << "  this.drawBgAxis();\n"; }
+  if (bgAxes) { os << "\n"; os << "  this.drawBgAxes();\n"; }
   if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
 
   // background annotations
@@ -1165,7 +1166,7 @@ writeScript(ScriptPaintDevice *device) const
   bool fgAxes = hasGroupedFgAxes();
   bool fgKey  = hasGroupedFgKey();
 
-  if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
+  if (fgAxes) { os << "\n"; os << "  this.drawFgAxes();\n"; }
   if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
 
   // foreground title
@@ -1336,7 +1337,7 @@ writeScript(ScriptPaintDevice *device) const
     device->resetData();
 
     os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawBgAxis = function() {\n";
+    os << "Charts_" << plotId << ".prototype.drawBgAxes = function() {\n";
     drawGroupedBgAxes(device);
     os << "}\n";
   }
@@ -1345,7 +1346,7 @@ writeScript(ScriptPaintDevice *device) const
     device->resetData();
 
     os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawFgAxis = function() {\n";
+    os << "Charts_" << plotId << ".prototype.drawFgAxes = function() {\n";
     drawGroupedFgAxes(device);
     os << "}\n";
   }
@@ -1407,7 +1408,7 @@ void
 CQChartsPlot::
 writeSVG(SVGPaintDevice *device) const
 {
-  auto plotId = "plot_" + this->id();
+  auto plotId = QString("plot_") + this->id();
 
   SVGPaintDevice::GroupData groupData;
 
@@ -2191,7 +2192,9 @@ CQChartsPlotKey *
 CQChartsPlot::
 key() const
 {
-  assert(! isComposite());
+  // plots of composite plot use shared key (from composite plot)
+  if (parentPlot())
+    return parentPlot()->key();
 
   return keyObj_.get();
 }
@@ -2284,6 +2287,9 @@ bool
 CQChartsPlot::
 isKeyVisible() const
 {
+  if (parentPlot())
+    return parentPlot()->isKeyVisible();
+
   return (key() && key()->isVisible());
 }
 
@@ -2291,6 +2297,9 @@ void
 CQChartsPlot::
 setKeyVisible(bool b)
 {
+  if (parentPlot())
+    return parentPlot()->setKeyVisible(b);
+
   if (key())
     key()->setVisible(b);
 }
@@ -2299,8 +2308,13 @@ bool
 CQChartsPlot::
 isKeyVisibleAndNonEmpty() const
 {
+  if (parentPlot())
+    return parentPlot()->isKeyVisibleAndNonEmpty();
+
   return (key() && key()->isVisibleAndNonEmpty());
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -3413,9 +3427,9 @@ addBaseProperties()
   //------
 
   // plot box
-  QString plotStyleStr       = "plotBox";
-  auto    plotStyleFillStr   = plotStyleStr + "/fill";
-  auto    plotStyleStrokeStr = plotStyleStr + "/stroke";
+  auto plotStyleStr       = QString("plotBox");
+  auto plotStyleFillStr   = plotStyleStr + "/fill";
+  auto plotStyleStrokeStr = plotStyleStr + "/stroke";
 
   addProp(plotStyleStr, "plotClip", "clip" , "Clip to plot bounding box");
 
@@ -3437,9 +3451,9 @@ addBaseProperties()
   //---
 
   // data box
-  QString dataStyleStr       = "dataBox";
-  auto    dataStyleFillStr   = dataStyleStr + "/fill";
-  auto    dataStyleStrokeStr = dataStyleStr + "/stroke";
+  auto dataStyleStr       = QString("dataBox");
+  auto dataStyleFillStr   = dataStyleStr + "/fill";
+  auto dataStyleStrokeStr = dataStyleStr + "/stroke";
 
   addProp(dataStyleStr, "dataClip", "clip" , "Clip to data bounding box");
 
@@ -3461,9 +3475,9 @@ addBaseProperties()
   //---
 
   // fit box
-  QString fitStyleStr       = "fitBox";
-  auto    fitStyleFillStr   = fitStyleStr + "/fill";
-  auto    fitStyleStrokeStr = fitStyleStr + "/stroke";
+  auto fitStyleStr       = QString("fitBox");
+  auto fitStyleFillStr   = fitStyleStr + "/fill";
+  auto fitStyleStrokeStr = fitStyleStr + "/stroke";
 
   addStyleProp(fitStyleFillStr, "fitFilled", "visible",
                "Fit background bounding box fill visible", /*hidden*/true);
@@ -4025,25 +4039,37 @@ resetKeyItems()
 
   if (isOverlay()) {
     // if first plot then add all chained plot items to this plot's key
-    if (prevPlot())
-      return;
-
-    //---
-
-    if (key()) {
-      key()->clearItems();
-
-      processOverlayPlots([&](Plot *plot) {
-        plot->doAddKeyItems(key());
-      });
-    }
+    if (isFirstPlot())
+      processOverlayPlots([&](Plot *plot) { resetPlotKeyItems(plot); });
+  }
+  else if (parentPlot()) {
+    parentPlot()->resetPlotKeyItems(this);
   }
   else {
-    if (key()) {
-      key()->clearItems();
+    resetPlotKeyItems(this);
+  }
+}
 
-      doAddKeyItems(key());
-    }
+void
+CQChartsPlot::
+resetPlotKeyItems(CQChartsPlot *plot)
+{
+  if (isOverlay()) {
+    auto *key = firstPlot()->key();
+    if (! key) return;
+
+    if (plot->isFirstPlot())
+      key->clearItems();
+
+    plot->doAddKeyItems(key);
+  }
+  else {
+    auto *key = plot->key();
+    if (! key) return;
+
+    key->clearItems();
+
+    plot->doAddKeyItems(key);
   }
 }
 
@@ -5641,6 +5667,7 @@ addPlotObject(PlotObj *obj)
   //obj->addProperties(propertyModel(), "objects");
 }
 
+// Note: only called when not threaded (no buffer layers)
 void
 CQChartsPlot::
 initGroupedPlotObjs()
@@ -8401,14 +8428,18 @@ void
 CQChartsPlot::
 setColorType(const ColorType &t)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.colorType, t, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.colorType, t, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
 CQChartsPlot::
 setColorMapped(bool b)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
@@ -8442,14 +8473,18 @@ void
 CQChartsPlot::
 setColorXStops(const ColorStops &s)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 void
 CQChartsPlot::
 setColorYStops(const ColorStops &s)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() {
+    updateObjs(); emit colorDetailsChanged();
+  } );
 }
 
 //---
@@ -9056,8 +9091,9 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
       int n = columnDetails->numUnique();
       int i = columnDetails->valueInd(var);
 
-      double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
-                                CQChartsSymbolSize::maxValue());
+//    double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
+//                              CQChartsSymbolSize::maxValue());
+      double r = CMathUtil::map(i, 0, n - 1, symbolSizeData.map_min, symbolSizeData.map_max);
 
       symbolSize = Length(r, units);
     }
@@ -9180,8 +9216,9 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
       int n = columnDetails->numUnique();
       int i = columnDetails->valueInd(var);
 
-      double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
-                                CQChartsFontSize::maxValue());
+//    double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
+//                              CQChartsFontSize::maxValue());
+      double r = CMathUtil::map(i, 0, n - 1, fontSizeData.map_min, fontSizeData.map_max);
 
       fontSize = Length(r, units);
     }
@@ -10318,18 +10355,32 @@ void
 CQChartsPlot::
 updateKeyPosition(bool force)
 {
-  if (! isKeyVisibleAndNonEmpty())
-    return;
+  if (isOverlay()) {
+    if (isFirstPlot())
+      updatePlotKeyPosition(this, force);
 
-  if (isOverlay() && ! isFirstPlot())
+    return;
+  }
+
+  if (parentPlot())
+    return parentPlot()->updatePlotKeyPosition(this, force);
+
+  //---
+
+  updatePlotKeyPosition(this, force);
+}
+
+void
+CQChartsPlot::
+updatePlotKeyPosition(Plot *plot, bool force)
+{
+  if (! isKeyVisibleAndNonEmpty())
     return;
 
   if (force)
     key()->invalidateLayout();
 
-  assert(! isComposite());
-
-  if (! dataRange().isSet())
+  if (! plot->dataRange().isSet())
     return;
 
   key()->updatePlotLocation();
@@ -11576,16 +11627,34 @@ drawBgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBgAxes");
 
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  drawBgXAxis(device);
+  drawBgYAxis(device);
+}
 
+bool
+CQChartsPlot::
+drawBgXAxis(PaintDevice *device) const
+{
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+
+  if (showXGrid) drawXGrid(device);
+
+  return showXAxis;
+}
+
+bool
+CQChartsPlot::
+drawBgYAxis(PaintDevice *device) const
+{
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
   bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   //---
 
-  if (showXGrid) drawXGrid(device);
   if (showYGrid) drawYGrid(device);
+
+  return showYAxis;
 }
 
 //---
@@ -11964,19 +12033,34 @@ drawFgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawFgAxes");
 
+  drawFgXAxis(device);
+  drawFgYAxis(device);
+}
+
+bool
+CQChartsPlot::
+drawFgXAxis(PaintDevice *device) const
+{
   bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
-
   bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
-  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
-
-  //---
 
   if (showXGrid) drawXGrid(device);
-  if (showYGrid) drawYGrid(device);
-
   if (showXAxis) drawXAxis(device);
+
+  return showXAxis;
+}
+
+bool
+CQChartsPlot::
+drawFgYAxis(PaintDevice *device) const
+{
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
+
+  if (showYGrid) drawYGrid(device);
   if (showYAxis) drawYAxis(device);
+
+  return showYAxis;
 }
 
 void
@@ -12079,16 +12163,6 @@ drawXAxis(PaintDevice *device) const
 
       tpos += oplot->xAxisHeight(CQChartsAxisSide::Type::TOP_RIGHT);
     }
-  }
-  else if (parentPlot()) {
-    bool y1y2 = parentPlot()->isY1Y2();
-
-    if (y1y2) { // only draw x axis on first plot
-      if (parentPlot()->childPlotIndex(this) == 0)
-        drawXAxis1(device);
-    }
-    else
-      drawXAxis1(device);
   }
   else {
     drawXAxis1(device);
@@ -12207,16 +12281,6 @@ drawYAxis(PaintDevice *device) const
 
       rpos += w;
     }
-  }
-  else if (parentPlot()) {
-    bool x1x2 = parentPlot()->isX1X2();
-
-    if (x1x2) { // only draw x axis on first plot
-      if (parentPlot()->childPlotIndex(this) == 0)
-        drawYAxis1(device);
-    }
-    else
-      drawYAxis1(device);
   }
   else {
     drawYAxis1(device);
@@ -12365,20 +12429,7 @@ drawTitle(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawTitle");
 
-  if (parentPlot()) {
-    bool x1x2 = parentPlot()->isX1X2();
-    bool y1y2 = parentPlot()->isY1Y2();
-
-    if (x1x2 || y1y2) {
-      if (parentPlot()->childPlotIndex(this) == 0)
-        title()->draw(device);
-    }
-    else
-      title()->draw(device);
-  }
-  else {
-    title()->draw(device);
-  }
+  title()->draw(device);
 }
 
 //---
@@ -13492,7 +13543,7 @@ addWidgetAnnotation(const Rect &rect, const Widget &widget)
   return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
 
-CQChartsSymbolMapKeyAnnotation *
+CQChartsSymbolSizeMapKeyAnnotation *
 CQChartsPlot::
 addSymbolMapKeyAnnotation()
 {
@@ -13503,7 +13554,7 @@ void
 CQChartsPlot::
 plotControlUpdateSlot()
 {
-  QString cmpStr = "==";
+  auto cmpStr = QString("==");
 
   QStringList filters;
 
@@ -13514,7 +13565,7 @@ plotControlUpdateSlot()
       filters.push_back(filter);
   }
 
-  QString combStr = "&&";
+  auto combStr = QString("&&");
 
   auto filterStr = filters.join(QString(" %1 ").arg(combStr));
 
@@ -16849,7 +16900,7 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   //---
 
-  layout->addStretch(1);
+  //layout->addStretch(1);
 }
 
 void
@@ -16890,6 +16941,8 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
 
     frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
   }
+
+  addFrameRowStretch(frameData);
 }
 
 void
@@ -16955,6 +17008,8 @@ addColorColumnWidgets(const QString &title)
   addColorWidget("Column" , colorColumnCombo_);
   addColorWidget("Range"  , colorRange_);
   addColorWidget("Palette", colorPaletteEdit_);
+
+  colorLayout->setRowStretch(colorRow, 1);
 
   //---
 
@@ -17088,6 +17143,13 @@ addFrameWidget(FrameData &frameData, const QString &label, QWidget *w)
   frameData.layout->addWidget(w                , frameData.row, 1); ++frameData.row;
 }
 
+void
+CQChartsPlotCustomControls::
+addFrameRowStretch(FrameData &frameData)
+{
+  frameData.layout->setRowStretch(frameData.row, 1);
+}
+
 CQChartsBoolParameterEdit *
 CQChartsPlotCustomControls::
 createBoolEdit(const QString &name)
@@ -17138,11 +17200,11 @@ updateWidgets()
   //----
 
   if (colorEdit_) {
-    auto hasColumn = colorColumnCombo_->getColumn().isValid();
+    auto hasColorColumn = colorColumnCombo_->getColumn().isValid();
 
-    colorEdit_       ->setEnabled(! hasColumn);
-    colorRange_      ->setEnabled(hasColumn);
-    colorPaletteEdit_->setEnabled(hasColumn);
+    colorEdit_       ->setEnabled(! hasColorColumn);
+    colorRange_      ->setEnabled(hasColorColumn);
+    colorPaletteEdit_->setEnabled(hasColorColumn);
 
     colorEdit_->setColor(getColorValue());
 

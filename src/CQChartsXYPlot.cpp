@@ -627,11 +627,11 @@ addProperties()
   // vectors
   addProp("vectors", "vectors", "visible", "Vectors at points visible");
 
-  auto vectorLinePath = "vectors/line";
+  auto vectorLinePath = QString("vectors/line");
 
   addArrowStyleProp(vectorLinePath, "lineWidth", "width", "Vector arrow connecting line width");
 
-  auto vectorFrontHeadPath = "vectors/frontHead";
+  auto vectorFrontHeadPath = QString("vectors/frontHead");
 
 //addArrowProp     (vectorFrontHeadPath, "frontVisible"  , "visible",
 //                  "Vector arrow front head visible");
@@ -646,7 +646,7 @@ addProperties()
 //addArrowStyleProp(vectorFrontHeadPath, "frontLineEnds" , "line",
 //                  "Vector arrow front head back is drawn using lines");
 
-  auto vectorTailHeadPath = "vectors/tailHead";
+  auto vectorTailHeadPath = QString("vectors/tailHead");
 
 //addArrowProp     (vectorTailHeadPath, "tailVisible"  , "visible",
 //                  "Vector arrow tail head visible");
@@ -661,13 +661,13 @@ addProperties()
 //addArrowStyleProp(vectorTailHeadPath, "tailLineEnds" , "line",
 //                  "Vector arrow tail head back is drawn using lines");
 
-  auto vectorFillPath = "vectors/fill";
+  auto vectorFillPath = QString("vectors/fill");
 
   addArrowStyleProp(vectorFillPath, "filled"   , "visible", "Vector arrow fill visible");
   addArrowStyleProp(vectorFillPath, "fillColor", "color"  , "Vector arrow fill color");
   addArrowStyleProp(vectorFillPath, "fillAlpha", "alpha"  , "Vector arrow fill alpha");
 
-  auto vectorStrokePath = "vectors/stroke";
+  auto vectorStrokePath = QString("vectors/stroke");
 
   addArrowStyleProp(vectorStrokePath, "stroked"    , "visible", "Vector stroke visible");
   addArrowStyleProp(vectorStrokePath, "strokeColor", "color"  , "Vector stroke color");
@@ -1655,9 +1655,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     const auto &poly = setPoly1.poly;
     const auto &inds = setPoly1.inds;
 
-    const auto &setPoly2 = setPoly[is - 1];
-
-    const auto &prevPoly = (is > 0 ? setPoly2.poly : poly);
+    const auto &prevPoly = (is > 0 ? setPoly[is - 1].poly : poly);
 
     //---
 
@@ -3761,12 +3759,6 @@ draw(PaintDevice *device) const
 
   //---
 
-  // set (temp) font
-  //if (fontSize.isValid())
-  //  const_cast<Plot *>(plot_)->setDataLabelFont(font1, /*update*/false);
-
-  //---
-
   // draw text
   auto ps = plot()->windowToPixel(pos_);
 
@@ -3777,15 +3769,6 @@ draw(PaintDevice *device) const
 
   dataLabel->draw(device, plot_->pixelToWindow(ptbbox), label_,
                   (CQChartsDataLabel::Position) plot_->dataLabelPosition(), penBrush, font1);
-
-  //---
-
-  // reset (temp) font
-  //if (fontSize.isValid())
-  //  const_cast<Plot *>(plot_)->setDataLabelFont(font, /*update*/false);
-
-  // draw text
-  plot()->view()->setPlotPainterFont(plot(), device, font);
 }
 
 //------
@@ -4706,6 +4689,8 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Lines"     , linesCheck_);
   addFrameWidget(optionsFrame, "Fill Under", fillUnderCheck_);
   addFrameWidget(optionsFrame, "Stacked"   , stackedCheck_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

@@ -54,8 +54,8 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void save   () override;
   void restore() override;
 
-  void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
-  void setClipRect(const BBox &bbox, Qt::ClipOperation operation) override;
+  void setClipPath(const QPainterPath &path, Qt::ClipOperation operation=Qt::ReplaceClip) override;
+  void setClipRect(const BBox &bbox, Qt::ClipOperation operation=Qt::ReplaceClip) override;
 
   BBox clipRect() const override;
 

@@ -8,6 +8,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -1071,6 +1072,8 @@ CQChartsImagePlotCustomControls(CQCharts *charts) :
   cellStyleCombo_ = createEnumEdit("cellStyle");
 
   addFrameWidget(optionsFrame, "Cell Style", cellStyleCombo_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

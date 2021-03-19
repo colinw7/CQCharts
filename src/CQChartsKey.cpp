@@ -1,5 +1,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
+#include <CQChartsCompositePlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
@@ -9,6 +10,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -737,6 +739,16 @@ CQChartsPlotKey::
 
 //---
 
+CQChartsPlot *
+CQChartsPlotKey::
+drawPlot() const
+{
+  if (plot()->isComposite())
+    return dynamic_cast<CQChartsCompositePlot *>(plot())->currentPlot();
+
+  return plot();
+}
+
 bool
 CQChartsPlotKey::
 isEmpty() const
@@ -852,22 +864,24 @@ void
 CQChartsPlotKey::
 updateLocation(const BBox &bbox)
 {
+  auto *drawPlot = this->drawPlot();
+
   // get external margin
-  double xlm = plot()->lengthPlotWidth (margin().left  ());
-  double xrm = plot()->lengthPlotWidth (margin().right ());
-  double ytm = plot()->lengthPlotHeight(margin().top   ());
-  double ybm = plot()->lengthPlotHeight(margin().bottom());
+  double xlm = drawPlot->lengthPlotWidth (margin().left  ());
+  double xrm = drawPlot->lengthPlotWidth (margin().right ());
+  double ytm = drawPlot->lengthPlotHeight(margin().top   ());
+  double ybm = drawPlot->lengthPlotHeight(margin().bottom());
 
   // get internal padding
-  double xlp = plot()->lengthPlotWidth (padding().left  ());
-  double xrp = plot()->lengthPlotWidth (padding().right ());
-  double ytp = plot()->lengthPlotHeight(padding().top   ());
-  double ybp = plot()->lengthPlotHeight(padding().bottom());
+  double xlp = drawPlot->lengthPlotWidth (padding().left  ());
+  double xrp = drawPlot->lengthPlotWidth (padding().right ());
+  double ytp = drawPlot->lengthPlotHeight(padding().top   ());
+  double ybp = drawPlot->lengthPlotHeight(padding().bottom());
 
   //---
 
-  auto *xAxis = plot()->xAxis();
-  auto *yAxis = plot()->yAxis();
+  auto *xAxis = drawPlot->xAxis();
+  auto *yAxis = drawPlot->yAxis();
 
   // get key contents size
   auto ks = calcSize();
@@ -877,7 +891,7 @@ updateLocation(const BBox &bbox)
   double kx { 0.0 }, ky { 0.0 };
 
   if (location().isAuto()) {
-    auto fitBBox = plot()->findEmptyBBox(ks.width(), ks.height());
+    auto fitBBox = drawPlot->findEmptyBBox(ks.width(), ks.height());
 
     if (fitBBox.isSet()) {
       kx = fitBBox.getXMid() - ks.width ()/2;
@@ -1194,19 +1208,21 @@ doLayout()
 
   //---
 
+  auto *drawPlot = this->drawPlot();
+
   // get spacing, margin and padding in plot coords
-  xs_ = plot()->pixelToWindowWidth (spacing());
-  ys_ = plot()->pixelToWindowHeight(spacing());
+  xs_ = drawPlot->pixelToWindowWidth (spacing());
+  ys_ = drawPlot->pixelToWindowHeight(spacing());
 
-  pmargin_.xl = plot()->lengthPlotWidth (margin().left  ());
-  pmargin_.xr = plot()->lengthPlotWidth (margin().right ());
-  pmargin_.yt = plot()->lengthPlotHeight(margin().top   ());
-  pmargin_.yb = plot()->lengthPlotHeight(margin().bottom());
+  pmargin_.xl = drawPlot->lengthPlotWidth (margin().left  ());
+  pmargin_.xr = drawPlot->lengthPlotWidth (margin().right ());
+  pmargin_.yt = drawPlot->lengthPlotHeight(margin().top   ());
+  pmargin_.yb = drawPlot->lengthPlotHeight(margin().bottom());
 
-  ppadding_.xl = plot()->lengthPlotWidth (padding().left  ());
-  ppadding_.xr = plot()->lengthPlotWidth (padding().right ());
-  ppadding_.yt = plot()->lengthPlotHeight(padding().top   ());
-  ppadding_.yb = plot()->lengthPlotHeight(padding().bottom());
+  ppadding_.xl = drawPlot->lengthPlotWidth (padding().left  ());
+  ppadding_.xr = drawPlot->lengthPlotWidth (padding().right ());
+  ppadding_.yt = drawPlot->lengthPlotHeight(padding().top   ());
+  ppadding_.yb = drawPlot->lengthPlotHeight(padding().bottom());
 
   //---
 
@@ -1239,8 +1255,8 @@ doLayout()
     // get text size
     auto tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
 
-    layoutData_.headerWidth  = plot()->pixelToWindowWidth (tsize.width ()) + 2*xs_;
-    layoutData_.headerHeight = plot()->pixelToWindowHeight(tsize.height()) + 2*ys_;
+    layoutData_.headerWidth  = drawPlot->pixelToWindowWidth (tsize.width ()) + 2*xs_;
+    layoutData_.headerHeight = drawPlot->pixelToWindowHeight(tsize.height()) + 2*ys_;
   }
 
   //---
@@ -1298,19 +1314,19 @@ doLayout()
 
   //---
 
-  double vbw = plot()->pixelToWindowWidth (scrollData_.pixelBarSize);
-  double hbh = plot()->pixelToWindowHeight(scrollData_.pixelBarSize);
+  double vbw = drawPlot->pixelToWindowWidth (scrollData_.pixelBarSize);
+  double hbh = drawPlot->pixelToWindowHeight(scrollData_.pixelBarSize);
 
   //---
 
   // check if key size exceeds plot pixel size (auto hide if needed)
-  auto plotPixelRect = plot()->calcPlotPixelRect();
+  auto plotPixelRect = drawPlot->calcPlotPixelRect();
 
   double maxPixelWidth  = plotPixelRect.getWidth ()*0.8;
   double maxPixelHeight = plotPixelRect.getHeight()*0.8;
 
-  auto pixelWidth  = plot()->windowToPixelWidth (layoutData_.fullSize.width ());
-  auto pixelHeight = plot()->windowToPixelHeight(layoutData_.fullSize.height());
+  auto pixelWidth  = drawPlot->windowToPixelWidth (layoutData_.fullSize.width ());
+  auto pixelHeight = drawPlot->windowToPixelHeight(layoutData_.fullSize.height());
 
   layoutData_.pixelWidthExceeded  = (pixelWidth  > maxPixelWidth );
   layoutData_.pixelHeightExceeded = (pixelHeight > maxPixelHeight);
@@ -1322,28 +1338,28 @@ doLayout()
   layoutData_.scrollAreaWidth = w;
 
   if      (scrollData_.width.isSet()) {
-    double sw = plot()->lengthPlotWidth(scrollData_.width.length());
+    double sw = drawPlot->lengthPlotWidth(scrollData_.width.length());
 
     layoutData_.hscrolled       = (w > sw);
     layoutData_.scrollAreaWidth = sw;
   }
   else if (layoutData_.pixelWidthExceeded) {
     layoutData_.hscrolled       = true;
-    layoutData_.scrollAreaWidth = plot()->pixelToWindowWidth(maxPixelWidth);
+    layoutData_.scrollAreaWidth = drawPlot->pixelToWindowWidth(maxPixelWidth);
   }
 
   layoutData_.vscrolled        = false;
   layoutData_.scrollAreaHeight = h - layoutData_.headerHeight;
 
   if      (scrollData_.height.isSet()) {
-    double sh = plot()->lengthPlotHeight(scrollData_.height.length());
+    double sh = drawPlot->lengthPlotHeight(scrollData_.height.length());
 
     layoutData_.vscrolled        = (h > sh + layoutData_.headerHeight);
     layoutData_.scrollAreaHeight = sh;
   }
   else if (layoutData_.pixelHeightExceeded) {
     layoutData_.vscrolled        = true;
-    layoutData_.scrollAreaHeight = plot()->pixelToWindowHeight(maxPixelHeight) -
+    layoutData_.scrollAreaHeight = drawPlot->pixelToWindowHeight(maxPixelHeight) -
                                    layoutData_.headerHeight;
   }
 
@@ -1373,14 +1389,18 @@ CQChartsGeom::Point
 CQChartsPlotKey::
 absolutePlotPosition() const
 {
-  return plot()->viewToWindow(absolutePosition());
+  auto *drawPlot = this->drawPlot();
+
+  return drawPlot->viewToWindow(absolutePosition());
 }
 
 void
 CQChartsPlotKey::
 setAbsolutePlotPosition(const Point &p)
 {
-  setAbsolutePosition(plot()->windowToView(p));
+  auto *drawPlot = this->drawPlot();
+
+  setAbsolutePosition(drawPlot->windowToView(p));
 }
 
 CQChartsGeom::BBox
@@ -1392,14 +1412,18 @@ absolutePlotRectangle() const
   if (! bbox.isValid())
     return bbox;
 
-  return plot()->viewToWindow(bbox);
+  auto *drawPlot = this->drawPlot();
+
+  return drawPlot->viewToWindow(bbox);
 }
 
 void
 CQChartsPlotKey::
 setAbsolutePlotRectangle(const BBox &bbox)
 {
-  setAbsoluteRectangle(plot()->windowToView(bbox));
+  auto *drawPlot = this->drawPlot();
+
+  setAbsoluteRectangle(drawPlot->windowToView(bbox));
 }
 
 int
@@ -1712,9 +1736,11 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
+  auto *drawPlot = this->drawPlot();
+
   // calc pixel bounding box
-  auto p1 = plot()->windowToPixel(Point(x     + pmargin_.xl, y     - pmargin_.yt));
-  auto p2 = plot()->windowToPixel(Point(x + w - pmargin_.xl, y - h + pmargin_.yb));
+  auto p1 = drawPlot->windowToPixel(Point(x     + pmargin_.xl, y     - pmargin_.yt));
+  auto p2 = drawPlot->windowToPixel(Point(x + w - pmargin_.xl, y - h + pmargin_.yb));
 
   BBox pixelRect(p1, p2);
 
@@ -1730,7 +1756,7 @@ draw(CQChartsPaintDevice *device) const
   }
 
   // set clip rect to plot pixel rect
-  auto plotPixelRect = plot()->calcPlotPixelRect();
+  auto plotPixelRect = drawPlot->calcPlotPixelRect();
 
   bool clipped  = false;
   auto clipRect = plotPixelRect;
@@ -1738,7 +1764,7 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // get plot data rect
-  auto dataPixelRect = plot()->calcDataPixelRect();
+  auto dataPixelRect = drawPlot->calcDataPixelRect();
 
   auto dataRect = dataPixelRect;
 
@@ -1749,7 +1775,11 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
-  device->save();
+  auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
+
+  CQChartsPlotPaintDevice device1(drawPlot, painter);
+
+  device1.save();
 
   //---
 
@@ -1757,7 +1787,7 @@ draw(CQChartsPaintDevice *device) const
   sx_ = 0.0;
   sy_ = 0.0;
 
-  auto phh = plot()->windowToPixelHeight(layoutData_.headerHeight);
+  auto phh = drawPlot->windowToPixelHeight(layoutData_.headerHeight);
 
   double vspw = 0.0;
   double hsph = 0.0;
@@ -1825,8 +1855,8 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // update scroll bar
-    auto pageStep  = (int) plot()->windowToPixelWidth(sw - layoutData_.vbarWidth);
-    auto fullWidth = (int) plot()->windowToPixelWidth(layoutData_.fullSize.width());
+    auto pageStep  = (int) drawPlot->windowToPixelWidth(sw - layoutData_.vbarWidth);
+    auto fullWidth = (int) drawPlot->windowToPixelWidth(layoutData_.fullSize.width());
 
     if (scrollData_.hbar->pageStep() != pageStep)
       scrollData_.hbar->setPageStep(pageStep);
@@ -1839,7 +1869,7 @@ draw(CQChartsPaintDevice *device) const
     if (scrollData_.hbar->value() != scrollData_.hpos)
       scrollData_.hbar->setValue(scrollData_.hpos);
 
-    sx_ = plot()->pixelToWindowWidth(scrollData_.hpos);
+    sx_ = drawPlot->pixelToWindowWidth(scrollData_.hpos);
   }
   else {
     if (scrollData_.hbar)
@@ -1870,7 +1900,7 @@ draw(CQChartsPaintDevice *device) const
 
       if (bbox.isValid()) {
         clipped  = true;
-        clipRect = plot()->windowToPixel(bbox);
+        clipRect = drawPlot->windowToPixel(bbox);
       }
     }
 
@@ -1880,14 +1910,14 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // draw box (background)
-  CQChartsBoxObj::draw(device, plot()->pixelToWindow(pixelRect));
+  CQChartsBoxObj::draw(&device1, drawPlot->pixelToWindow(pixelRect));
 
   //---
 
   if (clipped) {
-    auto cr = plot()->pixelToWindow(clipRect);
+    auto cr = drawPlot->pixelToWindow(clipRect);
 
-    device->setClipRect(cr);
+    device1.setClipRect(cr);
   }
 
   //---
@@ -1913,28 +1943,28 @@ draw(CQChartsPaintDevice *device) const
     // get font
     auto font = view()->plotFont(plot(), headerTextFont());
 
-    device->setFont(font);
+    device1.setFont(font);
 
     //---
 
     // get key top left, width (pixels), margins
-    auto p = plot()->windowToPixel(Point(x, y)); // top left
+    auto p = drawPlot->windowToPixel(Point(x, y)); // top left
 
-    auto pw = plot()->windowToPixelWidth(sw);
+    auto pw = drawPlot->windowToPixelWidth(sw);
 
     //---
 
     // get external margin
-  //double xlm = plot()->lengthPlotWidth (margin().left  ());
-  //double xrm = plot()->lengthPlotWidth (margin().right ());
-    double ytm = plot()->lengthPlotHeight(margin().top   ());
-    double ybm = plot()->lengthPlotHeight(margin().bottom());
+  //double xlm = drawPlot->lengthPlotWidth (margin().left  ());
+  //double xrm = drawPlot->lengthPlotWidth (margin().right ());
+    double ytm = drawPlot->lengthPlotHeight(margin().top   ());
+    double ybm = drawPlot->lengthPlotHeight(margin().bottom());
 
     // get internal padding
-  //double xlp = plot()->lengthPlotWidth (padding().left  ());
-  //double xrp = plot()->lengthPlotWidth (padding().right ());
-  //double ytp = plot()->lengthPlotHeight(padding().top   ());
-  //double ybp = plot()->lengthPlotHeight(padding().bottom());
+  //double xlp = drawPlot->lengthPlotWidth (padding().left  ());
+  //double xrp = drawPlot->lengthPlotWidth (padding().right ());
+  //double ytp = drawPlot->lengthPlotHeight(padding().top   ());
+  //double ybp = drawPlot->lengthPlotHeight(padding().bottom());
 
     //---
 
@@ -1960,9 +1990,10 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // draw text
-    device->setPen(tPenBrush.pen);
+    device1.setPen(tPenBrush.pen);
 
-    CQChartsDrawUtil::drawTextInBox(device, plot()->pixelToWindow(trect), headerStr(), textOptions);
+    CQChartsDrawUtil::drawTextInBox(&device1, drawPlot->pixelToWindow(trect),
+                                    headerStr(), textOptions);
   }
 
   //---
@@ -1999,10 +2030,10 @@ draw(CQChartsPaintDevice *device) const
     item->setBBox(bbox);
 
     if (wbbox_.overlaps(bbox)) {
-      item->draw(device, bbox);
+      item->draw(&device1, bbox);
 
       if (plot()->showBoxes())
-        plot()->drawWindowColorBox(device, bbox);
+        drawPlot->drawWindowColorBox(&device1, bbox);
     }
   }
 
@@ -2010,16 +2041,16 @@ draw(CQChartsPaintDevice *device) const
 
   // draw box
   if (plot()->showBoxes()) {
-    plot()->drawWindowColorBox(device, wbbox_);
+    drawPlot->drawWindowColorBox(&device1, wbbox_);
 
     BBox headerBox(x, y - layoutData_.headerHeight, x + sw, y);
 
-    plot()->drawWindowColorBox(device, headerBox);
+    drawPlot->drawWindowColorBox(&device1, headerBox);
   }
 
   //---
 
-  device->restore();
+  device1.restore();
 }
 
 void
@@ -2414,13 +2445,14 @@ CQChartsGeom::Size
 CQChartsKeyText::
 size() const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
 
   auto font = plot->view()->plotFont(plot, key_->textFont());
 
   QFontMetricsF fm(font);
 
-  double clipLength = plot->lengthPixelWidth(key_->textClipLength());
+  double clipLength = drawPlot->lengthPixelWidth(key_->textClipLength());
   auto   clipElide  = key_->textClipElide();
 
   auto text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength, clipElide);
@@ -2428,8 +2460,8 @@ size() const
   double w = fm.width(text);
   double h = fm.height();
 
-  double ww = plot->pixelToWindowWidth (w + 4);
-  double wh = plot->pixelToWindowHeight(h + 4);
+  double ww = drawPlot->pixelToWindowWidth (w + 4);
+  double wh = drawPlot->pixelToWindowHeight(h + 4);
 
   return Size(ww, wh);
 }
@@ -2445,7 +2477,10 @@ void
 CQChartsKeyText::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
+
+  //---
 
   plot->view()->setPlotPainterFont(plot, device, key_->textFont());
 
@@ -2461,7 +2496,7 @@ draw(PaintDevice *device, const BBox &rect) const
   textOptions.formatted     = key_->isTextFormatted();
   textOptions.scaled        = key_->isTextScaled();
   textOptions.html          = key_->isTextHtml();
-  textOptions.clipLength    = plot->lengthPixelWidth(key_->textClipLength());
+  textOptions.clipLength    = drawPlot->lengthPixelWidth(key_->textClipLength());
   textOptions.clipElide     = key_->textClipElide();
 
   textOptions = plot->adjustTextOptions(textOptions);
@@ -2506,7 +2541,8 @@ CQChartsGeom::Size
 CQChartsKeyColorBox::
 size() const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
 
   auto font = plot->view()->plotFont(plot, key_->textFont());
 
@@ -2514,8 +2550,8 @@ size() const
 
   double h = fm.height();
 
-  double ww = plot->pixelToWindowWidth (h + 2);
-  double wh = plot->pixelToWindowHeight(h + 2);
+  double ww = drawPlot->pixelToWindowWidth (h + 2);
+  double wh = drawPlot->pixelToWindowHeight(h + 2);
 
   return Size(ww, wh);
 }
@@ -2549,9 +2585,10 @@ void
 CQChartsKeyColorBox::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
 
-  auto prect = plot->windowToPixel(rect);
+  auto prect = drawPlot->windowToPixel(rect);
 
   bool swapped;
   auto prect1 = prect.adjusted(2, 2, -2, -2, swapped);
@@ -2567,7 +2604,7 @@ draw(PaintDevice *device, const BBox &rect) const
   if (isInside())
     penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
-  auto bbox = plot->pixelToWindow(prect1);
+  auto bbox = drawPlot->pixelToWindow(prect1);
 
   CQChartsDrawUtil::drawRoundedRect(device, penBrush, bbox, cornerRadius());
 }
@@ -2650,7 +2687,8 @@ CQChartsGeom::Size
 CQChartsKeyLine::
 size() const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
 
   auto font = plot->view()->plotFont(plot, key_->textFont());
 
@@ -2659,8 +2697,8 @@ size() const
   double w = fm.width("-X-");
   double h = fm.height();
 
-  double ww = plot->pixelToWindowWidth (w + 8);
-  double wh = plot->pixelToWindowHeight(h + 2);
+  double ww = drawPlot->pixelToWindowWidth (w + 8);
+  double wh = drawPlot->pixelToWindowHeight(h + 2);
 
   return Size(ww, wh);
 }
@@ -2694,9 +2732,10 @@ void
 CQChartsKeyLine::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot = key_->plot();
+  auto *plot     = key_->plot();
+  auto *drawPlot = key_->drawPlot();
 
-  auto prect = plot->windowToPixel(rect);
+  auto prect = drawPlot->windowToPixel(rect);
 
   bool swapped;
   auto pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
@@ -2718,11 +2757,11 @@ draw(PaintDevice *device, const BBox &rect) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawLine(plot->pixelToWindow(Point(x1, y)), plot->pixelToWindow(Point(x2, y)));
+  device->drawLine(drawPlot->pixelToWindow(Point(x1, y)), drawPlot->pixelToWindow(Point(x2, y)));
 
   Point ps(CMathUtil::avg(x1, x2), y);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolData_.type(), plot->pixelToWindow(ps),
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolData_.type(), drawPlot->pixelToWindow(ps),
                                symbolData_.size());
 }
 
@@ -2909,14 +2948,137 @@ calcLabels(QStringList &labels) const
 
 //------
 
-CQChartsSymbolMapKey::
-CQChartsSymbolMapKey(Plot *plot) :
+CQChartsColorMapKey::
+CQChartsColorMapKey(Plot *plot) :
  plot_(plot)
 {
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsColorMapKey::
+addProperties(PropertyModel *model, const QString &path)
+{
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addProp("dataMin", "Model Data Min");
+  addProp("dataMax", "Model Data Max");
+
+  addProp("mapMin", "Color Value Min");
+  addProp("mapMax", "Color Value Max");
+
+  addProp("position", "Key Position");
+
+  addProp("margin", "Margin");
+
+  addProp("paletteName", "Palette Name");
+}
+
+void
+CQChartsColorMapKey::
+draw(PaintDevice *device)
+{
+  QFontMetricsF fm(device->font());
+
+  double bw = fm.width("X") + 16;
+  double bh = fm.height()*5;
+  double bm = this->margin();
+
+  auto dataMid = CMathUtil::avg(dataMin(), dataMax());
+
+  auto dataMinStr = QString("%1").arg(dataMin());
+  auto dataMidStr = QString("%1").arg(dataMid  );
+  auto dataMaxStr = QString("%1").arg(dataMax());
+
+  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMinStr)), fm.width(dataMaxStr));
+
+  double kw = bw + tw + 4;
+
+  // calc center
+  Point pos;
+
+  if (position_.isValid()) {
+    pos = plot_->positionToPixel(position_);
+  }
+  else {
+    auto pbbox = plot_->calcPlotPixelRect();
+
+    double px = pbbox.getXMax() - kw/2.0 - bm;
+    double py = pbbox.getYMax() - bh/2.0 - bm;
+
+    pos = Point(px, py);
+  }
+
+  double xm = pos.x;
+  double ym = pos.y;
+
+  //---
+
+  // draw gradient
+  Point pg1(xm - bw/2.0, ym - bh/2.0);
+  Point pg2(xm + bw/2.0, ym + bh/2.0);
+
+  QLinearGradient lg(xm, pg2.y, xm, pg1.y);
+
+  CQColorsPalette *colorsPalette = nullptr;
+
+  if (paletteName().isValid())
+    colorsPalette = paletteName().palette();
+  else
+    colorsPalette = plot_->view()->themePalette();
+
+  colorsPalette->setLinearGradient(lg, 1.0, mapMin(), mapMax());
+
+  QBrush brush(lg);
+
+  BBox fbbox(pg1.x, pg1.y, pg2.x, pg2.y);
+
+  device->setBrush(brush);
+
+  device->fillRect(plot_->pixelToWindow(fbbox));
+
+  //---
+
+  // draw labels
+  // draw labels
+  auto drawTextLabel = [&](const Point &p, const QString &label) {
+    auto p1 = plot_->pixelToWindow(p);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, label, options);
+  };
+
+  double df = (fm.ascent() - fm.descent())/2.0;
+
+  drawTextLabel(Point(pg2.x + 2, pg2.y + df), dataMinStr);
+  drawTextLabel(Point(pg2.x + 2, ym    + df), dataMidStr);
+  drawTextLabel(Point(pg2.x + 2, pg1.y + df), dataMaxStr);
+}
+
+void
+CQChartsColorMapKey::
+invalidate()
+{
+  emit dataChanged();
+}
+
+//------
+
+CQChartsSymbolSizeMapKey::
+CQChartsSymbolSizeMapKey(Plot *plot) :
+ plot_(plot)
+{
+}
+
+void
+CQChartsSymbolSizeMapKey::
 addProperties(PropertyModel *model, const QString &path)
 {
   auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
@@ -2950,7 +3112,7 @@ addProperties(PropertyModel *model, const QString &path)
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 draw(PaintDevice *device, bool usePenBrush)
 {
   drawCircles(device, usePenBrush);
@@ -2963,7 +3125,7 @@ draw(PaintDevice *device, bool usePenBrush)
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 drawCircles(PaintDevice *device, bool usePenBrush)
 {
   auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
@@ -3016,7 +3178,7 @@ drawCircles(PaintDevice *device, bool usePenBrush)
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePenBrush)
 {
   if (! usePenBrush) {
@@ -3139,13 +3301,13 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
 
   //---
 
-  auto *th = const_cast<CQChartsSymbolMapKey *>(this);
+  auto *th = const_cast<CQChartsSymbolSizeMapKey *>(this);
 
   th->tbbox_ = plot_->pixelToWindow(BBox(pxt1, pyt1, pxt2, pyt2));
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 drawBorder(PaintDevice *device, bool usePenBrush)
 {
   if (! border_)
@@ -3174,14 +3336,14 @@ drawBorder(PaintDevice *device, bool usePenBrush)
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 invalidate()
 {
   emit dataChanged();
 }
 
 void
-CQChartsSymbolMapKey::
+CQChartsSymbolSizeMapKey::
 getSymbolBoxes(BBoxes &pbboxes) const
 {
   // symbol sizes
@@ -3223,7 +3385,7 @@ getSymbolBoxes(BBoxes &pbboxes) const
 
   BBox bbox;
 
-  auto *th = const_cast<CQChartsSymbolMapKey *>(this);
+  auto *th = const_cast<CQChartsSymbolSizeMapKey *>(this);
 
   if (! isStacked()) {
     double yb = ym + prmax;

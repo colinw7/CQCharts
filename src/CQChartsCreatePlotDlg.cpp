@@ -16,6 +16,7 @@
 #include <CQChartsModelChooser.h>
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsPreviewPlot.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
 #include <CQCharts.h>
@@ -1448,7 +1449,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *para
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
-  auto *edit  = new CQChartsIntParameterEdit(parameter);;
+  auto *edit  = new CQChartsIntParameterEdit(parameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);

@@ -26,7 +26,15 @@ class CQChartsExprCmdValues {
 
   int numValues() const { return values_.size(); }
 
-  QVariant popValue() { QVariant value = values_.back(); values_.pop_back(); return value; }
+  QVariant popValue() {
+    QVariant value = values_.back();
+
+    values_.pop_back();
+
+    eind_ = numValues() - 1;
+
+    return value;
+  }
 
   bool getInt(int &i) {
     if (ind_ > eind_) return false;

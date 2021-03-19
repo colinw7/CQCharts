@@ -348,14 +348,20 @@ double
 CQTimeRangeSlider::
 valueToPixel(double x) const
 {
-  return (xs2_ - xs1_)*(x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
+  if (rangeMax() > rangeMin())
+    return (xs2_ - xs1_)*(x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
+  else
+    return xs1_;
 }
 
 double
 CQTimeRangeSlider::
 pixelToValue(double px) const
 {
-  return (px - xs1_)*(rangeMax() - rangeMin())/(xs2_ - xs1_) + rangeMin();
+  if (xs2_ > xs1_)
+    return (px - xs1_)*(rangeMax() - rangeMin())/(xs2_ - xs1_) + rangeMin();
+  else
+    return rangeMin();
 }
 
 QSize

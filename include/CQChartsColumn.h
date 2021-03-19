@@ -162,6 +162,8 @@ class CQChartsColumn :
   bool decodeString(const QString &str, Type &type, int &column, int &role,
                     QString &expr, QString &name);
 
+  void updateType();
+
  private:
   Type  type_   { Type::NONE };
   int   column_ { -1 };

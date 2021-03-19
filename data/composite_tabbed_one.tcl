@@ -158,20 +158,8 @@ set plots { }
 ### sankey
 
 ### scatter
-set scatter_model [load_charts_model -tsv data/scatter.tsv -first_line_header]
-
-set scatter_plot [create_charts_plot -model $scatter_model -type scatter \
-  -columns {{x sepalLength} {y sepalWidth}}]
-
-lappend plots $scatter_plot
 
 ### scatter3d
-#set scatter3d_model [load_charts_model -data data/glass.dat]
-
-#set scatter3d_plot [create_charts_plot -model $scatter3d_model -type scatter3d \
-#  -columns {{x 0} {y 1} {z 2}} -title "Scatter Plot"'
-
-#lappend plots $scatter3d_plot
 
 ### strip
 

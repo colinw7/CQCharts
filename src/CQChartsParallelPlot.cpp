@@ -11,6 +11,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -1522,6 +1523,8 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
   orientationCombo_ = createEnumEdit("orientation");
 
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

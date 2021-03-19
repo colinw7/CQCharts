@@ -145,11 +145,12 @@ addPlot(CQChartsPlot *plot)
   updatePlots();
 }
 
+// called when plot added or composite type changed
 void
 CQChartsCompositePlot::
 updatePlots()
 {
-  // common y different x axis
+  // common x different y axis (first plot x bottom, second x top)
   if      (compositeType_ == CompositeType::X1X2) {
     int i = 0;
 
@@ -161,16 +162,22 @@ updatePlots()
         plot->xAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
                                         CQChartsAxisSide::Type::TOP_RIGHT);
 
+      if (plot->yAxis())
+        plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+
       ++i;
     }
   }
-  // common x different y axis
+  // common x different y axis (first plot y left, second y right)
   else if (compositeType_ == CompositeType::Y1Y2) {
     int i = 0;
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
+
+      if (plot->xAxis())
+        plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
 
       if (plot->yAxis())
         plot->yAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
@@ -179,14 +186,28 @@ updatePlots()
       ++i;
     }
   }
-  else {
+  // common x and y axis (first plot bottom left, second top right)
+  else if (compositeType_ == CompositeType::NONE) {
+    int i = 0;
+
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
+      if (plot->xAxis())
+        plot->xAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                        CQChartsAxisSide::Type::TOP_RIGHT);
 
+      if (plot->yAxis())
+        plot->yAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                        CQChartsAxisSide::Type::TOP_RIGHT);
+
+      ++i;
+    }
+  }
+  // tabbed (all bottom left)
+  else if (compositeType_ == CompositeType::TABBED) {
+    for (auto &plot : plots_) {
       if (plot->xAxis())
         plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
 
@@ -509,8 +530,32 @@ void
 CQChartsCompositePlot::
 initObjTree()
 {
-  return (currentPlot() ? currentPlot()->initObjTree() : CQChartsPlot::initObjTree());
+  if (compositeType_ == CompositeType::TABBED) {
+    return (currentPlot() ? currentPlot()->initObjTree() : CQChartsPlot::initObjTree());
+  }
+  else {
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
+      plot->initObjTree();
+    }
+  }
 }
+
+//---
+
+void
+CQChartsCompositePlot::
+updatePlotKeyPosition(Plot *plot, bool force)
+{
+  auto *currentPlot = this->currentPlot();
+  if (plot != currentPlot) return;
+
+  return CQChartsPlot::updatePlotKeyPosition(plot, force);
+}
+
+//---
 
 CQChartsGeom::BBox
 CQChartsCompositePlot::
@@ -561,6 +606,7 @@ applyDataRange(bool propagate)
 
 //---
 
+#if 0
 bool
 CQChartsCompositePlot::
 isKeyVisible() const
@@ -582,7 +628,9 @@ isKeyVisibleAndNonEmpty() const
   return (currentPlot() ? currentPlot()->isKeyVisibleAndNonEmpty() :
                           CQChartsPlot::isKeyVisibleAndNonEmpty());
 }
+#endif
 
+#if 0
 bool
 CQChartsCompositePlot::
 isColorKey() const
@@ -596,6 +644,7 @@ setColorKey(bool b)
 {
   return (currentPlot() ? currentPlot()->setColorKey(b) : CQChartsPlot::setColorKey(b));
 }
+#endif
 
 //---
 
@@ -922,6 +971,7 @@ drawBackgroundDeviceParts(PaintDevice *device, const BackgroundParts &bgParts) c
 {
   auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
 
+  // draw all plots background parts except axis and key
   for (auto &plot : plots_) {
     if (! plot->isVisible())
       continue;
@@ -939,21 +989,30 @@ drawBackgroundDeviceParts(PaintDevice *device, const BackgroundParts &bgParts) c
     plot->drawBackgroundDeviceParts(&device1, bgParts1);
   }
 
+  //---
+
   if (bgParts.axes || bgParts.key) {
-    for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
+    // draw current plot axis and key for tabbed
+    if (compositeType_ == CompositeType::TABBED) {
+      auto *currentPlot = this->currentPlot();
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
+      if (currentPlot) {
+        CQChartsPlotPaintDevice device1(currentPlot, painter);
 
-      CQChartsPlotPaintDevice device1(plot, painter);
+        if (bgParts.axes)
+          currentPlot->drawBgAxes(&device1);
 
+        if (bgParts.key)
+          currentPlot->drawBgKey(&device1);
+      }
+    }
+    else {
+      // for overlay use our custom draw code
       if (bgParts.axes)
-        plot->drawGroupedBgAxes(&device1);
+        drawBgAxes(device);
 
       if (bgParts.key)
-        plot->drawBgKey(&device1);
+        drawBgKey(device);
     }
   }
 }
@@ -983,6 +1042,7 @@ drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) c
 {
   auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
 
+  // draw all plots background parts except axis, key and title
   if (fgParts.axes || fgParts.key || fgParts.title) {
     for (auto &plot : plots_) {
       if (! plot->isVisible())
@@ -993,34 +1053,47 @@ drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) c
 
       CQChartsPlotPaintDevice device1(plot, painter);
 
-      if (fgParts.axes)
-        plot->drawGroupedFgAxes(&device1);
+      ForegroundParts fgParts1 = fgParts;
 
-      if (fgParts.key)
-        plot->drawFgKey(&device1);
+      fgParts1.axes  = false;
+      fgParts1.key   = false;
+      fgParts1.title = false;
 
-      if (fgParts.title)
-        plot->drawTitle(&device1);
+      plot->drawForegroundDeviceParts(&device1, fgParts1);
     }
   }
 
-  for (auto &plot : plots_) {
-    if (! plot->isVisible())
-      continue;
+  //---
 
-    if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-      continue;
+  if (fgParts.axes || fgParts.key || fgParts.title) {
+    // draw current plot axis and key for tabbed
+    if (compositeType_ == CompositeType::TABBED) {
+      auto *currentPlot = this->currentPlot();
 
-    CQChartsPlotPaintDevice device1(plot, painter);
+      if (currentPlot) {
+        CQChartsPlotPaintDevice device1(currentPlot, painter);
 
-    ForegroundParts fgParts1 = fgParts;
+        if (fgParts.axes)
+          currentPlot->drawFgAxes(&device1);
 
-    fgParts1.axes   = false;
-    fgParts1.key    = false;
-    fgParts1.title  = false;
-    fgParts1.tabbed = false;
+        if (fgParts.key)
+          currentPlot->drawFgKey(&device1);
 
-    plot->drawForegroundDeviceParts(&device1, fgParts1);
+        if (fgParts.title)
+          currentPlot->drawTitle(&device1);
+      }
+    }
+    else {
+      // for overlay use our custom draw code
+      if (fgParts.axes)
+        drawFgAxes(device);
+
+      if (fgParts.key)
+        drawFgKey(device);
+
+      if (fgParts.title)
+        drawTitle(device);
+    }
   }
 
   //---
@@ -1059,39 +1132,75 @@ drawBgAxes(PaintDevice *device) const
 
   // common y different x axis
   if      (compositeType_ == CompositeType::X1X2) {
+    int ix = 0, iy = 0;
+
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
-
       CQChartsPlotPaintDevice device1(plot, painter);
 
-      plot->drawBgAxes(&device1);
+      if (ix < 2) {
+        if (plot->drawBgXAxis(&device1))
+          ++ix;
+      }
+
+      if (iy < 1) {
+        if (plot->drawBgYAxis(&device1))
+          ++iy;
+      }
     }
   }
   // common x different y axis
   else if (compositeType_ == CompositeType::Y1Y2) {
+    int ix = 0, iy = 0;
+
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
+      CQChartsPlotPaintDevice device1(plot, painter);
+
+      if (ix < 1) {
+        if (plot->drawBgXAxis(&device1))
+          ++ix;
+      }
+
+      if (iy < 2) {
+        if (plot->drawBgYAxis(&device1))
+          ++iy;
+      }
+    }
+  }
+  // tabbed
+  else if (compositeType_ == CompositeType::TABBED) {
+    auto *currentPlot = this->currentPlot();
+
+    if (currentPlot) {
+      CQChartsPlotPaintDevice device1(currentPlot, painter);
+
+      currentPlot->drawBgAxes(&device1);
+    }
+  }
+  // common x and y axis
+  else {
+    int ix = 0, iy = 0;
+
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
         continue;
 
       CQChartsPlotPaintDevice device1(plot, painter);
 
-      plot->drawBgAxes(&device1);
-    }
-  }
-  else {
-    if (currentPlot() && currentPlot()->isVisible()) {
-      const_cast<CQChartsCompositePlot *>(this)->setOverlayAxisLabels();
+      if (ix < 2) {
+        if (plot->drawBgXAxis(&device1))
+          ++ix;
+      }
 
-      CQChartsPlotPaintDevice device1(currentPlot(), painter);
-
-      currentPlot()->drawBgAxes(&device1);
+      if (iy < 2) {
+        if (plot->drawBgYAxis(&device1))
+          ++iy;
+      }
     }
   }
 }
@@ -1104,53 +1213,75 @@ drawFgAxes(PaintDevice *device) const
 
   // common y different x axis
   if      (compositeType_ == CompositeType::X1X2) {
-    int i = 0;
+    int ix = 0, iy = 0;
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
-
       CQChartsPlotPaintDevice device1(currentPlot(), painter);
 
-      plot->drawFgAxes(&device1);
+      if (ix < 2) {
+        if (plot->drawFgXAxis(&device1))
+          ++ix;
+      }
 
-      ++i;
-
-      if (i == 2)
-        break;
+      if (iy < 1) {
+        if (plot->drawFgYAxis(&device1))
+          ++iy;
+      }
     }
   }
   // common x different y axis
   else if (compositeType_ == CompositeType::Y1Y2) {
-    int i = 0;
+    int ix = 0, iy = 0;
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
+      CQChartsPlotPaintDevice device1(plot, painter);
 
-      CQChartsPlotPaintDevice device1(currentPlot(), painter);
+      if (ix < 1) {
+        if (plot->drawFgXAxis(&device1))
+          ++ix;
+      }
 
-      plot->drawFgAxes(&device1);
-
-      ++i;
-
-      if (i == 2)
-        break;
+      if (iy < 2) {
+        if (plot->drawFgYAxis(&device1))
+          ++iy;
+      }
     }
   }
+  // tabbed
+  else if (compositeType_ == CompositeType::TABBED) {
+    auto *currentPlot = this->currentPlot();
+
+    if (currentPlot) {
+      CQChartsPlotPaintDevice device1(currentPlot, painter);
+
+      currentPlot->drawFgAxes(&device1);
+    }
+  }
+  // common x and y axis
   else {
-    if (currentPlot() && currentPlot()->isVisible()) {
-      const_cast<CQChartsCompositePlot *>(this)->setOverlayAxisLabels();
+    int ix = 0, iy = 0;
 
-      CQChartsPlotPaintDevice device1(currentPlot(), painter);
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
 
-      currentPlot()->drawFgAxes(&device1);
+      CQChartsPlotPaintDevice device1(plot, painter);
+
+      if (ix < 2) {
+        if (plot->drawFgXAxis(&device1))
+          ++ix;
+      }
+
+      if (iy < 2) {
+        if (plot->drawFgYAxis(&device1))
+          ++iy;
+      }
     }
   }
 }
@@ -1161,10 +1292,28 @@ drawTitle(PaintDevice *device) const
 {
   auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
 
-  if (currentPlot() && currentPlot()->isVisible()) {
-    CQChartsPlotPaintDevice device1(currentPlot(), painter);
+  // for tabbed draw title for current plot
+  if (compositeType_ == CompositeType::TABBED) {
+    auto *currentPlot = this->currentPlot();
 
-    currentPlot()->drawTitle(&device1);
+    if (currentPlot) {
+      CQChartsPlotPaintDevice device1(currentPlot, painter);
+
+      currentPlot->drawTitle(&device1);
+    }
+  }
+  // otherwise draw on first visible plot
+  else {
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
+      CQChartsPlotPaintDevice device1(plot, painter);
+
+      plot->drawTitle(&device1);
+
+      break;
+    }
   }
 }
 
@@ -1272,37 +1421,33 @@ currentPlotSlot()
 
 //------
 
+// add key items for specified child plot
 void
 CQChartsCompositePlot::
-resetKeyItems()
+resetPlotKeyItems(Plot *plot)
 {
   if (compositeType_ == CompositeType::TABBED) {
-    // key per plot
-    for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
+    // key for current plot
+    auto *currentPlot = this->currentPlot();
+    if (plot != currentPlot) return;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
-
-      plot->resetKeyItems();
-    }
+    CQChartsPlot::resetPlotKeyItems(currentPlot);
   }
   else {
-    // shared key
-    if (! key())
-      return;
+    // shared key (add only for first visible (current) plot)
+    auto *currentPlot = this->currentPlot();
+    if (plot != currentPlot) return;
 
-    key()->clearItems();
+    auto *key = this->key();
+    if (! key) return;
+
+    key->clearItems();
 
     for (auto &plot : plots_) {
       if (! plot->isVisible())
         continue;
 
-      if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
-        continue;
-
-      plot->doAddKeyItems(key());
+      plot->doAddKeyItems(key);
     }
   }
 }
@@ -1510,12 +1655,14 @@ yAxis() const
   return (currentPlot() ? currentPlot()->yAxis() : CQChartsPlot::yAxis());
 }
 
+#if 0
 CQChartsPlotKey *
 CQChartsCompositePlot::
 key() const
 {
   return (currentPlot() ? currentPlot()->key() : CQChartsPlot::key());
 }
+#endif
 
 //---
 
@@ -1564,22 +1711,6 @@ CQChartsCompositePlot::
 setCurrentPlotInd(int i)
 {
   setCurrentPlot(childPlot(i));
-}
-
-//---
-
-bool
-CQChartsCompositePlot::
-isX1X2(bool /*checkVisible*/) const
-{
-  return (compositeType_ == CompositeType::X1X2);
-}
-
-bool
-CQChartsCompositePlot::
-isY1Y2(bool /*checkVisible*/) const
-{
-  return (compositeType_ == CompositeType::Y1Y2);
 }
 
 //---

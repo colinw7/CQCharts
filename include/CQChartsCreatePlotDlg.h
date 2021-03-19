@@ -20,7 +20,13 @@ class CQChartsModelData;
 class CQChartsModelDetailsWidget;
 class CQChartsModelChooser;
 class CQChartsPreviewPlot;
+class CQChartsColumnParameterEdit;
+class CQChartsEnumParameterEdit;
 class CQChartsEnumParameterCombo;
+class CQChartsStringParameterEdit;
+class CQChartsRealParameterEdit;
+class CQChartsIntParameterEdit;
+class CQChartsBoolParameterEdit;
 class CQChartsLineEdit;
 
 class CQSummaryModel;

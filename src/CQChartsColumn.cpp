@@ -21,8 +21,7 @@ CQChartsColumn::
 CQChartsColumn(int column, int role) :
  type_(Type::DATA), column_(column), role_(role)
 {
-  if (column_ < 0)
-    type_ = Type::NONE;
+  updateType();
 }
 
 CQChartsColumn::
@@ -30,6 +29,8 @@ CQChartsColumn(const QString &s)
 {
   if (! setValue(s))
     type_ = Type::NONE;
+
+  updateType();
 }
 
 CQChartsColumn::
@@ -43,6 +44,8 @@ CQChartsColumn(Type type, int column, const QString &s, int role) :
 
     memcpy(expr_, s.toLatin1().constData(), len + 1);
   }
+
+  updateType();
 }
 
 CQChartsColumn::
@@ -64,6 +67,8 @@ CQChartsColumn(const CQChartsColumn &rhs) :
 
     memcpy(name_, rhs.name_, len + 1);
   }
+
+  updateType();
 }
 
 CQChartsColumn::
@@ -103,6 +108,8 @@ operator=(const CQChartsColumn &rhs)
       memcpy(name_, rhs.name_, len + 1);
     }
   }
+
+  updateType();
 
   return *this;
 }
@@ -156,6 +163,8 @@ setValue(const QString &str)
 
   if (name != "")
     setName(name);
+
+  updateType();
 
   return true;
 }
@@ -478,6 +487,14 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   role   = int(role1);
 
   return true;
+}
+
+void
+CQChartsColumn::
+updateType()
+{
+  if (type_ == Type::DATA && column_ < 0)
+    type_ = Type::NONE;
 }
 
 //---

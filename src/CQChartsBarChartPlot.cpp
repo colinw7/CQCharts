@@ -9,6 +9,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
@@ -2736,6 +2737,8 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Skip Empty"  , skipEmptyCheck_);
   addFrameWidget(optionsFrame, "Dot Lines"   , dotLinesCheck_);
   addFrameWidget(optionsFrame, "Color by Set", colorBySetCheck_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

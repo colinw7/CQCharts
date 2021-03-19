@@ -12,6 +12,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -1372,6 +1373,8 @@ CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

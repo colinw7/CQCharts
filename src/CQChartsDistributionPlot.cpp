@@ -15,6 +15,7 @@
 #include <CQChartsRand.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -4584,6 +4585,8 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
   addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
   addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

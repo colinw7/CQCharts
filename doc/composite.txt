@@ -8,7 +8,13 @@ Composite plot directs all operations to current plot
  + never access non-current plot display data (ranges, zoom, ...)
  + uses common mouse over ... ?
 
-Use virtuals to override behavior (re-direct to current plot)
+. Resource on composite plot : check if parentPlot() and redirect to parent (composite(
+. Resource per plot          : Use virtuals to override behavior (re-direct to current plot(s))
 
 TODO:
   viewBBox_ is always composite plot with tab adjust
+
+Single key   (composite plot) to handle all plot items
+Single title (composite plot) to handle all plot text .... ?
+
+Shared Axes (X1X2, Y1Y2, control sides)

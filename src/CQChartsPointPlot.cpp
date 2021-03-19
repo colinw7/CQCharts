@@ -1363,6 +1363,8 @@ addSymbolSizeWidgets()
   addSymbolSizeWidget("Column", symbolSizeColumnCombo_);
   addSymbolSizeWidget("Range" , symbolSizeRange_);
 
+  symbolSizeLayout->setRowStretch(symbolSizeRow, 1);
+
   //---
 
   split_->addWidget(symbolSizeFrame, "Symbol Size");
@@ -1396,6 +1398,8 @@ addSymbolSizeWidgets()
   addSymbolTypeWidget("Column", symbolTypeColumnCombo_);
   addSymbolTypeWidget("Range" , symbolTypeRange_);
   addSymbolTypeWidget("Set"   , symbolTypeSetEdit_);
+
+  symbolTypeLayout->setRowStretch(symbolTypeRow, 1);
 
   //---
 
@@ -1487,10 +1491,10 @@ updateWidgets()
   //---
 
   if (symbolSizeLengthEdit_) {
-    auto hasColumn = symbolSizeColumnCombo_->getColumn().isValid();
+    auto hasSymbolSizeColumn = symbolSizeColumnCombo_->getColumn().isValid();
 
-    symbolSizeLengthEdit_->setEnabled(! hasColumn);
-    symbolSizeRange_     ->setEnabled(hasColumn);
+    symbolSizeLengthEdit_->setEnabled(! hasSymbolSizeColumn);
+    symbolSizeRange_     ->setEnabled(hasSymbolSizeColumn);
 
     symbolSizeLengthEdit_->setLength(plot_->fixedSymbolSize());
 
@@ -1502,11 +1506,11 @@ updateWidgets()
   }
 
   if (symbolTypeEdit_) {
-    auto hasColumn = symbolTypeColumnCombo_->getColumn().isValid();
+    auto hasSymbolTypeColumn = symbolTypeColumnCombo_->getColumn().isValid();
 
-    symbolTypeEdit_   ->setEnabled(! hasColumn);
-    symbolTypeRange_  ->setEnabled(hasColumn);
-    symbolTypeSetEdit_->setEnabled(hasColumn);
+    symbolTypeEdit_   ->setEnabled(! hasSymbolTypeColumn);
+    symbolTypeRange_  ->setEnabled(hasSymbolTypeColumn);
+    symbolTypeSetEdit_->setEnabled(hasSymbolTypeColumn);
 
     symbolTypeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolTypeColumn());
 
@@ -1531,13 +1535,6 @@ updateWidgets()
   //---
 
   connectSlots(true);
-}
-
-void
-CQChartsPointPlotCustomControls::
-symbolSizeByColumnSlot()
-{
-  updateWidgets();
 }
 
 void

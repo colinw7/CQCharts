@@ -507,7 +507,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using GroupHull     = std::map<int, Hull *>;
   using RugP          = std::unique_ptr<CQChartsAxisRug>;
 
-  CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
+  DataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data
@@ -550,7 +550,6 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void symbolSizeDetailsSlot();
   void symbolTypeDetailsSlot();
 
-  void symbolSizeByColumnSlot();
   void symbolSizeLengthSlot();
   void symbolSizeColumnSlot();
   void symbolSizeRangeSlot(double min, double max);

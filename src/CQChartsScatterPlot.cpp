@@ -17,6 +17,7 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBivariateDensity.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsFontEdit.h>
 #include <CQChartsPaletteNameEdit.h>
@@ -215,12 +216,20 @@ init()
 
   //---
 
-  symbolMapKey_ = new CQChartsSymbolMapKey(this);
+  colorMapKey_ = new CQChartsColorMapKey(this);
 
-  symbolMapKey_->setVisible(false);
-  symbolMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
+  colorMapKey_->setVisible(false);
 
-  connect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  //---
+
+  symbolSizeMapKey_ = new CQChartsSymbolSizeMapKey(this);
+
+  symbolSizeMapKey_->setVisible(false);
+  symbolSizeMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
+
+  connect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 }
 
 void
@@ -355,17 +364,37 @@ setPlotType(PlotType type)
 
 bool
 CQChartsScatterPlot::
-isSymbolMapKey() const
+isColorMapKey() const
 {
-  return symbolMapKey_->isVisible();
+  return colorMapKey_->isVisible();
 }
 
 void
 CQChartsScatterPlot::
-setSymbolMapKey(bool b)
+setColorMapKey(bool b)
 {
-  if (b != symbolMapKey_->isVisible()) {
-    symbolMapKey_->setVisible(b);
+  if (b != colorMapKey_->isVisible()) {
+    colorMapKey_->setVisible(b);
+
+    drawObjs();
+  }
+}
+
+//---
+
+bool
+CQChartsScatterPlot::
+isSymbolSizeMapKey() const
+{
+  return symbolSizeMapKey_->isVisible();
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSizeMapKey(bool b)
+{
+  if (b != symbolSizeMapKey_->isVisible()) {
+    symbolSizeMapKey_->setVisible(b);
 
     drawObjs();
   }
@@ -373,17 +402,17 @@ setSymbolMapKey(bool b)
 
 const CQChartsAlpha &
 CQChartsScatterPlot::
-symbolMapKeyAlpha() const
+symbolSizeMapKeyAlpha() const
 {
-  return symbolMapKey_->alpha();
+  return symbolSizeMapKey_->alpha();
 }
 
 void
 CQChartsScatterPlot::
-setSymbolMapKeyAlpha(const Alpha &a)
+setSymbolSizeMapKeyAlpha(const Alpha &a)
 {
-  if (a != symbolMapKey_->alpha()) {
-    symbolMapKey_->setAlpha(a);
+  if (a != symbolSizeMapKey_->alpha()) {
+    symbolSizeMapKey_->setAlpha(a);
 
     drawObjs();
   }
@@ -391,17 +420,17 @@ setSymbolMapKeyAlpha(const Alpha &a)
 
 double
 CQChartsScatterPlot::
-symbolMapKeyMargin() const
+symbolSizeMapKeyMargin() const
 {
-  return symbolMapKey_->margin();
+  return symbolSizeMapKey_->margin();
 }
 
 void
 CQChartsScatterPlot::
-setSymbolMapKeyMargin(double m)
+setSymbolSizeMapKeyMargin(double m)
 {
-  if (m != symbolMapKey_->margin()) {
-    symbolMapKey_->setMargin(m);
+  if (m != symbolSizeMapKey_->margin()) {
+    symbolSizeMapKey_->setMargin(m);
 
     drawObjs();
   }
@@ -677,18 +706,27 @@ addProperties()
   //---
 
   // symbol key
-  auto symbolKeyPath = "symbol/key";
+  auto colorMapKeyPath = QString("color/key");
 
-  addProp(symbolKeyPath, "symbolMapKey", "visible", "Symbol size key visible");
+  addProp(colorMapKeyPath, "colorMapKey", "visible", "Color key visible");
+
+  colorMapKey_->addProperties(propertyModel(), colorMapKeyPath);
+
+  //---
+
+  // symbol key
+  auto symbolSizeMapKeyPath = QString("symbolSize/key");
+
+  addProp(symbolSizeMapKeyPath, "symbolSizeMapKey", "visible", "Symbol size key visible");
 
 #if 0
-  addProp     (symbolKeyPath          , "symbolMapKeyMargin", "margin" ,
+  addProp     (symbolSizeMapKeyPath          , "symbolSizeMapKeyMargin", "margin" ,
                "Symbol size key margin in pixels")->setMinValue(0.0);
-  addStyleProp(symbolKeyPath + "/fill", "symbolMapKeyAlpha" , "alpha"  ,
+  addStyleProp(symbolSizeMapKeyPath + "/fill", "symbolSizeMapKeyAlpha" , "alpha"  ,
                "Symbol size key fill alpha");
 #endif
 
-  symbolMapKey_->addProperties(propertyModel(), symbolKeyPath);
+  symbolSizeMapKey_->addProperties(propertyModel(), symbolSizeMapKeyPath);
 
   //---
 
@@ -2520,7 +2558,7 @@ hasBackground() const
   if (isXDensity()) return true;
   if (isYDensity()) return true;
 
-  return true;
+  return false;
 }
 
 void
@@ -2571,8 +2609,11 @@ void
 CQChartsScatterPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  if (isSymbolMapKey())
-    drawSymbolMapKey(device);
+  if (isColorMapKey())
+    drawColorMapKey(device);
+
+  if (isSymbolSizeMapKey())
+    drawSymbolSizeMapKey(device);
 }
 
 //---
@@ -3229,113 +3270,62 @@ initWhiskerData() const
 
 void
 CQChartsScatterPlot::
-drawSymbolMapKey(PaintDevice *device) const
+drawColorMapKey(PaintDevice *device) const
+{
+  if (! colorColumn().isValid())
+    return;
+
+  //---
+
+  disconnect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  colorMapKey_->setDataMin(colorMapDataMin());
+  colorMapKey_->setDataMax(colorMapDataMax());
+
+  colorMapKey_->setMapMin(colorMapMin());
+  colorMapKey_->setMapMax(colorMapMax());
+
+  colorMapKey_->setPaletteName(colorMapPalette());
+
+  auto bbox = displayRangeBBox();
+
+  colorMapKey_->setPosition(bbox.getLR());
+
+  connect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  //---
+
+  colorMapKey_->draw(device);
+}
+
+//------
+
+void
+CQChartsScatterPlot::
+drawSymbolSizeMapKey(PaintDevice *device) const
 {
   if (! symbolSizeColumn().isValid())
     return;
 
   //---
 
-  disconnect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  disconnect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
-  symbolMapKey_->setDataMin(symbolSizeData_.data_min);
-  symbolMapKey_->setDataMax(symbolSizeData_.data_max);
+  symbolSizeMapKey_->setDataMin(symbolSizeData_.data_min);
+  symbolSizeMapKey_->setDataMax(symbolSizeData_.data_max);
 
-  symbolMapKey_->setMapMin(symbolSizeData_.map_min);
-  symbolMapKey_->setMapMax(symbolSizeData_.map_max);
+  symbolSizeMapKey_->setMapMin(symbolSizeData_.map_min);
+  symbolSizeMapKey_->setMapMax(symbolSizeData_.map_max);
 
   auto bbox = displayRangeBBox();
 
-  symbolMapKey_->setPosition(bbox.getLR());
+  symbolSizeMapKey_->setPosition(bbox.getLR());
 
-  connect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  //---
-
-  symbolMapKey_->draw(device);
-
-#if 0
-  // draw size key
-  double min  = symbolSizeData_.data_min;
-  double mean = symbolSizeData_.data_mean;
-  double max  = symbolSizeData_.data_max;
-
-  auto pbbox = calcPlotPixelRect();
-
-  //double px, py;
-
-  //double vx = view()->viewportRange();
-  //double vy = 0.0;
-
-  //auto p = view()->windowToPixel(Point(vx, vy));
-
-  double px = pbbox.getXMax();
-  double py = pbbox.getYMax();
-
-  double pm = symbolMapKeyMargin();
-
-  double pr1 = symbolSizeData_.map_max;
-  double pr3 = symbolSizeData_.map_min;
-
-  double pr2 = (pr1 + pr3)/2;
+  connect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
   //---
 
-  auto strokeColor = interpThemeColor(ColorInd(1.0));
-
-  double xm = px - pr1 - pm;
-  double ym = py - pm;
-
-  BBox pbbox1(xm - pr1, ym - 2*pr1, xm + pr1, ym);
-  BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
-  BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
-
-  auto a = symbolMapKeyAlpha();
-
-  auto fillColor1 = interpSymbolFillColor(ColorInd(1.0));
-  auto fillColor2 = interpSymbolFillColor(ColorInd(0.5));
-  auto fillColor3 = interpSymbolFillColor(ColorInd(0.0));
-
-  CQChartsDrawUtil::setColorAlpha(fillColor1, a);
-  CQChartsDrawUtil::setColorAlpha(fillColor2, a);
-  CQChartsDrawUtil::setColorAlpha(fillColor3, a);
-
-  auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
-    PenBrush penBrush;
-
-    setPenBrush(penBrush, PenData(true, strokeColor), BrushData(true, c));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    device->drawEllipse(pixelToWindow(pbbox));
-  };
-
-  drawEllipse(fillColor1, pbbox1);
-  drawEllipse(fillColor2, pbbox2);
-  drawEllipse(fillColor3, pbbox3);
-
-  //---
-
-  auto drawText = [&](const Point &p, double value) {
-    auto text = QString("%1").arg(value);
-
-    QFontMetricsF fm(device->font());
-
-    Point p1(p.x - fm.width(text)/2, p.y);
-
-    auto p2 = pixelToWindow(p1);
-
-    CQChartsTextOptions options;
-
-    options.align = Qt::AlignLeft;
-
-    CQChartsDrawUtil::drawTextAtPoint(device, p2, text, options);
-  };
-
-  drawText(Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
-  drawText(Point(pbbox2.getXMid(), pbbox2.getYMin()), mean);
-  drawText(Point(pbbox3.getXMid(), pbbox3.getYMin()), min );
-#endif
+  symbolSizeMapKey_->draw(device);
 }
 
 //---
@@ -4277,6 +4267,8 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
   // color, contrast, ...
 
+  addFrameRowStretch(pointLabelsFrame);
+
   //---
 
   // options group
@@ -4285,6 +4277,8 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   plotTypeCombo_ = createEnumEdit("plotType");
 
   addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

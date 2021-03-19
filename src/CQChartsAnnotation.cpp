@@ -6187,25 +6187,25 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
-CQChartsSymbolMapKeyAnnotation::
-CQChartsSymbolMapKeyAnnotation(Plot *plot) :
+CQChartsSymbolSizeMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation(Plot *plot) :
  CQChartsAnnotation(plot, Type::SYMBOL_MAP_KEY)
 {
   init();
 
-  key_ = new CQChartsSymbolMapKey(plot);
+  key_ = new CQChartsSymbolSizeMapKey(plot);
 
   connect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
 }
 
-CQChartsSymbolMapKeyAnnotation::
-~CQChartsSymbolMapKeyAnnotation()
+CQChartsSymbolSizeMapKeyAnnotation::
+~CQChartsSymbolSizeMapKeyAnnotation()
 {
   delete key_;
 }
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 init()
 {
   setObjectName(QString("symbolMapKey.%1").arg(ind()));
@@ -6217,7 +6217,7 @@ init()
 }
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
   auto path1 = path + "/" + propertyId();
@@ -6251,7 +6251,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 }
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 updateLocationSlot()
 {
 }
@@ -6259,7 +6259,7 @@ updateLocationSlot()
 //---
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   position_ = Position(bbox.getCenter());
@@ -6268,14 +6268,14 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 //---
 
 bool
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 inside(const Point &p) const
 {
   return annotationBBox().inside(p);
 }
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 draw(PaintDevice *device)
 {
   drawInit(device);
@@ -6366,7 +6366,7 @@ draw(PaintDevice *device)
 }
 
 void
-CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolSizeMapKeyAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
   os << "]\n";

@@ -24,7 +24,7 @@ class CQChartsDensity;
 class CQChartsKey;
 class CQChartsAxis;
 class CQChartsHtmlPaintDevice;
-class CQChartsSymbolMapKey;
+class CQChartsSymbolSizeMapKey;
 
 class CQPropertyViewItem;
 
@@ -2042,19 +2042,19 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
  * \brief symbol key annotation
  * \ingroup Charts
  */
-class CQChartsSymbolMapKeyAnnotation : public CQChartsAnnotation {
+class CQChartsSymbolSizeMapKeyAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
-  using Key      = CQChartsSymbolMapKey;
+  using Key      = CQChartsSymbolSizeMapKey;
   using Position = CQChartsPosition;
 
  public:
-  CQChartsSymbolMapKeyAnnotation(Plot *plot);
+  CQChartsSymbolSizeMapKeyAnnotation(Plot *plot);
 
-  virtual ~CQChartsSymbolMapKeyAnnotation();
+  virtual ~CQChartsSymbolSizeMapKeyAnnotation();
 
   //---
 

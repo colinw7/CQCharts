@@ -5,6 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -414,6 +415,8 @@ CQChartsContourPlotCustomControls(CQCharts *charts) :
   solidCheck_ = createBoolEdit("solid");
 
   addFrameWidget(optionsFrame, "Solid", solidCheck_);
+
+  addFrameRowStretch(optionsFrame);
 
   //---
 

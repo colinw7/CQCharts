@@ -1454,6 +1454,8 @@ addConnectionColumnWidgets()
 
   addFrameWidget(connectionsFrame, "Columns Type", columnsTypeCombo_);
 
+  addFrameRowStretch(connectionsFrame);
+
   //---
 
   static auto columnNames = QStringList() <<

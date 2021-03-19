@@ -6748,7 +6748,7 @@ writeScript(const QString &filename, Plot *plot)
   os << "  this.canvas.addEventListener(\"mousedown\", this.eventMouseDown, false);\n";
   os << "  this.canvas.addEventListener(\"mousemove\", this.eventMouseMove, false);\n";
   os << "  this.canvas.addEventListener(\"mouseup\"  , this.eventMouseUp  , false);\n";
-  os << "\n";;
+  os << "\n";
 
   //---
 

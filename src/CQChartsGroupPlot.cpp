@@ -757,6 +757,8 @@ addGroupColumnWidgets()
   addFrameWidget(groupFrame, "Column", groupColumnCombo_);
 
   connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
+
+  addFrameRowStretch(groupFrame);
 }
 
 void

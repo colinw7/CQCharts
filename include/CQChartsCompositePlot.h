@@ -143,6 +143,12 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   void initObjTree() override;
 
+  //---
+
+  void updatePlotKeyPosition(Plot *plot, bool force=false) override;
+
+  //---
+
   BBox calcExtraFitBBox() const override;
 
   void updateAxisRanges(const BBox &adjustedRange) override;
@@ -151,6 +157,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
+#if 0
   // key
  public:
   bool isKeyVisible() const override;
@@ -160,9 +167,11 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool isColorKey() const override;
   void setColorKey(bool b) override;
+#endif
 
   //---
 
+  // equal scale
   bool isEqualScale() const override;
   void setEqualScale(bool b) override;
 
@@ -256,7 +265,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
-  void resetKeyItems() override;
+  void resetPlotKeyItems(Plot *plot) override;
 
   //---
 
@@ -295,7 +304,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
   Axis *xAxis() const override;
   Axis *yAxis() const override;
 
+#if 0
   PlotKey *key() const override;
+#endif
 
   //---
 
@@ -305,11 +316,6 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   int currentPlotInd() const;
   void setCurrentPlotInd(int i);
-
-  //---
-
-  bool isX1X2(bool checkVisible=true) const override;
-  bool isY1Y2(bool checkVisible=true) const override;
 
   //---
 

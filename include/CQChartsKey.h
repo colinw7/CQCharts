@@ -293,6 +293,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   Plot *plot() const { return plot_; }
 
+  Plot *drawPlot() const;
+
   //---
 
   bool isEmpty() const;
@@ -937,13 +939,120 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
 
 //-----
 
+class CQChartsColorMapKey : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(bool                visible     READ isVisible   WRITE setVisible    )
+  Q_PROPERTY(double              margin      READ margin      WRITE setMargin     )
+  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
+  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
+  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
+  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
+  Q_PROPERTY(CQChartsPosition    position    READ position    WRITE setPosition   )
+  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+
+ public:
+  using Plot          = CQChartsPlot;
+  using Alpha         = CQChartsAlpha;
+  using PenBrush      = CQChartsPenBrush;
+  using BrushData     = CQChartsBrushData;
+  using PenData       = CQChartsPenData;
+  using PaintDevice   = CQChartsPaintDevice;
+  using Position      = CQChartsPosition;
+  using PaletteName   = CQChartsPaletteName;
+  using ColorInd      = CQChartsUtil::ColorInd;
+  using PropertyModel = CQPropertyViewModel;
+
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
+
+ public:
+  CQChartsColorMapKey(Plot *plot);
+
+  Plot *plot() const { return plot_; }
+
+  double margin() const { return margin_; }
+  void setMargin(double r) { margin_ = r; invalidate(); }
+
+  //---
+
+  // visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; }
+
+  //---
+
+  // data range
+  double dataMin() const { return dataMin_; }
+  void setDataMin(double r) { dataMin_ = r; invalidate(); }
+
+  double dataMax() const { return dataMax_; }
+  void setDataMax(double r) { dataMax_ = r; invalidate(); }
+
+  //---
+
+  // map range
+  double mapMin() const { return mapMin_; }
+  void setMapMin(double r) { mapMin_ = r; invalidate(); }
+
+  double mapMax() const { return mapMax_; }
+  void setMapMax(double r) { mapMax_ = r; invalidate(); }
+
+  //---
+
+  const Position &position() const { return position_; }
+  void setPosition(const Position &v) { position_ = v; invalidate(); }
+
+  //---
+
+  const PaletteName &paletteName() const { return paletteName_; }
+  void setPaletteName(const PaletteName &v) { paletteName_ = v; invalidate(); }
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path);
+
+  //---
+
+  void draw(PaintDevice *device);
+
+  const BBox &bbox() { return bbox_; }
+  void setBBox(const BBox &b) { bbox_ = b; }
+
+ private:
+  void invalidate();
+
+ signals:
+  void dataChanged();
+
+ private:
+  Plot* plot_ { nullptr }; //!< parent plot
+
+  bool   visible_ { true }; //!< visible
+  double margin_  { 4.0 };  //!< margin in pixels
+
+  double dataMin_ { 0.0 }; //!< model data min
+  double dataMax_ { 1.0 }; //!< model data max
+
+  double mapMin_ { 0.0 }; //!< mapped color min
+  double mapMax_ { 1.0 }; //!< mapped color max
+
+  Position      position_;    //!< key position
+  PaletteName   paletteName_; //!< custom palette
+
+  BBox bbox_;
+  BBox tbbox_;
+};
+
+//-----
+
 // TODO:
 //  . custom palette
 //  . shape
 //  . spread/overlay
 //  . text align left/center/right
 //  . separate border style
-class CQChartsSymbolMapKey : public QObject {
+class CQChartsSymbolSizeMapKey : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(bool                visible     READ isVisible   WRITE setVisible    )
@@ -978,7 +1087,7 @@ class CQChartsSymbolMapKey : public QObject {
   using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsSymbolMapKey(Plot *plot);
+  CQChartsSymbolSizeMapKey(Plot *plot);
 
   Plot *plot() const { return plot_; }
 
