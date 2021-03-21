@@ -209,14 +209,6 @@ void
 CQChartsPointPlot::
 addPointProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
   //auto hideProp = [&](QObject *obj, const QString &path) {
   //  auto *item = propertyModel()->propertyItem(obj, path);
   //  CQCharts::setItemIsHidden(item);
@@ -255,11 +247,6 @@ void
 CQChartsPointPlot::
 addBestFitProperties(bool hasLayer)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
   // best fit line and deviation fill
   addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");
   addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
@@ -277,11 +264,6 @@ void
 CQChartsPointPlot::
 addHullProperties(bool hasLayer)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
   // convex hull shape
   addProp("hull", "hull", "visible", "Show convex hull overlay");
 
@@ -296,11 +278,6 @@ void
 CQChartsPointPlot::
 addStatsProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
@@ -356,6 +333,20 @@ setSymbolTypeMapped(bool b)
   CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() {
     updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
+}
+
+int
+CQChartsPointPlot::
+symbolTypeDataMin() const
+{
+  return symbolTypeData_.data_min;
+}
+
+int
+CQChartsPointPlot::
+symbolTypeDataMax() const
+{
+  return symbolTypeData_.data_max;
 }
 
 int
@@ -420,6 +411,38 @@ setSymbolTypeSetName(const QString &name)
   } );
 }
 
+void
+CQChartsPointPlot::
+drawSymbolTypeMapKey(PaintDevice *device) const
+{
+  if (! symbolTypeColumn().isValid())
+    return;
+
+  //---
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolTypeMapKey_.get(),
+    SIGNAL(dataChanged()), th, SLOT(updateSlot()));
+
+  symbolTypeMapKey_->setDataMin(symbolTypeDataMin());
+  symbolTypeMapKey_->setDataMax(symbolTypeDataMax());
+
+  symbolTypeMapKey_->setMapMin(symbolTypeMapMin());
+  symbolTypeMapKey_->setMapMax(symbolTypeMapMax());
+
+  symbolTypeMapKey_->setSymbolSet(symbolTypeSetName());
+
+  auto bbox = displayRangeBBox();
+
+  if (! symbolTypeMapKey_->position().isValid())
+    symbolTypeMapKey_->setPosition(Position(bbox.getLR(), Position::Units::PLOT));
+
+  //---
+
+  symbolTypeMapKey_->draw(device);
+}
+
 //---
 
 const CQChartsColumn &
@@ -452,6 +475,20 @@ setSymbolSizeMapped(bool b)
   CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
+}
+
+double
+CQChartsPointPlot::
+symbolSizeDataMin() const
+{
+  return symbolSizeData_.data_min;
+}
+
+double
+CQChartsPointPlot::
+symbolSizeDataMax() const
+{
+  return symbolSizeData_.data_max;
 }
 
 double
@@ -500,6 +537,38 @@ setSymbolSizeMapUnits(const QString &s)
   CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
+}
+
+void
+CQChartsPointPlot::
+drawSymbolSizeMapKey(PaintDevice *device) const
+{
+  if (! symbolSizeColumn().isValid())
+    return;
+
+  //---
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolSizeMapKey_.get(),
+    SIGNAL(dataChanged()), th, SLOT(updateSlot()));
+
+  symbolSizeMapKey_->setDataMin(symbolSizeDataMin());
+  symbolSizeMapKey_->setDataMax(symbolSizeDataMax());
+
+  symbolSizeMapKey_->setMapMin(symbolSizeMapMin());
+  symbolSizeMapKey_->setMapMax(symbolSizeMapMax());
+
+  symbolSizeMapKey_->setPaletteName(colorMapPalette());
+
+  auto bbox = displayRangeBBox();
+
+  if (! symbolSizeMapKey_->position().isValid())
+    symbolSizeMapKey_->setPosition(Position(bbox.getMidB(), Position::Units::PLOT));
+
+  //---
+
+  symbolSizeMapKey_->draw(device);
 }
 
 //---
@@ -1098,6 +1167,145 @@ CQChartsPointPlot::
 setYRugSymbolSize(const CQChartsLength &l)
 {
   if (l != yRugSymbolSize()) { yRug_->setSymbolSize(l); drawObjs(); }
+}
+
+//---
+
+void
+CQChartsPointPlot::
+addSymbolSizeMapKey()
+{
+  assert(! symbolSizeMapKey_);
+
+  symbolSizeMapKey_ = std::make_unique<CQChartsSymbolSizeMapKey>(this);
+
+  symbolSizeMapKey_->setVisible(false);
+  symbolSizeMapKey_->setAlign(Qt::AlignHCenter | Qt::AlignBottom);
+
+  connect(symbolSizeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  mapKeys_.push_back(symbolSizeMapKey_.get());
+}
+
+//---
+
+bool
+CQChartsPointPlot::
+isSymbolSizeMapKey() const
+{
+  return symbolSizeMapKey_->isVisible();
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeMapKey(bool b)
+{
+  if (b != symbolSizeMapKey_->isVisible()) {
+    symbolSizeMapKey_->setVisible(b);
+
+    drawObjs();
+  }
+}
+
+const CQChartsAlpha &
+CQChartsPointPlot::
+symbolSizeMapKeyAlpha() const
+{
+  return symbolSizeMapKey_->alpha();
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeMapKeyAlpha(const Alpha &a)
+{
+  if (a != symbolSizeMapKey_->alpha()) {
+    symbolSizeMapKey_->setAlpha(a);
+
+    drawObjs();
+  }
+}
+
+double
+CQChartsPointPlot::
+symbolSizeMapKeyMargin() const
+{
+  return symbolSizeMapKey_->margin();
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeMapKeyMargin(double m)
+{
+  if (m != symbolSizeMapKey_->margin()) {
+    symbolSizeMapKey_->setMargin(m);
+
+    drawObjs();
+  }
+}
+
+void
+CQChartsPointPlot::
+addSymbolSizeMapKeyProperties()
+{
+  auto symbolSizeMapKeyPath = QString("symbolSize/key");
+
+  addProp(symbolSizeMapKeyPath, "symbolSizeMapKey", "visible", "Symbol size key visible");
+
+#if 0
+  addProp     (symbolSizeMapKeyPath          , "symbolSizeMapKeyMargin", "margin" ,
+               "Symbol size key margin in pixels")->setMinValue(0.0);
+  addStyleProp(symbolSizeMapKeyPath + "/fill", "symbolSizeMapKeyAlpha" , "alpha"  ,
+               "Symbol size key fill alpha");
+#endif
+
+  symbolSizeMapKey_->addProperties(propertyModel(), symbolSizeMapKeyPath);
+}
+
+//---
+
+void
+CQChartsPointPlot::
+addSymbolTypeMapKey()
+{
+  assert(! symbolTypeMapKey_);
+
+  symbolTypeMapKey_ = std::make_unique<CQChartsSymbolTypeMapKey>(this);
+
+  symbolTypeMapKey_->setVisible(false);
+  symbolTypeMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
+
+  connect(symbolTypeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  mapKeys_.push_back(symbolTypeMapKey_.get());
+}
+
+bool
+CQChartsPointPlot::
+isSymbolTypeMapKey() const
+{
+  return symbolTypeMapKey_->isVisible();
+}
+
+void
+CQChartsPointPlot::
+setSymbolTypeMapKey(bool b)
+{
+  if (b != symbolTypeMapKey_->isVisible()) {
+    symbolTypeMapKey_->setVisible(b);
+
+    drawObjs();
+  }
+}
+
+void
+CQChartsPointPlot::
+addSymbolTypeMapKeyProperties()
+{
+  auto symbolTypeMapKeyPath = QString("symbolType/key");
+
+  addProp(symbolTypeMapKeyPath, "symbolTypeMapKey", "visible", "Symbol type key visible");
+
+  symbolTypeMapKey_->addProperties(propertyModel(), symbolTypeMapKeyPath);
 }
 
 //---

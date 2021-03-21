@@ -38,7 +38,7 @@ CQCHARTS_NAMED_FILL_DATA(AxesGrid, axesGrid)
  * \brief Axis Data
  * \ingroup Charts
  */
-class CQChartsAxis : public CQChartsObj,
+class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
  public CQChartsObjAxesLineData         <CQChartsAxis>,
  public CQChartsObjAxesTickLabelTextData<CQChartsAxis>,
  public CQChartsObjAxesLabelTextData    <CQChartsAxis>,
@@ -174,6 +174,8 @@ class CQChartsAxis : public CQChartsObj,
   using LineDash               = CQChartsLineDash;
   using Font                   = CQChartsFont;
   using Color                  = CQChartsColor;
+  using BBox                   = CQChartsGeom::BBox;
+  using Point                  = CQChartsGeom::Point;
 
  public:
   CQChartsAxis(const Plot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -477,20 +479,14 @@ class CQChartsAxis : public CQChartsObj,
   void updatePlotRange();
   void updatePlotRangeAndObjs();
 
-  EditHandles *editHandles() const;
-
   //---
 
-  // Edit Interface
+  // Implement edit interface
+  bool editPress (const Point &) override;
+  bool editMove  (const Point &) override;
+  bool editMotion(const Point &) override; // return true if inside
 
-  // handle edit press, move, motion, release
-  virtual bool editPress  (const Point &);
-  virtual bool editMove   (const Point &);
-  virtual bool editMotion (const Point &); // return true if inside
-  virtual bool editRelease(const Point &) { return true; }
-
-  //! handle edit move by (move)
-  virtual void editMoveBy(const Point &);
+  void editMoveBy(const Point &) override;
 
   //---
 
@@ -504,7 +500,16 @@ class CQChartsAxis : public CQChartsObj,
 
   void draw(const Plot *plot, PaintDevice *device, bool usePen=false, bool forceColor=false) const;
 
-  void drawEditHandles(QPainter *painter) const;
+  //---
+
+  //! get edit handles
+  EditHandles *editHandles() const override;
+
+  void drawEditHandles(QPainter *painter) const override;
+
+  void setEditHandlesBBox() const;
+
+  //---
 
   void calcPos(const Plot *plot, double &apos1, double &apos2) const;
 

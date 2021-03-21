@@ -349,6 +349,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(PiePlot *plot, PlotObj *obj);
 
+  // implement select interface
   bool selectPress(const Point &p, SelMod selMod) override;
 
   QBrush fillBrush() const override;

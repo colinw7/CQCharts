@@ -7684,7 +7684,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addImageAnnotation(rect, image);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
 
     if (argv.hasParseArg("position"))
       pos = argv.getParsePosition(view, plot, "position");
@@ -9010,7 +9010,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addTextAnnotation(rect, text);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
 
     if      (view)
       annotation = view->addTextAnnotation(pos, text);
@@ -9265,7 +9265,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addButtonAnnotation(pos, text);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
 
     if      (view)
       annotation = view->addButtonAnnotation(pos, text);
@@ -9410,7 +9410,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addWidgetAnnotation(rect, widget);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
 
     if (argv.hasParseArg("position"))
       pos = argv.getParsePosition(view, plot, "position");

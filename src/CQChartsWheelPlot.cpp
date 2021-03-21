@@ -750,7 +750,7 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsWheelPlot::
-selectMove(const Point &p, Constraints constraints, bool first)
+handleSelectMove(const Point &p, Constraints constraints, bool first)
 {
   auto *oldMoveObj = moveObj_;
 
@@ -776,7 +776,7 @@ selectMove(const Point &p, Constraints constraints, bool first)
     }
   }
 
-  bool rc = CQChartsPlot::selectMove(p, constraints, first);
+  bool rc = CQChartsPlot::handleSelectMove(p, constraints, first);
 
   if (moveObj_ != oldMoveObj) {
     moveTip_ = (moveObj_ ? moveObj_->calcTipId() : "");

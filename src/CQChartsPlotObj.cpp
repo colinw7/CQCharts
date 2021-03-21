@@ -26,7 +26,6 @@ CQChartsPlotObj(CQChartsPlot *plot, const BBox &rect, const ColorInd &is,
 CQChartsPlotObj::
 ~CQChartsPlotObj()
 {
-  delete editHandles_;
 }
 
 //---
@@ -47,10 +46,10 @@ editHandles() const
   if (! editHandles_) {
     auto *th = const_cast<CQChartsPlotObj *>(this);
 
-    th->editHandles_ = new CQChartsEditHandles(plot(), CQChartsEditHandles::Mode::MOVE);
+    th->editHandles_ = std::make_unique<EditHandles>(plot(), EditHandles::Mode::MOVE);
   }
 
-  return editHandles_;
+  return editHandles_.get();
 }
 
 //---
@@ -330,14 +329,21 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  if (isEditResize())
-    editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
-  else
-    editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
-
-  editHandles()->setBBox(this->rect());
+  setEditHandlesBBox();
 
   editHandles()->draw(painter);
+}
+
+void
+CQChartsPlotObj::
+setEditHandlesBBox() const
+{
+  if (isEditResize())
+    editHandles()->setMode(EditHandles::Mode::RESIZE);
+  else
+    editHandles()->setMode(EditHandles::Mode::MOVE);
+
+  editHandles()->setBBox(this->rect());
 }
 
 void

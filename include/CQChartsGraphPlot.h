@@ -742,6 +742,7 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
 
   //---
 
+  // Implement edit interface
   bool editPress  (const Point &p) override;
   bool editMove   (const Point &p) override;
   bool editMotion (const Point &p) override;
@@ -912,6 +913,7 @@ class CQChartsGraphGraphObj : public CQChartsPlotObj {
 
   //---
 
+  // Implement edit interface
   bool editPress  (const Point &p) override;
   bool editMove   (const Point &p) override;
   bool editMotion (const Point &p) override;

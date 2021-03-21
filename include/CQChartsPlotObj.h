@@ -30,7 +30,8 @@ class  CQChartsEditHandles;
  *
  * Maintains three indices (set, group and value) and x, y values for color interpolation
  */
-class CQChartsPlotObj : public CQChartsObj {
+class CQChartsPlotObj : public CQChartsObj,
+ public CQChartsSelectableIFace, public CQChartsEditableIFace {
   Q_OBJECT
 
   Q_PROPERTY(QString    typeName   READ typeName  )
@@ -237,41 +238,16 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  // Select Interface
-
-  //! handle select press, move, release
-  virtual bool selectPress  (const Point &, SelMod) { return false; }
-  virtual bool selectMove   (const Point &) { return false; }
-  virtual bool selectRelease(const Point &) { return false; }
-
-  //---
-
-  // Edit Interface
-
-  //! handle edit press, move, motion, release
-  virtual bool editPress  (const Point &) { return false; }
-  virtual bool editMove   (const Point &) { return false; }
-  virtual bool editMotion (const Point &) { return false; } // return true if inside
-  virtual bool editRelease(const Point &) { return true; }
-
-  //! handle edit move by
-  virtual void editMoveBy(const Point &) { }
-
-  //! set new bounding box
-  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
-
-  virtual bool isEditResize() const { return false; }
-
-  //---
-
   virtual void flip(Qt::Orientation) { }
 
   //---
 
   //! get edit handles
-  EditHandles *editHandles() const;
+  EditHandles *editHandles() const override;
 
-  virtual void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
+
+  void setEditHandlesBBox() const;
 
   //---
 
@@ -345,6 +321,8 @@ class CQChartsPlotObj : public CQChartsObj {
   void layerChanged();
 
  protected:
+  using EditHandlesP = std::unique_ptr<EditHandles>;
+
   Plot*            plot_        { nullptr };           //!< parent plot
   DetailHint       detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
   DrawLayer        drawLayer_   { DrawLayer::NONE };   //!< draw layer
@@ -353,7 +331,7 @@ class CQChartsPlotObj : public CQChartsObj {
   ColorInd         ig_;                                //!< group index
   ColorInd         iv_;                                //!< value index
   QModelIndices    modelInds_;                         //!< associated model indices
-  EditHandles*     editHandles_ { nullptr };           //!< edit handles
+  EditHandlesP     editHandles_;                       //!< edit handles
   mutable PenBrush penBrush_;                          //!< current pen/brush
 };
 

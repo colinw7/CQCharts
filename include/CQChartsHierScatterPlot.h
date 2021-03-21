@@ -232,6 +232,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsHierScatterKeyColor(Plot *plot, CQChartsHierScatterPointGroup *group,
                               const ColorInd &ic);
 
+  //! handle select press
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;

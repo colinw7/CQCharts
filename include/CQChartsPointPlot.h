@@ -188,6 +188,17 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool                  yRug     READ isYRug   WRITE setYRug    )
   Q_PROPERTY(CQChartsAxisRug::Side yRugSide READ yRugSide WRITE setYRugSide)
 
+  // symbol size map key
+  Q_PROPERTY(bool          symbolSizeMapKey
+             READ isSymbolSizeMapKey     WRITE setSymbolSizeMapKey      )
+  Q_PROPERTY(CQChartsAlpha symbolSizeMapKeyAlpha
+             READ symbolSizeMapKeyAlpha  WRITE setSymbolSizeMapKeyAlpha )
+  Q_PROPERTY(double        symbolSizeMapKeyMargin
+             READ symbolSizeMapKeyMargin WRITE setSymbolSizeMapKeyMargin)
+
+  // symbol type map key
+  Q_PROPERTY(bool symbolTypeMapKey READ isSymbolTypeMapKey WRITE setSymbolTypeMapKey)
+
   Q_ENUMS(DrawLayer)
 
  public:
@@ -235,6 +246,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool isSymbolTypeMapped() const;
   void setSymbolTypeMapped(bool b);
 
+  int symbolTypeDataMin() const;
+  int symbolTypeDataMax() const;
+
   int symbolTypeMapMin() const;
   void setSymbolTypeMapMin(int i);
 
@@ -246,12 +260,28 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  // symbol type map key
+  void addSymbolTypeMapKey();
+
+  void addSymbolTypeMapKeyProperties();
+
+  bool isSymbolTypeMapKey() const;
+
+  //---
+
+  void drawSymbolTypeMapKey(PaintDevice *device) const;
+
+  //---
+
   // symbol size column and map
   const Column &symbolSizeColumn() const;
   void setSymbolSizeColumn(const Column &c);
 
   bool isSymbolSizeMapped() const;
   void setSymbolSizeMapped(bool b);
+
+  double symbolSizeDataMin() const;
+  double symbolSizeDataMax() const;
 
   double symbolSizeMapMin() const;
   void setSymbolSizeMapMin(double r);
@@ -267,6 +297,25 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   virtual void setFixedSymbolType(const Symbol &s) = 0;
   virtual const Symbol &fixedSymbolType() const = 0;
+
+  //---
+
+  // symbol size map key
+  void addSymbolSizeMapKey();
+
+  void addSymbolSizeMapKeyProperties();
+
+  bool isSymbolSizeMapKey() const;
+
+  const Alpha &symbolSizeMapKeyAlpha() const;
+  void setSymbolSizeMapKeyAlpha(const Alpha &a);
+
+  double symbolSizeMapKeyMargin() const;
+  void setSymbolSizeMapKeyMargin(double r);
+
+  //---
+
+  void drawSymbolSizeMapKey(PaintDevice *device) const;
 
   //---
 
@@ -462,6 +511,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
  public slots:
   void setPointLabels(bool b);
 
+  // symbol keys
+  void setSymbolSizeMapKey(bool b);
+  void setSymbolTypeMapKey(bool b);
+
   // overlays
   void setBestFit       (bool b);
   void setHull          (bool b);
@@ -482,6 +535,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void symbolTypeDetailsChanged();
 
  protected:
+  //! best fit data
   struct BestFitData {
     bool      visible         { false };                 //!< show fit
     bool      showDeviation   { false };                 //!< show fit deviation
@@ -490,14 +544,26 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
     DrawLayer layer           { DrawLayer::BACKGROUND }; //!< draw layer
   };
 
+  //! hull data
   struct HullData {
     bool      visible { false };                 //!< show convex hull
     DrawLayer layer   { DrawLayer::BACKGROUND }; //!< draw layer
   };
 
+  //! stat data
   struct StatData {
     CQStatData xstat;
     CQStatData ystat;
+  };
+
+  //! symbol size map key data
+  struct SymbolSizeMapKeyData {
+    bool displayed { false }; //!< is symbol size map key displayed
+  };
+
+  //! symbol type map key data
+  struct SymbolTypeMapKeyData {
+    bool displayed { false }; //!< is symbol type map key displayed
   };
 
  protected:
@@ -513,6 +579,13 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   SymbolTypeData symbolTypeData_; //!< symbol type column data
   SymbolSizeData symbolSizeData_; //!< symbol size column data
   FontSizeData   fontSizeData_;   //!< font size column data
+
+  // symbol size and type map keys
+  using SymbolTypeMapKeyP = std::unique_ptr<CQChartsSymbolTypeMapKey>;
+  using SymbolSizeMapKeyP = std::unique_ptr<CQChartsSymbolSizeMapKey>;
+
+  SymbolTypeMapKeyP symbolTypeMapKey_; //!< symbol type map key
+  SymbolSizeMapKeyP symbolSizeMapKey_; //!< symbol size map key
 
   // plot overlay data
   BestFitData bestFitData_; //!< best fit data

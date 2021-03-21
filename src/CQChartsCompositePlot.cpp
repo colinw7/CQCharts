@@ -1456,7 +1456,7 @@ resetPlotKeyItems(Plot *plot)
 
 bool
 CQChartsCompositePlot::
-selectPress(const Point &w, SelMod selMod)
+handleSelectPress(const Point &w, SelMod selMod)
 {
   if (tabbedSelectPress(w, selMod))
     return true;
@@ -1480,7 +1480,7 @@ selectPress(const Point &w, SelMod selMod)
 
     auto w1 = plot->pixelToWindow(windowToPixel(w));
 
-    if (plot->selectPress(w1, selMod))
+    if (plot->handleSelectPress(w1, selMod))
       return true;
   }
 
@@ -1489,7 +1489,7 @@ selectPress(const Point &w, SelMod selMod)
 
 bool
 CQChartsCompositePlot::
-selectMove(const Point &w, Constraints constraints, bool first)
+handleSelectMove(const Point &w, Constraints constraints, bool first)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -1500,7 +1500,7 @@ selectMove(const Point &w, Constraints constraints, bool first)
 
     auto w1 = plot->pixelToWindow(windowToPixel(w));
 
-    if (plot->selectMove(w1, constraints, first))
+    if (plot->handleSelectMove(w1, constraints, first))
       return true;
   }
 
@@ -1509,7 +1509,7 @@ selectMove(const Point &w, Constraints constraints, bool first)
 
 bool
 CQChartsCompositePlot::
-selectRelease(const Point &w)
+handleSelectRelease(const Point &w)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -1520,7 +1520,7 @@ selectRelease(const Point &w)
 
     auto w1 = plot->pixelToWindow(windowToPixel(w));
 
-    if (plot->selectRelease(w1))
+    if (plot->handleSelectRelease(w1))
       return true;
   }
 

@@ -163,4 +163,55 @@ class CQChartsObj : public QObject {
   mutable std::mutex mutex_;                            //!< mutex for calc id/tip
 };
 
+//------
+
+class CQChartsEditHandles;
+
+// Select Interface
+class CQChartsSelectableIFace {
+ public:
+  using SelMod = CQChartsSelMod;
+  using Point  = CQChartsGeom::Point;
+
+ public:
+  CQChartsSelectableIFace() { }
+
+  //! handle select press, move, release
+  virtual bool selectPress  (const Point &, SelMod) { return false; }
+  virtual bool selectMove   (const Point &) { return false; }
+  virtual bool selectRelease(const Point &) { return false; }
+};
+
+// Edit Interface
+class CQChartsEditableIFace {
+ public:
+  using EditHandles = CQChartsEditHandles;
+  using ResizeSide  = CQChartsResizeSide;
+  using BBox        = CQChartsGeom::BBox;
+  using Point       = CQChartsGeom::Point;
+
+ public:
+  CQChartsEditableIFace() { }
+
+  virtual EditHandles *editHandles() const = 0;
+
+  // handle edit press, move, motion, release
+  virtual bool editPress  (const Point &) { return false; }
+  virtual bool editMove   (const Point &) { return false; }
+  virtual bool editMotion (const Point &) { return false; } // return true if inside
+  virtual bool editRelease(const Point &) { return true; }
+
+  //! handle edit move by (move)
+  virtual void editMoveBy(const Point &) { }
+
+  //! set new bounding box (resize)
+  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
+
+  //! can edit resize
+  virtual bool isEditResize() const { return false; }
+
+  //! draw
+  virtual void drawEditHandles(QPainter *painter) const = 0;
+};
+
 #endif

@@ -117,31 +117,36 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // symbol type
-  Symbol symbolType() const;
+  bool hasSymbolType() const;
+
+  const Symbol &symbolType() const { return extraData().symbolType; }
   void setSymbolType(const Symbol &s) { extraData().symbolType = s; }
+  Symbol calcSymbolType() const;
 
   // symbol filled
-  bool symbolFilled() const;
+  const OptBool &isSymbolFilled() const { return extraData().symbolFilled; }
   void setSymbolFilled(const OptBool &b) { extraData().symbolFilled = b; }
 
   // symbol size
-  Length symbolSize() const;
+  const Length &symbolSize() const { return extraData().symbolSize; }
   void setSymbolSize(const Length &s) { extraData().symbolSize = s; }
+  Length calcSymbolSize() const;
 
   // font size
-  Length fontSize() const;
+  const Length &fontSize() const { return extraData().fontSize; }
   void setFontSize(const Length &s) { extraData().fontSize = s; }
+  Length calcFontSize() const;
 
   // color
-  Color color() const;
+  Color color() const { return extraData().color; }
   void setColor(const Color &c) { extraData().color = c; }
 
   // alpha
-  Alpha alpha() const;
+  Alpha alpha() const { return extraData().alpha; }
   void setAlpha(const Alpha &a) { extraData().alpha = a; }
 
   // font
-  Font font() const;
+  Font font() const { return extraData().font; }
   void setFont(const Font &f) { extraData().font = f; }
 
   //---
@@ -345,8 +350,6 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
 
 //---
 
-#include <CQChartsKey.h>
-
 /*!
  * \brief Scatter Plot Key Color Box
  * \ingroup Charts
@@ -363,6 +366,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
+  // select interface
   bool selectPress(const Point &p, SelMod selMod) override;
 
   QBrush fillBrush() const override;
@@ -445,17 +449,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(int gridNumY READ gridNumY WRITE setGridNumY)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
-
-  // color map key
-  Q_PROPERTY(bool colorMapKey READ isColorMapKey WRITE setColorMapKey)
-
-  // symbol map key
-  Q_PROPERTY(bool          symbolSizeMapKey
-             READ isSymbolSizeMapKey     WRITE setSymbolSizeMapKey      )
-  Q_PROPERTY(CQChartsAlpha symbolSizeMapKeyAlpha
-             READ symbolSizeMapKeyAlpha  WRITE setSymbolSizeMapKeyAlpha )
-  Q_PROPERTY(double        symbolSizeMapKeyMargin
-             READ symbolSizeMapKeyMargin WRITE setSymbolSizeMapKeyMargin)
 
   Q_ENUMS(PlotType)
 
@@ -616,24 +609,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // hex cells
   const HexMap &hexMap() const { return hexMap_; }
   int hexMapMaxN() const { return hexMapMaxN_; }
-
-  //---
-
-  // color map key
-  bool isColorMapKey() const;
-  void setColorMapKey(bool b);
-
-  //---
-
-  // symbol map key
-  bool isSymbolSizeMapKey() const;
-  void setSymbolSizeMapKey(bool b);
-
-  const Alpha &symbolSizeMapKeyAlpha() const;
-  void setSymbolSizeMapKeyAlpha(const Alpha &a);
-
-  double symbolSizeMapKeyMargin() const;
-  void setSymbolSizeMapKeyMargin(double r);
 
   //---
 
@@ -804,11 +779,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawColorMapKey     (PaintDevice *device) const;
-  void drawSymbolSizeMapKey(PaintDevice *device) const;
-
-  //---
-
   void clearDensityData();
 
   //---
@@ -850,11 +820,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
 
  private:
-  //! symbol map key data
-  struct SymbolSizeMapKeyData {
-    bool displayed { false }; //!< is symbol map key displayed
-  };
-
   using GroupInds         = std::set<int>;
   using NamedDensity      = std::map<QString, Density *>;
   using GroupNamedDensity = std::map<int, NamedDensity>;
@@ -909,10 +874,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   GroupNameGridData groupNameGridData_; //!< grid cell values
   GroupNameHexData  groupNameHexData_;  //!< hex cell values
   GroupNamedDensity groupNamedDensity_; //!< group named density
-
-  // color map key, symbol size map key
-  CQChartsColorMapKey*      colorMapKey_      { nullptr }; //!< color map key
-  CQChartsSymbolSizeMapKey* symbolSizeMapKey_ { nullptr }; //!< symbol size map key
 
   // axis side data
   using AxisSideSize = std::map<CQChartsAxisSide::Type, double>;

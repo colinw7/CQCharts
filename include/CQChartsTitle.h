@@ -121,7 +121,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   //---
 
   // Implement edit interface
-
   bool editPress (const Point &) override;
   bool editMove  (const Point &) override;
   bool editMotion(const Point &) override;
@@ -136,7 +135,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setEditHandlesBBox() const override;
+  void setEditHandlesBBox() const;
 
  private:
   void init();

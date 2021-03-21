@@ -159,6 +159,7 @@ class CQChartsScatterKeyColor3D : public CQChartsKeyColorBox {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
 
+  // select interface
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;

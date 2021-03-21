@@ -23,11 +23,18 @@ class CQChartsPosition :
   using Units = CQChartsUnits;
 
  public:
+  static CQChartsPosition plot(const Point &p) {
+    return CQChartsPosition(p, Units::PLOT);
+  }
+
+ public:
+  CQChartsPosition() { }
+
   CQChartsPosition(const Units &units, const Point &p) :
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const Point &p=Point(0, 0), const Units &units=Units::PLOT) :
+  CQChartsPosition(const Point &p, const Units &units) :
    units_(units), p_(p) {
   }
 
@@ -97,7 +104,7 @@ class CQChartsPosition :
                            const Units &defUnits=Units::PIXEL);
 
  private:
-  Units units_ { Units::PIXEL };
+  Units units_ { Units::NONE };
   Point p_;
 };
 

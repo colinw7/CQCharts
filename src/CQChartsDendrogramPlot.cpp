@@ -550,7 +550,7 @@ drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
 bool
 CQChartsDendrogramPlot::
-selectPress(const Point &p, SelMod /*selMod*/)
+handleSelectPress(const Point &p, SelMod /*selMod*/)
 {
   double cs = circleSize();
 

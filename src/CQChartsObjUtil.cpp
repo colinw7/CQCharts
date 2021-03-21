@@ -63,10 +63,10 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
     return;
   }
 
-  auto *symbolMapKey = qobject_cast<CQChartsSymbolSizeMapKey *>(obj);
+  auto *mapKey = qobject_cast<CQChartsMapKey *>(obj);
 
-  if (symbolMapKey) {
-    plot = symbolMapKey->plot();
+  if (mapKey) {
+    plot = mapKey->plot();
 
     if (plot) {
       charts = plot->charts();

@@ -1158,7 +1158,7 @@ animateStep()
 
 bool
 CQChartsForceDirectedPlot::
-selectPress(const Point &p, SelMod /*selMod*/)
+handleSelectPress(const Point &p, SelMod /*selMod*/)
 {
   auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
@@ -1174,7 +1174,7 @@ selectPress(const Point &p, SelMod /*selMod*/)
 
 bool
 CQChartsForceDirectedPlot::
-selectMove(const Point &p, Constraints constraints, bool first)
+handleSelectMove(const Point &p, Constraints constraints, bool first)
 {
   if (pressed_) {
     if (forceDirected_->currentPoint())
@@ -1191,12 +1191,12 @@ selectMove(const Point &p, Constraints constraints, bool first)
     forceDirected_->setCurrentPoint(nodePoint.second);
   }
 
-  return CQChartsPlot::selectMove(p, constraints, first);
+  return CQChartsPlot::handleSelectMove(p, constraints, first);
 }
 
 bool
 CQChartsForceDirectedPlot::
-selectRelease(const Point &p)
+handleSelectRelease(const Point &p)
 {
   if (forceDirected_->currentPoint())
     forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));

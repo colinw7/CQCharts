@@ -230,12 +230,6 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  virtual void mousePress  (const Point &, SelMod) { }
-  virtual void mouseMove   (const Point &) { }
-  virtual void mouseRelease(const Point &) { }
-
-  //---
-
   //! interp color
   QColor interpColor(const Color &c, const ColorInd &ind) const;
 
@@ -246,7 +240,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  // implement edit interface
+  // Implement edit interface
   bool editPress (const Point &) override;
   bool editMove  (const Point &) override;
   bool editMotion(const Point &) override;
@@ -810,7 +804,7 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   void initSmooth() const;
 
  private:
-  using Smooth = CQChartsSmooth;
+  using Smooth  = CQChartsSmooth;
   using SmoothP = std::unique_ptr<Smooth>;
 
   bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
@@ -1128,10 +1122,10 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   using Position = CQChartsPosition;
 
  public:
-  CQChartsArrowAnnotation(View *view, const Position &start=Position(Point(0, 0)),
-                          const Position &end=Position(Point(1, 1)));
-  CQChartsArrowAnnotation(Plot *plot, const Position &start=Position(Point(0, 0)),
-                          const Position &end=Position(Point(1, 1)));
+  CQChartsArrowAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
+                          const Position &end=Position::plot(Point(1, 1)));
+  CQChartsArrowAnnotation(Plot *plot, const Position &start=Position::plot(Point(0, 0)),
+                          const Position &end=Position::plot(Point(1, 1)));
 
   virtual ~CQChartsArrowAnnotation();
 
@@ -1193,11 +1187,11 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
  private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
-  Position start_       { Point(0, 0) }; //!< arrow start
-  ObjRef   startObjRef_;                 //!< arrow start reference object
-  Position end_         { Point(1, 1) }; //!< arrow end
-  ObjRef   endObjRef_;                   //!< arrow end reference object
-  ArrowP   arrow_;                       //!< arrow data
+  Position start_       { Position::plot(Point(0, 0)) }; //!< arrow start
+  ObjRef   startObjRef_;                                 //!< arrow start reference object
+  Position end_         { Position::plot(Point(1, 1)) }; //!< arrow end
+  ObjRef   endObjRef_;                                   //!< arrow end reference object
+  ArrowP   arrow_;                                       //!< arrow data
 };
 
 //---
@@ -1236,10 +1230,10 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
   using Length   = CQChartsLength;
 
  public:
-  CQChartsArcAnnotation(View *view, const Position &start=Position(Point(0, 0)),
-                        const Position &end=Position(Point(1, 1)));
-  CQChartsArcAnnotation(Plot *plot, const Position &start=Position(Point(0, 0)),
-                        const Position &end=Position(Point(1, 1)));
+  CQChartsArcAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
+                        const Position &end=Position::plot(Point(1, 1)));
+  CQChartsArcAnnotation(Plot *plot, const Position &start=Position::plot(Point(0, 0)),
+                        const Position &end=Position::plot(Point(1, 1)));
 
   virtual ~CQChartsArcAnnotation();
 
@@ -1320,15 +1314,15 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
   void calcPath(QPainterPath &path) const;
 
  private:
-  Position start_       { Point(0, 0) };              //!< arc start
-  ObjRef   startObjRef_;                              //!< arc start reference object
-  Position end_         { Point(1, 1) };              //!< arc end
-  ObjRef   endObjRef_;                                //!< arc end reference object
-  bool     isLine_      { false };                    //!< is line
-  bool     rectilinear_ { false };                    //!< is rectilinear
-  HeadType frontType_   { HeadType::NONE };           //!< front head type
-  HeadType tailType_    { HeadType::NONE };           //!< tail head type
-  Length   lineWidth_   { 16, CQChartsUnits::PIXEL }; //!< line width
+  Position start_       { CQChartsPosition::plot(Point(0, 0)) }; //!< arc start
+  ObjRef   startObjRef_;                                         //!< arc start reference object
+  Position end_         { CQChartsPosition::plot(Point(1, 1)) }; //!< arc end
+  ObjRef   endObjRef_;                                           //!< arc end reference object
+  bool     isLine_      { false };                               //!< is line
+  bool     rectilinear_ { false };                               //!< is rectilinear
+  HeadType frontType_   { HeadType::NONE };                      //!< front head type
+  HeadType tailType_    { HeadType::NONE };                      //!< tail head type
+  Length   lineWidth_   { 16, CQChartsUnits::PIXEL };            //!< line width
 };
 
 //---
@@ -1634,6 +1628,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   //---
 
+  //! handle select press
   bool selectPress(const Point &p, SelMod selMod) override;
 
   //---
@@ -1881,9 +1876,9 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void mousePress  (const Point &w, SelMod) override;
-  void mouseMove   (const Point &w) override;
-  void mouseRelease(const Point &w) override;
+  bool selectPress  (const Point &w, SelMod) override;
+  bool selectMove   (const Point &w) override;
+  bool selectRelease(const Point &w) override;
 
   //---
 

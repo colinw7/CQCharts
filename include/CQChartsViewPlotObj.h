@@ -20,7 +20,8 @@ class CQChartsObjRef;
  * \brief Object which could be on a view or a plot
  * \ingroup Charts
  */
-class CQChartsViewPlotObj : public CQChartsObj {
+class CQChartsViewPlotObj : public CQChartsObj,
+ public CQChartsSelectableIFace, public CQChartsEditableIFace {
   Q_OBJECT
 
  public:
@@ -45,6 +46,8 @@ class CQChartsViewPlotObj : public CQChartsObj {
 
   using Polygon = CQChartsGeom::Polygon;
   using RMinMax = CQChartsGeom::RMinMax;
+  using BBox    = CQChartsGeom::BBox;
+  using Point   = CQChartsGeom::Point;
 
  public:
   CQChartsViewPlotObj(View *view);
@@ -61,37 +64,12 @@ class CQChartsViewPlotObj : public CQChartsObj {
 
   //---
 
-  // Select Interface
-
-  //! handle select press, move, release
-  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
-  virtual bool selectMove   (const Point &) { return false; }
-  virtual bool selectRelease(const Point &) { return false; }
-
-  //---
-
-  // Edit Interface
-
-  // handle edit press, move, motion, release
-  virtual bool editPress  (const Point &) { return false; }
-  virtual bool editMove   (const Point &) { return false; }
-  virtual bool editMotion (const Point &) { return false; } // return true if inside
-  virtual bool editRelease(const Point &) { return true; }
-
-  //! handle edit move by (move)
-  virtual void editMoveBy(const Point &) { }
-
-  //! set new bounding box (resize)
-  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
-
-  //---
-
   //! get edit handles
-  virtual EditHandles *editHandles() const;
+  EditHandles *editHandles() const override;
 
-  virtual void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
 
-  virtual void setEditHandlesBBox() const;
+  void setEditHandlesBBox() const;
 
   //---
 
@@ -158,9 +136,11 @@ class CQChartsViewPlotObj : public CQChartsObj {
   static Rect     makeRect(View *view, Plot *plot, const Position &start, const Position &end);
 
  protected:
+  using EditHandlesP = std::unique_ptr<EditHandles>;
+
   View*        view_        { nullptr }; //!< parent view
   Plot*        plot_        { nullptr }; //!< parent plot
-  EditHandles* editHandles_ { nullptr }; //!< edit handles
+  EditHandlesP editHandles_;             //!< edit handles
 };
 
 #endif

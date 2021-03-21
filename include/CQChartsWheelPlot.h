@@ -522,7 +522,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
   //---
 
-  bool selectMove(const Point &p, Constraints constraints, bool first) override;
+  bool handleSelectMove(const Point &p, Constraints constraints, bool first) override;
 
   //---
 

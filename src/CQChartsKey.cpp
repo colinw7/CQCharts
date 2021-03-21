@@ -11,6 +11,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsSymbolSet.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -557,11 +558,17 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
-
-  editHandles()->setBBox(pbbox_);
+  setEditHandlesBBox();
 
   editHandles()->draw(painter);
+}
+
+void
+CQChartsViewKey::setEditHandlesBBox() const
+{
+  editHandles()->setMode(EditHandles::Mode::MOVE);
+
+  editHandles()->setBBox(pbbox_);
 }
 
 void
@@ -1534,7 +1541,7 @@ editPress(const Point &p)
       locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
     location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
-    setAbsolutePlotPosition(position_);
+    setAbsolutePlotPosition(position());
   }
 
   return true;
@@ -1597,7 +1604,7 @@ editMoveBy(const Point &f)
       locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
     location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
-    setAbsolutePlotPosition(position_ + f);
+    setAbsolutePlotPosition(position() + f);
   }
 
   updatePosition();
@@ -1699,8 +1706,8 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // calc plot bounding box (full size)
-  double x = position_.x; // left
-  double y = position_.y; // top
+  double x = position().x; // left
+  double y = position().y; // top
   double w = layoutData_.size.width ();
   double h = layoutData_.size.height();
 
@@ -2059,15 +2066,29 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  if (scrollData_.height.isSet() || scrollData_.width.isSet() ||
-      layoutData_.vscrolled || layoutData_.hscrolled)
-    editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
-  else
-    editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
-
-  editHandles()->setBBox(this->bbox());
+  setEditHandlesBBox();
 
   editHandles()->draw(painter);
+}
+
+void
+CQChartsPlotKey::
+setEditHandlesBBox() const
+{
+  if (isEditResize())
+    editHandles()->setMode(EditHandles::Mode::RESIZE);
+  else
+    editHandles()->setMode(EditHandles::Mode::MOVE);
+
+  editHandles()->setBBox(this->bbox());
+}
+
+bool
+CQChartsPlotKey::
+isEditResize() const
+{
+  return(scrollData_.height.isSet() || scrollData_.width.isSet() ||
+         layoutData_.vscrolled || layoutData_.hscrolled);
 }
 
 QColor
@@ -2877,7 +2898,8 @@ draw(PaintDevice *device, const BBox &rect) const
 
   device->setBrush(brush);
 
-  device->fillRect(plot_->pixelToWindow(fbbox));
+  device->fillRect(device->pixelToWindow(fbbox));
+  device->drawRect(device->pixelToWindow(fbbox));
 
   //---
 
@@ -2948,9 +2970,140 @@ calcLabels(QStringList &labels) const
 
 //------
 
+CQChartsMapKey::
+CQChartsMapKey(Plot *plot) :
+ CQChartsObj(plot->charts()), plot_(plot)
+{
+  setEditable(true);
+}
+
+void
+CQChartsMapKey::
+setMargin(double r)
+{
+  margin_ = r;
+
+  invalidate();
+}
+
+void
+CQChartsMapKey::
+setPosition(const Position &p)
+{
+  position_ = p;
+
+  invalidate();
+}
+
+void
+CQChartsMapKey::
+setAlign(const Qt::Alignment &a)
+{
+  align_ = a;
+
+  invalidate();
+}
+
+bool
+CQChartsMapKey::
+contains(const Point &p) const
+{
+  return bbox_.inside(p);
+}
+
+CQChartsEditHandles *
+CQChartsMapKey::
+editHandles() const
+{
+  if (! editHandles_) {
+    auto *th = const_cast<CQChartsMapKey *>(this);
+
+    th->editHandles_ = std::make_unique<EditHandles>(plot(), EditHandles::Mode::MOVE);
+  }
+
+  return editHandles_.get();
+}
+
+bool
+CQChartsMapKey::
+editPress(const Point &p)
+{
+  editHandles()->setDragPos(p);
+
+  return true;
+}
+
+bool
+CQChartsMapKey::
+editMove(const Point &p)
+{
+  const auto &dragPos  = editHandles()->dragPos();
+  const auto &dragSide = editHandles()->dragSide();
+
+  if (dragSide != CQChartsResizeSide::MOVE)
+    return false;
+
+  double dx = p.x - dragPos.x;
+  double dy = p.y - dragPos.y;
+
+  editHandles()->updateBBox(dx, dy);
+
+  double x = editHandles()->bbox().getXMid();
+  double y = editHandles()->bbox().getYMid();
+
+  if      (align() & Qt::AlignLeft ) x = editHandles()->bbox().getXMin();
+  else if (align() & Qt::AlignRight) x = editHandles()->bbox().getXMax();
+
+  if      (align() & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
+  else if (align() & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
+
+  setPosition(CQChartsPosition(Point(x, y), CQChartsUnits::PLOT));
+
+  editHandles()->setDragPos(p);
+
+  plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+
+  return true;
+}
+
+bool
+CQChartsMapKey::
+editMotion(const Point &p)
+{
+  return editHandles()->selectInside(p);
+}
+
+void
+CQChartsMapKey::
+drawEditHandles(QPainter *painter) const
+{
+  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+
+  if (! isVisible())
+    return;
+
+  setEditHandlesBBox();
+
+  editHandles()->draw(painter);
+}
+
+void
+CQChartsMapKey::
+setEditHandlesBBox() const
+{
+  auto bbox = this->bbox();
+  if (! bbox.isValid()) return;
+
+  auto *th = const_cast<CQChartsMapKey *>(this);
+
+  th->editHandles()->setBBox(bbox);
+}
+
+//---
+
 CQChartsColorMapKey::
 CQChartsColorMapKey(Plot *plot) :
- plot_(plot)
+ CQChartsMapKey(plot)
 {
 }
 
@@ -2980,13 +3133,12 @@ addProperties(PropertyModel *model, const QString &path)
 
 void
 CQChartsColorMapKey::
-draw(PaintDevice *device)
+draw(PaintDevice *device, bool /*usePenBrush*/)
 {
   QFontMetricsF fm(device->font());
 
-  double bw = fm.width("X") + 16;
-  double bh = fm.height()*5;
   double bm = this->margin();
+  double bw = fm.width("X") + 16;
 
   auto dataMid = CMathUtil::avg(dataMin(), dataMax());
 
@@ -2994,21 +3146,22 @@ draw(PaintDevice *device)
   auto dataMidStr = QString("%1").arg(dataMid  );
   auto dataMaxStr = QString("%1").arg(dataMax());
 
-  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMinStr)), fm.width(dataMaxStr));
+  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMidStr)), fm.width(dataMaxStr));
 
   double kw = bw + tw + 4;
+  double kh = fm.height()*5;
 
   // calc center
   Point pos;
 
-  if (position_.isValid()) {
-    pos = plot_->positionToPixel(position_);
+  if (position().isValid()) {
+    pos = plot_->positionToPixel(position());
   }
   else {
     auto pbbox = plot_->calcPlotPixelRect();
 
     double px = pbbox.getXMax() - kw/2.0 - bm;
-    double py = pbbox.getYMax() - bh/2.0 - bm;
+    double py = pbbox.getYMax() - kh/2.0 - bm;
 
     pos = Point(px, py);
   }
@@ -3018,11 +3171,53 @@ draw(PaintDevice *device)
 
   //---
 
-  // draw gradient
-  Point pg1(xm - bw/2.0, ym - bh/2.0);
-  Point pg2(xm + bw/2.0, ym + bh/2.0);
+  // calc bbox and align
+  Point p1(xm - kw/2.0, ym - kh/2.0);
+  Point p2(xm + kw/2.0, ym + kh/2.0);
 
-  QLinearGradient lg(xm, pg2.y, xm, pg1.y);
+  BBox pbbox(p1.x, p1.y, p2.x, p2.y);
+
+  double dx = 0.0;
+  double dy = 0.0;
+
+  if      (align() & Qt::AlignLeft ) dx =  kw/2.0;
+  else if (align() & Qt::AlignRight) dx = -kw/2.0;
+
+  if      (align() & Qt::AlignBottom) dy = -kh/2.0;
+  else if (align() & Qt::AlignTop   ) dy =  kh/2.0;
+
+  pbbox = pbbox.translated(dx, dy);
+
+  auto *th = const_cast<CQChartsColorMapKey *>(this);
+
+  th->setBBox(device->pixelToWindow(pbbox));
+
+  //---
+
+  // fill background
+  auto fillColor   = plot_->interpThemeColor(ColorInd(0.0));
+  auto strokeColor = plot_->interpThemeColor(ColorInd(1.0));
+
+  PenBrush penBrush;
+
+  plot_->setPenBrush(penBrush, PenData(true, strokeColor), BrushData(true, fillColor));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->fillRect(bbox());
+
+  //---
+
+  // draw border
+  device->drawRect(bbox());
+
+  //---
+
+  // draw gradient
+  BBox gbbox(pbbox.getXMin() + bm     , pbbox.getYMin() + bm,
+             pbbox.getXMin() + bw + bm, pbbox.getYMax() - bm);
+
+  QLinearGradient lg(gbbox.getXMid(), gbbox.getYMax(), gbbox.getXMid(), gbbox.getYMin());
 
   CQColorsPalette *colorsPalette = nullptr;
 
@@ -3035,15 +3230,12 @@ draw(PaintDevice *device)
 
   QBrush brush(lg);
 
-  BBox fbbox(pg1.x, pg1.y, pg2.x, pg2.y);
-
   device->setBrush(brush);
 
-  device->fillRect(plot_->pixelToWindow(fbbox));
+  device->fillRect(device->pixelToWindow(gbbox));
 
   //---
 
-  // draw labels
   // draw labels
   auto drawTextLabel = [&](const Point &p, const QString &label) {
     auto p1 = plot_->pixelToWindow(p);
@@ -3057,9 +3249,14 @@ draw(PaintDevice *device)
 
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  drawTextLabel(Point(pg2.x + 2, pg2.y + df), dataMinStr);
-  drawTextLabel(Point(pg2.x + 2, ym    + df), dataMidStr);
-  drawTextLabel(Point(pg2.x + 2, pg1.y + df), dataMaxStr);
+  double tx  = gbbox.getXMax() + bm;
+  double ty1 = pbbox.getYMin() + df;
+  double ty2 = pbbox.getYMid() + df;
+  double ty3 = pbbox.getYMax() + df;
+
+  drawTextLabel(Point(tx, ty3), dataMinStr);
+  drawTextLabel(Point(tx, ty2), dataMidStr);
+  drawTextLabel(Point(tx, ty1), dataMaxStr);
 }
 
 void
@@ -3073,7 +3270,7 @@ invalidate()
 
 CQChartsSymbolSizeMapKey::
 CQChartsSymbolSizeMapKey(Plot *plot) :
- plot_(plot)
+ CQChartsMapKey(plot)
 {
 }
 
@@ -3355,8 +3552,8 @@ getSymbolBoxes(BBoxes &pbboxes) const
   // calc center
   Point pos;
 
-  if (position_.isValid()) {
-    pos = plot_->positionToPixel(position_);
+  if (position().isValid()) {
+    pos = plot_->positionToPixel(position());
   }
   else {
     auto pbbox = plot_->calcPlotPixelRect();
@@ -3451,11 +3648,207 @@ getSymbolBoxes(BBoxes &pbboxes) const
   double pdx = plot_->windowToSignedPixelWidth (dx);
   double pdy = plot_->windowToSignedPixelHeight(dy);
 
-  for (auto &pbbox : pbboxes) {
+  for (auto &pbbox : pbboxes)
     pbbox = pbbox.translated(pdx, pdy);
-  }
 
   //---
 
   th->setBBox(bbox);
+}
+
+//------
+
+CQChartsSymbolTypeMapKey::
+CQChartsSymbolTypeMapKey(Plot *plot) :
+ CQChartsMapKey(plot)
+{
+}
+
+void
+CQChartsSymbolTypeMapKey::
+addProperties(PropertyModel *model, const QString &path)
+{
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addProp("dataMin", "Model Data Min");
+  addProp("dataMax", "Model Data Max");
+
+  addProp("mapMin", "Symbol Type Value Min");
+  addProp("mapMax", "Symbol Type Value Max");
+
+  addProp("position", "Key Position");
+
+  addProp("margin", "Margin");
+}
+
+void
+CQChartsSymbolTypeMapKey::
+draw(PaintDevice *device, bool /*usePenBrush*/)
+{
+  auto ks = pixelSize();
+
+  QFontMetricsF fm(device->font());
+
+  double bm = this->margin();
+  double bw = fm.width("X") + 4;
+
+  double kw = ks.width ();
+  double kh = ks.height();
+
+  // calc center
+  Point pos;
+
+  if (position().isValid()) {
+    pos = plot_->positionToPixel(position());
+  }
+  else {
+    auto pbbox = plot_->calcPlotPixelRect();
+
+    double px = pbbox.getXMax() - kw/2.0 - bm;
+    double py = pbbox.getYMax() - kh/2.0 - bm;
+
+    pos = Point(px, py);
+  }
+
+  double xm = pos.x;
+  double ym = pos.y;
+
+  //---
+
+  // calc bbox and align
+  Point p1(xm - kw/2.0, ym - kh/2.0);
+  Point p2(xm + kw/2.0, ym + kh/2.0);
+
+  BBox pbbox(p1.x, p1.y, p2.x, p2.y);
+
+  double dx = 0.0;
+  double dy = 0.0;
+
+  if      (align() & Qt::AlignLeft ) dx =  kw/2.0;
+  else if (align() & Qt::AlignRight) dx = -kw/2.0;
+
+  if      (align() & Qt::AlignBottom) dy = -kh/2.0;
+  else if (align() & Qt::AlignTop   ) dy =  kh/2.0;
+
+  pbbox = pbbox.translated(dx, dy);
+
+  auto *th = const_cast<CQChartsSymbolTypeMapKey *>(this);
+
+  th->setBBox(device->pixelToWindow(pbbox));
+
+  //---
+
+  // fill background
+  auto fillColor   = plot_->interpThemeColor(ColorInd(0.0));
+  auto strokeColor = plot_->interpThemeColor(ColorInd(1.0));
+
+  PenBrush penBrush;
+
+  plot_->setPenBrush(penBrush, PenData(true, strokeColor), BrushData(true, fillColor));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->fillRect(bbox());
+
+  //---
+
+  // draw border
+  device->drawRect(bbox());
+
+  //---
+
+  const auto *symbolSetMgr = plot_->charts()->symbolSetMgr();
+
+  auto *symbolSet = symbolSetMgr->symbolSet(symbolSet_);
+
+  // draw symbols and labels
+  auto drawTextLabel = [&](const Point &p, const QString &label) {
+    auto p1 = plot_->pixelToWindow(p);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, label, options);
+  };
+
+  double df = (fm.ascent() - fm.descent())/2.0;
+
+  auto symbolFillColor = plot_->interpPaletteColor(ColorInd());
+
+  for (int i = mapMin(); i <= mapMax(); ++i) {
+    auto dataStr = QString("%1").arg(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+
+    auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox.getYMax() - fm.height()/2.0 - 1,
+                            pbbox.getYMin() + fm.height()/2.0 + 1);
+
+    CQChartsSymbolSet::SymbolData symbolData;
+
+    if (symbolSet)
+      symbolData = symbolSet->symbol(i);
+    else
+      symbolData.symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
+
+    //---
+
+    PenBrush symbolPenBrush;
+
+    if (symbolData.filled)
+      plot_->setPenBrush(symbolPenBrush,
+        PenData(true, strokeColor), BrushData(true, symbolFillColor));
+    else
+      plot_->setPenBrush(symbolPenBrush,
+        PenData(true, strokeColor), BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
+
+    //---
+
+    double ss = 8;
+
+    CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
+                                 device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
+                                 CQChartsLength(ss, CQChartsUnits::PIXEL));
+
+    //---
+
+    drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+  }
+}
+
+QSize
+CQChartsSymbolTypeMapKey::
+pixelSize() const
+{
+  auto font = plot_->view()->viewFont(plot_->font());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+  double bw = fm.width("X") + 4;
+  double kh = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
+
+  double tw = 0.0;
+
+  for (int i = mapMin(); i <= mapMax(); ++i) {
+    auto dataStr = QString("%1").arg(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+
+    tw = std::max(tw, fm.width(dataStr));
+  }
+
+  double kw = bw + tw + 3*bm;
+
+  return QSize(kw, kh);
+}
+
+void
+CQChartsSymbolTypeMapKey::
+invalidate()
+{
+  emit dataChanged();
 }

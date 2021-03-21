@@ -216,20 +216,10 @@ init()
 
   //---
 
-  colorMapKey_ = new CQChartsColorMapKey(this);
+  addColorMapKey();
 
-  colorMapKey_->setVisible(false);
-
-  connect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  //---
-
-  symbolSizeMapKey_ = new CQChartsSymbolSizeMapKey(this);
-
-  symbolSizeMapKey_->setVisible(false);
-  symbolSizeMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
-
-  connect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  addSymbolSizeMapKey();
+  addSymbolTypeMapKey();
 }
 
 void
@@ -358,82 +348,6 @@ CQChartsScatterPlot::
 setPlotType(PlotType type)
 {
   CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-bool
-CQChartsScatterPlot::
-isColorMapKey() const
-{
-  return colorMapKey_->isVisible();
-}
-
-void
-CQChartsScatterPlot::
-setColorMapKey(bool b)
-{
-  if (b != colorMapKey_->isVisible()) {
-    colorMapKey_->setVisible(b);
-
-    drawObjs();
-  }
-}
-
-//---
-
-bool
-CQChartsScatterPlot::
-isSymbolSizeMapKey() const
-{
-  return symbolSizeMapKey_->isVisible();
-}
-
-void
-CQChartsScatterPlot::
-setSymbolSizeMapKey(bool b)
-{
-  if (b != symbolSizeMapKey_->isVisible()) {
-    symbolSizeMapKey_->setVisible(b);
-
-    drawObjs();
-  }
-}
-
-const CQChartsAlpha &
-CQChartsScatterPlot::
-symbolSizeMapKeyAlpha() const
-{
-  return symbolSizeMapKey_->alpha();
-}
-
-void
-CQChartsScatterPlot::
-setSymbolSizeMapKeyAlpha(const Alpha &a)
-{
-  if (a != symbolSizeMapKey_->alpha()) {
-    symbolSizeMapKey_->setAlpha(a);
-
-    drawObjs();
-  }
-}
-
-double
-CQChartsScatterPlot::
-symbolSizeMapKeyMargin() const
-{
-  return symbolSizeMapKey_->margin();
-}
-
-void
-CQChartsScatterPlot::
-setSymbolSizeMapKeyMargin(double m)
-{
-  if (m != symbolSizeMapKey_->margin()) {
-    symbolSizeMapKey_->setMargin(m);
-
-    drawObjs();
-  }
 }
 
 //---
@@ -623,23 +537,6 @@ void
 CQChartsScatterPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -705,28 +602,18 @@ addProperties()
 
   //---
 
-  // symbol key
-  auto colorMapKeyPath = QString("color/key");
-
-  addProp(colorMapKeyPath, "colorMapKey", "visible", "Color key visible");
-
-  colorMapKey_->addProperties(propertyModel(), colorMapKeyPath);
+  // color map key
+  addColorMapKeyProperties();
 
   //---
 
-  // symbol key
-  auto symbolSizeMapKeyPath = QString("symbolSize/key");
+  // symbol size key
+  addSymbolSizeMapKeyProperties();
 
-  addProp(symbolSizeMapKeyPath, "symbolSizeMapKey", "visible", "Symbol size key visible");
+  //---
 
-#if 0
-  addProp     (symbolSizeMapKeyPath          , "symbolSizeMapKeyMargin", "margin" ,
-               "Symbol size key margin in pixels")->setMinValue(0.0);
-  addStyleProp(symbolSizeMapKeyPath + "/fill", "symbolSizeMapKeyAlpha" , "alpha"  ,
-               "Symbol size key fill alpha");
-#endif
-
-  symbolSizeMapKey_->addProperties(propertyModel(), symbolSizeMapKeyPath);
+  // symbol type key
+  addSymbolTypeMapKeyProperties();
 
   //---
 
@@ -2365,15 +2252,25 @@ bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
     auto *action = new QAction(name, menu);
+
+    if (slot)
+      connect(action, SIGNAL(triggered()), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto *action = addMenuAction(menu, name, nullptr);
 
     action->setCheckable(true);
     action->setChecked(isSet);
 
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
+    if (slot)
+      connect(action, SIGNAL(triggered(bool)), this, slot);
 
     return action;
   };
@@ -2395,6 +2292,30 @@ addMenuItems(QMenu *menu)
 
   if (labelColumn().isValid() || nameColumn().isValid())
     addMenuCheckedAction(menu, "Labels", isPointLabels(), SLOT(setPointLabels(bool)));
+
+  //---
+
+  bool canColorMapKey      = (colorColumn     ().isValid());
+  bool canSymbolSizeMapKey = (symbolSizeColumn().isValid());
+  bool canSymbolTypeMapKey = (symbolTypeColumn().isValid());
+
+  if (canColorMapKey || canSymbolSizeMapKey || canSymbolTypeMapKey) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    if (canColorMapKey)
+      addMenuCheckedAction(keysMenu, "Symbol Color Key", isColorMapKey(),
+                           SLOT(setColorMapKey(bool)));
+
+    if (canSymbolSizeMapKey)
+      addMenuCheckedAction(keysMenu, "Symbol Size Key", isSymbolSizeMapKey(),
+                           SLOT(setSymbolSizeMapKey(bool)));
+
+    if (canSymbolTypeMapKey)
+      addMenuCheckedAction(keysMenu, "Symbol Type Key", isSymbolTypeMapKey(),
+                           SLOT(setSymbolTypeMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
 
   //---
 
@@ -2614,6 +2535,9 @@ execDrawForeground(PaintDevice *device) const
 
   if (isSymbolSizeMapKey())
     drawSymbolSizeMapKey(device);
+
+  if (isSymbolTypeMapKey())
+    drawSymbolTypeMapKey(device);
 }
 
 //---
@@ -3270,68 +3194,6 @@ initWhiskerData() const
 
 void
 CQChartsScatterPlot::
-drawColorMapKey(PaintDevice *device) const
-{
-  if (! colorColumn().isValid())
-    return;
-
-  //---
-
-  disconnect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  colorMapKey_->setDataMin(colorMapDataMin());
-  colorMapKey_->setDataMax(colorMapDataMax());
-
-  colorMapKey_->setMapMin(colorMapMin());
-  colorMapKey_->setMapMax(colorMapMax());
-
-  colorMapKey_->setPaletteName(colorMapPalette());
-
-  auto bbox = displayRangeBBox();
-
-  colorMapKey_->setPosition(bbox.getLR());
-
-  connect(colorMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  //---
-
-  colorMapKey_->draw(device);
-}
-
-//------
-
-void
-CQChartsScatterPlot::
-drawSymbolSizeMapKey(PaintDevice *device) const
-{
-  if (! symbolSizeColumn().isValid())
-    return;
-
-  //---
-
-  disconnect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  symbolSizeMapKey_->setDataMin(symbolSizeData_.data_min);
-  symbolSizeMapKey_->setDataMax(symbolSizeData_.data_max);
-
-  symbolSizeMapKey_->setMapMin(symbolSizeData_.map_min);
-  symbolSizeMapKey_->setMapMax(symbolSizeData_.map_max);
-
-  auto bbox = displayRangeBBox();
-
-  symbolSizeMapKey_->setPosition(bbox.getLR());
-
-  connect(symbolSizeMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  //---
-
-  symbolSizeMapKey_->draw(device);
-}
-
-//---
-
-void
-CQChartsScatterPlot::
 addDataLabelData(const BBox &bbox, const QString &text, const CQChartsLabelPosition &position,
                  const PenBrush &penBrush, const Font &font)
 {
@@ -3388,9 +3250,9 @@ CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect, const 
 
 CQChartsSymbol
 CQChartsScatterPointObj::
-symbolType() const
+calcSymbolType() const
 {
-  auto symbolType = extraData().symbolType;
+  auto symbolType = this->symbolType();
 
   if (! symbolType.isValid())
     symbolType = plot_->symbolType();
@@ -3398,20 +3260,11 @@ symbolType() const
   return symbolType;
 }
 
-bool
-CQChartsScatterPointObj::
-symbolFilled() const
-{
-  auto symbolFilled = extraData().symbolFilled;
-
-  return symbolFilled.value_or(plot_->isSymbolFilled());
-}
-
 CQChartsLength
 CQChartsScatterPointObj::
-symbolSize() const
+calcSymbolSize() const
 {
-  auto symbolSize = extraData().symbolSize;
+  auto symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
     symbolSize = plot()->symbolSize();
@@ -3421,9 +3274,9 @@ symbolSize() const
 
 CQChartsLength
 CQChartsScatterPointObj::
-fontSize() const
+calcFontSize() const
 {
-  auto fontSize = extraData().fontSize;
+  auto fontSize = this->fontSize();
 
   if (! fontSize.isValid()) {
     double dataLabelFontSize = plot()->dataLabelFont().pointSizeF();
@@ -3432,33 +3285,6 @@ fontSize() const
   }
 
   return fontSize;
-}
-
-CQChartsColor
-CQChartsScatterPointObj::
-color() const
-{
-  auto color = extraData().color;
-
-  return color;
-}
-
-CQChartsAlpha
-CQChartsScatterPointObj::
-alpha() const
-{
-  auto alpha = extraData().alpha;
-
-  return alpha;
-}
-
-CQChartsFont
-CQChartsScatterPointObj::
-font() const
-{
-  auto font = extraData().font;
-
-  return font;
 }
 
 //---
@@ -3622,7 +3448,7 @@ inside(const Point &p) const
 {
   double sx, sy;
 
-  plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
+  plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy);
 
   auto p1 = plot_->windowToPixel(pos_);
 
@@ -3669,8 +3495,8 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol type and size
-  auto symbolType = this->symbolType();
-  auto symbolSize = this->symbolSize();
+  auto symbolType = this->calcSymbolType();
+  auto symbolSize = this->calcSymbolSize();
 
   double sx, sy;
 
@@ -3787,36 +3613,43 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //plot_->setSymbolPenBrush(penBrush, ic);
 
-  bool filled  = this->symbolFilled();
-  bool stroked = plot_->isSymbolStroked(); // dependent on symbol mgr ?
-
-  plot_->setPenBrush(penBrush,
-    CQChartsPenData(stroked, plot_->interpSymbolStrokeColor(ic), plot_->symbolStrokeAlpha(),
-                    plot_->symbolStrokeWidth(), plot_->symbolStrokeDash()),
-    CQChartsBrushData(filled, plot_->interpSymbolFillColor(ic), plot_->symbolFillAlpha(),
-                      plot_->symbolFillPattern()));
+  auto fc = plot_->interpSymbolFillColor(ic);
+  auto fa = plot_->symbolFillAlpha();
+  auto sc = plot_->interpSymbolStrokeColor(ic);
+  auto sa = plot_->symbolStrokeAlpha();
 
   // override symbol fill color for custom color
   auto color = this->color();
 
-  if (color.isValid()) {
-    auto c = plot_->interpColor(color, ic);
-
-    CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
-
-    penBrush.brush.setColor(c);
-  }
+  if (color.isValid())
+    fc = plot_->interpColor(color, ic);
 
   // override symbol fill alpha for custom alpha
   auto alpha = this->alpha();
 
-  if (alpha.isSet()) {
-    auto c = penBrush.brush.color();
+  if (alpha.isSet())
+    fa = alpha;
 
-    CQChartsDrawUtil::setColorAlpha(c, alpha);
+  //---
 
-    penBrush.brush.setColor(c);
+  bool filled  = plot_->isSymbolFilled();
+  bool stroked = plot_->isSymbolStroked();
+
+  if (this->isSymbolFilled()) {
+    filled = this->isSymbolFilled().get();
+
+    if (! filled) {
+      stroked = true;
+      sc      = fc;
+      sa      = fa;
+    }
   }
+
+  //---
+
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData(stroked, sc, sa, plot_->symbolStrokeWidth(), plot_->symbolStrokeDash()),
+    CQChartsBrushData(filled, fc, fa, plot_->symbolFillPattern()));
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush, drawType());

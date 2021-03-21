@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Edit interface
  + Access to keys for mapped data (color, symbol size, symbol type)
  + Composite Plot Key (multiple plot items in single key)
  + Composite Plot for all plots

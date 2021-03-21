@@ -269,9 +269,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  bool selectPress  (const Point &p, SelMod selMod) override;
-  bool selectMove   (const Point &p, Constraints constraints, bool first=false) override;
-  bool selectRelease(const Point &p) override;
+  //! plot select interface
+  bool handleSelectPress  (const Point &p, SelMod selMod) override;
+  bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false) override;
+  bool handleSelectRelease(const Point &p) override;
 
   //---
 

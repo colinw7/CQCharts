@@ -447,7 +447,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+  //! handle select press
+  bool selectPress(const Point &p, SelMod selMod) override;
 
   QBrush fillBrush() const override;
 

@@ -3398,7 +3398,7 @@ selectPointPress()
   annotationsAtPoint(w, pressAnnotations_);
 
   for (const auto &annotation : pressAnnotations_) {
-    annotation->mousePress(w, mouseSelMod());
+    annotation->selectPress(w, mouseSelMod());
   }
 
   for (const auto &selAnnotation : pressAnnotations_) {
@@ -3527,7 +3527,7 @@ selectMouseRelease()
   for (const auto &annotation : pressAnnotations_) {
     auto w = pixelToWindow(mousePressPoint());
 
-    annotation->mouseRelease(w);
+    annotation->selectRelease(w);
   }
 }
 
@@ -5084,7 +5084,7 @@ searchAt(const Point &w)
   processMouseDataPlots([&](Plot *plot, const Point &pos) {
     auto w = plot->pixelToWindow(pos);
 
-    if (plot->selectMove(w, constraints, ! handled))
+    if (plot->handleSelectMove(w, constraints, ! handled))
       handled = true;
 
     return false;

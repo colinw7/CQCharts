@@ -1289,3 +1289,6 @@
  + add support for symbol sets
 # 2/28/2021
  + add more custom plot controls and infrastructure
+# 3/20/2021
+ + add symbol color, symbol size and symbol shape keys to scatter plot
+ + support position and editing

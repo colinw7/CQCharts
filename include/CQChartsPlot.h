@@ -20,6 +20,7 @@
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
 #include <CQChartsPlotModelVisitor.h>
+#include <CQChartsKey.h>
 
 #include <QAbstractItemModel>
 #include <QFrame>
@@ -141,7 +142,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)   // fit are
  *  + addMenuItems  : add custom menu items to context menu
  *
  */
-class CQChartsPlot : public CQChartsObj,
+class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  public CQChartsObjPlotShapeData<CQChartsPlot>,
  public CQChartsObjDataShapeData<CQChartsPlot>,
  public CQChartsObjFitShapeData <CQChartsPlot> {
@@ -260,6 +261,9 @@ class CQChartsPlot : public CQChartsObj,
   // key
   Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
   Q_PROPERTY(bool colorKey   READ isColorKey   WRITE setColorKey  )
+
+  // color map key
+  Q_PROPERTY(bool colorMapKey READ isColorMapKey WRITE setColorMapKey)
 
   // font
   Q_PROPERTY(CQChartsFont font       READ font       WRITE setFont)
@@ -715,8 +719,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // key
  public:
+  // key
   virtual bool isKeyVisible() const;
   virtual void setKeyVisible(bool b);
 
@@ -725,8 +729,15 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool isColorKey() const;
   virtual void setColorKey(bool b);
 
+ public:
+  // color map key
+  void addColorMapKey();
+
+  bool isColorMapKey() const;
+
   //---
 
+ public:
   virtual bool isEqualScale() const;
   virtual void setEqualScale(bool b);
 
@@ -1072,6 +1083,14 @@ class CQChartsPlot : public CQChartsObj,
                          bool hidden=false);
 
   void addColorMapProperties();
+
+  CQPropertyViewItem *addStyleProp(const QString &path, const QString &name, const QString &alias,
+                                   const QString &desc, bool hidden=false);
+
+  CQPropertyViewItem *addProp(const QString &path, const QString &name, const QString &alias,
+                              const QString &desc, bool hidden=false);
+
+  //---
 
   bool setProperties(const QString &properties);
 
@@ -1958,10 +1977,13 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool selectMouseMove   (const Point &p, bool first=false);
   virtual bool selectMouseRelease(const Point &p);
 
-  virtual bool selectPress  (const Point &p, SelMod selMod);
-  virtual bool selectMove   (const Point &p, Constraints constraints=Constraints::EDITABLE,
-                             bool first=false);
-  virtual bool selectRelease(const Point &p);
+  //---
+
+  // select interface
+  virtual bool handleSelectPress  (const Point &p, SelMod selMod);
+  virtual bool handleSelectMove   (const Point &p, Constraints constraints=Constraints::EDITABLE,
+                                   bool first=false);
+  virtual bool handleSelectRelease(const Point &p);
 
   //-
 
@@ -1987,6 +2009,7 @@ class CQChartsPlot : public CQChartsObj,
     XAXIS,       //!< xaxis
     YAXIS,       //!< yaxis
     KEY,         //!< key
+    MAP_KEY,     //!< map key
     TITLE,       //!< title
     ANNOTATION   //!< annotation
   };
@@ -1998,12 +2021,17 @@ class CQChartsPlot : public CQChartsObj,
   bool editMouseMotion (const Point &p);
   bool editMouseRelease(const Point &p);
 
-  virtual bool editPress  (const Point &p, const Point &w, bool inside=false);
-  virtual bool editMove   (const Point &p, const Point &w, bool first=false);
-  virtual bool editMotion (const Point &p, const Point &w); // return true if inside
-  virtual bool editRelease(const Point &p, const Point &w);
+  //---
 
-  virtual void editMoveBy(const Point &d);
+  // handle edit
+  bool handleEditPress  (const Point &p, const Point &w, bool inside=false);
+  bool handleEditMove   (const Point &p, const Point &w, bool first=false);
+  bool handleEditMotion (const Point &p, const Point &w); // return true if inside
+  bool handleEditRelease(const Point &p, const Point &w);
+
+  void handleEditMoveBy(const Point &d);
+
+  //---
 
   void setDragObj(DragObjType objType, CQChartsObj *obj);
 
@@ -2011,25 +2039,33 @@ class CQChartsPlot : public CQChartsObj,
 
   //-
 
-  bool keyEditPress  (PlotKey *key  , const Point &w);
-  bool axisEditPress (Axis    *axis , const Point &w);
-  bool titleEditPress(Title   *title, const Point &w);
+  bool keyEditPress(PlotKey *key, const Point &w);
+
+  bool mapKeyEditPress(const Point &w);
+
+  bool axisEditPress (Axis  *axis , const Point &w);
+  bool titleEditPress(Title *title, const Point &w);
 
   bool annotationsEditPress(const Point &w);
 
   bool objectsEditPress(const Point &w, bool inside);
 
-  //-
+  bool editHandlePress(CQChartsObj *obj, const Point &w, const DragObjType &dragObjType);
 
-  bool keyEditSelect  (PlotKey *key  , const Point &w);
-  bool axisEditSelect (Axis    *axis , const Point &w);
-  bool titleEditSelect(Title   *title, const Point &w);
+  //--
+
+  bool keyEditSelect(PlotKey *key  , const Point &w);
+
+  bool mapKeyEditSelect(const Point &w);
+
+  bool axisEditSelect (Axis  *axis , const Point &w);
+  bool titleEditSelect(Title *title, const Point &w);
 
 //bool annotationsEditSelect(const Point &w);
 
   bool objectsEditSelect(const Point &w, bool inside);
 
-  //-
+  //--
 
   void selectOneObj(Obj *obj, bool allObjs);
 
@@ -2080,6 +2116,11 @@ class CQChartsPlot : public CQChartsObj,
   virtual double getZoomFactor(bool is_shift) const;
 
  public slots:
+  // color map key
+  void setColorMapKey(bool b);
+
+  //---
+
   void propertyItemChanged(QObject *, const QString &);
 
   void updateSlot();
@@ -2540,14 +2581,20 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawBoxes(PaintDevice *device) const;
 
+  //---
+
   // draw edit handles
+  EditHandles *editHandles() const override;
+
   virtual bool hasGroupedEditHandles() const;
 
   virtual void drawGroupedEditHandles(QPainter *painter) const;
 
   virtual bool hasEditHandles() const;
 
-  virtual void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
+
+  //---
 
   // draw custom overlay
   virtual bool hasOverlay() const;
@@ -2555,6 +2602,12 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawCustomOverlay(PaintDevice *device) const;
 
   virtual void execDrawOverlay(PaintDevice *device) const;
+
+  //---
+
+  void addColorMapKeyProperties();
+
+  void drawColorMapKey(PaintDevice *device) const;
 
   //---
 
@@ -3226,6 +3279,13 @@ class CQChartsPlot : public CQChartsObj,
   // key
   PlotKeyP keyObj_;             //!< key object
   bool     colorKey_ { false }; //!< use color column for key
+
+  // color map key
+  using ColorMapKeyP = std::unique_ptr<CQChartsColorMapKey>;
+  using MapKeys      = std::vector<CQChartsMapKey *>;
+
+  ColorMapKeyP colorMapKey_; //!< color map key
+  MapKeys      mapKeys_;
 
   // columns
   Column  xValueColumn_;   //!< x axis value column

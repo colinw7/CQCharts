@@ -21,7 +21,6 @@ CQChartsViewPlotObj(Plot *plot) :
 CQChartsViewPlotObj::
 ~CQChartsViewPlotObj()
 {
-  delete editHandles_;
 }
 
 //---
@@ -50,12 +49,12 @@ editHandles() const
     auto *th = const_cast<CQChartsViewPlotObj *>(this);
 
     if      (plot())
-      th->editHandles_ = new EditHandles(plot(), EditHandles::Mode::MOVE);
+      th->editHandles_ = std::make_unique<EditHandles>(plot(), EditHandles::Mode::MOVE);
     else if (view())
-      th->editHandles_ = new EditHandles(view(), EditHandles::Mode::MOVE);
+      th->editHandles_ = std::make_unique<EditHandles>(view(), EditHandles::Mode::MOVE);
   }
 
-  return editHandles_;
+  return editHandles_.get();
 }
 
 void
@@ -63,6 +62,9 @@ CQChartsViewPlotObj::
 drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == View::Mode::EDIT && isSelected());
+
+  if (! isVisible())
+    return;
 
   setEditHandlesBBox();
 
@@ -273,7 +275,7 @@ positionFromParent(const ObjRef &objRef, const Position &pos) const
   else if (view())
     return CQChartsPosition(p, CQChartsUnits::VIEW);
   else
-    return p;
+    return CQChartsPosition(p, CQChartsUnits::PLOT);
 }
 
 CQChartsGeom::Point

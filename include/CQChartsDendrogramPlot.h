@@ -156,7 +156,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  bool selectPress(const Point &p, SelMod selMod) override;
+  //! handle select press
+  bool handleSelectPress(const Point &p, SelMod selMod) override;
 
   //---
 

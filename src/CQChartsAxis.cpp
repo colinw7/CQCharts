@@ -52,8 +52,6 @@ init()
 
   //--
 
-  editHandles_ = std::make_unique<CQChartsEditHandles>(plot_, CQChartsEditHandles::Mode::MOVE);
-
   Color themeFg   (Color::Type::INTERFACE_VALUE, 1);
   Color themeGray1(Color::Type::INTERFACE_VALUE, 0.7);
   Color themeGray2(Color::Type::INTERFACE_VALUE, 0.3);
@@ -1081,6 +1079,12 @@ CQChartsEditHandles *
 CQChartsAxis::
 editHandles() const
 {
+  if (! editHandles_) {
+    auto *th = const_cast<CQChartsAxis *>(this);
+
+    th->editHandles_ = std::make_unique<EditHandles>(plot_, EditHandles::Mode::MOVE);
+  }
+
   return editHandles_.get();
 }
 
@@ -1090,7 +1094,7 @@ bool
 CQChartsAxis::
 editPress(const Point &p)
 {
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   double apos1, apos2;
 
@@ -1105,7 +1109,7 @@ bool
 CQChartsAxis::
 editMove(const Point &p)
 {
-  const auto &dragPos = editHandles_->dragPos();
+  const auto &dragPos = editHandles()->dragPos();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -1119,7 +1123,7 @@ editMove(const Point &p)
 
   setPosition(CQChartsOptReal(apos));
 
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   redraw(/*wait*/false);
 
@@ -1130,7 +1134,7 @@ bool
 CQChartsAxis::
 editMotion(const Point &p)
 {
-  return editHandles_->selectInside(p);
+  return editHandles()->selectInside(p);
 }
 
 void
@@ -1666,11 +1670,18 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
+  setEditHandlesBBox();
+
+  editHandles()->draw(painter);
+}
+
+void
+CQChartsAxis::
+setEditHandlesBBox() const
+{
   auto *th = const_cast<CQChartsAxis *>(this);
 
-  th->editHandles_->setBBox(this->bbox());
-
-  editHandles_->draw(painter);
+  th->editHandles()->setBBox(this->bbox());
 }
 
 void

@@ -336,6 +336,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                       const ColorInd &ig, const ColorInd &iv);
 
+  //! handle select press
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;

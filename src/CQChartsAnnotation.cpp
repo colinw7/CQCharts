@@ -1681,7 +1681,7 @@ void
 CQChartsEllipseAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  center_ = Position(bbox.getCenter());
+  center_ = Position(bbox.getCenter(), Position::Units::PLOT);
 
   double w = bbox.getWidth ();
   double h = bbox.getHeight();
@@ -3688,8 +3688,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   start.setX(x1); end.setX(x2);
   start.setY(y1); end.setY(y2);
 
-  start_ = Position(start);
-  end_   = Position(end  );
+  start_ = Position(start, Position::Units::PLOT);
+  end_   = Position(end  , Position::Units::PLOT);
 
   setAnnotationBBox(bbox);
 }
@@ -4533,7 +4533,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   p += Point(dx, dy);
 
-  position_ = Position(p);
+  position_ = Position(p, Position::Units::PLOT);
 
   setAnnotationBBox(bbox);
 }
@@ -5381,7 +5381,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   auto bbox1 = rectangle_.bbox();
 
-  auto ll = positionToParent(objRef(), bbox1.getMin());
+  auto ll = positionToParent(objRef(), Position(bbox1.getMin(), Position::Units::PLOT));
 
   double dx = bbox.getXMin() - rect_.getXMin();
   double dy = bbox.getYMin() - rect_.getYMin();
@@ -5546,28 +5546,33 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addStrokeFillProperties(model, path1);
 }
 
-void
+bool
 CQChartsButtonAnnotation::
-mousePress(const Point &, SelMod)
+selectPress(const Point &, SelMod)
 {
   pressed_ = true;
 
   invalidate();
+
+  return true;
 }
 
-void
+bool
 CQChartsButtonAnnotation::
-mouseMove(const Point &)
+selectMove(const Point &)
 {
+  return true;
 }
 
-void
+bool
 CQChartsButtonAnnotation::
-mouseRelease(const Point &)
+selectRelease(const Point &)
 {
   pressed_ = false;
 
   invalidate();
+
+  return true;
 }
 
 //---
@@ -6262,7 +6267,7 @@ void
 CQChartsSymbolSizeMapKeyAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  position_ = Position(bbox.getCenter());
+  position_ = Position(bbox.getCenter(), Position::Units::PLOT);
 }
 
 //---
