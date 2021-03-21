@@ -1182,10 +1182,22 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   void addObjects(PlotObjs &objs) const;
 
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
  protected:
   void clearNodesAndEdges();
 
   Node *findNode(const QString &name) const;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
 
   Node *createNode(const QString &name) const;
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const;

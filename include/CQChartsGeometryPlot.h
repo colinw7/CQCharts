@@ -80,13 +80,15 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   Q_PROPERTY(double        value READ value WRITE setValue)
   Q_PROPERTY(QString       name  READ name  WRITE setName )
-  Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
+//Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
   Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
   using GeometryPlot = CQChartsGeometryPlot;
   using Style        = CQChartsStyle;
+  using Column       = CQChartsColumn;
   using Color        = CQChartsColor;
+  using OptReal      = CQChartsOptReal;
 
  public:
   CQChartsGeometryObj(const GeometryPlot *plot, const BBox &rect, const Polygons &polygons,
@@ -106,14 +108,15 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  const Color &color() const { return color_; }
-  void setColor(const Color &c) { color_ = c; }
+  //const Color &color() const { return color_; }
+  //void setColor(const Color &c) { color_ = c; }
 
   const Style &style() const { return style_; }
   void setStyle(const Style &s) { style_ = s; }
 
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; hasValue_ = true; }
+  bool hasValue() const { return value_.isSet(); }
+  double value() const { return value_.realOr(0.0); }
+  void setValue(double r) { value_ = OptReal(r); }
 
   bool inside(const Point &p) const override;
 
@@ -137,10 +140,9 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   const GeometryPlot* plot_     { nullptr }; //!< parent plot
   Polygons            polygons_;             //!< geometry polygons
   QString             name_;                 //!< geometry name
-  Color               color_;                //!< optional color
+//Color               color_;                //!< optional color
   Style               style_;                //!< optional style
-  double              value_    { 0.0 };     //!< geometry value
-  bool                hasValue_ { false };   //!< has value
+  OptReal             value_;                //!< geometry value
 };
 
 //---
@@ -179,12 +181,12 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  public:
   enum class ValueStyle {
-    NONE,
-    COLOR,
-    BALLOON
+    NONE,   // ???
+    COLOR,  // color by value
+    BALLOON // draw balloon using value
   };
 
-  using OptReal = boost::optional<double>;
+  using OptReal = CQChartsOptReal;
   using Style   = CQChartsStyle;
   using Color   = CQChartsColor;
 
@@ -193,7 +195,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
     QString     name;     //!< name
     Polygons    polygons; //!< polygon list
     OptReal     value;    //!< value
-    Color       color;    //!< custom color
+//  Color       color;    //!< custom color
     Style       style;    //!< custom style
     BBox        bbox;     //!< bounding box
     QModelIndex ind;      //!< associated model index
@@ -228,7 +230,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsColumn getNamedColumn(const QString &name) const override;
+  Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
   //---
@@ -284,6 +286,16 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   //---
 
   bool probe(ProbeData &probeData) const override;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *device) const override;
 
   //---
 

@@ -434,6 +434,12 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
   void drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const;
 
   //---

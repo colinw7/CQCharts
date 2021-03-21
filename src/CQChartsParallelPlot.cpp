@@ -155,9 +155,15 @@ init()
 
   masterAxis_->setDrawAll(true);
 
+  //--
+
   //addKey(); TODO
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -261,13 +267,6 @@ void
 CQChartsParallelPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -379,6 +378,14 @@ addProperties()
                    "Axis label text clip elide");
 
 //masterAxis_->addProperties(propertyModel(), "axis");
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 CQChartsGeom::Range
@@ -844,6 +851,16 @@ addMenuItems(QMenu *menu)
 
   menu->addAction(horizontalAction);
 
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
+
   return true;
 }
 
@@ -1102,6 +1119,26 @@ createPointObj(const BBox &rect, double yval, double x, double y, const QModelIn
                const ColorInd &is, const ColorInd &iv) const
 {
   return new CQChartsParallelPointObj(this, rect, yval, x, y, ind, is, iv);
+}
+
+//---
+
+bool
+CQChartsParallelPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsParallelPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

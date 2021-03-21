@@ -148,11 +148,6 @@ void
 CQChartsPlot3D::
 addCameraProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
   addProp("range", "zmin", "zmin", "Explicit minimum z value");
   addProp("range", "zmax", "zmax", "Explicit minimum z value");
 

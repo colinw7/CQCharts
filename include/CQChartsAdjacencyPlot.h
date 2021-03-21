@@ -368,6 +368,12 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
   virtual CellObj *createCellObj(AdjacencyNode *node1, AdjacencyNode *node2,
                                  double value, const BBox &rect, const ColorInd &ig);
 

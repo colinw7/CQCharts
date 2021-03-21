@@ -193,6 +193,10 @@ init()
   // need to update axis labels on placement change
   connect(xAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
   connect(yAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -390,16 +394,6 @@ void
 CQChartsDistributionPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   addBoxProperties();
@@ -465,6 +459,11 @@ addProperties()
   //---
 
   addGroupingProperties();
+
+  //---
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -2855,31 +2854,12 @@ bool
 CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
   auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
   auto addAction = [&](const QString &name, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
+    return addMenuAction(menu, name, slot);
   };
 
   //---
@@ -2949,6 +2929,16 @@ addMenuItems(QMenu *menu)
   popAction   ->setEnabled(! filterStack_.empty());
   popTopAction->setEnabled(! filterStack_.empty());
 
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
+
   return true;
 }
 
@@ -2961,8 +2951,8 @@ hasForeground() const
   if (isDensity() || isScatter())
     return false;
 
-  if (! isStatsLines())
-    return false;
+  if (isStatsLines())
+    return true;
 
   if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
     return false;
@@ -2974,11 +2964,11 @@ void
 CQChartsDistributionPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  if (! hasForeground())
-    return;
-
   if (isStatsLines())
     drawStatsLines(device);
+
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 void

@@ -192,13 +192,6 @@ void
 CQChartsGroupPlot::
 addGroupingProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   auto *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
   assert(type);
 

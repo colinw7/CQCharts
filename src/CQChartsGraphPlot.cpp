@@ -24,6 +24,9 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
+#include <QMenu>
+#include <QAction>
+
 #include <deque>
 
 CQChartsGraphPlotType::
@@ -135,6 +138,10 @@ init()
   //---
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 
   //---
 
@@ -279,16 +286,6 @@ void
 CQChartsGraphPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   CQChartsConnectionPlot::addProperties();
 
   //---
@@ -351,6 +348,14 @@ addProperties()
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -1255,6 +1260,27 @@ filterObjs()
         node->setVisible(false);
     }
   }
+}
+
+//---
+
+bool
+CQChartsGraphPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
 }
 
 //---
@@ -2505,6 +2531,26 @@ createGraphObj(const BBox &rect, Graph *graph) const
 
 //---
 
+bool
+CQChartsGraphPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsGraphPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsGraphPlot::
 createCustomControls(CQCharts *charts)
@@ -3139,6 +3185,9 @@ editMove(const Point &p)
 {
   const auto &dragPos  = editHandles()->dragPos();
   const auto &dragSide = editHandles()->dragSide();
+
+  if (dragSide != CQChartsResizeSide::MOVE)
+    return false;
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;

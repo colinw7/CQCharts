@@ -47,13 +47,14 @@ class CQChartsKey : public CQChartsBoxObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
  public:
-  using SelMod      = CQChartsSelMod;
-  using Location    = CQChartsKeyLocation;
-  using KeyBehavior = CQChartsKeyPressBehavior;
-  using OptLength   = CQChartsOptLength;
-  using Font        = CQChartsFont;
-  using Alpha       = CQChartsAlpha;
-  using ColorInd    = CQChartsUtil::ColorInd;
+  using PropertyModel = CQPropertyViewModel;
+  using SelMod        = CQChartsSelMod;
+  using Location      = CQChartsKeyLocation;
+  using KeyBehavior   = CQChartsKeyPressBehavior;
+  using OptLength     = CQChartsOptLength;
+  using Font          = CQChartsFont;
+  using Alpha         = CQChartsAlpha;
+  using ColorInd      = CQChartsUtil::ColorInd;
 
  public:
   CQChartsKey(View *view);
@@ -213,8 +214,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   bool contains(const Point &p) const override;
 
@@ -363,8 +363,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   void clearItems();
 
@@ -559,8 +558,7 @@ class CQChartsColumnKey : public CQChartsPlotKey {
 
   void updateItems();
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
  private:
   CQChartsColumn column_;
@@ -950,380 +948,6 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   double      maxValue_ { 100 };
   bool        integer_  { false };
   PaletteName palette_;
-};
-
-//-----
-
-class CQChartsMapKey : public CQChartsObj, public CQChartsEditableIFace {
-  Q_OBJECT
-
-  Q_PROPERTY(double           margin   READ margin    WRITE setMargin  )
-  Q_PROPERTY(CQChartsPosition position READ position  WRITE setPosition)
-  Q_PROPERTY(Qt::Alignment    align    READ align     WRITE setAlign   )
-
- public:
-  using Plot          = CQChartsPlot;
-  using Position      = CQChartsPosition;
-  using PropertyModel = CQPropertyViewModel;
-  using PaintDevice   = CQChartsPaintDevice;
-  using BBox          = CQChartsGeom::BBox;
-  using Point         = CQChartsGeom::Point;
-
- public:
-  CQChartsMapKey(Plot *plot);
-
-  //---
-
-  //! get plot
-  Plot *plot() const { return plot_; }
-
-  //---
-
-  //! get/set margin
-  double margin() const { return margin_; }
-  void setMargin(double r);
-
-  //! get/set position
-  const Position &position() const { return position_; }
-  void setPosition(const Position &p);
-
-  //! get/set align
-  const Qt::Alignment &align() const { return align_; }
-  void setAlign(const Qt::Alignment &a);
-
-  //---
-
-  //! get/set bbox
-  const BBox &bbox() const { return bbox_; }
-  void setBBox(const BBox &b) { bbox_ = b; }
-
-  //---
-
-  EditHandles *editHandles() const override;
-
-  // Implement edit interface
-  bool editPress (const Point &) override;
-  bool editMove  (const Point &) override;
-  bool editMotion(const Point &) override;
-
-  void drawEditHandles(QPainter *painter) const override;
-
-  void setEditHandlesBBox() const;
-
-  //---
-
-  virtual void addProperties(PropertyModel *model, const QString &path) = 0;
-
-  //---
-
-  bool contains(const Point &p) const override;
-
-  //---
-
-  virtual void draw(PaintDevice *device, bool usePenBrush=false) = 0;
-
- protected:
-  virtual void invalidate() = 0;
-
- protected:
-  using EditHandlesP = std::unique_ptr<EditHandles>;
-
-  Plot*         plot_    { nullptr };                             //!< parent plot
-  double        margin_  { 4.0 };                                 //!< margin in pixels
-  Position      position_;                                        //!< key position
-  Qt::Alignment align_   { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
-  BBox          bbox_;                                            //!< bounding box
-  EditHandlesP  editHandles_;                                     //!< edit handles
-};
-
-//-----
-
-class CQChartsColorMapKey : public CQChartsMapKey {
-  Q_OBJECT
-
-  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
-  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
-  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
-  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
-  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
-
- public:
-  using PenBrush    = CQChartsPenBrush;
-  using BrushData   = CQChartsBrushData;
-  using PenData     = CQChartsPenData;
-  using PaletteName = CQChartsPaletteName;
-  using ColorInd    = CQChartsUtil::ColorInd;
-
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
-
- public:
-  CQChartsColorMapKey(Plot *plot);
-
-  //---
-
-  QString calcId() const override { return "color_map_key"; }
-
-  //---
-
-  // data range
-  double dataMin() const { return dataMin_; }
-  void setDataMin(double r) { dataMin_ = r; invalidate(); }
-
-  double dataMax() const { return dataMax_; }
-  void setDataMax(double r) { dataMax_ = r; invalidate(); }
-
-  //---
-
-  // map range
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; invalidate(); }
-
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; invalidate(); }
-
-  //---
-
-  // get/set color palette name
-  const PaletteName &paletteName() const { return paletteName_; }
-  void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
-
-  //---
-
-  void addProperties(PropertyModel *model, const QString &path) override;
-
-  //---
-
-  void draw(PaintDevice *device, bool useBrush=false) override;
-
-  //---
-
- private:
-  void invalidate() override;
-
- signals:
-  void dataChanged();
-
- private:
-  double dataMin_ { 0.0 }; //!< model data min
-  double dataMax_ { 1.0 }; //!< model data max
-
-  double mapMin_ { 0.0 }; //!< mapped color min
-  double mapMax_ { 1.0 }; //!< mapped color max
-
-  PaletteName paletteName_; //!< custom palette
-
-  BBox tbbox_;
-};
-
-//-----
-
-// TODO:
-//  . custom palette
-//  . shape
-//  . spread/overlay
-//  . text align left/center/right
-//  . separate border style
-class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
-  Q_OBJECT
-
-  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
-  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
-  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
-  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
-  Q_PROPERTY(double              scale       READ scale       WRITE setScale      )
-  Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
-  Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
-  Q_PROPERTY(bool                border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsAlpha       alpha       READ alpha       WRITE setAlpha      )
-  Q_PROPERTY(Qt::Alignment       textAlign   READ textAlign   WRITE setTextAlign  )
-  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
-
- public:
-  using Alpha       = CQChartsAlpha;
-  using PenBrush    = CQChartsPenBrush;
-  using BrushData   = CQChartsBrushData;
-  using PenData     = CQChartsPenData;
-  using PaletteName = CQChartsPaletteName;
-  using ColorInd    = CQChartsUtil::ColorInd;
-
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
-
- public:
-  CQChartsSymbolSizeMapKey(Plot *plot);
-
-  //---
-
-  QString calcId() const override { return "symbol_size_map_key"; }
-
-  //---
-
-  // data range
-  double dataMin() const { return dataMin_; }
-  void setDataMin(double r) { dataMin_ = r; invalidate(); }
-
-  double dataMax() const { return dataMax_; }
-  void setDataMax(double r) { dataMax_ = r; invalidate(); }
-
-  //---
-
-  // map range
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; invalidate(); }
-
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; invalidate(); }
-
-  //---
-
-  double scale() const { return scale_; }
-  void setScale(double r) { scale_ = r; invalidate(); }
-
-  bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; invalidate(); }
-
-  int rows() const { return rows_; }
-  void setRows(int i) { rows_ = i; invalidate(); }
-
-  //---
-
-  bool isBorder() const { return border_; }
-  void setBorder(bool b) { border_ = b; invalidate(); }
-
-  const Alpha &alpha() const { return alpha_; }
-  void setAlpha(const Alpha &a) { alpha_ = a; invalidate(); }
-
-  const Qt::Alignment &textAlign() const { return textAlign_; }
-  void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; invalidate(); }
-
-  const PaletteName &paletteName() const { return paletteName_; }
-  void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
-
-  //---
-
-  void addProperties(PropertyModel *model, const QString &path) override;
-
-  //---
-
-  void draw(PaintDevice *device, bool usePenBrush=false) override;
-
-  //---
-
-  void drawCircles(PaintDevice *device, bool usePenBrush=false);
-
-  void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions,
-                bool usePenBrush=false);
-
-  void drawBorder(PaintDevice *device, bool usePenBrush=false);
-
- private:
-  void invalidate() override;
-
- signals:
-  void dataChanged();
-
- private:
-  using BBoxes = std::vector<BBox>;
-
-  void getSymbolBoxes(BBoxes &pbboxes) const;
-
- private:
-  double dataMin_ { 0.0 }; //!< model data min
-  double dataMax_ { 1.0 }; //!< model data max
-
-  double mapMin_ { 5.0 };  //!< mapped symbol size min (pixels)
-  double mapMax_ { 17.0 }; //!< mapped symbol size max (pixels)
-
-  double scale_ { 1.0 }; //! scale symbol sizes
-
-  bool stacked_ { false }; //! draw stacked
-  int  rows_    { 3 };     //! number of symbol rows
-
-  bool          border_    { false };                             //!< draw border
-  Alpha         alpha_     { 0.6 };                               //!< background alpha
-  Qt::Alignment textAlign_ { Qt::AlignRight | Qt::AlignVCenter }; //!< text align
-  PaletteName   paletteName_;                                     //!< custom palette
-
-  BBox tbbox_;
-};
-
-//-----
-
-class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
-  Q_OBJECT
-
-  Q_PROPERTY(int     dataMin   READ dataMin   WRITE setDataMin  )
-  Q_PROPERTY(int     dataMax   READ dataMax   WRITE setDataMax  )
-  Q_PROPERTY(int     mapMin    READ mapMin    WRITE setMapMin   )
-  Q_PROPERTY(int     mapMax    READ mapMax    WRITE setMapMax   )
-  Q_PROPERTY(QString symbolSet READ symbolSet WRITE setSymbolSet)
-
- public:
-  using PenBrush  = CQChartsPenBrush;
-  using BrushData = CQChartsBrushData;
-  using PenData   = CQChartsPenData;
-  using ColorInd  = CQChartsUtil::ColorInd;
-
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
-
- public:
-  CQChartsSymbolTypeMapKey(Plot *plot);
-
-  //---
-
-  QString calcId() const override { return "symbol_type_map_key"; }
-
-  //---
-
-  // data range
-  int dataMin() const { return dataMin_; }
-  void setDataMin(int i) { dataMin_ = i; invalidate(); }
-
-  int dataMax() const { return dataMax_; }
-  void setDataMax(int i) { dataMax_ = i; invalidate(); }
-
-  //---
-
-  // map range
-  int mapMin() const { return mapMin_; }
-  void setMapMin(int i) { mapMin_ = i; invalidate(); }
-
-  int mapMax() const { return mapMax_; }
-  void setMapMax(int i) { mapMax_ = i; invalidate(); }
-
-  //---
-
-  const QString &symbolSet() const { return symbolSet_; }
-  void setSymbolSet(const QString &s) { symbolSet_ = s; }
-
-  //---
-
-  void addProperties(PropertyModel *model, const QString &path) override;
-
-  //---
-
-  void draw(PaintDevice *device, bool usePenBrush=false) override;
-
- private:
-  void invalidate() override;
-
-  QSize pixelSize() const;
-
- signals:
-  void dataChanged();
-
- private:
-  int dataMin_ { 0 }; //!< model data min
-  int dataMax_ { 1 }; //!< model data max
-
-  int mapMin_ { 0 }; //!< mapped symbol type min
-  int mapMax_ { 1 }; //!< mapped symbol type max
-
-  QString symbolSet_;
-
-  BBox tbbox_;
 };
 
 #endif

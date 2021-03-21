@@ -606,6 +606,10 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
   virtual HierObj *createHierObj(HierNode *hier, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
   virtual NodeObj *createNodeObj(Node *node, HierObj *hierObj,

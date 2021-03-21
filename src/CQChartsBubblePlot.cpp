@@ -13,6 +13,8 @@
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
+#include <QMenu>
+#include <QAction>
 
 CQChartsBubblePlotType::
 CQChartsBubblePlotType()
@@ -117,7 +119,13 @@ init()
 
   marginSet_ = false;
 
+  //---
+
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -226,13 +234,6 @@ void
 CQChartsBubblePlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -269,8 +270,13 @@ addProperties()
     CQChartsTextOptions::ValueType::CLIP_LENGTH |
     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
+  //---
+
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -883,6 +889,9 @@ CQChartsBubblePlot::
 execDrawForeground(PaintDevice *device) const
 {
   drawBounds(device, currentRoot());
+
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 void
@@ -915,6 +924,27 @@ drawBounds(PaintDevice *device, HierNode *hier) const
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawEllipse(bbox);
+}
+
+//---
+
+bool
+CQChartsBubblePlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
 }
 
 //---

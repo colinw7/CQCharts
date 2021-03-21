@@ -111,7 +111,13 @@ init()
 
   setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
 
+  //---
+
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -276,13 +282,6 @@ void
 CQChartsTreeMapPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addHierProperties();
 
   // options
@@ -348,8 +347,13 @@ addProperties()
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::ALL);
 
+  //---
+
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //------
@@ -1096,18 +1100,6 @@ bool
 CQChartsTreeMapPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    connect(action, SIGNAL(triggered()), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
-  //---
-
   PlotObjs objs;
 
   selectedPlotObjs(objs);
@@ -1121,6 +1113,16 @@ addMenuItems(QMenu *menu)
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != firstHier());
   popTopAction->setEnabled(currentRoot() != firstHier());
+
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
 
   return true;
 }
@@ -1280,6 +1282,26 @@ CQChartsTreeMapPlot::
 createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is) const
 {
   return new NodeObj(this, node, hierObj, rect, is);
+}
+
+//---
+
+bool
+CQChartsTreeMapPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsTreeMapPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

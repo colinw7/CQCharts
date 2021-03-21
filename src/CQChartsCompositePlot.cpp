@@ -223,18 +223,6 @@ void
 CQChartsCompositePlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  auto hideProp = [&](QObject *obj, const QString &path) {
-    auto *item = propertyModel()->propertyItem(obj, path, /*hidden*/true);
-    CQCharts::setItemIsHidden(item);
-  };
-
-  //---
-
   addProp("", "compositeType" , "compositeType", "Composite Type");
   addProp("", "commonXRange"  , "commonXRange" , "Common X Range");
   addProp("", "commonYRange"  , "commonYRange" , "Common Y Range");

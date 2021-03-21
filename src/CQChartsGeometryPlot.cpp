@@ -20,6 +20,9 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
+#include <QMenu>
+#include <QAction>
+
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
 {
@@ -181,9 +184,15 @@ init()
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
+  //---
+
   addAxes();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -265,15 +274,15 @@ double
 CQChartsGeometryPlot::
 minValue() const
 {
-  return minValue_.value_or(valueRange_.min(0.0));
+  return minValue_.realOr(valueRange_.min(0.0));
 }
 
 void
 CQChartsGeometryPlot::
 setMinValue(double r)
 {
-  if (! minValue_ || r != minValue_.value()) {
-    minValue_ = r; drawObjs();
+  if (! minValue_.isSet() || r != minValue_.value()) {
+    minValue_ = OptReal(r); drawObjs();
   }
 }
 
@@ -281,15 +290,15 @@ double
 CQChartsGeometryPlot::
 maxValue() const
 {
-  return maxValue_.value_or(valueRange_.max(1.0));
+  return maxValue_.realOr(valueRange_.max(1.0));
 }
 
 void
 CQChartsGeometryPlot::
 setMaxValue(double r)
 {
-  if (! maxValue_ || r != maxValue_.value()) {
-    maxValue_ = r; drawObjs();
+  if (! maxValue_.isSet() || r != maxValue_.value()) {
+    maxValue_ = OptReal(r); drawObjs();
   }
 }
 
@@ -306,13 +315,6 @@ void
 CQChartsGeometryPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -343,6 +345,14 @@ addProperties()
   // value normalization
   addProp("value", "minValue", "min", "Min value for color map");
   addProp("value", "maxValue", "max", "Max value for color map");
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 void
@@ -595,15 +605,16 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     }
 
     if (! CMathUtil::isNaN(value))
-      geometry.value = value;
+      geometry.value = OptReal(value);
 
     // update value range
-    if (geometry.value)
-      th->valueRange_.add(*geometry.value);
+    if (geometry.value.isSet())
+      th->valueRange_.add(geometry.value.real());
   }
 
   //---
 
+#if 0
   // get geometry custom color
   // TODO: just call colorColumnColor (duplicate code in calcPenBrush)
   if (colorColumn().isValid()) {
@@ -626,6 +637,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     }
 #endif
   }
+#endif
 
   //---
 
@@ -678,11 +690,11 @@ createObjs(PlotObjs &objs) const
     auto *geomObj = createGeometryObj(bbox, geometry.polygons, geometry.ind, iv);
 
     geomObj->setName (geometry.name);
-    geomObj->setColor(geometry.color);
+//  geomObj->setColor(geometry.color);
     geomObj->setStyle(geometry.style);
 
-    if (geometry.value)
-      geomObj->setValue(*geometry.value);
+    if (geometry.value.isSet())
+      geomObj->setValue(geometry.value.real());
 
     objs.push_back(geomObj);
   }
@@ -712,6 +724,48 @@ probe(ProbeData &probeData) const
   probeData.yvals.emplace_back(c.y, "", "");
 
   return true;
+}
+
+//---
+
+bool
+CQChartsGeometryPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(),
+                         SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
+}
+
+//---
+
+bool
+CQChartsGeometryPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsGeometryPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---
@@ -777,8 +831,41 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name" , name ());
-  tableTip.addTableRow("Value", value());
+  //---
+
+  auto addColumnRowValue = [&](const Column &column, const QString &label="",
+                               const QString &defLabel="") {
+    if (! column.isValid()) return;
+
+    if (tableTip.hasColumn(column))
+      return;
+
+    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+
+    bool ok;
+    auto name = plot_->modelString(columnInd, ok);
+    if (! ok) return;
+
+    QString label1 = label;
+
+    if (label1 == "") {
+      label1 = plot_->columnHeaderName(column, /*tip*/true);
+      if (label1 == "") label1 = defLabel;
+    }
+
+    tableTip.addTableRow(label1, name);
+
+    tableTip.addColumn(column);
+  };
+
+  //---
+
+  tableTip.addTableRow("Name", name());
+
+  if (hasValue())
+    tableTip.addTableRow("Value", value());
+
+  addColumnRowValue(plot_->colorColumn(), "Color");
 
   //---
 
@@ -854,7 +941,12 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  if (plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && value() > 0) {
+  // draw balloon for value
+  if (plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && hasValue()) {
+    auto safeSqrt = [](double r) {
+      return (r > 0.0 ? std::sqrt(r) : 0.0);
+    };
+
     auto prect = plot_->windowToPixel(rect());
 
     auto pbbox = plot_->calcPlotPixelRect();
@@ -862,18 +954,32 @@ drawFg(PaintDevice *device) const
     double minSize = plot_->minBalloonSize()*pbbox.getHeight();
     double maxSize = plot_->maxBalloonSize()*pbbox.getHeight();
 
-    double v1    = sqrt(value());
-    double minV1 = sqrt(plot_->minValue());
-    double maxV1 = sqrt(plot_->maxValue());
+    double v1    = safeSqrt(value());
+    double minV1 = safeSqrt(plot_->minValue());
+    double maxV1 = safeSqrt(plot_->maxValue());
 
     double s = CMathUtil::map(v1, minV1, maxV1, minSize, maxSize);
 
     //---
 
-    ColorInd colorInd;
+    // TODO: customize color
+    auto colorInd = calcColorInd();
 
     auto pc = QColor(Qt::black);
     auto bc = QColor(Qt::red);
+
+    if (plot_->colorColumn().isValid()) {
+      auto ind1 = modelInd();
+
+      ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+      Color indColor;
+
+      if (plot_->modelIndexColor(ind2, indColor))
+        bc = plot_->interpColor(indColor, colorInd);
+      else
+        bc = QColor();
+    }
 
     PenBrush penBrush;
 
@@ -902,18 +1008,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   // calc fill color
   auto calcFillColor = [&]() {
-    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
-      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
-
-      if (color().isValid())
-        return plot_->interpColor(color(), ColorInd(dv));
-      else
-        return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
-    }
-
-    if  (color().isValid())
-      return plot_->interpColor(color(), colorInd);
-
     if (plot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
@@ -924,6 +1018,25 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       if (plot_->modelIndexColor(ind2, indColor))
         return plot_->interpColor(indColor, colorInd);
     }
+
+    //---
+
+    if (hasValue() && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
+      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+
+#if 0
+      if (color().isValid())
+        return plot_->interpColor(color(), ColorInd(dv));
+      else
+        return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+#endif
+      return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+    }
+
+    //---
+
+    //if  (color().isValid())
+    //  return plot_->interpColor(color(), colorInd);
 
     return plot_->interpFillColor(colorInd);
   };
@@ -963,7 +1076,9 @@ writeScriptData(ScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.value = " << value() << ";\n";
+
+  if (hasValue())
+    os << "  this.value = " << value() << ";\n";
 }
 
 //------

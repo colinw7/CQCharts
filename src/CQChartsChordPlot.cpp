@@ -189,20 +189,6 @@ void
 CQChartsChordPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    auto *item = addProp(path, name, alias, desc);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
   CQChartsConnectionPlot::addProperties();
 
   //---

@@ -196,6 +196,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addTextProperties(PropertyModel *model, const QString &path, uint types);
 
+  CQPropertyViewItem *addStyleProp(PropertyModel *model, const QString &path, const QString &name,
+                                   const QString &alias, const QString &desc, bool hidden=false);
+
+  CQPropertyViewItem *addProp(PropertyModel *model, const QString &path, const QString &name,
+                              const QString &alias, const QString &desc, bool hidden=false);
+
   bool setProperties(const QString &properties);
 
   //! get/set property

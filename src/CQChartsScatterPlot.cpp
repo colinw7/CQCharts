@@ -602,6 +602,9 @@ addProperties()
 
   //---
 
+  // color map
+  addColorMapProperties();
+
   // color map key
   addColorMapKeyProperties();
 
@@ -622,11 +625,6 @@ addProperties()
   //---
 
   CQChartsPointPlot::addPointProperties();
-
-  //---
-
-  // color map
-  addColorMapProperties();
 }
 
 //---
@@ -2252,31 +2250,6 @@ bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    if (slot)
-      connect(action, SIGNAL(triggered()), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = addMenuAction(menu, name, nullptr);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    if (slot)
-      connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    return action;
-  };
-
-  //---
-
   menu->addSeparator();
 
   auto *typeMenu = new QMenu("Plot Type", menu);
@@ -2295,22 +2268,18 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  bool canColorMapKey      = (colorColumn     ().isValid());
-  bool canSymbolSizeMapKey = (symbolSizeColumn().isValid());
-  bool canSymbolTypeMapKey = (symbolTypeColumn().isValid());
-
-  if (canColorMapKey || canSymbolSizeMapKey || canSymbolTypeMapKey) {
+  if (canDrawColorMapKey() || canDrawSymbolSizeMapKey() || canDrawSymbolTypeMapKey()) {
     auto *keysMenu = new QMenu("Keys", menu);
 
-    if (canColorMapKey)
+    if (canDrawColorMapKey())
       addMenuCheckedAction(keysMenu, "Symbol Color Key", isColorMapKey(),
                            SLOT(setColorMapKey(bool)));
 
-    if (canSymbolSizeMapKey)
+    if (canDrawSymbolSizeMapKey())
       addMenuCheckedAction(keysMenu, "Symbol Size Key", isSymbolSizeMapKey(),
                            SLOT(setSymbolSizeMapKey(bool)));
 
-    if (canSymbolTypeMapKey)
+    if (canDrawSymbolTypeMapKey())
       addMenuCheckedAction(keysMenu, "Symbol Type Key", isSymbolTypeMapKey(),
                            SLOT(setSymbolTypeMapKey(bool)));
 

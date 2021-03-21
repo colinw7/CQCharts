@@ -213,16 +213,6 @@ void
 CQChartsGridPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns

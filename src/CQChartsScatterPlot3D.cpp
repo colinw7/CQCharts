@@ -342,13 +342,6 @@ void
 CQChartsScatterPlot3D::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns

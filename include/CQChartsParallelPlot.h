@@ -265,6 +265,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void setObjRange       (PaintDevice *device);
   void setNormalizedRange(PaintDevice *device);
 
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
  protected:
   using LineObj  = CQChartsParallelLineObj;
   using PointObj = CQChartsParallelPointObj;

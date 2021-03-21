@@ -103,20 +103,6 @@ void
 CQChartsBarPlot::
 addBoxProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    auto *item = addProp(path, name, alias, desc);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
   // columns
   addProp("columns", "valueColumns", "values", "Value columns");
 
@@ -139,12 +125,14 @@ addBoxProperties()
 
   addStyleProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
 
-  // color map
-  addColorMapProperties();
-
   //---
 
   dataLabel_->addPathProperties("labels", "Labels");
+
+  //---
+
+  // color map
+  addColorMapProperties();
 }
 
 void

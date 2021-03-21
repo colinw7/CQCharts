@@ -24,6 +24,9 @@
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
+#include <QMenu>
+#include <QAction>
+
 CQChartsSankeyPlotType::
 CQChartsSankeyPlotType()
 {
@@ -152,6 +155,10 @@ init()
   //---
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 
   //---
 
@@ -381,16 +388,6 @@ void
 CQChartsSankeyPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   CQChartsConnectionPlot::addProperties();
 
   //---
@@ -466,8 +463,11 @@ addProperties()
 
   //---
 
-  // add color map properties
+  // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -1459,6 +1459,27 @@ filterObjs()
         node->setVisible(false);
     }
   }
+}
+
+//---
+
+bool
+CQChartsSankeyPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
 }
 
 //---
@@ -3114,6 +3135,26 @@ createEdgeObj(const BBox &rect, Edge *edge) const
 
 //---
 
+bool
+CQChartsSankeyPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsSankeyPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsSankeyPlot::
 createCustomControls(CQCharts *charts)
@@ -4032,6 +4073,9 @@ editMove(const Point &p)
 {
   const auto &dragPos  = editHandles()->dragPos();
   const auto &dragSide = editHandles()->dragSide();
+
+  if (dragSide != CQChartsResizeSide::MOVE)
+    return false;
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;

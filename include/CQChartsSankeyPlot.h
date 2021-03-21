@@ -1305,6 +1305,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
 #ifdef CQCHARTS_GRAPH_PATH_ID
   bool hasAnyPathId() const { return pathIdMinMax_.isSet(); }
 
@@ -1315,6 +1321,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void clearNodesAndEdges();
 
   Node *findNode(const QString &name) const;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
 
   Node *createNode(const QString &name) const;
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const;

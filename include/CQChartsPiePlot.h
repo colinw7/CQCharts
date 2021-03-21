@@ -561,6 +561,12 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
   bool selectInvalidateObjs() const override { return true; }
 
   //---

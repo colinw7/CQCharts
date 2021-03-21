@@ -317,15 +317,8 @@ calcSize()
 
   if (textSize_.isSet() || subTitleTextSize_.isSet()) {
     // add outer margin and inner padding
-    double xlm = lengthParentWidth (margin().left  ());
-    double xrm = lengthParentWidth (margin().right ());
-    double ytm = lengthParentHeight(margin().top   ());
-    double ybm = lengthParentHeight(margin().bottom());
-
-    double xlp = lengthParentWidth (padding().left  ());
-    double xrp = lengthParentWidth (padding().right ());
-    double ytp = lengthParentHeight(padding().top   ());
-    double ybp = lengthParentHeight(padding().bottom());
+    auto mm = parentMargin(margin ());
+    auto pm = parentMargin(padding());
 
     double ts = 0.0;
 
@@ -337,8 +330,8 @@ calcSize()
 
     allTextSize_ = Size(textWidth, textHeight);
 
-    size_ = Size(allTextSize_.width () + xlp + xrp + xlm + xrm,
-                 allTextSize_.height() + ybp + ytp + ybm + ytm + ts);
+    size_ = Size(allTextSize_.width () + pm.width () + mm.width(),
+                 allTextSize_.height() + pm.height() + mm.height() + ts);
   }
 
   if (isExpandWidth() && size_.isSet()) {
@@ -511,18 +504,13 @@ draw(CQChartsPaintDevice *device)
   }
 
   // add outer margin and inner padding
-  double xlm = device->lengthWindowWidth (margin().left  ());
-  double xrm = device->lengthWindowWidth (margin().right ());
-  double ytm = device->lengthWindowHeight(margin().top   ());
-  double ybm = device->lengthWindowHeight(margin().bottom());
+  auto mm = parentMargin(margin ());
+  auto pm = parentMargin(padding());
 
-  double xlp = device->lengthWindowWidth (padding().left  ());
-  double xrp = device->lengthWindowWidth (padding().right ());
-  double ytp = device->lengthWindowHeight(padding().top   ());
-  double ybp = device->lengthWindowHeight(padding().bottom());
-
-  BBox ibbox(x + xlp      , y + ybp      , x + w - xrp      , y + h - ytp      );
-  BBox tbbox(x + xlp + xlm, y + ybp + ybm, x + w - xrp - xrm, y + h - ytp - ytm);
+  BBox ibbox(x +     pm.left ()             , y +     pm.bottom()              ,
+             x + w - pm.right()             , y + h - pm.top   ()              );
+  BBox tbbox(x +     pm.left () + mm.left (), y +     pm.bottom() + mm.bottom(),
+             x + w - pm.right() - mm.right(), y + h - pm.top   () - mm.top   ());
 
   //---
 
@@ -569,7 +557,7 @@ draw(CQChartsPaintDevice *device)
     // draw text
     device->setRenderHints(QPainter::Antialiasing);
 
-    BBox tbbox1(tbbox.getXMin(), tbbox.getYMax() - textSize_.height() - ytp - ytm,
+    BBox tbbox1(tbbox.getXMin(), tbbox.getYMax() - textSize_.height() - pm.top() - mm.top(),
                 tbbox.getXMax(), tbbox.getYMax());
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, textStr(), textOptions);
@@ -616,7 +604,8 @@ draw(CQChartsPaintDevice *device)
     device->setRenderHints(QPainter::Antialiasing);
 
     BBox tbbox1(tbbox.getXMin(), tbbox.getYMin(),
-                tbbox.getXMax(), tbbox.getYMin() + subTitleTextSize_.height() + ybp + ybm);
+                tbbox.getXMax(), tbbox.getYMin() + subTitleTextSize_.height() +
+                pm.bottom() + mm.bottom());
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, subTitle_->textStr(), textOptions);
   }

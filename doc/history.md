@@ -1292,3 +1292,5 @@
 # 3/20/2021
  + add symbol color, symbol size and symbol shape keys to scatter plot
  + support position and editing
+# 3/21/2021
+ + add color map key to all plots that support color column

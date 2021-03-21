@@ -3,6 +3,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsMapKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlotObjTree.h>
@@ -63,6 +64,8 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 #include <QPainter>
+#include <QMenu>
+#include <QAction>
 
 //------
 
@@ -3708,6 +3711,15 @@ addProp(const QString &path, const QString &name, const QString &alias,
   return item;
 }
 
+void
+CQChartsPlot::
+hideProp(QObject *obj, const QString &path)
+{
+  auto *item = propertyModel()->propertyItem(obj, path);
+
+  CQCharts::setItemIsHidden(item);
+}
+
 //---
 
 bool
@@ -4184,12 +4196,28 @@ addColorMapKeyProperties()
   colorMapKey_->addProperties(propertyModel(), colorMapKeyPath);
 }
 
+bool
+CQChartsPlot::
+canDrawColorMapKey() const
+{
+  return (colorMapKey_ && colorColumn().isValid());
+}
+
 void
 CQChartsPlot::
 drawColorMapKey(PaintDevice *device) const
 {
   if (! colorColumn().isValid())
     return;
+
+  //---
+
+  bool isIntegral = false;
+
+  auto *columnDetails = this->columnDetails(colorColumn());
+
+  if (columnDetails && columnDetails->type() == CQBaseModelType::INTEGER)
+    isIntegral = true;
 
   //---
 
@@ -4205,6 +4233,7 @@ drawColorMapKey(PaintDevice *device) const
   colorMapKey_->setMapMax(colorMapMax());
 
   colorMapKey_->setPaletteName(colorMapPalette());
+  colorMapKey_->setIntegral   (isIntegral);
 
   auto bbox = displayRangeBBox();
 
@@ -6135,6 +6164,8 @@ updateInsideObjects1(const Point &w, Constraints constraints)
 {
   // get objects and annotations at point
   Objs objs;
+
+  insideData_.p = w;
 
   groupedObjsAtPoint(insideData_.p, objs, constraints);
 
@@ -10393,6 +10424,37 @@ objNearestPoint(const Point &p, PlotObj* &obj) const
 
 //---
 
+QAction *
+CQChartsPlot::
+addMenuAction(QMenu *menu, const QString &name, const char *slot)
+{
+  auto *action = new QAction(name, menu);
+
+  if (slot)
+    connect(action, SIGNAL(triggered()), this, slot);
+
+  menu->addAction(action);
+
+  return action;
+}
+
+QAction *
+CQChartsPlot::
+addMenuCheckedAction(QMenu *menu, const QString &name, bool isSet, const char *slot)
+{
+  auto *action = addMenuAction(menu, name, nullptr);
+
+  action->setCheckable(true);
+  action->setChecked(isSet);
+
+  if (slot)
+    connect(action, SIGNAL(triggered(bool)), this, slot);
+
+  return action;
+}
+
+//---
+
 void
 CQChartsPlot::
 preResize()
@@ -11288,7 +11350,7 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
     calcTabData(plots);
   }
 
-  QFontMetrics fm(device->font());
+  QFontMetricsF fm(device->font());
 
   //---
 
@@ -11307,7 +11369,7 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
       device->drawRect(rect);
     }
     else {
-      QFontMetrics fm(tabbedFont().font());
+      QFontMetricsF fm(tabbedFont().font());
 
       int ps = fm.height();
 
@@ -13153,7 +13215,7 @@ calcTabData(const Plots &plots) const
 {
   auto *th = const_cast<Plot *>(this);
 
-  QFontMetrics fm(tabbedFont().font());
+  QFontMetricsF fm(tabbedFont().font());
 
   th->tabData_.pxm = fm.width("X")/2.0;
   th->tabData_.pym = fm.height()/4.0;
@@ -17062,20 +17124,25 @@ showColumnWidgets(const QStringList &columnNames)
   assert(layout);
 
   for (int r = 0; r < layout->rowCount(); ++r) {
-    auto *edit = layout->itemAtPosition(r, 1)->widget();
+    auto *item1 = layout->itemAtPosition(r, 1);
+
+    auto *edit = (item1 ? item1->widget() : nullptr);
     if (! edit) continue;
 
     auto *ce1 = qobject_cast<CQChartsColumnParameterEdit  *>(edit);
     auto *ce2 = qobject_cast<CQChartsColumnsParameterEdit *>(edit);
     if (! ce1 && ! ce2) continue;
 
-    auto *label = layout->itemAtPosition(r, 0)->widget();
+    auto *item0 = layout->itemAtPosition(r, 0);
+    auto *label = (item0 ? item0->widget() : nullptr);
 
     auto *parameter = (ce1 ? ce1->parameter() : ce2->parameter());
 
     bool visible = (columnNames.indexOf(parameter->name()) >= 0);
 
-    label->setVisible(visible);
+    if (label)
+      label->setVisible(visible);
+
     edit ->setVisible(visible);
   }
 }

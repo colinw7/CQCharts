@@ -117,6 +117,7 @@ CQChartsRectPlacer.cpp \
 CQChartsAxis.cpp \
 CQChartsAxisRug.cpp \
 CQChartsKey.cpp \
+CQChartsMapKey.cpp \
 CQChartsTitle.cpp \
 CQChartsAnnotation.cpp \
 CQChartsArrow.cpp \
@@ -469,6 +470,7 @@ HEADERS += \
 ../include/CQChartsAxis.h \
 ../include/CQChartsAxisRug.h \
 ../include/CQChartsKey.h \
+../include/CQChartsMapKey.h \
 ../include/CQChartsTitle.h \
 ../include/CQChartsAnnotation.h \
 ../include/CQChartsArrow.h \

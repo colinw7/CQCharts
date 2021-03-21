@@ -152,6 +152,16 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
   using WordObj = CQChartsWordObj;
 
   virtual WordObj *createObj(const BBox &rect, const QString &name, const QModelIndex &ind,

@@ -518,11 +518,6 @@ void
 CQChartsXYPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
     return &(this->addProperty(path, arrowObj_, name, alias)->setDesc(desc));
@@ -684,6 +679,8 @@ addProperties()
   //---
 
   CQChartsPointPlot::addPointProperties();
+
+  //---
 
   // color map
   addColorMapProperties();
@@ -2548,20 +2545,6 @@ bool
 CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
-  //--
 
   int ns = numSets();
 

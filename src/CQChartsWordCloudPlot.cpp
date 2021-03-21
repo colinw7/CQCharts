@@ -17,6 +17,9 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
+#include <QMenu>
+#include <QAction>
+
 CQChartsWordCloudPlotType::
 CQChartsWordCloudPlotType()
 {
@@ -125,7 +128,13 @@ init()
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
+  //---
+
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -179,13 +188,6 @@ void
 CQChartsWordCloudPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -198,6 +200,14 @@ addProperties()
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 CQChartsGeom::Range
@@ -361,11 +371,54 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
+//---
+
+bool
+CQChartsWordCloudPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
+}
+
+//---
+
 CQChartsWordObj *
 CQChartsWordCloudPlot::
 createObj(const BBox &rect, const QString &name, const QModelIndex &ind, const ColorInd &iv)
 {
   return new CQChartsWordObj(this, rect, name, ind, iv);
+}
+
+//---
+
+bool
+CQChartsWordCloudPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsWordCloudPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

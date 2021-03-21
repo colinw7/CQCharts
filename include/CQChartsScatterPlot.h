@@ -6,6 +6,7 @@
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsGridCell.h>
 #include <CQChartsImage.h>
+#include <CQChartsKey.h>
 #include <CInterval.h>
 #include <CHexMap.h>
 

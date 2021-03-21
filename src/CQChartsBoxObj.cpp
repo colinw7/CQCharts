@@ -27,6 +27,16 @@ setBBox(const BBox &b)
   rect_ = bbox_;
 }
 
+CQChartsGeom::Margin
+CQChartsBoxObj::
+parentMargin(const Margin &m) const
+{
+  return CQChartsGeom::Margin(lengthParentWidth (m.left  ()),
+                              lengthParentHeight(m.top   ()),
+                              lengthParentWidth (m.right ()),
+                              lengthParentHeight(m.bottom()));
+}
+
 void
 CQChartsBoxObj::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)

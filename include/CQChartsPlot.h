@@ -20,7 +20,6 @@
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
 #include <CQChartsPlotModelVisitor.h>
-#include <CQChartsKey.h>
 
 #include <QAbstractItemModel>
 #include <QFrame>
@@ -40,6 +39,8 @@ class CQChartsAxis;
 class CQChartsPlotKey;
 class CQChartsKeyItem;
 class CQChartsKeyColorBox;
+class CQChartsMapKey;
+class CQChartsColorMapKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
@@ -1089,6 +1090,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   CQPropertyViewItem *addProp(const QString &path, const QString &name, const QString &alias,
                               const QString &desc, bool hidden=false);
+
+  void hideProp(QObject *obj, const QString &path);
 
   //---
 
@@ -2177,6 +2180,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool addMenuItems(QMenu *) { return false; }
 
+  QAction *addMenuAction(QMenu *menu, const QString &name, const char *slot);
+
+  QAction *addMenuCheckedAction(QMenu *menu, const QString &name, bool isSet, const char *slot);
+
   //---
 
   // probe at x, y
@@ -2607,6 +2614,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void addColorMapKeyProperties();
 
+  bool canDrawColorMapKey() const;
   void drawColorMapKey(PaintDevice *device) const;
 
   //---

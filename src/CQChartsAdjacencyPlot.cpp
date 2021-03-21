@@ -20,6 +20,9 @@
 #include <CQPropertyViewModel.h>
 #include <CQPerfMonitor.h>
 
+#include <QMenu>
+#include <QAction>
+
 CQChartsAdjacencyPlotType::
 CQChartsAdjacencyPlotType()
 {
@@ -134,7 +137,13 @@ init()
 
   setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
 
+  //---
+
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -189,21 +198,6 @@ void
 CQChartsAdjacencyPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto hideProp = [&](QObject *obj, const QString &path) {
-    auto *item = propertyModel()->propertyItem(obj, path);
-    CQCharts::setItemIsHidden(item);
-  };
-
-  //---
-
   CQChartsConnectionPlot::addProperties();
 
   //---
@@ -239,6 +233,14 @@ addProperties()
   //---
 
   hideProp(this, "text.font");
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 CQChartsGeom::Range
@@ -1091,6 +1093,29 @@ findNode(const QString &str) const
   return (*p1).second;
 }
 
+//---
+
+bool
+CQChartsAdjacencyPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
+}
+
+//---
+
 CQChartsAdjacencyCellObj *
 CQChartsAdjacencyPlot::
 createCellObj(AdjacencyNode *node1, AdjacencyNode *node2, double value,
@@ -1324,6 +1349,8 @@ execDrawBackground(PaintDevice *device) const
   }
 }
 
+//---
+
 bool
 CQChartsAdjacencyPlot::
 hasForeground() const
@@ -1343,7 +1370,12 @@ execDrawForeground(PaintDevice *device) const
 {
   if (insideObj())
     insideObj()->draw(device);
+
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
+
+//---
 
 QColor
 CQChartsAdjacencyPlot::

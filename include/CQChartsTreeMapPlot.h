@@ -571,6 +571,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
   bool addMenuItems(QMenu *menu) override;
 
  protected:

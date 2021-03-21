@@ -2,6 +2,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQChartsAxisRug.h>
 #include <CQChartsAxis.h>
+#include <CQChartsMapKey.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
@@ -209,13 +210,6 @@ void
 CQChartsPointPlot::
 addPointProperties()
 {
-  //auto hideProp = [&](QObject *obj, const QString &path) {
-  //  auto *item = propertyModel()->propertyItem(obj, path);
-  //  CQCharts::setItemIsHidden(item);
-  //};
-
-  //---
-
   // columns
   addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
   addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
@@ -411,6 +405,13 @@ setSymbolTypeSetName(const QString &name)
   } );
 }
 
+bool
+CQChartsPointPlot::
+canDrawSymbolTypeMapKey() const
+{
+  return (symbolTypeMapKey_ && symbolTypeColumn().isValid());
+}
+
 void
 CQChartsPointPlot::
 drawSymbolTypeMapKey(PaintDevice *device) const
@@ -537,6 +538,13 @@ setSymbolSizeMapUnits(const QString &s)
   CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
+}
+
+bool
+CQChartsPointPlot::
+canDrawSymbolSizeMapKey() const
+{
+  return (symbolSizeMapKey_ && symbolSizeColumn().isValid());
 }
 
 void

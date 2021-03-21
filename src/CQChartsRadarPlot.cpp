@@ -17,6 +17,9 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
+#include <QMenu>
+#include <QAction>
+
 CQChartsRadarPlotType::
 CQChartsRadarPlotType()
 {
@@ -136,9 +139,15 @@ init()
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
+  //---
+
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -225,13 +234,6 @@ void
 CQChartsRadarPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -263,6 +265,14 @@ addProperties()
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 CQChartsGeom::Range
@@ -868,6 +878,29 @@ alignForPosition(double x, double y) const
   return align;
 }
 
+//---
+
+bool
+CQChartsRadarPlot::
+addMenuItems(QMenu *menu)
+{
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
+}
+
+//---
+
 CQChartsRadarObj *
 CQChartsRadarPlot::
 createObj(const BBox &rect, const QString &name, const Polygon &poly,
@@ -875,6 +908,26 @@ createObj(const BBox &rect, const QString &name, const Polygon &poly,
           const ColorInd &iv)
 {
   return new CQChartsRadarObj(this, rect, name, poly, nameValues, ind, iv);
+}
+
+//---
+
+bool
+CQChartsRadarPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsRadarPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

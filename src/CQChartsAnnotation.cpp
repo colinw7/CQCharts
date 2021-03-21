@@ -12,6 +12,7 @@
 #include <CQChartsFitData.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsMapKey.h>
 #include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
@@ -347,33 +348,25 @@ void
 CQChartsAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   model->setObjectRoot(path, this);
 
-  addProp(path, "id"        , "id"        , "Annotation id");
-  addProp(path, "visible"   , "visible"   , "Is visible");
-  addProp(path, "enabled"   , "enabled"   , "Is enabled"   , true);
-  addProp(path, "checkable" , "checkable" , "Is checkable" , true);
-  addProp(path, "checked"   , "checked"   , "Is checked"   , true);
-  addProp(path, "selected"  , "selected"  , "Is selected"  , true);
-  addProp(path, "selectable", "selectable", "Is selectable");
-  addProp(path, "editable"  , "editable"  , "Is editable"  , true);
-  addProp(path, "fitted"    , "fitted"    , "Is fitted"    , true);
-  addProp(path, "drawLayer" , "drawLayer" , "Draw layer"   , true);
+  addProp(model, path, "id"        , "id"        , "Annotation id");
+  addProp(model, path, "visible"   , "visible"   , "Is visible");
+  addProp(model, path, "enabled"   , "enabled"   , "Is enabled"   , true);
+  addProp(model, path, "checkable" , "checkable" , "Is checkable" , true);
+  addProp(model, path, "checked"   , "checked"   , "Is checked"   , true);
+  addProp(model, path, "selected"  , "selected"  , "Is selected"  , true);
+  addProp(model, path, "selectable", "selectable", "Is selectable");
+  addProp(model, path, "editable"  , "editable"  , "Is editable"  , true);
+  addProp(model, path, "fitted"    , "fitted"    , "Is fitted"    , true);
+  addProp(model, path, "drawLayer" , "drawLayer" , "Draw layer"   , true);
 
   auto coloringPath = path + "/coloring";
 
-  addProp(coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" , true);
-  addProp(coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked", true);
+  addProp(model, coloringPath, "disabledLighter" , "disabledLighter" ,
+          "Ligher when disabled" , true);
+  addProp(model, coloringPath, "uncheckedLighter", "uncheckedLighter",
+          "Ligher when unchecked", true);
 }
 
 void
@@ -388,61 +381,27 @@ void
 CQChartsAnnotation::
 addFillProperties(PropertyModel *model, const QString &path)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
-  addStyleProp(path, "filled"     , "visible", "Fill visible");
-  addStyleProp(path, "fillColor"  , "color"  , "Fill color"  );
-  addStyleProp(path, "fillAlpha"  , "alpha"  , "Fill alpha"  );
-  addStyleProp(path, "fillPattern", "pattern", "Fill pattern");
+  addStyleProp(model, path, "filled"     , "visible", "Fill visible");
+  addStyleProp(model, path, "fillColor"  , "color"  , "Fill color"  );
+  addStyleProp(model, path, "fillAlpha"  , "alpha"  , "Fill alpha"  );
+  addStyleProp(model, path, "fillPattern", "pattern", "Fill pattern");
 }
 
 void
 CQChartsAnnotation::
 addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
-  addStyleProp(path, "stroked"    , "visible", "Stroke visible");
-  addStyleProp(path, "strokeColor", "color"  , "Stroke color"  );
-  addStyleProp(path, "strokeAlpha", "alpha"  , "Stroke alpha"  );
-  addStyleProp(path, "strokeWidth", "width"  , "Stroke width"  );
-  addStyleProp(path, "strokeDash" , "dash"   , "Stroke dash"   );
-  addStyleProp(path, "strokeCap"  , "cap"    , "Stroke cap"    );
-  addStyleProp(path, "strokeJoin" , "join"   , "Stroke join"   );
+  addStyleProp(model, path, "stroked"    , "visible", "Stroke visible");
+  addStyleProp(model, path, "strokeColor", "color"  , "Stroke color"  );
+  addStyleProp(model, path, "strokeAlpha", "alpha"  , "Stroke alpha"  );
+  addStyleProp(model, path, "strokeWidth", "width"  , "Stroke width"  );
+  addStyleProp(model, path, "strokeDash" , "dash"   , "Stroke dash"   );
+  addStyleProp(model, path, "strokeCap"  , "cap"    , "Stroke cap"    );
+  addStyleProp(model, path, "strokeJoin" , "join"   , "Stroke join"   );
 
   if (isSolid) {
-    addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
-    addStyleProp(path, "borderSides", "sides"     , "Box visible sides");
+    addStyleProp(model, path, "cornerSize" , "cornerSize", "Box corner size"  );
+    addStyleProp(model, path, "borderSides", "sides"     , "Box visible sides");
   }
 }
 
@@ -450,54 +409,66 @@ void
 CQChartsAnnotation::
 addTextProperties(PropertyModel *model, const QString &path, uint types)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
   if (types & uint(CQChartsTextOptions::ValueType::DATA))
-    addStyleProp(path, "textData", "style", "Text style", true);
+    addStyleProp(model, path, "textData", "style", "Text style", true);
 
-  addStyleProp(path, "textColor", "color", "Text color");
-  addStyleProp(path, "textAlpha", "alpha", "Text alpha");
-  addStyleProp(path, "textFont" , "font" , "Text font");
+  addStyleProp(model, path, "textColor", "color", "Text color");
+  addStyleProp(model, path, "textAlpha", "alpha", "Text alpha");
+  addStyleProp(model, path, "textFont" , "font" , "Text font");
 
   if (types & uint(CQChartsTextOptions::ValueType::ALIGN))
-    addStyleProp(path, "textAlign", "align", "Text align");
+    addStyleProp(model, path, "textAlign", "align", "Text align");
 
   if (types & uint(CQChartsTextOptions::ValueType::ANGLE))
-    addStyleProp(path, "textAngle", "angle", "Text angle");
+    addStyleProp(model, path, "textAngle", "angle", "Text angle");
 
   if (types & uint(CQChartsTextOptions::ValueType::CONTRAST))
-    addStyleProp(path, "textContrast", "contrast", "Text has contrast");
+    addStyleProp(model, path, "textContrast", "contrast", "Text has contrast");
 
   if (types & uint(CQChartsTextOptions::ValueType::FORMATTED))
-    addStyleProp(path, "textFormatted", "formatted", "Text formatted to fit in box");
+    addStyleProp(model, path, "textFormatted", "formatted", "Text formatted to fit in box");
 
   if (types & uint(CQChartsTextOptions::ValueType::SCALED))
-    addStyleProp(path, "textScaled", "scaled", "Text scaled to fit box");
+    addStyleProp(model, path, "textScaled", "scaled", "Text scaled to fit box");
 
   if (types & uint(CQChartsTextOptions::ValueType::HTML))
-    addStyleProp(path, "textHtml", "html", "Text is HTML");
+    addStyleProp(model, path, "textHtml", "html", "Text is HTML");
 
   if (types & uint(CQChartsTextOptions::ValueType::CLIP_LENGTH))
-    addStyleProp(path, "textClipLength", "clipLength", "Text clip length");
+    addStyleProp(model, path, "textClipLength", "clipLength", "Text clip length");
 
   if (types & uint(CQChartsTextOptions::ValueType::CLIP_ELIDE))
-    addStyleProp(path, "textClipElide" , "clipElide" , "Text clip elide");
+    addStyleProp(model, path, "textClipElide" , "clipElide" , "Text clip elide");
 }
+
+CQPropertyViewItem *
+CQChartsAnnotation::
+addStyleProp(PropertyModel *model, const QString &path, const QString &name,
+             const QString &alias, const QString &desc, bool hidden)
+{
+  auto *item = addProp(model, path, name, alias, desc, hidden);
+
+  CQCharts::setItemIsStyle(item);
+
+  return item;
+}
+
+CQPropertyViewItem *
+CQChartsAnnotation::
+addProp(PropertyModel *model, const QString &path, const QString &name,
+        const QString &alias, const QString &desc, bool hidden)
+{
+  auto *item = model->addProperty(path, this, name, alias);
+
+  item->setDesc(desc);
+
+  if (hidden)
+    CQCharts::setItemIsHidden(item);
+
+  return item;
+}
+
+//---
 
 bool
 CQChartsAnnotation::
@@ -944,25 +915,15 @@ void
 CQChartsAnnotationGroup::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "layout"       , "", "Layout children");
-  addProp(path1, "layoutOrient" , "", "Layout orientation");
-  addProp(path1, "layoutAlign"  , "", "Layout alignment");
-  addProp(path1, "layoutSpacing", "", "Layout spacing");
-  addProp(path1, "layoutMargin" , "", "Layout margin");
+  addProp(model, path1, "layout"       , "", "Layout children");
+  addProp(model, path1, "layoutOrient" , "", "Layout orientation");
+  addProp(model, path1, "layoutAlign"  , "", "Layout alignment");
+  addProp(model, path1, "layoutSpacing", "", "Layout spacing");
+  addProp(model, path1, "layoutMargin" , "", "Layout margin");
 }
 
 //---
@@ -1434,31 +1395,21 @@ void
 CQChartsRectangleAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "rectangle" , "", "Rectangle bounding box");
-  addProp(path1, "start"     , "", "Rectangle bottom left", true);
-  addProp(path1, "end"       , "", "Rectangle top right", true);
-  addProp(path1, "margin"    , "", "Rectangle inner margin", true);
-  addProp(path1, "objRef"    , "", "Object reference");
-  addProp(path1, "shapeType" , "", "Node shape type");
-  addProp(path1, "numSides"  , "", "Number of Shape Sides");
-  addProp(path1, "angle"     , "", "Shape angle");
-  addProp(path1, "lineWidth" , "", "Dot line width");
-  addProp(path1, "symbolType", "", "Dot line symbol type");
-  addProp(path1, "symbolSize", "", "Dot line symbol size");
+  addProp(model, path1, "rectangle" , "", "Rectangle bounding box");
+  addProp(model, path1, "start"     , "", "Rectangle bottom left", true);
+  addProp(model, path1, "end"       , "", "Rectangle top right", true);
+  addProp(model, path1, "margin"    , "", "Rectangle inner margin", true);
+  addProp(model, path1, "objRef"    , "", "Object reference");
+  addProp(model, path1, "shapeType" , "", "Node shape type");
+  addProp(model, path1, "numSides"  , "", "Number of Shape Sides");
+  addProp(model, path1, "angle"     , "", "Shape angle");
+  addProp(model, path1, "lineWidth" , "", "Dot line width");
+  addProp(model, path1, "symbolType", "", "Dot line symbol type");
+  addProp(model, path1, "symbolSize", "", "Dot line symbol size");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1654,23 +1605,13 @@ void
 CQChartsEllipseAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "center" , "", "Ellipse center point");
-  addProp(path1, "xRadius", "", "Ellipse x radius");
-  addProp(path1, "yRadius", "", "Ellipse y radius");
+  addProp(model, path1, "center" , "", "Ellipse center point");
+  addProp(model, path1, "xRadius", "", "Ellipse x radius");
+  addProp(model, path1, "yRadius", "", "Ellipse y radius");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1838,22 +1779,12 @@ void
 CQChartsPolygonAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "polygon"     , ""       , "Polygon points");
-  addProp(path1, "roundedLines", "rounded", "Smooth lines");
+  addProp(model, path1, "polygon"     , ""       , "Polygon points");
+  addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2097,22 +2028,12 @@ void
 CQChartsPolylineAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "polygon"     , ""       , "Polyline points");
-  addProp(path1, "roundedLines", "rounded", "Smooth lines");
+  addProp(model, path1, "polygon"     , ""       , "Polyline points");
+  addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 }
@@ -2464,32 +2385,22 @@ void
 CQChartsTextAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position" , "", "Text origin");
-  addProp(path1, "rectangle", "", "Text bounding box");
-  addProp(path1, "objRef"   , "", "Object reference");
+  addProp(model, path1, "position" , "", "Text origin");
+  addProp(model, path1, "rectangle", "", "Text bounding box");
+  addProp(model, path1, "objRef"   , "", "Object reference");
 
   auto textPath = path1 + "/text";
 
-  addProp(textPath, "textStr", "string", "Text string");
+  addProp(model, textPath, "textStr", "string", "Text string");
 
   addTextProperties(model, textPath, CQChartsTextOptions::ValueType::ALL);
 
-  addProp(path1, "padding", "", "Text rectangle inner padding");
-  addProp(path1, "margin" , "", "Text rectangle outer margin");
+  addProp(model, path1, "padding", "", "Text rectangle inner padding");
+  addProp(model, path1, "margin" , "", "Text rectangle outer margin");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2978,27 +2889,17 @@ void
 CQChartsImageAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position"     , "position"     , "Image origin");
-  addProp(path1, "rectangle"    , "rectangle"    , "Image bounding box");
-  addProp(path1, "image"        , "image"        , "Image name");
-  addProp(path1, "disabledImage", "disabledImage", "Disabled image name");
+  addProp(model, path1, "position"     , "position"     , "Image origin");
+  addProp(model, path1, "rectangle"    , "rectangle"    , "Image bounding box");
+  addProp(model, path1, "image"        , "image"        , "Image name");
+  addProp(model, path1, "disabledImage", "disabledImage", "Disabled image name");
 
-  addProp(path1, "padding", "", "Image rectangle inner padding");
-  addProp(path1, "margin" , "", "Image rectangle outer margin");
+  addProp(model, path1, "padding", "", "Image rectangle inner padding");
+  addProp(model, path1, "margin" , "", "Image rectangle outer margin");
 
   addStrokeFillProperties(model, path1);
 }
@@ -3309,21 +3210,11 @@ void
 CQChartsPathAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "path", "path", "Path name");
+  addProp(model, path1, "path", "path", "Path name");
 
   addStrokeFillProperties(model, path1);
 }
@@ -3539,14 +3430,6 @@ void
 CQChartsArrowAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
     auto *item = model->addProperty(path, arrow(), name, alias);
@@ -3568,10 +3451,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "start"      , "", "Arrow start point");
-  addProp(path1, "startObjRef", "", "Arrow start object reference");
-  addProp(path1, "end"        , "", "Arrow end point");
-  addProp(path1, "endObjRef"  , "", "Arrow end object reference");
+  addProp(model, path1, "start"      , "", "Arrow start point");
+  addProp(model, path1, "startObjRef", "", "Arrow start object reference");
+  addProp(model, path1, "end"        , "", "Arrow end point");
+  addProp(model, path1, "endObjRef"  , "", "Arrow end object reference");
 
   auto linePath = path1 + "/line";
 
@@ -4038,29 +3921,19 @@ void
 CQChartsArcAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "start"      , "", "Arc start point");
-  addProp(path1, "startObjRef", "", "Arc start object reference");
-  addProp(path1, "end"        , "", "Arc end point");
-  addProp(path1, "endObjRef"  , "", "Arc end object reference");
-  addProp(path1, "isLine"     , "", "Arc is line");
-  addProp(path1, "rectilinear", "", "Arc is rectilinear");
-  addProp(path1, "frontType"  , "", "Arc front type");
-  addProp(path1, "tailType"   , "", "Arc tail type");
-  addProp(path1, "lineWidth"  , "", "Arc line width");
+  addProp(model, path1, "start"      , "", "Arc start point");
+  addProp(model, path1, "startObjRef", "", "Arc start object reference");
+  addProp(model, path1, "end"        , "", "Arc end point");
+  addProp(model, path1, "endObjRef"  , "", "Arc end object reference");
+  addProp(model, path1, "isLine"     , "", "Arc is line");
+  addProp(model, path1, "rectilinear", "", "Arc is rectilinear");
+  addProp(model, path1, "frontType"  , "", "Arc front type");
+  addProp(model, path1, "tailType"   , "", "Arc tail type");
+  addProp(model, path1, "lineWidth"  , "", "Arc line width");
 
   //---
 
@@ -4268,49 +4141,32 @@ void
 CQChartsPointAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position", "", "Point position");
-  addProp(path1, "objRef"  , "", "Object reference");
+  addProp(model, path1, "position", "", "Point position");
+  addProp(model, path1, "objRef"  , "", "Object reference");
 
   auto symbolPath = path1 + "/symbol";
 
-  addProp(symbolPath, "symbolType", "type", "Point symbol type");
-  addProp(symbolPath, "symbolSize", "size", "Point symbol size");
+  addProp(model, symbolPath, "symbolType", "type", "Point symbol type");
+  addProp(model, symbolPath, "symbolSize", "size", "Point symbol size");
 
   auto fillPath = path1 + "/fill";
 
-  addStyleProp(fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
-  addStyleProp(fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
-  addStyleProp(fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
-  addStyleProp(fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern");
+  addStyleProp(model, fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
+  addStyleProp(model, fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
+  addStyleProp(model, fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
+  addStyleProp(model, fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern");
 
   auto strokePath = path1 + "/stroke";
 
-  addStyleProp(strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
-  addStyleProp(strokePath, "symbolStrokeColor", "color"  , "Point symbol stroke color");
-  addStyleProp(strokePath, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
-  addStyleProp(strokePath, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
-  addStyleProp(strokePath, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
+  addStyleProp(model, strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
+  addStyleProp(model, strokePath, "symbolStrokeColor", "color"  , "Point symbol stroke color");
+  addStyleProp(model, strokePath, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
+  addStyleProp(model, strokePath, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
+  addStyleProp(model, strokePath, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
 }
 
 //---
@@ -4497,25 +4353,15 @@ void
 CQChartsPieSliceAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position"   , "", "Pie slice position");
-  addProp(path1, "innerRadius", "", "Pie slice inner radius");
-  addProp(path1, "outerRadius", "", "Pie slice outer radius");
-  addProp(path1, "startAngle" , "", "Pie slice start angle");
-  addProp(path1, "spanAngle"  , "", "Pie slice span angle");
+  addProp(model, path1, "position"   , "", "Pie slice position");
+  addProp(model, path1, "innerRadius", "", "Pie slice inner radius");
+  addProp(model, path1, "outerRadius", "", "Pie slice outer radius");
+  addProp(model, path1, "startAngle" , "", "Pie slice start angle");
+  addProp(model, path1, "spanAngle"  , "", "Pie slice span angle");
 
   addStrokeFillProperties(model, path1);
 }
@@ -4720,16 +4566,6 @@ void
 CQChartsAxisAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
@@ -4738,10 +4574,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   axis_->addProperties(model, path1, CQChartsAxis::PropertyType::ANNOTATION);
 
-  addProp(path1, "direction", "", "Axis direction");
-  addProp(path1, "start"    , "", "Axis start");
-  addProp(path1, "end"      , "", "Axis end");
-  addProp(path1, "position" , "", "Axis position");
+  addProp(model, path1, "direction", "", "Axis direction");
+  addProp(model, path1, "start"    , "", "Axis start");
+  addProp(model, path1, "end"      , "", "Axis end");
+  addProp(model, path1, "position" , "", "Axis position");
 }
 
 //---
@@ -5056,22 +4892,12 @@ void
 CQChartsPointSetAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "values"  , "", "Values");
-  addProp(path1, "drawType", "", "Draw type");
+  addProp(model, path1, "values"  , "", "Values");
+  addProp(model, path1, "drawType", "", "Draw type");
 
   addStrokeFillProperties(model, path1);
 }
@@ -5340,14 +5166,6 @@ void
 CQChartsValueSetAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
   auto addDensityProp = [&](const QString &path, const QString &name, const QString &alias,
                             const QString &desc) {
     return &(model->addProperty(path, density_.get(), name, alias)->setDesc(desc));
@@ -5359,9 +5177,9 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "rectangle", "", "Rectangle");
-  addProp(path1, "values"   , "", "Values");
-  addProp(path1, "drawType" , "", "Draw Type");
+  addProp(model, path1, "rectangle", "", "Rectangle");
+  addProp(model, path1, "values"   , "", "Values");
+  addProp(model, path1, "drawType" , "", "Draw Type");
 
   auto densityPath = path1 + "/density";
 
@@ -5521,25 +5339,15 @@ void
 CQChartsButtonAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position", "position", "Text origin");
+  addProp(model, path1, "position", "position", "Text origin");
 
   auto textPath = path1 + "/text";
 
-  addProp(textPath, "textStr", "string", "Text string");
+  addProp(model, textPath, "textStr", "string", "Text string");
 
   addTextProperties(model, textPath, CQChartsTextOptions::ValueType::NONE);
 
@@ -5948,26 +5756,16 @@ void
 CQChartsWidgetAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position"   , "position"   , "Widget position");
-  addProp(path1, "rectangle"  , "rectangle"  , "Widget bounding box");
-  addProp(path1, "widget"     , "widget"     , "Widget name");
-  addProp(path1, "align"      , "align"      , "Widget position alignment");
-  addProp(path1, "sizePolicy" , "sizePolicy" , "Widget size policy");
-  addProp(path1, "interactive", "interactive", "Widget is interactive");
+  addProp(model, path1, "position"   , "position"   , "Widget position");
+  addProp(model, path1, "rectangle"  , "rectangle"  , "Widget bounding box");
+  addProp(model, path1, "widget"     , "widget"     , "Widget name");
+  addProp(model, path1, "align"      , "align"      , "Widget position alignment");
+  addProp(model, path1, "sizePolicy" , "sizePolicy" , "Widget size policy");
+  addProp(model, path1, "interactive", "interactive", "Widget is interactive");
 }
 
 void
@@ -6299,6 +6097,10 @@ draw(PaintDevice *device)
 
   //---
 
+  key_->initDraw();
+
+  //---
+
   // set pen and brush for circles
   PenBrush penBrush;
 
@@ -6307,8 +6109,6 @@ draw(PaintDevice *device)
   updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  //---
 
   // draw circles
   key_->drawCircles(device, /*usePenBrush*/true);
@@ -6341,8 +6141,6 @@ draw(PaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   setPainterFont(device, textFont());
-
-  //---
 
   // draw text
   key_->drawText(device, textOptions, /*usePenBrush*/true);

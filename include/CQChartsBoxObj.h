@@ -47,14 +47,19 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  // get/set state coloring
+  //! get/set state coloring
   bool isStateColoring() const { return stateColoring_; }
   void setStateColoring(bool b) { stateColoring_ = b; }
 
   //---
 
+  //! get/set bbox
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b);
+
+  //---
+
+  CQChartsGeom::Margin parentMargin(const Margin &m) const;
 
   //---
 

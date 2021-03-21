@@ -607,6 +607,14 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   using BarObj = CQChartsBarChartObj;
 
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
   virtual BarObj *createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig,
                                const ColorInd &iv, const QModelIndex &ind) const;
 

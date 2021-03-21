@@ -191,13 +191,6 @@ void
 CQChartsForceDirectedPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   CQChartsConnectionPlot::addProperties();
 
   // options

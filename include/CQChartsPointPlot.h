@@ -10,6 +10,8 @@
 class CQChartsPointPlot;
 class CQChartsDataLabel;
 class CQChartsGrahamHull;
+class CQChartsSymbolTypeMapKey;
+class CQChartsSymbolSizeMapKey;
 class CQChartsFitData;
 
 /*!
@@ -269,6 +271,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  bool canDrawSymbolTypeMapKey() const;
   void drawSymbolTypeMapKey(PaintDevice *device) const;
 
   //---
@@ -315,6 +318,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  bool canDrawSymbolSizeMapKey() const;
   void drawSymbolSizeMapKey(PaintDevice *device) const;
 
   //---

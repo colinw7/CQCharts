@@ -120,9 +120,15 @@ init()
 
   textBox_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
+  //---
+
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -313,16 +319,6 @@ void
 CQChartsPiePlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -374,8 +370,13 @@ addProperties()
 
   textBox_->addBoxProperties(propertyModel(), "labels/box", "Labels");
 
+  //---
+
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -1249,6 +1250,16 @@ addMenuItems(QMenu *menu)
   menu->addAction(donutAction);
   menu->addAction(countAction);
 
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
+
   return true;
 }
 
@@ -1285,6 +1296,26 @@ CQChartsPiePlot::
 createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const
 {
   return new CQChartsPieObj(this, rect, ind, ig);
+}
+
+//---
+
+bool
+CQChartsPiePlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsPiePlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

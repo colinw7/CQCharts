@@ -1337,6 +1337,9 @@ class Margin {
   double bottom() const { return b_; }
   void setBottom(double b) { b_ = b; }
 
+  double width () { return left() + right(); }
+  double height() { return top() + bottom(); }
+
   //---
 
  private:

@@ -161,6 +161,12 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
 
   void addKeyItems(PlotKey *) override;
 
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
  protected:
   using PointObj = CQChartsStripPointObj;
 

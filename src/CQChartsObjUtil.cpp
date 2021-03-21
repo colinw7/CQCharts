@@ -4,6 +4,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsAxisRug.h>
 #include <CQChartsKey.h>
+#include <CQChartsMapKey.h>
 #include <CQChartsAnnotation.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsArrow.h>

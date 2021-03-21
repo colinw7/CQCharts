@@ -88,9 +88,15 @@ init()
 
   setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
 
+  //---
+
   // addKey() // TODO
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -205,13 +211,6 @@ void
 CQChartsSunburstPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addHierProperties();
 
   // options
@@ -245,8 +244,13 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
+  //---
+
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //------
@@ -978,18 +982,6 @@ bool
 CQChartsSunburstPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    connect(action, SIGNAL(triggered()), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
-  //---
-
   PlotObjs objs;
 
   selectedPlotObjs(objs);
@@ -1003,6 +995,16 @@ addMenuItems(QMenu *menu)
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != nullptr);
   popTopAction->setEnabled(currentRoot() != nullptr);
+
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
 
   return true;
 }
@@ -1355,6 +1357,26 @@ CQChartsSunburstPlot::
 createNodeObj(const BBox &rect, Node *node) const
 {
   return new NodeObj(this, rect, node);
+}
+
+//---
+
+bool
+CQChartsSunburstPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsSunburstPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

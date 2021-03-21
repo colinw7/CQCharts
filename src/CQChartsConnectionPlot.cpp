@@ -437,13 +437,6 @@ void
 CQChartsConnectionPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -1454,8 +1447,6 @@ addConnectionColumnWidgets()
 
   addFrameWidget(connectionsFrame, "Columns Type", columnsTypeCombo_);
 
-  addFrameRowStretch(connectionsFrame);
-
   //---
 
   static auto columnNames = QStringList() <<
@@ -1465,6 +1456,8 @@ addConnectionColumnWidgets()
   addColumnWidgets(columnNames, connectionsFrame);
 
   //---
+
+  addFrameRowStretch(connectionsFrame);
 
   connectSlots(true);
 }

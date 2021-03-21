@@ -568,16 +568,6 @@ void
 CQChartsTablePlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -937,25 +927,6 @@ bool
 CQChartsTablePlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
-//auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
-//  return addMenuCheckedAction(menu, name, isSet, slot);
-//};
-
-  //---
-
   menu_ = menu;
 
   //---

@@ -55,7 +55,8 @@ description() const
   return CQChartsHtml().
    h2("Strip Plot").
     h3("Summary").
-     p("TODO");
+     p("A strip plot is a scatter plot of value in the value column and position column "
+       "grouped by unique values in the name column.");
 }
 
 void
@@ -130,6 +131,10 @@ init()
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -167,16 +172,6 @@ void
 CQChartsStripPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
-    auto *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -200,6 +195,9 @@ addProperties()
 
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -605,9 +603,21 @@ addKeyItems(PlotKey *)
 
 bool
 CQChartsStripPlot::
-addMenuItems(QMenu *)
+addMenuItems(QMenu *menu)
 {
-  return true;
+  bool added = false;
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+
+    added = true;
+  }
+
+  return added;
 }
 
 //----
@@ -618,6 +628,26 @@ createPointObj(const BBox &rect, int groupInd, const Point &p, const QModelIndex
                const ColorInd &ig, const ColorInd &iv) const
 {
   return new CQChartsStripPointObj(this, rect, groupInd, p, ind, ig, iv);
+}
+
+//---
+
+bool
+CQChartsStripPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsStripPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---
@@ -711,6 +741,22 @@ draw(PaintDevice *device) const
   PenBrush penBrush;
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
+
+  if (plot_->colorColumn().isValid()) {
+    auto ind1 = modelInd();
+
+    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+    Color indColor;
+
+    auto symbolColor = penBrush.brush.color();
+
+    if (plot_->modelIndexColor(ind2, indColor)) {
+      symbolColor = plot_->interpColor(indColor, colorInd);
+
+      CQChartsDrawUtil::updateBrushColor(penBrush.brush, symbolColor);
+    }
+  }
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

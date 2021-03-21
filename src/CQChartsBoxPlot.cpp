@@ -440,13 +440,6 @@ void
 CQChartsBoxPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   // columns
@@ -1976,19 +1969,6 @@ bool
 CQChartsBoxPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
   auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };

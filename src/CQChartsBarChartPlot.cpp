@@ -160,6 +160,10 @@ init()
 
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
   setDotSymbolSize(Length("7px"));
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -232,13 +236,6 @@ void
 CQChartsBarChartPlot::
 addProperties()
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  //---
-
   addBaseProperties();
 
   addBoxProperties();
@@ -266,6 +263,11 @@ addProperties()
   //---
 
   addGroupingProperties();
+
+  //---
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -1773,19 +1775,6 @@ bool
 CQChartsBarChartPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
-  };
-
   auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
@@ -1817,6 +1806,16 @@ addMenuItems(QMenu *menu)
   (void) addCheckedAction("Percent"  , isPercent (), SLOT(setPercent(bool)));
   (void) addCheckedAction("Dot Lines", isDotLines(), SLOT(setDotLines(bool)));
 
+  //---
+
+  if (canDrawColorMapKey()) {
+    auto *keysMenu = new QMenu("Keys", menu);
+
+    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+    menu->addMenu(keysMenu);
+  }
+
   return true;
 }
 
@@ -1834,6 +1833,26 @@ CQChartsBarChartPlot::
 getPanY(bool is_shift) const
 {
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+//---
+
+bool
+CQChartsBarChartPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsBarChartPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

@@ -199,9 +199,19 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   //---
 
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  //---
+
   bool hasBackground() const override;
 
   void execDrawBackground(PaintDevice *device) const override;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
 
   //---
 

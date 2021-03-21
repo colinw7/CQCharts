@@ -203,6 +203,14 @@ void setPenBrush(QPainter *device, const PenBrush &penBrush);
 
 void setBrush(QBrush &brush, const BrushData &data);
 
+inline void updateBrushColor(QBrush &brush, const QColor &c) {
+  auto c2 = c;
+
+  c2.setAlphaF(brush.color().alphaF());
+
+  brush.setColor(c2);
+}
+
 inline void setBrushAlpha(QBrush &brush, double a) {
   auto c = brush.color();
 

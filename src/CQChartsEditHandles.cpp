@@ -2,6 +2,7 @@
 #include <CQChartsResizeHandle.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsEnv.h>
 #include <QPainter>
 
 CQChartsEditHandles::
@@ -177,9 +178,11 @@ draw(QPainter *painter) const
     return (view_ ? view_->windowToPixel(bbox) : plot_->windowToPixel(bbox));
   };
 
+  auto pbbox = windowToPixel(bbox_);
+
   QPainterPath path;
 
-  CQChartsDrawUtil::editHandlePath(path, windowToPixel(bbox_));
+  CQChartsDrawUtil::editHandlePath(path, pbbox);
 
   painter->strokePath(path, pen);
 
@@ -199,5 +202,12 @@ draw(QPainter *painter) const
 
   for (auto &handle : extraHandles_) {
     handle->draw(painter);
+  }
+
+  if (CQChartsEnv::getBool("CQ_CHARTS_DRAW_EDIT_HANDLE_BOX", false)) {
+    painter->setPen(Qt::red);
+    painter->setBrush(Qt::NoBrush);
+
+    painter->drawRect(pbbox.qrect());
   }
 }
