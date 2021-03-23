@@ -1356,9 +1356,9 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
  public:
   CQChartsPointAnnotation(View *view, const Position &p=Position(),
-                          const Symbol &type=Symbol::Type::CIRCLE);
+                          const Symbol &type=Symbol(Symbol::Type::CIRCLE));
   CQChartsPointAnnotation(Plot *plot, const Position &p=Position(),
-                          const Symbol &type=Symbol::Type::CIRCLE);
+                          const Symbol &type=Symbol(Symbol::Type::CIRCLE));
 
   virtual ~CQChartsPointAnnotation();
 

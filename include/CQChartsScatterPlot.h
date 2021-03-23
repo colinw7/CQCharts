@@ -175,13 +175,13 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   struct ExtraData {
-    Symbol  symbolType { Symbol::Type::NONE }; //!< symbol type
-    Length  symbolSize { Units::NONE, 0.0 };   //!< symbol size
-    OptBool symbolFilled;                      //!< optional symbol fill override
-    Color   color;                             //!< symbol fill color
-    Alpha   alpha;                             //!< symbol fill alpha
-    Length  fontSize   { Units::NONE, 0.0 };   //!< font size
-    Font    font;                              //!< text font
+    Symbol  symbolType;                      //!< symbol type
+    Length  symbolSize { Units::NONE, 0.0 }; //!< symbol size
+    OptBool symbolFilled;                    //!< optional symbol fill override
+    Color   color;                           //!< symbol fill color
+    Alpha   alpha;                           //!< symbol fill alpha
+    Length  fontSize   { Units::NONE, 0.0 }; //!< font size
+    Font    font;                            //!< text font
   };
 
  private:

@@ -178,12 +178,11 @@ init()
   setStatsLines(false);
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 
-  setDotSymbolType     (Symbol::Type::CIRCLE);
+  setDotSymbolType     (Symbol(Symbol::Type::CIRCLE));
   setDotSymbolSize     (Length("7px"));
   setDotSymbolFilled   (true);
   setDotSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setRugSymbolType       (Symbol::Type::NONE);
   setRugSymbolSize       (Length("5px"));
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
@@ -3622,8 +3621,8 @@ drawRug(PaintDevice *device) const
   auto symbolType = plot_->rugSymbolType();
   auto symbolSize = plot_->rugSymbolSize();
 
-  if (symbolType == CQChartsSymbol::Type::NONE)
-    symbolType = (plot_->isVertical() ?
+  if (! symbolType.isValid())
+    symbolType = CQChartsSymbol(plot_->isVertical() ?
       CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
@@ -4246,8 +4245,8 @@ drawRug(PaintDevice *device) const
   auto symbolType = plot_->rugSymbolType();
   auto symbolSize = plot_->rugSymbolSize();
 
-  if (symbolType == CQChartsSymbol::Type::NONE)
-    symbolType = (plot_->isVertical() ?
+  if (! symbolType.isValid())
+    symbolType = CQChartsSymbol(plot_->isVertical() ?
       CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;

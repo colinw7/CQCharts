@@ -158,7 +158,7 @@ init()
 
   //---
 
-  setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setDotSymbolType(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE));
   setDotSymbolSize(Length("7px"));
 
   //---

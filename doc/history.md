@@ -1294,3 +1294,5 @@
  + support position and editing
 # 3/21/2021
  + add color map key to all plots that support color column
+# 3/23/2021
+ + add character symbol and improve view settings support for symbols

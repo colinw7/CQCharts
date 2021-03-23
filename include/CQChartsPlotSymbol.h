@@ -18,6 +18,8 @@ class CQChartsPaintDevice;
  * \ingroup Charts
  */
 struct CQChartsPlotSymbol {
+  using Symbol = CQChartsSymbol;
+
   enum class Connect {
     NONE,
     LINE,
@@ -49,11 +51,11 @@ struct CQChartsPlotSymbol {
 
   using Lines = std::vector<Line>;
 
-  CQChartsSymbol type { CQChartsSymbol::Type::NONE };
-  Lines          lines;
-  Lines          fillLines;
+  Symbol::Type type;
+  Lines        lines;
+  Lines        fillLines;
 
-  CQChartsPlotSymbol(CQChartsSymbol type, std::initializer_list<Line> lines,
+  CQChartsPlotSymbol(Symbol::Type type, std::initializer_list<Line> lines,
                      std::initializer_list<Line> fillLines) :
    type(type), lines(lines), fillLines(fillLines) {
   }
@@ -62,13 +64,16 @@ struct CQChartsPlotSymbol {
 //---
 
 namespace CQChartsPlotSymbolMgr {
-  bool isSymbol(CQChartsSymbol type);
+  using SymbolRenderer = CQChartsPlotSymbolRenderer;
+  using Symbol         = CQChartsSymbol;
 
-  const CQChartsPlotSymbol &getSymbol(CQChartsSymbol type);
+  bool isSymbol(Symbol symbol);
 
-  void drawSymbol  (CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
-  void strokeSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
-  void fillSymbol  (CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
+  const CQChartsPlotSymbol &getSymbol(Symbol symbol);
+
+  void drawSymbol  (Symbol symbol, SymbolRenderer *renderer);
+  void strokeSymbol(Symbol symbol, SymbolRenderer *renderer);
+  void fillSymbol  (Symbol symbol, SymbolRenderer *renderer);
 }
 
 //---
@@ -91,13 +96,15 @@ class CQChartsPlotSymbolRenderer {
   using BBox        = CQChartsGeom::BBox;
 
  public:
-  CQChartsPlotSymbolRenderer(PaintDevice *painter, const Point &p, const Length &size);
+  CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p, const Length &size);
 
-  void drawSymbol  (Symbol type);
-  void strokeSymbol(Symbol type);
-  void fillSymbol  (Symbol type);
+  void drawSymbol  (Symbol symbol);
+  void strokeSymbol(Symbol symbol);
+  void fillSymbol  (Symbol symbol);
 
   //---
+
+  PaintDevice *device() const { return device_; }
 
   void moveTo(double x, double y);
 
@@ -109,7 +116,12 @@ class CQChartsPlotSymbolRenderer {
 
   void fill();
 
+  void drawFillPoint(double x, double y, double r, bool fill) const;
+
   void drawPoint(double x, double y) const;
+
+  void drawFillHLine(double x1, double x2, double y, double w, bool fill);
+  void drawFillVLine(double x, double y1, double y2, double w, bool fill);
 
   void drawLine(double x1, double y1, double x2, double y2) const;
 
@@ -117,6 +129,8 @@ class CQChartsPlotSymbolRenderer {
 
   void strokeCircle(double x, double y, double r) const;
   void fillCircle  (double x, double y, double r) const;
+
+  void drawChar(const QString &s) const;
 
   void mapXY(double x, double y, double &x1, double &y1) const;
 

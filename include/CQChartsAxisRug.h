@@ -4,6 +4,8 @@
 #include <CQChartsObj.h>
 #include <CQChartsObjData.h>
 
+class CQChartsPlot;
+
 //! class for run on x/y axis
 class CQChartsAxisRug : public CQChartsObj,
  public CQChartsObjPointData<CQChartsAxisRug> {

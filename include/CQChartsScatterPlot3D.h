@@ -122,10 +122,10 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
  private:
   struct ExtraData {
-    Symbol symbolType { Symbol::Type::NONE }; //!< symbol type
-    Length symbolSize { Units::NONE, 0.0 };   //!< symbol size
-    Length fontSize   { Units::NONE, 0.0 };   //!< font size
-    Color  color;                             //!< symbol fill color
+    Symbol symbolType;                      //!< symbol type
+    Length symbolSize { Units::NONE, 0.0 }; //!< symbol size
+    Length fontSize   { Units::NONE, 0.0 }; //!< font size
+    Color  color;                           //!< symbol fill color
   };
 
  private:

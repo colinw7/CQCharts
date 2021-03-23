@@ -8,7 +8,9 @@
 #include <QObject>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
+
 #include <vector>
+#include <memory>
 
 class CQChartsWindow;
 class CQChartsView;
@@ -18,6 +20,7 @@ class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
 class CQChartsSymbolSetMgr;
+class CQChartsSymbolSet;
 class CQChartsInterfaceTheme;
 class CQChartsExprTcl;
 class CQColorsPalette;
@@ -143,11 +146,15 @@ class CQCharts : public QObject {
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
+  CQChartsPlotTypeMgr *plotTypeMgr() const { return plotTypeMgr_.get(); }
 
   //---
 
-  CQChartsSymbolSetMgr *symbolSetMgr() const { return symbolSetMgr_; }
+  CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_.get(); }
+
+  //---
+
+  CQChartsSymbolSetMgr *symbolSetMgr() const { return symbolSetMgr_.get(); }
 
   //---
 
@@ -161,8 +168,8 @@ class CQCharts : public QObject {
   //---
 
  public:
-  const CQChartsInterfaceTheme *interfaceTheme() const { return interfaceTheme_; }
-  CQChartsInterfaceTheme *interfaceTheme() { return interfaceTheme_; }
+  const CQChartsInterfaceTheme *interfaceTheme() const { return interfaceTheme_.get(); }
+  CQChartsInterfaceTheme *interfaceTheme() { return interfaceTheme_.get(); }
 
   const CQChartsThemeName &plotTheme() const { return plotTheme_; }
   CQChartsThemeName &plotTheme() { return plotTheme_; }
@@ -323,6 +330,12 @@ class CQCharts : public QObject {
 
   //---
 
+  bool hasSymbolSet(const QString &name) const;
+
+  CQChartsSymbolSet *createSymbolSet(const QString &name);
+
+  //---
+
   CQChartsLoadModelDlg    *loadModelDlg();
   CQChartsManageModelsDlg *manageModelsDlg();
 
@@ -373,14 +386,18 @@ class CQCharts : public QObject {
   bool setModelInd(QAbstractItemModel *model, int ind);
 
  private:
-  using NameViews = std::map<QString, CQChartsView*>;
+  using NameViews       = std::map<QString, CQChartsView*>;
+  using InterfaceThemeP = std::unique_ptr<CQChartsInterfaceTheme>;
+  using PlotTypeMgrP    = std::unique_ptr<CQChartsPlotTypeMgr>;
+  using ColumnTypeMgrP  = std::unique_ptr<CQChartsColumnTypeMgr>;
+  using SymbolSetMgrP   = std::unique_ptr<CQChartsSymbolSetMgr>;
 
   bool                     viewKey_         { true };    //!< has view key
-  CQChartsPlotTypeMgr*     plotTypeMgr_     { nullptr }; //!< plot type manager
-  CQChartsColumnTypeMgr*   columnTypeMgr_   { nullptr }; //!< column type manager
-  CQChartsInterfaceTheme*  interfaceTheme_  { nullptr }; //!< interface theme
+  PlotTypeMgrP             plotTypeMgr_;                 //!< plot type manager
+  ColumnTypeMgrP           columnTypeMgr_;               //!< column type manager
+  InterfaceThemeP          interfaceTheme_;              //!< interface theme
   CQChartsThemeName        plotTheme_;                   //!< plot theme name
-  CQChartsSymbolSetMgr*    symbolSetMgr_    { nullptr };
+  SymbolSetMgrP            symbolSetMgr_;                //!< symbol set manager
   QColor                   contrastColor_;               //!< color for contrast color calc
   int                      currentModelInd_ { -1 };      //!< current model index
   ModelDatas               modelDatas_;                  //!< model datas

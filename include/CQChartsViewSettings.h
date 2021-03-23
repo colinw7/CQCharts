@@ -29,6 +29,8 @@ class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 class CQChartsPlotCustomControls;
+class CQChartsSymbolSetsList;
+class CQChartsSymbolsList;
 class CQChartsViewError;
 class CQChartsPlotControlFrame;
 
@@ -52,7 +54,6 @@ class QTextEdit;
 class QLabel;
 class QGridLayout;
 class QButtonGroup;
-class QListWidget;
 class QTimer;
 
 /*!
@@ -250,6 +251,8 @@ class CQChartsViewSettings : public QFrame {
   using PlotLayerTable       = CQChartsViewSettingsPlotLayerTable;
   using PlotControlFrame     = CQChartsPlotControlFrame;
   using PlotCustomControls   = CQChartsPlotCustomControls;
+  using SymbolSetsList       = CQChartsSymbolSetsList;
+  using SymbolsList          = CQChartsSymbolsList;
   using ViewError            = CQChartsViewError;
 
   struct PropertiesWidgets {
@@ -326,6 +329,12 @@ class CQChartsViewSettings : public QFrame {
     PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
   };
 
+ private:
+  friend class CQChartsSymbolSetsList;
+
+  SymbolsList *symbolsList() const { return symbolsList_; }
+
+ private:
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
@@ -339,7 +348,8 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets  annotationsWidgets_;             //!< annotations widgets
   ObjectsWidgets      objectsWidgets_;                 //!< objects widgets
   ThemeWidgets        themeWidgets_;                   //!< theme widgets
-  QListWidget*        symbolsList_        { nullptr }; //!< symbols list
+  SymbolSetsList*     symbolSetsList_     { nullptr }; //!< symbol sets list
+  SymbolsList*        symbolsList_        { nullptr }; //!< symbols list
   LayersWidgets       layersWidgets_;                  //!< layers widgets
   QTextEdit*          queryText_          { nullptr }; //!< query text
   ViewError*          error_              { nullptr }; //!< error widget
@@ -479,6 +489,51 @@ class CQChartsViewSettingsFilterEdit : public QFrame {
  private:
   CQChartsPropertyViewTree* tree_       { nullptr };
   CQChartsFilterEdit*       filterEdit_ { nullptr };
+};
+
+//---
+
+#include <CQChartsSymbol.h>
+#include <QListWidget>
+
+class CQChartsSymbolSetsList : public QListWidget {
+  Q_OBJECT
+
+ public:
+  CQChartsSymbolSetsList(CQChartsViewSettings *viewSettings);
+
+ private slots:
+  void rowChanged(int row);
+
+ private:
+  CQChartsViewSettings* viewSettings_ { nullptr };
+};
+
+//---
+
+class CQChartsSymbolsItemDelegate;
+class CQChartsSymbolSet;
+
+class CQChartsSymbolsList : public QListWidget {
+  Q_OBJECT
+
+ public:
+  CQChartsSymbolsList(CQChartsViewSettings *viewSettings);
+
+  const QString &name() const { return name_; }
+  void setName(const QString &s, int ind);
+
+  CQChartsSymbol symbol(int ind) const;
+
+  bool isFilledSymbol(int ind) const;
+
+  CQChartsSymbolSet *symbolSet() const;
+
+ private:
+  CQChartsViewSettings*        viewSettings_ { nullptr };
+  QString                      name_;
+  int                          ind_          { 0 };
+  CQChartsSymbolsItemDelegate* delegate_     { nullptr };
 };
 
 #endif

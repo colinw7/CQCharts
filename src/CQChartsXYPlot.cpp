@@ -1774,12 +1774,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional symbol type
-        CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
+        CQChartsSymbol symbolType;
         OptBool        symbolFilled;
 
         if (symbolTypeColumn().isValid()) {
           if (! columnSymbolType(ip, xind1.parent(), symbolType, symbolFilled))
-            symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
+            symbolType = CQChartsSymbol();
         }
 
         if (symbolType.isValid())
@@ -3206,7 +3206,7 @@ CQChartsSymbol
 CQChartsXYPointObj::
 symbolType() const
 {
-  CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
+  CQChartsSymbol symbolType;
 
   if (extraData())
     symbolType = extraData()->symbolType;

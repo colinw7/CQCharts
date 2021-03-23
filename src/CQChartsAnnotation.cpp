@@ -4283,7 +4283,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
 
-  if (symbolType().type() != Symbol::Type::NONE)
+  if (symbolType().isValid())
     os << " -type {" << symbolType().toString().toStdString() << "}";
 
   if (symbolData.size().isSet())

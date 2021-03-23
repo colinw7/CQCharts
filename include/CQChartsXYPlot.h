@@ -299,12 +299,12 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using OptPoint = boost::optional<Point>;
 
   struct ExtraData {
-    Symbol   symbolType { Symbol::Type::NONE }; //!< symbol type
-    Length   symbolSize { Units::NONE, 0.0 };   //!< symbol size
-    Length   fontSize   { Units::NONE, 0.0 };   //!< font size
-    Color    color;                             //!< symbol fill color
-    OptPoint vector;                            //!< optional vector
-    Image    image;                             //!< image
+    Symbol   symbolType;                      //!< symbol type
+    Length   symbolSize { Units::NONE, 0.0 }; //!< symbol size
+    Length   fontSize   { Units::NONE, 0.0 }; //!< font size
+    Color    color;                           //!< symbol fill color
+    OptPoint vector;                          //!< optional vector
+    Image    image;                           //!< image
   };
 
  private:

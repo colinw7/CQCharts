@@ -2,11 +2,14 @@
 #define CQChartsSymbolSet_H
 
 #include <CQChartsSymbol.h>
+#include <QObject>
 
 class CQChartsSymbolSet;
 class CQCharts;
 
-class CQChartsSymbolSetMgr {
+class CQChartsSymbolSetMgr : public QObject {
+  Q_OBJECT
+
  public:
   CQChartsSymbolSetMgr(CQCharts *charts);
 
@@ -15,13 +18,18 @@ class CQChartsSymbolSetMgr {
   //! add symbol set
   void addSymbolSet(CQChartsSymbolSet *symbolSet);
 
-  //! get symbol set
+  //! has symbol set of name
+  bool hasSymbolSet(const QString &name) const;
+
+  //! get symbol set by name
   CQChartsSymbolSet *symbolSet(const QString &name) const;
 
   //! get nth symbol set
   CQChartsSymbolSet *symbolSet(int i) const;
 
   int numSymbolSets() const;
+
+  QStringList symbolSetNames() const;
 
  private:
   using SymbolSets      = std::vector<CQChartsSymbolSet *>;
@@ -54,14 +62,20 @@ class CQChartsSymbolSet {
   const QString &name() const { return name_; }
 
   //! add symbol
-  void addSymbol(const CQChartsSymbol &symbol, bool filled);
-
-  //! get nth symbol
-  const SymbolData &symbol(int i) const;
+  void addSymbol(const CQChartsSymbol &symbol, bool filled=false);
 
   int numSymbols() const;
 
   SymbolData interpI(int i) const;
+
+  CQChartsSymbol symbol(int i) const;
+
+  bool isFilled(int i) const;
+
+  //! get nth symbol
+  const SymbolData &symbolData(int i) const;
+
+  QStringList symbolNames() const;
 
  private:
   using Symbols = std::vector<SymbolData>;

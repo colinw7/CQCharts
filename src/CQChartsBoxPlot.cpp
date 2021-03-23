@@ -214,12 +214,12 @@ init()
   setBoxStroked(true);
   setBoxFilled (true);
 
-  setOutlierSymbolType(Symbol::Type::CIRCLE);
+  setOutlierSymbolType(Symbol(Symbol::Type::CIRCLE));
   setOutlierSymbolSize(Length("4px"));
   setOutlierSymbolFilled(true);
   setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setJitterSymbolType(Symbol::Type::CIRCLE);
+  setJitterSymbolType(Symbol(Symbol::Type::CIRCLE));
   setJitterSymbolSize(Length("4px"));
   setJitterSymbolFilled(true);
   setJitterSymbolFillColor(Color(Color::Type::PALETTE));
@@ -2366,7 +2366,7 @@ draw(PaintDevice *device) const
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
 
-      symbol.setType(Symbol::Type::CIRCLE);
+      symbol.setType(Symbol(Symbol::Type::CIRCLE));
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawErrorBar(device, rect, mean, orientation, symbol);
@@ -2390,7 +2390,7 @@ draw(PaintDevice *device) const
 
       CQChartsSymbolData symbol;
 
-      symbol.setType(Symbol::Type::CIRCLE);
+      symbol.setType(Symbol(Symbol::Type::CIRCLE));
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(device, rect, mean, orientation, symbol);

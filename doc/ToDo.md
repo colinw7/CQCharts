@@ -3,8 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + Keys use integer values for labels if model column is integer
- + Edit interface
+ + symbol set reorder up/down
+ + symbol characters inconsistent fit
+ + tcl commands to create and add to symbol sets
+   + use for utf 8 symbols
+ + utf 8 symbols need name ?
  + Access to keys for mapped data (color, symbol size, symbol type)
  + Composite Plot Key (multiple plot items in single key)
  + Composite Plot for all plots

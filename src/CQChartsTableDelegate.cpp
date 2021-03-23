@@ -5,7 +5,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
-#include <CQChartsPlotSymbol.h>
+#include <CQChartsSymbol.h>
 #include <CQChartsImage.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>

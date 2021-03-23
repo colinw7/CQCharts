@@ -4,7 +4,7 @@
 #include <CQChartsView.h>
 #include <CQChartsObj.h>
 #include <CQChartsColor.h>
-#include <CQChartsPlotSymbol.h>
+#include <CQChartsSymbol.h>
 #include <CQChartsObjData.h>
 #include <CQChartsGroupData.h>
 #include <CQChartsTextOptions.h>

@@ -19,6 +19,7 @@
 #include <CQChartsAxisEdit.h>
 #include <CQChartsKey.h>
 #include <CQChartsViewError.h>
+#include <CQChartsSymbolSet.h>
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
@@ -62,7 +63,6 @@
 #include <QPainter>
 #include <QItemDelegate>
 #include <QFileDialog>
-#include <QListWidget>
 #include <QDir>
 #include <QTimer>
 
@@ -825,7 +825,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
 class CQChartsSymbolsItemDelegate : public QItemDelegate {
  public:
-  CQChartsSymbolsItemDelegate(QListWidget *list) :
+  CQChartsSymbolsItemDelegate(CQChartsSymbolsList *list) :
    QItemDelegate(list), list_(list) {
   }
 
@@ -835,9 +835,8 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
       auto *item = list_->item(ind.row());
       assert(item);
 
-      auto name = item->text();
-
-      CQChartsSymbol symbol(name);
+      auto symbol = list_->symbol(ind.row());
+      bool filled = list_->isFilledSymbol(ind.row());
 
       QItemDelegate::drawBackground(painter, option, ind);
 
@@ -848,14 +847,29 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
 
       CQChartsPixelPaintDevice device(painter);
 
-      painter->setBrush(Qt::green);
+      if (filled)
+        painter->setBrush(Qt::green);
+      else
+        painter->setBrush(Qt::NoBrush);
 
       CQChartsDrawUtil::drawSymbol(&device, symbol, bbox);
 
       QRect trect(option.rect.left () + s + 4, option.rect.top() + 2,
                   option.rect.width() - s - 6, option.rect.height() - 4);
 
-      QItemDelegate::drawDisplay(painter, option, trect, name);
+      if (symbol.type() == CQChartsSymbol::Type::CHAR) {
+        auto name = symbol.charName();
+
+        if (name == "")
+          name = "char";
+
+        QItemDelegate::drawDisplay(painter, option, trect, name);
+      }
+      else {
+        auto name = symbol.toString();
+
+        QItemDelegate::drawDisplay(painter, option, trect, name);
+      }
     }
     else
       QItemDelegate::paint(painter, option, ind);
@@ -866,7 +880,7 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
   }
 
  private:
-  QListWidget *list_ { nullptr };
+  CQChartsSymbolsList *list_ { nullptr };
 };
 
 //------
@@ -1815,17 +1829,34 @@ initSymbolsFrame(QFrame *symbolsFrame)
 {
   auto *symbolsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolsFrame, 2, 2);
 
-  symbolsList_ = CQUtil::makeWidget<QListWidget>("symbolsList");
+  //---
 
-  symbolsList_->setToolTip("All Symbols");
+  auto *symbolsSplit = CQUtil::makeWidget<CQTabSplit>("symbolsSplit");
 
-  auto *symbolsDelegate = new CQChartsSymbolsItemDelegate(symbolsList_);
+  symbolsSplit->setOrientation(Qt::Vertical);
+  symbolsSplit->setGrouped(true);
+//symbolsSplit->setState(CQTabSplit::State::TAB);
 
-  symbolsList_->setItemDelegate(symbolsDelegate);
+  symbolsFrameLayout->addWidget(symbolsSplit);
 
-  symbolsList_->addItems(CQChartsSymbol::typeNames());
+  //---
 
-  symbolsFrameLayout->addWidget(symbolsList_);
+  // List of all symbol sets
+  // TODO: update on add/remove symbol set
+  symbolSetsList_ = new CQChartsSymbolSetsList(this);
+
+  symbolsSplit->addWidget(symbolSetsList_, "Symbol Sets");
+
+  //---
+
+  // List of all symbols in set
+  symbolsList_ = new CQChartsSymbolsList(this);
+
+  symbolsSplit->addWidget(symbolsList_, "Symbols");
+
+  //---
+
+  symbolSetsList_->setCurrentRow(0);
 }
 
 void
@@ -3537,4 +3568,126 @@ CQChartsViewSettingsFilterEdit::
 hideFilterSlot()
 {
   tree_->setFilterDisplayed(false);
+}
+
+//---
+
+CQChartsSymbolSetsList::
+CQChartsSymbolSetsList(CQChartsViewSettings *viewSettings) :
+ viewSettings_(viewSettings)
+{
+  setObjectName("symbolSetsList");
+
+  setToolTip("Symbol Sets");
+
+  //---
+
+  auto *view         = viewSettings_->window()->view();
+  auto *charts       = view->charts();
+  auto *symbolSetMgr = charts->symbolSetMgr();
+
+  addItems(symbolSetMgr->symbolSetNames());
+
+  connect(this, SIGNAL(currentRowChanged(int)), this, SLOT(rowChanged(int)));
+}
+
+void
+CQChartsSymbolSetsList::
+rowChanged(int row)
+{
+  auto *item = this->item(row);
+  if (! item) return;
+
+  auto name = item->text();
+
+  viewSettings_->symbolsList()->setName(name, row);
+}
+
+//---
+
+CQChartsSymbolsList::
+CQChartsSymbolsList(CQChartsViewSettings *viewSettings) :
+ viewSettings_(viewSettings)
+{
+  setObjectName("symbolsList");
+
+  setToolTip("Symbols");
+
+  delegate_ = new CQChartsSymbolsItemDelegate(this);
+
+  setItemDelegate(delegate_);
+
+  //---
+
+//addItems(CQChartsSymbol::typeNames());
+}
+
+void
+CQChartsSymbolsList::
+setName(const QString &name, int ind)
+{
+  name_ = name;
+  ind_  = ind;
+
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return;
+
+  //---
+
+  auto createItem = [&](const CQChartsSymbol &symbol, int i) {
+    auto name = symbol.toString();
+
+    auto *item = new QListWidgetItem(name);
+
+    item->setToolTip(name);
+
+    item->setData(Qt::UserRole, i);
+
+    addItem(item);
+
+    return item;
+  };
+
+  //---
+
+  clear();
+
+  int n = symbolSet->numSymbols();
+
+  for (int i = 0; i < n; ++i) {
+    auto symbol = symbolSet->symbol(i);
+
+    createItem(symbol, i);
+  }
+}
+
+CQChartsSymbol
+CQChartsSymbolsList::
+symbol(int ind) const
+{
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return CQChartsSymbol();
+
+  return symbolSet->symbol(ind);
+}
+
+bool
+CQChartsSymbolsList::
+isFilledSymbol(int ind) const
+{
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return false;
+
+  return symbolSet->isFilled(ind);
+}
+
+CQChartsSymbolSet *
+CQChartsSymbolsList::
+symbolSet() const
+{
+  auto *view         = viewSettings_->window()->view();
+  auto *charts       = view->charts();
+  auto *symbolSetMgr = charts->symbolSetMgr();
+
+  return symbolSetMgr->symbolSet(name_);
 }

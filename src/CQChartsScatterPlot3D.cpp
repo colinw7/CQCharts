@@ -150,7 +150,7 @@ init()
 
   //---
 
-  setSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE));
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -783,7 +783,7 @@ addPointObjects() const
         //---
 
         // set optional symbol type
-        CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
+        CQChartsSymbol symbolType;
 
         if (symbolType.isValid())
           pointObj->setSymbolType(symbolType);

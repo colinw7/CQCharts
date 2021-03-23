@@ -165,7 +165,7 @@ init()
 
   //---
 
-  setSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE));
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -1245,12 +1245,12 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional symbol type
-        CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
+        CQChartsSymbol symbolType;
         OptBool        symbolFilled;
 
         if (symbolTypeColumn().isValid()) {
           if (! columnSymbolType(valuePoint.row, valuePoint.ind.parent(), symbolType, symbolFilled))
-            symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
+            symbolType = CQChartsSymbol();
         }
 
         if (symbolType.isValid()) {

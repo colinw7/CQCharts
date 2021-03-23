@@ -917,7 +917,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
     CQChartsSymbolSet::SymbolData symbolData;
 
     if (symbolSet)
-      symbolData = symbolSet->symbol(i);
+      symbolData = symbolSet->symbolData(i);
     else
       symbolData.symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
 

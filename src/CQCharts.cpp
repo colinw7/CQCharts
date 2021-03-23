@@ -399,7 +399,7 @@ CQCharts()
 
   //---
 
-  interfaceTheme_ = new CQChartsInterfaceTheme;
+  interfaceTheme_ = std::make_unique<CQChartsInterfaceTheme>();
 
   interfaceTheme()->setDark(false);
 
@@ -427,84 +427,77 @@ CQCharts()
 CQCharts::
 ~CQCharts()
 {
-  delete interfaceTheme_;
-
   for (auto &modelData : modelDatas_)
     delete modelData;
-
-  delete plotTypeMgr_;
-  delete columnTypeMgr_;
-
-  delete symbolSetMgr_;
 }
 
 void
 CQCharts::
 init()
 {
-  plotTypeMgr_   = new CQChartsPlotTypeMgr;
-  columnTypeMgr_ = new CQChartsColumnTypeMgr(this);
-  symbolSetMgr_  = new CQChartsSymbolSetMgr(this);
+  plotTypeMgr_   = std::make_unique<CQChartsPlotTypeMgr>();
+  columnTypeMgr_ = std::make_unique<CQChartsColumnTypeMgr>(this);
+  symbolSetMgr_  = std::make_unique<CQChartsSymbolSetMgr>(this);
 
   //---
 
   // add plot types
-  plotTypeMgr_->addType("adjacency"    , new CQChartsAdjacencyPlotType    );
-  plotTypeMgr_->addType("barchart"     , new CQChartsBarChartPlotType     );
-  plotTypeMgr_->addType("box"          , new CQChartsBoxPlotType          );
-  plotTypeMgr_->addType("bubble"       , new CQChartsBubblePlotType       );
-  plotTypeMgr_->addType("chord"        , new CQChartsChordPlotType        );
-  plotTypeMgr_->addType("composite"    , new CQChartsCompositePlotType    );
-  plotTypeMgr_->addType("contour"      , new CQChartsContourPlotType      );
-  plotTypeMgr_->addType("correlation"  , new CQChartsCorrelationPlotType  );
-  plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
-  plotTypeMgr_->addType("dendrogram"   , new CQChartsDendrogramPlotType   );
-  plotTypeMgr_->addType("distribution" , new CQChartsDistributionPlotType );
-  plotTypeMgr_->addType("empty"        , new CQChartsEmptyPlotType        );
-  plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
-  plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
-  plotTypeMgr_->addType("graph"        , new CQChartsGraphPlotType        );
-  plotTypeMgr_->addType("grid"         , new CQChartsGridPlotType         );
-  plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
-  plotTypeMgr_->addType("hierscatter"  , new CQChartsHierScatterPlotType  );
-  plotTypeMgr_->addType("image"        , new CQChartsImagePlotType        );
-  plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
-  plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );
-  plotTypeMgr_->addType("pivot"        , new CQChartsPivotPlotType        );
-  plotTypeMgr_->addType("radar"        , new CQChartsRadarPlotType        );
-  plotTypeMgr_->addType("sankey"       , new CQChartsSankeyPlotType       );
-  plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
-  plotTypeMgr_->addType("scatter3d"    , new CQChartsScatterPlot3DType    );
-  plotTypeMgr_->addType("strip"        , new CQChartsStripPlotType        );
-  plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
-  plotTypeMgr_->addType("table"        , new CQChartsTablePlotType        );
-  plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
-  plotTypeMgr_->addType("wheel"        , new CQChartsWheelPlotType        );
-  plotTypeMgr_->addType("wordCloud"    , new CQChartsWordCloudPlotType    );
-  plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
+  plotTypeMgr()->addType("adjacency"    , new CQChartsAdjacencyPlotType    );
+  plotTypeMgr()->addType("barchart"     , new CQChartsBarChartPlotType     );
+  plotTypeMgr()->addType("box"          , new CQChartsBoxPlotType          );
+  plotTypeMgr()->addType("bubble"       , new CQChartsBubblePlotType       );
+  plotTypeMgr()->addType("chord"        , new CQChartsChordPlotType        );
+  plotTypeMgr()->addType("composite"    , new CQChartsCompositePlotType    );
+  plotTypeMgr()->addType("contour"      , new CQChartsContourPlotType      );
+  plotTypeMgr()->addType("correlation"  , new CQChartsCorrelationPlotType  );
+  plotTypeMgr()->addType("delaunay"     , new CQChartsDelaunayPlotType     );
+  plotTypeMgr()->addType("dendrogram"   , new CQChartsDendrogramPlotType   );
+  plotTypeMgr()->addType("distribution" , new CQChartsDistributionPlotType );
+  plotTypeMgr()->addType("empty"        , new CQChartsEmptyPlotType        );
+  plotTypeMgr()->addType("forcedirected", new CQChartsForceDirectedPlotType);
+  plotTypeMgr()->addType("geometry"     , new CQChartsGeometryPlotType     );
+  plotTypeMgr()->addType("graph"        , new CQChartsGraphPlotType        );
+  plotTypeMgr()->addType("grid"         , new CQChartsGridPlotType         );
+  plotTypeMgr()->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
+  plotTypeMgr()->addType("hierscatter"  , new CQChartsHierScatterPlotType  );
+  plotTypeMgr()->addType("image"        , new CQChartsImagePlotType        );
+  plotTypeMgr()->addType("parallel"     , new CQChartsParallelPlotType     );
+  plotTypeMgr()->addType("pie"          , new CQChartsPiePlotType          );
+  plotTypeMgr()->addType("pivot"        , new CQChartsPivotPlotType        );
+  plotTypeMgr()->addType("radar"        , new CQChartsRadarPlotType        );
+  plotTypeMgr()->addType("sankey"       , new CQChartsSankeyPlotType       );
+  plotTypeMgr()->addType("scatter"      , new CQChartsScatterPlotType      );
+  plotTypeMgr()->addType("scatter3d"    , new CQChartsScatterPlot3DType    );
+  plotTypeMgr()->addType("strip"        , new CQChartsStripPlotType        );
+  plotTypeMgr()->addType("sunburst"     , new CQChartsSunburstPlotType     );
+  plotTypeMgr()->addType("table"        , new CQChartsTablePlotType        );
+  plotTypeMgr()->addType("treemap"      , new CQChartsTreeMapPlotType      );
+  plotTypeMgr()->addType("wheel"        , new CQChartsWheelPlotType        );
+  plotTypeMgr()->addType("wordCloud"    , new CQChartsWordCloudPlotType    );
+  plotTypeMgr()->addType("xy"           , new CQChartsXYPlotType           );
 
   //---
 
   // add column types
-  columnTypeMgr_->addType(CQBaseModelType::STRING         , new CQChartsColumnStringType        );
-  columnTypeMgr_->addType(CQBaseModelType::INTEGER        , new CQChartsColumnIntegerType       );
-  columnTypeMgr_->addType(CQBaseModelType::REAL           , new CQChartsColumnRealType          );
-  columnTypeMgr_->addType(CQBaseModelType::BOOLEAN        , new CQChartsColumnBooleanType       );
-  columnTypeMgr_->addType(CQBaseModelType::TIME           , new CQChartsColumnTimeType          );
-  columnTypeMgr_->addType(CQBaseModelType::COLOR          , new CQChartsColumnColorType         );
-  columnTypeMgr_->addType(CQBaseModelType::FONT           , new CQChartsColumnFontType          );
-  columnTypeMgr_->addType(CQBaseModelType::RECT           , new CQChartsColumnRectType          );
-  columnTypeMgr_->addType(CQBaseModelType::LENGTH         , new CQChartsColumnLengthType        );
-  columnTypeMgr_->addType(CQBaseModelType::POLYGON        , new CQChartsColumnPolygonType       );
-  columnTypeMgr_->addType(CQBaseModelType::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
-  columnTypeMgr_->addType(CQBaseModelType::IMAGE          , new CQChartsColumnImageType         );
-  columnTypeMgr_->addType(CQBaseModelType::SYMBOL         , new CQChartsColumnSymbolTypeType    );
-  columnTypeMgr_->addType(CQBaseModelType::SYMBOL_SIZE    , new CQChartsColumnSymbolSizeType    );
-  columnTypeMgr_->addType(CQBaseModelType::FONT_SIZE      , new CQChartsColumnFontSizeType      );
-  columnTypeMgr_->addType(CQBaseModelType::PATH           , new CQChartsColumnPathType          );
-  columnTypeMgr_->addType(CQBaseModelType::STYLE          , new CQChartsColumnStyleType         );
-  columnTypeMgr_->addType(CQBaseModelType::NAME_PAIR      , new CQChartsColumnNamePairType      );
-  columnTypeMgr_->addType(CQBaseModelType::CONNECTION_LIST, new CQChartsColumnConnectionListType);
+  columnTypeMgr()->addType(CQBaseModelType::STRING         , new CQChartsColumnStringType        );
+  columnTypeMgr()->addType(CQBaseModelType::INTEGER        , new CQChartsColumnIntegerType       );
+  columnTypeMgr()->addType(CQBaseModelType::REAL           , new CQChartsColumnRealType          );
+  columnTypeMgr()->addType(CQBaseModelType::BOOLEAN        , new CQChartsColumnBooleanType       );
+  columnTypeMgr()->addType(CQBaseModelType::TIME           , new CQChartsColumnTimeType          );
+  columnTypeMgr()->addType(CQBaseModelType::COLOR          , new CQChartsColumnColorType         );
+  columnTypeMgr()->addType(CQBaseModelType::FONT           , new CQChartsColumnFontType          );
+  columnTypeMgr()->addType(CQBaseModelType::RECT           , new CQChartsColumnRectType          );
+  columnTypeMgr()->addType(CQBaseModelType::LENGTH         , new CQChartsColumnLengthType        );
+  columnTypeMgr()->addType(CQBaseModelType::POLYGON        , new CQChartsColumnPolygonType       );
+  columnTypeMgr()->addType(CQBaseModelType::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
+  columnTypeMgr()->addType(CQBaseModelType::IMAGE          , new CQChartsColumnImageType         );
+  columnTypeMgr()->addType(CQBaseModelType::SYMBOL         , new CQChartsColumnSymbolTypeType    );
+  columnTypeMgr()->addType(CQBaseModelType::SYMBOL_SIZE    , new CQChartsColumnSymbolSizeType    );
+  columnTypeMgr()->addType(CQBaseModelType::FONT_SIZE      , new CQChartsColumnFontSizeType      );
+  columnTypeMgr()->addType(CQBaseModelType::PATH           , new CQChartsColumnPathType          );
+  columnTypeMgr()->addType(CQBaseModelType::STYLE          , new CQChartsColumnStyleType         );
+  columnTypeMgr()->addType(CQBaseModelType::NAME_PAIR      , new CQChartsColumnNamePairType      );
+  columnTypeMgr()->addType(CQBaseModelType::CONNECTION_LIST, new CQChartsColumnConnectionListType);
 
   //---
 
@@ -646,63 +639,78 @@ init()
   //---
 
   // add symbol sets
-  auto *allSymbolSet = new CQChartsSymbolSet("all");
+  auto *allSymbolSet = createSymbolSet("all");
 
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::DOT      , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::CROSS    , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::PLUS     , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::Y        , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::HLINE    , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::VLINE    , false);
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , true );
-  allSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), false);
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), true );
+  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), true );
 
-  auto *outlineSymbolSet = new CQChartsSymbolSet("outline");
+  auto *outlineSymbolSet = createSymbolSet("outline");
 
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::CROSS    , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::PLUS     , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::Y        , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), false);
 
-  auto *filledSymbolSet = new CQChartsSymbolSet("filled");
+  auto *filledSymbolSet = createSymbolSet("filled");
 
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::TRIANGLE , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::ITRIANGLE, true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::BOX      , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::DIAMOND  , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::STAR5    , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::STAR6    , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::CIRCLE   , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::PENTAGON , true);
-  filledSymbolSet->addSymbol(CQChartsSymbol::Type::IPENTAGON, true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), true);
 
-  symbolSetMgr_->addSymbolSet(allSymbolSet);
-  symbolSetMgr_->addSymbolSet(outlineSymbolSet);
-  symbolSetMgr_->addSymbolSet(filledSymbolSet);
+  //auto *charSymbolSet = createSymbolSet("char");
+
+  //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u2639", "white frown")));
+  //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u263a", "white smile")));
+  //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u263b", "black smile")));
 }
 
 //---
@@ -720,28 +728,28 @@ bool
 CQCharts::
 isPlotType(const QString &name) const
 {
-  return plotTypeMgr_->isType(name);
+  return plotTypeMgr()->isType(name);
 }
 
 CQChartsPlotType *
 CQCharts::
 plotType(const QString &name) const
 {
-  return plotTypeMgr_->type(name);
+  return plotTypeMgr()->type(name);
 }
 
 void
 CQCharts::
 getPlotTypes(PlotTypes &types) const
 {
-  plotTypeMgr_->getTypes(types);
+  plotTypeMgr()->getTypes(types);
 }
 
 void
 CQCharts::
 getPlotTypeNames(QStringList &names, QStringList &descs) const
 {
-  plotTypeMgr_->getTypeNames(names, descs);
+  plotTypeMgr()->getTypeNames(names, descs);
 }
 
 //---
@@ -1573,6 +1581,26 @@ CQCharts::
 getItemIsHidden(const CQPropertyViewItem *item)
 {
   return item->property("hidden_prop").isValid();
+}
+
+//---
+
+bool
+CQCharts::
+hasSymbolSet(const QString &name) const
+{
+  return symbolSetMgr()->hasSymbolSet(name);
+}
+
+CQChartsSymbolSet *
+CQCharts::
+createSymbolSet(const QString &name)
+{
+  auto *symbolSet = new CQChartsSymbolSet(name);
+
+  symbolSetMgr()->addSymbolSet(symbolSet);
+
+  return symbolSet;
 }
 
 //---

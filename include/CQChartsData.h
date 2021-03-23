@@ -6,7 +6,7 @@
 #include <CQChartsFont.h>
 #include <CQChartsMargin.h>
 #include <CQChartsPosition.h>
-#include <CQChartsPlotSymbol.h>
+#include <CQChartsSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsLineCap.h>
 #include <CQChartsLineJoin.h>

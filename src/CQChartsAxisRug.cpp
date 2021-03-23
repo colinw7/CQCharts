@@ -8,9 +8,9 @@ CQChartsAxisRug(CQChartsPlot *plot, const Qt::Orientation &direction) :
  plot_(plot), direction_(direction)
 {
   if (direction == Qt::Horizontal)
-    setSymbolType(CQChartsSymbol::Type::VLINE);
+    setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::VLINE));
   else
-    setSymbolType(CQChartsSymbol::Type::HLINE);
+    setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::HLINE));
 
   setSymbolSize(CQChartsLength("5px"));
 }
@@ -115,8 +115,8 @@ draw(CQChartsPaintDevice *device, double delta)
   auto symbolSize  = this->symbolSize();
   auto symbolAlpha = this->symbolStrokeAlpha();
 
-  if (symbolType == CQChartsSymbol::Type::NONE)
-    symbolType = (direction() == Qt::Horizontal ?
+  if (! symbolType.isValid())
+    symbolType = CQChartsSymbol(direction() == Qt::Horizontal ?
       CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;

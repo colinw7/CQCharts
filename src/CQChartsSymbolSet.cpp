@@ -24,6 +24,13 @@ numSymbolSets() const
   return symbolSets_.size();
 }
 
+bool
+CQChartsSymbolSetMgr::
+hasSymbolSet(const QString &name) const
+{
+  return symbolSet(name);
+}
+
 CQChartsSymbolSet *
 CQChartsSymbolSetMgr::
 symbolSet(const QString &name) const
@@ -43,6 +50,18 @@ symbolSet(int i) const
   return symbolSets_[i];
 }
 
+QStringList
+CQChartsSymbolSetMgr::
+symbolSetNames() const
+{
+  QStringList names;
+
+  for (const auto &symbolSet : symbolSets_)
+    names.push_back(symbolSet->name());
+
+  return names;
+}
+
 //---
 
 CQChartsSymbolSet::
@@ -55,6 +74,8 @@ void
 CQChartsSymbolSet::
 addSymbol(const CQChartsSymbol &symbol, bool filled)
 {
+  assert(symbol.isValid());
+
   symbols_.push_back(SymbolData(symbol, filled));
 }
 
@@ -67,7 +88,7 @@ numSymbols() const
 
 const CQChartsSymbolSet::SymbolData &
 CQChartsSymbolSet::
-symbol(int i) const
+symbolData(int i) const
 {
   assert(i >= 0 && i < numSymbols());
 
@@ -90,5 +111,37 @@ interpI(int i) const
     i1 = (i % numSymbols());
   }
 
-  return symbol(i1);
+  return symbolData(i1);
+}
+
+CQChartsSymbol
+CQChartsSymbolSet::
+symbol(int i) const
+{
+  if (i < 0 || i >= numSymbols())
+    return CQChartsSymbol();
+
+  return symbols_[i].symbol;
+}
+
+bool
+CQChartsSymbolSet::
+isFilled(int i) const
+{
+  if (i < 0 || i >= numSymbols())
+    return false;
+
+  return symbols_[i].filled;
+}
+
+QStringList
+CQChartsSymbolSet::
+symbolNames() const
+{
+  QStringList names;
+
+  for (const auto &symbolData : symbols_)
+    names.push_back(symbolData.symbol.toString());
+
+  return names;
 }

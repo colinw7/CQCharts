@@ -106,7 +106,7 @@ init()
   //---
 
   setSymbolSize(Length("4px"));
-  setSymbolType(Symbol::Type::CIRCLE);
+  setSymbolType(Symbol(Symbol::Type::CIRCLE));
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));

@@ -25,6 +25,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
+#include <CQChartsSymbolSet.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -99,6 +100,7 @@ addCommands()
     // load, process, sort, fold, filter, flatten, copy, export, write model
     addCommand("load_charts_model"   , new CQChartsLoadChartsModelCmd   (this));
     addCommand("process_charts_model", new CQChartsProcessChartsModelCmd(this));
+
     addCommand("sort_charts_model"   , new CQChartsSortChartsModelCmd   (this));
     addCommand("fold_charts_model"   , new CQChartsFoldChartsModelCmd   (this));
     addCommand("filter_charts_model" , new CQChartsFilterChartsModelCmd (this));
@@ -108,6 +110,7 @@ addCommands()
     addCommand("group_charts_model"  , new CQChartsGroupChartsModelCmd  (this));
     addCommand("export_charts_model" , new CQChartsExportChartsModelCmd (this));
     addCommand("write_charts_model"  , new CQChartsWriteChartsModelCmd  (this));
+
     addCommand("remove_charts_model" , new CQChartsRemoveChartsModelCmd (this));
 
     // define charts tcl proc
@@ -134,10 +137,6 @@ addCommands()
                new CQChartsCreateChartsStatsModelCmd      (this));
     addCommand("create_charts_data_model"       ,
                new CQChartsCreateChartsDataModelCmd       (this));
-
-    // measure/encode text
-    addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
-    addCommand("encode_charts_text" , new CQChartsEncodeChartsTextCmd (this));
 
     // add/remove view
     addCommand("create_charts_view", new CQChartsCreateChartsViewCmd(this));
@@ -209,12 +208,18 @@ addCommands()
     addCommand("get_charts_palette"   , new CQChartsGetChartsPaletteCmd   (this));
     addCommand("set_charts_palette"   , new CQChartsSetChartsPaletteCmd   (this));
 
+    addCommand("create_charts_symbol_set", new CQChartsCreateChartsSymbolSetCmd(this));
+    addCommand("add_charts_symbol"       , new CQChartsAddChartsSymbolCmd      (this));
     // connect
     addCommand("connect_charts_signal", new CQChartsConnectChartsSignalCmd(this));
 
     // print, write
     addCommand("print_charts_image", new CQChartsPrintChartsImageCmd(this));
     addCommand("write_charts_data" , new CQChartsWriteChartsDataCmd(this));
+
+    // measure/encode text
+    addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
+    addCommand("encode_charts_text" , new CQChartsEncodeChartsTextCmd (this));
 
     // dialogs
     addCommand("show_charts_load_model_dlg"   , new CQChartsShowChartsLoadModelDlgCmd(this));
@@ -2806,6 +2811,126 @@ execCmd(CQChartsCmdArgs &argv)
       window->updateThemePalettes();
   }
 #endif
+
+  return true;
+}
+
+//------
+
+void
+CQChartsCreateChartsSymbolSetCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-name", ArgType::String , "symbol set name").setRequired();
+}
+
+QStringList
+CQChartsCreateChartsSymbolSetCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsSymbolSetCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsSymbolSetCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto nameStr = argv.getParseStr("name");
+
+  if (charts()->hasSymbolSet(nameStr))
+    return errorMsg(QString("Symbol Set '%1' already exists").arg(nameStr));
+
+  (void) charts()->createSymbolSet(nameStr);
+
+  return true;
+}
+
+//------
+
+void
+CQChartsAddChartsSymbolCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-set", ArgType::String, "symbol set name").setRequired();
+
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-symbol", ArgType::String , "symbol name");
+  addArg(argv, "-char"  , ArgType::String , "char string");
+  argv.endCmdGroup();
+
+  addArg(argv, "-name", ArgType::String, "optional char name");
+}
+
+QStringList
+CQChartsAddChartsSymbolCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsAddChartsSymbolCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsAddChartsSymbolCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto setStr = argv.getParseStr("set");
+
+  auto *symbolSet = charts()->symbolSetMgr()->symbolSet(setStr);
+
+  if (! symbolSet)
+    return errorMsg(QString("No Symbol Set '%1'").arg(setStr));
+
+  //---
+
+  if (argv.hasParseArg("symbol")) {
+    auto symbolStr = argv.getParseStr("symbol");
+
+    if (CQChartsSymbol::nameToType(symbolStr) == CQChartsSymbol::Type::NONE)
+      return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
+
+    symbolSet->addSymbol(CQChartsSymbol(symbolStr));
+  }
+  else {
+    auto charStr = argv.getParseStr("char");
+    auto nameStr = argv.getParseStr("name");
+
+    symbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr)));
+  }
 
   return true;
 }
@@ -8195,7 +8320,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (type == CQChartsSymbol::Type::NONE)
       return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
 
-    symbolData.setType(type);
+    symbolData.setType(CQChartsSymbol(type));
   }
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));

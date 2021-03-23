@@ -30,7 +30,22 @@ class CQChartsSymbol :
     PENTAGON,
     IPENTAGON,
     HLINE,
-    VLINE
+    VLINE,
+    PAW,
+    Z,
+    HASH,
+    CHAR
+  };
+
+  struct CharData {
+    CharData() = default;
+
+    explicit CharData(const QString &c, const QString &name="") :
+     c(c), name(name) {
+    }
+
+    QString c;    //!< unicode character
+    QString name; //!< display name
   };
 
  public:
@@ -66,7 +81,7 @@ class CQChartsSymbol :
 
     assert(i1 >= minOutlineValue() && i1 <= maxOutlineValue());
 
-    return (CQChartsSymbol::Type) i1;
+    return CQChartsSymbol((CQChartsSymbol::Type) i1);
   }
 
   static int minFillValue() { return (int) Type::TRIANGLE; }
@@ -81,13 +96,24 @@ class CQChartsSymbol :
 
  public:
   CQChartsSymbol() = default;
-  CQChartsSymbol(Type type) : type_(type) { }
-  CQChartsSymbol(const QString &s);
+
+  explicit CQChartsSymbol(Type type) : type_(type) { }
+
+  explicit CQChartsSymbol(const CharData &charData) : type_(Type::CHAR), charData_(charData) { }
+
+  explicit CQChartsSymbol(const QString &s);
+
+  //---
 
   bool isValid() const { return type_ != Type::NONE; }
 
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }
+
+  //---
+
+  const QString &charStr () { assert(type_ == Type::CHAR); return charData_.c; }
+  const QString &charName() { assert(type_ == Type::CHAR); return charData_.name; }
 
   //---
 
@@ -102,7 +128,8 @@ class CQChartsSymbol :
   }
 
  private:
-  Type type_ { Type::CIRCLE };
+  Type     type_    { Type::NONE };
+  CharData charData_;
 };
 
 //---

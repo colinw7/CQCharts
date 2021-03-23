@@ -209,10 +209,9 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
 
 //---
 
+// model
 CQCHARTS_DEF_CMD(LoadChartsModel)
 CQCHARTS_DEF_CMD(ProcessChartsModel)
-
-CQCHARTS_DEF_CMD(DefineChartsProc)
 
 CQCHARTS_DEF_CMD(SortChartsModel)
 CQCHARTS_DEF_CMD(FoldChartsModel)
@@ -221,12 +220,17 @@ CQCHARTS_DEF_CMD(FlattenChartsModel)
 CQCHARTS_DEF_CMD(CopyChartsModel)
 CQCHARTS_DEF_CMD(JoinChartsModel)
 CQCHARTS_DEF_CMD(GroupChartsModel)
+CQCHARTS_DEF_CMD(ExportChartsModel)
 CQCHARTS_DEF_CMD(WriteChartsModel)
 
 CQCHARTS_DEF_CMD(RemoveChartsModel)
 
-//---
+// model proc
+CQCHARTS_DEF_CMD(DefineChartsProc)
 
+//--
+
+// derived model
 CQCHARTS_DEF_CMD(CreateChartsCorrelationModel)
 CQCHARTS_DEF_CMD(CreateChartsFoldedModel)
 CQCHARTS_DEF_CMD(CreateChartsBucketModel)
@@ -240,34 +244,31 @@ CQCHARTS_DEF_CMD(CreateChartsDataModel)
 
 //---
 
-CQCHARTS_DEF_CMD(ExportChartsModel)
+// view
+CQCHARTS_DEF_CMD(CreateChartsView)
+CQCHARTS_DEF_CMD(RemoveChartsView)
 
 //---
+
+// plot
+CQCHARTS_DEF_CMD(CreateChartsPlot)
+CQCHARTS_DEF_CMD(RemoveChartsPlot)
 
 CQCHARTS_DEF_CMD(GroupChartsPlots)
 CQCHARTS_DEF_CMD(PlaceChartsPlots)
 
-CQCHARTS_DEF_CMD(MeasureChartsText)
-CQCHARTS_DEF_CMD(EncodeChartsText)
+//---
 
-CQCHARTS_DEF_CMD(CreateChartsView)
-CQCHARTS_DEF_CMD(RemoveChartsView)
-
-CQCHARTS_DEF_CMD(CreateChartsPlot)
-CQCHARTS_DEF_CMD(RemoveChartsPlot)
-
+// properties and data
 CQCHARTS_DEF_CMD(GetChartsProperty)
 CQCHARTS_DEF_CMD(SetChartsProperty)
 
 CQCHARTS_DEF_CMD(GetChartsData)
 CQCHARTS_DEF_CMD(SetChartsData)
 
-CQCHARTS_DEF_CMD(CreateChartsPalette)
-CQCHARTS_DEF_CMD(GetChartsPalette)
-CQCHARTS_DEF_CMD(SetChartsPalette)
-
 //---
 
+// annotation
 CQCHARTS_DEF_CMD(CreateChartsAnnotationGroup)
 CQCHARTS_DEF_CMD(CreateChartsArcAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation)
@@ -291,29 +292,57 @@ CQCHARTS_DEF_CMD(RemoveChartsAnnotation)
 
 //---
 
+// key
 CQCHARTS_DEF_CMD(AddChartsKeyItem)
 
 //---
 
+// palette
+CQCHARTS_DEF_CMD(CreateChartsPalette)
+CQCHARTS_DEF_CMD(GetChartsPalette)
+CQCHARTS_DEF_CMD(SetChartsPalette)
+
+//---
+
+// symbol
+CQCHARTS_DEF_CMD(CreateChartsSymbolSet)
+CQCHARTS_DEF_CMD(AddChartsSymbol)
+
+//---
+
+// connections
 CQCHARTS_DEF_CMD(ConnectChartsSignal)
 
 //---
 
+// export
 CQCHARTS_DEF_CMD(PrintChartsImage)
 CQCHARTS_DEF_CMD(WriteChartsData)
 
 //---
 
+// misc
+CQCHARTS_DEF_CMD(MeasureChartsText)
+CQCHARTS_DEF_CMD(EncodeChartsText)
+
+//---
+
+// dialogs
 CQCHARTS_DEF_CMD(ShowChartsLoadModelDlg)
 CQCHARTS_DEF_CMD(ShowChartsManageModelsDlg)
 CQCHARTS_DEF_CMD(ShowChartsCreatePlotDlg)
 CQCHARTS_DEF_CMD(ShowChartsTextDlg)
 CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
+
 //---
 
+// test
 CQCHARTS_DEF_CMD(TestEdit)
 
+//---
+
+// data frame
 #ifdef CQCHARTS_DATA_FRAME
 CQCHARTS_DEF_CMD(DataFrame)
 #endif
