@@ -619,7 +619,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
                                const ColorInd &iv, const QModelIndex &ind) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
   struct DotLineData {

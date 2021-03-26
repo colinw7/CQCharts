@@ -159,11 +159,11 @@ updatePlots()
         continue;
 
       if (plot->xAxis())
-        plot->xAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
-                                        CQChartsAxisSide::Type::TOP_RIGHT);
+        plot->xAxis()->setSide(CQChartsAxisSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                                         CQChartsAxisSide::Type::TOP_RIGHT));
 
       if (plot->yAxis())
-        plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
 
       ++i;
     }
@@ -177,11 +177,11 @@ updatePlots()
         continue;
 
       if (plot->xAxis())
-        plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
 
       if (plot->yAxis())
-        plot->yAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
-                                        CQChartsAxisSide::Type::TOP_RIGHT);
+        plot->yAxis()->setSide(CQChartsAxisSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                                         CQChartsAxisSide::Type::TOP_RIGHT));
 
       ++i;
     }
@@ -195,12 +195,12 @@ updatePlots()
         continue;
 
       if (plot->xAxis())
-        plot->xAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
-                                        CQChartsAxisSide::Type::TOP_RIGHT);
+        plot->xAxis()->setSide(CQChartsAxisSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                                         CQChartsAxisSide::Type::TOP_RIGHT));
 
       if (plot->yAxis())
-        plot->yAxis()->setSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
-                                        CQChartsAxisSide::Type::TOP_RIGHT);
+        plot->yAxis()->setSide(CQChartsAxisSide(i == 0 ? CQChartsAxisSide::Type::BOTTOM_LEFT :
+                                                         CQChartsAxisSide::Type::TOP_RIGHT));
 
       ++i;
     }
@@ -209,10 +209,10 @@ updatePlots()
   else if (compositeType_ == CompositeType::TABBED) {
     for (auto &plot : plots_) {
       if (plot->xAxis())
-        plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
 
       if (plot->yAxis())
-        plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
     }
   }
 }
@@ -1901,10 +1901,10 @@ windowToViewI(double wx, double wy, double &vx, double &vy) const
 
 CQChartsPlotCustomControls *
 CQChartsCompositePlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
   if (currentPlot())
-    return currentPlot()->createCustomControls(charts);
+    return currentPlot()->createCustomControls();
 
   return nullptr;
 }

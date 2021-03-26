@@ -503,7 +503,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
                                  int to, const OptReal &value) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using ArcObjs  = std::vector<ArcObj *>;

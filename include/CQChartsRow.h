@@ -7,7 +7,7 @@
  */
 class CQChartsRow {
  public:
-  CQChartsRow(int row=-1) :
+  explicit CQChartsRow(int row=-1) :
    row_(row) {
   }
 

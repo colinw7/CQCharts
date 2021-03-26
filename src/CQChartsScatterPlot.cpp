@@ -192,7 +192,7 @@ init()
     auto *density = new AxisDensity(this, orient);
 
     density->setVisible(false);
-    density->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+    density->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
 
     return density;
   };
@@ -206,7 +206,7 @@ init()
     auto *whisker = new AxisBoxWhisker(this, orient);
 
     whisker->setVisible(false);
-    whisker->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+    whisker->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
 
     return whisker;
   };
@@ -943,8 +943,8 @@ initAxes()
 
   //---
 
-  auto xType = xAxis()->valueType();
-  auto yType = yAxis()->valueType();
+  auto xType = xAxis()->valueType().type();
+  auto yType = yAxis()->valueType().type();
 
   if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
     xType = CQChartsAxisValueType::Type::REAL;
@@ -957,16 +957,18 @@ initAxes()
   if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
   if (isUniqueY()) yType = CQChartsAxisValueType::Type::INTEGER;
 
-  xAxis()->setValueType(xType, /*notify*/false);
-  yAxis()->setValueType(yType, /*notify*/false);
+  xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
+  yAxis()->setValueType(CQChartsAxisValueType(yType), /*notify*/false);
 
   //---
 
   if (xColumnType_ == ColumnType::TIME)
-    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
+                          /*notify*/false);
 
   if (yColumnType_ == ColumnType::TIME)
-    yAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+    yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
+                          /*notify*/false);
 
   //---
 
@@ -3193,9 +3195,9 @@ drawDataLabelDatas(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsScatterPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsScatterPlotCustomControls(charts);
+  auto *controls = new CQChartsScatterPlotCustomControls(charts());
 
   controls->setPlot(this);
 

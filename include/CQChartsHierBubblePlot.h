@@ -583,7 +583,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   void updateCurrentRoot();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   struct PlaceData {

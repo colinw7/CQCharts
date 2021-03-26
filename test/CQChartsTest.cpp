@@ -1020,10 +1020,10 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
     plot->setLogY(true);
 
   if (initData.xintegral)
-    plot->xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+    plot->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
 
   if (initData.yintegral)
-    plot->yAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+    plot->yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
 
   if (initData.xmin) plot->setXMin(initData.xmin);
   if (initData.ymin) plot->setYMin(initData.ymin);

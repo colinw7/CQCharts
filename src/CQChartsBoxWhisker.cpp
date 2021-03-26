@@ -269,7 +269,7 @@ calcDeltaBBox(double delta) const
 
     double s = ww + 2*wm;
 
-    if (side() == Side::Type::BOTTOM_LEFT) {
+    if (side().type() == Side::Type::BOTTOM_LEFT) {
       p1 = Point(dataRange.xmin(), dataRange.ymin() - delta - s);
       p2 = Point(dataRange.xmax(), dataRange.ymin() - delta);
     }
@@ -284,7 +284,7 @@ calcDeltaBBox(double delta) const
 
     double s = ww + 2*wm;
 
-    if (side() == Side::Type::BOTTOM_LEFT) {
+    if (side().type() == Side::Type::BOTTOM_LEFT) {
       p1 = Point(dataRange.xmin() - delta - s, dataRange.ymin());
       p2 = Point(dataRange.xmin() - delta    , dataRange.ymax());
     }
@@ -354,7 +354,7 @@ draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
     double ww = plot()->lengthPlotHeight(width ());
     double wm = plot()->lengthPlotHeight(margin());
 
-    double pos = (side() == Side::Type::BOTTOM_LEFT ?
+    double pos = (side().type() == Side::Type::BOTTOM_LEFT ?
       dataRange.ymin() - delta - (ind + 1)*ww - wm :
       dataRange.ymax() + delta +  ind     *ww + wm);
 
@@ -364,7 +364,7 @@ draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
     double ww = plot()->lengthPlotWidth(width ());
     double wm = plot()->lengthPlotWidth(margin());
 
-    double pos = (side() == Side::Type::BOTTOM_LEFT ?
+    double pos = (side().type() == Side::Type::BOTTOM_LEFT ?
       dataRange.xmin() - delta - (ind + 1)*ww - wm :
       dataRange.xmax() + delta +  ind     *ww + wm);
 
@@ -463,7 +463,7 @@ calcDeltaBBox(double delta) const
   if (direction() == Qt::Horizontal) {
     double dh = plot()->lengthPlotHeight(width());
 
-    if (side() == Side::Type::BOTTOM_LEFT ) {
+    if (side().type() == Side::Type::BOTTOM_LEFT) {
       p1 = Point(dataRange.xmin(), dataRange.ymin() - delta - dh);
       p2 = Point(dataRange.xmax(), dataRange.ymin() - delta);
     }
@@ -475,7 +475,7 @@ calcDeltaBBox(double delta) const
   else {
     double dw = plot()->lengthPlotWidth(width());
 
-    if (side() == Side::Type::BOTTOM_LEFT ) {
+    if (side().type() == Side::Type::BOTTOM_LEFT) {
       p1 = Point(dataRange.xmin() - delta - dw, dataRange.ymin());
       p2 = Point(dataRange.xmin() - delta     , dataRange.ymax());
     }
@@ -546,16 +546,16 @@ draw(PaintDevice *device, const PenBrush &penBrush, double delta)
   if (direction() == Qt::Horizontal) {
     double dh = plot()->lengthPlotHeight(width());
 
-    double pos = (side() == Side::Type::BOTTOM_LEFT ? dataRange.ymin() - delta - dh :
-                                                      dataRange.ymax() + delta);
+    double pos = (side().type() == Side::Type::BOTTOM_LEFT ? dataRange.ymin() - delta - dh :
+                                                             dataRange.ymax() + delta);
 
     rect = BBox(xmin, pos, xmax, pos + dh);
   }
   else {
     double dw = plot()->lengthPlotWidth(width());
 
-    double pos = (side() == Side::Type::BOTTOM_LEFT ? dataRange.xmin() - delta - dw :
-                                                      dataRange.xmax() + delta);
+    double pos = (side().type() == Side::Type::BOTTOM_LEFT ? dataRange.xmin() - delta - dw :
+                                                             dataRange.xmax() + delta);
 
     rect = BBox(pos, xmin, pos + dw, xmax);
   }

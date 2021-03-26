@@ -459,9 +459,9 @@ createCellObj(const BBox &bbox, const QString &name, const QString &label,
 
 CQChartsPlotCustomControls *
 CQChartsGridPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsGridPlotCustomControls(charts);
+  auto *controls = new CQChartsGridPlotCustomControls(charts());
 
   controls->setPlot(this);
 

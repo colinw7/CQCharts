@@ -934,9 +934,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsRadarPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsRadarPlotCustomControls(charts);
+  auto *controls = new CQChartsRadarPlotCustomControls(charts());
 
   controls->setPlot(this);
 

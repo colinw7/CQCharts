@@ -26,7 +26,8 @@ class CQChartsColumnBucket {
   using Column = CQChartsColumn;
 
  public:
-  CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE);
+  explicit CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE);
+
  ~CQChartsColumnBucket();
 
   const Column &column() const { return column_; }

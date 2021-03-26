@@ -794,9 +794,9 @@ createGeometryObj(const BBox &rect, const Polygons &polygons,
 
 CQChartsPlotCustomControls *
 CQChartsGeometryPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsGeometryPlotCustomControls(charts);
+  auto *controls = new CQChartsGeometryPlotCustomControls(charts());
 
   controls->setPlot(this);
 

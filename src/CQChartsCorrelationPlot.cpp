@@ -854,9 +854,9 @@ createCellObj(const BBox &rect, int row, int col, double value, const QModelInde
 
 CQChartsPlotCustomControls *
 CQChartsCorrelationPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsCorrelationPlotCustomControls(charts);
+  auto *controls = new CQChartsCorrelationPlotCustomControls(charts());
 
   controls->setPlot(this);
 

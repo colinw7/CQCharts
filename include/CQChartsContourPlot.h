@@ -97,7 +97,7 @@ class CQChartsContourPlot : public CQChartsPlot,
   void drawContour(PaintDevice *) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   CQChartsContour *contour_          { nullptr };

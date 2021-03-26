@@ -517,7 +517,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popTopSlot();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   double    innerRadius_      { 0.5 };            //!< inner radius

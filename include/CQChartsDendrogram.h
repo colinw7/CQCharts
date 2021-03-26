@@ -145,7 +145,7 @@ class CQChartsDendrogram {
   //! Root Node
   class RootNode : public HierNode {
    public:
-    RootNode(const QString &name="");
+    explicit RootNode(const QString &name="");
 
     void setDebug(bool debug) { debug_ = debug; }
     bool debug() const { return debug_; }

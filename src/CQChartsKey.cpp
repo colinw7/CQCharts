@@ -134,7 +134,7 @@ setAbove(bool b)
 
 void
 CQChartsKey::
-setLocation(const CQChartsKeyLocation &l)
+setLocation(const Location &l)
 {
   CQChartsUtil::testAndSet(location_, l, [&]() { updatePosition(); } );
 }
@@ -240,7 +240,7 @@ void
 CQChartsViewKey::
 doLayout()
 {
-  if (location() == Location::Type::ABSOLUTE_POSITION)
+  if (location().type() == Location::Type::ABSOLUTE_POSITION)
     return;
 
   //----
@@ -612,9 +612,9 @@ selectPress(const Point &w, SelMod selMod)
     if (! prects_[i].inside(w))
       continue;
 
-    if      (pressBehavior() == KeyBehavior::Type::SHOW)
+    if      (pressBehavior().type() == KeyBehavior::Type::SHOW)
       doShow(i, selMod);
-    else if (pressBehavior() == KeyBehavior::Type::SELECT)
+    else if (pressBehavior().type() == KeyBehavior::Type::SELECT)
       doSelect(i, selMod);
 
     break;
@@ -645,7 +645,7 @@ editMove(const Point &w)
   double dx = w.x - dragPos.x;
   double dy = w.y - dragPos.y;
 
-  location_ = Location::Type::ABSOLUTE_POSITION;
+  location_ = Location(Location::Type::ABSOLUTE_POSITION);
 
   wposition_ = wposition_ + Point(dx, dy);
   pposition_ = view()->windowToPixel(wposition_);
@@ -906,12 +906,12 @@ updateLocation(const BBox &bbox)
       kx = fitBBox.getXMid() - ks.width ()/2;
       ky = fitBBox.getYMid() + ks.height()/2;
 
-      location_.setType(CQChartsKeyLocation::Type::ABSOLUTE_POSITION);
+      location_.setType(Location::Type::ABSOLUTE_POSITION);
 
       setAbsolutePlotPosition(Point(kx, ky));
     }
     else
-      location_.setType(CQChartsKeyLocation::Type::TOP_RIGHT);
+      location_.setType(Location::Type::TOP_RIGHT);
   }
 
   if      (location().onLeft()) {
@@ -977,10 +977,10 @@ updateLocation(const BBox &bbox)
   // update location for absolute position/rectangle
   auto locationType = this->location().type();
 
-  if      (locationType == CQChartsKeyLocation::Type::ABSOLUTE_POSITION) {
+  if      (locationType == Location::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
   }
-  else if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+  else if (locationType == Location::Type::ABSOLUTE_RECTANGLE) {
     auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
@@ -1539,9 +1539,9 @@ editPress(const Point &p)
 
   auto locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
-    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
+  if (locationType != Location::Type::ABSOLUTE_POSITION &&
+      locationType != Location::Type::ABSOLUTE_RECTANGLE) {
+    location_ = Location(Location::Type::ABSOLUTE_POSITION);
 
     setAbsolutePlotPosition(position());
   }
@@ -1563,12 +1563,12 @@ editMove(const Point &p)
   double dy = p.y - dragPos.y;
 
   if (dragSide == CQChartsResizeSide::MOVE) {
-    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
+    location_ = Location(Location::Type::ABSOLUTE_POSITION);
 
     setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
   }
   else {
-    location_ = CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE;
+    location_ = Location(Location::Type::ABSOLUTE_RECTANGLE);
 
     editHandles()->updateBBox(dx, dy);
 
@@ -1605,9 +1605,9 @@ editMoveBy(const Point &f)
 {
   auto locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
-    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
+  if (locationType != Location::Type::ABSOLUTE_POSITION &&
+      locationType != Location::Type::ABSOLUTE_RECTANGLE) {
+    location_ = Location(Location::Type::ABSOLUTE_POSITION);
 
     setAbsolutePlotPosition(position() + f);
   }
@@ -1716,7 +1716,7 @@ draw(CQChartsPaintDevice *device) const
   double w = layoutData_.size.width ();
   double h = layoutData_.size.height();
 
-  if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+  if (locationType == Location::Type::ABSOLUTE_RECTANGLE) {
     auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid()) {
@@ -1736,7 +1736,7 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // set displayed bbox
-  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+  if (locationType != Location::Type::ABSOLUTE_RECTANGLE) {
     wbbox_ = BBox(x, y - h, x + w, y);
   }
   else {
@@ -1895,8 +1895,8 @@ draw(CQChartsPaintDevice *device) const
     clipRect = BBox(p1.x, p1.y + phh, p2.x - vspw, p2.y - hsph);
   }
   else {
-    if      (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
-             locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    if      (locationType != Location::Type::ABSOLUTE_POSITION &&
+             locationType != Location::Type::ABSOLUTE_RECTANGLE) {
       if (isInsideX()) {
         clipRect.setXMin(dataRect.getXMin());
         clipRect.setXMax(dataRect.getXMax());
@@ -1907,7 +1907,7 @@ draw(CQChartsPaintDevice *device) const
         clipRect.setYMax(dataRect.getYMax());
       }
     }
-    else if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    else if (locationType == Location::Type::ABSOLUTE_RECTANGLE) {
       auto bbox = absolutePlotRectangle();
 
       if (bbox.isValid()) {
@@ -2105,24 +2105,24 @@ interpBgColor() const
 
   auto locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+  if (locationType != Location::Type::ABSOLUTE_POSITION &&
+      locationType != Location::Type::ABSOLUTE_RECTANGLE) {
     if      (isInsideX() && isInsideY()) {
       if (plot()->isDataFilled())
         return plot()->interpDataFillColor(ColorInd());
     }
     else if (isInsideX()) {
-      if (locationType == CQChartsKeyLocation::Type::CENTER_LEFT ||
-          locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
-          locationType == CQChartsKeyLocation::Type::CENTER_RIGHT) {
+      if (locationType == Location::Type::CENTER_LEFT ||
+          locationType == Location::Type::CENTER_CENTER ||
+          locationType == Location::Type::CENTER_RIGHT) {
         if (plot()->isDataFilled())
           return plot()->interpDataFillColor(ColorInd());
       }
     }
     else if (isInsideY()) {
-      if (locationType == CQChartsKeyLocation::Type::TOP_CENTER ||
-          locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
-          locationType == CQChartsKeyLocation::Type::BOTTOM_CENTER) {
+      if (locationType == Location::Type::TOP_CENTER ||
+          locationType == Location::Type::CENTER_CENTER ||
+          locationType == Location::Type::BOTTOM_CENTER) {
         if (plot()->isDataFilled())
           return plot()->interpDataFillColor(ColorInd());
       }
@@ -2244,9 +2244,9 @@ CQChartsKeyItem::
 selectPress(const Point &, SelMod selMod)
 {
   if (isClickable()) {
-    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW)
+    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW)
       doShow(selMod);
-    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT)
+    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT)
       doSelect(selMod);
   }
 
@@ -2590,7 +2590,7 @@ selectPress(const Point &w, SelMod selMod)
     return CQChartsKeyItem::selectPress(w, selMod);
 
   if (isClickable()) {
-    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
+    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
       auto *plot = key_->plot();
 
       if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
@@ -2600,7 +2600,7 @@ selectPress(const Point &w, SelMod selMod)
 
       plot->updateRangeAndObjs();
     }
-    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT) {
+    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
     }
   }
 
@@ -2737,7 +2737,7 @@ selectPress(const Point &w, SelMod selMod)
     return CQChartsKeyItem::selectPress(w, selMod);
 
   if (isClickable()) {
-    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
+    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
       auto *plot = key_->plot();
 
       if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
@@ -2747,7 +2747,7 @@ selectPress(const Point &w, SelMod selMod)
 
       plot->updateRangeAndObjs();
     }
-    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT) {
+    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
     }
   }
 

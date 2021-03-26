@@ -22,10 +22,10 @@ struct CQChartsPlotSymbol {
 
   enum class Connect {
     NONE,
-    LINE,
-    CLOSE,
-    STROKE,
-    FILL
+    LINE,   // add point to path
+    CLOSE,  // close path
+    STROKE, // add point, stroke and close path
+    FILL    // add point, fill and close path
   };
 
   //! point data
@@ -51,7 +51,7 @@ struct CQChartsPlotSymbol {
 
   using Lines = std::vector<Line>;
 
-  Symbol::Type type;
+  Symbol::Type type { Symbol::Type::NONE };
   Lines        lines;
   Lines        fillLines;
 
@@ -67,13 +67,16 @@ namespace CQChartsPlotSymbolMgr {
   using SymbolRenderer = CQChartsPlotSymbolRenderer;
   using Symbol         = CQChartsSymbol;
 
-  bool isSymbol(Symbol symbol);
+  bool isSymbol(const Symbol &symbol);
 
-  const CQChartsPlotSymbol &getSymbol(Symbol symbol);
+  const CQChartsPlotSymbol &getSymbol(const Symbol &symbol);
 
-  void drawSymbol  (Symbol symbol, SymbolRenderer *renderer);
-  void strokeSymbol(Symbol symbol, SymbolRenderer *renderer);
-  void fillSymbol  (Symbol symbol, SymbolRenderer *renderer);
+  void setSymbolLines(const Symbol &symbol, const CQChartsPlotSymbol::Lines &lines);
+  void setSymbolFillLines(const Symbol &symbol, const CQChartsPlotSymbol::Lines &lines);
+
+  void drawSymbol  (const Symbol &symbol, SymbolRenderer *renderer);
+  void strokeSymbol(const Symbol &symbol, SymbolRenderer *renderer);
+  void fillSymbol  (const Symbol &symbol, SymbolRenderer *renderer);
 }
 
 //---
@@ -126,6 +129,8 @@ class CQChartsPlotSymbolRenderer {
   void drawLine(double x1, double y1, double x2, double y2) const;
 
   void fillRect(double x1, double y1, double x2, double y2) const;
+
+  void drawFillCircle(double x, double y, double r, bool fill) const;
 
   void strokeCircle(double x, double y, double r) const;
   void fillCircle  (double x, double y, double r) const;

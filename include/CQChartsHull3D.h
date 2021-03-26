@@ -49,7 +49,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag, T, DIST> {
    state_() {
   }
 
-  CInputIterator(const STATE &state) :
+  explicit CInputIterator(const STATE &state) :
    state_(state) {
   }
 

@@ -211,7 +211,7 @@ updateState()
 
     auto dash = var.value<CQChartsLineDash>();
 
-    if (dash_.operator==(dash)) {
+    if (dash_ == dash) {
       if (i != combo_->currentIndex())
         combo_->setCurrentIndex(i);
 

@@ -369,7 +369,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   //---
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  public slots:
   void zoomFull(bool notify=true) override;

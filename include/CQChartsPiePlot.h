@@ -602,7 +602,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   struct GroupData {

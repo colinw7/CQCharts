@@ -207,7 +207,7 @@ setColorStr(const QString &str)
 
   if      (strs[0] == "palette") {
     if (strs.length() > 1) {
-      double value;
+      double value = 0.0;
       bool   hasValue, scale, invert;
 
       if (! parsePaletteData(value, hasValue, scale, invert))
@@ -234,7 +234,7 @@ setColorStr(const QString &str)
     }
 
     if (strs.length() > 1) {
-      double value;
+      double value = 0.0;
       bool   hasValue, scale, invert;
 
       if (! parsePaletteData(value, hasValue, scale, invert))
@@ -252,7 +252,7 @@ setColorStr(const QString &str)
   }
   else if (strs[0] == "ind_palette" || strs[0] == "index_palette") {
     if (strs.length() > 1) {
-      int  value;
+      int  value = 0;
       bool hasValue, invert;
 
       if (! parseIndPaletteData(value, hasValue, invert))
@@ -280,7 +280,7 @@ setColorStr(const QString &str)
     }
 
     if (strs.length() > 1) {
-      int  value;
+      int  value = 0;
       bool hasValue, invert;
 
       if (! parseIndPaletteData(value, hasValue, invert))

@@ -132,7 +132,7 @@ class CQChartsColumnType {
   using ColumnDetails   = CQChartsModelColumnDetails;
 
  public:
-  CQChartsColumnType(Type type);
+  explicit CQChartsColumnType(Type type);
 
   virtual ~CQChartsColumnType();
 

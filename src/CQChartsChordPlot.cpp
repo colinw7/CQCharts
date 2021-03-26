@@ -1069,9 +1069,9 @@ createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &va
 
 CQChartsPlotCustomControls *
 CQChartsChordPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsChordPlotCustomControls(charts);
+  auto *controls = new CQChartsChordPlotCustomControls(charts());
 
   controls->setPlot(this);
 

@@ -150,7 +150,7 @@ class CQChartsGridPlot : public CQChartsPlot {
                                  int row, int column, const RValues &values) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   // columns

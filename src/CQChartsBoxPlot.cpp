@@ -689,10 +689,12 @@ postCalcRange()
   auto *xAxis = mappedXAxis();
   auto *yAxis = mappedYAxis();
 
-  xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                           /*notify*/false);
   xAxis->setMajorIncrement(1);
 
-  yAxis->setValueType     (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+  yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                           /*notify*/false);
   yAxis->setMajorIncrement(0);
 }
 
@@ -2067,9 +2069,9 @@ createPointObj(const BBox &rect, int setId, int groupInd, const Point &p, const 
 
 CQChartsPlotCustomControls *
 CQChartsBoxPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsBoxPlotCustomControls(charts);
+  auto *controls = new CQChartsBoxPlotCustomControls(charts());
 
   controls->setPlot(this);
 

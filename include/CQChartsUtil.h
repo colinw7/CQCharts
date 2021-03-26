@@ -296,7 +296,7 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
 
 void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
               const Alpha &fillAlpha=Alpha(),
-              const FillPattern &pattern=FillPattern::Type::SOLID);
+              const FillPattern &pattern=FillPattern(FillPattern::Type::SOLID));
 
 double limitLineWidth(double w);
 
@@ -336,11 +336,11 @@ QStringList unitTipNames(bool includeNone=false);
 class CQChartsScopeGuard {
  public:
   template<class Callable>
-  CQChartsScopeGuard(Callable &&f) :
+  explicit CQChartsScopeGuard(Callable &&f) :
    f_(std::forward<Callable>(f)) {
   }
 
-  CQChartsScopeGuard(CQChartsScopeGuard &&other) :
+  explicit CQChartsScopeGuard(CQChartsScopeGuard &&other) :
    f_(std::move(other.f_)) {
     other.f_ = nullptr;
   }

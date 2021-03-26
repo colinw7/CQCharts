@@ -386,7 +386,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   void pageNumSlot();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   //! column data

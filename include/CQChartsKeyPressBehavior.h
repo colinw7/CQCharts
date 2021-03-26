@@ -21,7 +21,7 @@ class CQChartsKeyPressBehavior : public CQChartsEnum<CQChartsKeyPressBehavior> {
   static int metaTypeId;
 
  public:
-  CQChartsKeyPressBehavior(Type type=Type::SHOW) :
+  explicit CQChartsKeyPressBehavior(Type type=Type::SHOW) :
    type_(type) {
   }
 

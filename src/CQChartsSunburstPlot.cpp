@@ -1383,9 +1383,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsSunburstPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsSunburstPlotCustomControls(charts);
+  auto *controls = new CQChartsSunburstPlotCustomControls(charts());
 
   controls->setPlot(this);
 

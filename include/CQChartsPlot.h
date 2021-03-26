@@ -2992,7 +2992,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  public:
-  virtual CQChartsPlotCustomControls *createCustomControls(CQCharts *) = 0;
+  virtual CQChartsPlotCustomControls *createCustomControls() = 0;
 
  protected:
   //*! \brief update state enum

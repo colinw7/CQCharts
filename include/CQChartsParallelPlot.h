@@ -287,7 +287,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void setHorizontal(bool b);
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   enum class RangeType {

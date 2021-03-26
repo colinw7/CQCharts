@@ -173,7 +173,7 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
   bool columnValue(const ModelIndex &ind, double &value) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   Column valueColumn_; //!< value column

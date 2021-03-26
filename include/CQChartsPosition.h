@@ -42,17 +42,6 @@ class CQChartsPosition :
     setPoint(s, defUnits);
   }
 
-  CQChartsPosition(const CQChartsPosition &rhs) :
-    units_(rhs.units_), p_(rhs.p_) {
-  }
-
-  CQChartsPosition &operator=(const CQChartsPosition &rhs) {
-    units_ = rhs.units_;
-    p_     = rhs.p_;
-
-    return *this;
-  }
-
   const Units &units() const { return units_; }
   const Point &p    () const { return p_; }
 

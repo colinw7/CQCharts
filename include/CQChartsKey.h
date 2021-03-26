@@ -477,7 +477,7 @@ class CQChartsPlotKey : public CQChartsKey {
     double height { 0 };
   };
 
-  struct Location {
+  struct LocationData {
     Point absolutePosition;           //!< absolute position
     BBox  absoluteRectangle;          //!< absolute rectangle
     bool  insideX           { true }; //!< inside plot in x
@@ -512,7 +512,7 @@ class CQChartsPlotKey : public CQChartsKey {
     double yb { 0.0 }; //!< y bottom margin (pixels)
   };
 
-  Location           locationData_;            //!< key location data
+  LocationData       locationData_;            //!< key location data
   double             spacing_       { 2 };     //!< key item spacing (pixels)
   bool               flipped_       { false }; //!< key order flipped
   KeyItems           items_;                   //!< key items

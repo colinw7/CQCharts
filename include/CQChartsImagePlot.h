@@ -250,7 +250,7 @@ class CQChartsImagePlot : public CQChartsPlot,
                                    const Image &image, const QModelIndex &ind) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   CellStyle cellStyle_       { CellStyle::RECT }; //!< cell style

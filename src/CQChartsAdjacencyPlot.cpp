@@ -1390,9 +1390,9 @@ interpGroupColor(int group) const
 
 CQChartsPlotCustomControls *
 CQChartsAdjacencyPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsAdjacencyPlotCustomControls(charts);
+  auto *controls = new CQChartsAdjacencyPlotCustomControls(charts());
 
   controls->setPlot(this);
 

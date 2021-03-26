@@ -1484,7 +1484,7 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
   }
   else {
     double dt =
-      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN ? -0.5 : 0.0);
+      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN ? -0.5 : 0.0);
 
     if (numMajorTicks() < maxMajorTicks()) {
       for (uint i = 0; i < numMajorTicks() + 1; i++) {
@@ -1561,8 +1561,9 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
     auto a2 = windowToPixel(plot, amax, apos1);
 
     if (isHorizontal()) {
-      bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-                           (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+      bool isPixelBottom =
+        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
+        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
 
       double dys = (isPixelBottom ? 1 : -1);
 
@@ -1572,8 +1573,9 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
       lbbox_ += Point(a2.x, a2.y);
     }
     else {
-      bool isPixelLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-                         (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+      bool isPixelLeft =
+        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
+        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
 
       double dxs = (isPixelLeft ? 1 : -1);
 
@@ -1732,7 +1734,7 @@ calcPos(const Plot *plot, double &apos1, double &apos2) const
   //---
 
   if (isHorizontal()) {
-    bool isWindowBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
+    bool isWindowBottom = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
 
     double ymin = dataRange.getYMin();
     double ymax = dataRange.getYMax();
@@ -1741,7 +1743,7 @@ calcPos(const Plot *plot, double &apos1, double &apos2) const
     apos2 = (isWindowBottom ? ymax : ymin);
   }
   else {
-    bool isWindowLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
+    bool isWindowLeft = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
 
     double xmin = dataRange.getXMin();
     double xmax = dataRange.getXMax();
@@ -1851,13 +1853,13 @@ drawTickLine(const Plot *plot, PaintDevice *device,
   Point pp;
 
   if (isHorizontal()) {
-    if (major && tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+    if (major && tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
       pp = Point(tpos - 0.5, apos);
     else
       pp = Point(tpos, apos);
   }
   else {
-    if (major && tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+    if (major && tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
       pp = Point(apos, tpos - 0.5);
     else
       pp = Point(apos, tpos);
@@ -1880,9 +1882,10 @@ drawTickLine(const Plot *plot, PaintDevice *device,
   //---
 
   if (isHorizontal()) {
-    bool isWindowBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
-    bool isPixelBottom  = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-                          (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+    bool isWindowBottom = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
+    bool isPixelBottom  =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
 
     int pys = (isPixelBottom ? 1 : -1);
     int dt1 = pys*tlen;
@@ -1906,9 +1909,10 @@ drawTickLine(const Plot *plot, PaintDevice *device,
     }
   }
   else {
-    bool isWindowLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
-    bool isPixelLeft  = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-                        (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+    bool isWindowLeft = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
+    bool isPixelLeft  =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
 
     int pxs = (isPixelLeft ? -1 : 1);
     int dt1 = pxs*tlen;
@@ -1967,12 +1971,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
   double tw = fm.width(text1); // TODO: support HTML
 
   if (isHorizontal()) {
-    bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-                         (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+    bool isPixelBottom =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
 
     double tyo = 0.0;
 
-    if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+    if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
       if (inside)
         tyo = tgap;
       else
@@ -2012,7 +2017,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         double atm;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowHeight(tgap);
           else
@@ -2031,13 +2036,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         double xpos = 0.0;
         double ypos = apos - boolFactor(! plot_->isInvertY())*(wth + atm);
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           xpos = tpos - atw/2;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           xpos = tpos - atw;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           xpos = tpos;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           xpos = tpos - 0.5;
 
         if (! plot_->isInvertY())
@@ -2073,13 +2078,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         Point p;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           p = Point(pt.x - tw/2                         , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           p = Point(pt.x - tw                           , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(pt.x                                , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
@@ -2121,7 +2126,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         double atm;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowHeight(tgap);
           else
@@ -2140,13 +2145,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         double xpos = 0.0;
         double ypos = apos + boolFactor(! plot_->isInvertY())*atm;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           xpos = tpos - atw/2;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           xpos = tpos - atw;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           xpos = tpos;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           xpos = tpos - 0.5;
 
         if (! plot_->isInvertY())
@@ -2182,13 +2187,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         Point p;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           p = Point(pt.x - tw/2                         , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           p = Point(pt.x - tw                           , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(pt.x                                , ty);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
@@ -2214,12 +2219,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
     fitTLBBox_ += tbbox;
   }
   else {
-    bool isPixelLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-                       (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+    bool isPixelLeft =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
 
     double txo = 0.0;
 
-    if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+    if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
       if (inside)
         txo = tgap;
       else
@@ -2259,7 +2265,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         double atm;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowWidth(tgap);
           else
@@ -2278,13 +2284,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         double xpos = apos - boolFactor(! plot_->isInvertX())*(atw + atm);
         double ypos = 0.0;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           ypos = tpos - wth/2;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           ypos = tpos - wth;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           ypos = tpos;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
         if (! plot_->isInvertX())
@@ -2320,13 +2326,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         Point p;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           p = Point(tx, pt.y + ta/2);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           p = Point(tx, pt.y + ta  );
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(tx, pt.y - td  );
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
@@ -2368,7 +2374,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         double atm;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowWidth(tgap);
           else
@@ -2387,13 +2393,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         double xpos = apos + boolFactor(! plot_->isInvertX())*atm;
         double ypos = 0.0;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           ypos = tpos - wth/2;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           ypos = tpos - wth;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           ypos = tpos;
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
         if (! plot_->isInvertX())
@@ -2429,13 +2435,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
         Point p;
 
-        if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
+        if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           p = Point(tx, pt.y + ta/2);
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
           p = Point(tx, pt.y + ta  );
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(tx, pt.y - td  );
-        else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+        else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
@@ -2636,8 +2642,9 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
     double axm = (a1.x + a2.x)/2 - tw/2;
 
-    bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-                         (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+    bool isPixelBottom =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
 
     //int pys = (isPixelBottom ? 1 : -1);
 
@@ -2736,8 +2743,9 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     double wfd = plot->pixelToWindowWidth(td);
     double wfh = wfa + wfd;
 
-    bool isPixelLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-                       (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+    bool isPixelLeft =
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
 
     //int pxs = (isPixelLeft ? 1 : -1);
 

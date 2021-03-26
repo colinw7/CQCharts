@@ -376,7 +376,7 @@ CQIntRangeSlider::
 valueToPixel(int x) const
 {
   if (rangeMax() > rangeMin())
-    return (xs2_ - xs1_)*(x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
+    return (xs2_ - xs1_)*(1.0*x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
   else
     return xs1_;
 }

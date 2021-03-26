@@ -421,6 +421,28 @@ drawSymbolTypeMapKey(PaintDevice *device) const
 
   //---
 
+  bool         isNumeric  = false;
+  bool         isIntegral = false;
+  int          numUnique  = 0;
+  QVariantList uniqueValues;
+
+  auto *columnDetails = this->columnDetails(symbolTypeColumn());
+
+  if (columnDetails) {
+    if (columnDetails->type() == CQBaseModelType::REAL ||
+        columnDetails->type() == CQBaseModelType::INTEGER) {
+      isNumeric  = true;
+      isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
+    }
+
+    if (! isNumeric) {
+      numUnique    = columnDetails->numUnique();
+      uniqueValues = columnDetails->uniqueValues();
+    }
+  }
+
+  //---
+
   auto *th = const_cast<CQChartsPointPlot *>(this);
 
   CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolTypeMapKey_.get(),
@@ -433,6 +455,11 @@ drawSymbolTypeMapKey(PaintDevice *device) const
   symbolTypeMapKey_->setMapMax(symbolTypeMapMax());
 
   symbolTypeMapKey_->setSymbolSet(symbolTypeSetName());
+
+  symbolTypeMapKey_->setNumeric     (isNumeric);
+  symbolTypeMapKey_->setIntegral    (isIntegral);
+  symbolTypeMapKey_->setNumUnique   (numUnique);
+  symbolTypeMapKey_->setUniqueValues(uniqueValues);
 
   auto bbox = displayRangeBBox();
 
@@ -556,6 +583,15 @@ drawSymbolSizeMapKey(PaintDevice *device) const
 
   //---
 
+  bool isIntegral = false;
+
+  auto *columnDetails = this->columnDetails(symbolTypeColumn());
+
+  if (columnDetails && columnDetails->type() == CQBaseModelType::INTEGER)
+    isIntegral = true;
+
+  //---
+
   auto *th = const_cast<CQChartsPointPlot *>(this);
 
   CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolSizeMapKey_.get(),
@@ -568,6 +604,8 @@ drawSymbolSizeMapKey(PaintDevice *device) const
   symbolSizeMapKey_->setMapMax(symbolSizeMapMax());
 
   symbolSizeMapKey_->setPaletteName(colorMapPalette());
+
+  symbolSizeMapKey_->setIntegral(isIntegral);
 
   auto bbox = displayRangeBBox();
 

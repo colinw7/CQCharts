@@ -112,8 +112,8 @@ class CQChartsSymbol :
 
   //---
 
-  const QString &charStr () { assert(type_ == Type::CHAR); return charData_.c; }
-  const QString &charName() { assert(type_ == Type::CHAR); return charData_.name; }
+  const QString &charStr () const { assert(type_ == Type::CHAR); return charData_.c; }
+  const QString &charName() const { assert(type_ == Type::CHAR); return charData_.name; }
 
   //---
 

@@ -1446,9 +1446,9 @@ createPointObj(int groupInd, const BBox &rect, const Point3D &pos,
 
 CQChartsPlotCustomControls *
 CQChartsScatterPlot3D::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsScatterPlot3DCustomControls(charts);
+  auto *controls = new CQChartsScatterPlot3DCustomControls(charts());
 
   controls->setPlot(this);
 

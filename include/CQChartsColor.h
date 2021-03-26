@@ -30,9 +30,9 @@ class QObject;
  * To convert a CQChartsColor to a QColor the application needs state from the
  * CQCharts object i.e.
  *  . palette color needs colors from the specified palette in the palette mgr
- *    and the value (intepolated index or numeric index) to use to get the color from the palette
+ *    and the value (interpolated index or numeric index) to use to get the color from the palette
  *  . interface color needs the interface palette from the palette mgr
- *    and the value (intepolated index or numeric index) to use to get the color from the palette
+ *    and the value (interpolated index or numeric index) to use to get the color from the palette
  *  . contrast needs the color underneath the object being colored
  *  . lighter/darker needs a reference color
  *  . model needs the model palette in the palette mgr
@@ -70,7 +70,7 @@ class CQChartsColor :
   }
 
   //! color from QColor
-  CQChartsColor(const QColor &color) :
+  explicit CQChartsColor(const QColor &color) :
    type_(Type::COLOR), color_(color) {
   }
 
@@ -158,7 +158,7 @@ class CQChartsColor :
 
   //---
 
-  // explicity palette index (in current theme)
+  // explicit palette index (in current theme)
   bool hasPaletteIndex() const {
     assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
            type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);

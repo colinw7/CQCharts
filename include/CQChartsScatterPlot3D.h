@@ -409,7 +409,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   void dataLabelChanged();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Points      = std::vector<Point3D>;

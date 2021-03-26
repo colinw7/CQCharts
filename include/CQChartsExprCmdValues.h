@@ -15,7 +15,7 @@ class CQChartsExprCmdValues {
   using Values = std::vector<QVariant>;
 
  public:
-  CQChartsExprCmdValues(const Values &values) :
+  explicit CQChartsExprCmdValues(const Values &values) :
    values_(values) {
     eind_ = numValues() - 1;
   }

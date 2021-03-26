@@ -256,7 +256,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void drawYLabels(PaintDevice *device) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   CQChartsFilterModel*      correlationModel_  { nullptr }; //!< correlation model

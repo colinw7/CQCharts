@@ -19,7 +19,7 @@ class CQChartsThemeName :
   static int metaTypeId;
 
  public:
-  CQChartsThemeName(const QString &name="") {
+  explicit CQChartsThemeName(const QString &name="") {
     setName(name);
   }
 

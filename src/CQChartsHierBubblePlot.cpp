@@ -1204,9 +1204,9 @@ createNodeObj(Node *node, HierObj *hierObj, const BBox &rect, const ColorInd &is
 
 CQChartsPlotCustomControls *
 CQChartsHierBubblePlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsHierBubblePlotCustomControls(charts);
+  auto *controls = new CQChartsHierBubblePlotCustomControls(charts());
 
   controls->setPlot(this);
 

@@ -229,7 +229,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
                                    const QModelIndex &ind, const ColorInd &iv) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Delaunay = CQChartsDelaunay;

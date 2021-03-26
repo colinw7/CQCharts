@@ -485,7 +485,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueTypeSlot(bool b);
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   Columns         xColumns_;                       //!< x columns

@@ -1449,8 +1449,9 @@ execCmd(CQChartsCmdArgs &argv)
     if (! type->allowXAxisIntegral() || ! plot->xAxis())
       return errorMsg("plot type does not support x integral option");
 
-    plot->xAxis()->setValueType(xintegral ? CQChartsAxisValueType::Type::INTEGER :
-                                            CQChartsAxisValueType::Type::REAL);
+    plot->xAxis()->setValueType(
+      CQChartsAxisValueType(xintegral ? CQChartsAxisValueType::Type::INTEGER :
+                                        CQChartsAxisValueType::Type::REAL));
   }
 
   if (argv.hasParseArg("yintegral")) {
@@ -1459,8 +1460,9 @@ execCmd(CQChartsCmdArgs &argv)
     if (! type->allowYAxisIntegral() || ! plot->yAxis())
       return errorMsg("plot type does not support y integral option");
 
-    plot->yAxis()->setValueType(yintegral ? CQChartsAxisValueType::Type::INTEGER :
-                                            CQChartsAxisValueType::Type::REAL);
+    plot->yAxis()->setValueType(
+      CQChartsAxisValueType(yintegral ? CQChartsAxisValueType::Type::INTEGER :
+                                        CQChartsAxisValueType::Type::REAL));
   }
 
   //---

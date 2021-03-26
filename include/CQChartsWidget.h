@@ -20,8 +20,9 @@ class CQChartsWidget :
 
  public:
   CQChartsWidget() = default;
-  CQChartsWidget(QWidget *widget);
-  CQChartsWidget(const QString &s);
+
+  explicit CQChartsWidget(QWidget *widget);
+  explicit CQChartsWidget(const QString &s);
 
   //---
 

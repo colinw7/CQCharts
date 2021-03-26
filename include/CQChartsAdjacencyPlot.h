@@ -467,7 +467,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   //---
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using NodeMap   = std::map<int, AdjacencyNode*>;

@@ -31,11 +31,11 @@ class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
   static int metaTypeId;
 
  public:
-  CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
+  explicit CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
    type_(type) {
   }
 
-  CQChartsKeyLocation(const QString &str) {
+  explicit CQChartsKeyLocation(const QString &str) {
     (void) setValue(str);
   }
 

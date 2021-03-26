@@ -1415,13 +1415,15 @@ initObjAxesI()
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
 
-  xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                           /*notify*/false);
   xAxis->setGridMid       (true);
 //xAxis->setMajorIncrement(1);
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
-  yAxis->setValueType     (isLogY() ? CQChartsAxisValueType::Type::LOG :
-                                      CQChartsAxisValueType::Type::REAL, /*notify*/false);
+  yAxis->setValueType     (CQChartsAxisValueType(isLogY() ?
+                             CQChartsAxisValueType::Type::LOG :
+                             CQChartsAxisValueType::Type::REAL), /*notify*/false);
   yAxis->setGridMid       (false);
 //yAxis->setMajorIncrement(0);
   yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
@@ -1559,7 +1561,7 @@ addKeyItems(PlotKey *key)
     groupItem->addItem(textItem );
 
     if (c.isValid())
-      colorItem->setColor(c);
+      colorItem->setColor(CQChartsColor(c));
 
     key->addItem(groupItem, row, col);
 
@@ -1869,9 +1871,9 @@ createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig, const Col
 
 CQChartsPlotCustomControls *
 CQChartsBarChartPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsBarChartPlotCustomControls(charts);
+  auto *controls = new CQChartsBarChartPlotCustomControls(charts());
 
   controls->setPlot(this);
 

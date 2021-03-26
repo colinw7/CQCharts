@@ -13,7 +13,8 @@ class CQChartsFont;
 class CQChartsNameValues : public CQModelNameValues {
  public:
   CQChartsNameValues();
-  CQChartsNameValues(const QString &str);
+
+  explicit CQChartsNameValues(const QString &str);
 
   bool nameValueInteger(const QString &name, int &value, bool &ok) const override;
   bool nameValueReal   (const QString &name, double &value, bool &ok) const override;

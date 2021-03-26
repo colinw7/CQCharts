@@ -318,7 +318,7 @@ class CQChartsPlotParameter : public QObject {
   QVariant getPropertyValue(const QString &name) const;
 
  private:
-  CQChartsPlotParameter(CQChartsPlotParameter &p);
+  CQChartsPlotParameter(const CQChartsPlotParameter &p);
   CQChartsPlotParameter &operator=(const CQChartsPlotParameter &);
 
  private:

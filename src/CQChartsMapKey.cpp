@@ -908,43 +908,87 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
   auto symbolFillColor   = plot()->interpPaletteColor(ColorInd());
   auto symbolStrokeColor = plot()->interpThemeColor(ColorInd(1.0));
 
-  for (int i = mapMin(); i <= mapMax(); ++i) {
-    auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+  if (isNumeric()) {
+    for (int i = mapMin(); i <= mapMax(); ++i) {
+      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
-    auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox.getYMax() - fm.height()/2.0 - 1,
-                            pbbox.getYMin() + fm.height()/2.0 + 1);
+      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox.getYMax() - fm.height()/2.0 - 1,
+                              pbbox.getYMin() + fm.height()/2.0 + 1);
 
-    CQChartsSymbolSet::SymbolData symbolData;
+      CQChartsSymbolSet::SymbolData symbolData;
 
-    if (symbolSet)
-      symbolData = symbolSet->symbolData(i);
-    else
-      symbolData.symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
+      if (symbolSet)
+        symbolData = symbolSet->symbolData(i);
+      else
+        symbolData.symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
 
-    //---
+      //---
 
-    PenBrush symbolPenBrush;
+      PenBrush symbolPenBrush;
 
-    if (symbolData.filled)
-      setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                  BrushData(true, symbolFillColor));
-    else
-      setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                  BrushData(false));
+      if (symbolData.filled)
+        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
+                    BrushData(true, symbolFillColor));
+      else
+        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
+                    BrushData(false));
 
-    CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
+      CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
-    //---
+      //---
 
-    double ss = 8;
+      double ss = 8;
 
-    CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
-                                 device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
-                                 CQChartsLength(ss, CQChartsUnits::PIXEL));
+      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
+                                   device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
+                                   CQChartsLength(ss, CQChartsUnits::PIXEL));
 
-    //---
+      //---
 
-    drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+      drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+    }
+  }
+  else {
+    for (int i = 0; i < numUnique(); ++i) {
+      int i1 = (int) CMathUtil::map(i, 0, numUnique() - 1, mapMin(), mapMax());
+
+      auto dataStr = uniqueValues()[i].toString();
+
+      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox.getYMax() - fm.height()/2.0 - 1,
+                              pbbox.getYMin() + fm.height()/2.0 + 1);
+
+      CQChartsSymbolSet::SymbolData symbolData;
+
+      if (symbolSet)
+        symbolData = symbolSet->interpI(i1);
+      else
+        symbolData.symbol = CQChartsSymbol::interpOutline(i1);
+
+      //---
+
+      PenBrush symbolPenBrush;
+
+      if (symbolData.filled)
+        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
+                    BrushData(true, symbolFillColor));
+      else
+        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
+                    BrushData(false));
+
+      CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
+
+      //---
+
+      double ss = 8;
+
+      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
+                                   device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
+                                   CQChartsLength(ss, CQChartsUnits::PIXEL));
+
+      //---
+
+      drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+    }
   }
 }
 
@@ -958,14 +1002,27 @@ pixelSize() const
 
   double bm = this->margin();
   double bw = fm.width("X") + 4;
-  double kh = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
 
   double tw = 0.0;
+  double kh = 0.0;
 
-  for (int i = mapMin(); i <= mapMax(); ++i) {
-    auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+  if (isNumeric()) {
+    kh = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
 
-    tw = std::max(tw, fm.width(dataStr));
+    for (int i = mapMin(); i <= mapMax(); ++i) {
+      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+
+      tw = std::max(tw, fm.width(dataStr));
+    }
+  }
+  else {
+    kh = (fm.height() + 2)*numUnique() + 2*bm;
+
+    for (int i = 0; i < numUnique(); ++i) {
+      auto dataStr = uniqueValues()[i].toString();
+
+      tw = std::max(tw, fm.width(dataStr));
+    }
   }
 
   double kw = bw + tw + 3*bm;
@@ -986,12 +1043,19 @@ valueText(double value) const
 {
   QString text;
 
-  if      (CMathUtil::realEq(value, 0.0))
-    text = "0.0";
-  else if (CMathUtil::realEq(value, 1.0))
-    text = "1.0";
-  else
-    text.setNum(value);
+  if (! isIntegral()) {
+    if      (CMathUtil::realEq(value, 0.0))
+      text = "0.0";
+    else if (CMathUtil::realEq(value, 1.0))
+      text = "1.0";
+    else
+      text.setNum(value);
+  }
+  else {
+    int ivalue = int(value);
+
+    text.setNum(ivalue);
+  }
 
   return text;
 }

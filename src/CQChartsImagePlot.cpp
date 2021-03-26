@@ -791,9 +791,9 @@ createImageObj(const BBox &rect, int row, int col, const Image &image,
 
 CQChartsPlotCustomControls *
 CQChartsImagePlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsImagePlotCustomControls(charts);
+  auto *controls = new CQChartsImagePlotCustomControls(charts());
 
   controls->setPlot(this);
 

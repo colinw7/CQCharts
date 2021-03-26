@@ -542,7 +542,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
   double dx() const { return dx_; }
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   Column xColumn_;   //!< x column

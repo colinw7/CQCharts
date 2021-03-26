@@ -142,11 +142,11 @@ init()
 
   setGridColor(Color(Color::Type::INTERFACE_VALUE, 0.50));
 
-  setHeaderColor(QColor("#c0c8dc"));
+  setHeaderColor(Color(QColor("#c0c8dc")));
 
   setCellColor    (Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setInsideColor  (QColor("#c5c8bc"));
-  setSelectedColor(QColor("#bcc5c8"));
+  setInsideColor  (Color(QColor("#c5c8bc")));
+  setSelectedColor(Color(QColor("#bcc5c8")));
 
   //---
 
@@ -1916,9 +1916,9 @@ createCellObj(const CellObjData &cellObjData) const
 
 CQChartsPlotCustomControls *
 CQChartsTablePlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsTablePlotCustomControls(charts);
+  auto *controls = new CQChartsTablePlotCustomControls(charts());
 
   controls->setPlot(this);
 

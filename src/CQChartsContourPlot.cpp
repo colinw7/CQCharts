@@ -385,9 +385,9 @@ drawContour(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsContourPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsContourPlotCustomControls(charts);
+  auto *controls = new CQChartsContourPlotCustomControls(charts());
 
   controls->setPlot(this);
 

@@ -20,6 +20,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsViewError.h>
 #include <CQChartsSymbolSet.h>
+#include <CQChartsPlotSymbol.h>
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
@@ -65,6 +66,8 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QTimer>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 #include <svg/info_svg.h>
 #include <fstream>
@@ -831,6 +834,8 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &ind) const override {
+    painter->setRenderHints(QPainter::Antialiasing);
+
     if (ind.column() == 0) {
       auto *item = list_->item(ind.row());
       assert(item);
@@ -846,6 +851,8 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
                               option.rect.left() + s + 2, option.rect.center().y() + s/2);
 
       CQChartsPixelPaintDevice device(painter);
+
+       painter->setPen(Qt::black);
 
       if (filled)
         painter->setBrush(Qt::green);
@@ -1825,9 +1832,9 @@ initThemeFrame(QFrame *themeFrame)
 
 void
 CQChartsViewSettings::
-initSymbolsFrame(QFrame *symbolsFrame)
+initSymbolsFrame(QFrame *symbolSetsFrame)
 {
-  auto *symbolsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolsFrame, 2, 2);
+  auto *symbolSetsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolSetsFrame, 2, 2);
 
   //---
 
@@ -1837,7 +1844,7 @@ initSymbolsFrame(QFrame *symbolsFrame)
   symbolsSplit->setGrouped(true);
 //symbolsSplit->setState(CQTabSplit::State::TAB);
 
-  symbolsFrameLayout->addWidget(symbolsSplit);
+  symbolSetsFrameLayout->addWidget(symbolsSplit);
 
   //---
 
@@ -1849,14 +1856,67 @@ initSymbolsFrame(QFrame *symbolsFrame)
 
   //---
 
+  auto *symbolsFrame  = CQUtil::makeWidget<QFrame>("symbolsFrame");
+  auto *symbolsLayout = CQUtil::makeLayout<QHBoxLayout>(symbolsFrame, 2, 2);
+
+  symbolsSplit->addWidget(symbolsFrame, "Symbols");
+
+  //--
+
   // List of all symbols in set
   symbolsList_ = new CQChartsSymbolsList(this);
 
-  symbolsSplit->addWidget(symbolsList_, "Symbols");
+  connect(symbolsList_, SIGNAL(itemSelectionChanged()),
+          this, SLOT(symbolListSelectionChangeSlot()));
+
+  symbolsLayout->addWidget(symbolsList_);
 
   //---
 
+  // control frame (move up/down, transfer left/right)
+  auto *buttonsFrame  = CQUtil::makeWidget<QFrame>("buttonsFrame");
+  auto *buttonsLayout = CQUtil::makeLayout<QVBoxLayout>(buttonsFrame, 2, 2);
+
+  symbolsLayout->addWidget(buttonsFrame);
+
+  auto addToolButton = [&](const QString &name, const QString &iconName, const char *slotName) {
+    auto *button = CQUtil::makeWidget<QToolButton>(name);
+
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    return button;
+  };
+
+  auto *upButton   = addToolButton("up"  , "UP"  , SLOT(symbolUpSlot  ()));
+  auto *downButton = addToolButton("down", "DOWN", SLOT(symbolDownSlot()));
+
+  upButton   ->setToolTip("Move palette up in theme list");
+  downButton ->setToolTip("Move palette down in theme list");
+
+  buttonsLayout->addStretch(1);
+  buttonsLayout->addWidget(upButton);
+  buttonsLayout->addWidget(downButton);
+  buttonsLayout->addStretch(1);
+
+  //----
+
+  symbolEdit_ = new CQChartsSymbolEditor(this);
+
+  symbolsSplit->addWidget(symbolEdit_, "Edit Symbol");
+
+  //----
+
   symbolSetsList_->setCurrentRow(0);
+
+  //---
+
+  int size1 = INT_MAX*0.20;
+  int size2 = INT_MAX*0.45;
+  int size3 = INT_MAX - size1 - size2;
+
+  symbolsSplit->setSizes(QList<int>({size1, size2, size3}));
 }
 
 void
@@ -2758,9 +2818,6 @@ void
 CQChartsViewSettings::
 updatePlotControls()
 {
-  auto *view   = window_->view();
-  auto *charts = view->charts();
-
   // add controls for plot and child plots
   auto *plot = currentPlot();
 
@@ -2771,7 +2828,7 @@ updatePlotControls()
 
   delete plotCustomControls_;
 
-  plotCustomControls_ = (plot ? plot->createCustomControls(charts) : nullptr);
+  plotCustomControls_ = (plot ? plot->createCustomControls() : nullptr);
 
   if (plotCustomControls_)
     customControlFrame_->layout()->addWidget(plotCustomControls_);
@@ -3300,6 +3357,34 @@ updateInterface()
 
 void
 CQChartsViewSettings::
+symbolListSelectionChangeSlot()
+{
+  CQChartsSymbol symbol;
+  bool           filled = false;
+
+  (void) symbolsList_->selectedSymbol(symbol, filled);
+
+  symbolEdit_->setSymbol(symbol, filled);
+}
+
+void
+CQChartsViewSettings::
+symbolUpSlot()
+{
+  symbolsList_->moveCurrentUp();
+}
+
+void
+CQChartsViewSettings::
+symbolDownSlot()
+{
+  symbolsList_->moveCurrentDown();
+}
+
+//------
+
+void
+CQChartsViewSettings::
 updateLayers()
 {
   layersWidgets_.viewLayerTable->initLayers();
@@ -3629,6 +3714,13 @@ setName(const QString &name, int ind)
   name_ = name;
   ind_  = ind;
 
+  updateItems();
+}
+
+void
+CQChartsSymbolsList::
+updateItems()
+{
   auto *symbolSet = this->symbolSet();
   if (! symbolSet) return;
 
@@ -3690,4 +3782,527 @@ symbolSet() const
   auto *symbolSetMgr = charts->symbolSetMgr();
 
   return symbolSetMgr->symbolSet(name_);
+}
+
+void
+CQChartsSymbolsList::
+moveCurrentUp()
+{
+  auto *item = currentItem();
+  if (! item) return;
+
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return;
+
+  int i = item->data(Qt::UserRole).toInt();
+
+  if (! symbolSet->moveUp(i))
+    return;
+
+  updateItems();
+
+  setCurrentItem(this->item(i - 1), QItemSelectionModel::Select);
+}
+
+void
+CQChartsSymbolsList::
+moveCurrentDown()
+{
+  auto *item = currentItem();
+  if (! item) return;
+
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return;
+
+  int i = item->data(Qt::UserRole).toInt();
+
+  if (! symbolSet->moveDown(i))
+    return;
+
+  updateItems();
+
+  setCurrentItem(this->item(i + 1), QItemSelectionModel::Select);
+}
+
+QListWidgetItem *
+CQChartsSymbolsList::
+currentItem() const
+{
+  auto selected = this->selectedItems();
+  if (! selected.length()) return nullptr;
+
+  return selected[0];
+}
+
+bool
+CQChartsSymbolsList::
+selectedSymbol(CQChartsSymbol &symbol, bool &filled) const
+{
+  auto selected = this->selectedItems();
+  if (! selected.length()) return false;
+
+  auto *item = selected[0];
+
+  auto *symbolSet = this->symbolSet();
+  if (! symbolSet) return false;
+
+  int i = item->data(Qt::UserRole).toInt();
+
+  symbol = symbolSet->symbol(i);
+  filled = isFilledSymbol(i);
+
+  return true;
+}
+
+//---
+
+CQChartsSymbolEditor::
+CQChartsSymbolEditor(CQChartsViewSettings *viewSettings) :
+ viewSettings_(viewSettings)
+{
+  setMouseTracking(true);
+
+  setFocusPolicy(Qt::StrongFocus);
+}
+
+void
+CQChartsSymbolEditor::
+setSymbol(const CQChartsSymbol &symbol, bool filled)
+{
+  symbol_ = symbol;
+  filled_ = filled;
+
+  pointsArray_.clear();
+
+  Points *points = nullptr;
+
+  if (CQChartsPlotSymbolMgr::isSymbol(symbol_)) {
+    const auto &plotSymbol = CQChartsPlotSymbolMgr::getSymbol(symbol_);
+
+    if (filled_) {
+      pointsArray_.push_back(Points());
+
+      points = &pointsArray_[pointsArray_.size() - 1];
+
+      for (auto &line : plotSymbol.fillLines) {
+        if (points->empty())
+          points->push_back(QPointF(line.x1, line.y1));
+
+        points->push_back(QPointF(line.x2, line.y2));
+      }
+    }
+    else {
+      bool connect = false;
+
+      for (auto &line : plotSymbol.lines) {
+        if (! connect) {
+          pointsArray_.push_back(Points());
+
+          points = &pointsArray_[pointsArray_.size() - 1];
+
+          points->push_back(QPointF(line.x1, line.y1));
+        }
+
+        points->push_back(QPointF(line.x2, line.y2));
+
+        if      (line.connect == CQChartsPlotSymbol::Connect::STROKE)
+          connect = false;
+        else if (line.connect == CQChartsPlotSymbol::Connect::CLOSE)
+          connect = false;
+        else
+          connect = true;
+      }
+    }
+  }
+
+  update();
+}
+
+void
+CQChartsSymbolEditor::
+resizeEvent(QResizeEvent *)
+{
+  range_.setPixelRange(0, height() - 1, width() - 1, 0);
+
+  range_.setWindowRange(-1, -1, 1, 1);
+
+  range_.setEqualScale(true);
+}
+
+void
+CQChartsSymbolEditor::
+paintEvent(QPaintEvent *)
+{
+  QPainter painter(this);
+
+  drawGrid(&painter);
+
+  drawSymbol(&painter);
+
+  drawGuides(&painter);
+}
+
+void
+CQChartsSymbolEditor::
+drawGrid(QPainter *painter)
+{
+  int n = 64;
+
+  double d = 2.0/n;
+
+  for (int ix = 0; ix <= n; ++ix) {
+    QColor c(ix % 8 == 0 ? "#666666" : "#cccccc");
+
+    painter->setPen(c);
+
+    double x = ix*d - 1.0;
+
+    double x1, y1, x2, y2;
+
+    range_.windowToPixel(x, -1, &x1, &y1);
+    range_.windowToPixel(x,  1, &x2, &y2);
+
+    painter->drawLine(x1, y1, x2, y2);
+  }
+
+  for (int iy = 0; iy <= n; ++iy) {
+    QColor c(iy % 8 == 0 ? "#666666" : "#cccccc");
+
+    painter->setPen(c);
+
+    double y = iy*d - 1.0;
+
+    double x1, y1, x2, y2;
+
+    range_.windowToPixel(-1, y, &x1, &y1);
+    range_.windowToPixel( 1, y, &x2, &y2);
+
+    painter->drawLine(x1, y1, x2, y2);
+  }
+}
+
+void
+CQChartsSymbolEditor::
+drawSymbol(QPainter *painter)
+{
+  for (const auto &points : pointsArray_) {
+    QPainterPath path;
+
+    for (const auto &p : points) {
+      double x, y;
+
+      range_.windowToPixel(p.x(), p.y(), &x, &y);
+
+      if (path.elementCount() == 0)
+        path.moveTo(x, y);
+      else
+        path.lineTo(x, y);
+    }
+
+    path.closeSubpath();
+
+    auto pen = QPen(Qt::black);
+
+    if (! filled_)
+      pen.setWidth(3);
+
+    painter->setPen(pen);
+
+    if (filled_)
+      painter->setBrush(QColor("#55dd55"));
+    else
+      painter->setBrush(Qt::NoBrush);
+
+    painter->drawPath(path);
+  }
+
+  //---
+
+  if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
+    const auto &points = pointsArray_[mouseArrayInd_];
+
+    if (mouseInd_ >= 0 && mouseInd_ < int(points.size())) {
+      auto p = points[mouseInd_];
+
+      int r = 6;
+
+      double x, y;
+
+      range_.windowToPixel(p.x(), p.y(), &x, &y);
+
+      painter->setPen(Qt::black);
+      painter->setBrush(Qt::red);
+
+      painter->drawEllipse(QRectF(x - r, y - r, 2*r, 2*r));
+    }
+  }
+}
+
+void
+CQChartsSymbolEditor::
+drawGuides(QPainter *painter)
+{
+  painter->setBrush(Qt::NoBrush);
+
+  double cx, cy, tlx, tly, brx, bry;
+
+  range_.windowToPixel( 0.0,  0.0, &cx , &cy );
+  range_.windowToPixel(-1.0, -1.0, &tlx, &tly);
+  range_.windowToPixel( 1.0,  1.0, &brx, &bry);
+
+  painter->setPen(QColor("#666666"));
+
+  painter->drawEllipse(QRectF(tlx, tly, brx - tlx, bry - tly));
+
+  double d = 1.0/8.0;
+
+  range_.windowToPixel(-1.0 + d, -1.0 + d, &tlx, &tly);
+  range_.windowToPixel( 1.0 - d,  1.0 - d, &brx, &bry);
+
+  painter->setPen(QColor("#666666"));
+
+  painter->drawRect(QRectF(tlx, tly, brx - tlx, bry - tly));
+}
+
+void
+CQChartsSymbolEditor::
+mousePressEvent(QMouseEvent *me)
+{
+  auto pos = me->pos();
+
+  updateMousePos(pos);
+
+  pressed_ = true;
+  button_  = me->button();
+  escape_  = false;
+
+  update();
+}
+
+void
+CQChartsSymbolEditor::
+mouseMoveEvent(QMouseEvent *me)
+{
+  if (escape_)
+    return;
+
+  auto pos = me->pos();
+
+  updateMousePos(pos);
+
+  double dx = std::abs(mousePos_.x() - pressPos_.x());
+  double dy = std::abs(mousePos_.y() - pressPos_.y());
+
+  if (pressed_) {
+    double x, y;
+
+    pixelToWindow(pos.x(), pos.y(), x, y);
+
+    QPointF p(x, y);
+
+    bool isShift = (me->modifiers() & Qt::ShiftModifier);
+
+    if      (button_ == Qt::LeftButton) {
+      if (isShift) {
+        if (dx > dy)
+          p.setY(pointPos_.y());
+        else
+          p.setX(pointPos_.x());
+      }
+
+      if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
+        auto &points = pointsArray_[mouseArrayInd_];
+
+        if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
+          points[mouseInd_] = p;
+      }
+    }
+  }
+
+  update();
+}
+
+void
+CQChartsSymbolEditor::
+mouseReleaseEvent(QMouseEvent *)
+{
+  pressed_ = false;
+  escape_  = false;
+}
+
+void
+CQChartsSymbolEditor::
+keyPressEvent(QKeyEvent *ke)
+{
+  if      (ke->key() == Qt::Key_Escape) {
+    if (! escape_) {
+      escape_ = true;
+
+      if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
+        auto &points = pointsArray_[mouseArrayInd_];
+
+        if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
+          points[mouseInd_] = pointPos_;
+      }
+
+      update();
+    }
+  }
+  else if (ke->key() == Qt::Key_P) {
+    if (! pointsArray_.empty()) {
+      if (filled_) {
+        auto *points = &pointsArray_[0];
+
+        int np = points->size();
+
+        CQChartsPlotSymbol::Lines lines;
+
+        for (int i = 0; i < np; ++i) {
+          int i1 = (i < np - 1 ? i + 1 : 0);
+
+          auto connectStr = (i < np - 1 ? "PlotSymbol::Connect::STROKE" :
+                                          "PlotSymbol::Connect::FILL");
+
+          std::cout << "{" << (*points)[i ].x() << ", " << (*points)[i ].y() << ", " <<
+                              (*points)[i1].x() << ", " << (*points)[i1].y() << ", " <<
+                              connectStr << "},\n";
+        }
+      }
+      else {
+        for (const auto &points : pointsArray_) {
+          int np = points.size();
+
+          if (np == 2) {
+            std::cout << "{" << points[0].x() << ", " << points[0].y() << ", " <<
+                                points[1].x() << ", " << points[1].y() << ", " <<
+                                "PlotSymbol::Connect::STROKE},\n";
+          }
+          else {
+            for (int i = 0; i < np; ++i) {
+              int i1 = (i < np - 1 ? i + 1 : 0);
+
+              auto connectStr = (i < np - 1 ? "PlotSymbol::Connect::LINE" :
+                                              "PlotSymbol::Connect::CLOSE");
+
+              std::cout << "{" << points[i ].x() << ", " << points[i ].y() << ", " <<
+                                  points[i1].x() << ", " << points[i1].y() << ", " <<
+                                  connectStr << "},\n";
+            }
+          }
+        }
+      }
+    }
+  }
+  else if (ke->key() == Qt::Key_A) {
+    if (! pointsArray_.empty()) {
+      if (filled_) {
+        auto *points = &pointsArray_[0];
+
+        int np = points->size();
+
+        CQChartsPlotSymbol::Lines lines;
+
+        for (int i = 0; i < np; ++i) {
+          int i1 = (i < np - 1 ? i + 1 : 0);
+
+          auto connect = (i < np - 1 ? CQChartsPlotSymbol::Connect::STROKE :
+                                       CQChartsPlotSymbol::Connect::FILL);
+
+          lines.emplace_back((*points)[i ].x(), (*points)[i ].y(),
+                             (*points)[i1].x(), (*points)[i1].y(), connect);
+        }
+
+        CQChartsPlotSymbolMgr::setSymbolFillLines(symbol_, lines);
+      }
+      else {
+        CQChartsPlotSymbol::Lines lines;
+
+        for (const auto &points : pointsArray_) {
+          int np = points.size();
+
+          if (np == 2) {
+            lines.emplace_back(points[0].x(), points[0].y(),
+                               points[1].x(), points[1].y(),
+                               CQChartsPlotSymbol::Connect::STROKE);
+          }
+          else {
+            for (int i = 0; i < np; ++i) {
+              int i1 = (i < np - 1 ? i + 1 : 0);
+
+              auto connect = (i < np - 1 ? CQChartsPlotSymbol::Connect::LINE :
+                                           CQChartsPlotSymbol::Connect::CLOSE);
+
+              lines.emplace_back(points[i ].x(), points[i ].y(),
+                                 points[i1].x(), points[i1].y(), connect);
+            }
+          }
+        }
+
+        CQChartsPlotSymbolMgr::setSymbolLines(symbol_, lines);
+      }
+    }
+  }
+}
+
+void
+CQChartsSymbolEditor::
+updateMousePos(const QPoint &pos)
+{
+  double x, y;
+
+  pixelToWindow(pos.x(), pos.y(), x, y);
+
+  mousePos_ = QPointF(x, y);
+
+  if (! pressed_) {
+    double d        = 9999;
+    int    arrayInd = 0;
+
+    for (const auto &points : pointsArray_) {
+      int ind = 0;
+
+      for (const auto &p : points) {
+        double d1 = std::hypot(p.x() - x, p.y() - y);
+
+        if (d1 < d) {
+          mouseArrayInd_ = arrayInd;
+          mouseInd_      = ind;
+          d              = d1;
+        }
+
+        ++ind;
+      }
+
+      ++arrayInd;
+    }
+
+    pressPos_ = mousePos_;
+
+    if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
+      const auto &points = pointsArray_[mouseArrayInd_];
+
+      if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
+        pointPos_ = points[mouseInd_];
+    }
+  }
+}
+
+void
+CQChartsSymbolEditor::
+pixelToWindow(double px, double py, double &wx, double &wy)
+{
+  range_.pixelToWindow(px, py, &wx, &wy);
+
+  wx = int(wx*64.0)/64.0;
+  wy = int(wy*64.0)/64.0;
+
+  wx = std::min(std::max(wx, -1.0), 1.0);
+  wy = std::min(std::max(wy, -1.0), 1.0);
+}
+
+QSize
+CQChartsSymbolEditor::
+sizeHint() const
+{
+  return QSize(1000, 1000);
 }

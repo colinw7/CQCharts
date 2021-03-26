@@ -147,7 +147,7 @@ namespace Springy {
    */
   class Node {
    public:
-    Node(int id) :
+    explicit Node(int id) :
      id_(id), mass_(1.0), label_(), value_(0) {
       pos_ = Vector::random();
     }

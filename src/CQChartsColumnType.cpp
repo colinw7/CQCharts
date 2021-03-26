@@ -86,7 +86,9 @@ CQChartsColumnTypeMgr::
 description()
 {
   auto LI = [](const QString &str) { return CQChartsHtml::Str(str); };
-  auto A  = [](const QString &ref, const QString &str) { return CQChartsHtml::Str::a(ref, str); };
+
+  auto A  = [](const QString &ref, const QString &str) {
+    return CQChartsHtml::Str::a(CQChartsHtml::Str(ref), CQChartsHtml::Str(str)); };
 
   return CQChartsHtml().
    h2("Column Types").
@@ -2079,7 +2081,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         auto *palette = paletteName.palette();
 
         if (palette)
-          color = palette->getColor(r1);
+          color = CQChartsColor(palette->getColor(r1));
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
       }
@@ -2110,7 +2112,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
           auto *palette = paletteName.palette();
 
           if (palette)
-            color = palette->getColor(r);
+            color = CQChartsColor(palette->getColor(r));
           else
             color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
         }

@@ -224,7 +224,7 @@ calcRange() const
 
   th->xAxis()->clearTickLabels();
 
-  th->xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+  th->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
 
   //---
 
@@ -654,9 +654,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsStripPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsStripPlotCustomControls(charts);
+  auto *controls = new CQChartsStripPlotCustomControls(charts());
 
   controls->setPlot(this);
 

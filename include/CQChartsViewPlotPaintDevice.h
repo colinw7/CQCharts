@@ -21,7 +21,8 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
  public:
   CQChartsViewPlotPaintDevice(View *view, QPainter *painter);
   CQChartsViewPlotPaintDevice(Plot *plot, QPainter *painter);
-  CQChartsViewPlotPaintDevice(QPainter *painter);
+
+  explicit CQChartsViewPlotPaintDevice(QPainter *painter);
 
  ~CQChartsViewPlotPaintDevice();
 
@@ -130,7 +131,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
  */
 class CQChartsPixelPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
-  CQChartsPixelPaintDevice(QPainter *painter);
+  explicit CQChartsPixelPaintDevice(QPainter *painter);
 
   Type type() const override { return Type::PIXEL; }
 

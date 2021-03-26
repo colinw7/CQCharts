@@ -1145,9 +1145,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsParallelPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsParallelPlotCustomControls(charts);
+  auto *controls = new CQChartsParallelPlotCustomControls(charts());
 
   controls->setPlot(this);
 

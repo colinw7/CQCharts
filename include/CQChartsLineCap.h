@@ -17,7 +17,7 @@ class CQChartsLineCap : public CQChartsEnum<CQChartsLineCap> {
  public:
   CQChartsLineCap();
 
-  CQChartsLineCap(const Qt::PenCapStyle &cap);
+  explicit CQChartsLineCap(const Qt::PenCapStyle &cap);
 
   explicit CQChartsLineCap(const QString &str);
 

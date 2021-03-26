@@ -871,9 +871,9 @@ createPointObj(const BBox &rect, const Point &p, const ColorInd &iv) const
 
 CQChartsPlotCustomControls *
 CQChartsHierScatterPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsHierScatterPlotCustomControls(charts);
+  auto *controls = new CQChartsHierScatterPlotCustomControls(charts());
 
   controls->setPlot(this);
 

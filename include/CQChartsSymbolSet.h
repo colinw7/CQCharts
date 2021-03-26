@@ -11,7 +11,7 @@ class CQChartsSymbolSetMgr : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsSymbolSetMgr(CQCharts *charts);
+  explicit CQChartsSymbolSetMgr(CQCharts *charts);
 
   CQCharts *charts() const { return charts_; }
 
@@ -56,7 +56,7 @@ class CQChartsSymbolSet {
   };
 
  public:
-  CQChartsSymbolSet(const QString &name);
+  explicit CQChartsSymbolSet(const QString &name);
 
   //! get name
   const QString &name() const { return name_; }
@@ -76,6 +76,11 @@ class CQChartsSymbolSet {
   const SymbolData &symbolData(int i) const;
 
   QStringList symbolNames() const;
+
+  //---
+
+  bool moveUp  (int i);
+  bool moveDown(int i);
 
  private:
   using Symbols = std::vector<SymbolData>;

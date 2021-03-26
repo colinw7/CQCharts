@@ -30,28 +30,14 @@ class CQChartsSides :
   static int metaTypeId;
 
  public:
-  CQChartsSides() { }
+  CQChartsSides() = default;
 
-  CQChartsSides(const Sides &sides) :
-   sides_(sides) {
-  }
-
-  CQChartsSides(const Side &side) :
+  explicit CQChartsSides(const Side &side) :
    sides_(Sides(side)) {
   }
 
-  CQChartsSides(const QString &s) {
+  explicit CQChartsSides(const QString &s) {
     setValue(s);
-  }
-
-  CQChartsSides(const CQChartsSides &rhs) :
-    sides_(rhs.sides_) {
-  }
-
-  CQChartsSides &operator=(const CQChartsSides &rhs) {
-    sides_ = rhs.sides_;
-
-    return *this;
   }
 
   const Sides &sides() const { return sides_; }

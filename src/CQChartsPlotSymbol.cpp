@@ -36,6 +36,24 @@ class CQChartsPlotSymbolList {
     return symbols_[0];
   }
 
+  void setSymbolLines(CQChartsSymbol::Type type, const CQChartsPlotSymbol::Lines &lines) {
+    for (auto &s : symbols_) {
+      if (s.type == type) {
+        s.lines = lines;
+        break;
+      }
+    }
+  }
+
+  void setSymbolFillLines(CQChartsSymbol::Type type, const CQChartsPlotSymbol::Lines &lines) {
+    for (auto &s : symbols_) {
+      if (s.type == type) {
+        s.fillLines = lines;
+        break;
+      }
+    }
+  }
+
   void drawSymbol(CQChartsSymbol::Type type, SymbolRenderer *renderer) const {
     if (type == CQChartsSymbol::Type::DOT) {
       renderer->drawPoint(0, 0);
@@ -43,15 +61,15 @@ class CQChartsPlotSymbolList {
     }
 
     if (type == CQChartsSymbol::Type::PAW) {
-      renderer->drawPoint(-0.8,  0.8);
-      renderer->drawPoint(-0.8, -0.8);
-      renderer->drawPoint( 0.8,  0.8);
-      renderer->drawPoint( 0.8, -0.8);
+      renderer->drawPoint(-0.5,  0.5);
+      renderer->drawPoint(-0.5, -0.5);
+      renderer->drawPoint( 0.5,  0.5);
+      renderer->drawPoint( 0.5, -0.5);
       return;
     }
 
     if (type == CQChartsSymbol::Type::CIRCLE) {
-      renderer->strokeCircle(0, 0, 1);
+      renderer->drawFillCircle(0, 0, 0.875, /*fill*/false);
       return;
     }
 
@@ -90,6 +108,7 @@ class CQChartsPlotSymbolList {
         else
           renderer->lineTo(l.x1, l.y1);
 
+        // close path
         if      (l.connect == PlotSymbol::Connect::CLOSE) {
           renderer->closePath();
 
@@ -97,6 +116,7 @@ class CQChartsPlotSymbolList {
 
           connect = false;
         }
+        // add line and stroke
         else if (l.connect == PlotSymbol::Connect::STROKE) {
           renderer->lineTo(l.x2, l.y2);
 
@@ -104,8 +124,13 @@ class CQChartsPlotSymbolList {
 
           connect = false;
         }
-        else
+        // line to
+        else if (l.connect == PlotSymbol::Connect::LINE) {
           connect = true;
+        }
+        else {
+          assert(false);
+        }
       }
 
       renderer->restore();
@@ -140,11 +165,7 @@ class CQChartsPlotSymbolList {
     }
 
     if (type == CQChartsSymbol::Type::CIRCLE) {
-      if (fill)
-        renderer->fillCircle(0, 0, 1);
-      else
-        renderer->strokeCircle(0, 0, 1);
-
+      renderer->drawFillCircle(0, 0, 1, fill);
       return;
     }
 
@@ -253,179 +274,204 @@ static double cw3 = -0.0828427; // line intersect for Y
 using PlotSymbol = CQChartsPlotSymbol;
 
 CQChartsPlotSymbolList symbols({
-  { CQChartsSymbol::Type::CROSS    ,
-    {{-cw2, -cw2,  cw2,  cw2, PlotSymbol::Connect::STROKE},
-     {-cw2,  cw2,  cw2, -cw2, PlotSymbol::Connect::STROKE}},
-    {{-cw2, -1.0,  0.0, -cw1, PlotSymbol::Connect::LINE  },
-     { 0.0, -cw1,  cw2, -1.0, PlotSymbol::Connect::LINE  },
-     { cw2, -1.0,  1.0, -cw2, PlotSymbol::Connect::LINE  },
-     { 1.0, -cw2,  cw1,  0.0, PlotSymbol::Connect::LINE  },
-     { cw1,  0.0,  1.0,  cw2, PlotSymbol::Connect::LINE  },
-     { 1.0,  cw2,  cw2,  1.0, PlotSymbol::Connect::LINE  },
-     { cw2,  1.0,  0.0,  cw1, PlotSymbol::Connect::LINE  },
-     { 0.0,  cw1, -cw2,  1.0, PlotSymbol::Connect::LINE  },
-     {-cw2,  1.0, -1.0,  cw2, PlotSymbol::Connect::LINE  },
-     {-1.0,  cw2, -cw1,  0.0, PlotSymbol::Connect::LINE  },
-     {-cw1,  0.0, -1.0, -cw2, PlotSymbol::Connect::LINE  },
-     {-1.0, -cw2, -cw2, -1.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::PLUS     ,
-    {{ 0.0, -1.0,  0.0,  1.0, PlotSymbol::Connect::STROKE},
-     {-1.0,  0.0,  1.0,  0.0, PlotSymbol::Connect::STROKE}},
-    {{-0.2, -1.0,  0.2, -1.0, PlotSymbol::Connect::LINE  },
-     { 0.2, -1.0,  0.2, -0.2, PlotSymbol::Connect::LINE  },
-     { 0.2, -0.2,  1.0, -0.2, PlotSymbol::Connect::LINE  },
-     { 1.0, -0.2,  1.0,  0.2, PlotSymbol::Connect::LINE  },
-     { 1.0,  0.2,  0.2,  0.2, PlotSymbol::Connect::LINE  },
-     { 0.2,  0.2,  0.2,  1.0, PlotSymbol::Connect::LINE  },
-     { 0.2,  1.0, -0.2,  1.0, PlotSymbol::Connect::LINE  },
-     {-0.2,  1.0, -0.2,  0.2, PlotSymbol::Connect::LINE  },
-     {-0.2,  0.2, -1.0,  0.2, PlotSymbol::Connect::LINE  },
-     {-1.0,  0.2, -1.0, -0.2, PlotSymbol::Connect::LINE  },
-     {-1.0, -0.2, -0.2, -0.2, PlotSymbol::Connect::LINE  },
-     {-0.2, -0.2, -0.2, -1.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::Y        ,
-    {{ 0.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0,  cw2, -cw2, PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0, -cw2, -cw2, PlotSymbol::Connect::STROKE}},
-    {{-0.2,  1.0,  0.2,  1.0, PlotSymbol::Connect::STROKE},
-     { 0.2,  1.0,  0.2, -cw3, PlotSymbol::Connect::STROKE},
-     { 0.2, -cw3,  1.0, -cw2, PlotSymbol::Connect::STROKE},
-     { 1.0, -cw2,  cw2, -1.0, PlotSymbol::Connect::STROKE},
-     { cw2, -1.0,  0.0, -cw1, PlotSymbol::Connect::STROKE},
-     { 0.0, -cw1, -cw2, -1.0, PlotSymbol::Connect::STROKE},
-     {-cw2, -1.0, -1.0, -cw2, PlotSymbol::Connect::STROKE},
-     {-1.0, -cw2, -0.2, -cw3, PlotSymbol::Connect::STROKE},
-     {-0.2, -cw3, -0.2,  1.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::Z        ,
-    {{-0.8, -0.9,  0.8, -0.9, PlotSymbol::Connect::STROKE},
-     { 0.8, -0.9, -0.8,  0.9, PlotSymbol::Connect::STROKE},
-     {-0.8,  0.9,  0.8,  0.9, PlotSymbol::Connect::STROKE}},
-    {{-0.8, -0.9,  0.8, -0.9, PlotSymbol::Connect::STROKE},
-     { 0.8, -0.9,  0.8, -0.5, PlotSymbol::Connect::STROKE},
-     { 0.8, -0.5, -0.4,  0.5, PlotSymbol::Connect::STROKE},
-     {-0.4,  0.5,  0.8,  0.5, PlotSymbol::Connect::STROKE},
-     { 0.8,  0.5,  0.8,  0.9, PlotSymbol::Connect::STROKE},
-     { 0.8,  0.9, -0.8,  0.9, PlotSymbol::Connect::STROKE},
-     {-0.8,  0.9, -0.8,  0.5, PlotSymbol::Connect::STROKE},
-     {-0.8,  0.5,  0.4, -0.5, PlotSymbol::Connect::STROKE},
-     { 0.4, -0.5, -0.8, -0.5, PlotSymbol::Connect::STROKE},
-     {-0.8, -0.5, -0.8, -0.9, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::TRIANGLE ,
-    {{ 0.0, -1.0, -1.0,  1.0, PlotSymbol::Connect::LINE  },
-     {-1.0,  1.0,  1.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  1.0,  0.0, -1.0, PlotSymbol::Connect::CLOSE },
-     { 0.0,  0.0,  0.0, -1.0, PlotSymbol::Connect::STROKE}},
-    {{ 0.0, -1.0, -1.0,  1.0, PlotSymbol::Connect::LINE  },
-     {-1.0,  1.0,  1.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  1.0,  0.0, -1.0, PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::CROSS,
+    {{-0.875,-0.875, 0.875, 0.875, PlotSymbol::Connect::STROKE},
+     {-0.875, 0.875, 0.875,-0.875, PlotSymbol::Connect::STROKE}},
+    {{-cw2 ,-1.0 , 0.0 ,-cw1 , PlotSymbol::Connect::STROKE},
+     { 0.0 ,-cw1 , cw2 ,-1.0 , PlotSymbol::Connect::STROKE},
+     { cw2 ,-1.0 , 1.0 ,-cw2 , PlotSymbol::Connect::STROKE},
+     { 1.0 ,-cw2 , cw1 , 0.0 , PlotSymbol::Connect::STROKE},
+     { cw1 , 0.0 , 1.0 , cw2 , PlotSymbol::Connect::STROKE},
+     { 1.0 , cw2 , cw2 , 1.0 , PlotSymbol::Connect::STROKE},
+     { cw2 , 1.0 , 0.0 , cw1 , PlotSymbol::Connect::STROKE},
+     { 0.0 , cw1 ,-cw2 , 1.0 , PlotSymbol::Connect::STROKE},
+     {-cw2 , 1.0 ,-1.0 , cw2 , PlotSymbol::Connect::STROKE},
+     {-1.0 , cw2 ,-cw1 , 0.0 , PlotSymbol::Connect::STROKE},
+     {-cw1 , 0.0 ,-1.0 ,-cw2 , PlotSymbol::Connect::STROKE},
+     {-1.0 ,-cw2 ,-cw2 ,-1.0 , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::PLUS,
+    {{ 0.0  ,-0.875, 0.0  , 0.875, PlotSymbol::Connect::STROKE},
+     {-0.875, 0.0  , 0.875, 0.0  , PlotSymbol::Connect::STROKE}},
+    {{-0.2  ,-1.0  , 0.2  ,-1.0  , PlotSymbol::Connect::STROKE},
+     { 0.2  ,-1.0  , 0.2  ,-0.2  , PlotSymbol::Connect::STROKE},
+     { 0.2  ,-0.2  , 1.0  ,-0.2  , PlotSymbol::Connect::STROKE},
+     { 1.0  ,-0.2  , 1.0  , 0.2  , PlotSymbol::Connect::STROKE},
+     { 1.0  , 0.2  , 0.2  , 0.2  , PlotSymbol::Connect::STROKE},
+     { 0.2  , 0.2  , 0.2  , 1.0  , PlotSymbol::Connect::STROKE},
+     { 0.2  , 1.0  ,-0.2  , 1.0  , PlotSymbol::Connect::STROKE},
+     {-0.2  , 1.0  ,-0.2  , 0.2  , PlotSymbol::Connect::STROKE},
+     {-0.2  , 0.2  ,-1.0  , 0.2  , PlotSymbol::Connect::STROKE},
+     {-1.0  , 0.2  ,-1.0  ,-0.2  , PlotSymbol::Connect::STROKE},
+     {-1.0  ,-0.2  ,-0.2  ,-0.2  , PlotSymbol::Connect::STROKE},
+     {-0.2  ,-0.2  ,-0.2  ,-1.0  , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::Y,
+    {{ 0.0,  0.0,  0.0  ,  0.875, PlotSymbol::Connect::STROKE},
+     { 0.0,  0.0,  0.875, -0.875, PlotSymbol::Connect::STROKE},
+     { 0.0,  0.0, -0.875, -0.875, PlotSymbol::Connect::STROKE}},
+    {{-0.2,  1.0,  0.2  ,  1.0  , PlotSymbol::Connect::STROKE},
+     { 0.2,  1.0,  0.2  , -cw3  , PlotSymbol::Connect::STROKE},
+     { 0.2, -cw3,  1.0  , -cw2  , PlotSymbol::Connect::STROKE},
+     { 1.0, -cw2,  cw2  , -1.0  , PlotSymbol::Connect::STROKE},
+     { cw2, -1.0,  0.0  , -cw1  , PlotSymbol::Connect::STROKE},
+     { 0.0, -cw1, -cw2  , -1.0  , PlotSymbol::Connect::STROKE},
+     {-cw2, -1.0, -1.0  , -cw2  , PlotSymbol::Connect::STROKE},
+     {-1.0, -cw2, -0.2  , -cw3  , PlotSymbol::Connect::STROKE},
+     {-0.2, -cw3, -0.2  ,  1.0  , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::Z,
+    {{-0.875, -0.875,  0.875, -0.875, PlotSymbol::Connect::STROKE},
+     { 0.875, -0.875, -0.875,  0.875, PlotSymbol::Connect::STROKE},
+     {-0.875,  0.875,  0.875,  0.875, PlotSymbol::Connect::STROKE}},
+    {{-1.0     ,-1.0     , 1.0     ,-1.0     , PlotSymbol::Connect::STROKE},
+     { 1.0     ,-1.0     , 1.0     ,-0.578125, PlotSymbol::Connect::STROKE},
+     { 1.0     ,-0.578125,-0.515625, 0.625   , PlotSymbol::Connect::STROKE},
+     {-0.515625, 0.625   , 1.0     , 0.625   , PlotSymbol::Connect::STROKE},
+     { 1.0     , 0.625   , 1.0     , 1.0     , PlotSymbol::Connect::STROKE},
+     { 1.0     , 1.0     ,-1.0     , 1.0     , PlotSymbol::Connect::STROKE},
+     {-1.0     , 1.0     ,-1.0     , 0.5625  , PlotSymbol::Connect::STROKE},
+     {-1.0     , 0.5625  , 0.5     ,-0.625   , PlotSymbol::Connect::STROKE},
+     { 0.5     ,-0.625   ,-1.0     ,-0.625   , PlotSymbol::Connect::STROKE},
+     {-1.0     ,-0.625   ,-1.0     ,-1.0     , PlotSymbol::Connect::STROKE},
+     {-1.0     ,-1.0     ,-1.0     ,-1.0     , PlotSymbol::Connect::FILL  }} },
+
+/*
+    {{-0.8  , -0.9  ,  0.8  , -0.9  , PlotSymbol::Connect::STROKE},
+     { 0.8  , -0.9  ,  0.8  , -0.5  , PlotSymbol::Connect::STROKE},
+     { 0.8  , -0.5  , -0.4  ,  0.575, PlotSymbol::Connect::STROKE},
+     {-0.4  ,  0.575,  0.8  ,  0.575, PlotSymbol::Connect::STROKE},
+     { 0.8  ,  0.575,  0.8  ,  0.9  , PlotSymbol::Connect::STROKE},
+     { 0.8  ,  0.9  , -0.8  ,  0.9  , PlotSymbol::Connect::STROKE},
+     {-0.8  ,  0.9  , -0.8  ,  0.5  , PlotSymbol::Connect::STROKE},
+     {-0.8  ,  0.5  ,  0.4  , -0.575, PlotSymbol::Connect::STROKE},
+     { 0.4  , -0.575, -0.8  , -0.575, PlotSymbol::Connect::STROKE},
+     {-0.8  , -0.575, -0.8  , -0.9  , PlotSymbol::Connect::FILL  }},
+*/
+  { CQChartsSymbol::Type::TRIANGLE,
+    {{ 0.0  ,-0.875,-0.875, 0.875, PlotSymbol::Connect::LINE  },
+     {-0.875, 0.875, 0.875, 0.875, PlotSymbol::Connect::LINE  },
+     { 0.875, 0.875, 0.0  ,-0.875, PlotSymbol::Connect::CLOSE },
+     { 0.0  , 0.0  , 0.0  ,-0.875, PlotSymbol::Connect::STROKE}},
+    {{ 0.0  ,-1.0  ,-1.0  , 1.0  , PlotSymbol::Connect::STROKE},
+     {-1.0  , 1.0  , 1.0  , 1.0  , PlotSymbol::Connect::STROKE},
+     { 1.0  , 1.0  , 0.0  ,-1.0  , PlotSymbol::Connect::FILL  }} },
   { CQChartsSymbol::Type::ITRIANGLE,
-    {{ 0.0,  1.0, -1.0, -1.0, PlotSymbol::Connect::LINE  },
-     {-1.0, -1.0,  1.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 1.0, -1.0,  0.0,  1.0, PlotSymbol::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::STROKE}},
-    {{ 0.0,  1.0, -1.0, -1.0, PlotSymbol::Connect::LINE  },
-     {-1.0, -1.0,  1.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 1.0, -1.0,  0.0,  1.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::BOX      ,
-    {{-1.0,  1.0,  1.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  1.0,  1.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 1.0, -1.0, -1.0, -1.0, PlotSymbol::Connect::LINE  },
-     {-1.0, -1.0, -1.0,  1.0, PlotSymbol::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::STROKE}},
-    {{-1.0,  1.0,  1.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  1.0,  1.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 1.0, -1.0, -1.0, -1.0, PlotSymbol::Connect::LINE  },
-     {-1.0, -1.0, -1.0,  1.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::DIAMOND  ,
-    {{-1.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 0.0,  1.0,  1.0,  0.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  0.0,  0.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 0.0, -1.0, -1.0,  0.0, PlotSymbol::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::STROKE}},
-    {{-1.0,  0.0,  0.0,  1.0, PlotSymbol::Connect::LINE  },
-     { 0.0,  1.0,  1.0,  0.0, PlotSymbol::Connect::LINE  },
-     { 1.0,  0.0,  0.0, -1.0, PlotSymbol::Connect::LINE  },
-     { 0.0, -1.0, -1.0,  0.0, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::STAR5    ,
-    {{ 0.0,  0.0,  0.0     , -1.0     , PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0, -0.951057, -0.309017, PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0,  0.951057, -0.309017, PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0, -0.587785,  0.809017, PlotSymbol::Connect::STROKE},
-     { 0.0,  0.0,  0.587785,  0.809017, PlotSymbol::Connect::STROKE}},
-    {{ 0.0     , -1       , -0.293893, -0.404508, PlotSymbol::Connect::LINE},
-     {-0.293893, -0.404508, -0.951057, -0.309017, PlotSymbol::Connect::LINE},
-     {-0.951057, -0.309017, -0.475528,  0.154508, PlotSymbol::Connect::LINE},
-     {-0.475528,  0.154508, -0.587785,  0.809017, PlotSymbol::Connect::LINE},
-     {-0.587785,  0.809017,  0.0     ,  0.5     , PlotSymbol::Connect::LINE},
-     { 0.0     ,  0.5     ,  0.587785,  0.809017, PlotSymbol::Connect::LINE},
-     { 0.587785,  0.809017,  0.475528,  0.154508, PlotSymbol::Connect::LINE},
-     { 0.475528,  0.154508,  0.951057, -0.309017, PlotSymbol::Connect::LINE},
-     { 0.951057, -0.309017,  0.293893, -0.404508, PlotSymbol::Connect::LINE},
-     { 0.293893, -0.404508,  0.0     , -1       , PlotSymbol::Connect::FILL}} },
-  { CQChartsSymbol::Type::STAR6    ,
+    {{ 0.0  , 0.875,-0.875,-0.875, PlotSymbol::Connect::LINE  },
+     {-0.875,-0.875, 0.875,-0.875, PlotSymbol::Connect::LINE  },
+     { 0.875,-0.875, 0.0  , 0.875, PlotSymbol::Connect::CLOSE },
+     { 0.0  ,  0.0 , 0.0  , 0.875, PlotSymbol::Connect::STROKE}},
+    {{ 0.0  ,  1.0 ,-1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
+     {-1.0  , -1.0 , 1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
+     { 1.0  , -1.0 , 0.0  , 1.0  , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::BOX,
+    {{-0.875, 0.875, 0.875, 0.875, PlotSymbol::Connect::LINE  },
+     { 0.875, 0.875, 0.875,-0.875, PlotSymbol::Connect::LINE  },
+     { 0.875,-0.875,-0.875,-0.875, PlotSymbol::Connect::LINE  },
+     {-0.875,-0.875,-0.875, 0.875, PlotSymbol::Connect::CLOSE },
+     { 0.0  , 0.0  , 0.0  , 0.875, PlotSymbol::Connect::STROKE}},
+    {{-1.0  , 1.0  , 1.0  , 1.0  , PlotSymbol::Connect::STROKE},
+     { 1.0  , 1.0  , 1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
+     { 1.0  ,-1.0  ,-1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
+     {-1.0  ,-1.0  ,-1.0  , 1.0  , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::DIAMOND,
+    {{-0.875, 0.0  , 0.0  , 0.875, PlotSymbol::Connect::LINE  },
+     { 0.0  , 0.875, 0.875, 0.0  , PlotSymbol::Connect::LINE  },
+     { 0.875, 0.0  , 0.0  ,-0.875, PlotSymbol::Connect::LINE  },
+     { 0.0  ,-0.875,-0.875, 0.0  , PlotSymbol::Connect::CLOSE },
+     { 0.0  , 0.0  , 0.0  , 0.875, PlotSymbol::Connect::STROKE}},
+    {{-1.0  , 0.0  , 0.0  , 1.0  , PlotSymbol::Connect::STROKE},
+     { 0.0  , 1.0  , 1.0  , 0.0  , PlotSymbol::Connect::STROKE},
+     { 1.0  , 0.0  , 0.0  ,-1.0  , PlotSymbol::Connect::STROKE},
+     { 0.0  ,-1.0  ,-1.0  , 0.0  , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::STAR5,
+    {{ 0.0     ,  0.0     ,  0.0     , -1.0     , PlotSymbol::Connect::STROKE},
+     { 0.0     ,  0.0     , -0.951057, -0.309017, PlotSymbol::Connect::STROKE},
+     { 0.0     ,  0.0     ,  0.951057, -0.309017, PlotSymbol::Connect::STROKE},
+     { 0.0     ,  0.0     , -0.587785,  0.809017, PlotSymbol::Connect::STROKE},
+     { 0.0     ,  0.0     ,  0.587785,  0.809017, PlotSymbol::Connect::STROKE}},
+    {{ 0.0     , -1       , -0.293893, -0.404508, PlotSymbol::Connect::STROKE},
+     {-0.293893, -0.404508, -0.951057, -0.309017, PlotSymbol::Connect::STROKE},
+     {-0.951057, -0.309017, -0.475528,  0.154508, PlotSymbol::Connect::STROKE},
+     {-0.475528,  0.154508, -0.587785,  0.809017, PlotSymbol::Connect::STROKE},
+     {-0.587785,  0.809017,  0.0     ,  0.5     , PlotSymbol::Connect::STROKE},
+     { 0.0     ,  0.5     ,  0.587785,  0.809017, PlotSymbol::Connect::STROKE},
+     { 0.587785,  0.809017,  0.475528,  0.154508, PlotSymbol::Connect::STROKE},
+     { 0.475528,  0.154508,  0.951057, -0.309017, PlotSymbol::Connect::STROKE},
+     { 0.951057, -0.309017,  0.293893, -0.404508, PlotSymbol::Connect::STROKE},
+     { 0.293893, -0.404508,  0.0     , -1       , PlotSymbol::Connect::FILL  }} },
+  { CQChartsSymbol::Type::STAR6,
     {{ 0.0     , -1.0     ,  0.0     ,  1.0     , PlotSymbol::Connect::STROKE},
      {-0.866025, -0.5     ,  0.866025,  0.5     , PlotSymbol::Connect::STROKE},
      {-0.866025,  0.5     ,  0.866025, -0.5     , PlotSymbol::Connect::STROKE}},
-    {{ 0.0     ,  1.0     , -0.25    ,  0.433013, PlotSymbol::Connect::LINE},
-     {-0.25    ,  0.433013, -0.866025,  0.5     , PlotSymbol::Connect::LINE},
-     {-0.866025,  0.5     , -0.5     ,  0.0     , PlotSymbol::Connect::LINE},
-     {-0.5     ,  0.0     , -0.866025, -0.5     , PlotSymbol::Connect::LINE},
-     {-0.866025, -0.5     , -0.25    , -0.433013, PlotSymbol::Connect::LINE},
-     {-0.25    , -0.433013,  0.0     , -1.0     , PlotSymbol::Connect::LINE},
-     { 0.0     , -1.0     ,  0.25    , -0.433013, PlotSymbol::Connect::LINE},
-     { 0.25    , -0.433013,  0.866025, -0.5     , PlotSymbol::Connect::LINE},
-     { 0.866025, -0.5     ,  0.5     ,  0.0     , PlotSymbol::Connect::LINE},
-     { 0.5     ,  0.0     ,  0.866025,  0.5     , PlotSymbol::Connect::LINE},
-     { 0.866025,  0.5     ,  0.25    ,  0.433013, PlotSymbol::Connect::LINE},
-     { 0.25    ,  0.433013,  0.0     ,  1.0     , PlotSymbol::Connect::FILL}} },
-   { CQChartsSymbol::Type::PENTAGON ,
+    {{ 0.0     ,  1.0     , -0.25    ,  0.433013, PlotSymbol::Connect::STROKE},
+     {-0.25    ,  0.433013, -0.866025,  0.5     , PlotSymbol::Connect::STROKE},
+     {-0.866025,  0.5     , -0.5     ,  0.0     , PlotSymbol::Connect::STROKE},
+     {-0.5     ,  0.0     , -0.866025, -0.5     , PlotSymbol::Connect::STROKE},
+     {-0.866025, -0.5     , -0.25    , -0.433013, PlotSymbol::Connect::STROKE},
+     {-0.25    , -0.433013,  0.0     , -1.0     , PlotSymbol::Connect::STROKE},
+     { 0.0     , -1.0     ,  0.25    , -0.433013, PlotSymbol::Connect::STROKE},
+     { 0.25    , -0.433013,  0.866025, -0.5     , PlotSymbol::Connect::STROKE},
+     { 0.866025, -0.5     ,  0.5     ,  0.0     , PlotSymbol::Connect::STROKE},
+     { 0.5     ,  0.0     ,  0.866025,  0.5     , PlotSymbol::Connect::STROKE},
+     { 0.866025,  0.5     ,  0.25    ,  0.433013, PlotSymbol::Connect::STROKE},
+     { 0.25    ,  0.433013,  0.0     ,  1.0     , PlotSymbol::Connect::FILL  }} },
+   { CQChartsSymbol::Type::PENTAGON,
     {{  0.000000, -1.000000,  0.951057, -0.309017, PlotSymbol::Connect::LINE  },
      {  0.951057, -0.309017,  0.587785,  0.809017, PlotSymbol::Connect::LINE  },
      {  0.587785,  0.809017, -0.587785,  0.809017, PlotSymbol::Connect::LINE  },
      { -0.587785,  0.809017, -0.951057, -0.309017, PlotSymbol::Connect::LINE  },
      { -0.951057, -0.309017,  0.000000, -1.000000, PlotSymbol::Connect::CLOSE },
      {  0.000000, -1.000000,  0.000000,  0.000000, PlotSymbol::Connect::STROKE}},
-    {{  0.000000, -1.000000,  0.951057, -0.309017, PlotSymbol::Connect::LINE  },
-     {  0.951057, -0.309017,  0.587785,  0.809017, PlotSymbol::Connect::LINE  },
-     {  0.587785,  0.809017, -0.587785,  0.809017, PlotSymbol::Connect::LINE  },
-     { -0.587785,  0.809017, -0.951057, -0.309017, PlotSymbol::Connect::LINE  },
+    {{  0.000000, -1.000000,  0.951057, -0.309017, PlotSymbol::Connect::STROKE},
+     {  0.951057, -0.309017,  0.587785,  0.809017, PlotSymbol::Connect::STROKE},
+     {  0.587785,  0.809017, -0.587785,  0.809017, PlotSymbol::Connect::STROKE},
+     { -0.587785,  0.809017, -0.951057, -0.309017, PlotSymbol::Connect::STROKE},
      { -0.951057, -0.309017,  0.000000, -1.000000, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::IPENTAGON ,
+  { CQChartsSymbol::Type::IPENTAGON,
     {{  0.000000,  1.000000,  0.951057,  0.309017, PlotSymbol::Connect::LINE  },
      {  0.951057,  0.309017,  0.587785, -0.809017, PlotSymbol::Connect::LINE  },
      {  0.587785, -0.809017, -0.587785, -0.809017, PlotSymbol::Connect::LINE  },
      { -0.587785, -0.809017, -0.951057,  0.309017, PlotSymbol::Connect::LINE  },
      { -0.951057,  0.309017,  0.000000,  1.000000, PlotSymbol::Connect::CLOSE },
      {  0.000000,  1.000000,  0.000000, -0.000000, PlotSymbol::Connect::STROKE}},
-    {{  0.000000,  1.000000,  0.951057,  0.309017, PlotSymbol::Connect::LINE  },
-     {  0.951057,  0.309017,  0.587785, -0.809017, PlotSymbol::Connect::LINE  },
-     {  0.587785, -0.809017, -0.587785, -0.809017, PlotSymbol::Connect::LINE  },
-     { -0.587785, -0.809017, -0.951057,  0.309017, PlotSymbol::Connect::LINE  },
+    {{  0.000000,  1.000000,  0.951057,  0.309017, PlotSymbol::Connect::STROKE},
+     {  0.951057,  0.309017,  0.587785, -0.809017, PlotSymbol::Connect::STROKE},
+     {  0.587785, -0.809017, -0.587785, -0.809017, PlotSymbol::Connect::STROKE},
+     { -0.587785, -0.809017, -0.951057,  0.309017, PlotSymbol::Connect::STROKE},
      { -0.951057,  0.309017,  0.000000,  1.000000, PlotSymbol::Connect::FILL  }} }
-   // Hash
-   // Z
-   // PAW
 });
 
 //---
 
 bool
 CQChartsPlotSymbolMgr::
-isSymbol(CQChartsSymbol symbol)
+isSymbol(const CQChartsSymbol &symbol)
 {
   return symbols.isSymbol(symbol.type());
 }
 
 const CQChartsPlotSymbol &
 CQChartsPlotSymbolMgr::
-getSymbol(CQChartsSymbol symbol)
+getSymbol(const CQChartsSymbol &symbol)
 {
   return symbols.getSymbol(symbol.type());
 }
 
 void
 CQChartsPlotSymbolMgr::
-drawSymbol(CQChartsSymbol symbol, SymbolRenderer *renderer)
+setSymbolLines(const CQChartsSymbol &symbol, const CQChartsPlotSymbol::Lines &lines)
+{
+  symbols.setSymbolLines(symbol.type(), lines);
+}
+
+void
+CQChartsPlotSymbolMgr::
+setSymbolFillLines(const CQChartsSymbol &symbol, const CQChartsPlotSymbol::Lines &lines)
+{
+  symbols.setSymbolFillLines(symbol.type(), lines);
+}
+
+void
+CQChartsPlotSymbolMgr::
+drawSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 {
   assert(symbol.isValid());
 
@@ -437,7 +483,7 @@ drawSymbol(CQChartsSymbol symbol, SymbolRenderer *renderer)
 
 void
 CQChartsPlotSymbolMgr::
-strokeSymbol(CQChartsSymbol symbol, SymbolRenderer *renderer)
+strokeSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 {
   assert(symbol.isValid());
 
@@ -449,7 +495,7 @@ strokeSymbol(CQChartsSymbol symbol, SymbolRenderer *renderer)
 
 void
 CQChartsPlotSymbolMgr::
-fillSymbol(CQChartsSymbol symbol, SymbolRenderer *renderer)
+fillSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 {
   assert(symbol.isValid());
 
@@ -630,6 +676,16 @@ drawFillPoint(double x, double y, double r, bool fill) const
     fillCircle(x, y, r);
   else
     drawPoint(x, y);
+}
+
+void
+CQChartsPlotSymbolRenderer::
+drawFillCircle(double x, double y, double r, bool fill) const
+{
+  if (fill)
+    fillCircle(x, y, r);
+  else
+    strokeCircle(x, y, r);
 }
 
 void

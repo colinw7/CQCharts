@@ -819,7 +819,7 @@ addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 
   widgets.borderSidesEdit = CQUtil::makeWidget<CQChartsSidesEdit>("borderSidesEdit");
 
-  widgets.borderSidesEdit->setSides(CQChartsSides::Side::ALL);
+  widgets.borderSidesEdit->setSides(CQChartsSides(CQChartsSides::Side::ALL));
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Border Sides", widgets.borderSidesEdit, row);
 

@@ -17,7 +17,7 @@ class CQChartsLineJoin : public CQChartsEnum<CQChartsLineJoin> {
  public:
   CQChartsLineJoin();
 
-  CQChartsLineJoin(const Qt::PenJoinStyle &join);
+  explicit CQChartsLineJoin(const Qt::PenJoinStyle &join);
 
   explicit CQChartsLineJoin(const QString &str);
 

@@ -1322,9 +1322,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsPiePlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsPiePlotCustomControls(charts);
+  auto *controls = new CQChartsPiePlotCustomControls(charts());
 
   controls->setPlot(this);
 

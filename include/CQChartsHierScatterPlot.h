@@ -386,7 +386,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   void resetCurrentGroup();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using PointGroup = CQChartsHierScatterPointGroup;

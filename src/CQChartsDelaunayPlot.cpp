@@ -762,9 +762,9 @@ createPointObj(const BBox &rect, double x, double y, double value, const QModelI
 
 CQChartsPlotCustomControls *
 CQChartsDelaunayPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsDelaunayPlotCustomControls(charts);
+  auto *controls = new CQChartsDelaunayPlotCustomControls(charts());
 
   controls->setPlot(this);
 

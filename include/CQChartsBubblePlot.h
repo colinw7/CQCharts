@@ -616,7 +616,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
                                  const BBox &rect, const ColorInd &is) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
   struct PlaceData {

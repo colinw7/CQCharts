@@ -343,7 +343,7 @@ class BBox :
       (void) update();
   }
 
-  explicit BBox(const QPointF &p1, const QPointF &p2) :
+  BBox(const QPointF &p1, const QPointF &p2) :
    pmin_(p1.x(), p1.y()), pmax_(p2.x(), p2.y()), set_(true) {
     if (isSet())
       (void) update();
@@ -1015,7 +1015,7 @@ class Range :
    set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
   }
 
-  Range(const BBox &bbox) :
+  explicit Range(const BBox &bbox) :
    set_(bbox.isSet()), x1_(bbox.getXMin()), y1_(bbox.getYMin()),
                        x2_(bbox.getXMax()), y2_(bbox.getYMax()) {
   }
@@ -1364,7 +1364,7 @@ class MinMax {
  public:
   MinMax() = default;
 
-  MinMax(const T &t) {
+  explicit MinMax(const T &t) {
     add(t);
   }
 

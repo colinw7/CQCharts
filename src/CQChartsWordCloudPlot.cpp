@@ -425,9 +425,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsWordCloudPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsWordCloudPlotCustomControls(charts);
+  auto *controls = new CQChartsWordCloudPlotCustomControls(charts());
 
   controls->setPlot(this);
 

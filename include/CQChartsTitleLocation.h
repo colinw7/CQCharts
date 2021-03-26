@@ -24,7 +24,7 @@ class CQChartsTitleLocation : public CQChartsEnum<CQChartsTitleLocation> {
   static int metaTypeId;
 
  public:
-  CQChartsTitleLocation(Type type=Type::TOP) :
+  explicit CQChartsTitleLocation(Type type=Type::TOP) :
    type_(type) {
   }
 

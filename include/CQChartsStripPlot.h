@@ -180,7 +180,7 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
                                    const ColorInd &iv) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Values = std::vector<double>;

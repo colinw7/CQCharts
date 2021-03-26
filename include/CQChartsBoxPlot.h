@@ -869,7 +869,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   Columns valueColumns_;      //!< value columns

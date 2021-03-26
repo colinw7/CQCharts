@@ -1079,7 +1079,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   int numSets() const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Arrow = CQChartsArrow;

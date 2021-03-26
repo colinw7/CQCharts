@@ -133,7 +133,7 @@ setFontStr(const QString &str)
   else {
     QFont f;
 
-    if (! f.fromString(str))
+    if (str.length() && ! f.fromString(str))
       return false;
 
     setFont(f);

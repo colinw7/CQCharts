@@ -121,7 +121,7 @@ init()
 
   addTitle();
 
-  key()->setLocation(CQChartsKeyLocation::Type::AUTO);
+  key()->setLocation(CQChartsKeyLocation(CQChartsKeyLocation::Type::AUTO));
 
   //---
 
@@ -560,7 +560,8 @@ createObjs(PlotObjs &objs) const
 
   xAxis->clearTickLabels();
 
-  xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                           /*notify*/false);
   xAxis->setGridMid       (true);
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
@@ -571,7 +572,8 @@ createObjs(PlotObjs &objs) const
 
   if (plotType() != PlotType::GRID) {
     if (valueType() != ValueType::COUNT) {
-      yAxis->setValueType     (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+      yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                               /*notify*/false);
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
 
       if      (valueType() == ValueType::SUM)
@@ -584,7 +586,8 @@ createObjs(PlotObjs &objs) const
         yAxis->setDefLabel("Mean");
     }
     else {
-      yAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+      yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                               /*notify*/false);
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
       yAxis->setDefLabel("Count");
@@ -593,7 +596,8 @@ createObjs(PlotObjs &objs) const
   else {
     yAxis->clearTickLabels();
 
-    yAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                             /*notify*/false);
     yAxis->setGridMid       (true);
     xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
@@ -1193,9 +1197,9 @@ createCellObj(const BBox &rect, const QModelIndices &inds, const ColorInd &ir, c
 
 CQChartsPlotCustomControls *
 CQChartsPivotPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsPivotPlotCustomControls(charts);
+  auto *controls = new CQChartsPivotPlotCustomControls(charts());
 
   controls->setPlot(this);
 

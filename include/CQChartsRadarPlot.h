@@ -229,7 +229,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
   Qt::Alignment alignForPosition(double x, double y) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   class ValueData {

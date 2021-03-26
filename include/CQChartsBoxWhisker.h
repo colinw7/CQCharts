@@ -24,7 +24,7 @@ class CQChartsBoxWhiskerT {
  public:
   CQChartsBoxWhiskerT() { }
 
-  CQChartsBoxWhiskerT(const Values &values) :
+  explicit CQChartsBoxWhiskerT(const Values &values) :
    values_(values) {
     invalidate();
   }

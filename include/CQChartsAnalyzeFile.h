@@ -13,7 +13,7 @@ class CQChartsAnalyzeFile {
   using DataType = CQBaseModelDataType;
 
  public:
-  CQChartsAnalyzeFile(const QString &filename);
+  explicit CQChartsAnalyzeFile(const QString &filename);
 
   int maxLines() const { return maxLines_; }
   void setMaxLines(int i) { maxLines_ = i; }

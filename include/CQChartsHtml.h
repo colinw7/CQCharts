@@ -18,11 +18,11 @@ class CQChartsHtml {
       BR
     };
 
+    // allow implciti conversion (no explicit)
     Str(const QString &str="") : str_(str) { }
-
     Str(const char *str) : str_(str) { }
 
-    Str(const Type &type) {
+    explicit Str(const Type &type) {
       switch (type) {
         case Type::LT  : str_ = "&lt;"  ; break;
         case Type::GT  : str_ = "&gt;"  ; break;
@@ -37,9 +37,9 @@ class CQChartsHtml {
     Str &operator+=(const Str &str) { str_ += str.str_; return *this; }
     Str &operator+=(const char *str) { str_ += str; return *this; }
 
-    friend Str operator+(const char *lhs, const Str &rhs) { return lhs + rhs.str_; }
-    friend Str operator+(const Str &lhs, const char *rhs) { return lhs.str_ + rhs; }
-    friend Str operator+(const Str &lhs, const Str &rhs) { return lhs.str_ + rhs.str_; }
+    friend Str operator+(const char *lhs, const Str &rhs) { return Str(lhs) + rhs; }
+    friend Str operator+(const Str &lhs, const char *rhs) { return lhs + Str(rhs); }
+    friend Str operator+(const Str &lhs, const Str &rhs) { return Str(lhs.str_ + rhs.str_); }
 
     static Str angled(const Str &str) { return Str("&lt;") + str + Str("&gt;"); }
 

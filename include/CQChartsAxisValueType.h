@@ -24,7 +24,7 @@ class CQChartsAxisValueType : public CQChartsEnum<CQChartsAxisValueType> {
   static int metaTypeId;
 
  public:
-  CQChartsAxisValueType(Type type=Type::REAL) :
+  explicit CQChartsAxisValueType(Type type=Type::REAL) :
    type_(type) {
   }
 

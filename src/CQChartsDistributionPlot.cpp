@@ -1662,33 +1662,38 @@ createObjs(PlotObjs &objs) const
 #endif
 
   if      (isDensity()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                     /*notify*/false);
     valueAxis()->setGridMid         (false);
     valueAxis()->setMajorIncrement  (0);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
     valueAxis()->setRequireTickLabel(false);
 
-    countAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                     /*notify*/false);
     countAxis()->setGridMid         (false);
     countAxis()->setMajorIncrement  (0);
     countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
     countAxis()->setRequireTickLabel(false);
   }
   else if (isScatter()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
     valueAxis()->setGridMid         (true);
     valueAxis()->setMajorIncrement  (1);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     valueAxis()->setRequireTickLabel(false);
 
-    countAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
     countAxis()->setGridMid         (true);
     countAxis()->setMajorIncrement  (1);
     countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     countAxis()->setRequireTickLabel(false);
   }
   else {
-    valueAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
     valueAxis()->setGridMid         (true);
     valueAxis()->setMajorIncrement  (1);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
@@ -1696,12 +1701,15 @@ createObjs(PlotObjs &objs) const
 
     if (! CQChartsPlot::isLogY()) {
       if (isValueCount())
-        countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                  /*notify*/false);
       else
-        countAxis()->setValueType(CQChartsAxisValueType::Type::REAL, /*notify*/false);
+        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                  /*notify*/false);
     }
     else
-      countAxis()->setValueType(CQChartsAxisValueType::Type::LOG, /*notify*/false);
+      countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::LOG),
+                                /*notify*/false);
 
     countAxis()->setGridMid         (false);
     countAxis()->setMajorIncrement  (0);
@@ -2213,7 +2221,8 @@ createObjs(PlotObjs &objs) const
         else if (isNumeric) {
           int xm = CMathRound::RoundNearest(bbox.getXMid());
 
-          if (valueAxis()->tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
+          if (valueAxis()->tickLabelPlacement().type() ==
+              CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
             auto bucketStr = bucketValuesStr(groupInd, sbucket, values);
 
             if      (isStackedActive)
@@ -2608,7 +2617,7 @@ addKeyItems(PlotKey *key)
 
           CQChartsDrawUtil::setColorAlpha(c1, barFillAlpha());
 
-          colorBox->setColor(c1);
+          colorBox->setColor(Color(c1));
         }
         else
           colorBox->setColor(c);
@@ -3167,9 +3176,9 @@ createBarObj(const BBox &rect, int groupInd, const Bucket &bucket, const BarValu
 
 CQChartsPlotCustomControls *
 CQChartsDistributionPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsDistributionPlotCustomControls(charts);
+  auto *controls = new CQChartsDistributionPlotCustomControls(charts());
 
   controls->setPlot(this);
 
@@ -3564,7 +3573,7 @@ draw(PaintDevice *device) const
   else {
     barColor_ = this->barColor();
 
-    drawRect(device, bbox, barColor_, useLine);
+    drawRect(device, bbox, Color(barColor_), useLine);
   }
 
   //---
@@ -3742,14 +3751,14 @@ getBarColoredRects(ColorData &colorData) const
 
       CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha());
 
-      color = c1;
+      color = Color(c1);
     }
     else {
       double alpha = (maxAlpha - minAlpha)*colorData.nv/(nvi - 1.0) + minAlpha;
 
       auto barColor1 = CQChartsUtil::blendColors(barColor, bgColor, alpha);
 
-      color = barColor1;
+      color = Color(barColor1);
     }
 
     //---
@@ -3775,11 +3784,11 @@ getBarColoredRects(ColorData &colorData) const
   }
 
   if (colorData.colorSet.empty()) {
-    colorData.colorSet[barColor] = 0;
+    colorData.colorSet[Color(barColor)] = 0;
 
     colorData.colorCount[0] = 1;
 
-    colorData.colorSizes.push_back(ColorSize(barColor, 1.0));
+    colorData.colorSizes.push_back(ColorSize(Color(barColor), 1.0));
 
     colorData.nv = 1;
   }
@@ -3955,7 +3964,7 @@ writeScriptData(ScriptPaintDevice *device) const
 
   bool useLine = this->isUseLine();
 
-  calcBarPenBrush(barColor, useLine, penBrush_, /*updateState*/ false);
+  calcBarPenBrush(Color(barColor), useLine, penBrush_, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
 

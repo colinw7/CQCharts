@@ -317,7 +317,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Geometries = std::vector<Geometry>;

@@ -651,7 +651,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void updateCurrentRoot();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   struct TitleData {

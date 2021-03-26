@@ -1406,9 +1406,9 @@ drawDeviceParts(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsForceDirectedPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsForceDirectedPlotCustomControls(charts);
+  auto *controls = new CQChartsForceDirectedPlotCustomControls(charts());
 
   controls->setPlot(this);
 

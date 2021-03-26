@@ -1885,12 +1885,12 @@ resetPlotGrouping(const Plots &plots)
 {
   for (auto &plot : plots) {
     if (plot->xAxis()) {
-      plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      plot->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
       plot->xAxis()->setVisible(true);
     }
 
     if (plot->yAxis()) {
-      plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      plot->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
       plot->yAxis()->setVisible(true);
     }
 
@@ -2036,7 +2036,7 @@ initOverlayAxes()
       auto *plot2 = firstPlot->nextPlot();
 
       while (plot2) {
-        plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+        plot2->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
 
         plot2 = plot2->nextPlot();
       }
@@ -2045,7 +2045,7 @@ initOverlayAxes()
       auto *plot2 = firstPlot->nextPlot();
 
       while (plot2) {
-        plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+        plot2->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
 
         plot2 = plot2->nextPlot();
       }
@@ -2064,10 +2064,10 @@ initOverlayAxes()
       yaxis->setVisible(true);
 
       if      (firstPlot->isX1X2(/*checkVisible*/false)) {
-        plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
       }
       else if (firstPlot->isY1Y2(/*checkVisible*/false)) {
-        plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+        plot->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
       }
     }
   }
@@ -2123,7 +2123,7 @@ initX1X2(const Plots &plots, bool overlay, bool reset)
       // first plot x axis BOTTOM/LEFT (set by resetConnectData), second plot x axis TOP/RIGHT
       if (plot->xAxis()) {
         if (plot->isOverlay())
-          plot->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+          plot->xAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
       }
 
       if (plot->isOverlay()) {
@@ -2197,7 +2197,7 @@ initY1Y2(const Plots &plots, bool overlay, bool reset)
       // first plot y axis BOTTOM/LEFT (set by resetConnectData), second plot y axis TOP/RIGHT
       if (plot->yAxis()) {
         if (plot->isOverlay())
-          plot->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+          plot->yAxis()->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT));
       }
 
       if (plot->isOverlay()) {
@@ -5566,8 +5566,8 @@ showMenu(const Point &p)
       return action;
     };
 
-    addXAxisSideGroupAction("Bottom", CQChartsAxisSide::Type::BOTTOM_LEFT);
-    addXAxisSideGroupAction("Top"   , CQChartsAxisSide::Type::TOP_RIGHT  );
+    addXAxisSideGroupAction("Bottom", CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
+    addXAxisSideGroupAction("Top"   , CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT  ));
 
     if (xAxis)
       xAxisSideActionMap[xAxis->side()]->setChecked(true);
@@ -5619,8 +5619,8 @@ showMenu(const Point &p)
       return action;
     };
 
-    addYAxisSideGroupAction("Left" , CQChartsAxisSide::Type::BOTTOM_LEFT);
-    addYAxisSideGroupAction("Right", CQChartsAxisSide::Type::TOP_RIGHT  );
+    addYAxisSideGroupAction("Left" , CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
+    addYAxisSideGroupAction("Right", CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT  ));
 
     if (yAxis)
       yAxisSideActionMap[yAxis->side()]->setChecked(true);
@@ -5956,7 +5956,7 @@ viewKeyPositionSlot(QAction *action)
   if (! CQChartsKeyLocation::decodeString(action->text(), location))
     assert(false);
 
-  viewKey->setLocation(location);
+  viewKey->setLocation(CQChartsKeyLocation(location));
 
   invalidateObjects();
 
@@ -6000,7 +6000,7 @@ plotKeyPositionSlot(QAction *action)
     if (! CQChartsKeyLocation::decodeString(action->text(), location))
       assert(false);
 
-    plotKey->setLocation(location);
+    plotKey->setLocation(CQChartsKeyLocation(location));
   }
 }
 
@@ -6082,9 +6082,9 @@ xAxisSideSlot(QAction *action)
 
   if (xAxis) {
     if      (action->text() == "Bottom")
-      xAxis->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      xAxis->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
     else if (action->text() == "Top")
-      xAxis->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      xAxis->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT  ));
   }
 }
 
@@ -6126,9 +6126,9 @@ yAxisSideSlot(QAction *action)
 
   if (yAxis) {
     if      (action->text() == "Left")
-      yAxis->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      yAxis->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::BOTTOM_LEFT));
     else if (action->text() == "Right")
-      yAxis->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      yAxis->setSide(CQChartsAxisSide(CQChartsAxisSide::Type::TOP_RIGHT  ));
   }
 }
 
@@ -6160,7 +6160,7 @@ titleLocationSlot(QAction *action)
     if (! CQChartsTitleLocation::decodeString(action->text(), location))
       assert(false);
 
-    title->setLocation(location);
+    title->setLocation(CQChartsTitleLocation(location));
   }
 }
 

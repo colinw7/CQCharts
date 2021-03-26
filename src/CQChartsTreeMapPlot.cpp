@@ -1308,9 +1308,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsTreeMapPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsTreeMapPlotCustomControls(charts);
+  auto *controls = new CQChartsTreeMapPlotCustomControls(charts());
 
   controls->setPlot(this);
 

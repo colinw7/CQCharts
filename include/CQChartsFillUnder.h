@@ -29,22 +29,14 @@ class CQChartsFillUnderSide :
   static QStringList sideNames();
 
  public:
-  CQChartsFillUnderSide(Type type=Type::BOTH) :
+  CQChartsFillUnderSide() = default;
+
+  explicit CQChartsFillUnderSide(Type type) :
    type_(type) {
   }
 
-  CQChartsFillUnderSide(const QString &s) {
+  explicit CQChartsFillUnderSide(const QString &s) {
     setValue(s);
-  }
-
-  CQChartsFillUnderSide(const CQChartsFillUnderSide &rhs) :
-    type_(rhs.type_) {
-  }
-
-  CQChartsFillUnderSide &operator=(const CQChartsFillUnderSide &rhs) {
-    type_ = rhs.type_;
-
-    return *this;
   }
 
   const Type &type() const { return type_; }
@@ -114,21 +106,8 @@ class CQChartsFillUnderPos :
    xtype_(xtype), xpos_(xpos), ytype_(ytype), ypos_(ypos) {
   }
 
-  CQChartsFillUnderPos(const QString &s) {
+  explicit CQChartsFillUnderPos(const QString &s) {
     setValue(s);
-  }
-
-  CQChartsFillUnderPos(const CQChartsFillUnderPos &rhs) :
-    xtype_(rhs.xtype_), xpos_(rhs.xpos_), ytype_(rhs.ytype_), ypos_(rhs.ypos_) {
-  }
-
-  CQChartsFillUnderPos &operator=(const CQChartsFillUnderPos &rhs) {
-    xtype_ = rhs.xtype_;
-    xpos_  = rhs.xpos_;
-    ytype_ = rhs.ytype_;
-    ypos_  = rhs.ypos_;
-
-    return *this;
   }
 
   const Type &xtype() const { return xtype_; }

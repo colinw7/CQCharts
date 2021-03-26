@@ -292,7 +292,7 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Color) {
     auto color = var.value<QColor>();
     ok = color.isValid();
-    return color;
+    return CQChartsColor(color);
   }
 
   if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId) {
@@ -303,7 +303,7 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
 
   auto color = QColor(var.toString());
   ok = color.isValid();
-  return color;
+  return CQChartsColor(color);
 }
 
 QVariant fromColor(const CQChartsColor &c) {

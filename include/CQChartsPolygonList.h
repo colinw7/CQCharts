@@ -20,18 +20,8 @@ class CQChartsPolygonList {
  public:
   CQChartsPolygonList() = default;
 
-  CQChartsPolygonList(const QString &str) {
+  explicit CQChartsPolygonList(const QString &str) {
    setValue(str);
-  }
-
-  CQChartsPolygonList(const CQChartsPolygonList &rhs) :
-    polygons_(rhs.polygons_) {
-  }
-
-  CQChartsPolygonList &operator=(const CQChartsPolygonList &rhs) {
-    polygons_ = rhs.polygons_;
-
-    return *this;
   }
 
   //---

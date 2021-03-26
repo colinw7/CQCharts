@@ -28,9 +28,11 @@ class CQChartsImage :
 
  public:
   CQChartsImage() = default;
+
   CQChartsImage(const CQChartsImage &image);
-  CQChartsImage(const QImage &image);
-  CQChartsImage(const QString &s, Type type=Type::NONE);
+
+  explicit CQChartsImage(const QImage &image);
+  explicit CQChartsImage(const QString &s, Type type=Type::NONE);
 
  ~CQChartsImage();
 

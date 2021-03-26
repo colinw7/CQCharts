@@ -31,9 +31,9 @@ class CQChartsLineDash :
 
   CQChartsLineDash(const CQChartsLineDash &dash);
 
-  CQChartsLineDash(const CLineDash &dash);
+  explicit CQChartsLineDash(const CLineDash &dash);
 
-  CQChartsLineDash(const Lengths &lengths, double offset=0.0);
+  explicit CQChartsLineDash(const Lengths &lengths, double offset=0.0);
 
   explicit CQChartsLineDash(ushort pattern);
 
@@ -46,10 +46,10 @@ class CQChartsLineDash :
   //---
 
   friend bool operator==(const CQChartsLineDash &lhs, const CQChartsLineDash &rhs) {
-    return lhs.operator==(rhs);
+    return (lhs.cmp(rhs) == 0);
   }
 
-  bool operator==(const CQChartsLineDash &d) const;
+  int cmp(const CQChartsLineDash &d) const;
 
   //---
 

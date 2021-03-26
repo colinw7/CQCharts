@@ -119,7 +119,7 @@ addMenuItems(QMenu *)
 
 CQChartsPlotCustomControls *
 CQChartsEmptyPlot::
-createCustomControls(CQCharts *)
+createCustomControls()
 {
   return nullptr;
 }

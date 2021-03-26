@@ -39,13 +39,11 @@ class CQChartsDistributionBucket {
 
   CQChartsDistributionBucket() { }
 
-  explicit
-  CQChartsDistributionBucket(int value) :
+  explicit CQChartsDistributionBucket(int value) :
    type_(Type::VALUE), value_(value) {
   }
 
-  explicit
-  CQChartsDistributionBucket(Type type) :
+  explicit CQChartsDistributionBucket(Type type) :
    type_(type) {
   }
 
@@ -976,7 +974,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void popTopSlot();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   /*!

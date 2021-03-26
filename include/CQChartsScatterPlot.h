@@ -818,7 +818,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setYWhisker(bool b);
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using GroupInds         = std::set<int>;

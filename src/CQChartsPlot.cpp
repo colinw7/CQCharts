@@ -3266,7 +3266,7 @@ CQChartsPlot::
 isLogX() const
 {
   // return logX_;
-  return (mappedXAxis() && mappedXAxis()->valueType() == CQChartsAxisValueType::Type::LOG);
+  return (mappedXAxis() && mappedXAxis()->valueType().type() == CQChartsAxisValueType::Type::LOG);
 }
 
 bool
@@ -3274,7 +3274,7 @@ CQChartsPlot::
 isLogY() const
 {
   // return logY_;
-  return (mappedYAxis() && mappedYAxis()->valueType() == CQChartsAxisValueType::Type::LOG);
+  return (mappedYAxis() && mappedYAxis()->valueType().type() == CQChartsAxisValueType::Type::LOG);
 }
 
 void
@@ -3282,8 +3282,8 @@ CQChartsPlot::
 setLogX(bool b)
 {
   if (mappedXAxis() && b != isLogX()) {
-    mappedXAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                    CQChartsAxisValueType::Type::REAL);
+    mappedXAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                                          CQChartsAxisValueType::Type::REAL));
     updateRangeAndObjs();
   }
 }
@@ -3293,8 +3293,8 @@ CQChartsPlot::
 setLogY(bool b)
 {
   if (mappedYAxis() && b != isLogY()) {
-    mappedYAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                    CQChartsAxisValueType::Type::REAL);
+    mappedYAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                                          CQChartsAxisValueType::Type::REAL));
     updateRangeAndObjs();
   }
 }
@@ -4084,7 +4084,7 @@ addColorKeyItems(CQChartsPlotKey *key)
     groupItem->addItem(textItem );
 
     if (c.isValid())
-      colorItem->setColor(c);
+      colorItem->setColor(Color(c));
 
     if (! key->isHorizontal()) {
       //key->addItem(colorItem, row, 0);
@@ -5673,7 +5673,7 @@ calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
     processOverlayPlots([&](const Plot *plot) {
       if (! plot->xAxis()) return;
 
-      if (side == CQChartsAxisSide::Type::NONE || plot->xAxis()->side() == side) {
+      if (side == CQChartsAxisSide::Type::NONE || plot->xAxis()->side().type() == side) {
         auto xbbox1 = plot->xAxis()->bbox();
         if (! xbbox1.isSet()) return;
 
@@ -5685,7 +5685,7 @@ calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
-    if (side == CQChartsAxisSide::Type::NONE || xAxis()->side() == side)
+    if (side == CQChartsAxisSide::Type::NONE || xAxis()->side().type() == side)
       xbbox = xAxis()->bbox();
   }
 
@@ -5705,7 +5705,7 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     processOverlayPlots([&](const Plot *plot) {
       if (! plot->yAxis()) return;
 
-      if (side == CQChartsAxisSide::Type::NONE || plot->yAxis()->side() == side) {
+      if (side == CQChartsAxisSide::Type::NONE || plot->yAxis()->side().type() == side) {
         auto ybbox1 = plot->yAxis()->bbox();
         if (! ybbox1.isSet()) return;
 
@@ -5717,7 +5717,7 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
-    if (side == CQChartsAxisSide::Type::NONE || yAxis()->side() == side)
+    if (side == CQChartsAxisSide::Type::NONE || yAxis()->side().type() == side)
       ybbox = yAxis()->bbox();
   }
 
@@ -8700,7 +8700,7 @@ columnValueColor(const QVariant &var, Color &color) const
       auto *palette = colorMapPalette().palette();
 
       if (palette)
-        color = palette->getColor(r);
+        color = Color(palette->getColor(r));
       else
         color = Color(Color::Type::PALETTE_VALUE, r);
     }
@@ -9050,7 +9050,7 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   if      (CQChartsVariant::isNumeric(var)) {
     int i = (int) CQChartsVariant::toInt(var, ok);
 
-    if (ok) {
+    if (! ok) {
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
@@ -12287,7 +12287,7 @@ drawXAxis(PaintDevice *device) const
         continue;
 
       // draw x axis at adjusted position and move position down for next axis
-      if (oplot->xAxis()->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
+      if (oplot->xAxis()->side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT)
         drawPlotAxis(oplot, bpos);
 
       bpos -= oplot->xAxisHeight(CQChartsAxisSide::Type::BOTTOM_LEFT);
@@ -12304,7 +12304,7 @@ drawXAxis(PaintDevice *device) const
         continue;
 
       // draw x axis at adjusted position and move position up for next axis
-      if (oplot->xAxis()->side() == CQChartsAxisSide::Type::TOP_RIGHT)
+      if (oplot->xAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
         drawPlotAxis(oplot, tpos);
 
       tpos += oplot->xAxisHeight(CQChartsAxisSide::Type::TOP_RIGHT);
@@ -12393,7 +12393,7 @@ drawYAxis(PaintDevice *device) const
         continue;
 
       // draw y axis at adjusted position and move position left for next axis
-      if (oplot->yAxis()->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
+      if (oplot->yAxis()->side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT)
         drawPlotAxis(oplot, lpos);
 
       double w = oplot->yAxisWidth(CQChartsAxisSide::Type::BOTTOM_LEFT);
@@ -12416,7 +12416,7 @@ drawYAxis(PaintDevice *device) const
         continue;
 
       // draw y axis at adjusted position and move position left for next axis
-      if (oplot->yAxis()->side() == CQChartsAxisSide::Type::TOP_RIGHT)
+      if (oplot->yAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
         drawPlotAxis(oplot, rpos);
 
       double w = oplot->yAxisWidth(CQChartsAxisSide::Type::TOP_RIGHT);
@@ -12451,7 +12451,7 @@ double
 CQChartsPlot::
 xAxisHeight(const CQChartsAxisSide::Type &side) const
 {
-  if (xAxis()->side() == side) {
+  if (xAxis()->side().type() == side) {
     if (xAxis()->bbox().isSet())
       return xAxis()->bbox().getHeight();
     else
@@ -12465,7 +12465,7 @@ double
 CQChartsPlot::
 yAxisWidth(const CQChartsAxisSide::Type &side) const
 {
-  if (yAxis()->side() == side) {
+  if (yAxis()->side().type() == side) {
     if (yAxis()->bbox().isSet())
       return yAxis()->bbox().getWidth();
     else

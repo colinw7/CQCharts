@@ -6,9 +6,12 @@
 class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(double           margin   READ margin    WRITE setMargin  )
-  Q_PROPERTY(CQChartsPosition position READ position  WRITE setPosition)
-  Q_PROPERTY(Qt::Alignment    align    READ align     WRITE setAlign   )
+  Q_PROPERTY(double           margin    READ margin     WRITE setMargin   )
+  Q_PROPERTY(CQChartsPosition position  READ position   WRITE setPosition )
+  Q_PROPERTY(Qt::Alignment    align     READ align      WRITE setAlign    )
+  Q_PROPERTY(bool             numeric   READ isNumeric  WRITE setNumeric  )
+  Q_PROPERTY(bool             integral  READ isIntegral WRITE setIntegral )
+  Q_PROPERTY(int              numUnique READ numUnique  WRITE setNumUnique)
 
  public:
   using Plot          = CQChartsPlot;
@@ -43,6 +46,22 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &a);
 
+  //! get/set is numeric
+  bool isNumeric() const { return numeric_; }
+  void setNumeric(bool b) { numeric_ = b; }
+
+  //! get/set is integral
+  bool isIntegral() const { return integral_; }
+  void setIntegral(bool b) { integral_ = b; }
+
+  //! get/set num unique
+  int numUnique() const { return numUnique_; }
+  void setNumUnique(int i) { numUnique_ = i; }
+
+  //! get/set unique values
+  const QVariantList &uniqueValues() const { return uniqueValues_; }
+  void setUniqueValues(const QVariantList &v) { uniqueValues_ = v; }
+
   //---
 
   //! get/set bbox
@@ -66,9 +85,13 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
  protected:
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
-  double        margin_  { 4.0 };                                 //!< margin in pixels
-  Position      position_;                                        //!< key position
-  Qt::Alignment align_   { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
+  double        margin_    { 4.0 };                                 //!< margin in pixels
+  Position      position_;                                          //!< key position
+  Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
+  bool          numeric_   { false };                               //!< is numeric
+  bool          integral_  { false };                               //!< is integral
+  int           numUnique_ { -1 };                                  //!< num unique
+  QVariantList  uniqueValues_;                                      //!< unique values
 };
 
 //-----
@@ -81,7 +104,6 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
   Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
-  Q_PROPERTY(bool                integral    READ isIntegral  WRITE setIntegral   )
 
  public:
   using PenBrush    = CQChartsPenBrush;
@@ -124,10 +146,6 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   const PaletteName &paletteName() const { return paletteName_; }
   void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
 
-  //! get/set is integral
-  bool isIntegral() const { return integral_; }
-  void setIntegral(bool b) { integral_ = b; }
-
   //---
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
@@ -154,8 +172,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   double mapMin_ { 0.0 }; //!< mapped color min
   double mapMax_ { 1.0 }; //!< mapped color max
 
-  PaletteName paletteName_;           //!< custom palette
-  bool        integral_    { false }; //!< is integral
+  PaletteName paletteName_; //!< custom palette
 
   BBox tbbox_;
 };

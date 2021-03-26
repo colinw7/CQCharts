@@ -248,7 +248,7 @@ class CQChartsBezier3 {
   }
 
   CQChartsBezier3(double x1, double y1, double x2, double y2,
-             double x3, double y3, double x4, double y4) :
+                  double x3, double y3, double x4, double y4) :
    p1_(x1, y1), p2_(x2, y2), p3_(x3, y3), p4_(x4, y4) {
   }
 
@@ -261,7 +261,7 @@ class CQChartsBezier3 {
   }
 
   // create order 3 bezier from order 2 using 'degree elevation'
-  CQChartsBezier3(const CQChartsBezier2 &bezier2) {
+  explicit CQChartsBezier3(const CQChartsBezier2 &bezier2) {
     p1_ = bezier2.getFirstPoint();
     p4_ = bezier2.getLastPoint ();
 
@@ -896,7 +896,7 @@ class CQChartsSmooth {
 
   class Line : public Segment {
    public:
-    Line(int i) : i_(i) { }
+    explicit Line(int i) : i_(i) { }
 
     SegmentType type() const override { return SegmentType::LINE; }
 

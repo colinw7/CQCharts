@@ -17,7 +17,7 @@ class CQChartsCorrelationModel : public CQDataModel {
   using RMinMax = CQChartsGeom::RMinMax;
 
  public:
-  CQChartsCorrelationModel(int numCols);
+  explicit CQChartsCorrelationModel(int numCols);
 
   const Points &points(int i, int j) const {
     auto pi = ijPoints_.find(i);

@@ -67,7 +67,7 @@ setSelected(bool b)
 
 void
 CQChartsTitle::
-setLocation(const CQChartsTitleLocation &l)
+setLocation(const TitleLocation &l)
 {
   CQChartsUtil::testAndSet(location_, l, [&]() { redraw(); } );
 }
@@ -130,7 +130,7 @@ void
 CQChartsTitle::
 setLocationStr(const QString &str)
 {
-  setLocation(CQChartsTitleLocation(str));
+  setLocation(TitleLocation(str));
 
   redraw();
 }
@@ -160,7 +160,7 @@ updateLocation()
 
   auto *xAxis = plot_->xAxis();
 
-  if      (location == CQChartsTitleLocation::Type::TOP) {
+  if      (location.type() == TitleLocation::Type::TOP) {
     if (! isInsidePlot()) {
       ky = bbox.getYMax() + marginSize.height();
 
@@ -170,10 +170,10 @@ updateLocation()
     else
       ky = bbox.getYMax() - ts.height() - marginSize.height();
   }
-  else if (location == CQChartsTitleLocation::Type::CENTER) {
+  else if (location.type() == TitleLocation::Type::CENTER) {
     ky = bbox.getYMid() - ts.height()/2;
   }
-  else if (location == CQChartsTitleLocation::Type::BOTTOM) {
+  else if (location.type() == TitleLocation::Type::BOTTOM) {
     if (! isInsidePlot()) {
       ky = bbox.getYMin() - ts.height() - marginSize.height();
 
@@ -189,10 +189,10 @@ updateLocation()
 
   Point kp(kx, ky);
 
-  if      (location == CQChartsTitleLocation::Type::ABSOLUTE_POSITION) {
+  if      (location.type() == TitleLocation::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
   }
-  else if (location == CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
+  else if (location.type() == TitleLocation::Type::ABSOLUTE_RECTANGLE) {
     auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
@@ -382,9 +382,9 @@ editPress(const Point &p)
 {
   editHandles()->setDragPos(p);
 
-  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_POSITION &&
-      location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
-    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
+  if (location().type() != TitleLocation::Type::ABSOLUTE_POSITION &&
+      location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE) {
+    setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_POSITION));
 
     setAbsolutePlotPosition(position_);
   }
@@ -402,14 +402,14 @@ editMove(const Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (location() == CQChartsTitleLocation::Type::ABSOLUTE_POSITION &&
+  if (location().type() == TitleLocation::Type::ABSOLUTE_POSITION &&
       dragSide == CQChartsResizeSide::MOVE) {
-    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
+    setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_POSITION));
 
     setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
   }
   else {
-    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE);
+    setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_RECTANGLE));
 
     editHandles()->updateBBox(dx, dy);
 
@@ -434,7 +434,7 @@ void
 CQChartsTitle::
 editMoveBy(const Point &d)
 {
-  setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
+  setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_POSITION));
 
   setAbsolutePlotPosition(position_ + d);
 
@@ -476,14 +476,14 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
+  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE)
     updateLocation();
 
   //---
 
   double x { 0 }, y { 0 }, w { 1 }, h { 1 };
 
-  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
+  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE) {
     x = position_.x; // bottom
     y = position_.y; // top
 
@@ -626,7 +626,7 @@ setEditHandlesBBox() const
 {
   auto *th = const_cast<CQChartsTitle *>(this);
 
-  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
+  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE)
     th->editHandles()->setBBox(this->bbox());
 }
 

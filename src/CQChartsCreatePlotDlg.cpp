@@ -2552,19 +2552,19 @@ applyPlot(Plot *plot, bool preview)
     plot->setYLabel(yLabelEdit_->text());
 
   if (plot->xAxis())
-    plot->xAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+    plot->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
 
   if (plot->yAxis())
-    plot->yAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+    plot->yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
 
   if (plot->xAxis() && type->allowXAxisIntegral()) {
     if (xintegralCheck_->isChecked())
-      plot->xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+      plot->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
   }
 
   if (plot->yAxis() && type->allowYAxisIntegral()) {
     if (yintegralCheck_->isChecked())
-      plot->yAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+      plot->yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
   }
 
   plot->setLogX(xlogCheck_->isChecked());

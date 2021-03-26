@@ -493,7 +493,7 @@ calcRange() const
                  targetBBox_.getXMax() + dx, targetBBox_.getYMax() + dy);
   }
   else {
-    return targetBBox_;
+    return Range(targetBBox_);
   }
 }
 
@@ -3157,9 +3157,9 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsPlotCustomControls *
 CQChartsSankeyPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsSankeyPlotCustomControls(charts);
+  auto *controls = new CQChartsSankeyPlotCustomControls(charts());
 
   controls->setPlot(this);
 
@@ -5099,7 +5099,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     CQChartsDrawUtil::setColorAlpha(fillColor2, plot()->edgeFillAlpha());
 
     fillPattern.setType    (CQChartsFillPattern::Type::LGRADIENT);
-    fillPattern.setAltColor(fillColor2);
+    fillPattern.setAltColor(Color(fillColor2));
   }
 
   //---

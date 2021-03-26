@@ -1115,9 +1115,9 @@ createOuterBubbleObj(const BBox &rect, const PointData &pointData,
 
 CQChartsPlotCustomControls *
 CQChartsWheelPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsWheelPlotCustomControls(charts);
+  auto *controls = new CQChartsWheelPlotCustomControls(charts());
 
   controls->setPlot(this);
 

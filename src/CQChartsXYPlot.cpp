@@ -922,10 +922,12 @@ initAxes()
   }
 
   if (xColumnType_ == ColumnType::TIME)
-    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
+                          /*notify*/false);
 
   if (isMapXColumn()) {
-    xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                          /*notify*/false);
 
     xAxis()->setMajorIncrement(1);
   }
@@ -2843,9 +2845,9 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsPlotCustomControls *
 CQChartsXYPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsXYPlotCustomControls(charts);
+  auto *controls = new CQChartsXYPlotCustomControls(charts());
 
   controls->setPlot(this);
 
@@ -4587,7 +4589,7 @@ fillBrush() const
 
   QColor c;
   Alpha  alpha;
-  auto   pattern = CQChartsFillPattern::Type::SOLID;
+  auto   pattern = CQChartsFillPattern(CQChartsFillPattern::Type::SOLID);
 
   if      (plot()->isBivariateLines()) {
     c = plot()->interpBivariateLinesColor(is_);

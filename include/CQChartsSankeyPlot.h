@@ -1403,7 +1403,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void printStats();
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
   // placement

@@ -32,7 +32,7 @@ int valueTypeToInd(const CQChartsAxisValueType &valueType) {
 
 CQChartsAxisValueType indToValueType(int ind) {
   if (ind <= 0)
-    return CQChartsAxisValueType::Type::NONE;
+    return CQChartsAxisValueType(CQChartsAxisValueType::Type::NONE);
   else
     return CQChartsAxisValueType((CQChartsAxisValueType::Type) ind);
 }

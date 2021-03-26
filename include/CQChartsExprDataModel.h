@@ -9,7 +9,7 @@
  */
 class CQChartsExprDataModel : public CQDataModel {
  public:
-  CQChartsExprDataModel(int n);
+  explicit CQChartsExprDataModel(int n);
 
   int n() const { return n_; }
 

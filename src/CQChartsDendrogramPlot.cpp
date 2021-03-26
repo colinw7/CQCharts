@@ -574,9 +574,9 @@ createNodeObj(CQChartsDendrogram::Node *node, const BBox &rect) const
 
 CQChartsPlotCustomControls *
 CQChartsDendrogramPlot::
-createCustomControls(CQCharts *charts)
+createCustomControls()
 {
-  auto *controls = new CQChartsDendrogramPlotCustomControls(charts);
+  auto *controls = new CQChartsDendrogramPlotCustomControls(charts());
 
   controls->setPlot(this);
 

@@ -55,7 +55,7 @@ class CQChartsSpringyNode : public Springy::Node {
   using OptReal = CQChartsOptReal;
 
  public:
-  CQChartsSpringyNode(int id) :
+  explicit CQChartsSpringyNode(int id) :
    Springy::Node(id) {
   }
 
@@ -297,7 +297,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int getStringId(const QString &str) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Node            = CQChartsSpringyNode;

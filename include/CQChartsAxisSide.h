@@ -21,7 +21,7 @@ class CQChartsAxisSide : public CQChartsEnum<CQChartsAxisSide> {
   static int metaTypeId;
 
  public:
-  CQChartsAxisSide(Type type=Type::BOTTOM_LEFT) :
+  explicit CQChartsAxisSide(Type type=Type::BOTTOM_LEFT) :
    type_(type) {
   }
 

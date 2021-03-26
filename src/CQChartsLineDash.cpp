@@ -66,26 +66,27 @@ operator=(const CQChartsLineDash &dash)
   return copy(dash);
 }
 
-bool
+int
 CQChartsLineDash::
-operator==(const CQChartsLineDash &dash) const
+cmp(const CQChartsLineDash &dash) const
 {
-  if (getOffset() != dash.getOffset()) return false;
+  if (getOffset() > dash.getOffset()) return  1;
+  if (getOffset() < dash.getOffset()) return -1;
 
   auto qlengths1 =      getLengths();
   auto qlengths2 = dash.getLengths();
 
-  if (qlengths1.size() != qlengths2.size())
-    return false;
+  if (qlengths1.size() > qlengths2.size()) return  1;
+  if (qlengths1.size() < qlengths2.size()) return -1;
 
   int num_lengths = qlengths1.size();
 
   for (int i = 0; i < num_lengths; ++i) {
-    if (qlengths1[i] != qlengths2[i])
-      return false;
+    if (qlengths1[i] > qlengths2[i]) return  1;
+    if (qlengths1[i] < qlengths2[i]) return -1;
   }
 
-  return true;
+  return 0;
 }
 
 void

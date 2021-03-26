@@ -176,7 +176,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls(CQCharts *charts) override;
+  CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Dendrogram = CQChartsDendrogram;

@@ -145,3 +145,27 @@ symbolNames() const
 
   return names;
 }
+
+bool
+CQChartsSymbolSet::
+moveUp(int i)
+{
+  if (i <= 0 || i >= numSymbols())
+    return false;
+
+  std::swap(symbols_[i - 1], symbols_[i]);
+
+  return true;
+}
+
+bool
+CQChartsSymbolSet::
+moveDown(int i)
+{
+  if (i < 0 || i >= numSymbols() - 1)
+    return false;
+
+  std::swap(symbols_[i], symbols_[i + 1]);
+
+  return true;
+}

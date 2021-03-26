@@ -31,6 +31,7 @@ class CQChartsPropertyViewTree;
 class CQChartsPlotCustomControls;
 class CQChartsSymbolSetsList;
 class CQChartsSymbolsList;
+class CQChartsSymbolEditor;
 class CQChartsViewError;
 class CQChartsPlotControlFrame;
 
@@ -109,6 +110,10 @@ class CQChartsViewSettings : public QFrame {
   void updatePlotAnnotations();
 
   void updatePlotObjects();
+
+  void symbolListSelectionChangeSlot();
+  void symbolUpSlot();
+  void symbolDownSlot();
 
   void updateLayers();
 
@@ -338,21 +343,22 @@ class CQChartsViewSettings : public QFrame {
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
-  CQTabWidget*        tab_                { nullptr }; //!< settings/palette tab
-  PropertiesWidgets   propertiesWidgets_;              //!< properties widgets
-  PlotControlFrame*   quickControlFrame_  { nullptr }; //!< quick control widgets
-  QFrame*             customControlFrame_ { nullptr }; //!< custom control widgets
-  PlotCustomControls* plotCustomControls_ { nullptr }; //!< plot custom controls
-  ModelsWidgets       modelsWidgets_;                  //!< models widgets
-  PlotsWidgets        plotsWidgets_;                   //!< plots widgets
-  AnnotationsWidgets  annotationsWidgets_;             //!< annotations widgets
-  ObjectsWidgets      objectsWidgets_;                 //!< objects widgets
-  ThemeWidgets        themeWidgets_;                   //!< theme widgets
-  SymbolSetsList*     symbolSetsList_     { nullptr }; //!< symbol sets list
-  SymbolsList*        symbolsList_        { nullptr }; //!< symbols list
-  LayersWidgets       layersWidgets_;                  //!< layers widgets
-  QTextEdit*          queryText_          { nullptr }; //!< query text
-  ViewError*          error_              { nullptr }; //!< error widget
+  CQTabWidget*          tab_                { nullptr }; //!< settings/palette tab
+  PropertiesWidgets     propertiesWidgets_;              //!< properties widgets
+  PlotControlFrame*     quickControlFrame_  { nullptr }; //!< quick control widgets
+  QFrame*               customControlFrame_ { nullptr }; //!< custom control widgets
+  PlotCustomControls*   plotCustomControls_ { nullptr }; //!< plot custom controls
+  ModelsWidgets         modelsWidgets_;                  //!< models widgets
+  PlotsWidgets          plotsWidgets_;                   //!< plots widgets
+  AnnotationsWidgets    annotationsWidgets_;             //!< annotations widgets
+  ObjectsWidgets        objectsWidgets_;                 //!< objects widgets
+  ThemeWidgets          themeWidgets_;                   //!< theme widgets
+  SymbolSetsList*       symbolSetsList_     { nullptr }; //!< symbol sets list
+  SymbolsList*          symbolsList_        { nullptr }; //!< symbols list
+  CQChartsSymbolEditor* symbolEdit_         { nullptr };
+  LayersWidgets         layersWidgets_;                  //!< layers widgets
+  QTextEdit*            queryText_          { nullptr }; //!< query text
+  ViewError*            error_              { nullptr }; //!< error widget
 
   // dialogs
   using CreateAnnotationDlg = CQChartsCreateAnnotationDlg;
@@ -529,11 +535,75 @@ class CQChartsSymbolsList : public QListWidget {
 
   CQChartsSymbolSet *symbolSet() const;
 
+  void moveCurrentUp();
+  void moveCurrentDown();
+
+  QListWidgetItem *currentItem() const;
+
+  bool selectedSymbol(CQChartsSymbol &symbol, bool &filled) const;
+
+ private:
+  void updateItems();
+
  private:
   CQChartsViewSettings*        viewSettings_ { nullptr };
   QString                      name_;
   int                          ind_          { 0 };
   CQChartsSymbolsItemDelegate* delegate_     { nullptr };
+};
+
+//---
+
+#include <CQChartsDisplayRange.h>
+
+class CQChartsSymbolEditor : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsSymbolEditor(CQChartsViewSettings *viewSettings);
+
+  void setSymbol(const CQChartsSymbol &symbol, bool filled);
+
+  //--
+
+  void resizeEvent(QResizeEvent *) override;
+
+  void paintEvent(QPaintEvent *) override;
+
+  void drawGrid  (QPainter *painter);
+  void drawSymbol(QPainter *painter);
+  void drawGuides(QPainter *painter);
+
+  void mousePressEvent  (QMouseEvent *me) override;
+  void mouseMoveEvent   (QMouseEvent *me) override;
+  void mouseReleaseEvent(QMouseEvent *me) override;
+
+  void keyPressEvent(QKeyEvent *e) override;
+
+  void updateMousePos(const QPoint &pos);
+
+  QSize sizeHint() const override;
+
+ private:
+  void pixelToWindow(double px, double py, double &wx, double &wy);
+
+ private:
+  using Points      = std::vector<QPointF>;
+  using PointsArray = std::vector<Points>;
+
+  CQChartsViewSettings* viewSettings_  { nullptr };
+  CQChartsSymbol        symbol_;
+  bool                  filled_        { false };
+  CQChartsDisplayRange  range_;
+  PointsArray           pointsArray_;
+  QPointF               pressPos_;
+  QPointF               pointPos_;
+  QPointF               mousePos_;
+  int                   mouseArrayInd_ { 0 };
+  int                   mouseInd_      { 0 };
+  bool                  pressed_       { false };
+  bool                  escape_        { false };
+  Qt::MouseButton       button_        { Qt::LeftButton };
 };
 
 #endif
