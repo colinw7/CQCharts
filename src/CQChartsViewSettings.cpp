@@ -852,7 +852,7 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
 
       CQChartsPixelPaintDevice device(painter);
 
-       painter->setPen(Qt::black);
+      painter->setPen(Qt::black);
 
       if (filled)
         painter->setBrush(Qt::green);

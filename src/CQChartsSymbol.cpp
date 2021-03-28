@@ -83,6 +83,7 @@ typeNames()
 
 //---
 
+// TODO: move into charts
 namespace {
 
 struct PathsStylesData {

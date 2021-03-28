@@ -57,6 +57,16 @@ class CQIntRangeSlider : public CQRangeSlider {
 
   void paintEvent(QPaintEvent *) override;
 
+  //---
+
+  virtual void drawRangeLabels(QPainter *painter);
+
+  virtual void drawSlider(QPainter *painter);
+
+  virtual void drawSliderLabels(QPainter *painter);
+
+  //---
+
   QSize sizeHint() const override;
 
  signals:
@@ -65,8 +75,8 @@ class CQIntRangeSlider : public CQRangeSlider {
   void sliderRangeChanging(int min, int max);
   void sliderRangeChanged (int min, int max);
 
- private:
-  void updateTip();
+ protected:
+  virtual void updateTip();
 
   QString intToString(int i) const;
 
@@ -80,7 +90,7 @@ class CQIntRangeSlider : public CQRangeSlider {
   double valueToPixel(int x) const;
   int pixelToValue(double px) const;
 
- private:
+ protected:
   struct Range {
     int min {   0 };
     int max { 100 };

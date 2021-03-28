@@ -312,6 +312,7 @@ CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
 CQChartsSymbolDataEdit.cpp \
 CQChartsSymbolEdit.cpp \
+CQChartsSymbolRangeSlider.cpp \
 CQChartsSymbolSetEdit.cpp \
 CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
@@ -670,6 +671,7 @@ HEADERS += \
 ../include/CQChartsStrokeDataEdit.h \
 ../include/CQChartsSymbolDataEdit.h \
 ../include/CQChartsSymbolEdit.h \
+../include/CQChartsSymbolRangeSlider.h \
 ../include/CQChartsSymbolSetEdit.h \
 ../include/CQChartsTextBoxDataEdit.h \
 ../include/CQChartsTextDataEdit.h \

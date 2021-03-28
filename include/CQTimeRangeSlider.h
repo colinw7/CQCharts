@@ -71,7 +71,7 @@ class CQTimeRangeSlider : public CQRangeSlider {
   void sliderRangeChanging(double min, double max);
   void sliderRangeChanged (double min, double max);
 
- private:
+ protected:
   void updateTip();
 
   QString timeToString(double r) const;
@@ -87,7 +87,7 @@ class CQTimeRangeSlider : public CQRangeSlider {
   double valueToPixel(double x) const;
   double pixelToValue(double px) const;
 
- private:
+ protected:
   struct Range {
     double min { 0.0 };
     double max { 1.0 };

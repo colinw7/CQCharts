@@ -2923,13 +2923,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  bool filled = argv.getParseBool("filled");
+
   if      (argv.hasParseArg("symbol")) {
     auto symbolStr = argv.getParseStr("symbol");
 
     if (CQChartsSymbol::nameToType(symbolStr) == CQChartsSymbol::Type::NONE)
       return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
-
-    bool filled = argv.getParseBool("filled");
 
     symbolSet->addSymbol(CQChartsSymbol(symbolStr), filled);
   }
@@ -2937,7 +2937,7 @@ execCmd(CQChartsCmdArgs &argv)
     auto charStr = argv.getParseStr("char");
     auto nameStr = argv.getParseStr("name");
 
-    symbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr)));
+    symbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr)), filled);
   }
   else if (argv.hasParseArg("svg")) {
     auto svgStr  = argv.getParseStr("svg");
@@ -2984,7 +2984,7 @@ execCmd(CQChartsCmdArgs &argv)
       pathData.styles.push_back(style);
     }
 
-    symbolSet->addSymbol(CQChartsSymbol(pathData));
+    symbolSet->addSymbol(CQChartsSymbol(pathData), filled);
   }
 
   return true;

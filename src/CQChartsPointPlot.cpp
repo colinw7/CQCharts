@@ -14,12 +14,12 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsSymbolSetEdit.h>
 #include <CQChartsLengthEdit.h>
+#include <CQChartsSymbolRangeSlider.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQTabSplit.h>
 #include <CQDoubleRangeSlider.h>
-#include <CQIntRangeSlider.h>
 
 #include <QLabel>
 #include <QGridLayout>
@@ -1510,7 +1510,7 @@ addSymbolSizeWidgets()
   // symbol type widget
   symbolTypeEdit_        = CQUtil::makeWidget<CQChartsSymbolEdit>("symbolTypeEdit");
   symbolTypeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolTypeColumnCombo");
-  symbolTypeRange_       = CQUtil::makeWidget<CQIntRangeSlider>("symbolTypeRange");
+  symbolTypeRange_       = CQUtil::makeWidget<CQChartsSymbolRangeSlider>("symbolTypeRange");
   symbolTypeSetEdit_     = CQUtil::makeWidget<CQChartsSymbolSetEdit>("symbolSetEdit");
 
   symbolTypeSetEdit_->setCharts(charts_);
@@ -1640,13 +1640,8 @@ updateWidgets()
 
     symbolTypeSetEdit_->setSymbolSetName(symbolSet ? symbolSet->name() : "");
 
-    int typeVal1 = (symbolSet ?                           0 : CQChartsSymbol::minOutlineValue());
-    int typeVal2 = (symbolSet ? symbolSet->numSymbols() - 1 : CQChartsSymbol::maxOutlineValue());
-
-    symbolTypeRange_->setRangeMinMax(typeVal1, typeVal2);
-    symbolTypeRange_->setSliderMinMax(plot_->symbolTypeMapMin(), plot_->symbolTypeMapMax());
-
-    symbolTypeRange_->fixSliderValues();
+    symbolTypeRange_->setPlot(plot_);
+    symbolTypeRange_->setSymbolSetName(symbolSet ? symbolSet->name() : "");
   }
 
   //---
