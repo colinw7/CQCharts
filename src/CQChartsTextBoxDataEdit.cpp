@@ -11,6 +11,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQUtil.h>
+#include <CQTabWidget.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -204,7 +205,7 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
   //---
 
   if (tabbed_) {
-    auto *tab = CQUtil::makeWidget<QTabWidget>("tab");
+    auto *tab = CQUtil::makeWidget<CQTabWidget>("tab");
 
     layout->addWidget(tab, row, 0, 1, 2); ++row;
 

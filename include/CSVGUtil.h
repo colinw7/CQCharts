@@ -31,6 +31,9 @@ class PathVisitor {
 
   virtual ~PathVisitor() { }
 
+  virtual void init() { }
+  virtual void term() { }
+
   virtual void moveTo(double x, double y) = 0;
 
   virtual void rmoveTo(double dx, double dy) {
@@ -58,14 +61,32 @@ class PathVisitor {
   virtual void bezier2To(double x1, double y1, double x2, double y2) = 0;
 
   virtual void rbezier2To(double dx1, double dy1, double dx2, double dy2) {
-    bezier2To(lastX() + dx1, lastY() + dy1, lastX() + dx2, lastY() + dy2);
+    double x1 = lastX() + dx1;
+    double y1 = lastY() + dy1;
+
+    double x2 = lastX() + dx2;
+    double y2 = lastY() + dy2;
+
+    bezier2To(x1, y1, x2, y2);
+
+    setLastControlPoint(x2, y2);
   }
 
   virtual void bezier3To(double x1, double y1, double x2, double y2, double x3, double y3) = 0;
 
   virtual void rbezier3To(double dx1, double dy1, double dx2, double dy2, double dx3, double dy3) {
-    bezier3To(lastX() + dx1, lastY() + dy1, lastX() + dx2, lastY() + dy2,
-              lastX() + dx3, lastY() + dy3);
+    double x1 = lastX() + dx1;
+    double y1 = lastY() + dy1;
+
+    double x2 = lastX() + dx2;
+    double y2 = lastY() + dy2;
+
+    double x3 = lastX() + dx3;
+    double y3 = lastY() + dy3;
+
+    bezier3To(x1, y1, x2, y2, x3, y3);
+
+    setLastControlPoint(x2, y2);
   }
 
   virtual void mbezier2To(double x2, double y2) {
@@ -77,17 +98,24 @@ class PathVisitor {
     double y1 = lastY() + dy;
 
     bezier2To(x1, y1, x2, y2);
+
+    setLastControlPoint(x1, y1);
   }
 
   virtual void mrbezier2To(double dx2, double dy2) {
     // control point is mirror of last point
-    double dx = lastX() - lastControlX();
-    double dy = lastY() - lastControlY();
+    double dx1 = lastX() - lastControlX();
+    double dy1 = lastY() - lastControlY();
 
-    double x1 = lastX() + dx;
-    double y1 = lastY() + dy;
+    double x1 = lastX() + dx1;
+    double y1 = lastY() + dy1;
 
-    bezier2To(x1, y1, lastX() + dx2, lastY() + dy2);
+    double x2 = lastX() + dx2;
+    double y2 = lastY() + dy2;
+
+    bezier2To(x1, y1, x2, y2);
+
+    setLastControlPoint(x1, y1);
   }
 
   virtual void mbezier3To(double x2, double y2, double x3, double y3) {
@@ -99,17 +127,27 @@ class PathVisitor {
     double y1 = lastY() + dy;
 
     bezier3To(x1, y1, x2, y2, x3, y3);
+
+    setLastControlPoint(x2, y2);
   }
 
   virtual void mrbezier3To(double dx2, double dy2, double dx3, double dy3) {
-    // control point is mirror of last point
-    double dx = lastX() - lastControlX();
-    double dy = lastY() - lastControlY();
+    // first control point is mirror of last control point in last point
+    double dx1 = lastX() - lastControlX();
+    double dy1 = lastY() - lastControlY();
 
-    double x1 = lastX() + dx;
-    double y1 = lastY() + dy;
+    double x1 = lastX() + dx1;
+    double y1 = lastY() + dy1;
 
-    bezier3To(x1, y1, lastX() + dx2, lastY() + dy2, lastX() + dx3, lastY() + dy3);
+    double x2 = lastX() + dx2;
+    double y2 = lastY() + dy2;
+
+    double x3 = lastX() + dx3;
+    double y3 = lastY() + dy3;
+
+    bezier3To(x1, y1, x2, y2, x3, y3);
+
+    setLastControlPoint(x2, y2);
   }
 
   virtual void closePath(bool relative) = 0;

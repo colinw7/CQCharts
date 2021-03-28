@@ -1,4 +1,5 @@
 #include <CQChartsSVGPaintDevice.h>
+#include <CQChartsSVGUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsImage.h>
 #include <CQChartsPath.h>
@@ -129,7 +130,7 @@ addPathParts(const QPainterPath &path)
 {
   auto ppath = windowToPixel(path);
 
-  *os_ << " " << CQChartsPath::pathToString(ppath).toStdString();
+  *os_ << " " << CQChartsSVGUtil::pathToString(ppath).toStdString();
 }
 
 void

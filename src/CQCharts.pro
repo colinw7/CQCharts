@@ -245,6 +245,7 @@ CQChartsSVGPaintDevice.cpp \
 CQChartsViewPlotPaintDevice.cpp \
 \
 CQChartsPlotDrawUtil.cpp \
+CQChartsSVGUtil.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsObjUtil.cpp \
 CQChartsUtil.cpp \
@@ -517,6 +518,7 @@ HEADERS += \
 ../include/CQChartsViewPlotPaintDevice.h \
 \
 ../include/CQChartsPlotDrawUtil.h \
+../include/CQChartsSVGUtil.h \
 ../include/CQChartsDrawUtil.h \
 ../include/CQChartsObjUtil.h \
 ../include/CQChartsUtil.h \
@@ -746,6 +748,7 @@ INCLUDEPATH += \
 ../../CJson/include \
 ../../CTsv/include \
 ../../CCsv/include \
+../../CXML/include \
 ../../CQPerfMonitor/include \
 ../../CImageLib/include \
 ../../CFont/include \

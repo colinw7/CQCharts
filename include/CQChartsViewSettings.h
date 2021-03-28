@@ -524,12 +524,15 @@ class CQChartsSymbolsList : public QListWidget {
   Q_OBJECT
 
  public:
+  using Symbol = CQChartsSymbol;
+
+ public:
   CQChartsSymbolsList(CQChartsViewSettings *viewSettings);
 
   const QString &name() const { return name_; }
   void setName(const QString &s, int ind);
 
-  CQChartsSymbol symbol(int ind) const;
+  Symbol symbol(int ind) const;
 
   bool isFilledSymbol(int ind) const;
 
@@ -540,7 +543,7 @@ class CQChartsSymbolsList : public QListWidget {
 
   QListWidgetItem *currentItem() const;
 
-  bool selectedSymbol(CQChartsSymbol &symbol, bool &filled) const;
+  bool selectedSymbol(Symbol &symbol, bool &filled) const;
 
  private:
   void updateItems();
@@ -560,9 +563,12 @@ class CQChartsSymbolEditor : public QFrame {
   Q_OBJECT
 
  public:
+  using Symbol = CQChartsSymbol;
+
+ public:
   CQChartsSymbolEditor(CQChartsViewSettings *viewSettings);
 
-  void setSymbol(const CQChartsSymbol &symbol, bool filled);
+  void setSymbol(const Symbol &symbol, bool filled);
 
   //--
 
@@ -588,11 +594,24 @@ class CQChartsSymbolEditor : public QFrame {
   void pixelToWindow(double px, double py, double &wx, double &wy);
 
  private:
-  using Points      = std::vector<QPointF>;
+  struct Point {
+   QPointF p;
+   bool    skip { false };
+
+   Point() = default;
+
+   Point(const QPointF &p) : p(p) { }
+   Point(double x, double y) : p(x, y) { }
+
+   double x() const { return p.x(); }
+   double y() const { return p.y(); }
+  };
+
+  using Points      = std::vector<Point>;
   using PointsArray = std::vector<Points>;
 
   CQChartsViewSettings* viewSettings_  { nullptr };
-  CQChartsSymbol        symbol_;
+  Symbol                symbol_;
   bool                  filled_        { false };
   CQChartsDisplayRange  range_;
   PointsArray           pointsArray_;

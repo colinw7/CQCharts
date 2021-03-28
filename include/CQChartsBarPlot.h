@@ -79,8 +79,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   //---
 
   // data label
-  const DataLabel *dataLabel() const { return dataLabel_; }
-  DataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_.get(); }
+  DataLabel *dataLabel() { return dataLabel_.get(); }
 
   //---
 
@@ -104,11 +104,13 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
+  using DataLabelP = std::shared_ptr<DataLabel>;
+
   Columns         valueColumns_;                  //!< value columns
   Qt::Orientation orientation_  { Qt::Vertical }; //!< bar orientation
   Length          margin_       { "2px" };        //!< bar margin
   Length          groupMargin_  { "4px" };        //!< bar group margin
-  DataLabel*      dataLabel_    { nullptr };      //!< data label data
+  DataLabelP      dataLabel_;                     //!< data label data
 };
 
 #endif

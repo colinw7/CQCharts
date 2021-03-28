@@ -4255,10 +4255,8 @@ draw(PaintDevice *device)
 
   bool isSolid = (fillData.isVisible() && symbolData.type().type() != CQChartsSymbol::Type::DOT);
 
-  if (isSolid)
-    updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
-  else
-    updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
+  updatePenBrushState(penBrush,
+    (isSolid ? CQChartsObjDrawType::SYMBOL : CQChartsObjDrawType::LINE));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

@@ -34,6 +34,10 @@ visitPath(const std::string &data, PathVisitor &visitor)
 
   //---
 
+  visitor.init();
+
+  //---
+
   char c = '\0', lastC = '\0';
 
   bool rereadCmd = false;
@@ -401,7 +405,7 @@ visitPath(const std::string &data, PathVisitor &visitor)
 
       visitor.rbezier2To(x1, y1, x2, y2);
 
-      visitor.incLastControlPoint(x1, y1);
+      //visitor.incLastControlPoint(x1, y1);
 
       visitor.incLastPoint(x2, y2);
 
@@ -425,7 +429,7 @@ visitPath(const std::string &data, PathVisitor &visitor)
 
         visitor.rbezier2To(x1, y1, x2, y2);
 
-        visitor.incLastControlPoint(x1, y1);
+        //visitor.incLastControlPoint(x1, y1);
 
         visitor.incLastPoint(x2, y2);
       }
@@ -557,7 +561,7 @@ visitPath(const std::string &data, PathVisitor &visitor)
 
       visitor.rbezier3To(x1, y1, x2, y2, x3, y3);
 
-      visitor.incLastControlPoint(x2, y2);
+      //visitor.incLastControlPoint(x2, y2);
 
       visitor.incLastPoint(x3, y3);
 
@@ -589,7 +593,7 @@ visitPath(const std::string &data, PathVisitor &visitor)
 
         visitor.rbezier3To(x1, y1, x2, y2, x3, y3);
 
-        visitor.incLastControlPoint(x2, y2);
+        //visitor.incLastControlPoint(x2, y2);
 
         visitor.incLastPoint(x3, y3);
       }
@@ -763,8 +767,16 @@ visitPath(const std::string &data, PathVisitor &visitor)
     skipCommaSpace();
   }
 
+  //---
+
   if (! flag)
     visitor.handleError(parse.getBefore(), parse.getAt(), parse.getAfter());
+
+  //---
+
+  visitor.term();
+
+  //---
 
   return flag;
 }

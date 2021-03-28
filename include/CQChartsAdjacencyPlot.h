@@ -2,7 +2,6 @@
 #define CQChartsAdjacencyPlot_H
 
 #include <CQChartsConnectionPlot.h>
-#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsObjData.h>
 #include <CQChartsConnectionList.h>

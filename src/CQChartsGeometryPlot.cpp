@@ -520,7 +520,12 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       }
     }
     else if (geometryColumnType_ == ColumnType::PATH) {
-      auto path = CQChartsVariant::toPath(rvar, ok3);
+      CQChartsPath path;
+
+      if (! CQChartsVariant::toPath(rvar, path)) {
+        th->addDataError(geometryInd, "Invalid path");
+        return;
+      }
 
       auto poly = Polygon(path.path().toFillPolygon());
 

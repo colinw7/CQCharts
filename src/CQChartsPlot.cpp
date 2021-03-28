@@ -15132,6 +15132,12 @@ bool
 CQChartsPlot::
 isHierarchical() const
 {
+  auto *modelData = getModelData();
+  auto *details   = (modelData ? modelData->details() : nullptr);
+
+  if (details)
+    return details->isHierarchical();
+
   auto *model = this->model().data();
 
   return CQChartsModelUtil::isHierarchical(model);
@@ -17051,6 +17057,7 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   split_->setOrientation(Qt::Vertical);
   split_->setGrouped(true);
+  split_->setAutoFit(true);
 
   layout->addWidget(split_);
 

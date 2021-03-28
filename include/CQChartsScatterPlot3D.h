@@ -89,20 +89,20 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   //---
 
   // symbol type
-  CQChartsSymbol symbolType() const;
-  void setSymbolType(const CQChartsSymbol &s) { extraData().symbolType = s; }
+  Symbol symbolType() const;
+  void setSymbolType(const Symbol &s) { extraData().symbolType = s; }
 
   // symbol size
-  CQChartsLength symbolSize() const;
-  void setSymbolSize(const CQChartsLength &s) { extraData().symbolSize = s; }
+  Length symbolSize() const;
+  void setSymbolSize(const Length &s) { extraData().symbolSize = s; }
 
   // font size
-  CQChartsLength fontSize() const;
-  void setFontSize(const CQChartsLength &s) { extraData().fontSize = s; }
+  Length fontSize() const;
+  void setFontSize(const Length &s) { extraData().fontSize = s; }
 
   // color
-  CQChartsColor color() const;
-  void setColor(const CQChartsColor &c) { extraData().color = c; }
+  Color color() const;
+  void setColor(const Color &c) { extraData().color = c; }
 
   //---
 

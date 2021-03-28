@@ -1,8 +1,8 @@
 #include <CQChartsPath.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsSVGUtil.h>
 
 #include <CQPropertyView.h>
-#include <CSVGUtil.h>
 
 //---
 
@@ -26,54 +26,17 @@ toString() const
   if (! path_)
     return "";
 
-  return pathToString(*path_);
+  return CQChartsSVGUtil::pathToString(*path_);
 }
 
-QString
+CQChartsGeom::BBox
 CQChartsPath::
-pathToString(const QPainterPath &path)
+bbox() const
 {
-  using Point = CQChartsGeom::Point;
-
-  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
-   public:
-    void moveTo(const Point &p) override {
-      if (str_.length()) str_ += " ";
-
-      str_ += QString("M %1 %2").arg(p.x).arg(p.y);
-    }
-
-    void lineTo(const Point &p) override {
-      if (str_.length()) str_ += " ";
-
-      str_ += QString("L %1 %2").arg(p.x).arg(p.y);
-    }
-
-    void quadTo(const Point &p1, const Point &p2) override {
-      if (str_.length()) str_ += " ";
-
-      str_ += QString("Q %1 %2 %3 %4").arg(p1.x).arg(p1.y).arg(p2.x).arg(p2.y);
-    }
-
-    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
-      if (str_.length()) str_ += " ";
-
-      str_ += QString("C %1 %2 %3 %4 %5 %6").
-                arg(p1.x).arg(p1.y).arg(p2.x).arg(p2.y).arg(p3.x).arg(p3.y);
-    }
-
-    const QString &str() const { return str_; }
-
-   private:
-    QString str_;
-  };
-
-  PathVisitor visitor;
-
-  CQChartsDrawUtil::visitPath(path, visitor);
-
-  return visitor.str();
+  return BBox(path_->boundingRect());
 }
+
+//---
 
 void
 CQChartsPath::
@@ -84,108 +47,104 @@ move(double dx, double dy)
 
 void
 CQChartsPath::
+scale(double sx, double sy)
+{
+  *path_ = scalePath(*path_, sx, sy);
+}
+
+void
+CQChartsPath::
 flip(bool flipX, bool flipY)
 {
   *path_ = flipPath(*path_, flipX, flipY);
 }
 
+void
+CQChartsPath::
+moveScale(double dx, double dy, double sx, double sy)
+{
+  *path_ = moveScalePath(*path_, dx, dy, sx, sy);
+}
+
+//---
+
 QPainterPath
 CQChartsPath::
 movePath(const QPainterPath &path, double dx, double dy)
 {
-  using Point = CQChartsGeom::Point;
+  return moveScalePath(path, dx, dy, 1.0, 1.0);
+}
 
-  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
-   public:
-    PathVisitor(double dx, double dy) :
-     dx_(dx), dy_(dy) {
-    }
-
-    void moveTo(const Point &p) override {
-      path_.moveTo(movePoint(p));
-    }
-
-    void lineTo(const Point &p) override {
-      path_.lineTo(movePoint(p));
-    }
-
-    void quadTo(const Point &p1, const Point &p2) override {
-      path_.quadTo(movePoint(p1), movePoint(p2));
-    }
-
-    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
-      path_.cubicTo(movePoint(p1), movePoint(p2), movePoint(p3));
-    }
-
-    const QPainterPath &path() const { return path_; }
-
-   private:
-    QPointF movePoint(const Point &p) const {
-      return QPointF(p.x + dx_, p.y + dy_);
-    };
-
-   private:
-    double       dx_ { 0.0 };
-    double       dy_ { 0.0 };
-    QPainterPath path_;
-  };
-
-  PathVisitor visitor(dx, dy);
-
-  CQChartsDrawUtil::visitPath(path, visitor);
-
-  return visitor.path();
+QPainterPath
+CQChartsPath::
+scalePath(const QPainterPath &path, double sx, double sy)
+{
+  return moveScalePath(path, 0.0, 0.0, sx, sy);
 }
 
 QPainterPath
 CQChartsPath::
 flipPath(const QPainterPath &path, bool flipX, bool flipY)
 {
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
+  return moveScalePath(path, 0.0, 0.0, (flipX ? -1.0 : 1.0), (flipY ? -1.0 : 1.0));
+}
 
+QPainterPath
+CQChartsPath::
+moveScalePath(const QPainterPath &path, double dx, double dy, double sx, double sy)
+{
+  BBox bbox(path.boundingRect());
+
+  return moveScalePath(path, bbox, dx, dy, sx, sy);
+}
+
+QPainterPath
+CQChartsPath::
+moveScalePath(const QPainterPath &path, const BBox &bbox,
+              double dx, double dy, double sx, double sy)
+{
   class PathVisitor : public CQChartsDrawUtil::PathVisitor {
    public:
-    PathVisitor(const BBox &bbox, bool flipX, bool flipY) :
-     bbox_(bbox), flipX_(flipX), flipY_(flipY) {
+    PathVisitor(const BBox &bbox, double dx, double dy, double sx, double sy) :
+     bbox_(bbox), dx_(dx), dy_(dy), sx_(sx), sy_(sy) {
       center_ = bbox_.getCenter();
     }
 
     void moveTo(const Point &p) override {
-      path_.moveTo(flipPoint(p));
+      path_.moveTo(scalePoint(p));
     }
 
     void lineTo(const Point &p) override {
-      path_.lineTo(flipPoint(p));
+      path_.lineTo(scalePoint(p));
     }
 
     void quadTo(const Point &p1, const Point &p2) override {
-      path_.quadTo(flipPoint(p1), flipPoint(p2));
+      path_.quadTo(scalePoint(p1), scalePoint(p2));
     }
 
     void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
-      path_.cubicTo(flipPoint(p1), flipPoint(p2), flipPoint(p3));
+      path_.cubicTo(scalePoint(p1), scalePoint(p2), scalePoint(p3));
     }
 
     const QPainterPath &path() const { return path_; }
 
    private:
-    QPointF flipPoint(const Point &p) const {
-      return QPointF((flipX_ ? 2*center_.x - p.x : p.x),
-                     (flipY_ ? 2*center_.y - p.y : p.y));
+    QPointF scalePoint(const Point &p) const {
+      return QPointF(sx_*(p.x - center_.x) + center_.x + dx_,
+                     sy_*(p.y - center_.y) + center_.y + dy_);
     };
 
    private:
     BBox         bbox_;
     Point        center_;
-    bool         flipX_ { false };
-    bool         flipY_ { false };
+    double       dx_ { 0.0 };
+    double       dy_ { 0.0 };
+    double       sx_ { 1.0 };
+    double       sy_ { 1.0 };
     QPainterPath path_;
   };
 
-  auto rect = path.boundingRect();
-
-  PathVisitor visitor(BBox(rect), flipX, flipY);
+  PathVisitor visitor(bbox, dx, dy, sx, sy);
 
   CQChartsDrawUtil::visitPath(path, visitor);
 
@@ -287,78 +246,37 @@ bool
 CQChartsPath::
 setValue(const QString &str)
 {
-  delete path_;
+  QPainterPath path;
 
-  path_ = new QPainterPath;
+  if (! CQChartsSVGUtil::stringToPath(str, path))
+    return false;
 
   //---
 
-  class PathVisitor : public CSVGUtil::PathVisitor {
-   public:
-    PathVisitor() { }
+  delete path_;
 
-    const QPainterPath &path() const { return path_; }
+  path_ = new QPainterPath(path);
 
-    void moveTo(double x, double y) override {
-      path_.moveTo(x, y);
-    }
+  return true;
+}
 
-    void lineTo(double x, double y) override {
-      path_.lineTo(x, y);
-    }
+//---
 
-    void arcTo(double rx, double ry, double xa, int fa, int fs, double x2, double y2) override {
-      bool unit_circle = false;
+bool
+CQChartsPath::
+fromSVGFile(const QString &fileName)
+{
+  CQChartsSVGUtil::Paths  paths;
+  CQChartsSVGUtil::Styles styles;
+  BBox                    bbox;
 
-      //double cx, cy, rx1, ry1, theta, delta;
-
-      //CSVGUtil::convertArcCoords(lastX(), lastY(), x2, y2, xa, rx, ry, fa, fs, unit_circle,
-      //                           &cx, &cy, &rx1, &ry1, &theta, &delta);
-
-      //path_.arcTo(QRectF(cx - rx1, cy - ry1, 2*rx1, 2*ry1), -theta, -delta);
-
-      //double a1 = CMathUtil::Deg2Rad(theta);
-      //double a2 = CMathUtil::Deg2Rad(theta + delta);
-
-      CSVGUtil::BezierList beziers;
-
-      CSVGUtil::arcToBeziers(lastX(), lastY(), x2, y2, xa, rx, ry, fa, fs, unit_circle, beziers);
-
-      auto qpoint = [](const CPoint2D &p) { return QPointF(p.x, p.y); };
-
-      if (! beziers.empty())
-        path_.lineTo(qpoint(beziers[0].getFirstPoint()));
-
-      for (const auto &bezier : beziers)
-        path_.cubicTo(qpoint(bezier.getControlPoint1()),
-                      qpoint(bezier.getControlPoint2()),
-                      qpoint(bezier.getLastPoint    ()));
-    }
-
-    void bezier2To(double x1, double y1, double x2, double y2) override {
-      path_.quadTo(QPointF(x1, y1), QPointF(x2, y2));
-    }
-
-    void bezier3To(double x1, double y1, double x2, double y2, double x3, double y3) override {
-      path_.cubicTo(QPointF(x1, y1), QPointF(x2, y2), QPointF(x3, y3));
-    }
-
-    void closePath(bool /*relative*/) override {
-      path_.closeSubpath();
-    }
-
-   private:
-    QPainterPath path_;
-  };
-
-  PathVisitor visitor;
-
-  if (! CSVGUtil::visitPath(str.toStdString(), visitor)) {
-    //std::cerr << "Invalid path: " << str.toStdString() << "\n";
+  if (! CQChartsSVGUtil::svgFileToPaths(fileName, paths, styles, bbox))
     return false;
-  }
 
-  *path_ = visitor.path();
+  if (paths.empty())
+    return false;
+
+  *this = paths[0];
 
   return true;
 }

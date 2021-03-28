@@ -297,13 +297,6 @@ getPropertyNames(QStringList &names, bool hidden) const
 
 //---
 
-const CQChartsColumn &
-CQChartsPointPlot::
-symbolTypeColumn() const
-{
-  return symbolTypeData_.column;
-}
-
 void
 CQChartsPointPlot::
 setSymbolTypeColumn(const Column &c)
@@ -311,13 +304,6 @@ setSymbolTypeColumn(const Column &c)
   CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
     updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
-}
-
-bool
-CQChartsPointPlot::
-isSymbolTypeMapped() const
-{
-  return symbolTypeData_.mapped;
 }
 
 void
@@ -329,27 +315,6 @@ setSymbolTypeMapped(bool b)
   } );
 }
 
-int
-CQChartsPointPlot::
-symbolTypeDataMin() const
-{
-  return symbolTypeData_.data_min;
-}
-
-int
-CQChartsPointPlot::
-symbolTypeDataMax() const
-{
-  return symbolTypeData_.data_max;
-}
-
-int
-CQChartsPointPlot::
-symbolTypeMapMin() const
-{
-  return symbolTypeData_.map_min;
-}
-
 void
 CQChartsPointPlot::
 setSymbolTypeMapMin(int i)
@@ -359,13 +324,6 @@ setSymbolTypeMapMin(int i)
   } );
 }
 
-int
-CQChartsPointPlot::
-symbolTypeMapMax() const
-{
-  return symbolTypeData_.map_max;
-}
-
 void
 CQChartsPointPlot::
 setSymbolTypeMapMax(int i)
@@ -373,13 +331,6 @@ setSymbolTypeMapMax(int i)
   CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() {
     updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
-}
-
-const QString &
-CQChartsPointPlot::
-symbolTypeSetName() const
-{
-  return symbolTypeData_.setName;
 }
 
 void
@@ -473,13 +424,6 @@ drawSymbolTypeMapKey(PaintDevice *device) const
 
 //---
 
-const CQChartsColumn &
-CQChartsPointPlot::
-symbolSizeColumn() const
-{
-  return symbolSizeData_.column;
-}
-
 void
 CQChartsPointPlot::
 setSymbolSizeColumn(const Column &c)
@@ -487,13 +431,6 @@ setSymbolSizeColumn(const Column &c)
   CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
-}
-
-bool
-CQChartsPointPlot::
-isSymbolSizeMapped() const
-{
-  return symbolSizeData_.mapped;
 }
 
 void
@@ -505,27 +442,6 @@ setSymbolSizeMapped(bool b)
   } );
 }
 
-double
-CQChartsPointPlot::
-symbolSizeDataMin() const
-{
-  return symbolSizeData_.data_min;
-}
-
-double
-CQChartsPointPlot::
-symbolSizeDataMax() const
-{
-  return symbolSizeData_.data_max;
-}
-
-double
-CQChartsPointPlot::
-symbolSizeMapMin() const
-{
-  return symbolSizeData_.map_min;
-}
-
 void
 CQChartsPointPlot::
 setSymbolSizeMapMin(double r)
@@ -535,13 +451,6 @@ setSymbolSizeMapMin(double r)
   } );
 }
 
-double
-CQChartsPointPlot::
-symbolSizeMapMax() const
-{
-  return symbolSizeData_.map_max;
-}
-
 void
 CQChartsPointPlot::
 setSymbolSizeMapMax(double r)
@@ -549,13 +458,6 @@ setSymbolSizeMapMax(double r)
   CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
-}
-
-const QString &
-CQChartsPointPlot::
-symbolSizeMapUnits() const
-{
-  return symbolSizeData_.units;
 }
 
 void
@@ -619,25 +521,11 @@ drawSymbolSizeMapKey(PaintDevice *device) const
 
 //---
 
-const CQChartsColumn &
-CQChartsPointPlot::
-fontSizeColumn() const
-{
-  return fontSizeData_.column;
-}
-
 void
 CQChartsPointPlot::
 setFontSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
-}
-
-bool
-CQChartsPointPlot::
-isFontSizeMapped() const
-{
-  return fontSizeData_.mapped;
 }
 
 void
@@ -647,13 +535,6 @@ setFontSizeMapped(bool b)
   CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
 }
 
-double
-CQChartsPointPlot::
-fontSizeMapMin() const
-{
-  return fontSizeData_.map_min;
-}
-
 void
 CQChartsPointPlot::
 setFontSizeMapMin(double r)
@@ -661,25 +542,11 @@ setFontSizeMapMin(double r)
   CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
 }
 
-double
-CQChartsPointPlot::
-fontSizeMapMax() const
-{
-  return fontSizeData_.map_max;
-}
-
 void
 CQChartsPointPlot::
 setFontSizeMapMax(double r)
 {
   CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
-}
-
-const QString &
-CQChartsPointPlot::
-fontSizeMapUnits() const
-{
-  return fontSizeData_.units;
 }
 
 void

@@ -227,11 +227,11 @@ Polygon toPolygon(const QVariant &var, bool &ok);
 
 //---
 
-#include <CQChartsPath.h>
+class CQChartsPath;
 
 namespace CQChartsVariant {
 
-CQChartsPath toPath(const QVariant &var, bool &ok);
+bool toPath(const QVariant &var, CQChartsPath &path);
 
 QVariant fromPath(const CQChartsPath &path);
 

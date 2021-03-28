@@ -26,6 +26,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsSymbolSet.h>
+#include <CQChartsSVGUtil.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -2876,9 +2877,12 @@ addCmdArgs(CQChartsCmdArgs &argv)
   argv.startCmdGroup(CmdGroup::Type::OneReq);
   addArg(argv, "-symbol", ArgType::String , "symbol name");
   addArg(argv, "-char"  , ArgType::String , "char string");
+  addArg(argv, "-svg"   , ArgType::String , "svg file");
   argv.endCmdGroup();
 
-  addArg(argv, "-name", ArgType::String, "optional char name");
+  addArg(argv, "-name"  , ArgType::String, "optional char name");
+  addArg(argv, "-filled", ArgType::SBool , "is symbol filled");
+  addArg(argv, "-styled", ArgType::SBool , "is svg styled");
 }
 
 QStringList
@@ -2919,19 +2923,68 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (argv.hasParseArg("symbol")) {
+  if      (argv.hasParseArg("symbol")) {
     auto symbolStr = argv.getParseStr("symbol");
 
     if (CQChartsSymbol::nameToType(symbolStr) == CQChartsSymbol::Type::NONE)
       return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
 
-    symbolSet->addSymbol(CQChartsSymbol(symbolStr));
+    bool filled = argv.getParseBool("filled");
+
+    symbolSet->addSymbol(CQChartsSymbol(symbolStr), filled);
   }
-  else {
+  else if (argv.hasParseArg("char")) {
     auto charStr = argv.getParseStr("char");
     auto nameStr = argv.getParseStr("name");
 
     symbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr)));
+  }
+  else if (argv.hasParseArg("svg")) {
+    auto svgStr  = argv.getParseStr("svg");
+    auto nameStr = argv.getParseStr("name");
+
+    CQChartsSVGUtil::Paths  paths;
+    CQChartsSVGUtil::Styles styles;
+    CQChartsGeom::BBox      bbox;
+
+    if (! CQChartsSVGUtil::svgFileToPaths(svgStr, paths, styles, bbox))
+      return errorMsg(QString("Invalid SVG File '%1'").arg(svgStr));
+
+    CQChartsSymbol::PathData pathData;
+
+    pathData.name = nameStr;
+
+    if (! bbox.isSet()) {
+      for (auto &path : paths)
+        bbox += path.bbox();
+    }
+
+    pathData.bbox = bbox;
+
+    int np = paths.size();
+
+    assert(np == int(styles.size()));
+
+    bool styled = argv.getParseBool("styled");
+
+    for (int ip = 0; ip < np; ++ip) {
+      auto &path = paths [ip];
+
+      auto path1 = CQChartsPath::moveScalePath(path.path(), bbox, 0.0, 0.0, 1.0, -1.0);
+
+      path.setPath(path1);
+
+      pathData.paths .push_back(path);
+
+      CQChartsStyle style;
+
+      if (styled)
+        style = styles[ip];
+
+      pathData.styles.push_back(style);
+    }
+
+    symbolSet->addSymbol(CQChartsSymbol(pathData));
   }
 
   return true;
@@ -6514,9 +6567,23 @@ execCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (name == "symbols") {
-      auto typeNames = CQChartsSymbol::typeNames();
+      QStringList symbolNames;
 
-      return cmdBase_->setCmdRc(typeNames);
+      if (argv.hasParseArg("data")) {
+        auto dataStr = argv.getParseStr("data");
+
+        auto *symbolSet = charts->symbolSetMgr()->symbolSet(dataStr);
+
+        if (! symbolSet)
+          return errorMsg(QString("No Symbol Set '%1'").arg(dataStr));
+
+        symbolNames = symbolSet->symbolNames();
+      }
+      else {
+        symbolNames = CQChartsSymbol::typeNames();
+      }
+
+      return cmdBase_->setCmdRc(symbolNames);
     }
     else if (name == "procs") {
       QStringList procs;
@@ -8317,12 +8384,12 @@ execCmd(CQChartsCmdArgs &argv)
     if (typeStr == "?")
       return cmdBase_->setCmdRc(getArgValues("type"));
 
-    auto type = CQChartsSymbol::nameToType(typeStr);
+    CQChartsSymbol symbol(typeStr);
 
-    if (type == CQChartsSymbol::Type::NONE)
+    if (! symbol.isValid())
       return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
 
-    symbolData.setType(CQChartsSymbol(type));
+    symbolData.setType(symbol);
   }
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));

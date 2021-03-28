@@ -13,8 +13,8 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
 #include <CQUtil.h>
+#include <CQTabWidget.h>
 
-#include <QTabWidget>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
@@ -28,7 +28,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  auto *controlTab = CQUtil::makeWidget<QTabWidget>("tab");
+  auto *controlTab = CQUtil::makeWidget<CQTabWidget>("tab");
 
   controlTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 

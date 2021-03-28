@@ -2,6 +2,7 @@
 #define CQChartsColumnEval_H
 
 #include <CQTclUtil.h>
+#include <memory>
 #include <mutex>
 
 class CQChartsExprTcl;
@@ -71,9 +72,11 @@ class CQChartsColumnEval {
   QVariant getModelData(int row, int col) const;
 
  private:
-  CQChartsExprTcl*   qtcl_  { nullptr }; //!< tcl expressio
-  bool               debug_ { false };   //!< is debug
-  mutable std::mutex mutex_;             //!< mutex
+  using ExprTclP = std::shared_ptr<CQChartsExprTcl>;
+
+  ExprTclP           qtcl_;            //!< tcl expressio
+  bool               debug_ { false }; //!< is debug
+  mutable std::mutex mutex_;           //!< mutex
 };
 
 #endif

@@ -25,7 +25,8 @@ struct CQChartsPlotSymbol {
     LINE,   // add point to path
     CLOSE,  // close path
     STROKE, // add point, stroke and close path
-    FILL    // add point, fill and close path
+    FILL,   // add point, fill and close path
+    BREAK   // move to new point
   };
 
   //! point data
@@ -129,6 +130,7 @@ class CQChartsPlotSymbolRenderer {
   void drawLine(double x1, double y1, double x2, double y2) const;
 
   void fillRect(double x1, double y1, double x2, double y2) const;
+  void drawRect(double x1, double y1, double x2, double y2) const;
 
   void drawFillCircle(double x, double y, double r, bool fill) const;
 
@@ -136,6 +138,12 @@ class CQChartsPlotSymbolRenderer {
   void fillCircle  (double x, double y, double r) const;
 
   void drawChar(const QString &s) const;
+
+  void drawPaths(const std::vector<CQChartsPath> &paths,
+                 const std::vector<CQChartsStyle> &styles) const;
+  void drawPath (const CQChartsPath &path, const CQChartsStyle &style) const;
+
+  Point mapXY(const Point &p) const;
 
   void mapXY(double x, double y, double &x1, double &y1) const;
 

@@ -14,10 +14,10 @@
 #include <CQCharts.h>
 
 #include <CQUtil.h>
+#include <CQTabWidget.h>
 
 #include <QVBoxLayout>
 #include <QStackedWidget>
-#include <QTabWidget>
 #include <set>
 
 CQChartsModelDataWidget::
@@ -31,7 +31,7 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   //--
 
   // model/details tab
-  auto *tableTab = CQUtil::makeWidget<QTabWidget>("tableTab");
+  auto *tableTab = CQUtil::makeWidget<CQTabWidget>("tableTab");
 
   layout->addWidget(tableTab);
 

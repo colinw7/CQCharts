@@ -20,7 +20,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsFontEdit.h>
-#include <CQChartsPaletteNameEdit.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
@@ -2271,18 +2270,18 @@ addMenuItems(QMenu *menu)
   //---
 
   if (canDrawColorMapKey() || canDrawSymbolSizeMapKey() || canDrawSymbolTypeMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
+    auto *keysMenu = new QMenu("Symbol Keys", menu);
 
     if (canDrawColorMapKey())
-      addMenuCheckedAction(keysMenu, "Symbol Color Key", isColorMapKey(),
+      addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(),
                            SLOT(setColorMapKey(bool)));
 
     if (canDrawSymbolSizeMapKey())
-      addMenuCheckedAction(keysMenu, "Symbol Size Key", isSymbolSizeMapKey(),
+      addMenuCheckedAction(keysMenu, "Size Key", isSymbolSizeMapKey(),
                            SLOT(setSymbolSizeMapKey(bool)));
 
     if (canDrawSymbolTypeMapKey())
-      addMenuCheckedAction(keysMenu, "Symbol Type Key", isSymbolTypeMapKey(),
+      addMenuCheckedAction(keysMenu, "Type Key", isSymbolTypeMapKey(),
                            SLOT(setSymbolTypeMapKey(bool)));
 
     menu->addMenu(keysMenu);
@@ -3225,8 +3224,12 @@ calcSymbolType() const
 {
   auto symbolType = this->symbolType();
 
-  if (! symbolType.isValid())
+  if (! symbolType.isValid()) {
     symbolType = plot_->symbolType();
+
+    if (! symbolType.isValid())
+      symbolType = CQChartsSymbol(CQChartsSymbol::Type::CIRCLE);
+  }
 
   return symbolType;
 }

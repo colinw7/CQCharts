@@ -864,19 +864,20 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
       QRect trect(option.rect.left () + s + 4, option.rect.top() + 2,
                   option.rect.width() - s - 6, option.rect.height() - 4);
 
-      if (symbol.type() == CQChartsSymbol::Type::CHAR) {
-        auto name = symbol.charName();
+      QString name;
 
-        if (name == "")
-          name = "char";
-
-        QItemDelegate::drawDisplay(painter, option, trect, name);
+      if      (symbol.type() == CQChartsSymbol::Type::CHAR) {
+        name = symbol.charName();
+        if (name == "") name = "char";
       }
-      else {
-        auto name = symbol.toString();
-
-        QItemDelegate::drawDisplay(painter, option, trect, name);
+      else if (symbol.type() == CQChartsSymbol::Type::PATH) {
+        name = symbol.pathName();
+        if (name == "") name = "path";
       }
+      else
+        name = symbol.toString();
+
+      QItemDelegate::drawDisplay(painter, option, trect, name);
     }
     else
       QItemDelegate::paint(painter, option, ind);
@@ -3884,11 +3885,24 @@ setSymbol(const CQChartsSymbol &symbol, bool filled)
 
       points = &pointsArray_[pointsArray_.size() - 1];
 
-      for (auto &line : plotSymbol.fillLines) {
-        if (points->empty())
-          points->push_back(QPointF(line.x1, line.y1));
+      bool skip = false;
 
-        points->push_back(QPointF(line.x2, line.y2));
+      for (auto &line : plotSymbol.fillLines) {
+        if      (points->empty())
+          points->emplace_back(line.x1, line.y1);
+        else if (skip) {
+          Point p(line.x1, line.y1);
+
+          p.skip = true;
+
+          points->push_back(p);
+
+          skip = false;
+        }
+
+        points->emplace_back(line.x2, line.y2);
+
+        skip = (line.connect == CQChartsPlotSymbol::Connect::BREAK);
       }
     }
     else {
@@ -3900,10 +3914,10 @@ setSymbol(const CQChartsSymbol &symbol, bool filled)
 
           points = &pointsArray_[pointsArray_.size() - 1];
 
-          points->push_back(QPointF(line.x1, line.y1));
+          points->emplace_back(line.x1, line.y1);
         }
 
-        points->push_back(QPointF(line.x2, line.y2));
+        points->emplace_back(line.x2, line.y2);
 
         if      (line.connect == CQChartsPlotSymbol::Connect::STROKE)
           connect = false;
@@ -3993,7 +4007,7 @@ drawSymbol(QPainter *painter)
 
       range_.windowToPixel(p.x(), p.y(), &x, &y);
 
-      if (path.elementCount() == 0)
+      if (path.elementCount() == 0 || p.skip)
         path.moveTo(x, y);
       else
         path.lineTo(x, y);
@@ -4044,24 +4058,34 @@ drawGuides(QPainter *painter)
 {
   painter->setBrush(Qt::NoBrush);
 
-  double cx, cy, tlx, tly, brx, bry;
+  auto drawEllipse = [&](double xc, double yc, double r) {
+    double tlx, tly, brx, bry;
 
-  range_.windowToPixel( 0.0,  0.0, &cx , &cy );
-  range_.windowToPixel(-1.0, -1.0, &tlx, &tly);
-  range_.windowToPixel( 1.0,  1.0, &brx, &bry);
+    range_.windowToPixel(xc - r, yc - r, &tlx, &tly);
+    range_.windowToPixel(xc + r, yc + r, &brx, &bry);
+
+    painter->drawEllipse(QRectF(tlx, tly, brx - tlx, bry - tly));
+  };
 
   painter->setPen(QColor("#666666"));
 
-  painter->drawEllipse(QRectF(tlx, tly, brx - tlx, bry - tly));
+  drawEllipse(0.0, 0.0, 1.000);
+  drawEllipse(0.0, 0.0, 0.875);
+
+  auto drawRect = [&](double xc, double yc, double r) {
+    double tlx, tly, brx, bry;
+
+    range_.windowToPixel(xc - r, yc - r, &tlx, &tly);
+    range_.windowToPixel(xc + r, yc + r, &brx, &bry);
+
+    painter->drawRect(QRectF(tlx, tly, brx - tlx, bry - tly));
+  };
 
   double d = 1.0/8.0;
 
-  range_.windowToPixel(-1.0 + d, -1.0 + d, &tlx, &tly);
-  range_.windowToPixel( 1.0 - d,  1.0 - d, &brx, &bry);
-
   painter->setPen(QColor("#666666"));
 
-  painter->drawRect(QRectF(tlx, tly, brx - tlx, bry - tly));
+  drawRect(0.0, 0.0, 1.000 - d);
 }
 
 void
@@ -4282,7 +4306,7 @@ updateMousePos(const QPoint &pos)
       const auto &points = pointsArray_[mouseArrayInd_];
 
       if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
-        pointPos_ = points[mouseInd_];
+        pointPos_ = points[mouseInd_].p;
     }
   }
 }

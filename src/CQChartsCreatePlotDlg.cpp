@@ -28,6 +28,7 @@
 #include <CQUtil.h>
 #include <CQCustomCombo.h>
 #include <CQGroupBox.h>
+#include <CQTabWidget.h>
 #include <CQTclUtil.h>
 
 #include <QGridLayout>
@@ -215,7 +216,7 @@ createDataFrame()
 
   //----
 
-  auto *dataTab = CQUtil::makeWidget<QTabWidget>("dataTab");
+  auto *dataTab = CQUtil::makeWidget<CQTabWidget>("dataTab");
 
   auto *typeFrame = createTypeDataFrame();
 
@@ -246,7 +247,7 @@ createTypeDataFrame()
 
   sortedPlotTypes(plotTypes);
 
-  auto *typeTab = CQUtil::makeWidget<QTabWidget>("typeTab");
+  auto *typeTab = CQUtil::makeWidget<CQTabWidget>("typeTab");
 
   typeLayout->addWidget(typeTab);
 
@@ -968,7 +969,7 @@ void
 CQChartsCreatePlotDlg::
 addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &row, bool isBasic)
 {
-  using GroupTab    = std::map<int, QTabWidget*>;
+  using GroupTab    = std::map<int, CQTabWidget*>;
   using ChildGroups = std::vector<PlotParameterGroup *>;
 
   GroupTab    groupTab;
@@ -1002,7 +1003,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
     auto pg = groupTab.find(-1);
 
     if (pg == groupTab.end()) {
-      auto *parameterGroupTab = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
+      auto *parameterGroupTab = CQUtil::makeWidget<CQTabWidget>("parameterGroupTab");
 
       layout->addWidget(parameterGroupTab, row, 0, 1, 5);
 
@@ -1046,14 +1047,14 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
       //---
 
-      QTabWidget *parameterGroupTab1 = nullptr;
+      CQTabWidget *parameterGroupTab1 = nullptr;
 
       if (ng1 > 1) {
         // get tab widget
         auto pg = groupTab.find(parameterGroup->groupId());
 
         if (pg == groupTab.end()) {
-          auto *parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
+          auto *parameterGroupTab1 = CQUtil::makeWidget<CQTabWidget>("parameterGroupTab");
 
           parameterGroupLayout->addWidget(parameterGroupTab1, row1, 0);
 

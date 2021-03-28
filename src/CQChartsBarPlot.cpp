@@ -37,7 +37,7 @@ init()
 
   //---
 
-  dataLabel_ = new CQChartsDataLabel(this);
+  dataLabel_ = std::make_shared<CQChartsDataLabel>(this);
 
   dataLabel_->setDrawClipped(false);
 
@@ -56,7 +56,6 @@ void
 CQChartsBarPlot::
 term()
 {
-  delete dataLabel_;
 }
 
 //---
@@ -75,7 +74,7 @@ CQChartsBarPlot::
 setOrientation(const Qt::Orientation &orientation)
 {
   CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
-    dataLabel_->setDirection(orientation);
+    dataLabel()->setDirection(orientation);
 
     CQChartsAxis::swap(xAxis(), yAxis());
 
@@ -127,7 +126,7 @@ addBoxProperties()
 
   //---
 
-  dataLabel_->addPathProperties("labels", "Labels");
+  dataLabel()->addPathProperties("labels", "Labels");
 
   //---
 
@@ -141,7 +140,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   CQChartsPlot::getPropertyNames(names, hidden);
 
-  propertyModel()->objectNames(dataLabel_, names, hidden);
+  propertyModel()->objectNames(dataLabel(), names, hidden);
 }
 
 //---
@@ -204,5 +203,5 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 {
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
-  dataLabel_->write(os, plotVarName);
+  dataLabel()->write(os, plotVarName);
 }

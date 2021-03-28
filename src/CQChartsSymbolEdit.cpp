@@ -24,6 +24,8 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
+  combo_->addItem("<none>");
+
   combo_->addItems(CQChartsSymbol::typeNames());
 
   layout->addWidget(combo_);
@@ -54,7 +56,10 @@ setSymbol(const CQChartsSymbol &symbol)
 
   symbol_ = symbol;
 
-  combo_->setCurrentIndex(combo_->findText(symbol_.toString()));
+  if (symbol_.isValid())
+    combo_->setCurrentIndex(combo_->findText(symbol_.toString()));
+  else
+    combo_->setCurrentIndex(0);
 
   connectSlots(true);
 }
@@ -65,7 +70,10 @@ comboChanged()
 {
   connectSlots(false);
 
-  symbol_ = CQChartsSymbol(combo_->currentText());
+  if (combo_->currentIndex() > 0)
+    symbol_ = CQChartsSymbol(combo_->currentText());
+  else
+    symbol_ = CQChartsSymbol();
 
   connectSlots(true);
 

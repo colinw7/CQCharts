@@ -2,6 +2,8 @@
 #define CQChartsSymbol_H
 
 #include <CQChartsTmpl.h>
+#include <CQChartsPath.h>
+#include <CQChartsStyle.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <QStringList>
@@ -34,8 +36,11 @@ class CQChartsSymbol :
     PAW,
     Z,
     HASH,
-    CHAR
+    CHAR,
+    PATH
   };
+
+  using BBox = CQChartsGeom::BBox;
 
   struct CharData {
     CharData() = default;
@@ -46,6 +51,23 @@ class CQChartsSymbol :
 
     QString c;    //!< unicode character
     QString name; //!< display name
+  };
+
+  using Paths  = std::vector<CQChartsPath>;
+  using Styles = std::vector<CQChartsStyle>;
+
+  struct PathData {
+    PathData() = default;
+
+    explicit PathData(const CQChartsPath &path, const QString &name="") :
+     name(name) {
+      paths.push_back(path);
+    }
+
+    QString name;   //!< path name (should be non-empty an unique)
+    Paths   paths;  //!< paths
+    Styles  styles; //!< styles
+    BBox    bbox;   //!< optional pre-calculated bbox
   };
 
  public:
@@ -63,7 +85,6 @@ class CQChartsSymbol :
 
   static int minOutlineValue() { return (int) Type::CROSS; }
   static int maxOutlineValue() { return (int) Type::IPENTAGON; }
-
 
 #if 0
   static CQChartsSymbol interpOutline(double r) {
@@ -97,9 +118,10 @@ class CQChartsSymbol :
  public:
   CQChartsSymbol() = default;
 
-  explicit CQChartsSymbol(Type type) : type_(type) { }
+  explicit CQChartsSymbol(Type type);
 
-  explicit CQChartsSymbol(const CharData &charData) : type_(Type::CHAR), charData_(charData) { }
+  explicit CQChartsSymbol(const CharData &charData);
+  explicit CQChartsSymbol(const PathData &pathData);
 
   explicit CQChartsSymbol(const QString &s);
 
@@ -117,6 +139,12 @@ class CQChartsSymbol :
 
   //---
 
+  const Paths   &paths   () const;
+  const Styles  &styles  () const;
+  const QString &pathName() const { assert(type_ == Type::PATH); return pathName_; }
+
+  //---
+
   QString toString() const;
 
   bool fromString(const QString &s);
@@ -130,6 +158,7 @@ class CQChartsSymbol :
  private:
   Type     type_    { Type::NONE };
   CharData charData_;
+  QString  pathName_;
 };
 
 //---

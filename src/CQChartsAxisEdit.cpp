@@ -14,11 +14,11 @@
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
 #include <CQRadioButtons.h>
+#include <CQTabWidget.h>
 #include <CQUtil.h>
 
 #include <QLabel>
 #include <QComboBox>
-#include <QTabWidget>
 #include <QVBoxLayout>
 
 namespace {
@@ -268,7 +268,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //------
 
-  auto *labelTab = CQUtil::makeWidget<QTabWidget>("labelTab");
+  auto *labelTab = CQUtil::makeWidget<CQTabWidget>("labelTab");
 
   layout->addWidget(labelTab);
 
@@ -310,7 +310,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //---
 
-  auto *gridTab = CQUtil::makeWidget<QTabWidget>("gridTab");
+  auto *gridTab = CQUtil::makeWidget<CQTabWidget>("gridTab");
 
   layout->addWidget(gridTab);
 

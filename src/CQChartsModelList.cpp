@@ -5,9 +5,9 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <CQUtil.h>
+#include <CQTabWidget.h>
 
 #include <QVBoxLayout>
-#include <QTabWidget>
 
 CQChartsModelList::
 CQChartsModelList(CQCharts *charts) :
@@ -20,7 +20,7 @@ CQChartsModelList(CQCharts *charts) :
   //---
 
   // per model tab
-  viewTab_ = CQUtil::makeWidget<QTabWidget>("viewTab");
+  viewTab_ = CQUtil::makeWidget<CQTabWidget>("viewTab");
 
   viewTab_->setTabsClosable(true);
 

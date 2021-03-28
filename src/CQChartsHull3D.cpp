@@ -2,7 +2,7 @@
 
 uint CQChartsHull3D::Vertex::count_ = 0;
 
-/*-------------------------------------------------------------------*/
+//------
 
 CQChartsHull3D::
 CQChartsHull3D()

@@ -3,15 +3,15 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + Scatter Plot Key uses symbols ?
- + Integral (discreet values) with scatter type key
+ + no static data (must be part of charts)
+ + Palette Name Edit should support all palette names not just current (or allow add)
  + parameter color palette (2 -> N colors with connecting curves to interp)
- + add symbol editor into charts
+ + symbol editor
    + support lines/curves
-   + support SVG
- + quick filters. If number of visible unique or ranges less than tolerance show filter ?
- + symbol set reorder up/down
+   + support SVG (syntax)
+   + all symbols have path
  + symbol characters inconsistent fit
+ + quick filters. If number of visible unique or ranges less than tolerance show filter ?
  + tcl commands to create and add to symbol sets
    + use for utf 8 symbols
  + utf 8 symbols need name ?

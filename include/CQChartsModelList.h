@@ -7,7 +7,7 @@ class CQChartsModelDataWidget;
 class CQChartsModelData;
 class CQCharts;
 
-class QTabWidget;
+class CQTabWidget;
 
 //---
 
@@ -38,7 +38,7 @@ class CQChartsModelList : public QFrame {
   void updateModelType(int ind);
 
  private:
-  QTabWidget *viewTab() const { return viewTab_; }
+  CQTabWidget *viewTab() const { return viewTab_; }
 
   CQChartsModelDataWidget *currentModelDataWidget() const;
   CQChartsModelDataWidget *modelDataWidget(int ind) const;
@@ -48,8 +48,8 @@ class CQChartsModelList : public QFrame {
   void closeTabSlot(int);
 
  private:
-  CQCharts*   charts_  { nullptr };
-  QTabWidget* viewTab_ { nullptr };
+  CQCharts*    charts_  { nullptr };
+  CQTabWidget* viewTab_ { nullptr };
 };
 
 #endif

@@ -7,6 +7,8 @@
 
 class CQChartsPlot;
 
+class CXMLTag;
+
 /*!
  * \brief Geometric Path data
  * \ingroup Charts
@@ -22,6 +24,7 @@ class CQChartsPath :
  public:
   using Point  = CQChartsGeom::Point;
   using Points = std::vector<Point>;
+  using BBox   = CQChartsGeom::BBox;
 
  public:
   CQChartsPath() = default;
@@ -61,6 +64,12 @@ class CQChartsPath :
     return *(this->pathPtr());
   }
 
+  void setPath(const QPainterPath &path) {
+    delete path_;
+
+    path_ = new QPainterPath(path);
+  }
+
   //---
 
   bool setValue(const QString &str);
@@ -79,6 +88,8 @@ class CQChartsPath :
 
   //---
 
+  BBox bbox() const;
+
   QPolygonF qpoly() const { return path().toFillPolygon(); }
 
   //---
@@ -91,8 +102,11 @@ class CQChartsPath :
 
   //---
 
-  void move(double dx, double dy);
-  void flip(bool flipX, bool flipY);
+  void move (double dx, double dy);
+  void scale(double sx, double sy);
+  void flip (bool flipX, bool flipY);
+
+  void moveScale(double dx, double dy, double sx, double sy);
 
   //---
 
@@ -107,11 +121,14 @@ class CQChartsPath :
 
   //---
 
-  static QString pathToString(const QPainterPath &path);
+  static QPainterPath movePath (const QPainterPath &path, double dx, double dy);
+  static QPainterPath scalePath(const QPainterPath &path, double sx, double sy);
+  static QPainterPath flipPath (const QPainterPath &path, bool flipX, bool flipY);
 
-  static QPainterPath movePath(const QPainterPath &path, double dx, double dy);
-
-  static QPainterPath flipPath(const QPainterPath &path, bool flipX, bool flipY);
+  static QPainterPath moveScalePath(const QPainterPath &path,
+                                    double dx, double dy, double sx, double sy);
+  static QPainterPath moveScalePath(const QPainterPath &path, const BBox &bbox,
+                                    double dx, double dy, double sx, double sy);
 
   static QPainterPath reversePath(const QPainterPath &path);
 
@@ -120,6 +137,10 @@ class CQChartsPath :
   //---
 
   static Points pathPoints(const QPainterPath &path);
+
+  //---
+
+  bool fromSVGFile(const QString &fileName);
 
  private:
   const QPainterPath *pathPtr() const { return const_cast<CQChartsPath *>(this)->pathPtr(); }

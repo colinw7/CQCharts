@@ -569,10 +569,8 @@ Polygon toPolygon(const QVariant &var, bool &ok) {
 
 //---
 
-CQChartsPath toPath(const QVariant &var, bool &ok) {
-  ok = true; // TODO: validate
-
-  CQChartsPath path;
+bool toPath(const QVariant &var, CQChartsPath &path) {
+  bool ok = true;
 
   // TODO: other var formats
   if (var.userType() == CQChartsPath::metaTypeId)
@@ -580,7 +578,9 @@ CQChartsPath toPath(const QVariant &var, bool &ok) {
   else
     ok = false;
 
-  return path;
+  // TODO: validate path
+
+  return ok;
 }
 
 QVariant fromPath(const CQChartsPath &path) {

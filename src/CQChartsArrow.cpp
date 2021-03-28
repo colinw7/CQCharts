@@ -1441,7 +1441,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
 #if 0
     void printPath(const QString &name, const QPainterPath &path) {
       std::cerr << name.toStdString() << ": " <<
-        CQChartsPath::pathToString(path).toStdString() << "\n";
+        CQChartsSVGUtil::pathToString(path).toStdString() << "\n";
     }
 #endif
 

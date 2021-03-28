@@ -21,7 +21,7 @@ instance()
 CQChartsColumnEval::
 CQChartsColumnEval()
 {
-  qtcl_ = new CQChartsExprTcl();
+  qtcl_ = std::make_shared<CQChartsExprTcl>();
 
   // add column, color expressions
   addFunc("column", (CQTcl::ObjCmdProc) &CQChartsColumnEval::columnCmd);
@@ -33,14 +33,13 @@ CQChartsColumnEval()
 CQChartsColumnEval::
 ~CQChartsColumnEval()
 {
-  delete qtcl_;
 }
 
 CQTcl *
 CQChartsColumnEval::
 qtcl() const
 {
-  return qtcl_;
+  return qtcl_.get();
 }
 
 const QAbstractItemModel *

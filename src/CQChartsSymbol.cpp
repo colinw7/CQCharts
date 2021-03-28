@@ -31,6 +31,7 @@ typeToName(Type type)
     case Type::PAW:       return "paw";
     case Type::HASH:      return "hash";
     case Type::CHAR:      return "char";
+    case Type::PATH:      return "path";
     default:              return "none";
   }
 }
@@ -62,6 +63,7 @@ nameToType(const QString &str)
   if (lstr == "paw"      ) return Type::PAW;
   if (lstr == "hash"     ) return Type::HASH;
   if (lstr == "char"     ) return Type::CHAR;
+  if (lstr == "path"     ) return Type::PATH;
 
   return Type::NONE;
 }
@@ -81,6 +83,23 @@ typeNames()
 
 //---
 
+namespace {
+
+struct PathsStylesData {
+  CQChartsSymbol::Paths  paths;
+  CQChartsSymbol::Styles styles;
+};
+
+using NamePathData = std::map<QString, PathsStylesData>;
+
+static NamePathData           s_namePathData;
+static CQChartsSymbol::Paths  s_paths;
+static CQChartsSymbol::Styles s_styles;
+
+}
+
+//---
+
 void
 CQChartsSymbol::
 registerMetaType()
@@ -91,17 +110,102 @@ registerMetaType()
 }
 
 CQChartsSymbol::
+CQChartsSymbol(Type type) :
+ type_(type)
+{
+}
+
+CQChartsSymbol::
+CQChartsSymbol(const CharData &charData) :
+  type_(Type::CHAR), charData_(charData)
+{
+}
+
+CQChartsSymbol::
+CQChartsSymbol(const PathData &pathData) :
+ type_(Type::PATH), pathName_(pathData.name)
+{
+  if (pathName_ == "")
+    pathName_ = QString("path.%1").arg(s_namePathData.size() + 1);
+
+  Paths paths = pathData.paths;
+
+  // set bbox or use calculated
+  BBox bbox = pathData.bbox;
+
+  if (! bbox.isSet()) {
+    for (auto &path : paths)
+      bbox += path.bbox();
+  }
+
+  if (bbox.isValid()) {
+    double sx = 2.0/bbox.getWidth ();
+    double sy = 2.0/bbox.getHeight();
+    double cx = bbox.getXMid();
+    double cy = bbox.getYMid();
+
+    for (auto &path : paths) {
+      auto path1 = CQChartsPath::moveScalePath(path.path(), bbox, -cx, -cy, sx, sy);
+
+      path.setPath(path1);
+    }
+  }
+
+  PathsStylesData pathsStylesData;
+
+  pathsStylesData.paths  = paths;
+  pathsStylesData.styles = pathData.styles;
+
+  s_namePathData[pathName_] = pathsStylesData;
+}
+
+CQChartsSymbol::
 CQChartsSymbol(const QString &s)
 {
-  type_ = nameToType(s);
+  if (! fromString(s))
+    type_ = Type::NONE;
+}
+
+const CQChartsSymbol::Paths &
+CQChartsSymbol::
+paths() const
+{
+  assert(type_ == Type::PATH);
+
+  auto p = s_namePathData.find(pathName_);
+
+  if (p == s_namePathData.end())
+    return s_paths;
+
+  return (*p).second.paths;
+}
+
+const CQChartsSymbol::Styles &
+CQChartsSymbol::
+styles() const
+{
+  assert(type_ == Type::PATH);
+
+  auto p = s_namePathData.find(pathName_);
+
+  if (p == s_namePathData.end())
+    return s_styles;
+
+  return (*p).second.styles;
 }
 
 QString
 CQChartsSymbol::
 toString() const
 {
-  if (type_ == Type::CHAR)
-    return QString("char:%1").arg(charData_.c);
+  if      (type_ == Type::CHAR) {
+    if (charData_.name != "")
+      return QString("char:%1:%2").arg(charName()).arg(charStr());
+    else
+      return QString("char:%1").arg(charData_.c);
+  }
+  else if (type_ == Type::PATH)
+    return QString("path:%1").arg(pathName());
   else
     return typeToName(type_);
 }
@@ -110,9 +214,24 @@ bool
 CQChartsSymbol::
 fromString(const QString &s)
 {
-  if (s.left(5) == "char:") {
-    type_       = Type::CHAR;
-    charData_.c = s.mid(5);
+  if      (s.left(5) == "char:") {
+    type_ = Type::CHAR;
+
+    auto c = s.mid(5);
+
+    auto pos = c.indexOf(":");
+
+    if (pos >= 0) {
+      charData_.name = c.mid(pos + 1);
+
+      c = c.mid(0, pos);
+    }
+
+    charData_.c = c;
+  }
+  else if (s.left(5) == "path:") {
+    type_     = Type::PATH;
+    pathName_ = s.mid(5);
   }
   else
     type_ = nameToType(s);

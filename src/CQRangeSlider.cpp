@@ -5,6 +5,8 @@ CQRangeSlider(QWidget *parent) :
  QFrame(parent)
 {
   setObjectName("rangeSlider");
+
+  textFont_ = font();
 }
 
 QColor

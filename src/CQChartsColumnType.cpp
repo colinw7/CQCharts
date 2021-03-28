@@ -1956,9 +1956,10 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  bool ok;
-  auto path = CQChartsVariant::toPath(var, ok);
-  if (! ok) return QVariant();
+  CQChartsPath path;
+
+  if (! CQChartsVariant::toPath(var, path))
+    return QVariant();
 
   return CQChartsUtil::pathToString(path);
 }
