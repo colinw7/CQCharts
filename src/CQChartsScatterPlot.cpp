@@ -4040,12 +4040,15 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   // columns group
   auto columnsFrame = createGroupFrame("Columns");
 
-  addColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
+  addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
+//addColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
 
   //---
 
-  addGroupColumnWidgets();
+//addGroupColumnWidgets();
+
   addColorColumnWidgets("Symbol Color");
+
   addSymbolSizeWidgets();
 
   //---
@@ -4078,6 +4081,7 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
   //---
 
+#if 0
   // options group
   auto optionsFrame = createGroupFrame("Options");
 
@@ -4086,6 +4090,7 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
 
   addFrameRowStretch(optionsFrame);
+#endif
 
   //---
 
@@ -4096,8 +4101,9 @@ void
 CQChartsScatterPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
-    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
+  if (plotTypeCombo_)
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
 
   CQChartsWidgetUtil::connectDisconnect(b,
     pointLabelsCheck_, SIGNAL(stateChanged(int)), this, SLOT(pointLabelsSlot()));
@@ -4153,7 +4159,8 @@ updateWidgets()
 
   //---
 
-  plotTypeCombo_->setCurrentValue((int) plot_->plotType());
+  if (plotTypeCombo_)
+    plotTypeCombo_->setCurrentValue((int) plot_->plotType());
 
   bool hasLabelColumn = plot_->labelColumn().isValid();
   bool hasSizeColumn  = plot_->fontSizeColumn().isValid();
@@ -4185,7 +4192,8 @@ void
 CQChartsScatterPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType((CQChartsScatterPlot::PlotType) plotTypeCombo_->currentValue());
+  if (plotTypeCombo_)
+    plot_->setPlotType((CQChartsScatterPlot::PlotType) plotTypeCombo_->currentValue());
 }
 
 void

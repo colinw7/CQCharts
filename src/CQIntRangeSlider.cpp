@@ -13,7 +13,7 @@ CQIntRangeSlider(QWidget *parent) :
 
   setFocusPolicy(Qt::ClickFocus);
 
-  updateTip();
+  CQIntRangeSlider::updateTip();
 }
 
 //---
@@ -325,49 +325,6 @@ drawRangeLabels(QPainter *painter)
 
 void
 CQIntRangeSlider::
-drawSlider(QPainter *painter)
-{
-  QFontMetricsF fm(font());
-
-  double ym = height()/2.0;
-
-  int yb = ym + fm.height()/2.0 + 1;
-  int yt = ym - fm.height()/2.0 - 1;
-
-  auto bg0 = palette().color(QPalette::Background);
-  auto bg1 = palette().color(QPalette::Highlight);
-  auto fg0 = palette().color(QPalette::Text);
-  auto fg1 = blendColors(bg0, fg0, 0.3);
-
-  auto bg2 = blendColors(bg1, bg0, 0.5);
-  auto bg3 = blendColors(bg1, fg0, 0.8);
-
-  painter->setPen  (Qt::NoPen);
-  painter->setBrush(bg2);
-
-  painter->drawRoundedRect(QRect(xs1_, yt, xs2_ - xs1_ + 1, yb - yt + 1), 3, 3);
-
-  auto xs3 = valueToPixel(sliderMin());
-  auto xs4 = valueToPixel(sliderMax());
-
-  painter->setPen  (fg1);
-  painter->setBrush(bg3);
-
-  painter->drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
-
-  painter->setPen  (fg1);
-  painter->setBrush(palette().color(QPalette::Button));
-
-  //---
-
-  double bs = fm.height()/3.0;
-
-  painter->drawEllipse(QRectF(xs3 - bs/2, ym - bs/2, bs, bs));
-  painter->drawEllipse(QRectF(xs4 - bs/2, ym - bs/2, bs, bs));
-}
-
-void
-CQIntRangeSlider::
 drawSliderLabels(QPainter *painter)
 {
   QFontMetricsF fm(font());
@@ -438,7 +395,7 @@ intToString(int i) const
 
 double
 CQIntRangeSlider::
-valueToPixel(int x) const
+valueToPixel(double x) const
 {
   if (rangeMax() > rangeMin())
     return (xs2_ - xs1_)*(1.0*x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
@@ -446,7 +403,7 @@ valueToPixel(int x) const
     return xs1_;
 }
 
-int
+double
 CQIntRangeSlider::
 pixelToValue(double px) const
 {

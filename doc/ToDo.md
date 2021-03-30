@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + color key handle discreet
+ + auto show key when first set column
+ + splitter custom controls. Less tabs, option to skip group/name/labels
  + no static data (must be part of charts)
  + Palette Name Edit should support all palette names not just current (or allow add)
  + parameter color palette (2 -> N colors with connecting curves to interp)

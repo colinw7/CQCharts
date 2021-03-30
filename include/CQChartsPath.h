@@ -39,13 +39,31 @@ class CQChartsPath :
     path_ = new QPainterPath(*rhs.path_);
   }
 
-  CQChartsPath &operator=(const CQChartsPath &rhs) {
-    delete path_;
+  CQChartsPath(CQChartsPath &&rhs) {
+    std::swap(path_, rhs.path_);
+  }
 
-    if (rhs.path_)
-      path_ = new QPainterPath(*rhs.path_);
-    else
+  CQChartsPath &operator=(const CQChartsPath &rhs) {
+    if (this != &rhs) {
+      delete path_;
+
+      if (rhs.path_)
+        path_ = new QPainterPath(*rhs.path_);
+      else
+        path_ = nullptr;
+    }
+
+    return *this;
+  }
+
+  CQChartsPath &operator=(CQChartsPath &&rhs) {
+    if (this != &rhs) {
+      delete path_;
+
       path_ = nullptr;
+
+      std::swap(path_, rhs.path_);
+    }
 
     return *this;
   }

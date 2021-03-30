@@ -61,8 +61,6 @@ class CQIntRangeSlider : public CQRangeSlider {
 
   virtual void drawRangeLabels(QPainter *painter);
 
-  virtual void drawSlider(QPainter *painter);
-
   virtual void drawSliderLabels(QPainter *painter);
 
   //---
@@ -87,8 +85,11 @@ class CQIntRangeSlider : public CQRangeSlider {
   void pixelToSliderValue(int px, int &ind, bool force=false);
   void pixelSetSliderValue(int px, int ind, bool force=false);
 
-  double valueToPixel(int x) const;
-  int pixelToValue(double px) const;
+  double valueToPixel(double x) const override;
+  double pixelToValue(double px) const override;
+
+  double getSliderMin() const override { return sliderMin(); }
+  double getSliderMax() const override { return sliderMax(); }
 
  protected:
   struct Range {

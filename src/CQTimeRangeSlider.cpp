@@ -286,8 +286,6 @@ paintEvent(QPaintEvent *)
 
   int xl = 2;
   int xr = width() - 2;
-  int yt = ym - fm.height()/2.0 - 1;
-  int yb = ym + fm.height()/2.0 + 1;
 
   //---
 
@@ -314,31 +312,12 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  auto bg0 = palette().color(QPalette::Background);
-  auto bg1 = palette().color(QPalette::Highlight);
-  auto fg0 = palette().color(QPalette::Text);
-  auto fg1 = blendColors(bg0, fg0, 0.3);
-
-  auto bg2 = blendColors(bg1, bg0, 0.5);
-  auto bg3 = blendColors(bg1, fg0, 0.8);
-
-  painter.setPen  (Qt::NoPen);
-  painter.setBrush(bg2);
-
-  painter.drawRoundedRect(QRect(xs1_, yt, xs2_ - xs1_ + 1, yb - yt + 1), 3, 3);
-
-  int xs3 = valueToPixel(sliderMin());
-  int xs4 = valueToPixel(sliderMax());
-
-  painter.setPen  (fg1);
-  painter.setBrush(bg3);
-
-  painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
-
-  painter.setPen  (fg1);
-  painter.setBrush(palette().color(QPalette::Button));
+  drawSlider(&painter);
 
   //---
+
+  auto xs3 = valueToPixel(sliderMin());
+  auto xs4 = valueToPixel(sliderMax());
 
   double bs = tfm.height()/2.0;
 

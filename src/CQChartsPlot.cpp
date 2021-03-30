@@ -4212,12 +4212,25 @@ drawColorMapKey(PaintDevice *device) const
 
   //---
 
-  bool isIntegral = false;
+  bool         isNumeric  = false;
+  bool         isIntegral = false;
+  int          numUnique  = 0;
+  QVariantList uniqueValues;
 
   auto *columnDetails = this->columnDetails(colorColumn());
 
-  if (columnDetails && columnDetails->type() == CQBaseModelType::INTEGER)
-    isIntegral = true;
+  if (columnDetails) {
+    if (columnDetails->type() == CQBaseModelType::REAL ||
+        columnDetails->type() == CQBaseModelType::INTEGER) {
+      isNumeric  = true;
+      isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
+    }
+
+    if (! isNumeric) {
+      numUnique    = columnDetails->numUnique();
+      uniqueValues = columnDetails->uniqueValues();
+    }
+  }
 
   //---
 
@@ -4233,7 +4246,11 @@ drawColorMapKey(PaintDevice *device) const
   colorMapKey_->setMapMax(colorMapMax());
 
   colorMapKey_->setPaletteName(colorMapPalette());
-  colorMapKey_->setIntegral   (isIntegral);
+
+  colorMapKey_->setNumeric     (isNumeric);
+  colorMapKey_->setIntegral    (isIntegral);
+  colorMapKey_->setNumUnique   (numUnique);
+  colorMapKey_->setUniqueValues(uniqueValues);
 
   auto bbox = displayRangeBBox();
 

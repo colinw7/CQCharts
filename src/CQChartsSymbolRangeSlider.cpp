@@ -2,6 +2,7 @@
 #include <CQChartsPointPlot.h>
 #include <CQChartsSymbolSet.h>
 #include <CQCharts.h>
+#include <CQChartsUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 
 #include <QPainter>
@@ -10,6 +11,9 @@ CQChartsSymbolRangeSlider::
 CQChartsSymbolRangeSlider(QWidget *parent) :
  CQIntRangeSlider(parent)
 {
+  setSliderPos(SliderPos::BOTH);
+
+  setFillColor(QColor("#1155bc"));
 }
 
 void
@@ -53,59 +57,74 @@ drawSliderLabels(QPainter *painter)
   double ym = height()/2.0;
   double ss = std::min(tfm.height(), fm.height() - 4);
 
-  double bs = fm.height()/3.0;
-
   //---
 
-  auto sx1 = valueToPixel(sliderMin());
-  auto sx2 = valueToPixel(sliderMax());
-
-  auto x1 = sx1 - bs - ss/2.0;
-  auto x2 = sx2 + bs + ss/2.0;
-
-  if (x1 - ss/2.0 < xs1_)
-    x1 = sx1 + bs + ss/2.0;
-
-  if (x2 + ss/2.0 > xs2_)
-    x2 = sx2 - bs - ss/2.0;
+  auto sx1 = valueToPixel(rangeMin());
+  auto sx2 = valueToPixel(rangeMax());
 
   //---
 
   auto *symbolSetMgr = (plot_ ? plot_->charts()->symbolSetMgr() : nullptr);
   auto *symbolSet    = (symbolSetMgr ? symbolSetMgr->symbolSet(symbolSetName_) : nullptr);
 
-  CQChartsSymbol symbol1, symbol2;
-
-  if (symbolSet) {
-    symbol1 = symbolSet->symbol(sliderMin());
-    symbol2 = symbolSet->symbol(sliderMax());
-  }
-  else {
-    symbol1 = CQChartsSymbol((CQChartsSymbol::Type) sliderMin());
-    symbol2 = CQChartsSymbol((CQChartsSymbol::Type) sliderMax());
-  }
-
   //---
 
   CQChartsPixelPaintDevice device(painter);
 
-  painter->setPen(Qt::black);
+  auto drawSymbol = [&](const CQChartsSymbol &symbol, double x, bool filled, bool inside) {
+    if (filled) {
+      auto bc = fillColor();
 
-  bool filled1 = (symbolSet ? symbolSet->isFilled(sliderMin()) : false);
-  bool filled2 = (symbolSet ? symbolSet->isFilled(sliderMax()) : false);
+      if (! isEnabled())
+        bc = CQChartsUtil::grayColor(bc);
 
-  auto drawSymbol = [&](const CQChartsSymbol &symbol, double x, bool filled) {
-    if (filled)
-      painter->setBrush(Qt::green);
-    else
+      auto pc = palette().color(QPalette::Base);
+
+      if (! inside)
+        bc.setAlphaF(0.5);
+
+      painter->setBrush(bc);
+      painter->setPen  (Qt::NoPen);
+    }
+    else {
+      auto pc = palette().color(QPalette::Text);
+
+      if (! inside)
+        pc.setAlphaF(0.5);
+
       painter->setBrush(Qt::NoBrush);
+      painter->setPen  (pc);
+    }
 
     CQChartsGeom::BBox bbox(x - ss/2.0, ym - ss/2, x + ss/2.0, ym + ss/2.0);
 
     CQChartsDrawUtil::drawSymbol(&device, symbol, bbox);
   };
 
-  drawSymbol(symbol1, x1, filled1);
-  drawSymbol(symbol2, x2, filled2);
+  double x2 = sx1 - 1;
 
+  painter->setPen(Qt::black);
+
+  for (int i = rangeMin(); i <= rangeMax(); ++i) {
+    double x = CMathUtil::map(i, rangeMin(), rangeMax(), sx1, sx2);
+
+    double x1 = x - ss/2.0;
+
+    if (x1 > sx1 && x1 > x2) {
+      bool filled = (symbolSet ? symbolSet->isFilled(i) : false);
+
+      bool inside = (i >= sliderMin() && i <= sliderMax());
+
+      CQChartsSymbol symbol;
+
+      if (symbolSet)
+        symbol = symbolSet->symbol(i);
+      else
+        symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
+
+      drawSymbol(symbol, x, filled, inside);
+
+      x2 = x + ss/2.0;
+    }
+  }
 }

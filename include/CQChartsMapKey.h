@@ -82,6 +82,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
  protected:
   virtual void invalidate() = 0;
 
+  void calcCenter();
+
+  void calcAlignedBBox();
+
  protected:
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
@@ -92,6 +96,12 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   bool          integral_  { false };                               //!< is integral
   int           numUnique_ { -1 };                                  //!< num unique
   QVariantList  uniqueValues_;                                      //!< unique values
+
+  mutable double kw_ { 0.0 };
+  mutable double kh_ { 0.0 };
+  mutable double xm_ { 0.0 };
+  mutable double ym_ { 0.0 };
+  mutable BBox   pbbox_;
 };
 
 //-----
@@ -153,6 +163,9 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   //---
 
   void draw(PaintDevice *device, bool useBrush=false) override;
+
+  void drawContiguous(PaintDevice *device);
+  void drawDiscreet  (PaintDevice *device);
 
   //---
 

@@ -55,6 +55,53 @@ setAlign(const Qt::Alignment &a)
   invalidate();
 }
 
+void
+CQChartsMapKey::
+calcCenter()
+{
+  // calc center
+  Point pos;
+
+  if (position().isValid()) {
+    pos = positionToPixel(position());
+  }
+  else {
+    double bm = this->margin();
+
+    auto pbbox = plot()->calcPlotPixelRect();
+
+    double px = pbbox.getXMax() - kw_/2.0 - bm;
+    double py = pbbox.getYMax() - kh_/2.0 - bm;
+
+    pos = Point(px, py);
+  }
+
+  xm_ = pos.x;
+  ym_ = pos.y;
+}
+
+void
+CQChartsMapKey::
+calcAlignedBBox()
+{
+  // calc bbox and align
+  Point p1(xm_ - kw_/2.0, ym_ - kh_/2.0);
+  Point p2(xm_ + kw_/2.0, ym_ + kh_/2.0);
+
+  pbbox_ = BBox(p1.x, p1.y, p2.x, p2.y);
+
+  double dx = 0.0;
+  double dy = 0.0;
+
+  if      (align() & Qt::AlignLeft ) dx =  kw_/2.0;
+  else if (align() & Qt::AlignRight) dx = -kw_/2.0;
+
+  if      (align() & Qt::AlignBottom) dy = -kh_/2.0;
+  else if (align() & Qt::AlignTop   ) dy =  kh_/2.0;
+
+  pbbox_ = pbbox_.translated(dx, dy);
+}
+
 bool
 CQChartsMapKey::
 editPress(const Point &p)
@@ -142,6 +189,16 @@ void
 CQChartsColorMapKey::
 draw(PaintDevice *device, bool /*usePenBrush*/)
 {
+  if (isNumeric())
+    drawContiguous(device);
+  else
+    drawDiscreet(device);
+}
+
+void
+CQChartsColorMapKey::
+drawContiguous(PaintDevice *device)
+{
   auto font = calcFont(textFont());
 
   QFontMetricsF fm(font);
@@ -164,49 +221,16 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
   //---
 
-  double kw = bw + tw + 3*bm;
-  double kh = bh + fm.height() + 2*bm;
+  kw_ = bw + tw + 3*bm;
+  kh_ = bh + fm.height() + 2*bm;
 
-  // calc center
-  Point pos;
+  calcCenter();
 
-  if (position().isValid()) {
-    pos = positionToPixel(position());
-  }
-  else {
-    auto pbbox = plot()->calcPlotPixelRect();
-
-    double px = pbbox.getXMax() - kw/2.0 - bm;
-    double py = pbbox.getYMax() - kh/2.0 - bm;
-
-    pos = Point(px, py);
-  }
-
-  double xm = pos.x;
-  double ym = pos.y;
-
-  //---
-
-  // calc bbox and align
-  Point p1(xm - kw/2.0, ym - kh/2.0);
-  Point p2(xm + kw/2.0, ym + kh/2.0);
-
-  BBox pbbox(p1.x, p1.y, p2.x, p2.y);
-
-  double dx = 0.0;
-  double dy = 0.0;
-
-  if      (align() & Qt::AlignLeft ) dx =  kw/2.0;
-  else if (align() & Qt::AlignRight) dx = -kw/2.0;
-
-  if      (align() & Qt::AlignBottom) dy = -kh/2.0;
-  else if (align() & Qt::AlignTop   ) dy =  kh/2.0;
-
-  pbbox = pbbox.translated(dx, dy);
+  calcAlignedBBox();
 
   auto *th = const_cast<CQChartsColorMapKey *>(this);
 
-  th->setBBox(device->pixelToWindow(pbbox));
+  th->setBBox(device->pixelToWindow(pbbox_));
 
   //---
 
@@ -216,8 +240,8 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
   //---
 
   // draw gradient
-  BBox gbbox(pbbox.getXMin() + bm     , pbbox.getYMin() + bm + fm.height()/2.0,
-             pbbox.getXMin() + bw + bm, pbbox.getYMax() - bm - fm.height()/2.0);
+  BBox gbbox(pbbox_.getXMin() + bm     , pbbox_.getYMin() + bm + fm.height()/2.0,
+             pbbox_.getXMin() + bw + bm, pbbox_.getYMax() - bm - fm.height()/2.0);
 
   QLinearGradient lg(gbbox.getXMid(), gbbox.getYMax(), gbbox.getXMid(), gbbox.getYMin());
 
@@ -277,6 +301,123 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
   drawTextLabel(Point(tx, ty3), dataMinStr);
   drawTextLabel(Point(tx, ty2), dataMidStr);
   drawTextLabel(Point(tx, ty1), dataMaxStr);
+}
+
+void
+CQChartsColorMapKey::
+drawDiscreet(PaintDevice *device)
+{
+  auto font = calcFont(textFont());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+
+  double bs = fm.width("X") + 16; // color box size
+
+  //---
+
+  int n = numUnique();
+
+  double tw = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = uniqueValues()[i].toString();
+
+    tw = std::max(tw, fm.width(name));
+  }
+
+  //---
+
+  kw_ = bs + tw + 3*bm;
+  kh_ = n*bs + 2*bm;
+
+  calcCenter();
+
+  calcAlignedBBox();
+
+  auto *th = const_cast<CQChartsColorMapKey *>(this);
+
+  th->setBBox(device->pixelToWindow(pbbox_));
+
+  //---
+
+  // draw box border and background
+  CQChartsTextBoxObj::draw(device, bbox());
+
+  //---
+
+  // draw boxes
+  CQColorsPalette *colorsPalette = nullptr;
+
+  if (paletteName().isValid())
+    colorsPalette = paletteName().palette();
+  else
+    colorsPalette = view()->themePalette();
+
+  double bx = pbbox_.getXMin() + bm;
+  double by = pbbox_.getYMin() + bm;
+
+  double bmi = 2;
+  double bsi = bs - 2*bmi;
+
+  for (int i = 0; i < n; ++i) {
+    double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+
+    auto c = colorsPalette->getColor(r);
+
+    double bxi = bx + bmi;
+    double byi = by + i*bs + bmi;
+
+    BBox bbox(bxi, byi, bxi + bsi, byi + bsi);
+
+    device->setPen  (QColor(Qt::black));
+    device->setBrush(c);
+
+    device->drawRect(device->pixelToWindow(bbox));
+  }
+
+  //---
+
+  // set text pen
+  CQChartsPenBrush tpenBrush;
+
+  auto tc = interpTextColor(ColorInd());
+
+  setPenBrush(tpenBrush, PenData(true, tc, textAlpha()), BrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+  //---
+
+  // set font
+  setPainterFont(device, textFont());
+
+  //---
+
+  // draw labels
+  auto drawTextLabel = [&](const Point &p, const QString &label) {
+    auto p1 = pixelToWindow(p);
+
+    CQChartsTextOptions textOptions;
+
+    textOptions.align         = Qt::AlignLeft;
+    textOptions.contrast      = isTextContrast();
+    textOptions.contrastAlpha = textContrastAlpha();
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
+  };
+
+  double tx = pbbox_.getXMin() + bs + 2*bm;
+  double ty = pbbox_.getYMin() + bm;
+
+  double df = (fm.ascent() - fm.descent())/2.0;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = uniqueValues()[i].toString();
+
+    drawTextLabel(Point(tx, ty + (i + 0.5)*bs) + df, name);
+  }
 }
 
 void
@@ -604,24 +745,24 @@ calcSymbolBoxes() const
 
   //---
 
-  double xm = pcenter_.x;
-  double ym = pcenter_.y;
+  xm_ = pcenter_.x;
+  ym_ = pcenter_.y;
 
   if (! isStacked()) {
-    double yb = ym + prmax;
+    double yb = ym_ + prmax;
 
     for (int i = 0; i < rows(); ++i) {
       double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
 
-      auto pbbox = BBox(xm - pr, yb - 2*pr, xm + pr, yb);
+      auto pbbox = BBox(xm_ - pr, yb - 2*pr, xm_ + pr, yb);
 
       symbolBoxes_.push_back(pbbox);
 
       y -= sy;
     }
 
-    sbbox_ = pixelToWindow(BBox(xm - prmax - pm, ym - prmax - pm,
-                                xm + prmax + pm, ym + prmax + pm));
+    sbbox_ = pixelToWindow(BBox(xm_ - prmax - pm, ym_ - prmax - pm,
+                                xm_ + prmax + pm, ym_ + prmax + pm));
   }
   else {
     double h = (rows() - 1)*pm;
@@ -634,12 +775,12 @@ calcSymbolBoxes() const
 
     y = 1.0;
 
-    double yt = ym - h/2;
+    double yt = ym_ - h/2;
 
     for (int i = 0; i < rows(); ++i) {
       double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
 
-      auto pbbox = BBox(xm - pr, yt + 2*pr, xm + pr, yt);
+      auto pbbox = BBox(xm_ - pr, yt + 2*pr, xm_ + pr, yt);
 
       symbolBoxes_.push_back(pbbox);
 
@@ -648,8 +789,8 @@ calcSymbolBoxes() const
       y -= sy;
     }
 
-    sbbox_ = pixelToWindow(BBox(xm - prmax - pm, ym - h/2 - pm,
-                                xm + prmax + pm, ym + h/2 + pm));
+    sbbox_ = pixelToWindow(BBox(xm_ - prmax - pm, ym_ - h/2 - pm,
+                                xm_ + prmax + pm, ym_ + h/2 + pm));
   }
 }
 
@@ -819,49 +960,16 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
   double bm = this->margin();
   double bw = fm.width("X") + 4;
 
-  double kw = ks.width ();
-  double kh = ks.height();
+  kw_ = ks.width ();
+  kh_ = ks.height();
 
-  // calc center
-  Point pos;
+  calcCenter();
 
-  if (position().isValid()) {
-    pos = positionToPixel(position());
-  }
-  else {
-    auto pbbox = plot()->calcPlotPixelRect();
-
-    double px = pbbox.getXMax() - kw/2.0 - bm;
-    double py = pbbox.getYMax() - kh/2.0 - bm;
-
-    pos = Point(px, py);
-  }
-
-  double xm = pos.x;
-  double ym = pos.y;
-
-  //---
-
-  // calc bbox and align
-  Point p1(xm - kw/2.0, ym - kh/2.0);
-  Point p2(xm + kw/2.0, ym + kh/2.0);
-
-  BBox pbbox(p1.x, p1.y, p2.x, p2.y);
-
-  double dx = 0.0;
-  double dy = 0.0;
-
-  if      (align() & Qt::AlignLeft ) dx =  kw/2.0;
-  else if (align() & Qt::AlignRight) dx = -kw/2.0;
-
-  if      (align() & Qt::AlignBottom) dy = -kh/2.0;
-  else if (align() & Qt::AlignTop   ) dy =  kh/2.0;
-
-  pbbox = pbbox.translated(dx, dy);
+  calcAlignedBBox();
 
   auto *th = const_cast<CQChartsSymbolTypeMapKey *>(this);
 
-  th->setBBox(device->pixelToWindow(pbbox));
+  th->setBBox(device->pixelToWindow(pbbox_));
 
   //---
 
@@ -912,8 +1020,8 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
     for (int i = mapMin(); i <= mapMax(); ++i) {
       auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
-      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox.getYMax() - fm.height()/2.0 - 1,
-                              pbbox.getYMin() + fm.height()/2.0 + 1);
+      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fm.height()/2.0 - 1,
+                              pbbox_.getYMin() + fm.height()/2.0 + 1);
 
       CQChartsSymbolSet::SymbolData symbolData;
 
@@ -940,12 +1048,12 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
       double ss = 8;
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
-                                   device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
-                                   CQChartsLength(ss, CQChartsUnits::PIXEL));
+        device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
+        CQChartsLength(ss, CQChartsUnits::PIXEL));
 
       //---
 
-      drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
     }
   }
   else {
@@ -954,8 +1062,8 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
       auto dataStr = uniqueValues()[i].toString();
 
-      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox.getYMax() - fm.height()/2.0 - 1,
-                              pbbox.getYMin() + fm.height()/2.0 + 1);
+      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox_.getYMax() - fm.height()/2.0 - 1,
+                              pbbox_.getYMin() + fm.height()/2.0 + 1);
 
       CQChartsSymbolSet::SymbolData symbolData;
 
@@ -982,12 +1090,12 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
       double ss = 8;
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
-                                   device->pixelToWindow(Point(pbbox.getXMin() + ss/2 + bm + 2, y)),
-                                   CQChartsLength(ss, CQChartsUnits::PIXEL));
+        device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
+        CQChartsLength(ss, CQChartsUnits::PIXEL));
 
       //---
 
-      drawTextLabel(Point(pbbox.getXMin() + bw + 2*bm, y + df), dataStr);
+      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
     }
   }
 }
@@ -1004,10 +1112,11 @@ pixelSize() const
   double bw = fm.width("X") + 4;
 
   double tw = 0.0;
-  double kh = 0.0;
+
+  kh_ = 0.0;
 
   if (isNumeric()) {
-    kh = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
+    kh_ = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
 
     for (int i = mapMin(); i <= mapMax(); ++i) {
       auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
@@ -1016,7 +1125,7 @@ pixelSize() const
     }
   }
   else {
-    kh = (fm.height() + 2)*numUnique() + 2*bm;
+    kh_ = (fm.height() + 2)*numUnique() + 2*bm;
 
     for (int i = 0; i < numUnique(); ++i) {
       auto dataStr = uniqueValues()[i].toString();
@@ -1025,9 +1134,9 @@ pixelSize() const
     }
   }
 
-  double kw = bw + tw + 3*bm;
+  kw_ = bw + tw + 3*bm;
 
-  return QSize(kw, kh);
+  return QSize(kw_, kh_);
 }
 
 void

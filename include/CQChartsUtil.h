@@ -112,6 +112,8 @@ bool PointLineDistance(const Point &point, const Point &lineStart, const Point &
 
 namespace CQChartsUtil {
 
+QColor grayColor(const QColor &c);
+
 QColor bwColor(const QColor &c);
 
 QColor invColor(const QColor &c);
