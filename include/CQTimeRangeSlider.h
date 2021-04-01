@@ -55,12 +55,6 @@ class CQTimeRangeSlider : public CQRangeSlider {
 
   //---
 
-  void mousePressEvent  (QMouseEvent *) override;
-  void mouseMoveEvent   (QMouseEvent *) override;
-  void mouseReleaseEvent(QMouseEvent *) override;
-
-  void keyPressEvent(QKeyEvent *e) override;
-
   void paintEvent(QPaintEvent *) override;
 
   QSize sizeHint() const override;
@@ -77,12 +71,21 @@ class CQTimeRangeSlider : public CQRangeSlider {
   QString timeToString(double r) const;
   bool stringToTime(const QString &str, double &t) const;
 
-  double clampValue(double i) const;
+  void deltaSliderMin(int d) override {
+    setSliderMin(clampValue(deltaValue(getSliderMin(), d)), /*force*/true);
+  }
 
+  void deltaSliderMax(int d) override {
+    setSliderMax(clampValue(deltaValue(getSliderMax(), d)), /*force*/true);
+  }
+
+  double clampValue(double i) const;
   double deltaValue(double r, int inc) const;
 
-  void pixelToSliderValue(int px, int &ind, bool force=false);
-  void pixelSetSliderValue(int px, int ind, bool force=false);
+  void pixelToSliderValue(int px, int &ind, bool force=false) override;
+  void pixelSetSliderValue(int px, int ind, bool force=false) override;
+
+  void saveRange() override { save_ = slider_; }
 
   double valueToPixel(double x) const override;
   double pixelToValue(double px) const override;

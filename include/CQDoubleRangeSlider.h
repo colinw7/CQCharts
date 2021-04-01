@@ -50,19 +50,17 @@ class CQDoubleRangeSlider : public CQRangeSlider {
 
   //---
 
-  //! set/clear linear gradient
-  void setLinearGradient(const QLinearGradient &lg);
-  void clearLinearGradient();
+  void fixSliderValues();
 
   //---
 
-  void mousePressEvent  (QMouseEvent *) override;
-  void mouseMoveEvent   (QMouseEvent *) override;
-  void mouseReleaseEvent(QMouseEvent *) override;
-
-  void keyPressEvent(QKeyEvent *e) override;
-
   void paintEvent(QPaintEvent *) override;
+
+  virtual void drawRangeLabels(QPainter *painter);
+
+  virtual void drawSliderLabels(QPainter *painter);
+
+  //---
 
   QSize sizeHint() const override;
 
@@ -73,16 +71,27 @@ class CQDoubleRangeSlider : public CQRangeSlider {
   void sliderRangeChanged (double min, double max);
 
  protected:
-  void updateTip();
+  virtual void updateTip();
+
+  void drawText(QPainter *painter, int x, int y, const QString &text);
 
   QString realToString(double r) const;
 
-  double clampValue(double i) const;
+  void deltaSliderMin(int d) override {
+    setSliderMin(clampValue(deltaValue(getSliderMin(), d)), /*force*/true);
+  }
 
+  void deltaSliderMax(int d) override {
+    setSliderMax(clampValue(deltaValue(getSliderMax(), d)), /*force*/true);
+  }
+
+  double clampValue(double i) const;
   double deltaValue(double r, int inc) const;
 
-  void pixelToSliderValue(int px, int &ind, bool force=false);
-  void pixelSetSliderValue(int px, int ind, bool force=false);
+  void pixelToSliderValue(int px, int &ind, bool force=false) override;
+  void pixelSetSliderValue(int px, int ind, bool force=false) override;
+
+  void saveRange() override { save_ = slider_; }
 
   double valueToPixel(double x) const override;
   double pixelToValue(double px) const override;
@@ -108,9 +117,6 @@ class CQDoubleRangeSlider : public CQRangeSlider {
 
   double sliderDelta_   { 0.01 };
   int    decimalPlaces_ { 3 };
-
-  QLinearGradient lg_;
-  bool            lgSet_ { false };
 };
 
 #endif

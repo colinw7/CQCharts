@@ -20,6 +20,7 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsFontEdit.h>
+#include <CQChartsFontSizeRangeSlider.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
@@ -29,7 +30,6 @@
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 #include <CQTabSplit.h>
-#include <CQDoubleRangeSlider.h>
 #include <CQCheckBox.h>
 #include <CQEnumCombo.h>
 
@@ -4064,7 +4064,7 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   positionEdit_        = CQUtil::makeWidget<CQEnumCombo>("positionEdit");
   fontEdit_            = CQUtil::makeWidget<CQChartsFontLineEdit>("fontEdit");
   fontSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("fontSizeColumnCombo_");
-  fontSizeRange_       = CQUtil::makeWidget<CQDoubleRangeSlider>("fontSizeRange");
+  fontSizeRange_       = CQUtil::makeWidget<CQChartsFontSizeRangeSlider>("fontSizeRange");
 
   positionEdit_->setPropName("position");
 
@@ -4169,15 +4169,13 @@ updateWidgets()
   fontEdit_        ->setEnabled(! hasSizeColumn);
   fontSizeRange_   ->setEnabled(hasSizeColumn);
 
-  pointLabelsCheck_   ->setChecked(plot_->isPointLabels());
-  labelColumnCombo_   ->setModelColumn(plot_->getModelData(), plot_->labelColumn());
-  positionEdit_       ->setObj(plot_->dataLabel());
+  pointLabelsCheck_ ->setChecked(plot_->isPointLabels());
+  labelColumnCombo_ ->setModelColumn(plot_->getModelData(), plot_->labelColumn());
+  positionEdit_     ->setObj(plot_->dataLabel());
+
   fontEdit_           ->setFont(plot_->dataLabelFont());
   fontSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->fontSizeColumn());
-
-  fontSizeRange_->setRangeMinMax(CQChartsFontSize::minValue(),
-                                 CQChartsFontSize::maxValue());
-  fontSizeRange_->setSliderMinMax(plot_->fontSizeMapMin(), plot_->fontSizeMapMax());
+  fontSizeRange_      ->setPlot(plot_);
 
   //---
 

@@ -160,51 +160,6 @@ updateTip()
 
 void
 CQTimeRangeSlider::
-mousePressEvent(QMouseEvent *e)
-{
-  if (e->button() == Qt::LeftButton) {
-    pressed_ = true;
-    save_    = slider_;
-
-    pixelToSliderValue(e->x(), pressInd_);
-  }
-}
-
-void
-CQTimeRangeSlider::
-mouseMoveEvent(QMouseEvent *e)
-{
-  if (pressed_)
-    pixelSetSliderValue(e->x(), pressInd_);
-}
-
-void
-CQTimeRangeSlider::
-mouseReleaseEvent(QMouseEvent *e)
-{
-  if (pressed_) {
-    pressed_ = false;
-
-    pixelSetSliderValue(e->x(), pressInd_, /*force*/true);
-  }
-}
-
-void
-CQTimeRangeSlider::
-keyPressEvent(QKeyEvent *e)
-{
-  if      (e->key() == Qt::Key_Left)
-    setSliderMin(clampValue(deltaValue(sliderMin(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Right)
-    setSliderMin(clampValue(deltaValue(sliderMin(),  1)), /*force*/true);
-  else if (e->key() == Qt::Key_Down)
-    setSliderMax(clampValue(deltaValue(sliderMax(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Up)
-    setSliderMax(clampValue(deltaValue(sliderMax(),  1)), /*force*/true);
-}
-
-void
-CQTimeRangeSlider::
 fixSliderValues()
 {
   auto i1 = sliderMin();
@@ -284,8 +239,8 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  int xl = 2;
-  int xr = width() - 2;
+  xs1_ = xBorder();
+  xs2_ = width() - xBorder();
 
   //---
 
@@ -299,15 +254,11 @@ paintEvent(QPaintEvent *)
     painter.setPen  (palette().color(QPalette::WindowText));
     painter.setBrush(Qt::NoBrush);
 
-    drawText(xl        , minStr);
-    drawText(xr - twMax, maxStr);
+    drawText(xs1_        , minStr);
+    drawText(xs2_ - twMax, maxStr);
 
-    xs1_ = xl + twMin + 2;
-    xs2_ = xr - twMax - 2;
-  }
-  else {
-    xs1_ = xl;
-    xs2_ = xr;
+    xs1_ += twMin + 2;
+    xs2_ -= twMax + 2;
   }
 
   //---

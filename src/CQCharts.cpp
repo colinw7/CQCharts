@@ -690,9 +690,14 @@ init()
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), false);
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), false);
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), false);
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), false);
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), false);
   outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), false);
+  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), false);
 
   auto *filledSymbolSet = createSymbolSet("filled");
 
@@ -705,6 +710,15 @@ init()
   filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), true);
   filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), true);
   filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), true);
+  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), true);
 
   //auto *charSymbolSet = createSymbolSet("char");
 

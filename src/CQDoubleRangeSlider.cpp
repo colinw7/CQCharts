@@ -143,25 +143,6 @@ setSliderMinMax(double min, double max, bool force)
 
 void
 CQDoubleRangeSlider::
-setLinearGradient(const QLinearGradient &lg)
-{
-  lg_    = lg;
-  lgSet_ = true;
-
-  update();
-}
-
-void
-CQDoubleRangeSlider::
-clearLinearGradient()
-{
-  lgSet_ = false;
-}
-
-//---
-
-void
-CQDoubleRangeSlider::
 updateTip()
 {
   setToolTip(QString("%1 - %2\n(Range %3 - %4)").
@@ -172,47 +153,16 @@ updateTip()
 
 void
 CQDoubleRangeSlider::
-mousePressEvent(QMouseEvent *e)
+fixSliderValues()
 {
-  if (e->button() == Qt::LeftButton) {
-    pressed_ = true;
-    save_    = slider_;
+  auto i1 = sliderMin();
+  auto i2 = sliderMax();
 
-    pixelToSliderValue(e->x(), pressInd_);
-  }
-}
+  if (i1 > i2)
+    std::swap(i1, i2);
 
-void
-CQDoubleRangeSlider::
-mouseMoveEvent(QMouseEvent *e)
-{
-  if (pressed_)
-    pixelSetSliderValue(e->x(), pressInd_);
-}
-
-void
-CQDoubleRangeSlider::
-mouseReleaseEvent(QMouseEvent *e)
-{
-  if (pressed_) {
-    pressed_ = false;
-
-    pixelSetSliderValue(e->x(), pressInd_, /*force*/true);
-  }
-}
-
-void
-CQDoubleRangeSlider::
-keyPressEvent(QKeyEvent *e)
-{
-  if      (e->key() == Qt::Key_Left)
-    setSliderMin(clampValue(deltaValue(sliderMin(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Right)
-    setSliderMin(clampValue(deltaValue(sliderMin(),  1)), /*force*/true);
-  else if (e->key() == Qt::Key_Down)
-    setSliderMax(clampValue(deltaValue(sliderMax(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Up)
-    setSliderMax(clampValue(deltaValue(sliderMax(),  1)), /*force*/true);
+  setSliderMin(clampValue(i1), /*force*/true);
+  setSliderMax(clampValue(i2), /*force*/true);
 }
 
 double
@@ -277,188 +227,133 @@ paintEvent(QPaintEvent *)
 
   painter.setFont(textFont());
 
+  xs1_ = xBorder();
+  xs2_ = width() - xBorder();
+
+  // draw optional full range labels at start/end
+  if (showRangeLabels())
+    drawRangeLabels(&painter);
+
+  //---
+
+  // draw slider
+  drawSlider(&painter);
+
+  //---
+
+  // draw current (slider) range labels
+  if (showSliderLabels())
+    drawSliderLabels(&painter);
+}
+
+void
+CQDoubleRangeSlider::
+drawRangeLabels(QPainter *painter)
+{
   QFontMetricsF fm(font());
 
-  QFontMetricsF tfm(painter.font());
+  QFontMetricsF tfm(painter->font());
 
   double ym = height()/2.0;
 
   //---
 
-  auto interpValue = [](double v1, double v2, double f) {
-    return v1*(1 - f) + v2*f;
-  };
+  auto minStr = realToString(rangeMin());
+  auto maxStr = realToString(rangeMax());
 
-  auto interpColor = [&](const QColor &c1, const QColor &c2, double f) {
-    qreal r1, g1, b1, a1;
-    qreal r2, g2, b2, a2;
+  int twMin = tfm.width(minStr);
+  int twMax = tfm.width(maxStr);
 
-    c1.getRgbF(&r1, &g1, &b1, &a1);
-    c2.getRgbF(&r2, &g2, &b2, &a2);
+  painter->setPen  (palette().color(QPalette::WindowText));
+  painter->setBrush(Qt::NoBrush);
 
-    return QColor::fromRgbF(interpValue(r1, r2, f),
-                            interpValue(g1, g2, f),
-                            interpValue(b1, b2, f));
-  };
-
-  auto colorAt = [&](double x) {
-    double sx1 = 0.0, sx2 = 0.0;
-    QColor sc1, sc2;
-
-    for (const auto &s : lg_.stops()) {
-      sx2 = s.first;
-      sc2 = s.second;
-
-      if (x >= sx1 && x <= sx2)
-        return interpColor(sc1, sc2, (x - sx1)/(sx2 - sx1));
-
-      sx1 = sx2;
-      sc1 = sc2;
-    }
-
-    return QColor();
-  };
-
-  auto bwColor = [&](const QColor &c) {
-    int g = qGray(c.red(), c.green(), c.blue());
-
-    return (g > 128 ? QColor(0, 0, 0) : QColor(255, 255, 255));
-  };
-
-  auto drawText = [&](int x, const QString &text) {
-    if (lgSet_) {
-      int w = tfm.width(text);
-
-      int xm = x + w/2;
-
-      painter.setPen(bwColor(colorAt(1.0*xm/width())));
-    }
-
-    int dy = (tfm.ascent() - tfm.descent())/2;
-
-    painter.drawText(x, ym + dy, text);
-  };
+  drawText(painter, xs1_        , ym, minStr);
+  drawText(painter, xs2_ - twMax, ym, maxStr);
 
   //---
 
-  int xl = 2;
-  int xr = width() - 2;
-  int yt = ym - fm.height()/2.0 - 1;
-  int yb = ym + fm.height()/2.0 + 1;
+  xs1_ += twMin + 2;
+  xs2_ -= twMax + 2;
+}
+
+void
+CQDoubleRangeSlider::
+drawSliderLabels(QPainter *painter)
+{
+  QFontMetricsF fm(font());
+
+  QFontMetricsF tfm(textFont());
+
+  double ym = height()/2.0;
 
   //---
 
-  if (showRangeLabels()) {
-    auto minStr = realToString(rangeMin());
-    auto maxStr = realToString(rangeMax());
+  auto xs3 = valueToPixel(sliderMin());
+  auto xs4 = valueToPixel(sliderMax());
 
-    int twMin = tfm.width(minStr);
-    int twMax = tfm.width(maxStr);
+  double bs = fm.height()/3.0;
 
-    painter.setPen  (palette().color(QPalette::WindowText));
-    painter.setBrush(Qt::NoBrush);
+  auto sminStr = realToString(sliderMin());
+  auto smaxStr = realToString(sliderMax());
 
-    drawText(xl        , minStr);
-    drawText(xr - twMax, maxStr);
+  int twsMin = tfm.width(sminStr);
+  int twsMax = tfm.width(smaxStr);
 
-    xs1_ = xl + twMin + 2;
-    xs2_ = xr - twMax - 2;
-  }
-  else {
-    xs1_ = xl;
-    xs2_ = xr;
-  }
+  painter->setPen  (palette().color(QPalette::HighlightedText));
+  painter->setBrush(Qt::NoBrush);
 
-  //---
+//int xm = (xs1_ + xs2_)/2;
 
-  auto bg0 = palette().color(QPalette::Background);
-  auto bg1 = palette().color(QPalette::Highlight);
-  auto fg0 = palette().color(QPalette::Text);
-  auto fg1 = blendColors(bg0, fg0, 0.3);
+  int tl1 = xs3 - twsMin - bs/2.0 - 2;
 
-  auto bg2 = blendColors(bg1, bg0, 0.5);
-  auto bg3 = blendColors(bg1, fg0, 0.8);
+  if (tl1 < xs1_)
+    tl1 = xs3 + bs/2.0 + 2;
 
-  painter.setPen  (Qt::NoPen);
-  painter.setBrush(lgSet_ ? QBrush(lg_) : QBrush(bg2));
+  int tl2 = tl1 + twsMin;
 
-  painter.drawRoundedRect(QRect(xs1_, yt, xs2_ - xs1_ + 1, yb - yt + 1), 3, 3);
+  int tle = std::max(tl2, int(xs3 + bs/2.0 + 1));
 
-  int xs3 = valueToPixel(sliderMin());
-  int xs4 = valueToPixel(sliderMax());
+  int tr1 = xs4 + bs/2.0 + 2;
+
+  if (tr1 + twsMax > xs2_)
+    tr1 = xs4 - twsMax - bs/2.0 - 2;
+
+//int tr2 = tr1 + twsMax;
+
+  int trs = std::min(tr1, int(xs4 - bs/2.0 - 1));
+
+  if (tr1 >= tle)
+    drawText(painter, tr1, ym, smaxStr);
+  else
+    trs = 9999;
+
+  if (tl2 <= trs && tl2 < int(xs4 - bs/2.0 - 1))
+    drawText(painter, tl1, ym, sminStr);
+}
+
+void
+CQDoubleRangeSlider::
+drawText(QPainter *painter, int x, int y, const QString &text)
+{
+  QFontMetricsF tfm(textFont());
 
   if (lgSet_) {
-    bg3.setAlphaF(0.3);
+    int w = tfm.width(text);
 
-    painter.setPen  (Qt::NoPen);
-    painter.setBrush(bg3);
+    int xm = x + w/2;
 
-    painter.drawRoundedRect(QRect(xs1_, yt, xs3  - xs1_ + 1, yb - yt + 1), 1, 1);
-    painter.drawRoundedRect(QRect(xs4 , yt, xs2_ - xs4  + 1, yb - yt + 1), 1, 1);
+    auto c = bwColor(colorAt(1.0*xm/width()));
 
-    painter.setPen  (fg1);
-    painter.setBrush(Qt::NoBrush);
+    if (! isEnabled())
+      c.setAlphaF(0.8);
 
-    painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
-  }
-  else {
-    painter.setPen  (fg1);
-    painter.setBrush(bg3);
-
-    painter.drawRoundedRect(QRect(xs3, yt, xs4 - xs3 + 1, yb - yt + 1), 1, 1);
+    painter->setPen(c);
   }
 
-  painter.setPen  (fg1);
-  painter.setBrush(palette().color(QPalette::Button));
+  int dy = (tfm.ascent() - tfm.descent())/2;
 
-  //---
-
-  double bs = tfm.height()/2.0;
-
-  painter.drawEllipse(QRectF(xs3 - bs/2, ym - bs/2, bs, bs));
-  painter.drawEllipse(QRectF(xs4 - bs/2, ym - bs/2, bs, bs));
-
-  //---
-
-  if (showSliderLabels()) {
-    auto sminStr = realToString(sliderMin());
-    auto smaxStr = realToString(sliderMax());
-
-    int twsMin = tfm.width(sminStr);
-    int twsMax = tfm.width(smaxStr);
-
-    painter.setPen  (palette().color(QPalette::HighlightedText));
-    painter.setBrush(Qt::NoBrush);
-
-  //int xm = (xs1_ + xs2_)/2;
-
-    int tl1 = xs3 - twsMin - bs/2.0 - 2;
-
-    if (tl1 < xs1_)
-      tl1 = xs3 + bs/2.0 + 2;
-
-    int tl2 = tl1 + twsMin;
-
-    int tle = std::max(tl2, int(xs3 + bs/2.0 + 1));
-
-    int tr1 = xs4 + bs/2.0 + 2;
-
-    if (tr1 + twsMax > xs2_)
-      tr1 = xs4 - twsMax - bs/2.0 - 2;
-
-  //int tr2 = tr1 + twsMax;
-
-    int trs = std::min(tr1, int(xs4 - bs/2.0 - 1));
-
-    if (tr1 >= tle)
-      drawText(tr1, smaxStr);
-    else
-      trs = 9999;
-
-    if (tl2 <= trs && tl2 < int(xs4 - bs/2.0 - 1))
-      drawText(tl1, sminStr);
-  }
-}
+  painter->drawText(x, y + dy, text);
+};
 
 QString
 CQDoubleRangeSlider::

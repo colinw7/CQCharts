@@ -274,6 +274,7 @@ CQChartsAxisTickLabelPlacementEdit.cpp \
 CQChartsAxisValueTypeEdit.cpp \
 CQChartsBoxDataEdit.cpp \
 CQChartsColorEdit.cpp \
+CQChartsColorRangeSlider.cpp \
 CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
 CQChartsColumnNumEdit.cpp \
@@ -285,6 +286,7 @@ CQChartsFillDataEdit.cpp \
 CQChartsFillPatternEdit.cpp \
 CQChartsFillUnderEdit.cpp \
 CQChartsFontEdit.cpp \
+CQChartsFontSizeRangeSlider.cpp \
 CQChartsImageEdit.cpp \
 CQChartsKeyLocationEdit.cpp \
 CQChartsKeyPressBehaviorEdit.cpp \
@@ -312,7 +314,8 @@ CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
 CQChartsSymbolDataEdit.cpp \
 CQChartsSymbolEdit.cpp \
-CQChartsSymbolRangeSlider.cpp \
+CQChartsSymbolSizeRangeSlider.cpp \
+CQChartsSymbolTypeRangeSlider.cpp \
 CQChartsSymbolSetEdit.cpp \
 CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
@@ -633,6 +636,7 @@ HEADERS += \
 ../include/CQChartsAxisValueTypeEdit.h \
 ../include/CQChartsBoxDataEdit.h \
 ../include/CQChartsColorEdit.h \
+../include/CQChartsColorRangeSlider.h \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
 ../include/CQChartsColumnNumEdit.h \
@@ -644,6 +648,7 @@ HEADERS += \
 ../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsFillUnderEdit.h \
 ../include/CQChartsFontEdit.h \
+../include/CQChartsFontSizeRangeSlider.h \
 ../include/CQChartsImageEdit.h \
 ../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsKeyPressBehaviorEdit.h \
@@ -671,7 +676,8 @@ HEADERS += \
 ../include/CQChartsStrokeDataEdit.h \
 ../include/CQChartsSymbolDataEdit.h \
 ../include/CQChartsSymbolEdit.h \
-../include/CQChartsSymbolRangeSlider.h \
+../include/CQChartsSymbolSizeRangeSlider.h \
+../include/CQChartsSymbolTypeRangeSlider.h \
 ../include/CQChartsSymbolSetEdit.h \
 ../include/CQChartsTextBoxDataEdit.h \
 ../include/CQChartsTextDataEdit.h \

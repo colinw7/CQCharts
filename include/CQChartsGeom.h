@@ -120,20 +120,19 @@ class Point :
   // is useful for weighted sum
   Point &operator+=(const Point &rhs) { x += rhs.x; y += rhs.y; return *this; }
 
-  Point &operator+=(double rhs) { x += rhs; y += rhs; return *this; }
+//Point &operator+=(double rhs) { x += rhs; y += rhs; return *this; }
 
   Point operator+(const Point &rhs) const { return Point(x + rhs.x, y + rhs.y); }
 
-  friend Point operator+(const Point &lhs, double rhs) { return Point(lhs.x + rhs, lhs.y + rhs); }
-
-  friend Point operator+(double lhs, const Point &rhs) { return Point(rhs.x + lhs, rhs.y + lhs); }
+//friend Point operator+(const Point &lhs, double rhs) { return Point(lhs.x + rhs, lhs.y + rhs); }
+//friend Point operator+(double lhs, const Point &rhs) { return Point(rhs.x + lhs, rhs.y + lhs); }
 
   //------
 
   // Subtraction of points makes no mathematical sense but is useful for weighted sum
   Point &operator-=(const Point &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 
-  Point &operator-=(double rhs) { x -= rhs; y -= rhs; return *this; }
+//Point &operator-=(double rhs) { x -= rhs; y -= rhs; return *this; }
 
   Point operator-(const Point &rhs) const { return Point(x - rhs.x, y - rhs.y); }
 
@@ -142,9 +141,8 @@ class Point :
   // Multiplication of points makes no mathematical sense but is useful for weighted sum
   Point &operator*=(double rhs) { x *= rhs; y *= rhs; return *this; }
 
-  Point &operator*=(const Point &rhs) { x *= rhs.x; y *= rhs.y; return *this; }
-
-  Point operator*(const Point &rhs) const { return Point(x*rhs.x, y*rhs.y); }
+//Point &operator*=(const Point &rhs) { x *= rhs.x; y *= rhs.y; return *this; }
+//Point operator*(const Point &rhs) const { return Point(x*rhs.x, y*rhs.y); }
 
   friend Point operator*(const Point &lhs, double rhs) { return Point(lhs.x*rhs, lhs.y*rhs); }
 
@@ -155,9 +153,8 @@ class Point :
   // Division of points makes no mathematical sense but is useful for weighted sum
   Point &operator/=(double rhs) { double irhs = 1.0/rhs; x *= irhs; y *= irhs; return *this; }
 
-  Point &operator/=(const Point &rhs) { x /= rhs.x; y /= rhs.y; return *this; }
-
-  Point operator/(const Point &rhs) const { return Point(x/rhs.x, y/rhs.y); }
+//Point &operator/=(const Point &rhs) { x /= rhs.x; y /= rhs.y; return *this; }
+//Point operator/(const Point &rhs) const { return Point(x/rhs.x, y/rhs.y); }
 
   friend Point operator/(const Point &lhs, double rhs) {
     double irhs = 1.0/rhs;
@@ -165,7 +162,7 @@ class Point :
     return Point(lhs.x*irhs, lhs.y*irhs);
   }
 
-  friend Point operator/(double lhs, const Point &rhs) { return Point(lhs/rhs.x, lhs/rhs.y); }
+//friend Point operator/(double lhs, const Point &rhs) { return Point(lhs/rhs.x, lhs/rhs.y); }
 
   //------
 
@@ -626,8 +623,8 @@ class BBox :
   bool expand(double delta) {
     assert(set_);
 
-    pmin_ -= delta;
-    pmax_ += delta;
+    pmin_ -= Point(delta, delta);
+    pmax_ += Point(delta, delta);
 
     return update();
   }

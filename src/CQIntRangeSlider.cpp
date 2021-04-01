@@ -153,51 +153,6 @@ updateTip()
 
 void
 CQIntRangeSlider::
-mousePressEvent(QMouseEvent *e)
-{
-  if (e->button() == Qt::LeftButton) {
-    pressed_ = true;
-    save_    = slider_;
-
-    pixelToSliderValue(e->x(), pressInd_);
-  }
-}
-
-void
-CQIntRangeSlider::
-mouseMoveEvent(QMouseEvent *e)
-{
-  if (pressed_)
-    pixelSetSliderValue(e->x(), pressInd_);
-}
-
-void
-CQIntRangeSlider::
-mouseReleaseEvent(QMouseEvent *e)
-{
-  if (pressed_) {
-    pressed_ = false;
-
-    pixelSetSliderValue(e->x(), pressInd_, /*force*/true);
-  }
-}
-
-void
-CQIntRangeSlider::
-keyPressEvent(QKeyEvent *e)
-{
-  if      (e->key() == Qt::Key_Left)
-    setSliderMin(clampValue(deltaValue(sliderMin(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Right)
-    setSliderMin(clampValue(deltaValue(sliderMin(),  1)), /*force*/true);
-  else if (e->key() == Qt::Key_Down)
-    setSliderMax(clampValue(deltaValue(sliderMax(), -1)), /*force*/true);
-  else if (e->key() == Qt::Key_Up)
-    setSliderMax(clampValue(deltaValue(sliderMax(),  1)), /*force*/true);
-}
-
-void
-CQIntRangeSlider::
 fixSliderValues()
 {
   auto i1 = sliderMin();
@@ -263,8 +218,8 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  xs1_ = 2;
-  xs2_ = width() - 2;
+  xs1_ = xBorder();
+  xs2_ = width() - xBorder();
 
   // draw optional full range labels at start/end
   if (showRangeLabels())
@@ -311,16 +266,13 @@ drawRangeLabels(QPainter *painter)
   painter->setPen  (palette().color(QPalette::WindowText));
   painter->setBrush(Qt::NoBrush);
 
-  int xl = 2;
-  int xr = width() - 2;
-
-  drawText(xl        , minStr);
-  drawText(xr - twMax, maxStr);
+  drawText(xs1_        , minStr);
+  drawText(xs2_ - twMax, maxStr);
 
   //---
 
-  xs1_ = xl + twMin + 2;
-  xs2_ = xr - twMax - 2;
+  xs1_ += twMin + 2;
+  xs2_ -= twMax + 2;
 }
 
 void
@@ -359,7 +311,7 @@ drawSliderLabels(QPainter *painter)
 
 //int xm = (xs1_ + xs2_)/2;
 
-  int tl1 = xs3 - twsMin - bs;
+  int tl1 = xs3 - twsMin - bs/2.0 - 2;
 
   if (tl1 < xs1_)
     tl1 = xs3 + bs/2.0 + 2;
@@ -398,7 +350,7 @@ CQIntRangeSlider::
 valueToPixel(double x) const
 {
   if (rangeMax() > rangeMin())
-    return (xs2_ - xs1_)*(1.0*x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
+    return (xs2_ - xs1_)*(x - rangeMin())/(rangeMax() - rangeMin()) + xs1_;
   else
     return xs1_;
 }

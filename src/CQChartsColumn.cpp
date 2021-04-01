@@ -72,6 +72,16 @@ CQChartsColumn(const CQChartsColumn &rhs) :
 }
 
 CQChartsColumn::
+CQChartsColumn(CQChartsColumn &&rhs)
+{
+  std::swap(type_  , rhs.type_  );
+  std::swap(column_, rhs.column_);
+  std::swap(role_  , rhs.role_  );
+  std::swap(expr_  , rhs.expr_  );
+  std::swap(name_  , rhs.name_  );
+}
+
+CQChartsColumn::
 ~CQChartsColumn()
 {
   delete [] expr_;
@@ -110,6 +120,30 @@ operator=(const CQChartsColumn &rhs)
   }
 
   updateType();
+
+  return *this;
+}
+
+CQChartsColumn &
+CQChartsColumn::
+operator=(CQChartsColumn &&rhs)
+{
+  if (&rhs != this) {
+    delete [] expr_;
+    delete [] name_;
+
+    type_   = Type::NONE;
+    column_ = -1;
+    role_   = -1;
+    expr_   = nullptr;
+    name_   = nullptr;
+
+    std::swap(type_  , rhs.type_  );
+    std::swap(column_, rhs.column_);
+    std::swap(role_  , rhs.role_  );
+    std::swap(expr_  , rhs.expr_  );
+    std::swap(name_  , rhs.name_  );
+  }
 
   return *this;
 }

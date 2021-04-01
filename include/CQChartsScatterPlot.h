@@ -900,6 +900,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
 class CQChartsEnumParameterEdit;
 class CQChartsFontLineEdit;
+class CQChartsFontSizeRangeSlider;
 class CQEnumCombo;
 class CQCheckBox;
 
@@ -931,14 +932,14 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void fontSizeRangeSlot(double, double);
 
  private:
-  CQChartsScatterPlot*       plot_                { nullptr };
-  CQChartsEnumParameterEdit* plotTypeCombo_       { nullptr };
-  CQCheckBox*                pointLabelsCheck_    { nullptr };
-  CQChartsColumnCombo*       labelColumnCombo_    { nullptr };
-  CQEnumCombo*               positionEdit_        { nullptr };
-  CQChartsFontLineEdit*      fontEdit_            { nullptr };
-  CQChartsColumnCombo*       fontSizeColumnCombo_ { nullptr };
-  CQDoubleRangeSlider*       fontSizeRange_       { nullptr };
+  CQChartsScatterPlot*         plot_                { nullptr };
+  CQChartsEnumParameterEdit*   plotTypeCombo_       { nullptr };
+  CQCheckBox*                  pointLabelsCheck_    { nullptr };
+  CQChartsColumnCombo*         labelColumnCombo_    { nullptr };
+  CQEnumCombo*                 positionEdit_        { nullptr };
+  CQChartsFontLineEdit*        fontEdit_            { nullptr };
+  CQChartsColumnCombo*         fontSizeColumnCombo_ { nullptr };
+  CQChartsFontSizeRangeSlider* fontSizeRange_       { nullptr };
 };
 
 #endif

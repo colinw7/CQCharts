@@ -3521,8 +3521,8 @@ class CQChartsColumnsParameterEdit;
 class CQChartsEnumParameterEdit;
 class CQChartsBoolParameterEdit;
 class CQChartsColorLineEdit;
+class CQChartsColorRangeSlider;
 class CQChartsColumnCombo;
-class CQDoubleRangeSlider;
 class CQChartsPaletteNameEdit;
 
 class CQTabSplit;
@@ -3588,8 +3588,6 @@ class CQChartsPlotCustomControls : public QFrame {
 
   void connectSlots(bool b);
 
-  void updateColorPaletteGradient();
-
  protected:
   using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
@@ -3599,16 +3597,16 @@ class CQChartsPlotCustomControls : public QFrame {
 
   int row_ { 0 };
 
-  QString                  plotType_;
-  CQChartsPlot*            plot_             { nullptr };
-  QLabel*                  titleWidget_      { nullptr };
-  ColumnEdits              columnEdits_;
-  ColumnsEdits             columnsEdits_;
-  QCheckBox*               numericCheck_     { nullptr };
-  CQChartsColorLineEdit*   colorEdit_        { nullptr };
-  CQChartsColumnCombo*     colorColumnCombo_ { nullptr };
-  CQDoubleRangeSlider*     colorRange_       { nullptr };
-  CQChartsPaletteNameEdit* colorPaletteEdit_ { nullptr };
+  QString                   plotType_;
+  CQChartsPlot*             plot_             { nullptr };
+  QLabel*                   titleWidget_      { nullptr };
+  ColumnEdits               columnEdits_;
+  ColumnsEdits              columnsEdits_;
+  QCheckBox*                numericCheck_     { nullptr };
+  CQChartsColorLineEdit*    colorEdit_        { nullptr };
+  CQChartsColumnCombo*      colorColumnCombo_ { nullptr };
+  CQChartsColorRangeSlider* colorRange_       { nullptr };
+  CQChartsPaletteNameEdit*  colorPaletteEdit_ { nullptr };
 
   CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
 };

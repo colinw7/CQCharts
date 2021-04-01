@@ -30,6 +30,7 @@
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsColorEdit.h>
+#include <CQChartsColorRangeSlider.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
@@ -48,7 +49,6 @@
 #include <CQColorsPalette.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
-#include <CQDoubleRangeSlider.h>
 #include <CQTabSplit.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
@@ -9048,23 +9048,37 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   auto *symbolSetMgr = charts()->symbolSetMgr();
   auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName);
 
+  // map symbol index into symbol set range
   auto interpInd = [&](int i) {
     if (symbolSet) {
-      const auto &symbolData = symbolSet->interpI(i);
+      CQChartsSymbolSet::SymbolData symbolData;
+
+      if (symbolTypeData.mapped)
+        symbolData = symbolSet->interpI(i + symbolTypeData.map_min,
+                                        symbolTypeData.map_min, symbolTypeData.map_max);
+      else
+        symbolData = symbolSet->interpI(i);
 
       symbolType   = symbolData.symbol;
       symbolFilled = symbolData.filled;
     }
-    else
-      symbolType = Symbol::interpOutline(i);
+    else {
+      if (symbolTypeData.mapped)
+        symbolType = Symbol::interpOutlineWrap(i + symbolTypeData.map_min,
+                                               symbolTypeData.map_min, symbolTypeData.map_max);
+      else
+        symbolType = Symbol::interpOutlineWrap(i + CQChartsSymbol::minOutlineValue());
+    }
   };
 
+  // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
   auto mapData = [&](int i, int imin, int imax) {
-    // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
     return (int) CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max);
   };
 
+  // interpolate symbol from number in column range to symbol range
   if      (CQChartsVariant::isNumeric(var)) {
+    // get integer value
     int i = (int) CQChartsVariant::toInt(var, ok);
 
     if (! ok) {
@@ -9074,18 +9088,15 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
       i = CMathRound::Round(r);
     }
 
+    //---
+
+    // map integer value in column range (map min/max) to symbol range (data min/max)
     if (symbolTypeData.mapped) {
       interpInd(mapData(i, symbolTypeData.data_min, symbolTypeData.data_max));
     }
+    // use integer value directly (no column range map)
     else {
-      // use value directly for type
-      if (symbolSet) {
-        auto ind = uniqueInd();
-
-        interpInd(mapData(ind.first, 0, ind.second - 1));
-      }
-      else
-        interpInd(i);
+      interpInd(i);
     }
   }
   else if (CQChartsVariant::isSymbol(var)) {
@@ -9094,11 +9105,15 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   }
   else {
     if (symbolTypeData.mapped) {
+      // get unique id of value
       auto ind = uniqueInd();
 
-      interpInd(mapData(ind.first, 0, ind.second - 1));
+      interpInd(ind.first);
+      //interpInd(mapData(ind.first, 0, ind.second - 1));
     }
     else {
+      // init symbol from string
+      // TODO: only if column marked as symbol ?
       auto str = CQChartsVariant::toString(var, ok);
 
       symbolType = Symbol(str);
@@ -17190,7 +17205,7 @@ addColorColumnWidgets(const QString &title)
 
   colorEdit_        = CQUtil::makeWidget<CQChartsColorLineEdit>("colorEdit_");
   colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
-  colorRange_       = CQUtil::makeWidget<CQDoubleRangeSlider>("colorRange");
+  colorRange_       = CQUtil::makeWidget<CQChartsColorRangeSlider>("colorRange");
   colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
 
   addColorWidget("Color"  , colorEdit_);
@@ -17399,10 +17414,12 @@ updateWidgets()
 
     colorColumnCombo_->setModelColumn(plot()->getModelData(), plot()->colorColumn());
 
-    colorRange_->setRangeMinMax(0.0, 1.0);
-    colorRange_->setSliderMinMax(plot()->colorMapMin(), plot()->colorMapMax());
+    auto paletteName = plot()->colorMapPalette();
 
-    colorPaletteEdit_->setChartsPaletteName(plot()->charts(), plot()->colorMapPalette());
+    colorRange_->setPlot(plot());
+    colorRange_->setPaletteName(paletteName);
+
+    colorPaletteEdit_->setChartsPaletteName(plot()->charts(), paletteName);
   }
 
   //---
@@ -17444,8 +17461,14 @@ void
 CQChartsPlotCustomControls::
 colorRangeSlot()
 {
+  connectSlots(false);
+
   plot()->setColorMapMin(colorRange_->sliderMin());
   plot()->setColorMapMax(colorRange_->sliderMax());
+
+  connectSlots(true);
+
+  updateWidgets();
 }
 
 void
@@ -17453,32 +17476,4 @@ CQChartsPlotCustomControls::
 colorPaletteSlot()
 {
   plot()->setColorMapPalette(colorPaletteEdit_->paletteName());
-
-  updateColorPaletteGradient();
-}
-
-void
-CQChartsPlotCustomControls::
-updateColorPaletteGradient()
-{
-  auto paletteName = plot()->colorMapPalette();
-
-  if (! paletteName.isValid())
-    paletteName = plot()->defaultPalette();
-
-  auto *colorPalette = paletteName.palette();
-
-  if (colorPalette) {
-    QLinearGradient lg(0, 0.5, 1, 0.5);
-
-    lg.setCoordinateMode(QGradient::ObjectBoundingMode);
-
-    colorPalette->setLinearGradient(lg, 1.0, paletteName.min(), paletteName.max());
-
-    colorRange_->setLinearGradient(lg);
-  }
-  else
-    colorRange_->clearLinearGradient();
-
-  colorRange_->update();
 }

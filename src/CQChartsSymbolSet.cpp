@@ -99,19 +99,40 @@ CQChartsSymbolSet::SymbolData
 CQChartsSymbolSet::
 interpI(int i) const
 {
-  int i1;
+  return interpI(i, 0, numSymbols() - 1);
+}
 
-  if (i < 0) {
-    int i2 = -i - 1;
-    int i3 = (i2 % numSymbols());
-
-    i1 = numSymbols() - i3 - 1;
-  }
-  else {
-    i1 = (i % numSymbols());
-  }
+CQChartsSymbolSet::SymbolData
+CQChartsSymbolSet::
+interpI(int i, int imin, int imax) const
+{
+  int i1 = interpIRange(i, imin, imax);
 
   return symbolData(i1);
+}
+
+int
+CQChartsSymbolSet::
+interpIRange(int i, int imin, int imax)
+{
+  int ii = i - imin;
+  int ni = imax - imin + 1;
+
+  assert(ni > 0);
+
+  int i1;
+
+  if (ii < 0) {
+    int i2 = -ii - 1;
+    int i3 = (i2 % ni);
+
+    i1 = ni - i3 - 1;
+  }
+  else {
+    i1 = (ii % ni);
+  }
+
+  return i1 + imin;
 }
 
 CQChartsSymbol

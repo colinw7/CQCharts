@@ -122,8 +122,9 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   using PaletteName = CQChartsPaletteName;
   using ColorInd    = CQChartsUtil::ColorInd;
 
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
+  using BBox    = CQChartsGeom::BBox;
+  using Point   = CQChartsGeom::Point;
+  using RMinMax = CQChartsGeom::RMinMax;
 
  public:
   CQChartsColorMapKey(Plot *plot);
@@ -270,6 +271,9 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   const PaletteName &paletteName() const { return paletteName_; }
   void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
 
+  const RMinMax &paletteMinMax() const { return paletteMinMax_; }
+  void setPaletteMinMax(const RMinMax &r) { paletteMinMax_ = r; invalidate(); }
+
   //---
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
@@ -321,7 +325,9 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   Alpha         alpha_     { 0.6 };                               //!< background alpha
   Qt::Alignment textAlign_ { Qt::AlignRight | Qt::AlignVCenter }; //!< text align
-  PaletteName   paletteName_;                                     //!< custom palette
+
+  PaletteName paletteName_;                //!< custom palette
+  RMinMax     paletteMinMax_ { 0.0, 1.0 }; //!< custom palette range
 
   mutable BBox   tbbox_;
   mutable BBox   sbbox_;

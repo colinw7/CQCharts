@@ -67,8 +67,11 @@ class CQChartsPlotSymbolList {
       return;
     }
 
-    if (type == CQChartsSymbol::Type::CIRCLE)
-      return renderer->drawFillCircle(0, 0, 0.875, /*fill*/false);
+    if (type == CQChartsSymbol::Type::CIRCLE) {
+      renderer->drawLine(0.0, 0.0, 0.0, 0.875);
+      renderer->drawFillCircle(0.0, 0.0, 0.875, /*fill*/false);
+      return;
+    }
 
     if (type == CQChartsSymbol::Type::HLINE)
       return renderer->drawLine(-0.875, 0, 0.875, 0);

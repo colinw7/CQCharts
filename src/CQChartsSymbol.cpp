@@ -1,4 +1,5 @@
 #include <CQChartsSymbol.h>
+#include <CQChartsSymbolSet.h>
 #include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsSymbol, toString, fromString)
@@ -81,6 +82,52 @@ typeNames()
   return typeNames;
 }
 
+#if 0
+static CQChartsSymbol
+CQChartsSymbol::
+interpOutline(double r)
+{
+  return CQChartsSymbol((CQChartsSymbol::Type)
+    int(CMathUtil::map(r, 0, 1, minOutlineValue(), maxOutlineValue())));
+}
+#endif
+
+// interp index (min -> inf) wrapping around if bigger than max
+CQChartsSymbol
+CQChartsSymbol::
+interpOutlineWrap(int i)
+{
+  return interpOutlineWrap(i, minOutlineValue(), maxOutlineValue());
+}
+
+CQChartsSymbol
+CQChartsSymbol::
+interpOutlineWrap(int i, int imin, int imax)
+{
+#if 0
+  int len = imax - imin + 1;
+
+  int n = (i - imin)/len;
+
+  int i1 = (i - n*len);
+#else
+  int i1 = CQChartsSymbolSet::interpIRange(i, imin, imax);
+#endif
+  assert(i1 >= minOutlineValue() && i1 <= maxOutlineValue());
+
+  return CQChartsSymbol((CQChartsSymbol::Type) i1);
+}
+
+#if 0
+CQChartsSymbol
+CQChartsSymbol::
+interpFill(double r)
+{
+  return CQChartsSymbol((CQChartsSymbol::Type)
+    int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
+}
+#endif
+
 //---
 
 // TODO: move into charts
@@ -114,6 +161,7 @@ CQChartsSymbol::
 CQChartsSymbol(Type type) :
  type_(type)
 {
+  assert(isValidType(type_));
 }
 
 CQChartsSymbol::

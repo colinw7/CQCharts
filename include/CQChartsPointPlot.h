@@ -612,7 +612,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 class CQChartsLengthEdit;
 class CQChartsSymbolEdit;
 class CQChartsSymbolSetEdit;
-class CQChartsSymbolRangeSlider;
+class CQChartsSymbolTypeRangeSlider;
+class CQChartsSymbolSizeRangeSlider;
 
 class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
@@ -646,14 +647,14 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
  private:
   using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
 
-  CQChartsPointPlot*         plot_                  { nullptr };
-  CQChartsLengthEdit*        symbolSizeLengthEdit_  { nullptr };
-  CQChartsColumnCombo*       symbolSizeColumnCombo_ { nullptr };
-  CQDoubleRangeSlider*       symbolSizeRange_       { nullptr };
-  CQChartsSymbolEdit*        symbolTypeEdit_        { nullptr };
-  CQChartsColumnCombo*       symbolTypeColumnCombo_ { nullptr };
-  CQChartsSymbolRangeSlider* symbolTypeRange_       { nullptr };
-  CQChartsSymbolSetEdit*     symbolTypeSetEdit_     { nullptr };
+  CQChartsPointPlot*             plot_                  { nullptr };
+  CQChartsLengthEdit*            symbolSizeLengthEdit_  { nullptr };
+  CQChartsColumnCombo*           symbolSizeColumnCombo_ { nullptr };
+  CQChartsSymbolSizeRangeSlider* symbolSizeRange_       { nullptr };
+  CQChartsSymbolEdit*            symbolTypeEdit_        { nullptr };
+  CQChartsColumnCombo*           symbolTypeColumnCombo_ { nullptr };
+  CQChartsSymbolTypeRangeSlider* symbolTypeRange_       { nullptr };
+  CQChartsSymbolSetEdit*         symbolTypeSetEdit_     { nullptr };
 };
 
 #endif

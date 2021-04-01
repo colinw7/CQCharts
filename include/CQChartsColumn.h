@@ -53,10 +53,12 @@ class CQChartsColumn :
   explicit CQChartsColumn(const QString &s); // parsed
 
   CQChartsColumn(const CQChartsColumn &rhs);
+  CQChartsColumn(CQChartsColumn &&rhs);
 
  ~CQChartsColumn();
 
   CQChartsColumn &operator=(const CQChartsColumn &rhs);
+  CQChartsColumn &operator=(CQChartsColumn &&rhs);
 
   //--
 

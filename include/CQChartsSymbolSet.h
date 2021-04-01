@@ -67,6 +67,9 @@ class CQChartsSymbolSet {
   int numSymbols() const;
 
   SymbolData interpI(int i) const;
+  SymbolData interpI(int i, int imin, int imax) const;
+
+  static int interpIRange(int i, int imin, int imax);
 
   CQChartsSymbol symbol(int i) const;
 

@@ -3,6 +3,14 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + dim disabled gradient
+ + symbol type not set in scatter
+ + check box fixed/interpolated
+ + range slider handles on top ? draw lines
+ + Force symbol set to non-null value ("all"/"filled")
+   + how handle filled/stroked for points
+ + application options like snps to set global font ?
+ + smaller font for range sizes (auto update ?)
  + color key handle discreet
  + auto show key when first set column
  + splitter custom controls. Less tabs, option to skip group/name/labels

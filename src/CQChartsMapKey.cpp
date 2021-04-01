@@ -416,7 +416,7 @@ drawDiscreet(PaintDevice *device)
   for (int i = 0; i < n; ++i) {
     auto name = uniqueValues()[i].toString();
 
-    drawTextLabel(Point(tx, ty + (i + 0.5)*bs) + df, name);
+    drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), name);
   }
 }
 
@@ -592,8 +592,14 @@ drawCircles(PaintDevice *device, bool usePenBrush)
   // draw ellipse for min, mean, max radii
   auto *palette = (paletteName_.isValid() ? paletteName_.palette() : nullptr);
 
-  double y  = 1.0;
-  double dy = (symbolBoxes_.size() > 1 ? 1.0/(symbolBoxes_.size() - 1) : 0.0);
+  if (! palette)
+    palette = plot()->charts()->themePalette(0);
+
+  double ymin = (palette ? paletteMinMax_.min() : 0.0);
+  double ymax = (palette ? paletteMinMax_.max() : 1.0);
+
+  double y  = ymax;
+  double dy = (symbolBoxes_.size() > 1 ? (ymax - ymin)/(symbolBoxes_.size() - 1) : 0.0);
 
   for (const auto &pbbox : symbolBoxes_) {
     auto fillColor = (palette ?
@@ -1018,11 +1024,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
   if (isNumeric()) {
     for (int i = mapMin(); i <= mapMax(); ++i) {
-      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
-
-      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fm.height()/2.0 - 1,
-                              pbbox_.getYMin() + fm.height()/2.0 + 1);
-
+      // get symbol
       CQChartsSymbolSet::SymbolData symbolData;
 
       if (symbolSet)
@@ -1032,6 +1034,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
       //---
 
+      // set pen brush
       PenBrush symbolPenBrush;
 
       if (symbolData.filled)
@@ -1045,35 +1048,37 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
       //---
 
+      // draw symbol
       double ss = 8;
+
+      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fm.height()/2.0 - 1,
+                              pbbox_.getYMin() + fm.height()/2.0 + 1);
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
         device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
         CQChartsLength(ss, CQChartsUnits::PIXEL));
 
       //---
+
+      // draw value
+      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
       drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
     }
   }
   else {
     for (int i = 0; i < numUnique(); ++i) {
-      int i1 = (int) CMathUtil::map(i, 0, numUnique() - 1, mapMin(), mapMax());
-
-      auto dataStr = uniqueValues()[i].toString();
-
-      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox_.getYMax() - fm.height()/2.0 - 1,
-                              pbbox_.getYMin() + fm.height()/2.0 + 1);
-
+      // get symbol
       CQChartsSymbolSet::SymbolData symbolData;
 
       if (symbolSet)
-        symbolData = symbolSet->interpI(i1);
+        symbolData = symbolSet->interpI(i + mapMin(), mapMin(), mapMax());
       else
-        symbolData.symbol = CQChartsSymbol::interpOutline(i1);
+        symbolData.symbol = CQChartsSymbol::interpOutlineWrap(i + mapMin(), mapMin(), mapMax());
 
       //---
 
+      // set pen brush
       PenBrush symbolPenBrush;
 
       if (symbolData.filled)
@@ -1087,13 +1092,20 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
       //---
 
+      // draw symbol
       double ss = 8;
+
+      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox_.getYMax() - fm.height()/2.0 - 1,
+                              pbbox_.getYMin() + fm.height()/2.0 + 1);
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
         device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
         CQChartsLength(ss, CQChartsUnits::PIXEL));
 
       //---
+
+      // draw unique name
+      auto dataStr = uniqueValues()[i].toString();
 
       drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
     }

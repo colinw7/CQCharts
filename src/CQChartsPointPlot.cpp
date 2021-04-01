@@ -14,12 +14,12 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsSymbolSetEdit.h>
 #include <CQChartsLengthEdit.h>
-#include <CQChartsSymbolRangeSlider.h>
+#include <CQChartsSymbolTypeRangeSlider.h>
+#include <CQChartsSymbolSizeRangeSlider.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQTabSplit.h>
-#include <CQDoubleRangeSlider.h>
 
 #include <QLabel>
 #include <QGridLayout>
@@ -505,7 +505,8 @@ drawSymbolSizeMapKey(PaintDevice *device) const
   symbolSizeMapKey_->setMapMin(symbolSizeMapMin());
   symbolSizeMapKey_->setMapMax(symbolSizeMapMax());
 
-  symbolSizeMapKey_->setPaletteName(colorMapPalette());
+  symbolSizeMapKey_->setPaletteName  (colorMapPalette());
+  symbolSizeMapKey_->setPaletteMinMax(RMinMax(colorMapMin(), colorMapMax()));
 
   symbolSizeMapKey_->setIntegral(isIntegral);
 
@@ -1478,7 +1479,7 @@ addSymbolSizeWidgets()
   // symbol size widgets
   symbolSizeLengthEdit_  = CQUtil::makeWidget<CQChartsLengthEdit>("symbolSizeLengthEdit");
   symbolSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolSizeColumnCombo");
-  symbolSizeRange_       = CQUtil::makeWidget<CQDoubleRangeSlider>("symbolSizeRange");
+  symbolSizeRange_       = CQUtil::makeWidget<CQChartsSymbolSizeRangeSlider>("symbolSizeRange");
 
   addSymbolSizeWidget("Size"  , symbolSizeLengthEdit_);
   addSymbolSizeWidget("Column", symbolSizeColumnCombo_);
@@ -1510,7 +1511,7 @@ addSymbolSizeWidgets()
   // symbol type widget
   symbolTypeEdit_        = CQUtil::makeWidget<CQChartsSymbolEdit>("symbolTypeEdit");
   symbolTypeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("symbolTypeColumnCombo");
-  symbolTypeRange_       = CQUtil::makeWidget<CQChartsSymbolRangeSlider>("symbolTypeRange");
+  symbolTypeRange_       = CQUtil::makeWidget<CQChartsSymbolTypeRangeSlider>("symbolTypeRange");
   symbolTypeSetEdit_     = CQUtil::makeWidget<CQChartsSymbolSetEdit>("symbolSetEdit");
 
   symbolTypeSetEdit_->setCharts(charts_);
@@ -1621,9 +1622,7 @@ updateWidgets()
 
     symbolSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolSizeColumn());
 
-    symbolSizeRange_->setRangeMinMax(CQChartsSymbolSize::minValue(),
-                                     CQChartsSymbolSize::maxValue());
-    symbolSizeRange_->setSliderMinMax(plot_->symbolSizeMapMin(), plot_->symbolSizeMapMax());
+    symbolSizeRange_->setPlot(plot_);
   }
 
   if (symbolTypeEdit_) {
@@ -1632,6 +1631,8 @@ updateWidgets()
     symbolTypeEdit_   ->setEnabled(! hasSymbolTypeColumn);
     symbolTypeRange_  ->setEnabled(hasSymbolTypeColumn);
     symbolTypeSetEdit_->setEnabled(hasSymbolTypeColumn);
+
+    symbolTypeEdit_->setSymbol(plot_->fixedSymbolType());
 
     symbolTypeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolTypeColumn());
 
@@ -1674,8 +1675,14 @@ void
 CQChartsPointPlotCustomControls::
 symbolSizeRangeSlot(double min, double max)
 {
+  connectSlots(false);
+
   plot_->setSymbolSizeMapMin(min);
   plot_->setSymbolSizeMapMax(max);
+
+  connectSlots(true);
+
+  updateWidgets();
 }
 
 void
@@ -1696,8 +1703,14 @@ void
 CQChartsPointPlotCustomControls::
 symbolTypeRangeSlot(int min, int max)
 {
+  connectSlots(false);
+
   plot_->setSymbolTypeMapMin(min);
   plot_->setSymbolTypeMapMax(max);
+
+  connectSlots(true);
+
+  updateWidgets();
 }
 
 void
