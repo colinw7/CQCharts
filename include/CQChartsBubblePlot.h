@@ -664,6 +664,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
 //---
 
+#include <CQChartsGroupPlotCustomControls.h>
+
 class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

@@ -96,6 +96,13 @@ setFontStr(const QString &str)
       inheritData.italic = true;
       valid              = true;
     }
+    else if (parse.isWord("bolditalic") || parse.isWord("bold_italic") ||
+             parse.isWord("bold-italic")) {
+      parse.skipWord("italic");
+
+      inheritData.italic = true;
+      valid              = true;
+    }
     else if (parse.isChar('+') || parse.isChar('-') || parse.isDigit()) {
       SizeType sizeType = SizeType::EXPLICIT;
 
@@ -108,6 +115,9 @@ setFontStr(const QString &str)
 
       if (! parse.readReal(&size))
         break;
+
+      if (size == 0)
+        sizeType = SizeType::INCREMENT;
 
       inheritData.sizeType = sizeType;
       inheritData.size     = std::abs(size);

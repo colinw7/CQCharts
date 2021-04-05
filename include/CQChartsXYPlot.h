@@ -14,8 +14,6 @@ class CQChartsXYPolylineObj;
 class CQChartsArrow;
 class CQChartsGrahamHull;
 
-class CQCheckBox;
-
 //---
 
 /*!
@@ -187,7 +185,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 //Q_PROPERTY(double              x     READ x     WRITE setX)
 //Q_PROPERTY(double              y     READ y     WRITE setY)
 
-  Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsSymbol symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
   Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
@@ -197,6 +195,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using LabelObj    = CQChartsXYLabelObj;
   using PolylineObj = CQChartsXYPolylineObj;
   using Symbol      = CQChartsSymbol;
+  using SymbolType  = CQChartsSymbolType;
   using Length      = CQChartsLength;
   using Color       = CQChartsColor;
   using Image       = CQChartsImage;
@@ -257,8 +256,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   //---
 
   // symbol type
-  Symbol symbolType() const;
-  void setSymbolType(Symbol type) { extraData()->symbolType = type; }
+  Symbol symbol() const;
+  void setSymbol(Symbol s) { extraData()->symbol = s; }
 
   // symbol size
   Length symbolSize() const;
@@ -299,7 +298,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using OptPoint = boost::optional<Point>;
 
   struct ExtraData {
-    Symbol   symbolType;                      //!< symbol type
+    Symbol   symbol;                          //!< symbol
     Length   symbolSize { Units::NONE, 0.0 }; //!< symbol size
     Length   fontSize   { Units::NONE, 0.0 }; //!< font size
     Color    color;                           //!< symbol fill color
@@ -744,12 +743,13 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using LabelObj       = CQChartsXYLabelObj;
   using ImpulseLineObj = CQChartsXYImpulseLineObj;
 
-  using Length   = CQChartsLength;
-  using Color    = CQChartsColor;
-  using Alpha    = CQChartsAlpha;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using PenBrush = CQChartsPenBrush;
-  using Symbol   = CQChartsSymbol;
+  using Length     = CQChartsLength;
+  using Color      = CQChartsColor;
+  using Alpha      = CQChartsAlpha;
+  using ColorInd   = CQChartsUtil::ColorInd;
+  using PenBrush   = CQChartsPenBrush;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
 
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
@@ -849,8 +849,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void setFixedSymbolSize(const Length &s) override { setSymbolSize(s); }
   const Length &fixedSymbolSize() const override { return symbolSize(); }
 
-  void setFixedSymbolType(const Symbol &s) override { setSymbolType(s); }
-  const Symbol &fixedSymbolType() const override { return symbolType(); }
+  void setFixedSymbol(const Symbol &s) override { setSymbol(s); }
+  const Symbol &fixedSymbol() const override { return symbol(); }
 
   //---
 
@@ -1140,9 +1140,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
 //---
 
-class CQChartsColumnCombo;
+#include <CQChartsPointPlotCustomControls.h>
 
-class CQChartsXYPlotCustomControls : public CQChartsGroupPlotCustomControls {
+class CQCheckBox;
+
+class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
 
  public:

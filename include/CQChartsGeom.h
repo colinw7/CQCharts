@@ -1472,14 +1472,24 @@ class Matrix :
   //------
 
   // copy operations
-  Matrix(const Matrix &a) :
-   m00_(a.m00_), m01_(a.m01_), m02_(a.m02_),
-   m10_(a.m10_), m11_(a.m11_), m12_(a.m12_),
-   m20_(a.m20_), m21_(a.m21_), m22_(a.m22_) {
+  Matrix(const Matrix &a) {
+    memcpy(&m00_, &a.m00_, 9*sizeof(double));
+  }
+
+  Matrix(Matrix &&a) {
+    memcpy(&m00_, &a.m00_, 9*sizeof(double));
   }
 
   const Matrix &operator=(const Matrix &a) {
-    memcpy(&m00_, &a.m00_, 9*sizeof(double));
+    if (this != &a)
+      memcpy(&m00_, &a.m00_, 9*sizeof(double));
+
+    return *this;
+  }
+
+  const Matrix &operator=(Matrix &&a) {
+    if (this != &a)
+      memcpy(&m00_, &a.m00_, 9*sizeof(double));
 
     return *this;
   }

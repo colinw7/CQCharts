@@ -278,6 +278,7 @@ createEdit(QWidget *parent)
 {
   auto *item = CQPropertyViewMgrInst->editItem();
   auto *obj  = (item ? item->object() : nullptr);
+  if (! obj) return nullptr;
 
   //---
 

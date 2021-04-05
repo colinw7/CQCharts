@@ -27,7 +27,6 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void setClipRect(const BBox &bbox, Qt::ClipOperation operation=Qt::ReplaceClip) override;
 
   void setPen(const QPen &pen) override;
-
   void setBrush(const QBrush &brush) override;
 
   void fillPath  (const QPainterPath &path, const QBrush &brush) override;

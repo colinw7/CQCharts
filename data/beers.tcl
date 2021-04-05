@@ -112,9 +112,9 @@ set_charts_property -view $view -name theme.dark -value 1
 
 set_charts_property -plot $plot -name key.visible -value 0
 
-set_charts_property -plot $plot -name symbol.size           -value 8px
-set_charts_property -plot $plot -name symbol.fill.alpha     -value 0.3
-set_charts_property -plot $plot -name symbol.stroke.visible -value 0
+set_charts_property -plot $plot -name points.size           -value 8px
+set_charts_property -plot $plot -name points.fill.alpha     -value 0.3
+set_charts_property -plot $plot -name points.stroke.visible -value 0
 
 set glass_size12 [create_charts_image_annotation -view $view -id size12 \
   -rectangle {5 85 15 95} -image "data/beer_glass_12.svg" \

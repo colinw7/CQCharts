@@ -1346,7 +1346,8 @@ addObjects(PlotObjs &objs) const
 
     auto *edgeObj = addEdgeObj(edge);
 
-    objs.push_back(edgeObj);
+    if (edgeObj)
+      objs.push_back(edgeObj);
   }
 }
 
@@ -1909,6 +1910,9 @@ addEdgeObj(Edge *edge) const
 
   nodeRect += edge->srcNode ()->rect();
   nodeRect += edge->destNode()->rect();
+
+  if (! nodeRect.isValid())
+    return nullptr;
 
   BBox rect(nodeRect.getXMin() - xm, nodeRect.getYMin() - ym,
             nodeRect.getXMax() + xm, nodeRect.getYMax() + ym);

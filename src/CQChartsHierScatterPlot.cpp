@@ -106,7 +106,7 @@ init()
   //---
 
   setSymbolSize(Length("4px"));
-  setSymbolType(Symbol(Symbol::Type::CIRCLE));
+  setSymbol(Symbol(SymbolType::Type::CIRCLE));
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -965,11 +965,12 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol type and size
-  auto symbolType = plot_->symbolType();
+  auto symbol     = plot_->symbol();
   auto symbolSize = plot_->symbolSize();
 
   // draw symbol
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
 
   //---
 

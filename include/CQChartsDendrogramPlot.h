@@ -190,6 +190,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

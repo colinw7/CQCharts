@@ -180,9 +180,10 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double notch       READ notch      )
 
  public:
-  using Plot    = CQChartsBoxPlot;
-  using Symbol  = CQChartsSymbol;
-  using Whisker = CQChartsBoxPlotWhisker;
+  using Plot       = CQChartsBoxPlot;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
+  using Whisker    = CQChartsBoxPlotWhisker;
 
  public:
   CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
@@ -374,9 +375,10 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsBoxPlot;
-  using Symbol = CQChartsSymbol;
-  using Length = CQChartsLength;
+  using Plot       = CQChartsBoxPlot;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
+  using Length     = CQChartsLength;
 
  public:
   CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId,
@@ -588,6 +590,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   using GroupSetWhiskerMap = std::map<int, SetWhiskerMap>;
   using WhiskerDataList    = std::vector<WhiskerData>;
   using Symbol             = CQChartsSymbol;
+  using SymbolType         = CQChartsSymbolType;
   using Length             = CQChartsLength;
   using Color              = CQChartsColor;
   using ColorInd           = CQChartsUtil::ColorInd;
@@ -912,6 +915,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 };
 
 //---
+
+#include <CQChartsGroupPlotCustomControls.h>
 
 class CQEnumCombo;
 

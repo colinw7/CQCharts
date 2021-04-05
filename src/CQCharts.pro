@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 TARGET = CQCharts
 
-QT += widgets svg
+QT += widgets svg xml
 
 DEPENDPATH += .
 
@@ -123,6 +123,10 @@ CQChartsAnnotation.cpp \
 CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
+CQChartsPlotCustomControls.cpp \
+CQChartsGroupPlotCustomControls.cpp \
+CQChartsPointPlotCustomControls.cpp \
+CQChartsColumnControlGroup.cpp \
 CQChartsPlotControlWidgets.cpp \
 CQChartsPlotPropertyEdit.cpp \
 \
@@ -215,6 +219,7 @@ CQChartsFillUnder.cpp \
 CQChartsPaletteName.cpp \
 \
 CQChartsSymbol.cpp \
+CQChartsSymbolType.cpp \
 CQChartsSymbolSet.cpp \
 CQChartsImage.cpp \
 CQChartsWidget.cpp \
@@ -314,6 +319,7 @@ CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
 CQChartsSymbolDataEdit.cpp \
 CQChartsSymbolEdit.cpp \
+CQChartsSymbolTypeEdit.cpp \
 CQChartsSymbolSizeRangeSlider.cpp \
 CQChartsSymbolTypeRangeSlider.cpp \
 CQChartsSymbolSetEdit.cpp \
@@ -481,6 +487,10 @@ HEADERS += \
 ../include/CQChartsArrow.h \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
+../include/CQChartsPlotCustomControls.h \
+../include/CQChartsGroupPlotCustomControls.h \
+../include/CQChartsPointPlotCustomControls.h \
+../include/CQChartsColumnControlGroup.h \
 ../include/CQChartsPlotControlWidgets.h \
 ../include/CQChartsPlotPropertyEdit.h \
 \
@@ -491,6 +501,7 @@ HEADERS += \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
+../include/CQChartsSymbolType.h \
 ../include/CQChartsSymbolSet.h \
 ../include/CQChartsImage.h \
 ../include/CQChartsWidget.h \
@@ -676,6 +687,7 @@ HEADERS += \
 ../include/CQChartsStrokeDataEdit.h \
 ../include/CQChartsSymbolDataEdit.h \
 ../include/CQChartsSymbolEdit.h \
+../include/CQChartsSymbolTypeEdit.h \
 ../include/CQChartsSymbolSizeRangeSlider.h \
 ../include/CQChartsSymbolTypeRangeSlider.h \
 ../include/CQChartsSymbolSetEdit.h \

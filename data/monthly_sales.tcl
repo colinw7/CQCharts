@@ -6,11 +6,11 @@ set model [load_charts_model -tsv data/monthly_sales.tsv -comment_header \
                 {{3 real} {format $%gK} {format_scale 0.001}}}]
 
 set plot1 [create_charts_plot -type barchart -columns \
-  {{name 0} {value 1} {group 0} {label 4}} -title "Actual Sales" -ymax 80000]
+  {{name 0} {values 1} {group 0} {label 4}} -title "Actual Sales" -ymax 80000]
 
 set view [get_charts_property -plot $plot1 -name viewId]
 
-set_charts_property -view $view -name title.text.string -value "Monthly Sales Data"
+set_charts_property -view $view -name title.string -value "Monthly Sales Data"
 
 ###---
 
@@ -38,9 +38,9 @@ set_charts_property -plot $plot1 -name margins.bar                -value 8px
 #set_charts_property -plot $plot1 -name fill.color                 -value {palette 0 s}
 set_charts_property -plot $plot1 -name coloring.colorBySet        -value 1
 set_charts_property -plot $plot1 -name coloring.type              -value SET
-set_charts_property -plot $plot1 -name labels.visible             -value 1
-set_charts_property -plot $plot1 -name labels.position            -value TOP_OUTSIDE
-#set_charts_property -plot $plot1 -name labels.color               -value {interface 1}
+set_charts_property -plot $plot1 -name labels.visible              -value 1
+set_charts_property -plot $plot1 -name labels.position             -value TOP_OUTSIDE
+#set_charts_property -plot $plot1 -name labels.color                -value {interface 1}
 #set_charts_property -plot $plot1 -name plotStyle.fill.color       -value {interface 0}
 #set_charts_property -plot $plot1 -name dataStyle.fill.color       -value {interface 0}
 set_charts_property -plot $plot1 -name "xaxis.majorIncrement"     -value 1
@@ -54,7 +54,7 @@ set_charts_property -plot $plot1 -name "yaxis.grid.lines"         -value MAJOR
 #set_charts_property -plot $plot1 -name key.visible                -value 0
 set_charts_property -plot $plot1 -name key.insideY                -value 1
 #set_charts_property -plot $plot1 -name key.location               -value bc
-set_charts_property -plot $plot1 -name key.horizontal             -value 1
+set_charts_property -plot $plot1 -name key.orientation            -value horizontal
 set_charts_property -plot $plot1 -name key.fill.visible           -value 0
 set_charts_property -plot $plot1 -name key.stroke.visible         -value 0
 #set_charts_property -plot $plot1 -name key.text.color             -value {interface 1}
@@ -65,7 +65,7 @@ set_charts_property -plot $plot1 -name title.text.font            -value "FreeSa
 
 set plot2 [create_charts_plot -type xy -columns {{x @R} {y 2}} -title "Expected Sales"]
 
-set_charts_property -plot $plot2 -name points.symbol.type           -value circle
+set_charts_property -plot $plot2 -name points.symbol.symbol         -value circle
 set_charts_property -plot $plot2 -name points.symbol.size           -value 6px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible   -value 1
 set_charts_property -plot $plot2 -name points.symbol.fill.color     -value {palette 1 s}
@@ -82,7 +82,7 @@ set plot3 [create_charts_plot -type xy -columns {{x @R} {y 3}} -title "Profit"]
 set_charts_property -plot $plot3 -name fillUnder.visible    -value 1
 set_charts_property -plot $plot3 -name fillUnder.fill.color -value {palette 2 s}
 
-set_charts_property -plot $plot3 -name points.symbol.type         -value circle
+set_charts_property -plot $plot3 -name points.symbol.symbol       -value circle
 set_charts_property -plot $plot3 -name points.symbol.size         -value 6px
 set_charts_property -plot $plot3 -name points.symbol.stroke.color -value white
 set_charts_property -plot $plot3 -name points.symbol.stroke.width -value 3px

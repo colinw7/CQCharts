@@ -8,7 +8,7 @@ proc objPressed { view plot id } {
 
   set name [get_charts_data -model $model -name value -ind $ind]
 
-  set_charts_property -annotation $::pointId -name symbol.type -value "$name"
+  set_charts_property -annotation $::pointId -name symbol.symbol -value "$name"
 
   set_charts_property -annotation $::textId -name text.string -value "Symbol $name"
 }

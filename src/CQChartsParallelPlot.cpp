@@ -919,6 +919,9 @@ void
 CQChartsParallelPlot::
 drawFgAxes(PaintDevice *device) const
 {
+  if (axes_.empty())
+    return;
+
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setObjRange(device);
@@ -1515,7 +1518,7 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol type and size
-  auto symbolType = plot_->symbolType();
+  auto symbol     = plot_->symbol();
   auto symbolSize = plot_->symbolSize();
 
   double sx, sy;
@@ -1534,7 +1537,8 @@ draw(PaintDevice *device) const
   // draw symbol
   Point p(x_, y_);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize1);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize1);
 
   //---
 

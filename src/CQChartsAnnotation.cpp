@@ -1325,9 +1325,9 @@ setLineWidth(const Length &l)
 
 void
 CQChartsRectangleAnnotation::
-setSymbolType(const Symbol &t)
+setSymbol(const Symbol &t)
 {
-  CQChartsUtil::testAndSet(symbolType_, t, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(symbol_, t, [&]() { emitDataChanged(); } );
 }
 
 void
@@ -1408,7 +1408,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(model, path1, "numSides"  , "", "Number of Shape Sides");
   addProp(model, path1, "angle"     , "", "Shape angle");
   addProp(model, path1, "lineWidth" , "", "Dot line width");
-  addProp(model, path1, "symbolType", "", "Dot line symbol type");
+  addProp(model, path1, "symbol"    , "", "Dot line symbol");
   addProp(model, path1, "symbolSize", "", "Dot line symbol size");
 
   addStrokeFillProperties(model, path1);
@@ -1512,7 +1512,7 @@ draw(PaintDevice *device)
     bool horizontal = CMathUtil::realEq(std::abs(angle().degrees()), 90.0);
 
     CQChartsDrawUtil::drawDotLine(device, penBrush, rect, lineWidth(), horizontal,
-                                  symbolType(), symbolSize());
+                                  symbol(), symbolSize());
   }
   else {
     CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides());
@@ -4134,7 +4134,7 @@ init()
 {
   setObjectName(QString("point.%1").arg(ind()));
 
-  setSymbolType(type_);
+  setSymbol(type_);
 }
 
 void
@@ -4150,7 +4150,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   auto symbolPath = path1 + "/symbol";
 
-  addProp(model, symbolPath, "symbolType", "type", "Point symbol type");
+  addProp(model, symbolPath, "symbol"    , "type", "Point symbol");
   addProp(model, symbolPath, "symbolSize", "size", "Point symbol size");
 
   auto fillPath = path1 + "/fill";
@@ -4253,7 +4253,10 @@ draw(PaintDevice *device)
               strokeData.width(), strokeData.dash()),
     BrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
 
-  bool isSolid = (fillData.isVisible() && symbolData.type().type() != CQChartsSymbol::Type::DOT);
+//bool isSolid = (fillData.isVisible() &&
+//  symbolData.symbol().type() == CQChartsSymbol::Type::SYMBOL &&
+//  symbolData.symbol().symbolType().type() != CQChartsSymbolType::Type::DOT);
+  bool isSolid = symbolData.symbol().isFilled();
 
   updatePenBrushState(penBrush,
     (isSolid ? CQChartsObjDrawType::SYMBOL : CQChartsObjDrawType::LINE));
@@ -4265,7 +4268,8 @@ draw(PaintDevice *device)
   // draw symbol
   Point ps(rect_.getXMid(), rect_.getYMid());
 
-  CQChartsDrawUtil::drawSymbol(device, symbolData.type(), ps, symbolData.size());
+  if (symbolData.symbol().isValid())
+    CQChartsDrawUtil::drawSymbol(device, symbolData.symbol(), ps, symbolData.size());
 
   //---
 
@@ -4281,8 +4285,8 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
 
-  if (symbolType().isValid())
-    os << " -type {" << symbolType().toString().toStdString() << "}";
+  if (symbol().isValid())
+    os << " -type {" << symbol().toString().toStdString() << "}";
 
   if (symbolData.size().isSet())
     os << " -size {" << symbolData.size().toString().toStdString() << "}";
@@ -4956,7 +4960,8 @@ draw(PaintDevice *device)
     for (const auto &p : values_.points()) {
       auto p1 = positionToParent(objRef(), p);
 
-      CQChartsDrawUtil::drawSymbol(device, symbolData.type(), Point(p1), symbolData.size());
+      if (symbolData.symbol().isValid())
+        CQChartsDrawUtil::drawSymbol(device, symbolData.symbol(), Point(p1), symbolData.size());
     }
   }
   else if (drawType() == DrawType::HULL) {
@@ -6095,7 +6100,7 @@ draw(PaintDevice *device)
 
   //---
 
-  key_->initDraw();
+  key_->initDraw(device);
 
   //---
 

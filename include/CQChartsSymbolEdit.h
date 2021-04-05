@@ -2,16 +2,65 @@
 #define CQChartsSymbolEdit_H
 
 #include <CQChartsSymbol.h>
-#include <QFrame>
+#include <CQChartsLineEditBase.h>
 
-class CQRealSpin;
-class QComboBox;
+class CQChartsSymbolEdit;
 
 /*!
- * \brief symbol edit
+ * \brief Symbol line edit
  * \ingroup Charts
  */
-class CQChartsSymbolEdit : public QFrame {
+class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
+
+ public:
+  CQChartsSymbolLineEdit(QWidget *parent=nullptr);
+
+  const CQChartsSymbol &symbol() const;
+  void setSymbol(const CQChartsSymbol &c);
+
+  void setNoFocus();
+
+  void drawPreview(QPainter *painter, const QRect &rect) override;
+
+ signals:
+  void symbolChanged();
+
+ private slots:
+  void menuEditChanged();
+
+ private:
+  void textChanged() override;
+
+  void updateSymbol(const CQChartsSymbol &c, bool updateText);
+
+  void symbolToWidgets();
+
+  void connectSlots(bool b);
+
+ private:
+  CQChartsSymbolEdit* dataEdit_ { nullptr }; //!< symbol data edit
+};
+
+//---
+
+#include <CQChartsEditBase.h>
+
+class CQChartsSymbolTypeEdit;
+
+class QStackedWidget;
+class QComboBox;
+class QLineEdit;
+class QCheckBox;
+class QLabel;
+
+/*!
+ * \brief Symbol edit
+ * \ingroup Charts
+ */
+class CQChartsSymbolEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
@@ -19,21 +68,41 @@ class CQChartsSymbolEdit : public QFrame {
  public:
   CQChartsSymbolEdit(QWidget *parent=nullptr);
 
-  const CQChartsSymbol &symbol() const;
-  void setSymbol(const CQChartsSymbol &pos);
+  const CQChartsSymbol &symbol() const { return symbol_; }
+  void setSymbol(const CQChartsSymbol &c);
 
- private:
-  void connectSlots(bool b);
+  void setNoFocus();
+
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
 
  signals:
   void symbolChanged();
 
  private slots:
-  void comboChanged();
+  void widgetsToSymbol();
+
+  void updateState();
 
  private:
-  CQChartsSymbol symbol_;
-  QComboBox*     combo_ { nullptr };
+  void symbolToWidgets();
+
+  void connectSlots(bool b);
+
+ private:
+  CQChartsSymbol          symbol_;                   //!< symbol
+  QComboBox*              typeCombo_    { nullptr }; //!< type combo
+  QStackedWidget*         stack_        { nullptr }; //!< per type widget stack
+  CQChartsSymbolTypeEdit* typeEdit_     { nullptr }; //!< type edit
+  QLineEdit*              charEdit_     { nullptr }; //!< char edit
+  QLineEdit*              charNameEdit_ { nullptr }; //!< char name edit
+  QComboBox*              pathCombo_    { nullptr }; //!< path name combo
+  QLineEdit*              pathSrcEdit_  { nullptr }; //!< path src edit
+  QComboBox*              svgCombo_     { nullptr }; //!< svg name combo
+  QLineEdit*              svgSrcEdit_   { nullptr }; //!< svg src edit
+  QCheckBox*              filledCheck_  { nullptr }; //!< filled check
+  QCheckBox*              strokedCheck_ { nullptr }; //!< stroke check
+  bool                    connected_    { false };   //!< is connected
 };
 
 //------

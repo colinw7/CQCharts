@@ -18,7 +18,7 @@ class CQChartsPaintDevice;
  * \ingroup Charts
  */
 struct CQChartsPlotSymbol {
-  using Symbol = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
 
   enum class Connect {
     NONE,
@@ -52,11 +52,11 @@ struct CQChartsPlotSymbol {
 
   using Lines = std::vector<Line>;
 
-  Symbol::Type type { Symbol::Type::NONE };
-  Lines        lines;
-  Lines        fillLines;
+  SymbolType::Type type { SymbolType::Type::NONE };
+  Lines            lines;
+  Lines            fillLines;
 
-  CQChartsPlotSymbol(Symbol::Type type, std::initializer_list<Line> lines,
+  CQChartsPlotSymbol(SymbolType::Type type, std::initializer_list<Line> lines,
                      std::initializer_list<Line> fillLines) :
    type(type), lines(lines), fillLines(fillLines) {
   }

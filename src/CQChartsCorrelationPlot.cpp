@@ -1185,7 +1185,7 @@ draw(PaintDevice *device) const
 
         Point ps(x1, y1);
 
-        auto symbol = CQChartsSymbol(CQChartsSymbol::Type::CIRCLE);
+        auto symbol = CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE);
 
         CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps, ss);
       }

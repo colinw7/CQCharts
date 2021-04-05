@@ -8,9 +8,9 @@ CQChartsAxisRug(CQChartsPlot *plot, const Qt::Orientation &direction) :
  plot_(plot), direction_(direction)
 {
   if (direction == Qt::Horizontal)
-    setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::VLINE));
+    setSymbol(CQChartsSymbol(CQChartsSymbolType::Type::VLINE));
   else
-    setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::HLINE));
+    setSymbol(CQChartsSymbol(CQChartsSymbolType::Type::HLINE));
 
   setSymbolSize(CQChartsLength("5px"));
 }
@@ -41,9 +41,9 @@ addProperties(const QString &path, const QString &desc)
   addProp(path, "visible", "", desc + " visible");
   addProp(path, "side"   , "", desc + " side");
 
-  addProp(path, "symbolType"       , "type" , desc + " symbol type");
-  addProp(path, "symbolSize"       , "size" , desc + " symbol size");
-  addProp(path, "symbolStrokeAlpha", "alpha", desc + " symbol alpha");
+  addProp(path, "symbol"           , "symbol", desc + " symbol");
+  addProp(path, "symbolSize"       , "size"  , desc + " symbol size");
+  addProp(path, "symbolStrokeAlpha", "alpha" , desc + " symbol alpha");
 }
 
 CQChartsGeom::BBox
@@ -111,13 +111,13 @@ void
 CQChartsAxisRug::
 draw(CQChartsPaintDevice *device, double delta)
 {
-  auto symbolType  = this->symbolType();
+  auto symbol      = this->symbol();
   auto symbolSize  = this->symbolSize();
   auto symbolAlpha = this->symbolStrokeAlpha();
 
-  if (! symbolType.isValid())
-    symbolType = CQChartsSymbol(direction() == Qt::Horizontal ?
-      CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (! symbol.isValid())
+    symbol = CQChartsSymbol(direction() == Qt::Horizontal ?
+      CQChartsSymbolType::Type::VLINE : CQChartsSymbolType::Type::HLINE);
 
   double sx, sy;
 
@@ -146,7 +146,7 @@ draw(CQChartsPaintDevice *device, double delta)
     plot()->setPenBrush(penBrush,
       CQChartsPenData(true, p.c, symbolAlpha), CQChartsBrushData(false));
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p1, symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize);
   }
 
   if (plot()->showBoxes())

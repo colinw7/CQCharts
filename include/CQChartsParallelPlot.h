@@ -316,6 +316,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

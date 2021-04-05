@@ -14,7 +14,7 @@ set_charts_data -model $model1 -column 0 -header -name value -value Improvement
 set_charts_data -model $model1 -column 1 -header -name value -value Frequency
 
 set plot [create_charts_plot -model $model1 -type barchart \
-  -columns {{name Improvement} {value Frequency}}]
+  -columns {{name Improvement} {values Frequency}}]
 
 #---
 
@@ -28,7 +28,7 @@ set_charts_data -model $model2 -column 0 -header -name value -value Treatment
 set_charts_data -model $model2 -column 1 -header -name value -value Frequency
 
 set plot [create_charts_plot -model $model2 -type barchart \
-  -columns {{name Treatment} {value Frequency}}]
+  -columns {{name Treatment} {values Frequency}}]
 
 #---
 

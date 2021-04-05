@@ -109,6 +109,8 @@ class CQChartsContourPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

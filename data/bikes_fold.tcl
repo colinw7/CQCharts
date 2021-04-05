@@ -38,7 +38,7 @@ write_charts_model -model $model3
 #set view1 [create_charts_view]
 
 #set plot1 [create_charts_plot -view $view1 -type barchart -model $model2 \
-# -columns {{value {3 4 5 6 7 8 9 10}} {name 0}}]
+# -columns {{values {3 4 5 6 7 8 9 10}} {name 0}}]
 
 set view2 [create_charts_view]
 

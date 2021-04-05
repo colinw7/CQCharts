@@ -578,7 +578,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 {
   nameValues.setNameValue("visible", isVisible());
 
-  nameValues.setNameValueType<CQChartsSymbol>("type", type());
+  nameValues.setNameValueType<CQChartsSymbol>("symbol", symbol());
   nameValues.setNameValueType<Length>("size", size());
 
   stroke_.setNameValues(nameValues);
@@ -602,7 +602,7 @@ getNameValues(const CQChartsNameValues &nameValues)
 
   (void) nameValues.nameValueBool("visible", visible_, ok1); if (! ok1) ok = false;
 
-  (void) nameValues.nameValueType<CQChartsSymbol>("type", type_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<CQChartsSymbol>("symbol", symbol_, ok1); if (! ok1) ok = false;
   (void) nameValues.nameValueType<Length>("size", size_, ok1); if (! ok1) ok = false;
 
   if (! stroke_.getNameValues(nameValues)) ok = false;

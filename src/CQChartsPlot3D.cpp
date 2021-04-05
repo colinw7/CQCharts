@@ -888,7 +888,9 @@ postDraw(PaintDevice *device)
 #if 0
   plot_->setPenBrush(penBrush, PenData(true, Qt::red), BrushData(false));
 
-  CQChartsDrawUtil::drawSymbol(device, CQChartsSymbol::Type::CIRCLE, trp.point2D(),
+  CQChartsSymbol symbol(CQChartsSymbolType::Type::CIRCLE);
+
+  CQChartsDrawUtil::drawSymbol(device, symbol, trp.point2D(),
                                Length(4, CQChartsUnits::PIXEL), penBrush);
 #endif
 }

@@ -728,26 +728,6 @@ drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
 }
 
 void
-drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size)
-{
-  if (! size.isValid())
-    return;
-
-  CQChartsPlotSymbolRenderer srenderer(device, Point(c), size);
-
-  if (device->brush().style() != Qt::NoBrush) {
-    CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-    if (device->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-  }
-  else {
-    if (device->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
-  }
-}
-
-void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
 {
   assert(bbox.isValid());
@@ -758,9 +738,27 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
   double cy = bbox.getYMid();
   double ss = pbbox.getMinSize();
 
-  Length symbolSize(ss/2.0, device->parentUnits());
+  Length symbolSize(ss/2.0, Length::Units::PIXEL);
 
   drawSymbol(device, symbol, Point(cx, cy), symbolSize);
+}
+
+void
+drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size)
+{
+  if (! size.isValid())
+    return;
+
+  CQChartsPlotSymbolRenderer srenderer(device, Point(c), size);
+
+  if      (symbol.isFilled() && ! symbol.isStroked())
+    CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer); // filled
+  else if (symbol.isStroked() && ! symbol.isFilled())
+    CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer); // wireframe
+  else {
+    CQChartsPlotSymbolMgr::fillSymbol  (symbol, &srenderer); // filled
+    CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer); // stroked
+  }
 }
 
 //---

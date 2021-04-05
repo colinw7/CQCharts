@@ -177,11 +177,11 @@ if {0} {
 set view6 [create_charts_view]
 
 if {0} {
-set suicidesGenderPieChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type piechart -columns {{value {{suicides (Sum)}}} {label gender}}]
+set suicidesGenderPieChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type piechart -columns {{values {{suicides (Sum)}}} {label gender}}]
 }
 
 if {0} {
-set suicidesGenderBarChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type barchart -columns {{value {{suicides (Sum)}}} {name gender}}]
+set suicidesGenderBarChart [create_charts_plot -view $view6 -model $genderSuicidesStatsModel -type barchart -columns {{values {{suicides (Sum)}}} {name gender}}]
 }
 }
 
@@ -207,9 +207,9 @@ set japanYearModel [flatten_charts_model -model $japanModel -group year -column_
 
 set view7 [create_charts_view]
 
-set plot10 [create_charts_plot -view $view7 -model $usaYearModel -type barchart -columns {{value {{suicides (Sum)}}} {name year}}]
-set plot11 [create_charts_plot -view $view7 -model $russiaYearModel -type barchart -columns {{value {{suicides (Sum)}}} {name year}}]
-set plot12 [create_charts_plot -view $view7 -model $japanYearModel -type barchart -columns {{value {{suicides (Sum)}}} {name year}}]
+set plot10 [create_charts_plot -view $view7 -model $usaYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
+set plot11 [create_charts_plot -view $view7 -model $russiaYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
+set plot12 [create_charts_plot -view $view7 -model $japanYearModel -type barchart -columns {{values {{suicides (Sum)}}} {name year}}]
 
 place_charts_plots -view $view7 -rows 3 [list $plot10 $plot11 $plot12]
 }
@@ -223,9 +223,9 @@ set japanAgeModel [flatten_charts_model -model $japanModel -group age -column_op
 
 set view8 [create_charts_view]
 
-set plot13 [create_charts_plot -view $view8 -model $usaAgeModel -type barchart -columns {{value {{suicides (Sum)}}} {name age}}]
-set plot14 [create_charts_plot -view $view8 -model $russiaAgeModel -type barchart -columns {{value {{suicides (Sum)}}} {name age}}]
-set plot15 [create_charts_plot -view $view8 -model $japanAgeModel -type barchart -columns {{value {{suicides (Sum)}}} {name age}}]
+set plot13 [create_charts_plot -view $view8 -model $usaAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
+set plot14 [create_charts_plot -view $view8 -model $russiaAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
+set plot15 [create_charts_plot -view $view8 -model $japanAgeModel -type barchart -columns {{values {{suicides (Sum)}}} {name age}}]
 
 place_charts_plots -view $view8 -rows 3 [list $plot13 $plot14 $plot15]
 }
@@ -237,7 +237,8 @@ set view9 [create_charts_view]
 #set plot16 [create_charts_plot -view $view9 -model $model -type scatter -columns {{x year} {y suicides}}]
 #set plot17 [create_charts_plot -view $view9 -model $model -type scatter -columns {{x gender} {y suicides}}]
 
-set plot17 [create_charts_plot -view $view9 -model $model -type boxplot -columns {{group gender} {value suicides}}]
+set plot17 [create_charts_plot -view $view9 -model $model -type boxplot \
+  -columns {{group gender} {values suicides}}]
 
 #---
 

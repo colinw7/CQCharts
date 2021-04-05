@@ -209,6 +209,8 @@ CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToParent(const ObjRef &objRef, const Position &pos) const
 {
+  assert(pos.isValid());
+
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 
@@ -243,6 +245,8 @@ CQChartsPosition
 CQChartsViewPlotObj::
 positionFromParent(const ObjRef &objRef, const Position &pos) const
 {
+  assert(pos.isValid());
+
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 

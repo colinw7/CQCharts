@@ -214,12 +214,12 @@ init()
   setBoxStroked(true);
   setBoxFilled (true);
 
-  setOutlierSymbolType(Symbol(Symbol::Type::CIRCLE));
+  setOutlierSymbol(Symbol(SymbolType::Type::CIRCLE));
   setOutlierSymbolSize(Length("4px"));
   setOutlierSymbolFilled(true);
   setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setJitterSymbolType(Symbol(Symbol::Type::CIRCLE));
+  setJitterSymbol(Symbol(SymbolType::Type::CIRCLE));
   setJitterSymbolSize(Length("4px"));
   setJitterSymbolFilled(true);
   setJitterSymbolFillColor(Color(Color::Type::PALETTE));
@@ -2368,7 +2368,7 @@ draw(PaintDevice *device) const
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
 
-      symbol.setType(Symbol(Symbol::Type::CIRCLE));
+      symbol.setSymbol(Symbol(SymbolType::Type::CIRCLE));
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawErrorBar(device, rect, mean, orientation, symbol);
@@ -2392,7 +2392,7 @@ draw(PaintDevice *device) const
 
       CQChartsSymbolData symbol;
 
-      symbol.setType(Symbol(Symbol::Type::CIRCLE));
+      symbol.setSymbol(Symbol(SymbolType::Type::CIRCLE));
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(device, rect, mean, orientation, symbol);
@@ -2798,8 +2798,9 @@ draw(PaintDevice *device) const
 
   Point pos(ox, oy);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, plot_->outlierSymbolType(), pos,
-                               plot_->outlierSymbolSize());
+  if (plot_->outlierSymbol().isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, plot_->outlierSymbol(), pos,
+                                 plot_->outlierSymbolSize());
 }
 
 double
@@ -3516,7 +3517,7 @@ void
 CQChartsBoxPlotPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbolType = plot_->jitterSymbolType();
+  auto symbol     = plot_->jitterSymbol();
   auto symbolSize = plot_->jitterSymbolSize();
 
   //---
@@ -3539,7 +3540,8 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
 }
 
 //------

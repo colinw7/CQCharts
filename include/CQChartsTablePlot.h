@@ -590,6 +590,8 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

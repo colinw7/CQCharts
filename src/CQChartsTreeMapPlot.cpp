@@ -1326,7 +1326,8 @@ CQChartsTreeMapHierObj(const Plot *plot, HierNode *hier, HierObj *hierObj,
                        const BBox &rect, const ColorInd &is) :
  CQChartsTreeMapNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
-  setModelInd(hier_->ind());
+  if (hier_->ind().isValid())
+    setModelInd(hier_->ind());
 }
 
 QString
@@ -1559,7 +1560,8 @@ CQChartsTreeMapNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(node_->ind());
+  if (node_->ind().isValid())
+    setModelInd(node_->ind());
 }
 
 QString
@@ -2262,6 +2264,8 @@ CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
 {
   addHierColumnWidgets();
   addColorColumnWidgets();
+
+  addLayoutStretch();
 
   //---
 

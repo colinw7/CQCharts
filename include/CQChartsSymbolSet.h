@@ -46,12 +46,11 @@ class CQChartsSymbolSet {
  public:
   struct SymbolData {
     CQChartsSymbol symbol;
-    bool           filled { false };
 
     SymbolData() = default;
 
-    SymbolData(const CQChartsSymbol &symbol, bool filled) :
-     symbol(symbol), filled(filled) {
+    SymbolData(const CQChartsSymbol &symbol) :
+     symbol(symbol) {
     }
   };
 
@@ -62,7 +61,7 @@ class CQChartsSymbolSet {
   const QString &name() const { return name_; }
 
   //! add symbol
-  void addSymbol(const CQChartsSymbol &symbol, bool filled=false);
+  void addSymbol(const CQChartsSymbol &symbol);
 
   int numSymbols() const;
 
@@ -72,8 +71,6 @@ class CQChartsSymbolSet {
   static int interpIRange(int i, int imin, int imax);
 
   CQChartsSymbol symbol(int i) const;
-
-  bool isFilled(int i) const;
 
   //! get nth symbol
   const SymbolData &symbolData(int i) const;

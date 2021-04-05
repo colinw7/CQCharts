@@ -486,7 +486,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(int              numSides   READ numSides   WRITE setNumSides  )
   Q_PROPERTY(CQChartsAngle    angle      READ angle      WRITE setAngle     )
   Q_PROPERTY(CQChartsLength   lineWidth  READ lineWidth  WRITE setLineWidth )
-  Q_PROPERTY(CQChartsSymbol   symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsSymbol   symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength   symbolSize READ symbolSize WRITE setSymbolSize)
 
   Q_ENUMS(ShapeType)
@@ -504,10 +504,11 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   };
 
  public:
-  using Rect     = CQChartsRect;
-  using Position = CQChartsPosition;
-  using Symbol   = CQChartsSymbol;
-  using Length   = CQChartsLength;
+  using Rect       = CQChartsRect;
+  using Position   = CQChartsPosition;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
+  using Length     = CQChartsLength;
 
  public:
   CQChartsRectangleAnnotation(View *view, const Rect &rect=Rect());
@@ -563,8 +564,8 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void setLineWidth(const Length &l);
 
   //! get/set symbol type (for dot line)
-  const Symbol &symbolType() const { return symbolType_; }
-  void setSymbolType(const Symbol &t);
+  const Symbol &symbol() const { return symbol_; }
+  void setSymbol(const Symbol &t);
 
   //! get/set symbol size (for dot line)
   const Length &symbolSize() const { return symbolSize_; }
@@ -591,14 +592,15 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  Rect      rectangle_;                           //!< rectangle
-  ObjRef    objRef_;                              //!< object ref
-  ShapeType shapeType_  { ShapeType::NONE };      //!< shape type
-  int       numSides_   { -1 };                   //!< number of sides
-  Angle     angle_;                               //!< rotation angle
-  Length    lineWidth_  { Units::PLOT, 1.0 };     //!< line width
-  Symbol    symbolType_ { Symbol::Type::CIRCLE }; //!< symbol type
-  Length    symbolSize_ { Units::PLOT, 1.0 };     //!< symbol size
+  Rect      rectangle_;                      //!< rectangle
+  ObjRef    objRef_;                         //!< object ref
+  ShapeType shapeType_ { ShapeType::NONE };  //!< shape type
+  int       numSides_  { -1 };               //!< number of sides
+  Angle     angle_;                          //!< rotation angle
+
+  Length lineWidth_  { Units::PLOT, 1.0 };         //!< dot line width
+  Symbol symbol_     { SymbolType::Type::CIRCLE }; //!< dot symbol
+  Length symbolSize_ { Units::PLOT, 1.0 };         //!< dot symbol size
 };
 
 //---
@@ -1349,16 +1351,17 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  using Position = CQChartsPosition;
-  using Symbol   = CQChartsSymbol;
-  using PenBrush = CQChartsPenBrush;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Position   = CQChartsPosition;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
+  using PenBrush   = CQChartsPenBrush;
+  using ColorInd   = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPointAnnotation(View *view, const Position &p=Position(),
-                          const Symbol &type=Symbol(Symbol::Type::CIRCLE));
+                          const Symbol &symbol=Symbol(SymbolType::Type::CIRCLE));
   CQChartsPointAnnotation(Plot *plot, const Position &p=Position(),
-                          const Symbol &type=Symbol(Symbol::Type::CIRCLE));
+                          const Symbol &symbol=Symbol(SymbolType::Type::CIRCLE));
 
   virtual ~CQChartsPointAnnotation();
 

@@ -72,11 +72,11 @@ CQChartsSymbolSet(const QString &name) :
 
 void
 CQChartsSymbolSet::
-addSymbol(const CQChartsSymbol &symbol, bool filled)
+addSymbol(const CQChartsSymbol &symbol)
 {
   assert(symbol.isValid());
 
-  symbols_.push_back(SymbolData(symbol, filled));
+  symbols_.push_back(SymbolData(symbol));
 }
 
 int
@@ -143,16 +143,6 @@ symbol(int i) const
     return CQChartsSymbol();
 
   return symbols_[i].symbol;
-}
-
-bool
-CQChartsSymbolSet::
-isFilled(int i) const
-{
-  if (i < 0 || i >= numSymbols())
-    return false;
-
-  return symbols_[i].filled;
 }
 
 QStringList

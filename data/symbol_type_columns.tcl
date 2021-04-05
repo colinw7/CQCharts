@@ -30,7 +30,7 @@ set_charts_property -plot $plot1 -name margins.inner.right  -value 20px
 set_charts_property -plot $plot1 -name margins.inner.bottom -value 20px
 set_charts_property -plot $plot1 -name margins.inner.top    -value 20px
 
-set_charts_property -plot $plot1 -name symbol.size -value 12px
+set_charts_property -plot $plot1 -name points.size -value 12px
 
 set plot2 [create_charts_plot -model $model -type xy \
   -columns {{x 0} {y 1} {symbolType 2}} \
@@ -41,7 +41,7 @@ set plot2 [create_charts_plot -model $model -type xy \
 
 set_charts_property -plot $plot2 -name coloring.type              -value INDEX
 set_charts_property -plot $plot2 -name points.visible             -value 1
-set_charts_property -plot $plot2 -name points.symbol.type         -value circle
+set_charts_property -plot $plot2 -name points.symbol.symbol       -value circle
 set_charts_property -plot $plot2 -name points.symbol.size         -value 12px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible -value 1
 set_charts_property -plot $plot2 -name points.symbol.fill.color   -value palette

@@ -23,16 +23,13 @@ echo "standard_deviation 4: $sd"
 # summary model
 set model1 [create_charts_summary_model -model $model -sorted]
 
-set order [get_charts_property -model $model1 -name summary.sortOrder]
-
-echo "order: $order"
+#set order [get_charts_property -model $model1 -name summary.sortOrder]
+#echo "order: $order"
 
 write_charts_model -model $model1 -max_rows 10
 
-set_charts_property -model $model1 -name summary.sortOrder -value 1
-
-set order [get_charts_property -model $model1 -name summary.sortOrder]
-
-echo "order: $order"
+#set_charts_property -model $model1 -name summary.sortOrder -value 1
+#set order [get_charts_property -model $model1 -name summary.sortOrder]
+#echo "order: $order"
 
 write_charts_model -model $model1 -max_rows 10

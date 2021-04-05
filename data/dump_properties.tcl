@@ -47,7 +47,7 @@ proc dump_properties { hidden } {
         set desc  [encode_text [get_charts_property -view $view -name $property -hidden -data desc]]
         set dtype [get_charts_property -view $view -name $property -hidden -data user_type]
         set owner [get_charts_property -view $view -name $property -hidden -data owner]
-        set hid   [encode_hidden [get_charts_property -view $view -name $property -hidden -data hidden]]
+        set hid   [encode_hidden [get_charts_property -view $view -name $property -hidden -data is_hidden]]
 
         if {$hidden} {
           echo "view,,$property,$dtype,$value,$hid,$desc"
@@ -86,7 +86,7 @@ proc dump_properties { hidden } {
       set desc  [encode_text [get_charts_property -plot $plot -name $property -hidden -data desc]]
       set dtype [get_charts_property -plot $plot -name $property -hidden -data user_type]
       set owner [get_charts_property -plot $plot -name $property -hidden -data owner]
-      set hid   [encode_hidden [get_charts_property -plot $plot -name $property -hidden -data hidden]]
+      set hid   [encode_hidden [get_charts_property -plot $plot -name $property -hidden -data is_hidden]]
 
       if {$owner == "title"} {
         if {$title_checked == 1} {
@@ -147,10 +147,35 @@ proc dump_properties { hidden } {
       foreach type $types {
         set cmd "create_charts_${type}_annotation"
 
-        if {$type == "polygon" || $type == "polyline"} {
-          set annotation [eval $cmd -plot $plot -points {{0 0} {1 0} {1 1}}]
+echo "$cmd"
+        if       {$type == "polygon"} {
+          set annotation [eval {$cmd -plot $plot -points {{0 0} {1 0} {1 1} {0 1}}}]
+        } elseif {$type == "polyline"} {
+          set annotation [eval {$cmd -plot $plot -points {{0 0} {1 1} {2 0}}}]
+        } elseif {$type == "ellipse"} {
+          set annotation [eval {$cmd -plot $plot -center {0 0} -rx 1 -ry 1}]
+        } elseif {$type == "image"} {
+          set annotation [eval {$cmd -plot $plot -svg data/path.svg}]
+        } elseif {$type == "path"} {
+          set annotation [eval {$cmd -plot $plot -path "M 0 0 L 10 10 L 20 10"}]
+        } elseif {$type == "arrow"} {
+          set annotation [eval {$cmd -plot $plot -start {0 0} -end {1 1}}]
+        } elseif {$type == "arc"} {
+          set annotation [eval {$cmd -plot $plot -start {0 0} -end {1 1}}]
+        } elseif {$type == "pie_slice"} {
+          set annotation [eval {$cmd -plot $plot -position {0 0} -outer_radius 1}]
+        } elseif {$type == "axis"} {
+          set annotation [eval {$cmd -plot $plot -start 0 -end 1}]
+        } elseif {$type == "point"} {
+          set annotation [eval {$cmd -plot $plot -position {0 0}}]
+        } elseif {$type == "point_set"} {
+          set annotation [eval {$cmd -plot $plot -values {{0 0} {1 1} {2 2}}}]
+        } elseif {$type == "value_set"} {
+          set annotation [eval {$cmd -plot $plot -values {0 1 2} -rectangle {0 0 1 1}}]
+        } elseif {$type == "group"} {
+          # TODO
         } else {
-          set annotation [eval $cmd -plot $plot]
+          set annotation [eval {$cmd -plot $plot}]
         }
 
         if {$hidden} {
@@ -164,7 +189,7 @@ proc dump_properties { hidden } {
           set desc  [encode_text [get_charts_property -annotation $annotation -name $property -hidden -data desc]]
           set dtype [get_charts_property -annotation $annotation -name $property -hidden -data user_type]
           set owner [get_charts_property -annotation $annotation -name $property -hidden -data owner]
-          set hid   [encode_hidden [get_charts_property -annotation $annotation -name $property -hidden -data hidden]]
+          set hid   [encode_hidden [get_charts_property -annotation $annotation -name $property -hidden -data is_hidden]]
 
           if {$hidden} {
             echo "annotation,$type,$property,$dtype,$value,$hid,$desc"

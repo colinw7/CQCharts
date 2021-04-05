@@ -10,14 +10,14 @@ set plot1 [create_charts_plot -model $model1 -type adjacency \
 set model2 [load_charts_model -tsv data/scatter.tsv -first_line_header]
 
 set plot2 [create_charts_plot -model $model2 -type barchart \
-  -columns {{value sepalLength} {group species}} \
+  -columns {{values sepalLength} {group species}} \
   -properties {{xaxis.userLabel {Petal Length}} {yaxis.userLabel {Sepal Length}}}]
 
 # Box Plot
 
 set model3 [load_charts_model -tsv data/scatter.tsv -first_line_header]
 
-set plot3 [create_charts_plot -model $model3 -type boxplot -columns {{value {0 1 2 3}}}]
+set plot3 [create_charts_plot -model $model3 -type boxplot -columns {{values {0 1 2 3}}}]
 
 # Bubble/Hier Bubble Plot
 
@@ -88,14 +88,14 @@ set plot12 [create_charts_plot -model $model12 -type parallel \
 set model13 [load_charts_model -csv data/ages.csv -first_line_header -column_type {{{1 integer}}}]
 
 set plot13 [create_charts_plot -model $model13 -type pie \
-  -columns {{label 0} {value 1}} -title "pie chart"]
+  -columns {{label 0} {values 1}} -title "pie chart"]
 
 # Radar Plot
 
 set model14 [load_charts_model -csv data/radar.csv -first_line_header]
 
 set plot14 [create_charts_plot -model $model14 -type radar \
-  -columns {{name 0} {value {1 2 3 4 5}}} -title "Radar Plot"]
+  -columns {{name 0} {values {1 2 3 4 5}}} -title "Radar Plot"]
 
 # Sankey
 

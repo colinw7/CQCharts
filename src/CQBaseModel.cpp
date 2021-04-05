@@ -7,15 +7,21 @@
 
 namespace {
 
-using TypeName = std::map<CQBaseModelType,QString>;
-using NameType = std::map<QString,CQBaseModelType>;
+using TypeName  = std::map<CQBaseModelType, QString>;
+using NameType  = std::map<QString, CQBaseModelType>;
+using AliasName = std::map<QString, QString>;
 
-static TypeName s_typeName;
-static NameType s_nameType;
+static TypeName  s_typeName;
+static NameType  s_nameType;
+static AliasName s_aliasName;
 
 void addType(CQBaseModelType type, const QString &name) {
   s_typeName[type] = name;
   s_nameType[name] = type;
+}
+
+void addAlias(const QString &alias, const QString &name) {
+  s_aliasName[alias] = name;
 }
 
 void initTypes() {
@@ -37,7 +43,7 @@ void initTypes() {
     addType(CQBaseModelType::BRUSH          , "brush"          );
     addType(CQBaseModelType::IMAGE          , "image"          );
     addType(CQBaseModelType::TIME           , "time"           );
-    addType(CQBaseModelType::SYMBOL         , "symbol"         );
+    addType(CQBaseModelType::SYMBOL         , "symbol_type"    );
     addType(CQBaseModelType::SYMBOL_SIZE    , "symbol_size"    );
     addType(CQBaseModelType::FONT_SIZE      , "font_size"      );
     addType(CQBaseModelType::PATH           , "path"           );
@@ -48,6 +54,14 @@ void initTypes() {
     addType(CQBaseModelType::COLUMN_LIST    , "column_list"    );
     addType(CQBaseModelType::ENUM           , "enum"           );
     addType(CQBaseModelType::LENGTH         , "length"         );
+
+    addAlias("bool"       , "boolean"        );
+    addAlias("int"        , "integer"        );
+    addAlias("double"     , "real"           );
+    addAlias("rect"       , "rectangle"      );
+    addAlias("symbol"     , "symbol_type"    );
+    addAlias("connections", "connection_list");
+    addAlias("columns"    , "column_list"    );
   }
 }
 
@@ -1021,11 +1035,10 @@ nameType(const QString &name)
   if (p != s_nameType.end())
     return (*p).second;
 
-  // handle aliases (should be part of type)
-  if      (name == "int")
-    return CQBaseModelType::INTEGER;
-  else if (name == "double")
-    return CQBaseModelType::REAL;
+  auto pa = s_aliasName.find(name);
+
+  if (pa != s_aliasName.end())
+    return nameType((*pa).second);
 
   return CQBaseModelType::NONE;
 }

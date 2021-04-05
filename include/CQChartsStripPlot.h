@@ -111,10 +111,11 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  using Symbol   = CQChartsSymbol;
-  using Length   = CQChartsLength;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
+  using Length     = CQChartsLength;
+  using Color      = CQChartsColor;
+  using ColorInd   = CQChartsUtil::ColorInd;
 
  public:
   CQChartsStripPlot(View *view, const ModelP &model);
@@ -211,6 +212,8 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
 };
 
 //---
+
+#include <CQChartsGroupPlotCustomControls.h>
 
 class CQChartsStripPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT

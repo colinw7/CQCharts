@@ -234,6 +234,8 @@ init()
 
   //---
 
+  setSymbol(Symbol(SymbolType::Type::CIRCLE));
+
   setImpulseLines  (false);
   setBivariateLines(false);
 
@@ -567,6 +569,9 @@ addProperties()
 
   addSymbolProperties("points/symbol", "", "Points");
 
+  // data labels
+  dataLabel()->addPathProperties("points/labels", "Labels");
+
   // lines
   addProp("lines", "lines"          , "visible"   , "Lines visible");
   addProp("lines", "linesSelectable", "selectable", "Lines selectable");
@@ -577,10 +582,12 @@ addProperties()
   //---
 
   // moving average
-  addProp("movingAverage", "movingAverage"   , "visible", "Show moving average");
-  addProp("movingAverage", "numMovingAverage", "size"   , "Moving average window size");
+  auto movingAveragePropPath = QString("overlays/movingAverage");
 
-  addLineProperties("movingAverage", "movingAverageLines", "Lines");
+  addProp(movingAveragePropPath, "movingAverage"   , "visible", "Show moving average");
+  addProp(movingAveragePropPath, "numMovingAverage", "size"   , "Moving average window size");
+
+  addLineProperties(movingAveragePropPath, "movingAverageLines", "Lines");
 
   //---
 
@@ -599,8 +606,10 @@ addProperties()
 
   //---
 
+  auto axisAnnotationsPath = QString("axisAnnotations");
+
   // rug axis
-  addRugProperties();
+  addRugProperties(axisAnnotationsPath);
 
   //---
 
@@ -668,9 +677,6 @@ addProperties()
   addArrowStyleProp(vectorStrokePath, "strokeColor", "color"  , "Vector stroke color");
   addArrowStyleProp(vectorStrokePath, "strokeAlpha", "alpha"  , "Vector stroke alpha");
   addArrowStyleProp(vectorStrokePath, "strokeWidth", "width"  , "Vector stroke width");
-
-  // data labels
-  dataLabel()->addPathProperties("labels", "Labels");
 
   //---
 
@@ -1776,16 +1782,15 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional symbol type
-        CQChartsSymbol symbolType;
-        OptBool        symbolFilled;
+        CQChartsSymbol symbol;
 
         if (symbolTypeColumn().isValid()) {
-          if (! columnSymbolType(ip, xind1.parent(), symbolType, symbolFilled))
-            symbolType = CQChartsSymbol();
+          if (! columnSymbolType(ip, xind1.parent(), symbol))
+            symbol = CQChartsSymbol();
         }
 
-        if (symbolType.isValid())
-          pointObj->setSymbolType(symbolType);
+        if (symbol.isValid())
+          pointObj->setSymbol(symbol);
 
         //---
 
@@ -3002,7 +3007,7 @@ CQChartsXYBiLineObj::
 drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
 {
   // get symbol and size
-  auto symbol = plot()->symbolType();
+  auto symbol = plot()->symbol();
 
   double sx, sy;
 
@@ -3022,8 +3027,10 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
   // draw symbols
   auto ss = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PLOT);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss);
+  if (symbol.isValid()) {
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss);
+  }
 }
 
 //------
@@ -3206,17 +3213,17 @@ setSelected(bool b)
 
 CQChartsSymbol
 CQChartsXYPointObj::
-symbolType() const
+symbol() const
 {
-  CQChartsSymbol symbolType;
+  CQChartsSymbol symbol;
 
   if (extraData())
-    symbolType = extraData()->symbolType;
+    symbol = extraData()->symbol;
 
-  if (! symbolType.isValid())
-    symbolType = plot_->symbolType();
+  if (! symbol.isValid())
+    symbol = plot_->symbol();
 
-  return symbolType;
+  return symbol;
 }
 
 CQChartsLength
@@ -3243,11 +3250,8 @@ fontSize() const
   if (extraData())
     fontSize = extraData()->fontSize;
 
-  if (! fontSize.isValid()) {
-    double dataLabelFontSize = plot()->dataLabelFont().pointSizeF();
-
-    fontSize = Length(dataLabelFontSize, CQChartsUnits::PIXEL);
-  }
+  if (! fontSize.isValid())
+    fontSize = plot()->dataLabelFontSize();
 
   return fontSize;
 }
@@ -3540,14 +3544,15 @@ draw(PaintDevice *device) const
     device->setColorNames();
 
     // override symbol type for custom symbol
-    auto symbolType = this->symbolType();
+    auto symbol     = this->symbol();
     auto symbolSize = this->symbolSize();
 
     // draw symbol or image
     auto image = this->image();
 
     if (! image.isValid()) {
-      CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pos_, symbolSize);
+      if (symbol.isValid())
+        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pos_, symbolSize);
     }
     else {
       // get point
@@ -4569,13 +4574,14 @@ drawLine(PaintDevice *device, const BBox &rect) const
 
     //---
 
-    auto symbolType = plot()->symbolType();
+    auto symbol     = plot()->symbol();
     auto symbolSize = plot()->symbolSize();
 
     Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, plot()->pixelToWindow(ps),
-                                 symbolSize);
+    if (symbol.isValid())
+      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol,
+                                   plot()->pixelToWindow(ps), symbolSize);
   }
 
   device->restore();
@@ -4652,18 +4658,21 @@ interpTextColor(const ColorInd &ind) const
 
 CQChartsXYPlotCustomControls::
 CQChartsXYPlotCustomControls(CQCharts *charts) :
- CQChartsGroupPlotCustomControls(charts, "xy")
+ CQChartsPointPlotCustomControls(charts, "xy")
 {
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns");
+
+  addColumnWidgets(QStringList() << "x" << "y" << "label", columnsFrame);
+
+  //---
+
+  addGroupColumnWidgets();
+
+  //---
+
   // options group
   auto optionsFrame = createGroupFrame("Options");
-
-  //---
-
-  static auto columnNames = QStringList() << "x" << "y" << "label";
-
-  addColumnWidgets(columnNames, optionsFrame);
-
-  //---
 
   pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
   linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
@@ -4679,7 +4688,7 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
 
   //---
 
-  addGroupColumnWidgets();
+  addLayoutStretch();
 
   //---
 
@@ -4699,7 +4708,7 @@ connectSlots(bool b)
   CQChartsWidgetUtil::connectDisconnect(b,
     stackedCheck_, SIGNAL(stateChanged(int)), this, SLOT(stackedSlot(int)));
 
-  CQChartsGroupPlotCustomControls::connectSlots(b);
+  CQChartsPointPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -4711,7 +4720,7 @@ setPlot(CQChartsPlot *plot)
 
   plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
 
-  CQChartsGroupPlotCustomControls::setPlot(plot);
+  CQChartsPointPlotCustomControls::setPlot(plot);
 
   if (plot_)
     connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
@@ -4731,6 +4740,10 @@ updateWidgets()
   stackedCheck_  ->setChecked(plot_->isStacked());
 
   stackedCheck_->setEnabled(plot_->yColumns().count() > 1);
+
+  //---
+
+  CQChartsPointPlotCustomControls::updateWidgets();
 
   //---
 

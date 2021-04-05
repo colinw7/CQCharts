@@ -656,6 +656,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
 //---
 
+#include <CQChartsGroupPlotCustomControls.h>
+
 class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

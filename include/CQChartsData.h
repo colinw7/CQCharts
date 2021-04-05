@@ -564,7 +564,7 @@ CQUTIL_DCL_META_TYPE(CQChartsTextBoxData)
  * \brief Symbol Properties
  * \ingroup Charts
  *
- *   visible, type, size, stroke, fill
+ *   visible, symbol, size, stroke, fill
  */
 class CQChartsSymbolData {
  public:
@@ -595,8 +595,8 @@ class CQChartsSymbolData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const Symbol &type() const { return type_; }
-  void setType(const Symbol &s) { type_ = s; }
+  const Symbol &symbol() const { return symbol_; }
+  void setSymbol(const Symbol &s) { symbol_ = s; }
 
   const Length &size() const { return size_; }
   void setSize(const Length &l) { size_ = l; }
@@ -621,7 +621,7 @@ class CQChartsSymbolData {
 
  private:
   bool       visible_ { true };  //!< visible
-  Symbol     type_;              //!< symbol type
+  Symbol     symbol_;            //!< symbol
   Length     size_    { "5px" }; //!< symbol size
   StrokeData stroke_;            //!< symbol stroke
   FillData   fill_;              //!< symbol fill

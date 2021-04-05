@@ -208,6 +208,8 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

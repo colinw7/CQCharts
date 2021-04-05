@@ -31,7 +31,7 @@ QAbstractItemModel *
 CQBucketModel::
 sourceModel() const
 {
-  QAbstractItemModel *sourceModel = QAbstractProxyModel::sourceModel();
+  auto *sourceModel = QAbstractProxyModel::sourceModel();
 
   return sourceModel;
 }
@@ -180,7 +180,7 @@ void
 CQBucketModel::
 doResetModel()
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return;
@@ -212,7 +212,7 @@ void
 CQBucketModel::
 connectDisconnectSlots(bool b)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
@@ -266,7 +266,7 @@ bucket()
   //---
 
   // check column valid
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return;
@@ -346,7 +346,7 @@ int
 CQBucketModel::
 columnCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return 0;
@@ -362,12 +362,15 @@ int
 CQBucketModel::
 rowCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return 0;
 
-  return model->rowCount(parent);
+  auto parent1 = mapToSource(parent);
+  if (! parent1.isValid()) return 0;
+
+  return model->rowCount(parent1);
 }
 
 // get child node for row/column of parent
@@ -409,7 +412,7 @@ data(const QModelIndex &index, int role) const
   if (c < 0 || c >= columnCount())
     return QVariant();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return QVariant();
@@ -490,7 +493,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (c < 0 || c >= columnCount())
     return false;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return false;
@@ -516,7 +519,7 @@ QVariant
 CQBucketModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return QVariant();
@@ -571,7 +574,7 @@ bool
 CQBucketModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return false;
@@ -608,7 +611,7 @@ flags(const QModelIndex &index) const
   if (c < 0 || c >= columnCount())
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return 0;
@@ -663,7 +666,7 @@ mapToSource(const QModelIndex &proxyIndex) const
   if (c < 0 || c >= columnCount())
     return QModelIndex();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if (! model)
     return QModelIndex();

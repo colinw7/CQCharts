@@ -7,6 +7,6 @@ set plot [create_charts_plot -model $model -type scatter \
 
 set_charts_property -plot $plot -name title.text.string -value "French Cities"
 set_charts_property -plot $plot -name key.visible -value 0
-set_charts_property -plot $plot -name labels.visible -value 1
+set_charts_property -plot $plot -name points.labels.visible -value 1
 set_charts_property -plot $plot -name mapping.fontSize.enabled -value 1
-set_charts_property -plot $plot -name labels.position -value CENTER
+set_charts_property -plot $plot -name points.labels.position -value CENTER

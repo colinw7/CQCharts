@@ -276,6 +276,8 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsRadarPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

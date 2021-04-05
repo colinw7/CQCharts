@@ -38,6 +38,12 @@ while ($#argv > 0)
   else if ("$1" == "-debug") then
     setenv CQ_CHARTS_DEBUG 1
     shift
+  else if ("$1" == "-pedantic") then
+    setenv CQ_CHARTS_PEDANTIC 1
+    shift
+  else if ("$1" == "-auto_exit") then
+    setenv CQ_CHARTS_AUTO_EXIT 1
+    shift
   else if ("$1" == "-timer" || "$1" == "-perf_debug") then
     setenv HRTIMER_ACTIVE 1
     setenv CQ_PERF_MONITOR_DEBUG 1

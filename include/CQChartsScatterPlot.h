@@ -54,7 +54,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsGeom::Point point    READ point   )
   Q_PROPERTY(QString             name     READ name    )
 
-  Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsSymbol symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
   Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
@@ -118,15 +118,11 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // symbol type
-  bool hasSymbolType() const;
+  bool hasSymbol() const;
 
-  const Symbol &symbolType() const { return extraData().symbolType; }
-  void setSymbolType(const Symbol &s) { extraData().symbolType = s; }
-  Symbol calcSymbolType() const;
-
-  // symbol filled
-  const OptBool &isSymbolFilled() const { return extraData().symbolFilled; }
-  void setSymbolFilled(const OptBool &b) { extraData().symbolFilled = b; }
+  const Symbol &symbol() const { return extraData().symbol; }
+  void setSymbol(const Symbol &s) { extraData().symbol = s; }
+  Symbol calcSymbol() const;
 
   // symbol size
   const Length &symbolSize() const { return extraData().symbolSize; }
@@ -175,9 +171,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   struct ExtraData {
-    Symbol  symbolType;                      //!< symbol type
+    Symbol  symbol;                          //!< symbol
     Length  symbolSize { Units::NONE, 0.0 }; //!< symbol size
-    OptBool symbolFilled;                    //!< optional symbol fill override
     Color   color;                           //!< symbol fill color
     Alpha   alpha;                           //!< symbol fill alpha
     Length  fontSize   { Units::NONE, 0.0 }; //!< font size
@@ -616,8 +611,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setFixedSymbolSize(const Length &s) override { setSymbolSize(s); }
   const Length &fixedSymbolSize() const override { return symbolSize(); }
 
-  void setFixedSymbolType(const Symbol &s) override { setSymbolType(s); }
-  const Symbol &fixedSymbolType() const override { return symbolType(); }
+  void setFixedSymbol(const Symbol &s) override { setSymbol(s); }
+  const Symbol &fixedSymbol() const override { return symbol(); }
 
 
   //---
@@ -898,8 +893,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
 //---
 
+#include <CQChartsPointPlotCustomControls.h>
+
 class CQChartsEnumParameterEdit;
-class CQChartsFontLineEdit;
+class CQChartsLengthEdit;
 class CQChartsFontSizeRangeSlider;
 class CQEnumCombo;
 class CQCheckBox;
@@ -909,6 +906,9 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
  public:
   CQChartsScatterPlotCustomControls(CQCharts *charts);
+
+  void addSymbolLabelWidgets();
+  void addFontSizeWidgets   ();
 
   void setPlot(CQChartsPlot *plot) override;
 
@@ -924,22 +924,27 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  private slots:
   void plotTypeSlot();
 
-  void pointLabelsSlot();
+//void pointLabelsSlot();
   void labelColumnSlot();
   void positionSlot();
-  void fontSlot();
+
+  void fontSizeGroupChanged();
+  void fontSizeSlot();
   void fontSizeColumnSlot();
   void fontSizeRangeSlot(double, double);
 
  private:
-  CQChartsScatterPlot*         plot_                { nullptr };
-  CQChartsEnumParameterEdit*   plotTypeCombo_       { nullptr };
-  CQCheckBox*                  pointLabelsCheck_    { nullptr };
-  CQChartsColumnCombo*         labelColumnCombo_    { nullptr };
-  CQEnumCombo*                 positionEdit_        { nullptr };
-  CQChartsFontLineEdit*        fontEdit_            { nullptr };
-  CQChartsColumnCombo*         fontSizeColumnCombo_ { nullptr };
-  CQChartsFontSizeRangeSlider* fontSizeRange_       { nullptr };
+  CQChartsScatterPlot* plot_ { nullptr };
+
+  CQChartsEnumParameterEdit*   plotTypeCombo_    { nullptr };
+  CQCheckBox*                  pointLabelsCheck_ { nullptr };
+  CQChartsColumnCombo*         labelColumnCombo_ { nullptr };
+  CQEnumCombo*                 positionEdit_     { nullptr };
+
+  CQChartsColumnControlGroup*  fontSizeControlGroup_ { nullptr };
+  CQChartsLengthEdit*          fontSizeEdit_         { nullptr };
+  CQChartsColumnCombo*         fontSizeColumnCombo_  { nullptr };
+  CQChartsFontSizeRangeSlider* fontSizeRange_        { nullptr };
 };
 
 #endif

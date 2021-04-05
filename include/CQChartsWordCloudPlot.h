@@ -182,6 +182,8 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

@@ -78,6 +78,7 @@
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsSymbolDataEdit.h>
 #include <CQChartsSymbolEdit.h>
+#include <CQChartsSymbolTypeEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTitleLocationEdit.h>
@@ -164,6 +165,8 @@
 
 #include <CQWidgetFactory.h>
 #include <CQTclUtil.h>
+
+#include <QTimer>
 
 #include <iostream>
 
@@ -553,6 +556,7 @@ init()
     viewMgr->addType("CQChartsStrokeData"      , new CQChartsStrokeDataPropertyViewType      );
     viewMgr->addType("CQChartsSymbolData"      , new CQChartsSymbolDataPropertyViewType      );
     viewMgr->addType("CQChartsSymbol"          , new CQChartsSymbolPropertyViewType          );
+    viewMgr->addType("CQChartsSymbolType"      , new CQChartsSymbolTypePropertyViewType      );
     viewMgr->addType("CQChartsTextBoxData"     , new CQChartsTextBoxDataPropertyViewType     );
     viewMgr->addType("CQChartsTextData"        , new CQChartsTextDataPropertyViewType        );
 
@@ -607,6 +611,8 @@ init()
       new CQWidgetFactoryT<CQChartsPositionEdit>());
     widgetMgr->addWidgetFactory("CQChartsSymbolEdit",
       new CQWidgetFactoryT<CQChartsSymbolEdit>());
+    widgetMgr->addWidgetFactory("CQChartsSymbolTypeEdit",
+      new CQWidgetFactoryT<CQChartsSymbolTypeEdit>());
 
     widgetMgr->addWidgetFactory("CQChartsPlotPropertyEditGroup",
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEditGroup>());
@@ -641,90 +647,116 @@ init()
   // add symbol sets
   auto *allSymbolSet = createSymbolSet("all");
 
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), false);
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), true );
-  allSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), true );
+  auto addSymbol = [&](CQChartsSymbolSet *symbolSet, CQChartsSymbolType::Type type, bool filled) {
+    CQChartsSymbol symbol(type);
+    symbol.setFilled(filled);
+    symbolSet->addSymbol(symbol);
+  };
+
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::DOT      , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PLUS     , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::CROSS    , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::Y        , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::Z        , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::TRIANGLE , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::BOX      , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::DIAMOND  , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::STAR5    , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::STAR6    , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::CIRCLE   , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PENTAGON , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::IPENTAGON, false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HLINE    , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::VLINE    , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PAW      , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HASH     , false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::DOT      , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PLUS     , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::CROSS    , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::Y        , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::Z        , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::TRIANGLE , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::BOX      , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::DIAMOND  , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::STAR5    , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::STAR6    , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::CIRCLE   , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PENTAGON , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::IPENTAGON, true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HLINE    , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::VLINE    , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::PAW      , true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HASH     , true );
 
   auto *outlineSymbolSet = createSymbolSet("outline");
 
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), false);
-  outlineSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::PLUS     , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::CROSS    , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::Y        , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::Z        , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::TRIANGLE , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::CIRCLE   , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::BOX      , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::DIAMOND  , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::STAR5    , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::PENTAGON , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::HASH     , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::STAR6    , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::IPENTAGON, false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::DOT      , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::PAW      , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::HLINE    , false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::VLINE    , false);
 
   auto *filledSymbolSet = createSymbolSet("filled");
 
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::TRIANGLE ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE   ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::BOX      ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DIAMOND  ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR5    ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PENTAGON ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::ITRIANGLE), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::STAR6    ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::IPENTAGON), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::CROSS    ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PLUS     ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Y        ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::Z        ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HASH     ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::DOT      ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::PAW      ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::HLINE    ), true);
-  filledSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::Type::VLINE    ), true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::TRIANGLE , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::CIRCLE   , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::BOX      , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::DIAMOND  , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::STAR5    , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::PENTAGON , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::STAR6    , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::IPENTAGON, true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::PLUS     , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::CROSS    , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::Y        , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::Z        , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::HASH     , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::DOT      , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::PAW      , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::HLINE    , true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::VLINE    , true);
 
   //auto *charSymbolSet = createSymbolSet("char");
 
   //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u2639", "white frown")));
   //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u263a", "white smile")));
   //charSymbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData("\u263b", "black smile")));
+}
+
+//---
+
+void
+CQCharts::
+addExitTimer(double secs)
+{
+  exitTimer_ = new QTimer(this);
+
+  connect(exitTimer_, SIGNAL(timeout()), this, SLOT(exitSlot()));
+
+  exitTimer_->start(1000*secs);
+}
+
+void
+CQCharts::
+exitSlot()
+{
+  exit(0);
 }
 
 //---

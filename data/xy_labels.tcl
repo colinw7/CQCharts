@@ -15,6 +15,6 @@ set plot [create_charts_plot -model $model -type xy \
 
 set_charts_property -plot $plot -name yaxis.grid.lines           -value MAJOR
 set_charts_property -plot $plot -name points.visible             -value 1
-set_charts_property -plot $plot -name points.symbol.type         -value circle
+set_charts_property -plot $plot -name points.symbol.symbol       -value circle
 set_charts_property -plot $plot -name points.symbol.size         -value 12px
 set_charts_property -plot $plot -name points.symbol.fill.visible -value 1

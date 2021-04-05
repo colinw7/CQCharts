@@ -38,7 +38,7 @@ proc plotYear { year } {
     set title "Male and Female $year"
   }
 
-  set ::plot1Id [create_charts_plot -type barchart -columns {{name 1} {value 3}} -title $title]
+  set ::plot1Id [create_charts_plot -type barchart -columns {{name 1} {values 3}} -title $title]
 
   set_charts_property -plot $::plot1Id -name fill.color -value "#4444aa"
   set_charts_property -plot $::plot1Id -name fill.alpha -value 0.5
@@ -56,7 +56,7 @@ proc plotYear { year } {
     set title ""
   }
 
-  set ::plot2Id [create_charts_plot -type barchart -columns {{name 1} {value 3}} -title $title]
+  set ::plot2Id [create_charts_plot -type barchart -columns {{name 1} {values 3}} -title $title]
 
   set_charts_property -plot $::plot2Id -name fill.color -value "#aa4444"
   set_charts_property -plot $::plot2Id -name fill.alpha -value 0.5

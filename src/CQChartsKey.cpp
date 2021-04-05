@@ -2787,8 +2787,9 @@ draw(PaintDevice *device, const BBox &rect) const
 
   Point ps(CMathUtil::avg(x1, x2), y);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolData_.type(), drawPlot->pixelToWindow(ps),
-                               symbolData_.size());
+  if (symbolData_.symbol().isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolData_.symbol(),
+                                 drawPlot->pixelToWindow(ps), symbolData_.size());
 }
 
 //------

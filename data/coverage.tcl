@@ -16,16 +16,16 @@ set viewId [get_charts_property -plot $plotId1 -name viewId]
 
 set plotId2 [create_charts_plot -type xy -columns {{id 0} {x 0} {y 2}}]
 
-set_charts_property -plot $plotId1 -name impulse.visible -value 1
-set_charts_property -plot $plotId1 -name impulse.color   -value palette
-set_charts_property -plot $plotId1 -name impulse.alpha   -value 0.5
-set_charts_property -plot $plotId1 -name impulse.width   -value 20px
+set_charts_property -plot $plotId1 -name impulse.visible      -value 1
+set_charts_property -plot $plotId1 -name impulse.stroke.color -value palette
+set_charts_property -plot $plotId1 -name impulse.stroke.alpha -value 0.5
+set_charts_property -plot $plotId1 -name impulse.stroke.width -value 20px
 
-set_charts_property -plot $plotId2 -name invert.y        -value 1
-set_charts_property -plot $plotId2 -name impulse.visible -value 1
-set_charts_property -plot $plotId2 -name impulse.color   -value palette#1
-set_charts_property -plot $plotId2 -name impulse.alpha   -value 0.5
-set_charts_property -plot $plotId2 -name impulse.width   -value 20px
+set_charts_property -plot $plotId2 -name invert.y             -value 1
+set_charts_property -plot $plotId2 -name impulse.visible      -value 1
+set_charts_property -plot $plotId2 -name impulse.stroke.color -value palette#1
+set_charts_property -plot $plotId2 -name impulse.stroke.alpha -value 0.5
+set_charts_property -plot $plotId2 -name impulse.stroke.width -value 20px
 
 group_charts_plots -view $viewId -y1y2 $plotId1 $plotId2
 

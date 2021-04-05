@@ -694,7 +694,7 @@ drawVoronoi(PaintDevice *device) const
     setVoronoiSymbolPenBrush(penBrush, ColorInd());
 
     // get symbol type and size
-    auto symbolType = this->voronoiSymbolType();
+    auto symbol     = this->voronoiSymbol();
     auto symbolSize = this->voronoiSymbolSize();
 
     for (auto pf = delaunayData_->facesBegin(); pf != delaunayData_->facesEnd(); ++pf) {
@@ -705,7 +705,8 @@ drawVoronoi(PaintDevice *device) const
 
       Point p(v->x(), v->y());
 
-      CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize);
+      if (symbol.isValid())
+        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize);
     }
   }
 
@@ -900,7 +901,7 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol type and size
-  auto symbolType = plot_->symbolType();
+  auto symbol     = plot_->symbol();
   auto symbolSize = plot_->symbolSize();
 
   //---
@@ -908,7 +909,8 @@ draw(PaintDevice *device) const
   // draw symbol
   Point p(x_, y_);
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize);
 }
 
 //------

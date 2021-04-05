@@ -232,7 +232,7 @@ addProperties()
 
   //---
 
-  hideProp(this, "range.innerView");
+  //hideProp(this, "range.innerView");
 }
 
 CQChartsGeom::Range

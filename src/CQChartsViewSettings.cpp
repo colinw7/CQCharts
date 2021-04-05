@@ -27,6 +27,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 
+#include <CQChartsPlotCustomControls.h>
 #include <CQChartsPlotControlWidgets.h>
 
 #include <CQColorsEditCanvas.h>
@@ -841,7 +842,6 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
       assert(item);
 
       auto symbol = list_->symbol(ind.row());
-      bool filled = list_->isFilledSymbol(ind.row());
 
       QItemDelegate::drawBackground(painter, option, ind);
 
@@ -854,12 +854,13 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
 
       painter->setPen(Qt::black);
 
-      if (filled)
+      if (symbol.isFilled())
         painter->setBrush(Qt::green);
       else
         painter->setBrush(Qt::NoBrush);
 
-      CQChartsDrawUtil::drawSymbol(&device, symbol, bbox);
+      if (symbol.isValid())
+        CQChartsDrawUtil::drawSymbol(&device, symbol, bbox);
 
       QRect trect(option.rect.left () + s + 4, option.rect.top() + 2,
                   option.rect.width() - s - 6, option.rect.height() - 4);
@@ -873,6 +874,10 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
       else if (symbol.type() == CQChartsSymbol::Type::PATH) {
         name = symbol.pathName();
         if (name == "") name = "path";
+      }
+      else if (symbol.type() == CQChartsSymbol::Type::SVG) {
+        name = symbol.svgName();
+        if (name == "") name = "svg";
       }
       else
         name = symbol.toString();
@@ -3361,11 +3366,10 @@ CQChartsViewSettings::
 symbolListSelectionChangeSlot()
 {
   CQChartsSymbol symbol;
-  bool           filled = false;
 
-  (void) symbolsList_->selectedSymbol(symbol, filled);
+  (void) symbolsList_->selectedSymbol(symbol);
 
-  symbolEdit_->setSymbol(symbol, filled);
+  symbolEdit_->setSymbol(symbol);
 }
 
 void
@@ -3764,16 +3768,6 @@ symbol(int ind) const
   return symbolSet->symbol(ind);
 }
 
-bool
-CQChartsSymbolsList::
-isFilledSymbol(int ind) const
-{
-  auto *symbolSet = this->symbolSet();
-  if (! symbolSet) return false;
-
-  return symbolSet->isFilled(ind);
-}
-
 CQChartsSymbolSet *
 CQChartsSymbolsList::
 symbolSet() const
@@ -3837,7 +3831,7 @@ currentItem() const
 
 bool
 CQChartsSymbolsList::
-selectedSymbol(CQChartsSymbol &symbol, bool &filled) const
+selectedSymbol(CQChartsSymbol &symbol) const
 {
   auto selected = this->selectedItems();
   if (! selected.length()) return false;
@@ -3850,7 +3844,6 @@ selectedSymbol(CQChartsSymbol &symbol, bool &filled) const
   int i = item->data(Qt::UserRole).toInt();
 
   symbol = symbolSet->symbol(i);
-  filled = isFilledSymbol(i);
 
   return true;
 }
@@ -3868,10 +3861,9 @@ CQChartsSymbolEditor(CQChartsViewSettings *viewSettings) :
 
 void
 CQChartsSymbolEditor::
-setSymbol(const CQChartsSymbol &symbol, bool filled)
+setSymbol(const CQChartsSymbol &symbol)
 {
   symbol_ = symbol;
-  filled_ = filled;
 
   pointsArray_.clear();
 
@@ -3880,7 +3872,7 @@ setSymbol(const CQChartsSymbol &symbol, bool filled)
   if (CQChartsPlotSymbolMgr::isSymbol(symbol_)) {
     const auto &plotSymbol = CQChartsPlotSymbolMgr::getSymbol(symbol_);
 
-    if (filled_) {
+    if (symbol_.isFilled()) {
       pointsArray_.push_back(Points());
 
       points = &pointsArray_[pointsArray_.size() - 1];
@@ -4017,12 +4009,12 @@ drawSymbol(QPainter *painter)
 
     auto pen = QPen(Qt::black);
 
-    if (! filled_)
+    if (! symbol_.isFilled())
       pen.setWidth(3);
 
     painter->setPen(pen);
 
-    if (filled_)
+    if (symbol_.isFilled())
       painter->setBrush(QColor("#55dd55"));
     else
       painter->setBrush(Qt::NoBrush);
@@ -4174,7 +4166,7 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_P) {
     if (! pointsArray_.empty()) {
-      if (filled_) {
+      if (symbol_.isFilled()) {
         auto *points = &pointsArray_[0];
 
         int np = points->size();
@@ -4219,7 +4211,7 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_A) {
     if (! pointsArray_.empty()) {
-      if (filled_) {
+      if (symbol_.isFilled()) {
         auto *points = &pointsArray_[0];
 
         int np = points->size();

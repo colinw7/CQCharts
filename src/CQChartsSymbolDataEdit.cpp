@@ -136,7 +136,7 @@ drawPreview(QPainter *painter, const QRect &rect)
   //---
 
   auto str = QString("%1 %2").
-    arg(symbolData().type().toString()).arg(symbolData().size().toString());
+    arg(symbolData().symbol().toString()).arg(symbolData().size().toString());
 
   drawCenteredText(painter, str);
 }
@@ -374,10 +374,10 @@ dataToWidgets()
   if (groupBox_)
     groupBox_->setChecked(data_.isVisible());
 
-  symbolEdit_->setSymbol (data_.type());
-  sizeEdit_  ->setLength (data_.size());
-  strokeEdit_->setData   (data_.stroke());
-  fillEdit_  ->setData   (data_.fill());
+  symbolEdit_->setSymbol(data_.symbol());
+  sizeEdit_  ->setLength(data_.size());
+  strokeEdit_->setData  (data_.stroke());
+  fillEdit_  ->setData  (data_.fill());
 
   preview_->update();
 
@@ -391,7 +391,7 @@ widgetsToData()
   if (groupBox_)
     data_.setVisible(groupBox_->isChecked());
 
-  data_.setType  (symbolEdit_->symbol());
+  data_.setSymbol(symbolEdit_->symbol());
   data_.setSize  (sizeEdit_  ->length());
   data_.setStroke(strokeEdit_->data());
   data_.setFill  (fillEdit_  ->data());
@@ -465,5 +465,6 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   CQChartsLength symbolSize(CQChartsUnits::PIXEL, size);
 
-  CQChartsDrawUtil::drawSymbol(&device, data.type(), p, symbolSize);
+  if (data.symbol().isValid())
+    CQChartsDrawUtil::drawSymbol(&device, data.symbol(), p, symbolSize);
 }

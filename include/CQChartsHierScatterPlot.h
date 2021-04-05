@@ -175,9 +175,10 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsHierScatterPlot;
-  using Length = CQChartsLength;
-  using Symbol = CQChartsSymbol;
+  using Plot       = CQChartsHierScatterPlot;
+  using Length     = CQChartsLength;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
 
  public:
   CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
@@ -267,6 +268,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   using GroupValueSets = std::map<Column, CQChartsValueSet *>;
   using Length         = CQChartsLength;
   using Symbol         = CQChartsSymbol;
+  using SymbolType     = CQChartsSymbolType;
   using Color          = CQChartsColor;
   using ColorInd       = CQChartsUtil::ColorInd;
 
@@ -406,6 +408,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 };
 
 //---
+
+#include <CQChartsPlotCustomControls.h>
 
 class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT

@@ -2,8 +2,13 @@
 #include <CQChartsDrawUtil.h>
 #include <CSVGUtil.h>
 #include <CQStrParse.h>
+
+#ifdef CXML_PARSER
 #include <CXML.h>
 #include <CXMLToken.h>
+#else
+#include <QXmlReader>
+#endif
 
 namespace {
 
@@ -14,6 +19,7 @@ struct PathData {
 
 using PathDatas = std::vector<PathData>;
 
+#ifdef CXML_PARSER
 void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
   bool isPath = (tag->getName() == "path");
 
@@ -50,13 +56,127 @@ void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
     processXmlTag(childTag, pathDatas);
   }
 }
+#endif
 
 }
+
+#ifndef CXML_PARSER
+class CQChartsSVGParserHandler : public QXmlContentHandler {
+ public:
+  using BBox = CQChartsGeom::BBox;
+
+ public:
+  CQChartsSVGParserHandler(BBox &bbox, PathDatas &pathDatas) :
+    bbox_(bbox), pathDatas_(pathDatas) {
+  }
+
+  // called at document start
+  bool startDocument() override { return true; }
+  // called at document end
+  bool endDocument  () override { return true; }
+
+  // called for CDATA
+  bool characters(const QString & /*ch*/) override {
+    return true;
+  }
+
+  // called at start of xml element
+  bool startElement(const QString & /*namespaceURI*/, const QString & /*localName*/,
+                    const QString &qName, const QXmlAttributes &atts) override {
+    if      (qName == "svg") {
+      for (int i = 0; i < atts.length(); ++i) {
+        auto name  = atts.qName(i);
+        auto value = atts.value(i);
+
+        if (name == "viewBox") {
+          auto strs = QString(value).split(" ", QString::SkipEmptyParts);
+
+          if (strs.size() == 4) {
+            bool ok { false }, ok1 { true };
+            int x = strs[0].toInt(&ok); if (! ok) ok1 = false;
+            int y = strs[1].toInt(&ok); if (! ok) ok1 = false;
+            int w = strs[2].toInt(&ok); if (! ok) ok1 = false;
+            int h = strs[3].toInt(&ok); if (! ok) ok1 = false;
+
+            if (ok1)
+              bbox_ = BBox(x, y, x + w, y + h);
+          }
+        }
+      }
+    }
+    else if (qName == "path") {
+      PathData pathData;
+
+      for (int i = 0; i < atts.length(); ++i) {
+        auto name  = atts.qName(i);
+        auto value = atts.value(i);
+
+        if      (name == "d")
+          pathData.d = value;
+        else if (name == "style")
+          pathData.style = value;
+      }
+
+      if (pathData.d != "")
+        pathDatas_.push_back(pathData);
+    }
+
+    return true;
+  }
+
+  // called at end of xml element
+  bool endElement(const QString & /*namespaceURI*/, const QString & /*localName*/,
+                  const QString & /*qName*/) override {
+    return true;
+  }
+
+  // start prefix-URI namespace mapping
+  bool startPrefixMapping(const QString & /*prefix*/, const QString & /*uri*/) override {
+    return true;
+  }
+
+  // end prefix-URI namespace mapping
+  bool endPrefixMapping(const QString & /*prefix*/) override {
+    return true;
+  }
+
+  // error message string
+  QString errorString() const override {
+    return "";
+  }
+
+  // called for ignored whitespace
+  bool ignorableWhitespace(const QString & /*ch*/) override {
+    return true;
+  }
+
+  // processing instruction parsed
+  bool processingInstruction(const QString & /*target*/, const QString & /*data*/) override {
+    return true;
+  }
+
+  // document when start parsing
+  void setDocumentLocator(QXmlLocator * /*locator*/) override {
+  }
+
+  // called for skipped entity
+  bool skippedEntity(const QString & /*name*/) override {
+    return true;
+  }
+
+ private:
+  BBox      &bbox_;
+  PathDatas &pathDatas_;
+};
+#endif
 
 bool
 CQChartsSVGUtil::
 svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox)
 {
+  PathDatas pathDatas;
+
+#ifdef CXML_PARSER
   CXML xml;
 
   CXMLTag *tag;
@@ -88,9 +208,22 @@ svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox
     }
   }
 
-  PathDatas pathDatas;
-
   processXmlTag(tag, pathDatas);
+#else
+  QXmlSimpleReader reader;
+
+  reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+
+  CQChartsSVGParserHandler handler(bbox, pathDatas);
+
+  reader.setContentHandler(&handler);
+
+  QFile file(fileName);
+
+  QXmlInputSource input(&file);
+
+  reader.parse(&input, false);
+#endif
 
   for (const auto &pathData : pathDatas) {
     paths .emplace_back(pathData.d);
@@ -228,6 +361,9 @@ bool
 CQChartsSVGUtil::
 stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
 {
+  if (str.trimmed() == "")
+    return false;
+
   bool valid = true;
 
   CQStrParse parse(str);

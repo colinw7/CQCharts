@@ -257,6 +257,10 @@ createObjs(PlotObjs &) const
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
+  th->stopAnimateTimer();
+
+  //---
+
   delete th->forceDirected_;
 
   th->forceDirected_ = new CQChartsForceDirected;

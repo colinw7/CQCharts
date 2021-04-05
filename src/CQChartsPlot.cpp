@@ -25,12 +25,7 @@
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsPlotParameterEdit.h>
-#include <CQChartsColumnCombo.h>
-#include <CQChartsPaletteNameEdit.h>
 #include <CQChartsSymbolSet.h>
-#include <CQChartsColorEdit.h>
-#include <CQChartsColorRangeSlider.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
@@ -411,6 +406,8 @@ void
 CQChartsPlot::
 stopAnimateTimer()
 {
+  delete animateData_.timer;
+
   animateData_.timer = nullptr;
 }
 
@@ -2810,7 +2807,7 @@ isX1X2(bool checkVisible) const
   if (! connectData_.x1x2)
     return false;
 
-  if (checkVisible) {
+  if (checkVisible && isOverlay()) {
     Plots oplots;
 
     overlayPlots(oplots);
@@ -2838,7 +2835,7 @@ isY1Y2(bool checkVisible) const
   if (! connectData_.y1y2)
     return false;
 
-  if (checkVisible) {
+  if (checkVisible && isOverlay()) {
     Plots oplots;
 
     overlayPlots(oplots);
@@ -3580,8 +3577,8 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   auto symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
 
-  addProp(path, symbolPrefix + "Type", "type", prefix1 + " type", hidden);
-  addProp(path, symbolPrefix + "Size", "size", prefix1 + " size", hidden);
+  addProp(path, symbolPrefix         , "symbol", prefix1          , hidden);
+  addProp(path, symbolPrefix + "Size", "size"  , prefix1 + " size", hidden);
 
   //---
 
@@ -4189,7 +4186,7 @@ void
 CQChartsPlot::
 addColorMapKeyProperties()
 {
-  auto colorMapKeyPath = QString("color/key");
+  auto colorMapKeyPath = QString("mapKey/color");
 
   addProp(colorMapKeyPath, "colorMapKey", "visible", "Color key visible");
 
@@ -4212,21 +4209,41 @@ drawColorMapKey(PaintDevice *device) const
 
   //---
 
+  updateColorMapKey();
+
+  colorMapKey_->draw(device);
+}
+
+void
+CQChartsPlot::
+updateMapKey(CQChartsMapKey *key) const
+{
+  if (key == colorMapKey())
+    updateColorMapKey();
+}
+
+void
+CQChartsPlot::
+updateColorMapKey() const
+{
   bool         isNumeric  = false;
   bool         isIntegral = false;
+  bool         isColor    = false;
   int          numUnique  = 0;
   QVariantList uniqueValues;
 
   auto *columnDetails = this->columnDetails(colorColumn());
 
   if (columnDetails) {
-    if (columnDetails->type() == CQBaseModelType::REAL ||
+    if      (columnDetails->type() == CQBaseModelType::REAL ||
         columnDetails->type() == CQBaseModelType::INTEGER) {
       isNumeric  = true;
       isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
     }
+    else if (columnDetails->type() == CQBaseModelType::COLOR)
+      isColor = true;
 
-    if (! isNumeric) {
+    if (! isNumeric && ! isColor) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
     }
@@ -4249,6 +4266,7 @@ drawColorMapKey(PaintDevice *device) const
 
   colorMapKey_->setNumeric     (isNumeric);
   colorMapKey_->setIntegral    (isIntegral);
+  colorMapKey_->setNative      (isColor);
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
 
@@ -4256,10 +4274,6 @@ drawColorMapKey(PaintDevice *device) const
 
   if (! colorMapKey_->position().isValid())
     colorMapKey_->setPosition(Position(bbox.getLL(), Position::Units::PLOT));
-
-  //---
-
-  colorMapKey_->draw(device);
 }
 
 //------
@@ -6129,7 +6143,7 @@ invalidateObjTree()
     overlayPlots(oplots);
 
     for (auto &oplot : oplots)
-      oplot->invalidateObjTree();
+      oplot->invalidateObjTree1();
   }
   else
     invalidateObjTree1();
@@ -9013,7 +9027,7 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
 bool
 CQChartsPlot::
 columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
-                 Symbol &symbolType, OptBool &symbolFilled) const
+                 Symbol &symbolType) const
 {
   if (! symbolTypeData.valid)
     return false;
@@ -9059,15 +9073,14 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
       else
         symbolData = symbolSet->interpI(i);
 
-      symbolType   = symbolData.symbol;
-      symbolFilled = symbolData.filled;
+      symbolType = symbolData.symbol;
     }
     else {
       if (symbolTypeData.mapped)
         symbolType = Symbol::interpOutlineWrap(i + symbolTypeData.map_min,
                                                symbolTypeData.map_min, symbolTypeData.map_max);
       else
-        symbolType = Symbol::interpOutlineWrap(i + CQChartsSymbol::minOutlineValue());
+        symbolType = Symbol::interpOutlineWrap(i + CQChartsSymbolType::minOutlineValue());
     }
   };
 
@@ -10656,6 +10669,10 @@ CQChartsPlot::
 drawPlotParts(QPainter *painter) const
 {
   drawParts(painter);
+
+  auto *th = const_cast<Plot *>(this);
+
+  emit th->plotDrawn();
 }
 
 void
@@ -10854,6 +10871,8 @@ drawThread()
 
   // mark thread done
   updateData_.drawThread->end();
+
+  emit plotDrawn();
 }
 
 void
@@ -16384,6 +16403,8 @@ double
 CQChartsPlot::
 lengthPlotWidth(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
   else if (len.units() == CQChartsUnits::PLOT)
@@ -16404,6 +16425,8 @@ double
 CQChartsPlot::
 lengthPlotHeight(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
   else if (len.units() == CQChartsUnits::PLOT)
@@ -16424,6 +16447,8 @@ double
 CQChartsPlot::
 lengthPlotSignedWidth(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowWidth(len.value());
   else if (len.units() == CQChartsUnits::PLOT)
@@ -16444,6 +16469,8 @@ double
 CQChartsPlot::
 lengthPlotSignedHeight(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowHeight(len.value());
   else if (len.units() == CQChartsUnits::PLOT)
@@ -16471,6 +16498,8 @@ double
 CQChartsPlot::
 lengthPixelWidth(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
   else if (len.units() == CQChartsUnits::PLOT)
@@ -16491,6 +16520,8 @@ double
 CQChartsPlot::
 lengthPixelHeight(const Length &len) const
 {
+  assert(len.isValid());
+
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
   else if (len.units() == CQChartsUnits::PLOT)
@@ -17067,413 +17098,4 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
-}
-
-//------
-
-CQChartsPlotCustomControls::
-CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
- QFrame(nullptr), charts_(charts), plotType_(plotType)
-{
-  setObjectName("customControls");
-
-  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
-
-  titleWidget_ = CQUtil::makeLabelWidget<QLabel>("", "title");
-
-  layout->addWidget(titleWidget_);
-
-  //---
-
-  split_ = CQUtil::makeWidget<CQTabSplit>("split");
-
-  split_->setOrientation(Qt::Vertical);
-  split_->setGrouped(true);
-  split_->setAutoFit(true);
-
-  layout->addWidget(split_);
-
-  //---
-
-  row_ = 0;
-
-  //---
-
-  //layout->addStretch(1);
-}
-
-void
-CQChartsPlotCustomControls::
-addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
-{
-  auto *plotType = this->plotType();
-  assert(plotType);
-
-  bool isNumeric = false;
-
-  for (const auto &name : columnNames) {
-    const auto *parameter = plotType->getParameter(name);
-
-    if (parameter->isNumeric())
-      isNumeric = true;
-
-    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      auto *columnEdit = new CQChartsColumnParameterEdit(parameter, /*isBasic*/true);
-
-      addFrameWidget(frameData, parameter->desc(), columnEdit);
-
-      columnEdits_.push_back(columnEdit);
-    }
-    else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      auto *columnsEdit = new CQChartsColumnsParameterEdit(parameter, /*isBasic*/true);
-
-      addFrameWidget(frameData, parameter->desc(), columnsEdit);
-
-      columnsEdits_.push_back(columnsEdit);
-    }
-    else
-      assert(false);
-  }
-
-  if (isNumeric) {
-    numericCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Numeric Only", "numericCheck");
-
-    frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
-  }
-
-  addFrameRowStretch(frameData);
-}
-
-void
-CQChartsPlotCustomControls::
-showColumnWidgets(const QStringList &columnNames)
-{
-  QWidget *w = nullptr;
-
-  if      (! columnEdits_.empty())
-    w = columnEdits_[0];
-  else if (! columnsEdits_.empty())
-    w = columnsEdits_[0];
-
-  assert(w);
-
-  auto *parent = w->parentWidget();
-
-  auto *layout = qobject_cast<QGridLayout *>(parent->layout());
-  assert(layout);
-
-  for (int r = 0; r < layout->rowCount(); ++r) {
-    auto *item1 = layout->itemAtPosition(r, 1);
-
-    auto *edit = (item1 ? item1->widget() : nullptr);
-    if (! edit) continue;
-
-    auto *ce1 = qobject_cast<CQChartsColumnParameterEdit  *>(edit);
-    auto *ce2 = qobject_cast<CQChartsColumnsParameterEdit *>(edit);
-    if (! ce1 && ! ce2) continue;
-
-    auto *item0 = layout->itemAtPosition(r, 0);
-    auto *label = (item0 ? item0->widget() : nullptr);
-
-    auto *parameter = (ce1 ? ce1->parameter() : ce2->parameter());
-
-    bool visible = (columnNames.indexOf(parameter->name()) >= 0);
-
-    if (label)
-      label->setVisible(visible);
-
-    edit ->setVisible(visible);
-  }
-}
-
-void
-CQChartsPlotCustomControls::
-addColorColumnWidgets(const QString &title)
-{
-  // color group
-  auto *colorFrame  = CQUtil::makeWidget<QFrame>("colorGroup");
-  auto *colorLayout = CQUtil::makeLayout<QGridLayout>(colorFrame, 2, 2);
-
-  int colorRow = 0;
-
-  auto addColorWidget = [&](const QString &label, QWidget *w) {
-    colorLayout->addWidget(new QLabel(label), colorRow, 0);
-    colorLayout->addWidget(w                , colorRow, 1); ++colorRow;
-  };
-
-  //---
-
-  colorEdit_        = CQUtil::makeWidget<CQChartsColorLineEdit>("colorEdit_");
-  colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
-  colorRange_       = CQUtil::makeWidget<CQChartsColorRangeSlider>("colorRange");
-  colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
-
-  addColorWidget("Color"  , colorEdit_);
-  addColorWidget("Column" , colorColumnCombo_);
-  addColorWidget("Range"  , colorRange_);
-  addColorWidget("Palette", colorPaletteEdit_);
-
-  colorLayout->setRowStretch(colorRow, 1);
-
-  //---
-
-  split_->addWidget(colorFrame, title);
-
-  //---
-
-  connectSlots(true);
-}
-
-void
-CQChartsPlotCustomControls::
-connectSlots(bool b)
-{
-  if (plot_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
-
-  if (colorEdit_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
-      colorEdit_, SIGNAL(colorChanged()), this, SLOT(colorSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      colorColumnCombo_, SIGNAL(columnChanged()), this, SLOT(colorColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
-  }
-
-  for (auto *columnEdit : columnEdits_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      columnEdit, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
-
-  for (auto *columnsEdit : columnsEdits_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
-
-  if (numericCheck_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      numericCheck_, SIGNAL(stateChanged(int)), this, SLOT(numericOnlySlot(int)));
-}
-
-void
-CQChartsPlotCustomControls::
-setPlot(CQChartsPlot *plot)
-{
-  if (plot_)
-    disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
-
-  plot_ = plot;
-
-  if (plot_)
-    connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
-}
-
-void
-CQChartsPlotCustomControls::
-colorDetailsSlot()
-{
-  // plot color details changed
-  updateWidgets();
-}
-
-void
-CQChartsPlotCustomControls::
-columnSlot()
-{
-  auto *columnEdit = qobject_cast<CQChartsColumnParameterEdit *>(sender());
-  auto *parameter  = columnEdit->parameter();
-
-  plot()->setNamedColumn(parameter->name(), columnEdit->getColumn());
-}
-
-void
-CQChartsPlotCustomControls::
-columnsSlot()
-{
-  auto *columnsEdit = qobject_cast<CQChartsColumnsParameterEdit *>(sender());
-  auto *parameter   = columnsEdit->parameter();
-
-  plot()->setNamedColumns(parameter->name(), columnsEdit->columns());
-}
-
-void
-CQChartsPlotCustomControls::
-numericOnlySlot(int state)
-{
-  for (auto *columnEdit : columnEdits_) {
-    auto *parameter = columnEdit->parameter();
-
-    if (parameter->isNumeric())
-      columnEdit->setNumericOnly(state);
-  }
-
-  for (auto *columnsEdit : columnsEdits_) {
-    auto *parameter = columnsEdit->parameter();
-
-    if (parameter->isNumeric())
-      columnsEdit->setNumericOnly(state);
-  }
-}
-
-CQChartsPlotType *
-CQChartsPlotCustomControls::
-plotType() const
-{
-  return charts_->plotType(plotType_);
-}
-
-CQChartsPlotCustomControls::FrameData
-CQChartsPlotCustomControls::
-createGroupFrame(const QString &name)
-{
-  FrameData frameData;
-
-  frameData.frame  = CQUtil::makeWidget<QFrame>("frame");
-  frameData.layout = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
-
-  frameData.layout->setColumnStretch(1, 1);
-
-  split_->addWidget(frameData.frame, name);
-
-  return frameData;
-}
-
-void
-CQChartsPlotCustomControls::
-addFrameWidget(FrameData &frameData, const QString &label, QWidget *w)
-{
-  frameData.layout->addWidget(new QLabel(label), frameData.row, 0);
-  frameData.layout->addWidget(w                , frameData.row, 1); ++frameData.row;
-}
-
-void
-CQChartsPlotCustomControls::
-addFrameRowStretch(FrameData &frameData)
-{
-  frameData.layout->setRowStretch(frameData.row, 1);
-}
-
-CQChartsBoolParameterEdit *
-CQChartsPlotCustomControls::
-createBoolEdit(const QString &name)
-{
-  auto *plotType = this->plotType();
-  assert(plotType);
-
-  const auto *parameter = plotType->getParameter(name);
-  assert(parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
-
-  const auto *bparameter = dynamic_cast<const CQChartsBoolParameter *>(parameter);
-  assert(bparameter);
-
-  return new CQChartsBoolParameterEdit(bparameter, /*choice*/true);
-}
-
-CQChartsEnumParameterEdit *
-CQChartsPlotCustomControls::
-createEnumEdit(const QString &name)
-{
-  auto *plotType = this->plotType();
-  assert(plotType);
-
-  const auto *parameter = plotType->getParameter(name);
-  assert(parameter->type() == CQChartsPlotParameter::Type::ENUM);
-
-  const auto *eparameter = dynamic_cast<const CQChartsEnumParameter *>(parameter);
-  assert(eparameter);
-
-  return new CQChartsEnumParameterEdit(eparameter);
-}
-
-void
-CQChartsPlotCustomControls::
-updateWidgets()
-{
-  connectSlots(false);
-
-  //---
-
-  auto titleStr = plot()->titleStr();
-
-  if (titleStr == "")
-    titleStr = plot()->calcName();
-
-  titleWidget_->setText(QString("<b>%1</b>").arg(titleStr));
-
-  //----
-
-  if (colorEdit_) {
-    auto hasColorColumn = colorColumnCombo_->getColumn().isValid();
-
-    colorEdit_       ->setEnabled(! hasColorColumn);
-    colorRange_      ->setEnabled(hasColorColumn);
-    colorPaletteEdit_->setEnabled(hasColorColumn);
-
-    colorEdit_->setColor(getColorValue());
-
-    colorColumnCombo_->setModelColumn(plot()->getModelData(), plot()->colorColumn());
-
-    auto paletteName = plot()->colorMapPalette();
-
-    colorRange_->setPlot(plot());
-    colorRange_->setPaletteName(paletteName);
-
-    colorPaletteEdit_->setChartsPaletteName(plot()->charts(), paletteName);
-  }
-
-  //---
-
-  for (auto *columnEdit : columnEdits_) {
-    auto *parameter = columnEdit->parameter();
-
-    columnEdit->setModelData(plot()->getModelData());
-    columnEdit->setColumn   (plot()->getNamedColumn(parameter->name()));
-  }
-
-  for (auto *columnsEdit : columnsEdits_) {
-    auto *parameter = columnsEdit->parameter();
-
-    columnsEdit->setModelData(plot()->getModelData());
-    columnsEdit->setColumns  (plot()->getNamedColumns(parameter->name()));
-  }
-
-  //---
-
-  connectSlots(true);
-}
-
-void
-CQChartsPlotCustomControls::
-colorSlot()
-{
-  setColorValue(colorEdit_->color());
-}
-
-void
-CQChartsPlotCustomControls::
-colorColumnSlot()
-{
-  plot()->setColorColumn(colorColumnCombo_->getColumn());
-}
-
-void
-CQChartsPlotCustomControls::
-colorRangeSlot()
-{
-  connectSlots(false);
-
-  plot()->setColorMapMin(colorRange_->sliderMin());
-  plot()->setColorMapMax(colorRange_->sliderMax());
-
-  connectSlots(true);
-
-  updateWidgets();
-}
-
-void
-CQChartsPlotCustomControls::
-colorPaletteSlot()
-{
-  plot()->setColorMapPalette(colorPaletteEdit_->paletteName());
 }

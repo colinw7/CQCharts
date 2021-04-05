@@ -646,6 +646,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
 //---
 
+#include <CQChartsGroupPlotCustomControls.h>
+
 class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

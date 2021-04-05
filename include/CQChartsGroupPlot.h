@@ -164,27 +164,4 @@ class CQChartsGroupPlot : public CQChartsPlot {
   mutable std::mutex mutex_;                   //!< mutex
 };
 
-//------
-
-class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
-  Q_OBJECT
-
- public:
-  CQChartsGroupPlotCustomControls(CQCharts *charts, const QString &plotType);
-
-  void setPlot(CQChartsPlot *plot) override;
-
-  void addGroupColumnWidgets();
-
- public slots:
-  void updateWidgets() override;
-
- protected slots:
-  void groupColumnSlot();
-
- private:
-  CQChartsGroupPlot*   plot_             { nullptr };
-  CQChartsColumnCombo* groupColumnCombo_ { nullptr };
-};
-
 #endif

@@ -43,12 +43,12 @@ set type12Expr "column($type1Column) == column($type2Column1) ? column($type1Col
 
 set type12Column [process_charts_model -model $model -add -expr $type12Expr -header "Type Combination"]
 
-sort_model -model $model -column $totalColumn
+sort_charts_model -model $model -column $totalColumn
 
 filter_charts_model -model $model -expr "column($legendaryColumn1) == 1"
 
 set plot2 [create_charts_plot -type distribution \
-  -columns [list [list values $type12Column] [list color $generationColumn]] \
-  -parameter "horizontal=1"]
+  -columns [list [list values $type12Column] [list color $generationColumn]]]
 
-set_charts_property -plot $plot2 -name "mapping.color.enabled" -value 1
+set_charts_property -plot $plot2 -name options.orientation   -value horizontal
+set_charts_property -plot $plot2 -name mapping.color.enabled -value 1

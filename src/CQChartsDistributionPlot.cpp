@@ -178,7 +178,7 @@ init()
   setStatsLines(false);
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 
-  setDotSymbolType     (Symbol(Symbol::Type::CIRCLE));
+  setDotSymbol         (Symbol(SymbolType::Type::CIRCLE));
   setDotSymbolSize     (Length("7px"));
   setDotSymbolFilled   (true);
   setDotSymbolFillColor(Color(Color::Type::PALETTE));
@@ -3627,12 +3627,12 @@ CQChartsDistributionBarObj::
 drawRug(PaintDevice *device) const
 {
   // get symbol and size
-  auto symbolType = plot_->rugSymbolType();
+  auto symbol     = plot_->rugSymbol();
   auto symbolSize = plot_->rugSymbolSize();
 
-  if (! symbolType.isValid())
-    symbolType = CQChartsSymbol(plot_->isVertical() ?
-      CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (! symbol.isValid())
+    symbol = CQChartsSymbol(plot_->isVertical() ?
+      CQChartsSymbolType::Type::VLINE : CQChartsSymbolType::Type::HLINE);
 
   double sx, sy;
 
@@ -3675,7 +3675,7 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(ps), symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(ps), symbolSize);
   }
 }
 
@@ -3875,7 +3875,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     //---
 
     // get dot symbol and size
-    auto symbolType = plot_->dotSymbolType();
+    auto symbol     = plot_->dotSymbol();
     auto symbolSize = plot_->dotSymbolSize();
 
     auto ic = (ig_.n > 1 ? ig_ : iv_);
@@ -3897,7 +3897,8 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     else
       p = Point(bbox.getXMax(), bbox.getYMid());
 
-    CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbolType, p, symbolSize);
+    if (symbol.isValid())
+      CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbol, p, symbolSize);
   }
 
   device->resetColorNames();
@@ -4251,12 +4252,12 @@ CQChartsDistributionDensityObj::
 drawRug(PaintDevice *device) const
 {
   // get symbol and size
-  auto symbolType = plot_->rugSymbolType();
+  auto symbol     = plot_->rugSymbol();
   auto symbolSize = plot_->rugSymbolSize();
 
-  if (! symbolType.isValid())
-    symbolType = CQChartsSymbol(plot_->isVertical() ?
-      CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (! symbol.isValid())
+    symbol = CQChartsSymbol(plot_->isVertical() ?
+      CQChartsSymbolType::Type::VLINE : CQChartsSymbolType::Type::HLINE);
 
   double sx, sy;
 
@@ -4299,7 +4300,7 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(ps), symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(ps), symbolSize);
   }
 }
 
@@ -4436,7 +4437,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto symbolType = Symbol(Symbol::Type::CIRCLE);
+  auto symbol     = Symbol(SymbolType::Type::CIRCLE);
   auto symbolSize = Length(6, CQChartsUnits::PIXEL);
 
   auto pll = prect.getLL();
@@ -4456,7 +4457,7 @@ draw(PaintDevice *device) const
 
     Point p(pll.x + px, pll.y + py);
 
-    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(p), symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(p), symbolSize);
   }
 }
 

@@ -956,7 +956,8 @@ CQChartsRadarObj(const CQChartsRadarPlot *plot, const BBox &rect, const QString 
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
 
 QString

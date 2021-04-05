@@ -1498,7 +1498,7 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
+    CQChartsSymbol symbol(CQChartsSymbolType::Type::CIRCLE);
 
     CQChartsLength ss("5px");
 
@@ -1609,7 +1609,7 @@ draw(PaintDevice *device) const
 
   plot_->updateObjPenBrushState(this, penBrush);
 
-  CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
+  CQChartsSymbol symbol(CQChartsSymbolType::Type::CIRCLE);
 
   CQChartsLength ss("5px");
 

@@ -1,15 +1,15 @@
 set modelInd [load_charts_model -csv data/split_bar.csv -first_line_header]
 
-set plotInd1 [create_charts_plot -type bar -columns {{group 0} {value 1}}]
+set plotInd1 [create_charts_plot -type bar -columns {{group 0} {values 1}}]
 
-set plotInd2 [create_charts_plot -type bar -columns {{group 0} {value 2}}]
+set plotInd2 [create_charts_plot -type bar -columns {{group 0} {values 2}}]
 
 set viewInd [get_charts_property -plot $plotInd1 -name viewId]
 
 set_charts_property -view $viewInd -name key.visible -value 1
 
 set_charts_property -plot $plotInd1 -name range.view -value {0 0 50 100}
-set_charts_property -plot $plotInd1 -name options.horizontal -value 1
+set_charts_property -plot $plotInd1 -name options.orientation -value horizontal
 set_charts_property -plot $plotInd1 -name invert.x -value 1
 set_charts_property -plot $plotInd1 -name invert.y -value 1
 set_charts_property -plot $plotInd1 -name plotBox.fill.visible -value 0
@@ -25,7 +25,7 @@ set_charts_property -plot $plotInd1 -name fill.color -value {palette 0.5}
 set_charts_property -plot $plotInd1 -name margins.outer.right -value 0
 
 set_charts_property -plot $plotInd2 -name range.view -value {50 0 100 100}
-set_charts_property -plot $plotInd2 -name options.horizontal -value 1
+set_charts_property -plot $plotInd2 -name options.orientation -value horizontal
 set_charts_property -plot $plotInd2 -name invert.x -value 0
 set_charts_property -plot $plotInd2 -name invert.y -value 1
 set_charts_property -plot $plotInd2 -name plotBox.fill.visible -value 0

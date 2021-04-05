@@ -1,6 +1,7 @@
 #ifndef CQChartsSymbol_H
 #define CQChartsSymbol_H
 
+#include <CQChartsSymbolType.h>
 #include <CQChartsTmpl.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
@@ -16,29 +17,7 @@
 class CQChartsSymbol :
   public CQChartsEqBase<CQChartsSymbol> {
  public:
-  enum class Type {
-    NONE,
-    DOT,
-    CROSS,
-    PLUS,
-    Y,
-    TRIANGLE,
-    ITRIANGLE,
-    BOX,
-    DIAMOND,
-    STAR5,
-    STAR6,
-    CIRCLE,
-    PENTAGON,
-    IPENTAGON,
-    HLINE,
-    VLINE,
-    PAW,
-    Z,
-    HASH,
-    CHAR,
-    PATH
-  };
+  using SymbolType = CQChartsSymbolType;
 
   using BBox = CQChartsGeom::BBox;
 
@@ -49,24 +28,44 @@ class CQChartsSymbol :
      c(c), name(name) {
     }
 
+    void reset() { c = ""; name = ""; }
+
     QString c;    //!< unicode character
     QString name; //!< display name
   };
 
-  using Paths  = std::vector<CQChartsPath>;
-  using Styles = std::vector<CQChartsStyle>;
+  using Path = CQChartsPath;
 
   struct PathData {
     PathData() = default;
 
-    explicit PathData(const CQChartsPath &path, const QString &name="") :
-     name(name) {
-      paths.push_back(path);
+    explicit PathData(const Path &path, const QString &name="") :
+     path(path), name(name) {
     }
 
-    QString name;   //!< path name (should be non-empty an unique)
+    void reset() { path = CQChartsPath(); name = ""; }
+
+    Path    path; //!< path
+    QString name; //!< path name (should be non-empty and unique)
+    QString src;  //!< path src
+  };
+
+  using Paths  = std::vector<Path>;
+  using Styles = std::vector<CQChartsStyle>;
+
+  struct SVGData {
+    SVGData() = default;
+
+    explicit SVGData(const Paths &paths, const Styles &styles, const QString &name="") :
+     paths(paths), styles(styles), name(name) {
+    }
+
+    void reset() { paths.clear(); styles.clear(); name = ""; bbox = BBox(); }
+
     Paths   paths;  //!< paths
     Styles  styles; //!< styles
+    QString name;   //!< svg name (should be non-empty an unique)
+    QString src;    //!< svg src
     BBox    bbox;   //!< optional pre-calculated bbox
   };
 
@@ -76,32 +75,33 @@ class CQChartsSymbol :
   static int metaTypeId;
 
  public:
-  static QString typeToName(Type type);
-  static Type nameToType(const QString &str);
-
-  static QStringList typeNames();
-
-  //---
-
-  static int minOutlineValue() { return (int) Type::CROSS; }
-  static int maxOutlineValue() { return (int) Type::IPENTAGON; }
+  static QStringList pathNames();
+  static QStringList svgNames();
 
   // interp index (min -> inf) wrapping around if bigger than max
   static CQChartsSymbol interpOutlineWrap(int i);
   static CQChartsSymbol interpOutlineWrap(int i, int imin, int imax);
 
-  static int minFillValue() { return (int) Type::TRIANGLE; }
-  static int maxFillValue() { return (int) Type::IPENTAGON; }
+  static CQChartsSymbol fromSVGFile(const QString &filename, const QString &name, bool styled);
 
-  static bool isValidType(Type type) { return (type > Type::NONE && type <= Type::PATH); }
+ public:
+  enum Type {
+    NONE,
+    SYMBOL,
+    CHAR,
+    PATH,
+    SVG
+  };
 
  public:
   CQChartsSymbol() = default;
 
-  explicit CQChartsSymbol(Type type);
+  explicit CQChartsSymbol(SymbolType type);
+  explicit CQChartsSymbol(SymbolType::Type type);
 
   explicit CQChartsSymbol(const CharData &charData);
   explicit CQChartsSymbol(const PathData &pathData);
+  explicit CQChartsSymbol(const SVGData  &svgData );
 
   explicit CQChartsSymbol(const QString &s);
 
@@ -110,18 +110,46 @@ class CQChartsSymbol :
   bool isValid() const { return type_ != Type::NONE; }
 
   const Type &type() const { return type_; }
-  void setType(const Type &t) { type_ = t; assert(isValidType(type_)); }
+  void setType(const Type &t) { type_ = t; }
 
   //---
 
-  const QString &charStr () const { assert(type_ == Type::CHAR); return charData_.c; }
-  const QString &charName() const { assert(type_ == Type::CHAR); return charData_.name; }
+  // symbol data
+  const SymbolType &symbolType() const { assert(type_ == Type::SYMBOL); return symbolType_; }
+  void setSymbolType(const SymbolType &t) { reset(); type_ = Type::SYMBOL; symbolType_ = t; }
 
   //---
 
-  const Paths   &paths   () const;
-  const Styles  &styles  () const;
-  const QString &pathName() const { assert(type_ == Type::PATH); return pathName_; }
+  // char data
+  const QString &charStr () const { assert(type_ == Type::CHAR); return c_; }
+  const QString &charName() const { assert(type_ == Type::CHAR); return name_; }
+
+  //---
+
+  // path data
+  const Path    &path    () const;
+  const QString &pathName() const { assert(type_ == Type::PATH); return name_; }
+
+  //---
+
+  // svg data
+  const QString &svgName() const { assert(type_ == Type::SVG); return name_; }
+
+  //---
+
+  // svg/data data
+  const Paths  &paths () const;
+  const Styles &styles() const;
+
+  QString srcStr() const;
+
+  //---
+
+  bool isFilled() const { return filled_; }
+  void setFilled(bool b) { filled_ = b; }
+
+  bool isStroked() const { return stroked_; }
+  void setStroked(bool b) { stroked_ = b; }
 
   //---
 
@@ -132,13 +160,31 @@ class CQChartsSymbol :
   //---
 
   friend bool operator==(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
-    return (lhs.type_ == rhs.type_);
+    return (lhs.type_       == rhs.type_       &&
+            lhs.symbolType_ == rhs.symbolType_ &&
+            lhs.c_          == rhs.c_          &&
+            lhs.name_       == rhs.name_       &&
+            lhs.filled_     == rhs.filled_     &&
+            lhs.stroked_    == rhs.stroked_);
   }
 
  private:
-  Type     type_    { Type::NONE };
-  CharData charData_;
-  QString  pathName_;
+  void reset() {
+    type_       = Type::NONE;
+    symbolType_ = SymbolType();
+    c_          = "";
+    name_       = "";
+    filled_     = true;
+    stroked_    = true;
+  }
+
+ private:
+  Type       type_ { Type::NONE };
+  SymbolType symbolType_;
+  QString    c_;
+  QString    name_;
+  bool       filled_  { true };
+  bool       stroked_ { true };
 };
 
 //---

@@ -566,6 +566,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
 //------
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQEnumCombo;
 
 class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {

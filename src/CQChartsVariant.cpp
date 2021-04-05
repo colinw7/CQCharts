@@ -101,6 +101,9 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.canConvert(QVariant::String)) {
     str = var.toString();
   }
+  else if (var.type() == QVariant::SizePolicy) {
+    str = ""; // TODO
+  }
   else {
     assert(false);
 

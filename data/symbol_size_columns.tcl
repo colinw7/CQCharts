@@ -40,7 +40,7 @@ set_charts_property -plot $plot2 -name mapping.symbolSize.max     -value 40
 
 set_charts_property -plot $plot2 -name coloring.type              -value INDEX
 set_charts_property -plot $plot2 -name points.visible             -value 1
-set_charts_property -plot $plot2 -name points.symbol.type         -value circle
+set_charts_property -plot $plot2 -name points.symbol.symbol       -value circle
 set_charts_property -plot $plot2 -name points.symbol.size         -value 12px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible -value 1
 set_charts_property -plot $plot2 -name points.symbol.fill.color   -value palette

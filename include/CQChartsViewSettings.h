@@ -534,8 +534,6 @@ class CQChartsSymbolsList : public QListWidget {
 
   Symbol symbol(int ind) const;
 
-  bool isFilledSymbol(int ind) const;
-
   CQChartsSymbolSet *symbolSet() const;
 
   void moveCurrentUp();
@@ -543,7 +541,7 @@ class CQChartsSymbolsList : public QListWidget {
 
   QListWidgetItem *currentItem() const;
 
-  bool selectedSymbol(Symbol &symbol, bool &filled) const;
+  bool selectedSymbol(Symbol &symbol) const;
 
  private:
   void updateItems();
@@ -568,7 +566,7 @@ class CQChartsSymbolEditor : public QFrame {
  public:
   CQChartsSymbolEditor(CQChartsViewSettings *viewSettings);
 
-  void setSymbol(const Symbol &symbol, bool filled);
+  void setSymbol(const Symbol &symbol);
 
   //--
 
@@ -612,7 +610,6 @@ class CQChartsSymbolEditor : public QFrame {
 
   CQChartsViewSettings* viewSettings_  { nullptr };
   Symbol                symbol_;
-  bool                  filled_        { false };
   CQChartsDisplayRange  range_;
   PointsArray           pointsArray_;
   QPointF               pressPos_;

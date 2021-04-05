@@ -28,7 +28,7 @@ set_charts_property -plot $plot1 -name margins.inner.right  -value 20px
 set_charts_property -plot $plot1 -name margins.inner.bottom -value 20px
 set_charts_property -plot $plot1 -name margins.inner.top    -value 20px
 
-set_charts_property -plot $plot1 -name symbol.size -value 12px
+set_charts_property -plot $plot1 -name points.size -value 12px
 
 set plot2 [create_charts_plot -model $model -type xy \
   -columns {{x 0} {y 1} {color 3}}]

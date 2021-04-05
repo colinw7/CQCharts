@@ -14,7 +14,9 @@ foreach type $types {
   }
 
   if {[get_charts_data -type $type -name title]} {
-    set_charts_property -plot $plot -name title.text.string -value $type
+    if {$type != "grid"} {
+      set_charts_property -plot $plot -name title.text.string -value $type
+    }
   }
 
   lappend plots $plot

@@ -90,6 +90,8 @@ class CQChartsHierPlot : public CQChartsPlot {
 
 //------
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

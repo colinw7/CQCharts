@@ -14,8 +14,8 @@ set stat_model [create_stat_model $model]
 
 #---
 
-set unique [get_charts_data -model $model -column 11 -name unique_values]
-set counts [get_charts_data -model $model -column 11 -name unique_counts]
+set unique [get_charts_data -model $model -column 11 -name details.unique_values]
+set counts [get_charts_data -model $model -column 11 -name details.unique_counts]
 
 puts $unique
 puts $counts
@@ -31,7 +31,7 @@ set box_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
   set plot [create_charts_plot -view $view1 -model $model -type boxplot \
-    -columns [list [list group "(0)"] [list value $c]]]
+    -columns [list [list group "(0)"] [list values $c]]]
 
   lappend box_plots $plot
 

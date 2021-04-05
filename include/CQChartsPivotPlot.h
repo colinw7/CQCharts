@@ -503,6 +503,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsPivotPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

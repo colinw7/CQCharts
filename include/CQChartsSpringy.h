@@ -226,7 +226,7 @@ namespace Springy {
   class Graph {
    public:
     Graph() :
-     nodeSet_(), nodes_(), edges_(), adjacency_(), nextNodeId_(0), nextEdgeId_(0) {
+     nextNodeId_(0), nextEdgeId_(0) {
     }
 
    ~Graph() {
@@ -270,6 +270,8 @@ namespace Springy {
     }
 
     Edge *addEdge(Edge *edge) {
+      assert(edge);
+
       bool exists = getEdge(edge->id());
 
       if (! exists)
@@ -388,7 +390,7 @@ namespace Springy {
 
           for (Edges::reverse_iterator pe = edges.rbegin(); pe != edges.rend(); ++pe) {
             if ((*pe)->id() == edge->id()) {
-              edges_.erase(pe.base());
+              edges.erase(pe.base());
               break;
             }
           }

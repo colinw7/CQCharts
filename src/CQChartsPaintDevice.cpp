@@ -114,7 +114,7 @@ double
 CQChartsPaintDevice::
 pixelToWindowWidth(double pw) const
 {
-  return (! view_ ? (! plot_ ? 0.0 :
+  return (! view_ ? (! plot_ ? std::abs(pw) :
     plot_->pixelToWindowWidth(pw)) : view_->pixelToWindowWidth(pw));
 }
 
@@ -122,7 +122,7 @@ double
 CQChartsPaintDevice::
 pixelToWindowHeight(double ph) const
 {
-  return (! view_ ? (! plot_ ? 0.0 :
+  return (! view_ ? (! plot_ ? std::abs(ph) :
     plot_->pixelToWindowHeight(ph)) : view_->pixelToWindowHeight(ph));
 }
 
@@ -130,7 +130,7 @@ double
 CQChartsPaintDevice::
 pixelToSignedWindowWidth(double pw) const
 {
-  return (! view_ ? (! plot_ ? 0.0 :
+  return (! view_ ? (! plot_ ? pw :
     plot_->pixelToSignedWindowWidth(pw)) : view_->pixelToSignedWindowWidth(pw));
 }
 
@@ -138,8 +138,24 @@ double
 CQChartsPaintDevice::
 pixelToSignedWindowHeight(double ph) const
 {
-  return (! view_ ? (! plot_ ? 0.0 :
+  return (! view_ ? (! plot_ ? ph :
     plot_->pixelToSignedWindowHeight(ph)) : view_->pixelToSignedWindowHeight(ph));
+}
+
+double
+CQChartsPaintDevice::
+windowToSignedPixelWidth(double ww) const
+{
+  return (! view_ ? (! plot_ ? ww :
+    plot_->windowToSignedPixelWidth(ww)) : view_->windowToSignedPixelWidth(ww));
+}
+
+double
+CQChartsPaintDevice::
+windowToSignedPixelHeight(double wh) const
+{
+  return (! view_ ? (! plot_ ? wh :
+    plot_->windowToSignedPixelHeight(wh)) : view_->windowToSignedPixelHeight(wh));
 }
 
 QPainterPath

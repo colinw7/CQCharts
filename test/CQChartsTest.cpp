@@ -10,6 +10,7 @@
 #include <CQChartsCmds.h>
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsInput.h>
+#include <CQChartsEnv.h>
 #include <CQCharts.h>
 #include <CQChartsReadLine.h>
 
@@ -304,6 +305,9 @@ main(int argc, char **argv)
   }
 
   //---
+
+  if (CQChartsEnv::getBool("CQ_CHARTS_AUTO_EXIT"))
+    test.charts()->addExitTimer(1);
 
   // loop
   if (! mainData.exit) {

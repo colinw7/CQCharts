@@ -354,6 +354,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

@@ -268,6 +268,8 @@ class CQChartsImagePlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

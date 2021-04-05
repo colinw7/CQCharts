@@ -158,7 +158,7 @@ init()
 
   //---
 
-  setDotSymbolType(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE));
+  setDotSymbol(CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE));
   setDotSymbolSize(Length("7px"));
 
   //---
@@ -1892,7 +1892,8 @@ CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const BBox &rect, const Co
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
 
 QString
@@ -2225,7 +2226,7 @@ draw(PaintDevice *device) const
   else {
     // draw dot line
     CQChartsDrawUtil::drawDotLine(device, barPenBrush, rect, plot_->dotLineWidth(),
-                                  plot_->isHorizontal(), plot_->dotSymbolType(),
+                                  plot_->isHorizontal(), plot_->dotSymbol(),
                                   plot_->dotSymbolSize());
   }
 

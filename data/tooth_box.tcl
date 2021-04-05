@@ -15,7 +15,7 @@ proc addAnnotations { view plot } {
 
   remove_charts_annotation -plot $plot -all
 
-  set horizontal [get_charts_property -plot $plot -name options.horizontal]
+  set orientation [get_charts_property -plot $plot -name options.orientation]
 
   set objs [get_charts_data -plot $plot -name objects]
 
@@ -29,7 +29,7 @@ proc addAnnotations { view plot } {
       set mean   [get_charts_property -plot $plot -object $obj -name mean  ]
     # set stddev [get_charts_property -plot $plot -object $obj -name stddev]
 
-      if {! $horizontal} {
+      if {$orientation == "horizontal"} {
         lappend points [list $pos $mean]
       } else {
         lappend points [list $mean $pos]
@@ -37,8 +37,10 @@ proc addAnnotations { view plot } {
     }
   }
 
-  set polyId [create_charts_polyline_annotation -plot $plot -id mean_line -points $points \
-   -filled 1 -fill_color red -fill_alpha 0.5]
+  if {[llength $points] > 1} {
+    set polyId [create_charts_polyline_annotation -plot $plot -id mean_line -points $points \
+     -filled 1 -fill_color red -fill_alpha 0.5]
+  }
 }
 
 set model [load_charts_model -csv data/ToothGrowth.csv -first_line_header]
@@ -46,7 +48,8 @@ set model [load_charts_model -csv data/ToothGrowth.csv -first_line_header]
 set view [create_charts_view]
 qt_sync
 
-set plot1 [create_charts_plot -view $view -model $model -type boxplot -columns {{group dose} {value len}}]
+set plot1 [create_charts_plot -view $view -model $model -type boxplot \
+  -columns {{group dose} {values len}}]
 qt_sync
 
 connect_charts_signal -plot $plot1 -from plotObjsAdded -to addAnnotations

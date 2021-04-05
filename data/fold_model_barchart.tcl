@@ -9,4 +9,5 @@ set model3 [create_charts_collapse_model -model $model1 -sum "1 2 3"]
 
 set view [create_charts_view]
 
-set plot [create_charts_plot -view $view -model $model3 -type barchart -columns {{name sepalLength} {value Count}}]
+set plot [create_charts_plot -view $view -model $model3 -type barchart \
+  -columns {{name sepalLength} {values Count}}]

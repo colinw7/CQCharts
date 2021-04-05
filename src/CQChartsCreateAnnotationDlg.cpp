@@ -1529,9 +1529,9 @@ createPointAnnotation()
   CQChartsPointAnnotation *annotation = nullptr;
 
   if      (plot())
-    annotation = plot()->addPointAnnotation(pos, symbolData.type());
+    annotation = plot()->addPointAnnotation(pos, symbolData.symbol());
   else if (view())
-    annotation = view()->addPointAnnotation(pos, symbolData.type());
+    annotation = view()->addPointAnnotation(pos, symbolData.symbol());
   else
     return false;
 

@@ -4,5 +4,5 @@ set plot [create_charts_plot -model $model -type hierbubble \
   -columns {{name 0} {value @GROUP}} \
   -title "distribution"]
 
-set_charts_property -plot $plot -name dataGrouping.bucket.auto -value 1
-set_charts_property -plot $plot -name filter.minSize           -value 100
+#set_charts_property -plot $plot -name dataGrouping.bucket.auto -value 1
+set_charts_property -plot $plot -name filter.minSize -value 100

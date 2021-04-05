@@ -18,17 +18,19 @@ class CQChartsPlotSymbolList {
 
   const Symbols &symbols() const { return symbols_; }
 
-  bool isSymbol(CQChartsSymbol::Type type) const {
+  bool isSymbol(CQChartsSymbolType type) const {
+    if (! type.isValid()) return false;
+
     for (const auto &s : symbols_)
-      if (s.type == type)
+      if (s.type == type.type())
         return true;
 
     return false;
   }
 
-  const PlotSymbol &getSymbol(CQChartsSymbol::Type type) const {
+  const PlotSymbol &getSymbol(CQChartsSymbolType type) const {
     for (const auto &s : symbols_)
-      if (s.type == type)
+      if (s.type == type.type())
         return s;
 
     assert(false);
@@ -36,18 +38,22 @@ class CQChartsPlotSymbolList {
     return symbols_[0];
   }
 
-  void setSymbolLines(CQChartsSymbol::Type type, const CQChartsPlotSymbol::Lines &lines) {
+  void setSymbolLines(CQChartsSymbolType type, const CQChartsPlotSymbol::Lines &lines) {
+    assert(type.isValid());
+
     for (auto &s : symbols_) {
-      if (s.type == type) {
+      if (s.type == type.type()) {
         s.lines = lines;
         break;
       }
     }
   }
 
-  void setSymbolFillLines(CQChartsSymbol::Type type, const CQChartsPlotSymbol::Lines &lines) {
+  void setSymbolFillLines(CQChartsSymbolType type, const CQChartsPlotSymbol::Lines &lines) {
+    assert(type.isValid());
+
     for (auto &s : symbols_) {
-      if (s.type == type) {
+      if (s.type == type.type()) {
         s.fillLines = lines;
         break;
       }
@@ -55,11 +61,15 @@ class CQChartsPlotSymbolList {
   }
 
   // draw unfilled symbol (just lines)
-  void drawSymbol(CQChartsSymbol::Type type, SymbolRenderer *renderer) const {
-    if (type == CQChartsSymbol::Type::DOT)
+  void drawSymbol(CQChartsSymbolType type, SymbolRenderer *renderer) const {
+    if (! type.isValid()) return;
+
+    auto type1 = type.type();
+
+    if (type1 == CQChartsSymbolType::Type::DOT)
       return renderer->drawPoint(0.0, 0.0);
 
-    if (type == CQChartsSymbol::Type::PAW) {
+    if (type1 == CQChartsSymbolType::Type::PAW) {
       renderer->drawPoint(-0.5,  0.5);
       renderer->drawPoint(-0.5, -0.5);
       renderer->drawPoint( 0.5,  0.5);
@@ -67,20 +77,20 @@ class CQChartsPlotSymbolList {
       return;
     }
 
-    if (type == CQChartsSymbol::Type::CIRCLE) {
+    if (type1 == CQChartsSymbolType::Type::CIRCLE) {
       renderer->drawLine(0.0, 0.0, 0.0, 0.875);
       renderer->drawFillCircle(0.0, 0.0, 0.875, /*fill*/false);
       return;
     }
 
-    if (type == CQChartsSymbol::Type::HLINE)
+    if (type1 == CQChartsSymbolType::Type::HLINE)
       return renderer->drawLine(-0.875, 0, 0.875, 0);
 
-    if (type == CQChartsSymbol::Type::VLINE)
+    if (type1 == CQChartsSymbolType::Type::VLINE)
       return renderer->drawLine(0, -0.875, 0, 0.875);
 
 #if 0
-    if (type == CQChartsSymbol::Type::HASH) {
+    if (type1 == CQChartsSymbolType::Type::HASH) {
       renderer->drawLine(-0.875,  0.5  ,  0.875,  0.5  );
       renderer->drawLine(-0.875, -0.5  ,  0.875, -0.5  );
       renderer->drawLine(-0.5  , -0.875, -0.5  ,  0.875);
@@ -142,20 +152,28 @@ class CQChartsPlotSymbolList {
 
   //---
 
-  void strokeSymbol(CQChartsSymbol::Type type, SymbolRenderer *renderer) const {
+  void strokeSymbol(CQChartsSymbolType type, SymbolRenderer *renderer) const {
+    if (! type.isValid()) return;
+
     fillStrokeSymbol(type, renderer, false);
   }
 
-  void fillSymbol(CQChartsSymbol::Type type, SymbolRenderer *renderer) const {
+  void fillSymbol(CQChartsSymbolType type, SymbolRenderer *renderer) const {
+    if (! type.isValid()) return;
+
     fillStrokeSymbol(type, renderer, true);
   }
 
   // draw solid symbol with optional fill
-  void fillStrokeSymbol(CQChartsSymbol::Type type, SymbolRenderer *renderer, bool fill) const {
-    if (type == CQChartsSymbol::Type::DOT)
+  void fillStrokeSymbol(CQChartsSymbolType type, SymbolRenderer *renderer, bool fill) const {
+    if (! type.isValid()) return;
+
+    auto type1 = type.type();
+
+    if (type1 == CQChartsSymbolType::Type::DOT)
       return renderer->drawFillPoint(0.0, 0.0, 0.1, fill);
 
-    if (type == CQChartsSymbol::Type::PAW) {
+    if (type1 == CQChartsSymbolType::Type::PAW) {
       renderer->drawFillCircle(-0.5,  0.5, 0.1, fill);
       renderer->drawFillCircle(-0.5, -0.5, 0.1, fill);
       renderer->drawFillCircle( 0.5,  0.5, 0.1, fill);
@@ -163,17 +181,17 @@ class CQChartsPlotSymbolList {
       return;
     }
 
-    if (type == CQChartsSymbol::Type::CIRCLE)
+    if (type1 == CQChartsSymbolType::Type::CIRCLE)
       return renderer->drawFillCircle(0, 0, 1.0, fill);
 
-    if (type == CQChartsSymbol::Type::HLINE)
+    if (type1 == CQChartsSymbolType::Type::HLINE)
       return renderer->drawFillHLine(-1.0, 1.0, 0.0, 0.2, fill);
 
-    if (type == CQChartsSymbol::Type::VLINE)
+    if (type1 == CQChartsSymbolType::Type::VLINE)
       return renderer->drawFillVLine(0.0, -1.0, 1.0, 0.2, fill);
 
 #if 0
-    if (type == CQChartsSymbol::Type::HASH) {
+    if (type1 == CQChartsSymbolType::Type::HASH) {
       renderer->drawFillHLine(-1.0,  1.0,  0.5, 0.2, fill);
       renderer->drawFillHLine(-1.0,  1.0, -0.5, 0.2, fill);
       renderer->drawFillVLine(-0.5, -1.0,  1.0, 0.2, fill);
@@ -271,7 +289,7 @@ static double cw3 = -0.0828427; // line intersect for Y
 using PlotSymbol = CQChartsPlotSymbol;
 
 CQChartsPlotSymbolList symbols({
-  { CQChartsSymbol::Type::CROSS,
+  { CQChartsSymbolType::Type::CROSS,
     {{-0.875,-0.875, 0.875, 0.875, PlotSymbol::Connect::STROKE},
      {-0.875, 0.875, 0.875,-0.875, PlotSymbol::Connect::STROKE}},
     {{-cw2 ,-1.0 , 0.0 ,-cw1 , PlotSymbol::Connect::STROKE},
@@ -286,7 +304,7 @@ CQChartsPlotSymbolList symbols({
      {-1.0 , cw2 ,-cw1 , 0.0 , PlotSymbol::Connect::STROKE},
      {-cw1 , 0.0 ,-1.0 ,-cw2 , PlotSymbol::Connect::STROKE},
      {-1.0 ,-cw2 ,-cw2 ,-1.0 , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::PLUS,
+  { CQChartsSymbolType::Type::PLUS,
     {{ 0.0  ,-0.875, 0.0  , 0.875, PlotSymbol::Connect::STROKE},
      {-0.875, 0.0  , 0.875, 0.0  , PlotSymbol::Connect::STROKE}},
     {{-0.2  ,-1.0  , 0.2  ,-1.0  , PlotSymbol::Connect::STROKE},
@@ -301,7 +319,7 @@ CQChartsPlotSymbolList symbols({
      {-1.0  , 0.2  ,-1.0  ,-0.2  , PlotSymbol::Connect::STROKE},
      {-1.0  ,-0.2  ,-0.2  ,-0.2  , PlotSymbol::Connect::STROKE},
      {-0.2  ,-0.2  ,-0.2  ,-1.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::Y,
+  { CQChartsSymbolType::Type::Y,
     {{ 0.0,  0.0,  0.0  ,  0.875, PlotSymbol::Connect::STROKE},
      { 0.0,  0.0,  0.875, -0.875, PlotSymbol::Connect::STROKE},
      { 0.0,  0.0, -0.875, -0.875, PlotSymbol::Connect::STROKE}},
@@ -314,7 +332,7 @@ CQChartsPlotSymbolList symbols({
      {-cw2, -1.0, -1.0  , -cw2  , PlotSymbol::Connect::STROKE},
      {-1.0, -cw2, -0.2  , -cw3  , PlotSymbol::Connect::STROKE},
      {-0.2, -cw3, -0.2  ,  1.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::Z,
+  { CQChartsSymbolType::Type::Z,
     {{-0.875, -0.875,  0.875, -0.875, PlotSymbol::Connect::STROKE},
      { 0.875, -0.875, -0.875,  0.875, PlotSymbol::Connect::STROKE},
      {-0.875,  0.875,  0.875,  0.875, PlotSymbol::Connect::STROKE}},
@@ -342,7 +360,7 @@ CQChartsPlotSymbolList symbols({
      { 0.4  , -0.575, -0.8  , -0.575, PlotSymbol::Connect::STROKE},
      {-0.8  , -0.575, -0.8  , -0.9  , PlotSymbol::Connect::FILL  }},
 */
-  { CQChartsSymbol::Type::TRIANGLE,
+  { CQChartsSymbolType::Type::TRIANGLE,
     {{ 0.0  ,-0.875,-0.875, 0.875, PlotSymbol::Connect::LINE  },
      {-0.875, 0.875, 0.875, 0.875, PlotSymbol::Connect::LINE  },
      { 0.875, 0.875, 0.0  ,-0.875, PlotSymbol::Connect::CLOSE },
@@ -350,7 +368,7 @@ CQChartsPlotSymbolList symbols({
     {{ 0.0  ,-1.0  ,-1.0  , 1.0  , PlotSymbol::Connect::STROKE},
      {-1.0  , 1.0  , 1.0  , 1.0  , PlotSymbol::Connect::STROKE},
      { 1.0  , 1.0  , 0.0  ,-1.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::ITRIANGLE,
+  { CQChartsSymbolType::Type::ITRIANGLE,
     {{ 0.0  , 0.875,-0.875,-0.875, PlotSymbol::Connect::LINE  },
      {-0.875,-0.875, 0.875,-0.875, PlotSymbol::Connect::LINE  },
      { 0.875,-0.875, 0.0  , 0.875, PlotSymbol::Connect::CLOSE },
@@ -358,7 +376,7 @@ CQChartsPlotSymbolList symbols({
     {{ 0.0  ,  1.0 ,-1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
      {-1.0  , -1.0 , 1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
      { 1.0  , -1.0 , 0.0  , 1.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::BOX,
+  { CQChartsSymbolType::Type::BOX,
     {{-0.875, 0.875, 0.875, 0.875, PlotSymbol::Connect::LINE  },
      { 0.875, 0.875, 0.875,-0.875, PlotSymbol::Connect::LINE  },
      { 0.875,-0.875,-0.875,-0.875, PlotSymbol::Connect::LINE  },
@@ -368,7 +386,7 @@ CQChartsPlotSymbolList symbols({
      { 1.0  , 1.0  , 1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
      { 1.0  ,-1.0  ,-1.0  ,-1.0  , PlotSymbol::Connect::STROKE},
      {-1.0  ,-1.0  ,-1.0  , 1.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::DIAMOND,
+  { CQChartsSymbolType::Type::DIAMOND,
     {{-0.875, 0.0  , 0.0  , 0.875, PlotSymbol::Connect::LINE  },
      { 0.0  , 0.875, 0.875, 0.0  , PlotSymbol::Connect::LINE  },
      { 0.875, 0.0  , 0.0  ,-0.875, PlotSymbol::Connect::LINE  },
@@ -378,7 +396,7 @@ CQChartsPlotSymbolList symbols({
      { 0.0  , 1.0  , 1.0  , 0.0  , PlotSymbol::Connect::STROKE},
      { 1.0  , 0.0  , 0.0  ,-1.0  , PlotSymbol::Connect::STROKE},
      { 0.0  ,-1.0  ,-1.0  , 0.0  , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::STAR5,
+  { CQChartsSymbolType::Type::STAR5,
     {{ 0.0     ,  0.0     ,  0.0     , -0.875   , PlotSymbol::Connect::STROKE},
      { 0.0     ,  0.0     , -0.828125, -0.28125 , PlotSymbol::Connect::STROKE},
      { 0.0     ,  0.0     ,  0.828125, -0.28125 , PlotSymbol::Connect::STROKE},
@@ -394,7 +412,7 @@ CQChartsPlotSymbolList symbols({
      { 0.475528,  0.154508,  0.951057, -0.309017, PlotSymbol::Connect::STROKE},
      { 0.951057, -0.309017,  0.293893, -0.404508, PlotSymbol::Connect::STROKE},
      { 0.293893, -0.404508,  0.0     , -1       , PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::STAR6,
+  { CQChartsSymbolType::Type::STAR6,
     {{ 0.0     , -0.875   ,  0.0     ,  0.875   , PlotSymbol::Connect::STROKE},
      {-0.75    , -0.4375  ,  0.75    ,  0.453125, PlotSymbol::Connect::STROKE},
      {-0.75    ,  0.453125,  0.75    , -0.4375  , PlotSymbol::Connect::STROKE}},
@@ -410,7 +428,7 @@ CQChartsPlotSymbolList symbols({
      { 0.5     ,  0.0     ,  0.866025,  0.5     , PlotSymbol::Connect::STROKE},
      { 0.866025,  0.5     ,  0.25    ,  0.433013, PlotSymbol::Connect::STROKE},
      { 0.25    ,  0.433013,  0.0     ,  1.0     , PlotSymbol::Connect::FILL  }} },
-   { CQChartsSymbol::Type::PENTAGON,
+   { CQChartsSymbolType::Type::PENTAGON,
     {{  0.00    , -0.875   ,  0.828125, -0.28125 , PlotSymbol::Connect::LINE  },
      {  0.828125, -0.28125 ,  0.50    ,  0.71875 , PlotSymbol::Connect::LINE  },
      {  0.50    ,  0.71875 , -0.50    ,  0.71875 , PlotSymbol::Connect::LINE  },
@@ -422,7 +440,7 @@ CQChartsPlotSymbolList symbols({
      {  0.587785,  0.809017, -0.587785,  0.809017, PlotSymbol::Connect::STROKE},
      { -0.587785,  0.809017, -0.951057, -0.309017, PlotSymbol::Connect::STROKE},
      { -0.951057, -0.309017,  0.000000, -1.000000, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::IPENTAGON,
+  { CQChartsSymbolType::Type::IPENTAGON,
     {{  0.00    ,  0.875   ,  0.84375 ,  0.25    , PlotSymbol::Connect::LINE  },
      {  0.84375 ,  0.25    ,  0.50    , -0.71875 , PlotSymbol::Connect::LINE  },
      {  0.50    , -0.71875 , -0.50    , -0.71875 , PlotSymbol::Connect::LINE  },
@@ -434,7 +452,7 @@ CQChartsPlotSymbolList symbols({
      {  0.587785, -0.809017, -0.587785, -0.809017, PlotSymbol::Connect::STROKE},
      { -0.587785, -0.809017, -0.951057,  0.309017, PlotSymbol::Connect::STROKE},
      { -0.951057,  0.309017,  0.000000,  1.000000, PlotSymbol::Connect::FILL  }} },
-  { CQChartsSymbol::Type::HASH,
+  { CQChartsSymbolType::Type::HASH,
     {{ -0.875, -0.5  ,  0.875, -0.5  , PlotSymbol::Connect::STROKE},
      { -0.875,  0.5  ,  0.875,  0.5  , PlotSymbol::Connect::STROKE},
      { -0.5  , -0.875, -0.5  ,  0.875, PlotSymbol::Connect::STROKE},
@@ -479,28 +497,37 @@ bool
 CQChartsPlotSymbolMgr::
 isSymbol(const CQChartsSymbol &symbol)
 {
-  return symbols.isSymbol(symbol.type());
+  if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
+    return symbols.isSymbol(symbol.symbolType());
+  else
+    return false;
 }
 
 const CQChartsPlotSymbol &
 CQChartsPlotSymbolMgr::
 getSymbol(const CQChartsSymbol &symbol)
 {
-  return symbols.getSymbol(symbol.type());
+  assert(symbol.type() == CQChartsSymbol::Type::SYMBOL);
+
+  return symbols.getSymbol(symbol.symbolType());
 }
 
 void
 CQChartsPlotSymbolMgr::
 setSymbolLines(const CQChartsSymbol &symbol, const CQChartsPlotSymbol::Lines &lines)
 {
-  symbols.setSymbolLines(symbol.type(), lines);
+  assert(symbol.type() == CQChartsSymbol::Type::SYMBOL);
+
+  symbols.setSymbolLines(symbol.symbolType(), lines);
 }
 
 void
 CQChartsPlotSymbolMgr::
 setSymbolFillLines(const CQChartsSymbol &symbol, const CQChartsPlotSymbol::Lines &lines)
 {
-  symbols.setSymbolFillLines(symbol.type(), lines);
+  assert(symbol.type() == CQChartsSymbol::Type::SYMBOL);
+
+  symbols.setSymbolFillLines(symbol.symbolType(), lines);
 }
 
 void
@@ -511,10 +538,11 @@ drawSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 
   if      (symbol.type() == CQChartsSymbol::Type::CHAR)
     renderer->drawChar(symbol.charStr());
-  else if (symbol.type() == CQChartsSymbol::Type::PATH)
+  else if (symbol.type() == CQChartsSymbol::Type::PATH ||
+           symbol.type() == CQChartsSymbol::Type::SVG)
     renderer->drawPaths(symbol.paths(), symbol.styles());
-  else
-    symbols.drawSymbol(symbol.type(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
+    symbols.drawSymbol(symbol.symbolType(), renderer);
 }
 
 void
@@ -525,10 +553,11 @@ strokeSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 
   if      (symbol.type() == CQChartsSymbol::Type::CHAR)
     renderer->drawChar(symbol.charStr());
-  else if (symbol.type() == CQChartsSymbol::Type::PATH)
+  else if (symbol.type() == CQChartsSymbol::Type::PATH ||
+           symbol.type() == CQChartsSymbol::Type::SVG)
     renderer->drawPaths(symbol.paths(), symbol.styles());
-  else
-    symbols.strokeSymbol(symbol.type(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
+    symbols.strokeSymbol(symbol.symbolType(), renderer);
 }
 
 void
@@ -539,10 +568,11 @@ fillSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 
   if      (symbol.type() == CQChartsSymbol::Type::CHAR)
     renderer->drawChar(symbol.charStr());
-  else if (symbol.type() == CQChartsSymbol::Type::PATH)
+  else if (symbol.type() == CQChartsSymbol::Type::PATH ||
+           symbol.type() == CQChartsSymbol::Type::SVG)
     renderer->drawPaths(symbol.paths(), symbol.styles());
-  else
-    symbols.fillSymbol(symbol.type(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
+    symbols.fillSymbol(symbol.symbolType(), renderer);
 }
 
 //------
@@ -697,6 +727,7 @@ fillRect(double x1, double y1, double x2, double y2) const
   mapXY(x2, y2, sx2, sy2);
 
   BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  if (! bbox.isValid()) return;
 
   save();
 
@@ -718,6 +749,7 @@ drawRect(double x1, double y1, double x2, double y2) const
   mapXY(x2, y2, sx2, sy2);
 
   BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  if (! bbox.isValid()) return;
 
   save();
 
@@ -759,6 +791,7 @@ strokeCircle(double x, double y, double r) const
   mapXY(x + r, y + r, sx2, sy2);
 
   BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  if (! bbox.isValid()) return;
 
   save();
 
@@ -780,6 +813,7 @@ fillCircle(double x, double y, double r) const
   mapXY(x + r, y + r, sx2, sy2);
 
   BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  if (! bbox.isValid()) return;
 
   save();
 
@@ -801,6 +835,7 @@ drawChar(const QString &str) const
   mapXY( 1,  1, sx2, sy2);
 
   BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  if (! bbox.isValid()) return;
 
   CQChartsTextOptions options;
 

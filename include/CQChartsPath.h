@@ -7,8 +7,6 @@
 
 class CQChartsPlot;
 
-class CXMLTag;
-
 /*!
  * \brief Geometric Path data
  * \ingroup Charts

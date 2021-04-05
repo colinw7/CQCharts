@@ -2423,7 +2423,7 @@ execCmd(CQChartsCmdArgs &argv)
         "name" << "desc" << "color_type" << "color_model" << "red_model" << "green_model" <<
         "blue_model" << "gray" << "red_negative" << "green_negative" << "blue_negative" <<
         "red_min" << "red_max" << "green_min" << "green_max" << "blue_min" << "blue_max" <<
-        "colors" << "color" << "distinct" << "interp_color" << "red_function" <<
+        "defined_colors" << "color" << "distinct" << "interp_color" << "red_function" <<
         "green_function" << "blue_function" << "cube_start" << "cube_cycles" <<
         "cube_saturation" << "cube_negative";
       return cmdBase_->setCmdRc(names);
@@ -2877,6 +2877,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   argv.startCmdGroup(CmdGroup::Type::OneReq);
   addArg(argv, "-symbol", ArgType::String , "symbol name");
   addArg(argv, "-char"  , ArgType::String , "char string");
+  addArg(argv, "-path"  , ArgType::String , "path string");
   addArg(argv, "-svg"   , ArgType::String , "svg file");
   argv.endCmdGroup();
 
@@ -2928,63 +2929,59 @@ execCmd(CQChartsCmdArgs &argv)
   if      (argv.hasParseArg("symbol")) {
     auto symbolStr = argv.getParseStr("symbol");
 
-    if (CQChartsSymbol::nameToType(symbolStr) == CQChartsSymbol::Type::NONE)
+    if (CQChartsSymbolType::nameToType(symbolStr) == CQChartsSymbolType::Type::NONE)
       return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
 
-    symbolSet->addSymbol(CQChartsSymbol(symbolStr), filled);
+    CQChartsSymbol symbol(symbolStr);
+
+    symbol.setFilled(filled);
+
+    symbolSet->addSymbol(symbol);
   }
   else if (argv.hasParseArg("char")) {
     auto charStr = argv.getParseStr("char");
     auto nameStr = argv.getParseStr("name");
 
-    symbolSet->addSymbol(CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr)), filled);
+    CQChartsSymbol symbol(CQChartsSymbol::CharData(charStr, nameStr));
+
+    symbol.setFilled(filled);
+
+    symbolSet->addSymbol(symbol);
+  }
+  else if (argv.hasParseArg("path")) {
+    auto pathStr = argv.getParseStr("path");
+    auto nameStr = argv.getParseStr("name");
+
+    CQChartsSymbol::PathData pathData;
+
+    CQChartsPath path(pathStr);
+
+    if (! path.isValid())
+      return errorMsg(QString("Invalid Path '%1'").arg(pathStr));
+
+    pathData.path = path;
+    pathData.name = nameStr;
+    pathData.src  = pathStr;
+
+    auto symbol = CQChartsSymbol(pathData);
+
+    symbol.setFilled(filled);
+
+    symbolSet->addSymbol(symbol);
   }
   else if (argv.hasParseArg("svg")) {
     auto svgStr  = argv.getParseStr("svg");
     auto nameStr = argv.getParseStr("name");
+    bool styled  = argv.getParseBool("styled");
 
-    CQChartsSVGUtil::Paths  paths;
-    CQChartsSVGUtil::Styles styles;
-    CQChartsGeom::BBox      bbox;
+    auto symbol = CQChartsSymbol::fromSVGFile(svgStr, nameStr, styled);
 
-    if (! CQChartsSVGUtil::svgFileToPaths(svgStr, paths, styles, bbox))
+    if (! symbol.isValid())
       return errorMsg(QString("Invalid SVG File '%1'").arg(svgStr));
 
-    CQChartsSymbol::PathData pathData;
+    symbol.setFilled(filled);
 
-    pathData.name = nameStr;
-
-    if (! bbox.isSet()) {
-      for (auto &path : paths)
-        bbox += path.bbox();
-    }
-
-    pathData.bbox = bbox;
-
-    int np = paths.size();
-
-    assert(np == int(styles.size()));
-
-    bool styled = argv.getParseBool("styled");
-
-    for (int ip = 0; ip < np; ++ip) {
-      auto &path = paths [ip];
-
-      auto path1 = CQChartsPath::moveScalePath(path.path(), bbox, 0.0, 0.0, 1.0, -1.0);
-
-      path.setPath(path1);
-
-      pathData.paths .push_back(path);
-
-      CQChartsStyle style;
-
-      if (styled)
-        style = styles[ip];
-
-      pathData.styles.push_back(style);
-    }
-
-    symbolSet->addSymbol(CQChartsSymbol(pathData), filled);
+    symbolSet->addSymbol(symbol);
   }
 
   return true;
@@ -6580,7 +6577,7 @@ execCmd(CQChartsCmdArgs &argv)
         symbolNames = symbolSet->symbolNames();
       }
       else {
-        symbolNames = CQChartsSymbol::typeNames();
+        symbolNames = CQChartsSymbolType::typeNames();
       }
 
       return cmdBase_->setCmdRc(symbolNames);
@@ -7274,12 +7271,10 @@ bool
 CQChartsCreateChartsArcAnnotationCmd::
 execCmd(CQChartsCmdArgs &argv)
 {
-/*
   auto errorMsg = [&](const QString &msg) {
     charts()->errorMsg(msg);
     return false;
   };
-*/
 
   //---
 
@@ -7319,6 +7314,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto start = argv.getParsePosition(view, plot, "start");
   auto end   = argv.getParsePosition(view, plot, "end"  );
+
+  if (! start.isValid() || ! end.isValid())
+    return errorMsg("Invalid start/end");
 
   //---
 
@@ -7606,7 +7604,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (! center.isValid())
+    return errorMsg("Invalid ellipse center");
+
   if (! rx.isValid() || ! ry.isValid())
+    return errorMsg("Invalid ellipse radius");
+
+  if (rx.value() <= 0.0 || ry.value() <= 0.0)
     return errorMsg("Invalid ellipse radius");
 
   CQChartsEllipseAnnotation *annotation = nullptr;
@@ -8238,6 +8242,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto pos = argv.getParsePosition(view, plot, "position");
 
+  if (! pos.isValid())
+    return errorMsg("Invalid position");
+
   auto innerRadius = argv.getParseLength(view, plot, "inner_radius");
   auto outerRadius = argv.getParseLength(view, plot, "outer_radius");
 
@@ -8249,7 +8256,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (innerRadius.value() <= 0.0 || outerRadius.value() <= 0.0)
+  if (innerRadius.value() < 0.0 || outerRadius.value() <= 0.0)
     return errorMsg("Invalid pie slice radii");
 
   CQChartsPieSliceAnnotation *annotation = nullptr;
@@ -8321,7 +8328,7 @@ getArgValues(const QString &arg, const NameValueMap &)
 {
   if      (arg == "view") return cmds()->viewArgValues();
   else if (arg == "plot") return cmds()->plotArgValues(nullptr);
-  else if (arg == "type") return CQChartsSymbol::typeNames();
+  else if (arg == "type") return CQChartsSymbolType::typeNames();
 
   return QStringList();
 }
@@ -8389,7 +8396,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (! symbol.isValid())
       return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
 
-    symbolData.setType(symbol);
+    symbolData.setSymbol(symbol);
   }
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
@@ -8405,12 +8412,15 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (! pos.isValid())
+    return errorMsg("Invalid position");
+
   CQChartsPointAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPointAnnotation(pos, symbolData.type());
+    annotation = view->addPointAnnotation(pos, symbolData.symbol());
   else if (plot)
-    annotation = plot->addPointAnnotation(pos, symbolData.type());
+    annotation = plot->addPointAnnotation(pos, symbolData.symbol());
   else
     return false;
 
@@ -8519,7 +8529,7 @@ execCmd(CQChartsCmdArgs &argv)
   }
 
   if (values.points().empty())
-    return errorMsg("Invalid points");
+    return errorMsg("Invalid point values");
 
   //---
 
@@ -9955,7 +9965,7 @@ execCmd(CQChartsCmdArgs &argv)
   if      (argv.hasParseArg("symbol")) {
     CQChartsSymbolData symbolData;
 
-    symbolData.setType(CQChartsSymbol(argv.getParseStr("symbol")));
+    symbolData.setSymbol(CQChartsSymbol(argv.getParseStr("symbol")));
 
     if (argv.hasParseArg("color")) {
       auto color = argv.getParseColor("color");
@@ -10691,7 +10701,7 @@ execCmd(CQChartsCmdArgs &argv)
 #include <CQChartsSidesEdit.h>
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsSymbolDataEdit.h>
-#include <CQChartsSymbolEdit.h>
+#include <CQChartsSymbolTypeEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
 
@@ -10896,7 +10906,7 @@ execCmd(CQChartsCmdArgs &argv)
       auto *edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
     }
     else if (type == "symbol_type") {
-      auto *edit = new CQChartsSymbolEdit; addEdit(edit, type);
+      auto *edit = new CQChartsSymbolTypeEdit; addEdit(edit, type);
     }
     else if (type == "text_box_data") {
       auto *edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);

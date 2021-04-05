@@ -39,10 +39,19 @@ setValue(const QString &str)
   delete pen_;
   delete brush_;
 
-  pen_   = new QPen  (Qt::NoPen);
-  brush_ = new QBrush(Qt::NoBrush);
+  pen_   = nullptr;
+  brush_ = nullptr;
 
-  //---
+  if (str.trimmed() != "") {
+    QPen   pen;
+    QBrush brush;
 
-  return CQChartsSVGUtil::stringToPenBrush(str, *pen_, *brush_);
+    if (! CQChartsSVGUtil::stringToPenBrush(str, pen, brush))
+      return false;
+
+    pen_   = new QPen  (pen);
+    brush_ = new QBrush(brush);
+  }
+
+  return true;
 }

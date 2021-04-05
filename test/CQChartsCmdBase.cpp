@@ -1,5 +1,6 @@
 #include <CQChartsCmdBase.h>
 #include <CQChartsInput.h>
+#include <CQChartsEnv.h>
 #include <CQBaseModel.h>
 #include <CQWidgetFactory.h>
 #include <CQPerfMonitor.h>
@@ -18,6 +19,10 @@ bool
 errorMsg(const QString &msg)
 {
   std::cerr << msg.toStdString() << "\n";
+
+  if (CQChartsEnv::getBool("CQ_CHARTS_PEDANTIC"))
+    assert(false);
+
   return false;
 }
 

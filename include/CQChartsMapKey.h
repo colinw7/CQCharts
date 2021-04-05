@@ -11,6 +11,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_PROPERTY(Qt::Alignment    align     READ align      WRITE setAlign    )
   Q_PROPERTY(bool             numeric   READ isNumeric  WRITE setNumeric  )
   Q_PROPERTY(bool             integral  READ isIntegral WRITE setIntegral )
+  Q_PROPERTY(bool             native    READ isNative   WRITE setNative   )
   Q_PROPERTY(int              numUnique READ numUnique  WRITE setNumUnique)
 
  public:
@@ -54,6 +55,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   bool isIntegral() const { return integral_; }
   void setIntegral(bool b) { integral_ = b; }
 
+  //! get/set is native type
+  bool isNative() const { return native_; }
+  void setNative(bool b) { native_ = b; }
+
   //! get/set num unique
   int numUnique() const { return numUnique_; }
   void setNumUnique(int i) { numUnique_ = i; }
@@ -77,7 +82,16 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
   //---
 
-  virtual void draw(PaintDevice *device, bool usePenBrush=false) = 0;
+  struct DrawData {
+    DrawData() { }
+
+    bool usePenBrush { false };
+    bool isWidget    { false };
+  };
+
+  virtual void draw(PaintDevice *device, const DrawData &drawData=DrawData()) = 0;
+
+  virtual QSize calcSize() const = 0;
 
  protected:
   virtual void invalidate() = 0;
@@ -94,14 +108,16 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
   bool          numeric_   { false };                               //!< is numeric
   bool          integral_  { false };                               //!< is integral
+  bool          native_    { false };                               //!< is native
   int           numUnique_ { -1 };                                  //!< num unique
   QVariantList  uniqueValues_;                                      //!< unique values
 
-  mutable double kw_ { 0.0 };
-  mutable double kh_ { 0.0 };
-  mutable double xm_ { 0.0 };
-  mutable double ym_ { 0.0 };
-  mutable BBox   pbbox_;
+  mutable double   kw_ { 0.0 };
+  mutable double   kh_ { 0.0 };
+  mutable double   xm_ { 0.0 };
+  mutable double   ym_ { 0.0 };
+  mutable BBox     pbbox_;
+  mutable DrawData drawData_;
 };
 
 //-----
@@ -163,15 +179,18 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, bool useBrush=false) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+
+  QSize calcSize() const override;
+
+ private:
+  void invalidate() override;
 
   void drawContiguous(PaintDevice *device);
   void drawDiscreet  (PaintDevice *device);
 
-  //---
-
- private:
-  void invalidate() override;
+  QSize calcContiguousSize() const;
+  QSize calcDiscreetSize() const;
 
  signals:
   void dataChanged();
@@ -280,20 +299,23 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, bool usePenBrush=false) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+
+  QSize calcSize() const override;
 
   //---
 
-  void initDraw();
+  void initDraw(PaintDevice *device);
 
-  void drawParts(PaintDevice *device, bool usePenBrush=false);
+  void drawParts(PaintDevice *device);
 
   void drawBorder(PaintDevice *device, bool usePenBrush=false);
 
   void drawCircles(PaintDevice *device, bool usePenBrush=false);
 
-  void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions,
-                bool usePenBrush=false);
+  void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePenBrush);
+
+  //---
 
  private:
   void invalidate() override;
@@ -302,10 +324,10 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   void dataChanged();
 
  private:
-  void initCenter     () const;
+  void initCenter     (PaintDevice *device) const;
   void calcSymbolBoxes() const;
   void calcTextBBox   () const;
-  void alignBoxes     () const;
+  void alignBoxes     (PaintDevice *device) const;
 
   QString valueText(double value) const;
 
@@ -329,8 +351,11 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   PaletteName paletteName_;                //!< custom palette
   RMinMax     paletteMinMax_ { 0.0, 1.0 }; //!< custom palette range
 
-  mutable BBox   tbbox_;
+  mutable BBox   psbbox_;
   mutable BBox   sbbox_;
+  mutable BBox   ptbbox_;
+  mutable BBox   tbbox_;
+  mutable BBox   pbbox_;
   mutable BBoxes symbolBoxes_;
   mutable Point  pcenter_;
   mutable Point  center_;
@@ -392,12 +417,12 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, bool usePenBrush=false) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+
+  QSize calcSize() const override;
 
  private:
   void invalidate() override;
-
-  QSize pixelSize() const;
 
  signals:
   void dataChanged();
@@ -413,6 +438,44 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   int mapMax_ { 1 }; //!< mapped symbol type max
 
   QString symbolSet_;
+};
+
+//---
+
+#include <QFrame>
+
+class CQChartsMapKeyFrame;
+class QScrollArea;
+
+class CQChartsMapKeyWidget : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsMapKeyWidget(CQChartsMapKey *key=nullptr);
+
+  CQChartsMapKey *key() const { return key_; }
+  void setKey(CQChartsMapKey *key);
+
+ private:
+  CQChartsMapKey*      key_        { nullptr };
+  QScrollArea*         scrollArea_ { nullptr };
+  CQChartsMapKeyFrame* keyFrame_   { nullptr };
+};
+
+//---
+
+class CQChartsMapKeyFrame : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsMapKeyFrame(CQChartsMapKeyWidget *w);
+
+  bool updateSize();
+
+  void paintEvent(QPaintEvent *) override;
+
+ private:
+  CQChartsMapKeyWidget* w_ { nullptr };
 };
 
 #endif

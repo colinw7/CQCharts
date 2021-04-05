@@ -274,6 +274,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsEnumParameterEdit;
 
 class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls {

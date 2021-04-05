@@ -1296,3 +1296,7 @@
  + add color map key to all plots that support color column
 # 3/23/2021
  + add character symbol and improve view settings support for symbols
+# 4/5/2021
+ + make symbol and symbol type separate classes
+ + update map keys to be displayed in custom controls
+ + rename some properties

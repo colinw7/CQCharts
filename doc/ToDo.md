@@ -3,8 +3,15 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + dim disabled gradient
- + symbol type not set in scatter
+ + symbol and symbol type confusion
+   + symbol type needs to be combined with fill/stroke to get symbol
+   + symbol is complete defintion (type + fill/stroke, char, path, ...)
+ + XY plot use point plot custom controls
+ + resources for files map name to file system or add file search path ?
+ + Font Size type (reuse Font)
+ + symbol control has fixed/interpolated switch, stacked widgets and key widget
+   + map key widget
+   + font size widget
  + check box fixed/interpolated
  + range slider handles on top ? draw lines
  + Force symbol set to non-null value ("all"/"filled")

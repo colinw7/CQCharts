@@ -378,10 +378,11 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsDistributionPlot;
-  using Bucket = CQChartsDistributionBucket;
-  using Length = CQChartsLength;
-  using Symbol = CQChartsSymbol;
+  using Plot       = CQChartsDistributionPlot;
+  using Bucket     = CQChartsDistributionBucket;
+  using Length     = CQChartsLength;
+  using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
 
  public:
   CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
@@ -592,6 +593,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using RangeValue = CQChartsGeom::RangeValue;
   using LineDash   = CQChartsLineDash;
   using Symbol     = CQChartsSymbol;
+  using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
   using Color      = CQChartsColor;
   using ColorInd   = CQChartsUtil::ColorInd;
@@ -1043,6 +1045,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 };
 
 //---
+
+#include <CQChartsGroupPlotCustomControls.h>
 
 class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT

@@ -119,7 +119,7 @@ init()
 
   //---
 
-  setSymbolType(Symbol(Symbol::Type::CIRCLE));
+  setSymbol(Symbol(SymbolType::Type::CIRCLE));
   setSymbolSize(Length("4px"));
   setSymbolFilled(true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -727,7 +727,7 @@ void
 CQChartsStripPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbolType = plot_->symbolType();
+  auto symbol     = plot_->symbol();
   auto symbolSize = plot_->symbolSize();
 
   //---
@@ -763,7 +763,8 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
 }
 
 //------

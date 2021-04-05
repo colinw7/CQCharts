@@ -2360,8 +2360,8 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
   bool mapped   = false;
   int  min      = 0, max = 1;
-  int  size_min = CQChartsSymbol::minFillValue();
-  int  size_max = CQChartsSymbol::maxFillValue();
+  int  size_min = CQChartsSymbolType::minFillValue();
+  int  size_max = CQChartsSymbolType::maxFillValue();
 
   getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
 
@@ -2373,7 +2373,14 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
     int i1 = (int) CMathUtil::map(int(i), min, max, size_min, size_max);
 
-    auto symbol = CQChartsSymbol((CQChartsSymbol::Type) i1);
+    auto symbolTypeInd = (CQChartsSymbolType::Type) i1;
+
+    if (! CQChartsSymbolType::isValidType(symbolTypeInd))
+      return QVariant();
+
+    CQChartsSymbolType symbolType(symbolTypeInd);
+
+    auto symbol = CQChartsSymbol(symbolType);
 
     return CQChartsVariant::fromSymbol(symbol);
   }

@@ -110,6 +110,8 @@ void
 CQChartsPlotObj::
 setModelInd(const QModelIndex &ind)
 {
+  assert(ind.isValid());
+
   modelInds_.clear();
 
   addModelInd(ind);

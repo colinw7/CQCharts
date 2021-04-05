@@ -34,6 +34,8 @@ class CQChartsCreatePlotDlg;
 class CQPropertyViewItem;
 class CQTcl;
 
+class QTimer;
+
 /*!
  * \mainpage Charts Package
  *
@@ -126,6 +128,8 @@ class CQCharts : public QObject {
   void init();
 
   //---
+
+  void addExitTimer(double secs);
 
   bool hasViewKey() const { return viewKey_; }
   void setViewKey(bool b) { viewKey_ = b; }
@@ -378,6 +382,9 @@ class CQCharts : public QObject {
   void themeChanged();
   void interfaceThemeChanged();
 
+ private slots:
+  void exitSlot();
+
  private:
   // add new model data for model
   int addModelData(ModelP &model);
@@ -392,6 +399,7 @@ class CQCharts : public QObject {
   using ColumnTypeMgrP  = std::unique_ptr<CQChartsColumnTypeMgr>;
   using SymbolSetMgrP   = std::unique_ptr<CQChartsSymbolSetMgr>;
 
+  QTimer*                  exitTimer_       { nullptr }; //!< auto exit timer
   bool                     viewKey_         { true };    //!< has view key
   PlotTypeMgrP             plotTypeMgr_;                 //!< plot type manager
   ColumnTypeMgrP           columnTypeMgr_;               //!< column type manager

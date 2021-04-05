@@ -315,16 +315,16 @@ set_charts_property -plot $plot -name plotBox.fill.visible -value 1
 #set_charts_property -plot $plot -name plotBox.fill.color   -value black
 set_charts_property -plot $plot -name plotBox.fill.pattern -value "IMAGE:data/night_moon.jpg"
 
-#set_charts_property -plot $plot -name symbol.type           -value box
-set_charts_property -plot $plot -name symbol.stroke.visible -value 0
-set_charts_property -plot $plot -name symbol.fill.pattern   -value "TEXTURE:data/particle.png"
+#set_charts_property -plot $plot -name points.symbol -value box
+set_charts_property -plot $plot -name points.stroke.visible -value 0
+set_charts_property -plot $plot -name points.fill.pattern   -value "TEXTURE:data/particle.png"
 
 set_charts_property -plot $plot -name key.visible -value 0
 set_charts_property -plot $plot -name xaxis.visible -value 0
 set_charts_property -plot $plot -name yaxis.visible -value 0
 
-set_charts_property -plot $plot -name symbol.type -value star6
-set_charts_property -plot $plot -name symbol.size -value 12px
+set_charts_property -plot $plot -name points.symbol -value star6
+set_charts_property -plot $plot -name points.size   -value 12px
 
 set view [get_charts_data -plot $plot -name view]
 

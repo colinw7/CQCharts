@@ -48,7 +48,7 @@ addParameters()
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
     setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
-    setMapMinMax(CQChartsSymbol::minFillValue(), CQChartsSymbol::maxFillValue());
+    setMapMinMax(CQChartsSymbolType::minFillValue(), CQChartsSymbolType::maxFillValue());
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
     setPropPath("columns.symbolSize").setTip("Custom Symbol Size").setMapped().
@@ -150,7 +150,7 @@ init()
 
   //---
 
-  setSymbolType(CQChartsSymbol(CQChartsSymbol::Type::CIRCLE));
+  setSymbol(CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE));
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -783,10 +783,10 @@ addPointObjects() const
         //---
 
         // set optional symbol type
-        CQChartsSymbol symbolType;
+        CQChartsSymbol symbol;
 
-        if (symbolType.isValid())
-          pointObj->setSymbolType(symbolType);
+        if (symbol.isValid())
+          pointObj->setSymbol(symbol);
 
         //---
 
@@ -1485,14 +1485,14 @@ scatterPlot() const
 
 CQChartsSymbol
 CQChartsScatterPoint3DObj::
-symbolType() const
+symbol() const
 {
-  auto symbolType = extraData().symbolType;
+  auto symbol = extraData().symbol;
 
-  if (! symbolType.isValid())
-    symbolType = scatterPlot()->symbolType();
+  if (! symbol.isValid())
+    symbol = scatterPlot()->symbol();
 
-  return symbolType;
+  return symbol;
 }
 
 CQChartsLength
@@ -1703,7 +1703,7 @@ postDraw(PaintDevice *device)
   //---
 
   // get symbol type and size
-  auto symbolType = this->symbolType();
+  auto symbol     = this->symbol();
   auto symbolSize = this->symbolSize();
 
 //double sx, sy;
@@ -1717,7 +1717,8 @@ postDraw(PaintDevice *device)
 
   auto pt2 = pt.point2D();
 
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pt2, symbolSize);
+  if (symbol.isValid())
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pt2, symbolSize);
 
   //---
 

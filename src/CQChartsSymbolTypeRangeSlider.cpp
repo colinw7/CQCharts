@@ -37,8 +37,8 @@ setSymbolSetName(const QString &name)
   auto *symbolSetMgr = (plot_ ? plot_->charts()->symbolSetMgr() : nullptr);
   auto *symbolSet    = (symbolSetMgr ? symbolSetMgr->symbolSet(symbolSetName_) : nullptr);
 
-  int typeVal1 = (symbolSet ?                           0 : CQChartsSymbol::minOutlineValue());
-  int typeVal2 = (symbolSet ? symbolSet->numSymbols() - 1 : CQChartsSymbol::maxOutlineValue());
+  int typeVal1 = (symbolSet ?                           0 : CQChartsSymbolType::minOutlineValue());
+  int typeVal2 = (symbolSet ? symbolSet->numSymbols() - 1 : CQChartsSymbolType::maxOutlineValue());
 
   setRangeMinMax(typeVal1, typeVal2);
 
@@ -78,8 +78,8 @@ drawSliderLabels(QPainter *painter)
 
   CQChartsPixelPaintDevice device(painter);
 
-  auto drawSymbol = [&](const CQChartsSymbol &symbol, double x, bool filled, bool inside) {
-    if (filled) {
+  auto drawSymbol = [&](const CQChartsSymbol &symbol, double x, bool inside) {
+    if (symbol.isFilled()) {
       auto bc = fillColor();
       auto ba = 1.0;
 
@@ -121,18 +121,23 @@ drawSliderLabels(QPainter *painter)
     double x1 = x - ss/2.0;
 
     if (x1 > x2) {
-      bool filled = (symbolSet ? symbolSet->isFilled(i) : false);
-
       bool inside = (i >= sliderMin() && i <= sliderMax());
 
       CQChartsSymbol symbol;
 
       if (symbolSet)
         symbol = symbolSet->symbol(i);
-      else
-        symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
+      else {
+        auto type = (CQChartsSymbolType::Type) i;
 
-      drawSymbol(symbol, x, filled, inside);
+        if (! CQChartsSymbolType::isValidType(type))
+          continue;
+
+        symbol = CQChartsSymbol(type);
+      }
+
+      if (symbol.isValid())
+        drawSymbol(symbol, x, inside);
 
       x2 = x + ss/2.0;
     }

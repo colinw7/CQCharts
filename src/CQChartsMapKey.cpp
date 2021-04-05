@@ -8,6 +8,9 @@
 #include <CQPropertyViewItem.h>
 #include <CQColorsPalette.h>
 
+#include <QScrollArea>
+#include <QVBoxLayout>
+
 CQChartsMapKey::
 CQChartsMapKey(Plot *plot) :
  CQChartsTextBoxObj(plot)
@@ -59,6 +62,12 @@ void
 CQChartsMapKey::
 calcCenter()
 {
+  if (drawData_.isWidget) {
+    xm_ = kw_/2.0;
+    ym_ = kh_/2.0;
+    return;
+  }
+
   // calc center
   Point pos;
 
@@ -89,6 +98,9 @@ calcAlignedBBox()
   Point p2(xm_ + kw_/2.0, ym_ + kh_/2.0);
 
   pbbox_ = BBox(p1.x, p1.y, p2.x, p2.y);
+
+  if (drawData_.isWidget)
+    return;
 
   double dx = 0.0;
   double dy = 0.0;
@@ -187,8 +199,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsColorMapKey::
-draw(PaintDevice *device, bool /*usePenBrush*/)
+draw(PaintDevice *device, const DrawData &drawData)
 {
+  drawData_ = drawData;
+
   if (isNumeric())
     drawContiguous(device);
   else
@@ -199,30 +213,24 @@ void
 CQChartsColorMapKey::
 drawContiguous(PaintDevice *device)
 {
+  (void) calcContiguousSize();
+
+  //---
+
   auto font = calcFont(textFont());
 
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-
   double bw = fm.width("X") + 16; // color box width
-  double bh = fm.height()*5;      // color box height
 
   //---
 
   // calc text width
   auto dataMid = CMathUtil::avg(dataMin(), dataMax());
 
-  auto dataMinStr = valueText(dataMin());
-  auto dataMidStr = valueText(dataMid  );
-  auto dataMaxStr = valueText(dataMax());
-
-  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMidStr)), fm.width(dataMaxStr));
 
   //---
-
-  kw_ = bw + tw + 3*bm;
-  kh_ = bh + fm.height() + 2*bm;
 
   calcCenter();
 
@@ -280,7 +288,7 @@ drawContiguous(PaintDevice *device)
 
   // draw labels
   auto drawTextLabel = [&](const Point &p, const QString &label) {
-    auto p1 = pixelToWindow(p);
+    auto p1 = device->pixelToWindow(p);
 
     CQChartsTextOptions textOptions;
 
@@ -298,6 +306,10 @@ drawContiguous(PaintDevice *device)
   double ty2 = gbbox.getYMid() + df;
   double ty3 = gbbox.getYMax() + df;
 
+  auto dataMinStr = valueText(dataMin());
+  auto dataMidStr = valueText(dataMid  );
+  auto dataMaxStr = valueText(dataMax());
+
   drawTextLabel(Point(tx, ty3), dataMinStr);
   drawTextLabel(Point(tx, ty2), dataMidStr);
   drawTextLabel(Point(tx, ty1), dataMaxStr);
@@ -307,30 +319,18 @@ void
 CQChartsColorMapKey::
 drawDiscreet(PaintDevice *device)
 {
+  (void) calcDiscreetSize();
+
+  //---
+
   auto font = calcFont(textFont());
 
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-
   double bs = fm.width("X") + 16; // color box size
 
   //---
-
-  int n = numUnique();
-
-  double tw = 0.0;
-
-  for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
-
-    tw = std::max(tw, fm.width(name));
-  }
-
-  //---
-
-  kw_ = bs + tw + 3*bm;
-  kh_ = n*bs + 2*bm;
 
   calcCenter();
 
@@ -360,6 +360,8 @@ drawDiscreet(PaintDevice *device)
 
   double bmi = 2;
   double bsi = bs - 2*bmi;
+
+  int n = numUnique();
 
   for (int i = 0; i < n; ++i) {
     double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
@@ -397,7 +399,7 @@ drawDiscreet(PaintDevice *device)
 
   // draw labels
   auto drawTextLabel = [&](const Point &p, const QString &label) {
-    auto p1 = pixelToWindow(p);
+    auto p1 = device->pixelToWindow(p);
 
     CQChartsTextOptions textOptions;
 
@@ -418,6 +420,80 @@ drawDiscreet(PaintDevice *device)
 
     drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), name);
   }
+}
+
+QSize
+CQChartsColorMapKey::
+calcSize() const
+{
+  if (isNumeric())
+    return calcContiguousSize();
+  else
+    return calcDiscreetSize();
+}
+
+QSize
+CQChartsColorMapKey::
+calcContiguousSize() const
+{
+  auto font = calcFont(textFont());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+
+  double bw = fm.width("X") + 16; // color box width
+  double bh = fm.height()*5;      // color box height
+
+  //---
+
+  // calc text width
+  auto dataMid = CMathUtil::avg(dataMin(), dataMax());
+
+  auto dataMinStr = valueText(dataMin());
+  auto dataMidStr = valueText(dataMid  );
+  auto dataMaxStr = valueText(dataMax());
+
+  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMidStr)), fm.width(dataMaxStr));
+
+  //---
+
+  kw_ = bw + tw + 3*bm;
+  kh_ = bh + fm.height() + 2*bm;
+
+  return QSize(kw_, kh_);
+}
+
+QSize
+CQChartsColorMapKey::
+calcDiscreetSize() const
+{
+  auto font = calcFont(textFont());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+
+  double bs = fm.width("X") + 16; // color box size
+
+  //---
+
+  int n = numUnique();
+
+  double tw = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = uniqueValues()[i].toString();
+
+    tw = std::max(tw, fm.width(name));
+  }
+
+  //---
+
+  kw_ = bs + tw + 3*bm;
+  kh_ = n*bs + 2*bm;
+
+  return QSize(kw_, kh_);
 }
 
 void
@@ -494,35 +570,47 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsSymbolSizeMapKey::
-draw(PaintDevice *device, bool usePenBrush)
+draw(PaintDevice *device, const DrawData &drawData)
 {
-  initDraw();
+  drawData_ = drawData;
 
-  drawParts(device, usePenBrush);
+  initDraw(device);
+
+  drawParts(device);
 }
 
-void
+QSize
 CQChartsSymbolSizeMapKey::
-initDraw()
+calcSize() const
 {
-  initCenter();
-
   calcSymbolBoxes();
+  calcTextBBox   ();
 
-  calcTextBBox();
+  pbbox_ = psbbox_ + ptbbox_;
 
-  alignBoxes();
+  return QSize(pbbox_.getWidth(), pbbox_.getHeight());
 }
 
 void
 CQChartsSymbolSizeMapKey::
-drawParts(PaintDevice *device, bool usePenBrush)
+initDraw(PaintDevice *device)
 {
-  drawBorder(device, usePenBrush);
+  initCenter(device);
+
+  (void) calcSize();
+
+  alignBoxes(device);
+}
+
+void
+CQChartsSymbolSizeMapKey::
+drawParts(PaintDevice *device)
+{
+  drawBorder(device, drawData_.usePenBrush);
 
   //---
 
-  drawCircles(device, usePenBrush);
+  drawCircles(device, drawData_.usePenBrush);
 
   //---
 
@@ -547,7 +635,7 @@ drawParts(PaintDevice *device, bool usePenBrush)
   textOptions.contrast      = isTextContrast();
   textOptions.contrastAlpha = textContrastAlpha();
 
-  drawText(device, textOptions, usePenBrush);
+  drawText(device, textOptions, drawData_.usePenBrush);
 }
 
 void
@@ -579,7 +667,7 @@ drawCircles(PaintDevice *device, bool usePenBrush)
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    device->drawEllipse(pixelToWindow(pbbox));
+    device->drawEllipse(device->pixelToWindow(pbbox));
   };
 
   //---
@@ -655,7 +743,7 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
         p1 = Point(p.x - tw/2.0, p.y + (fm.ascent() - fm.descent())/2.0);
     }
 
-    auto p2 = pixelToWindow(p1);
+    auto p2 = device->pixelToWindow(p1);
 
     CQChartsDrawUtil::drawTextAtPoint(device, p2, text, textOptions1);
   };
@@ -706,24 +794,29 @@ invalidate()
 
 void
 CQChartsSymbolSizeMapKey::
-initCenter() const
+initCenter(PaintDevice *device) const
 {
-  // calc center
-  if (position().isValid()) {
-    pcenter_ = positionToPixel(position());
+  if (drawData_.isWidget) {
+    pcenter_ = Point(0, 0);
   }
   else {
-    auto pbbox = plot()->calcPlotPixelRect();
+    // calc center
+    if (position().isValid()) {
+      pcenter_ = positionToPixel(position());
+    }
+    else {
+      auto pbbox = plot()->calcPlotPixelRect();
 
-    double prmin = scale()*this->mapMin();
+      double prmin = scale()*this->mapMin();
 
-    double px = pbbox.getXMax() - prmin;
-    double py = pbbox.getYMax() - prmin;
+      double px = pbbox.getXMax() - prmin;
+      double py = pbbox.getYMax() - prmin;
 
-    pcenter_ = Point(px, py);
+      pcenter_ = Point(px, py);
+    }
   }
 
-  center_ = pixelToWindow(pcenter_);
+  center_ = device->pixelToWindow(pcenter_);
 }
 
 void
@@ -767,8 +860,7 @@ calcSymbolBoxes() const
       y -= sy;
     }
 
-    sbbox_ = pixelToWindow(BBox(xm_ - prmax - pm, ym_ - prmax - pm,
-                                xm_ + prmax + pm, ym_ + prmax + pm));
+    psbbox_ = BBox(xm_ - prmax - pm, ym_ - prmax - pm, xm_ + prmax + pm, ym_ + prmax + pm);
   }
   else {
     double h = (rows() - 1)*pm;
@@ -795,8 +887,7 @@ calcSymbolBoxes() const
       y -= sy;
     }
 
-    sbbox_ = pixelToWindow(BBox(xm_ - prmax - pm, ym_ - h/2 - pm,
-                                xm_ + prmax + pm, ym_ + h/2 + pm));
+    psbbox_ = BBox(xm_ - prmax - pm, ym_ - h/2 - pm, xm_ + prmax + pm, ym_ + h/2 + pm);
   }
 }
 
@@ -867,35 +958,45 @@ calcTextBBox() const
 
   //---
 
-  tbbox_ = pixelToWindow(BBox(pxt1, pyt1, pxt2, pyt2));
+  ptbbox_ = BBox(pxt1, pyt1, pxt2, pyt2);
 }
 
 void
 CQChartsSymbolSizeMapKey::
-alignBoxes() const
+alignBoxes(PaintDevice *device) const
 {
-  bbox_ = sbbox_ + tbbox_;
+  sbbox_ = device->pixelToWindow(psbbox_);
+  tbbox_ = device->pixelToWindow(ptbbox_);
+  bbox_  = device->pixelToWindow(pbbox_);
 
-  auto c = bbox_.getCenter();
+  double dx, dy;
 
-  double dx = center_.x - c.x;
-  double dy = center_.y - c.y;
+  if (drawData_.isWidget) {
+    dx = -bbox_.getXMin();
+    dy = -bbox_.getYMin();
+  }
+  else {
+    Point c = bbox_.getCenter();
 
-  double w = bbox_.getWidth ();
-  double h = bbox_.getHeight();
+    dx = center_.x - c.x;
+    dy = center_.y - c.y;
 
-  if      (align() & Qt::AlignLeft ) dx += w/2.0;
-  else if (align() & Qt::AlignRight) dx -= w/2.0;
+    double w = bbox_.getWidth ();
+    double h = bbox_.getHeight();
 
-  if      (align() & Qt::AlignBottom) dy += h/2.0;
-  else if (align() & Qt::AlignTop   ) dy -= h/2.0;
+    if      (align() & Qt::AlignLeft ) dx += w/2.0;
+    else if (align() & Qt::AlignRight) dx -= w/2.0;
+
+    if      (align() & Qt::AlignBottom) dy += h/2.0;
+    else if (align() & Qt::AlignTop   ) dy -= h/2.0;
+  }
 
   bbox_  =  bbox_.translated(dx, dy);
   sbbox_ = sbbox_.translated(dx, dy);
   tbbox_ = tbbox_.translated(dx, dy);
 
-  double pdx = plot()->windowToSignedPixelWidth (dx);
-  double pdy = plot()->windowToSignedPixelHeight(dy);
+  double pdx = device->windowToSignedPixelWidth (dx);
+  double pdy = device->windowToSignedPixelHeight(dy);
 
   for (auto &pbbox : symbolBoxes_)
     pbbox = pbbox.translated(pdx, pdy);
@@ -955,9 +1056,13 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsSymbolTypeMapKey::
-draw(PaintDevice *device, bool /*usePenBrush*/)
+draw(PaintDevice *device, const DrawData &drawData)
 {
-  auto ks = pixelSize();
+  drawData_ = drawData;
+
+  calcSize();
+
+  //---
 
   auto font = calcFont(textFont());
 
@@ -966,8 +1071,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
   double bm = this->margin();
   double bw = fm.width("X") + 4;
 
-  kw_ = ks.width ();
-  kh_ = ks.height();
+  //---
 
   calcCenter();
 
@@ -1006,7 +1110,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
     //---
 
-    auto p1 = pixelToWindow(p);
+    auto p1 = device->pixelToWindow(p);
 
     CQChartsTextOptions textOptions;
 
@@ -1030,14 +1134,14 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
       if (symbolSet)
         symbolData = symbolSet->symbolData(i);
       else
-        symbolData.symbol = CQChartsSymbol((CQChartsSymbol::Type) i);
+        symbolData.symbol = CQChartsSymbol(CQChartsSymbolType((CQChartsSymbolType::Type) i));
 
       //---
 
       // set pen brush
       PenBrush symbolPenBrush;
 
-      if (symbolData.filled)
+      if (symbolData.symbol.isFilled())
         setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
                     BrushData(true, symbolFillColor));
       else
@@ -1081,7 +1185,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
       // set pen brush
       PenBrush symbolPenBrush;
 
-      if (symbolData.filled)
+      if (symbolData.symbol.isFilled())
         setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
                     BrushData(true, symbolFillColor));
       else
@@ -1114,7 +1218,7 @@ draw(PaintDevice *device, bool /*usePenBrush*/)
 
 QSize
 CQChartsSymbolTypeMapKey::
-pixelSize() const
+calcSize() const
 {
   auto font = calcFont(textFont());
 
@@ -1179,4 +1283,100 @@ valueText(double value) const
   }
 
   return text;
+}
+
+//-----
+
+#include <CQChartsViewPlotPaintDevice.h>
+
+CQChartsMapKeyWidget::
+CQChartsMapKeyWidget(CQChartsMapKey *key) :
+ key_(key)
+{
+  setObjectName("mapKey");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  scrollArea_ = CQUtil::makeWidget<QScrollArea>("scrollArea");
+
+  layout->addWidget(scrollArea_);
+
+  keyFrame_ = new CQChartsMapKeyFrame(this);
+
+  scrollArea_->setWidget(keyFrame_);
+}
+
+void
+CQChartsMapKeyWidget::
+setKey(CQChartsMapKey *key)
+{
+  key_ = key;
+
+  if (key_) {
+    if (key_->plot())
+      key_->plot()->updateMapKey(key_);
+
+    //---
+
+    if (keyFrame_->updateSize()) {
+      QFontMetrics fm(font());
+
+      auto s = keyFrame_->size();
+
+      auto h = std::min(s.height(), fm.height()*6);
+
+      setFixedSize(QSize(s.width() + 16, h));
+    }
+  }
+
+  update();
+
+  keyFrame_->update();
+}
+
+//---
+
+CQChartsMapKeyFrame::
+CQChartsMapKeyFrame(CQChartsMapKeyWidget *w) :
+ w_(w)
+{
+  setObjectName("keyFrame");
+}
+
+bool
+CQChartsMapKeyFrame::
+updateSize()
+{
+  auto *key = w_->key();
+  if (! key) return false;
+
+  auto s  = this->size();
+  auto ks = key->calcSize();
+
+  if (ks.width() > 0 && ks.height() > 0 && (ks.width() != s.width() || ks.height() != s.height())) {
+    setFixedSize(ks);
+    return true;
+  }
+
+  return false;
+}
+
+void
+CQChartsMapKeyFrame::
+paintEvent(QPaintEvent *)
+{
+  auto *key = w_->key();
+  if (! key) return;
+
+  //---
+
+  QPainter p(this);
+
+  CQChartsPixelPaintDevice device(&p);
+
+  CQChartsMapKey::DrawData drawData;
+
+  drawData.isWidget = true;
+
+  key->draw(&device, drawData);
 }

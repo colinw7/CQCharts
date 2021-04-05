@@ -889,11 +889,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  virtual PlotKey *key() const;
-
   virtual Title *title() const;
 
   virtual void emitTitleChanged();
+
+  //---
+
+  virtual PlotKey *key() const;
 
   //---
 
@@ -1635,7 +1637,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void initSymbolTypeData(SymbolTypeData &symbolTypeData) const;
 
   bool columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
-                        Symbol &symbolType, OptBool &symbolFilled) const;
+                        Symbol &symbolType) const;
 
   //---
 
@@ -1904,6 +1906,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   double colorMapMax() const { return colorColumnData_.map_max; }
   void setColorMapMax(double r);
+
+  const ColumnType &colorMapType() const { return colorColumnData_.modelType; }
 
   const PaletteName &colorMapPalette() const { return colorColumnData_.palette; }
   void setColorMapPalette(const PaletteName &name);
@@ -2617,6 +2621,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool canDrawColorMapKey() const;
   void drawColorMapKey(PaintDevice *device) const;
 
+  void updateColorMapKey() const;
+
+  CQChartsColorMapKey *colorMapKey() const { return colorMapKey_.get(); }
+
+  //---
+
+  virtual void updateMapKey(CQChartsMapKey *key) const;
+
   //---
 
   // set clip rect
@@ -2874,6 +2886,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // plot objects added
   void plotObjsAdded();
+
+  // plot drawn
+  void plotDrawn();
 
   // connection (x1x2, y1y2, overlay) changed
   void connectDataChanged();
@@ -3513,102 +3528,5 @@ CQCHARTS_NAMED_SHAPE_DATA(Node, node)
 CQCHARTS_NAMED_LINE_DATA(Edge, edge)
 CQCHARTS_NAMED_POINT_DATA(Dot, dot)
 CQCHARTS_NAMED_POINT_DATA(Rug, rug)
-
-//------
-
-class CQChartsColumnParameterEdit;
-class CQChartsColumnsParameterEdit;
-class CQChartsEnumParameterEdit;
-class CQChartsBoolParameterEdit;
-class CQChartsColorLineEdit;
-class CQChartsColorRangeSlider;
-class CQChartsColumnCombo;
-class CQChartsPaletteNameEdit;
-
-class CQTabSplit;
-class QGridLayout;
-
-class CQChartsPlotCustomControls : public QFrame {
-  Q_OBJECT
-
- public:
-  CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType);
-
-  virtual ~CQChartsPlotCustomControls() { }
-
-  virtual CQChartsPlot *plot() const { return plot_; }
-  virtual void setPlot(CQChartsPlot *plot);
-
-  //---
-
-  struct FrameData {
-    QFrame*      frame  { nullptr };
-    QGridLayout* layout { nullptr };
-    int          row    { 0 };
-  };
-
-  FrameData createGroupFrame(const QString &name);
-
-  void addColumnWidgets(const QStringList &columnNames, FrameData &frameData);
-
-  void showColumnWidgets(const QStringList &columnNames);
-
-  void addColorColumnWidgets(const QString &title="Color");
-
-  void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
-
-  void addFrameRowStretch(FrameData &frameData);
-
-  //---
-
-  virtual CQChartsColor getColorValue() { return color_; }
-  virtual void setColorValue(const CQChartsColor &c) { color_ = c; }
-
- public slots:
-  virtual void updateWidgets();
-
- protected slots:
-  void colorDetailsSlot();
-
-  void colorSlot();
-  void colorColumnSlot();
-  void colorRangeSlot();
-  void colorPaletteSlot();
-
-  void columnSlot();
-  void columnsSlot();
-
-  void numericOnlySlot(int state);
-
- protected:
-  CQChartsPlotType *plotType() const;
-
-  CQChartsBoolParameterEdit *createBoolEdit(const QString &name);
-  CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
-
-  void connectSlots(bool b);
-
- protected:
-  using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
-  using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
-
-  CQCharts*   charts_ { nullptr };
-  CQTabSplit* split_  { nullptr };
-
-  int row_ { 0 };
-
-  QString                   plotType_;
-  CQChartsPlot*             plot_             { nullptr };
-  QLabel*                   titleWidget_      { nullptr };
-  ColumnEdits               columnEdits_;
-  ColumnsEdits              columnsEdits_;
-  QCheckBox*                numericCheck_     { nullptr };
-  CQChartsColorLineEdit*    colorEdit_        { nullptr };
-  CQChartsColumnCombo*      colorColumnCombo_ { nullptr };
-  CQChartsColorRangeSlider* colorRange_       { nullptr };
-  CQChartsPaletteNameEdit*  colorPaletteEdit_ { nullptr };
-
-  CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
-};
 
 #endif

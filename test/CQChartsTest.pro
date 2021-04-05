@@ -2,7 +2,7 @@ TEMPLATE = app
 
 TARGET = CQChartsTest
 
-QT += widgets svg
+QT += widgets svg xml
 
 DEPENDPATH += .
 

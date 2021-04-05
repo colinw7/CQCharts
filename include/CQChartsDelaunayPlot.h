@@ -249,6 +249,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

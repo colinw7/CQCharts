@@ -46,7 +46,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   Q_PROPERTY(CQChartsGeom::Point3D point    READ point   )
   Q_PROPERTY(QString               name     READ name    )
 
-  Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsSymbol symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
   Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
@@ -89,8 +89,8 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   //---
 
   // symbol type
-  Symbol symbolType() const;
-  void setSymbolType(const Symbol &s) { extraData().symbolType = s; }
+  Symbol symbol() const;
+  void setSymbol(const Symbol &s) { extraData().symbol = s; }
 
   // symbol size
   Length symbolSize() const;
@@ -122,7 +122,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
  private:
   struct ExtraData {
-    Symbol symbolType;                      //!< symbol type
+    Symbol symbol;                          //!< symbol
     Length symbolSize { Units::NONE, 0.0 }; //!< symbol size
     Length fontSize   { Units::NONE, 0.0 }; //!< font size
     Color  color;                           //!< symbol fill color
@@ -405,6 +405,9 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
                                    const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
+ signals:
+  void customDataChanged();
+
  protected slots:
   void dataLabelChanged();
 
@@ -475,6 +478,8 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 };
 
 //---
+
+#include <CQChartsPlotCustomControls.h>
 
 class CQChartsScatterPlot3DCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT

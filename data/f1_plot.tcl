@@ -39,7 +39,7 @@ foreach model $models {
 
   set_charts_property -plot $splot -name title.text.color -value {interface 0.0}
 
-  set_charts_property -plot $splot -name symbol.size -value 24px
+  set_charts_property -plot $splot -name points.size -value 24px
 
   set_charts_property -plot $splot -name dataBox.clip -value 0
   set_charts_property -plot $splot -name dataBox.fill.color -value {interface 0.6}
@@ -48,11 +48,11 @@ foreach model $models {
   set_charts_property -plot $splot -name invert.x -value 1
   set_charts_property -plot $splot -name invert.y -value 1
 
-  set_charts_property -plot $splot -name labels.visible -value 1
-  set_charts_property -plot $splot -name labels.position -value LEFT_OUTSIDE
-  set_charts_property -plot $splot -name labels.text.color -value {interface 0.0}
-  set_charts_property -plot $splot -name labels.text.contrast -value 0
-  set_charts_property -plot $splot -name labels.text.font -value -4
+  set_charts_property -plot $splot -name points.labels.visible -value 1
+  set_charts_property -plot $splot -name points.labels.position -value LEFT_OUTSIDE
+  set_charts_property -plot $splot -name points.labels.text.color -value {interface 0.0}
+  set_charts_property -plot $splot -name points.labels.text.contrast -value 0
+  set_charts_property -plot $splot -name points.labels.text.font -value -4
 
   lappend splots $splot
 

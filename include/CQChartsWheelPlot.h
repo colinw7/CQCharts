@@ -601,6 +601,8 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
 //---
 
+#include <CQChartsPlotCustomControls.h>
+
 class CQChartsWheelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

@@ -156,7 +156,8 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
       else
         po = Point(outlier, p3.y);
 
-      CQChartsDrawUtil::drawSymbol(device, symbol.type(), po, symbol.size());
+      if (symbol.symbol().isValid())
+        CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), po, symbol.size());
     }
   }
 }

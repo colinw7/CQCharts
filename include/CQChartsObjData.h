@@ -241,8 +241,8 @@ Q_PROPERTY(CQChartsSymbolData symbolData READ symbolData WRITE setSymbolData) \
 \
 Q_PROPERTY(bool                points \
            READ isPoints          WRITE setPoints           ) \
-Q_PROPERTY(CQChartsSymbol      symbolType \
-           READ symbolType        WRITE setSymbolType       ) \
+Q_PROPERTY(CQChartsSymbol      symbol \
+           READ symbol            WRITE setSymbol           ) \
 Q_PROPERTY(CQChartsLength      symbolSize \
            READ symbolSize        WRITE setSymbolSize       ) \
 Q_PROPERTY(bool                symbolStroked \
@@ -295,16 +295,16 @@ class CQChartsObjPointData {
       pointData_.setVisible(b); pointDataInvalidate(isReloadObj()); }
   }
 
-  const Symbol &symbolType() const { return pointData_.type(); }
-  void setSymbolType(const Symbol &t) {
-    if (t != pointData_.type()) {
-      pointData_.setType(t); pointDataInvalidate(); }
+  const Symbol &symbol() const { return pointData_.symbol(); }
+  void setSymbol(const Symbol &s) {
+    if (s != pointData_.symbol()) {
+      pointData_.setSymbol(s); pointDataInvalidate(); }
   }
 
   const Length &symbolSize() const { return pointData_.size(); }
-  void setSymbolSize(const Length &s) {
-    if (s != pointData_.size()) {
-      pointData_.setSize(s); pointDataInvalidate(); }
+  void setSymbolSize(const Length &l) {
+    if (l != pointData_.size()) {
+      pointData_.setSize(l); pointDataInvalidate(); }
   }
 
   bool isSymbolStroked() const { return pointData_.stroke().isVisible(); }
@@ -408,8 +408,8 @@ Q_PROPERTY(CQChartsSymbolData LNAME##SymbolData \
 \
 Q_PROPERTY(bool                LNAME##Points \
            READ is##UNAME##Points        WRITE set##UNAME##Points           ) \
-Q_PROPERTY(CQChartsSymbol      LNAME##SymbolType \
-           READ LNAME##SymbolType        WRITE set##UNAME##SymbolType       ) \
+Q_PROPERTY(CQChartsSymbol      LNAME##Symbol \
+           READ LNAME##Symbol            WRITE set##UNAME##Symbol           ) \
 Q_PROPERTY(CQChartsLength      LNAME##SymbolSize \
            READ LNAME##SymbolSize        WRITE set##UNAME##SymbolSize       ) \
 Q_PROPERTY(bool                LNAME##SymbolStroked \
@@ -463,10 +463,10 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##PointData_.setVisible(b); LNAME##PointDataInvalidate(is##UNAME##ReloadObj()); } \
   } \
 \
-  const Symbol &LNAME##SymbolType() const { return LNAME##PointData_.type(); } \
-  void set##UNAME##SymbolType(const Symbol &t) { \
-    if (t != LNAME##PointData_.type()) { \
-      LNAME##PointData_.setType(t); LNAME##PointDataInvalidate(); } \
+  const Symbol &LNAME##Symbol() const { return LNAME##PointData_.symbol(); } \
+  void set##UNAME##Symbol(const Symbol &s) { \
+    if (s != LNAME##PointData_.symbol()) { \
+      LNAME##PointData_.setSymbol(s); LNAME##PointDataInvalidate(); } \
   } \
 \
   const Length &LNAME##SymbolSize() const { return LNAME##PointData_.size(); } \

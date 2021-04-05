@@ -265,14 +265,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // symbol type map key
   void addSymbolTypeMapKey();
 
-  void addSymbolTypeMapKeyProperties();
+  bool canDrawSymbolTypeMapKey() const;
+  void drawSymbolTypeMapKey(PaintDevice *device) const;
+
+  void updateSymbolTypeMapKey() const;
 
   bool isSymbolTypeMapKey() const;
 
-  //---
+  void addSymbolTypeMapKeyProperties();
 
-  bool canDrawSymbolTypeMapKey() const;
-  void drawSymbolTypeMapKey(PaintDevice *device) const;
+  CQChartsSymbolTypeMapKey *symbolTypeMapKey() const { return symbolTypeMapKey_.get(); }
 
   //---
 
@@ -298,17 +300,24 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   virtual void setFixedSymbolSize(const Length &s) = 0;
   virtual const Length &fixedSymbolSize() const = 0;
 
-  virtual void setFixedSymbolType(const Symbol &s) = 0;
-  virtual const Symbol &fixedSymbolType() const = 0;
+  virtual void setFixedSymbol(const Symbol &s) = 0;
+  virtual const Symbol &fixedSymbol() const = 0;
+
+  CQChartsSymbolSizeMapKey *symbolSizeMapKey() const { return symbolSizeMapKey_.get(); }
 
   //---
 
   // symbol size map key
   void addSymbolSizeMapKey();
 
-  void addSymbolSizeMapKeyProperties();
+  bool canDrawSymbolSizeMapKey() const;
+  void drawSymbolSizeMapKey(PaintDevice *device) const;
+
+  void updateSymbolSizeMapKey() const;
 
   bool isSymbolSizeMapKey() const;
+
+  void addSymbolSizeMapKeyProperties();
 
   const Alpha &symbolSizeMapKeyAlpha() const;
   void setSymbolSizeMapKeyAlpha(const Alpha &a);
@@ -318,8 +327,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool canDrawSymbolSizeMapKey() const;
-  void drawSymbolSizeMapKey(PaintDevice *device) const;
+  void updateMapKey(CQChartsMapKey *key) const override;
 
   //---
 
@@ -373,8 +381,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsAxisRug::Side &xRugSide() const;
   void setXRugSide(const CQChartsAxisRug::Side &s);
 
-  const Symbol &xRugSymbolType() const;
-  void setXRugSymbolType(const Symbol &s);
+  const Symbol &xRugSymbol() const;
+  void setXRugSymbol(const Symbol &s);
 
   const Length &xRugSymbolSize() const;
   void setXRugSymbolSize(const Length &l);
@@ -387,8 +395,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsAxisRug::Side &yRugSide() const;
   void setYRugSide(const CQChartsAxisRug::Side &s);
 
-  const Symbol &yRugSymbolType() const;
-  void setYRugSymbolType(const Symbol &s);
+  const Symbol &yRugSymbol() const;
+  void setYRugSymbol(const Symbol &s);
 
   const Length &yRugSymbolSize() const;
   void setYRugSymbolSize(const Length &l);
@@ -417,7 +425,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void addHullProperties   (bool hasLayer);
 
   void addStatsProperties();
-  void addRugProperties();
+  void addRugProperties(const QString &path);
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
@@ -432,6 +440,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Font dataLabelFont() const;
   void setDataLabelFont(const Font &font, bool notify=true);
 
+  Length dataLabelFontSize() const;
+  void setDataLabelFontSize(const Length &l);
+
   //---
 
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
@@ -443,8 +454,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   void initSymbolTypeData() const;
-  bool columnSymbolType(int row, const QModelIndex &parent,
-                        Symbol &symbolType, OptBool &symbolFilled) const;
+  bool columnSymbolType(int row, const QModelIndex &parent, Symbol &symbolType) const;
 
   //---
 
@@ -605,56 +615,6 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   RugP xRug_; //! x rug
   RugP yRug_; //! y rug
-};
-
-//---
-
-class CQChartsLengthEdit;
-class CQChartsSymbolEdit;
-class CQChartsSymbolSetEdit;
-class CQChartsSymbolTypeRangeSlider;
-class CQChartsSymbolSizeRangeSlider;
-
-class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
-  Q_OBJECT
-
- public:
-  CQChartsPointPlotCustomControls(CQCharts *charts, const QString &plotType);
-
-  void setPlot(CQChartsPlot *plot) override;
-
-  void addSymbolSizeWidgets();
-
- protected slots:
-  void symbolSizeDetailsSlot();
-  void symbolTypeDetailsSlot();
-
-  void symbolSizeLengthSlot();
-  void symbolSizeColumnSlot();
-  void symbolSizeRangeSlot(double min, double max);
-
-  void symbolTypeSlot();
-  void symbolTypeColumnSlot();
-  void symbolTypeRangeSlot(int min, int max);
-  void symbolTypeSetSlot(const QString &name);
-
- public slots:
-  void updateWidgets() override;
-
- protected:
-  void connectSlots(bool b);
-
- private:
-  using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
-
-  CQChartsPointPlot*             plot_                  { nullptr };
-  CQChartsLengthEdit*            symbolSizeLengthEdit_  { nullptr };
-  CQChartsColumnCombo*           symbolSizeColumnCombo_ { nullptr };
-  CQChartsSymbolSizeRangeSlider* symbolSizeRange_       { nullptr };
-  CQChartsSymbolEdit*            symbolTypeEdit_        { nullptr };
-  CQChartsColumnCombo*           symbolTypeColumnCombo_ { nullptr };
-  CQChartsSymbolTypeRangeSlider* symbolTypeRange_       { nullptr };
-  CQChartsSymbolSetEdit*         symbolTypeSetEdit_     { nullptr };
 };
 
 #endif

@@ -222,6 +222,7 @@ createEditor()
 
   if (factory) {
     widget = factory->createEdit(this);
+    if (! widget) return nullptr;
 
     setWidgetPlot(widget);
 
