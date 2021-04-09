@@ -809,17 +809,18 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using NamedDensity      = std::map<QString, Density *>;
   using GroupNamedDensity = std::map<int, NamedDensity>;
   using GroupWhiskers     = std::map<int, AxisBoxWhisker *>;
+  using GroupThread       = std::map<int, CQThreadObject *>;
 
   // global density data (all groups)
   //
   // Depends on groupNameValues which are calculated on draw objs
   struct DensityMapData {
-    bool            visible   { false };                 //!< visible
-    int             gridSize  { 16 };                    //!< grid size
-    double          delta     { 0.0 };                   //!< value delta
-    DrawLayer       layer     { DrawLayer::BACKGROUND }; //!< draw layer
-    mutable Size    psize;                               //!< last calculated pixel size
-    CQThreadObject* thread    { nullptr };               //!< calc thread
+    bool         visible      { false };                 //!< visible
+    int          gridSize     { 16 };                    //!< grid size
+    double       delta        { 0.0 };                   //!< value delta
+    DrawLayer    layer        { DrawLayer::BACKGROUND }; //!< draw layer
+    mutable Size psize;                                  //!< last calculated pixel size
+    GroupThread  groupThread;                            //!< calc thread
   };
 
  private:

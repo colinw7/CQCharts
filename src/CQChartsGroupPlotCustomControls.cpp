@@ -1,6 +1,7 @@
 #include <CQChartsGroupPlotCustomControls.h>
 #include <CQChartsGroupPlot.h>
 #include <CQChartsColumnCombo.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQUtil.h>
 
 CQChartsGroupPlotCustomControls::
@@ -22,8 +23,6 @@ addGroupColumnWidgets()
 
   addFrameWidget(groupFrame, "Column", groupColumnCombo_);
 
-  connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
-
   //addFrameRowStretch(groupFrame);
 }
 
@@ -40,12 +39,26 @@ void
 CQChartsGroupPlotCustomControls::
 updateWidgets()
 {
+  connectSlots(false);
+
   if (groupColumnCombo_)
     groupColumnCombo_->setModelColumn(plot_->getModelData(), plot_->groupColumn());
 
   //---
 
   CQChartsPlotCustomControls::updateWidgets();
+
+  connectSlots(true);
+}
+
+void
+CQChartsGroupPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
+
+  CQChartsPlotCustomControls::connectSlots(b);
 }
 
 void

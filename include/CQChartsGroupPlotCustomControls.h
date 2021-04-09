@@ -15,6 +15,9 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addGroupColumnWidgets();
 
+ protected:
+  void connectSlots(bool b);
+
  public slots:
   void updateWidgets() override;
 

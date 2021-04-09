@@ -3,7 +3,10 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + hide density map of invisible groups
+ + grouping in separate tab of custom controls
  + smatter handling of columns when group matches map columns (color, symbol size, symbol type)
+ + key auto scale symbol size when widget. better draw circles. curve ?
  + fix test_all.sh crashes
  + symbol and symbol type confusion
    + symbol type needs to be combined with fill/stroke to get symbol

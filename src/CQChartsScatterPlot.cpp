@@ -446,14 +446,14 @@ void
 CQChartsScatterPlot::
 setDensityMapGridSize(int s)
 {
-  CQChartsUtil::testAndSet(densityMapData_.gridSize, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(densityMapData_.gridSize, s, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setDensityMapDelta(double d)
 {
-  CQChartsUtil::testAndSet(densityMapData_.delta, d, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(densityMapData_.delta, d, [&]() { updateObjs(); } );
 }
 
 void
@@ -1722,12 +1722,15 @@ getDensity(int groupInd, const QString &name) const
 
   // if new calc needed then start or restart thread calc
   if (needsCalc) {
-    if (! densityMapData_.thread || densityMapData_.thread->isReady())
+    auto pt = densityMapData_.groupThread.find(groupInd);
+
+    if (pt == densityMapData_.groupThread.end() || (*pt).second->isReady())
       th->calcDensityMap(groupInd);
 
     // trigger redraw to check for result
     // TODO: separate timer
-    th->updateSlot();
+    //th->updateSlot();
+
     return nullptr;
   }
 
@@ -1735,8 +1738,11 @@ getDensity(int groupInd, const QString &name) const
 
   // if result not ready then wait
   // TODO: separate timer
-  if (! densityMapData_.thread->isReady()) {
-    th->updateSlot();
+  auto pt = densityMapData_.groupThread.find(groupInd);
+
+  if (pt == densityMapData_.groupThread.end() || ! (*pt).second->isReady()) {
+    //th->updateSlot();
+
     return nullptr;
   }
 
@@ -2961,10 +2967,15 @@ void
 CQChartsScatterPlot::
 calcDensityMap(int groupInd)
 {
-  if (! densityMapData_.thread)
-    densityMapData_.thread = new CQThreadObject;
+  auto pt = densityMapData_.groupThread.find(groupInd);
 
-  densityMapData_.thread->exec(calcDensityMapThread, this, groupInd);
+  if (pt == densityMapData_.groupThread.end() || ! (*pt).second) {
+    densityMapData_.groupThread[groupInd] = new CQThreadObject;
+
+    pt = densityMapData_.groupThread.find(groupInd);
+  }
+
+  (*pt).second->exec(calcDensityMapThread, this, groupInd);
 }
 
 void
@@ -3025,7 +3036,14 @@ calcDensityMapImpl(int groupInd)
 
   //---
 
-  densityMapData_.thread->end();
+  auto pt = densityMapData_.groupThread.find(groupInd);
+
+  (*pt).second->end();
+
+  //---
+
+  // trigger redraw to show calculated results
+  updateSlot();
 }
 
 //------
