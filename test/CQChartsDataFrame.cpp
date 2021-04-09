@@ -15,6 +15,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsMargin.h>
 #include <CQCharts.h>
+#include <CQChartsFile.h>
 
 #include <CQChartsCmds.h>
 
@@ -189,7 +190,9 @@ exec(CQTclCmd::CmdArgs &argv)
   auto *factory = static_cast<ModelFactory *>(data());
   auto *cmd     = factory->cmd();
 
-  auto fileName = argv.getParseStr("file");
+  auto *charts = cmd->charts();
+
+  auto filename = argv.getParseStr("file");
 
   CQChartsInputData inputData;
 
@@ -201,10 +204,10 @@ exec(CQTclCmd::CmdArgs &argv)
 
   CQChartsFileType fileType { CQChartsFileType::CSV };
 
-  if (! cmd->cmds()->loadFileModel(fileName, fileType, inputData))
-    return false;
+  CQChartsFile file(charts, filename);
 
-  auto *charts = cmd->charts();
+  if (! cmd->cmds()->loadFileModel(file, fileType, inputData))
+    return false;
 
   auto *modelData = charts->currentModelData();
   if (! modelData) return false;
@@ -1270,10 +1273,10 @@ void showFrame(CQChartsDataFrameCmd *cmd) {
   frame->show();
 }
 
-void loadFrameFile(const QString &fileName) {
+void loadFrameFile(const QString &filename) {
   auto *frame = initFrame(nullptr);
 
-  frame->load(fileName);
+  frame->load(filename);
 }
 
 }

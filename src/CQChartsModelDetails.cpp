@@ -1978,8 +1978,10 @@ namedImage(const QString &name, CQChartsImage &image) const
   const auto *columnType = this->columnType();
   if (! columnType) return false;
 
+  auto *charts = details_->charts();
+
   const auto &nameValues  = typeData_.nameValues;
-  const auto &namedImages = columnType->namedImages(nameValues);
+  const auto &namedImages = columnType->namedImages(charts, nameValues);
 
   QVariant value;
 

@@ -242,6 +242,9 @@ CQChartsView::
 
   if (! isFloatTip())
     CQToolTip::unsetToolTip(this);
+
+  delete toolTip_;
+  delete floatTip_;
 }
 
 void
@@ -6388,10 +6391,10 @@ printPNGSlot()
 {
   auto dir = QDir::current().dirName() + "/charts.png";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
+  if (! filename.length()) return; // cancelled
 
-  printPNGSlot(fileName);
+  printPNGSlot(filename);
 }
 
 void
@@ -6407,10 +6410,10 @@ printSVGSlot()
 {
   auto dir = QDir::current().dirName() + "/charts.svg";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
+  if (! filename.length()) return; // cancelled
 
-  printSVGSlot(fileName);
+  printSVGSlot(filename);
 }
 
 void
@@ -6426,10 +6429,10 @@ writeSVGSlot()
 {
   auto dir = QDir::current().dirName() + "/charts_svg.html";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
+  if (! filename.length()) return; // cancelled
 
-  writeSVGSlot(fileName);
+  writeSVGSlot(filename);
 }
 
 void
@@ -6452,10 +6455,10 @@ writeScriptSlot()
 {
   auto dir = QDir::current().dirName() + "/charts_js.html";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
+  if (! filename.length()) return; // cancelled
 
-  writeScriptSlot(fileName);
+  writeScriptSlot(filename);
 }
 
 bool

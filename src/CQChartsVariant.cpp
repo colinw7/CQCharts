@@ -102,7 +102,27 @@ bool toString(const QVariant &var, QString &str) {
     str = var.toString();
   }
   else if (var.type() == QVariant::SizePolicy) {
-    str = ""; // TODO
+    auto policyToString = [](QSizePolicy::Policy policy) {
+      switch (policy) {
+        case QSizePolicy::Fixed           : return QString("Fixed");
+        case QSizePolicy::Minimum         : return QString("Minimum");
+        case QSizePolicy::Maximum         : return QString("Maximum");
+        case QSizePolicy::Preferred       : return QString("Preferred");
+        case QSizePolicy::Expanding       : return QString("Expanding");
+        case QSizePolicy::MinimumExpanding: return QString("MinimumExpanding");
+        case QSizePolicy::Ignored         : return QString("Ignored");
+        default                           : return QString("%1").arg(policy);
+      }
+    };
+
+    QSizePolicy sp = var.value<QSizePolicy>();
+
+    str = QString("%1 %2 %3 %4").arg(policyToString(sp.horizontalPolicy())).
+                                 arg(policyToString(sp.verticalPolicy  ())).
+                                 arg(sp.horizontalStretch()).
+                                 arg(sp.verticalStretch  ());
+
+    return true;
   }
   else {
     assert(false);

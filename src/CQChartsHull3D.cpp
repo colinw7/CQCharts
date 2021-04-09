@@ -501,7 +501,7 @@ dumpPS(const char *filename)
   auto *fp = fopen(filename, "w");
 
   if (! fp) {
-    std::cerr << "Invalid filename " << filename << "\n";
+    std::cerr << "Invalid file name " << filename << "\n";
     return;
   }
 

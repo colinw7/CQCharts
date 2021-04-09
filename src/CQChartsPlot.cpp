@@ -57,7 +57,6 @@
 #include <QTextBrowser>
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QCheckBox>
 #include <QPainter>
 #include <QMenu>
 #include <QAction>

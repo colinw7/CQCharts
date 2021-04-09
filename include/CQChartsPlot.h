@@ -238,7 +238,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // title and associated filename (if any)
   Q_PROPERTY(QString title    READ titleStr WRITE setTitleStr)
-  Q_PROPERTY(QString fileName READ fileName WRITE setFileName)
+  Q_PROPERTY(QString filename READ filename WRITE setFileName)
   Q_PROPERTY(QString xLabel   READ xLabel   WRITE setXLabel  )
   Q_PROPERTY(QString yLabel   READ yLabel   WRITE setYLabel  )
 
@@ -655,8 +655,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const QString &titleStr() const;
   void setTitleStr(const QString &s);
 
-  const QString &fileName() const { return fileName_; }
-  void setFileName(const QString &s) { fileName_ = s; }
+  const QString &filename() const { return filename_; }
+  void setFileName(const QString &s) { filename_ = s; }
 
   //---
 
@@ -3288,7 +3288,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // title
   TitleP  titleObj_; //!< title object
   QString titleStr_; //!< title string
-  QString fileName_; //!< associated data filename
+  QString filename_; //!< associated data filename
 
   // axes
   AxisP xAxis_; //!< x axis object

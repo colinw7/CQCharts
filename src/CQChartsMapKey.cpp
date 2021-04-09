@@ -229,7 +229,6 @@ drawContiguous(PaintDevice *device)
   // calc text width
   auto dataMid = CMathUtil::avg(dataMin(), dataMax());
 
-
   //---
 
   calcCenter();
@@ -976,7 +975,7 @@ alignBoxes(PaintDevice *device) const
     dy = -bbox_.getYMin();
   }
   else {
-    Point c = bbox_.getCenter();
+    auto c = bbox_.getCenter();
 
     dx = center_.x - c.x;
     dy = center_.y - c.y;

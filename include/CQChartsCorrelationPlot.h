@@ -48,6 +48,7 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
  public:
   using CorrelationPlot = CQChartsCorrelationPlot;
+  using Symbol          = CQChartsSymbol;
   using Angle           = CQChartsAngle;
 
  public:

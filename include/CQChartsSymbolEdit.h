@@ -49,11 +49,11 @@ class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
 #include <CQChartsEditBase.h>
 
 class CQChartsSymbolTypeEdit;
+class CQCheckBox;
 
 class QStackedWidget;
 class QComboBox;
 class QLineEdit;
-class QCheckBox;
 class QLabel;
 
 /*!
@@ -100,8 +100,8 @@ class CQChartsSymbolEdit : public CQChartsEditBase {
   QLineEdit*              pathSrcEdit_  { nullptr }; //!< path src edit
   QComboBox*              svgCombo_     { nullptr }; //!< svg name combo
   QLineEdit*              svgSrcEdit_   { nullptr }; //!< svg src edit
-  QCheckBox*              filledCheck_  { nullptr }; //!< filled check
-  QCheckBox*              strokedCheck_ { nullptr }; //!< stroke check
+  CQCheckBox*             filledCheck_  { nullptr }; //!< filled check
+  CQCheckBox*             strokedCheck_ { nullptr }; //!< stroke check
   bool                    connected_    { false };   //!< is connected
 };
 

@@ -158,7 +158,7 @@ init()
 
   //---
 
-  setDotSymbol(CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE));
+  setDotSymbol(Symbol::circle());
   setDotSymbolSize(Length("7px"));
 
   //---
@@ -2760,7 +2760,7 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Dot Lines"   , dotLinesCheck_);
   addFrameWidget(optionsFrame, "Color by Set", colorBySetCheck_);
 
-  addFrameRowStretch(optionsFrame);
+//addFrameRowStretch(optionsFrame);
 
   //---
 
@@ -2768,6 +2768,8 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
   addColorColumnWidgets();
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

@@ -946,6 +946,8 @@ CQChartsViewSettings::
 //delete propertiesWidgets_.plotTip;
 
   delete updateErrorsTimer_;
+
+  delete objectsWidgets_.propertyModel;
 }
 
 void
@@ -2328,10 +2330,10 @@ writeViewSlot()
 
   auto dir = QDir::current().dirName() + "/view.tcl";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  if (! filename.length()) return; // cancelled
 
-  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  auto fs = std::ofstream(filename.toStdString(), std::ofstream::out);
 
   //---
 
@@ -2799,10 +2801,10 @@ writePlotSlot()
 
   auto dir = QDir::current().dirName() + "/plot.tcl";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  if (! filename.length()) return; // cancelled
 
-  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  auto fs = std::ofstream(filename.toStdString(), std::ofstream::out);
 
   //---
 
@@ -3193,10 +3195,10 @@ writeAnnotationSlot()
 
   auto dir = QDir::current().dirName() + "/annotation.tcl";
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
+  if (! filename.length()) return; // cancelled
 
-  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  auto fs = std::ofstream(filename.toStdString(), std::ofstream::out);
 
   //---
 

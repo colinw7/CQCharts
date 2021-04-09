@@ -256,24 +256,29 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   //---
 
   // symbol type
-  Symbol symbol() const;
+  const Symbol &symbol() const { return extraData()->symbol; }
   void setSymbol(Symbol s) { extraData()->symbol = s; }
+  Symbol calcSymbol() const;
 
   // symbol size
-  Length symbolSize() const;
+  const Length &symbolSize() const { return extraData()->symbolSize; }
   void setSymbolSize(const Length &s) { extraData()->symbolSize = s; }
+  Length calcSymbolSize() const;
 
   // font size
-  Length fontSize() const;
+  const Length &fontSize() const { return extraData()->fontSize; }
   void setFontSize(const Length &s) { extraData()->fontSize = s; }
+  Length calcFontSize() const;
 
   // color
-  Color color() const;
+  Color color() const { return extraData()->color; }
   void setColor(const Color &c) { extraData()->color = c; }
+  Color calcColor() const;
 
   // Image
-  Image image() const;
+  Image image() const { return extraData()->image; }
   void setImage(const Image &i) { extraData()->image = i; }
+  Image calcImage() const;
 
   // vector
   bool isVector() const;
@@ -853,6 +858,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   const Symbol &fixedSymbol() const override { return symbol(); }
 
   //---
+
+  bool canBivariateLines() const;
 
  private:
   void resetBestFit() override;

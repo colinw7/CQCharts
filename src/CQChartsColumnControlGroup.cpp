@@ -27,7 +27,7 @@ CQChartsColumnControlGroup(QWidget *parent) :
   auto *cornerControl = CQUtil::makeWidget<QFrame>("cornerControl");
   auto *cornerLayout  = CQUtil::makeLayout<QHBoxLayout>(cornerControl, 0, 0);
 
-  radioGroup_ = new QButtonGroup;
+  radioGroup_ = new QButtonGroup(this);
 
   auto *globalRadio = CQUtil::makeLabelWidget<QRadioButton>("Global", "global");
   auto *columnRadio = CQUtil::makeLabelWidget<QRadioButton>("Column", "column");

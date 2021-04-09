@@ -43,7 +43,7 @@ class CQChartsEditModelDlg : public QDialog {
 
   void connectSlots(bool b);
 
-//bool writeCSVModel(const QString &fileName);
+//bool writeCSVModel(const QString &filename);
 //void writeModelCmds();
 
  private:

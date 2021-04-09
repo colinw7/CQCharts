@@ -13,7 +13,7 @@ namespace CQChartsSVGUtil {
   using Styles = std::vector<CQChartsStyle>;
   using BBox   = CQChartsGeom::BBox;
 
-  bool svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox);
+  bool svgFileToPaths(const QString &filename, Paths &paths, Styles &styles, BBox &bbox);
 
   bool stringToPath(const QString &str, QPainterPath &path);
   QString pathToString(const QPainterPath &path);

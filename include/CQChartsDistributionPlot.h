@@ -162,6 +162,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   using Bucket   = CQChartsDistributionBucket;
   using BarValue = CQChartsDistributionBarValue;
   using Column   = CQChartsColumn;
+  using Symbol   = CQChartsSymbol;
   using Length   = CQChartsLength;
 
   CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd,
@@ -277,6 +278,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   using Plot   = CQChartsDistributionPlot;
   using Bucket = CQChartsDistributionBucket;
+  using Symbol = CQChartsSymbol;
 
   using Points = std::vector<Point>;
 

@@ -409,9 +409,11 @@ CQChartsContourPlotCustomControls(CQCharts *charts) :
 
   addFrameWidget(optionsFrame, "Solid", solidCheck_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

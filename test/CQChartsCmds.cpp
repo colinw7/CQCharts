@@ -27,6 +27,7 @@
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsSVGUtil.h>
+#include <CQChartsFile.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -432,10 +433,12 @@ execCmd(CQChartsCmdArgs &argv)
       return errorMsg("Extra filename");
   }
 
-  if (! cmds()->loadFileModel(filename, fileType, inputData))
-    return false;
-
   auto *charts = this->charts();
+
+  CQChartsFile file(charts, filename);
+
+  if (! cmds()->loadFileModel(file, fileType, inputData))
+    return false;
 
   auto *modelData = charts->currentModelData();
 
@@ -2929,10 +2932,10 @@ execCmd(CQChartsCmdArgs &argv)
   if      (argv.hasParseArg("symbol")) {
     auto symbolStr = argv.getParseStr("symbol");
 
-    if (CQChartsSymbolType::nameToType(symbolStr) == CQChartsSymbolType::Type::NONE)
-      return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
-
     CQChartsSymbol symbol(symbolStr);
+
+    if (! symbol.isValid())
+      return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
 
     symbol.setFilled(filled);
 
@@ -2974,7 +2977,9 @@ execCmd(CQChartsCmdArgs &argv)
     auto nameStr = argv.getParseStr("name");
     bool styled  = argv.getParseBool("styled");
 
-    auto symbol = CQChartsSymbol::fromSVGFile(svgStr, nameStr, styled);
+    CQChartsFile file(charts(), svgStr);
+
+    auto symbol = CQChartsSymbol::fromSVGFile(file, nameStr, styled);
 
     if (! symbol.isValid())
       return errorMsg(QString("Invalid SVG File '%1'").arg(svgStr));
@@ -7506,7 +7511,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
   addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
   addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
-//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
+  addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
   addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
   addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
@@ -7587,10 +7592,10 @@ execCmd(CQChartsCmdArgs &argv)
   auto rx = argv.getParseLength(view, plot, "rx");
   auto ry = argv.getParseLength(view, plot, "ry");
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+  fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+  fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
@@ -8307,14 +8312,14 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
   addArg(argv, "-position", ArgType::Position, "point position");
 
-  addArg(argv, "-type", ArgType::String, "symbol type");
-  addArg(argv, "-size", ArgType::Length, "symbol size");
+  addArg(argv, "-symbol", ArgType::String, "symbol");
+  addArg(argv, "-size"  , ArgType::Length, "symbol size");
 
-  addArg(argv, "-filled"    , ArgType::SBool, "symbol background is filled" ).setHidden();
+//addArg(argv, "-filled"    , ArgType::SBool, "symbol background is filled" ).setHidden();
   addArg(argv, "-fill_color", ArgType::Color, "symbol background fill color").setHidden();
   addArg(argv, "-fill_alpha", ArgType::Real , "symbol background fill alpha").setHidden();
 
-  addArg(argv, "-stroked"     , ArgType::SBool , "symbol border stroke visible").setHidden();
+//addArg(argv, "-stroked"     , ArgType::SBool , "symbol border stroke visible").setHidden();
   addArg(argv, "-stroke_color", ArgType::Color , "symbol border stroke color"  ).setHidden();
   addArg(argv, "-stroke_alpha", ArgType::Real  , "symbol border stroke alpha"  ).setHidden();
   addArg(argv, "-stroke_width", ArgType::Length, "symbol border stroke width"  ).setHidden();
@@ -8385,27 +8390,27 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto pos = argv.getParsePosition(view, plot, "position");
 
-  auto typeStr = argv.getParseStr("type");
+  auto symbolStr = argv.getParseStr("symbol");
 
-  if (typeStr.length()) {
-    if (typeStr == "?")
-      return cmdBase_->setCmdRc(getArgValues("type"));
+  if (symbolStr.length()) {
+    if (symbolStr == "?")
+      return cmdBase_->setCmdRc(getArgValues("symbol"));
 
-    CQChartsSymbol symbol(typeStr);
+    CQChartsSymbol symbol(symbolStr);
 
     if (! symbol.isValid())
-      return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
+      return errorMsg(QString("Invalid symbol '%1'").arg(symbolStr));
 
     symbolData.setSymbol(symbol);
   }
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
 
-  fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
+//fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
   fill.setAlpha  (argv.getParseAlpha("fill_alpha", fill.alpha    ()));
 
-  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
+//stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color    ()));
   stroke.setAlpha  (argv.getParseAlpha ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
@@ -8584,7 +8589,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
   addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
   addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
-//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
+  addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
   addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
   addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
@@ -8661,10 +8666,10 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto points = argv.getParsePoly("points");
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+  fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+  fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
@@ -8729,9 +8734,9 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
   addArg(argv, "-points", ArgType::Polygon, "points string").setRequired();
 
-  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
-  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
-  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+//addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+//addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+//addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
 //addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
   addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
@@ -8799,7 +8804,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto &shapeData = boxData.shape();
 
-  auto &fill   = shapeData.fill();
+//auto &fill   = shapeData.fill();
   auto &stroke = shapeData.stroke();
 
   stroke.setVisible(true);
@@ -8809,10 +8814,10 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto points = argv.getParsePoly("points");
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+//fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+//fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+//fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+//fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
@@ -8886,7 +8891,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
   addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
   addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
-//addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
+  addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
 
   addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
   addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
@@ -8968,10 +8973,10 @@ execCmd(CQChartsCmdArgs &argv)
   boxData.setMargin (argv.getParseMargin(view, plot, "margin" , boxData.margin ()));
   boxData.setPadding(argv.getParseMargin(view, plot, "padding", boxData.padding()));
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+  fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+  fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
@@ -9175,10 +9180,10 @@ execCmd(CQChartsCmdArgs &argv)
   textData.setAlign   (argv.getParseAlign("align"   , textData.align     ()));
   textData.setHtml    (argv.getParseBool ("html"    , textData.isHtml    ()));
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+  fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+//fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
@@ -10981,11 +10986,16 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (argv.hasParseArg("file")) {
-    auto fileName = argv.getParseStr("file");
+  if (! argv.hasParseArg("file"))
+    return false;
 
-    CQDataFrame::loadFrameFile(fileName);
-  }
+  auto filename = argv.getParseStr("file");
+
+  auto *charts = this->charts();
+
+  CQChartsFile file(charts, filename);
+
+  CQDataFrame::loadFrameFile(file.resolve());
 
   return true;
 }
@@ -11514,11 +11524,11 @@ getKeyItemById(const QString &id) const
 
 bool
 CQChartsCmds::
-loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData)
+loadFileModel(const CQChartsFile &file, CQChartsFileType type, const CQChartsInputData &inputData)
 {
   bool hierarchical;
 
-  auto *model = loadFile(filename, type, inputData, hierarchical);
+  auto *model = loadFile(file, type, inputData, hierarchical);
 
   if (! model)
     return false;
@@ -11545,21 +11555,21 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   //---
 
-  charts_->setModelFileName(modelData, filename);
+  charts_->setModelFileName(modelData, file.resolve());
 
   return true;
 }
 
 QAbstractItemModel *
 CQChartsCmds::
-loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData,
+loadFile(const CQChartsFile &file, CQChartsFileType type, const CQChartsInputData &inputData,
          bool &hierarchical)
 {
   CQChartsLoader loader(charts_);
 
   loader.setQtcl(cmdBase_->qtcl());
 
-  return loader.loadFile(filename, type, inputData, hierarchical);
+  return loader.loadFile(file, type, inputData, hierarchical);
 }
 
 //------

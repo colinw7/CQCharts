@@ -7,7 +7,9 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
+#include <CQChartsFile.h>
 #include <CQChartsUtil.h>
+
 #include <CQTabSplit.h>
 #include <CQFilename.h>
 #include <CQStrParse.h>
@@ -302,13 +304,13 @@ void
 CQChartsLoadModelDlg::
 previewFileSlot()
 {
-  auto fileName = fileEdit_->name();
+  auto filename = fileEdit_->name();
 
   int maxLines = 1024;
 
   QStringList lines;
 
-  if (! CQChartsUtil::fileToLines(fileName, lines, maxLines))
+  if (! CQChartsUtil::fileToLines(filename, lines, maxLines))
     return;
 
   //---
@@ -404,7 +406,7 @@ previewFileSlot()
   bool firstLineHeader   = false;
   bool firstColumnHeader = false;
 
-  CQChartsAnalyzeFile analyzeFile(fileName);
+  CQChartsAnalyzeFile analyzeFile(filename);
 
   analyzeFile.setMaxLines(maxLines);
 
@@ -855,7 +857,9 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 
   //loader.setQtcl(qtcl());
 
-  return loader.loadFile(filename, type, inputData, hierarchical);
+  CQChartsFile file(charts_, filename);
+
+  return loader.loadFile(file, type, inputData, hierarchical);
 }
 
 void

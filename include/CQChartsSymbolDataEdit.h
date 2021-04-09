@@ -48,7 +48,7 @@ class CQChartsSymbolDataLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
-class CQChartsSymbolEdit;
+class CQChartsSymbolLineEdit;
 class CQChartsLengthEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsFillDataEdit;
@@ -93,7 +93,7 @@ class CQChartsSymbolDataEdit : public CQChartsEditBase {
   CQChartsView*                  view_       { nullptr }; //!< parent view
   CQChartsSymbolData             data_;                   //!< symbol data
   CQGroupBox*                    groupBox_   { nullptr }; //!< group box
-  CQChartsSymbolEdit*            symbolEdit_ { nullptr }; //!< symbol edit
+  CQChartsSymbolLineEdit*        symbolEdit_ { nullptr }; //!< symbol edit
   CQChartsLengthEdit*            sizeEdit_   { nullptr }; //!< length edit
   CQChartsStrokeDataEdit*        strokeEdit_ { nullptr }; //!< stroke edit
   CQChartsFillDataEdit*          fillEdit_   { nullptr }; //!< fill edit

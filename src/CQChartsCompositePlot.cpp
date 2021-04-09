@@ -1837,7 +1837,6 @@ setDataOffsetY(double y)
 
 //---
 
-
 const CQChartsPlot::ZoomData &
 CQChartsCompositePlot::
 zoomData() const

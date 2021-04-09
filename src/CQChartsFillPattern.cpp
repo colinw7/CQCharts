@@ -243,7 +243,7 @@ setValue(const QString &s)
   if      (type_ == Type::PALETTE)
     palette_ = CQChartsPaletteName(dataStr);
   else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
-    image_ = CQChartsImage(dataStr);
+    image_ = CQChartsImage(dataStr); // TODO
 
     if      (type_ == Type::TEXTURE)
       image_.setImageType("texture");

@@ -20,6 +20,9 @@ class CQChartsImageEdit : public QFrame {
  public:
   CQChartsImageEdit(QWidget *parent=nullptr);
 
+  CQCharts *charts() const { return charts_; }
+  void setCharts(CQCharts *charts) { charts_ = charts; }
+
   const CQChartsImage &image() const;
   void setImage(const CQChartsImage &image);
 
@@ -35,6 +38,7 @@ class CQChartsImageEdit : public QFrame {
   void fileSlot();
 
  private:
+  CQCharts*         charts_ { nullptr };
   CQChartsImage     image_;
   CQChartsLineEdit* edit_   { nullptr };
   QToolButton*      button_ { nullptr };

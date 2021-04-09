@@ -9,6 +9,7 @@
 class CQCharts;
 class CQChartsFilterModel;
 class CQChartsModelFilter;
+class CQChartsFile;
 
 struct CQChartsInputData;
 
@@ -32,13 +33,13 @@ class CQChartsLoader {
 
   void setQtcl(CQTcl *qtcl);
 
-  QAbstractItemModel *loadFile(const QString &filename, FileType type,
+  QAbstractItemModel *loadFile(const CQChartsFile &file, FileType type,
                                const InputData &inputData, bool &hierarchical);
 
-  FilterModel *loadCsv (const QString &filename, const InputData &inputData);
-  FilterModel *loadTsv (const QString &filename, const InputData &inputData);
-  FilterModel *loadJson(const QString &filename, const InputData &inputData);
-  FilterModel *loadData(const QString &filename, const InputData &inputData);
+  FilterModel *loadCsv (const CQChartsFile &file, const InputData &inputData);
+  FilterModel *loadTsv (const CQChartsFile &file, const InputData &inputData);
+  FilterModel *loadJson(const CQChartsFile &file, const InputData &inputData);
+  FilterModel *loadData(const CQChartsFile &file, const InputData &inputData);
 
   FilterModel *createExprModel(int n);
 

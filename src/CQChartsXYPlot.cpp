@@ -234,7 +234,7 @@ init()
 
   //---
 
-  setSymbol(Symbol(SymbolType::Type::CIRCLE));
+  setSymbol(Symbol::circle());
 
   setImpulseLines  (false);
   setBivariateLines(false);
@@ -512,6 +512,20 @@ CQChartsXYPlot::
 setFillUnderSide(const CQChartsFillUnderSide &s)
 {
   CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { updateObjs(); } );
+}
+
+//---
+
+bool
+CQChartsXYPlot::
+canBivariateLines() const
+{
+  if (! isBivariateLines())
+    return false;
+
+  int ns = numSets();
+
+  return (ns >= 2);
 }
 
 //---
@@ -945,9 +959,7 @@ initAxes()
 
   (void) yAxisName(yname, "Y");
 
-  int ns = numSets();
-
-  if      (isBivariateLines() && ns > 1) {
+  if      (canBivariateLines()) {
     if (isOverlay()) {
       if (isY1Y2()) {
         yAxis()->setDefLabel(yname, /*notify*/false);
@@ -1019,7 +1031,7 @@ yColumnName(QString &name, const QString &def, bool tip) const
 {
   int ns = numSets();
 
-  if      (isBivariateLines() && ns > 1) {
+  if      (canBivariateLines()) {
     name = titleStr();
 
     if (! name.length()) {
@@ -1329,7 +1341,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
       int         groupInd = p.first;
       const auto &setPoly  = p.second;
 
-      if      (isBivariateLines()) {
+      if      (canBivariateLines()) {
         if (! addBivariateLines(groupInd, setPoly, colorInd, objs))
           return false;
       }
@@ -2335,7 +2347,7 @@ addKeyItems(PlotKey *key)
   int ns = numSets();
   int ng = numGroups();
 
-  if      (isBivariateLines()) {
+  if      (canBivariateLines()) {
     auto name = titleStr();
 
     if (! name.length()) {
@@ -2407,16 +2419,16 @@ addKeyItems(PlotKey *key)
           if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
             if      (titleStr().length())
               name = titleStr();
-            else if (fileName().length())
-              name = fileName();
+            else if (filename().length())
+              name = filename();
           }
   #endif
   #if 0
-          if (ns == 1 && ! isOverlay() && (titleStr().length() || fileName().length())) {
+          if (ns == 1 && ! isOverlay() && (titleStr().length() || filename().length())) {
             if      (titleStr().length())
               name = titleStr();
-            else if (fileName().length())
-              name = fileName();
+            else if (filename().length())
+              name = filename();
           }
   #endif
 
@@ -2481,7 +2493,7 @@ bool
 CQChartsXYPlot::
 interpY(double x, InterpValues &yvals) const
 {
-  if (isBivariateLines())
+  if (canBivariateLines())
     return false;
 
   for (const auto &plotObj : plotObjs_) {
@@ -2552,7 +2564,6 @@ bool
 CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
-
   int ns = numSets();
 
   menu->addSeparator();
@@ -3213,12 +3224,12 @@ setSelected(bool b)
 
 CQChartsSymbol
 CQChartsXYPointObj::
-symbol() const
+calcSymbol() const
 {
   CQChartsSymbol symbol;
 
   if (extraData())
-    symbol = extraData()->symbol;
+    symbol = this->symbol();
 
   if (! symbol.isValid())
     symbol = plot_->symbol();
@@ -3228,12 +3239,12 @@ symbol() const
 
 CQChartsLength
 CQChartsXYPointObj::
-symbolSize() const
+calcSymbolSize() const
 {
   Length symbolSize(CQChartsUnits::NONE, 0.0);
 
   if (extraData())
-    symbolSize = extraData()->symbolSize;
+    symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
     symbolSize = plot()->symbolSize();
@@ -3243,12 +3254,12 @@ symbolSize() const
 
 CQChartsLength
 CQChartsXYPointObj::
-fontSize() const
+calcFontSize() const
 {
   Length fontSize(CQChartsUnits::NONE, 0.0);
 
   if (extraData())
-    fontSize = extraData()->fontSize;
+    fontSize = this->fontSize();
 
   if (! fontSize.isValid())
     fontSize = plot()->dataLabelFontSize();
@@ -3258,24 +3269,24 @@ fontSize() const
 
 CQChartsColor
 CQChartsXYPointObj::
-color() const
+calcColor() const
 {
   Color color;
 
   if (extraData())
-    color = extraData()->color;
+    color = this->color();
 
   return color;
 }
 
 CQChartsImage
 CQChartsXYPointObj::
-image() const
+calcImage() const
 {
   CQChartsImage image;
 
   if (extraData())
-    image = extraData()->image;
+    image = this->image();
 
   return image;
 }
@@ -3544,11 +3555,11 @@ draw(PaintDevice *device) const
     device->setColorNames();
 
     // override symbol type for custom symbol
-    auto symbol     = this->symbol();
-    auto symbolSize = this->symbolSize();
+    auto symbol     = this->calcSymbol();
+    auto symbolSize = this->calcSymbolSize();
 
     // draw symbol or image
-    auto image = this->image();
+    auto image = this->calcImage();
 
     if (! image.isValid()) {
       if (symbol.isValid())
@@ -3604,7 +3615,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   plot()->setSymbolPenBrush(penBrush, ic);
 
   // override symbol fill color for custom color
-  auto color = this->color();
+  auto color = this->calcColor();
 
   if (color.isValid()) {
     auto c = plot()->interpColor(color, ic);
@@ -3730,7 +3741,7 @@ draw(PaintDevice *device) const
   //---
 
   // get font size
-  auto fontSize = pointObj()->fontSize();
+  auto fontSize = pointObj()->calcFontSize();
 
   //---
 
@@ -4597,7 +4608,7 @@ fillBrush() const
   Alpha  alpha;
   auto   pattern = CQChartsFillPattern(CQChartsFillPattern::Type::SOLID);
 
-  if      (plot()->isBivariateLines()) {
+  if      (plot()->canBivariateLines()) {
     c = plot()->interpBivariateLinesColor(is_);
 
     alpha = plot()->bivariateLinesAlpha();
@@ -4684,7 +4695,7 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Fill Under", fillUnderCheck_);
   addFrameWidget(optionsFrame, "Stacked"   , stackedCheck_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
 

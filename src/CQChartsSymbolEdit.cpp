@@ -8,10 +8,10 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQCheckBox.h>
 
 #include <QStackedWidget>
 #include <QComboBox>
-#include <QCheckBox>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -381,8 +381,8 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   //---
 
-  filledCheck_  = CQUtil::makeWidget<QCheckBox>("filledCheck");
-  strokedCheck_ = CQUtil::makeWidget<QCheckBox>("strokedCheck");
+  filledCheck_  = CQUtil::makeWidget<CQCheckBox>("filledCheck");
+  strokedCheck_ = CQUtil::makeWidget<CQCheckBox>("strokedCheck");
 
   addLabelWidget("Filled" , filledCheck_ );
   addLabelWidget("Stroked", strokedCheck_);

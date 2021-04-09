@@ -166,7 +166,7 @@ init()
 
   //---
 
-  setSymbol(Symbol(CQChartsSymbolType::Type::CIRCLE));
+  setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -3233,7 +3233,7 @@ calcSymbol() const
     symbol = plot_->symbol();
 
     //if (! symbol.isValid())
-    //  symbol = CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE);
+    //  symbol = Symbol::circle();
   }
 
   return symbol;
@@ -3595,13 +3595,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto sc = plot_->interpSymbolStrokeColor(ic);
   auto sa = plot_->symbolStrokeAlpha();
 
-  // override symbol fill color for custom color
+  // override symbol fill color for custom color (TODO: calc)
   auto color = this->color();
 
   if (color.isValid())
     fc = plot_->interpColor(color, ic);
 
-  // override symbol fill alpha for custom alpha
+  // override symbol fill alpha for custom alpha (TODO: calc)
   auto alpha = this->alpha();
 
   if (alpha.isSet())
@@ -4113,7 +4113,7 @@ addSymbolLabelWidgets()
   addFrameWidget(pointLabelsFrame, "Column"  , labelColumnCombo_);
   addFrameWidget(pointLabelsFrame, "Position", positionEdit_);
 
-  addFrameRowStretch(pointLabelsFrame);
+//addFrameRowStretch(pointLabelsFrame);
 
   //---
 
@@ -4134,7 +4134,7 @@ addFontSizeWidgets()
 
   // font size widgets
   fontSizeEdit_        = CQUtil::makeWidget<CQChartsLengthEdit>("fontEdit");
-  fontSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("fontSizeColumnCombo_");
+  fontSizeColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("fontSizeColumnCombo");
   fontSizeRange_       = CQUtil::makeWidget<CQChartsFontSizeRangeSlider>("fontSizeRange");
 
   addFrameWidget(fontSizeControlGroupData.fixedFrame , "Size"  , fontSizeEdit_);

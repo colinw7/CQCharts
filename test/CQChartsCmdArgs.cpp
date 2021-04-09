@@ -308,6 +308,13 @@ getParseAlpha(const QString &name, const CQChartsAlpha &def) const
   return getParseValue<CQChartsAlpha>(name, def);
 }
 
+CQChartsFillPattern
+CQChartsCmdBaseArgs::
+getParsePattern(const QString &name, const CQChartsFillPattern &def) const
+{
+  return getParseValue<CQChartsFillPattern>(name, def);
+}
+
 CQChartsAngle
 CQChartsCmdBaseArgs::
 getParseAngle(const QString &name, const CQChartsAngle &def) const

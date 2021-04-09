@@ -13,6 +13,8 @@ class CQChartsSymbolSetMgr : public QObject {
  public:
   explicit CQChartsSymbolSetMgr(CQCharts *charts);
 
+ ~CQChartsSymbolSetMgr();
+
   CQCharts *charts() const { return charts_; }
 
   //! add symbol set

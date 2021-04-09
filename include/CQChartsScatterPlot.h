@@ -451,8 +451,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_ENUMS(XSide)
   Q_ENUMS(YSide)
 
-//Q_ENUMS(DrawLayer)
-
  public:
   enum class PlotType {
     NONE,
@@ -460,15 +458,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     GRID_CELLS,
     HEX_CELLS
   };
-
-#if 0
-  enum class DrawLayer {
-    NONE,
-    BACKGROUND,
-    MIDDLE,
-    FOREGROUND
-  };
-#endif
 
   //--
 

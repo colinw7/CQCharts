@@ -528,17 +528,17 @@ exportSlot(QAction *action)
     return;
   }
 
-  auto fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
-  if (! fileName.length()) return; // cancelled
+  auto filename = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
+  if (! filename.length()) return; // cancelled
 
   auto *modelData = getModelData();
 
   if      (type == "CSV")
-    modelData->exportModel(fileName, CQBaseModelDataType::CSV, hheader, vheader);
+    modelData->exportModel(filename, CQBaseModelDataType::CSV, hheader, vheader);
   else if (type == "TSV")
-    modelData->exportModel(fileName, CQBaseModelDataType::TSV, hheader, vheader);
+    modelData->exportModel(filename, CQBaseModelDataType::TSV, hheader, vheader);
   else if (type == "JSON")
-    modelData->exportModel(fileName, CQBaseModelDataType::JSON, hheader, vheader);
+    modelData->exportModel(filename, CQBaseModelDataType::JSON, hheader, vheader);
   else
     assert(false);
 }

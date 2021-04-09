@@ -6,6 +6,13 @@ CQChartsSymbolSetMgr(CQCharts *charts) :
 {
 }
 
+CQChartsSymbolSetMgr::
+~CQChartsSymbolSetMgr()
+{
+  for (auto &symbolSet : symbolSets_)
+    delete symbolSet;
+}
+
 void
 CQChartsSymbolSetMgr::
 addSymbolSet(CQChartsSymbolSet *symbolSet)

@@ -11,7 +11,8 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
-#include <CQTabSplit.h>
+//#include <CQTabSplit.h>
+#include <CQGroupBox.h>
 #include <CQUtil.h>
 
 #include <QLabel>
@@ -32,6 +33,7 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   //---
 
+#if 0
   split_ = CQUtil::makeWidget<CQTabSplit>("split");
 
   split_->setOrientation(Qt::Vertical);
@@ -39,6 +41,7 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
   split_->setAutoFit(true);
 
   layout_->addWidget(split_);
+#endif
 }
 
 void
@@ -59,6 +62,7 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
 
   for (const auto &name : columnNames) {
     const auto *parameter = plotType->getParameter(name);
+    assert(parameter);
 
     if (parameter->isNumeric())
       isNumeric = true;
@@ -87,7 +91,7 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
     frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
   }
 
-  addFrameRowStretch(frameData);
+  //addFrameRowStretch(frameData);
 }
 
 void
@@ -144,7 +148,7 @@ addColorColumnWidgets(const QString &title)
   //---
 
   // color widgets
-  colorEdit_        = CQUtil::makeWidget<CQChartsColorLineEdit>("colorEdit_");
+  colorEdit_        = CQUtil::makeWidget<CQChartsColorLineEdit>("colorEdit");
   colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
   colorRange_       = CQUtil::makeWidget<CQChartsColorRangeSlider>("colorRange");
   colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
@@ -165,7 +169,7 @@ addColorColumnWidgets(const QString &title)
 
   colorControlGroupData.columnControls->layout()->addWidget(colorMapKey_);
 
-  //--
+  //---
 
   connectSlots(true);
 }
@@ -329,7 +333,16 @@ createGroupFrame(const QString &name)
 {
   auto frameData = createFrame();
 
+#if 0
   split_->addWidget(frameData.frame, name);
+#else
+  auto *groupBox    = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
+  auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(groupBox, 0, 0);
+
+  groupLayout->addWidget(frameData.frame);
+
+  layout_->addWidget(groupBox);
+#endif
 
   return frameData;
 }
@@ -371,7 +384,7 @@ createBoolEdit(const QString &name)
   assert(plotType);
 
   const auto *parameter = plotType->getParameter(name);
-  assert(parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
+  assert(parameter && parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
 
   const auto *bparameter = dynamic_cast<const CQChartsBoolParameter *>(parameter);
   assert(bparameter);
@@ -387,7 +400,7 @@ createEnumEdit(const QString &name)
   assert(plotType);
 
   const auto *parameter = plotType->getParameter(name);
-  assert(parameter->type() == CQChartsPlotParameter::Type::ENUM);
+  assert(parameter && parameter->type() == CQChartsPlotParameter::Type::ENUM);
 
   const auto *eparameter = dynamic_cast<const CQChartsEnumParameter *>(parameter);
   assert(eparameter);

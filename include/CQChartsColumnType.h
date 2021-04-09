@@ -173,7 +173,7 @@ class CQChartsColumnType {
                             const ModelTypeData &typeData, bool &converted) const = 0;
 
   // data variant to output variant (string) for display
-  virtual QVariant dataName(CQCharts *chart, const QAbstractItemModel *model,
+  virtual QVariant dataName(CQCharts *charts, const QAbstractItemModel *model,
                             const Column &column, const QVariant &var,
                             const ModelTypeData &typeData, bool &converted) const = 0;
 
@@ -196,7 +196,7 @@ class CQChartsColumnType {
   DrawType   drawType      (const NameValues &nameValues) const;
   ColorStops drawStops     (const NameValues &nameValues) const;
   NameValues namedColors   (const NameValues &nameValues) const;
-  NameValues namedImages   (const NameValues &nameValues) const;
+  NameValues namedImages   (CQCharts *charts, const NameValues &nameValues) const;
 
   bool nameValueString(const NameValues &nameValues, const QString &name, QString &value) const;
 

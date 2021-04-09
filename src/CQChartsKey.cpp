@@ -2092,8 +2092,8 @@ bool
 CQChartsPlotKey::
 isEditResize() const
 {
-  return(scrollData_.height.isSet() || scrollData_.width.isSet() ||
-         layoutData_.vscrolled || layoutData_.hscrolled);
+  return (scrollData_.height.isSet() || scrollData_.width.isSet() ||
+          layoutData_.vscrolled || layoutData_.hscrolled);
 }
 
 QColor

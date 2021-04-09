@@ -260,7 +260,7 @@ class CQCharts : public QObject {
 
   void setModelName(CQChartsModelData *modelData, const QString &name);
 
-  void setModelFileName(CQChartsModelData *modelData, const QString &fileName);
+  void setModelFileName(CQChartsModelData *modelData, const QString &filename);
 
   //---
 

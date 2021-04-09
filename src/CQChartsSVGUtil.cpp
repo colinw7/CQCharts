@@ -172,7 +172,7 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
 
 bool
 CQChartsSVGUtil::
-svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox)
+svgFileToPaths(const QString &filename, Paths &paths, Styles &styles, BBox &bbox)
 {
   PathDatas pathDatas;
 
@@ -181,7 +181,7 @@ svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox
 
   CXMLTag *tag;
 
-  if (! xml.read(fileName.toStdString(), &tag))
+  if (! xml.read(filename.toStdString(), &tag))
     return false;
 
   if (tag->getName() != "svg")
@@ -218,7 +218,7 @@ svgFileToPaths(const QString &fileName, Paths &paths, Styles &styles, BBox &bbox
 
   reader.setContentHandler(&handler);
 
-  QFile file(fileName);
+  QFile file(filename);
 
   QXmlInputSource input(&file);
 

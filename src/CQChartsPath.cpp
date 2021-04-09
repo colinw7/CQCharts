@@ -264,13 +264,13 @@ setValue(const QString &str)
 
 bool
 CQChartsPath::
-fromSVGFile(const QString &fileName)
+fromSVGFile(const QString &filename)
 {
   CQChartsSVGUtil::Paths  paths;
   CQChartsSVGUtil::Styles styles;
   BBox                    bbox;
 
-  if (! CQChartsSVGUtil::svgFileToPaths(fileName, paths, styles, bbox))
+  if (! CQChartsSVGUtil::svgFileToPaths(filename, paths, styles, bbox))
     return false;
 
   if (paths.empty())

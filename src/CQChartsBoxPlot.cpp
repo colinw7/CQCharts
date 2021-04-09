@@ -214,12 +214,12 @@ init()
   setBoxStroked(true);
   setBoxFilled (true);
 
-  setOutlierSymbol(Symbol(SymbolType::Type::CIRCLE));
+  setOutlierSymbol(Symbol::circle());
   setOutlierSymbolSize(Length("4px"));
   setOutlierSymbolFilled(true);
   setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setJitterSymbol(Symbol(SymbolType::Type::CIRCLE));
+  setJitterSymbol(Symbol::circle());
   setJitterSymbolSize(Length("4px"));
   setJitterSymbolFilled(true);
   setJitterSymbolFillColor(Color(Color::Type::PALETTE));
@@ -2368,7 +2368,7 @@ draw(PaintDevice *device) const
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
 
-      symbol.setSymbol(Symbol(SymbolType::Type::CIRCLE));
+      symbol.setSymbol(Symbol::circle());
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawErrorBar(device, rect, mean, orientation, symbol);
@@ -2392,7 +2392,7 @@ draw(PaintDevice *device) const
 
       CQChartsSymbolData symbol;
 
-      symbol.setSymbol(Symbol(SymbolType::Type::CIRCLE));
+      symbol.setSymbol(Symbol::circle());
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(device, rect, mean, orientation, symbol);
@@ -3686,13 +3686,15 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Violin"      , violinCheck_);
   addFrameWidget(optionsFrame, "Error Bar"   , errorBarCheck_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
 
   addGroupColumnWidgets();
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

@@ -3,10 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + smatter handling of columns when group matches map columns (color, symbol size, symbol type)
+ + fix test_all.sh crashes
  + symbol and symbol type confusion
    + symbol type needs to be combined with fill/stroke to get symbol
    + symbol is complete defintion (type + fill/stroke, char, path, ...)
- + XY plot use point plot custom controls
  + resources for files map name to file system or add file search path ?
  + Font Size type (reuse Font)
  + symbol control has fixed/interpolated switch, stacked widgets and key widget

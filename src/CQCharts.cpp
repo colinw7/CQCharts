@@ -61,6 +61,7 @@
 #include <CQChartsFontEdit.h>
 #include <CQChartsGeomBBoxEdit.h>
 #include <CQChartsGeomPointEdit.h>
+#include <CQChartsImageEdit.h>
 #include <CQChartsKeyLocationEdit.h>
 #include <CQChartsKeyPressBehaviorEdit.h>
 #include <CQChartsLengthEdit.h>
@@ -534,6 +535,7 @@ init()
     viewMgr->addType("CQChartsFont"            , new CQChartsFontPropertyViewType            );
     viewMgr->addType("CQChartsGeom::BBox"      , new CQChartsGeomBBoxPropertyViewType        );
     viewMgr->addType("CQChartsGeom::Point"     , new CQChartsGeomPointPropertyViewType       );
+    viewMgr->addType("CQChartsImage"           , new CQChartsImagePropertyViewType           );
     viewMgr->addType("CQChartsKeyLocation"     , new CQChartsKeyLocationPropertyViewType     );
     viewMgr->addType("CQChartsKeyPressBehavior", new CQChartsKeyPressBehaviorPropertyViewType);
     viewMgr->addType("CQChartsTitleLocation"   , new CQChartsTitleLocationPropertyViewType   );
@@ -605,6 +607,8 @@ init()
     widgetMgr->addWidgetFactory("CQChartsColorEdit", new CQWidgetFactoryT<CQChartsColorEdit>());
     widgetMgr->addWidgetFactory("CQChartsFontEdit" , new CQWidgetFactoryT<CQChartsFontEdit>());
 
+    widgetMgr->addWidgetFactory("CQChartsImageEdit",
+      new CQWidgetFactoryT<CQChartsImageEdit>());
     widgetMgr->addWidgetFactory("CQChartsLengthEdit",
       new CQWidgetFactoryT<CQChartsLengthEdit>());
     widgetMgr->addWidgetFactory("CQChartsPositionEdit",
@@ -1398,9 +1402,9 @@ setModelName(CQChartsModelData *modelData, const QString &name)
 
 void
 CQCharts::
-setModelFileName(CQChartsModelData *modelData, const QString &fileName)
+setModelFileName(CQChartsModelData *modelData, const QString &filename)
 {
-  modelData->setFilename(fileName);
+  modelData->setFilename(filename);
 }
 
 //---

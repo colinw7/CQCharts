@@ -1,6 +1,8 @@
 #include <CQChartsSymbol.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsSVGUtil.h>
+#include <CQChartsFile.h>
+
 #include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsSymbol, toString, fromString)
@@ -554,13 +556,13 @@ fromString(const QString &s)
 
 CQChartsSymbol
 CQChartsSymbol::
-fromSVGFile(const QString &filename, const QString &name, bool styled)
+fromSVGFile(const CQChartsFile &file, const QString &name, bool styled)
 {
   CQChartsSVGUtil::Paths  paths;
   CQChartsSVGUtil::Styles styles;
   CQChartsGeom::BBox      bbox;
 
-  if (! CQChartsSVGUtil::svgFileToPaths(filename, paths, styles, bbox))
+  if (! CQChartsSVGUtil::svgFileToPaths(file.resolve(), paths, styles, bbox))
     return CQChartsSymbol();
 
   CQChartsSymbol::SVGData svgData;
@@ -568,7 +570,7 @@ fromSVGFile(const QString &filename, const QString &name, bool styled)
   svgData.name = name;
 
   if (svgData.name == "")
-    svgData.name = filename;
+    svgData.name = file.resolve();
 
   if (! bbox.isSet()) {
     for (auto &path : paths)
@@ -598,7 +600,7 @@ fromSVGFile(const QString &filename, const QString &name, bool styled)
     svgData.styles.push_back(style);
   }
 
-  svgData.src = filename;
+  svgData.src = file.resolve();
 
   return CQChartsSymbol(svgData);
 }

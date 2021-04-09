@@ -24,7 +24,7 @@ addGroupColumnWidgets()
 
   connect(groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
 
-  addFrameRowStretch(groupFrame);
+  //addFrameRowStretch(groupFrame);
 }
 
 void

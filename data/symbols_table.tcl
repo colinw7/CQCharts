@@ -51,7 +51,7 @@ set textId [create_charts_text_annotation -view $view -id symbolText -tip "Symbo
   -position {10 80} -text "Symbol"]
 
 set pointId [create_charts_point_annotation -view $view -id symbolPoint -tip "Symbol Point" \
-  -position {20 50} -type cross -size 240px -properties {{fill.color green}}]
+  -position {20 50} -symbol cross -size 240px -properties {{fill.color green}}]
 
 set toggleId [create_charts_text_annotation -view $view -id imageToggle -tip "Filled" \
   -position {10 20} -text "Filled" -properties {{checkable 1} {checked 0}}]

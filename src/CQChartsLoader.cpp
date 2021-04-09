@@ -9,6 +9,7 @@
 #include <CQChartsExprDataModel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsFile.h>
 #include <CQCharts.h>
 
 #include <CQCsvModel.h>
@@ -35,7 +36,7 @@ setQtcl(CQTcl *qtcl)
 
 QAbstractItemModel *
 CQChartsLoader::
-loadFile(const QString &filename, CQChartsFileType type, const InputData &inputData,
+loadFile(const CQChartsFile &file, CQChartsFileType type, const InputData &inputData,
          bool &hierarchical)
 {
   CQPerfTrace trace("CQChartsLoader::loadFile");
@@ -43,30 +44,30 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
   hierarchical = false;
 
   if      (type == CQChartsFileType::CSV) {
-    auto *csv = loadCsv(filename, inputData);
+    auto *csv = loadCsv(file, inputData);
 
     if (! csv) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
     return csv;
   }
   else if (type == CQChartsFileType::TSV) {
-    auto *tsv = loadTsv(filename, inputData);
+    auto *tsv = loadTsv(file, inputData);
 
     if (! tsv) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
     return tsv;
   }
   else if (type == CQChartsFileType::JSON) {
-    auto *json = loadJson(filename, inputData);
+    auto *json = loadJson(file, inputData);
 
     if (! json) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
@@ -78,10 +79,10 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
     return json;
   }
   else if (type == CQChartsFileType::DATA) {
-    auto *data = loadData(filename, inputData);
+    auto *data = loadData(file, inputData);
 
     if (! data) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
@@ -91,7 +92,7 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
     auto *model = createExprModel(inputData.numRows);
 
     if (! model) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
@@ -101,7 +102,7 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
     auto *model = createVarsModel(inputData);
 
     if (! model) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
@@ -111,7 +112,7 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
     auto *model = createTclModel(inputData);
 
     if (! model) {
-      charts_->errorMsg("Failed to load '" + filename + "'");
+      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
       return nullptr;
     }
 
@@ -126,7 +127,7 @@ loadFile(const QString &filename, CQChartsFileType type, const InputData &inputD
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadCsv(const QString &filename, const InputData &inputData)
+loadCsv(const CQChartsFile &file, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadCsv");
 
@@ -147,7 +148,7 @@ loadCsv(const QString &filename, const InputData &inputData)
   if (inputData.columns.length() > 0)
     csvModel->setColumns(inputData.columns);
 
-  if (! csvModel->load(filename)) {
+  if (! csvModel->load(file.resolve())) {
     delete csv;
     return nullptr;
   }
@@ -161,7 +162,7 @@ loadCsv(const QString &filename, const InputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadTsv(const QString &filename, const InputData &inputData)
+loadTsv(const CQChartsFile &file, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadTsv");
 
@@ -176,7 +177,7 @@ loadTsv(const QString &filename, const InputData &inputData)
   if (inputData.columns.length() > 0)
     tsvModel->setColumns(inputData.columns);
 
-  if (! tsvModel->load(filename)) {
+  if (! tsvModel->load(file.resolve())) {
     delete tsv;
     return nullptr;
   }
@@ -190,7 +191,7 @@ loadTsv(const QString &filename, const InputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadJson(const QString &filename, const InputData &inputData)
+loadJson(const CQChartsFile &file, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadJson");
 
@@ -198,7 +199,7 @@ loadJson(const QString &filename, const InputData &inputData)
 
   auto *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
 
-  if (! jsonModel->load(filename)) {
+  if (! jsonModel->load(file.resolve())) {
     delete json;
     return nullptr;
   }
@@ -212,7 +213,7 @@ loadJson(const QString &filename, const InputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadData(const QString &filename, const InputData &inputData)
+loadData(const CQChartsFile &file, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadData");
 
@@ -227,7 +228,7 @@ loadData(const QString &filename, const InputData &inputData)
   if (inputData.columns.length() > 0)
     dataModel->setColumns(inputData.columns);
 
-  if (! dataModel->load(filename)) {
+  if (! dataModel->load(file.resolve())) {
     delete data;
     return nullptr;
   }

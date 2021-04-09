@@ -111,6 +111,8 @@ CQChartsModelData::
   delete propertyModel_;
   delete details_;
   delete summaryModelData_;
+
+  delete fileWatcher_;
 }
 
 QString
@@ -1282,17 +1284,17 @@ write(std::ostream &os, const QString &varName) const
 
 bool
 CQChartsModelData::
-exportModel(const QString &fileName, const CQBaseModelDataType &type, bool hheader, bool vheader)
+exportModel(const QString &filename, const CQBaseModelDataType &type, bool hheader, bool vheader)
 {
   if (type == CQBaseModelDataType::CSV) {
     if (hheader && ! vheader)
-      return writeCSV(fileName);
+      return writeCSV(filename);
   }
 
   //---
 
-  if (fileName != "-") {
-    auto os = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  if (filename != "-") {
+    auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
 
     return CQChartsModelUtil::exportModel(model().data(), type, hheader, vheader, os);
   }
@@ -1316,10 +1318,10 @@ exportModel(std::ostream &fs, const CQBaseModelDataType &type, bool hheader, boo
 
 bool
 CQChartsModelData::
-writeCSV(const QString &fileName) const
+writeCSV(const QString &filename) const
 {
-  if (fileName != "-") {
-    auto os = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  if (filename != "-") {
+    auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
 
     return writeCSV(os);
   }

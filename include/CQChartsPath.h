@@ -156,7 +156,7 @@ class CQChartsPath :
 
   //---
 
-  bool fromSVGFile(const QString &fileName);
+  bool fromSVGFile(const QString &filename);
 
  private:
   const QPainterPath *pathPtr() const { return const_cast<CQChartsPath *>(this)->pathPtr(); }

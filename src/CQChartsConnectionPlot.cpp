@@ -1457,7 +1457,7 @@ addConnectionColumnWidgets()
 
   //---
 
-  addFrameRowStretch(connectionsFrame);
+  //addFrameRowStretch(connectionsFrame);
 
   connectSlots(true);
 }

@@ -598,9 +598,9 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   int       numSides_  { -1 };               //!< number of sides
   Angle     angle_;                          //!< rotation angle
 
-  Length lineWidth_  { Units::PLOT, 1.0 };         //!< dot line width
-  Symbol symbol_     { SymbolType::Type::CIRCLE }; //!< dot symbol
-  Length symbolSize_ { Units::PLOT, 1.0 };         //!< dot symbol size
+  Length lineWidth_  { Units::PLOT, 1.0 }; //!< dot line width
+  Symbol symbol_     { Symbol::circle() }; //!< dot symbol
+  Length symbolSize_ { Units::PLOT, 1.0 }; //!< dot symbol size
 };
 
 //---
@@ -921,7 +921,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
  * \brief image annotation
  * \ingroup Charts
  *
- * Image in rectangle
+ * Image in rectangle. Annotation can be moved or resized using position
+ * or rectangle value. Resized annotation resizes image dynamically.
  */
 class CQChartsImageAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -1339,7 +1340,10 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
  * \brief point annotation
  * \ingroup Charts
  *
- * Symbol drawn at point
+ * Symbol drawn at point.
+ *   + Annotation can be moved.
+ *   + Point Symbol can modified (type, size, fill, stroke)
+ *   + Can placed relative to an object
  */
 class CQChartsPointAnnotation : public CQChartsAnnotation,
  public CQChartsObjPointData<CQChartsPointAnnotation> {
@@ -1359,9 +1363,9 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
  public:
   CQChartsPointAnnotation(View *view, const Position &p=Position(),
-                          const Symbol &symbol=Symbol(SymbolType::Type::CIRCLE));
+                          const Symbol &symbol=Symbol::circle());
   CQChartsPointAnnotation(Plot *plot, const Position &p=Position(),
-                          const Symbol &symbol=Symbol(SymbolType::Type::CIRCLE));
+                          const Symbol &symbol=Symbol::circle());
 
   virtual ~CQChartsPointAnnotation();
 
@@ -1379,7 +1383,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   void setPosition(const Position &p);
 
   const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
+  void setObjRef(const ObjRef &o);
 
   //---
 
@@ -1399,12 +1403,11 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
                     const QString &varName="") const override;
 
  private:
-  void init();
+  void init(const Symbol &symbol);
 
  private:
   Position position_; //!< point position
   ObjRef   objRef_;   //!< reference object
-  Symbol   type_;     //!< symbol type
 };
 
 //---

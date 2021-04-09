@@ -150,7 +150,7 @@ init()
 
   //---
 
-  setSymbol(CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE));
+  setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));

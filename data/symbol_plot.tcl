@@ -23,7 +23,7 @@ foreach symbol $symbols {
   set y [expr {($iy + 0.5)*$dy}]
 
   set ann [create_charts_point_annotation -plot $plot -id $symbol \
-             -position [list $x $y] -type $symbol -size [list $ss P] \
+             -position [list $x $y] -symbol $symbol -size [list $ss P] \
              -filled 1 -fill_color green]
 
   incr ix

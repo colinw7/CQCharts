@@ -1053,9 +1053,11 @@ CQChartsImagePlotCustomControls(CQCharts *charts) :
 
   addFrameWidget(optionsFrame, "Cell Style", cellStyleCombo_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

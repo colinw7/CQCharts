@@ -1185,7 +1185,7 @@ draw(PaintDevice *device) const
 
         Point ps(x1, y1);
 
-        auto symbol = CQChartsSymbol(CQChartsSymbolType::Type::CIRCLE);
+        auto symbol = Symbol::circle();
 
         CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps, ss);
       }
@@ -1348,9 +1348,11 @@ CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

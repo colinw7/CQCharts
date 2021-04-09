@@ -206,6 +206,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
  public:
   using Point3D = CQChartsGeom::Point3D;
+  using Symbol  = CQChartsSymbol;
   using Color   = CQChartsColor;
 
   //! value data

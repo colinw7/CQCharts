@@ -690,7 +690,6 @@ CQChartsGridPlotCustomControls(CQCharts *charts) :
   addColumnWidgets(QStringList() <<
     "name" << "label" << "row" << "column" << "values", optionsFrame);
 
-
   //---
 
   connectSlots(true);

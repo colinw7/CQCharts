@@ -6,6 +6,7 @@
 #include <CQChartsRect.h>
 #include <CQChartsColor.h>
 #include <CQChartsAlpha.h>
+#include <CQChartsFillPattern.h>
 #include <CQChartsFont.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsSides.h>
@@ -120,6 +121,10 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
 
   // get parsed alpha for option (default returned if not found)
   CQChartsAlpha getParseAlpha(const QString &name, const CQChartsAlpha &def=CQChartsAlpha()) const;
+
+  // get parsed pattern for option (default returned if not found)
+  CQChartsFillPattern getParsePattern(const QString &name,
+                                      const CQChartsFillPattern &def=CQChartsFillPattern()) const;
 
   // get parsed angle for option (default returned if not found)
   CQChartsAngle getParseAngle(const QString &name, const CQChartsAngle &def=CQChartsAngle()) const;

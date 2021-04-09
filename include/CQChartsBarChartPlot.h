@@ -429,6 +429,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     SUM
   };
 
+  using Symbol   = CQChartsSymbol;
   using Length   = CQChartsLength;
   using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;

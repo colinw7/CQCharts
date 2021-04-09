@@ -210,12 +210,12 @@ class CQChartsModelData : public QObject {
 
   bool write(std::ostream &os, const QString &varName="") const;
 
-  bool exportModel(const QString &fileName, const CQBaseModelDataType &type,
+  bool exportModel(const QString &filename, const CQBaseModelDataType &type,
                    bool hheader=true, bool vheader=false);
   bool exportModel(std::ostream &os, const CQBaseModelDataType &type,
                    bool hheader=true, bool vheader=false);
 
-  bool writeCSV(const QString &fileName) const;
+  bool writeCSV(const QString &filename) const;
   bool writeCSV(std::ostream &os) const;
 
   //---

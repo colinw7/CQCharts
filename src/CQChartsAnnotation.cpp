@@ -731,6 +731,9 @@ editMove(const Point &p)
   const auto &dragPos  = editHandles()->dragPos();
   const auto &dragSide = editHandles()->dragSide();
 
+  if (dragSide == CQChartsResizeSide::NONE)
+    return false;
+
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
@@ -2328,6 +2331,11 @@ void
 CQChartsTextAnnotation::
 setPosition(const OptPosition &p)
 {
+  if (! p.isSet())
+    return;
+
+  assert(p.position().isValid());
+
   rectangle_ = OptRect();
   position_  = p;
 
@@ -2354,11 +2362,22 @@ void
 CQChartsTextAnnotation::
 setRectangle(const OptRect &r)
 {
-  if (r.isSet())
+  if (r.isSet()) {
     assert(r.rect().isValid());
 
-  position_  = OptPosition();
-  rectangle_ = r;
+    position_  = OptPosition();
+    rectangle_ = r;
+  }
+  else {
+    if (! position_.isSet()) {
+      if (rectangle_.isSet())
+        position_  = OptPosition(rectangleValue().center());
+      else
+        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+    }
+
+    rectangle_ = OptRect();
+  }
 
   rectToBBox();
 
@@ -2803,6 +2822,11 @@ void
 CQChartsImageAnnotation::
 setPosition(const OptPosition &p)
 {
+  if (! p.isSet())
+    return;
+
+  assert(p.position().isValid());
+
   rectangle_ = OptRect();
   position_  = p;
 
@@ -2829,11 +2853,22 @@ void
 CQChartsImageAnnotation::
 setRectangle(const OptRect &r)
 {
-  if (r.isSet())
+  if (r.isSet()) {
     assert(r.rect().isValid());
 
-  position_  = OptPosition();
-  rectangle_ = r;
+    position_  = OptPosition();
+    rectangle_ = r;
+  }
+  else {
+    if (! position_.isSet()) {
+      if (rectangle_.isSet())
+        position_  = OptPosition(rectangleValue().center());
+      else
+        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+    }
+
+    rectangle_ = OptRect();
+  }
 
   rectToBBox();
 
@@ -3152,7 +3187,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   }
 
   if (image_.isValid())
-    os << " -image {" << image_.fileName().toStdString() << "}";
+    os << " -image {" << image_.filename().toStdString() << "}";
 
   os << "]\n";
 
@@ -4101,19 +4136,19 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsPointAnnotation::
-CQChartsPointAnnotation(View *view, const Position &position, const Symbol &type) :
+CQChartsPointAnnotation(View *view, const Position &position, const Symbol &symbol) :
  CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position), type_(type)
+ position_(position)
 {
-  init();
+  init(symbol);
 }
 
 CQChartsPointAnnotation::
-CQChartsPointAnnotation(Plot *plot, const Position &position, const Symbol &type) :
+CQChartsPointAnnotation(Plot *plot, const Position &position, const Symbol &symbol) :
  CQChartsAnnotation(plot, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position), type_(type)
+ position_(position)
 {
-  init();
+  init(symbol);
 }
 
 CQChartsPointAnnotation::
@@ -4130,11 +4165,18 @@ setPosition(const Position &p)
 
 void
 CQChartsPointAnnotation::
-init()
+setObjRef(const ObjRef &o)
+{
+  CQChartsUtil::testAndSet(objRef_, o, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPointAnnotation::
+init(const Symbol &symbol)
 {
   setObjectName(QString("point.%1").arg(ind()));
 
-  setSymbol(type_);
+  setSymbol(symbol);
 }
 
 void
@@ -4150,19 +4192,19 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   auto symbolPath = path1 + "/symbol";
 
-  addProp(model, symbolPath, "symbol"    , "type", "Point symbol");
-  addProp(model, symbolPath, "symbolSize", "size", "Point symbol size");
+  addProp(model, symbolPath, "symbol"    , "symbol", "Point symbol");
+  addProp(model, symbolPath, "symbolSize", "size"  , "Point symbol size");
 
   auto fillPath = path1 + "/fill";
 
-  addStyleProp(model, fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
+//addStyleProp(model, fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
   addStyleProp(model, fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
   addStyleProp(model, fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
   addStyleProp(model, fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern");
 
   auto strokePath = path1 + "/stroke";
 
-  addStyleProp(model, strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
+//addStyleProp(model, strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
   addStyleProp(model, strokePath, "symbolStrokeColor", "color"  , "Point symbol stroke color");
   addStyleProp(model, strokePath, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
   addStyleProp(model, strokePath, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
@@ -4248,15 +4290,18 @@ draw(PaintDevice *device)
     fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, f);
   }
 
-  setPenBrush(penBrush,
-    PenData  (strokeData.isVisible(), lineColor, strokeData.alpha(),
-              strokeData.width(), strokeData.dash()),
-    BrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
-
-//bool isSolid = (fillData.isVisible() &&
-//  symbolData.symbol().type() == CQChartsSymbol::Type::SYMBOL &&
-//  symbolData.symbol().symbolType().type() != CQChartsSymbolType::Type::DOT);
   bool isSolid = symbolData.symbol().isFilled();
+
+  if (isSolid) {
+    setPenBrush(penBrush,
+      PenData  (true, lineColor, strokeData.alpha(), strokeData.width(), strokeData.dash()),
+      BrushData(true, fillColor, fillData.alpha(), fillData.pattern()));
+  }
+  else {
+    setPenBrush(penBrush,
+      PenData  (true , fillColor, fillData.alpha(), strokeData.width(), strokeData.dash()),
+      BrushData(false, fillColor, fillData.alpha(), fillData.pattern()));
+  }
 
   updatePenBrushState(penBrush,
     (isSolid ? CQChartsObjDrawType::SYMBOL : CQChartsObjDrawType::LINE));
@@ -4286,7 +4331,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     os << " -position {" << position().toString().toStdString() << "}";
 
   if (symbol().isValid())
-    os << " -type {" << symbol().toString().toStdString() << "}";
+    os << " -symbol {" << symbol().toString().toStdString() << "}";
 
   if (symbolData.size().isSet())
     os << " -size {" << symbolData.size().toString().toStdString() << "}";
@@ -5587,6 +5632,11 @@ void
 CQChartsWidgetAnnotation::
 setPosition(const OptPosition &p)
 {
+  if (! p.isSet())
+    return;
+
+  assert(p.position().isValid());
+
   rectangle_ = OptRect();
   position_  = p;
 
@@ -5623,11 +5673,22 @@ void
 CQChartsWidgetAnnotation::
 setRectangle(const OptRect &r)
 {
-  if (r.isSet())
+  if (r.isSet()) {
     assert(r.rect().isValid());
 
-  position_  = OptPosition();
-  rectangle_ = r;
+    position_  = OptPosition();
+    rectangle_ = r;
+  }
+  else {
+    if (! position_.isSet()) {
+      if (rectangle_.isSet())
+        position_  = OptPosition(rectangleValue().center());
+      else
+        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+    }
+
+    rectangle_ = OptRect();
+  }
 
   rectToBBox();
 

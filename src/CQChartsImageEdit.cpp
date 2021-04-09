@@ -1,7 +1,7 @@
 #include <CQChartsImageEdit.h>
 #include <CQCharts.h>
-//#include <CQChartsPlot.h>
-//#include <CQChartsObjUtil.h>
+#include <CQChartsPlot.h>
+#include <CQChartsObjUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
 
@@ -24,10 +24,11 @@ CQChartsImageEdit(QWidget *parent) :
 
   setToolTip("Image Name");
 
+  //---
+
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
-  edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-
+  edit_   = CQUtil::makeWidget<CQChartsLineEdit>("edit");
   button_ = CQUtil::makeWidget<QToolButton>("button");
 
   button_->setIcon(CQPixmapCacheInst->getIcon("FILE_DIALOG"));
@@ -63,7 +64,7 @@ setImage(const CQChartsImage &image)
 
   image_ = image;
 
-  edit_->setText(image_.fileName());
+  edit_->setText(image_.toString());
 
   connectSlots(true);
 }
@@ -76,6 +77,8 @@ editChanged()
 
   image_ = CQChartsImage(edit_->text());
 
+  edit_->setText(image_.toString());
+
   connectSlots(true);
 
   emit imageChanged();
@@ -87,14 +90,16 @@ fileSlot()
 {
   auto dir = QDir::current().dirName();
 
-  auto fileName = QFileDialog::getOpenFileName(this, "Open File", dir, "Image (*.png *.jpg)");
-  if (! fileName.length()) return;
+  dir += "/" + image_.filename();
+
+  auto filename = QFileDialog::getOpenFileName(this, "Open File", dir, "Image (*.png *.jpg)");
+  if (! filename.length()) return;
 
   connectSlots(false);
 
-  edit_->setText(fileName);
+  image_ = CQChartsImage(filename);
 
-  image_ = CQChartsImage(edit_->text());
+  edit_->setText(image_.toString());
 
   connectSlots(true);
 
@@ -145,7 +150,6 @@ QWidget *
 CQChartsImagePropertyViewEditor::
 createEdit(QWidget *parent)
 {
-#if 0
   auto *item = CQPropertyViewMgrInst->editItem();
 
   auto *obj = (item ? item->object() : nullptr);
@@ -155,16 +159,13 @@ createEdit(QWidget *parent)
   CQCharts     *charts = nullptr;
 
   CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
-#endif
 
   //---
 
   auto *edit = new CQChartsImageEdit(parent);
 
-#if 0
   if (plot)
     edit->setCharts(plot->charts());
-#endif
 
   return edit;
 }
@@ -176,7 +177,7 @@ connect(QWidget *w, QObject *obj, const char *method)
   auto *edit = qobject_cast<CQChartsImageEdit *>(w);
   assert(edit);
 
-  QObject::connect(edit, SIGNAL(editChanged()), obj, method);
+  QObject::connect(edit, SIGNAL(imageChanged()), obj, method);
 }
 
 QVariant

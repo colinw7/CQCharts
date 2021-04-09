@@ -178,7 +178,7 @@ init()
   setStatsLines(false);
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 
-  setDotSymbol         (Symbol(SymbolType::Type::CIRCLE));
+  setDotSymbol         (Symbol::circle());
   setDotSymbolSize     (Length("7px"));
   setDotSymbolFilled   (true);
   setDotSymbolFillColor(Color(Color::Type::PALETTE));
@@ -3631,8 +3631,7 @@ drawRug(PaintDevice *device) const
   auto symbolSize = plot_->rugSymbolSize();
 
   if (! symbol.isValid())
-    symbol = CQChartsSymbol(plot_->isVertical() ?
-      CQChartsSymbolType::Type::VLINE : CQChartsSymbolType::Type::HLINE);
+    symbol = (plot_->isVertical() ? Symbol::vline() : Symbol::hline());
 
   double sx, sy;
 
@@ -4256,8 +4255,7 @@ drawRug(PaintDevice *device) const
   auto symbolSize = plot_->rugSymbolSize();
 
   if (! symbol.isValid())
-    symbol = CQChartsSymbol(plot_->isVertical() ?
-      CQChartsSymbolType::Type::VLINE : CQChartsSymbolType::Type::HLINE);
+    symbol = (plot_->isVertical() ? Symbol::vline() : Symbol::hline());
 
   double sx, sy;
 
@@ -4437,7 +4435,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto symbol     = Symbol(SymbolType::Type::CIRCLE);
+  auto symbol     = Symbol::circle();
   auto symbolSize = Length(6, CQChartsUnits::PIXEL);
 
   auto pll = prect.getLL();
@@ -4585,7 +4583,7 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
   addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
 
@@ -4593,6 +4591,8 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
   addColorColumnWidgets ();
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

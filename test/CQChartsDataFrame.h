@@ -17,7 +17,7 @@ Frame *initFrame(CQChartsDataFrameCmd *cmd);
 
 void showFrame(CQChartsDataFrameCmd *cmd);
 
-void loadFrameFile(const QString &fileName);
+void loadFrameFile(const QString &filename);
 
 }
 

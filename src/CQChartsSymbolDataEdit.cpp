@@ -242,7 +242,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   // symbol
   auto *symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
 
-  symbolEdit_ = new CQChartsSymbolEdit;
+  symbolEdit_ = new CQChartsSymbolLineEdit;
 
   groupLayout->addWidget(symbolLabel, 0, 0);
   groupLayout->addWidget(symbolEdit_, 0, 1);

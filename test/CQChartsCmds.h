@@ -22,6 +22,7 @@ class CQChartsModelData;
 class CQChartsPlotType;
 class CQChartsAnnotation;
 class CQChartsKeyItem;
+class CQChartsFile;
 
 class CQChartsCmds;
 
@@ -70,7 +71,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  bool loadFileModel(const QString &filename, CQChartsFileType type,
+  bool loadFileModel(const CQChartsFile &file, CQChartsFileType type,
                      const CQChartsInputData &inputData);
 
   //---
@@ -112,13 +113,13 @@ class CQChartsCmds : public QObject {
   bool stringToModelColumns(const ModelP &model, const QString &columnsStr, Columns &columns);
 
  public:
-  QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
+  QAbstractItemModel *loadFile(const CQChartsFile &file, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
 
-  QAbstractItemModel *loadCsv (const QString &filename, const CQChartsInputData &inputData);
-  QAbstractItemModel *loadTsv (const QString &filename, const CQChartsInputData &inputData);
-  QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
-  QAbstractItemModel *loadData(const QString &filename, const CQChartsInputData &inputData);
+  QAbstractItemModel *loadCsv (const CQChartsFile &file, const CQChartsInputData &inputData);
+  QAbstractItemModel *loadTsv (const CQChartsFile &file, const CQChartsInputData &inputData);
+  QAbstractItemModel *loadJson(const CQChartsFile &file, bool &hierarchical);
+  QAbstractItemModel *loadData(const CQChartsFile &file, const CQChartsInputData &inputData);
 
   //---
 

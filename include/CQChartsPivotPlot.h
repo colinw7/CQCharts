@@ -110,6 +110,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
  public:
   using PivotPlot = CQChartsPivotPlot;
+  using Symbol    = CQChartsSymbol;
 
  public:
   CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
@@ -148,6 +149,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
  public:
   using PivotPlot = CQChartsPivotPlot;
+  using Symbol    = CQChartsSymbol;
 
  public:
   CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,

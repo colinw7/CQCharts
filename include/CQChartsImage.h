@@ -7,9 +7,15 @@
 #include <QIcon>
 #include <cassert>
 
+class CQCharts;
+
 /*!
  * \brief Image Data
  * \ingroup Charts
+ *
+ * An image is bitmap (manually resizable) shape supporting:
+ *  + PNG, JPEG, ...
+ *  + SVG
  */
 class CQChartsImage :
   public CQChartsEqBase<CQChartsImage> {
@@ -44,16 +50,17 @@ class CQChartsImage :
 
   Type type() const { return type_; }
 
-  const QString &fileName() const { return fileName_; }
+  const QString &filename() const { return filename_; }
 
   //---
 
-  bool isValid() const { return fileName_.length() || ! image_.isNull(); }
+  bool isValid() const { return filename_.length() || ! image_.isNull(); }
 
   int width () const;
   int height() const;
 
   QSize size() const { return QSize(width(), height()); }
+  void setSize(const QSize &size);
 
   //---
 
@@ -73,7 +80,7 @@ class CQChartsImage :
   //---
 
   friend bool operator==(const CQChartsImage &lhs, const CQChartsImage &rhs) {
-    return ((lhs.type() == rhs.type()) && (lhs.fileName() == rhs.fileName()));
+    return ((lhs.type() == rhs.type()) && (lhs.filename() == rhs.filename()));
   }
 
   //---
@@ -81,11 +88,16 @@ class CQChartsImage :
   void setImageType(const QString &type);
 
  private:
-  QImage           image_;
-  QIcon            icon_;
-  Type             type_    { Type::NONE };
-  QString          fileName_;
-  mutable QPixmap* pixmap_  { nullptr };
+  QImage iconToImage(const QIcon &icon, int w, int h) const;
+
+  static QImage svgToImage(const QString &filename, int w, int h);
+
+ private:
+  QImage           image_;                   //! qimage
+  QIcon            icon_;                    //! qicon
+  Type             type_     { Type::NONE }; //! file type
+  QString          filename_;                //! filename
+  mutable QPixmap* pixmap_   { nullptr };    //! cached svg pixmap
 };
 
 //---

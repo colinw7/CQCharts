@@ -936,9 +936,11 @@ CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Delaunay", delaunayCheck_);
   addFrameWidget(optionsFrame, "Voronoi" , voronoiCheck_ );
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

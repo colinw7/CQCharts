@@ -12,6 +12,7 @@
 #include <CQChartsInput.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
+#include <CQChartsFile.h>
 #include <CQChartsReadLine.h>
 
 #include <CQSortModel.h>
@@ -821,7 +822,9 @@ initPlot(const CQChartsInitData &initData)
     filename = initData.filenames[0];
 
     if (initData.fileType != CQChartsFileType::NONE) {
-      if (! cmds_->loadFileModel(filename, initData.fileType, initData.inputData))
+      CQChartsFile file(charts_, filename);
+
+      if (! cmds_->loadFileModel(file, initData.fileType, initData.inputData))
         return false;
     }
     else {
@@ -830,7 +833,9 @@ initPlot(const CQChartsInitData &initData)
   }
   else {
     if (initData.fileType == CQChartsFileType::EXPR) {
-      if (! cmds_->loadFileModel("", initData.fileType, initData.inputData))
+      CQChartsFile file;
+
+      if (! cmds_->loadFileModel(file, initData.fileType, initData.inputData))
         return false;
     }
   }

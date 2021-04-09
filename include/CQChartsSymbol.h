@@ -10,9 +10,16 @@
 #include <QStringList>
 #include <cassert>
 
+class CQChartsFile;
+
 /*!
  * \brief Symbol Data
  * \ingroup Charts
+ *
+ * A symbol is a vector (dynamically resizable) shape supporting:
+ *  + Builtin symbol types
+ +  + UTF-8 Characters
+ *  + SVG
  */
 class CQChartsSymbol :
   public CQChartsEqBase<CQChartsSymbol> {
@@ -82,7 +89,12 @@ class CQChartsSymbol :
   static CQChartsSymbol interpOutlineWrap(int i);
   static CQChartsSymbol interpOutlineWrap(int i, int imin, int imax);
 
-  static CQChartsSymbol fromSVGFile(const QString &filename, const QString &name, bool styled);
+  static CQChartsSymbol fromSVGFile(const CQChartsFile &file, const QString &name, bool styled);
+
+  static CQChartsSymbol circle() { return CQChartsSymbol(SymbolType::Type::CIRCLE); }
+
+  static CQChartsSymbol vline() { return CQChartsSymbol(SymbolType::Type::VLINE); }
+  static CQChartsSymbol hline() { return CQChartsSymbol(SymbolType::Type::HLINE); }
 
  public:
   enum Type {
@@ -111,6 +123,10 @@ class CQChartsSymbol :
 
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }
+
+  //bool isDot() const {
+  //  return (type() == Type::SYMBOL && symbolType().type() == SymbolType::Type::DOT);
+  //}
 
   //---
 

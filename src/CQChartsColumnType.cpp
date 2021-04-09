@@ -1009,7 +1009,7 @@ namedColors(const CQChartsNameValues &nameValues) const
 
 CQChartsNameValues
 CQChartsColumnType::
-namedImages(const CQChartsNameValues &nameValues) const
+namedImages(CQCharts *charts, const CQChartsNameValues &nameValues) const
 {
   QString namedImagesStr;
 
@@ -2280,7 +2280,7 @@ desc() const
 
 QVariant
 CQChartsColumnImageType::
-userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
+userData(CQCharts *charts, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
   if (! var.isValid())
@@ -2303,7 +2303,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 QVariant
 CQChartsColumnImageType::
-dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
+dataName(CQCharts *charts, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
   converted = true;

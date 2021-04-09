@@ -19,7 +19,7 @@ class CQChartsPaletteNameEdit;
 class CQChartsMapKeyWidget;
 class CQChartsColumnControlGroup;
 
-class CQTabSplit;
+//class CQTabSplit;
 class QCheckBox;
 class QLabel;
 class QGridLayout;
@@ -106,7 +106,7 @@ class CQChartsPlotCustomControls : public QFrame {
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
 
   CQCharts*    charts_ { nullptr };
-  CQTabSplit*  split_  { nullptr };
+//CQTabSplit*  split_  { nullptr };
   QVBoxLayout* layout_ { nullptr };
 
   QString       plotType_;

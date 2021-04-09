@@ -2282,14 +2282,18 @@ CQChartsPiePlotCustomControls(CQCharts *charts) :
   // options group
   auto optionsFrame = createGroupFrame("Options");
 
-  //---
-
   addColumnWidgets(QStringList() << "values" << "label" << "radius" << "keyLabel", optionsFrame);
+
+//addFrameRowStretch(optionsFrame);
 
   //---
 
   addGroupColumnWidgets();
   addColorColumnWidgets();
+
+  //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

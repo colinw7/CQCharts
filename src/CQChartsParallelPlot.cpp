@@ -1565,13 +1565,15 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
 
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
 
-  addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame);
 
   //---
 
   addColorColumnWidgets("Line Color");
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }
