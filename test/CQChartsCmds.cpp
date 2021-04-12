@@ -5608,7 +5608,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
     else {
       static auto names = QStringList() <<
        "models" << "views" << "plot_types" << "plots" << "annotations" << "current_model" <<
-       "column_types" << "column_type.names" << "column_type.descs" << "annotation_types";
+       "column_types" << "column_type.names" << "column_type.descs" << "annotation_types" <<
+       "symbols" << "procs" << "proc_data" << "role_names" << "path_list";
       return names;
     }
   }
@@ -6611,6 +6612,11 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "role_names") {
       return cmdBase_->setCmdRc(cmds()->roleArgValues());
     }
+    else if (name == "path_list") {
+      auto strs = charts->pathList();
+
+      return cmdBase_->setCmdRc(strs);
+    }
     else if (name == "?") {
       NameValueMap nameValues;
 
@@ -6629,7 +6635,7 @@ void
 CQChartsSetChartsDataCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
   addArg(argv, "-model"     , ArgType::String, "model_id");
   addArg(argv, "-view"      , ArgType::String, "view name");
   addArg(argv, "-type"      , ArgType::String, "type name");
@@ -6940,7 +6946,20 @@ execCmd(CQChartsCmdArgs &argv)
     return errorMsg("Invalid annotation name '" + name + "' specified");
   }
   else {
-    return errorMsg("Invalid global name '" + name + "' specified");
+    if      (name == "path_list") {
+      QStringList strs;
+
+      if (! CQTcl::splitList(value, strs))
+        return errorMsg(QString("Invalid path list '%1'").arg(value));
+
+      charts->setPathList(strs);
+    }
+    else if (name == "?") {
+      static auto names = QStringList() << "path_list";
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("Invalid global name '" + name + "' specified");
   }
 
   return true;

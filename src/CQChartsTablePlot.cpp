@@ -2407,7 +2407,7 @@ CQChartsTablePlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "table")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

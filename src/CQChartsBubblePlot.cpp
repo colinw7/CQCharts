@@ -1628,7 +1628,7 @@ CQChartsBubblePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "bubble")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

@@ -4,6 +4,7 @@
 #include <QFrame>
 
 class CQGroupBox;
+class QCheckBox;
 class QAbstractButton;
 class QStackedWidget;
 class QButtonGroup;
@@ -28,7 +29,11 @@ class CQChartsColumnControlGroup : public QFrame {
   bool isColumn () const;
   void setColumn();
 
+  bool isKeyVisible() const;
+
  private slots:
+  void keyCheckSlot(int);
+
   void controlButtonClicked(QAbstractButton *button);
 
  private:
@@ -37,8 +42,11 @@ class CQChartsColumnControlGroup : public QFrame {
  signals:
   void groupChanged();
 
+  void showKey(bool b);
+
  private:
   CQGroupBox*     groupBox_     { nullptr };
+  QCheckBox*      keyCheck_     { nullptr };
   QStackedWidget* stack_        { nullptr };
   QButtonGroup*   radioGroup_   { nullptr };
   QFrame*         globalWidget_ { nullptr };

@@ -331,6 +331,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  bool adjustedGroupColor(int ig, int ng, Color &color) const;
+
+  //---
+
   // label font size column and map
   const Column &fontSizeColumn() const { return fontSizeData_.column; }
   void setFontSizeColumn(const Column &c);

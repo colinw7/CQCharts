@@ -252,11 +252,11 @@ init()
   //---
 
   // arrow object
-  arrowObj_ = new Arrow(this);
+  arrowObj_ = std::make_unique<Arrow>(this);
 
   arrowObj_->setVisible(false);
 
-  connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(arrowObj_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
   //---
 
@@ -277,7 +277,6 @@ void
 CQChartsXYPlot::
 term()
 {
-  delete arrowObj_;
 }
 
 //---
@@ -421,7 +420,7 @@ setVectors(bool b)
 {
   if (b != isVectors()) {
     CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
-      arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      arrowObj_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     arrowObj_->setVisible(b);
 
@@ -536,7 +535,7 @@ addProperties()
 {
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    return &(this->addProperty(path, arrowObj_, name, alias)->setDesc(desc));
+    return &(this->addProperty(path, arrowObj_.get(), name, alias)->setDesc(desc));
   };
 
   auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -2784,7 +2783,7 @@ CQChartsXYPlot::
 drawArrow(PaintDevice *device, const Point &p1, const Point &p2) const
 {
   CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
-    arrowObj_, SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));
+    arrowObj_.get(), SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));
 
   arrowObj_->setFrom(p1);
   arrowObj_->setTo  (p2);
@@ -3205,7 +3204,6 @@ CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point
 CQChartsXYPointObj::
 ~CQChartsXYPointObj()
 {
-  delete edata_;
 }
 
 //---
@@ -3312,9 +3310,9 @@ CQChartsXYPointObj::
 extraData()
 {
   if (! edata_)
-    edata_ = new ExtraData;
+    edata_ = std::make_unique<ExtraData>();
 
-  return edata_;
+  return edata_.get();
 }
 
 const CQChartsXYPointObj::ExtraData *
@@ -3322,9 +3320,9 @@ CQChartsXYPointObj::
 extraData() const
 {
   if (! edata_)
-    const_cast<CQChartsXYPointObj *>(this)->edata_ = new ExtraData;
+    const_cast<CQChartsXYPointObj *>(this)->edata_ = std::make_unique<ExtraData>();
 
-  return edata_;
+  return edata_.get();
 }
 
 bool
@@ -3787,8 +3785,6 @@ CQChartsXYPolylineObj(const Plot *plot, int groupInd, const BBox &rect,
 CQChartsXYPolylineObj::
 ~CQChartsXYPolylineObj()
 {
-  delete smooth_;
-  delete hull_;
 }
 
 QString
@@ -3928,7 +3924,7 @@ initSmooth() const
   if (! smooth_) {
     auto *th = const_cast<CQChartsXYPolylineObj *>(this);
 
-    th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
+    th->smooth_ = std::make_unique<CQChartsSmooth>(poly_, /*sorted*/false);
   }
 }
 
@@ -4019,9 +4015,9 @@ drawHull(PaintDevice *device) const
   auto *th = const_cast<CQChartsXYPolylineObj *>(this);
 
   if (! th->hull_)
-    th->hull_ = new Hull;
+    th->hull_ = std::make_unique<Hull>();
 
-  auto *hull = th->hull_;
+  auto *hull = th->hull_.get();
 
   //---
 
@@ -4233,7 +4229,6 @@ CQChartsXYPolygonObj(const Plot *plot, int groupInd, const BBox &rect,
 CQChartsXYPolygonObj::
 ~CQChartsXYPolygonObj()
 {
-  delete smooth_;
 }
 
 QString
@@ -4317,7 +4312,7 @@ initSmooth() const
   if (! smooth_) {
     auto *th = const_cast<CQChartsXYPolygonObj *>(this);
 
-    th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
+    th->smooth_ = std::make_unique<CQChartsSmooth>(poly_, /*sorted*/false);
 
     th->smooth_->setUnder(under_);
   }
@@ -4672,7 +4667,7 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
  CQChartsPointPlotCustomControls(charts, "xy")
 {
   // columns group
-  auto columnsFrame = createGroupFrame("Columns");
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   addColumnWidgets(QStringList() << "x" << "y" << "label", columnsFrame);
 
@@ -4683,7 +4678,7 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
   //---
 
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
   linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");

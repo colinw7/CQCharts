@@ -1036,7 +1036,7 @@ CQChartsHierScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "hierscatter")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

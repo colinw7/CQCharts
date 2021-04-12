@@ -1,9 +1,11 @@
 #include <CQChartsColumnControlGroup.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQGroupBox.h>
 #include <CQUtil.h>
 
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
@@ -32,6 +34,9 @@ CQChartsColumnControlGroup(QWidget *parent) :
   auto *globalRadio = CQUtil::makeLabelWidget<QRadioButton>("Global", "global");
   auto *columnRadio = CQUtil::makeLabelWidget<QRadioButton>("Column", "column");
 
+  globalRadio->setToolTip("Apply value to all");
+  columnRadio->setToolTip("Use column data for each value");
+
   globalRadio->setChecked(true);
 
   radioGroup_->addButton(globalRadio);
@@ -42,9 +47,19 @@ CQChartsColumnControlGroup(QWidget *parent) :
 
   cornerLayout->addWidget(globalRadio);
   cornerLayout->addWidget(columnRadio);
+
   cornerLayout->addStretch(1);
 
+  keyCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Key", "keyCheck");
+
+  connect(keyCheck_, SIGNAL(stateChanged(int)), this, SLOT(keyCheckSlot(int)));
+
+  cornerLayout->addWidget(CQChartsWidgetUtil::createHSpacer(2));
+  cornerLayout->addWidget(keyCheck_);
+
   groupBox_->setCornerWidget(cornerControl);
+
+  keyCheck_->setVisible(false);
 
   //---
 
@@ -81,12 +96,32 @@ void
 CQChartsColumnControlGroup::
 controlButtonClicked(QAbstractButton *button)
 {
-  if (button->text() == "Global")
+  if (button->text() == "Global") {
     stack_->setCurrentIndex(0);
-  else
+
+    keyCheck_->setVisible(false);
+  }
+  else {
     stack_->setCurrentIndex(1);
 
+    keyCheck_->setVisible(true);
+  }
+
   emit groupChanged();
+}
+
+void
+CQChartsColumnControlGroup::
+keyCheckSlot(int state)
+{
+  emit showKey(state);
+}
+
+bool
+CQChartsColumnControlGroup::
+isKeyVisible() const
+{
+  return keyCheck_->isChecked();
 }
 
 void

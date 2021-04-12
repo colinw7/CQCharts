@@ -1437,7 +1437,7 @@ CQChartsConnectionPlotCustomControls::
 addConnectionColumnWidgets()
 {
   // connections group
-  auto connectionsFrame = createGroupFrame("Connections");
+  auto connectionsFrame = createGroupFrame("Connections", "connectionsFrame");
 
   //---
 

@@ -635,6 +635,11 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch)
     pbbox1 = pbbox;
   }
 
+  if      (view_)
+    image.resolve(view_->charts());
+  else if (plot_)
+    image.resolve(plot_->charts());
+
   auto qimage = image.sizedImage(int(w), int(h));
 
   if (handDrawn_)

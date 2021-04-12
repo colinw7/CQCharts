@@ -51,8 +51,8 @@ class CQChartsPlotCustomControls : public QFrame {
     QFrame*                     columnControls { nullptr };
   };
 
-  FrameData createFrame();
-  FrameData createGroupFrame(const QString &name);
+  FrameData createFrame(const QString &objName);
+  FrameData createGroupFrame(const QString &name, const QString &objName);
 
   ColumnControlGroupData createColumnControlGroup(const QString &name, const QString &title);
 
@@ -73,6 +73,12 @@ class CQChartsPlotCustomControls : public QFrame {
   virtual CQChartsColor getColorValue() { return color_; }
   virtual void setColorValue(const CQChartsColor &c) { color_ = c; }
 
+  //---
+
+  virtual void handlePlotDrawn();
+
+  void updateColorKeyVisible();
+
  public slots:
   virtual void updateWidgets();
 
@@ -92,6 +98,8 @@ class CQChartsPlotCustomControls : public QFrame {
   void columnsSlot();
 
   void numericOnlySlot(int state);
+
+  void showColorKeySlot(bool b);
 
  protected:
   CQChartsPlotType *plotType() const;

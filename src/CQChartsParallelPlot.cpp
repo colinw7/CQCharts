@@ -1552,7 +1552,7 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "parallel")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

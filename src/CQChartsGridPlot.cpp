@@ -683,7 +683,7 @@ CQChartsGridPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "grid")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

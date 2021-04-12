@@ -1800,7 +1800,7 @@ CQChartsWheelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wheel")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

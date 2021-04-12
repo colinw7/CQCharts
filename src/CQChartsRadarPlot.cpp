@@ -1177,7 +1177,7 @@ CQChartsRadarPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "radar")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

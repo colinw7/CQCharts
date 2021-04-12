@@ -3646,7 +3646,7 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "box")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

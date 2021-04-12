@@ -15,7 +15,7 @@ CQChartsGroupPlotCustomControls::
 addGroupColumnWidgets()
 {
   // group group
-  auto groupFrame = createGroupFrame("Group");
+  auto groupFrame = createGroupFrame("Group", "groupFrame");
 
   //---
 

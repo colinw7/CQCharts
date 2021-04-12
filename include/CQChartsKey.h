@@ -72,7 +72,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //--
 
-  // get/set orientation
+  //! get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &orient);
 
@@ -80,63 +80,63 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  // auto hide
+  //! get/set auto hide
   bool isAutoHide() const { return autoHide_; }
   void setAutoHide(bool b);
 
   //---
 
-  // clip
+  //! get/set clipped
   bool isClipped() const { return clipped_; }
   void setClipped(bool b);
 
   //---
 
-  // above plot
+  //! get/set above plot
   bool isAbove() const { return above_; }
   void setAbove(bool b);
 
   //---
 
-  // location
+  //! get/set location
   const Location &location() const { return location_; }
   void setLocation(const Location &l);
 
   //---
 
-  // header
+  //! get/set header text
   const QString &headerStr() const { return header_; }
   void setHeaderStr(const QString &s);
 
-  // TODO header text properties
+  //! TODO header text properties
 
   //---
 
-  // alpha when associated object hidden
+  // get/set alpha when associated object hidden
   const Alpha &hiddenAlpha() const { return hiddenAlpha_; }
   void setHiddenAlpha(const Alpha &a);
 
   //---
 
-  // columns
+  //! get/set columns
   int columns() const { return columns_; }
   void setColumns(int i);
 
   //---
 
-  // max rows
+  //! get/set max rows
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i);
 
   //---
 
-  // interactive
+  //! get/set interactive
   bool isInteractive() const { return interactive_; }
   void setInteractive(bool b);
 
   //---
 
-  // press behavior
+  //! get/set press behavior
   const KeyBehavior &pressBehavior() const { return pressBehavior_; }
   void setPressBehavior(const KeyBehavior &b);
 
@@ -312,52 +312,53 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  // flipped
+  //! get/set is flipped (horizontally)
   bool isFlipped() const { return flipped_; }
   void setFlipped(bool b);
 
   //---
 
-  // inside plot in x direction
+  //! get/set inside plot in x direction
   bool isInsideX() const { return locationData_.insideX; }
   void setInsideX(bool b) { locationData_.insideX = b; updatePosition(); }
 
   //---
 
-  // inside plot in y direction
+  //! get/set inside plot in y direction
   bool isInsideY() const { return locationData_.insideY; }
   void setInsideY(bool b) { locationData_.insideY = b; updatePosition(); }
 
   //---
 
-  // absolute position
+  //! get/set absolute position
   const Point &absolutePosition() const { return locationData_.absolutePosition; }
   void setAbsolutePosition(const Point &p) {
     locationData_.absolutePosition = p; updatePosition(); }
 
-  // absolute rect
+  //! get/set absolute rect
   const BBox &absoluteRectangle() const { return locationData_.absoluteRectangle; }
   void setAbsoluteRectangle(const BBox &bbox) {
     locationData_.absoluteRectangle = bbox; updatePosition(); }
 
   //---
 
-  // item spacing (pixels)
+  //! get/set item spacing (pixels)
   double spacing() const { return spacing_; }
   void setSpacing(double i) { spacing_ = i; updateLayout(); }
 
   //---
 
-  // scroll width
+  //! get/set scroll width
   const OptLength &scrollWidth() const { return scrollData_.width; }
   void setScrollWidth(const OptLength &l) { scrollData_.width = l; }
 
-  // scroll height
+  //! get/set scroll height
   const OptLength &scrollHeight() const { return scrollData_.height; }
   void setScrollHeight(const OptLength &l) { scrollData_.height = l; }
 
   //---
 
+  //! get/set bbox
   const BBox &bbox() const override { return wbbox_; }
   void setBBox(const BBox &b) { wbbox_ = b; }
 

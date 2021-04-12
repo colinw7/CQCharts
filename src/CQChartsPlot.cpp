@@ -4185,7 +4185,7 @@ void
 CQChartsPlot::
 addColorMapKeyProperties()
 {
-  auto colorMapKeyPath = QString("mapKey/color");
+  auto colorMapKeyPath = QString("mapKeys/color");
 
   addProp(colorMapKeyPath, "colorMapKey", "visible", "Color key visible");
 
@@ -4268,11 +4268,6 @@ updateColorMapKey() const
   colorMapKey_->setNative      (isColor);
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
-
-  auto bbox = displayRangeBBox();
-
-  if (! colorMapKey_->position().isValid())
-    colorMapKey_->setPosition(Position(bbox.getLL(), Position::Units::PLOT));
 }
 
 //------
@@ -8722,26 +8717,6 @@ bool
 CQChartsPlot::
 columnValueColor(const QVariant &var, Color &color) const
 {
-  auto colorFromPaletteValue = [&](double r) {
-    // use named palette if defined or current palette value
-    Color color;
-
-    if (colorMapPalette().isValid()) {
-      auto *palette = colorMapPalette().palette();
-
-      if (palette)
-        color = Color(palette->getColor(r));
-      else
-        color = Color(Color::Type::PALETTE_VALUE, r);
-    }
-    else
-      color = Color(Color::Type::PALETTE_VALUE, r);
-
-    return color;
-  };
-
-  //---
-
   if      (CQChartsVariant::isNumeric(var)) {
     // get real value
     bool ok;
@@ -8763,7 +8738,7 @@ columnValueColor(const QVariant &var, Color &color) const
 
     //--
 
-    color = colorFromPaletteValue(r1);
+    color = colorFromColorMapPaletteValue(r1);
   }
   else if (CQChartsVariant::isColor(var)) {
     // use color value directly
@@ -8783,7 +8758,7 @@ columnValueColor(const QVariant &var, Color &color) const
 
       double r = CMathUtil::map(i, 0, n - 1, colorMapMin(), colorMapMax());
 
-      color = colorFromPaletteValue(r);
+      color = colorFromColorMapPaletteValue(r);
     }
     else {
       bool ok;
@@ -8794,6 +8769,27 @@ columnValueColor(const QVariant &var, Color &color) const
   }
 
   return color.isValid();
+}
+
+CQChartsColor
+CQChartsPlot::
+colorFromColorMapPaletteValue(double r) const
+{
+  // use named palette if defined or current palette value
+  Color color;
+
+  if (colorMapPalette().isValid()) {
+    auto *palette = colorMapPalette().palette();
+
+    if (palette)
+      color = Color(palette->getColor(r));
+    else
+      color = Color(Color::Type::PALETTE_VALUE, r);
+  }
+  else
+    color = Color(Color::Type::PALETTE_VALUE, r);
+
+  return color;
 }
 
 //------

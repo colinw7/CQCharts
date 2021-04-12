@@ -168,6 +168,7 @@
 #include <CQTclUtil.h>
 
 #include <QTimer>
+#include <QFileInfo>
 
 #include <iostream>
 
@@ -1711,6 +1712,47 @@ createPlotDlg(CQChartsModelData *modelData)
   createPlotDlg_->raise();
 
   return createPlotDlg_;
+}
+
+//---
+
+void
+CQCharts::
+addPath(const QString &path)
+{
+  auto path1 = path.trimmed();
+  assert(path1 != "");
+
+  while (path1[path.length() - 1] == "/")
+    path1 = path1.mid(0, path.length() - 1);
+
+  if (path1 == "")
+    path1 = "/";
+
+  pathList_.push_back(path1);
+}
+
+QString
+CQCharts::
+lookupFile(const QString &fileName) const
+{
+  auto fileName1 = fileName.trimmed();
+  if (fileName1 == "") return "";
+
+  if (fileName1[0] == "/")
+    return fileName1;
+
+  for (const auto &path : pathList_) {
+    auto fileName2 = path + "/" + fileName;
+
+    if (QFileInfo(fileName2).exists())
+      return fileName2;
+  }
+
+  if (QFileInfo(fileName1).exists())
+    return fileName1;
+
+  return "";
 }
 
 //---

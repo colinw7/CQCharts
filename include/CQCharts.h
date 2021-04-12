@@ -357,6 +357,15 @@ class CQCharts : public QObject {
 
   //---
 
+  const QStringList &pathList() const { return pathList_; }
+  void setPathList(const QStringList &s) { pathList_ = s; }
+
+  void addPath(const QString &path);
+
+  QString lookupFile(const QString &fileName) const;
+
+  //---
+
   void errorMsg(const QString &msg) const;
 
  signals:
@@ -418,6 +427,7 @@ class CQCharts : public QObject {
   CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
   CQTcl*                   cmdTcl_          { nullptr }; //!< command line tcl
   CQChartsExprTcl*         currentExpr_     { nullptr }; //!< current expression evaluator
+  QStringList              pathList_;
 };
 
 #endif

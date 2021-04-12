@@ -1110,7 +1110,7 @@ CQChartsGeometryPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "geometry")
 {
    // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

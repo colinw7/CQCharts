@@ -1967,7 +1967,7 @@ CQChartsPivotPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "pivot")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

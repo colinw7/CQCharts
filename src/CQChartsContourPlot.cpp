@@ -403,7 +403,7 @@ CQChartsContourPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "contour")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   solidCheck_ = createBoolEdit("solid");
 

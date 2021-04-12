@@ -311,6 +311,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
     Image    image;                           //!< image
   };
 
+  using ExtraDataP = std::unique_ptr<ExtraData>;
+
  private:
   const ExtraData *extraData() const;
   ExtraData *extraData();
@@ -319,7 +321,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   const Plot*        plot_     { nullptr }; //!< parent plot
   int                groupInd_ { -1 };      //!< group ind
   Point              pos_;                  //!< position
-  ExtraData*         edata_    { nullptr }; //!< extra data
+  ExtraDataP         edata_;                //!< extra data
   const LabelObj*    labelObj_ { nullptr }; //!< label obj
   const PolylineObj* lineObj_  { nullptr }; //!< line obj
 };
@@ -491,18 +493,20 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
  private:
   using Smooth   = CQChartsSmooth;
+  using SmoothP  = std::unique_ptr<Smooth>;
   using FitData  = CQChartsFitData;
   using StatData = CQStatData;
   using Hull     = CQChartsGrahamHull;
+  using HullP    = std::unique_ptr<Hull>;
 
   const Plot* plot_     { nullptr }; //!< parent plot
   int         groupInd_ { -1 };      //!< group ind
   Polygon     poly_;                 //!< polygon
   QString     name_;                 //!< name
-  Smooth*     smooth_   { nullptr }; //!< smooth object
+  SmoothP     smooth_;               //!< smooth object
   FitData     bestFit_;              //!< best fit data
   StatData    statData_;             //!< statistics data
-  Hull*       hull_     { nullptr }; //!< hull
+  HullP       hull_;                 //!< hull
 };
 
 //---
@@ -575,14 +579,15 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   void initSmooth() const;
 
  private:
-  using Smooth = CQChartsSmooth;
+  using Smooth  = CQChartsSmooth;
+  using SmoothP = std::unique_ptr<CQChartsSmooth>;
 
   const Plot* plot_     { nullptr }; //!< parent plot
   int         groupInd_ { -1 };      //!< group ind
   Polygon     poly_;                 //!< polygon
   QString     name_;                 //!< name
   bool        under_    { false };   //!< has under points
-  Smooth*     smooth_   { nullptr }; //!< smooth object
+  SmoothP     smooth_;               //!< smooth object
 };
 
 //---
@@ -1089,7 +1094,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using Arrow = CQChartsArrow;
+  using Arrow  = CQChartsArrow;
+  using ArrowP = std::unique_ptr<CQChartsArrow>;
 
   // columns
   Column  xColumn_;       //!< x column
@@ -1131,7 +1137,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   FillUnderData fillUnderData_; //!< fill under data
 
   // vector data
-  Arrow* arrowObj_ { nullptr }; //!< vectors data
+  ArrowP arrowObj_; //!< vectors data
 
   double symbolWidth_  { 1.0 }; //!< current symbol width
   double symbolHeight_ { 1.0 }; //!< current symbol height

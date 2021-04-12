@@ -116,6 +116,7 @@ init()
 
   // hull
   setHullFillColor(Color(Color::Type::PALETTE));
+  setHullFillAlpha(Alpha(0.5));
 
   // stats
   setStatsLines(false);
@@ -1060,7 +1061,7 @@ void
 CQChartsPointPlot::
 addSymbolSizeMapKeyProperties()
 {
-  auto symbolSizeMapKeyPath = QString("mapKey/symbolSize");
+  auto symbolSizeMapKeyPath = QString("mapKeys/symbolSize");
 
   addProp(symbolSizeMapKeyPath, "symbolSizeMapKey", "visible", "Symbol size key visible");
 
@@ -1129,11 +1130,6 @@ updateSymbolSizeMapKey() const
 
   symbolSizeMapKey_->setIntegral(isIntegral);
   symbolSizeMapKey_->setNative  (isSymbolSize);
-
-  auto bbox = displayRangeBBox();
-
-  if (! symbolSizeMapKey_->position().isValid())
-    symbolSizeMapKey_->setPosition(Position(bbox.getMidB(), Position::Units::PLOT));
 }
 
 //---
@@ -1176,7 +1172,7 @@ void
 CQChartsPointPlot::
 addSymbolTypeMapKeyProperties()
 {
-  auto symbolTypeMapKeyPath = QString("mapKey/symbolType");
+  auto symbolTypeMapKeyPath = QString("mapKeys/symbolType");
 
   addProp(symbolTypeMapKeyPath, "symbolTypeMapKey", "visible", "Symbol type key visible");
 
@@ -1251,11 +1247,6 @@ updateSymbolTypeMapKey() const
   symbolTypeMapKey_->setNative      (isSymbolType);
   symbolTypeMapKey_->setNumUnique   (numUnique);
   symbolTypeMapKey_->setUniqueValues(uniqueValues);
-
-  auto bbox = displayRangeBBox();
-
-  if (! symbolTypeMapKey_->position().isValid())
-    symbolTypeMapKey_->setPosition(Position(bbox.getLR(), Position::Units::PLOT));
 }
 
 //---
@@ -1270,6 +1261,29 @@ updateMapKey(CQChartsMapKey *key) const
     updateSymbolSizeMapKey();
   else
     CQChartsPlot::updateMapKey(key);
+}
+
+//---
+
+bool
+CQChartsPointPlot::
+adjustedGroupColor(int ig, int ng, Color &color) const
+{
+  // use color column and color map data if column is valid and is the grouping column
+  if (! colorColumn().isValid())
+    return false;
+
+  if (! colorColumn().isGroup() && colorColumn() != groupColumn())
+    return false;
+
+  if (! isColorMapped())
+    return false;
+
+  double r = CMathUtil::map(ig, 0, ng - 1, colorMapMin(), colorMapMax());
+
+  color = colorFromColorMapPaletteValue(r);
+
+  return color.isValid();
 }
 
 //---
@@ -1442,6 +1456,11 @@ draw(PaintDevice *device) const
     PenBrush penBrush;
 
     plot_->setPenBrush(penBrush, plot_->hullPenData(ic), plot_->hullBrushData(ic));
+
+    Color color1;
+
+    if (plot_->adjustedGroupColor(ig_.i, ig_.n, color1))
+      CQChartsDrawUtil::updateBrushColor(penBrush.brush, color1.color());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

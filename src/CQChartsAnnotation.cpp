@@ -3002,6 +3002,10 @@ void
 CQChartsImageAnnotation::
 draw(PaintDevice *device)
 {
+  image_.resolve(charts());
+
+  //---
+
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();

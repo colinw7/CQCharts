@@ -576,7 +576,7 @@ CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wordCloud")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

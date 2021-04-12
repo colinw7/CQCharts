@@ -920,7 +920,7 @@ CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "delaunay")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

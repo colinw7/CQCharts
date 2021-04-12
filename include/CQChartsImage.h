@@ -87,6 +87,10 @@ class CQChartsImage :
 
   void setImageType(const QString &type);
 
+  //---
+
+  void resolve(CQCharts *charts) const;
+
  private:
   QImage iconToImage(const QIcon &icon, int w, int h) const;
 
@@ -97,6 +101,7 @@ class CQChartsImage :
   QIcon            icon_;                    //! qicon
   Type             type_     { Type::NONE }; //! file type
   QString          filename_;                //! filename
+  bool             resolved_ { false };      //! resolved
   mutable QPixmap* pixmap_   { nullptr };    //! cached svg pixmap
 };
 

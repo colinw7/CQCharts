@@ -729,7 +729,7 @@ CQChartsDendrogramPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "dendrogram")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

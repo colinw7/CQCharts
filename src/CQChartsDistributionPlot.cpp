@@ -4566,7 +4566,7 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "distribution")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

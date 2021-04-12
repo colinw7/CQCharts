@@ -1,4 +1,5 @@
 #include <CQChartsImage.h>
+#include <CQCharts.h>
 #include <CQPropertyView.h>
 
 #include <QSvgRenderer>
@@ -44,7 +45,8 @@ CQChartsImage(const QImage &image) :
 
 CQChartsImage::
 CQChartsImage(const CQChartsImage &image) :
- image_(image.image_), icon_(image.icon_), type_(image.type_), filename_(image.filename_)
+ image_(image.image_), icon_(image.icon_), type_(image.type_),
+ filename_(image.filename_), resolved_(image.resolved_)
 {
   if (! image_.isNull())
     image_.setText("", filename_);
@@ -74,6 +76,7 @@ operator=(const CQChartsImage &image)
   icon_     = image.icon_;
   type_     = image.type_;
   filename_ = image.filename_;
+  resolved_ = image.resolved_;
 
   if (! image_.isNull())
     image_.setText("", filename_);
@@ -94,10 +97,15 @@ sizedImage(int w, int h) const
 {
   if      (type_ == Type::ICON)
     return iconToImage(icon_, w, h);
-  else if (type_ == Type::SVG)
+  else if (type_ == Type::SVG) {
     return svgToImage(filename_, w, h);
-  else
+  }
+  else {
+    if (image_.isNull())
+      return image_;
+
     return image_.scaled(int(w), int(h), Qt::IgnoreAspectRatio);
+  }
 }
 
 int
@@ -243,15 +251,19 @@ fromString(const QString &s, Type type)
       auto p = s_namedImages.find(filename_);
 
       if (p == s_namedImages.end()) {
-        image_.load(filename_);
+        if (image_.load(filename_)) {
+          s_namedImages[filename_] = image_;
 
-        s_namedImages[filename_] = image_;
+          resolved_ = true;
+        }
       }
       else
         image_ = (*p).second;
 
-      if (w > 0 && h > 0)
-        image_ = image_.scaled(int(w), int(h), Qt::IgnoreAspectRatio);
+      if (w > 0 && h > 0) {
+        if (! image_.isNull())
+          image_ = image_.scaled(int(w), int(h), Qt::IgnoreAspectRatio);
+      }
     }
   }
   else if (type_ == Type::ICON) {
@@ -263,7 +275,11 @@ fromString(const QString &s, Type type)
       if (p == s_namedIcons.end()) {
         icon_ = QIcon(filename_);
 
-        s_namedIcons[filename_] = icon_;
+        if (! icon_.isNull()) {
+          s_namedIcons[filename_] = icon_;
+
+          resolved_ = true;
+        }
       }
       else
         icon_ = (*p).second;
@@ -281,12 +297,30 @@ fromString(const QString &s, Type type)
       if (h < 0) h = 100;
 
       image_ = svgToImage(filename_, w, h);
+
+      if (! image_.isNull())
+        resolved_ = true;
     }
   }
 
   image_.setText("", filename_);
 
   return true;
+}
+
+void
+CQChartsImage::
+resolve(CQCharts *charts) const
+{
+  if (! resolved_ && charts) {
+    QString filename1 = charts->lookupFile(filename_);
+
+    if (filename1 != "") {
+      auto *th = const_cast<CQChartsImage *>(this);
+
+      *th = CQChartsImage(filename1);
+    }
+  }
 }
 
 void
@@ -317,7 +351,8 @@ svgToImage(const QString &filename, int w, int h)
 {
   QSvgRenderer renderer;
 
-  renderer.load(filename);
+  if (! renderer.load(filename))
+    return QImage();
 
   QPixmap pixmap(w, h);
 

@@ -51,6 +51,9 @@ addSymbolSizeWidgets()
 
   symbolSizeControlGroupData.columnControls->layout()->addWidget(symbolSizeMapKey_);
 
+  connect(symbolSizeControlGroupData.group, SIGNAL(showKey(bool)),
+          this, SLOT(showSymbolSizeMapKeySlot(bool)));
+
   //---
 
   // symbol type group
@@ -84,6 +87,9 @@ addSymbolSizeWidgets()
   symbolTypeMapKey_->setFixedSize(16, 16);
 
   symbolTypeControlGroupData.columnControls->layout()->addWidget(symbolTypeMapKey_);
+
+  connect(symbolTypeControlGroupData.group, SIGNAL(showKey(bool)),
+          this, SLOT(showSymbolTypeMapKeySlot(bool)));
 
   //---
 
@@ -154,6 +160,20 @@ setPlot(CQChartsPlot *plot)
 
 void
 CQChartsPointPlotCustomControls::
+showSymbolSizeMapKeySlot(bool)
+{
+  updateSymbolSizeMapKeyVisible();
+}
+
+void
+CQChartsPointPlotCustomControls::
+showSymbolTypeMapKeySlot(bool)
+{
+  updateSymbolTypeMapKeyVisible();
+}
+
+void
+CQChartsPointPlotCustomControls::
 updateWidgets()
 {
   connectSlots(false);
@@ -207,19 +227,49 @@ void
 CQChartsPointPlotCustomControls::
 plotDrawnSlot()
 {
+  handlePlotDrawn();
+}
+
+void
+CQChartsPointPlotCustomControls::
+handlePlotDrawn()
+{
+  if (symbolSizeMapKey_)
+    symbolSizeMapKey_->setKey(plot_->symbolSizeMapKey());
+
+  if (symbolTypeMapKey_)
+    symbolTypeMapKey_->setKey(plot_->symbolTypeMapKey());
+
+  updateSymbolSizeMapKeyVisible();
+  updateSymbolTypeMapKeyVisible();
+}
+
+void
+CQChartsPointPlotCustomControls::
+updateSymbolSizeMapKeyVisible()
+{
   if (symbolSizeMapKey_) {
     auto hasSymbolSizeColumn = plot_->symbolSizeColumn().isValid();
 
-    symbolSizeMapKey_->setVisible(hasSymbolSizeColumn && ! plot_->symbolSizeMapKey()->isNative());
-    symbolSizeMapKey_->setKey(plot_->symbolSizeMapKey());
-  }
+    bool hasSymbolSizeMapKey = (hasSymbolSizeColumn && ! plot_->symbolSizeMapKey()->isNative());
 
+    symbolSizeMapKey_->setVisible(hasSymbolSizeMapKey && symbolSizeControlGroup_->isKeyVisible());
+  }
+}
+
+void
+CQChartsPointPlotCustomControls::
+updateSymbolTypeMapKeyVisible()
+{
   if (symbolTypeMapKey_) {
     auto hasSymbolTypeColumn = plot_->symbolTypeColumn().isValid();
 
-    symbolTypeMapKey_->setVisible(hasSymbolTypeColumn && ! plot_->symbolTypeMapKey()->isNative());
-    symbolTypeMapKey_->setKey(plot_->symbolTypeMapKey());
+    bool hasSymbolTypeMapKey = (hasSymbolTypeColumn && ! plot_->symbolTypeMapKey()->isNative());
+
+    symbolTypeMapKey_->setVisible(hasSymbolTypeMapKey && symbolTypeControlGroup_->isKeyVisible());
   }
+
+  CQChartsGroupPlotCustomControls::handlePlotDrawn();
 }
 
 void

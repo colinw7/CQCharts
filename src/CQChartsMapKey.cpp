@@ -33,29 +33,91 @@ CQChartsMapKey(Plot *plot) :
 
 void
 CQChartsMapKey::
-setMargin(double r)
+setLocation(const Location &l)
 {
-  margin_ = r;
+  CQChartsUtil::testAndSet(location_, l, [&]() { invalidate(); } );
+}
 
-  invalidate();
+void
+CQChartsMapKey::
+setInsideX(bool b)
+{
+  CQChartsUtil::testAndSet(insideX_, b, [&]() { invalidate(); } );
+}
+
+void
+CQChartsMapKey::
+setInsideY(bool b)
+{
+  CQChartsUtil::testAndSet(insideY_, b, [&]() { invalidate(); } );
+}
+
+void
+CQChartsMapKey::
+setMargin(double m)
+{
+  CQChartsUtil::testAndSet(margin_, m, [&]() { invalidate(); } );
 }
 
 void
 CQChartsMapKey::
 setPosition(const Position &p)
 {
-  position_ = p;
-
-  invalidate();
+  CQChartsUtil::testAndSet(position_, p, [&]() { invalidate(); } );
 }
 
 void
 CQChartsMapKey::
 setAlign(const Qt::Alignment &a)
 {
-  align_ = a;
+  CQChartsUtil::testAndSet(align_, a, [&]() { invalidate(); } );
+}
 
-  invalidate();
+void
+CQChartsMapKey::
+calcPosition(Position &pos, Qt::Alignment &align) const
+{
+  auto bbox = plot_->displayRangeBBox();
+
+  double x = bbox.getXMin();
+  double y = bbox.getYMin();
+
+  if (location().type() == Location::Type::ABSOLUTE_POSITION) {
+    if (! position().isValid()) {
+      double bm = this->margin();
+
+      auto pbbox = plot()->calcPlotPixelRect();
+
+      double px = pbbox.getXMax() - kw_/2.0 - bm;
+      double py = pbbox.getYMax() - kh_/2.0 - bm;
+
+      auto *th = const_cast<CQChartsMapKey *>(this);
+
+      th->setPosition(Position(Point(px, py), Position::Units::PIXEL));
+    }
+
+    pos   = this->position();
+    align = this->align   ();
+  }
+  else {
+    align = 0;
+
+    if      (location().onLeft   ()) {
+      x = bbox.getXMin(); align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight); }
+    else if (location().onHCenter()) {
+      x = bbox.getXMid(); align |=  Qt::AlignHCenter; }
+    else if (location().onRight  ()) {
+      x = bbox.getXMax(); align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft); }
+
+    if      (location().onTop    ()) {
+      y = bbox.getYMax(); align |= (isInsideY() ? Qt::AlignTop  : Qt::AlignBottom); }
+    else if (location().onVCenter()) {
+      y = bbox.getYMid(); align |= Qt::AlignVCenter; }
+    else if (location().onBottom ()) {
+      y = bbox.getYMin(); align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop); }
+
+    pos = Position(Point(x, y), Position::Units::PLOT);
+  }
 }
 
 void
@@ -65,28 +127,24 @@ calcCenter()
   if (drawData_.isWidget) {
     xm_ = kw_/2.0;
     ym_ = kh_/2.0;
+
+    talign_ = Qt::AlignHCenter | Qt::AlignVCenter;
+
     return;
   }
 
   // calc center
-  Point pos;
+  Position      position;
+  Qt::Alignment align;
 
-  if (position().isValid()) {
-    pos = positionToPixel(position());
-  }
-  else {
-    double bm = this->margin();
+  calcPosition(position, align);
 
-    auto pbbox = plot()->calcPlotPixelRect();
-
-    double px = pbbox.getXMax() - kw_/2.0 - bm;
-    double py = pbbox.getYMax() - kh_/2.0 - bm;
-
-    pos = Point(px, py);
-  }
+  Point pos = positionToPixel(position);
 
   xm_ = pos.x;
   ym_ = pos.y;
+
+  talign_ = align;
 }
 
 void
@@ -105,13 +163,36 @@ calcAlignedBBox()
   double dx = 0.0;
   double dy = 0.0;
 
-  if      (align() & Qt::AlignLeft ) dx =  kw_/2.0;
-  else if (align() & Qt::AlignRight) dx = -kw_/2.0;
+  if      (talign_ & Qt::AlignLeft ) dx =  kw_/2.0;
+  else if (talign_ & Qt::AlignRight) dx = -kw_/2.0;
 
-  if      (align() & Qt::AlignBottom) dy = -kh_/2.0;
-  else if (align() & Qt::AlignTop   ) dy =  kh_/2.0;
+  if      (talign_ & Qt::AlignBottom) dy = -kh_/2.0;
+  else if (talign_ & Qt::AlignTop   ) dy =  kh_/2.0;
 
   pbbox_ = pbbox_.translated(dx, dy);
+}
+
+void
+CQChartsMapKey::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addProp("location", "Location");
+  addProp("insideX" , "Inside Plot X");
+  addProp("insideY" , "Inside Plot Y");
+  addProp("margin"  , "Margin");
+  addProp("position", "Position");
+  addProp("align"   , "Alignment");
+
+  //---
+
+  CQChartsTextBoxObj::addProperties(model, path, desc);
 }
 
 bool
@@ -141,11 +222,11 @@ editMove(const Point &p)
   double x = editHandles()->bbox().getXMid();
   double y = editHandles()->bbox().getYMid();
 
-  if      (align() & Qt::AlignLeft ) x = editHandles()->bbox().getXMin();
-  else if (align() & Qt::AlignRight) x = editHandles()->bbox().getXMax();
+  if      (talign_ & Qt::AlignLeft ) x = editHandles()->bbox().getXMin();
+  else if (talign_ & Qt::AlignRight) x = editHandles()->bbox().getXMax();
 
-  if      (align() & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
-  else if (align() & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
+  if      (talign_ & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
+  else if (talign_ & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
 
   setPosition(CQChartsPosition(Point(x, y), CQChartsUnits::PLOT));
 
@@ -169,6 +250,7 @@ CQChartsColorMapKey::
 CQChartsColorMapKey(Plot *plot) :
  CQChartsMapKey(plot)
 {
+  setLocation(Location(Location::Type::BOTTOM_RIGHT));
 }
 
 void
@@ -188,13 +270,9 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp("mapMin", "Color Value Min");
   addProp("mapMax", "Color Value Max");
 
-  addProp("position", "Key Position");
-
   addProp("paletteName", "Palette Name");
 
-  //---
-
-  CQChartsTextBoxObj::addProperties(model, path, desc);
+  CQChartsMapKey::addProperties(model, path, desc);
 }
 
 void
@@ -362,8 +440,11 @@ drawDiscreet(PaintDevice *device)
 
   int n = numUnique();
 
+  double min = this->mapMin();
+  double max = this->mapMax();
+
   for (int i = 0; i < n; ++i) {
-    double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+    double r = CMathUtil::map(i, 0, n - 1, min, max);
 
     auto c = colorsPalette->getColor(r);
 
@@ -531,6 +612,7 @@ CQChartsSymbolSizeMapKey::
 CQChartsSymbolSizeMapKey(Plot *plot) :
  CQChartsMapKey(plot)
 {
+  setLocation(Location(Location::Type::BOTTOM_CENTER));
 }
 
 void
@@ -550,9 +632,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp("mapMin", "Symbol Size Min");
   addProp("mapMax", "Symbol Size Max");
 
-  addProp("position", "Key Position");
-  addProp("align"   , "Key Align");
-
   addProp("scale"  , "Scale Factor");
   addProp("stacked", "Stacked Vertical instead of overlaid");
   addProp("rows"   , "Number of symbol rows");
@@ -564,7 +643,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
-  CQChartsTextBoxObj::addProperties(model, path, desc);
+  CQChartsMapKey::addProperties(model, path, desc);
 }
 
 void
@@ -594,7 +673,10 @@ void
 CQChartsSymbolSizeMapKey::
 initDraw(PaintDevice *device)
 {
-  initCenter(device);
+  calcCenter();
+
+  pcenter_ = Point(xm_, ym_);
+  center_  = device->pixelToWindow(pcenter_);
 
   (void) calcSize();
 
@@ -793,33 +875,6 @@ invalidate()
 
 void
 CQChartsSymbolSizeMapKey::
-initCenter(PaintDevice *device) const
-{
-  if (drawData_.isWidget) {
-    pcenter_ = Point(0, 0);
-  }
-  else {
-    // calc center
-    if (position().isValid()) {
-      pcenter_ = positionToPixel(position());
-    }
-    else {
-      auto pbbox = plot()->calcPlotPixelRect();
-
-      double prmin = scale()*this->mapMin();
-
-      double px = pbbox.getXMax() - prmin;
-      double py = pbbox.getYMax() - prmin;
-
-      pcenter_ = Point(px, py);
-    }
-  }
-
-  center_ = device->pixelToWindow(pcenter_);
-}
-
-void
-CQChartsSymbolSizeMapKey::
 calcSymbolBoxes() const
 {
   symbolBoxes_.clear();
@@ -835,7 +890,6 @@ calcSymbolBoxes() const
   if (rows() < 1)
     return;
 
-  double y  = 1.0;
   double sy = (rows() > 1 ? 1.0/(rows() - 1) : 0.0);
 
   // outer margin
@@ -843,25 +897,29 @@ calcSymbolBoxes() const
 
   //---
 
-  xm_ = pcenter_.x;
-  ym_ = pcenter_.y;
-
   if (! isStacked()) {
-    double yb = ym_ + prmax;
+    double y = 1.0;
+
+    double yb = prmax;
 
     for (int i = 0; i < rows(); ++i) {
+      // row radius
       double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
 
-      auto pbbox = BBox(xm_ - pr, yb - 2*pr, xm_ + pr, yb);
+      auto pbbox = BBox(-pr, yb - 2*pr, pr, yb);
 
       symbolBoxes_.push_back(pbbox);
 
       y -= sy;
     }
 
-    psbbox_ = BBox(xm_ - prmax - pm, ym_ - prmax - pm, xm_ + prmax + pm, ym_ + prmax + pm);
+    double ps = prmax + pm;
+
+    psbbox_ = BBox(-ps, -ps, ps, ps);
   }
   else {
+    double y = 1.0;
+
     double h = (rows() - 1)*pm;
 
     for (int i = 0; i < rows(); ++i) {
@@ -872,12 +930,12 @@ calcSymbolBoxes() const
 
     y = 1.0;
 
-    double yt = ym_ - h/2;
+    double yt = -h/2;
 
     for (int i = 0; i < rows(); ++i) {
       double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
 
-      auto pbbox = BBox(xm_ - pr, yt + 2*pr, xm_ + pr, yt);
+      auto pbbox = BBox(-pr, yt + 2*pr, pr, yt);
 
       symbolBoxes_.push_back(pbbox);
 
@@ -886,7 +944,10 @@ calcSymbolBoxes() const
       y -= sy;
     }
 
-    psbbox_ = BBox(xm_ - prmax - pm, ym_ - h/2 - pm, xm_ + prmax + pm, ym_ + h/2 + pm);
+    double psx = prmax + pm;
+    double psy = h/2 + pm;
+
+    psbbox_ = BBox(-psx, psy, psx, psy);
   }
 }
 
@@ -1027,6 +1088,7 @@ CQChartsSymbolTypeMapKey::
 CQChartsSymbolTypeMapKey(Plot *plot) :
  CQChartsMapKey(plot)
 {
+  setLocation(Location(Location::Type::BOTTOM_LEFT));
 }
 
 void
@@ -1046,11 +1108,9 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp("mapMin", "Symbol Type Value Min");
   addProp("mapMax", "Symbol Type Value Max");
 
-  addProp("position", "Key Position");
-
   //---
 
-  CQChartsTextBoxObj::addProperties(model, path, desc);
+  CQChartsMapKey::addProperties(model, path, desc);
 }
 
 void
@@ -1322,9 +1382,9 @@ setKey(CQChartsMapKey *key)
 
       auto s = keyFrame_->size();
 
-      auto h = std::min(s.height(), fm.height()*6);
+      auto h = std::min(s.height(), fm.height()*8);
 
-      setFixedSize(QSize(s.width() + 16, h));
+      setFixedSize(QSize(s.width() + 20, h));
     }
   }
 

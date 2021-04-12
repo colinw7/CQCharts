@@ -145,7 +145,7 @@ CQChartsHierPlotCustomControls::
 addHierColumnWidgets()
 {
   // hier group
-  auto hierFrame = createGroupFrame("Hier");
+  auto hierFrame = createGroupFrame("Hier", "hierFrame");
 
   static auto columnNames = QStringList() << "name" << "value";
 

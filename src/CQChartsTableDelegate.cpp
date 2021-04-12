@@ -544,6 +544,8 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
   painter->setPen(QColor(0, 0, 0)); // TODO: contrast border
 
   if (image.isValid()) {
+    image.resolve(charts());
+
     painter->setBrush(Qt::NoBrush);
 
     CQChartsPixelPaintDevice device(painter);

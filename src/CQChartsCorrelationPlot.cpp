@@ -1338,7 +1338,7 @@ CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "correlation")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   diagonalTypeCombo_      = createEnumEdit("diagonalType");
   upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");

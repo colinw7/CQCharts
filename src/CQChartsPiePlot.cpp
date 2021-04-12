@@ -2280,7 +2280,7 @@ CQChartsPiePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "pie")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   addColumnWidgets(QStringList() << "values" << "label" << "radius" << "keyLabel", optionsFrame);
 

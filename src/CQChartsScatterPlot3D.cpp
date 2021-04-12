@@ -1798,7 +1798,7 @@ CQChartsScatterPlot3DCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "scatter3d")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

@@ -3,9 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + hide density map of invisible groups
- + grouping in separate tab of custom controls
- + smatter handling of columns when group matches map columns (color, symbol size, symbol type)
+ + add scatter plot overlays to custom controls
+ + grouping in separate tab of custom controls with extra options
+ + scatter handling of columns when group matches map columns (color, symbol size, symbol type)
  + key auto scale symbol size when widget. better draw circles. curve ?
  + fix test_all.sh crashes
  + symbol and symbol type confusion
@@ -16,7 +16,6 @@ TODO:
  + symbol control has fixed/interpolated switch, stacked widgets and key widget
    + map key widget
    + font size widget
- + check box fixed/interpolated
  + range slider handles on top ? draw lines
  + Force symbol set to non-null value ("all"/"filled")
    + how handle filled/stroked for points

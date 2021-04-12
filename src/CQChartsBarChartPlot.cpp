@@ -2733,7 +2733,7 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "barchart")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

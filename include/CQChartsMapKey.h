@@ -6,16 +6,20 @@
 class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(double           margin    READ margin     WRITE setMargin   )
-  Q_PROPERTY(CQChartsPosition position  READ position   WRITE setPosition )
-  Q_PROPERTY(Qt::Alignment    align     READ align      WRITE setAlign    )
-  Q_PROPERTY(bool             numeric   READ isNumeric  WRITE setNumeric  )
-  Q_PROPERTY(bool             integral  READ isIntegral WRITE setIntegral )
-  Q_PROPERTY(bool             native    READ isNative   WRITE setNative   )
-  Q_PROPERTY(int              numUnique READ numUnique  WRITE setNumUnique)
+  Q_PROPERTY(CQChartsKeyLocation location  READ location   WRITE setLocation )
+  Q_PROPERTY(bool                insideX   READ isInsideX  WRITE setInsideX  )
+  Q_PROPERTY(bool                insideY   READ isInsideY  WRITE setInsideY  )
+  Q_PROPERTY(double              margin    READ margin     WRITE setMargin   )
+  Q_PROPERTY(CQChartsPosition    position  READ position   WRITE setPosition )
+  Q_PROPERTY(Qt::Alignment       align     READ align      WRITE setAlign    )
+  Q_PROPERTY(bool                numeric   READ isNumeric  WRITE setNumeric  )
+  Q_PROPERTY(bool                integral  READ isIntegral WRITE setIntegral )
+  Q_PROPERTY(bool                native    READ isNative   WRITE setNative   )
+  Q_PROPERTY(int                 numUnique READ numUnique  WRITE setNumUnique)
 
  public:
   using Plot          = CQChartsPlot;
+  using Location      = CQChartsKeyLocation;
   using Position      = CQChartsPosition;
   using PropertyModel = CQPropertyViewModel;
   using PaintDevice   = CQChartsPaintDevice;
@@ -32,6 +36,24 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
   //! get plot
   Plot *plot() const { return plot_; }
+
+  //---
+
+  //! get/set location
+  const Location &location() const { return location_; }
+  void setLocation(const Location &l);
+
+  //---
+
+  //! get/set inside plot in x direction
+  bool isInsideX() const { return insideX_; }
+  void setInsideX(bool b);
+
+  //---
+
+  //! get/set inside plot in y direction
+  bool isInsideY() const { return insideY_; }
+  void setInsideY(bool b);
 
   //---
 
@@ -75,6 +97,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
   //---
 
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  //---
+
   // Implement edit interface
   bool editPress (const Point &) override;
   bool editMove  (const Point &) override;
@@ -96,6 +122,8 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
  protected:
   virtual void invalidate() = 0;
 
+  void calcPosition(Position &pos, Qt::Alignment &align) const;
+
   void calcCenter();
 
   void calcAlignedBBox();
@@ -103,6 +131,9 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
  protected:
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
+  Location      location_;                                          //!< key location
+  bool          insideX_   { true };                                //!< inside plot x
+  bool          insideY_   { true };                                //!< inside plot y
   double        margin_    { 4.0 };                                 //!< margin in pixels
   Position      position_;                                          //!< key position
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
@@ -112,12 +143,13 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   int           numUnique_ { -1 };                                  //!< num unique
   QVariantList  uniqueValues_;                                      //!< unique values
 
-  mutable double   kw_ { 0.0 };
-  mutable double   kh_ { 0.0 };
-  mutable double   xm_ { 0.0 };
-  mutable double   ym_ { 0.0 };
-  mutable BBox     pbbox_;
-  mutable DrawData drawData_;
+  mutable double        kw_     { 0.0 };
+  mutable double        kh_     { 0.0 };
+  mutable double        xm_     { 0.0 };
+  mutable double        ym_     { 0.0 };
+  mutable Qt::Alignment talign_ { Qt::AlignHCenter | Qt::AlignVCenter }; //!< calculated align
+  mutable BBox          pbbox_;
+  mutable DrawData      drawData_;
 };
 
 //-----
@@ -324,7 +356,6 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   void dataChanged();
 
  private:
-  void initCenter     (PaintDevice *device) const;
   void calcSymbolBoxes() const;
   void calcTextBBox   () const;
   void alignBoxes     (PaintDevice *device) const;

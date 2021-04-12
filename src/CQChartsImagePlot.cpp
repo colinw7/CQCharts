@@ -1047,7 +1047,7 @@ CQChartsImagePlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "image")
 {
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   cellStyleCombo_ = createEnumEdit("cellStyle");
 

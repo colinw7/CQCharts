@@ -21,6 +21,11 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void addSymbolSizeWidgets();
 
+  void handlePlotDrawn() override;
+
+  void updateSymbolSizeMapKeyVisible();
+  void updateSymbolTypeMapKeyVisible();
+
  protected slots:
   void plotDrawnSlot();
 
@@ -39,6 +44,10 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
  public slots:
   void updateWidgets() override;
+
+ protected slots:
+  void showSymbolSizeMapKeySlot(bool b);
+  void showSymbolTypeMapKeySlot(bool b);
 
  protected:
   void connectSlots(bool b);

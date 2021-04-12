@@ -1563,6 +1563,8 @@ void
 CQChartsScatterPlot::
 addBestFitObjects(PlotObjs &objs) const
 {
+  int hasGroups = (numGroups() > 1);
+
   auto bbox = calcDataRange(/*adjust*/false);
 
   // one best fit per group (multiple groups) or set (name values)
@@ -1572,6 +1574,9 @@ addBestFitObjects(PlotObjs &objs) const
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
+      bool hidden = (hasGroups && isSetHidden(groupInd));
+      if (hidden) continue;
+
       auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
       bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
@@ -1603,6 +1608,8 @@ void
 CQChartsScatterPlot::
 addHullObjects(PlotObjs &objs) const
 {
+  int hasGroups = (numGroups() > 1);
+
   auto bbox = calcDataRange(/*adjust*/false);
 
   // one hull per group (multiple groups) or set (name values)
@@ -1612,6 +1619,9 @@ addHullObjects(PlotObjs &objs) const
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
+      bool hidden = (hasGroups && isSetHidden(groupInd));
+      if (hidden) continue;
+
       auto *hullObj = createHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
       hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
@@ -1647,12 +1657,17 @@ void
 CQChartsScatterPlot::
 addDensityObjects(PlotObjs &objs) const
 {
+  int hasGroups = (numGroups() > 1);
+
   auto bbox = calcDataRange(/*adjust*/false);
 
   // one map per group
   for (const auto &pg : groupNameValues_) {
     int         groupInd   = pg.first;
     const auto &nameValues = pg.second;
+
+    bool hidden = (hasGroups && isSetHidden(groupInd));
+    if (hidden) continue;
 
     for (const auto &pn : nameValues) {
       const auto &name = pn.first;
@@ -2138,17 +2153,11 @@ addPointKeyItems(PlotKey *key)
 
       //--
 
-      if (colorColumn().isValid() && colorColumn().isGroup()) {
-        if (isColorMapped()) {
-          double r = CMathUtil::map(groupInd, colorMapDataMin(), colorMapDataMax(),
-                                    colorMapMin(), colorMapMax());
+      // use color column and color map data if column is valid and is the grouping column
+      Color color1;
 
-          auto color = Color(Color::Type::PALETTE_VALUE, r);
-
-          if (color.isValid())
-            colorItem->setColor(color);
-        }
-      }
+      if (adjustedGroupColor(groupInd, ng, color1))
+        colorItem->setColor(color1);
 
       //--
 
@@ -4062,7 +4071,7 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPointPlotCustomControls(charts, "scatter")
 {
   // columns group
-  auto columnsFrame = createGroupFrame("Columns");
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
 //addColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
@@ -4084,7 +4093,7 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
 #if 0
   // options group
-  auto optionsFrame = createGroupFrame("Options");
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   plotTypeCombo_ = createEnumEdit("plotType");
 
@@ -4116,7 +4125,7 @@ addSymbolLabelWidgets()
 
   //---
 
-  auto pointLabelsFrame = createFrame();
+  auto pointLabelsFrame = createFrame("pointLabelsFrame");
 
   //---
 

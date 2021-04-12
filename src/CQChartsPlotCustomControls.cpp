@@ -169,6 +169,9 @@ addColorColumnWidgets(const QString &title)
 
   colorControlGroupData.columnControls->layout()->addWidget(colorMapKey_);
 
+  connect(colorControlGroupData.group, SIGNAL(showKey(bool)),
+          this, SLOT(showColorKeySlot(bool)));
+
   //---
 
   connectSlots(true);
@@ -237,11 +240,29 @@ void
 CQChartsPlotCustomControls::
 plotDrawnSlot()
 {
+  handlePlotDrawn();
+}
+
+void
+CQChartsPlotCustomControls::
+handlePlotDrawn()
+{
+  if (colorMapKey_)
+    colorMapKey_->setKey(plot()->colorMapKey());
+
+  updateColorKeyVisible();
+}
+
+void
+CQChartsPlotCustomControls::
+updateColorKeyVisible()
+{
   if (colorMapKey_) {
     auto hasColorColumn = plot()->colorColumn().isValid();
 
-    colorMapKey_->setVisible(hasColorColumn && ! plot()->colorMapKey()->isNative());
-    colorMapKey_->setKey(plot()->colorMapKey());
+    bool hasColorMapKey = (hasColorColumn && ! plot()->colorMapKey()->isNative());
+
+    colorMapKey_->setVisible(hasColorMapKey && colorControlGroup_->isKeyVisible());
   }
 }
 
@@ -312,8 +333,8 @@ createColumnControlGroup(const QString &name, const QString &title)
 
   layout_->addWidget(columnControlGroupData.group);
 
-  columnControlGroupData.fixedFrame     = createFrame();
-  columnControlGroupData.columnFrame    = createFrame();
+  columnControlGroupData.fixedFrame     = createFrame("fixedFrame");
+  columnControlGroupData.columnFrame    = createFrame("columnFrame");
   columnControlGroupData.columnControls = CQUtil::makeWidget<QFrame>("columnControls");
 
   auto *columnControlsLayout =
@@ -329,9 +350,9 @@ createColumnControlGroup(const QString &name, const QString &title)
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createGroupFrame(const QString &name)
+createGroupFrame(const QString &name, const QString &objName)
 {
-  auto frameData = createFrame();
+  auto frameData = createFrame(objName);
 
 #if 0
   split_->addWidget(frameData.frame, name);
@@ -349,11 +370,11 @@ createGroupFrame(const QString &name)
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createFrame()
+createFrame(const QString &objName)
 {
   FrameData frameData;
 
-  frameData.frame  = CQUtil::makeWidget<QFrame>("frame");
+  frameData.frame  = CQUtil::makeWidget<QFrame>(objName);
   frameData.layout = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
 
   frameData.layout->setColumnStretch(1, 1);
@@ -374,6 +395,13 @@ CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
   frameData.layout->setRowStretch(frameData.row, 1);
+}
+
+void
+CQChartsPlotCustomControls::
+showColorKeySlot(bool)
+{
+  updateColorKeyVisible();
 }
 
 CQChartsBoolParameterEdit *
