@@ -26,6 +26,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsIconButton.h>
 
 #include <CQChartsPlotCustomControls.h>
 #include <CQChartsPlotControlWidgets.h>
@@ -57,7 +58,6 @@
 #include <QRadioButton>
 #include <QCheckBox>
 #include <QPushButton>
-#include <QToolButton>
 #include <QLabel>
 #include <QTextEdit>
 #include <QButtonGroup>
@@ -1144,9 +1144,9 @@ initPropertiesFrame(QFrame *propertiesFrame)
 #if 0
   propertiesWidgets_.plotTip = new CQChartsPlotTip;
 
-  propertiesWidgets_.plotTipButton = new QToolButton;
+  propertiesWidgets_.plotTipButton = CQUtil::makeWidget<CQChartsIconButton>("plotTipButton");
 
-  propertiesWidgets_.plotTipButton->setIcon(CQPixmapCacheInst->getIcon("INFO"));
+  propertiesWidgets_.plotTipButton->setIcon("INFO");
 
   plotsFrame->setCornerWidget(propertiesWidgets_.plotTipButton);
 
@@ -1888,9 +1888,9 @@ initSymbolsFrame(QFrame *symbolSetsFrame)
   symbolsLayout->addWidget(buttonsFrame);
 
   auto addToolButton = [&](const QString &name, const QString &iconName, const char *slotName) {
-    auto *button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
 
-    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+    button->setIcon(iconName);
 
     connect(button, SIGNAL(clicked()), this, slotName);
 

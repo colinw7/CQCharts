@@ -2,12 +2,11 @@
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsGeomPointEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
-#include <CQPixmapCache.h>
 #include <CQWidgetMenu.h>
 
-#include <QToolButton>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QScrollArea>
@@ -297,9 +296,9 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto *button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
 
-    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+    button->setIcon(iconName);
 
     connect(button, SIGNAL(clicked()), this, receiver);
 

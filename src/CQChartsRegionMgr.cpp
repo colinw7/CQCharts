@@ -1,9 +1,8 @@
 #include <CQChartsRegionMgr.h>
 #include <CQChartsView.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsIconButton.h>
 #include <CQUtil.h>
-
-#include <QToolButton>
 
 #include <svg/region_light_svg.h>
 #include <svg/region_dark_svg.h>
@@ -108,12 +107,13 @@ buttonChecked(CQChartsRegionButton *button, bool b)
 
 CQChartsRegionButton::
 CQChartsRegionButton(QWidget *parent) :
- QToolButton(parent)
+ CQChartsIconButton(parent)
 {
   setObjectName("region");
 
+  setIcon("REGION");
+
   setCheckable(true);
-  setIcon(CQPixmapCacheInst->getIcon("REGION_LIGHT", "REGION_DARK"));
 }
 
 CQChartsRegionButton::

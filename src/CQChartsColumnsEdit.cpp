@@ -5,13 +5,12 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
-#include <CQPixmapCache.h>
 #include <CQTclUtil.h>
 
-#include <QToolButton>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -442,9 +441,9 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto *button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
 
-    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+    button->setIcon(iconName);
 
     connect(button, SIGNAL(clicked()), this, receiver);
 

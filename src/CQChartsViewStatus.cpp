@@ -4,7 +4,6 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <CQUtil.h>
-#include <CQPixmapCache.h>
 
 #include <QHBoxLayout>
 #include <QMenu>
@@ -343,7 +342,7 @@ CQChartsViewStatusError(CQChartsViewStatus *status) :
 {
   setObjectName("error");
 
-  setIcon(CQPixmapCacheInst->getIcon("ERROR"));
+  setIcon("ERROR");
 
   setToolTip("Show Plot Errors");
 

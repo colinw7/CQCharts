@@ -4168,9 +4168,11 @@ addFontSizeWidgets()
 {
   // font size group
   auto fontSizeControlGroupData =
-    createColumnControlGroup("fontSizeControlGroup", "Label Font Size");
+    createColumnControlGroup("fontSizeControlGroup", "Label Font");
 
   fontSizeControlGroup_ = fontSizeControlGroupData.group;
+
+  fontSizeControlGroup_->setHasKey(false);
 
   //---
 

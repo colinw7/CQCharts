@@ -8,6 +8,7 @@
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsCmdLine.h>
 #include <CQChartsHelpDlg.h>
+#include <CQChartsIconButton.h>
 
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
@@ -58,7 +59,6 @@
 #include <svg/info_svg.h>
 
 #include <QStackedWidget>
-#include <QToolButton>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QCheckBox>
@@ -82,12 +82,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto createIconButton = [&](const QString &name, const QString &iconName, const QString &tip,
                               const char *receiver, bool checkable=false, bool checked=false) {
-    auto *button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
 
-    if (CQPixmapCacheInst->hasPixmap(iconName + "_LIGHT"))
-      button->setIcon(CQPixmapCacheInst->getIcon(iconName + "_LIGHT", iconName + "_DARK"));
-    else
-      button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+    button->setIcon(iconName);
 
     if (checkable) {
       button->setCheckable(true);

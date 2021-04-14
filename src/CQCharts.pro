@@ -337,6 +337,8 @@ CQChartsLineEdit.cpp \
 CQChartsPropertyViewTree.cpp \
 CQChartsPropertyViewEditor.cpp \
 \
+CQChartsIconButton.cpp \
+\
 CQCsvModel.cpp \
 CQTsvModel.cpp \
 CQJsonModel.cpp \
@@ -704,6 +706,8 @@ HEADERS += \
 \
 ../include/CQChartsPropertyViewTree.h \
 ../include/CQChartsPropertyViewEditor.h \
+\
+../include/CQChartsIconButton.h \
 \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \

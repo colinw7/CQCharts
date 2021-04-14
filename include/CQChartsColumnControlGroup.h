@@ -3,8 +3,9 @@
 
 #include <QFrame>
 
+class CQChartsIconButton;
 class CQGroupBox;
-class QCheckBox;
+//class QCheckBox;
 class QAbstractButton;
 class QStackedWidget;
 class QButtonGroup;
@@ -23,16 +24,19 @@ class CQChartsColumnControlGroup : public QFrame {
   void addFixedWidget (QWidget *w);
   void addColumnWidget(QWidget *w);
 
-  bool isFixed () const;
+  bool hasKey() const { return hasKey_; }
+  void setHasKey(bool b) { hasKey_ = b; }
+
+  bool isFixed() const;
   void setFixed();
 
-  bool isColumn () const;
+  bool isColumn() const;
   void setColumn();
 
   bool isKeyVisible() const;
 
  private slots:
-  void keyCheckSlot(int);
+  void keyCheckSlot();
 
   void controlButtonClicked(QAbstractButton *button);
 
@@ -45,12 +49,13 @@ class CQChartsColumnControlGroup : public QFrame {
   void showKey(bool b);
 
  private:
-  CQGroupBox*     groupBox_     { nullptr };
-  QCheckBox*      keyCheck_     { nullptr };
-  QStackedWidget* stack_        { nullptr };
-  QButtonGroup*   radioGroup_   { nullptr };
-  QFrame*         globalWidget_ { nullptr };
-  QFrame*         columnWidget_ { nullptr };
+  CQGroupBox*         groupBox_     { nullptr };
+  bool                hasKey_       { true };
+  CQChartsIconButton* keyCheck_     { nullptr };
+  QStackedWidget*     stack_        { nullptr };
+  QButtonGroup*       radioGroup_   { nullptr };
+  QFrame*             globalWidget_ { nullptr };
+  QFrame*             columnWidget_ { nullptr };
 };
 
 #endif

@@ -5,8 +5,7 @@
 #include <QFrame>
 
 class CQChartsLineEdit;
-
-class QToolButton;
+class CQChartsIconButton;
 
 /*!
  * \brief image edit
@@ -38,10 +37,10 @@ class CQChartsImageEdit : public QFrame {
   void fileSlot();
 
  private:
-  CQCharts*         charts_ { nullptr };
-  CQChartsImage     image_;
-  CQChartsLineEdit* edit_   { nullptr };
-  QToolButton*      button_ { nullptr };
+  CQCharts*           charts_ { nullptr };
+  CQChartsImage       image_;
+  CQChartsLineEdit*   edit_   { nullptr };
+  CQChartsIconButton* button_ { nullptr };
 };
 
 //------

@@ -4,13 +4,13 @@
 #include <CQChartsObjUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
 #include <CQPixmapCache.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
-#include <QToolButton>
 #include <QFileDialog>
 #include <QPainter>
 
@@ -29,9 +29,9 @@ CQChartsImageEdit(QWidget *parent) :
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   edit_   = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-  button_ = CQUtil::makeWidget<QToolButton>("button");
+  button_ = CQUtil::makeWidget<CQChartsIconButton>("button");
 
-  button_->setIcon(CQPixmapCacheInst->getIcon("FILE_DIALOG"));
+  button_->setIcon("FILE_DIALOG");
 
   layout->addWidget(edit_);
   layout->addWidget(button_);

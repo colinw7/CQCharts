@@ -1,5 +1,7 @@
 #include <CQChartsColumnControlGroup.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsIconButton.h>
+
 #include <CQGroupBox.h>
 #include <CQUtil.h>
 
@@ -8,6 +10,9 @@
 #include <QCheckBox>
 #include <QStackedWidget>
 #include <QVBoxLayout>
+
+#include <svg/legend_svg.h>
+#include <svg/columns_svg.h>
 
 CQChartsColumnControlGroup::
 CQChartsColumnControlGroup(QWidget *parent) :
@@ -50,11 +55,24 @@ CQChartsColumnControlGroup(QWidget *parent) :
 
   cornerLayout->addStretch(1);
 
+  auto *keySpacer = CQChartsWidgetUtil::createHSpacer(2);
+  cornerLayout->addWidget(keySpacer);
+
+#if 0
   keyCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Key", "keyCheck");
 
-  connect(keyCheck_, SIGNAL(stateChanged(int)), this, SLOT(keyCheckSlot(int)));
+  connect(keyCheck_, SIGNAL(stateChanged(int)), this, SLOT(keyCheckSlot()));
+#else
+  keyCheck_ = CQUtil::makeWidget<CQChartsIconButton>("keyCheck");
 
-  cornerLayout->addWidget(CQChartsWidgetUtil::createHSpacer(2));
+  keyCheck_->setCheckable(true);
+
+  keyCheck_->setIcon("LEGEND");
+  keyCheck_->setToolTip("Display Key for column values");
+
+  connect(keyCheck_, SIGNAL(clicked()), this, SLOT(keyCheckSlot()));
+#endif
+
   cornerLayout->addWidget(keyCheck_);
 
   groupBox_->setCornerWidget(cornerControl);
@@ -98,17 +116,19 @@ controlButtonClicked(QAbstractButton *button)
 {
   int ind = (button->text() == "Global" ? 0 : 1);
 
-  stack_   ->setCurrentIndex(ind);
-  keyCheck_->setVisible(ind == 1);
+  stack_->setCurrentIndex(ind);
+
+  if (hasKey())
+    keyCheck_->setVisible(ind == 1);
 
   emit groupChanged();
 }
 
 void
 CQChartsColumnControlGroup::
-keyCheckSlot(int state)
+keyCheckSlot()
 {
-  emit showKey(state);
+  emit showKey(isKeyVisible());
 }
 
 bool
@@ -174,7 +194,9 @@ setCurrentIndex(int ind)
              this, SLOT(controlButtonClicked(QAbstractButton *)));
 
   radioGroup_->buttons().at(ind)->setChecked(true);
-  keyCheck_  ->setVisible(ind == 1);
+
+  if (hasKey())
+    keyCheck_->setVisible(ind == 1);
 
   connect(radioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
           this, SLOT(controlButtonClicked(QAbstractButton *)));

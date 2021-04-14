@@ -1212,7 +1212,7 @@ draw(PaintDevice *device, const DrawData &drawData)
       //---
 
       // draw symbol
-      double ss = 8;
+      double ss = std::max(fm.height()/2.0 - 4.0, 3.0);
 
       auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fm.height()/2.0 - 1,
                               pbbox_.getYMin() + fm.height()/2.0 + 1);
@@ -1256,7 +1256,7 @@ draw(PaintDevice *device, const DrawData &drawData)
       //---
 
       // draw symbol
-      double ss = 8;
+      double ss = std::max(fm.height()/2.0 - 4.0, 3.0);
 
       auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox_.getYMax() - fm.height()/2.0 - 1,
                               pbbox_.getYMin() + fm.height()/2.0 + 1);

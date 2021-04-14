@@ -1,15 +1,15 @@
 #ifndef CQChartsRegionMgr_H
 #define CQChartsRegionMgr_H
 
+#include <CQChartsIconButton.h>
 #include <CQChartsGeom.h>
 
-#include <QToolButton>
 #include <QPointer>
 #include <set>
 
 class CQChartsView;
 
-class CQChartsRegionButton : public QToolButton {
+class CQChartsRegionButton : public CQChartsIconButton {
   Q_OBJECT
 
  public:

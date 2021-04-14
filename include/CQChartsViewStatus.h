@@ -1,9 +1,9 @@
 #ifndef CQChartsViewStatus_H
 #define CQChartsViewStatus_H
 
+#include <CQChartsIconButton.h>
 #include <QFrame>
 #include <QLabel>
-#include <QToolButton>
 
 class CQChartsWindow;
 class CQChartsViewStatusStatus;
@@ -136,7 +136,7 @@ class CQChartsViewStatusSel : public QLabel {
  * \brief Error Indicator on Status Bar
  * \ingroup Charts
  */
-class CQChartsViewStatusError : public QToolButton {
+class CQChartsViewStatusError : public CQChartsIconButton {
   Q_OBJECT
 
  public:

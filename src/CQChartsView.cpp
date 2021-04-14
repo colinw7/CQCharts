@@ -52,7 +52,7 @@
 #include <svg/models_dark_svg.h>
 #include <svg/charts_light_svg.h>
 #include <svg/charts_dark_svg.h>
-#include <svg/info_svg.h>
+//#include <svg/info_svg.h>
 
 #include <fstream>
 
