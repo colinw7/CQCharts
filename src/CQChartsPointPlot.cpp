@@ -1460,7 +1460,7 @@ draw(PaintDevice *device) const
     Color color1;
 
     if (plot_->adjustedGroupColor(ig_.i, ig_.n, color1))
-      CQChartsDrawUtil::updateBrushColor(penBrush.brush, color1.color());
+      CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color1, ig_));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

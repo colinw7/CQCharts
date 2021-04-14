@@ -364,13 +364,17 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   auto headerPath     = path + "/header";
   auto headerTextPath = headerPath + "/text";
 
-  auto addHeaderProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    return &(model->addProperty(headerTextPath, this, name, alias)->
-              setDesc("Key header text " + desc));
+  auto addHeaderProp = [&](const QString &name, const QString &alias,
+                           const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(headerTextPath, this, name, alias);
+    item->setDesc("Key header text " + desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
-  auto addHeaderStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    auto *item = addHeaderProp(name, alias, desc);
+  auto addHeaderStyleProp = [&](const QString &name, const QString &alias,
+                                const QString &desc, bool hidden=false) {
+    auto *item = addHeaderProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -401,12 +405,17 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   // key text
   auto textPath = path + "/text";
 
-  auto addTextProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    return &(model->addProperty(textPath, this, name, alias)->setDesc("Key text " + desc));
+  auto addTextProp = [&](const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(textPath, this, name, alias);
+    item->setDesc("Key text " + desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
-  auto addTextStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    auto *item = addTextProp(name, alias, desc);
+  auto addTextStyleProp = [&](const QString &name, const QString &alias,
+                              const QString &desc, bool hidden=false) {
+    auto *item = addTextProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -423,7 +432,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
   addTextStyleProp("textHtml"      , "html"      , "text is html");
   addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
-  addTextStyleProp("textClipElide" , "clipElide" , "text clipp elide");
+  addTextStyleProp("textClipElide" , "clipElide" , "text clip elide");
 }
 
 bool
@@ -996,8 +1005,11 @@ void
 CQChartsPlotKey::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProp = [&](const QString &name, const QString &desc) {
-    return &(model->addProperty(path, this, name)->setDesc(desc));
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   auto addStyleProp = [&](const QString &name, const QString &desc) {
@@ -1050,13 +1062,17 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   auto headerPath     = path + "/header";
   auto headerTextPath = headerPath + "/text";
 
-  auto addHeaderProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    return &(model->addProperty(headerTextPath, this, name, alias)->
-              setDesc("Key header text " + desc));
+  auto addHeaderProp = [&](const QString &name, const QString &alias,
+                           const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(headerTextPath, this, name, alias);
+    item->setDesc("Key header text " + desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
-  auto addHeaderStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    auto *item = addHeaderProp(name, alias, desc);
+  auto addHeaderStyleProp = [&](const QString &name, const QString &alias,
+                                const QString &desc, bool hidden=false) {
+    auto *item = addHeaderProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -1087,15 +1103,22 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   // key text
   auto textPath = path + "/text";
 
-  auto addTextProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    return &(model->addProperty(textPath, this, name, alias)->setDesc("Key text " + desc));
+  auto addTextProp = [&](const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(textPath, this, name, alias);
+    item->setDesc("Key text " + desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
-  auto addTextStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    auto *item = addTextProp(name, alias, desc);
+  auto addTextStyleProp = [&](const QString &name, const QString &alias,
+                              const QString &desc, bool hidden=false) {
+    auto *item = addTextProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
+
+  //---
 
   addTextStyleProp("textColor"     , "color"     , "text color");
   addTextStyleProp("textAlpha"     , "alpha"     , "text alpha");
@@ -1107,7 +1130,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
   addTextStyleProp("textHtml"      , "html"      , "text is html");
   addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
-  addTextStyleProp("textClipElide" , "clipElide" , "text clipp elide");
+  addTextStyleProp("textClipElide" , "clipElide" , "text clip elide");
 }
 
 void

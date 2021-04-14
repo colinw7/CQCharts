@@ -42,6 +42,7 @@ class CQChartsPlotCustomControls : public QFrame {
     QFrame*      frame  { nullptr };
     QGridLayout* layout { nullptr };
     int          row    { 0 };
+    int          col    { 0 };
   };
 
   struct ColumnControlGroupData {
@@ -63,6 +64,7 @@ class CQChartsPlotCustomControls : public QFrame {
   void addColorColumnWidgets(const QString &title="Color");
 
   void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
+  void addFrameColWidget(FrameData &frameData, QWidget *w);
 
   void addFrameRowStretch(FrameData &frameData);
 

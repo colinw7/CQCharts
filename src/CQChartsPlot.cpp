@@ -8778,14 +8778,15 @@ colorFromColorMapPaletteValue(double r) const
   // use named palette if defined or current palette value
   Color color;
 
-  if (colorMapPalette().isValid()) {
-    auto *palette = colorMapPalette().palette();
+  CQColorsPalette *palette = nullptr;
 
-    if (palette)
-      color = Color(palette->getColor(r));
-    else
-      color = Color(Color::Type::PALETTE_VALUE, r);
-  }
+  if      (colorMapPalette().isValid())
+    palette = colorMapPalette().palette();
+  else if (defaultPalette().isValid())
+    palette = defaultPalette().palette();
+
+  if (palette)
+    color = Color(palette->getColor(r));
   else
     color = Color(Color::Type::PALETTE_VALUE, r);
 

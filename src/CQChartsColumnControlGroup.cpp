@@ -96,16 +96,10 @@ void
 CQChartsColumnControlGroup::
 controlButtonClicked(QAbstractButton *button)
 {
-  if (button->text() == "Global") {
-    stack_->setCurrentIndex(0);
+  int ind = (button->text() == "Global" ? 0 : 1);
 
-    keyCheck_->setVisible(false);
-  }
-  else {
-    stack_->setCurrentIndex(1);
-
-    keyCheck_->setVisible(true);
-  }
+  stack_   ->setCurrentIndex(ind);
+  keyCheck_->setVisible(ind == 1);
 
   emit groupChanged();
 }
@@ -180,6 +174,7 @@ setCurrentIndex(int ind)
              this, SLOT(controlButtonClicked(QAbstractButton *)));
 
   radioGroup_->buttons().at(ind)->setChecked(true);
+  keyCheck_  ->setVisible(ind == 1);
 
   connect(radioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
           this, SLOT(controlButtonClicked(QAbstractButton *)));

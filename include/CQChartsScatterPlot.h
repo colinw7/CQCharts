@@ -889,7 +889,7 @@ class CQChartsEnumParameterEdit;
 class CQChartsLengthEdit;
 class CQChartsFontSizeRangeSlider;
 class CQEnumCombo;
-class CQCheckBox;
+class QCheckBox;
 
 class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
@@ -912,6 +912,9 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void updateWidgets() override;
 
  private slots:
+  void bestFitSlot();
+  void convexHullSlot();
+
   void plotTypeSlot();
 
 //void pointLabelsSlot();
@@ -926,10 +929,13 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  private:
   CQChartsScatterPlot* plot_ { nullptr };
 
-  CQChartsEnumParameterEdit*   plotTypeCombo_    { nullptr };
-  CQCheckBox*                  pointLabelsCheck_ { nullptr };
-  CQChartsColumnCombo*         labelColumnCombo_ { nullptr };
-  CQEnumCombo*                 positionEdit_     { nullptr };
+  QCheckBox* bestFitCheck_    { nullptr };
+  QCheckBox* convexHullCheck_ { nullptr };
+
+  CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
+//CQCheckBox*                pointLabelsCheck_ { nullptr };
+  CQChartsColumnCombo*       labelColumnCombo_ { nullptr };
+  CQEnumCombo*               positionEdit_     { nullptr };
 
   CQChartsColumnControlGroup*  fontSizeControlGroup_ { nullptr };
   CQChartsLengthEdit*          fontSizeEdit_         { nullptr };

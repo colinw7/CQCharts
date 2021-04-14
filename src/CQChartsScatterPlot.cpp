@@ -32,11 +32,12 @@
 #include <CQPerfMonitor.h>
 #include <CQTabSplit.h>
 #include <CQGroupBox.h>
-#include <CQCheckBox.h>
+//#include <CQCheckBox.h>
 #include <CQEnumCombo.h>
 
 #include <QMenu>
 #include <QLabel>
+#include <QCheckBox>
 #include <QVBoxLayout>
 
 CQChartsScatterPlotType::
@@ -4080,6 +4081,20 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
   addGroupColumnWidgets();
 
+  auto *overlaysFrame = CQUtil::makeWidget<QFrame>("overlaysFrame");
+  auto *overlaysLayout = CQUtil::makeLayout<QHBoxLayout>(overlaysFrame, 2, 2);
+
+  bestFitCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
+  convexHullCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "convexHullCheck");
+
+  overlaysLayout->addWidget(bestFitCheck_   );
+  overlaysLayout->addWidget(convexHullCheck_);
+
+  addFrameColWidget(groupFrame(), bestFitCheck_);
+  addFrameColWidget(groupFrame(), convexHullCheck_);
+
+  //---
+
   addColorColumnWidgets("Point Color");
   addSymbolSizeWidgets ();
   addSymbolLabelWidgets();
@@ -4176,6 +4191,11 @@ void
 CQChartsScatterPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    convexHullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
+
   if (plotTypeCombo_)
     CQChartsWidgetUtil::connectDisconnect(b,
       plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
@@ -4280,6 +4300,20 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsScatterPlotCustomControls::
+bestFitSlot()
+{
+  plot_->setBestFit(bestFitCheck_->isChecked());
+}
+
+void
+CQChartsScatterPlotCustomControls::
+convexHullSlot()
+{
+  plot_->setHull(convexHullCheck_->isChecked());
 }
 
 void

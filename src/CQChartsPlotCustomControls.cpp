@@ -392,6 +392,13 @@ addFrameWidget(FrameData &frameData, const QString &label, QWidget *w)
 
 void
 CQChartsPlotCustomControls::
+addFrameColWidget(FrameData &frameData, QWidget *w)
+{
+  frameData.layout->addWidget(w, frameData.row, frameData.col); ++frameData.col;
+}
+
+void
+CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
   frameData.layout->setRowStretch(frameData.row, 1);

@@ -15,6 +15,8 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addGroupColumnWidgets();
 
+  FrameData &groupFrame() { return groupFrame_; }
+
  protected:
   void connectSlots(bool b);
 
@@ -26,6 +28,7 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
 
  private:
   CQChartsGroupPlot*   plot_             { nullptr };
+  FrameData            groupFrame_;
   CQChartsColumnCombo* groupColumnCombo_ { nullptr };
 };
 

@@ -15,15 +15,15 @@ CQChartsGroupPlotCustomControls::
 addGroupColumnWidgets()
 {
   // group group
-  auto groupFrame = createGroupFrame("Group", "groupFrame");
+  groupFrame_ = createGroupFrame("Group", "groupFrame");
 
   //---
 
   groupColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("groupColumnCombo");
 
-  addFrameWidget(groupFrame, "Column", groupColumnCombo_);
+  addFrameWidget(groupFrame_, "Column", groupColumnCombo_);
 
-  //addFrameRowStretch(groupFrame);
+  //addFrameRowStretch(groupFrame_);
 }
 
 void
@@ -55,8 +55,9 @@ void
 CQChartsGroupPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
-    groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
+  if (groupColumnCombo_)
+    CQChartsWidgetUtil::connectDisconnect(b,
+      groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);
 }

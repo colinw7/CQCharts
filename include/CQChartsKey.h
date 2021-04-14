@@ -112,7 +112,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  // get/set alpha when associated object hidden
+  //! get/set alpha when associated object hidden
   const Alpha &hiddenAlpha() const { return hiddenAlpha_; }
   void setHiddenAlpha(const Alpha &a);
 
