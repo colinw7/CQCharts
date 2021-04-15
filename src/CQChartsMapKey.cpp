@@ -195,6 +195,26 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   CQChartsTextBoxObj::addProperties(model, path, desc);
 }
 
+QFont
+CQChartsMapKey::
+calcDrawFont(const Font &textFont) const
+{
+  if (drawData_.isWidget)
+    return textFont.calcFont(drawData_.font);
+  else
+    return calcFont(textFont);
+}
+
+void
+CQChartsMapKey::
+setDrawPainterFont(PaintDevice *device, const Font &textFont)
+{
+  if (drawData_.isWidget)
+    device->setFont(textFont.calcFont(drawData_.font));
+  else
+    setPainterFont(device, textFont);
+}
+
 bool
 CQChartsMapKey::
 editPress(const Point &p)
@@ -295,7 +315,7 @@ drawContiguous(PaintDevice *device)
 
   //---
 
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -359,7 +379,7 @@ drawContiguous(PaintDevice *device)
   //---
 
   // set font
-  setPainterFont(device, textFont());
+  setDrawPainterFont(device, textFont());
 
   //---
 
@@ -400,7 +420,7 @@ drawDiscreet(PaintDevice *device)
 
   //---
 
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -473,7 +493,7 @@ drawDiscreet(PaintDevice *device)
   //---
 
   // set font
-  setPainterFont(device, textFont());
+  setDrawPainterFont(device, textFont());
 
   //---
 
@@ -504,8 +524,10 @@ drawDiscreet(PaintDevice *device)
 
 QSize
 CQChartsColorMapKey::
-calcSize() const
+calcSize(const DrawData &drawData) const
 {
+  drawData_ = drawData;
+
   if (isNumeric())
     return calcContiguousSize();
   else
@@ -516,7 +538,7 @@ QSize
 CQChartsColorMapKey::
 calcContiguousSize() const
 {
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -548,7 +570,7 @@ QSize
 CQChartsColorMapKey::
 calcDiscreetSize() const
 {
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -659,8 +681,10 @@ draw(PaintDevice *device, const DrawData &drawData)
 
 QSize
 CQChartsSymbolSizeMapKey::
-calcSize() const
+calcSize(const DrawData &drawData) const
 {
+  drawData_ = drawData;
+
   calcSymbolBoxes();
   calcTextBBox   ();
 
@@ -678,7 +702,7 @@ initDraw(PaintDevice *device)
   pcenter_ = Point(xm_, ym_);
   center_  = device->pixelToWindow(pcenter_);
 
-  (void) calcSize();
+  (void) calcSize(drawData_);
 
   alignBoxes(device);
 }
@@ -707,7 +731,7 @@ drawParts(PaintDevice *device)
   //---
 
   // set font
-  setPainterFont(device, textFont());
+  setDrawPainterFont(device, textFont());
 
   //---
 
@@ -797,7 +821,7 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
 
   //---
 
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -973,7 +997,7 @@ calcTextBBox() const
   double pxt2 = pxt1;
   double pyt2 = pyt1;
 
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -1119,11 +1143,11 @@ draw(PaintDevice *device, const DrawData &drawData)
 {
   drawData_ = drawData;
 
-  calcSize();
+  calcSize(drawData_);
 
   //---
 
-  auto font = calcFont(textFont());
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -1165,7 +1189,7 @@ draw(PaintDevice *device, const DrawData &drawData)
     //---
 
     // set font
-    setPainterFont(device, textFont());
+    setDrawPainterFont(device, textFont());
 
     //---
 
@@ -1277,9 +1301,11 @@ draw(PaintDevice *device, const DrawData &drawData)
 
 QSize
 CQChartsSymbolTypeMapKey::
-calcSize() const
+calcSize(const DrawData &drawData) const
 {
-  auto font = calcFont(textFont());
+  drawData_ = drawData;
+
+  auto font = calcDrawFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -1382,7 +1408,7 @@ setKey(CQChartsMapKey *key)
 
       auto s = keyFrame_->size();
 
-      auto h = std::min(s.height(), fm.height()*8);
+      auto h = std::min(s.height() + 4, fm.height()*8);
 
       setFixedSize(QSize(s.width() + 20, h));
     }
@@ -1409,8 +1435,16 @@ updateSize()
   auto *key = w_->key();
   if (! key) return false;
 
+  if (! isVisible())
+    return false;
+
+  CQChartsMapKey::DrawData drawData;
+
+  drawData.isWidget = true;
+  drawData.font     = font();
+
   auto s  = this->size();
-  auto ks = key->calcSize();
+  auto ks = key->calcSize(drawData);
 
   if (ks.width() > 0 && ks.height() > 0 && (ks.width() != s.width() || ks.height() != s.height())) {
     setFixedSize(ks);
@@ -1436,6 +1470,7 @@ paintEvent(QPaintEvent *)
   CQChartsMapKey::DrawData drawData;
 
   drawData.isWidget = true;
+  drawData.font     = font();
 
   key->draw(&device, drawData);
 }

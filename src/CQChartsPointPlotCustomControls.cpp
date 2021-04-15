@@ -234,12 +234,6 @@ void
 CQChartsPointPlotCustomControls::
 handlePlotDrawn()
 {
-  if (symbolSizeMapKey_)
-    symbolSizeMapKey_->setKey(plot_->symbolSizeMapKey());
-
-  if (symbolTypeMapKey_)
-    symbolTypeMapKey_->setKey(plot_->symbolTypeMapKey());
-
   updateSymbolSizeMapKeyVisible();
   updateSymbolTypeMapKeyVisible();
 }
@@ -254,6 +248,8 @@ updateSymbolSizeMapKeyVisible()
     bool hasSymbolSizeMapKey = (hasSymbolSizeColumn && ! plot_->symbolSizeMapKey()->isNative());
 
     symbolSizeMapKey_->setVisible(hasSymbolSizeMapKey && symbolSizeControlGroup_->isKeyVisible());
+
+    symbolSizeMapKey_->setKey(plot_->symbolSizeMapKey());
   }
 }
 
@@ -267,6 +263,8 @@ updateSymbolTypeMapKeyVisible()
     bool hasSymbolTypeMapKey = (hasSymbolTypeColumn && ! plot_->symbolTypeMapKey()->isNative());
 
     symbolTypeMapKey_->setVisible(hasSymbolTypeMapKey && symbolTypeControlGroup_->isKeyVisible());
+
+    symbolTypeMapKey_->setKey(plot_->symbolTypeMapKey());
   }
 
   CQChartsGroupPlotCustomControls::handlePlotDrawn();

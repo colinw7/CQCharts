@@ -11,9 +11,6 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
-#include <svg/legend_svg.h>
-#include <svg/columns_svg.h>
-
 CQChartsColumnControlGroup::
 CQChartsColumnControlGroup(QWidget *parent) :
  QFrame(parent)
@@ -23,6 +20,9 @@ CQChartsColumnControlGroup(QWidget *parent) :
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   groupBox_ = CQUtil::makeWidget<CQGroupBox>("group");
+
+  groupBox_->setTitleScale(0.85);
+  //groupBox_->setTitleColored(true);
 
   layout->addWidget(groupBox_);
 
@@ -66,6 +66,9 @@ CQChartsColumnControlGroup(QWidget *parent) :
   keyCheck_ = CQUtil::makeWidget<CQChartsIconButton>("keyCheck");
 
   keyCheck_->setCheckable(true);
+
+  int is = int(QFontMetrics(font()).height()*0.85);
+  keyCheck_->setIconSize(QSize(is, is));
 
   keyCheck_->setIcon("LEGEND");
   keyCheck_->setToolTip("Display Key for column values");

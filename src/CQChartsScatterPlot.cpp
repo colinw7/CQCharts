@@ -4136,6 +4136,9 @@ addSymbolLabelWidgets()
 
   groupBox->setTitle("Point Label");
 
+  groupBox->setTitleScale(0.85);
+  //groupBox->setTitleColored(true);
+
   layout_->addWidget(groupBox);
 
   //---

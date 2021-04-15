@@ -101,6 +101,12 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
   //---
 
+  QFont calcDrawFont(const Font &textFont) const;
+
+  void setDrawPainterFont(PaintDevice *device, const Font &textFont);
+
+  //---
+
   // Implement edit interface
   bool editPress (const Point &) override;
   bool editMove  (const Point &) override;
@@ -113,11 +119,13 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
     bool usePenBrush { false };
     bool isWidget    { false };
+
+    QFont font;
   };
 
-  virtual void draw(PaintDevice *device, const DrawData &drawData=DrawData()) = 0;
+  virtual void draw(PaintDevice *device, const DrawData &drawData) = 0;
 
-  virtual QSize calcSize() const = 0;
+  virtual QSize calcSize(const DrawData &drawData) const = 0;
 
  protected:
   virtual void invalidate() = 0;
@@ -213,7 +221,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
 
-  QSize calcSize() const override;
+  QSize calcSize(const DrawData &drawData) const override;
 
  private:
   void invalidate() override;
@@ -333,7 +341,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
 
-  QSize calcSize() const override;
+  QSize calcSize(const DrawData &drawData) const override;
 
   //---
 
@@ -450,7 +458,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
 
-  QSize calcSize() const override;
+  QSize calcSize(const DrawData &drawData) const override;
 
  private:
   void invalidate() override;
