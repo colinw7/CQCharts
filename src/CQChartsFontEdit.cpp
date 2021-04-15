@@ -103,7 +103,9 @@ fontToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(font().toString());
+  auto tip = QString("%1 (%2)").arg(font().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

@@ -10,6 +10,12 @@ class CQChartsIconButton : public QToolButton {
   CQChartsIconButton(QWidget *parent=nullptr);
 
   void setIcon(const QString &iconName);
+
+ private slots:
+  void updateIcon();
+
+ private:
+  QString iconName_;
 };
 
 #endif

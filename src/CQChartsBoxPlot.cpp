@@ -456,7 +456,7 @@ addProperties()
   addProp("columns/calculated", "medianColumn"     , "median"     ,
           "Precalculated median column");
   addProp("columns/calculated", "upperMedianColumn", "upperMedian",
-          "Precalculated upperx column");
+          "Precalculated upper median column");
   addProp("columns/calculated", "maxColumn"        , "max"        ,
           "Precalculated max column");
   addProp("columns/calculated", "outliersColumn"   , "outlier"    ,

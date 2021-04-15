@@ -91,7 +91,9 @@ strokeDataToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(strokeData().toString());
+  auto tip = QString("%1 (%2)").arg(strokeData().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

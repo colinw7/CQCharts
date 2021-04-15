@@ -47,7 +47,7 @@ addParameters()
     setString().setPropPath("columns.name").setTip("Custom group name");
 
   addColumnParameter("data", "Data", "dataColumn").
-    setPropPath("columns.data").setTip("Extra data column");
+    setPropPath("columns.data").setTip("Alternate data column for bucket values");
 
   // bucket
   addBoolParameter("bucketed", "Bucketed", "bucketed", true).
@@ -114,7 +114,7 @@ description() const
     h3("Summary").
      p("Draws bars with heights for the counts of set of values.").
     h3("Columns").
-     p("The values to be counted are taken from the " + B("Value") + " columns and "
+     p("The values to be counted are taken from the " + B("Values") + " columns and "
        "grouped depending on the column value type. By default integer values are "
        "grouped by matching value, real values are automatically bucketed into ranges "
        "and strings are grouped by matching value.").
@@ -122,13 +122,26 @@ description() const
        "the " + B("autoBucket") + " parameter and specifying the " + B("startBucketValue") +
        " and " + B("deltaBucketValue") + " parameters.").
      p("The color of the bar can be overridden using the " + B("Color") + " column.").
+    h3("Plot Types").
+     p("Normally the plot is draw with a bar per data bucket per group. This can be customized "
+       "to stack the grouped values on top of each other or overlaid instead of side by side "
+       "or to place the bars side by side by bucket instead of by group.").
+     p("The data can also be displayed as a scattered points each representing a fixed size "
+       "bucket of points").
+     p("The data can also be displayed as a density plot per bucker as long as the values "
+       "are numeric").
+    h3("Value Type").
+     p("Normally the number of values in each bucket is displayed as the height of the bar. "
+       "This can be customized to display statistical data for the min, max, mean, range or "
+       "sum of values in the bucket. In this case the " + B("Data") + " column can be used "
+       "to provide the values calculate the associated statistical value.").
     h3("Options").
-     p("Enabling the " + B("Horizontal") + " otpions draws the bars horizontally "
-       "of vertically.").
+     p("Enabling the " + B("Horizontal") + " option draws the bars horizontally "
+       "or vertically.").
     h3("Grouping").
      p("Standard grouping can be applied to the values to split the values to be "
        "grouped into individual value sets before final grouping. This second level "
-       "if grouping creates multiple sets of grouped values which can be displayed "
+       "of grouping creates multiple sets of grouped values which can be displayed "
        "sequentially or overlaid with common buckets.").
     h3("Limitations").
      p("None.").
@@ -399,7 +412,7 @@ addProperties()
 
   // columns
   addProp("columns", "nameColumn", "name", "Custom group name column");
-  addProp("columns", "dataColumn", "data", "Extra data column");
+  addProp("columns", "dataColumn", "data", "Alternate data column for bucket values");
 
   // bucketing
   addProp("bucket", "bucketed"        , "enabled", "Bucket grouped values");
@@ -476,6 +489,7 @@ setPlotType(PlotType type)
     case PlotType::STACKED     : setStacked   (true); break;
     case PlotType::SIDE_BY_SIDE: setSideBySide(true); break;
     case PlotType::OVERLAY     : setOverlaid  (true); break;
+    case PlotType::SCATTER     : setScatter   (true); break;
     case PlotType::DENSITY     : setDensity   (true); break;
     default                    : assert(false); break;
   }
@@ -2259,16 +2273,21 @@ createObjs(PlotObjs &objs) const
         else {
           auto bucketStr = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
 
-          int xm = CMathRound::RoundNearest(bbox.getXMid());
+          int tpos = 0;
+
+          if (isVertical())
+            tpos = CMathRound::RoundNearest(bbox.getXMid());
+          else
+            tpos = CMathRound::RoundNearest(bbox.getYMid());
 
           if      (isStackedActive)
-            valueAxis()->setTickLabel(xm, bucketStr);
+            valueAxis()->setTickLabel(tpos, bucketStr);
           else if (isOverlayActive)
-            valueAxis()->setTickLabel(xm, bucketStr);
+            valueAxis()->setTickLabel(tpos, bucketStr);
           else if (isSideBySideActive)
-            valueAxis()->setTickLabel(xm, bucketStr);
+            valueAxis()->setTickLabel(tpos, bucketStr);
           else
-            valueAxis()->setTickLabel(xm, bucketStr);
+            valueAxis()->setTickLabel(tpos, bucketStr);
         }
 
         //---
@@ -2562,8 +2581,14 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+    if (! key->isFlipped()) {
+      groupItem->addItem(colorItem);
+      groupItem->addItem(textItem );
+    }
+    else {
+      groupItem->addItem(textItem );
+      groupItem->addItem(colorItem);
+    }
 
     key->addItem(groupItem, row, col);
 
@@ -2576,6 +2601,7 @@ addKeyItems(PlotKey *key)
 
   int ng = groupData_.groupValues.size();
 
+  // multiple group - key item per group
   if      (ng > 1) {
     int ig = 0;
 
@@ -2585,11 +2611,20 @@ addKeyItems(PlotKey *key)
 
       auto groupName = groupIndName(groupInd);
 
-      addKeyRow(ColorInd(ig, ng), ColorInd(), RangeValue(), RangeValue(), groupName);
+      auto items = addKeyRow(ColorInd(ig, ng), ColorInd(), RangeValue(), RangeValue(), groupName);
+
+      // use color column and color map data if column is valid and is the grouping column
+      Color color1;
+
+      if (adjustedGroupColor(groupInd, ng, color1))
+        items.first->setColor(color1);
+
+      //--
 
       ++ig;
     }
   }
+  // single group - key item per value set
   else if (ng == 1) {
     if (colorColumn().isValid()) {
       bool ok;
@@ -2608,19 +2643,33 @@ addKeyItems(PlotKey *key)
         auto *colorBox = addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
                                    value.toString()).first;
 
-        bool ok;
+        Color color;
+        bool  setColor = false;
 
-        Color c = CQChartsVariant::toColor(value, ok);
+        if (isColorMapped() &&
+            plotType() != PlotType::SCATTER && plotType() != PlotType::DENSITY) {
+          double r = CMathUtil::map(iv, 0, nv - 1, colorMapMin(), colorMapMax());
 
-        if (ok) {
-          auto c1 = interpColor(c, ColorInd());
-
-          CQChartsDrawUtil::setColorAlpha(c1, barFillAlpha());
-
-          colorBox->setColor(Color(c1));
+          color = colorFromColorMapPaletteValue(r);
         }
-        else
-          colorBox->setColor(c);
+        else {
+          bool ok;
+
+          color = CQChartsVariant::toColor(value, ok);
+
+          if (ok) {
+            auto c = interpColor(color, ColorInd());
+
+            CQChartsDrawUtil::setColorAlpha(c, barFillAlpha());
+
+            color = Color(c);
+          }
+
+          setColor = true;
+        }
+
+        if (setColor)
+          colorBox->setColor(color);
       }
     }
     else {
@@ -4571,7 +4620,10 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
   //---
 
   // values, name and data columns
-  addColumnWidgets(QStringList() << "values" << "name" << "data", optionsFrame);
+//auto columns = QStringList() << "values" << "name" << "data";
+  auto columns = QStringList() << "values" << "data";
+
+  addColumnWidgets(columns, optionsFrame);
 
   //---
 

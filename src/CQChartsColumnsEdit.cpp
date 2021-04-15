@@ -15,9 +15,6 @@
 #include <QLabel>
 #include <QPainter>
 
-#include <svg/add_svg.h>
-#include <svg/remove_svg.h>
-
 CQChartsColumnsLineEdit::
 CQChartsColumnsLineEdit(QWidget *parent, bool isBasic) :
  CQChartsLineEditBase(parent), isBasic_(isBasic)
@@ -122,7 +119,9 @@ columnsToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(columns().toString());
+  auto tip = QString("%1 (%2)").arg(toolTip()).arg(columns().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

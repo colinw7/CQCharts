@@ -172,6 +172,86 @@
 
 #include <iostream>
 
+// svg files
+#include <svg/select_light_svg.h>
+#include <svg/select_dark_svg.h>
+
+#include <svg/zoom_in_light_svg.h>
+#include <svg/zoom_in_dark_svg.h>
+
+#include <svg/zoom_out_light_svg.h>
+#include <svg/zoom_out_dark_svg.h>
+
+#include <svg/pan_light_svg.h>
+#include <svg/pan_dark_svg.h>
+
+#include <svg/query_light_svg.h>
+#include <svg/query_dark_svg.h>
+
+#include <svg/probe_light_svg.h>
+#include <svg/probe_dark_svg.h>
+
+#include <svg/edit_light_svg.h>
+#include <svg/edit_dark_svg.h>
+
+#include <svg/zoom_fit_light_svg.h>
+#include <svg/zoom_fit_dark_svg.h>
+
+#include <svg/region_light_svg.h>
+#include <svg/region_dark_svg.h>
+
+#include <svg/left_light_svg.h>
+#include <svg/left_dark_svg.h>
+//#include <svg/left_svg.h>
+
+#include <svg/right_light_svg.h>
+#include <svg/right_dark_svg.h>
+//#include <svg/right_svg.h>
+
+#include <svg/models_light_svg.h>
+#include <svg/models_dark_svg.h>
+
+#include <svg/charts_light_svg.h>
+#include <svg/charts_dark_svg.h>
+//#include <svg/charts_svg.h>
+
+#include <svg/options_light_svg.h>
+#include <svg/options_dark_svg.h>
+
+#include <svg/table_light_svg.h>
+#include <svg/table_dark_svg.h>
+
+#include <svg/console_light_svg.h>
+#include <svg/console_dark_svg.h>
+
+#include <svg/legend_light_svg.h>
+#include <svg/legend_dark_svg.h>
+
+#include <svg/columns_light_svg.h>
+#include <svg/columns_dark_svg.h>
+
+#include <svg/filter_light_svg.h>
+#include <svg/filter_dark_svg.h>
+
+#include <svg/search_light_svg.h>
+#include <svg/search_dark_svg.h>
+
+#include <svg/add_light_svg.h>
+#include <svg/add_dark_svg.h>
+
+#include <svg/remove_light_svg.h>
+#include <svg/remove_dark_svg.h>
+
+#include <svg/region_light_svg.h>
+#include <svg/region_dark_svg.h>
+
+#include <svg/error_light_svg.h>
+#include <svg/error_dark_svg.h>
+
+#include <svg/refresh_svg.h>
+#include <svg/file_dialog_svg.h>
+#include <svg/info_svg.h>
+
 QString
 CQCharts::
 description()

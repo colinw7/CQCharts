@@ -1,15 +1,12 @@
 #include <CQChartsFilterEdit.h>
+
 #include <CQIconCombo.h>
 #include <CQSwitch.h>
 #include <CQUtil.h>
+#include <CQPixmapCache.h>
 
 #include <QHBoxLayout>
 #include <QKeyEvent>
-
-#include <svg/filter_light_svg.h>
-#include <svg/filter_dark_svg.h>
-#include <svg/search_light_svg.h>
-#include <svg/search_dark_svg.h>
 
 CQChartsFilterEdit::
 CQChartsFilterEdit(QWidget *parent) :

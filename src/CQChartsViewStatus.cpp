@@ -12,8 +12,6 @@
 #include <QLabel>
 #include <QContextMenuEvent>
 
-#include <svg/error_svg.h>
-
 CQChartsViewStatus::
 CQChartsViewStatus(CQChartsWindow *window) :
  QFrame(window), window_(window)

@@ -70,7 +70,6 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
-#include <svg/info_svg.h>
 #include <fstream>
 #include <iostream>
 

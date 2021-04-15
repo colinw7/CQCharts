@@ -31,6 +31,7 @@
 #include <CQGroupBox.h>
 #include <CQTabWidget.h>
 #include <CQTclUtil.h>
+#include <CQPixmapCache.h>
 
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -40,9 +41,6 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <cassert>
-
-#include <svg/refresh_svg.h>
-#include <svg/info_svg.h>
 
 CQChartsCreatePlotDlg::
 CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :

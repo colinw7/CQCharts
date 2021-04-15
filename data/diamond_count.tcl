@@ -13,12 +13,12 @@ set view [create_charts_view]
 set plot1 [create_charts_plot -view $view -model $model -type distribution -columns {{values cut}}]
 connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
-set plot2 [create_charts_plot -view $view -model $model -type pie \
-  -columns {{values @ROW1} {group cut}}]
-set_charts_property -plot $plot2 -name options.count -value 1
-connect_charts_signal -plot $plot2 -from objIdPressed -to objPressed
+#set plot2 [create_charts_plot -view $view -model $model -type pie \
+#  -columns {{values @ROW1} {group cut}}]
+#set_charts_property -plot $plot2 -name options.count -value 1
+#connect_charts_signal -plot $plot2 -from objIdPressed -to objPressed
 
-set plot3 [create_charts_plot -view $view -model $model -type distribution -columns {{values cut}}]
-connect_charts_signal -plot $plot3 -from objIdPressed -to objPressed
+#set plot3 [create_charts_plot -view $view -model $model -type distribution -columns {{values cut}}]
+#connect_charts_signal -plot $plot3 -from objIdPressed -to objPressed
 
-place_charts_plots -horizontal $plot1 $plot2 $plot3
+#place_charts_plots -horizontal $plot1 $plot2 $plot3

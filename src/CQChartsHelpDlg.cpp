@@ -19,9 +19,6 @@
 
 #include <iostream>
 
-#include <svg/left_svg.h>
-#include <svg/right_svg.h>
-
 CQChartsHelpDlgMgr::
 CQChartsHelpDlgMgr()
 {

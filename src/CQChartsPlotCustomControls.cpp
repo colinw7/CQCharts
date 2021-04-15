@@ -88,6 +88,8 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
   if (isNumeric) {
     numericCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Numeric Only", "numericCheck");
 
+    numericCheck_->setToolTip("Restrict to columns with numeric values");
+
     frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
   }
 
@@ -247,9 +249,6 @@ void
 CQChartsPlotCustomControls::
 handlePlotDrawn()
 {
-  if (colorMapKey_)
-    colorMapKey_->setKey(plot()->colorMapKey());
-
   updateColorKeyVisible();
 }
 
@@ -263,6 +262,8 @@ updateColorKeyVisible()
     bool hasColorMapKey = (hasColorColumn && ! plot()->colorMapKey()->isNative());
 
     colorMapKey_->setVisible(hasColorMapKey && colorControlGroup_->isKeyVisible());
+
+    colorMapKey_->setKey(plot()->colorMapKey());
   }
 }
 
@@ -359,6 +360,9 @@ createGroupFrame(const QString &name, const QString &objName)
 #else
   auto *groupBox    = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
   auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(groupBox, 0, 0);
+
+  groupBox->setTitleScale(0.85);
+  groupBox->setTitleColored(true);
 
   groupLayout->addWidget(frameData.frame);
 

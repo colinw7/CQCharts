@@ -110,7 +110,9 @@ colorToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(color().colorStr());
+  auto tip = QString("%1 (%2)").arg(toolTip()).arg(color().colorStr());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

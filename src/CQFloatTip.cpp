@@ -4,8 +4,9 @@
 #include <CQPixmapCache.h>
 
 #include <QApplication>
-#include <QVBoxLayout>
+#include <QScrollArea>
 #include <QLabel>
+#include <QVBoxLayout>
 #include <QTimer>
 #include <QHelpEvent>
 #include <QTimerEvent>
@@ -83,11 +84,20 @@ CQFloatTip(QWidget *widget) :
 
   //---
 
+  scroll_ = new QScrollArea;
+
+  scroll_->setObjectName("scroll");
+  scroll_->setBackgroundRole(QPalette::ToolTipBase);
+
+  layout->addWidget(scroll_);
+
+  //---
+
   label_ = new QLabel;
 
   label_->setObjectName("label");
 
-  layout->addWidget(label_);
+  scroll_->setWidget(label_);
 
   //---
 
@@ -130,7 +140,7 @@ setText(const QString &text)
   setWidgetPalette(queryButton_);
 
   if (isVisible())
-    resize(sizeHint());
+    resizeFit();
 }
 
 void
@@ -191,7 +201,7 @@ showTip(const QPoint &gpos)
 
   setParent(widget_);
 
-  resize(sizeHint());
+  resizeFit();
 
   place();
 
@@ -642,9 +652,34 @@ fontSlot()
 
   layout()->invalidate();
 
-  resize(sizeHint());
+  resizeFit();
 
   place();
+}
+
+void
+CQFloatTip::
+resizeFit()
+{
+  auto ls = label_->sizeHint();
+
+  auto s1 = sizeHint();
+  auto s2 = widget_->size();
+
+  int dx = 4, dy = 4;
+
+  // if label bigger than screen need space for scroll bars
+  if (s1.width() > s2.width() || s1.height() > s2.height()) {
+    dx = 20;
+    dy = 20;
+  }
+
+  label_->resize(ls);
+
+  int w = std::min(s1.width () + dx, s2.width ());
+  int h = std::min(s1.height() + dy, s2.height());
+
+  resize(QSize(w, h));
 }
 
 void

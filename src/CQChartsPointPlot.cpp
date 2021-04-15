@@ -1265,29 +1265,6 @@ updateMapKey(CQChartsMapKey *key) const
 
 //---
 
-bool
-CQChartsPointPlot::
-adjustedGroupColor(int ig, int ng, Color &color) const
-{
-  // use color column and color map data if column is valid and is the grouping column
-  if (! colorColumn().isValid())
-    return false;
-
-  if (! colorColumn().isGroup() && colorColumn() != groupColumn())
-    return false;
-
-  if (! isColorMapped())
-    return false;
-
-  double r = CMathUtil::map(ig, 0, ng - 1, colorMapMin(), colorMapMax());
-
-  color = colorFromColorMapPaletteValue(r);
-
-  return color.isValid();
-}
-
-//---
-
 void
 CQChartsPointPlot::
 write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,

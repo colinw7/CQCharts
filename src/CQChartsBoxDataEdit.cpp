@@ -93,7 +93,9 @@ boxDataToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(boxData().toString());
+  auto tip = QString("%1 (%2)").arg(toolTip()).arg(boxData().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

@@ -6,6 +6,7 @@
 
 class CQPixmapButton;
 
+class QScrollArea;
 class QLabel;
 class QEvent;
 class QTimerEvent;
@@ -84,6 +85,8 @@ class CQFloatTip : public QFrame {
 
   void setWidgetPalette(QWidget *w);
 
+  void resizeFit();
+
  private slots:
   void hideSlot();
 
@@ -118,7 +121,8 @@ class CQFloatTip : public QFrame {
   int titleLines_ { 4 }; //!< number of title lines
 
   // widgets
-  QLabel*         label_;                   //!< label widget
+  QScrollArea*    scroll_      { nullptr }; //!< scroll area
+  QLabel*         label_       { nullptr }; //!< label widget
   CQPixmapButton* lockButton_  { nullptr }; //!< lock widget
   CQPixmapButton* queryButton_ { nullptr }; //!< query widget
 

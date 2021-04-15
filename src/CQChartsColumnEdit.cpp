@@ -133,7 +133,9 @@ columnToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(column().toString());
+  auto tip = QString("%1 (%2)").arg(toolTip()).arg(column().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

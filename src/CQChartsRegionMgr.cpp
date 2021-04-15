@@ -4,9 +4,6 @@
 #include <CQChartsIconButton.h>
 #include <CQUtil.h>
 
-#include <svg/region_light_svg.h>
-#include <svg/region_dark_svg.h>
-
 CQChartsRegionMgr::
 CQChartsRegionMgr(CQChartsView *view) :
  view_(view)

@@ -141,6 +141,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   void printGroup() const;
 
+  //---
+
+  bool adjustedGroupColor(int ig, int ng, Color &color) const;
+
  private:
   Bucket *initGroupData(const Columns &dataColumns, const Column &nameColumn,
                         bool hier, const GroupData &groupData) const;

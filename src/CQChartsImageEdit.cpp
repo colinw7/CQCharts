@@ -7,14 +7,11 @@
 #include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
-#include <CQPixmapCache.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
 #include <QFileDialog>
 #include <QPainter>
-
-#include <svg/file_dialog_svg.h>
 
 CQChartsImageEdit::
 CQChartsImageEdit(QWidget *parent) :

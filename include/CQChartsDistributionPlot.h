@@ -298,7 +298,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   using BucketCounts = std::vector<BucketCount>;
 
   /*!
-   * \brief Density Point Daya
+   * \brief Density Point Data
    * \ingroup Charts
    */
   struct Data {

@@ -253,7 +253,9 @@ fillUnderPosToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(fillUnderPos().toString());
+  auto tip = QString("%1 (%2)").arg(toolTip()).arg(fillUnderPos().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

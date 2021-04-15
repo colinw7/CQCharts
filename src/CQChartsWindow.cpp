@@ -15,8 +15,6 @@
 #include <CQTabSplit.h>
 #include <CQUtil.h>
 
-#include <svg/charts_svg.h>
-
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -98,7 +96,7 @@ CQChartsWindow(View *view) :
  QFrame(nullptr), view_(view)
 {
   setWindowTitle("Window: View " + view_->id());
-  setWindowIcon(CQPixmapCacheInst->getIcon("CHARTS"));
+  setWindowIcon(CQPixmapCacheInst->getIcon("CHARTS_LIGHT", "CHARTS_DARK"));
 
   setObjectName("window");
 

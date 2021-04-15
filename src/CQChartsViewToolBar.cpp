@@ -14,50 +14,6 @@
 #include <CQIconCombo.h>
 #include <CQUtil.h>
 
-#include <svg/select_light_svg.h>
-#include <svg/select_dark_svg.h>
-
-#include <svg/zoom_in_light_svg.h>
-#include <svg/zoom_in_dark_svg.h>
-
-#include <svg/zoom_out_light_svg.h>
-#include <svg/zoom_out_dark_svg.h>
-
-#include <svg/pan_light_svg.h>
-#include <svg/pan_dark_svg.h>
-
-#include <svg/query_light_svg.h>
-#include <svg/query_dark_svg.h>
-
-#include <svg/probe_light_svg.h>
-#include <svg/probe_dark_svg.h>
-
-#include <svg/edit_light_svg.h>
-#include <svg/edit_dark_svg.h>
-
-#include <svg/zoom_fit_light_svg.h>
-#include <svg/zoom_fit_dark_svg.h>
-
-#include <svg/region_light_svg.h>
-#include <svg/region_dark_svg.h>
-
-#include <svg/left_light_svg.h>
-#include <svg/left_dark_svg.h>
-
-#include <svg/right_light_svg.h>
-#include <svg/right_dark_svg.h>
-
-#include <svg/models_light_svg.h>
-#include <svg/models_dark_svg.h>
-
-#include <svg/charts_light_svg.h>
-#include <svg/charts_dark_svg.h>
-
-#include <svg/options_svg.h>
-#include <svg/table_svg.h>
-#include <svg/console_svg.h>
-#include <svg/info_svg.h>
-
 #include <QStackedWidget>
 #include <QPushButton>
 #include <QRadioButton>

@@ -12,9 +12,6 @@
 #include <QScrollArea>
 #include <QPainter>
 
-#include <svg/add_svg.h>
-#include <svg/remove_svg.h>
-
 CQChartsPolygonLineEdit::
 CQChartsPolygonLineEdit(QWidget *parent) :
  CQChartsLineEditBase(parent)
@@ -103,7 +100,9 @@ polygonToWidgets()
   else
     edit_->setText("");
 
-  setToolTip(polygon().toString());
+  auto tip = QString("%1 (%2)").arg(polygon().toString());
+
+  edit_->setToolTip(tip);
 
   connectSlots(true);
 }

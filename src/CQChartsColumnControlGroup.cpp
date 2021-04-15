@@ -22,7 +22,7 @@ CQChartsColumnControlGroup(QWidget *parent) :
   groupBox_ = CQUtil::makeWidget<CQGroupBox>("group");
 
   groupBox_->setTitleScale(0.85);
-  //groupBox_->setTitleColored(true);
+  groupBox_->setTitleColored(true);
 
   layout->addWidget(groupBox_);
 
