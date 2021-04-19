@@ -97,7 +97,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
-  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType)
+  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType WRITE setCalcColumnDataType)
 
   Q_ENUMS(ColumnDataType)
 
@@ -220,6 +220,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   ColumnDataType calcColumnDataType() const;
+  void setCalcColumnDataType(const ColumnDataType &columnDataType);
 
   //---
 
@@ -552,6 +553,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
   Column     nameColumn_;                                 //!< name column
 
+  ColumnDataType defaultColumnDataType_ { ColumnDataType::LINK };
+
   mutable ColumnArray modelColumns_; //!< used columns
 
   // options
@@ -585,6 +588,9 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
 
  protected:
   void connectSlots(bool b);
+
+ private slots:
+  void columnsTypeSlot();
 
  private:
   CQChartsConnectionPlot* plot_             { nullptr };

@@ -5,6 +5,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsUtil.h>
+#include <CQBucketer.h>
 #include <future>
 
 class CQChartsModelColumnDetails;
@@ -173,6 +174,8 @@ class CQChartsModelColumnDetails {
   bool isMonotonic () const;
   bool isIncreasing() const;
 
+  //---
+
   int numUnique() const;
 
   QVariantList uniqueValues() const;
@@ -183,6 +186,16 @@ class CQChartsModelColumnDetails {
   int uniqueId(const QVariant &v) const;
 
   QVariant uniqueValue(int i) const;
+
+  //---
+
+  int numBuckets() const;
+
+  int bucket(const QVariant &v) const;
+
+  void bucketRange(int i, QVariant &vmin, QVariant &vmax) const;
+
+  //---
 
   int numNull() const;
 
@@ -237,6 +250,8 @@ class CQChartsModelColumnDetails {
 
   void initCache() const;
 
+  void initBucketer() const;
+
   const CQChartsColumnType *columnType() const;
 
   //---
@@ -249,8 +264,12 @@ class CQChartsModelColumnDetails {
   bool namedImage(const QString &name, Image &image) const;
 
  private:
+  ValueSet *calcValueSet() const;
+
   void initCache1() const;
   bool calcCache ();
+
+  void calcBucketer();
 
   bool initType () const;
   bool initType1() const;
@@ -290,6 +309,7 @@ class CQChartsModelColumnDetails {
   bool        increasing_  { true };    //!< values are increasing
   ValueSet*   valueSet_    { nullptr }; //!< values
   VariantInds valueInds_;               //!< unique values
+  CQBucketer* bucketer_    { nullptr }; //!< bucketed values
 
   // cached parameter values
   int           preferredWidth_  { -1 };
@@ -301,8 +321,11 @@ class CQChartsModelColumnDetails {
 //NameValues    namedImages_;
 
   // mutex
-  mutable std::mutex        initMutex_;        //!< mutex
+  mutable std::mutex        initMutex_;        //!< init mutex
   mutable std::atomic<bool> initializing_ { }; //!< initializing
+
+  mutable std::mutex        bucketMutex_;      //!< bucket mutex
+  mutable std::atomic<bool> bucketing_    { }; //!< bucketing
 };
 
 #endif

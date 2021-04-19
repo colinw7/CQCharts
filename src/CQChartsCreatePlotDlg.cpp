@@ -19,7 +19,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
-#include <CQChartsIconButton.h>
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
@@ -29,6 +28,7 @@
 #include <CQUtil.h>
 #include <CQCustomCombo.h>
 #include <CQGroupBox.h>
+#include <CQIconButton.h>
 #include <CQTabWidget.h>
 #include <CQTclUtil.h>
 #include <CQPixmapCache.h>
@@ -564,7 +564,7 @@ createGeneralDataFrame()
 {
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
+    auto *button = CQUtil::makeWidget<CQIconButton>(name);
 
     button->setIcon(iconName);
 
@@ -1581,7 +1581,7 @@ addFormatEdit(PlotData &plotData, PlotParameter *parameter, QGridLayout *layout,
   //--
 
   // add format update button
-  formatEditData.formatUpdate = CQUtil::makeWidget<CQChartsIconButton>("formatUpdate");
+  formatEditData.formatUpdate = CQUtil::makeWidget<CQIconButton>("formatUpdate");
 
   formatEditData.formatUpdate->setIcon("REFRESH");
 

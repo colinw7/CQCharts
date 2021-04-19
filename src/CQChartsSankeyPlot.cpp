@@ -5299,9 +5299,11 @@ CQChartsSankeyPlotCustomControls::
 CQChartsSankeyPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "sankey")
 {
-  addColorColumnWidgets("Cell Color");
-
   addConnectionColumnWidgets();
+
+  addColorColumnWidgets("Node/Edge Color");
+
+  addLayoutStretch();
 
   connectSlots(true);
 }

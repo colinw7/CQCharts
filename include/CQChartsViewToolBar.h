@@ -38,6 +38,7 @@ class CQChartsViewToolBar : public QFrame {
 
   void selectInsideSlot(int state);
 
+  void appOptionsSlot();
   void viewSettingsSlot(bool b);
 
   void viewTableSlot(bool b);
@@ -70,6 +71,7 @@ class CQChartsViewToolBar : public QFrame {
   QRadioButton*   selectPointButton_     { nullptr }; //!< select point radio
   QRadioButton*   selectRectButton_      { nullptr }; //!< select rect radio
   QCheckBox*      selectInsideCheck_     { nullptr }; //!< select index checkbox
+  QToolButton*    appOptionssButton_     { nullptr }; //!< show app options button
   QToolButton*    viewSettingsButton_    { nullptr }; //!< show/hide view settings button
   QToolButton*    viewTableButton_       { nullptr }; //!< show/hide view table button
   QToolButton*    manageModelsDlgButton_ { nullptr }; //!< load model dlg button

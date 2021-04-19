@@ -2635,41 +2635,61 @@ addKeyItems(PlotKey *key)
 
       const auto *columnDetails = this->columnDetails(colorColumn());
 
-      int nv = (columnDetails ? columnDetails->numUnique() : 0);
+      if (! columnDetails->isNumeric()) {
+        int nv = (columnDetails ? columnDetails->numUnique() : 0);
 
-      for (int iv = 0; iv < nv; ++iv) {
-        auto value = columnDetails->uniqueValue(iv);
+        for (int iv = 0; iv < nv; ++iv) {
+          auto value = columnDetails->uniqueValue(iv);
 
-        auto *colorBox = addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
-                                   value.toString()).first;
+          auto *colorBox = addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
+                                     value.toString()).first;
 
-        Color color;
-        bool  setColor = false;
+          Color color;
 
-        if (isColorMapped() &&
-            plotType() != PlotType::SCATTER && plotType() != PlotType::DENSITY) {
-          double r = CMathUtil::map(iv, 0, nv - 1, colorMapMin(), colorMapMax());
+          if (isColorMapped() &&
+              plotType() != PlotType::SCATTER && plotType() != PlotType::DENSITY) {
+            double r = CMathUtil::map(iv, 0, nv - 1, colorMapMin(), colorMapMax());
 
-          color = colorFromColorMapPaletteValue(r);
-        }
-        else {
-          bool ok;
+            color = colorFromColorMapPaletteValue(r);
+          }
+          else {
+            bool ok;
 
-          color = CQChartsVariant::toColor(value, ok);
+            color = CQChartsVariant::toColor(value, ok);
 
-          if (ok) {
-            auto c = interpColor(color, ColorInd());
+            if (ok) {
+              auto c = interpColor(color, ColorInd());
 
-            CQChartsDrawUtil::setColorAlpha(c, barFillAlpha());
+              CQChartsDrawUtil::setColorAlpha(c, barFillAlpha());
 
-            color = Color(c);
+              color = Color(c);
+            }
           }
 
-          setColor = true;
-        }
-
-        if (setColor)
           colorBox->setColor(color);
+        }
+      }
+      else {
+        int nb = (columnDetails ? columnDetails->numBuckets() : 0);
+
+        for (int ib = 0; ib < nb; ++ib) {
+          QVariant vmin, vmax;
+
+          columnDetails->bucketRange(ib, vmin, vmax);
+
+          auto label = QString("[%1,%2)").arg(vmin.toString()).arg(vmax.toString());
+
+          auto *colorBox = addKeyRow(ColorInd(), ColorInd(ib, nb), RangeValue(), RangeValue(),
+                                     label).first;
+
+          Color color;
+
+          double r = CMathUtil::map(ib, 0, nb - 1, colorMapMin(), colorMapMax());
+
+          color = colorFromColorMapPaletteValue(r);
+
+          colorBox->setColor(color);
+        }
       }
     }
     else {
@@ -2943,7 +2963,8 @@ addMenuItems(QMenu *menu)
   (void) addMenuCheckedAction(typeMenu, "Scatter", isScatter(), SLOT(setScatter(bool)));
   (void) addMenuCheckedAction(typeMenu, "Density", isDensity(), SLOT(setDensity(bool)));
 
-  menu->addMenu(typeMenu);
+  if (! typeMenu)
+    menu->addMenu(typeMenu);
 
   auto *valueMenu = new QMenu("Value Type", menu);
 
@@ -3560,7 +3581,7 @@ draw(PaintDevice *device) const
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &p : colorData_.colorSet) {
-        const auto &color = p.first;
+        const auto &color = p.first.color;
         int         n     = colorData_.colorCount[p.second];
 
         pos1 = pos2;
@@ -3591,8 +3612,8 @@ draw(PaintDevice *device) const
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &cs : colorData_.colorSizes) {
-        const auto &color = cs.first;
-        double      dsize = cs.second;
+        const auto &color = cs.indColor.color;
+        double      dsize = cs.size;
 
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
@@ -3765,6 +3786,19 @@ getBarColoredRects(ColorData &colorData) const
   if (nvi <= 1)
     return false;
 
+  //---
+
+  const auto *columnDetails = plot_->columnDetails(plot_->colorColumn());
+  bool isNumeric = (columnDetails ? columnDetails->isNumeric() : false);
+
+  int nv = (columnDetails ? columnDetails->numUnique () : 1);
+  int nb = (isNumeric     ? columnDetails->numBuckets() : 1);
+
+  auto colorMapMin = plot_->colorMapMin();
+  auto colorMapMax = plot_->colorMapMax();
+
+  //---
+
   double minAlpha = 0.4;
   double maxAlpha = 1.0;
 
@@ -3791,52 +3825,81 @@ getBarColoredRects(ColorData &colorData) const
 
     //---
 
-    // set color from value
-    Color color;
+    // get color column value from model
+    ModelIndex colorInd(plot_, ind.row(), plot_->colorColumn(), ind.parent());
 
-    if (plot_->colorColumnColor(ind.row(), ind.parent(), color)) {
+    bool ok;
+    auto var = plot_->modelValue(colorInd, ok);
+
+    // set color from value
+    Color  color;
+    bool   colorSet   = false;
+    int    colorIVal  = 0;
+    double colorValue = 0.0;
+
+    if (ok && var.isValid()) {
+      if (! isNumeric) {
+        colorIVal  = (columnDetails ? columnDetails->valueInd(var) : 0);
+        colorValue = CMathUtil::map(colorIVal, 0, nv - 1, colorMapMin, colorMapMax);
+      }
+      else {
+        colorIVal  = columnDetails->bucket(var);
+        colorValue = CMathUtil::map(colorIVal, 0, nb - 1, colorMapMin, colorMapMax);
+      }
+
+      color = plot_->colorFromColorMapPaletteValue(colorValue);
+
+      //---
+
       auto c1 = plot_->interpColor(color, ColorInd());
 
       CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha());
 
-      color = Color(c1);
+      color    = Color(c1);
+      colorSet = true;
     }
-    else {
-      double alpha = (maxAlpha - minAlpha)*colorData.nv/(nvi - 1.0) + minAlpha;
 
-      auto barColor1 = CQChartsUtil::blendColors(barColor, bgColor, alpha);
+    if (! colorSet) {
+      colorIVal  = colorData.nv;
+      colorValue = CMathUtil::map(colorIVal, 0, nvi - 1, minAlpha, maxAlpha);
+
+      auto barColor1 = CQChartsUtil::blendColors(barColor, bgColor, colorValue);
 
       color = Color(barColor1);
     }
 
     //---
 
+    IndColor indColor(colorIVal, color);
+
     // add unique colors to set
-    auto p = colorData.colorSet.find(color);
+    auto p = colorData.colorSet.find(indColor);
 
     if (p == colorData.colorSet.end()) {
       colorData.colorRows.insert(ind.row());
 
       int ind = colorData.colorSet.size();
 
-      p = colorData.colorSet.insert(p, ColorSet::value_type(color, ind));
+      p = colorData.colorSet.insert(p, IndColorSet::value_type(indColor, ind));
     }
 
     ++colorData.colorCount[(*p).second];
 
     //---
 
-    colorData.colorSizes.push_back(ColorSize(color, bsize1));
+    colorData.colorSizes.push_back(IndColorSize(indColor, bsize1));
 
     ++colorData.nv;
   }
 
   if (colorData.colorSet.empty()) {
-    colorData.colorSet[Color(barColor)] = 0;
+    IndColor indColor(0, Color(barColor));
+
+    colorData.colorSet[indColor] = 0;
 
     colorData.colorCount[0] = 1;
 
-    colorData.colorSizes.push_back(ColorSize(Color(barColor), 1.0));
+    colorData.colorSizes.push_back(IndColorSize(indColor, 1.0));
 
     colorData.nv = 1;
   }

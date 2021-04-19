@@ -1,7 +1,8 @@
 #include <CQChartsRegionMgr.h>
 #include <CQChartsView.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsIconButton.h>
+
+#include <CQIconButton.h>
 #include <CQUtil.h>
 
 CQChartsRegionMgr::
@@ -104,7 +105,7 @@ buttonChecked(CQChartsRegionButton *button, bool b)
 
 CQChartsRegionButton::
 CQChartsRegionButton(QWidget *parent) :
- CQChartsIconButton(parent)
+ CQIconButton(parent)
 {
   setObjectName("region");
 

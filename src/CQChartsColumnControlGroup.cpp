@@ -1,8 +1,8 @@
 #include <CQChartsColumnControlGroup.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsIconButton.h>
 
 #include <CQGroupBox.h>
+#include <CQIconButton.h>
 #include <CQUtil.h>
 
 #include <QButtonGroup>
@@ -34,6 +34,9 @@ CQChartsColumnControlGroup(QWidget *parent) :
   auto *cornerControl = CQUtil::makeWidget<QFrame>("cornerControl");
   auto *cornerLayout  = CQUtil::makeLayout<QHBoxLayout>(cornerControl, 0, 0);
 
+  cornerControl->setAutoFillBackground(true);
+
+#if 0
   radioGroup_ = new QButtonGroup(this);
 
   auto *globalRadio = CQUtil::makeLabelWidget<QRadioButton>("Global", "global");
@@ -57,19 +60,28 @@ CQChartsColumnControlGroup(QWidget *parent) :
 
   auto *keySpacer = CQChartsWidgetUtil::createHSpacer(2);
   cornerLayout->addWidget(keySpacer);
+#else
+  columnCheck_ = CQUtil::makeWidget<CQIconButton>("columnCheck");
+
+  columnCheck_->setCheckable(true);
+  columnCheck_->setSize(CQIconButton::Size::SMALL);
+  columnCheck_->setIcon("COLUMNS");
+  columnCheck_->setToolTip("Use column values");
+
+  connect(columnCheck_, SIGNAL(clicked()), this, SLOT(columnCheckSlot()));
+
+  cornerLayout->addWidget(columnCheck_);
+#endif
 
 #if 0
   keyCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Key", "keyCheck");
 
   connect(keyCheck_, SIGNAL(stateChanged(int)), this, SLOT(keyCheckSlot()));
 #else
-  keyCheck_ = CQUtil::makeWidget<CQChartsIconButton>("keyCheck");
+  keyCheck_ = CQUtil::makeWidget<CQIconButton>("keyCheck");
 
   keyCheck_->setCheckable(true);
-
-  int is = int(QFontMetrics(font()).height()*0.85);
-  keyCheck_->setIconSize(QSize(is, is));
-
+  keyCheck_->setSize(CQIconButton::Size::SMALL);
   keyCheck_->setIcon("LEGEND");
   keyCheck_->setToolTip("Display Key for column values");
 
@@ -80,7 +92,8 @@ CQChartsColumnControlGroup(QWidget *parent) :
 
   groupBox_->setCornerWidget(cornerControl);
 
-  keyCheck_->setVisible(false);
+//keyCheck_->setVisible(false);
+  keyCheck_->setEnabled(false);
 
   //---
 
@@ -119,10 +132,26 @@ controlButtonClicked(QAbstractButton *button)
 {
   int ind = (button->text() == "Global" ? 0 : 1);
 
-  stack_->setCurrentIndex(ind);
+  setColumnStack(ind == 1);
+}
 
-  if (hasKey())
-    keyCheck_->setVisible(ind == 1);
+void
+CQChartsColumnControlGroup::
+columnCheckSlot()
+{
+  setColumnStack(columnCheck_->isChecked());
+}
+
+void
+CQChartsColumnControlGroup::
+setColumnStack(bool b)
+{
+  stack_->setCurrentIndex(b ? 1 : 0);
+
+  if (hasKey()) {
+  //keyCheck_->setVisible(b);
+    keyCheck_->setEnabled(b);
+  }
 
   emit groupChanged();
 }
@@ -193,14 +222,20 @@ setCurrentIndex(int ind)
 {
   stack_->setCurrentIndex(ind);
 
+#if 0
   disconnect(radioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
              this, SLOT(controlButtonClicked(QAbstractButton *)));
 
   radioGroup_->buttons().at(ind)->setChecked(true);
+#endif
 
-  if (hasKey())
-    keyCheck_->setVisible(ind == 1);
+  if (hasKey()) {
+  //keyCheck_->setVisible(ind == 1);
+    keyCheck_->setEnabled(ind == 1);
+  }
 
+#if 0
   connect(radioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
           this, SLOT(controlButtonClicked(QAbstractButton *)));
+#endif
 }

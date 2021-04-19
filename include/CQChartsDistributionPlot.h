@@ -139,22 +139,45 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_PROPERTY(double  maxValue  READ maxValue )
 
  public:
-  using ColorCount = std::map<int, int>;
-  using ColorSet   = std::map<CQChartsColor, int>;
-  using ColorRows  = std::set<int>;
-  using ColorSize  = std::pair<CQChartsColor, double>;
-  using ColorSizes = std::vector<ColorSize>;
+  struct IndColor {
+    int           ind { 0 };
+    CQChartsColor color;
+
+    IndColor(int ind, const CQChartsColor &color) :
+     ind(ind), color(color) {
+    }
+
+    friend bool operator<(const IndColor &lhs, const IndColor &rhs) {
+      if (lhs.ind != rhs.ind) return lhs.ind < rhs.ind;
+      return lhs.color  < rhs.color;
+    }
+  };
+
+  struct IndColorSize {
+    IndColor indColor;
+    int      size { 0 };
+
+    IndColorSize(const IndColor &indColor, int size) :
+     indColor(indColor), size(size) {
+    }
+  };
+
+  using IndColorSizes = std::vector<IndColorSize>;
+
+  using ColorCount  = std::map<int, int>;
+  using IndColorSet = std::map<IndColor, int>;
+  using ColorRows   = std::set<int>;
 
   /*!
    * \brief Bar Color Data (for multiple stacked bars)
    * \ingroup Charts
    */
   struct ColorData {
-    ColorCount colorCount;
-    ColorSet   colorSet;
-    ColorRows  colorRows;
-    int        nv { 0 };
-    ColorSizes colorSizes;
+    ColorCount    colorCount;
+    IndColorSet   colorSet;
+    ColorRows     colorRows;
+    int           nv { 0 };
+    IndColorSizes colorSizes;
   };
 
  public:

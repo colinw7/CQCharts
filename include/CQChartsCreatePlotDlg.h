@@ -28,11 +28,11 @@ class CQChartsRealParameterEdit;
 class CQChartsIntParameterEdit;
 class CQChartsBoolParameterEdit;
 class CQChartsLineEdit;
-class CQChartsIconButton;
 
 class CQSummaryModel;
 class CQIntegerSpin;
 class CQRealSpin;
+class CQIconButton;
 
 class QAbstractItemModel;
 class QFrame;
@@ -92,8 +92,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   };
 
   struct FormatEditData {
-    LineEdit*           formatEdit   { nullptr };
-    CQChartsIconButton* formatUpdate { nullptr };
+    LineEdit*     formatEdit   { nullptr };
+    CQIconButton* formatUpdate { nullptr };
   };
 
   struct PlotData {

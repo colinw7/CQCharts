@@ -19,6 +19,7 @@ class CQChartsPaletteNameEdit;
 class CQChartsMapKeyWidget;
 class CQChartsColumnControlGroup;
 
+class CQIconButton;
 //class CQTabSplit;
 class QCheckBox;
 class QLabel;
@@ -64,6 +65,8 @@ class CQChartsPlotCustomControls : public QFrame {
   void addColorColumnWidgets(const QString &title="Color");
 
   void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
+  void addFrameWidget(FrameData &frameData, QWidget *w);
+
   void addFrameColWidget(FrameData &frameData, QWidget *w);
 
   void addFrameRowStretch(FrameData &frameData);
@@ -99,14 +102,14 @@ class CQChartsPlotCustomControls : public QFrame {
   void columnSlot();
   void columnsSlot();
 
-  void numericOnlySlot(int state);
+  void numericOnlySlot(bool state);
 
   void showColorKeySlot(bool b);
 
  protected:
   CQChartsPlotType *plotType() const;
 
-  CQChartsBoolParameterEdit *createBoolEdit(const QString &name);
+  CQChartsBoolParameterEdit *createBoolEdit(const QString &name, bool choice=true);
   CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
 
   void connectSlots(bool b);
@@ -122,17 +125,19 @@ class CQChartsPlotCustomControls : public QFrame {
   QString       plotType_;
   CQChartsPlot* plot_ { nullptr };
 
-  QLabel*      titleWidget_  { nullptr };
-  ColumnEdits  columnEdits_;
-  ColumnsEdits columnsEdits_;
-  QCheckBox*   numericCheck_ { nullptr };
+  QLabel* titleWidget_ { nullptr };
+
+  ColumnEdits   columnEdits_;
+  ColumnsEdits  columnsEdits_;
+//QCheckBox*    numericCheck_ { nullptr };
+  CQIconButton* numericCheck_ { nullptr };
 
   CQChartsColumnControlGroup* colorControlGroup_ { nullptr };
   CQChartsColorLineEdit*      colorEdit_         { nullptr };
   CQChartsColumnCombo*        colorColumnCombo_  { nullptr };
   CQChartsColorRangeSlider*   colorRange_        { nullptr };
   CQChartsPaletteNameEdit*    colorPaletteEdit_  { nullptr };
-  CQChartsMapKeyWidget*       colorMapKey_       { nullptr };
+  CQChartsMapKeyWidget*       colorMapKeyWidget_ { nullptr };
 
   CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
 };

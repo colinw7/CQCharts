@@ -4,6 +4,7 @@
 
 #include <CQIconCombo.h>
 #include <CQUtil.h>
+#include <CQStyleMgr.h>
 
 #include <QApplication>
 #include <QHBoxLayout>
@@ -103,7 +104,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   connect(menu_, SIGNAL(triggered(QAction *)), this, SLOT(menuItemActivated(QAction *)));
 
-  int is = style()->pixelMetric(QStyle::PM_SmallIconSize);
+  int is = CQStyleMgrInst->iconSize();
 
   button_->setPopupMode(QToolButton::InstantPopup);
   button_->setAutoRaise(true);

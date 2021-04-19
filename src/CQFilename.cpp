@@ -1,5 +1,5 @@
 #include <CQFilename.h>
-#include <CQPixmapCache.h>
+#include <CQIconButton.h>
 
 #include <QFileDialog>
 #include <QDir>
@@ -7,7 +7,8 @@
 #include <QLineEdit>
 #include <QToolButton>
 
-#include <svg/file_dialog_svg.h>
+#include <svg/file_dialog_light_svg.h>
+#include <svg/file_dialog_dark_svg.h>
 
 CQFilename::
 CQFilename(QWidget *parent) :
@@ -21,10 +22,10 @@ CQFilename(QWidget *parent) :
   edit_ = new QLineEdit;
   edit_->setObjectName("edit");
 
-  button_ = new QToolButton;
+  button_ = new CQIconButton;
   button_->setObjectName("button");
 
-  button_->setIcon(CQPixmapCacheInst->getIcon("FILE_DIALOG"));
+  button_->setIcon("FILE_DIALOG");
 
   layout->addWidget(edit_);
   layout->addWidget(button_);

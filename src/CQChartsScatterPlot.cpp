@@ -1291,11 +1291,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional symbol fill color
-        Color symbolColor(Color::Type::NONE);
+        Color symbolColor;
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
-            symbolColor = Color(Color::Type::NONE);
+            symbolColor = Color();
         }
 
         if (symbolColor.isValid())
@@ -2123,14 +2123,7 @@ addPointKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    if (! key->isFlipped()) {
-      groupItem->addItem(colorItem);
-      groupItem->addItem(textItem );
-    }
-    else {
-      groupItem->addItem(textItem );
-      groupItem->addItem(colorItem);
-    }
+    groupItem->addRowItems(colorItem, textItem);
 
     key->addItem(groupItem, row, col);
 

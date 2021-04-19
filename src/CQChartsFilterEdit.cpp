@@ -29,8 +29,8 @@ CQChartsFilterEdit(QWidget *parent) :
 
   combo_ = CQUtil::makeWidget<CQIconCombo>("combo");
 
-  combo_->addItem(CQPixmapCacheInst->getIcon("FILTER_LIGHT", "FILTER_DARK"), "Filter");
-  combo_->addItem(CQPixmapCacheInst->getIcon("SEARCH_LIGHT", "SEARCH_DARK"), "Search");
+  combo_->addItem(CQPixmapCacheInst->getLightDarkIcon("FILTER"), "Filter");
+  combo_->addItem(CQPixmapCacheInst->getLightDarkIcon("SEARCH"), "Search");
   combo_->setFocusPolicy(Qt::NoFocus);
 
   connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboSlot(int)));

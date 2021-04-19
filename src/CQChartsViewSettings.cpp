@@ -26,7 +26,6 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsIconButton.h>
 
 #include <CQChartsPlotCustomControls.h>
 #include <CQChartsPlotControlWidgets.h>
@@ -44,6 +43,7 @@
 #include <CQTabWidget.h>
 #include <CQTabSplit.h>
 #include <CQIconCombo.h>
+#include <CQIconButton.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 #include <CQGroupBox.h>
@@ -1143,7 +1143,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 #if 0
   propertiesWidgets_.plotTip = new CQChartsPlotTip;
 
-  propertiesWidgets_.plotTipButton = CQUtil::makeWidget<CQChartsIconButton>("plotTipButton");
+  propertiesWidgets_.plotTipButton = CQUtil::makeWidget<CQIconButton>("plotTipButton");
 
   propertiesWidgets_.plotTipButton->setIcon("INFO");
 
@@ -1887,7 +1887,7 @@ initSymbolsFrame(QFrame *symbolSetsFrame)
   symbolsLayout->addWidget(buttonsFrame);
 
   auto addToolButton = [&](const QString &name, const QString &iconName, const char *slotName) {
-    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
+    auto *button = CQUtil::makeWidget<CQIconButton>(name);
 
     button->setIcon(iconName);
 
@@ -2081,7 +2081,7 @@ void
 CQChartsViewSettings::
 showErrorsTab()
 {
-  tab_->setCurrentIndex(8);
+  tab_->setCurrentIndex(10);
 }
 
 //------

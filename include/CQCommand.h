@@ -32,7 +32,7 @@ class ScrollArea : public CQScrollArea {
 
   CommandWidget *getCommand() const;
 
-  //void resizeEvent(QResizeEvent *);
+  //void resizeEvent(QResizeEvent *) override;
 
   void outputText(const QString &str);
 

@@ -1819,11 +1819,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional symbol fill color
-        Color symbolColor(Color::Type::NONE);
+        Color symbolColor;
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(ip, xind1.parent(), symbolColor))
-            symbolColor = Color(Color::Type::NONE);
+            symbolColor = Color();
         }
 
         if (symbolColor.isValid())
@@ -2316,14 +2316,7 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    if (! key->isFlipped()) {
-      groupItem->addItem(colorItem);
-      groupItem->addItem(textItem );
-    }
-    else {
-      groupItem->addItem(textItem );
-      groupItem->addItem(colorItem);
-    }
+    groupItem->addRowItems(colorItem, textItem);
 
     key->addItem(groupItem, row, col);
 
@@ -2393,11 +2386,13 @@ addKeyItems(PlotKey *key)
 
       addGradientKeyItem(dataRange.xmin(), dataRange.xmax());
     }
+    // colored by y axis value
     else if (colorType() == ColorType::Y_VALUE) {
       const auto &dataRange = this->dataRange();
 
       addGradientKeyItem(dataRange.ymin(), dataRange.ymax());
     }
+    // colored by index
     else if (colorType() == ColorType::INDEX) {
       addGradientKeyItem(0, maxNumPoints_);
     }
@@ -4620,7 +4615,14 @@ fillBrush() const
   else
     c = CQChartsKeyColorBox::fillBrush().color();
 
-  if (plot()->isSetHidden(is_.i))
+  bool hidden = false;
+
+  if      (is_.n > 1 && plot_->isSetHidden(is_.i))
+    hidden = true;
+  else if (ig_.n > 1 && plot_->isSetHidden(ig_.i))
+    hidden = true;
+
+  if (hidden)
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   plot()->setBrush(penBrush, BrushData(true, c, alpha, pattern));

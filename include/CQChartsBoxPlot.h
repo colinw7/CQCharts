@@ -370,12 +370,16 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 /*!
  * \brief Box Plot Point object
  * \ingroup Charts
+ *
+ * TODO: custom color, symbol type, ...
  */
 class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   using Plot       = CQChartsBoxPlot;
+  using Column     = CQChartsColumn;
+  using Color      = CQChartsColor;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
@@ -390,6 +394,11 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   //---
 
   bool isPoint() const override { return true; }
+
+  //---
+
+  const Color &color() const { return color_; }
+  void setColor(const Color &c) { color_ = c; }
 
   //---
 
@@ -409,6 +418,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   int         setId_    { -1 };      //!< set id
   int         groupInd_ { -1 };      //!< group id
   Point       p_;                    //!< point
+  Color       color_;                //!< custom color
 };
 
 //---
@@ -561,7 +571,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType)
+  Q_PROPERTY(ColumnDataType columnDataType READ calcColumnDataType WRITE setCalcColumnDataType)
 
   Q_ENUMS(ColumnDataType)
 
@@ -681,12 +691,16 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool isNormalized() const { return normalized_; }
 
+  //---
+
   bool isNotched() const { return notched_; }
 
   //---
 
   bool isColorBySet() const { return colorBySet_; }
   void setColorBySet(bool b);
+
+  bool canColorBySet() const;
 
   //---
 
@@ -747,6 +761,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   ColumnDataType calcColumnDataType() const;
+  void setCalcColumnDataType(const ColumnDataType &columnDataType);
 
   //---
 
@@ -755,6 +770,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   bool isPreCalc() const;
+  bool isRawCalc() const;
 
   //---
 
@@ -875,10 +891,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
+  // raw columns
   Columns valueColumns_;      //!< value columns
   Column  nameColumn_;        //!< name column
   Column  setColumn_;         //!< set column
 
+  // calculated columns
   Column  xColumn_;           //!< x column
   Column  minColumn_;         //!< min column
   Column  lowerMedianColumn_; //!< lower median column
@@ -887,31 +905,41 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Column  maxColumn_;         //!< max column
   Column  outliersColumn_;    //!< outliers column
 
-  bool               showOutliers_      { true };                    //!< show outliers
-  bool               connected_         { false };                   //!< connect boxes
-  Qt::Orientation    orientation_       { Qt::Vertical };            //!< bar draw direction
-  bool               normalized_        { false };                   //!< normalized values
-  PointsType         pointsType_        { PointsType::NONE };        //!< show points type
-  bool               notched_           { false };                   //!< show notch
-  bool               violin_            { false };                   //!< show violin
-  Length             violinWidth_       { 0.6, Units::PLOT };        //!< violin width
-  bool               violinBox_         { false };                   //!< show box width violin
-  bool               errorBar_          { false };                   //!< show error bar
-  ErrorBarType       errorBarType_      { ErrorBarType::CROSS_BAR }; //!< error bar type
-  bool               colorBySet_        { false };                   //!< color by set
-  Length             boxWidth_          { 0.2, Units::PLOT };        //!< box width
-  double             whiskerRange_      { 1.5 };                     //!< whisker range
-  double             whiskerExtent_     { 0.2 };                     //!< whisker extent
-  double             textMargin_        { 2 };                       //!< text margin
-  double             ymargin_           { 0.05 };                    //!< y margin
-  ColumnType         setType_           { ColumnType::NONE };        //!< set column data type
-  CQChartsValueInd   setValueInd_;                                   //!< set value inds
-  ColumnType         xType_             { ColumnType::NONE };        //!< x column data type
-  CQChartsValueInd   xValueInd_;                                     //!< x value inds
-  GroupSetWhiskerMap groupWhiskers_;                                 //!< grouped whisker data
-  WhiskerDataList    whiskerDataList_;                               //!< whisker data
-  bool               isWhiskersGrouped_ { false };                   //!< is grouped whiskers
-  bool               forceNoYAxis_      { false };                   //!< force no y axis
+  ColumnDataType defaultColumnDataType_ { ColumnDataType::RAW };
+
+  bool            showOutliers_ { true };             //!< show outliers
+  bool            connected_    { false };            //!< connect boxes
+  Qt::Orientation orientation_  { Qt::Vertical };     //!< bar draw direction
+  bool            normalized_   { false };            //!< normalized values
+  PointsType      pointsType_   { PointsType::NONE }; //!< show points type
+  bool            notched_      { false };            //!< show notch
+
+  // voilin
+  bool   violin_      { false };            //!< show violin
+  Length violinWidth_ { 0.6, Units::PLOT }; //!< violin width
+  bool   violinBox_   { false };            //!< show box width violin
+
+  // error bar
+  bool         errorBar_     { false };                   //!< show error bar
+  ErrorBarType errorBarType_ { ErrorBarType::CROSS_BAR }; //!< error bar type
+
+  Length boxWidth_   { 0.2, Units::PLOT }; //!< box width
+  bool   colorBySet_ { false };            //!< color by set
+
+  // whisker
+  double whiskerRange_  { 1.5 }; //!< whisker range
+  double whiskerExtent_ { 0.2 }; //!< whisker extent
+
+  double             textMargin_        { 2 };                //!< text margin
+  double             ymargin_           { 0.05 };             //!< y margin
+  ColumnType         setType_           { ColumnType::NONE }; //!< set column data type
+  CQChartsValueInd   setValueInd_;                            //!< set value inds
+  ColumnType         xType_             { ColumnType::NONE }; //!< x column data type
+  CQChartsValueInd   xValueInd_;                              //!< x value inds
+  GroupSetWhiskerMap groupWhiskers_;                          //!< grouped whisker data
+  WhiskerDataList    whiskerDataList_;                        //!< whisker data
+  bool               isWhiskersGrouped_ { false };            //!< is grouped whiskers
+  bool               forceNoYAxis_      { false };            //!< force no y axis
 };
 
 //---
@@ -935,6 +963,8 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void connectSlots(bool b);
 
  private slots:
+  void columnsTypeSlot();
+
   void orientationSlot();
   void pointsTypeSlot();
 
@@ -951,9 +981,9 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   CQChartsEnumParameterEdit* pointsTypeCombo_  { nullptr };
   CQChartsBoolParameterEdit* normalizedCheck_  { nullptr };
   CQChartsBoolParameterEdit* notchedCheck_     { nullptr };
-  CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
   CQChartsBoolParameterEdit* violinCheck_      { nullptr };
   CQChartsBoolParameterEdit* errorBarCheck_    { nullptr };
+  CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
 };
 
 #endif

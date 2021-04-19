@@ -4,7 +4,7 @@
 #include <QFrame>
 #include <QPointer>
 
-class CQPixmapButton;
+class CQIconButton;
 
 class QScrollArea;
 class QLabel;
@@ -21,7 +21,16 @@ class CQFloatTip : public QFrame {
   Q_PROPERTY(bool          followMouse READ isFollowMouse WRITE setFollowMouse)
   Q_PROPERTY(int           border      READ border        WRITE setBorder     )
   Q_PROPERTY(int           margin      READ margin        WRITE setMargin     )
-  Q_PROPERTY(int           titleLines  READ titleLines    WRITE setTitleLines )
+  Q_PROPERTY(BarStyle      barStyle    READ barStyle      WRITE setBarStyle   )
+
+  Q_ENUMS(BarStyle)
+
+ public:
+  enum BarStyle {
+    BAR_NONE,
+    BAR_LINES,
+    BAR_GRADIENT
+  };
 
  public:
   CQFloatTip(QWidget *widget=nullptr);
@@ -52,8 +61,9 @@ class CQFloatTip : public QFrame {
   int margin() const { return margin_; }
   void setMargin(int i);
 
-  int titleLines() const { return titleLines_; }
-  void setTitleLines(int i) { titleLines_ = i; update(); }
+  //! get/set bar style
+  const BarStyle &barStyle() const { return barStyle_; }
+  void setBarStyle(const BarStyle &v);
 
   //---
 
@@ -77,11 +87,15 @@ class CQFloatTip : public QFrame {
   void timerEvent(QTimerEvent *event) override;
 
  protected:
+  void init();
+
   void startHideTimer();
 
   void stopTimer();
 
   void hideLater();
+
+  void updateWidgetPalette();
 
   void setWidgetPalette(QWidget *w);
 
@@ -99,7 +113,7 @@ class CQFloatTip : public QFrame {
   void focusChangedSlot(QWidget *, QWidget *newW);
 
  private:
-  using QWidgetP  = QPointer<QWidget>;
+  using QWidgetP = QPointer<QWidget>;
 
   // widget and text
   QWidgetP widget_; //!< parent widget for tip
@@ -108,23 +122,24 @@ class CQFloatTip : public QFrame {
   bool enabled_ { true }; //!< is enabled
 
   // placement
-  Qt::Alignment align_   { Qt::AlignRight | Qt::AlignBottom }; //!< align in parent widget
-  int           x_       { -1 };                               //!< explicit x position
-  int           y_       { -1 };                               //!< explicit y position
-  bool          locked_  { false };                            //!< is locked visible
+  Qt::Alignment align_  { Qt::AlignRight | Qt::AlignBottom }; //!< align in parent widget
+  int           x_      { -1 };                               //!< explicit x position
+  int           y_      { -1 };                               //!< explicit y position
+  bool          locked_ { false };                            //!< is locked visible
 
   bool followMouse_ { false }; //!< update on mouse move when locked
 
   // appearance
-  int border_     { 2 }; //!< inner border
-  int margin_     { 2 }; //!< outer margin
-  int titleLines_ { 4 }; //!< number of title lines
+  int      border_   { 2 };         //!< inner border
+  int      margin_   { 2 };         //!< outer margin
+  BarStyle barStyle_ { BAR_LINES }; //!< bar style
+  bool     isDark_   { false };     //!< is dark
 
   // widgets
-  QScrollArea*    scroll_      { nullptr }; //!< scroll area
-  QLabel*         label_       { nullptr }; //!< label widget
-  CQPixmapButton* lockButton_  { nullptr }; //!< lock widget
-  CQPixmapButton* queryButton_ { nullptr }; //!< query widget
+  QScrollArea*  scroll_      { nullptr }; //!< scroll area
+  QLabel*       label_       { nullptr }; //!< label widget
+  CQIconButton* lockButton_  { nullptr }; //!< lock widget
+  CQIconButton* queryButton_ { nullptr }; //!< query widget
 
   // hide timer
   int hideTimer_ { 0 }; //!< hide delay timer

@@ -11,6 +11,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
+#include <CQIconButton.h>
 //#include <CQTabSplit.h>
 #include <CQGroupBox.h>
 #include <CQUtil.h>
@@ -27,9 +28,25 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   layout_ = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
+  //---
+
+  auto *titleFrame  = CQUtil::makeWidget<QFrame>("titleFrame");
+  auto *titleLayout = CQUtil::makeLayout<QHBoxLayout>(titleFrame, 0, 2);
+
+  layout_->addWidget(titleFrame);
+
   titleWidget_ = CQUtil::makeLabelWidget<QLabel>("", "title");
 
-  layout_->addWidget(titleWidget_);
+  numericCheck_ = CQUtil::makeWidget<CQIconButton>("numericColumnsCheck");
+
+  numericCheck_->setIcon("NUMERIC_COLUMNS");
+  numericCheck_->setCheckable(true);
+  numericCheck_->setToolTip("Restrict to columns with numeric values");
+
+  numericCheck_->setVisible(false);
+
+  titleLayout->addWidget(titleWidget_);
+  titleLayout->addWidget(numericCheck_);
 
   //---
 
@@ -86,11 +103,15 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
   }
 
   if (isNumeric) {
+#if 0
     numericCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Numeric Only", "numericCheck");
 
     numericCheck_->setToolTip("Restrict to columns with numeric values");
 
     frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
+#else
+    numericCheck_->setVisible(true);
+#endif
   }
 
   //addFrameRowStretch(frameData);
@@ -165,11 +186,11 @@ addColorColumnWidgets(const QString &title)
 
   //---
 
-  colorMapKey_ = new CQChartsMapKeyWidget;
+  colorMapKeyWidget_ = new CQChartsMapKeyWidget;
 
-  colorMapKey_->setFixedSize(16, 16);
+  colorMapKeyWidget_->setFixedSize(16, 16);
 
-  colorControlGroupData.columnControls->layout()->addWidget(colorMapKey_);
+  colorControlGroupData.columnControls->layout()->addWidget(colorMapKeyWidget_);
 
   connect(colorControlGroupData.group, SIGNAL(showKey(bool)),
           this, SLOT(showColorKeySlot(bool)));
@@ -208,9 +229,12 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(b,
       columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
 
-  if (numericCheck_)
+  if (numericCheck_) {
+  //CQChartsWidgetUtil::connectDisconnect(b,
+  //  numericCheck_, SIGNAL(stateChanged(int)), this, SLOT(numericOnlySlot(int)));
     CQChartsWidgetUtil::connectDisconnect(b,
-      numericCheck_, SIGNAL(stateChanged(int)), this, SLOT(numericOnlySlot(int)));
+      numericCheck_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
+  }
 }
 
 void
@@ -256,14 +280,16 @@ void
 CQChartsPlotCustomControls::
 updateColorKeyVisible()
 {
-  if (colorMapKey_) {
+  if (colorMapKeyWidget_) {
+    auto *colorMapKey = plot()->colorMapKey();
+
     auto hasColorColumn = plot()->colorColumn().isValid();
 
-    bool hasColorMapKey = (hasColorColumn && ! plot()->colorMapKey()->isNative());
+    bool hasColorMapKey = (hasColorColumn && colorMapKey && ! colorMapKey->isNative());
 
-    colorMapKey_->setVisible(hasColorMapKey && colorControlGroup_->isKeyVisible());
+    colorMapKeyWidget_->setVisible(hasColorMapKey && colorControlGroup_->isKeyVisible());
 
-    colorMapKey_->setKey(plot()->colorMapKey());
+    colorMapKeyWidget_->setKey(colorMapKey);
   }
 }
 
@@ -297,7 +323,7 @@ columnsSlot()
 
 void
 CQChartsPlotCustomControls::
-numericOnlySlot(int state)
+numericOnlySlot(bool state)
 {
   for (auto *columnEdit : columnEdits_) {
     auto *parameter = columnEdit->parameter();
@@ -396,6 +422,13 @@ addFrameWidget(FrameData &frameData, const QString &label, QWidget *w)
 
 void
 CQChartsPlotCustomControls::
+addFrameWidget(FrameData &frameData, QWidget *w)
+{
+  frameData.layout->addWidget(w, frameData.row, 0, 1, 2); ++frameData.row;
+}
+
+void
+CQChartsPlotCustomControls::
 addFrameColWidget(FrameData &frameData, QWidget *w)
 {
   frameData.layout->addWidget(w, frameData.row, frameData.col); ++frameData.col;
@@ -417,7 +450,7 @@ showColorKeySlot(bool)
 
 CQChartsBoolParameterEdit *
 CQChartsPlotCustomControls::
-createBoolEdit(const QString &name)
+createBoolEdit(const QString &name, bool choice)
 {
   auto *plotType = this->plotType();
   assert(plotType);
@@ -428,7 +461,7 @@ createBoolEdit(const QString &name)
   const auto *bparameter = dynamic_cast<const CQChartsBoolParameter *>(parameter);
   assert(bparameter);
 
-  return new CQChartsBoolParameterEdit(bparameter, /*choice*/true);
+  return new CQChartsBoolParameterEdit(bparameter, choice);
 }
 
 CQChartsEnumParameterEdit *

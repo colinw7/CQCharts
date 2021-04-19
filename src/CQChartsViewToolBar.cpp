@@ -8,10 +8,12 @@
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsCmdLine.h>
 #include <CQChartsHelpDlg.h>
-#include <CQChartsIconButton.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPixmapCache.h>
+#include <CQIconButton.h>
 #include <CQIconCombo.h>
+#include <CQAppOptions.h>
 #include <CQUtil.h>
 
 #include <QStackedWidget>
@@ -38,8 +40,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto createIconButton = [&](const QString &name, const QString &iconName, const QString &tip,
                               const char *receiver, bool checkable=false, bool checked=false) {
-    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
+    auto *button = CQUtil::makeWidget<CQIconButton>(name);
 
+    button->setSize(CQIconButton::Size::LARGE);
     button->setIcon(iconName);
 
     if (checkable) {
@@ -67,14 +70,14 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   modeCombo_ = CQUtil::makeWidget<CQIconCombo>("modeCombo");
 
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT"  , "SELECT_DARK"  ), "Select"  );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_IN_LIGHT" , "ZOOM_IN_DARK" ), "Zoom In" );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_OUT_LIGHT", "ZOOM_OUT_DARK"), "Zoom Out");
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"     , "PAN_DARK"     ), "Pan"     );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT"   , "PROBE_DARK"   ), "Probe"   );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("QUERY_LIGHT"   , "QUERY_DARK"   ), "Query"   );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("EDIT_LIGHT"    , "EDIT_DARK"    ), "Edit"    );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("REGION_LIGHT"  , "REGION_DARK"  ), "Region"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("SELECT"  ), "Select"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("ZOOM_IN" ), "Zoom In" );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("ZOOM_OUT"), "Zoom Out");
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("PAN"     ), "Pan"     );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("PROBE"   ), "Probe"   );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("QUERY"   ), "Query"   );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("EDIT"    ), "Edit"    );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("REGION"  ), "Region"  );
 
   modeCombo_->setFocusPolicy(Qt::NoFocus);
 
@@ -236,12 +239,21 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
+  appOptionssButton_ = createIconButton("options", "SETTINGS", "Show/Hide App Options",
+                                        SLOT(appOptionsSlot()));
+
+  layout->addWidget(appOptionssButton_);
+
   viewSettingsButton_ = createCheckedButton("settings", "OPTIONS", "Show/Hide View Settings",
                                             SLOT(viewSettingsSlot(bool)), true);
 
   layout->addWidget(viewSettingsButton_);
 
   //-----
+
+  layout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+
+  //---
 
   bool showTable = (window_ && window_->isDataTable());
 
@@ -445,6 +457,13 @@ updateMode()
     modeCombo_    ->setCurrentIndex(7);
     controlsStack_->setCurrentIndex(7);
   }
+}
+
+void
+CQChartsViewToolBar::
+appOptionsSlot()
+{
+  CQAppOptions::show();
 }
 
 void

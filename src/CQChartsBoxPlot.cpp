@@ -22,6 +22,8 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <QMenu>
+#include <QLabel>
+#include <QHBoxLayout>
 
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
@@ -92,13 +94,13 @@ addParameters()
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
   addEnumParameter("pointsType", "Points Type", "pointsType").
-   addNameValue("NONE"   , int(CQChartsBoxPlot::PointsType::NONE   )).
-   addNameValue("JITTER" , int(CQChartsBoxPlot::PointsType::JITTER )).
-   addNameValue("STACKED", int(CQChartsBoxPlot::PointsType::STACKED)).
-   setTip("Show data points type");
+    addNameValue("NONE"   , int(CQChartsBoxPlot::PointsType::NONE   )).
+    addNameValue("JITTER" , int(CQChartsBoxPlot::PointsType::JITTER )).
+    addNameValue("STACKED", int(CQChartsBoxPlot::PointsType::STACKED)).
+    setTip("Show data points type");
 
   addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Draw distribution outline");
-  addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar");
+  addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar (mean +/- std dev)");
 
   //---
 
@@ -118,33 +120,37 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Box Plot").
+    h2("Box Plot").
     h3("Summary").
-     p("Draws box and whiskers for the min, max, median and outlier values of the set "
-       "of y values for rows with identical x values.").
+    p("Draws box and whiskers for the min, max, median and outlier values of the set "
+        "of y values for rows with identical x values.").
     h3("Columns").
-     p("Values can be supplied using:").
-     ul({ LI("Raw Values with X and Y values in " + B("value") + " and " + B("set") + " columns."),
-          LI("Calculated Values in the " + B("x") + ", " + B("min") + ", " +
-             B("lowerMedian") + ", " + B("median") + ", " + B("upperMedian") + ", " +
-             B("max") + " and " + B("outliers") + " columns.") }).
-     p("The x value name can be supplied using this " + B("name") + " column.").
+    p("Values can be supplied using:").
+    ul({ LI("Raw Values with X and Y values in " + B("value") + " and " + B("set") + " columns."),
+        LI("Calculated Values in the " + B("x") + ", " + B("min") + ", " +
+            B("lowerMedian") + ", " + B("median") + ", " + B("upperMedian") + ", " +
+            B("max") + " and " + B("outliers") + " columns.") }).
+    p("The x value name can be supplied using this " + B("name") + " column.").
     h3("Options").
-     p("The outliers values can be shown or hidden..").
-     p("Multiple boxes (for each unique x value) can be connected by their y value.").
-     p("The box can be drawn vertically or horizontally.").
-     p("The y values can be normals to the range 0-1 so whiskers with different y ranges "
-       "can be compared.").
-     p("The box can be notched to show the confidence interval around the median.").
-     p("The individual points can be displayed (if supplied) using jiier or stacked points.").
-     p("The box can be drawn with a violin shape using the distribution curve.").
-     p("The box can be drawn as an error bar.").
+    p("The outliers values can be shown or hidden..").
+    p("Multiple boxes (for each unique x value) can be connected by their y value.").
+    p("The box can be drawn vertically or horizontally.").
+    p("The y values can be normalized to the range 0-1 so whiskers with different y ranges "
+      "can be compared.").
+    h3("Draw Styles").
+    p("The box can be notched to show the confidence interval around the median.").
+    p("The box can be drawn with a violin shape using the distribution curve.").
+    p("The box can be drawn as an error bar.").
+    h3("Data Points").
+    p("The individual points can be displayed (if supplied) using jitter or stacked points.").
+    p("The " + B("color") + " column can be used to customize the point color by the "
+      "associated data value.").
     h3("Customization").
-     p("The box, outlier and data points can be styled (fill and stroke)").
+    p("The box, outlier and data points can be styled (fill and stroke)").
     h3("Limitations").
-     p("The plot does not support logarithmic x values.").
+    p("The plot does not support logarithmic x values.").
     h3("Example").
-     p(IMG("images/boxplot.png"));
+    p(IMG("images/boxplot.png"));
 }
 
 void
@@ -182,12 +188,12 @@ create(View *view, const ModelP &model) const
 
 CQChartsBoxPlot::
 CQChartsBoxPlot(View *view, const ModelP &model) :
- CQChartsGroupPlot(view, view->charts()->plotType("box"), model),
- CQChartsObjBoxShapeData    <CQChartsBoxPlot>(this),
- CQChartsObjTextData        <CQChartsBoxPlot>(this),
- CQChartsObjWhiskerLineData <CQChartsBoxPlot>(this),
- CQChartsObjOutlierPointData<CQChartsBoxPlot>(this),
- CQChartsObjJitterPointData <CQChartsBoxPlot>(this)
+  CQChartsGroupPlot(view, view->charts()->plotType("box"), model),
+  CQChartsObjBoxShapeData    <CQChartsBoxPlot>(this),
+  CQChartsObjTextData        <CQChartsBoxPlot>(this),
+  CQChartsObjWhiskerLineData <CQChartsBoxPlot>(this),
+  CQChartsObjOutlierPointData<CQChartsBoxPlot>(this),
+  CQChartsObjJitterPointData <CQChartsBoxPlot>(this)
 {
 }
 
@@ -229,6 +235,10 @@ init()
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -400,6 +410,13 @@ setColorBySet(bool b)
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); updateRangeAndObjs(); } );
 }
 
+bool
+CQChartsBoxPlot::
+canColorBySet() const
+{
+  return hasSets();
+}
+
 //---
 
 void
@@ -448,19 +465,19 @@ addProperties()
   addProp("columns/raw", "setColumn"   , "set"   , "Set column");
 
   addProp("columns/calculated", "xColumn"          , "x"          ,
-          "Precalculated x column");
+      "Precalculated x column");
   addProp("columns/calculated", "minColumn"        , "min"        ,
-          "Precalculated min column");
+      "Precalculated min column");
   addProp("columns/calculated", "lowerMedianColumn", "lowerMedian",
-          "Precalculated lower median column");
+      "Precalculated lower median column");
   addProp("columns/calculated", "medianColumn"     , "median"     ,
-          "Precalculated median column");
+      "Precalculated median column");
   addProp("columns/calculated", "upperMedianColumn", "upperMedian",
-          "Precalculated upper median column");
+      "Precalculated upper median column");
   addProp("columns/calculated", "maxColumn"        , "max"        ,
-          "Precalculated max column");
+      "Precalculated max column");
   addProp("columns/calculated", "outliersColumn"   , "outlier"    ,
-          "Precalculated outliers column");
+      "Precalculated outliers column");
 
   addGroupingProperties();
 
@@ -485,7 +502,7 @@ addProperties()
 
   // error bar
   addProp("errorBar", "errorBar"    , "visible", "Draw error bars");
-  addProp("errorBar", "errorBarType", "type"   , "Error bar type");
+  addProp("errorBar", "errorBarType", "type"   , "Error bar type (mean +/- std dev)");
 
   // whisker box
   addProp("box", "whiskerRange", "range"  , "Whisker interquartile range factor")->
@@ -514,8 +531,8 @@ addProperties()
   addProp("labels", "textVisible", "visible", "Value labels visible");
 
   addTextProperties("labels/text", "text", "Value", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
-                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+      CQChartsTextOptions::ValueType::CLIP_LENGTH |
+      CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("labels", "textMargin", "margin", "Value text margin in pixels")->setMinValue(0.0);
 
@@ -542,11 +559,13 @@ CQChartsBoxPlot::
 setOrientation(const Qt::Orientation &orient)
 {
   CQChartsUtil::testAndSet(orientation_, orient, [&]() {
-    CQChartsAxis::swap(xAxis(), yAxis());
+      CQChartsAxis::swap(xAxis(), yAxis());
 
-    updateRangeAndObjs();
-  } );
+      updateRangeAndObjs();
+      } );
 }
+
+//---
 
 void
 CQChartsBoxPlot::
@@ -554,6 +573,8 @@ setNormalized(bool b)
 {
   CQChartsUtil::testAndSet(normalized_, b, [&]() { updateRangeAndObjs(); } );
 }
+
+//---
 
 void
 CQChartsBoxPlot::
@@ -634,10 +655,38 @@ CQChartsBoxPlot::ColumnDataType
 CQChartsBoxPlot::
 calcColumnDataType() const
 {
-  if (isPreCalc())
+  if      (isPreCalc())
     return ColumnDataType::CALCULATED;
-  else
+  else if (isRawCalc())
     return ColumnDataType::RAW;
+  else
+    return defaultColumnDataType_;
+}
+
+void
+CQChartsBoxPlot::
+setCalcColumnDataType(const ColumnDataType &columnDataType)
+{
+  if (columnDataType != calcColumnDataType()) {
+    if      (columnDataType == ColumnDataType::CALCULATED) {
+      valueColumns_ = Columns();
+      nameColumn_   = Column();
+      setColumn_    = Column();
+    }
+    else if (columnDataType == ColumnDataType::RAW) {
+      xColumn_           = Column();
+      minColumn_         = Column();
+      lowerMedianColumn_ = Column();
+      medianColumn_      = Column();
+      upperMedianColumn_ = Column();
+      maxColumn_         = Column();
+      outliersColumn_    = Column();
+    }
+
+    updateRangeAndObjs();
+  }
+
+  defaultColumnDataType_ = columnDataType;
 }
 
 //---
@@ -651,6 +700,13 @@ isPreCalc() const
           medianColumn     ().isValid() &&
           upperMedianColumn().isValid() &&
           maxColumn        ().isValid());
+}
+
+bool
+CQChartsBoxPlot::
+isRawCalc() const
+{
+  return valueColumns().isValid();
 }
 
 //---
@@ -673,10 +729,12 @@ calcRange() const
 
   //---
 
-  if (! isPreCalc())
+  if      (isPreCalc())
+    dataRange = updateCalcRange();
+  else if (isRawCalc())
     dataRange = updateRawRange();
   else
-    dataRange = updateCalcRange();
+    dataRange = Range(0, 0, 1, 1);
 
   return dataRange;
 }
@@ -846,7 +904,7 @@ updateRawRange() const
 
           //---
 
-          if (isViolin()) {
+          if (isViolin() && ! isNormalized()) {
             const auto &density = whisker->density();
 
             updateRange(x, density.xmin1());
@@ -1106,7 +1164,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
   //---
 
-  CQChartsBoxWhiskerData data;
+  WhiskerData data;
 
   data.ind = vdata.parent;
 
@@ -1362,7 +1420,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
       auto ps1 = setWhiskerMap1.find(setId);
 
       if (ps1 == setWhiskerMap1.end()) {
-        auto *whisker = new CQChartsBoxPlotWhisker;
+        auto *whisker = new Whisker;
 
         whisker->setRange(whiskerRange());
 
@@ -1433,12 +1491,12 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  bool rc;
+  bool rc = false;
 
-  if (! isPreCalc())
-    rc = initRawObjs(objs);
-  else
+  if      (isPreCalc())
     rc = initCalcObjs(objs);
+  else if (isRawCalc())
+    rc = initRawObjs(objs);
 
   //---
 
@@ -1589,7 +1647,7 @@ initRawObjs(PlotObjs &objs) const
 
 void
 CQChartsBoxPlot::
-addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
+addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                 const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
   double vw2 = lengthPlotSize(violinWidth(), isVertical())/2.0;
@@ -1638,13 +1696,23 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
     auto *pointObj = createPointObj(rect, setId, groupInd, pos1, value.ind,
                                     is, ig, ColorInd(iv, nv));
 
+    Color pointColor;
+
+    if (colorColumn().isValid()) {
+      if (! colorColumnColor(value.ind.row(), value.ind.parent(), pointColor))
+        pointColor = Color(Color::Type::NONE);
+    }
+
+    if (pointColor.isValid())
+      pointObj->setColor(pointColor);
+
     objs.push_back(pointObj);
   }
 }
 
 void
 CQChartsBoxPlot::
-addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
+addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
   using Rects    = std::vector<BBox>;
@@ -1745,6 +1813,16 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
       pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
                                 is, ig, ColorInd(iv, nv));
     }
+
+    Color pointColor;
+
+    if (colorColumn().isValid()) {
+      if (! colorColumnColor(value.ind.row(), value.ind.parent(), pointColor))
+        pointColor = Color(Color::Type::NONE);
+    }
+
+    if (pointColor.isValid())
+      pointObj->setColor(pointColor);
 
     objs.push_back(pointObj);
   }
@@ -1866,8 +1944,7 @@ addKeyItems(PlotKey *key)
 
         auto *groupItem = new CQChartsKeyItemGroup(this);
 
-        groupItem->addItem(colorItem);
-        groupItem->addItem(textItem );
+        groupItem->addRowItems(colorItem, textItem);
 
         key->addItem(groupItem, row, col);
 
@@ -1892,8 +1969,7 @@ addKeyItems(PlotKey *key)
 
         auto *groupItem = new CQChartsKeyItemGroup(this);
 
-        groupItem->addItem(colorItem);
-        groupItem->addItem(textItem );
+        groupItem->addRowItems(colorItem, textItem);
 
         key->addItem(groupItem, row, col);
 
@@ -1928,8 +2004,7 @@ addKeyItems(PlotKey *key)
 
       auto *groupItem = new CQChartsKeyItemGroup(this);
 
-      groupItem->addItem(colorItem);
-      groupItem->addItem(textItem );
+      groupItem->addRowItems(colorItem, textItem);
 
       key->addItem(groupItem, row, col);
 
@@ -1985,7 +2060,7 @@ addMenuItems(QMenu *menu)
   //---
 
   // following items only allowed if we have individual data points
-  if (! isPreCalc()) {
+  if (isRawCalc()) {
     auto *pointsMenu = new QMenu("Points", menu);
 
     (void) addMenuCheckedAction(pointsMenu, "Jitter" , isPointsJitter(),
@@ -2029,7 +2104,7 @@ hasYAxis() const
 
 CQChartsBoxPlotWhiskerObj *
 CQChartsBoxPlot::
-createWhiskerObj(const BBox &rect, int setId, int groupInd, const CQChartsBoxPlotWhisker *whisker,
+createWhiskerObj(const BBox &rect, int setId, int groupInd, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig) const
 {
   return new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker, is, ig);
@@ -2037,7 +2112,7 @@ createWhiskerObj(const BBox &rect, int setId, int groupInd, const CQChartsBoxPlo
 
 CQChartsBoxPlotOutlierObj *
 CQChartsBoxPlot::
-createOutlierObj(const BBox &rect, int setId, int groupInd, const CQChartsBoxPlotWhisker *whisker,
+createOutlierObj(const BBox &rect, int setId, int groupInd, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig, int io) const
 {
   return new CQChartsBoxPlotOutlierObj(this, rect, setId, groupInd, whisker, is, ig, io);
@@ -2045,7 +2120,7 @@ createOutlierObj(const BBox &rect, int setId, int groupInd, const CQChartsBoxPlo
 
 CQChartsBoxPlotDataObj *
 CQChartsBoxPlot::
-createDataObj(const BBox &rect, const CQChartsBoxWhiskerData &data, const ColorInd &is) const
+createDataObj(const BBox &rect, const WhiskerData &data, const ColorInd &is) const
 {
   return new CQChartsBoxPlotDataObj(this, rect, data, is);
 }
@@ -2083,9 +2158,8 @@ createCustomControls()
 //------
 
 CQChartsBoxPlotWhiskerObj::
-CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId, int groupInd,
-                          const CQChartsBoxPlotWhisker *whisker, const ColorInd &is,
-                          const ColorInd &ig) :
+CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+                          const Whisker *whisker, const ColorInd &is, const ColorInd &ig) :
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker)
 {
@@ -2689,9 +2763,8 @@ remapPos(double y) const
 //------
 
 CQChartsBoxPlotOutlierObj::
-CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
-                          int groupInd, const CQChartsBoxPlotWhisker *whisker,
-                          const ColorInd &is, const ColorInd &ig, int io) :
+CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+                          const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io) :
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker), io_(io)
 {
@@ -2819,8 +2892,8 @@ remapPos(double y) const
 //------
 
 CQChartsBoxPlotDataObj::
-CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const BBox &rect,
-                       const CQChartsBoxWhiskerData &data, const ColorInd &is) :
+CQChartsBoxPlotDataObj(const Plot *plot, const BBox &rect, const WhiskerData &data,
+                       const ColorInd &is) :
  CQChartsBoxPlotObj(plot, rect, is, ColorInd(), ColorInd()), data_(data)
 {
   if (data_.ind.isValid())
@@ -3455,7 +3528,7 @@ addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text, bool 
 //------
 
 CQChartsBoxPlotPointObj::
-CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId, int groupInd,
+CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &is,
                         const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot),
@@ -3477,12 +3550,48 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  auto setName   = plot_->setIdName   (setId_);
-  auto groupName = plot_->groupIndName(groupInd_);
+  QString setName, groupName;
 
-  tableTip.addTableRow("Set"  , setName);
-  tableTip.addTableRow("Group", groupName);
-  tableTip.addTableRow("Ind"  , iv_.i);
+  if (plot_->hasSets())
+    setName = plot_->setIdName(setId_);
+
+  if (plot_->hasGroups())
+    groupName = plot_->groupIndName(groupInd_);
+
+  if (setName.length())
+    tableTip.addTableRow("Set", setName);
+
+  if (groupName.length())
+    tableTip.addTableRow("Group", groupName);
+
+  tableTip.addTableRow("Ind", iv_.i);
+
+  //---
+
+  auto addColumnRowValue = [&](const Column &column) {
+    if (! column.isValid()) return;
+
+    if (tableTip.hasColumn(column))
+      return;
+
+    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+
+    bool ok;
+
+    auto str = plot_->modelString(columnInd, ok);
+    if (! ok) return;
+
+    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
+
+    tableTip.addColumn(column);
+  };
+
+  //---
+
+  if (plot_->valueColumns().count() == 1)
+    addColumnRowValue(plot_->valueColumns().column());
+
+  addColumnRowValue(plot_->colorColumn());
 
   //---
 
@@ -3534,6 +3643,9 @@ draw(PaintDevice *device) const
   PenBrush penBrush;
 
   plot_->setJitterSymbolPenBrush(penBrush, colorInd);
+
+  if (color_.isValid())
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
 
   plot_->updateObjPenBrushState(this, penBrush, drawType());
 
@@ -3674,23 +3786,52 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
   addFrameWidget(optionsFrame, "Points Type", pointsTypeCombo_ );
 
-  normalizedCheck_ = createBoolEdit("normalized");
-  notchedCheck_    = createBoolEdit("notched");
-  colorBySetCheck_ = createBoolEdit("colorBySet");
-  violinCheck_     = createBoolEdit("violin");
-  errorBarCheck_   = createBoolEdit("errorBar");
+  //---
 
-  addFrameWidget(optionsFrame, "Normalized"  , normalizedCheck_);
-  addFrameWidget(optionsFrame, "Notched"     , notchedCheck_);
+  colorBySetCheck_ = createBoolEdit("colorBySet");
+
   addFrameWidget(optionsFrame, "Color By Set", colorBySetCheck_);
-  addFrameWidget(optionsFrame, "Violin"      , violinCheck_);
-  addFrameWidget(optionsFrame, "Error Bar"   , errorBarCheck_);
+
+  //---
+
+  normalizedCheck_ = createBoolEdit("normalized", /*choice*/false);
+  notchedCheck_    = createBoolEdit("notched"   , /*choice*/false);
+  violinCheck_     = createBoolEdit("violin"    , /*choice*/false);
+  errorBarCheck_   = createBoolEdit("errorBar"  , /*choice*/false);
+
+  auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
+  auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 0, 2);
+
+  //auto *optionsFrame2  = CQUtil::makeWidget<QFrame>("optionsFrame2");
+  //auto *optionsLayout2 = CQUtil::makeLayout<QHBoxLayout>(optionsFrame2, 0, 2);
+
+  addFrameWidget(optionsFrame, optionsFrame1);
+  //addFrameWidget(optionsFrame, optionsFrame2);
+
+  optionsLayout1->addWidget(normalizedCheck_, 0, 0);
+  optionsLayout1->addWidget(notchedCheck_   , 0, 1);
+
+  //addFrameWidget(optionsFrame, "Normalized", normalizedCheck_);
+  //addFrameWidget(optionsFrame, "Notched"   , notchedCheck_);
+
+  optionsLayout1->addWidget(violinCheck_  , 0, 2);
+  optionsLayout1->addWidget(errorBarCheck_, 0, 3);
+
+  optionsLayout1->setColumnStretch(4, 1);
+//optionsLayout2->addStretch(1);
+
+  //addFrameWidget(optionsFrame, "Violin"   , violinCheck_);
+  //addFrameWidget(optionsFrame, "Error Bar", errorBarCheck_);
+
+  //---
 
   //addFrameRowStretch(optionsFrame);
 
   //---
 
   addGroupColumnWidgets();
+
+  addColorColumnWidgets("Point Color");
 
   //---
 
@@ -3703,6 +3844,9 @@ void
 CQChartsBoxPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
+
   CQChartsWidgetUtil::connectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -3756,11 +3900,25 @@ updateWidgets()
   orientationCombo_->setCurrentValue((int) plot_->orientation());
   pointsTypeCombo_ ->setCurrentValue((int) plot_->pointsType());
 
+  colorBySetCheck_->setChecked(plot_->isColorBySet());
+
   normalizedCheck_->setChecked(plot_->isNormalized());
   notchedCheck_   ->setChecked(plot_->isNotched());
-  colorBySetCheck_->setChecked(plot_->isColorBySet());
   violinCheck_    ->setChecked(plot_->isViolin());
   errorBarCheck_  ->setChecked(plot_->isErrorBar());
+
+  colorBySetCheck_->setEnabled(plot_->canColorBySet());
+
+  if (plot_->calcColumnDataType() == CQChartsBoxPlot::ColumnDataType::RAW) {
+    notchedCheck_ ->setEnabled(! violinCheck_->isChecked() && ! errorBarCheck_->isChecked());
+    violinCheck_  ->setEnabled(true);
+    errorBarCheck_->setEnabled(true);
+  }
+  else {
+    notchedCheck_ ->setEnabled(false);
+    violinCheck_  ->setEnabled(false);
+    errorBarCheck_->setEnabled(false);
+  }
 
   //---
 
@@ -3773,9 +3931,18 @@ updateWidgets()
 
 void
 CQChartsBoxPlotCustomControls::
+columnsTypeSlot()
+{
+  updateWidgets();
+}
+
+void
+CQChartsBoxPlotCustomControls::
 orientationSlot()
 {
   plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+
+  updateWidgets();
 }
 
 void
@@ -3783,6 +3950,8 @@ CQChartsBoxPlotCustomControls::
 pointsTypeSlot()
 {
   plot_->setPointsType((CQChartsBoxPlot::PointsType) pointsTypeCombo_->currentValue());
+
+  updateWidgets();
 }
 
 void
@@ -3790,6 +3959,8 @@ CQChartsBoxPlotCustomControls::
 normalizedSlot()
 {
   plot_->setNormalized(normalizedCheck_->isChecked());
+
+  updateWidgets();
 }
 
 void
@@ -3797,6 +3968,8 @@ CQChartsBoxPlotCustomControls::
 notchedSlot()
 {
   plot_->setNotched(notchedCheck_->isChecked());
+
+  updateWidgets();
 }
 
 void
@@ -3804,6 +3977,8 @@ CQChartsBoxPlotCustomControls::
 colorBySetSlot()
 {
   plot_->setColorBySet(colorBySetCheck_->isChecked());
+
+  updateWidgets();
 }
 
 void
@@ -3811,6 +3986,8 @@ CQChartsBoxPlotCustomControls::
 violinSlot()
 {
   plot_->setViolin(violinCheck_->isChecked());
+
+  updateWidgets();
 }
 
 void
@@ -3818,4 +3995,6 @@ CQChartsBoxPlotCustomControls::
 errorBarSlot()
 {
   plot_->setErrorBar(errorBarCheck_->isChecked());
+
+  updateWidgets();
 }

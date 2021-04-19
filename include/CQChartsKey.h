@@ -714,6 +714,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   //---
 
+  void addRowItems(CQChartsKeyItem *litem, CQChartsKeyItem *ritem);
+
   void addItem(KeyItem *item);
   void removeItem(KeyItem *item, bool keep=false);
 

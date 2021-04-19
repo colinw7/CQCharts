@@ -6,9 +6,9 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsDocument.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsIconButton.h>
 
 #include <CQUtil.h>
+#include <CQIconButton.h>
 
 #include <QFrame>
 #include <QSplitter>
@@ -68,7 +68,7 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
+    auto *button = CQUtil::makeWidget<CQIconButton>(name);
 
     button->setIcon(iconName);
 

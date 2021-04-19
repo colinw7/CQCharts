@@ -5,10 +5,10 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQIconButton.h>
 #include <CQTclUtil.h>
 
 #include <QHBoxLayout>
@@ -85,8 +85,7 @@ updateColumns(const CQChartsColumns &columns, bool updateText)
 {
   connectSlots(false);
 
-  if (columns.isValid())
-    dataEdit_->setColumns(columns);
+  dataEdit_->setColumns(columns);
 
   connectSlots(true);
 
@@ -440,7 +439,7 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto *button = CQUtil::makeWidget<CQChartsIconButton>(name);
+    auto *button = CQUtil::makeWidget<CQIconButton>(name);
 
     button->setIcon(iconName);
 

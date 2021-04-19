@@ -799,11 +799,11 @@ addPointObjects() const
         //---
 
         // set optional symbol fill color
-        Color symbolColor(Color::Type::NONE);
+        Color symbolColor;
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
-            symbolColor = Color(Color::Type::NONE);
+            symbolColor = Color();
         }
 
         if (symbolColor.isValid())

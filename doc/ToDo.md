@@ -3,10 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + ability to disable property (valid state)
- + style manager with baseColor and icon size with notifications
- + add scatter plot overlays to custom controls
- + auto color of svg with style
+ + consistent key select behavior handling (xy, scatter)
+ + numUnique use bucket as alternative when numeric (customize)
+ + disable custom controls when invalid for current state
  + grouping in separate tab of custom controls with extra options
  + scatter handling of columns when group matches map columns (color, symbol size, symbol type)
  + key auto scale symbol size when widget. better draw circles. curve ?

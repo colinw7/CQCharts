@@ -1,7 +1,7 @@
 #include <CQFloatTip.h>
 
-#include <CQPixmapButton.h>
-#include <CQPixmapCache.h>
+#include <CQIconButton.h>
+//#include <CEnv.h>
 
 #include <QApplication>
 #include <QScrollArea>
@@ -22,6 +22,13 @@ CQFloatTip::
 CQFloatTip(QWidget *widget) :
  QFrame(nullptr, Qt::Window | Qt::FramelessWindowHint), widget_(widget)
 {
+  init();
+}
+
+void
+CQFloatTip::
+init()
+{
   setObjectName("floatTip");
 
   setFocusPolicy(Qt::NoFocus);
@@ -35,14 +42,24 @@ CQFloatTip(QWidget *widget) :
 
   //---
 
+#if 0
+  if      (CEnvInst->getBool("GUI_TITLE_BAR_NONE"))
+    barStyle_ = BAR_NONE;
+  else if (CEnvInst->getBool("GUI_TITLE_BAR_GRADIENT"))
+    barStyle_ = BAR_GRADIENT;
+  else if (CEnvInst->getBool("GUI_TITLE_BAR_LINES"))
+    barStyle_ = BAR_LINES;
+#endif
+
+  //---
+
   auto *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(0);
 
   //---
 
-  QFontMetrics fm(font());
-
-  int is = fm.height() - 2;
+  //QFontMetrics fm(font());
+  //int is = fm.height() - 2;
 
   //---
 
@@ -53,11 +70,12 @@ CQFloatTip(QWidget *widget) :
 
   //---
 
-  lockButton_ = new CQPixmapButton(CQPixmapCacheInst->getIcon("LOCK"));
+  lockButton_ = new CQIconButton; lockButton_->setIcon("LOCK");
 
   lockButton_->setObjectName("lock");
-  lockButton_->setMargin(2);
-  lockButton_->setIconSize(QSize(is, is));
+  //lockButton_->setMargin(2);
+  //lockButton_->setIconSize(QSize(is, is));
+  lockButton_->setSize(CQIconButton::Size::SMALL);
   lockButton_->setFocusPolicy(Qt::NoFocus);
 
   lockButton_->setCheckable(true);
@@ -69,11 +87,12 @@ CQFloatTip(QWidget *widget) :
 
   //---
 
-  queryButton_ = new CQPixmapButton(CQPixmapCacheInst->getIcon("QUERY"));
+  queryButton_ = new CQIconButton; queryButton_->setIcon("QUERY");
 
   queryButton_->setObjectName("query");
-  queryButton_->setMargin(2);
-  queryButton_->setIconSize(QSize(is, is));
+  //queryButton_->setMargin(2);
+  //queryButton_->setIconSize(QSize(is, is));
+  queryButton_->setSize(CQIconButton::Size::SMALL);
   queryButton_->setFocusPolicy(Qt::NoFocus);
 
   connect(queryButton_, SIGNAL(clicked(bool)), this, SLOT(querySlot()));
@@ -135,9 +154,7 @@ setText(const QString &text)
 
   //---
 
-  setWidgetPalette(label_      );
-  setWidgetPalette(lockButton_ );
-  setWidgetPalette(queryButton_);
+  updateWidgetPalette();
 
   if (isVisible())
     resizeFit();
@@ -188,6 +205,15 @@ setMargin(int i)
 
   if (isVisible())
     place();
+}
+
+void
+CQFloatTip::
+setBarStyle(const BarStyle &s)
+{
+  barStyle_ = s;
+
+  update();
 }
 
 void
@@ -309,7 +335,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  // draw title lines
+  // draw title bar
   drawTitleBar(&painter);
 
   //---
@@ -320,7 +346,7 @@ paintEvent(QPaintEvent *)
   if (draggable) {
     int bw = 3;
 
-    painter.setPen(QColor(100, 100, 200));
+    painter.setPen(QColor(100, 100, 220));
 
     auto drawHBorder = [&](int y) {
       for (int i = 0; i < bw; ++i)
@@ -643,12 +669,11 @@ void
 CQFloatTip::
 fontSlot()
 {
-  QFontMetrics fm(font());
+  //QFontMetrics fm(font());
+  //int is = fm.height() - 2;
 
-  int is = fm.height() - 2;
-
-  lockButton_ ->setIconSize(QSize(is, is));
-  queryButton_->setIconSize(QSize(is, is));
+  //lockButton_ ->setIconSize(QSize(is, is));
+  //queryButton_->setIconSize(QSize(is, is));
 
   layout()->invalidate();
 
@@ -747,6 +772,15 @@ hideSlot()
   this->setMouseTracking(false);
 
   stopTimer();
+}
+
+void
+CQFloatTip::
+updateWidgetPalette()
+{
+  setWidgetPalette(label_      );
+  setWidgetPalette(lockButton_ );
+  setWidgetPalette(queryButton_);
 }
 
 void

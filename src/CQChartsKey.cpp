@@ -681,20 +681,37 @@ doShow(int i, SelMod selMod)
 {
   auto *plot = view()->plot(i);
 
+  View::Plots plots;
+
+  view()->getPlots(plots);
+
+  // no modifiers : toggle clicked
   if      (selMod == SelMod::REPLACE) {
-    View::Plots plots;
-
-    view()->getPlots(plots);
-
+    plot->setVisible(! plot->isVisible());
+  }
+  // control: clicked plot only
+  else if (selMod == SelMod::ADD) {
     for (auto &plot1 : plots)
       plot1->setVisible(plot1 == plot);
   }
-  else if (selMod == SelMod::ADD)
-    plot->setVisible(true);
-  else if (selMod == SelMod::REMOVE)
-    plot->setVisible(false);
-  else if (selMod == SelMod::TOGGLE)
-    plot->setVisible(! plot->isVisible());
+  // shift: unclicked plots
+  else if (selMod == SelMod::REMOVE) {
+    for (auto &plot1 : plots)
+      plot1->setVisible(plot1 != plot);
+  }
+  // control+shift: toggle all on/off
+  else if (selMod == SelMod::TOGGLE) {
+    // make all visible if some not visible
+    int num_visible = 0;
+
+    for (auto &plot1 : plots)
+      num_visible += plot1->isVisible();
+
+    bool state = (num_visible != int(plots.size()) ? false : true);
+
+    for (auto &plot1 : plots)
+      plot1->setVisible(state);
+  }
 }
 
 void
@@ -2291,16 +2308,33 @@ doShow(SelMod selMod)
 
   auto ic = calcColorInd();
 
+  // no modifiers : toggle clicked
   if      (selMod == SelMod::REPLACE) {
+    plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
+  }
+  // control: clicked item only
+  else if (selMod == SelMod::ADD) {
     for (int i = 0; i < ic.n; ++i)
       plot->setSetHidden(i, i != ic.i);
   }
-  else if (selMod == SelMod::ADD)
-    plot->setSetHidden(ic.i, false);
-  else if (selMod == SelMod::REMOVE)
-    plot->setSetHidden(ic.i, true);
-  else if (selMod == SelMod::TOGGLE)
-    plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
+  // shift: unclicked items
+  else if (selMod == SelMod::REMOVE) {
+    for (int i = 0; i < ic.n; ++i)
+      plot->setSetHidden(i, i == ic.i);
+  }
+  // control+shift: toggle all on/off
+  else if (selMod == SelMod::TOGGLE) {
+    // unhide all if some hidden
+    int num_hidden = 0;
+
+    for (int i = 0; i < ic.n; ++i)
+      num_hidden += plot->isSetHidden(i);
+
+    bool state = (num_hidden > 0 ? false : true);
+
+    for (int i = 0; i < ic.n; ++i)
+      plot->setSetHidden(i, state);
+  }
 
   plot->updateObjs();
 }
@@ -2347,6 +2381,17 @@ setKey(PlotKey *key)
 
   for (auto &item : items_)
     item->setKey(key);
+}
+
+void
+CQChartsKeyItemGroup::
+addRowItems(CQChartsKeyItem *litem, CQChartsKeyItem *ritem)
+{
+  if (key()->isFlipped())
+    std::swap(litem, ritem);
+
+  addItem(litem);
+  addItem(ritem );
 }
 
 void

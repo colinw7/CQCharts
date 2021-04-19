@@ -3,8 +3,8 @@
 
 #include <QFrame>
 
+class CQIconButton;
 class QLineEdit;
-class QToolButton;
 
 class CQFilename : public QFrame {
   Q_OBJECT
@@ -32,10 +32,10 @@ class CQFilename : public QFrame {
   void fileSlot();
 
  private:
-  bool         save_    { false };
-  QString      pattern_;
-  QLineEdit   *edit_    { nullptr };
-  QToolButton *button_  { nullptr };
+  bool          save_    { false };
+  QString       pattern_;
+  QLineEdit    *edit_    { nullptr };
+  CQIconButton *button_  { nullptr };
 };
 
 #endif

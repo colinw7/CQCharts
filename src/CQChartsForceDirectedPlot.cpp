@@ -1429,6 +1429,10 @@ CQChartsForceDirectedPlotCustomControls(CQCharts *charts) :
 {
   addConnectionColumnWidgets();
 
+  //addColorColumnWidgets("Cell Color");
+
+  addLayoutStretch();
+
   connectSlots(true);
 }
 

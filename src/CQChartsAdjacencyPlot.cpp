@@ -1638,9 +1638,11 @@ CQChartsAdjacencyPlotCustomControls::
 CQChartsAdjacencyPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "adjacency")
 {
+  addConnectionColumnWidgets();
+
   addColorColumnWidgets("Cell Color");
 
-  addConnectionColumnWidgets();
+  addLayoutStretch();
 
   connectSlots(true);
 }

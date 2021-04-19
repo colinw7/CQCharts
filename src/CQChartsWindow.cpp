@@ -96,7 +96,7 @@ CQChartsWindow(View *view) :
  QFrame(nullptr), view_(view)
 {
   setWindowTitle("Window: View " + view_->id());
-  setWindowIcon(CQPixmapCacheInst->getIcon("CHARTS_LIGHT", "CHARTS_DARK"));
+  setWindowIcon(CQPixmapCacheInst->getLightDarkIcon("CHARTS"));
 
   setObjectName("window");
 

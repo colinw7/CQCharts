@@ -4,9 +4,9 @@
 #include <CQChartsObjUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
-#include <CQChartsIconButton.h>
 
 #include <CQPropertyView.h>
+#include <CQIconButton.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
@@ -26,7 +26,7 @@ CQChartsImageEdit(QWidget *parent) :
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   edit_   = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-  button_ = CQUtil::makeWidget<CQChartsIconButton>("button");
+  button_ = CQUtil::makeWidget<CQIconButton>("button");
 
   button_->setIcon("FILE_DIALOG");
 

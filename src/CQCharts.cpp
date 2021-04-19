@@ -202,21 +202,21 @@
 
 #include <svg/left_light_svg.h>
 #include <svg/left_dark_svg.h>
-//#include <svg/left_svg.h>
 
 #include <svg/right_light_svg.h>
 #include <svg/right_dark_svg.h>
-//#include <svg/right_svg.h>
 
 #include <svg/models_light_svg.h>
 #include <svg/models_dark_svg.h>
 
 #include <svg/charts_light_svg.h>
 #include <svg/charts_dark_svg.h>
-//#include <svg/charts_svg.h>
 
 #include <svg/options_light_svg.h>
 #include <svg/options_dark_svg.h>
+
+#include <svg/settings_light_svg.h>
+#include <svg/settings_dark_svg.h>
 
 #include <svg/table_light_svg.h>
 #include <svg/table_dark_svg.h>
@@ -229,6 +229,9 @@
 
 #include <svg/columns_light_svg.h>
 #include <svg/columns_dark_svg.h>
+
+#include <svg/numeric_columns_light_svg.h>
+#include <svg/numeric_columns_dark_svg.h>
 
 #include <svg/filter_light_svg.h>
 #include <svg/filter_dark_svg.h>
@@ -248,9 +251,14 @@
 #include <svg/error_light_svg.h>
 #include <svg/error_dark_svg.h>
 
-#include <svg/refresh_svg.h>
-#include <svg/file_dialog_svg.h>
-#include <svg/info_svg.h>
+#include <svg/refresh_light_svg.h>
+#include <svg/refresh_dark_svg.h>
+
+#include <svg/file_dialog_light_svg.h>
+#include <svg/file_dialog_dark_svg.h>
+
+#include <svg/info_light_svg.h>
+#include <svg/info_dark_svg.h>
 
 QString
 CQCharts::

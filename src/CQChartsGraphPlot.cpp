@@ -4313,9 +4313,11 @@ CQChartsGraphPlotCustomControls::
 CQChartsGraphPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "graph")
 {
+  addConnectionColumnWidgets();
+
   addColorColumnWidgets("Cell Color");
 
-  addConnectionColumnWidgets();
+  addLayoutStretch();
 
   connectSlots(true);
 }

@@ -472,20 +472,76 @@ CQChartsConnectionPlot::ColumnDataType
 CQChartsConnectionPlot::
 calcColumnDataType() const
 {
-  if (isHierarchical())
-    return ColumnDataType::HIER;
+  if (isHierarchical()) {
+    if (linkColumn().isValid())
+      return ColumnDataType::HIER;
+  }
+  else {
+    if      (linkColumn().isValid() && valueColumn().isValid())
+      return ColumnDataType::LINK;
+    else if (connectionsColumn().isValid())
+      return ColumnDataType::CONNECTIONS;
+    else if (pathColumn().isValid())
+      return ColumnDataType::PATH;
+    else if (fromColumn().isValid() && toColumn().isValid())
+      return ColumnDataType::FROM_TO;
+    else if (linkColumn().isValid())
+      return ColumnDataType::TABLE;
+  }
 
-  if      (linkColumn().isValid() && valueColumn().isValid())
-    return ColumnDataType::LINK;
-  else if (connectionsColumn().isValid())
-    return ColumnDataType::CONNECTIONS;
-  else if (pathColumn().isValid())
-    return ColumnDataType::PATH;
-  else if (fromColumn().isValid() && toColumn().isValid())
-    return ColumnDataType::FROM_TO;
-  else
-    return ColumnDataType::TABLE;
+  return defaultColumnDataType_;
 }
+
+void
+CQChartsConnectionPlot::
+setCalcColumnDataType(const ColumnDataType &columnDataType)
+{
+  if (columnDataType != calcColumnDataType()) {
+    if      (columnDataType == ColumnDataType::HIER) {
+      connectionsColumn_ = Column();
+      pathColumn_        = Column();
+      fromColumn_        = Column();
+      toColumn_          = Column();
+    }
+    else if (columnDataType == ColumnDataType::LINK) {
+      connectionsColumn_ = Column();
+      pathColumn_        = Column();
+      fromColumn_        = Column();
+      toColumn_          = Column();
+    }
+    else if (columnDataType == ColumnDataType::CONNECTIONS) {
+      linkColumn_        = Column();
+      valueColumn_       = Column();
+      pathColumn_        = Column();
+      fromColumn_        = Column();
+      toColumn_          = Column();
+    }
+    else if (columnDataType == ColumnDataType::PATH) {
+      linkColumn_        = Column();
+      connectionsColumn_ = Column();
+      fromColumn_        = Column();
+      toColumn_          = Column();
+    }
+    else if (columnDataType == ColumnDataType::FROM_TO) {
+      linkColumn_        = Column();
+      connectionsColumn_ = Column();
+      pathColumn_        = Column();
+    }
+    else if (columnDataType == ColumnDataType::TABLE) {
+      valueColumn_       = Column();
+      connectionsColumn_ = Column();
+      pathColumn_        = Column();
+      fromColumn_        = Column();
+      toColumn_          = Column();
+    }
+
+    updateRangeAndObjs();
+  }
+
+  defaultColumnDataType_ = columnDataType;
+}
+
+//---
 
 bool
 CQChartsConnectionPlot::
@@ -1441,6 +1497,7 @@ addConnectionColumnWidgets()
 
   //---
 
+  // columns type
   columnsTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("columnsTypeCombo");
 
   columnsTypeCombo_->setPropName("columnDataType");
@@ -1449,6 +1506,7 @@ addConnectionColumnWidgets()
 
   //---
 
+  // value columns
   static auto columnNames = QStringList() <<
    "group" << "node" << "connections" << "link" << "path" << "from" << "to" <<
    "value" << "depth" << "name";
@@ -1466,6 +1524,9 @@ void
 CQChartsConnectionPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
+
   CQChartsPlotCustomControls::connectSlots(b);
 }
 
@@ -1497,7 +1558,7 @@ updateWidgets()
     showColumnWidgets(QStringList() << "group" << "link" << "value" << "name" << "depth");
   }
   else if (type == CQChartsConnectionPlot::ColumnDataType::CONNECTIONS) {
-    showColumnWidgets(QStringList() << "group" << "node" << "connection" << "name");
+    showColumnWidgets(QStringList() << "group" << "node" << "connections" << "name");
   }
   else if (type == CQChartsConnectionPlot::ColumnDataType::PATH) {
     showColumnWidgets(QStringList() << "path" << "value");
@@ -1516,4 +1577,11 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsConnectionPlotCustomControls::
+columnsTypeSlot()
+{
+  updateWidgets();
 }

@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-class CQChartsIconButton;
+class CQIconButton;
 class CQGroupBox;
 //class QCheckBox;
 class QAbstractButton;
@@ -39,8 +39,11 @@ class CQChartsColumnControlGroup : public QFrame {
   void keyCheckSlot();
 
   void controlButtonClicked(QAbstractButton *button);
+  void columnCheckSlot();
 
  private:
+  void setColumnStack(bool b);
+
   void setCurrentIndex(int ind);
 
  signals:
@@ -51,7 +54,8 @@ class CQChartsColumnControlGroup : public QFrame {
  private:
   CQGroupBox*         groupBox_     { nullptr };
   bool                hasKey_       { true };
-  CQChartsIconButton* keyCheck_     { nullptr };
+  CQIconButton* keyCheck_     { nullptr };
+  CQIconButton* columnCheck_  { nullptr };
   QStackedWidget*     stack_        { nullptr };
   QButtonGroup*       radioGroup_   { nullptr };
   QFrame*             globalWidget_ { nullptr };
