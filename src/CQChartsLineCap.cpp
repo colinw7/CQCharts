@@ -63,7 +63,7 @@ QStringList
 CQChartsLineCap::
 enumNames() const
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "flat" << "round" << "square";
 
   return names;

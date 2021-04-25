@@ -47,7 +47,7 @@ QStringList
 CQChartsFillUnderSide::
 sideNames()
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "both" << "above" << "below";
 
   return names;

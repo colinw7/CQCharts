@@ -1300,7 +1300,11 @@
  + make symbol and symbol type separate classes
  + update map keys to be displayed in custom controls
  + rename some properties
-# 4/18/2020
+# 4/18/2021
  + Improve style/dark mode compatibility and allow show app options dialog
  + Add color column support for box plot points
  + Use bucket for coloring distribution box plot sub bars for numeric column
+# 4/25/2021
+ + Improve group configuration control in custom controls
+ + Add map key placement options to context menu
+ + Ensure fit include map keys

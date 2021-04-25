@@ -659,6 +659,12 @@ init()
 
   //---
 
+  std::sort(values_.begin(), values_.end(), [](const QVariant &lhs, const QVariant &rhs) {
+    return (CQChartsVariant::cmp(lhs, rhs) < 0);
+  });
+
+  //---
+
   clearVals();
 
   bool ok;

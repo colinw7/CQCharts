@@ -680,8 +680,7 @@ addKeyItems(PlotKey *key)
 
       auto *groupItem = new CQChartsKeyItemGroup(plot);
 
-      groupItem->addItem(colorItem);
-      groupItem->addItem(textItem );
+      groupItem->addRowItems(colorItem, textItem);
 
       colorItem->setClickable(true);
 
@@ -887,11 +886,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }

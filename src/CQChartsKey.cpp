@@ -52,6 +52,8 @@ init()
 
   //---
 
+  setLocation(Location(Location::Type::TOP_RIGHT));
+
   setFilled(true);
   setFillAlpha(Alpha(0.5));
 
@@ -215,6 +217,7 @@ CQChartsViewKey::
 CQChartsViewKey(View *view) :
  CQChartsKey(view)
 {
+  setPressBehavior(view->keyBehavior());
 }
 
 CQChartsViewKey::
@@ -741,6 +744,8 @@ CQChartsPlotKey(Plot *plot) :
   //---
 
   setStroked(true);
+
+  setPressBehavior(plot->view()->keyBehavior());
 
   clearItems();
 
@@ -2306,11 +2311,11 @@ doShow(SelMod selMod)
 {
   auto *plot = key_->plot();
 
-  auto ic = calcColorInd();
+  auto ic = setIndex();
 
   // no modifiers : toggle clicked
   if      (selMod == SelMod::REPLACE) {
-    plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
+    setSetHidden(! isSetHidden());
   }
   // control: clicked item only
   else if (selMod == SelMod::ADD) {
@@ -2337,6 +2342,34 @@ doShow(SelMod selMod)
   }
 
   plot->updateObjs();
+}
+
+void
+CQChartsKeyItem::
+adjustFillColor(QColor &c) const
+{
+  if (! isSetHidden())
+    return;
+
+  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha().value());
+}
+
+bool
+CQChartsKeyItem::
+isSetHidden() const
+{
+  auto *plot = key_->plot();
+
+  return plot->isSetHidden(setIndex().i);
+}
+
+void
+CQChartsKeyItem::
+setSetHidden(bool b)
+{
+  auto *plot = key_->plot();
+
+  plot->CQChartsPlot::setSetHidden(setIndex().i, b);
 }
 
 void
@@ -2385,7 +2418,7 @@ setKey(PlotKey *key)
 
 void
 CQChartsKeyItemGroup::
-addRowItems(CQChartsKeyItem *litem, CQChartsKeyItem *ritem)
+addRowItems(KeyItem *litem, KeyItem *ritem)
 {
   if (key()->isFlipped())
     std::swap(litem, ritem);

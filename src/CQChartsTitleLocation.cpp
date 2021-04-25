@@ -69,7 +69,7 @@ QStringList
 CQChartsTitleLocation::
 enumNames() const
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "TOP" << "CENTER" << "BOTTOM" << "ABSOLUTE_POSITION" << "ABSOLUTE_RECTANGLE";
 
   return names;

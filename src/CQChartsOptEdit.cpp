@@ -21,16 +21,24 @@ CQChartsOptEdit(QWidget *parent, const char *type) :
 
   edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-  edit_->setPlaceholderText("Undefined");
   edit_->setToolTip(QString("Optional %1 (use empty string to unset)").arg(type));
 
   layout->addWidget(edit_);
 
   //---
 
+  setPlaceholderText("Undefined");
+
   setFocusProxy(edit_);
 
   connectSlots(true);
+}
+
+void
+CQChartsOptEdit::
+setPlaceholderText(const QString &text)
+{
+  edit_->setPlaceholderText(text);
 }
 
 void

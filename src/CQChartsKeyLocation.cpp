@@ -62,7 +62,7 @@ QStringList
 CQChartsKeyLocation::
 enumNames() const
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "AUTO" << "TOP_LEFT" << "TOP_CENTER" << "TOP_RIGHT" <<
     "CENTER_LEFT" << "CENTER_CENTER" << "CENTER_RIGHT" <<
     "BOTTOM_LEFT" << "BOTTOM_CENTER" << "BOTTOM_RIGHT" <<

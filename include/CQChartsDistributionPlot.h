@@ -4,6 +4,7 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
+#include <CQChartsReals.h>
 #include <CQStatData.h>
 
 class CQChartsDensity;
@@ -91,11 +92,16 @@ class CQChartsDistributionBucket {
 
 //---
 
+class CQChartsDistributionPlot;
+
 /*!
  * \brief Distribution plot type
  * \ingroup Charts
  */
 class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
+ public:
+  using Plot = CQChartsDistributionPlot;
+
  public:
   CQChartsDistributionPlotType();
 
@@ -118,7 +124,7 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  Plot *create(View *view, const ModelP &model) const override;
+  CQChartsPlot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -194,8 +200,6 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
-  const Bucket &bucket() const { return bucket_; }
-
   //---
 
   QString typeName() const override { return "bar"; }
@@ -214,10 +218,16 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QString groupName() const;
 
+  //---
+
+  const Bucket &bucket() const { return bucket_; }
+
   QString bucketStr() const;
 
   bool bucketXValue(double x, double &value) const;
   bool bucketYValue(double y, double &value) const;
+
+  //---
 
   int count() const;
 
@@ -471,14 +481,18 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
+#if 0
   //! handle select press
   bool selectPress(const Point &p, SelMod selMod) override;
+#endif
 
   QBrush fillBrush() const override;
 
+#if 0
   // get/set hidden
-  bool isSetHidden() const;
-  void setSetHidden(bool b);
+  bool isSetHidden() const override;
+  void setSetHidden(bool b) override;
+#endif
 
  private:
   Plot*         plot_ { nullptr }; //!< plot
@@ -500,7 +514,9 @@ class CQChartsDistKeyText : public CQChartsKeyText {
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
-  bool isSetHidden() const;
+#if 0
+  bool isSetHidden() const override;
+#endif
 };
 
 //---
@@ -520,11 +536,17 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(CQChartsColumn dataColumn READ dataColumn WRITE setDataColumn)
 
   // bucketer
-  Q_PROPERTY(bool   bucketed         READ isBucketed        WRITE setBucketed        )
-  Q_PROPERTY(bool   autoBucket       READ isAutoBucket      WRITE setAutoBucket      )
-  Q_PROPERTY(double startBucketValue READ startBucketValue  WRITE setStartBucketValue)
-  Q_PROPERTY(double deltaBucketValue READ deltaBucketValue  WRITE setDeltaBucketValue)
-  Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets    WRITE setNumAutoBuckets  )
+  Q_PROPERTY(bool   bucketed         READ isBucketed       WRITE setBucketed        )
+  Q_PROPERTY(bool   autoBucket       READ isAutoBucket     WRITE setAutoBucket      )
+  Q_PROPERTY(double startBucketValue READ startBucketValue WRITE setStartBucketValue)
+  Q_PROPERTY(double deltaBucketValue READ deltaBucketValue WRITE setDeltaBucketValue)
+  Q_PROPERTY(double minBucketValue   READ minBucketValue   WRITE setMinBucketValue  )
+  Q_PROPERTY(double maxBucketValue   READ maxBucketValue   WRITE setMaxBucketValue  )
+  Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets   WRITE setNumAutoBuckets  )
+
+  // underflow/overflow bucket
+  Q_PROPERTY(CQChartsOptReal underflowBucket READ underflowBucket WRITE setUnderflowBucket)
+  Q_PROPERTY(CQChartsOptReal overflowBucket  READ overflowBucket  WRITE setOverflowBucket )
 
   // options
   Q_PROPERTY(PlotType        plotType  READ plotType  WRITE setPlotType )
@@ -550,10 +572,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
 
   Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
-
-  // underflow/overflow bucket
-  Q_PROPERTY(CQChartsOptReal underflowBucket READ underflowBucket WRITE setUnderflowBucket)
-  Q_PROPERTY(CQChartsOptReal overflowBucket  READ overflowBucket  WRITE setOverflowBucket )
 
   // min bar size
   Q_PROPERTY(double minBarSize READ minBarSize WRITE setMinBarSize)
@@ -635,6 +653,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  void setValueColumns(const Columns &c) override;
+
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
@@ -655,6 +675,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  // bucket data
   bool isBucketed() const { return bucketed_; }
   void setBucketed(bool b);
 
@@ -667,8 +688,39 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double deltaBucketValue() const;
   void setDeltaBucketValue(double r);
 
+  double minBucketValue() const;
+  void setMinBucketValue(double r);
+
+  double maxBucketValue() const;
+  void setMaxBucketValue(double r);
+
   int numAutoBuckets() const;
   void setNumAutoBuckets(int i);
+
+  const CQChartsOptReal &underflowBucket() const { return underflowBucket_; }
+  void setUnderflowBucket(const CQChartsOptReal &r);
+
+  const CQChartsOptReal &overflowBucket() const { return overflowBucket_; }
+  void setOverflowBucket(const CQChartsOptReal &r);
+
+  const CQChartsReals &bucketStops() const { return bucketStops_; }
+  void setBucketStops(const CQChartsReals &r);
+
+  int numUniqueValues() const;
+
+  bool isExactBucketValue() const { return exactValue_; }
+  void setExactBucketValue(bool b);
+
+  //--
+
+  CQBucketer::Type bucketType() const;
+  void setBucketType(const CQBucketer::Type &type);
+
+  CQBucketer::Type bucketRealType() const;
+
+  void updateGroupBucketers();
+
+  void initBucketer(CQBucketer &bucketer);
 
   //---
 
@@ -737,14 +789,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool isIncludeOutlier() const { return includeOutlier_; }
   void setIncludeOutlier(bool b);
-
-  //---
-
-  const CQChartsOptReal &underflowBucket() const { return underflowBucket_; }
-  void setUnderflowBucket(const CQChartsOptReal &r);
-
-  const CQChartsOptReal &overflowBucket() const { return overflowBucket_; }
-  void setOverflowBucket(const CQChartsOptReal &r);
 
   //---
 
@@ -818,7 +862,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   virtual void bucketValues(int groupInd, const Bucket &bucket,
                             double &value1, double &value2) const;
 
-  //---
+  //--
 
   CQBucketer &groupBucketer(int groupInd);
   const CQBucketer &groupBucketer(int groupInd) const;
@@ -900,7 +944,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   struct Values {
     Inds              inds;                      //!< value indices
     CQChartsValueSet* valueSet      { nullptr }; //!< value set
-    BucketValues      bucketValues;              //!< bucketed values
+    BucketValues      bucketValues;              //!< values in each bucket
     CQChartsDensity*  densityData   { nullptr }; //!< density data
     CQStatData        statData;                  //!< stat data
     RMinMax           xValueRange;               //!< x value range
@@ -948,6 +992,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double getPanY(bool is_shift) const override;
 
   //---
+
+ signals:
+  void customDataChanged();
 
  public slots:
   // set plot type
@@ -1042,36 +1089,52 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     GroupBucketRange groupBucketRange; //!< bucketer per group
   };
 
-  Column             nameColumn_;                          //!< name column
-  Column             dataColumn_;                          //!< data column
-  PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
-  ValueType          valueType_      { ValueType::COUNT }; //!< show value count
-  OptReal            minValue_;                            //!< min value
-  bool               percent_        { false };            //!< percent values
-  bool               skipEmpty_      { false };            /*!< skip empty buckets
-                                                                (non contiguous range) */
-  bool               sorted_         { false };            //!< sort by count
-  DensityData        densityData_;                         //!< density data
-  ScatterData        scatterData_;                         //!< scatter data
-  DotLineData        dotLineData_;                         //!< dot line data
-  bool               rug_            { false };            //!< show rug
-  bool               includeOutlier_ { true };             //!< include outlier values
-  CQChartsOptReal    underflowBucket_;                     //!< underflow bucket threshold
-  CQChartsOptReal    overflowBucket_;                      //!< overflow bucket threshold
-  double             minBarSize_     { 3.0 };              //!< min bar size (pixels)
-  double             scatterMargin_  { 0.05 };             //!< scatter point margin
-  CQBucketer         bucketer_;                            //!< shared bucketer
-  bool               bucketed_       { true };             //!< is bucketed
-  FilterStack        filterStack_;                         //!< filter stack
-  GroupData          groupData_;                           //!< grouped value sets
-  double             barWidth_       { 1.0 };              //!< bar width
-  mutable bool       visitModel_     { true };             //!< visit model
-  mutable std::mutex mutex_;                               //!< mutex
+  Column      nameColumn_;                          //!< name column
+  Column      dataColumn_;                          //!< data column
+  PlotType    plotType_       { PlotType::NORMAL }; //!< plot type
+  ValueType   valueType_      { ValueType::COUNT }; //!< show value count
+  OptReal     minValue_;                            //!< min value
+  bool        percent_        { false };            //!< percent values
+  bool        skipEmpty_      { false };            /*!< skip empty buckets
+                                                        (non contiguous range) */
+  bool        sorted_         { false };            //!< sort by count
+  DensityData densityData_;                         //!< density data
+  ScatterData scatterData_;                         //!< scatter data
+  DotLineData dotLineData_;                         //!< dot line data
+  bool        rug_            { false };            //!< show rug
+  bool        includeOutlier_ { true };             //!< include outlier values
+
+  double minBarSize_    { 3.0 };  //!< min bar size (pixels)
+  double scatterMargin_ { 0.05 }; //!< scatter point margin
+
+  // bucketer data
+  CQChartsOptReal underflowBucket_;          //!< underflow bucket threshold
+  CQChartsOptReal overflowBucket_;           //!< overflow bucket threshold
+  CQBucketer      bucketer_;                 //!< shared bucketer
+  bool            bucketed_       { true };  //!< is bucketed
+  int             numUnique_      { 0 };     //!< num unique values
+  CQChartsReals   bucketStops_;              //!< explicit bucket stops
+  bool            exactValue_     { false }; //!< force bucket of exact values
+
+  FilterStack        filterStack_;             //!< filter stack
+  GroupData          groupData_;               //!< grouped value sets
+  double             barWidth_       { 1.0 };  //!< bar width
+  mutable bool       visitModel_     { true }; //!< visit model
+  mutable std::mutex mutex_;                   //!< mutex
 };
 
 //---
 
 #include <CQChartsGroupPlotCustomControls.h>
+
+class CQIconRadio;
+class CQDoubleRangeSlider;
+class CQRealSpin;
+class CQIntegerSpin;
+class CQLabel;
+
+class QLineEdit;
+class QButtonGroup;
 
 class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
@@ -1092,11 +1155,32 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void plotTypeSlot();
   void valueTypeSlot();
 
+  void bucketRadioGroupSlot(QAbstractButton *);
+  void bucketRangeSlot();
+  void startBucketSlot();
+  void deltaBucketSlot();
+  void numBucketsSlot();
+  void bucketStopsSlot();
+
  private:
-  CQChartsDistributionPlot*  plot_            { nullptr };
+  CQChartsDistributionPlot* plot_ { nullptr };
+
   CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
   CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
+
+  QButtonGroup*        bucketRadioGroup_  { nullptr };
+  CQIconRadio*         fixedBucketRadio_  { nullptr };
+  CQIconRadio*         rangeBucketRadio_  { nullptr };
+  CQIconRadio*         stopsBucketRadio_  { nullptr };
+  CQIconRadio*         uniqueBucketRadio_ { nullptr };
+  CQDoubleRangeSlider* bucketRange_       { nullptr };
+  CQRealSpin*          startBucketEdit_   { nullptr };
+  CQRealSpin*          deltaBucketEdit_   { nullptr };
+  CQIntegerSpin*       numBucketsEdit_    { nullptr };
+  QLineEdit*           bucketStopsEdit_   { nullptr };
+  CQLabel*             uniqueCount_       { nullptr };
+  QLabel*              rangeLabel_        { nullptr };
 };
 
 #endif

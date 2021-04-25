@@ -1470,11 +1470,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }
@@ -3972,7 +3968,7 @@ calcTipId() const
     if (edge && edge->hasNamedColumn(name))
       return plot_->columnHeaderName(edge->namedColumn(name));
 
-    QString headerName = (defName.length() ? defName : name);
+    auto headerName = (defName.length() ? defName : name);
 
     return headerName;
   };
@@ -4746,7 +4742,7 @@ calcTipId() const
     if (edge()->hasNamedColumn(name))
       return plot_->columnHeaderName(edge()->namedColumn(name));
 
-    QString headerName = (defName.length() ? defName : name);
+    auto headerName = (defName.length() ? defName : name);
 
     return headerName;
   };
@@ -5088,7 +5084,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   // calc fill pattern
-  CQChartsFillPattern fillPattern = plot()->edgeFillPattern();
+  auto fillPattern = plot()->edgeFillPattern();
 
   if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_GRADIENT) {
     auto fillColor1 = srcNode ->obj()->calcFillColor();

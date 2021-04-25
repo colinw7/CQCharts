@@ -121,10 +121,10 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
     QStringList strs;
 
     if (var.type() == QVariant::List) {
-      QList<QVariant> vars = var.toList();
+      auto vars = var.toList();
 
       for (int i = 0; i < vars.length(); ++i) {
-        QString str = vars[i].toString();
+        auto str = vars[i].toString();
 
         strs.push_back(str);
       }
@@ -227,7 +227,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
       (void) qtcl_->eval(cmd, res);
 
-      QStringList strs = resultToStrings(res);
+      auto strs = resultToStrings(res);
 
       auto matchStrs = CQStrUtil::matchStrs(option.c_str(), strs);
 
@@ -345,7 +345,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
       (void) qtcl_->eval(cmd, res);
 
-      QStringList strs = resultToStrings(res);
+      auto strs = resultToStrings(res);
 
       auto matchStrs = CQStrUtil::matchStrs(str.c_str(), strs);
 

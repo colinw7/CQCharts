@@ -20,7 +20,8 @@ class CQChartsMapKeyWidget;
 class CQChartsColumnControlGroup;
 
 class CQIconButton;
-//class CQTabSplit;
+class CQGroupBox;
+
 class QCheckBox;
 class QLabel;
 class QGridLayout;
@@ -40,10 +41,11 @@ class CQChartsPlotCustomControls : public QFrame {
   //---
 
   struct FrameData {
-    QFrame*      frame  { nullptr };
-    QGridLayout* layout { nullptr };
-    int          row    { 0 };
-    int          col    { 0 };
+    CQGroupBox*  groupBox { nullptr };
+    QFrame*      frame    { nullptr };
+    QGridLayout* layout   { nullptr };
+    int          row      { 0 };
+    int          col      { 0 };
   };
 
   struct ColumnControlGroupData {
@@ -67,11 +69,13 @@ class CQChartsPlotCustomControls : public QFrame {
   void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
   void addFrameWidget(FrameData &frameData, QWidget *w);
 
-  void addFrameColWidget(FrameData &frameData, QWidget *w);
+  void addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow=false);
 
   void addFrameRowStretch(FrameData &frameData);
 
   void addLayoutStretch();
+
+  void setFrameWidgetVisible(QWidget *w, bool visible);
 
   //---
 
@@ -119,7 +123,6 @@ class CQChartsPlotCustomControls : public QFrame {
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
 
   CQCharts*    charts_ { nullptr };
-//CQTabSplit*  split_  { nullptr };
   QVBoxLayout* layout_ { nullptr };
 
   QString       plotType_;

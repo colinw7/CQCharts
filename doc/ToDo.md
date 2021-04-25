@@ -3,7 +3,19 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + consistent key select behavior handling (xy, scatter)
+ + pie plot groups into multiple circles
+ + edit move map key (jumps)
+ + support anchor point (left/right colors) - general ?
+   + bucket fixed stops
+ + all plot keys handle ctrl/shift same as xy/scatter
+ + numeric auto range should be continuous even if no values in group range
+ + bucketer shared not copied (reuse column bucketer)
+ + redo grouping
+   + use column details
+   + allow column to define range and other grouping parameters
+   + when set group column, auto init depending on type (real, integer, string) and value range
+   + add to custom controls (separate tab) and use range slider ...
+   + underflow/overflow in CQBucketer <min >max
  + numUnique use bucket as alternative when numeric (customize)
  + disable custom controls when invalid for current state
  + grouping in separate tab of custom controls with extra options

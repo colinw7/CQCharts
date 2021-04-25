@@ -15,6 +15,8 @@ class CQChartsOptEdit : public QFrame {
  public:
   CQChartsOptEdit(QWidget *parent, const char *type);
 
+  void setPlaceholderText(const QString &text);
+
  signals:
   void valueChanged();
 

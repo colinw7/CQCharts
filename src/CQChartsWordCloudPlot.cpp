@@ -355,7 +355,7 @@ createObjs(PlotObjs &objs) const
     auto p = wordDatas.find(wordData->word);
     assert(p != wordDatas.end());
 
-    QModelIndex ind = (*p).second.ind;
+    auto ind = (*p).second.ind;
 
     ColorInd iv(i, n);
 
@@ -380,11 +380,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }

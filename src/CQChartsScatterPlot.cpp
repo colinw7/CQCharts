@@ -23,6 +23,7 @@
 #include <CQChartsFontSizeRangeSlider.h>
 #include <CQChartsColumnControlGroup.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsMapKey.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -2115,10 +2116,10 @@ addPointKeyItems(PlotKey *key)
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
-  auto addKeyItem = [&](int ind, const QString &name, int i, int n) {
-    ColorInd ic(i, n);
+  auto addKeyItem = [&](int groupInd, const QString &name, const ColorInd &is, const ColorInd &ig) {
+    auto ic = (is.n > 1 ? is : ig);
 
-    auto *colorItem = new CQChartsScatterKeyColor(this, ind , ic);
+    auto *colorItem = new CQChartsScatterKeyColor(this, groupInd, is, ig);
     auto *textItem  = new CQChartsKeyText        (this, name, ic);
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
@@ -2143,7 +2144,7 @@ addPointKeyItems(PlotKey *key)
     for (const auto &groupInd : groupInds_) {
       auto groupName = groupIndName(groupInd);
 
-      auto *colorItem = addKeyItem(groupInd, groupName, ig, ng);
+      auto *colorItem = addKeyItem(groupInd, groupName, ColorInd(), ColorInd(ig, ng));
 
       //--
 
@@ -2171,7 +2172,7 @@ addPointKeyItems(PlotKey *key)
         for (const auto &nameValue : nameValues) {
           const auto &name = nameValue.first;
 
-          auto *colorItem = addKeyItem(-1, name, is, ns);
+          auto *colorItem = addKeyItem(-2, name, ColorInd(is, ns), ColorInd());
 
           //--
 
@@ -2200,7 +2201,7 @@ addPointKeyItems(PlotKey *key)
 
         auto name = singleGroupName(ind);
 
-        (void) addKeyItem(-1, name, ind.i, ind.n);
+        (void) addKeyItem(-2, name, ColorInd(), ColorInd(ind.i, ind.n));
       }
     }
   }
@@ -2210,7 +2211,7 @@ addPointKeyItems(PlotKey *key)
 
       auto name = singleGroupName(ind);
 
-      (void) addKeyItem(-1, name, ind.i, ind.n);
+      (void) addKeyItem(-2, name, ColorInd(), ColorInd(ind.i, ind.n));
     }
   }
 }
@@ -2287,16 +2288,13 @@ addMenuItems(QMenu *menu)
     auto *keysMenu = new QMenu("Symbol Keys", menu);
 
     if (canDrawColorMapKey())
-      addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(),
-                           SLOT(setColorMapKey(bool)));
+      addColorMapKeySubItems(keysMenu);
 
     if (canDrawSymbolSizeMapKey())
-      addMenuCheckedAction(keysMenu, "Size Key", isSymbolSizeMapKey(),
-                           SLOT(setSymbolSizeMapKey(bool)));
+      addSymbolSizeMapKeySubItems(keysMenu);
 
     if (canDrawSymbolTypeMapKey())
-      addMenuCheckedAction(keysMenu, "Type Key", isSymbolTypeMapKey(),
-                           SLOT(setSymbolTypeMapKey(bool)));
+      addSymbolTypeMapKeySubItems(keysMenu);
 
     menu->addMenu(keysMenu);
   }
@@ -2333,6 +2331,134 @@ addMenuItems(QMenu *menu)
   menu->addMenu(yMenu);
 
   return true;
+}
+
+void
+CQChartsScatterPlot::
+addSymbolSizeMapKeySubItems(QMenu *keysMenu)
+{
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
+    auto *subMenu = new QMenu(name, menu);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  //---
+
+  auto *sizeKeyMenu = addSubMenu(keysMenu, "Size Key");
+
+  addMenuCheckedAction(sizeKeyMenu, "Visible", isSymbolSizeMapKey(),
+                       SLOT(setSymbolSizeMapKey(bool)));
+
+  //---
+
+  view()->addKeyLocationActions(sizeKeyMenu, symbolSizeMapKey_->location(),
+                                this, SLOT(symbolSizeMapKeyPositionSlot(QAction *)),
+                                /*includeAuto*/false);
+
+  //---
+
+  bool insideXChecked = symbolSizeMapKey_->isInsideX();
+  bool insideYChecked = symbolSizeMapKey_->isInsideY();
+
+  (void) addMenuCheckedAction(sizeKeyMenu, "Inside X", insideXChecked,
+                              SLOT(symbolSizeMapKeyInsideXSlot(bool)));
+  (void) addMenuCheckedAction(sizeKeyMenu, "Inside Y", insideYChecked,
+                              SLOT(symbolSizeMapKeyInsideYSlot(bool)));
+}
+
+void
+CQChartsScatterPlot::
+symbolSizeMapKeyPositionSlot(QAction *action)
+{
+  CQChartsKeyLocation::Type location;
+
+  if (! CQChartsKeyLocation::decodeString(action->text(), location))
+    assert(false);
+
+  symbolSizeMapKey_->setLocation(CQChartsKeyLocation(location));
+}
+
+void
+CQChartsScatterPlot::
+symbolSizeMapKeyInsideXSlot(bool b)
+{
+  if (b != symbolSizeMapKey_->isInsideX())
+    symbolSizeMapKey_->setInsideX(b);
+}
+
+void
+CQChartsScatterPlot::
+symbolSizeMapKeyInsideYSlot(bool b)
+{
+  if (b != symbolSizeMapKey_->isInsideY())
+    symbolSizeMapKey_->setInsideY(b);
+}
+
+void
+CQChartsScatterPlot::
+addSymbolTypeMapKeySubItems(QMenu *keysMenu)
+{
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
+    auto *subMenu = new QMenu(name, menu);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  //---
+
+  auto *typeKeyMenu = addSubMenu(keysMenu, "Type Key");
+
+  addMenuCheckedAction(typeKeyMenu, "Visible", isSymbolTypeMapKey(),
+                       SLOT(setSymbolTypeMapKey(bool)));
+
+  //---
+
+  view()->addKeyLocationActions(typeKeyMenu, symbolTypeMapKey_->location(),
+                                this, SLOT(symbolTypeMapKeyPositionSlot(QAction *)),
+                                /*includeAuto*/false);
+
+  //---
+
+  bool insideXChecked = symbolTypeMapKey_->isInsideX();
+  bool insideYChecked = symbolTypeMapKey_->isInsideY();
+
+  (void) addMenuCheckedAction(typeKeyMenu, "Inside X", insideXChecked,
+                              SLOT(symbolTypeMapKeyInsideXSlot(bool)));
+  (void) addMenuCheckedAction(typeKeyMenu, "Inside Y", insideYChecked,
+                              SLOT(symbolTypeMapKeyInsideYSlot(bool)));
+}
+
+void
+CQChartsScatterPlot::
+symbolTypeMapKeyPositionSlot(QAction *action)
+{
+  CQChartsKeyLocation::Type location;
+
+  if (! CQChartsKeyLocation::decodeString(action->text(), location))
+    assert(false);
+
+  symbolTypeMapKey_->setLocation(CQChartsKeyLocation(location));
+}
+
+void
+CQChartsScatterPlot::
+symbolTypeMapKeyInsideXSlot(bool b)
+{
+  if (b != symbolTypeMapKey_->isInsideX())
+    symbolTypeMapKey_->setInsideX(b);
+}
+
+void
+CQChartsScatterPlot::
+symbolTypeMapKeyInsideYSlot(bool b)
+{
+  if (b != symbolTypeMapKey_->isInsideY())
+    symbolTypeMapKey_->setInsideY(b);
 }
 
 //------
@@ -3218,6 +3344,21 @@ drawDataLabelDatas(PaintDevice *device) const
 
 //---
 
+void
+CQChartsScatterPlot::
+getGroupObjs(int ig, PlotObjs &objs) const
+{
+  for (const auto &plotObj : plotObjs_) {
+    auto *pointObj = dynamic_cast<PointObj *>(plotObj);
+    if (! pointObj) continue;
+
+    if (pointObj->is().n == 1 && pointObj->ig().n > 1 && pointObj->ig().i == ig)
+      objs.push_back(pointObj);
+  }
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsScatterPlot::
 createCustomControls()
@@ -3976,64 +4117,112 @@ draw(PaintDevice *device) const
 //------
 
 CQChartsScatterKeyColor::
-CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &ic) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
+CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig) :
+ CQChartsKeyColorBox(plot, is, ig, ColorInd()), plot_(plot), groupInd_(groupInd)
 {
+  setClickable(true);
 }
 
+#if 0
 bool
 CQChartsScatterKeyColor::
-selectPress(const Point &, CQChartsSelMod selMod)
+selectPress(const Point &, SelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
-  int ih = hideIndex();
+  auto ic = (is_.n > 1 ? is_ : ig_);
 
-  if (selMod == CQChartsSelMod::ADD) {
-    for (int i = 0; i < ic_.n; ++i) {
-      plot_->CQChartsPlot::setSetHidden(i, i != ih);
+  auto ih = setIndex();
+
+  if (selMod == SelMod::ADD) {
+    for (int i = 0; i < ic.n; ++i) {
+      plot_->CQChartsPlot::setSetHidden(i, i != ih.i);
     }
   }
   else {
-    plot->setSetHidden(ih, ! plot->isSetHidden(ih));
+    plot->setSetHidden(ih.i, ! plot->isSetHidden(ih.i));
   }
 
   plot->updateRangeAndObjs();
 
   return true;
 }
+#endif
+
+void
+CQChartsScatterKeyColor::
+doSelect(SelMod)
+{
+  CQChartsPlot::PlotObjs objs;
+
+  plot()->getGroupObjs(ig_.i, objs);
+  if (objs.empty()) return;
+
+  //---
+
+  plot()->selectObjs(objs, /*export*/true);
+
+  key_->redraw(/*wait*/ true);
+}
 
 QBrush
 CQChartsScatterKeyColor::
 fillBrush() const
 {
-  auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+  auto ic = (is_.n > 1 ? is_ : ig_);
 
   QColor c;
 
   if (color_.isValid())
     c = plot_->interpColor(color_, ColorInd());
   else {
-    c = plot->interpSymbolFillColor(ic_);
+    c = plot_->interpSymbolFillColor(ic);
 
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  CQChartsDrawUtil::setColorAlpha(c, plot->symbolFillAlpha());
+  CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
 
-  int ih = hideIndex();
+  auto ih = setIndex();
 
-  if (plot->isSetHidden(ih))
+  if (plot_->isSetHidden(ih.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
 
-int
+bool
 CQChartsScatterKeyColor::
-hideIndex() const
+tipText(const Point &, QString &tip) const
 {
-  return (groupInd_ >= 0 ? groupInd_ : ic_.i);
+  if (groupInd_ < -1) return false;
+
+  CQChartsPlot::PlotObjs objs;
+
+  plot()->getGroupObjs(groupInd_, objs);
+
+  CQChartsTableTip tableTip;
+
+  auto groupName = plot_->groupIndName(groupInd_);
+
+  tableTip.addTableRow("Name", groupName);
+
+  if (! objs.empty())
+    tableTip.addTableRow("Count", objs.size());
+
+  if (isSetHidden())
+    tableTip.addTableRow("Hidden", "true");
+
+  tip = tableTip.str();
+
+  return true;
+}
+
+CQChartsUtil::ColorInd
+CQChartsScatterKeyColor::
+setIndex() const
+{
+  return (groupInd_ >= -1 ? ColorInd(groupInd_, 1) : is_);
 }
 
 //---
@@ -4074,17 +4263,16 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
 
   addGroupColumnWidgets();
 
-  auto *overlaysFrame = CQUtil::makeWidget<QFrame>("overlaysFrame");
-  auto *overlaysLayout = CQUtil::makeLayout<QHBoxLayout>(overlaysFrame, 2, 2);
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   bestFitCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
   convexHullCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "convexHullCheck");
 
-  overlaysLayout->addWidget(bestFitCheck_   );
-  overlaysLayout->addWidget(convexHullCheck_);
-
-  addFrameColWidget(groupFrame(), bestFitCheck_);
-  addFrameColWidget(groupFrame(), convexHullCheck_);
+  addFrameColWidget(optionsFrame, bestFitCheck_);
+  addFrameColWidget(optionsFrame, convexHullCheck_);
 
   //---
 
@@ -4231,10 +4419,10 @@ setPlot(CQChartsPlot *plot)
 
   plot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
 
+  CQChartsPointPlotCustomControls::setPlot(plot);
+
   if (plot_)
     connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
-
-  CQChartsPointPlotCustomControls::setPlot(plot);
 }
 
 CQChartsColor

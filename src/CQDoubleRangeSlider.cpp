@@ -56,7 +56,7 @@ setRangeMax(double r)
 
 void
 CQDoubleRangeSlider::
-setRangeMinMax(double min, double max)
+setRangeMinMax(double min, double max, bool resetSlider)
 {
   if (min != range_.min || max != range_.max) {
     range_.min = min;
@@ -65,11 +65,19 @@ setRangeMinMax(double min, double max)
     if (range_.min > range_.max)
       std::swap(range_.min, range_.max);
 
+    if (resetSlider) {
+      slider_.min = range_.min;
+      slider_.max = range_.max;
+    }
+
     updateTip();
 
     update();
 
     emit rangeChanged(rangeMin(), rangeMax());
+
+    if (resetSlider)
+      emit sliderRangeChanged(sliderMin(), sliderMax());
   }
 }
 
@@ -359,7 +367,10 @@ QString
 CQDoubleRangeSlider::
 realToString(double r) const
 {
-  return QString("%1").arg(r, 0, 'g', decimalPlaces());
+  if (decimalPlaces() <= 0)
+    return QString("%1").arg(int(r));
+  else
+    return QString("%1").arg(r, 0, 'g', decimalPlaces());
 }
 
 double

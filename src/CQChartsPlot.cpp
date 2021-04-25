@@ -607,8 +607,6 @@ setUpdatesEnabled1(bool b, bool update)
     if (updatesData_.enabled == 0) {
       if (update)
         doUpdate = true;
-
-      updatesData_.reset();
     }
   }
   else {
@@ -643,6 +641,8 @@ setUpdatesEnabled1(bool b, bool update)
     else if (isInvalidateLayers()) {
       drawObjs();
     }
+
+    updatesData_.reset();
   }
 }
 
@@ -4076,8 +4076,7 @@ addColorKeyItems(CQChartsPlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+    groupItem->addRowItems(colorItem, textItem);
 
     if (c.isValid())
       colorItem->setColor(Color(c));
@@ -4268,6 +4267,80 @@ updateColorMapKey() const
   colorMapKey_->setNative      (isColor);
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
+}
+
+void
+CQChartsPlot::
+addColorMapKeyItems(QMenu *menu)
+{
+  auto *keysMenu = new QMenu("Keys", menu);
+
+  addColorMapKeySubItems(keysMenu);
+
+  menu->addMenu(keysMenu);
+}
+
+void
+CQChartsPlot::
+addColorMapKeySubItems(QMenu *keysMenu)
+{
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
+    auto *subMenu = new QMenu(name, menu);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  //---
+
+  auto *colorKeyMenu = addSubMenu(keysMenu, "Color Key");
+
+  addMenuCheckedAction(colorKeyMenu, "Visible", isColorMapKey(), SLOT(setColorMapKey(bool)));
+
+  //---
+
+  view()->addKeyLocationActions(colorKeyMenu, colorMapKey_->location(),
+                                this, SLOT(colorMapKeyPositionSlot(QAction *)),
+                                /*includeAuto*/false);
+
+  //---
+
+  bool insideXChecked = colorMapKey_->isInsideX();
+  bool insideYChecked = colorMapKey_->isInsideY();
+
+  (void) addMenuCheckedAction(colorKeyMenu, "Inside X", insideXChecked,
+                              SLOT(colorMapKeyInsideXSlot(bool)));
+  (void) addMenuCheckedAction(colorKeyMenu, "Inside Y", insideYChecked,
+                              SLOT(colorMapKeyInsideYSlot(bool)));
+}
+
+void
+CQChartsPlot::
+colorMapKeyPositionSlot(QAction *action)
+{
+  CQChartsKeyLocation::Type location;
+
+  if (! CQChartsKeyLocation::decodeString(action->text(), location))
+    assert(false);
+
+  colorMapKey_->setLocation(CQChartsKeyLocation(location));
+}
+
+void
+CQChartsPlot::
+colorMapKeyInsideXSlot(bool b)
+{
+  if (b != colorMapKey_->isInsideX())
+    colorMapKey_->setInsideX(b);
+}
+
+void
+CQChartsPlot::
+colorMapKeyInsideYSlot(bool b)
+{
+  if (b != colorMapKey_->isInsideY())
+    colorMapKey_->setInsideY(b);
 }
 
 //------
@@ -8336,6 +8409,47 @@ rectSelect(const BBox &r, SelMod selMod)
   //---
 
   return ! objs.empty();
+}
+
+void
+CQChartsPlot::
+selectObjs(const PlotObjs &objs, bool exportSel)
+{
+  startSelection();
+
+  //---
+
+  deselectAllObjs();
+
+  for (const auto &obj : objs) {
+    if (! isSelectable())
+      continue;
+
+    obj->setSelected(true);
+  }
+
+  //---
+
+  if (exportSel) {
+    auto *selPlot = selectionPlot();
+
+    beginSelectIndex();
+
+    for (const auto &obj : objs) {
+      if (obj->plot() == selPlot)
+        obj->addSelectIndices(this);
+    }
+
+    endSelectIndex();
+  }
+
+  //--
+
+  invalidateOverlay();
+
+  //---
+
+  endSelection();
 }
 
 void
@@ -13443,6 +13557,9 @@ fitBBox() const
   bbox += titleFitBBox      ();
   bbox += annotationsFitBBox();
   bbox += extraFitBBox      ();
+
+  if (colorMapKey_ && colorMapKey_->isVisible())
+    bbox += colorMapKey_->bbox();
 
   // add margin (TODO: config pixel margin size)
   auto marginSize = pixelToWindowSize(Size(8, 8));

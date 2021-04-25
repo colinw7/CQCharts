@@ -27,11 +27,12 @@ class CQChartsStringParameterEdit;
 class CQChartsRealParameterEdit;
 class CQChartsIntParameterEdit;
 class CQChartsBoolParameterEdit;
+class CQChartsOptRealEdit;
 class CQChartsLineEdit;
 
 class CQSummaryModel;
-class CQIntegerSpin;
 class CQRealSpin;
+class CQIntegerSpin;
 class CQIconButton;
 
 class QAbstractItemModel;
@@ -165,8 +166,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
   void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
 
-  LineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
-                        const QString &objName, const QString &placeholderText) const;
+  CQChartsOptRealEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+                                   const QString &objName, const QString &placeholderText) const;
   LineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
                           const QString &objName, const QString &placeholderText) const;
 
@@ -248,14 +249,14 @@ class CQChartsCreatePlotDlg : public QDialog {
   using TypeInitialized = std::map<QString, bool>;
 
   struct RangeEditData {
-    LineEdit*    xminEdit   { nullptr }; //!< xmin edit
-    QToolButton* xminButton { nullptr }; //!< xmin load button
-    LineEdit*    yminEdit   { nullptr }; //!< ymin edit
-    QToolButton* yminButton { nullptr }; //!< ymin load button
-    LineEdit*    xmaxEdit   { nullptr }; //!< xmax edit
-    QToolButton* xmaxButton { nullptr }; //!< xmax load button
-    LineEdit*    ymaxEdit   { nullptr }; //!< ymax edit
-    QToolButton* ymaxButton { nullptr }; //!< ymax load button
+    CQChartsOptRealEdit* xminEdit   { nullptr }; //!< xmin edit
+    QToolButton*         xminButton { nullptr }; //!< xmin load button
+    CQChartsOptRealEdit* yminEdit   { nullptr }; //!< ymin edit
+    QToolButton*         yminButton { nullptr }; //!< ymin load button
+    CQChartsOptRealEdit* xmaxEdit   { nullptr }; //!< xmax edit
+    QToolButton*         xmaxButton { nullptr }; //!< xmax load button
+    CQChartsOptRealEdit* ymaxEdit   { nullptr }; //!< ymax edit
+    QToolButton*         ymaxButton { nullptr }; //!< ymax load button
   };
 
   struct SummaryEditData {

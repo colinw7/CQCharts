@@ -789,8 +789,7 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+    groupItem->addRowItems(colorItem, textItem);
 
     //key->addItem(colorItem, i, 0);
     //key->addItem(textItem , i, 1);

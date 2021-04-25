@@ -1271,11 +1271,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }
@@ -3085,7 +3081,7 @@ calcTipId() const
     if (edge && edge->hasNamedColumn(name))
       return plot_->columnHeaderName(edge->namedColumn(name));
 
-    QString headerName = (defName.length() ? defName : name);
+    auto headerName = (defName.length() ? defName : name);
 
     return headerName;
   };
@@ -3510,7 +3506,7 @@ calcTipId() const
     if (edge()->hasNamedColumn(name))
       return plot_->columnHeaderName(edge()->namedColumn(name));
 
-    QString headerName = (defName.length() ? defName : name);
+    auto headerName = (defName.length() ? defName : name);
 
     return headerName;
   };

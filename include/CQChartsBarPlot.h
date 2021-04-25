@@ -45,7 +45,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   // value columns
   const Columns &valueColumns() const { return valueColumns_; }
-  void setValueColumns(const Columns &c);
+  virtual void setValueColumns(const Columns &c);
 
   //---
 

@@ -1014,6 +1014,20 @@ setMode(const Mode &mode)
 
 void
 CQChartsView::
+setKeyBehavior(const KeyBehavior &b)
+{
+  keyBehavior_ = b;
+
+  for (auto &plot : plots()) {
+    auto *key = plot->key();
+
+    if (key)
+      key->setPressBehavior(keyBehavior_);
+  }
+}
+
+void
+CQChartsView::
 setSelectMode(const SelectMode &selectMode)
 {
   CQChartsUtil::testAndSet(selectData_.mode, selectMode, [&]() { emit selectModeChanged(); } );
@@ -5338,52 +5352,9 @@ showMenu(const Point &p)
 
     //---
 
-    using KeyLocationActionMap = std::map<CQChartsKeyLocation::Type, QAction *>;
-
-    KeyLocationActionMap keyLocationActionMap;
-
-    auto *keyLocationMenu = addSubMenu(viewKeyMenu, "Location");
-
-    auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
-
-    auto addKeyLocationGroupAction =
-     [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      auto *action = new QAction(label, keyLocationMenu);
-
-      action->setCheckable(true);
-
-      keyLocationActionMap[location] = action;
-
-      keyLocationActionGroup->addAction(action);
-
-      return action;
-    };
-
-    auto locationNames = QStringList() <<
-      "Top Left"    << "Top Center"    << "Top Right"    <<
-      "Center Left" << "Center Center" << "Center Right" <<
-      "Bottom Left" << "Bottom Center" << "Bottom Right" <<
-      "Absolute Position" << "Absolute Rectangle";
-
-    for (const auto &name : locationNames) {
-      CQChartsKeyLocation::Type type;
-
-      if (! CQChartsKeyLocation::decodeString(name, type))
-        assert(false);
-
-      addKeyLocationGroupAction(name, type);
-    }
-
-    keyLocationActionGroup->setExclusive(true);
-
-    auto location = key()->location().type();
-
-    keyLocationActionMap[location]->setChecked(true);
-
-    connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
-            this, SLOT(viewKeyPositionSlot(QAction *)));
-
-    keyLocationMenu->addActions(keyLocationActionGroup->actions());
+    addKeyLocationActions(viewKeyMenu, key()->location(),
+                          this, SLOT(viewKeyPositionSlot(QAction *)),
+                          /*includeAuto*/false);
   }
 
   //---
@@ -5456,57 +5427,11 @@ showMenu(const Point &p)
 
     //---
 
-    using KeyLocationActionMap = std::map<CQChartsKeyLocation::Type, QAction *>;
+    auto location = (plotKey ? plotKey->location() : CQChartsKeyLocation());
 
-    KeyLocationActionMap keyLocationActionMap;
-
-    auto *keyLocationMenu = addSubMenu(plotKeyMenu, "Location");
-
-    auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
-
-    auto addKeyLocationGroupAction =
-     [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      auto *action = new QAction(label, keyLocationMenu);
-
-      action->setCheckable(true);
-
-      keyLocationActionMap[location] = action;
-
-      keyLocationActionGroup->addAction(action);
-
-      return action;
-    };
-
-    auto locationNames = QStringList() <<
-      "Top Left"    << "Top Center"    << "Top Right"    <<
-      "Center Left" << "Center Center" << "Center Right" <<
-      "Bottom Left" << "Bottom Center" << "Bottom Right" <<
-      "Absolute Position" << "Absolute Rectangle" << "Auto";
-
-    for (const auto &name : locationNames) {
-      CQChartsKeyLocation::Type type;
-
-      if (! CQChartsKeyLocation::decodeString(name, type))
-        assert(false);
-
-      addKeyLocationGroupAction(name, type);
-    }
-
-    keyLocationActionGroup->setExclusive(true);
-
-    if (plotKey) {
-      auto location = plotKey->location().type();
-
-      auto p = keyLocationActionMap.find(location);
-
-      if (p != keyLocationActionMap.end())
-        (*p).second->setChecked(true);
-    }
-
-    connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
-            this, SLOT(plotKeyPositionSlot(QAction *)));
-
-    keyLocationMenu->addActions(keyLocationActionGroup->actions());
+    addKeyLocationActions(plotKeyMenu, location,
+                          this, SLOT(plotKeyPositionSlot(QAction *)),
+                          /*includeAuto*/true);
 
     //---
 
@@ -5837,6 +5762,76 @@ showMenu(const Point &p)
   //---
 
   popupMenu->popup(mapToGlobal(p.qpointi()));
+}
+
+void
+CQChartsView::
+addKeyLocationActions(QMenu *menu, const CQChartsKeyLocation &location,
+                      QObject *slotObj, const char *slotName, bool includeAuto)
+{
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
+    auto *subMenu = new QMenu(name, menu);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  auto createActionGroup = [](QMenu *menu) {
+    return new QActionGroup(menu);
+  };
+
+  //---
+
+  using KeyLocationActionMap = std::map<CQChartsKeyLocation::Type, QAction *>;
+
+  KeyLocationActionMap keyLocationActionMap;
+
+  auto *keyLocationMenu = addSubMenu(menu, "Location");
+
+  auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
+
+  auto addKeyLocationGroupAction =
+   [&](const QString &label, const CQChartsKeyLocation::Type &location) {
+    auto *action = new QAction(label, keyLocationMenu);
+
+    action->setCheckable(true);
+
+    keyLocationActionMap[location] = action;
+
+    keyLocationActionGroup->addAction(action);
+
+    return action;
+  };
+
+  auto locationNames = QStringList() <<
+    "Top Left"    << "Top Center"    << "Top Right"    <<
+    "Center Left" << "Center Center" << "Center Right" <<
+    "Bottom Left" << "Bottom Center" << "Bottom Right" <<
+    "Absolute Position" << "Absolute Rectangle";
+
+  if (includeAuto)
+    locationNames << "Auto";
+
+  for (const auto &name : locationNames) {
+    CQChartsKeyLocation::Type type;
+
+    if (! CQChartsKeyLocation::decodeString(name, type))
+      assert(false);
+
+    addKeyLocationGroupAction(name, type);
+  }
+
+  keyLocationActionGroup->setExclusive(true);
+
+  auto p = keyLocationActionMap.find(location.type());
+
+  if (p != keyLocationActionMap.end())
+    (*p).second->setChecked(true);
+
+  connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)), slotObj, slotName);
+
+  keyLocationMenu->addActions(keyLocationActionGroup->actions());
 }
 
 QMenu *

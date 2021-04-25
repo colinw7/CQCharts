@@ -559,7 +559,7 @@ draw(PaintDevice *device) const
   double tx = rect().getXMid();
   double ty = rect().getYMid();
 
-  QString label = label_;
+  auto label = label_;
 
   if (! label.length())
     label = name_;
@@ -626,9 +626,9 @@ draw(PaintDevice *device) const
 
       //---
 
-      QString name = plot_->columnHeaderName(plot_->valueColumns().getColumn(i));
+      auto name = plot_->columnHeaderName(plot_->valueColumns().getColumn(i));
 
-      QString text = QString("%1 %2").arg(name).arg(v.value_or(0.0));
+      auto text = QString("%1 %2").arg(name).arg(v.value_or(0.0));
 
       CQChartsTextOptions textOptions;
 
@@ -663,7 +663,7 @@ draw(PaintDevice *device) const
 
     ty -= plot()->pixelToWindowHeight(psize.height());
 
-    QString text = QString("%1").arg(values_.sum());
+    auto text = QString("%1").arg(values_.sum());
 
     CQChartsDrawUtil::drawTextAtPoint(device, Point(tx, ty), text,
                                       textOptions, /*centered*/false);

@@ -69,7 +69,7 @@ QStringList
 CQChartsSymbolType::
 typeNames()
 {
-  static QStringList typeNames = QStringList() <<
+  static auto typeNames = QStringList() <<
     "dot"      << "cross"    << "plus"     << "y"        << "z"     <<
     "triangle" << "itriangle"<< "box"      << "diamond"  << "star5" <<
     "star6"    << "circle"   << "pentagon" << "ipentagon"<< "hline" <<

@@ -384,15 +384,16 @@ createGroupFrame(const QString &name, const QString &objName)
 #if 0
   split_->addWidget(frameData.frame, name);
 #else
-  auto *groupBox    = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
-  auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(groupBox, 0, 0);
+  frameData.groupBox = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
 
-  groupBox->setTitleScale(0.85);
-  groupBox->setTitleColored(true);
+  auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(frameData.groupBox, 0, 0);
+
+  frameData.groupBox->setTitleScale(0.85);
+  frameData.groupBox->setTitleColored(true);
 
   groupLayout->addWidget(frameData.frame);
 
-  layout_->addWidget(groupBox);
+  layout_->addWidget(frameData.groupBox);
 #endif
 
   return frameData;
@@ -429,9 +430,10 @@ addFrameWidget(FrameData &frameData, QWidget *w)
 
 void
 CQChartsPlotCustomControls::
-addFrameColWidget(FrameData &frameData, QWidget *w)
+addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
   frameData.layout->addWidget(w, frameData.row, frameData.col); ++frameData.col;
+  if (nextRow) ++frameData.row;
 }
 
 void
@@ -439,6 +441,44 @@ CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
   frameData.layout->setRowStretch(frameData.row, 1);
+}
+
+void
+CQChartsPlotCustomControls::
+setFrameWidgetVisible(QWidget *w, bool visible)
+{
+  auto *pw = w->parentWidget();
+
+  auto *layout = qobject_cast<QGridLayout *>(pw->layout());
+  if (! layout) return;
+
+  // find widget row
+  int row = -1;
+
+  for (int i = 0; i < layout->count(); ++i) {
+    auto *item = layout->itemAt(i);
+
+    if (item->widget() == w) {
+      int c, rs, cs;
+
+      layout->getItemPosition(i, &row, &c, &rs, &cs);
+
+      break;
+    }
+  }
+
+  // set visible for all items on same row
+  for (int i = 0; i < layout->count(); ++i) {
+    auto *item = layout->itemAt(i);
+    if (! item->widget()) continue;
+
+    int r, c, rs, cs;
+
+    layout->getItemPosition(i, &r, &c, &rs, &cs);
+
+    if (r == row)
+      item->widget()->setVisible(visible);
+  }
 }
 
 void
@@ -564,9 +604,9 @@ colorRangeSlot()
   plot()->setColorMapMin(colorRange_->sliderMin());
   plot()->setColorMapMax(colorRange_->sliderMax());
 
-  updateWidgets();
-
   connectSlots(true);
+
+  updateWidgets();
 }
 
 void

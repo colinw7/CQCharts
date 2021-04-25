@@ -1,0 +1,7 @@
+Grouping
+ + Unique value id (non-numeric)
+ + Bucketed Value
+   + Range and Number of Buckets
+   + Start and Delta
+   + Specified Stops
+   + Force Unique

@@ -445,6 +445,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  CQChartsGeom::BBox fitBBox() const override;
+
+  //---
+
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 

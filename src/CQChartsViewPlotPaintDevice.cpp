@@ -312,16 +312,16 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
   //---
 
-  QImage image = brush1.textureImage();
+  auto image = brush1.textureImage();
 
   //auto format = image.format();
   //assert(format == QImage::Format_ARGB32 || format == QImage::Format_ARGB32_Premultiplied);
 
-  const QString imageType = image.text("imageType");
+  auto imageType = image.text("imageType");
 
   //---
 
-  QImage image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
+  auto image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
 
   //auto format1 = image1.format();
   //assert(format1 == QImage::Format_ARGB32 || format1 == QImage::Format_ARGB32_Premultiplied);
@@ -338,7 +338,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
     for (int y = 0; y < image1.height(); ++y) {
       for (int x = 0; x < image1.width(); ++x) {
-        QRgb rgb = image1.pixel(x, y);
+        auto rgb = image1.pixel(x, y);
 
         int g1 = qGray(rgb);
 
@@ -394,7 +394,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
     for (int y = 0; y < image1.height(); ++y) {
       for (int x = 0; x < image1.width(); ++x) {
-        QRgb rgb = image1.pixel(x, y);
+        auto rgb = image1.pixel(x, y);
 
         int g1 = qGray(rgb);
 
@@ -422,7 +422,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
       for (int y = 0; y < image1.height(); ++y) {
         for (int x = 0; x < image1.width(); ++x) {
-          QRgb rgb = image1.pixel(x, y);
+          auto rgb = image1.pixel(x, y);
 
           double r1 = qRed  (rgb)/255.0;
           double g1 = qGreen(rgb)/255.0;

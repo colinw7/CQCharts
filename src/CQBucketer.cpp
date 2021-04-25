@@ -1,6 +1,7 @@
 #include <CQBucketer.h>
 #include <CInterval.h>
 #include <CMathRound.h>
+#include <CMathUtil.h>
 
 CQBucketer::
 CQBucketer()
@@ -30,6 +31,9 @@ reset()
 {
   stringInd_.clear();
   indString_.clear();
+
+  rstops_.clear();
+  istops_.clear();
 }
 
 // get bucket for generic value
@@ -64,6 +68,20 @@ bucket(const QVariant &var) const
     if (ok)
       return autoRealBucket(r);
   }
+  else if (type() == Type::FIXED_STOPS) {
+    if      (! rstops_.empty()) {
+      double r = varReal(var, ok);
+
+      if (ok)
+        return stopsRealBucket(r);
+    }
+    else if (! istops_.empty()) {
+      int i = varInt(var, ok);
+
+      if (ok)
+        return stopsIntBucket(i);
+    }
+  }
 
   return n;
 }
@@ -75,19 +93,27 @@ bucketValues(int bucket, double &min, double &max) const
   if      (type() == Type::INTEGER_RANGE) {
     int imin = 0, imax = 0;
 
-    bucketIValues(bucket, imin, imax);
+    bool rc = bucketIValues(bucket, imin, imax);
 
     min = imin;
     max = imax;
-  }
-  else if (type() == Type::REAL_RANGE)
-    bucketRValues(bucket, min, max);
-  else if (type() == Type::REAL_AUTO)
-    autoBucketValues(bucket, min, max);
-  else
-    return false;
 
-  return true;
+    return rc;
+  }
+  else if (type() == Type::REAL_RANGE) {
+    return bucketRValues(bucket, min, max);
+  }
+  else if (type() == Type::REAL_AUTO) {
+    return autoBucketValues(bucket, min, max);
+  }
+  else if (type() == Type::FIXED_STOPS) {
+    if      (! rstops_.empty())
+      return rstopsBucketValues(bucket, min, max);
+    else if (! istops_.empty())
+      return istopsBucketValues(bucket, min, max);
+  }
+
+  return false;
 }
 
 bool
@@ -130,6 +156,60 @@ autoBucketValues(int bucket, double &min, double &max) const
   }
 
   return true;
+}
+
+bool
+CQBucketer::
+rstopsBucketValues(int bucket, double &min, double &max) const
+{
+  int n = 0;
+
+  min = CMathUtil::getNegInf();
+
+  for (const auto &s : rstops_) {
+    max = s;
+
+    if (bucket == n)
+      return true;
+
+    min = max;
+
+    ++n;
+  }
+
+  max = CMathUtil::getPosInf();
+
+  if (bucket == n)
+    return true;
+
+  return false;
+}
+
+bool
+CQBucketer::
+istopsBucketValues(int bucket, double &min, double &max) const
+{
+  int n = 0;
+
+  min = -INT_MAX;
+
+  for (const auto &s : istops_) {
+    max = s;
+
+    if (bucket == n)
+      return true;
+
+    min = max;
+
+    ++n;
+  }
+
+  max = INT_MAX;
+
+  if (bucket == n)
+    return true;
+
+  return false;
 }
 
 //----
@@ -210,6 +290,8 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
       max = rmax;
     }
   }
+  else if (type() == Type::FIXED_STOPS) {
+  }
   else {
     min = bucket;
     max = bucket;
@@ -248,6 +330,15 @@ bucketName(int bucket, NameFormat format) const
     return bucketName(rmin, rmax, format);
   }
   else if (type() == Type::REAL_AUTO) {
+    double rstart = this->calcMin();
+    double rend   = this->calcMax();
+
+    if (bucket < 0 && isUnderflow())
+      return bucketName(CMathUtil::getNaN(), rstart, format);
+
+    if (bucket == INT_MAX && isOverflow())
+      return bucketName(rend, CMathUtil::getNaN(), format);
+
     double rmin = 0.0, rmax = 0.0;
 
     autoBucketValues(bucket, rmin, rmax);
@@ -261,6 +352,14 @@ bucketName(int bucket, NameFormat format) const
       else
         return QString("%1").arg(imin);
     }
+
+    return bucketName(rmin, rmax, format);
+  }
+  else if (type() == Type::FIXED_STOPS) {
+    double rmin = 0.0, rmax = 0.0;
+
+    if (! bucketValues(bucket, rmin, rmax))
+      return QString("%1").arg(bucket);
 
     return bucketName(rmin, rmax, format);
   }
@@ -298,12 +397,15 @@ bucketName(double rmin, double rmax, NameFormat format)
 {
   static QChar arrowChar(0x2192);
 
+  auto lhs = (CMathUtil::isNaN(rmin) ? "-Inf" : QString("%1").arg(rmin));
+  auto rhs = (CMathUtil::isNaN(rmax) ?  "Inf" : QString("%1").arg(rmax));
+
   if      (format == NameFormat::DASH)
-    return QString("%1-%2").arg(rmin).arg(rmax);
+    return QString("%1-%2").arg(lhs).arg(rhs);
   else if (format == NameFormat::ARROW)
-    return QString("%1%2%3").arg(rmin).arg(arrowChar).arg(rmax);
+    return QString("%1%2%3").arg(lhs).arg(arrowChar).arg(rhs);
   else if (format == NameFormat::BRACKETED)
-    return QString("[%1,%2)").arg(rmin).arg(rmax);
+    return QString("[%1,%2)").arg(lhs).arg(rhs);
   else
     assert(false);
 }
@@ -359,6 +461,8 @@ bucketString(int bucket) const
   return p->second;
 }
 
+//-----
+
 int
 CQBucketer::
 intBucket(int i) const
@@ -407,8 +511,15 @@ autoRealBucket(double r) const
 
   int n = INT_MIN; // optional ?
 
-  double rdelta = this->calcDelta();
   double rstart = this->calcMin();
+  double rend   = this->calcMax();
+  double rdelta = this->calcDelta();
+
+  if (isUnderflow() && r < rstart)
+    return -1;
+
+  if (isOverflow() && r > rend)
+    return INT_MAX;
 
   if      (r == rstart)
     return 0;
@@ -419,6 +530,36 @@ autoRealBucket(double r) const
       return INT_MAX;
 
     n = CMathRound::RoundDown(nr);
+  }
+
+  return n;
+}
+
+int
+CQBucketer::
+stopsRealBucket(double r) const
+{
+  int n = 0;
+
+  for (const auto &s : rstops_) {
+    if (r < s) return n;
+
+    ++n;
+  }
+
+  return n;
+}
+
+int
+CQBucketer::
+stopsIntBucket(int i) const
+{
+  int n = 0;
+
+  for (const auto &s : istops_) {
+    if (i < s) return n;
+
+    ++n;
   }
 
   return n;

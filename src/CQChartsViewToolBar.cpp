@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QCheckBox>
+#include <QLabel>
 #include <QHBoxLayout>
 
 CQChartsViewToolBar::
@@ -152,6 +153,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
+  // TODO: add smart
   auto *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
   selectPointButton_ = makeRadioButton("Point", "point", "Select objects at point");
@@ -181,6 +183,25 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //--
 
+  selectControlsLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+
+  //---
+
+  auto *selecyKeyLabel = CQUtil::makeLabelWidget<QLabel>("Key", "selecyKeyLabel");
+
+  selectKeyCombo_ = CQUtil::makeWidget<QComboBox>("selectKeyCombo");
+
+  selectKeyCombo_->addItem("Show");
+  selectKeyCombo_->addItem("Select");
+
+  connect(selectKeyCombo_, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(selectKeyComboSlot(int)));
+
+  selectControlsLayout->addWidget(selecyKeyLabel);
+  selectControlsLayout->addWidget(selectKeyCombo_);
+
+  //--
+
   selectControlsLayout->addStretch(1);
 
   //-----
@@ -199,6 +220,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   panControlsLayout->addWidget(panButton);
 
+  panControlsLayout->addStretch(1);
+
   //-----
 
 #if 0
@@ -214,6 +237,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   editControlsLayout->addWidget(flipHButton);
   editControlsLayout->addWidget(flipVButton);
+
+  editControlsLayout->addStretch(1);
 
   //-----
 
@@ -236,6 +261,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   connect(regionButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(regionButtonClicked(int)));
 
   connect(view(), SIGNAL(regionModeChanged()), this, SLOT(updateState()));
+
+  regionControlsLayout->addStretch(1);
 
   //-----
 
@@ -353,6 +380,8 @@ modeSlot(int ind)
   updateMode();
 }
 
+//---
+
 void
 CQChartsViewToolBar::
 selectButtonClicked(int ind)
@@ -372,6 +401,18 @@ selectInsideSlot(int state)
 
 void
 CQChartsViewToolBar::
+selectKeyComboSlot(int ind)
+{
+  if      (ind == 0)
+    view()->setKeyBehavior(CQChartsView::KeyBehavior(CQChartsView::KeyBehavior::Type::SHOW));
+  else if (ind == 1)
+    view()->setKeyBehavior(CQChartsView::KeyBehavior(CQChartsView::KeyBehavior::Type::SELECT));
+}
+
+//---
+
+void
+CQChartsViewToolBar::
 zoomFullSlot()
 {
   auto *plot = view()->currentPlot(/*remap*/true);
@@ -380,11 +421,15 @@ zoomFullSlot()
   plot->zoomFull();
 }
 
+//---
+
 void
 CQChartsViewToolBar::
 panResetSlot()
 {
 }
+
+//---
 
 void
 CQChartsViewToolBar::
@@ -406,6 +451,8 @@ flipVSlot()
   plot->flipSelected(Qt::Vertical);
 }
 
+//---
+
 void
 CQChartsViewToolBar::
 regionButtonClicked(int ind)
@@ -415,6 +462,8 @@ regionButtonClicked(int ind)
   else
     view()->setRegionMode(CQChartsView::RegionMode::RECT);
 }
+
+//---
 
 void
 CQChartsViewToolBar::

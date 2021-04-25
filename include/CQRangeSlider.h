@@ -68,6 +68,8 @@ class CQRangeSlider : public QFrame {
   virtual void deltaSliderMin(int d) = 0;
   virtual void deltaSliderMax(int d) = 0;
 
+  virtual void reset() = 0;
+
   //--
 
   void mousePressEvent  (QMouseEvent *) override;
@@ -75,6 +77,8 @@ class CQRangeSlider : public QFrame {
   void mouseReleaseEvent(QMouseEvent *) override;
 
   void keyPressEvent(QKeyEvent *e) override;
+
+  void contextMenuEvent(QContextMenuEvent *e) override;
 
   //---
 
@@ -84,6 +88,9 @@ class CQRangeSlider : public QFrame {
   static QColor blendColors(const QColor &c1, const QColor &c2, double f);
 
   static QColor bwColor(const QColor &c);
+
+ protected slots:
+  void resetSlot();
 
  protected:
   bool showRangeLabels_  { false };

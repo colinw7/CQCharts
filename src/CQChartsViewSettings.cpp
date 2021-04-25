@@ -60,7 +60,6 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTextEdit>
-#include <QButtonGroup>
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QItemDelegate>
@@ -647,7 +646,7 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
       return item;
     };
 
-    QStringList names = QStringList() << "Bg" << "Fg" << "Overlay";
+    auto names = QStringList() << "Bg" << "Fg" << "Overlay";
 
     for (int l = 0; l < 3; ++l) {
       auto *item = createItem(names[l], l, 0);
@@ -2898,7 +2897,7 @@ updatePlotAnnotations()
 {
   auto *plot = currentPlot(/*remap*/false);
 
-  QString plotName = (plot ? QString("Plot %1").arg(plot->id()) : "Plot");
+  auto plotName = (plot ? QString("Plot %1").arg(plot->id()) : "Plot");
 
   annotationsWidgets_.split->setWidgetName(annotationsWidgets_.plotFrame, plotName);
 

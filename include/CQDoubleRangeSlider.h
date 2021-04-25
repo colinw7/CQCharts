@@ -25,7 +25,7 @@ class CQDoubleRangeSlider : public CQRangeSlider {
   double rangeMax() const { return range_.max; }
   void setRangeMax(double r);
 
-  void setRangeMinMax(double min, double max);
+  void setRangeMinMax(double min, double max, bool resetSlider=true);
 
   //---
 
@@ -83,6 +83,10 @@ class CQDoubleRangeSlider : public CQRangeSlider {
 
   void deltaSliderMax(int d) override {
     setSliderMax(clampValue(deltaValue(getSliderMax(), d)), /*force*/true);
+  }
+
+  void reset() override {
+    setSliderMinMax(rangeMin(), rangeMax());
   }
 
   double clampValue(double i) const;

@@ -5,12 +5,12 @@
 #include <CQCharts.h>
 
 #include <CQUtil.h>
+#include <CQLabel.h>
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QCheckBox>
-#include <QLabel>
 
 CQChartsModelDetailsWidget::
 CQChartsModelDetailsWidget(CQCharts *charts) :
@@ -50,8 +50,8 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
   auto *summaryLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   // summary labels
-  numColumnsLabel_ = CQUtil::makeLabelWidget<QLabel>("0");
-  numRowsLabel_    = CQUtil::makeLabelWidget<QLabel>("0");
+  numColumnsLabel_ = CQUtil::makeLabelWidget<CQLabel>("0");
+  numRowsLabel_    = CQUtil::makeLabelWidget<CQLabel>("0");
   hierLabel_       = CQUtil::makeLabelWidget<QLabel>("No");
 
   //--
@@ -167,9 +167,10 @@ updateSlot()
   int  nr     = details->numRows       ();
   bool isHier = details->isHierarchical();
 
-  numColumnsLabel_->setText(QString("%1").arg(nc));
-  numRowsLabel_   ->setText(QString("%1").arg(nr));
-  hierLabel_      ->setText(QString("%1").arg(isHier ? "Yes" : "No"));
+  numColumnsLabel_->setValue(nc);
+  numRowsLabel_   ->setValue(nr);
+
+  hierLabel_->setText(QString("%1").arg(isHier ? "Yes" : "No"));
 
   //---
 

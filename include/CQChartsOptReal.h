@@ -2,6 +2,7 @@
 #define CQChartsOptReal_H
 
 #include <CQChartsTmpl.h>
+#include <QVariant>
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -32,6 +33,12 @@ class CQChartsOptReal :
 
   explicit CQChartsOptReal(const QString &s) {
     (void) setValue(s);
+  }
+
+  explicit CQChartsOptReal(const QVariant &value) {
+    bool ok;
+    double r = value.toDouble(&ok);
+    if (ok) value_ = r;
   }
 
   const OptReal &value() const { return value_; }

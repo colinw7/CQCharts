@@ -301,7 +301,7 @@ addProperties()
     return item;
   };
 
-  QString linePath = "axis/stroke";
+  auto linePath = QString("axis/stroke");
 
   addAxisStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
   addAxisStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
@@ -312,7 +312,7 @@ addProperties()
 
   //---
 
-  QString ticksPath = "axis/ticks";
+  auto ticksPath = QString("axis/ticks");
 
   addAxisProp(ticksPath, "ticksDisplayed", "lines", "Axis major and/or minor ticks visible");
 
@@ -355,8 +355,8 @@ addProperties()
 
   //---
 
-  QString labelPath     = "axis/label";
-  auto    labelTextPath = labelPath + "/text";
+  auto labelPath     = QString("axis/label");
+  auto labelTextPath = labelPath + "/text";
 
   addAxisStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                    "Axis label text style", true);
@@ -853,13 +853,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
-  }
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }

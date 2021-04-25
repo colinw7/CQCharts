@@ -55,7 +55,7 @@ QStringList
 CQChartsAxisValueType::
 enumNames() const
 {
-  static QStringList names = QStringList() << "REAL" << "INTEGER" << "DATE" << "LOG";
+  static auto names = QStringList() << "REAL" << "INTEGER" << "DATE" << "LOG";
 
   return names;
 }

@@ -336,17 +336,21 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                       const ColorInd &ig, const ColorInd &iv);
 
+#if 0
   //! handle select press
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+#endif
 
   QBrush fillBrush() const override;
   QPen   strokePen() const override;
 
   bool tipText(const Point &p, QString &tip) const override;
 
+#if 0
   // get/set hidden
-  bool isSetHidden() const;
-  void setSetHidden(bool b);
+  bool isSetHidden() const override;
+  void setSetHidden(bool b) override;
+#endif
 
  private:
   Plot*   plot_ { nullptr }; //!< plot
@@ -368,7 +372,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
-  bool isSetHidden() const;
+  //bool isSetHidden() const override;
 };
 
 //---

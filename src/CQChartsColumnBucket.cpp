@@ -183,7 +183,7 @@ ind(const QString &s) const
 
 int
 CQChartsColumnBucket::
-bucket(double value) const
+bucket(const QVariant &value) const
 {
   return bucketer_.bucket(value);
 }
@@ -303,6 +303,38 @@ imax() const
     return valueSet_->ivals().imax();
   else if (columnType() == ColumnType::STRING)
     return valueSet_->svals().imax();
+  else {
+    assert(false); return 0;
+  }
+}
+
+double
+CQChartsColumnBucket::
+rmin() const
+{
+  if      (columnType() == ColumnType::REAL)
+    return valueSet_->rvals().min();
+  else if (columnType() == ColumnType::INTEGER)
+    return valueSet_->ivals().imin();
+  else if (columnType() == ColumnType::STRING) {
+    assert(false); return 0;
+  }
+  else {
+    assert(false); return 0;
+  }
+}
+
+double
+CQChartsColumnBucket::
+rmax() const
+{
+  if      (columnType() == ColumnType::REAL)
+    return valueSet_->rvals().max();
+  else if (columnType() == ColumnType::INTEGER)
+    return valueSet_->ivals().imax();
+  else if (columnType() == ColumnType::STRING) {
+    assert(false); return 0;
+  }
   else {
     assert(false); return 0;
   }

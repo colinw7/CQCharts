@@ -920,7 +920,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
                                     const QString &value) {
         if (! value.length()) return;
 
-        QString headerStr = header;
+        auto headerStr = header;
 
         if (column.isValid()) {
           headerStr = columnHeaderName(column, /*tip*/true);
@@ -1557,11 +1557,10 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+    groupItem->addRowItems(colorItem, textItem);
 
     if (c.isValid())
-      colorItem->setColor(CQChartsColor(c));
+      colorItem->setColor(Color(c));
 
     key->addItem(groupItem, row, col);
 
@@ -1810,13 +1809,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
-  }
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }
@@ -1918,7 +1912,7 @@ calcTipId() const
     if (column.isValid() && tableTip.hasColumn(column))
       return;
 
-    QString value1 = value;
+    auto value1 = value;
 
     if (! value1.length()) {
       if (column.isValid()) {
@@ -1934,7 +1928,7 @@ calcTipId() const
     if (! value1.length())
       return;
 
-    QString headerStr = header;
+    auto headerStr = header;
 
     if (column.isValid()) {
       headerStr = plot_->columnHeaderName(column, /*tip*/true);
@@ -1954,7 +1948,7 @@ calcTipId() const
     if (! value.length())
       return;
 
-    QString headerStr = header;
+    auto headerStr = header;
 
     if (columns.isValid()) {
       headerStr = plot_->columnsHeaderName(columns, /*tip*/true);
@@ -2474,8 +2468,10 @@ CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                     const ColorInd &ig, const ColorInd &iv) :
  CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot), name_(name)
 {
+  setClickable(true);
 }
 
+#if 0
 bool
 CQChartsBarKeyColor::
 selectPress(const Point &, CQChartsSelMod selMod)
@@ -2493,6 +2489,25 @@ selectPress(const Point &, CQChartsSelMod selMod)
 
   return true;
 }
+#endif
+
+#if 0
+void
+CQChartsBarKeyColor::
+doSelect(SelMod)
+{
+  CQChartsPlot::PlotObjs objs;
+
+  plot()->getGroupObjs(ig_.i, objs);
+  if (objs.empty()) return;
+
+  //---
+
+  plot()->selectObjs(objs, /*export*/true);
+
+  key_->redraw(/*wait*/ true);
+}
+#endif
 
 QBrush
 CQChartsBarKeyColor::
@@ -2547,9 +2562,7 @@ fillBrush() const
 
   //---
 
-  if (isSetHidden())
-    barColor = CQChartsUtil::blendColors(barColor, key_->interpBgColor(),
-                                         key_->hiddenAlpha().value());
+  adjustFillColor(barColor);
 
   QBrush brush;
 
@@ -2673,6 +2686,7 @@ tipText(const Point &, QString &tip) const
   return true;
 }
 
+#if 0
 bool
 CQChartsBarKeyColor::
 isSetHidden() const
@@ -2698,6 +2712,7 @@ setSetHidden(bool b)
   else if (iv_.n > 1)
     plot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
+#endif
 
 //------
 
@@ -2713,18 +2728,19 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsKeyText::interpTextColor(ind);
 
-  if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
 }
 
+#if 0
 bool
 CQChartsBarKeyText::
 isSetHidden() const
 {
   return plot_->CQChartsPlot::isSetHidden(ic_.i);
 }
+#endif
 
 //------
 

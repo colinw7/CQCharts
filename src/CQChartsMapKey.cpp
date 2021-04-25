@@ -77,7 +77,20 @@ void
 CQChartsMapKey::
 calcPosition(Position &pos, Qt::Alignment &align) const
 {
-  auto bbox = plot_->displayRangeBBox();
+  auto ibbox = plot_->displayRangeBBox();
+  auto obbox = plot_->calcGroupedDataRange(CQChartsPlot::RangeTypes().setAxes().setTitle());
+
+  auto bbox = ibbox;
+
+  if (! isInsideX()) {
+    bbox.setXMin(obbox.getXMin());
+    bbox.setXMax(obbox.getXMax());
+  }
+
+  if (! isInsideY()) {
+    bbox.setYMin(obbox.getYMin());
+    bbox.setYMax(obbox.getYMax());
+  }
 
   double x = bbox.getXMin();
   double y = bbox.getYMin();
@@ -248,6 +261,7 @@ editMove(const Point &p)
   if      (talign_ & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
   else if (talign_ & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
 
+  setLocation(Location(Location::Type::ABSOLUTE_POSITION));
   setPosition(CQChartsPosition(Point(x, y), CQChartsUnits::PLOT));
 
   editHandles()->setDragPos(p);
@@ -1068,11 +1082,11 @@ alignBoxes(PaintDevice *device) const
     double w = bbox_.getWidth ();
     double h = bbox_.getHeight();
 
-    if      (align() & Qt::AlignLeft ) dx += w/2.0;
-    else if (align() & Qt::AlignRight) dx -= w/2.0;
+    if      (talign_ & Qt::AlignLeft ) dx += w/2.0;
+    else if (talign_ & Qt::AlignRight) dx -= w/2.0;
 
-    if      (align() & Qt::AlignBottom) dy += h/2.0;
-    else if (align() & Qt::AlignTop   ) dy -= h/2.0;
+    if      (talign_ & Qt::AlignBottom) dy += h/2.0;
+    else if (talign_ & Qt::AlignTop   ) dy -= h/2.0;
   }
 
   bbox_  =  bbox_.translated(dx, dy);

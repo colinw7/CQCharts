@@ -23,9 +23,18 @@
 #include <CQPropertyViewItem.h>
 #include <CQColorsPalette.h>
 #include <CQPerfMonitor.h>
+#include <CQIconRadio.h>
+#include <CQDoubleRangeSlider.h>
+#include <CQRealSpin.h>
+#include <CQIntegerSpin.h>
+#include <CQGroupBox.h>
+#include <CQLabel.h>
+
 #include <CMathRound.h>
 
 #include <QMenu>
+#include <QLineEdit>
+#include <QHBoxLayout>
 #include <QAction>
 
 CQChartsDistributionPlotType::
@@ -54,7 +63,7 @@ addParameters()
    setTip("Bucket grouped values");
 
   addBoolParameter("autoBucket", "Auto Bucket", "autoBucket", true).
-   setTip("Automatically determine bucket ranges");
+   setTip("Automatically determine bucket ranges from data range and number of buckets");
 
   addRealParameter("startBucketValue", "Start Value", "startBucketValue", 0.0).
     setRequired().setTip("Start value for manual bucket");
@@ -71,21 +80,21 @@ addParameters()
     setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NORMAL"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
-    addNameValue("STACKED"     , int(CQChartsDistributionPlot::PlotType::STACKED     )).
-    addNameValue("SIDE_BY_SIDE", int(CQChartsDistributionPlot::PlotType::SIDE_BY_SIDE)).
-    addNameValue("OVERLAY"     , int(CQChartsDistributionPlot::PlotType::OVERLAY     )).
-    addNameValue("SCATTER"     , int(CQChartsDistributionPlot::PlotType::SCATTER     )).
-    addNameValue("DENSITY"     , int(CQChartsDistributionPlot::PlotType::DENSITY     )).
+    addNameValue("NORMAL"      , int(Plot::PlotType::NORMAL      )).
+    addNameValue("STACKED"     , int(Plot::PlotType::STACKED     )).
+    addNameValue("SIDE_BY_SIDE", int(Plot::PlotType::SIDE_BY_SIDE)).
+    addNameValue("OVERLAY"     , int(Plot::PlotType::OVERLAY     )).
+    addNameValue("SCATTER"     , int(Plot::PlotType::SCATTER     )).
+    addNameValue("DENSITY"     , int(Plot::PlotType::DENSITY     )).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("COUNT", int(CQChartsDistributionPlot::ValueType::COUNT)).
-   addNameValue("RANGE", int(CQChartsDistributionPlot::ValueType::RANGE)).
-   addNameValue("MIN"  , int(CQChartsDistributionPlot::ValueType::MIN  )).
-   addNameValue("MAX"  , int(CQChartsDistributionPlot::ValueType::MAX  )).
-   addNameValue("MEAN" , int(CQChartsDistributionPlot::ValueType::MEAN )).
-   addNameValue("SUM"  , int(CQChartsDistributionPlot::ValueType::SUM  )).
+   addNameValue("COUNT", int(Plot::ValueType::COUNT)).
+   addNameValue("RANGE", int(Plot::ValueType::RANGE)).
+   addNameValue("MIN"  , int(Plot::ValueType::MIN  )).
+   addNameValue("MAX"  , int(Plot::ValueType::MAX  )).
+   addNameValue("MEAN" , int(Plot::ValueType::MEAN )).
+   addNameValue("SUM"  , int(Plot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value as percentage");
@@ -128,7 +137,7 @@ description() const
        "or to place the bars side by side by bucket instead of by group.").
      p("The data can also be displayed as a scattered points each representing a fixed size "
        "bucket of points").
-     p("The data can also be displayed as a density plot per bucker as long as the values "
+     p("The data can also be displayed as a density plot per bucket as long as the values "
        "are numeric").
     h3("Value Type").
      p("Normally the number of values in each bucket is displayed as the height of the bar. "
@@ -153,7 +162,7 @@ CQChartsPlot *
 CQChartsDistributionPlotType::
 create(View *view, const ModelP &model) const
 {
-  return new CQChartsDistributionPlot(view, model);
+  return new Plot(view, model);
 }
 
 //------
@@ -185,8 +194,8 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setAutoBucket    (true);
-  setNumAutoBuckets(20);
+  setBucketType(CQBucketer::Type::REAL_AUTO);
+  setNumAutoBuckets(15);
 
   setStatsLines(false);
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
@@ -220,6 +229,19 @@ term()
 }
 
 //---
+
+void
+CQChartsDistributionPlot::
+setValueColumns(const Columns &c)
+{
+  if (c != valueColumns()) {
+    exactValue_ = false;
+
+    bucketer_.setType(CQBucketer::Type::REAL_AUTO);
+
+    CQChartsBarPlot::setValueColumns(c);
+  }
+}
 
 void
 CQChartsDistributionPlot::
@@ -290,19 +312,14 @@ bool
 CQChartsDistributionPlot::
 isAutoBucket() const
 {
-  return (bucketer_.type() == CQBucketer::Type::REAL_AUTO);
+  return (bucketType() == CQBucketer::Type::REAL_AUTO);
 }
 
 void
 CQChartsDistributionPlot::
 setAutoBucket(bool b)
 {
-  bucketer_.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
-
-  for (auto &ib : groupData_.groupBucketer)
-    ib.second.setType(bucketer_.type());
-
-  updateRangeAndObjs();
+  setBucketType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
 }
 
 double
@@ -316,12 +333,11 @@ void
 CQChartsDistributionPlot::
 setStartBucketValue(double r)
 {
-  bucketer_.setRStart(r);
+  if (r != startBucketValue()) {
+    bucketer_.setRStart(r);
 
-  for (auto &ib : groupData_.groupBucketer)
-    ib.second.setRStart(r);
-
-  updateRangeAndObjs();
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
 }
 
 double
@@ -335,12 +351,47 @@ void
 CQChartsDistributionPlot::
 setDeltaBucketValue(double r)
 {
-  bucketer_.setRDelta(r);
+  if (r != deltaBucketValue()) {
+    bucketer_.setRDelta(r);
 
-  for (auto &ib : groupData_.groupBucketer)
-    ib.second.setRDelta(r);
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
+}
 
-  updateRangeAndObjs();
+double
+CQChartsDistributionPlot::
+minBucketValue() const
+{
+  return bucketer_.rmin();
+}
+
+void
+CQChartsDistributionPlot::
+setMinBucketValue(double r)
+{
+  if (r != minBucketValue()) {
+    bucketer_.setRMin(r);
+
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
+}
+
+double
+CQChartsDistributionPlot::
+maxBucketValue() const
+{
+  return bucketer_.rmax();
+}
+
+void
+CQChartsDistributionPlot::
+setMaxBucketValue(double r)
+{
+  if (r != maxBucketValue()) {
+    bucketer_.setRMax(r);
+
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
 }
 
 int
@@ -352,14 +403,139 @@ numAutoBuckets() const
 
 void
 CQChartsDistributionPlot::
-setNumAutoBuckets(int i)
+setNumAutoBuckets(int n)
 {
-  bucketer_.setNumAuto(i);
+  if (n != numAutoBuckets()) {
+    bucketer_.setNumAuto(n);
 
-  for (auto &ib : groupData_.groupBucketer)
-    ib.second.setNumAuto(i);
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
+}
 
-  updateRangeAndObjs();
+void
+CQChartsDistributionPlot::
+setExactBucketValue(bool b)
+{
+  if (b != exactValue_) {
+    exactValue_ = b;
+
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+setUnderflowBucket(const CQChartsOptReal &r)
+{
+  CQChartsUtil::testAndSet(underflowBucket_, r, [&]() {
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+void
+CQChartsDistributionPlot::
+setOverflowBucket(const CQChartsOptReal &r)
+{
+  CQChartsUtil::testAndSet(overflowBucket_, r, [&]() {
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+void
+CQChartsDistributionPlot::
+setBucketStops(const CQChartsReals &r)
+{
+  CQChartsUtil::testAndSet(bucketStops_, r, [&]() {
+    CQBucketer::RStops rstops;
+
+    for (const auto &r : bucketStops_.reals())
+      rstops.insert(r);
+
+    bucketer_.setRStops(rstops);
+
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+int
+CQChartsDistributionPlot::
+numUniqueValues() const
+{
+  return numUnique_;
+}
+
+//---
+
+CQBucketer::Type
+CQChartsDistributionPlot::
+bucketType() const
+{
+  return bucketer_.type();
+}
+
+void
+CQChartsDistributionPlot::
+setBucketType(const CQBucketer::Type &type)
+{
+  if (type != bucketType() || exactValue_) {
+    exactValue_ = false;
+
+    bucketer_.setType(type);
+
+    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+  }
+}
+
+CQBucketer::Type
+CQChartsDistributionPlot::
+bucketRealType() const
+{
+  auto type = bucketer_.type();
+
+  if (type == CQBucketer::Type::STRING)
+    type = CQBucketer::Type::REAL_AUTO;
+
+  return type;
+}
+
+void
+CQChartsDistributionPlot::
+updateGroupBucketers()
+{
+  for (auto &ib : groupData_.groupBucketer) {
+    auto &bucketer = ib.second;
+
+    initBucketer(bucketer);
+  }
+}
+
+void
+CQChartsDistributionPlot::
+initBucketer(CQBucketer &bucketer)
+{
+  bucketer.setType(bucketType());
+
+  bucketer.setRStart(startBucketValue());
+  bucketer.setRDelta(deltaBucketValue());
+
+  auto rmin = minBucketValue  ();
+  auto rmax = maxBucketValue  ();
+
+  if (underflowBucket_.isSet())
+    bucketer.setRMin(std::max(underflowBucket_.real(), rmin));
+  else
+    bucketer.setRMin(rmin);
+
+  if (overflowBucket_.isSet())
+    bucketer.setRMax(std::min(overflowBucket_.real(), rmax));
+  else
+    bucketer.setRMax(rmax);
+
+  bucketer.setRStops(bucketer_.rstops());
+
+  bucketer.setNumAuto(numAutoBuckets());
 }
 
 //---
@@ -419,10 +595,12 @@ addProperties()
   addProp("bucket", "autoBucket"      , "auto"   , "Automatically determine bucket ranges");
   addProp("bucket", "startBucketValue", "start"  , "Start value for manual bucket");
   addProp("bucket", "deltaBucketValue", "delta"  , "Delta value for manual bucket");
+  addProp("bucket", "minBucketValue"  , "min"    , "Min value for auto bucket");
+  addProp("bucket", "maxBucketValue"  , "max"    , "Max value for auto bucket");
   addProp("bucket", "numAutoBuckets"  , "num"    , "Number of auto buckets");
 
-  addProp("bucket", "underflowBucket", "underflow", "Underflow bucket threshhold");
-  addProp("bucket", "overflowBucket" , "overflow" , "Overflow bucket threshhold");
+  addProp("bucket", "underflowBucket", "underflow", "Underflow threshhold for auto bucket");
+  addProp("bucket", "overflowBucket" , "overflow" , "Overflow threshhold for auto bucket");
 
   // options
   addProp("options", "plotType" , "plotType" , "Plot type");
@@ -718,22 +896,6 @@ setIncludeOutlier(bool b)
 
 void
 CQChartsDistributionPlot::
-setUnderflowBucket(const CQChartsOptReal &r)
-{
-  CQChartsUtil::testAndSet(underflowBucket_, r, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setOverflowBucket(const CQChartsOptReal &r)
-{
-  CQChartsUtil::testAndSet(overflowBucket_, r, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsDistributionPlot::
 setMinBarSize(double s)
 {
   CQChartsUtil::testAndSet(minBarSize_, s, [&]() { drawObjs(); } );
@@ -840,7 +1002,59 @@ calcRange() const
 
   bucketGroupValues();
 
-  return calcBucketRanges();
+  auto range = calcBucketRanges();
+
+  //---
+
+  int groupInd = 0;
+
+  auto p = groupData_.groupBucketer.begin();
+
+  if (p != groupData_.groupBucketer.end())
+    groupInd = (*p).first;
+
+  const auto &bucketer = th->groupBucketer(groupInd);
+  const auto &values   = th->getGroupValues(groupInd);
+
+  // if numeric values then ensure we are using a real bucketer
+  if (values->valueSet->isNumeric()) {
+    auto type = bucketer.type();
+
+    if (type == CQBucketer::Type::STRING)
+      type = CQBucketer::Type::REAL_AUTO;
+
+    th->bucketer_.setType(type);
+
+    if (bucketer.type() == CQBucketer::Type::REAL_AUTO) {
+      // init preferred real start and delta values
+      CInterval interval;
+
+      interval.setStart   (bucketer.rmin());
+      interval.setEnd     (bucketer.rmax());
+      interval.setNumMajor(numAutoBuckets());
+
+      th->bucketer_.setRStart(interval.calcStart());
+      th->bucketer_.setRDelta(interval.calcIncrement());
+    }
+
+    // init real range values
+    th->bucketer_.setRMin(values->valueSet->rmin());
+    th->bucketer_.setRMax(values->valueSet->rmax());
+  }
+  // if non-numeric values then ensure we are using a string bucketer
+  else {
+    th->bucketer_.setType(CQBucketer::Type::STRING);
+  }
+
+  th->numUnique_ = values->valueSet->numUnique();
+
+  th->bucketer_.setType(bucketer.type());
+
+  emit th->customDataChanged();
+
+  //--
+
+  return range;
 }
 
 void
@@ -890,26 +1104,47 @@ bucketGroupValues() const
       auto *values = groupValues.second;
 
       if      (type == CQChartsValueSet::Type::INTEGER) {
+        bucketer.setType(bucketRealType());
+
+        int imin = values->valueSet->imin();
+        int imax = values->valueSet->imax();
+
+        if (underflowBucket_.isSet()) imin = std::max(int(underflowBucket_.real()), imin);
+        if (overflowBucket_ .isSet()) imax = std::min(int(overflowBucket_ .real()), imax);
+
         if (iv == 0) {
           bucketer.setIntegral(true);
-          bucketer.setIMin    (values->valueSet->imin());
-          bucketer.setIMax    (values->valueSet->imax());
+
+          bucketer.setIMin(imin);
+          bucketer.setIMax(imax);
         }
         else {
-          bucketer.setIMin(std::min(bucketer.imin(), values->valueSet->imin()));
-          bucketer.setIMax(std::max(bucketer.imax(), values->valueSet->imax()));
+          bucketer.setIMin(std::min(bucketer.imin(), imin));
+          bucketer.setIMax(std::max(bucketer.imax(), imax));
         }
       }
       else if (type == CQChartsValueSet::Type::REAL) {
+        bucketer.setType(bucketRealType());
+
+        double rmin = values->valueSet->rmin();
+        double rmax = values->valueSet->rmax();
+
+        if (underflowBucket_.isSet()) rmin = std::max(underflowBucket_.real(), rmin);
+        if (overflowBucket_ .isSet()) rmax = std::min(overflowBucket_ .real(), rmax);
+
         if (iv == 0) {
           bucketer.setIntegral(false);
-          bucketer.setRMin    (values->valueSet->rmin());
-          bucketer.setRMax    (values->valueSet->rmax());
+
+          bucketer.setRMin(rmin);
+          bucketer.setRMax(rmax);
         }
         else {
-          bucketer.setRMin(std::min(bucketer.rmin(), values->valueSet->rmin()));
-          bucketer.setRMax(std::max(bucketer.rmax(), values->valueSet->rmax()));
+          bucketer.setRMin(std::min(bucketer.rmin(), rmin));
+          bucketer.setRMax(std::max(bucketer.rmax(), rmax));
         }
+      }
+      else {
+        bucketer.setType(CQBucketer::Type::STRING);
       }
 
       ++iv;
@@ -930,14 +1165,33 @@ bucketGroupValues() const
       auto type = values->valueSet->type();
 
       if      (type == CQChartsValueSet::Type::INTEGER) {
+        bucketer.setType(bucketRealType());
         bucketer.setIntegral(true);
-        bucketer.setIMin    (values->valueSet->imin());
-        bucketer.setIMax    (values->valueSet->imax());
+
+        int imin = values->valueSet->imin();
+        int imax = values->valueSet->imax();
+
+        if (underflowBucket_.isSet()) imin = std::max(int(underflowBucket_.real()), imin);
+        if (overflowBucket_ .isSet()) imax = std::min(int(overflowBucket_ .real()), imax);
+
+        bucketer.setIMin(imin);
+        bucketer.setIMax(imax);
       }
       else if (type == CQChartsValueSet::Type::REAL) {
+        bucketer.setType(bucketRealType());
         bucketer.setIntegral(false);
-        bucketer.setRMin    (values->valueSet->rmin());
-        bucketer.setRMax    (values->valueSet->rmax());
+
+        double rmin = values->valueSet->rmin();
+        double rmax = values->valueSet->rmax();
+
+        if (underflowBucket_.isSet()) rmin = std::max(underflowBucket_.real(), rmin);
+        if (overflowBucket_ .isSet()) rmax = std::min(overflowBucket_ .real(), rmax);
+
+        bucketer.setRMin(rmin);
+        bucketer.setRMax(rmax);
+      }
+      else {
+        bucketer.setType(CQBucketer::Type::STRING);
       }
     }
   }
@@ -1154,8 +1408,10 @@ calcBucketRanges() const
 
         this->bucketValues(groupInd, bucket, value1, value2);
 
-        values->xValueRange.add(value1);
-        values->xValueRange.add(value2);
+        if (! bucket.isUnderflow() && ! bucket.isOverflow()) {
+          values->xValueRange.add(value1);
+          values->xValueRange.add(value2);
+        }
 
         //---
 
@@ -1588,26 +1844,39 @@ CQChartsDistributionPlot::Bucket
 CQChartsDistributionPlot::
 calcBucket(int groupInd, double value) const
 {
-  if (underflowBucket_.isSet() && value < underflowBucket_.real())
-    return Bucket(Bucket::Type::UNDERFLOW);
+  bool exactValue = isExactBucketValue();
 
-  if (overflowBucket_.isSet() && value > overflowBucket_.real())
-    return Bucket(Bucket::Type::OVERFLOW);
+  if (! exactValue && bucketType() == CQBucketer::Type::REAL_AUTO) {
+    if (underflowBucket_.isSet() && value < underflowBucket_.real())
+      return Bucket(Bucket::Type::UNDERFLOW);
+
+    if (overflowBucket_.isSet() && value > overflowBucket_.real())
+      return Bucket(Bucket::Type::OVERFLOW);
+  }
 
   //---
 
   int num = -1;
 
-  const auto &bucketer = groupBucketer(groupInd);
+  const auto &bucketer = groupBucketer (groupInd);
+  const auto &values   = getGroupValues(groupInd);
 
   if (filterStack_.empty()) {
     if (! isBucketed())
       return Bucket(-1);
 
-    if (isAutoBucket())
+    if      (exactValue) {
+      if (values->valueSet->type() == CQBaseModelType::INTEGER)
+        num = values->valueSet->iid(value);
+      else
+        num = values->valueSet->rid(value);
+    }
+    else if (bucketType() == CQBucketer::Type::REAL_AUTO)
       num = bucketer.autoRealBucket(value);
-    else
+    else if (bucketType() == CQBucketer::Type::REAL_RANGE)
       num = bucketer.realBucket(value);
+    else if (bucketType() == CQBucketer::Type::FIXED_STOPS)
+      num = bucketer.stopsRealBucket(value);
   }
   else {
     num = bucketer.autoRealBucket(value);
@@ -2581,14 +2850,7 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    if (! key->isFlipped()) {
-      groupItem->addItem(colorItem);
-      groupItem->addItem(textItem );
-    }
-    else {
-      groupItem->addItem(textItem );
-      groupItem->addItem(colorItem);
-    }
+    groupItem->addRowItems(colorItem, textItem);
 
     key->addItem(groupItem, row, col);
 
@@ -2767,8 +3029,10 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
 
     bucketValues(groupInd, bucket, value1, value2);
 
-    if      (type == BucketValueType::ALL) {
-      if (bucketer.isIntegral()) {
+    if      (isExactBucketValue())
+      return QString("%1").arg(value1);
+    else if (type == BucketValueType::ALL) {
+      if (bucketer.isIntegral() && ! CMathUtil::isInf(value1) && ! CMathUtil::isInf(value2)) {
         int ivalue1 = CMathRound::RoundNearest(value1);
         int ivalue2 = CMathRound::RoundNearest(value2);
 
@@ -2793,7 +3057,7 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
       return "";
 
 #if 0
-    if (isAutoBucket())
+    if (bucketType() == CQBucketer::Type::REAL_AUTO)
       return values->valueSet->buckets(bucket);
     else
       return values->valueSet->inds(bucket);
@@ -2813,13 +3077,28 @@ bucketValues(int groupInd, const Bucket &bucket, double &value1, double &value2)
 
   if      (bucket.hasValue()) {
     const auto &bucketer = groupBucketer(groupInd);
+    const auto &values   = getGroupValues(groupInd);
 
-    bool isAuto = (! filterStack_.empty() || isAutoBucket());
+    if (filterStack_.empty()) {
+      bool exactValue = isExactBucketValue();
 
-    if (isAuto)
-      bucketer.autoBucketValues(bucket.value(), value1, value2);
+      if      (exactValue) {
+        if (values->valueSet->type() == CQBaseModelType::INTEGER)
+          value1 = values->valueSet->idi(bucket.value());
+        else
+          value1 = values->valueSet->idr(bucket.value());
+
+        value2 = value1;
+      }
+      else if (bucketType() == CQBucketer::Type::REAL_AUTO)
+        bucketer.autoBucketValues(bucket.value(), value1, value2);
+      else if (bucketType() == CQBucketer::Type::REAL_RANGE)
+        bucketer.bucketRValues(bucket.value(), value1, value2);
+      else if (bucketType() == CQBucketer::Type::FIXED_STOPS)
+        bucketer.rstopsBucketValues(bucket.value(), value1, value2);
+    }
     else
-      bucketer.bucketRValues(bucket.value(), value1, value2);
+       bucketer.autoBucketValues(bucket.value(), value1, value2);
 
     if (CMathUtil::isZero(value1)) value1 = 0.0;
     if (CMathUtil::isZero(value2)) value2 = 0.0;
@@ -2854,12 +3133,7 @@ groupBucketer(int groupInd)
   if (p == groupData_.groupBucketer.end()) {
     CQBucketer bucketer;
 
-    bucketer.setType(bucketer_.type());
-
-    bucketer.setRStart(bucketer_.rstart());
-    bucketer.setRDelta(bucketer_.rdelta());
-
-    bucketer.setNumAuto(bucketer_.numAuto());
+    initBucketer(bucketer);
 
     p = groupData_.groupBucketer.insert(p, GroupBucketer::value_type(groupInd, bucketer));
   }
@@ -2963,7 +3237,7 @@ addMenuItems(QMenu *menu)
   (void) addMenuCheckedAction(typeMenu, "Scatter", isScatter(), SLOT(setScatter(bool)));
   (void) addMenuCheckedAction(typeMenu, "Density", isDensity(), SLOT(setDensity(bool)));
 
-  if (! typeMenu)
+  if (typeMenu)
     menu->addMenu(typeMenu);
 
   auto *valueMenu = new QMenu("Value Type", menu);
@@ -3009,13 +3283,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
-  }
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }
@@ -3260,11 +3529,11 @@ createCustomControls()
 //------
 
 CQChartsDistributionBarObj::
-CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const BBox &rect,
-                           int groupInd, const Bucket &bucket, const BarValue &barValue,
-                           bool isLine, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect, ColorInd(), ig, iv),
- plot_(plot), groupInd_(groupInd), bucket_(bucket), barValue_(barValue), isLine_(isLine)
+CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd, const Bucket &bucket,
+                           const BarValue &barValue, bool isLine, const ColorInd &ig,
+                           const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ig, iv), plot_(plot),
+ groupInd_(groupInd), bucket_(bucket), barValue_(barValue), isLine_(isLine)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -3497,7 +3766,7 @@ void
 CQChartsDistributionBarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  CQChartsDistributionPlot::VariantInds vinds;
+  Plot::VariantInds vinds;
 
   plot_->getInds(groupInd_, bucket_, vinds);
 
@@ -3513,7 +3782,7 @@ CQChartsDistributionBarObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
   if (column.isValid()) {
-    CQChartsDistributionPlot::VariantInds vinds;
+    Plot::VariantInds vinds;
 
     plot_->getInds(groupInd_, bucket_, vinds);
 
@@ -3544,7 +3813,7 @@ draw(PaintDevice *device) const
   CQChartsImage image;
 
   if (plot_->imageColumn().isValid()) {
-    CQChartsDistributionPlot::VariantInds vinds;
+    Plot::VariantInds vinds;
 
     plot_->getInds(groupInd_, bucket_, vinds);
 
@@ -3777,7 +4046,7 @@ getBarColoredRects(ColorData &colorData) const
 
   // for count value type get count of unique colors for values
   // for sum value type get fraction of total for values
-  CQChartsDistributionPlot::VariantInds vinds;
+  Plot::VariantInds vinds;
 
   plot_->getInds(groupInd_, bucket_, vinds);
 
@@ -4161,10 +4430,10 @@ yColorValue(bool relative) const
 //------
 
 CQChartsDistributionDensityObj::
-CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const BBox &rect,
-                               int groupInd, const Data &data, double doffset, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), data_(data), doffset_(doffset), is_(is)
+CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd, const Data &data,
+                               double doffset, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ data_(data), doffset_(doffset), is_(is)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -4470,11 +4739,11 @@ writeScriptData(ScriptPaintDevice *device) const
 //------
 
 CQChartsDistributionScatterObj::
-CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const BBox &rect,
-                               int groupInd, const Bucket &bucket, int n,
-                               const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), bucket_(bucket), n_(n), is_(is), iv_(iv)
+CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
+                               const Bucket &bucket, int n, const ColorInd &is,
+                               const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ bucket_(bucket), n_(n), is_(is), iv_(iv)
 {
   // get factored number of points
   int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
@@ -4574,15 +4843,17 @@ draw(PaintDevice *device) const
 //------
 
 CQChartsDistKeyColorBox::
-CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, const ColorInd &ig, const ColorInd &iv,
+CQChartsDistKeyColorBox(Plot *plot, const ColorInd &ig, const ColorInd &iv,
                         const RangeValue &xv, const RangeValue &yv) :
  CQChartsKeyColorBox(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
 {
+  setClickable(true);
 }
 
+#if 0
 bool
 CQChartsDistKeyColorBox::
-selectPress(const Point &, CQChartsSelMod)
+selectPress(const Point &, SelMod)
 {
   setSetHidden(! isSetHidden());
 
@@ -4590,6 +4861,25 @@ selectPress(const Point &, CQChartsSelMod)
 
   return true;
 }
+#endif
+
+#if 0
+void
+CQChartsDistKeyColorBox::
+doSelect(SelMod)
+{
+  CQChartsPlot::PlotObjs objs;
+
+  plot()->getGroupObjs(ig_.i, objs);
+  if (objs.empty()) return;
+
+  //---
+
+  plot()->selectObjs(objs, /*export*/true);
+
+  key_->redraw(/*wait*/ true);
+}
+#endif
 
 QBrush
 CQChartsDistKeyColorBox::
@@ -4602,12 +4892,12 @@ fillBrush() const
 
   auto c = plot_->interpBarFillColor(colorInd);
 
-  if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
 }
 
+#if 0
 bool
 CQChartsDistKeyColorBox::
 isSetHidden() const
@@ -4627,11 +4917,12 @@ setSetHidden(bool b)
   else
     plot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
+#endif
 
 //------
 
 CQChartsDistKeyText::
-CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, const ColorInd &iv) :
+CQChartsDistKeyText(Plot *plot, const QString &text, const ColorInd &iv) :
  CQChartsKeyText(plot, text, iv)
 {
 }
@@ -4642,18 +4933,19 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsKeyText::interpTextColor(ind);
 
-  if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
 }
 
+#if 0
 bool
 CQChartsDistKeyText::
 isSetHidden() const
 {
   return plot_->CQChartsPlot::isSetHidden(ic_.i);
 }
+#endif
 
 //------
 
@@ -4702,6 +4994,67 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  // bucket group
+  auto bucketFrame = createGroupFrame("Bucket", "bucketFrame");
+
+  auto *bucketCornerFrame  = CQUtil::makeWidget<QFrame>("bucketCornerFrame");
+  auto *bucketCornerLayout = CQUtil::makeLayout<QHBoxLayout>(bucketCornerFrame, 0, 2);
+
+  bucketRadioGroup_ = new QButtonGroup(this);
+
+  auto createBucketRadio = [&](const QString &name, const QString &icon, const QString &tip) {
+    auto *radio = CQUtil::makeWidget<CQIconRadio>(name);
+
+    radio->setIcon(icon);
+
+    radio->setToolTip(tip);
+
+    bucketRadioGroup_->addButton(radio);
+
+    bucketCornerLayout->addWidget(radio);
+
+    return radio;
+  };
+
+  uniqueBucketRadio_ =
+    createBucketRadio("uniqueBucketRadio", "BUCKET_UNIQUE", "Bucket per Unique Value");
+  fixedBucketRadio_  =
+    createBucketRadio("fixedBucketRadio", "BUCKET_FIXED", "Bucket from Start and Delta");
+  rangeBucketRadio_  =
+    createBucketRadio("rangeBucketRadio", "BUCKET_RANGE", "Bucket from Range and Number");
+  stopsBucketRadio_  =
+    createBucketRadio("stopsBucketRadio", "BUCKET_STOPS", "Buckets for specified Stops");
+
+  bucketFrame.groupBox->setCornerWidget(bucketCornerFrame);
+
+  //---
+
+  bucketRange_     = CQUtil::makeWidget<CQDoubleRangeSlider>("bucketRange");
+  startBucketEdit_ = CQUtil::makeWidget<CQRealSpin>("startBucketEdit");
+  deltaBucketEdit_ = CQUtil::makeWidget<CQRealSpin>("deltaBucketEdit");
+  numBucketsEdit_  = CQUtil::makeWidget<CQIntegerSpin>("numBucketsEdit");
+  bucketStopsEdit_ = CQUtil::makeWidget<QLineEdit>("bucketStopsEdit");
+  uniqueCount_     = CQUtil::makeWidget<CQLabel>("uniqueCount");
+  rangeLabel_      = CQUtil::makeWidget<QLabel>("rangeLabel");
+
+  bucketRange_    ->setToolTip("Bucket Range");
+  startBucketEdit_->setToolTip("Bucket Start");
+  deltaBucketEdit_->setToolTip("Bucket Delta");
+  numBucketsEdit_ ->setToolTip("Number of Buckets");
+  bucketStopsEdit_->setToolTip("Bucket Stops");
+  uniqueCount_    ->setToolTip("Number of Unique Values");
+  rangeLabel_     ->setToolTip("Value Range");
+
+  addFrameWidget(bucketFrame, "Range"      , bucketRange_);
+  addFrameWidget(bucketFrame, "Start"      , startBucketEdit_);
+  addFrameWidget(bucketFrame, "Delta"      , deltaBucketEdit_);
+  addFrameWidget(bucketFrame, "Num Buckets", numBucketsEdit_);
+  addFrameWidget(bucketFrame, "Stops"      , bucketStopsEdit_);
+  addFrameWidget(bucketFrame, "Num Unique" , uniqueCount_);
+  addFrameWidget(bucketFrame, "Value Range", rangeLabel_);
+
+  //---
+
   addGroupColumnWidgets();
   addColorColumnWidgets ();
 
@@ -4714,25 +5067,17 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
 
 void
 CQChartsDistributionPlotCustomControls::
-connectSlots(bool b)
-{
-  CQChartsWidgetUtil::connectDisconnect(b,
-    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
-
-  CQChartsGroupPlotCustomControls::connectSlots(b);
-}
-
-void
-CQChartsDistributionPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsDistributionPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -4749,11 +5094,73 @@ updateWidgets()
 
   //---
 
+  bool isUnique = plot_->isExactBucketValue();
+  bool isString = (plot_->bucketType() == CQBucketer::Type::STRING);
+  bool isFixed  = (plot_->bucketType() == CQBucketer::Type::REAL_RANGE);
+  bool isAuto   = (plot_->bucketType() == CQBucketer::Type::REAL_AUTO);
+  bool isStops  = (plot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
+
+  if      (! isUnique && isFixed) fixedBucketRadio_ ->setChecked(true);
+  else if (! isUnique && isAuto ) rangeBucketRadio_ ->setChecked(true);
+  else if (! isUnique && isStops) stopsBucketRadio_ ->setChecked(true);
+  else if (isUnique             ) uniqueBucketRadio_->setChecked(true);
+
+  fixedBucketRadio_->setEnabled(! isString);
+  rangeBucketRadio_->setEnabled(! isString);
+  stopsBucketRadio_->setEnabled(! isString);
+
+  bucketRange_    ->setRangeMinMax(plot_->minBucketValue(), plot_->maxBucketValue());
+  startBucketEdit_->setValue(plot_->startBucketValue());
+  deltaBucketEdit_->setValue(plot_->deltaBucketValue());
+  numBucketsEdit_ ->setValue(plot_->numAutoBuckets());
+  bucketStopsEdit_->setText(plot_->bucketStops().toString());
+  uniqueCount_    ->setValue(plot_->numUniqueValues());
+  rangeLabel_     ->setText(QString("%1-%2").arg(plot_->minBucketValue()).
+                                             arg(plot_->maxBucketValue()));
+
+  setFrameWidgetVisible(bucketRange_    , ! isUnique && isAuto);
+  setFrameWidgetVisible(startBucketEdit_, ! isUnique && isFixed);
+  setFrameWidgetVisible(deltaBucketEdit_, ! isUnique && isFixed);
+  setFrameWidgetVisible(numBucketsEdit_ , ! isUnique && isAuto);
+  setFrameWidgetVisible(bucketStopsEdit_, ! isUnique && isStops);
+  setFrameWidgetVisible(uniqueCount_    , isUnique || isString);
+  setFrameWidgetVisible(rangeLabel_     , isUnique || isFixed || isStops);
+
+  //---
+
   CQChartsGroupPlotCustomControls::updateWidgets();
 
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    bucketRadioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
+    this, SLOT(bucketRadioGroupSlot(QAbstractButton *)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    bucketRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(bucketRangeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    startBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(startBucketSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    deltaBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(deltaBucketSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    numBucketsEdit_, SIGNAL(valueChanged(int)), this, SLOT(numBucketsSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    bucketStopsEdit_, SIGNAL(editingFinished()), this, SLOT(bucketStopsSlot()));
+
+  CQChartsGroupPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -4775,4 +5182,73 @@ CQChartsDistributionPlotCustomControls::
 valueTypeSlot()
 {
   plot_->setValueType((CQChartsDistributionPlot::ValueType) valueTypeCombo_->currentValue());
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+bucketRadioGroupSlot(QAbstractButton *button)
+{
+  if      (button == fixedBucketRadio_)
+    plot_->setBucketType(CQBucketer::Type::REAL_RANGE);
+  else if (button == rangeBucketRadio_)
+    plot_->setBucketType(CQBucketer::Type::REAL_AUTO);
+  else if (button == stopsBucketRadio_)
+    plot_->setBucketType(CQBucketer::Type::FIXED_STOPS);
+  else if (button == uniqueBucketRadio_) {
+    if (plot_->bucketType() != CQBucketer::Type::STRING)
+      plot_->setExactBucketValue(true);
+  }
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+bucketRangeSlot()
+{
+  connectSlots(false);
+
+  setUpdatesEnabled(false);
+
+  if (bucketRange_->sliderMin() != bucketRange_->rangeMin())
+    plot_->setUnderflowBucket(CQChartsOptReal(bucketRange_->sliderMin()));
+  else
+    plot_->setUnderflowBucket(CQChartsOptReal());
+
+  if (bucketRange_->sliderMax() != bucketRange_->rangeMax())
+    plot_->setOverflowBucket(CQChartsOptReal(bucketRange_->sliderMax()));
+  else
+    plot_->setOverflowBucket(CQChartsOptReal());
+
+  setUpdatesEnabled(true);
+
+  connectSlots(true);
+
+  updateWidgets();
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+startBucketSlot()
+{
+  plot_->setStartBucketValue(startBucketEdit_->value());
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+deltaBucketSlot()
+{
+  plot_->setDeltaBucketValue(deltaBucketEdit_->value());
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+numBucketsSlot()
+{
+  plot_->setNumAutoBuckets(numBucketsEdit_->value());
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+bucketStopsSlot()
+{
+  plot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
 }

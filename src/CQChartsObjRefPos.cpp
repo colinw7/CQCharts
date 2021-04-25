@@ -61,7 +61,7 @@ fromString(const QString &str)
     if (! parse.readNonSpace(word2))
       return false;
 
-    QStringList strs = QStringList() << word1 << word2;
+    auto strs = QStringList() << word1 << word2;
 
     if (! objRef_.fromStrings(strs))
       return false;

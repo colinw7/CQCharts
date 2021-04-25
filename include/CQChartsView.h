@@ -263,6 +263,7 @@ class CQChartsView : public QFrame,
   using BrushData   = CQChartsBrushData;
   using ColorInd    = CQChartsUtil::ColorInd;
   using RegionMgr   = CQChartsRegionMgr;
+  using KeyBehavior = CQChartsKeyPressBehavior;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -290,38 +291,49 @@ class CQChartsView : public QFrame,
 
   //---
 
+  //! get/set id
   const QString &id() const { return id_; }
   void setId(const QString &s);
 
+  //! get/set title
   const QString &title() const { return title_; }
   void setTitle(const QString &s);
 
   //---
 
+  //! get/set current plot index
   int currentPlotInd() const { return currentPlotInd_; }
   void setCurrentPlotInd(int i);
 
+  //! get/set current plot
+  Plot *currentPlot(bool remap=true) const;
+  void setCurrentPlot(Plot *plot);
+
   //---
 
+  //! get/set current mouse mode
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
 
+  //! get/set default key press behavior
+  const KeyBehavior &keyBehavior() const { return keyBehavior_; }
+  void setKeyBehavior(const KeyBehavior &b);
+
   //---
 
+  //! get/set mouse selection mode
   const SelectMode &selectMode() const { return selectData_.mode; }
   void setSelectMode(const SelectMode &m);
 
+  //! get/set mouse selection is inside
   bool isSelectInside() const { return selectData_.inside; }
   void setSelectInside(bool b) { selectData_.inside = b; }
 
   //---
 
+  //! get/set region mode
   const RegionMode &regionMode() const { return regionData_.mode; }
   void setRegionMode(const RegionMode &m);
-
-  //---
-
-  void setCurrentPlot(Plot *plot);
 
   //---
 
@@ -860,6 +872,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void addKeyLocationActions(QMenu *menu, const CQChartsKeyLocation &location,
+                             QObject *slotObj, const char *slotName, bool includeAuto);
+
+  //---
+
   // mouse data
   const Plots &mousePlots() const { return mouseData_.plots; }
   const Plot *mousePlot() const { return mouseData_.plot; }
@@ -906,9 +923,6 @@ class CQChartsView : public QFrame,
   // convert plot to/from index
   Plot *getPlotForInd(int ind) const;
   int getIndForPlot(const Plot *plot) const;
-
-  // get current plot
-  Plot *currentPlot(bool remap=true) const;
 
   int calcCurrentPlotInd(bool remap=true) const;
 
@@ -1451,6 +1465,8 @@ class CQChartsView : public QFrame,
 
   using Separators = std::vector<CQChartsSplitter *>;
 
+  //---
+
   static QSize defSizeHint_;
 
   CQCharts* charts_ { nullptr }; //!< parent charts
@@ -1472,7 +1488,8 @@ class CQChartsView : public QFrame,
   int         currentPlotInd_ { -1 }; //!< current plot index
   Annotations annotations_;           //!< annotations
 
-  Mode mode_ { Mode::SELECT }; //!< mouse mode
+  Mode        mode_        { Mode::SELECT };            //!< mouse mode
+  KeyBehavior keyBehavior_ { KeyBehavior::Type::SHOW }; //!< default key press behavior
 
   // select/highlight data
   SelectData    selectData_;        //!< select sub mode data

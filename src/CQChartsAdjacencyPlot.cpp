@@ -1102,11 +1102,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }

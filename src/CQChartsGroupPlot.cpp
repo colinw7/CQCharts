@@ -2,6 +2,7 @@
 #include <CQChartsColumnBucket.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsModelDetails.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQTabSplit.h>
@@ -38,18 +39,18 @@ addParameters()
     addBoolParameter("useRow", "Use Row", "useRow").
       setTip("Use row number for group");
 
-  addBoolParameter("exactValue", "Exact Value", "exactValue", true).
+  addBoolParameter("exactValue", "Exact Value", "exactBucketValue", true).
    setTip("Use exact value for grouping");
 
-  addBoolParameter("autoRange", "Auto Range", "autoRange", true).
+  addBoolParameter("autoRange", "Auto Range", "autoBucketRange", true).
    setTip("Automatically determine value range");
 
-  addRealParameter("start", "Start", "startValue", 0.0).
+  addRealParameter("start", "Start", "startBucketValue", 0.0).
     setRequired().setTip("Start value for manual range");
-  addRealParameter("delta", "Delta", "deltaValue", 1.0).
+  addRealParameter("delta", "Delta", "deltaBucketValue", 1.0).
     setRequired().setTip("Delta value for manual range");
 
-  addIntParameter("numAuto", "Num Auto", "numAuto", 10).
+  addIntParameter("numAuto", "Num Auto", "numAutoBuckets", 10).
     setRequired().setTip("Number of auto groups");
 
   endParameterGroup();
@@ -94,7 +95,8 @@ void
 CQChartsGroupPlot::
 setGroupColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
+    resetSetHidden(); updateRangeAndObjs(); emit groupCustomDataChanged(); } );
 }
 
 //---
@@ -103,75 +105,135 @@ void
 CQChartsGroupPlot::
 setRowGrouping(bool b)
 {
-  CQChartsUtil::testAndSet(groupData_.rowGrouping, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupData_.rowGrouping, b, [&]() {
+    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
 }
 
 void
 CQChartsGroupPlot::
 setUsePath(bool b)
 {
-  CQChartsUtil::testAndSet(groupData_.usePath, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupData_.usePath, b, [&]() {
+    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
 }
 
 void
 CQChartsGroupPlot::
 setUseRow(bool b)
 {
-  CQChartsUtil::testAndSet(groupData_.useRow, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupData_.useRow, b, [&]() {
+    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
 }
 
 //---
 
 void
 CQChartsGroupPlot::
-setExactValue(bool b)
+setExactBucketValue(bool b)
 {
-  CQChartsUtil::testAndSet(groupData_.exactValue, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupData_.exactValue, b, [&]() {
+    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
 }
 
 void
 CQChartsGroupPlot::
-setAutoRange(bool b)
+setAutoBucketRange(bool b)
 {
-  auto type = (b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
-
-  if (type != groupData_.bucketer.type()) {
-    groupData_.bucketer.setType(type);
-
-    updateRangeAndObjs();
-  }
+  setBucketType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
 }
 
 void
 CQChartsGroupPlot::
-setStartValue(double r)
+setStartBucketValue(double r)
 {
   if (r != groupData_.bucketer.rstart()) {
-    groupData_.bucketer.setRStart(r);
-
-    updateRangeAndObjs();
+    groupData_.bucketer.setRStart(r); updateRangeAndObjs(); emit groupCustomDataChanged();
   }
 }
 
 void
 CQChartsGroupPlot::
-setDeltaValue(double r)
+setDeltaBucketValue(double r)
 {
   if (r != groupData_.bucketer.rdelta()) {
-    groupData_.bucketer.setRDelta(r);
-
-    updateRangeAndObjs();
+    groupData_.bucketer.setRDelta(r); updateRangeAndObjs(); emit groupCustomDataChanged();
   }
 }
 
 void
 CQChartsGroupPlot::
-setNumAuto(int i)
+setNumAutoBuckets(int i)
 {
   if (i != groupData_.bucketer.numAuto()) {
-    groupData_.bucketer.setNumAuto(i);
+    groupData_.bucketer.setNumAuto(i); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
 
-    updateRangeAndObjs();
+void
+CQChartsGroupPlot::
+setMinBucketValue(double r)
+{
+  if (r != groupData_.bucketer.rmin()) {
+    groupData_.bucketer.setRMin(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setMaxBucketValue(double r)
+{
+  if (r != groupData_.bucketer.rmax()) {
+    groupData_.bucketer.setRMax(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setBucketUnderflow(bool b)
+{
+  if (b != groupData_.bucketer.isUnderflow()) {
+    groupData_.bucketer.setUnderflow(b); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setBucketOverflow(bool b)
+{
+  if (b != groupData_.bucketer.isOverflow()) {
+    groupData_.bucketer.setOverflow(b); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setBucketStops(const CQChartsReals &r)
+{
+  if (r != groupData_.bucketStops) {
+    groupData_.bucketStops = r;
+
+    CQBucketer::RStops rstops;
+
+    for (const auto &r : groupData_.bucketStops.reals())
+      rstops.insert(r);
+
+    groupData_.bucketer.setRStops(rstops); updateRangeAndObjs(); emit groupCustomDataChanged();
+  }
+}
+
+CQBucketer::Type
+CQChartsGroupPlot::
+bucketType() const
+{
+  return groupData_.bucketer.type();
+}
+
+void
+CQChartsGroupPlot::
+setBucketType(const CQBucketer::Type &type)
+{
+  if (type != groupData_.bucketer.type()) {
+    groupData_.bucketer.setType(type); updateRangeAndObjs(); emit groupCustomDataChanged();
   }
 }
 
@@ -202,11 +264,13 @@ addGroupingProperties()
   if (type->allowUseRow())
     addProp("dataGrouping", "useRow", "row", "Use row number for grouping");
 
-  addProp("dataGrouping/bucket", "exactValue", "exact"  , "Use exact value");
-  addProp("dataGrouping/bucket", "autoRange" , "auto"   , "Bucket auto range");
-  addProp("dataGrouping/bucket", "startValue", "start"  , "Bucket start value");
-  addProp("dataGrouping/bucket", "deltaValue", "delta"  , "Bucket delta value");
-  addProp("dataGrouping/bucket", "numAuto"   , "numAuto", "Number of automatic buckets");
+  addProp("dataGrouping/bucket", "exactBucketValue", "exact"   , "Use exact value");
+  addProp("dataGrouping/bucket", "autoBucketRange" , "auto"    , "Bucket auto range");
+  addProp("dataGrouping/bucket", "startBucketValue", "start"   , "Bucket start value");
+  addProp("dataGrouping/bucket", "deltaBucketValue", "delta"   , "Bucket delta value");
+  addProp("dataGrouping/bucket", "numAutoBuckets"  , "numAuto" , "Number of automatic buckets");
+  addProp("dataGrouping/bucket", "minBucketValue"  , "minValue", "Min bucket value");
+  addProp("dataGrouping/bucket", "maxBucketValue"  , "maxValue", "Max bucket value");
 }
 
 void
@@ -318,6 +382,8 @@ initGroup(CQChartsGroupData &data) const
 
   //---
 
+  bool initRange = false;
+
   // for specified grouping columns, set column and column type
   if      (data.columns.count() > 1) {
     Column column;
@@ -350,8 +416,14 @@ initGroup(CQChartsGroupData &data) const
     ColumnType columnType = ColumnType::STRING;
 
     if (data.column.type() == Column::Type::DATA ||
-        data.column.type() == Column::Type::DATA_INDEX)
+        data.column.type() == Column::Type::DATA_INDEX) {
       columnType = columnValueType(data.column);
+
+      if (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
+        if (data.bucketer.type() == CQBucketer::Type::STRING && ! data.exactValue)
+          initRange = true;
+      }
+    }
 
     if (isHierarchical())
       columnBucket->setDataType(CQChartsColumnBucket::DataType::COLUMN_ROOT);
@@ -436,7 +508,49 @@ initGroup(CQChartsGroupData &data) const
 
   visitModel(groupVisitor);
 
+  //---
+
+  if (initRange) {
+    auto *th = const_cast<CQChartsGroupPlot *>(this);
+
+    th->initGroupBucketer();
+  }
+
+  //---
+
   return columnBucket;
+}
+
+//---
+
+void
+CQChartsGroupPlot::
+initGroupBucketer()
+{
+  // update default grouping from group column details
+  auto *details = columnDetails(groupColumn());
+  if (! details) return;
+
+  setUpdatesEnabled(false);
+
+  if (details->isNumeric()) {
+    auto minValue = details->minValue();
+    auto maxValue = details->maxValue();
+
+    setExactBucketValue(false);
+    setBucketType      (CQBucketer::Type::REAL_AUTO);
+    setMinBucketValue  (minValue.toDouble());
+    setMaxBucketValue  (maxValue.toDouble());
+
+    setBucketUnderflow(true);
+    setBucketOverflow (true);
+  }
+  else {
+    setExactBucketValue(false);
+    setBucketType      (CQBucketer::Type::STRING);
+  }
+
+  setUpdatesEnabled(true);
 }
 
 //---
@@ -512,11 +626,7 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
       inds.push_back(ind1);
     }
     else if (CQChartsVariant::isNumeric(value)) {
-      bool ok;
-
-      double r = CQChartsVariant::toReal(value, ok);
-
-      ind1 = groupBucket_->bucket(r);
+      ind1 = groupBucket_->bucket(value);
 
       inds.push_back(ind1);
     }
@@ -633,7 +743,21 @@ int
 CQChartsGroupPlot::
 numGroups() const
 {
-  return (groupBucket_ ? groupBucket_->numUnique() : 1);
+  if (groupBucket_ && groupBucket_->isValid()) {
+    if (groupBucket_->columnType() == ColumnType::REAL) {
+      double rmin = groupBucket_->rmin();
+      double rmax = groupBucket_->rmax();
+
+      int bucket1 = groupBucket_->bucket(rmin);
+      int bucket2 = groupBucket_->bucket(rmax);
+
+      return (bucket2 - bucket1 + 1);
+    }
+    else
+      return groupBucket_->numUnique();
+  }
+  else
+    return 1;
 }
 
 //---
@@ -643,8 +767,20 @@ CQChartsGroupPlot::
 getGroupInds(GroupInds &inds) const
 {
   if (groupBucket_ && groupBucket_->isValid()) {
-    for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
-      inds.push_back(groupInd);
+    if (groupBucket_->columnType() == ColumnType::REAL) {
+      double rmin = groupBucket_->rmin();
+      double rmax = groupBucket_->rmax();
+
+      int bucket1 = groupBucket_->bucket(rmin);
+      int bucket2 = groupBucket_->bucket(rmax);
+
+      for (int groupInd = bucket1; groupInd <= bucket2; ++groupInd)
+        inds.push_back(groupInd);
+    }
+    else {
+      for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
+        inds.push_back(groupInd);
+    }
 
     return true;
   }

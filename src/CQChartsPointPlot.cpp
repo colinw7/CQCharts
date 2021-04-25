@@ -654,6 +654,23 @@ setHullLayer(const DrawLayer &l)
 
 //---
 
+CQChartsGeom::BBox
+CQChartsPointPlot::
+fitBBox() const
+{
+  auto bbox = CQChartsPlot::fitBBox();
+
+  if (symbolTypeMapKey_ && symbolTypeMapKey_->isVisible())
+    bbox += symbolTypeMapKey_->bbox();
+
+  if (symbolSizeMapKey_ && symbolSizeMapKey_->isVisible())
+    bbox += symbolSizeMapKey_->bbox();
+
+  return bbox;
+}
+
+//---
+
 CQChartsPointBestFitObj *
 CQChartsPointPlot::
 createBestFitObj(int groupInd, const QString &name, const ColorInd &ig, const ColorInd &is,

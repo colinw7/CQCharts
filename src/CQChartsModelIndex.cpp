@@ -58,7 +58,7 @@ id() const
 {
   QString id;
 
-  QModelIndex parent = parent_;
+  auto parent = parent_;
 
   while (parent.isValid()) {
     if (id != "")

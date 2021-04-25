@@ -109,7 +109,7 @@ class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
   //---
 
  private:
-  Type type_ { Type::TOP_RIGHT };
+  Type type_ { Type::NONE };
 };
 
 //---

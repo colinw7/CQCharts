@@ -74,7 +74,6 @@ class CQChartsPieGroupObj;
 class CQChartsPieObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(int           colorIndex  READ colorIndex  WRITE setColorIndex )
   Q_PROPERTY(CQChartsAngle angle1      READ angle1      WRITE setAngle1     )
   Q_PROPERTY(CQChartsAngle angle2      READ angle2      WRITE setAngle2     )
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
@@ -119,8 +118,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   //---
 
   //! get/set color index
-  int colorIndex() const { return colorIndex_; }
-  void setColorIndex(int i) { colorIndex_ = i; }
+  const ColorInd &colorIndex() const { return colorIndex_; }
+  void setColorIndex(const ColorInd &i) { colorIndex_ = i; }
 
   //---
 
@@ -191,6 +190,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const;
 
+  void getRadii(double &ri, double &ro) const;
+
+  //---
+
   void writeScriptData(ScriptPaintDevice *device) const override;
 
   QColor fillColor() const;
@@ -206,7 +209,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
  protected:
   const PiePlot* plot_       { nullptr }; //!< parent plot
-  int            colorIndex_ { -1 };      //!< color index
+  ColorInd       colorIndex_;             //!< color index
   Angle          angle1_     { 0.0 };     //!< wedge start angle
   Angle          angle2_     { 360.0 };   //!< wedge end angle
   double         ri_         { 0.0 };     //!< inner radius
@@ -236,15 +239,15 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using Angle   = CQChartsAngle;
 
  public:
-  CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, int groupInd,
+  CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, const ColorInd &groupInd,
                       const QString &name, const ColorInd &ig);
 
   const PiePlot *plot() const { return plot_; }
 
   //---
 
-  int groupInd() const { return groupInd_; }
-  void setGroupInd(int i) { groupInd_ = i; }
+  const ColorInd &groupInd() const { return groupInd_; }
+  void setGroupInd(const ColorInd &i) { groupInd_ = i; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -252,8 +255,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   //---
 
   //! get/set color index
-  int colorIndex() const { return colorIndex_; }
-  void setColorIndex(int i) { colorIndex_ = i; }
+  const ColorInd &colorIndex() const { return colorIndex_; }
+  void setColorIndex(const ColorInd &i) { colorIndex_ = i; }
 
   //---
 
@@ -312,13 +315,19 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void drawFg(PaintDevice *device) const override;
 
+  void drawEmptyGroup(PaintDevice *device) const;
+
+  //---
+
   QColor bgColor() const;
+
+  void getRadii(double &ri, double &ro) const;
 
  private:
   const PiePlot* plot_         { nullptr }; //!< parent plot
-  int            groupInd_     { -1 };      //!< groupInd
+  ColorInd       groupInd_;                 //!< group index
   QString        name_;                     //!< group name
-  int            colorIndex_   { -1 };      //!< color index
+  ColorInd       colorIndex_;               //!< color index
   double         dataTotal_    { 0.0 };     //!< value data total
   int            numValues_    { 0 };       //!< num values
   double         radiusMax_    { 0.0 };     //!< radius data max
@@ -354,7 +363,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
 
   QBrush fillBrush() const override;
 
-  int setIndex() const;
+  ColorInd setIndex() const override;
 
  private:
   PlotObj* obj_ { nullptr };
@@ -375,7 +384,7 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
-  int setIndex() const;
+  ColorInd setIndex() const override;
 
  private:
   PlotObj* obj_ { nullptr };
@@ -578,10 +587,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   virtual PieTextObj *createTextObj() const;
 
-  virtual PieGroupObj *createGroupObj(const BBox &bbox, int groupInd, const QString &name,
-                                      const ColorInd &ig) const;
+  virtual PieGroupObj *createGroupObj(const BBox &bbox, const ColorInd &groupInd,
+                                      const QString &name, const ColorInd &ig) const;
 
-  virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const;
+  virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind,
+                               const ColorInd &ig) const;
 
  public slots:
   void setDonut(bool b);

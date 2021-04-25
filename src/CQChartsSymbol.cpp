@@ -179,7 +179,7 @@ CQChartsSymbol(const PathData &pathData) :
   if (pathData.path.isValid())
     paths.push_back(pathData.path);
 
-  QString srcStr = pathData.src;
+  auto srcStr = pathData.src;
 
   // get existing path of name if no path data
   if (name_ != "" && paths.empty()) {
@@ -237,10 +237,10 @@ CQChartsSymbol(const SVGData &svgData) :
 {
   bool exists = false;
 
-  Paths   paths  = svgData.paths;
-  Styles  styles = svgData.styles;
-  BBox    bbox   = svgData.bbox;
-  QString srcStr = svgData.src;
+  auto paths  = svgData.paths;
+  auto styles = svgData.styles;
+  auto bbox   = svgData.bbox;
+  auto srcStr = svgData.src;
 
   // get existing SVG of name if no SVG data
   if (name_ != "" && paths.empty() && styles.empty()) {

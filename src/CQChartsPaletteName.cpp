@@ -63,7 +63,7 @@ CQChartsPaletteName::
 fromString(const QString &name)
 {
   if (name.trimmed() != "") {
-    QString lhs = name;
+    auto lhs = name;
 
     QString rhs;
 
@@ -79,14 +79,14 @@ fromString(const QString &name)
       auto pos1 = rhs.indexOf(",");
       if (pos1 < 0) return false;
 
-      QString minStr = rhs.mid(0, pos1);
+      auto minStr = rhs.mid(0, pos1);
 
       rhs = rhs.mid(pos1 + 1);
 
       auto pos2 = rhs.indexOf("]");
       if (pos2 < 0) return false;
 
-      QString maxStr = rhs.mid(0, pos2);
+      auto maxStr = rhs.mid(0, pos2);
 
       bool ok;
       min = minStr.toDouble(&ok); if (! ok) return false;

@@ -914,7 +914,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   PointsType      pointsType_   { PointsType::NONE }; //!< show points type
   bool            notched_      { false };            //!< show notch
 
-  // voilin
+  // violin
   bool   violin_      { false };            //!< show violin
   Length violinWidth_ { 0.6, Units::PLOT }; //!< violin width
   bool   violinBox_   { false };            //!< show box width violin

@@ -138,7 +138,7 @@ QString formatReal(double r, const QString &fmt) {
     ::sprintf(buffer, "%g", r);
 
     // find decimal point - if less than 4 digits to left then done
-    QString res = buffer;
+    auto res = QString(buffer);
 
     int pos = res.indexOf('.');
 
@@ -1282,7 +1282,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       lg.setColorAt(0, color);
 
       if (pattern.altColor().isValid()) {
-        QColor altColor = pattern.altColor().color();
+        auto altColor = pattern.altColor().color();
 
         CQChartsDrawUtil::setColorAlpha(altColor, pattern.altAlpha());
 
@@ -1310,7 +1310,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       rg.setColorAt(0, color);
 
       if (pattern.altColor().isValid()) {
-        QColor altColor = pattern.altColor().color();
+        auto altColor = pattern.altColor().color();
 
         CQChartsDrawUtil::setColorAlpha(altColor, pattern.altAlpha());
 
@@ -1412,18 +1412,18 @@ bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &
 }
 
 QStringList unitNames(bool includeNone) {
-  static QStringList names      = QStringList() << "px" << "%" << "P" << "V" << "em" << "ex";
-  static QStringList none_names = QStringList() << "none" << names;
+  static auto names      = QStringList() << "px" << "%" << "P" << "V" << "em" << "ex";
+  static auto none_names = QStringList() << "none" << names;
 
   return (includeNone ? none_names : names);
 }
 
 QStringList unitTipNames(bool includeNone) {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "px (Pixel)" << "% (Percent)" << "P (Plot)" << "V (View)" <<
     "em (Font Height)" << "ex (Font 'x' Character Width)";
 
-  static QStringList none_names = QStringList() << "None" << names;
+  static auto none_names = QStringList() << "None" << names;
 
   return (includeNone ? none_names : names);
 }

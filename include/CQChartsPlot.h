@@ -2101,6 +2101,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void selectObjs(const PlotObjs &objs, bool exportSel);
+
+  //---
+
   void startSelection();
   void endSelection();
 
@@ -2231,7 +2235,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // auto fit
   virtual void autoFit();
 
-  BBox fitBBox() const;
+  virtual BBox fitBBox() const;
+
   void setFitBBox(const BBox &bbox);
 
   virtual BBox dataFitBBox       () const; // get bounding box to fit data objects
@@ -2627,6 +2632,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   CQChartsColorMapKey *colorMapKey() const { return colorMapKey_.get(); }
 
+  void addColorMapKeyItems(QMenu *menu);
+  void addColorMapKeySubItems(QMenu *keysMenu);
+
   //---
 
   virtual void updateMapKey(CQChartsMapKey *key) const;
@@ -2875,6 +2883,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void updateAnnotationSlot();
 
   void plotControlUpdateSlot();
+
+  void colorMapKeyPositionSlot(QAction *);
+  void colorMapKeyInsideXSlot(bool);
+  void colorMapKeyInsideYSlot(bool);
 
  signals:
   // model data changed

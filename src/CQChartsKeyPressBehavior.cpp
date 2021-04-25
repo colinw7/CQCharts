@@ -53,7 +53,7 @@ QStringList
 CQChartsKeyPressBehavior::
 enumNames() const
 {
-  static QStringList names = QStringList() << "SHOW" << "SELECT";
+  static auto names = QStringList() << "SHOW" << "SELECT";
 
   return names;
 }

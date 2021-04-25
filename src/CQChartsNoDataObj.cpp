@@ -28,7 +28,7 @@ draw(CQChartsPaintDevice *device) const
   //--
 
   // draw no data text
-  QString msg = "NO DATA";
+  auto msg = QString("NO DATA");
 
   view->setPainterFont(device, font());
 

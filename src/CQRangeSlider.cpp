@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QMouseEvent>
+#include <QMenu>
 
 CQRangeSlider::
 CQRangeSlider(QWidget *parent) :
@@ -10,6 +11,10 @@ CQRangeSlider(QWidget *parent) :
   setObjectName("rangeSlider");
 
   textFont_ = font();
+
+  //---
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 //---
@@ -148,6 +153,35 @@ keyPressEvent(QKeyEvent *e)
   else if (e->key() == Qt::Key_Down ) deltaSliderMax(-1);
   else if (e->key() == Qt::Key_Up   ) deltaSliderMax( 1);
 }
+
+//------
+
+void
+CQRangeSlider::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  auto *menu = new QMenu;
+
+  //---
+
+  auto *resetAction = menu->addAction("Reset");
+
+  connect(resetAction, SIGNAL(triggered()), this, SLOT(resetSlot()));
+
+  //---
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+void
+CQRangeSlider::
+resetSlot()
+{
+  reset();
+}
+
 
 //------
 

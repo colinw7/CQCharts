@@ -51,7 +51,7 @@ QStringList
 CQChartsAxisSide::
 enumNames() const
 {
-  static QStringList names = QStringList() << "BOTTOM_LEFT" << "TOP_RIGHT";
+  static auto names = QStringList() << "BOTTOM_LEFT" << "TOP_RIGHT";
 
   return names;
 }

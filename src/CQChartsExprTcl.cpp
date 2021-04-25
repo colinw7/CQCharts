@@ -146,7 +146,7 @@ setVar(const QString &name, int row, int column)
     // get model value
     QModelIndex parent; // TODO
 
-    QModelIndex ind = model()->index(row, nameCol, parent);
+    auto ind = model()->index(row, nameCol, parent);
 
     QVariant var;
 

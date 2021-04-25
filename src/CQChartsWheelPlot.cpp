@@ -964,7 +964,7 @@ execDrawForeground(PaintDevice *device) const
 
       CQChartsTextOptions textOptions;
 
-      QString text = QString("%1").arg(y);
+      auto text = QString("%1").arg(y);
 
       CQChartsDrawUtil::drawTextAtPoint(device, pp, text, textOptions, /*centered*/true);
     }
@@ -1050,7 +1050,7 @@ execDrawOverlay(PaintDevice *device) const
   auto *details = columnDetails(innerBarColumn());
 
   if (details) {
-    QString name = moveObj_->pointData().innerBar.toString();
+    auto name = moveObj_->pointData().innerBar.toString();
 
     CQChartsImage image;
 
@@ -1517,7 +1517,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (details) {
     Color c;
 
-    QString name = pointData_.innerBar.toString();
+    auto name = pointData_.innerBar.toString();
 
     if (! details->namedColor(name, c))
       std::cerr << "Failed to find color for '" << name.toStdString() << "'\n";

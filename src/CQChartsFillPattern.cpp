@@ -35,13 +35,13 @@ toString() const
   auto str = typeToString(type_);
 
   if      (type_ == Type::PALETTE) {
-    QString name = palette().toString();
+    auto name = palette().toString();
 
     if (name != "")
       str += ":" + name;
   }
   else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
-    QString name = image().toString();
+    auto name = image().toString();
 
     if (name != "")
       str += ":" + name;
@@ -263,7 +263,7 @@ setValue(const QString &s)
     auto pos = altColorStr.indexOf('|');
 
     if (pos >= 0) {
-      QString altAlphaStr = altColorStr.mid(pos + 1);
+      auto altAlphaStr = altColorStr.mid(pos + 1);
 
       altColorStr = altColorStr.mid(0, pos);
 
@@ -370,7 +370,7 @@ QStringList
 CQChartsFillPattern::
 enumNames() const
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "SOLID" << "HATCH" << "DENSE" << "HORIZONTAL" << "VERTICAL" << "FDIAG" << "BDIAG" <<
     "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE" << "TEXTURE" << "MASK";
 

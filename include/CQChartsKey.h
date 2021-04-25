@@ -622,6 +622,8 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
 
   virtual ColorInd calcColorInd() const { return colorIndex(); }
 
+  virtual ColorInd setIndex() const { return calcColorInd(); }
+
   //---
 
   //! get/set row
@@ -664,6 +666,15 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
 
   virtual void doShow  (SelMod selMod);
   virtual void doSelect(SelMod selMod);
+
+  //---
+
+  virtual void adjustFillColor(QColor &c) const;
+
+  //---
+
+  virtual bool isSetHidden() const;
+  virtual void setSetHidden(bool b);
 
   //---
 
@@ -714,9 +725,10 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   //---
 
-  void addRowItems(CQChartsKeyItem *litem, CQChartsKeyItem *ritem);
+  void addRowItems(KeyItem *litem, KeyItem *ritem);
 
   void addItem(KeyItem *item);
+
   void removeItem(KeyItem *item, bool keep=false);
 
   //---

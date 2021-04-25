@@ -260,6 +260,18 @@
 #include <svg/info_light_svg.h>
 #include <svg/info_dark_svg.h>
 
+#include <svg/bucket_fixed_light_svg.h>
+#include <svg/bucket_fixed_dark_svg.h>
+
+#include <svg/bucket_stops_light_svg.h>
+#include <svg/bucket_stops_dark_svg.h>
+
+#include <svg/bucket_range_light_svg.h>
+#include <svg/bucket_range_dark_svg.h>
+
+#include <svg/bucket_unique_light_svg.h>
+#include <svg/bucket_unique_dark_svg.h>
+
 QString
 CQCharts::
 description()

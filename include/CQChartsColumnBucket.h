@@ -85,7 +85,7 @@ class CQChartsColumnBucket {
   // get name for index
   QString iname(int ind) const;
 
-  int bucket(double value) const;
+  int bucket(const QVariant &value) const;
 
   int     sbucket(const QVariant &value) const;
   QString buckets(int i) const;
@@ -98,6 +98,9 @@ class CQChartsColumnBucket {
 
   int imin() const;
   int imax() const;
+
+  double rmin() const;
+  double rmax() const;
 
   void setIndName(int i, const QString &name);
 

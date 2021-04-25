@@ -23,7 +23,7 @@ toString() const
   if (! isValid())
     return "";
 
-  QString ustr = CQChartsUtil::unitsString(units_);
+  auto ustr = CQChartsUtil::unitsString(units_);
 
   return QString("%1 %2 %3").arg(p_.x).arg(p_.y).arg(ustr);
 }

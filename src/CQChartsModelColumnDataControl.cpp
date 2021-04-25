@@ -381,7 +381,7 @@ paramApplySlot()
   //---
 
   // update type parameters
-  CQChartsNameValues nameValues = typeData.nameValues;
+  auto nameValues = typeData.nameValues;
 
   for (const auto &paramEdit : paramEdits_) {
     auto name = paramEdit.label->text();

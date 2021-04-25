@@ -448,6 +448,11 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
+  const PlotObjs &pointObjs() const { return pointObjs_; }
+  void setPointObjs(const PlotObjs &pointObjs) { pointObjs_ = pointObjs; }
+
+  //---
+
 //bool isVisible() const override;
 
   bool inside(const Point &p) const override;
@@ -503,6 +508,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   int         groupInd_ { -1 };      //!< group ind
   Polygon     poly_;                 //!< polygon
   QString     name_;                 //!< name
+  PlotObjs    pointObjs_;            //!< point objects
   SmoothP     smooth_;               //!< smooth object
   FitData     bestFit_;              //!< best fit data
   StatData    statData_;             //!< statistics data
@@ -1026,7 +1032,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //---
 
   // object for group
-  PlotObj *getGroupObj(int ig) const;
+  CQChartsXYPolylineObj *getGroupObj(int ig) const;
 
   //---
 
@@ -1179,9 +1185,9 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
  private:
   CQChartsXYPlot* plot_           { nullptr };
-  CQCheckBox*     pointsCheck_    { nullptr };
-  CQCheckBox*     linesCheck_     { nullptr };
-  CQCheckBox*     fillUnderCheck_ { nullptr };
+  QCheckBox*      pointsCheck_    { nullptr };
+  QCheckBox*      linesCheck_     { nullptr };
+  QCheckBox*      fillUnderCheck_ { nullptr };
   CQCheckBox*     stackedCheck_   { nullptr };
 };
 

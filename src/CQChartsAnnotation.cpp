@@ -33,7 +33,7 @@ const QStringList &
 CQChartsAnnotation::
 typeNames()
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "path" <<
     "arrow" << "arc" << "point" << "pie_slice" << "axis" << "key" << "point_set" <<
     "value_set" << "button" << "widget" << "group";

@@ -18,6 +18,7 @@
 #include <CQChartsPreviewPlot.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsOptRealEdit.h>
 #include <CQChartsLineEdit.h>
 #include <CQCharts.h>
 
@@ -1501,13 +1502,13 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *par
   connect(edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 }
 
-CQChartsLineEdit *
+CQChartsOptRealEdit *
 CQChartsCreatePlotDlg::
 addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
             const QString &objName, const QString &placeholderText) const
 {
   auto *label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
-  auto *edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
+  auto *edit  = CQUtil::makeWidget<CQChartsOptRealEdit>(objName + "Edit");
 
   edit->setPlaceholderText(placeholderText);
 
@@ -1760,22 +1761,22 @@ setXYMin(const QString &id)
   if      (id == "xmin") {
     auto xmin = columnDetails->minValue();
 
-    rangeEditData_.xminEdit->setText(QString("%1").arg(xmin.toString()));
+    rangeEditData_.xminEdit->setValue(CQChartsOptReal(xmin));
   }
   else if (id == "ymin") {
     auto ymin = columnDetails->minValue();
 
-    rangeEditData_.yminEdit->setText(QString("%1").arg(ymin.toString()));
+    rangeEditData_.yminEdit->setValue(CQChartsOptReal(ymin));
   }
   else if (id == "xmax") {
     auto xmax = columnDetails->maxValue();
 
-    rangeEditData_.xmaxEdit->setText(QString("%1").arg(xmax.toString()));
+    rangeEditData_.xmaxEdit->setValue(CQChartsOptReal(xmax));
   }
   else if (id == "ymax") {
     auto ymax = columnDetails->maxValue();
 
-    rangeEditData_.ymaxEdit->setText(QString("%1").arg(ymax.toString()));
+    rangeEditData_.ymaxEdit->setValue(CQChartsOptReal(ymax));
   }
 }
 
@@ -2572,34 +2573,15 @@ applyPlot(Plot *plot, bool preview)
   //---
 
   // set range
-  bool xminOk = false, yminOk = false, xmaxOk = false, ymaxOk = false;
+  auto xmin = rangeEditData_.xminEdit->value();
+  auto ymin = rangeEditData_.yminEdit->value();
+  auto xmax = rangeEditData_.xmaxEdit->value();
+  auto ymax = rangeEditData_.ymaxEdit->value();
 
-  if (rangeEditData_.xminEdit->text().length()) {
-    double xmin = CQChartsUtil::toReal(rangeEditData_.xminEdit->text(), xminOk);
-    if (xminOk) plot->setXMin(CQChartsOptReal(xmin));
-  }
-
-  if (rangeEditData_.yminEdit->text().length()) {
-    double ymin = CQChartsUtil::toReal(rangeEditData_.yminEdit->text(), yminOk);
-    if (yminOk) plot->setYMin(CQChartsOptReal(ymin));
-  }
-
-  if (rangeEditData_.xmaxEdit->text().length()) {
-    double xmax = CQChartsUtil::toReal(rangeEditData_.xmaxEdit->text(), xmaxOk);
-    if (xmaxOk) plot->setXMax(CQChartsOptReal(xmax));
-  }
-
-  if (rangeEditData_.ymaxEdit->text().length()) {
-    double ymax = CQChartsUtil::toReal(rangeEditData_.ymaxEdit->text(), ymaxOk);
-    if (ymaxOk) plot->setYMax(CQChartsOptReal(ymax));
-  }
-
-  if (preview) {
-    if (! xminOk) plot->setXMin(CQChartsOptReal());
-    if (! yminOk) plot->setYMin(CQChartsOptReal());
-    if (! xmaxOk) plot->setXMax(CQChartsOptReal());
-    if (! ymaxOk) plot->setYMax(CQChartsOptReal());
-  }
+  plot->setXMin(xmin);
+  plot->setYMin(ymin);
+  plot->setXMax(xmax);
+  plot->setYMax(ymax);
 }
 
 void

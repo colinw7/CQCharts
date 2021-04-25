@@ -4,6 +4,15 @@
 #include <CQChartsPlotCustomControls.h>
 
 class CQChartsGroupPlot;
+class CQIconRadio;
+class CQDoubleRangeSlider;
+class CQRealSpin;
+class CQIntegerSpin;
+class CQLabel;
+
+class QAbstractButton;
+class QLineEdit;
+class QButtonGroup;
 
 class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
@@ -26,10 +35,30 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
  protected slots:
   void groupColumnSlot();
 
+  void bucketRadioGroupSlot(QAbstractButton *);
+  void bucketRangeSlot();
+  void startBucketSlot();
+  void deltaBucketSlot();
+  void numBucketsSlot();
+  void bucketStopsSlot();
+
  private:
-  CQChartsGroupPlot*   plot_             { nullptr };
+  CQChartsGroupPlot* plot_ { nullptr };
+
   FrameData            groupFrame_;
-  CQChartsColumnCombo* groupColumnCombo_ { nullptr };
+  QButtonGroup*        bucketRadioGroup_  { nullptr };
+  CQIconRadio*         fixedBucketRadio_  { nullptr };
+  CQIconRadio*         rangeBucketRadio_  { nullptr };
+  CQIconRadio*         stopsBucketRadio_  { nullptr };
+  CQIconRadio*         uniqueBucketRadio_ { nullptr };
+  CQChartsColumnCombo* groupColumnCombo_  { nullptr };
+  CQDoubleRangeSlider* bucketRange_       { nullptr };
+  CQRealSpin*          startBucketEdit_   { nullptr };
+  CQRealSpin*          deltaBucketEdit_   { nullptr };
+  CQIntegerSpin*       numBucketsEdit_    { nullptr };
+  QLineEdit*           bucketStopsEdit_   { nullptr };
+  CQLabel*             uniqueCount_       { nullptr };
+  QLabel*              rangeLabel_        { nullptr };
 };
 
 #endif

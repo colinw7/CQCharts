@@ -64,7 +64,7 @@ QStringList
 CQChartsLineJoin::
 enumNames() const
 {
-  static QStringList names = QStringList() <<
+  static auto names = QStringList() <<
     "miter" << "bevel" << "round";
 
   return names;

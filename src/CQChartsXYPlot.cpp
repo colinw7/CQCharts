@@ -24,12 +24,9 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-#include <CQTabSplit.h>
 #include <CQCheckBox.h>
 
 #include <QMenu>
-#include <QLabel>
-#include <QVBoxLayout>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -1762,7 +1759,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Length symbolSize(CQChartsUnits::NONE, 0.0);
 
         if (symbolSizeColumn().isValid()) {
-          if (! columnSymbolSize(ip, xind1.parent(), symbolSize))
+          if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize))
             symbolSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
@@ -1796,7 +1793,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsSymbol symbol;
 
         if (symbolTypeColumn().isValid()) {
-          if (! columnSymbolType(ip, xind1.parent(), symbol))
+          if (! columnSymbolType(xind1.row(), xind1.parent(), symbol))
             symbol = CQChartsSymbol();
         }
 
@@ -1809,7 +1806,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Length fontSize(CQChartsUnits::NONE, 0.0);
 
         if (fontSizeColumn().isValid()) {
-          if (! columnFontSize(ip, xind1.parent(), fontSize))
+          if (! columnFontSize(xind1.row(), xind1.parent(), fontSize))
             fontSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
@@ -1822,7 +1819,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Color symbolColor;
 
         if (colorColumn().isValid()) {
-          if (! colorColumnColor(ip, xind1.parent(), symbolColor))
+          if (! colorColumnColor(xind1.row(), xind1.parent(), symbolColor))
             symbolColor = Color();
         }
 
@@ -1836,7 +1833,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Column  pointNameColumn;
 
         if (labelColumn().isValid()) {
-          ModelIndex labelModelInd(th, ip, labelColumn(), xind1.parent());
+          ModelIndex labelModelInd(th, xind1.row(), labelColumn(), xind1.parent());
 
           bool ok;
           pointName = modelString(labelModelInd, ok);
@@ -1862,7 +1859,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsImage image;
 
         if (imageColumn().isValid()) {
-          ModelIndex imageColumnInd(th, ip, imageColumn(), xind1.parent());
+          ModelIndex imageColumnInd(th, xind1.row(), imageColumn(), xind1.parent());
 
           bool ok;
 
@@ -1886,7 +1883,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (vectorXColumn().isValid()) {
             bool ok;
 
-            ModelIndex vectorXInd(th, ip, vectorXColumn(), parent);
+            ModelIndex vectorXInd(th, xind1.row(), vectorXColumn(), parent);
 
             vx = modelReal(vectorXInd, ok);
 
@@ -1897,7 +1894,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (vectorYColumn().isValid()) {
             bool ok;
 
-            ModelIndex vectorYInd(th, ip, vectorYColumn(), parent);
+            ModelIndex vectorYInd(th, xind1.row(), vectorYColumn(), parent);
 
             vy = modelReal(vectorYInd, ok);
 
@@ -2188,6 +2185,8 @@ addPolyLine(const Polygon &polyLine, int groupInd, const ColorInd &is,
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
   auto *lineObj = th->createPolylineObj(groupInd, bbox, polyLine, name, is, ig);
+
+  lineObj->setPointObjs(pointObjs);
 
   for (auto &pointObj : pointObjs) {
     auto *pointObj1 = dynamic_cast<CQChartsXYPointObj *>(pointObj);
@@ -2516,7 +2515,7 @@ interpY(double x, InterpValues &yvals) const
 
 //------
 
-CQChartsPlotObj *
+CQChartsXYPolylineObj *
 CQChartsXYPlot::
 getGroupObj(int ig) const
 {
@@ -3491,7 +3490,7 @@ inside(const Point &p) const
 
   double sx, sy;
 
-  plot()->pixelSymbolSize(this->symbolSize(), sx, sy);
+  plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy);
 
   auto p1 = plot()->windowToPixel(point());
 
@@ -4402,22 +4401,65 @@ doSelect(CQChartsSelMod selMod)
   auto *obj = plotObj();
   if (! obj) return;
 
+  CQChartsPlot::PlotObjs objs;
+
   if      (selMod == CQChartsSelMod::REPLACE) {
+    objs.push_back(obj);
+  }
+  else if (selMod == CQChartsSelMod::ADD) {
     for (int ig = 0; ig < ig_.n; ++ig) {
       auto *obj1 = plot()->getGroupObj(ig);
+      if (! obj1) continue;
 
-      if (obj1)
-        obj1->setSelected(obj1 == obj);
+      if (obj1->isSelected() || obj == obj1)
+        objs.push_back(obj1);
     }
   }
-  else if (selMod == CQChartsSelMod::ADD)
-    obj->setSelected(true);
-  else if (selMod == CQChartsSelMod::REMOVE)
-    obj->setSelected(false);
-  else if (selMod == CQChartsSelMod::TOGGLE)
-    obj->setSelected(! obj->isSelected());
+  else if (selMod == CQChartsSelMod::REMOVE) {
+    for (int ig = 0; ig < ig_.n; ++ig) {
+      auto *obj1 = plot()->getGroupObj(ig);
+      if (! obj1) continue;
 
-  plot()->invalidateOverlay();
+      if (obj1->isSelected() && obj != obj1)
+        objs.push_back(obj1);
+    }
+  }
+  else if (selMod == CQChartsSelMod::TOGGLE) {
+    bool selected = obj->isSelected();
+
+    for (int ig = 0; ig < ig_.n; ++ig) {
+      auto *obj1 = plot()->getGroupObj(ig);
+      if (! obj1) continue;
+
+      if (obj == obj1) {
+        if (! selected)
+          objs.push_back(obj1);
+      }
+      else {
+        if (obj1->isSelected())
+          objs.push_back(obj1);
+      }
+    }
+  }
+
+  //---
+
+  CQChartsPlot::PlotObjs objs1;
+
+  for (auto *obj1 : objs) {
+    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(obj1);
+
+    if (polyObj) {
+      for (auto *obj2 : polyObj->pointObjs())
+        objs1.push_back(obj2);
+    }
+
+    objs1.push_back(obj1);
+  }
+
+  //---
+
+  plot()->selectObjs(objs1, /*export*/true);
 
   key_->redraw(/*wait*/ true);
 }
@@ -4682,15 +4724,25 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
-  pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
-  linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
-  fillUnderCheck_ = CQUtil::makeWidget<CQCheckBox>("fillUnderCheck");
-  stackedCheck_   = CQUtil::makeWidget<CQCheckBox>("stackedCheck");
+//pointsCheck_    = CQUtil::makeWidget<CQCheckBox>("pointsCheck");
+//linesCheck_     = CQUtil::makeWidget<CQCheckBox>("linesCheck");
+//fillUnderCheck_ = CQUtil::makeWidget<CQCheckBox>("fillUnderCheck");
 
-  addFrameWidget(optionsFrame, "Points"    , pointsCheck_);
-  addFrameWidget(optionsFrame, "Lines"     , linesCheck_);
-  addFrameWidget(optionsFrame, "Fill Under", fillUnderCheck_);
-  addFrameWidget(optionsFrame, "Stacked"   , stackedCheck_);
+//addFrameWidget(optionsFrame, "Points"    , pointsCheck_);
+//addFrameWidget(optionsFrame, "Lines"     , linesCheck_);
+//addFrameWidget(optionsFrame, "Fill Under", fillUnderCheck_);
+
+  pointsCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Points"    , "pointsCheck");
+  linesCheck_     = CQUtil::makeLabelWidget<QCheckBox>("Lines"     , "linesCheck");
+  fillUnderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Fill Under", "fillUnderCheck");
+
+  addFrameColWidget(optionsFrame, pointsCheck_);
+  addFrameColWidget(optionsFrame, linesCheck_);
+  addFrameColWidget(optionsFrame, fillUnderCheck_, /*nextRow*/true);
+
+  stackedCheck_ = CQUtil::makeWidget<CQCheckBox>("stackedCheck");
+
+  addFrameWidget(optionsFrame, "Stacked", stackedCheck_);
 
   //addFrameRowStretch(optionsFrame);
 

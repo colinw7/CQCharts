@@ -381,7 +381,7 @@ const QStringList &
 CQChartsModelColumnDetails::
 getLongNamedValues()
 {
-  static QStringList namedValues = QStringList() <<
+  static auto namedValues = QStringList() <<
     "name" << "type" << "minimum" << "maximum" << "mean" << "standard_deviation" <<
     "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
     "num_null" << "median" << "lower_median" << "upper_median" <<
@@ -394,7 +394,7 @@ const QStringList &
 CQChartsModelColumnDetails::
 getShortNamedValues()
 {
-  static QStringList namedValues = QStringList() <<
+  static auto namedValues = QStringList() <<
     "min" << "max" << "mean" << "avg" << "stdev" << "stddev" << "std_dev";
 
   return namedValues;
@@ -2001,7 +2001,7 @@ heatmapColor(double r, double min, double max, const QColor &bg) const
 {
   initType();
 
-  QColor c = bg;
+  auto c = bg;
 
   auto *charts = details_->charts();
   if (! charts) return c;

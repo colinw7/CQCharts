@@ -313,8 +313,7 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
   using Plot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterDensityObj(const Plot *plot, int groupInd,
-                            const QString &name, const BBox &rect);
+  CQChartsScatterDensityObj(const Plot *plot, int groupInd, const QString &name, const BBox &rect);
 
   int groupInd() const { return groupInd_; }
 
@@ -354,25 +353,38 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot;
+  using Plot   = CQChartsScatterPlot;
+  using SelMod = CQChartsSelMod;
+  using Obj    = CQChartsPlotObj;
 
  public:
-  CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &ic);
+  CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig);
+
+  Plot *plot() const { return plot_; }
+
+  void doSelect(SelMod selMod) override;
 
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
-  // select interface
+#if 0
+  // handle select press
   bool selectPress(const Point &p, SelMod selMod) override;
+#endif
 
   QBrush fillBrush() const override;
 
- private:
-  int hideIndex() const;
+  Obj *plotObj() const;
+
+  bool tipText(const Point &p, QString &tip) const override;
 
  private:
-  int   groupInd_ { -1 };
-  Color color_;
+  ColorInd setIndex() const override;
+
+ private:
+  Plot* plot_     { nullptr }; //!< parent plot
+  int   groupInd_ { -1 };      //!< group index
+  Color color_;                //!< custom color
 };
 
 /*!
@@ -674,8 +686,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
                                const ColorInd &ig, int ix, int iy, const Polygon &poly, int n,
                                int maxN) const;
 
-  virtual DensityObj *createDensityObj(int groupInd, const QString &name,
-                                       const BBox &rect) const;
+  virtual DensityObj *createDensityObj(int groupInd, const QString &name, const BBox &rect) const;
 
   //---
 
@@ -684,6 +695,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   bool addMenuItems(QMenu *menu) override;
+
+  void addSymbolSizeMapKeySubItems(QMenu *keysMenu);
+  void addSymbolTypeMapKeySubItems(QMenu *keysMenu);
+
+  //---
 
   BBox calcExtraFitBBox() const override;
 
@@ -715,6 +731,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void addDataLabelData(const BBox &bbox, const QString &text,
                         const CQChartsLabelPosition &position,
                         const PenBrush &penBrush, const Font &font);
+
+  //---
+
+  // object for group
+  void getGroupObjs(int ig, PlotObjs &objs) const;
 
  private:
   using AxisBoxWhisker = CQChartsAxisBoxWhisker;
@@ -800,6 +821,15 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // y axis annotations
   void setYDensity(bool b);
   void setYWhisker(bool b);
+
+ protected slots:
+  void symbolSizeMapKeyPositionSlot(QAction *);
+  void symbolSizeMapKeyInsideXSlot(bool);
+  void symbolSizeMapKeyInsideYSlot(bool);
+
+  void symbolTypeMapKeyPositionSlot(QAction *);
+  void symbolTypeMapKeyInsideXSlot(bool);
+  void symbolTypeMapKeyInsideYSlot(bool);
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;

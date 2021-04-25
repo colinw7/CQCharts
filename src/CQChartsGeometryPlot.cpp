@@ -740,12 +740,7 @@ addMenuItems(QMenu *menu)
   bool added = false;
 
   if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(),
-                         SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
+    addColorMapKeyItems(menu);
 
     added = true;
   }
@@ -851,7 +846,7 @@ calcTipId() const
     auto name = plot_->modelString(columnInd, ok);
     if (! ok) return;
 
-    QString label1 = label;
+    auto label1 = label;
 
     if (label1 == "") {
       label1 = plot_->columnHeaderName(column, /*tip*/true);

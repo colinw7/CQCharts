@@ -313,7 +313,7 @@ CQChartsImage::
 resolve(CQCharts *charts) const
 {
   if (! resolved_ && charts) {
-    QString filename1 = charts->lookupFile(filename_);
+    auto filename1 = charts->lookupFile(filename_);
 
     if (filename1 != "") {
       auto *th = const_cast<CQChartsImage *>(this);

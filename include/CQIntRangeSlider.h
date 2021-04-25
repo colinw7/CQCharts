@@ -80,6 +80,10 @@ class CQIntRangeSlider : public CQRangeSlider {
     setSliderMax(clampValue(deltaValue(getSliderMax(), d)), /*force*/true);
   }
 
+  void reset() override {
+    setSliderMinMax(rangeMin(), rangeMax());
+  }
+
   int clampValue(int i) const;
   int deltaValue(int i, int inc) const;
 

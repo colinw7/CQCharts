@@ -6,7 +6,9 @@
 class CQChartsWindow;
 class CQChartsView;
 class CQIconCombo;
+
 class QToolButton;
+class QComboBox;
 class QRadioButton;
 class QCheckBox;
 class QStackedWidget;
@@ -35,8 +37,8 @@ class CQChartsViewToolBar : public QFrame {
   void modeSlot(int ind);
 
   void selectButtonClicked(int);
-
   void selectInsideSlot(int state);
+  void selectKeyComboSlot(int);
 
   void appOptionsSlot();
   void viewSettingsSlot(bool b);
@@ -71,6 +73,7 @@ class CQChartsViewToolBar : public QFrame {
   QRadioButton*   selectPointButton_     { nullptr }; //!< select point radio
   QRadioButton*   selectRectButton_      { nullptr }; //!< select rect radio
   QCheckBox*      selectInsideCheck_     { nullptr }; //!< select index checkbox
+  QComboBox*      selectKeyCombo_        { nullptr }; //!< select key combo
   QToolButton*    appOptionssButton_     { nullptr }; //!< show app options button
   QToolButton*    viewSettingsButton_    { nullptr }; //!< show/hide view settings button
   QToolButton*    viewTableButton_       { nullptr }; //!< show/hide view table button

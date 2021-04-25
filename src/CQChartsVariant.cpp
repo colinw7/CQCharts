@@ -115,7 +115,7 @@ bool toString(const QVariant &var, QString &str) {
       }
     };
 
-    QSizePolicy sp = var.value<QSizePolicy>();
+    auto sp = var.value<QSizePolicy>();
 
     str = QString("%1 %2 %3 %4").arg(policyToString(sp.horizontalPolicy())).
                                  arg(policyToString(sp.verticalPolicy  ())).

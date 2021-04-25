@@ -515,6 +515,8 @@ createObjs(PlotObjs &objs) const
   if (! valueColumns().isValid())
     return false;
 
+  //---
+
   double ro = outerRadius();
   double ri = std::min(std::max(isDonut() ? innerRadius()*ro : 0.0, 0.0), 1.0);
 
@@ -530,12 +532,12 @@ createObjs(PlotObjs &objs) const
   this->getGroupInds(groupInds);
 
   for (const auto &groupInd : groupInds) {
-    auto pg = groupDatas_.find(groupInd);
+    auto pg = th->groupDatas_.find(groupInd);
 
-    if (pg == groupDatas_.end()) {
-      pg = groupDatas_.find(-1); // no group ind is (-1)
+    if (pg == th->groupDatas_.end()) {
+      auto groupName = groupIndName(groupInd);
 
-      assert(pg != groupDatas_.end());
+      pg = th->groupDatas_.insert(pg, GroupDatas::value_type(groupInd, groupName));
     }
 
     const auto &groupData = (*pg).second;
@@ -545,9 +547,10 @@ createObjs(PlotObjs &objs) const
     // create group obj
     BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
-    auto *groupObj = createGroupObj(rect, groupInd, groupData.name, ColorInd(ig, ng));
+    auto *groupObj =
+      createGroupObj(rect, ColorInd(groupInd, ng), groupData.name, ColorInd(ig, ng));
 
-    groupObj->setColorIndex(groupInd);
+    groupObj->setColorIndex(ColorInd(groupInd, ng));
 
     groupObj->setDataTotal(groupData.dataTotal);
     groupObj->setNumValues(groupData.numValues);
@@ -625,17 +628,17 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (auto &plotObj : objs) {
-    auto *obj = dynamic_cast<CQChartsPieObj *>(plotObj);
-    if (! obj) continue;
+    auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
+    if (! groupObj) continue;
 
-    auto *groupObj = obj->groupObj();
+    int iv = 0;
+    int nv = groupObj->numObjs();
 
-    int i = obj->colorIndex();
-    int n = (groupObj ? groupObj->numObjs() : 0);
+    for (auto &pieObj : groupObj->objs()) {
+      pieObj->setIv(ColorInd(iv, nv));
 
-    ColorInd iv(i, n);
-
-    obj->setIv(iv);
+      ++iv;
+    }
   }
 
   //---
@@ -774,7 +777,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
     if (hidden)
       obj->setVisible(false);
 
-    obj->setColorIndex(objInd);
+    obj->setColorIndex(ColorInd(objInd, objInd + 1));
 
     obj->setInnerRadius(ri);
     obj->setOuterRadius(ro);
@@ -874,18 +877,12 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   // get group data for group ind (add if new)
   int groupInd = rowGroupInd(ind);
 
-  auto pg = groupDatas_.find(groupInd);
+  auto pg = th->groupDatas_.find(groupInd);
 
-  if (pg == groupDatas_.end()) {
-    auto pg1 = th->groupDatas_.find(groupInd);
+  if (pg == th->groupDatas_.end()) {
+    auto groupName = groupIndName(groupInd);
 
-    if (pg1 == th->groupDatas_.end()) {
-      auto groupName = groupIndName(groupInd);
-
-      pg1 = th->groupDatas_.insert(pg1, GroupDatas::value_type(groupInd, GroupData(groupName)));
-    }
-
-    pg = groupDatas_.find(groupInd);
+    pg = th->groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
   }
 
   const auto &groupData = (*pg).second;
@@ -999,7 +996,7 @@ adjustObjAngles() const
       ng = 0;
 
       for (auto &groupObj : groupObjs_) {
-        if (! isSetHidden(groupObj->groupInd()))
+        if (! isSetHidden(groupObj->groupInd().i))
           ++ng;
         else
           ++nh;
@@ -1032,12 +1029,12 @@ adjustObjAngles() const
     // skip hidden groups
     if (! isCount() || isDonut()) {
       if (isGrouped && nh > 0) {
-        if (isSetHidden(groupObj->groupInd()))
+        if (isSetHidden(groupObj->groupInd().i))
           continue;
       }
     }
     else {
-      if (isSetHidden(groupObj->groupInd()))
+      if (isSetHidden(groupObj->groupInd().i))
         continue;
     }
 
@@ -1178,8 +1175,7 @@ addKeyItems(PlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+    groupItem->addRowItems(colorItem, textItem);
 
     key->addItem(groupItem, row, col);
 
@@ -1252,13 +1248,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  if (canDrawColorMapKey()) {
-    auto *keysMenu = new QMenu("Keys", menu);
-
-    addMenuCheckedAction(keysMenu, "Color Key", isColorMapKey(), SLOT(setColorMapKey(bool)));
-
-    menu->addMenu(keysMenu);
-  }
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }
@@ -1286,7 +1277,8 @@ createTextObj() const
 
 CQChartsPieGroupObj *
 CQChartsPiePlot::
-createGroupObj(const BBox &bbox, int groupInd, const QString &name, const ColorInd &ig) const
+createGroupObj(const BBox &bbox, const ColorInd &groupInd,
+               const QString &name, const ColorInd &ig) const
 {
   return new CQChartsPieGroupObj(this, bbox, groupInd, name, ig);
 }
@@ -1338,7 +1330,7 @@ createCustomControls()
 CQChartsPieObj::
 CQChartsPieObj(const CQChartsPiePlot *plot, const BBox &rect, const QModelIndex &ind,
                const ColorInd &ig) :
- CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect, ColorInd(), ig, ColorInd()),
+ CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect, ColorInd(), ig),
  plot_(plot)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -1368,7 +1360,7 @@ calcTipId() const
     if (column.isValid() && tableTip.hasColumn(column))
       return;
 
-    QString value1 = value;
+    auto value1 = value;
 
     if (! value1.length()) {
       if (column.isValid()) {
@@ -1384,7 +1376,7 @@ calcTipId() const
     if (! value1.length())
       return;
 
-    QString headerStr = header;
+    auto headerStr = header;
 
     if (column.isValid()) {
       headerStr = plot_->columnHeaderName(column, /*tip*/true);
@@ -1494,7 +1486,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
-  model->addProperty(path1, this, "colorIndex" )->setDesc("Color index");
+//model->addProperty(path1, this, "colorIndex" )->setDesc("Color index");
   model->addProperty(path1, this, "angle1"     )->setDesc("Start angle");
   model->addProperty(path1, this, "angle2"     )->setDesc("End angle");
   model->addProperty(path1, this, "innerRadius")->setDesc("Inner radius");
@@ -1574,8 +1566,10 @@ extraFitBBox() const
   // draw on arc center line
   else {
     // calc label radius
-    double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
-    double ro = outerRadius();
+    double ri, ro;
+
+    getRadii(ri, ro);
+
     double lr = plot_->labelRadius();
 
     double lr1;
@@ -1639,8 +1633,10 @@ draw(PaintDevice *device) const
   // get pie center (adjusted if exploded), radii and angles
   auto c = getCenter();
 
-  double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
-  double ro = outerRadius();
+  double ri, ro;
+
+  getRadii(ri, ro);
+
   double rv = valueRadius();
 
 //Angle ga = plot_->gapAngle().value()/2.0;
@@ -1755,8 +1751,10 @@ drawSegmentLabel(PaintDevice *device, const Point &c) const
   //---
 
   // calc label radius
-  double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
-  double ro = outerRadius();
+  double ri, ro;
+
+  getRadii(ri, ro);
+
   double lr = plot_->labelRadius();
 
   double lr1;
@@ -1825,6 +1823,14 @@ drawSegmentLabel(PaintDevice *device, const Point &c) const
 
 void
 CQChartsPieObj::
+getRadii(double &ri, double &ro) const
+{
+  ri = std::min(std::max(innerRadius(), 0.0), 1.0);
+  ro = outerRadius();
+}
+
+void
+CQChartsPieObj::
 calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
 {
   // calc stroke and brush
@@ -1861,8 +1867,6 @@ QColor
 CQChartsPieObj::
 fillColor() const
 {
-  auto *groupObj = this->groupObj();
-
   auto colorInd = this->calcColorInd();
 
   QColor fc;
@@ -1872,8 +1876,10 @@ fillColor() const
       fc = plot_->interpColor(color(), ColorInd());
     else if (plot_->fillColor().type() != Color::Type::PALETTE)
       fc = plot_->interpColor(plot_->fillColor(), iv_);
-    else if (groupObj)
+    else if (ig_.n > 1)
       fc = plot_->interpGroupPaletteColor(ig_, iv_);
+    else
+      fc = plot_->interpFillColor(iv_);
   }
   else {
     fc = plot_->interpFillColor(colorInd);
@@ -1937,7 +1943,7 @@ yColorValue(bool relative) const
 //------
 
 CQChartsPieGroupObj::
-CQChartsPieGroupObj(const CQChartsPiePlot *plot, const BBox &bbox, int groupInd,
+CQChartsPieGroupObj(const CQChartsPiePlot *plot, const BBox &bbox, const ColorInd &groupInd,
                     const QString &name, const ColorInd &ig) :
  CQChartsGroupObj(const_cast<CQChartsPiePlot *>(plot), bbox, ig),
  plot_(plot), groupInd_(groupInd), name_(name)
@@ -2038,15 +2044,17 @@ void
 CQChartsPieGroupObj::
 draw(PaintDevice *device) const
 {
+  if (numObjs() == 0) {
+    drawEmptyGroup(device);
+    return;
+  }
+
+  //---
+
   if (! plot()->isCount())
     return;
 
   //--
-
-  bool isInvertX = plot()->isInvertX();
-  bool isInvertY = plot()->isInvertY();
-
-  //---
 
   Point c(0, 0);
 
@@ -2088,7 +2096,40 @@ draw(PaintDevice *device) const
   //---
 
   // draw pie slice
+  bool isInvertX = plot()->isInvertX();
+  bool isInvertY = plot()->isInvertY();
+
   CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, aa1, aa2, isInvertX, isInvertY);
+}
+
+void
+CQChartsPieGroupObj::
+drawEmptyGroup(PaintDevice *device) const
+{
+  Point c(0, 0);
+
+  double ri, ro;
+
+  getRadii(ri, ro);
+
+  //---
+
+  // set pen and brush
+  // TODO: more customization support
+  auto bg = bgColor();
+  auto fg = plot_->interpPlotStrokeColor(ColorInd());
+
+  PenBrush penBrush;
+
+  plot_->setPenBrush(penBrush, PenData(true, fg), BrushData(true, bg));
+
+  plot_->updateObjPenBrushState(this, penBrush);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, Angle(0.0), Angle(360.0), false, false);
 }
 
 void
@@ -2141,6 +2182,14 @@ drawFg(PaintDevice *device) const
   CQChartsDrawUtil::drawTextAtPoint(device, pt, label, textOptions);
 }
 
+void
+CQChartsPieGroupObj::
+getRadii(double &ri, double &ro) const
+{
+  ri = innerRadius();
+  ro = outerRadius();
+}
+
 QColor
 CQChartsPieGroupObj::
 bgColor() const
@@ -2162,9 +2211,9 @@ selectPress(const Point &, CQChartsSelMod)
 {
   auto *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  int is = setIndex();
+  auto is = setIndex();
 
-  plot->setSetHidden(is, ! plot->isSetHidden(is));
+  plot->setSetHidden(is.i, ! plot->isSetHidden(is.i));
 
   plot->updateObjs();
 
@@ -2184,10 +2233,9 @@ fillBrush() const
 
   if      (group) {
     if (! plot->isCount()) {
-      int ig = group->groupInd();
-      int ng = plot->numGroups();
+      auto ig = group->groupInd();
 
-      c = plot->interpGroupPaletteColor(ColorInd(ig, ng), ColorInd());
+      c = plot->interpGroupPaletteColor(ig, ColorInd());
     }
     else
       c = group->bgColor();
@@ -2196,15 +2244,15 @@ fillBrush() const
     c = obj->fillColor();
   }
 
-  int is = setIndex();
+  auto is = setIndex();
 
-  if (plot->isSetHidden(is))
+  if (plot->isSetHidden(is.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
 
-int
+CQChartsUtil::ColorInd
 CQChartsPieKeyColor::
 setIndex() const
 {
@@ -2216,7 +2264,7 @@ setIndex() const
   else if (obj)
     return obj->colorIndex();
 
-  return -1;
+  return ColorInd();
 }
 
 //------
@@ -2242,15 +2290,15 @@ interpTextColor(const ColorInd &ind) const
 
   auto c = CQChartsKeyText::interpTextColor(ind);
 
-  int is = setIndex();
+  auto is = setIndex();
 
-  if (plot && plot->isSetHidden(is))
+  if (plot && plot->isSetHidden(is.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
 
-int
+CQChartsUtil::ColorInd
 CQChartsPieKeyText::
 setIndex() const
 {
@@ -2262,7 +2310,7 @@ setIndex() const
   else if (obj)
     return obj->colorIndex();
 
-  return -1;
+  return ColorInd();
 }
 
 //------

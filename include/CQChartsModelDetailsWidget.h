@@ -7,6 +7,7 @@
 class CQChartsModelData;
 class CQChartsModelDetailsTable;
 class CQCharts;
+class CQLabel;
 
 class QPushButton;
 class QLabel;
@@ -43,8 +44,8 @@ class CQChartsModelDetailsWidget : public QFrame {
   ModelDataP                 modelData_;
   QLabel*                    modelLabel_      { nullptr };
   QPushButton*               updateButton_    { nullptr };
-  QLabel*                    numColumnsLabel_ { nullptr };
-  QLabel*                    numRowsLabel_    { nullptr };
+  CQLabel*                   numColumnsLabel_ { nullptr };
+  CQLabel*                   numRowsLabel_    { nullptr };
   QLabel*                    hierLabel_       { nullptr };
   QCheckBox*                 flipCheck_       { nullptr };
   CQChartsModelDetailsTable* detailsTable_    { nullptr };

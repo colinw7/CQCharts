@@ -217,7 +217,7 @@ addProperties()
 
   addProp("labels", "rotatedText", "rotated", "Rotate labels to segment angle");
 
-  QString labelBoxPath = "labels/box";
+  auto labelBoxPath = QString("labels/box");
 
   textBox_->addBoxProperties(propertyModel(), labelBoxPath, "Labels");
 }
