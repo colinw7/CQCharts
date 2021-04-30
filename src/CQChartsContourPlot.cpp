@@ -162,6 +162,11 @@ calcRange() const
 
           double y = plot_->modelReal(columnModelInd, ok);
 
+          if (! ok) {
+            y  = col - 1;
+            ok = true;
+          }
+
           if (ok && ! CMathUtil::isNaN(y))
             yValueRange_.add(y);
         }
@@ -173,6 +178,11 @@ calcRange() const
         bool ok;
 
         double x = plot_->modelReal(columnModelInd, ok);
+
+        if (! ok) {
+          x  = data.row - 1;
+          ok = true;
+        }
 
         if (ok && ! CMathUtil::isNaN(x))
           xValueRange_.add(x);
@@ -270,6 +280,11 @@ createObjs(PlotObjs &) const
 
           double y = plot_->modelReal(columnModelInd, ok);
 
+          if (! ok) {
+            y  = col - 1;
+            ok = true;
+          }
+
           if (! ok || CMathUtil::isNaN(y))
             y = 0.0;
 
@@ -283,6 +298,11 @@ createObjs(PlotObjs &) const
         bool ok;
 
         double x = plot_->modelReal(columnModelInd, ok);
+
+        if (! ok) {
+          x  = data.row - 1;
+          ok = true;
+        }
 
         if (! ok || CMathUtil::isNaN(x))
           x = 0.0;
@@ -408,6 +428,8 @@ CQChartsContourPlotCustomControls(CQCharts *charts) :
   solidCheck_ = createBoolEdit("solid");
 
   addFrameWidget(optionsFrame, "Solid", solidCheck_);
+
+  // TODO: num levels, palette
 
   //addFrameRowStretch(optionsFrame);
 

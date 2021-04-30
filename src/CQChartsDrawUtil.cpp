@@ -486,6 +486,31 @@ calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text
 }
 
 void
+drawTextsAtPoint(PaintDevice *device, const Point &point, const QStringList &texts,
+                const TextOptions &options)
+{
+  if      (texts.size() == 1) {
+    drawTextAtPoint(device, point, texts[0], options);
+  }
+  else if (texts.size() == 2) {
+    QFontMetricsF fm(device->font());
+
+    double th = fm.height();
+
+    auto ppoint = device->windowToPixel(point);
+
+    auto point1 = device->pixelToWindow(Point(ppoint.x, ppoint.y - th/2));
+    auto point2 = device->pixelToWindow(Point(ppoint.x, ppoint.y + th/2));
+
+    drawTextAtPoint(device, point1, texts[0], options);
+    drawTextAtPoint(device, point2, texts[1], options);
+  }
+  else {
+    assert(false);
+  }
+}
+
+void
 drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
                 const TextOptions &options, bool centered, double pdx, double pdy)
 {
@@ -988,13 +1013,26 @@ roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, double
 
 void
 drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro,
-             const Angle &a1, const Angle &a2, bool isInvertX, bool isInvertY)
+             const Angle &angle1, const Angle &angle2, bool isInvertX, bool isInvertY)
 {
   QPainterPath path;
 
-  pieSlicePath(path, c, ri, ro, a1, a2, isInvertX, isInvertY);
+  pieSlicePath(path, c, ri, ro, angle1, angle2, isInvertX, isInvertY);
 
-  device->drawPath(path);
+  if (CQChartsAngle::isCircle(angle1, angle2)) {
+    device->fillPath(path, device->brush());
+
+    QPainterPath ipath, opath;
+
+    ellipsePath(ipath, BBox(c.x - ri, c.y - ri, c.x + ri, c.y + ri));
+    ellipsePath(opath, BBox(c.x - ro, c.y - ro, c.x + ro, c.y + ro));
+
+    device->strokePath(ipath, device->pen());
+    device->strokePath(opath, device->pen());
+  }
+  else {
+    device->drawPath(path);
+  }
 }
 
 void
@@ -1035,15 +1073,13 @@ pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Ang
     path.arcTo(bbox1.qrect(), -a2.value(), a2.value() - a1.value());
   }
   else {
-    double a21 = a2.value() - a1.value();
-
-    if (std::abs(a21) < 360.0) {
+    if (CQChartsAngle::isCircle(a1, a2)) {
+      path.addEllipse(bbox.qrect());
+    }
+    else {
       path.moveTo(QPointF(c.x, c.y));
 
       path.arcTo(bbox.qrect(), -a1.value(), a1.value() - a2.value());
-    }
-    else {
-      path.addEllipse(bbox.qrect());
     }
   }
 
@@ -1362,7 +1398,7 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation or
     double x1 = xm - xr*c, y1 = ym + xr*s;
     double x2 = xm + xr*c, y2 = y1;
 
-    double lw1 = sqrt(2)*lw/2.0;
+    double lw1 = std::sqrt(2)*lw/2.0;
 
     path.moveTo (QPointF(x1 - lw1, y1 - lw1));
     path.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
@@ -1388,7 +1424,7 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation or
     double x1 = xm - xr*c, y1 = ym + yr*s;
     double x2 = xm + xr*c, y2 = y1;
 
-    double lw1 = sqrt(2)*lw/2.0;
+    double lw1 = std::sqrt(2)*lw/2.0;
 
     path.moveTo (QPointF(x1 - lw1, y1 - lw1));
     path.cubicTo(QPointF(xt2     , y1 - lw1), QPointF(xt2, y2 + lw1), QPointF(x2 - lw1, y2 + lw1));

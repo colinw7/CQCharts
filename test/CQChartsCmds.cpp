@@ -2927,29 +2927,21 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  bool filled = argv.getParseBool("filled");
+  CQChartsSymbol symbol;
 
   if      (argv.hasParseArg("symbol")) {
     auto symbolStr = argv.getParseStr("symbol");
 
-    CQChartsSymbol symbol(symbolStr);
+    symbol = CQChartsSymbol(symbolStr);
 
     if (! symbol.isValid())
       return errorMsg(QString("Invalid Symbol '%1'").arg(symbolStr));
-
-    symbol.setFilled(filled);
-
-    symbolSet->addSymbol(symbol);
   }
   else if (argv.hasParseArg("char")) {
     auto charStr = argv.getParseStr("char");
     auto nameStr = argv.getParseStr("name");
 
-    CQChartsSymbol symbol(CQChartsSymbol::CharData(charStr, nameStr));
-
-    symbol.setFilled(filled);
-
-    symbolSet->addSymbol(symbol);
+    symbol = CQChartsSymbol(CQChartsSymbol::CharData(charStr, nameStr));
   }
   else if (argv.hasParseArg("path")) {
     auto pathStr = argv.getParseStr("path");
@@ -2966,11 +2958,7 @@ execCmd(CQChartsCmdArgs &argv)
     pathData.name = nameStr;
     pathData.src  = pathStr;
 
-    auto symbol = CQChartsSymbol(pathData);
-
-    symbol.setFilled(filled);
-
-    symbolSet->addSymbol(symbol);
+    symbol = CQChartsSymbol(pathData);
   }
   else if (argv.hasParseArg("svg")) {
     auto svgStr  = argv.getParseStr("svg");
@@ -2979,15 +2967,19 @@ execCmd(CQChartsCmdArgs &argv)
 
     CQChartsFile file(charts(), svgStr);
 
-    auto symbol = CQChartsSymbol::fromSVGFile(file, nameStr, styled);
+    symbol = CQChartsSymbol::fromSVGFile(file, nameStr, styled);
 
     if (! symbol.isValid())
       return errorMsg(QString("Invalid SVG File '%1'").arg(svgStr));
-
-    symbol.setFilled(filled);
-
-    symbolSet->addSymbol(symbol);
   }
+  else {
+    return false;
+  }
+
+  if (argv.hasParseArg("filled"))
+    symbol.setFilled(argv.getParseBool("filled"));
+
+  symbolSet->addSymbol(symbol);
 
   return true;
 }
@@ -6271,11 +6263,11 @@ execCmd(CQChartsCmdArgs &argv)
         }
       }
       else {
-        QModelIndex parent;
+        CQChartsModelIndex ind(plot, row.row(), column, QModelIndex());
 
         bool ok;
 
-        auto var = plot->modelValue(row.row(), column, parent, role, ok);
+        auto var = plot->modelValue(ind, role, ok);
 
         bool rc;
 
@@ -6295,11 +6287,11 @@ execCmd(CQChartsCmdArgs &argv)
       if (! column.isValid() || column.column() >= details->numColumns())
         return errorMsg("Invalid column specified");
 
-      QModelIndex parent;
+      CQChartsModelIndex ind(plot, row.row(), column, QModelIndex());
 
       bool ok;
 
-      auto var = plot->modelValue(row.row(), column, parent, role, ok);
+      auto var = plot->modelValue(ind, role, ok);
 
       auto *columnDetails = details->columnDetails(column);
 

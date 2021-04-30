@@ -517,9 +517,17 @@ widgetsToSymbol()
     symbol = CQChartsSymbol(typeEdit_->symbolType());
   }
   else if (typeInd == 2) {
+    auto text = charEdit_->text();
+
     CQChartsSymbol::CharData charData;
 
-    charData.c    = charEdit_    ->text();
+    QString res;
+
+    if (CQChartsUtil::encodeUtf(text, res))
+      charData.c = res;
+    else
+      charData.c = text;
+
     charData.name = charNameEdit_->text();
 
     symbol = CQChartsSymbol(charData);

@@ -118,6 +118,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
  public:
   using Plot   = CQChartsParallelPlot;
+  using Column = CQChartsColumn;
   using Length = CQChartsLength;
   using Symbol = CQChartsSymbol;
 
@@ -241,8 +242,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  bool rowColValue(int row, const Column &column, const QModelIndex &parent,
-                   double &value, double defVal) const;
+  bool rowColValue(const CQChartsModelColumnDetails *details,
+                   const ModelIndex &ind, double &value, double defVal) const;
 
   //---
 
@@ -281,6 +282,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
   virtual PointObj *createPointObj(const BBox &rect, double yval, double x, double y,
                                    const QModelIndex &ind, const ColorInd &is,
                                    const ColorInd &iv) const;
+
+ signals:
+  void customDataChanged();
 
  public slots:
   // set horizontal

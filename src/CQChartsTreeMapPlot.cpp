@@ -6,12 +6,14 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QMenu>
+#include <QCheckBox>
 
 CQChartsTreeMapPlotType::
 CQChartsTreeMapPlotType()
@@ -108,6 +110,8 @@ init()
 
   setTextFontSize(14.0);
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+  setTextScaled(true);
+  setTextFormatted(true);
 
   setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
 
@@ -2258,11 +2262,21 @@ CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "treemap")
 {
   addHierColumnWidgets();
+
   addColorColumnWidgets();
 
-  addLayoutStretch();
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+
+  valueCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Show Value", "valueCheck");
+
+  addFrameColWidget(optionsFrame, valueCheck_);
 
   //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }
@@ -2271,6 +2285,9 @@ void
 CQChartsTreeMapPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
+
   CQChartsHierPlotCustomControls::connectSlots(b);
 }
 
@@ -2291,11 +2308,20 @@ updateWidgets()
 
   //---
 
+  valueCheck_->setChecked(plot_->isValueLabel());
+
   CQChartsHierPlotCustomControls::updateWidgets();
 
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+valueSlot()
+{
+  plot_->setValueLabel(valueCheck_->isChecked());
 }
 
 CQChartsColor

@@ -3,7 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + sort xy x values before line connect (handle duplicate y per x)
+ + make model..(int row, const Column &column, ...) API's in CQChartsPlot private
+ + all plots with model real should also support details->uniqueId
+ + Improve javascript treemap
  + pie plot groups into multiple circles
+   + pie chart uses separate palette for each group ? (consistency)
+   + pie chart key tip
  + edit move map key (jumps)
  + support anchor point (left/right colors) - general ?
    + bucket fixed stops
@@ -103,7 +109,6 @@ TODO:
  + symbol size key as separate class and allow as annotation
  + test write properties with enum values
  + R in Action
- + hierarchical key ? (tree map)
  + errors in more plots
  + html support for all text if possible.
    + Remove all calls to QFontMetricsF::width()
@@ -277,7 +282,6 @@ High
  + Mapping of Values (Name->Number, Number->Name, Value->Color/Symbol Type/Size)
  + Filter as prompt in plot (common expression handling)
  + Header bar to switch data ?
- + Test for extra nodes in tree map (hier with size and child with size)
  + Better javascript font rendering (device scaling, alignment ?)
  + Box Shape (circle, path, ....)
  + Output or string list result does not match echo !
@@ -304,7 +308,6 @@ High
  + Basic Parameters (simpler create plot interface)
    + Include fold model creation and simplify grouping
  + Better filter model (new model)
- + Handle push/pop in tree map follow view
  + Improve coloring with follow view
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
@@ -628,7 +631,6 @@ Property View
 Plots to Add
  + Step Line (Left/Center/Right) (Fill Under)
  + Vector
- + Contour
 
 Plots General
  + Restrict which plots can be combined
@@ -694,6 +696,9 @@ Chord Plot
  + Separate segment and arc properties
  + Selectable arc
  + Color column ?
+
+Contour Plot
+ + support x,y,z columns ?
 
 Delaunay Plot
  + Faster delaunay algorithm
@@ -805,6 +810,10 @@ Tree map
  + Color fixed size box by value
  + Show size with label
  + Html scaled not working
+ + hierarchical key ? (tree map)
+ + Test for extra nodes in tree map (hier with size and child with size)
+ + Handle push/pop in tree map follow view
+ + Hide children from header control
 
 XY Plot
  + Fill under with no lines and rolling average should fill under rolling average

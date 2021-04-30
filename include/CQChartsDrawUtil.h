@@ -270,6 +270,9 @@ BBox calcTextAtPointRect(PaintDevice *device, const Point &point, const QString 
                          const TextOptions &options=TextOptions(), bool centered=false,
                          double dx=0.0, double dy=0.0);
 
+void drawTextsAtPoint(PaintDevice *device, const Point &point, const QStringList &texts,
+                      const TextOptions &options);
+
 void drawTextAtPoint(PaintDevice *device, const Point &p, const QString &text,
                      const TextOptions &options=TextOptions(), bool centered=false,
                      double dx=0.0, double dy=0.0);

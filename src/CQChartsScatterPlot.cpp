@@ -835,21 +835,11 @@ calcRange() const
   if (dataRange.isSet()) {
     if (isUniqueX() || isUniqueY()) {
       if (isUniqueX()) {
-        auto *columnDetails = this->columnDetails(xColumn());
-
-        for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-          xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
-
         dataRange.updateRange(dataRange.xmin() - 0.5, dataRange.ymin());
         dataRange.updateRange(dataRange.xmax() + 0.5, dataRange.ymin());
       }
 
       if (isUniqueY()) {
-        auto *columnDetails = this->columnDetails(yColumn());
-
-        for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-          yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
-
         dataRange.updateRange(dataRange.xmin(), dataRange.ymin() - 0.5);
         dataRange.updateRange(dataRange.xmax(), dataRange.ymax() + 0.5);
       }
@@ -916,12 +906,12 @@ initAxes()
 
   //---
 
+  // set x axis column
   xAxis()->setColumn(xColumn());
-  yAxis()->setColumn(yColumn());
 
   //---
 
-  // set x axis name
+  // set x axis name and type
   QString xname;
 
   (void) xAxisName(xname, "X");
@@ -934,9 +924,29 @@ initAxes()
     xAxis()->setDefLabel(xname, /*notify*/false);
   }
 
+  //--
+
+  auto xType = xAxis()->valueType().type();
+
+  if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
+    xType = CQChartsAxisValueType::Type::REAL;
+
+  if (isLogX   ()) xType = CQChartsAxisValueType::Type::LOG;
+  if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
+
+  if (xColumnType_ == ColumnType::TIME)
+    xType = CQChartsAxisValueType::Type::DATE;
+
+  xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
+
   //---
 
-  // set y axis name
+  // set y axis column
+  yAxis()->setColumn(yColumn());
+
+  //---
+
+  // set y axis name and type
   QString yname;
 
   (void) yAxisName(yname, "Y");
@@ -950,39 +960,47 @@ initAxes()
     yAxis()->setDefLabel(yname, /*notify*/false);
   }
 
-  //---
+  //--
 
-  auto xType = xAxis()->valueType().type();
   auto yType = yAxis()->valueType().type();
 
-  if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
-    xType = CQChartsAxisValueType::Type::REAL;
   if (yType != CQChartsAxisValueType::Type::INTEGER && yType != CQChartsAxisValueType::Type::REAL)
     yType = CQChartsAxisValueType::Type::REAL;
 
-  if (isLogX()) xType = CQChartsAxisValueType::Type::LOG;
-  if (isLogY()) yType = CQChartsAxisValueType::Type::LOG;
-
-  if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
+  if (isLogY   ()) yType = CQChartsAxisValueType::Type::LOG;
   if (isUniqueY()) yType = CQChartsAxisValueType::Type::INTEGER;
 
-  xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
-  yAxis()->setValueType(CQChartsAxisValueType(yType), /*notify*/false);
-
-  //---
-
-  if (xColumnType_ == ColumnType::TIME)
-    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
-                          /*notify*/false);
-
   if (yColumnType_ == ColumnType::TIME)
-    yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
-                          /*notify*/false);
+    yType = CQChartsAxisValueType::Type::DATE;
+
+  yAxis()->setValueType(CQChartsAxisValueType(yType), /*notify*/false);
 
   //---
 
   if (isOverlay() && isFirstPlot())
     setOverlayPlotsAxisNames();
+
+  //---
+
+  xAxis()->clearTickLabels();
+
+  if (isUniqueX()) {
+    auto *columnDetails = this->columnDetails(xColumn());
+
+    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+  }
+
+  //---
+
+  yAxis()->clearTickLabels();
+
+  if (isUniqueY()) {
+    auto *columnDetails = this->columnDetails(yColumn());
+
+    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+      yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+  }
 }
 
 bool

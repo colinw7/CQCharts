@@ -44,6 +44,12 @@ class CQChartsArcData {
 
     //---
 
+    // if circle we are done
+    if (CQChartsAngle::isCircle(angle1(), angle2()))
+      return true;
+
+    //---
+
     // check angle
     double a = CMathUtil::Rad2Deg(atan2(p.y - center().y, p.x - center().x));
     a = CMathUtil::normalizeAngle(a);

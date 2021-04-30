@@ -1841,7 +1841,7 @@ void
 CQChartsHierBubbleNode::
 initRadius()
 {
-  // area = PI*r*r; r = sqrt(area/PI)
+  // area = PI*r*r; r = std::sqrt(area/PI)
   r_ = CQChartsUtil::areaToRadius(hierSize());
 }
 

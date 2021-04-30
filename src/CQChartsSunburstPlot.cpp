@@ -1741,7 +1741,7 @@ pointInside(double x, double y)
 {
   if (! placed_) return false;
 
-  double r = sqrt(x*x + y*y);
+  double r = std::sqrt(x*x + y*y);
 
   if (r < r_ || r > r_ + dr_) return false;
 

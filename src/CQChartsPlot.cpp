@@ -28,6 +28,7 @@
 #include <CQChartsSymbolSet.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
+#include <CQChartsJS.h>
 #include <CQCharts.h>
 
 #include <CQChartsPlotControlWidgets.h>
@@ -1024,7 +1025,7 @@ void
 CQChartsPlot::
 writeScript(ScriptPaintDevice *device) const
 {
-  std::string plotId = "plot_" + this->id().toStdString();
+  std::string plotId = CQChartsJS::encodeId("plot_" + this->id().toStdString());
 
   //---
 
@@ -14905,6 +14906,55 @@ calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
 
 bool
 CQChartsPlot::
+checkNumericColumn(const Column &column, const QString &name, bool required) const
+{
+  ColumnType type;
+
+  if (! checkColumn(column, name, type, required))
+    return false;
+
+  if (type != ColumnType::REAL && type != ColumnType::INTEGER) {
+    const_cast<Plot *>(this)->
+      addColumnError(column, QString("Non-numeric %1 column").arg(name));
+    return false;
+  }
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+checkNumericColumns(const Columns &columns, const QString &name, bool required) const
+{
+  if (required) {
+    if (! columns.isValid())
+      return const_cast<Plot *>(this)->
+        addError(QString("Missing required %1 columns").arg(name));
+  }
+
+  bool valid = true;
+
+  int iv = 0;
+
+  for (const auto &column : columns) {
+    auto type = columnValueType(column);
+
+    if (type == ColumnType::NONE)
+      valid = const_cast<Plot *>(this)->
+        addColumnError(column, QString("Invalid %1 column (#%2)").arg(name).arg(iv));
+
+    if (type != ColumnType::REAL && type != ColumnType::INTEGER)
+      valid = const_cast<Plot *>(this)->
+        addColumnError(column, QString("Non-numeric %1 column (#%2)").arg(name).arg(iv));
+
+    ++iv;
+  }
+
+  return valid;
+}
+
+bool
+CQChartsPlot::
 checkColumns(const Columns &columns, const QString &name, bool required) const
 {
   if (required) {
@@ -15362,6 +15412,25 @@ visitModel(ModelVisitor &visitor) const
   (void) CQChartsModelVisit::exec(charts(), model().data(), visitor);
 
   //visitor.term();
+}
+
+//------
+
+double
+CQChartsPlot::
+modelNumericValue(const ModelIndex &ind, bool &ok) const
+{
+  auto *columnDetails = this->columnDetails(ind.column());
+
+  if (! columnDetails || columnDetails->isNumeric())
+    return modelReal(ind, ok);
+
+  auto var = modelValue(ind, ok);
+  if (! ok) return 0.0;
+
+  ok = true;
+
+  return columnDetails->uniqueId(var);
 }
 
 //------
@@ -16013,6 +16082,13 @@ modelReals(int row, const Column &column, const QModelIndex &parent, bool &ok) c
 }
 
 //------
+
+QVariant
+CQChartsPlot::
+modelRootValue(const ModelIndex &ind, bool &ok) const
+{
+  return modelRootValue(ind.row(), ind.column(), ind.parent(), ok);
+}
 
 QVariant
 CQChartsPlot::

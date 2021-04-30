@@ -246,7 +246,7 @@ calcRange() const
     void initVisit() override {
       int nr = model_->rowCount();
 
-      ny_ = sqrt(nr);
+      ny_ = std::sqrt(nr);
       nx_ = (nr + ny_ - 1)/std::max(ny_, 1);
     }
 
@@ -339,7 +339,7 @@ createObjs(PlotObjs &objs) const
     void initVisit() override {
       int nr = model_->rowCount();
 
-      ny_ = sqrt(nr);
+      ny_ = std::sqrt(nr);
       nx_ = (nr + ny_ - 1)/std::max(ny_, 1);
     }
 

@@ -80,8 +80,8 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 
   using UniqueColumns = std::map<int, Column>;
 
-  UniqueColumns   xColumns;
-  CQChartsColumns yColumns;
+  UniqueColumns xColumns;
+  Columns       yColumns;
 
   for (int c = 0; c < details->numColumns(); ++c) {
     const auto *columnDetails = details->columnDetails(Column(c));
@@ -247,8 +247,7 @@ setOrientation(const Qt::Orientation &orientation)
 {
   CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
     //CQChartsAxis::swap(xAxis(), yAxis());
-
-    updateRangeAndObjs();
+    updateRangeAndObjs(); emit customDataChanged();
   } );
 }
 
@@ -444,22 +443,61 @@ calcRange() const
 
   //---
 
+  // update axis style
+  for (int j = 0; j < ns; ++j) {
+    const auto &yColumn = yColumns().getColumn(j);
+
+    auto *details = columnDetails(yColumn);
+
+    //---
+
+    auto *axis = axes_[j];
+
+    axis->clearTickLabels();
+
+    if (details->isNumeric()) {
+      axis->setMajorIncrement(0);
+      axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
+    }
+    else {
+      axis->setMajorIncrement(1);
+      axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+
+      for (int k = 0; k < details->numUnique(); ++k)
+        axis->setTickLabel(k, details->uniqueValue(k).toString());
+    }
+  }
+
+  //---
+
   // calc range for each value column (set)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsParallelPlot *plot) :
+    using Plot = CQChartsParallelPlot;
+
+   public:
+    RowVisitor(const Plot *plot) :
      plot_(plot) {
       ns_ = plot_->yColumns().count();
 
-      for (int i = 0; i < ns_; ++i)
+      details_.resize(ns_);
+
+      for (int i = 0; i < ns_; ++i) {
+        const auto &yColumn = plot_->yColumns().getColumn(i);
+
+        details_[i] = plot_->columnDetails(yColumn);
+
         setRanges_.emplace_back();
+      }
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int i = 0; i < ns_; ++i) {
         auto &range = setRanges_[i];
 
-        const auto &setColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->yColumns().getColumn(i);
+
+        ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
 
         //---
 
@@ -467,7 +505,7 @@ calcRange() const
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
+        if (! plot_->rowColValue(details_[i], yColumnInd, y, /*defVal*/y))
           continue;
 
         if (plot_->isVertical())
@@ -482,9 +520,12 @@ calcRange() const
     const Ranges &setRanges() const { return setRanges_; }
 
    private:
-    const CQChartsParallelPlot *plot_ { nullptr };
-    int                         ns_   { 0 };
-    Ranges                      setRanges_;
+    using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
+
+    const Plot*        plot_    { nullptr };
+    int                ns_      { 0 };
+    ColumnDetailsArray details_ { nullptr };
+    Ranges             setRanges_;
   };
 
   RowVisitor visitor(this);
@@ -537,12 +578,12 @@ calcRange() const
   for (int j = 0; j < ns; ++j) {
     auto *axis = axes_[j];
 
-    const auto &range     = setRange(j);
-    const auto &setColumn = yColumns().getColumn(j);
+    const auto &range   = setRange(j);
+    const auto &yColumn = yColumns().getColumn(j);
 
     bool ok;
 
-    auto name = modelHHeaderString(setColumn, ok);
+    auto name = modelHHeaderString(yColumn, ok);
 
     const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
@@ -586,9 +627,20 @@ createObjs(PlotObjs &objs) const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsParallelPlot *plot) :
+    using Plot = CQChartsParallelPlot;
+
+   public:
+    RowVisitor(const Plot *plot) :
      plot_(plot) {
       ns_ = plot_->yColumns().count();
+
+      details_.resize(ns_);
+
+      for (int i = 0; i < ns_; ++i) {
+        const auto &yColumn = plot_->yColumns().getColumn(i);
+
+        details_[i] = plot_->columnDetails(yColumn);
+      }
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -603,7 +655,9 @@ createObjs(PlotObjs &objs) const
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &setColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->yColumns().getColumn(i);
+
+        ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
 
         //---
 
@@ -611,7 +665,7 @@ createObjs(PlotObjs &objs) const
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
+        if (! plot_->rowColValue(details_[i], yColumnInd, y, /*defVal*/y))
           continue;
 
         if (plot_->isVertical())
@@ -630,10 +684,13 @@ createObjs(PlotObjs &objs) const
     const Indices &xinds() const { return xinds_; }
 
    private:
-    const CQChartsParallelPlot *plot_ { nullptr };
-    int                         ns_   { 0 };
-    Polygons                    polys_;
-    Indices                     xinds_;
+    using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
+
+    const Plot*        plot_    { nullptr };
+    int                ns_      { 0 };
+    ColumnDetailsArray details_ { nullptr };
+    Polygons           polys_;
+    Indices            xinds_;
   };
 
   RowVisitor visitor(this);
@@ -689,11 +746,11 @@ createObjs(PlotObjs &objs) const
     int nl = poly.size();
 
     for (int j = 0; j < nl; ++j) {
-      const auto &setColumn = yColumns().getColumn(j);
+      const auto &yColumn = yColumns().getColumn(j);
 
-      ModelIndex setColumnInd(th, i, setColumn, xind.parent());
+      ModelIndex yColumnInd(th, i, yColumn, xind.parent());
 
-      auto yind  = modelIndex(setColumnInd);
+      auto yind  = modelIndex(yColumnInd);
       auto yind1 = normalizeIndex(yind);
 
       //---
@@ -747,15 +804,26 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsParallelPlot::
-rowColValue(int row, const Column &column, const QModelIndex &parent,
-            double &value, double defVal) const
+rowColValue(const CQChartsModelColumnDetails *details,
+            const ModelIndex &ind, double &value, double defVal) const
 {
+  auto useDefault = [&]() {
+    value = defVal;
+    return true;
+  };
+
   bool ok;
 
-  value = modelReal(row, column, parent, ok);
+  if (details->isNumeric()) {
+    value = modelReal(ind, ok);
+    if (! ok) return useDefault();
+  }
+  else {
+    auto var = modelValue(ind, ok);
+    if (! ok) return useDefault();
 
-  if (! ok)
-    value = defVal;
+    value = details->uniqueId(var);
+  }
 
   if (CMathUtil::isNaN(value))
     return false;
@@ -1483,7 +1551,7 @@ void
 CQChartsParallelPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
+  addColumnSelectIndex(inds, Column(modelInd().column()));
 }
 
 void
@@ -1587,9 +1655,15 @@ void
 CQChartsParallelPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1601,6 +1675,8 @@ updateWidgets()
   //---
 
   orientationCombo_->setCurrentValue((int) plot_->orientation());
+
+  //---
 
   CQChartsPlotCustomControls::updateWidgets();
 

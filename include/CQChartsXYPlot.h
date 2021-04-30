@@ -257,7 +257,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   // symbol type
   const Symbol &symbol() const { return extraData()->symbol; }
-  void setSymbol(Symbol s) { extraData()->symbol = s; }
+  void setSymbol(const Symbol &s) { extraData()->symbol = s; }
   Symbol calcSymbol() const;
 
   // symbol size
@@ -808,6 +808,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //! get/set map x column
   bool isMapXColumn() const { return mapXColumn_; }
   void setMapXColumn(bool b);
+
+  bool calcMapXColumn() const;
 
   //---
 

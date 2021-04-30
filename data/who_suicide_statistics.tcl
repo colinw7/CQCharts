@@ -106,7 +106,8 @@ if {0} {
 set view2 [create_charts_view]
 
 # display box plot of suicides per country
-set suicidesCountryBoxPlot [create_charts_plot -view $view2 -model $model -type boxplot -columns {{values suicides} {group country}}]
+set suicidesCountryBoxPlot [create_charts_plot -view $view2 -model $model -type boxplot \
+  -columns {{values suicides} {group country}}]
 
 set_charts_property -plot $suicidesCountryBoxPlot -name filter.expression -value {$suicides > 1000}
 set_charts_property -plot $suicidesCountryBoxPlot -name options.orientation -value horizontal

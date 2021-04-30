@@ -57,6 +57,6 @@ for {set ix 0} {$ix < $n} {incr ix} {
   lappend rows $row
 }
 
-echo $rows
-
 set model [load_charts_model -tcl [list $x $y $z]]
+
+#set plot [create_charts_plot -model $model -type contour]

@@ -327,6 +327,16 @@ setMapXColumn(bool b)
   CQChartsUtil::testAndSet(mapXColumn_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+bool
+CQChartsXYPlot::
+calcMapXColumn() const
+{
+  if (mapXColumn_)
+    return true;
+
+  return (xColumnType_ == CQBaseModelType::STRING);
+}
+
 //---
 
 CQChartsColumn
@@ -554,7 +564,7 @@ addProperties()
   addProp("columns", "vectorXColumn", "vectorX", "Vector x column");
   addProp("columns", "vectorYColumn", "vectorY", "Vector y column");
 
-  addProp("columns", "mapXColumn", "mapX", "Map x column value to unique id");
+  addProp("columns", "mapXColumn", "mapX", "Force map x column value to unique id");
 
   // bivariate
   addProp("bivariate", "bivariateLines", "visible", "Bivariate lines visible");
@@ -880,17 +890,6 @@ void
 CQChartsXYPlot::
 postCalcRange()
 {
-  xAxis()->clearTickLabels();
-
-  if (isMapXColumn()) {
-    auto *columnDetails = this->columnDetails(xColumn());
-
-    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
-  }
-
-  //---
-
   initAxes();
 }
 
@@ -906,7 +905,7 @@ initAxes()
 
   //---
 
-  // set x axis column and name
+  // set x axis column
   Column xAxisColumn;
 
   if (! isColumnSeries())
@@ -925,6 +924,7 @@ initAxes()
 
   //-
 
+  // set x axis name and type
   QString xname;
 
   (void) xAxisName(xname, "X");
@@ -941,7 +941,7 @@ initAxes()
     xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
                           /*notify*/false);
 
-  if (isMapXColumn()) {
+  if (calcMapXColumn()) {
     xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
                           /*notify*/false);
 
@@ -991,6 +991,17 @@ initAxes()
 
   if (isOverlay() && isFirstPlot())
     setOverlayPlotsAxisNames();
+
+  //---
+
+  xAxis()->clearTickLabels();
+
+  if (calcMapXColumn()) {
+    auto *columnDetails = this->columnDetails(xColumn());
+
+    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+  }
 }
 
 bool
@@ -1789,7 +1800,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         //---
 
-        // set optional symbol type
+        // set optional symbol
         CQChartsSymbol symbol;
 
         if (symbolTypeColumn().isValid()) {
@@ -2066,7 +2077,7 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 
   ind = modelIndex(xModelInd);
 
-  if (! isMapXColumn()) {
+  if (! calcMapXColumn()) {
     bool ok = modelMappedReal(xModelInd, x, isLogX(), data.row);
 
     if (! ok) {
@@ -3406,7 +3417,7 @@ calcTipId() const
 
     QString xstr;
 
-    if (! plot()->isMapXColumn()) {
+    if (! plot()->calcMapXColumn()) {
       xstr = plot()->xStr(x);
     }
     else {
@@ -3546,7 +3557,7 @@ draw(PaintDevice *device) const
   if (isVisible()) {
     device->setColorNames();
 
-    // override symbol type for custom symbol
+    // override symbol for custom symbol
     auto symbol     = this->calcSymbol();
     auto symbolSize = this->calcSymbolSize();
 

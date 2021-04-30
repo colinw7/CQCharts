@@ -1154,9 +1154,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
+  double modelNumericValue(const ModelIndex &ind, bool &ok) const;
+
+ public:
+  // get model real value with support for log value mapping
   bool modelMappedReal(const ModelIndex &ind, double &r, bool log, double def) const;
-  bool modelMappedReal(int row, const Column &col, const QModelIndex &ind,
-                       double &r, bool log, double def) const;
 
   //---
 
@@ -1170,11 +1173,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   QModelIndex modelIndex(const ModelIndex &ind) const;
 
+ private:
+  bool modelMappedReal(int row, const Column &col, const QModelIndex &ind,
+                       double &r, bool log, double def) const;
+
   QModelIndex modelIndex(int row, const Column &column,
                          const QModelIndex &parent=QModelIndex(), bool normalized=false) const;
 
   //----
 
+ public:
 #if 0
   QVariant modelHHeaderValue(const Column &column, int role, bool &ok) const;
   QVariant modelHHeaderValue(const Column &column, bool &ok) const;
@@ -1223,91 +1231,95 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
   QVariant modelValue(const ModelIndex &ind, int role, bool &ok) const;
   QVariant modelValue(const ModelIndex &ind, bool &ok) const;
 
-  QVariant modelValue(int row, const Column &column,
-                      const QModelIndex &parent, int role, bool &ok) const;
-  QVariant modelValue(int row, const Column &column,
-                      const QModelIndex &parent, bool &ok) const;
-
+ protected:
   virtual QVariant modelValue(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, int role, bool &ok) const;
   virtual QVariant modelValue(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, bool &ok) const;
 
+ private:
+  QVariant modelValue(int row, const Column &column,
+                      const QModelIndex &parent, int role, bool &ok) const;
+  QVariant modelValue(int row, const Column &column,
+                      const QModelIndex &parent, bool &ok) const;
+
   //---
 
+ public:
   QString modelString(const ModelIndex &ind, int role, bool &ok) const;
   QString modelString(const ModelIndex &ind, bool &ok) const;
-
-  QString modelString(int row, const Column &column,
-                      const QModelIndex &parent, int role, bool &ok) const;
-  QString modelString(int row, const Column &column,
-                      const QModelIndex &parent, bool &ok) const;
 
   QString modelString(QAbstractItemModel *model, const ModelIndex &ind, int role, bool &ok) const;
   QString modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const;
 
+ protected:
   virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, int role, bool &ok) const;
   virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, bool &ok) const;
 
+ private:
+  QString modelString(int row, const Column &column,
+                      const QModelIndex &parent, int role, bool &ok) const;
+  QString modelString(int row, const Column &column,
+                      const QModelIndex &parent, bool &ok) const;
+
   //---
 
-  double modelReal(int row, const Column &column,
-                   const QModelIndex &parent, int role, bool &ok) const;
-  double modelReal(int row, const Column &column,
-                   const QModelIndex &parent, bool &ok) const;
-
+ public:
   double modelReal(const ModelIndex &ind, int role, bool &ok) const;
   double modelReal(const ModelIndex &ind, bool &ok) const;
 
+ protected:
   virtual double modelReal(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, int role, bool &ok) const;
   virtual double modelReal(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, bool &ok) const;
 
+ private:
+  double modelReal(int row, const Column &column,
+                   const QModelIndex &parent, int role, bool &ok) const;
+  double modelReal(int row, const Column &column,
+                   const QModelIndex &parent, bool &ok) const;
+
   //---
 
-  long modelInteger(int row, const Column &column,
-                    const QModelIndex &parent, int role, bool &ok) const;
-  long modelInteger(int row, const Column &column,
-                    const QModelIndex &parent, bool &ok) const;
-
+ public:
   long modelInteger(const ModelIndex &ind, int role, bool &ok) const;
   long modelInteger(const ModelIndex &ind, bool &ok) const;
 
+ protected:
   virtual long modelInteger(QAbstractItemModel *model, int row, const Column &column,
                             const QModelIndex &parent, int role, bool &ok) const;
   virtual long modelInteger(QAbstractItemModel *model, int row, const Column &column,
                             const QModelIndex &parent, bool &ok) const;
 
-  //---
-
-#if 0
-  Color modelColor(int row, const Column &column,
-                   const QModelIndex &parent, bool &ok) const;
-  Color modelColor(int row, const Column &column,
-                   const QModelIndex &parent, int role, bool &ok) const;
-
-  virtual Color modelColor(QAbstractItemModel *model, int row, const Column &column,
-                           const QModelIndex &parent, int role, bool &ok) const;
-  virtual Color modelColor(QAbstractItemModel *model, int row, const Column &column,
-                           const QModelIndex &parent, bool &ok) const;
-#endif
+ private:
+  long modelInteger(int row, const Column &column,
+                    const QModelIndex &parent, int role, bool &ok) const;
+  long modelInteger(int row, const Column &column,
+                    const QModelIndex &parent, bool &ok) const;
 
   //---
 
+ public:
   std::vector<double> modelReals(const ModelIndex &ind, bool &ok) const;
+
+ private:
   std::vector<double> modelReals(int row, const Column &column,
                                  const QModelIndex &parent, bool &ok) const;
 
   //---
 
+ public:
+  QVariant modelRootValue(const ModelIndex &ind, bool &ok) const;
   QVariant modelRootValue(const ModelIndex &ind, int role, bool &ok) const;
 
+ private:
   QVariant modelRootValue(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QVariant modelRootValue(int row, const Column &column,
@@ -1315,7 +1327,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
   QVariant modelHierValue(const ModelIndex &ind, bool &ok) const;
+
+ private:
   QVariant modelHierValue(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QVariant modelHierValue(int row, const Column &column,
@@ -1323,7 +1338,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
   QString modelHierString(const ModelIndex &ind, bool &ok) const;
+
+ private:
   QString modelHierString(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QString modelHierString(int row, const Column &column,
@@ -1331,24 +1349,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-#if 0
-  double modelHierReal(int row, const Column &column,
-                       const QModelIndex &parent, int role, bool &ok) const;
-  double modelHierReal(int row, const Column &column,
-                       const QModelIndex &parent, bool &ok) const;
-#endif
-
-  //---
-
-#if 0
-  long modelHierInteger(int row, const Column &column,
-                        const QModelIndex &parent, int role, bool &ok) const;
-  long modelHierInteger(int row, const Column &column,
-                        const QModelIndex &parent, bool &ok) const;
-#endif
-
-  //---
-
+ public:
   bool isSelectIndex(const QModelIndex &ind, int row, const Column &col,
                      const QModelIndex &parent=QModelIndex()) const;
 
@@ -2751,6 +2752,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const;
 
   //---
+
+  bool checkNumericColumns(const Columns &columns, const QString &name,
+                           bool required=false) const;
+  bool checkNumericColumn(const Column &column, const QString &name,
+                          bool required=false) const;
 
   bool checkColumns(const Columns &columns, const QString &name, bool required=false) const;
 

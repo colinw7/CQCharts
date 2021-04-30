@@ -462,14 +462,16 @@ initGroup(CQChartsGroupData &data) const
       // add column value
       if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
                bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+        ModelIndex rootInd(plot_, data.row, bucket_->column(), data.parent);
+
         bool ok;
 
         QVariant value;
 
         if (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
-          value = plot_->modelRootValue(data.row, bucket_->column(), data.parent, ok);
+          value = plot_->modelRootValue(rootInd, ok);
         else
-          value = plot_->modelHierValue(data.row, bucket_->column(), data.parent, ok);
+          value = plot_->modelHierValue(rootInd, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
@@ -606,14 +608,16 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
   // get group id from value in group column
   else if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
            groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+    ModelIndex rootInd(this, ind.row(), groupBucket_->column(), ind.parent());
+
     bool ok;
 
     QVariant value;
 
     if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
-      value = modelRootValue(ind.row(), groupBucket_->column(), ind.parent(), ok);
+      value = modelRootValue(rootInd, ok);
     else
-      value = modelHierValue(ind.row(), groupBucket_->column(), ind.parent(), ok);
+      value = modelHierValue(rootInd, ok);
 
     if (! value.isValid())
       return false;

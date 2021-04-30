@@ -433,7 +433,12 @@ CQChartsPlotCustomControls::
 addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
   frameData.layout->addWidget(w, frameData.row, frameData.col); ++frameData.col;
-  if (nextRow) ++frameData.row;
+
+  if (nextRow) {
+    addFrameRowStretch(frameData);
+
+    ++frameData.row;
+  }
 }
 
 void

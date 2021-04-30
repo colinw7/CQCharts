@@ -2073,7 +2073,9 @@ void
 CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
-  auto modelInd = plot_->modelIndex(0, headerObjData_.c);
+  ModelIndex ind(plot_, 0, headerObjData_.c, QModelIndex());
+
+  auto modelInd = plot_->modelIndex(ind);
 
   inds.insert(modelInd);
 }

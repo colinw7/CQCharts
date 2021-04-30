@@ -2281,7 +2281,7 @@ autoPlacePlots()
 {
   int np = plots().size();
 
-  int nr = std::max(int(sqrt(np)), 1);
+  int nr = std::max(int(std::sqrt(np)), 1);
   int nc = (np + nr - 1)/nr;
 
   placePlots(plots(), /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
@@ -2370,7 +2370,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
     nr = (np + nc - 1)/nc;
   }
   else {
-    nr = std::max(int(sqrt(np)), 1);
+    nr = std::max(int(std::sqrt(np)), 1);
     nc = (np + nr - 1)/nr;
   }
 
@@ -6746,7 +6746,7 @@ writeScript(const QString &filename, Plot *plot)
 
   // create specific plot object
   if (plot) {
-    std::string plotId = "plot_" + plot->id().toStdString();
+    std::string plotId = CQChartsJS::encodeId("plot_" + plot->id().toStdString());
 
     os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
     os << "  this.plots.push(this." << plotId << ");\n";
@@ -6757,7 +6757,7 @@ writeScript(const QString &filename, Plot *plot)
     int i = 0;
 
     for (auto &plot : plots()) {
-      std::string plotId = "plot_" + plot->id().toStdString();
+      std::string plotId = CQChartsJS::encodeId("plot_" + plot->id().toStdString());
 
       if (i > 0)
         os << "\n";
@@ -6831,14 +6831,14 @@ writeScript(const QString &filename, Plot *plot)
 
   // draw specific plot
   if (plot) {
-    std::string plotId = "plot_" + plot->id().toStdString();
+    std::string plotId = CQChartsJS::encodeId("plot_" + plot->id().toStdString());
 
     os << "  this." << plotId << ".draw();\n";
   }
   // draw all plots
   else {
     for (auto &plot : plots()) {
-      std::string plotId = "plot_" + plot->id().toStdString();
+      std::string plotId = CQChartsJS::encodeId("plot_" + plot->id().toStdString());
 
       os << "  this." << plotId << ".draw();\n";
     }

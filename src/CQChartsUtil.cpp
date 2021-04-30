@@ -1492,3 +1492,52 @@ Point nearestRectPoint(const BBox &rect, const Point &pos) {
 }
 
 }
+
+//------
+
+namespace CQChartsUtil {
+
+bool encodeUtf(const QString &s, QString &res) {
+  auto hexCharValue = [](char c) {
+    if (isdigit(c)) return (c - '0');
+
+    return (tolower(c) - 'a' + 10);
+  };
+
+  std::wstring str;
+
+  int i   = 0;
+  int len = s.length();
+
+  while (i < len) {
+    if (i < len - 5 && s[i] == '\\' && s[i + 1].toLower() == 'u') {
+      i += 2;
+
+      long u = 0;
+
+      for (int i1 = 0; i1 < 4; ++i1) {
+        auto c = s[i + i1].toLatin1();
+
+        if (! isxdigit(c))
+          return false;
+
+        u = (u << 4) | (hexCharValue(c) & 0xF);
+      }
+
+      str += wchar_t(u);
+
+      i += 4;
+    }
+    else {
+      str += wchar_t(s[i].toLatin1());
+
+      ++i;
+    }
+  }
+
+  res = QString::fromStdWString(str);
+
+  return true;
+}
+
+}

@@ -187,8 +187,8 @@ drawContourLines(CQChartsPaintDevice *device)
 
       double xm = (xi1 + xi2)/2.0;
 
-      int i1 =  i     *x_.size();
-      int i2 = (i + 1)*x_.size();
+      int i1 =  i     *y_.size();
+      int i2 = (i + 1)*y_.size();
 
       for (uint j = 0; j < y_.size() - 1; j++) {
         double yj1 = y_[j + 0];
@@ -359,8 +359,8 @@ drawContourSolid(CQChartsPaintDevice *device)
     double x1 = x_[i + 0];
     double x2 = x_[i + 1];
 
-    int i1 =  i     *x_.size();
-    int i2 = (i + 1)*x_.size();
+    int i1 =  i     *y_.size();
+    int i2 = (i + 1)*y_.size();
 
     for (uint j = 0; j < y_.size() - 1; j++) {
       double y1 = y_[j + 0];

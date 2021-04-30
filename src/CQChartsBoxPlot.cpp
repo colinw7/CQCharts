@@ -772,7 +772,7 @@ updateRawRange() const
   // value columns required
   // name, group and set column optional
 
-  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+  if (! checkNumericColumns(valueColumns(), "Values", /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
@@ -1053,13 +1053,19 @@ updateCalcRange() const
   if (! checkColumn(xColumn(), "X", th->xType_))
     columnsValid = false;
 
-  if (! checkColumn(minColumn        (), "Min"         )) columnsValid = false;
-  if (! checkColumn(lowerMedianColumn(), "Lower Median")) columnsValid = false;
-  if (! checkColumn(medianColumn     (), "Median"      )) columnsValid = false;
-  if (! checkColumn(upperMedianColumn(), "Upper Median")) columnsValid = false;
-  if (! checkColumn(maxColumn        (), "Max"         )) columnsValid = false;
-  if (! checkColumn(outliersColumn   (), "Outliers"    )) columnsValid = false;
-  if (! checkColumn(idColumn         (), "Id"          )) columnsValid = false;
+  if (! checkNumericColumn(minColumn        (), "Min"         )) columnsValid = false;
+  if (! checkNumericColumn(lowerMedianColumn(), "Lower Median")) columnsValid = false;
+  if (! checkNumericColumn(medianColumn     (), "Median"      )) columnsValid = false;
+  if (! checkNumericColumn(upperMedianColumn(), "Upper Median")) columnsValid = false;
+  if (! checkNumericColumn(maxColumn        (), "Max"         )) columnsValid = false;
+  if (! checkNumericColumn(outliersColumn   (), "Outliers"    )) columnsValid = false;
+  if (! checkNumericColumn(idColumn         (), "Id"          )) columnsValid = false;
+
+  if (outliersColumn().isValid()) {
+    // TODO: check is numeric array
+    if (! checkColumn(outliersColumn(), "Outliers", th->setType_))
+      columnsValid = false;
+  }
 
   if (! columnsValid)
     return dataRange;
@@ -1178,21 +1184,15 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     if (xType_ == ColumnType::STRING) {
       auto xname = modelString(xInd, ok);
 
-      if (! ok) {
-        th->addDataError(xInd, "Invalid x value");
-        return;
-      }
-
-      data.name = xname;
-      data.x    = th->xValueInd_.calcId(data.name);
+      if (ok)
+        data.name = xname;
     }
-    else {
-      data.x = modelReal(xInd, ok);
 
-      if (! ok) {
-        th->addDataError(xInd, "Invalid x value");
-        return;
-      }
+    data.x = modelNumericValue(xInd, ok);
+
+    if (! ok) {
+      th->addDataError(xInd, "Invalid x value");
+      return;
     }
   }
   else {

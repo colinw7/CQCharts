@@ -496,4 +496,12 @@ Point nearestRectPoint(const BBox &bbox, const Point &p);
 
 //------
 
+namespace CQChartsUtil {
+
+bool encodeUtf(const QString &s, QString &res);
+
+}
+
+//------
+
 #endif

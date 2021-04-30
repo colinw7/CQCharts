@@ -96,7 +96,7 @@ calc(const CQChartsPlot *plot, const Data &data)
       if (delta > 0.0) {
         double v1 = CMathRound::RoundDown(cell.value/delta)*delta;
 
-        cell.alpha = CMathUtil::clamp(sqrt(1.0 - (cell.value - v1)), 0.0, 1.0);
+        cell.alpha = CMathUtil::clamp(std::sqrt(1.0 - (cell.value - v1)), 0.0, 1.0);
       }
 
       //---

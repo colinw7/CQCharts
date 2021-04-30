@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace CQChartsJS {
-  void writeHeadTitle(std::ostream &os, const QString &title) {
+  inline void writeHeadTitle(std::ostream &os, const QString &title) {
     os << "<!doctype html>\n";
     os << "<html lang=\"en\">\n";
 
@@ -14,7 +14,7 @@ namespace CQChartsJS {
     os << "<title>" << title.toStdString() << "</title>\n";
   }
 
-  void writeToolTipCSS(std::ostream &os) {
+  inline void writeToolTipCSS(std::ostream &os) {
     os << "#tooltip {\n";
     os << " font: 28pt sans-serif;\n";
     os << " background: cornsilk;\n";
@@ -25,7 +25,7 @@ namespace CQChartsJS {
     os << "\n";
   }
 
-  void writeCanvasCSS(std::ostream &os) {
+  inline void writeCanvasCSS(std::ostream &os) {
     os << "#canvas {\n";
     os << " font: 14pt sans-serif;\n";
     os << " position: fixed;\n";
@@ -37,7 +37,7 @@ namespace CQChartsJS {
     os << "\n";
   }
 
-  void writeToolTipProcs(std::ostream &os, const CQChartsPaintDevice::Type &type) {
+  inline void writeToolTipProcs(std::ostream &os, const CQChartsPaintDevice::Type &type) {
     if (type == CQChartsPaintDevice::Type::SVG)
       os << "function showTooltip(evt, text) {\n";
     else
@@ -66,14 +66,14 @@ namespace CQChartsJS {
     os << "\n";
   }
 
-  void writeLogProc(std::ostream &os) {
+  inline void writeLogProc(std::ostream &os) {
     os << "Charts.prototype.log = function(s) {\n";
     os << "  document.getElementById(\"log_message\").innerHTML = s;\n";
     os << "}\n";
     os << "\n";
   }
 
-  void writeWindowFunctions(std::ostream &os) {
+  inline void writeWindowFunctions(std::ostream &os) {
     os <<
     "window.addEventListener(\"load\", eventWindowLoaded, false);\n"
     "\n";
@@ -101,7 +101,7 @@ namespace CQChartsJS {
     "\n";
   }
 
-  void writeEventProcs(std::ostream &os) {
+  inline void writeEventProcs(std::ostream &os) {
     os <<
     "Charts.prototype.eventMouseDown = function(e) {\n"
     "  charts.plots.forEach(plot => plot.eventMouseDown(e));\n"
@@ -125,7 +125,7 @@ namespace CQChartsJS {
     "\n";
   }
 
-  void writeConvProcs(std::ostream &os) {
+  inline void writeConvProcs(std::ostream &os) {
     os <<
     "Charts.prototype.plotXToPixel = function(x) {\n"
     "  var sx = (x - this.xmin)/(this.xmax - this.xmin);\n"
@@ -171,7 +171,7 @@ namespace CQChartsJS {
     "\n";
   }
 
-  void writeDrawProcs(std::ostream &os) {
+  inline void writeDrawProcs(std::ostream &os) {
     // path procs
     os <<
     "Charts.prototype.moveTo = function(x, y) {\n"
@@ -453,7 +453,7 @@ namespace CQChartsJS {
     "\n";
   }
 
-  void writeInsideProcs(std::ostream &os) {
+  inline void writeInsideProcs(std::ostream &os) {
     os <<
     "Charts.prototype.pointInsideRect = function(px, py, xmin, ymin, xmax, ymax) {\n"
     "  var pxmin = this.plotXToPixel(xmin);\n"
@@ -582,6 +582,19 @@ namespace CQChartsJS {
     "  return false;\n"
     "}\n"
     "\n";
+  }
+
+  inline std::string encodeId(const std::string &id) {
+    auto id1 = id;
+
+    int n = id1.size();
+
+    for (int i = 0; i < n; ++i) {
+      if (isspace(id1[i]) || id1[i] == ':')
+        id1[i] = '_';
+    }
+
+    return id1;
   }
 };
 

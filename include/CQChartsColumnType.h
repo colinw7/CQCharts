@@ -778,6 +778,11 @@ class CQChartsColumnTypeMgr : public QObject {
 
   void typeNames(QStringList &names, bool hidden=false) const;
 
+  template<typename T>
+  void addTypeT(Type type) {
+    addType(type, new T);
+  }
+
   void addType(Type type, ColumnType *data);
 
 #if 0

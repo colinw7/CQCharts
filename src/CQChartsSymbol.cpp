@@ -2,6 +2,7 @@
 #include <CQChartsSymbolSet.h>
 #include <CQChartsSVGUtil.h>
 #include <CQChartsFile.h>
+#include <CQChartsUtil.h>
 
 #include <CQPropertyView.h>
 
@@ -545,8 +546,16 @@ fromString(const QString &s)
     type_       = Type::SYMBOL;
     symbolType_ = SymbolType(s);
 
-    if (! symbolType_.isValid())
-      type_ = Type::NONE;
+    if (! symbolType_.isValid()) {
+      type_ = Type::CHAR;
+
+      QString res;
+
+      if (CQChartsUtil::encodeUtf(s, res))
+        c_ = res;
+      else
+        c_ = s;
+    }
   }
 
   return (type_ != Type::NONE);

@@ -51,6 +51,15 @@ class CQChartsAngle :
     return CMathUtil::isZero(a_);
   }
 
+  static bool isCircle(const CQChartsAngle &angle1, const CQChartsAngle &angle2) {
+    double a1 = angle1.value();
+    double a2 = angle2.value();
+
+    double a21 = a2 - a1;
+
+    return CMathUtil::realEq(std::abs(a21), 360.0);
+  }
+
   //---
 
   double degrees() const { return a_; }

@@ -267,7 +267,7 @@ init()
   if (nx_ > 0) {
     avg_ /= double(nx_);
 
-    sigma_ = sqrt(sigma_/double(nx_) - avg_*avg_); /* Standard Deviation */
+    sigma_ = std::sqrt(sigma_/double(nx_) - avg_*avg_); /* Standard Deviation */
   }
 
   //---
@@ -318,7 +318,7 @@ eval(double x) const
     y += exp(-0.5*z*z)/bandwidth;
   }
 
-  y /= sqrt(2.0*M_PI);
+  y /= std::sqrt(2.0*M_PI);
 
   return y;
 }

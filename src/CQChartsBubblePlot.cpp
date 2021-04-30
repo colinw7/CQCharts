@@ -1321,18 +1321,19 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 
   device->setPen(tPenBrush.pen);
 
-  auto tp = pc;
+  CQChartsDrawUtil::drawTextsAtPoint(device, plot_->pixelToWindow(pc), strs1, textOptions);
 
+#if 0
   if      (strs1.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp), strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(pc), strs1[0], textOptions);
   }
   else if (strs1.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
 
-    auto tp1 = plot_->pixelToWindow(Point(tp.x, tp.y - th/2));
-    auto tp2 = plot_->pixelToWindow(Point(tp.x, tp.y + th/2));
+    auto tp1 = plot_->pixelToWindow(Point(pc.x, pc.y - th/2));
+    auto tp2 = plot_->pixelToWindow(Point(pc.x, pc.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
@@ -1340,6 +1341,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
   else {
     assert(false);
   }
+#endif
 
   plot_->charts()->resetContrastColor();
 

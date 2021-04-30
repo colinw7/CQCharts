@@ -32,6 +32,11 @@ class CQChartsPlotTypeMgr {
   CQChartsPlotTypeMgr();
  ~CQChartsPlotTypeMgr();
 
+  template<typename T>
+  void addTypeT(const QString &name) {
+    addType(name, new T);
+  }
+
   void addType(const QString &name, CQChartsPlotType *type);
 
   bool isType(const QString &name) const;
