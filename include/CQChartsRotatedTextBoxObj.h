@@ -22,6 +22,10 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
             double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
             bool isRotated=false) const;
 
+  void draw(PaintDevice *device, const Point &c, const QString &text1, const QString &text2,
+            double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
+            bool isRotated=false) const;
+
   BBox bbox(const Point &pcenter, const QString &text, double angle=0.0,
             Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
             bool isRotated=false) const;

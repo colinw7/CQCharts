@@ -180,6 +180,14 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
+  int waffleStart() const { return waffleStart_; }
+  void setWaffleStart(int i) { waffleStart_ = i; }
+
+  int waffleCount() const { return waffleCount_; }
+  void setWaffleCount(int n) { waffleCount_ = n; }
+
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   //---
@@ -196,17 +204,23 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void drawSegment(PaintDevice *device) const;
   void drawTreeMap(PaintDevice *device) const;
+  void drawWaffle (PaintDevice *device) const;
 
   void drawFg(PaintDevice *device) const override;
 
   void drawSegmentLabel(PaintDevice *device) const;
   void drawTreeMapLabel(PaintDevice *device) const;
+  void drawWaffleLabel (PaintDevice *device) const;
 
   //---
 
   void calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const;
 
+  void getDrawLabels(QStringList &labels) const;
+
   void getRadii(double &ri, double &ro, double &rv, bool scaled=true) const;
+
+  BBox getBBox() const;
 
   BBox calcTreeMapBBox() const;
 
@@ -245,6 +259,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
   GroupObj*      groupObj_    { nullptr }; //!< parent group object
   bool           exploded_    { false };   //!< exploded
   BBox           treeMapBBox_;             //!< tree map bbox
+  int            waffleStart_ { 0 };       //!< waffle start box
+  int            waffleCount_ { 0 };       //!< waffle number of boxes
+  mutable BBox   waffleBBox_;              //!< waffle bbox
 };
 
 //---
@@ -352,8 +369,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void drawDonutText(PaintDevice *device) const;
 
-  void drawHeader(PaintDevice *device) const;
-  void drawBorder(PaintDevice *device) const;
+  void drawTreeMapHeader(PaintDevice *device) const;
+  void drawPieBorder    (PaintDevice *device) const;
 
   void setPenBrush(PaintDevice *device) const;
 
@@ -364,6 +381,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   QColor bgColor() const;
 
   void getRadii(double &ri, double &ro) const;
+
+  BBox getBBox() const;
 
  private:
   const PiePlot* plot_         { nullptr };  //!< parent plot
@@ -462,13 +481,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // options
   // . separated, donut, treemap, summary, count
-  Q_PROPERTY(bool separated READ isSeparated WRITE setSeparated)
-  Q_PROPERTY(bool donut     READ isDonut     WRITE setDonut    )
-  Q_PROPERTY(bool treemap   READ isTreeMap   WRITE setTreeMap  )
-  Q_PROPERTY(bool summary   READ isSummary   WRITE setSummary  )
-  Q_PROPERTY(bool dumbbell  READ isDumbbell  WRITE setDumbbell )
-  Q_PROPERTY(bool count     READ isCount     WRITE setCount    )
-  // . max value
+  Q_PROPERTY(DrawType drawType  READ drawType    WRITE setDrawType )
+  Q_PROPERTY(bool     separated READ isSeparated WRITE setSeparated)
+  Q_PROPERTY(bool     donut     READ isDonut     WRITE setDonut    )
+  Q_PROPERTY(bool     summary   READ isSummary   WRITE setSummary  )
+  Q_PROPERTY(bool     dumbbell  READ isDumbbell  WRITE setDumbbell )
+  Q_PROPERTY(bool     count     READ isCount     WRITE setCount    )
+  // . min/max value
+  Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
   // . inner radius, outer radius, label radius, start angle, end angle
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
@@ -498,9 +518,17 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid, grid)
 
+  Q_ENUMS(DrawType)
   Q_ENUMS(ExplodeStyle)
 
  public:
+  enum class DrawType {
+    NONE,
+    PIE,
+    TREEMAP,
+    WAFFLE
+  };
+
   enum class ExplodeStyle {
     OUTSET,
     EDGE
@@ -547,11 +575,21 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  const DrawType &drawType() const { return drawType_; }
+  void setDrawType(const DrawType &t);
+
+  bool isTreeMap() const { return (drawType() == DrawType::TREEMAP); }
+  bool calcTreeMap() const;
+
+  bool isWaffle() const { return (drawType() == DrawType::WAFFLE); }
+  bool calcWaffle() const;
+
+  bool calcPie() const;
+
+  //---
+
   bool isDonut() const { return donut_; }
   bool calcDonut() const;
-
-  bool isTreeMap() const { return treemap_; }
-  bool calcTreeMap() const;
 
   bool isSummary() const { return summary_; }
 
@@ -561,6 +599,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool isCount() const { return count_; }
 
   //---
+
+  double minValue() const { return minValue_; }
+  void setMinValue(double r);
 
   double maxValue() const { return maxValue_; }
   void setMaxValue(double r);
@@ -658,6 +699,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  QString calcIndLabel(const QModelIndex &ind) const;
+
+  //---
+
   double calcMinValue() const;
   double calcMaxValue() const;
 
@@ -698,6 +743,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
  public slots:
   void setDonut   (bool b);
   void setTreeMap (bool b);
+  void setWaffle  (bool b);
   void setSummary (bool b);
   void setDumbbell(bool b);
   void setCount   (bool b);
@@ -747,25 +793,29 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
     double radius { 0.03 };
   };
 
-  Column          labelColumn_;                 //!< label column
-  Columns         valueColumns_;                //!< value columns
-  Column          radiusColumn_;                //!< radius value column
-  Column          keyLabelColumn_;              //!< key label column
-  bool            donut_           { false };   //!< show donut
-  bool            treemap_         { false };   //!< show treemap
-  bool            summary_         { false };   //!< show summary
-  bool            dumbbell_        { false };   //!< show dumbbell
-  bool            count_           { false };   //!< show value counts
-  double          maxValue_        { -1.0 };    //!< max value
-  double          innerRadius_     { 0.3 };     //!< relative inner donut radius
-  double          outerRadius_     { 0.9 };     //!< relative outer donut radius
-  double          labelRadius_     { 1.1 };     //!< label radius
-  Angle           startAngle_      { 90 };      //!< first pie start angle
-  Angle           angleExtent_     { 360.0 };   //!< pie angle extent
-  Angle           gapAngle_        { 0.0 };     //!< angle gap between segments
-  bool            adjustText_      { false };   //!< adjust text position
-  bool            separated_       { true };    //!< are grouped pie objects drawn separately
-  bool            rotatedText_     { false };   //!< is label rotated
+  // columns
+  Column  labelColumn_;    //!< label column
+  Columns valueColumns_;   //!< value columns
+  Column  radiusColumn_;   //!< radius value column
+  Column  keyLabelColumn_; //!< key label column
+
+  DrawType drawType_    { DrawType::PIE }; //!< draw type
+  bool     donut_       { false };         //!< show donut
+  bool     summary_     { false };         //!< show summary
+  bool     dumbbell_    { false };         //!< show dumbbell
+  bool     count_       { false };         //!< show value counts
+  double   minValue_    { -1.0 };          //!< min value
+  double   maxValue_    { -1.0 };          //!< max value
+  double   innerRadius_ { 0.3 };           //!< relative inner donut radius
+  double   outerRadius_ { 0.9 };           //!< relative outer donut radius
+  double   labelRadius_ { 1.1 };           //!< label radius
+  Angle    startAngle_  { 90 };            //!< first pie start angle
+  Angle    angleExtent_ { 360.0 };         //!< pie angle extent
+  Angle    gapAngle_    { 0.0 };           //!< angle gap between segments
+  bool     adjustText_  { false };         //!< adjust text position
+  bool     separated_   { true };          //!< are grouped pie objects drawn separately
+  bool     rotatedText_ { false };         //!< is label rotated
+
   ExplodeData     explodeData_;                 //!< explode data
   InsideData      insideData_;                  //!< inside data
   PieTextObj*     textBox_         { nullptr }; //!< text box
@@ -778,6 +828,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 //---
 
 #include <CQChartsGroupPlotCustomControls.h>
+
+class CQEnumCombo;
 
 class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
@@ -797,21 +849,21 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   void updateWidgets() override;
 
  private slots:
+  void drawTypeSlot ();
   void separatedSlot();
   void donutSlot    ();
-  void treemapSlot  ();
   void summarySlot  ();
   void dumbbellSlot ();
   void countSlot    ();
 
  private:
-  PiePlot*   plot_           { nullptr };
-  QCheckBox* separatedCheck_ { nullptr };
-  QCheckBox* donutCheck_     { nullptr };
-  QCheckBox* treeMapCheck_   { nullptr };
-  QCheckBox* summaryCheck_   { nullptr };
-  QCheckBox* dumbbellCheck_  { nullptr };
-  QCheckBox* countCheck_     { nullptr };
+  PiePlot*     plot_           { nullptr };
+  CQEnumCombo* drawTypeCombo_  { nullptr };
+  QCheckBox*   separatedCheck_ { nullptr };
+  QCheckBox*   donutCheck_     { nullptr };
+  QCheckBox*   summaryCheck_   { nullptr };
+  QCheckBox*   dumbbellCheck_  { nullptr };
+  QCheckBox*   countCheck_     { nullptr };
 };
 
 #endif

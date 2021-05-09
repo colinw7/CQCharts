@@ -16,6 +16,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CQEnumCombo.h>
 #include <CMathRound.h>
 
 #include <QMenu>
@@ -42,12 +43,17 @@ addParameters()
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
     setString().setPropPath("columns.keyLabel").setTip("Custom key label column");
 
-  addBoolParameter("separated", "Separated", "seprated").setTip("Draw separated");
-  addBoolParameter("donut"    , "Donut"    , "donut"   ).setTip("Draw donut");
-  addBoolParameter("treemap"  , "TreeMap"  , "treemap" ).setTip("Display treemap");
-  addBoolParameter("summary"  , "Summary"  , "summary" ).setTip("Draw summary");
-  addBoolParameter("dumbbell" , "Dumbbell" , "dumbbell").setTip("Draw dumbbell");
-  addBoolParameter("count"    , "Count"    , "count"   ).setTip("Display value counts");
+  addEnumParameter("drawType", "Draw Type", "drawType").
+    addNameValue("PIE"    , int(CQChartsPiePlot::DrawType::PIE)).
+    addNameValue("TREEMAP", int(CQChartsPiePlot::DrawType::TREEMAP)).
+    addNameValue("WAFFLE" , int(CQChartsPiePlot::DrawType::WAFFLE)).
+    setTip("Draw type");
+
+  addBoolParameter("separated", "Separated", "separated").setTip("Draw separated");
+  addBoolParameter("donut"    , "Donut"    , "donut"    ).setTip("Draw donut");
+  addBoolParameter("summary"  , "Summary"  , "summary"  ).setTip("Draw summary");
+  addBoolParameter("dumbbell" , "Dumbbell" ,  "dumbbell").setTip("Draw dumbbell");
+  addBoolParameter("count"    , "Count"    , "count"    ).setTip("Display value counts");
 
   endParameterGroup();
 
@@ -243,6 +249,78 @@ setNamedColumns(const QString &name, const Columns &c)
 
 void
 CQChartsPiePlot::
+setDrawType(const DrawType &drawType)
+{
+  CQChartsUtil::testAndSet(drawType_, drawType, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
+setTreeMap(bool b)
+{
+  setDrawType(b ? DrawType::TREEMAP : DrawType::PIE);
+}
+
+bool
+CQChartsPiePlot::
+calcTreeMap() const
+{
+  if (! isTreeMap())
+    return false;
+
+  if (! isSeparated() && numGroups() > 1)
+    return false;
+
+  return true;
+}
+
+//---
+
+void
+CQChartsPiePlot::
+setWaffle(bool b)
+{
+  setDrawType(b ? DrawType::WAFFLE : DrawType::PIE);
+}
+
+bool
+CQChartsPiePlot::
+calcWaffle() const
+{
+  if (! isWaffle())
+    return false;
+
+  if (! isSeparated() && numGroups() > 1)
+    return false;
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsPiePlot::
+calcPie() const
+{
+  if (drawType() == DrawType::PIE)
+    return true;
+
+  if (calcTreeMap() || calcWaffle())
+    return false;
+
+  if (isDumbbell())
+    return false;
+
+  return true;
+}
+
+//---
+
+void
+CQChartsPiePlot::
 setDonut(bool b)
 {
   CQChartsUtil::testAndSet(donut_, b, [&]() {
@@ -256,30 +334,7 @@ calcDonut() const
   if (! isDonut())
     return false;
 
-  if (calcTreeMap())
-    return false;
-
-  return true;
-}
-
-//---
-
-void
-CQChartsPiePlot::
-setTreeMap(bool b)
-{
-  CQChartsUtil::testAndSet(treemap_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
-}
-
-bool
-CQChartsPiePlot::
-calcTreeMap() const
-{
-  if (! isTreeMap())
-    return false;
-
-  if (! isSeparated() && numGroups() > 1)
+  if (calcTreeMap() || calcWaffle())
     return false;
 
   return true;
@@ -326,6 +381,13 @@ setCount(bool b)
 }
 
 //---
+
+void
+CQChartsPiePlot::
+setMinValue(double r)
+{
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
+}
 
 void
 CQChartsPiePlot::
@@ -462,13 +524,14 @@ addProperties()
   addGroupingProperties();
 
   // options
+  addProp("options", "drawType" , "", "Draw type");
   addProp("options", "separated", "", "Draw grouped pie charts separately");
   addProp("options", "donut"    , "", "Display as donut using inner radius");
-  addProp("options", "treemap"  , "", "Show treemap");
   addProp("options", "summary"  , "", "Draw summary group");
   addProp("options", "dumbbell" , "", "Draw dumbbell");
   addProp("options", "count"    , "", "Show count of groups");
 
+  addProp("options", "minValue", "", "Custom min value");
   addProp("options", "maxValue", "", "Custom max value");
 
   addProp("options", "innerRadius", "", "Inner radius for donut")->
@@ -852,7 +915,9 @@ createObjs(PlotObjs &objs) const
     }
   }
 
-  if (calcTreeMap()) {
+  //---
+
+  if      (calcTreeMap()) {
     using TreeMapPlace = CQChartsPlotDrawUtil::TreeMapPlace;
 
     for (auto &plotObj : objs) {
@@ -868,7 +933,7 @@ createObjs(PlotObjs &objs) const
       double dataTotal;
 
       if (maxValue() > 0.0)
-        dataTotal = maxValue();
+        dataTotal = maxValue(); // assume max is sum e.g. values are percent
 
       for (const auto &obj : groupObj->objs()) {
         auto v = obj->value();
@@ -892,6 +957,36 @@ createObjs(PlotObjs &objs) const
           obj->setTreeMapBBox(bbox);
         }
       });
+    }
+  }
+  else if (calcWaffle()) {
+    for (auto &plotObj : objs) {
+      auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
+      if (! groupObj) continue;
+
+      double dataTotal = groupObj->dataTotal();
+
+      if (maxValue() > 0.0)
+        dataTotal = maxValue(); // assume max is sum e.g. values are percent
+
+      int    nsum = 0;
+      double err  = 0.0;
+
+      for (const auto &obj : groupObj->objs()) {
+        auto v = obj->value() + err;
+
+        auto r = CMathUtil::map(v, 0.0, dataTotal, 0.0, 100.0);
+        int  n = CMathRound::RoundNearest(r);
+
+        err = r - n;
+
+        obj->setWaffleStart(nsum);
+        obj->setWaffleCount(n);
+
+        nsum += n;
+      }
+
+      // TODO: remainder
     }
   }
 
@@ -949,24 +1044,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get value label (used for unique values in group)
-  ModelIndex lind(th, ind.row(), labelColumn(), ind.parent());
-
-  bool ok;
-
-  QString label;
-
-  if (numGroups() > 1) {
-    if (valueColumns().count() > 1 && ! isGroupHeaders())
-      label = modelHHeaderString(ind.column(), ok);
-    else
-      label = modelString(lind, ok);
-  }
-  else {
-    label = modelString(lind, ok);
-  }
-
-  if (! label.length())
-    label = QString("%1").arg(ind.row());
+  auto label = calcIndLabel(modelIndex(ind));
 
   //---
 
@@ -1086,6 +1164,35 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
     // TODO: add dataInd
   }
+}
+
+QString
+CQChartsPiePlot::
+calcIndLabel(const QModelIndex &ind) const
+{
+  auto *th = const_cast<CQChartsPiePlot *>(this);
+
+  // get value label (used for unique values in group)
+  ModelIndex lind(th, ind.row(), labelColumn(), ind.parent());
+
+  bool ok;
+
+  QString label;
+
+  if (numGroups() > 1) {
+    if (valueColumns().count() > 1 && ! isGroupHeaders())
+      label = modelHHeaderString(lind.column(), ok);
+    else
+      label = modelString(lind, ok);
+  }
+  else {
+    label = modelString(lind, ok);
+  }
+
+  if (! label.length())
+    label = QString("%1").arg(ind.row());
+
+  return label;
 }
 
 void
@@ -1532,6 +1639,7 @@ addMenuItems(QMenu *menu)
 
   addCheckAction("Donut"  , isDonut  (), SLOT(setDonut  (bool)));
   addCheckAction("TreeMap", isTreeMap(), SLOT(setTreeMap(bool)));
+  addCheckAction("Waffle" , isWaffle (), SLOT(setWaffle (bool)));
   addCheckAction("Summary", isSummary(), SLOT(setSummary(bool)));
   addCheckAction("Count"  , isCount  (), SLOT(setCount  (bool)));
 
@@ -1748,30 +1856,16 @@ void
 CQChartsPieObj::
 calcTipData(QString &groupName, QString &label, QString &valueStr) const
 {
+  // get group name
+  bool hasGroup = (plot_->numGroups() > 1 && groupObj());
+
+  if (hasGroup)
+    groupName = groupObj()->name();
+
+  // get label
   auto ind = plot_->unnormalizeIndex(modelInd());
 
-  // get group name and label
-  bool hasGroup = (plot_->numGroups() > 1 && groupObj_);
-
-  bool ok;
-
-  ModelIndex lind(plot(), ind.row(), plot_->labelColumn(), ind.parent());
-
-  if (hasGroup) {
-    auto *groupObj = this->groupObj();
-
-    groupName = groupObj->name();
-
-    if (plot_->isGroupHeaders())
-      label = plot_->modelHHeaderString(Column(ind.column()), ok);
-    else
-      label = plot_->modelString(lind, ok);
-  }
-  else {
-    label = plot_->modelString(lind, ok);
-  }
-
-  //---
+  label = plot_->calcIndLabel(ind);
 
   // get value string
   valueStr = this->valueStr();
@@ -1840,13 +1934,21 @@ inside(const Point &p) const
   if (! isVisible())
     return false;
 
-  if (plot_->calcTreeMap()) {
+  if      (plot_->calcTreeMap()) {
     auto bbox = calcTreeMapBBox();
 
     return bbox.inside(p);
   }
-  else
+  else if (plot_->calcWaffle()) {
+    // TODO
+    return false;
+  }
+  else if (plot_->calcPie()) {
     return arcData().inside(p);
+  }
+  else {
+    return false;
+  }
 }
 
 void
@@ -1963,11 +2065,11 @@ draw(PaintDevice *device) const
 
   //---
 
-  bool separated = plot_->calcSeparated();
-
-  if (plot_->calcTreeMap() && separated)
+  if      (plot_->calcTreeMap())
     drawTreeMap(device);
-  else
+  else if (plot_->calcWaffle())
+    drawWaffle(device);
+  else if (plot_->calcPie())
     drawSegment(device);
 }
 
@@ -2152,6 +2254,61 @@ calcTreeMapBBox() const
 
 void
 CQChartsPieObj::
+drawWaffle(PaintDevice *device) const
+{
+  assert(groupObj_);
+
+  auto bbox = groupObj_->getBBox();
+
+  //---
+
+  // calc stroke and brush
+  PenBrush penBrush;
+
+  calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
+
+  //---
+
+  // draw rect
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  BBox wbbox;
+
+  double dx = bbox.getWidth ()/10.0;
+  double dy = bbox.getHeight()/10.0;
+
+  for (int i = 0; i < waffleCount(); ++i) {
+    int i1 = i + waffleStart();
+
+    int ix = i1 % 10;
+    int iy = i1 / 10;
+
+    double x1 = bbox.getXMin() + ix*dx;
+    double y1 = bbox.getYMin() + iy*dy;
+    double x2 = x1 + dx;
+    double y2 = y1 + dy;
+
+    auto bbox1 = BBox(x1, y1, x2, y2);
+
+    wbbox += Point(x1, y1);
+    wbbox += Point(x2, y2);
+
+    device->drawRect(bbox1);
+  }
+
+  waffleBBox_ = wbbox;
+
+  //---
+
+  device->resetColorNames();
+}
+
+void
+CQChartsPieObj::
 drawFg(PaintDevice *device) const
 {
   if (! isVisible())
@@ -2177,11 +2334,11 @@ drawFg(PaintDevice *device) const
   //---
 
   // draw label
-  bool separated = plot_->calcSeparated();
-
-  if (plot_->calcTreeMap() && separated)
+  if      (plot_->calcTreeMap())
     drawTreeMapLabel(device);
-  else
+  else if (plot_->calcWaffle())
+    drawWaffleLabel(device);
+  else if (plot_->calcPie())
     drawSegmentLabel(device);
 }
 
@@ -2196,6 +2353,14 @@ drawSegmentLabel(PaintDevice *device) const
   double ri, ro, rv;
 
   getRadii(ri, ro, rv);
+
+  //---
+
+  // get display values
+  QStringList labels;
+
+  getDrawLabels(labels);
+  if (! labels.length()) return;
 
   //---
 
@@ -2217,15 +2382,23 @@ drawSegmentLabel(PaintDevice *device) const
 
   //---
 
+  auto drawLabels = [&](const Point &p, double angle=0.0,
+                        Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) {
+    if      (labels.length() == 1)
+      plot_->textBox()->draw(device, p, labels.at(0), angle, align);
+    else if (labels.length() == 2)
+      plot_->textBox()->draw(device, p, labels.at(0), labels.at(1), angle, align);
+  };
+
   // if full circle draw text at center (non-donut) or top (donut)
   if (CQChartsAngle::isCircle(angle1(), angle2())) {
     if (plot_->calcDonut()) {
       auto pt = CQChartsGeom::circlePoint(c, lr1, M_PI/2.0);
 
-      plot_->textBox()->draw(device, pt, label(), 0.0);
+      drawLabels(pt);
     }
     else
-      plot_->textBox()->draw(device, c, label(), 0.0);
+      drawLabels(c);
   }
   // draw on arc center line
   else {
@@ -2233,7 +2406,9 @@ drawSegmentLabel(PaintDevice *device) const
     auto ta = CQChartsAngle::avg(angle1(), angle2());
 
     if (plot_->numGroups() == 1 && lr > 1.0) {
-      plot_->textBox()->drawConnectedRadialText(device, c, rv, lr1, ta.value(), label(),
+      auto label1 = labels.at(0);
+
+      plot_->textBox()->drawConnectedRadialText(device, c, rv, lr1, ta.value(), label1,
                                                 penBrush.pen, plot_->isRotatedText());
     }
     else {
@@ -2249,7 +2424,7 @@ drawSegmentLabel(PaintDevice *device) const
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      plot_->textBox()->draw(device, pt, label(), angle, align);
+      drawLabels(pt, angle, align);
     }
   }
 }
@@ -2258,21 +2433,11 @@ void
 CQChartsPieObj::
 drawTreeMapLabel(PaintDevice *device) const
 {
-  // get tip values
-  QString groupName, label, valueStr;
-
-  calcTipData(groupName, label, valueStr);
-
+  // get display values
   QStringList labels;
 
-  if (label.trimmed().length())
-    labels.push_back(label);
-
-  if (plot_->isCount() && valueStr.length())
-    labels.push_back(valueStr);
-
-  if (! labels.length())
-    return;
+  getDrawLabels(labels);
+  if (! labels.length()) return;
 
   //---
 
@@ -2295,6 +2460,53 @@ drawTreeMapLabel(PaintDevice *device) const
 
   CQChartsDrawUtil::drawStringsInBox(device, bbox, labels, textOptions);
   //plot_->textBox()->draw(device, bbox.getCenter(), label(), 0.0);
+}
+
+void
+CQChartsPieObj::
+drawWaffleLabel(PaintDevice *device) const
+{
+  // get display values
+  QStringList labels;
+
+  getDrawLabels(labels);
+  if (! labels.length()) return;
+
+  //---
+
+  // calc label pen
+  PenBrush penBrush;
+
+  auto tc = plot_->textBox()->interpTextColor(calcColorInd());
+
+  plot_->setPen(penBrush, PenData(true, tc, plot_->textBox()->textAlpha()));
+
+  plot_->view()->setPainterFont(device, plot_->textBox()->textFont());
+
+  //---
+
+  auto textOptions = plot_->textBox()->textOptions();
+
+  textOptions = plot_->adjustTextOptions(textOptions);
+
+  CQChartsDrawUtil::drawStringsInBox(device, waffleBBox_, labels, textOptions);
+  //plot_->textBox()->draw(device, bbox.getCenter(), label(), 0.0);
+}
+
+void
+CQChartsPieObj::
+getDrawLabels(QStringList &labels) const
+{
+  // get tip values
+  QString groupName, label, valueStr;
+
+  calcTipData(groupName, label, valueStr);
+
+  if (label.trimmed().length())
+    labels.push_back(label);
+
+  if (plot_->isCount() && valueStr.length())
+    labels.push_back(valueStr);
 }
 
 void
@@ -2326,6 +2538,19 @@ getRadii(double &ri, double &ro, double &rv, bool scaled) const
     ro = mapR(ro);
     rv = mapR(rv);
   }
+}
+
+CQChartsGeom::BBox
+CQChartsPieObj::
+getBBox() const
+{
+  auto c = calcCenter();
+
+  double ri, ro, rv;
+
+  getRadii(ri, ro, rv);
+
+  return BBox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
 }
 
 void
@@ -2587,16 +2812,19 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot()->calcTreeMap()) {
-    drawHeader(device);
+  if      (plot()->calcTreeMap()) {
+    drawTreeMapHeader(device);
   }
-  else {
+  else if (plot()->calcWaffle()) {
+    // TODO
+  }
+  else if (plot()->calcPie()) {
     bool drawn = ((plot()->calcDonut() && separated) || plot()->isSummary());
 
     if (drawn)
       drawDonut(device);
     else
-      drawBorder(device);
+      drawPieBorder(device);
   }
 
   //---
@@ -2651,15 +2879,9 @@ drawDonut(PaintDevice *device) const
 
 void
 CQChartsPieGroupObj::
-drawHeader(PaintDevice *device) const
+drawTreeMapHeader(PaintDevice *device) const
 {
-  auto c = calcCenter();
-
-  double ri, ro;
-
-  getRadii(ri, ro);
-
-  BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
+  auto bbox = getBBox();
 
   auto dx = device->pixelToWindowWidth (16);
   auto dy = device->pixelToWindowHeight(16);
@@ -2675,7 +2897,7 @@ drawHeader(PaintDevice *device) const
 
 void
 CQChartsPieGroupObj::
-drawBorder(PaintDevice *device) const
+drawPieBorder(PaintDevice *device) const
 {
   auto c = calcCenter();
 
@@ -2753,11 +2975,26 @@ drawDumbbell(PaintDevice *device) const
   auto dxt = device->pixelToWindowWidth (1);
   auto dyt = device->pixelToWindowHeight(1);
 
-  double x1 = c.x + ro + 24*dxt;
+  //---
+
+  // draw range line
+  double x1 = (plot_->drawType() != CQChartsPiePlot::DrawType::NONE ?
+                 c.x + ro + 24*dxt : -1.0 + 8*dxt);
   double x2 = 1.0 - 8*dxt;
 
-  device->drawLine(Point(x1, c.y), Point(x2, c.y));
+  PenBrush groupPenBrush;
 
+  calcPenBrush(groupPenBrush, /*updateState*/device->isInteractive());
+
+  groupPenBrush.pen = QPen(Qt::NoPen);
+
+  CQChartsDrawUtil::setPenBrush(device, groupPenBrush);
+
+  device->drawRect(BBox(Point(x1, c.y - dyt*2), Point(x2, c.y + dyt*2)));
+
+  //--
+
+  // draw symbol for each object on line
   auto symbol = CQChartsSymbol::circle();
 
   CQChartsLength symbolSize("7px");
@@ -2779,6 +3016,7 @@ drawDumbbell(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
+    // draw symbol
     double r = CMathUtil::map(obj->value(), vmin, vmax, x1, x2);
 
     auto p = Point(r, c.y);
@@ -2791,6 +3029,7 @@ drawDumbbell(PaintDevice *device) const
 
     //---
 
+    // draw text label
     auto valueStr = obj->valueStr();
 
     auto textOptions = plot_->textBox()->textOptions();
@@ -2823,6 +3062,7 @@ drawDumbbell(PaintDevice *device) const
     }
   }
 
+  // draw placed text
   if (plot_->isAdjustText()) {
   //textPlacer.setDebug(true);
 
@@ -3022,6 +3262,19 @@ getRadii(double &ri, double &ro) const
   }
 }
 
+CQChartsGeom::BBox
+CQChartsPieGroupObj::
+getBBox() const
+{
+  auto c = calcCenter();
+
+  double ri, ro;
+
+  getRadii(ri, ro);
+
+  return BBox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
+}
+
 QColor
 CQChartsPieGroupObj::
 bgColor() const
@@ -3208,18 +3461,21 @@ CQChartsPiePlotCustomControls(CQCharts *charts) :
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
 
+  drawTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("drawTypeCombo");
+
+  drawTypeCombo_->setPropName("drawType");
+
   separatedCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Separated", "separatedCheck");
 
+  addFrameColWidget(optionsFrame, drawTypeCombo_ );
   addFrameColWidget(optionsFrame, separatedCheck_);
 
   donutCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Donut"   , "donutCheck"   );
-  treeMapCheck_  = CQUtil::makeLabelWidget<QCheckBox>("TreeMap" , "treeMapCheck" );
   summaryCheck_  = CQUtil::makeLabelWidget<QCheckBox>("Summary" , "summaryCheck" );
   dumbbellCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Dumbbell", "dumbbellCheck");
   countCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Count"   , "countCheck"   );
 
   addFrameColWidget(optionsFrame, donutCheck_   );
-  addFrameColWidget(optionsFrame, treeMapCheck_ );
   addFrameColWidget(optionsFrame, summaryCheck_ );
   addFrameColWidget(optionsFrame, dumbbellCheck_);
   addFrameColWidget(optionsFrame, countCheck_   );
@@ -3238,12 +3494,12 @@ CQChartsPiePlotCustomControls::
 connectSlots(bool b)
 {
   CQChartsWidgetUtil::connectDisconnect(b,
+    drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
     separatedCheck_, SIGNAL(stateChanged(int)), this, SLOT(separatedSlot()));
 
   CQChartsWidgetUtil::connectDisconnect(b,
     donutCheck_, SIGNAL(stateChanged(int)), this, SLOT(donutSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    treeMapCheck_, SIGNAL(stateChanged(int)), this, SLOT(treemapSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
     summaryCheck_, SIGNAL(stateChanged(int)), this, SLOT(summarySlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -3277,10 +3533,11 @@ updateWidgets()
 
   //---
 
+  drawTypeCombo_->setObj(plot_);
+
   separatedCheck_->setChecked(plot_->isSeparated());
 
   donutCheck_   ->setChecked(plot_->isDonut   ());
-  treeMapCheck_ ->setChecked(plot_->isTreeMap ());
   summaryCheck_ ->setChecked(plot_->isSummary ());
   dumbbellCheck_->setChecked(plot_->isDumbbell());
   countCheck_   ->setChecked(plot_->isCount   ());
@@ -3290,6 +3547,13 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsPiePlotCustomControls::
+drawTypeSlot()
+{
+  updateWidgets();
 }
 
 void
@@ -3304,13 +3568,6 @@ CQChartsPiePlotCustomControls::
 donutSlot()
 {
   plot_->setDonut(donutCheck_->isChecked());
-}
-
-void
-CQChartsPiePlotCustomControls::
-treemapSlot()
-{
-  plot_->setTreeMap(treeMapCheck_->isChecked());
 }
 
 void

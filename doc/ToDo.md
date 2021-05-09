@@ -9,6 +9,7 @@ TODO:
  + icon spliiter group (support one of)
  + pie chart variants:
    https://www.tableau.com/about/blog/5-unusual-alternatives-pie-charts
+ + pie chart double group (generic support) with split
  + better pie chart group colors and indicator/header
  + Remove ItemState from property editors (use or remove dirty)
  + sort xy x values before line connect (handle duplicate y per x)

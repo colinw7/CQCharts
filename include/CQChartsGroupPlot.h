@@ -76,53 +76,69 @@ class CQChartsGroupPlot : public CQChartsPlot {
   //---
 
   // grouping
-  const Column &groupColumn() const { return groupColumn_; }
 
+  //! get/set group column
+  const Column &groupColumn() const { return groupColumn_; }
   virtual void setGroupColumn(const Column &c);
 
+  //! get/set row grouping (groups use rwo values not column headers when multiple columns)
   bool isRowGrouping() const { return groupData_.rowGrouping; }
   void setRowGrouping(bool b);
 
+  //! get/set use path for hierarchical names
   bool isUsePath() const { return groupData_.usePath; }
   void setUsePath(bool b);
 
+  //! get/set use row number for group
   bool isUseRow() const { return groupData_.useRow; }
   void setUseRow(bool b);
 
   //---
 
   // bucketing
+
+  //! get/set use exact (unique) value when grouping (not bucketing)
   bool isExactBucketValue() const { return groupData_.exactValue; }
   void setExactBucketValue(bool b);
 
+  //! get/set use automatic bucket range (from number of auto buckets)
   bool isAutoBucketRange() const {
     return groupData_.bucketer.type() == CQBucketer::Type::REAL_AUTO; }
   void setAutoBucketRange(bool b);
 
+  //! get/set start bucket value for explicit buckets
   double startBucketValue() const { return groupData_.bucketer.rstart(); }
   void setStartBucketValue(double r);
 
+  //! get/set delta bucket value for explicit buckets
   double deltaBucketValue() const { return groupData_.bucketer.rdelta(); }
   void setDeltaBucketValue(double r);
 
+  //! get/set number of (recommended) buckets for auto bucketing
   int numAutoBuckets() const { return groupData_.bucketer.numAuto(); }
   void setNumAutoBuckets(int i);
 
+  //! get/set min bucketed value (for underflow)
   double minBucketValue() const { return groupData_.bucketer.rmin(); }
   void setMinBucketValue(double r);
 
+  //! get/set max bucketed value (for overflow)
   double maxBucketValue() const { return groupData_.bucketer.rmax(); }
   void setMaxBucketValue(double r);
 
+  //! get/set bucket has underflow bucket (values less than min)
   bool isBucketUnderflow() const { return groupData_.bucketer.isUnderflow(); }
   void setBucketUnderflow(bool b);
 
+  //! get/set bucket has overflow bucket (values greater than max)
   bool isBucketOverflow() const { return groupData_.bucketer.isOverflow(); }
   void setBucketOverflow(bool b);
 
+  //! get/set explicit bucket stop points (can be variable)
   const CQChartsReals &bucketStops() const { return groupData_.bucketStops; }
   void setBucketStops(const CQChartsReals &r);
 
+  //! get/set bucket value type
   CQBucketer::Type bucketType() const;
   void setBucketType(const CQBucketer::Type &type);
 
@@ -188,7 +204,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   QStringList pathStrs(const QString &path) const;
 
- protected: // TODO: make private
+ private:
   Column             groupColumn_;             //!< group column
   GroupData          groupData_;               //!< grouping data
   Bucket*            groupBucket_ { nullptr }; //!< group column bucket
