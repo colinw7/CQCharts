@@ -12,6 +12,8 @@ void addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *wid
 
 QFrame *createHSpacer(int width=1, const char *name="spacer");
 
+QFrame *createHStretch(const char *name="spacer");
+
 void setTextColor(QWidget *w, const QColor &c);
 
 }

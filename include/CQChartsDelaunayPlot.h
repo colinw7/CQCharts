@@ -168,7 +168,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsColumn getNamedColumn(const QString &name) const override;
+  Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
   //---

@@ -1460,6 +1460,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void addXAxis();
   virtual void addYAxis();
 
+  void setAxisColumnLabels(Axis *axis);
+
   //---
 
   virtual void addKey();
@@ -2292,7 +2294,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   ImageAnnotation        *addImageAnnotation       (const Position &pos, const Image &image);
   ImageAnnotation        *addImageAnnotation       (const Rect &rect, const Image &image);
   PathAnnotation         *addPathAnnotation        (const Path &path);
-  KeyAnnotation          *addKeyAnnotation         (const CQChartsColumn &column=CQChartsColumn());
+  KeyAnnotation          *addKeyAnnotation         (const Column &column=Column());
   PieSliceAnnotation     *addPieSliceAnnotation    (const Position &pos, const Length &innerRadius,
                                                     const Length &outerRadius,
                                                     const Angle &startAngle,
@@ -2757,6 +2759,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                            bool required=false) const;
   bool checkNumericColumn(const Column &column, const QString &name,
                           bool required=false) const;
+  bool checkNumericColumn(const Column &column, const QString &name,
+                          ColumnType &type, bool required=false) const;
 
   bool checkColumns(const Columns &columns, const QString &name, bool required=false) const;
 
@@ -3154,30 +3158,30 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief color column data
   struct ColorColumnData {
-    Column      column;
-    ColorType   colorType { ColorType::AUTO };
-    bool        valid     { false };
-    bool        mapped    { true };
-    double      map_min   { 0.0 };
-    double      map_max   { 1.0 };
-    double      data_min  { 0.0 };
-    double      data_max  { 1.0 };
-    ColumnType  modelType;
-    PaletteName palette;
-    ColorStops  xStops;
-    ColorStops  yStops;
+    Column      column;                        //! color column
+    ColorType   colorType { ColorType::AUTO }; //! color type
+    bool        valid     { false };           //! color valid
+    bool        mapped    { true };            //! color values mapped
+    double      map_min   { 0.0 };             //! map value min
+    double      map_max   { 1.0 };             //! map value max
+    double      data_min  { 0.0 };             //! model data min
+    double      data_max  { 1.0 };             //! model data max
+    ColumnType  modelType;                     //! color model type
+    PaletteName palette;                       //! color palette
+    ColorStops  xStops;                        //! color x stops
+    ColorStops  yStops;                        //! color y stops
   };
 
   //! \brief alpha column data
   struct AlphaColumnData {
-    Column     column;
-    bool       valid     { false };
-    bool       mapped    { true };
-    double     map_min   { 0.0 };
-    double     map_max   { 1.0 };
-    double     data_min  { 0.0 };
-    double     data_max  { 1.0 };
-    ColumnType modelType;
+    Column     column;              //! alpha column
+    bool       valid     { false }; //! alpha valid
+    bool       mapped    { true };  //! alpha values mapped
+    double     map_min   { 0.0 };   //! map value min
+    double     map_max   { 1.0 };   //! map value max
+    double     data_min  { 0.0 };   //! model data min
+    double     data_max  { 1.0 };   //! model data max
+    ColumnType modelType;           //! alpha model type
   };
 
   //---

@@ -243,6 +243,7 @@ class CQChartsRectPlacer {
   void addRect(RectData *rectData);
 
   void addRectValues(RectData *rectData);
+  void addRectValues(const Rect &rect);
 
   const RectDatas &rectDatas() const { return rectDatas_; }
 
@@ -250,6 +251,9 @@ class CQChartsRectPlacer {
 
   const Rect &clipRect() const { return clipRect_; }
   void setClipRect(const Rect &v) { clipRect_ = v; }
+
+  int iterations() const { return iterations_; }
+  void setIterations(int i) { iterations_ = i; }
 
   void clear(bool del=false) {
     if (del) {
@@ -300,10 +304,11 @@ class CQChartsRectPlacer {
  private:
   using QuadTree = CQChartsQuadTree<Rect, Rect>;
 
-  bool      debug_  { false };
+  bool      debug_      { false };
   Grid      grid_;
   RectDatas rectDatas_;
   Rect      clipRect_;
+  int       iterations_ { 32 };
 };
 
 #endif

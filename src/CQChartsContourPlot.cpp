@@ -159,11 +159,10 @@ calcRange() const
           ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
 
           bool ok;
-
           double y = plot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
-            y  = col - 1;
+            y  = col - 1; // use column number of not numeric
             ok = true;
           }
 
@@ -176,11 +175,10 @@ calcRange() const
         ModelIndex columnModelInd(plot_, data.row, Column(0), data.parent);
 
         bool ok;
-
         double x = plot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
-          x  = data.row - 1;
+          x  = data.row - 1; // use row number of not numeric
           ok = true;
         }
 
@@ -191,7 +189,6 @@ calcRange() const
           ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
 
           bool ok;
-
           double z = plot_->modelReal(columnModelInd, ok);
 
           if (ok && ! CMathUtil::isNaN(z))
@@ -277,11 +274,10 @@ createObjs(PlotObjs &) const
           ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
 
           bool ok;
-
           double y = plot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
-            y  = col - 1;
+            y  = col - 1; // use column number of not numeric
             ok = true;
           }
 
@@ -296,11 +292,10 @@ createObjs(PlotObjs &) const
         ModelIndex columnModelInd(plot_, data.row, Column(0), data.parent);
 
         bool ok;
-
         double x = plot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
-          x  = data.row - 1;
+          x  = data.row - 1; // use row number of not numeric
           ok = true;
         }
 
@@ -313,11 +308,10 @@ createObjs(PlotObjs &) const
           ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
 
           bool ok;
-
           double z = plot_->modelReal(columnModelInd, ok);
 
           if (! ok || CMathUtil::isNaN(z))
-            z = 0.0;
+            z = 0.0; // default bad value to zero
 
           z_[iz_++] = z;
         }

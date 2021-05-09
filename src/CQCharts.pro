@@ -112,6 +112,7 @@ CQChartsObj.cpp \
 CQChartsDataLabel.cpp \
 \
 CQChartsWordCloud.cpp \
+CQChartsTextPlacer.cpp \
 CQChartsRectPlacer.cpp \
 \
 CQChartsAxis.cpp \
@@ -476,6 +477,7 @@ HEADERS += \
 ../include/CQChartsDataLabel.h \
 \
 ../include/CQChartsWordCloud.h \
+../include/CQChartsTextPlacer.h \
 ../include/CQChartsRectPlacer.h \
 \
 ../include/CQChartsAxis.h \

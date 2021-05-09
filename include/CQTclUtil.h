@@ -249,7 +249,7 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
           Tcl_Obj *lobj;
 
           if (Tcl_ListObjIndex(interp, obj1, i, &lobj) == TCL_OK) {
-            QVariant lvar = variantFromObj(interp, lobj);
+            auto lvar = variantFromObj(interp, lobj);
 
             lvars.push_back(lvar);
           }
@@ -393,7 +393,7 @@ inline QVariant getResult(Tcl_Interp *interp) {
 
   auto *res1 = Tcl_DuplicateObj(res);
 
-  QVariant var = variantFromObj(interp, res);
+  auto var = variantFromObj(interp, res);
 
   Tcl_SetObjResult(interp, res1);
 

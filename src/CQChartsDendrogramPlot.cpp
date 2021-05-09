@@ -201,8 +201,8 @@ calcRange() const
   // check columns
   bool columnsValid = true;
 
-  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
-  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+  if (! checkColumn       (nameColumn (), "Name" )) columnsValid = false;
+  if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
 
   if (! columnsValid)
     return Range(0.0, 0.0, 1.0, 1.0);
@@ -227,27 +227,25 @@ calcRange() const
 
       //---
 
-      ModelIndex nameModelInd (plot_, data.row, plot_->nameColumn (), data.parent);
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      // get name
+      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumn (), data.parent);
 
     //auto nameInd  = modelIndex(nameModelInd);
     //auto nameInd1 = normalizeIndex(nameInd);
 
-      //---
-
       bool ok1;
-
       auto name = plot_->modelString(nameModelInd, ok1);
 
-      if (path.length())
+      if (ok1 && path.length())
         name = path + "/" + name;
 
       //--
 
+      // get value
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+
       bool ok2;
-
       double value = plot_->modelReal(valueModelInd, ok2);
-
       if (! ok2) return addDataError(valueModelInd, "Invalid Value");
 
       if (CMathUtil::isNaN(value))

@@ -602,7 +602,7 @@ checkColumns() const
     columnsValid = false;
 
   // value optional
-  if (checkColumn(valueColumn(), "Value"))
+  if (checkNumericColumn(valueColumn(), "Value"))
     modelColumns_.push_back(valueColumn());
   else
     columnsValid = false;
@@ -989,13 +989,14 @@ initHierObjs() const
       ModelIndex linkModelInd (plot_, data.row, plot_->linkColumn (), data.parent);
       ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
 
-      bool ok1, ok2;
+      bool ok1;
 
-      auto linkStr = plot_->modelString(linkModelInd , ok1);
-      auto value   = plot_->modelReal  (valueModelInd, ok2);
+      auto linkStr = plot_->modelString(linkModelInd, ok1);
+      if (! ok1) return addDataError(linkModelInd, "Invalid Link");
 
-      if (! ok1) return addDataError(linkModelInd , "Invalid Link");
-      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
+      auto value = plot_->modelReal(valueModelInd, ok1);
+      if (! ok1) return addDataError(valueModelInd, "Invalid Value");
+
 
       //---
 

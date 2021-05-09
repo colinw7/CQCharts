@@ -302,6 +302,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   using Ranges = std::vector<Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
+  using AxisP  = std::unique_ptr<CQChartsAxis>;
 
   Column             xColumn_;                             //!< x value column
   Columns            yColumns_;                            //!< y value columns
@@ -309,7 +310,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   bool               linesSelectable_ { false };           //!< are lines selectable
   Ranges             setRanges_;                           //!< value set ranges
   Qt::Orientation    adir_            { Qt::Horizontal };  //!< axis direction
-  Axis*              masterAxis_      { nullptr };         //!< master axis
+  AxisP              masterAxis_;                          //!< master axis
   YAxes              axes_;                                //!< value axes
   mutable std::mutex axesMutex_;                           //!< value axes
   Range              normalizedDataRange_;                 //!< normalized data range

@@ -2632,7 +2632,8 @@ double
 CQChartsPlot::
 aspect() const
 {
-  auto viewBBox = calcViewBBox();
+  //auto viewBBox = calcViewBBox();
+  auto viewBBox = innerViewBBox();
 
   auto p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
   auto p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
@@ -3998,6 +3999,29 @@ addYAxis()
   yAxis_ = std::make_unique<Axis>(this, Qt::Vertical, 0.0, 1.0);
 
   yAxis_->setObjectName("yaxis");
+}
+
+//------
+
+void
+CQChartsPlot::
+setAxisColumnLabels(Axis *axis)
+{
+  auto *details = columnDetails(axis->column());
+
+  axis->clearTickLabels();
+
+  if (! details || details->isNumeric()) {
+    axis->setMajorIncrement(0);
+    axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
+  }
+  else {
+    axis->setMajorIncrement(1);
+    axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+
+    for (int i = 0; i < details->numUnique(); ++i)
+      axis->setTickLabel(i, details->uniqueValue(i).toString());
+  }
 }
 
 //------
@@ -8848,8 +8872,8 @@ columnValueColor(const QVariant &var, Color &color) const
     else
       r1 = r;
 
-    // skip if invalid value
-    if (r1 < 0.0 || r1 > 1.0) return false;
+    // clamp to valid value
+    r1 = CMathUtil::clamp(r1, 0.0, 1.0);
 
     //--
 
@@ -14910,6 +14934,17 @@ checkNumericColumn(const Column &column, const QString &name, bool required) con
 {
   ColumnType type;
 
+  return checkNumericColumn(column, name, type, required);
+}
+
+bool
+CQChartsPlot::
+checkNumericColumn(const Column &column, const QString &name,
+                   ColumnType &type, bool required) const
+{
+  if (! required && ! column.isValid())
+    return true;
+
   if (! checkColumn(column, name, type, required))
     return false;
 
@@ -14926,11 +14961,9 @@ bool
 CQChartsPlot::
 checkNumericColumns(const Columns &columns, const QString &name, bool required) const
 {
-  if (required) {
-    if (! columns.isValid())
-      return const_cast<Plot *>(this)->
-        addError(QString("Missing required %1 columns").arg(name));
-  }
+  if (required && ! columns.isValid())
+    return const_cast<Plot *>(this)->
+      addError(QString("Missing required %1 columns").arg(name));
 
   bool valid = true;
 
@@ -14957,11 +14990,9 @@ bool
 CQChartsPlot::
 checkColumns(const Columns &columns, const QString &name, bool required) const
 {
-  if (required) {
-    if (! columns.isValid())
-      return const_cast<Plot *>(this)->
-        addError(QString("Missing required %1 columns").arg(name));
-  }
+  if (required && ! columns.isValid())
+    return const_cast<Plot *>(this)->
+      addError(QString("Missing required %1 columns").arg(name));
 
   bool valid = true;
 
@@ -14993,11 +15024,9 @@ checkColumn(const Column &column, const QString &name, ColumnType &type, bool re
 {
   type = ColumnType::NONE;
 
-  if (required) {
-    if (! column.isValid())
-      return const_cast<Plot *>(this)->
-        addColumnError(column, QString("Missing required %1 column").arg(name));
-  }
+  if (required && ! column.isValid())
+    return const_cast<Plot *>(this)->
+      addColumnError(column, QString("Missing required %1 column").arg(name));
 
   if (column.isValid()) {
     type = columnValueType(column);

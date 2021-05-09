@@ -80,6 +80,9 @@ QString formatVar    (const QVariant &var, const QString &fmt);
 QString formatReal   (double r, const QString &fmt="%g" );
 QString formatInteger(long   i, const QString &fmt="%ld");
 
+bool scanReal   (const QString &fmt, const QString &str, double &r);
+bool scanInteger(const QString &fmt, const QString &str, long   &i);
+
 }
 
 //------

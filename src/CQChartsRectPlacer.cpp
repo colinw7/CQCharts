@@ -18,7 +18,14 @@ void
 CQChartsRectPlacer::
 addRectValues(RectData *rectData)
 {
-  grid_.addRectValues(rectData->rect());
+  addRectValues(rectData->rect());
+}
+
+void
+CQChartsRectPlacer::
+addRectValues(const Rect &rect)
+{
+  grid_.addRectValues(rect);
 }
 
 void
@@ -27,7 +34,7 @@ place()
 {
   int n = 0;
 
-  while (n < 32) {
+  while (n < iterations()) {
     stepPlace();
 
     if (! moveAllOut())
@@ -35,6 +42,9 @@ place()
 
     ++n;
   }
+
+  if (isDebug() && n >= iterations())
+    std::cerr << "Place failed\n";
 }
 
 bool
@@ -54,9 +64,35 @@ stepPlace()
 
   //---
 
+  if (clipRect_.isSet()) {
+    for (const auto &rectData : rectDatas_) {
+      auto rect = rectData->rect();
+
+      if (clipRect_.inside(rect))
+        continue;
+
+      double xmin = rect.xmin();
+      double ymin = rect.ymin();
+      double xmax = rect.xmax();
+      double ymax = rect.ymax();
+
+      double dx = 0.0;
+      double dy = 0.0;
+
+      if (xmin < clipRect_.xmin()) dx = clipRect_.xmin() - xmin;
+      if (ymin < clipRect_.ymin()) dy = clipRect_.ymin() - ymin;
+      if (xmax > clipRect_.xmax()) dx = clipRect_.xmax() - xmax;
+      if (ymax > clipRect_.ymax()) dy = clipRect_.ymax() - ymax;
+
+      rectData->setRect(Rect(xmin + dx, ymin + dy, xmax + dx, ymax + dy));
+    }
+  }
+
+  //---
+
   int n = 0;
 
-  while (n < 32) {
+  while (n < iterations()) {
     // add all rects to grid
     clearGrid();
 
@@ -65,6 +101,13 @@ stepPlace()
 
       grid_.addRect(rectData);
     }
+
+    if (clipRect_.isSet())
+      addRectValues(clipRect_);
+
+    // TODO: extra values ?
+
+    //---
 
     MoveRects moveRects;
 
@@ -146,12 +189,18 @@ stepPlace()
     }
 
     // move best rect
+    if (clipRect_.isSet())
+      assert(clipRect_.inside(moveRect->rect));
+
     moveRect->rectData->setRect(moveRect->rect);
 
     //---
 
     ++n;
   }
+
+  if (isDebug() && n >= iterations())
+    std::cerr << "stepPlace failed\n";
 
   return true;
 }
@@ -233,7 +282,7 @@ addDirRects(const Rect &dirRect, Rects &dirRects, const HitRect &hitRect)
 {
   auto addRect = [&](const Rect &dirRect) {
     if (clipRect_.isSet() && ! clipRect_.inside(dirRect))
-       return false;
+      return false;
 
     dirRects.push_back(dirRect);
 
@@ -414,6 +463,9 @@ moveOut(RectData *rectData)
   getBestDirRect(rectData, dirRects, bestRect);
 
   // move best rect
+  if (clipRect_.isSet())
+    assert(clipRect_.inside(bestRect));
+
   rectData->setRect(bestRect);
 
   return true;

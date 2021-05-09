@@ -362,7 +362,7 @@ createObjs(PlotObjs &objs) const
   // value column required
   // name, id, color columns optional
 
-  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_, /*required*/true))
+  if (! checkNumericColumn(valueColumn(), "Value", th->valueColumnType_, /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
@@ -758,12 +758,11 @@ loadModel() const
 
       bool ok = true;
 
-      if      (plot_->valueColumnType() == ColumnType::REAL)
+      if      (plot_->valueColumnType() == ColumnType::REAL ||
+               plot_->valueColumnType() == ColumnType::INTEGER)
         size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(valueModelInd, ok);
       else if (plot_->valueColumnType() == ColumnType::STRING)
-        size = 1.0;
+        size = 1.0; // TODO: error
       else
         ok = false;
 

@@ -522,11 +522,6 @@ class BBox :
   }
 
   // supplied point inside this rect
-  bool inside(double x, double y) const {
-    return inside(Point(x, y));
-  }
-
-  // supplied point inside this rect
   bool inside(const Point &point) const {
     if (! set_) return false;
 
@@ -1189,11 +1184,6 @@ class Range :
   }
 
   // supplied point inside this rect
-  bool inside(double x, double y) const {
-    return inside(Point(x, y));
-  }
-
-  // supplied point inside this rect
   bool inside(const Point &point) const {
     if (! set_) return false;
 
@@ -1549,6 +1539,7 @@ class Matrix :
     return matrix;
   }
 
+#if 0
   static Matrix skew(double sx, double sy) {
     Matrix matrix;
 
@@ -1572,6 +1563,7 @@ class Matrix :
 
     return matrix;
   }
+#endif
 
   static Matrix reflection(double a) {
     Matrix matrix;
@@ -1649,6 +1641,7 @@ class Matrix :
     setBottomIdentity ();
   }
 
+#if 0
   void setSkew(double x, double y) {
     setInnerSkew     (x, y);
     setOuterIdentity ();
@@ -1666,6 +1659,7 @@ class Matrix :
     setOuterIdentity ();
     setBottomIdentity();
   }
+#endif
 
   void setValues(double a, double b, double c, double d) {
     m00_ = a, m01_ = b;
@@ -2130,6 +2124,7 @@ class Matrix :
     m10_ =  s, m11_ =  c;
   }
 
+#if 0
   void setInnerSkew(double x, double y) {
     double tx = std::tan(x);
     double ty = std::tan(y);
@@ -2151,6 +2146,7 @@ class Matrix :
     m00_ = 1 , m01_ = 0;
     m10_ = ty, m11_ = 1;
   }
+#endif
 
   void setInnerReflection(double dx, double dy) {
     double l = std::hypot(dx, dy);

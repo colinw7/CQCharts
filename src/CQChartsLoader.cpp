@@ -134,6 +134,7 @@ loadCsv(const CQChartsFile &file, const InputData &inputData)
   auto *csvModel = new CQCsvModel;
 
   auto *csv = new CQChartsFilterModel(charts_, csvModel);
+  csv->setObjectName("csvFilterModel");
 
   csvModel->setCommentHeader    (inputData.commentHeader);
   csvModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -169,6 +170,7 @@ loadTsv(const CQChartsFile &file, const InputData &inputData)
   auto *tsvModel = new CQTsvModel;
 
   auto *tsv = new CQChartsFilterModel(charts_, tsvModel);
+  tsv->setObjectName("tsvFilterModel");
 
   tsvModel->setCommentHeader    (inputData.commentHeader);
   tsvModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -198,6 +200,7 @@ loadJson(const CQChartsFile &file, const InputData &inputData)
   auto *jsonModel = new CQJsonModel;
 
   auto *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
+  json->setObjectName("jsonFilterModel");
 
   if (! jsonModel->load(file.resolve())) {
     delete json;
@@ -220,6 +223,7 @@ loadData(const CQChartsFile &file, const InputData &inputData)
   auto *dataModel = new CQGnuDataModel;
 
   auto *data = new CQChartsFilterModel(charts_, dataModel);
+  data->setObjectName("dataFilterModel");
 
   dataModel->setCommentHeader    (inputData.commentHeader);
   dataModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -257,6 +261,7 @@ createExprModel(int n)
   }
 
   auto *data = new CQChartsFilterModel(charts_, dataModel);
+  data->setObjectName("exprFilterModel");
 
   //---
 
@@ -407,6 +412,7 @@ createVarsModel(const InputData &inputData)
   auto *varsModel = new CQChartsVarsModel(nc1, nr1);
 
   auto *filterModel = new CQChartsFilterModel(charts_, varsModel);
+  filterModel->setObjectName("varsFilterModel");
 
   QModelIndex parent;
 
@@ -520,6 +526,7 @@ createTclModel(const InputData &inputData)
   auto *tclModel = new CQChartsTclModel(nc1, nr1);
 
   auto *filterModel = new CQChartsFilterModel(charts_, tclModel);
+  filterModel->setObjectName("tclFilterModel");
 
   QModelIndex parent;
 
@@ -779,6 +786,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
   auto *correlationModel = new CQChartsCorrelationModel(nv);
 
   auto *filterModel = new CQChartsFilterModel(charts_, correlationModel);
+  filterModel->setObjectName("correlationFilterModel");
 
   for (int ic = 0; ic < nv; ++ic) {
     CQChartsColumn c(ic);

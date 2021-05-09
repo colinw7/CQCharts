@@ -8,6 +8,8 @@ CQChartsFilterModel(CQCharts *charts, QAbstractItemModel *baseModel, bool exprMo
 {
   setObjectName("filterModel");
 
+  beginResetModel();
+
   if (exprModel) {
     exprModel_ = new CQChartsExprModel(charts_, this, baseModel_);
 
@@ -15,6 +17,8 @@ CQChartsFilterModel(CQCharts *charts, QAbstractItemModel *baseModel, bool exprMo
   }
   else
     setSourceModel(baseModel);
+
+  endResetModel();
 }
 
 CQChartsFilterModel::

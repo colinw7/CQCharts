@@ -658,10 +658,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsColumn getNamedColumn(const QString &name) const override;
+  Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
-  CQChartsColumns getNamedColumns(const QString &name) const override;
+  Columns getNamedColumns(const QString &name) const override;
   void setNamedColumns(const QString &name, const Columns &c) override;
 
   //---

@@ -7,10 +7,12 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsHtml.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTip.h>
+#include <CQChartsHtml.h>
+#include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -44,6 +46,12 @@ addParameters()
     setRequired().setPropPath("columns.values").setTip("Values");
 
   endParameterGroup();
+
+  // options
+  addEnumParameter("drawType", "Draw Type", "drawType").
+    addNameValue("PIE"    , int(CQChartsGridPlot::DrawType::PIE    )).
+    addNameValue("TREEMAP", int(CQChartsGridPlot::DrawType::TREEMAP)).
+    setTip("Draw type");
 
   //---
 
@@ -231,6 +239,17 @@ CQChartsGridPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsGridPlot::calcRange");
+
+  //---
+
+  // check columns (TODO: all columns
+  bool columnsValid = true;
+
+  if (! checkNumericColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return Range();
 
   //---
 
@@ -682,15 +701,24 @@ CQChartsGridPlotCustomControls::
 CQChartsGridPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "grid")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  //---
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   addColumnWidgets(QStringList() <<
-    "name" << "label" << "row" << "column" << "values", optionsFrame);
+    "name" << "label" << "row" << "column" << "values", columnsFrame);
 
   //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
+
+  drawTypeCombo_ = createEnumEdit("drawType");
+
+  addFrameWidget(optionsFrame, "Draw Type", drawTypeCombo_);
+
+  //---
+
+  addLayoutStretch();
 
   connectSlots(true);
 }
@@ -699,6 +727,9 @@ void
 CQChartsGridPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
+
   CQChartsPlotCustomControls::connectSlots(b);
 }
 
@@ -719,9 +750,22 @@ updateWidgets()
 
   //---
 
+  drawTypeCombo_->setCurrentValue((int) plot_->drawType());
+
+  //---
+
   CQChartsPlotCustomControls::updateWidgets();
 
   //---
 
   connectSlots(true);
+}
+
+//---
+
+void
+CQChartsGridPlotCustomControls::
+drawTypeSlot()
+{
+  plot_->setDrawType((CQChartsGridPlot::DrawType) drawTypeCombo_->currentValue());
 }

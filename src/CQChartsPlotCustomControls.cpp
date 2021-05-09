@@ -377,9 +377,9 @@ createColumnControlGroup(const QString &name, const QString &title)
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createGroupFrame(const QString &name, const QString &objName)
+createGroupFrame(const QString &name, const QString &objName, bool stretch)
 {
-  auto frameData = createFrame(objName);
+  auto frameData = createFrame(objName, stretch);
 
 #if 0
   split_->addWidget(frameData.frame, name);
@@ -401,14 +401,15 @@ createGroupFrame(const QString &name, const QString &objName)
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createFrame(const QString &objName)
+createFrame(const QString &objName, bool stretch)
 {
   FrameData frameData;
 
   frameData.frame  = CQUtil::makeWidget<QFrame>(objName);
   frameData.layout = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
 
-  frameData.layout->setColumnStretch(1, 1);
+  if (stretch)
+    frameData.layout->setColumnStretch(1, 1);
 
   return frameData;
 }

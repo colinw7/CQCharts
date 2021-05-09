@@ -151,7 +151,7 @@ init()
   setSymbolFillColor  (Color(Color::Type::PALETTE));
   setSymbolFillAlpha  (Alpha(0.5));
 
-  masterAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
+  masterAxis_ = std::make_unique<CQChartsAxis>(this, Qt::Vertical, 0.0, 1.0);
 
   masterAxis_->setDrawAll(true);
 
@@ -170,8 +170,6 @@ void
 CQChartsParallelPlot::
 term()
 {
-  delete masterAxis_;
-
   for (auto &axis : axes_)
     delete axis;
 }
@@ -289,7 +287,7 @@ addProperties()
   // axes
   auto addAxisProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
-    return &(propertyModel()->addProperty(path, masterAxis_, name, alias)->setDesc(desc));
+    return &(propertyModel()->addProperty(path, masterAxis_.get(), name, alias)->setDesc(desc));
   };
 
   auto addAxisStyleProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -445,27 +443,13 @@ calcRange() const
 
   // update axis style
   for (int j = 0; j < ns; ++j) {
-    const auto &yColumn = yColumns().getColumn(j);
-
-    auto *details = columnDetails(yColumn);
-
-    //---
-
     auto *axis = axes_[j];
 
-    axis->clearTickLabels();
+    const auto &yColumn = yColumns().getColumn(j);
 
-    if (details->isNumeric()) {
-      axis->setMajorIncrement(0);
-      axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
-    }
-    else {
-      axis->setMajorIncrement(1);
-      axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+    axis->setColumn(yColumn);
 
-      for (int k = 0; k < details->numUnique(); ++k)
-        axis->setTickLabel(k, details->uniqueValue(k).toString());
-    }
+    th->setAxisColumnLabels(axis);
   }
 
   //---

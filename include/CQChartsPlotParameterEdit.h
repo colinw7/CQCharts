@@ -18,14 +18,17 @@ class CQChartsColumnParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsColumnParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic);
 
   const CQChartsPlotParameter *parameter() const { return parameter_; }
 
   void setModelData(const CQChartsModelData *modelData);
 
-  CQChartsColumn getColumn() const;
-  void setColumn(const CQChartsColumn &column);
+  Column getColumn() const;
+  void setColumn(const Column &column);
 
   bool isNumericOnly() const;
   void setNumericOnly(bool b);

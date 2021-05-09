@@ -1407,12 +1407,16 @@ writeCSV(std::ostream &fs) const
 
     if      (type == CQBaseModelType::REAL) {
       writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("iformat");
+      writeMetaColumnNameValue("oformat");
       writeMetaColumnNameValue("format_scale");
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
     }
     else if (type == CQBaseModelType::INTEGER) {
       writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("iformat");
+      writeMetaColumnNameValue("oformat");
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
     }

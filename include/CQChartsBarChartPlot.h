@@ -48,15 +48,17 @@ class CQChartsBarChartPlot;
  */
 class CQChartsBarChartValue {
  public:
+  using Column = CQChartsColumn;
+
   struct ColumnValue {
     ColumnValue() = default;
 
-    ColumnValue(const CQChartsColumn &column, const QString &value) :
+    ColumnValue(const Column &column, const QString &value) :
      column(column), value(value) {
     }
 
-    CQChartsColumn column;
-    QString        value;
+    Column  column;
+    QString value;
   };
 
   using NameColumnValueMap = std::map<QString, ColumnValue>;
@@ -91,7 +93,7 @@ class CQChartsBarChartValue {
   const NameColumnValueMap &nameColumnValueMap() const { return nameColumnValueMap_; }
   void setNameColumnValueMap(const NameColumnValueMap &v) { nameColumnValueMap_ = v; }
 
-  void setNameColumnValue(const QString &name, const CQChartsColumn &column, const QString &value) {
+  void setNameColumnValue(const QString &name, const Column &column, const QString &value) {
     nameColumnValueMap_[name] = ColumnValue(column, value);
   }
 
@@ -457,7 +459,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsColumn getNamedColumn(const QString &name) const override;
+  Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
   Columns getNamedColumns(const QString &name) const override;
@@ -678,14 +680,14 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void colorBySetSlot();
 
  private:
-  CQChartsBarChartPlot*      plot_            { nullptr };
-  CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
-  CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
-  CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
-  CQChartsBoolParameterEdit* percentCheck_    { nullptr };
-  CQChartsBoolParameterEdit* skipEmptyCheck_  { nullptr };
-  CQChartsBoolParameterEdit* dotLinesCheck_   { nullptr };
-  CQChartsBoolParameterEdit* colorBySetCheck_ { nullptr };
+  CQChartsBarChartPlot*      plot_             { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
+  CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
+  CQChartsEnumParameterEdit* valueTypeCombo_   { nullptr };
+  CQChartsBoolParameterEdit* percentCheck_     { nullptr };
+  CQChartsBoolParameterEdit* skipEmptyCheck_   { nullptr };
+  CQChartsBoolParameterEdit* dotLinesCheck_    { nullptr };
+  CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
 };
 
 #endif

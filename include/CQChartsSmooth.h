@@ -16,9 +16,7 @@ class CQChartsBezier2 {
   using BBox  = CQChartsGeom::BBox;
 
  public:
-  CQChartsBezier2() :
-   p1_(), p2_(), p3_() {
-  }
+  CQChartsBezier2() = default;
 
   CQChartsBezier2(double x1, double y1, double x2, double y2, double x3, double y3) :
    p1_(x1, y1), p2_(x2, y2), p3_(x3, y3) {
@@ -243,9 +241,7 @@ class CQChartsBezier3 {
   using BBox  = CQChartsGeom::BBox;
 
  public:
-  CQChartsBezier3() :
-   p1_(), p2_(), p3_(), p4_() {
-  }
+  CQChartsBezier3() = default;
 
   CQChartsBezier3(double x1, double y1, double x2, double y2,
                   double x3, double y3, double x4, double y4) :

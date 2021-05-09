@@ -566,10 +566,6 @@ calcRange() const
 
   //---
 
-  initRangeAxes();
-
-  //---
-
   return dataRange;
 }
 
@@ -1067,7 +1063,7 @@ groupValueSetI(int groupInd)
 
   valueData_.valueGroupInd[groupInd] = ind;
 
-  const auto &valueSet = &valueData_.valueSets.back();
+  auto *valueSet = &valueData_.valueSets.back();
 
   valueSet->setGroupInd(groupInd);
 
@@ -1969,7 +1965,7 @@ calcTipId() const
 
   //---
 
-  const auto &value = this->value();
+  const auto *value = this->value();
 
   for (const auto &pcv : value->nameColumnValueMap()) {
     const auto &column = pcv.second.column;
@@ -2000,7 +1996,7 @@ QString
 CQChartsBarChartObj::
 groupStr() const
 {
-  const auto &value = this->value();
+  const auto *value = this->value();
 
   return value->groupName();
 }
@@ -2009,7 +2005,7 @@ QString
 CQChartsBarChartObj::
 nameStr() const
 {
-  const auto &value = this->value();
+  const auto *value = this->value();
 
   return value->valueName();
 }
@@ -2080,7 +2076,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return BBox();
 
-  const auto &value = this->value();
+  const auto *value = this->value();
 
   auto label = value->getNameValue("Label");
 
@@ -2748,15 +2744,16 @@ CQChartsBarChartPlotCustomControls::
 CQChartsBarChartPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "barchart")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  //---
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   // values, name and label columns
-  addColumnWidgets(QStringList() << "values" << "name" << "label", optionsFrame);
+  addColumnWidgets(QStringList() << "values" << "name" << "label", columnsFrame);
 
   //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   orientationCombo_ = createEnumEdit("orientation");
   plotTypeCombo_    = createEnumEdit("plotType");
@@ -2775,8 +2772,6 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Skip Empty"  , skipEmptyCheck_);
   addFrameWidget(optionsFrame, "Dot Lines"   , dotLinesCheck_);
   addFrameWidget(optionsFrame, "Color by Set", colorBySetCheck_);
-
-//addFrameRowStretch(optionsFrame);
 
   //---
 

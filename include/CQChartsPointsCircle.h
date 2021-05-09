@@ -101,10 +101,10 @@ void shufflePoints(PointArray &points) {
   int n = points.size();
 
   for (int i = 0; i < n; ++i) {
-    CQChartsRand::IntInRange rand(0, n - 1);
+    CQChartsRand::IntInRange irand(0, n - 1);
 
-    int i1 = rand.gen();
-    int i2 = rand.gen();
+    int i1 = irand.gen();
+    int i2 = irand.gen();
 
     if (i1 != i2)
       std::swap(points[i1], points[i2]);

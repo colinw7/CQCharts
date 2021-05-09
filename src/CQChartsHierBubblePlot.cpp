@@ -304,7 +304,7 @@ createObjs(PlotObjs &objs) const
   if (! checkColumns(nameColumns(), "Name", /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_))
+  if (! checkNumericColumn(valueColumn(), "Value", th->valueColumnType_))
     columnsValid = false;
 
   if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
@@ -940,12 +940,10 @@ getValueSize(const ModelIndex &ind, double &size) const
 
   bool ok = true;
 
-  if      (valueColumnType() == ColumnType::REAL)
+  if      (valueColumnType() == ColumnType::REAL || valueColumnType() == ColumnType::INTEGER)
     size = modelReal(ind, ok);
-  else if (valueColumnType() == ColumnType::INTEGER)
-    size = (double) modelInteger(ind, ok);
   else if (valueColumnType() == ColumnType::STRING)
-    size = 1.0;
+    size = 1.0; // TODO: error
   else
     ok = false;
 

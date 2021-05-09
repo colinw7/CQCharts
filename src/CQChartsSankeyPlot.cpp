@@ -16,6 +16,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsTextPlacer.h>
 #include <CQChartsHtml.h>
 #include <CQChartsRand.h>
 
@@ -165,6 +166,10 @@ init()
   bbox_ = targetBBox_;
 
   setFitMargin(PlotMargin(Length("5%"), Length("5%"), Length("5%"), Length("5%")));
+
+  //---
+
+  placer_ = new CQChartsTextPlacer;
 }
 
 void
@@ -177,6 +182,10 @@ term()
   clearNodesAndEdges();
 
   clearGraph();
+
+  //---
+
+  delete placer_;
 }
 
 //---
@@ -717,10 +726,7 @@ preDrawFgObjs(PaintDevice *) const
   if (! isAdjustText())
     return;
 
-  for (const auto &drawText : drawTexts_)
-    delete drawText;
-
-  drawTexts_.clear();
+  placer_->clear();
 }
 
 void
@@ -732,38 +738,9 @@ postDrawFgObjs(PaintDevice *device) const
 
   auto rect = this->calcDataRect();
 
-  CQChartsRectPlacer placer;
+  placer_->place(rect);
 
-  placer.setClipRect(CQChartsRectPlacer::Rect(rect.getXMin(), rect.getYMin(),
-                                              rect.getXMax(), rect.getYMax()));
-
-  for (const auto &drawText : drawTexts_)
-    placer.addRect(drawText);
-
-  placer.place();
-
-  for (const auto &drawText : drawTexts_) {
-    PenBrush penBrush;
-
-    setPen(penBrush, PenData(true, drawText->color, drawText->alpha));
-
-    device->setPen(penBrush.pen);
-
-    CQChartsDrawUtil::drawTextAtPoint(device, drawText->point, drawText->str, drawText->options);
-
-    if (drawText->point != drawText->origPoint) {
-      setPen(penBrush, PenData(true, drawText->color, Alpha(0.4)));
-
-      device->setPen(penBrush.pen);
-
-      auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
-                                                        drawText->options);
-
-      auto p = CQChartsUtil::nearestRectPoint(bbox, drawText->targetPoint);
-
-      device->drawLine(p, drawText->targetPoint);
-    }
-  }
+  placer_->draw(device);
 }
 
 //------
@@ -3115,6 +3092,21 @@ printStats()
 
 //---
 
+void
+CQChartsSankeyPlot::
+addDrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
+            const QColor &color, const Alpha &alpha, const Point &targetPoint,
+            const BBox &bbox) const
+{
+  auto *drawText = new CQChartsTextPlacer::DrawText(str, point, options, color, alpha, targetPoint);
+
+  drawText->setBBox(bbox);
+
+  placer_->addDrawText(drawText);
+}
+
+//---
+
 CQChartsSankeyNodeObj *
 CQChartsSankeyPlot::
 createNodeObj(const BBox &rect, Node *node, const ColorInd &ig, const ColorInd &iv) const
@@ -4550,15 +4542,9 @@ drawFgText(PaintDevice *device, const BBox &rect) const
   options.clipElide     = plot()->textClipElide();
 
   if (plot_->isAdjustText()) {
-    auto *drawText =
-      new CQChartsSankeyPlot::DrawText(str, pt, options, c, plot_->textAlpha(), rect.getCenter());
+    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, pt, str, options);
 
-    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
-                                                      drawText->options);
-
-    drawText->setBBox(bbox);
-
-    plot_->addDrawText(drawText);
+    plot_->addDrawText(str, pt, options, c, plot_->textAlpha(), rect.getCenter(), bbox);
   }
   else {
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);

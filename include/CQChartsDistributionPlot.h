@@ -663,7 +663,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsColumn getNamedColumn(const QString &name) const override;
+  Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
   Columns getNamedColumns(const QString &name) const override;

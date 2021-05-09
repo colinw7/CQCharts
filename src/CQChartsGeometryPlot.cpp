@@ -402,7 +402,7 @@ calcRange() const
   if (! checkColumn(geometryColumn(), "Geometry", th->geometryColumnType_, /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(valueColumn(), "Value"))
+  if (! checkNumericColumn(valueColumn(), "Value"))
     columnsValid = false;
 
   if (! checkColumn(colorColumn(), "Color", th->colorColumnType_))
@@ -922,7 +922,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  /// draw polygon
+  // draw polygon
   device->setColorNames();
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);

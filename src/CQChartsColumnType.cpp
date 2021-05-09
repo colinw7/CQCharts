@@ -1139,6 +1139,10 @@ CQChartsColumnRealType() :
 {
   addParam("format", Type::STRING, "Output Format", "")->
     setDesc("Format string for output value display");
+  addParam("iformat", Type::STRING, "Input Format", "")->
+    setDesc("Format string for input value conversion");
+  addParam("oformat", Type::STRING, "Output Format", "")->
+    setDesc("Format string for output value display");
   addParam("format_scale", Type::REAL, "Format Scale Factor", 1.0)->
     setDesc("Scale factor; to apply to value before output");
 
@@ -1160,17 +1164,27 @@ desc() const
 QVariant
 CQChartsColumnRealType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
-         const CQChartsModelTypeData &, bool &converted) const
+         const CQChartsModelTypeData &typeData, bool &converted) const
 {
   if (! var.isValid() || var.type() == QVariant::Double)
     return var;
 
-  bool ok;
+  double r = 0.0;
 
-  double r = CQChartsVariant::toReal(var, ok);
+  // use format string to convert model (input) string to time (double)
+  // TODO: assert if no format ?
+  auto fmt = getIFormat(typeData.nameValues);
 
-  if (! ok)
-    return var;
+  if (! fmt.length()) {
+    bool ok;
+
+    r = CQChartsVariant::toReal(var, ok);
+    if (! ok) return var;
+  }
+  else {
+    if (! CQChartsUtil::scanReal(fmt, var.toString(), r))
+      return var;
+  }
 
   converted = true;
 
@@ -1196,9 +1210,9 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get optional format for real
-  QString format;
+  auto fmt = getOFormat(typeData.nameValues);
 
-  if (! nameValueString(typeData.nameValues, "format", format))
+  if (! fmt.length())
     return CQChartsUtil::formatReal(r);
 
   //---
@@ -1212,7 +1226,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // convert value using format
-  return CQChartsUtil::formatVar(QVariant(r), format);
+  return CQChartsUtil::formatVar(QVariant(r), fmt);
 }
 
 QVariant
@@ -1259,6 +1273,36 @@ rmax(const CQChartsNameValues &nameValues, double &r) const
   return true;
 }
 
+QString
+CQChartsColumnRealType::
+getIFormat(const CQChartsNameValues &nameValues) const
+{
+  QString format;
+
+  if (nameValueString(nameValues, "iformat", format))
+    return format;
+
+  if (nameValueString(nameValues, "format", format))
+    return format;
+
+  return "";
+}
+
+QString
+CQChartsColumnRealType::
+getOFormat(const CQChartsNameValues &nameValues) const
+{
+  QString format;
+
+  if (nameValueString(nameValues, "oformat", format))
+    return format;
+
+  if (nameValueString(nameValues, "format", format))
+    return format;
+
+  return "";
+}
+
 //------
 
 CQChartsColumnIntegerType::
@@ -1266,6 +1310,10 @@ CQChartsColumnIntegerType() :
  CQChartsColumnType(Type::INTEGER)
 {
   addParam("format", Type::INTEGER, "Output Format", "")->
+    setDesc("Format string for output value display");
+  addParam("iformat", Type::STRING, "Input Format", "")->
+    setDesc("Format string for input value conversion");
+  addParam("oformat", Type::STRING, "Output Format", "")->
     setDesc("Format string for output value display");
 
   addParam("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0)->
@@ -1286,17 +1334,27 @@ desc() const
 QVariant
 CQChartsColumnIntegerType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
-         const CQChartsModelTypeData &, bool &converted) const
+         const CQChartsModelTypeData &typeData, bool &converted) const
 {
   if (! var.isValid() || var.type() == QVariant::Int)
     return var;
 
-  bool ok;
+  long l = 0;
 
-  long l = CQChartsVariant::toInt(var, ok);
+  // use format string to convert model (input) string to time (double)
+  // TODO: assert if no format ?
+  auto fmt = getIFormat(typeData.nameValues);
 
-  if (! ok)
-    return var;
+  if (! fmt.length()) {
+    bool ok;
+
+    l = CQChartsVariant::toInt(var, ok);
+    if (! ok) return var;
+  }
+  else {
+    if (! CQChartsUtil::scanInteger(fmt, var.toString(), l))
+      return var;
+  }
 
   converted = true;
 
@@ -1336,15 +1394,15 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get optional format for real
-  QString format;
+  auto fmt = getOFormat(typeData.nameValues);
 
-  if (! nameValueString(typeData.nameValues, "format", format))
+  if (! fmt.length())
     return CQChartsUtil::formatInteger(l);
 
   //---
 
   // convert value using format
-  return CQChartsUtil::formatVar(var, format);
+  return CQChartsUtil::formatVar(var, fmt);
 }
 
 QVariant
@@ -1389,6 +1447,36 @@ imax(const CQChartsNameValues &nameValues, int &i) const
     return false;
 
   return true;
+}
+
+QString
+CQChartsColumnIntegerType::
+getIFormat(const CQChartsNameValues &nameValues) const
+{
+  QString format;
+
+  if (nameValueString(nameValues, "iformat", format))
+    return format;
+
+  if (nameValueString(nameValues, "format", format))
+    return format;
+
+  return "";
+}
+
+QString
+CQChartsColumnIntegerType::
+getOFormat(const CQChartsNameValues &nameValues) const
+{
+  QString format;
+
+  if (nameValueString(nameValues, "oformat", format))
+    return format;
+
+  if (nameValueString(nameValues, "format", format))
+    return format;
+
+  return "";
 }
 
 //------

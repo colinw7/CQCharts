@@ -18,7 +18,7 @@ class CQChartsHtml {
       BR
     };
 
-    // allow implciti conversion (no explicit)
+    // allow implicit conversion (no explicit)
     Str(const QString &str="") : str_(str) { }
     Str(const char *str) : str_(str) { }
 
@@ -32,7 +32,7 @@ class CQChartsHtml {
       }
     }
 
-    operator QString() { return str_; }
+    operator QString() const { return str_; }
 
     Str &operator+=(const Str &str) { str_ += str.str_; return *this; }
     Str &operator+=(const char *str) { str_ += str; return *this; }
@@ -60,8 +60,9 @@ class CQChartsHtml {
 
   CQChartsHtml() { }
 
-  operator QString() { return str_; }
+  operator QString() const { return str_; }
 
+  //! add header (h1-h6)
   CQChartsHtml &h1(const Str &str) { str_ += Str("<h1>") + str + Str("</h1>\n"); return *this; }
   CQChartsHtml &h2(const Str &str) { str_ += Str("<h2>") + str + Str("</h2>\n"); return *this; }
   CQChartsHtml &h3(const Str &str) { str_ += Str("<h3>") + str + Str("</h3>\n"); return *this; }
@@ -69,8 +70,10 @@ class CQChartsHtml {
   CQChartsHtml &h5(const Str &str) { str_ += Str("<h5>") + str + Str("</h5>\n"); return *this; }
   CQChartsHtml &h6(const Str &str) { str_ += Str("<h6>") + str + Str("</h6>\n"); return *this; }
 
+  //! add pararagraph (p)
   CQChartsHtml &p(const Str &str) { str_ += Str("<p>") + str + Str("</p>\n"); return *this; }
 
+  //! add unordered list (ul)
   CQChartsHtml &ul(const std::initializer_list<Str> &strs) {
     str_ += Str("<ul>\n");
 
@@ -82,6 +85,7 @@ class CQChartsHtml {
     return *this;
   }
 
+  //! pre formatted block (pre)
   CQChartsHtml &pre(const CQChartsHtml &html) {
     str_ += Str("<pre>\n");
     str_ += html.str_;

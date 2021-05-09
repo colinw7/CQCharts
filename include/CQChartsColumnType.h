@@ -293,6 +293,9 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
   bool rmin(const NameValues &nameValues, double &r) const;
   bool rmax(const NameValues &nameValues, double &r) const;
+
+  QString getIFormat(const NameValues &nameValues) const;
+  QString getOFormat(const NameValues &nameValues) const;
 };
 
 //---
@@ -333,6 +336,9 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 
   bool imin(const NameValues &nameValues, int &i) const;
   bool imax(const NameValues &nameValues, int &i) const;
+
+  QString getIFormat(const NameValues &nameValues) const;
+  QString getOFormat(const NameValues &nameValues) const;
 };
 
 //---

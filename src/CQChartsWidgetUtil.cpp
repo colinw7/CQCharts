@@ -33,6 +33,18 @@ createHSpacer(int width, const char *name)
   return spacer;
 }
 
+QFrame *
+createHStretch(const char *name)
+{
+  auto *spacer = CQUtil::makeWidget<QLabel>(name);
+
+  spacer->setText(" ");
+
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  return spacer;
+}
+
 void setTextColor(QWidget *w, const QColor &c) {
   auto palette = w->palette();
 

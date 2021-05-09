@@ -307,10 +307,10 @@ calcRange() const
   // check columns
   bool columnsValid = true;
 
-  if (! checkColumn(xColumn    (), "X"    )) columnsValid = false;
-  if (! checkColumn(yColumn    (), "Y"    )) columnsValid = false;
-  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
-  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+  if (! checkColumn       (xColumn    (), "X"    )) columnsValid = false;
+  if (! checkColumn       (yColumn    (), "Y"    )) columnsValid = false;
+  if (! checkColumn       (nameColumn (), "Name" )) columnsValid = false;
+  if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
 
   if (! columnsValid)
     return Range(0.0, 0.0, 1.0, 1.0);
@@ -330,8 +330,8 @@ calcRange() const
 
       bool ok1, ok2;
 
-      double x = plot_->modelReal(xInd, ok1);
-      double y = plot_->modelReal(yInd, ok2);
+      double x = plot_->modelNumericValue(xInd, ok1);
+      double y = plot_->modelNumericValue(yInd, ok2);
 
       if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
       if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }
@@ -383,17 +383,24 @@ postCalcRange()
 {
   bool ok;
 
+  // set x axis label and ticks
   xAxis_->setColumn(xColumn());
 
   auto xname = modelHHeaderString(xColumn(), ok);
 
   xAxis_->setDefLabel(xname);
 
+  setAxisColumnLabels(xAxis_.get());
+
+  //---
+
   yAxis_->setColumn(yColumn());
 
   auto yname = modelHHeaderString(yColumn(), ok);
 
   yAxis_->setDefLabel(yname);
+
+  setAxisColumnLabels(yAxis_.get());
 }
 
 bool
@@ -436,8 +443,8 @@ createObjs(PlotObjs &objs) const
 
       bool ok1, ok2;
 
-      double x = plot_->modelReal(xInd, ok1);
-      double y = plot_->modelReal(yInd, ok2);
+      double x = plot_->modelNumericValue(xInd, ok1);
+      double y = plot_->modelNumericValue(yInd, ok2);
 
       if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
       if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }

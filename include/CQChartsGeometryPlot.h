@@ -135,8 +135,6 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
-
- private:
   const GeometryPlot* plot_     { nullptr }; //!< parent plot
   Polygons            polygons_;             //!< geometry polygons
   QString             name_;                 //!< geometry name

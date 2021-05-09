@@ -1,8 +1,16 @@
 Abstract Painter/Javascript
  + Support Javascript callback in generated code (select)
  + JS Polygon List inside support
+ + JS Library with Tests
 
 TODO:
+ + ensure new color handling code handles color column
+   + better testing of color combinations
+ + icon spliiter group (support one of)
+ + pie chart variants:
+   https://www.tableau.com/about/blog/5-unusual-alternatives-pie-charts
+ + better pie chart group colors and indicator/header
+ + Remove ItemState from property editors (use or remove dirty)
  + sort xy x values before line connect (handle duplicate y per x)
  + make model..(int row, const Column &column, ...) API's in CQChartsPlot private
  + all plots with model real should also support details->uniqueId

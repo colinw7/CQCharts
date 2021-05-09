@@ -63,6 +63,7 @@ class CQChartsPlotObj : public CQChartsObj,
   using ColorInd      = CQChartsUtil::ColorInd;
   using PenBrush      = CQChartsPenBrush;
   using ResizeSide    = CQChartsResizeSide;
+  using Column        = CQChartsColumn;
   using ModelIndex    = CQChartsModelIndex;
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
@@ -279,13 +280,13 @@ class CQChartsPlotObj : public CQChartsObj,
   void addSelectIndices(Plot *plot);
 
   // add plot object's indices to array for specified (new) column
-  virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
+  virtual void addColumnSelectIndex(Indices &inds, const Column &column) const;
 
   // add model index to array
   void addSelectIndex(Indices &inds, const ModelIndex &ind) const;
 
   // add model index data to array (ignore if column not right type)
-  void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
+  void addSelectIndex(Indices &inds, int row, const Column &column,
                       const QModelIndex &parent=QModelIndex()) const;
 
  protected:

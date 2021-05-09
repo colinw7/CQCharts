@@ -2502,40 +2502,41 @@ createObjs(PlotObjs &objs) const
           valueAxis()->setTickLabel(bucket1, groupName);
         }
         else if (isNumeric) {
-          int xm = CMathRound::RoundNearest(bbox.getXMid());
+          int tpos = (isVertical() ? CMathRound::RoundNearest(bbox.getXMid()) :
+                                     CMathRound::RoundNearest(bbox.getYMid()));
 
           if (valueAxis()->tickLabelPlacement().type() ==
               CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
             auto bucketStr = bucketValuesStr(groupInd, sbucket, values);
 
             if      (isStackedActive)
-              valueAxis()->setTickLabel(xm, bucketStr);
+              valueAxis()->setTickLabel(tpos, bucketStr);
             else if (isOverlayActive)
-              valueAxis()->setTickLabel(xm, bucketStr);
+              valueAxis()->setTickLabel(tpos, bucketStr);
             else if (isSideBySideActive)
-              valueAxis()->setTickLabel(xm, bucketStr);
+              valueAxis()->setTickLabel(tpos, bucketStr);
             else
-              valueAxis()->setTickLabel(xm, bucketStr);
+              valueAxis()->setTickLabel(tpos, bucketStr);
           }
           else {
             auto bucketStr1 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
             auto bucketStr2 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::END  );
 
             if      (isStackedActive) {
-              valueAxis()->setTickLabel(xm    , bucketStr1);
-              valueAxis()->setTickLabel(xm + 1, bucketStr2);
+              valueAxis()->setTickLabel(tpos    , bucketStr1);
+              valueAxis()->setTickLabel(tpos + 1, bucketStr2);
             }
             else if (isOverlayActive) {
-              valueAxis()->setTickLabel(xm    , bucketStr1);
-              valueAxis()->setTickLabel(xm + 1, bucketStr2);
+              valueAxis()->setTickLabel(tpos    , bucketStr1);
+              valueAxis()->setTickLabel(tpos + 1, bucketStr2);
             }
             else if (isSideBySideActive) {
-              valueAxis()->setTickLabel(xm    , bucketStr1);
-              valueAxis()->setTickLabel(xm + 1, bucketStr2);
+              valueAxis()->setTickLabel(tpos    , bucketStr1);
+              valueAxis()->setTickLabel(tpos + 1, bucketStr2);
             }
             else {
-              valueAxis()->setTickLabel(xm    , bucketStr1);
-              valueAxis()->setTickLabel(xm + 1, bucketStr2);
+              valueAxis()->setTickLabel(tpos    , bucketStr1);
+              valueAxis()->setTickLabel(tpos + 1, bucketStr2);
             }
           }
         }
@@ -4059,6 +4060,7 @@ getBarColoredRects(ColorData &colorData) const
 
   const auto *columnDetails = plot_->columnDetails(plot_->colorColumn());
   bool isNumeric = (columnDetails ? columnDetails->isNumeric() : false);
+  bool isColor = (columnDetails ? columnDetails->type() == CQBaseModelType::COLOR : false);
 
   int nv = (columnDetails ? columnDetails->numUnique () : 1);
   int nb = (isNumeric     ? columnDetails->numBuckets() : 1);
@@ -4107,16 +4109,24 @@ getBarColoredRects(ColorData &colorData) const
     double colorValue = 0.0;
 
     if (ok && var.isValid()) {
-      if (! isNumeric) {
-        colorIVal  = (columnDetails ? columnDetails->valueInd(var) : 0);
-        colorValue = CMathUtil::map(colorIVal, 0, nv - 1, colorMapMin, colorMapMax);
-      }
-      else {
-        colorIVal  = columnDetails->bucket(var);
-        colorValue = CMathUtil::map(colorIVal, 0, nb - 1, colorMapMin, colorMapMax);
+      if (isColor) {
+        bool ok;
+        color = CQChartsVariant::toColor(var, ok);
+        colorSet = ok;
       }
 
-      color = plot_->colorFromColorMapPaletteValue(colorValue);
+      if (! colorSet) {
+        if (! isNumeric) {
+          colorIVal  = (columnDetails ? columnDetails->valueInd(var) : 0);
+          colorValue = CMathUtil::map(colorIVal, 0, nv - 1, colorMapMin, colorMapMax);
+        }
+        else {
+          colorIVal  = columnDetails->bucket(var);
+          colorValue = CMathUtil::map(colorIVal, 0, nb - 1, colorMapMin, colorMapMax);
+        }
+
+        color = plot_->colorFromColorMapPaletteValue(colorValue);
+      }
 
       //---
 

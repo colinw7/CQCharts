@@ -388,8 +388,8 @@ createObjs(PlotObjs &objs) const
         auto ind = model->index(data.row, col, data.parent);
 
         bool ok;
-
         double value = CQChartsModelUtil::modelReal(model, ind, ok);
+        if (! ok) value = 0.0;
 
         //---
 

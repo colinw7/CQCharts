@@ -234,7 +234,7 @@ calcRange() const
   // value column required
   // name, position columns optional
 
-  if (! checkColumn(valueColumn(), "Value", /*required*/true))
+  if (! checkNumericColumn(valueColumn(), "Value", /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn(), "Name")) columnsValid = false;

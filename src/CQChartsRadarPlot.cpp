@@ -454,7 +454,7 @@ createObjs(PlotObjs &objs) const
   // value column required
   // name column optional
 
-  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+  if (! checkNumericColumns(valueColumns(), "Values", /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn(), "Name"))

@@ -811,21 +811,22 @@ calcRange() const
     int                        numUniqueY_ { 0 };
   };
 
-  Range dataRange;
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  auto dataRange = visitor.range();
+
+  th->uniqueX_ = visitor.isUniqueX();
+  th->uniqueY_ = visitor.isUniqueY();
+
+  //---
 
   if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet()) {
-     dataRange = Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
+    dataRange = Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
   }
-  else {
-    RowVisitor visitor(this);
 
-    visitModel(visitor);
-
-    dataRange = visitor.range();
-
-    th->uniqueX_ = visitor.isUniqueX();
-    th->uniqueY_ = visitor.isUniqueY();
-  }
+  //---
 
   if (isInterrupt())
     return dataRange;

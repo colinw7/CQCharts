@@ -1308,3 +1308,8 @@
  + Improve group configuration control in custom controls
  + Add map key placement options to context menu
  + Ensure fit include map keys
+# 5/9/2021
+ + support iformat for real and integer types
+ + improve pie chart dumbbell support
+ + pie chart support percent
+ + support text placer in pie chart

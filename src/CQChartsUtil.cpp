@@ -13,6 +13,7 @@
 #include <CQStrUtil.h>
 #include <CQStrParse.h>
 #include <CPrintF.h>
+#include <CScanF.h>
 
 #include <QPainter>
 #include <QFontMetricsF>
@@ -190,6 +191,48 @@ QString formatInteger(long i, const QString &fmt) {
   ::sprintf(buffer, fmt.toLatin1().constData(), i);
 
   return buffer;
+}
+
+bool scanReal(const QString &fmt, const QString &str, double &r) {
+  CScanF scanf(fmt.toStdString());
+
+  if (! scanf.scan(str.toStdString()))
+    return false;
+
+  if (scanf.numValues() < 1)
+    return false;
+
+  const auto &v = scanf.value(0);
+
+  if      (v.type() == CScanF::ValueType::REAL)
+    r = v.real();
+  else if (v.type() == CScanF::ValueType::INTEGER)
+    r = v.integer();
+  else
+    return false;
+
+  return true;
+}
+
+bool scanInteger(const QString &fmt, const QString &str, long &i) {
+  CScanF scanf(fmt.toStdString());
+
+  if (! scanf.scan(str.toStdString()))
+    return false;
+
+  if (scanf.numValues() < 1)
+    return false;
+
+  const auto &v = scanf.value(0);
+
+  if      (v.type() == CScanF::ValueType::REAL)
+    i = v.real();
+  else if (v.type() == CScanF::ValueType::INTEGER)
+    i = v.integer();
+  else
+    return false;
+
+  return true;
 }
 
 }

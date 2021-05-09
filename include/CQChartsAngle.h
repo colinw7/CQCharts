@@ -2,6 +2,7 @@
 #define CQChartsAngle_H
 
 #include <CQChartsTmpl.h>
+#include <CQChartsGeom.h>
 #include <CMathUtil.h>
 #include <QString>
 
@@ -12,7 +13,7 @@
  * TODO: support postfix for type of degrees/radians
  */
 class CQChartsAngle :
-  public CQChartsEqBase<CQChartsAngle>,
+  public CQChartsComparatorBase<CQChartsAngle>,
   public CQChartsToStringBase<CQChartsAngle> {
  public:
   static void registerMetaType();
@@ -24,6 +25,8 @@ class CQChartsAngle :
     DEGREES,
     RADIANS
   };
+
+  using Point = CQChartsGeom::Point;
 
  public:
   //! default constructor
@@ -46,11 +49,23 @@ class CQChartsAngle :
 
   bool isValid() const { return true; }
 
+  // is zero angle
   bool isZero() const {
     //double a = CMathUtil::normalizeAngle(a_, /*isEnd*/false);
     return CMathUtil::isZero(a_);
   }
 
+  //---
+
+  // get angle mid point
+  static CQChartsAngle avg(const CQChartsAngle &angle1, const CQChartsAngle &angle2) {
+    double a1 = angle1.value();
+    double a2 = angle2.value();
+
+    return CQChartsAngle(CMathUtil::avg(a1, a2));
+  }
+
+  // do angles produce a circle
   static bool isCircle(const CQChartsAngle &angle1, const CQChartsAngle &angle2) {
     double a1 = angle1.value();
     double a2 = angle2.value();
@@ -58,6 +73,11 @@ class CQChartsAngle :
     double a21 = a2 - a1;
 
     return CMathUtil::realEq(std::abs(a21), 360.0);
+  }
+
+  // point at angle on circle
+  static Point circlePoint(const Point &c, double r, const CQChartsAngle &angle) {
+    return CQChartsGeom::circlePoint(c, r, angle.radians());
   }
 
   //---
@@ -93,9 +113,11 @@ class CQChartsAngle :
 
   //---
 
-  //! operator ==
-  friend bool operator==(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
-    return (lhs.a_ == rhs.a_);
+  //! compare for (==, !=, <, >, <=, >=)
+  friend int cmp(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
+    if (lhs.a_ >  rhs.a_) return  1;
+    if (lhs.a_ <  rhs.a_) return -1;
+    return 0;
   }
 
   //---

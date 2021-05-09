@@ -5,7 +5,8 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsRectPlacer.h>
+
+class CQChartsTextPlacer;
 
 //---
 
@@ -1317,6 +1318,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   const IMinMax &pathIdMinMax() const { return pathIdMinMax_; }
 #endif
 
+  //---
+
+  void addDrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
+                   const QColor &color, const Alpha &alpha, const Point &targetPoint,
+                   const BBox &bbox) const;
+
  protected:
   void clearNodesAndEdges();
 
@@ -1392,7 +1399,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool adjustNode(Node *node, bool placed, bool useSrc=true, bool useDest=true) const;
 
-  //---
+  //--
 
   virtual NodeObj *createNodeObj(const BBox &rect, Node *node,
                                  const ColorInd &ig, const ColorInd &iv) const;
@@ -1465,55 +1472,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   mutable IMinMax pathIdMinMax_; //!< min/max path id
 #endif
 
- public:
-  //! draw text data
-  struct DrawText : public CQChartsRectPlacer::RectData {
-    using Rect = CQChartsRectPlacer::Rect;
-
-    DrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
-             const QColor &color, const Alpha &alpha, const Point &targetPoint) :
-     str(str), point(point), options(options), color(color), alpha(alpha),
-     targetPoint(targetPoint) {
-      origPoint = point;
-    }
-
-    void setBBox(const BBox &bbox) {
-      textRect = Rect(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
-      origRect = textRect;
-    }
-
-    const Rect &rect() const override {
-      return textRect;
-    }
-
-    void setRect(const Rect &r) override {
-      textRect = r;
-
-      double dx = textRect.xmin() - origRect.xmin();
-      double dy = textRect.ymin() - origRect.ymin();
-
-      point = Point(origPoint.x + dx, origPoint.y + dy);
-    }
-
-    QString             str;
-    Point               point;
-    Point               origPoint;
-    CQChartsTextOptions options;
-    QColor              color;
-    Alpha               alpha;
-    Rect                textRect;
-    Rect                origRect;
-    Point               targetPoint;
-  };
-
-  void addDrawText(DrawText *drawText) const {
-    drawTexts_.push_back(drawText);
-  }
-
- private:
-  using DrawTexts = std::vector<DrawText *>;
-
-  mutable DrawTexts drawTexts_;
+  mutable CQChartsTextPlacer *placer_;
 };
 
 //---

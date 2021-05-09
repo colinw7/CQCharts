@@ -459,19 +459,19 @@ createObjs(PlotObjs &objs) const
   if (! checkColumn(yColumn(), "Y", /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(minColumn(), "Min", /*required*/false))
+  if (! checkNumericColumn(minColumn(), "Min", /*required*/false))
     columnsValid = false;
 
-  if (! checkColumn(maxColumn(), "Max", /*required*/false))
+  if (! checkNumericColumn(maxColumn(), "Max", /*required*/false))
     columnsValid = false;
 
-  if (! checkColumn(innerBarColumn(), "Inner Bar", /*required*/false))
+  if (! checkNumericColumn(innerBarColumn(), "Inner Bar", /*required*/false))
     columnsValid = false;
 
-  if (! checkColumn(outerBarColumn(), "Outer Bar", /*required*/false))
+  if (! checkNumericColumn(outerBarColumn(), "Outer Bar", /*required*/false))
     columnsValid = false;
 
-  if (! checkColumn(outerBubbleColumn(), "Outer Bubble", /*required*/false))
+  if (! checkNumericColumn(outerBubbleColumn(), "Outer Bubble", /*required*/false))
     columnsValid = false;
 
   if (! columnsValid)
@@ -490,11 +490,11 @@ createObjs(PlotObjs &objs) const
       ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       bool ok1;
-      auto x = plot_->modelReal(xModelInd, ok1);
+      auto x = plot_->modelNumericValue(xModelInd, ok1);
       if (! ok1) return State::SKIP;
 
       bool ok2;
-      auto y = plot_->modelReal(yModelInd, ok2);
+      auto y = plot_->modelNumericValue(yModelInd, ok2);
       if (! ok2) return State::SKIP;
 
       xMinMax_.add(x);

@@ -85,7 +85,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
 
   virtual const QString &name() const { return name_; }
 
-  //! get/set siz
+  //! get/set size
   virtual double size() const { return size_; }
   virtual void setSize(double s) { size_ = s; }
 
@@ -106,8 +106,8 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   virtual void setColorId(int id) { colorId_ = id; }
 
   //! get/set color
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
   //! get/set model index
   const QModelIndex &ind() const { return ind_; }
@@ -146,21 +146,21 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   }
 
   //! interp color
-  virtual QColor interpColor(const Plot *plot, const CQChartsColor &c,
+  virtual QColor interpColor(const Plot *plot, const Color &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
-  const Plot*   plot_    { nullptr }; //!< parent plot
-  HierNode*     parent_  { nullptr }; //!< parent hier node
-  uint          id_      { 0 };       //!< node id
-  QString       name_;                //!< node name
-  double        size_    { 0.0 };     //!< node size
-  int           colorId_ { -1 };      //!< node color index
-  CQChartsColor color_;               //!< node explicit color
-  QModelIndex   ind_;                 //!< node model index
-  int           depth_   { 0 };       //!< node depth
-  bool          filler_  { false };   //!< is filler
-  bool          placed_  { false };   //!< is placed
+  const Plot* plot_    { nullptr }; //!< parent plot
+  HierNode*   parent_  { nullptr }; //!< parent hier node
+  uint        id_      { 0 };       //!< node id
+  QString     name_;                //!< node name
+  double      size_    { 0.0 };     //!< node size
+  int         colorId_ { -1 };      //!< node color index
+  Color       color_;               //!< node explicit color
+  QModelIndex ind_;                 //!< node model index
+  int         depth_   { 0 };       //!< node depth
+  bool        filler_  { false };   //!< is filler
+  bool        placed_  { false };   //!< is placed
 };
 
 //---
