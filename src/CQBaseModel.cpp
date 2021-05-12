@@ -513,7 +513,7 @@ columnNameValue(int column, const QString &name) const
   if (column < 0 || column >= columnCount())
     return "";
 
-  QString values = columnTypeValues(column);
+  auto values = columnTypeValues(column);
 
   CQModelNameValues nameValues(values);
 
@@ -532,7 +532,7 @@ setColumnNameValue(int column, const QString &name, const QVariant &value)
   if (column < 0 || column >= columnCount())
     return false;
 
-  QString values = columnTypeValues(column);
+  auto values = columnTypeValues(column);
 
   CQModelNameValues nameValues(values);
 
@@ -682,12 +682,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
   // generic column data
   if      (orientation == Qt::Horizontal) {
     if      (role == static_cast<int>(CQBaseModelRole::Type)) {
-      CQBaseModelType type = columnType(section);
+      auto type = columnType(section);
 
       return typeVariant(type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
-      CQBaseModelType type = columnBaseType(section);
+      auto type = columnBaseType(section);
 
       return typeVariant(type);
     }
@@ -722,7 +722,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return columnMax(section);
     }
     else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
-      CQBaseModelType type = columnHeaderType(section);
+      auto type = columnHeaderType(section);
 
       return typeVariant(type);
     }
@@ -758,7 +758,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     if      (role == static_cast<int>(CQBaseModelRole::Type)) {
       bool ok { false };
 
-      CQBaseModelType type = variantToType(value, &ok);
+      auto type = variantToType(value, &ok);
       if (! ok) return false;
 
       return setColumnType(section, type);
@@ -766,13 +766,13 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
       bool ok { false };
 
-      CQBaseModelType type = variantToType(value, &ok);
+      auto type = variantToType(value, &ok);
       if (! ok) return false;
 
       return setColumnBaseType(section, type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::TypeValues)) {
-      QString str = value.toString();
+      auto str = value.toString();
 
       return setColumnTypeValues(section, str);
     }
@@ -806,13 +806,13 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
       bool ok { false };
 
-      CQBaseModelType type = variantToType(value, &ok);
+      auto type = variantToType(value, &ok);
       if (! ok) return false;
 
       return setColumnHeaderType(section, type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::HeaderTypeValues)) {
-      QString str = value.toString();
+      auto str = value.toString();
 
       return setHeaderTypeValues(section, str);
     }
@@ -841,7 +841,7 @@ CQBaseModel::
 data(const QModelIndex &index, int role) const
 {
   if (role == Qt::TextAlignmentRole) {
-    CQBaseModelType type = columnType(index.column());
+    auto type = columnType(index.column());
 
     if (type == CQBaseModelType::INTEGER || type == CQBaseModelType::REAL)
       return QVariant(Qt::AlignRight | Qt::AlignVCenter);
@@ -888,12 +888,12 @@ modelColumnNameToInd(const QAbstractItemModel *model, const QString &name)
   int role = Qt::DisplayRole;
 
   for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
-    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
+    auto var = model->headerData(icolumn, Qt::Horizontal, role);
 
     if (! var.isValid())
       continue;
 
-    QString name1 = var.toString();
+    auto name1 = var.toString();
 
     if (name == name1)
       return icolumn;
@@ -917,13 +917,13 @@ CQBaseModelType
 CQBaseModel::
 variantToType(const QVariant &var, bool *ok)
 {
-  CQBaseModelType type = CQBaseModelType::NONE;
+  auto type = CQBaseModelType::NONE;
 
   if (var.type() == QVariant::Int) {
     type = (CQBaseModelType) var.toInt(ok);
   }
   else {
-    QString str = var.toString();
+    auto str = var.toString();
 
     type = nameType(str);
   }

@@ -82,7 +82,7 @@ iset(const QVariant &value) const
       return rvals_.id(r);
   }
   else if (type() == Type::STRING) {
-    QString s = value.toString();
+    auto s = value.toString();
 
     return svals_.id(s);
   }
@@ -457,7 +457,7 @@ CQValueSet::Type
 CQValueSet::
 calcType() const
 {
-  CQValueSet::Type type = Type::NONE;
+  auto type = Type::NONE;
 
   int ni = 0, nr = 0;
 

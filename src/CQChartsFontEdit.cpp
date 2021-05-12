@@ -15,7 +15,6 @@
 #include <CQCheckBox.h>
 
 #include <QComboBox>
-#include <QSpinBox>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>

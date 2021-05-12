@@ -1,7 +1,24 @@
 #include <CQCsvModel.h>
 #include <CCsv.h>
 
+#include <CQModelUtil.h>
+
+#include <QColor>
+#include <QBuffer>
+#include <QDataStream>
 #include <iostream>
+
+namespace {
+
+QDataStream::Version dataStreamVersion() {
+#if QT_VERSION >= 0x050000
+  return QDataStream::Qt_5_0;
+#else
+  return QDataStream::Qt_4_0;
+#endif
+}
+
+}
 
 CQCsvModel::
 CQCsvModel()
@@ -229,6 +246,106 @@ load(const QString &filename)
         else {
           setColumnNameValue(icolumn, type.c_str(), value.c_str());
         }
+      }
+      // handle cell data:
+      //   cell <cell_index> <role> <value>
+      else if (fields[0] == "cell") {
+        QString indStr, roleStr, value;
+
+        if (numFields == 4) {
+          indStr  = fields[1].c_str();
+          roleStr = fields[2].c_str();
+          value   = fields[3].c_str();
+        }
+        else {
+          std::cerr << "Invalid cell data\n";
+          continue;
+        }
+
+        int role = CQModelUtil::nameToRole(roleStr);
+
+        if (role < 0) {
+          std::cerr << "Invalid role '" << fields[2] << "'\n";
+          continue;
+        }
+
+        int row = -1, col = -1;
+
+        auto indStrs = indStr.split(":");
+
+        if (indStrs.length() == 2) {
+          bool ok;
+          row = indStrs[0].toInt(&ok); if (! ok) row = -1;
+          col = indStrs[1].toInt(&ok); if (! ok) col = -1;
+        }
+
+        if (row < 0 || col < 0) {
+          std::cerr << "Invalid index '" << fields[1] << "'\n";
+          continue;
+        }
+
+        auto valueStrs = value.split(":");
+
+        QVariant var;
+
+        if (valueStrs.length() == 2) {
+          int type = QMetaType::type(valueStrs[0].toLatin1().constData());
+
+          if (type < 0) {
+            std::cerr << "Invalid type '" << valueStrs[0].toStdString() << "'\n";
+            continue;
+          }
+
+          if (type == QMetaType::QColor) {
+            var = QColor(valueStrs[1]);
+          }
+          else {
+            QByteArray ba;
+
+            // write current string to buffer
+            QBuffer obuffer(&ba);
+            obuffer.open(QIODevice::WriteOnly);
+
+            QDataStream out(&obuffer);
+            out.setVersion(dataStreamVersion());
+
+            out << valueStrs[1];
+
+            // create user type data from data stream using registered DataStream methods
+            QBuffer ibuffer(&ba);
+            ibuffer.open(QIODevice::ReadOnly);
+
+            QDataStream in(&ibuffer);
+            in.setVersion(dataStreamVersion());
+
+            var = QVariant(type, 0);
+
+            // const cast is safe since we operate on a newly constructed variant
+            if (! QMetaType::load(in, type, const_cast<void *>(var.constData()))) {
+              std::cerr << "Invalid data '" << valueStrs[1].toStdString() <<
+                           "' for type '" << valueStrs[0].toStdString() << "'\n";
+              continue;
+            }
+          }
+        }
+        else {
+          var = valueStrs[1];
+        }
+
+        if (row < 0 || col < 0) {
+          std::cerr << "Invalid index '" << fields[1] << "'\n";
+          continue;
+        }
+
+        bool readOnly = isReadOnly();
+
+        if (readOnly)
+          setReadOnly(false);
+
+        setData(index(row, col, QModelIndex()), var, role);
+
+        if (readOnly)
+          setReadOnly(readOnly);
       }
       // handle global data
       //   global <> <name> <value>

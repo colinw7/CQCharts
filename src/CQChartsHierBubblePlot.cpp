@@ -226,7 +226,7 @@ setCurrentRoot(HierNode *hier, bool update)
   if (hier)
     currentRootName_ = hier->hierName();
   else
-    currentRootName_ = "";
+    currentRootName_.clear();
 
   if (update)
     updateCurrentRoot();

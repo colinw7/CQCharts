@@ -155,7 +155,7 @@ showColumnWidgets(const QStringList &columnNames)
     if (label)
       label->setVisible(visible);
 
-    edit ->setVisible(visible);
+    edit->setVisible(visible);
   }
 }
 

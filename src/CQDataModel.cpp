@@ -69,16 +69,16 @@ initFilter()
 
   int numHeaders = hheader_.size();
 
-  QStringList patterns = filter_.split(",");
+  auto patterns = filter_.split(",");
 
   for (int i = 0; i < patterns.size(); ++i) {
     FilterData filterData;
 
-    QStringList fields = patterns[i].split(":");
+    auto fields = patterns[i].split(":");
 
     if (fields.length() == 2) {
-      QString name  = fields[0];
-      QString value = fields[1];
+      auto name  = fields[0];
+      auto value = fields[1];
 
       filterData.column = -1;
 
@@ -138,7 +138,7 @@ acceptsRow(const Cells &cells) const
     if (! filterData.valid)
       continue;
 
-    QString field = cells[filterData.column].toString();
+    auto field = cells[filterData.column].toString();
 
     if (! filterData.regexp.exactMatch(field))
       return false;
@@ -192,11 +192,11 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return CQBaseModel::headerData(section, orientation, role);
     }
     else if (role == Qt::ToolTipRole) {
-      QVariant var = hheader_[section];
+      auto var = hheader_[section];
 
-      CQBaseModelType type = columnType(section);
+      auto type = columnType(section);
 
-      QString str = var.toString() + ":" + typeName(type);
+      auto str = var.toString() + ":" + typeName(type);
 
       return QVariant(str);
     }
@@ -314,7 +314,7 @@ data(const QModelIndex &index, int role) const
 
   //---
 
-  const ColumnData &columnData = getColumnData(c);
+  const auto &columnData = getColumnData(c);
 
   //---
 
@@ -348,7 +348,7 @@ data(const QModelIndex &index, int role) const
     return cells[c];
   }
   else if (role == Qt::EditRole) {
-    CQBaseModelType type = columnType(c);
+    auto type = columnType(c);
 
     // check in cached values
     QVariant var;
@@ -367,7 +367,7 @@ data(const QModelIndex &index, int role) const
 
     // cache converted value
     if (var.type() == QVariant::String) {
-      QVariant var1 = typeStringToVariant(var.toString(), type);
+      auto var1 = typeStringToVariant(var.toString(), type);
 
       if (var1.isValid())
         setRowRoleValue(r, int(CQBaseModelRole::CachedValue), var1);
@@ -437,7 +437,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
 
   //---
 
-  ColumnData &columnData = getColumnData(c);
+  auto &columnData = getColumnData(c);
 
   //---
 
@@ -466,14 +466,14 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   //---
 
   if      (role == Qt::DisplayRole) {
-    //CQBaseModelType type = columnType(c);
+    //auto type = columnType(c);
 
     cells[c] = value;
 
     emit dataChanged(index, index, QVector<int>(1, role));
   }
   else if (role == Qt::EditRole) {
-    //CQBaseModelType type = columnType(c);
+    //auto type = columnType(c);
 
     while (c >= int(cells.size()))
       cells.push_back(QVariant());
@@ -540,7 +540,7 @@ resetColumnCache(int column)
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  ColumnData &columnData = getColumnData(column);
+  auto &columnData = getColumnData(column);
 
   columnData.roleRowValues.clear();
 }
@@ -583,7 +583,7 @@ applyFilterColumns(const QStringList &columns)
     columnMap[c] = -1;
 
   for (int c = 0; c < nc2; ++c) {
-    const QString &name = columns[c];
+    const auto &name = columns[c];
 
     // get index for matching column name
     int ind = -1;

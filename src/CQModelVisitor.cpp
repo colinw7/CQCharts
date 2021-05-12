@@ -24,7 +24,7 @@ isHierarchical() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! hierSet_) {
-      CQModelVisitor *th = const_cast<CQModelVisitor *>(this);
+      auto *th = const_cast<CQModelVisitor *>(this);
 
       th->hierarchical_ = CQModelUtil::isHierarchical(model_);
       th->hierSet_      = true;
@@ -86,7 +86,7 @@ execIndex(const QAbstractItemModel *model, const QModelIndex &parent, CQModelVis
   visitor.setNumRows(nr);
 
   for (int row = 0; row < nr; ++row) {
-    CQModelVisitor::State state = execRow(model, parent, row, visitor);
+    auto state = execRow(model, parent, row, visitor);
 
     if (state == CQModelVisitor::State::TERMINATE) return state;
     if (state == CQModelVisitor::State::SKIP     ) continue;
@@ -99,7 +99,7 @@ CQModelVisitor::State
 execRow(const QAbstractItemModel *model, const QModelIndex &parent,
         int row, CQModelVisitor &visitor)
 {
-  QModelIndex ind1 = model->index(row, 0, parent);
+  auto ind1 = model->index(row, 0, parent);
 
   if (visitor.maxRows() > 0 && row > visitor.maxRows())
     return CQModelVisitor::State::TERMINATE;
@@ -110,7 +110,7 @@ execRow(const QAbstractItemModel *model, const QModelIndex &parent,
 
   if (model->hasChildren(ind1)) {
     // visit hier row
-    CQModelVisitor::State state = visitor.hierVisit(model, data);
+    auto state = visitor.hierVisit(model, data);
     if (state != CQModelVisitor::State::OK) { return state; }
 
     visitor.step();
@@ -118,22 +118,22 @@ execRow(const QAbstractItemModel *model, const QModelIndex &parent,
     visitor.enter();
 
     // visit child rows
-    CQModelVisitor::State iterState = execIndex(model, ind1, visitor);
+    auto iterState = execIndex(model, ind1, visitor);
     if (iterState != CQModelVisitor::State::OK) { visitor.leave(); return iterState; }
 
     // post visit hier row
-    CQModelVisitor::State postState = visitor.hierPostVisit(model, data);
+    auto postState = visitor.hierPostVisit(model, data);
     if (postState != CQModelVisitor::State::OK) { visitor.leave(); return postState; }
 
     visitor.leave();
   }
   else {
     // pre visit leaf row
-    CQModelVisitor::State preState = visitor.preVisit(model, data);
+    auto preState = visitor.preVisit(model, data);
     if (preState != CQModelVisitor::State::OK) return preState;
 
     // visit leaf row
-    CQModelVisitor::State state = visitor.visit(model, data);
+    auto state = visitor.visit(model, data);
     if (state != CQModelVisitor::State::OK) return state;
 
     visitor.step();

@@ -50,7 +50,7 @@ description() const
      p("The cells are colored using the scaled value.").
     h3("Columns").
      p("All row column values of the model are used for the pixels of the image.").
-     p("The vertical and horizontal headers are used for the row and column labels respetively.").
+     p("The vertical and horizontal headers are used for the row and column labels respectively.").
     h3("Options").
      p("To scale the colors and circle sizes for the cell the user can supply a maximum and/or "
        "minimum value for the values in the value column. If not specifed the computed minimum "
@@ -230,7 +230,8 @@ void
 CQChartsImagePlot::
 setCellStyle(const CellStyle &cellStyle)
 {
-  CQChartsUtil::testAndSet(cellStyle_, cellStyle, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(cellStyle_, cellStyle, [&]() {
+    drawObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -258,18 +259,20 @@ calcRange() const
     void initVisit() override {
       ModelVisitor::initVisit();
 
-      for (int col = 0; col < numCols(); ++col) {
-        ColumnType columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
+      for (int ic = 0; ic < numCols(); ++ic) {
+        auto columnType = plot_->columnValueType(Column(ic), ColumnType::REAL);
 
         columnTypes_.push_back(columnType);
       }
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      for (int col = 0; col < numCols(); ++col) {
-        ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
+      int nc = numCols();
 
-        if (columnTypes_[col] == CQBaseModelType::IMAGE) {
+      for (int ic = 0; ic < nc; ++ic) {
+        ModelIndex columnModelInd(plot_, data.row, Column(ic), data.parent);
+
+        if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
           valueRange_.add(0.0);
         }
         else {
@@ -353,7 +356,7 @@ createObjs(PlotObjs &objs) const
     void initVisit() override {
       ModelVisitor::initVisit();
 
-      for (int col = 0; col < numCols(); ++col) {
+      for (int ic = 0; ic < numCols(); ++ic) {
         ColumnType columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
 
         columnTypes_.push_back(columnType);
@@ -364,31 +367,46 @@ createObjs(PlotObjs &objs) const
       x_ = 0.0;
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        ModelIndex columnModelInd(plot_, data.row, Column(ic), data.parent);
+        Column c(ic);
 
-        auto ind = plot_->modelIndex(columnModelInd);
+        ModelIndex columnInd(plot_, data.row, c, data.parent);
 
+        auto ind = plot_->modelIndex(columnInd);
+
+        BBox bbox(x_, y_, x_ + dx_, y_ + dy_);
+
+        bool ok;
+
+        CQChartsImageObj *obj = nullptr;
+
+        // get column value (image or real)
         if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
           CQChartsImage image;
 
-          bool ok;
-
-          auto imageVar = plot_->modelValue(columnModelInd, ok);
+          auto imageVar = plot_->modelValue(columnInd, ok);
 
           if (ok)
             image = CQChartsVariant::toImage(imageVar, ok);
 
-          plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, image, ind, objs_);
+          obj = plot_->addImageObj(data.row, ic, bbox, image, ind, objs_);
         }
         else {
-          bool ok;
-
-          double value = plot_->modelReal(columnModelInd, ok);
+          double value = plot_->modelReal(columnInd, ok);
 
           //---
 
-          plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, value, ind, objs_);
+          obj = plot_->addImageObj(data.row, ic, bbox, value, ind, objs_);
         }
+
+        // set foreground/background color
+        auto bgVar = plot_->modelValue(columnInd, Qt::BackgroundRole, ok);
+        auto fgVar = plot_->modelValue(columnInd, Qt::ForegroundRole, ok);
+
+        auto bgColor = CQChartsVariant::toColor(bgVar, ok);
+        auto fgColor = CQChartsVariant::toColor(fgVar, ok);
+
+        if (bgColor.isValid()) obj->setBgColor(bgColor);
+        if (fgColor.isValid()) obj->setFgColor(fgColor);
 
         //---
 
@@ -421,14 +439,12 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
-void
+CQChartsImageObj *
 CQChartsImagePlot::
-addImageObj(int row, int col, double x, double y, double dx, double dy, double value,
+addImageObj(int row, int col, const BBox &bbox, double value,
             const QModelIndex &ind, PlotObjs &objs) const
 {
   auto ind1 = normalizeIndex(ind);
-
-  BBox bbox(x, y, x + dx, y + dy);
 
   double rv = CMathUtil::map(value, minValue(), maxValue(), 0.0, 1.0);
 
@@ -437,20 +453,22 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
   auto *imageObj = createImageObj(bbox, row, col, value, ind1, colorInd);
 
   objs.push_back(imageObj);
+
+  return imageObj;
 }
 
-void
+CQChartsImageObj *
 CQChartsImagePlot::
-addImageObj(int row, int col, double x, double y, double dx, double dy, const CQChartsImage &image,
+addImageObj(int row, int col, const BBox &bbox, const CQChartsImage &image,
             const QModelIndex &ind, PlotObjs &objs) const
 {
   auto ind1 = normalizeIndex(ind);
 
-  BBox bbox(x, y, x + dx, y + dy);
-
   auto *imageObj = createImageObj(bbox, row, col, image, ind1);
 
   objs.push_back(imageObj);
+
+  return imageObj;
 }
 
 //---
@@ -927,6 +945,9 @@ draw(PaintDevice *device) const
 
       auto tc = plot_->interpCellLabelTextColor(ic);
 
+      if (fgColor().isValid())
+        tc = plot()->interpColor(fgColor(), ic);
+
       plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
       plot_->updateObjPenBrushState(this, tPenBrush);
@@ -996,6 +1017,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set pen and brush
   auto fc = plot_->interpCellFillColor  (ic);
   auto bc = plot_->interpCellStrokeColor(ic);
+
+  if (bgColor().isValid())
+    fc = plot()->interpColor(bgColor(), ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
@@ -1076,9 +1100,15 @@ void
 CQChartsImagePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsImagePlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

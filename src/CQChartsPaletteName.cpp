@@ -30,7 +30,7 @@ setName(const QString &name)
     name_ = name;
   }
   else
-    name_ = "";
+    name_.clear();
 
   return true;
 }
@@ -100,9 +100,10 @@ fromString(const QString &name)
     max_ = max;
   }
   else {
-    name_ = "";
-    min_  = 0.0;
-    max_  = 1.0;
+    name_.clear();
+
+    min_ = 0.0;
+    max_ = 1.0;
   }
 
   return true;

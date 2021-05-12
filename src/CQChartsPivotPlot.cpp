@@ -56,8 +56,8 @@ description() const
     h3("Summary").
      p("A pivot plot displays the values of a column grouped in one or two "
        "dimensions using keys generated from the x and/or y columns.").
-     p("The values can be summed, averaged or counted to produced the "
-       "displayed valued.").
+     p("The values can be summed, averaged or counted to produce the "
+       "displayed value.").
      p("The plot can be a barchart (side by side to stacked), a line chart "
        "with optional fill under, or a grid plot").
     h3("Limitations").
@@ -373,7 +373,7 @@ calcRange() const
 
   if (! checkColumns(xColumns(), "X", /*required*/true))
     columnsValid = false;
-  if (! checkColumns(yColumns(), "Y", /*required*/true))
+  if (! checkColumns(yColumns(), "Y"))
     columnsValid = false;
 
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
@@ -1971,6 +1971,10 @@ CQChartsPivotPlotCustomControls(CQCharts *charts) :
   //---
 
   addColumnWidgets(QStringList() << "x" << "y" << "value", optionsFrame);
+
+  //---
+
+  addLayoutStretch();
 
   //---
 

@@ -7,7 +7,7 @@
 
 CQChartsAlphaEdit::
 CQChartsAlphaEdit(QWidget *parent) :
- CQRealSpin(parent)
+ CQComboSlider(parent)
 {
   setObjectName("alpha");
 
@@ -140,6 +140,8 @@ CQChartsAlphaPropertyViewEditor::
 createEdit(QWidget *parent)
 {
   auto *edit = new CQChartsAlphaEdit(parent);
+
+  edit->setAutoFillBackground(true);
 
   return edit;
 }

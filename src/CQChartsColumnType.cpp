@@ -903,7 +903,7 @@ preferredWidth(const CQChartsNameValues &nameValues) const
   QString str;
 
   if (! nameValueString(nameValues, "preferred_width", str))
-    str = "";
+    str.clear();
 
   bool ok;
 
@@ -919,7 +919,7 @@ nullValue(const CQChartsNameValues &nameValues) const
   QString nullStr;
 
   if (! nameValueString(nameValues, "null_value", nullStr))
-    nullStr = "";
+    nullStr.clear();
 
   return nullStr;
 }
@@ -931,7 +931,7 @@ drawColor(const CQChartsNameValues &nameValues) const
   QString colorName;
 
   if (! nameValueString(nameValues, "draw_color", colorName))
-    colorName = "";
+    colorName.clear();
 
   CQChartsColor color;
 
@@ -948,7 +948,7 @@ drawType(const CQChartsNameValues &nameValues) const
   QString typeName;
 
   if (! nameValueString(nameValues, "draw_type", typeName))
-    typeName = "";
+    typeName.clear();
 
   typeName = typeName.toLower();
 
@@ -969,7 +969,7 @@ drawStops(const CQChartsNameValues &nameValues) const
   QString stopsStr;
 
   if (! nameValueString(nameValues, "draw_stops", stopsStr))
-    stopsStr = "";
+    stopsStr.clear();
 
   CQChartsColorStops stops;
 
@@ -986,7 +986,7 @@ namedColors(const CQChartsNameValues &nameValues) const
   QString namedColorsStr;
 
   if (! nameValueString(nameValues, "named_colors", namedColorsStr))
-    namedColorsStr = "";
+    namedColorsStr.clear();
 
   CQChartsNameValues namedColors;
 
@@ -1014,7 +1014,7 @@ namedImages(CQCharts *, const CQChartsNameValues &nameValues) const
   QString namedImagesStr;
 
   if (! nameValueString(nameValues, "named_images", namedImagesStr))
-    namedImagesStr = "";
+    namedImagesStr.clear();
 
   CQChartsNameValues namedImages;
 

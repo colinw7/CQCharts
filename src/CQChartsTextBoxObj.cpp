@@ -125,7 +125,7 @@ write(std::ostream &os, const QString &varName) const
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))
-      str = "";
+      str.clear();
 
     os << "set_charts_property -plot $" << plotName().toStdString();
 

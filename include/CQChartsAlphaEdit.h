@@ -2,13 +2,13 @@
 #define CQChartsAlphaEdit_H
 
 #include <CQChartsAlpha.h>
-#include <CQRealSpin.h>
+#include <CQComboSlider.h>
 
 /*!
  * \brief alpha value edit
  * \ingroup Charts
  */
-class CQChartsAlphaEdit : public CQRealSpin {
+class CQChartsAlphaEdit : public CQComboSlider {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsAlpha alpha READ alpha WRITE setAlpha)

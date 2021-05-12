@@ -1246,7 +1246,10 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   // get values for each row from model
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
+    using Plot = CQChartsConnectionPlot;
+
+   public:
+    RowVisitor(const Plot *plot) :
      plot_(plot) {
     }
 
@@ -1257,7 +1260,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
       indRowData.rowData.resize(nc);
 
-      for (int ic = 0; ic < numCols(); ++ic) {
+      for (int ic = 0; ic < nc; ++ic) {
         Column c(ic);
 
         ModelIndex columnInd(plot_, data.row, c, data.parent);
@@ -1281,8 +1284,8 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     const IndRowDatas &indRowDatas() const { return indRowDatas_; }
 
    private:
-    const CQChartsConnectionPlot* plot_ { nullptr };
-    IndRowDatas                   indRowDatas_;
+    const Plot* plot_ { nullptr };
+    IndRowDatas indRowDatas_;
   };
 
   RowVisitor visitor(this);

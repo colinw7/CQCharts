@@ -139,7 +139,7 @@ setText(const QString &text)
   if (active_)
     text_ = text;
   else
-    text_ = "";
+    text_.clear();
 
   QLabel::setText("<b>Status:</b> " + text_);
 }
@@ -193,7 +193,7 @@ setText(const QString &text)
   if (active_)
     text_ = text;
   else
-    text_ = "";
+    text_.clear();
 
   QLabel::setText("<b>Pos:</b> " + text_);
 }
@@ -296,7 +296,7 @@ setText(const QString &text)
   if (active_)
     text_ = text;
   else
-    text_ = "";
+    text_.clear();
 
   QLabel::setText("<b>Sel:</b> " + text_);
 }

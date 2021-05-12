@@ -333,8 +333,9 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   type   = Type::NONE;
   column = -1;
   role   = -1;
-  expr   = "";
-  name   = "";
+
+  expr.clear();
+  name.clear();
 
   CQStrParse parse(str);
 

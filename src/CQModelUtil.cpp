@@ -17,7 +17,7 @@ isHierarchical(const QAbstractItemModel *model)
   nr = std::min(nr, 100); // limit number of rows checked
 
   for (int row = 0; row < nr; ++row) {
-    QModelIndex index1 = model->index(row, 0, parent);
+    auto index1 = model->index(row, 0, parent);
 
     if (model->hasChildren(index1))
       return true;
@@ -66,7 +66,7 @@ modelHeaderValue(const QAbstractItemModel *model, int c, CQBaseModelRole role, b
 QString
 modelHeaderString(const QAbstractItemModel *model, int c, bool &ok)
 {
-  QVariant var = modelHeaderValue(model, c, Qt::DisplayRole, ok);
+  auto var = modelHeaderValue(model, c, Qt::DisplayRole, ok);
 
   return var.toString();
 }
@@ -76,7 +76,7 @@ modelHeaderString(const QAbstractItemModel *model, int c, bool &ok)
 QVariant
 modelValue(const QAbstractItemModel *model, int r, int c, const QModelIndex &parent, bool &ok)
 {
-  QModelIndex ind = model->index(r, c, parent);
+  auto ind = model->index(r, c, parent);
 
   return modelValue(model, ind, ok);
 }
@@ -107,7 +107,7 @@ modelValue(const QAbstractItemModel *model, const QModelIndex &ind, int role, bo
 QVariant
 modelValue(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 {
-  QVariant var = modelValue(model, ind, Qt::EditRole, ok);
+  auto var = modelValue(model, ind, Qt::EditRole, ok);
 
   if (! ok)
     var = modelValue(model, ind, Qt::DisplayRole, ok);
@@ -118,7 +118,7 @@ modelValue(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 double
 modelReal(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 {
-  QVariant var = modelValue(model, ind, ok);
+  auto var = modelValue(model, ind, ok);
 
   double r = 0.0;
 
@@ -131,7 +131,7 @@ modelReal(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 long
 modelInteger(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 {
-  QVariant var = modelValue(model, ind, ok);
+  auto var = modelValue(model, ind, ok);
 
   long i = 0;
 
@@ -144,7 +144,7 @@ modelInteger(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 QString
 modelString(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok)
 {
-  QVariant var = modelValue(model, ind, ok);
+  auto var = modelValue(model, ind, ok);
 
   QString s;
 
@@ -161,7 +161,7 @@ columnValueType(const QAbstractItemModel *model, int c, CQBaseModelType &type)
 {
   type = CQBaseModelType::STRING;
 
-  QVariant var = model->headerData(c, Qt::Horizontal, (int) CQBaseModelRole::Type);
+  auto var = model->headerData(c, Qt::Horizontal, (int) CQBaseModelRole::Type);
   if (! var.isValid()) return false;
 
   bool ok;
@@ -186,7 +186,7 @@ calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows)
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      QModelIndex ind = model->index(data.row, column_, data.parent);
+      auto ind = model->index(data.row, column_, data.parent);
 
       // if column can be integral, check if value is valid integer
       if (isInt_) {
@@ -197,7 +197,7 @@ calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows)
         if (ok)
           return State::SKIP;
 
-        QString str = modelString(model, ind, ok);
+        auto str = modelString(model, ind, ok);
 
         if (! str.length())
           return State::SKIP;
@@ -214,7 +214,7 @@ calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows)
         if (ok)
           return State::SKIP;
 
-        QString str = modelString(model, ind, ok);
+        auto str = modelString(model, ind, ok);
 
         if (! str.length())
           return State::SKIP;

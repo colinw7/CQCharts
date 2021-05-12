@@ -88,8 +88,9 @@ valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
     ok  = true;
   }
   else {
-    str = "";
-    ok  = false;
+    str.clear();
+
+    ok = false;
   }
 
   return str;

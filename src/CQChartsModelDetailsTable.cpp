@@ -170,7 +170,7 @@ update()
     if (columnDetails->isMonotonic())
       monoStr = (columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
     else
-      monoStr = "";
+      monoStr.clear();
 
     uniqueStr = QString("%1").arg(columnDetails->numUnique());
     nullStr   = QString("%1").arg(columnDetails->numNull());

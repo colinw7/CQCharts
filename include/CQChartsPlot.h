@@ -125,7 +125,7 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 CQCHARTS_NAMED_SHAPE_DATA(Plot, plot) // plot area
 CQCHARTS_NAMED_SHAPE_DATA(Data, data) // data area
-CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)   // fit are
+CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)   // fit area
 
 /*!
  * \brief Base class for Plot
@@ -297,6 +297,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // fit
   Q_PROPERTY(bool autoFit READ isAutoFit WRITE setAutoFit)
 
+  // fit margin
   Q_PROPERTY(CQChartsLength fitMarginLeft   READ fitMarginLeft   WRITE setFitMarginLeft  )
   Q_PROPERTY(CQChartsLength fitMarginTop    READ fitMarginTop    WRITE setFitMarginTop   )
   Q_PROPERTY(CQChartsLength fitMarginRight  READ fitMarginRight  WRITE setFitMarginRight )
@@ -705,7 +706,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // default palette
+  //! get/set default palette
   const PaletteName &defaultPalette() const { return defaultPalette_; }
   void setDefaultPalette(const PaletteName &name);
 
@@ -1115,6 +1116,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
+  //! get nams of all properties settable on plot
   void getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const;
 
   void hideProperty(const QString &path, QObject *object);
@@ -1167,7 +1169,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   QString idColumnString(int row, const QModelIndex &parent, bool &ok) const;
 
-  //----
+  //---
 
   QModelIndex normalizedModelIndex(const ModelIndex &ind) const;
 
@@ -2045,7 +2047,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  void setDragObj(DragObjType objType, CQChartsObj *obj);
+  void setDragObj(DragObjType objType, Obj *obj);
 
   void flipSelected(Qt::Orientation orient);
 
@@ -2062,7 +2064,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool objectsEditPress(const Point &w, bool inside);
 
-  bool editHandlePress(CQChartsObj *obj, const Point &w, const DragObjType &dragObjType);
+  bool editHandlePress(Obj *obj, const Point &w, const DragObjType &dragObjType);
 
   //--
 
@@ -2094,8 +2096,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // get tip text at point (unchecked)
   virtual bool plotTipText(const Point &p, QString &tip, bool single) const;
 
-  void addNoTipColumns(CQChartsTableTip &tableTip) const;
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
+  void addNoTipColumns(CQChartsTableTip &tableTip) const;
 
   void resetObjTips();
 
@@ -3214,7 +3216,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Point              movePoint   { 0, 0 };
     bool               pressed     { false };
     DragObjType        dragObjType { DragObjType::NONE };
-    CQChartsObj*       dragObj     { nullptr };
+    Obj*               dragObj     { nullptr };
     CQChartsResizeSide dragSide    { CQChartsResizeSide::NONE };
     bool               dragged     { false };
   };

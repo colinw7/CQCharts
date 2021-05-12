@@ -50,11 +50,11 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
 
 class CQColorsEditModel;
 class CQRealSpin;
+class CQIntegerSpin;
 class CQColorEdit;
 class CQCheckBox;
 
 class QComboBox;
-class QSpinBox;
 class QLabel;
 class QCheckBox;
 class QStackedWidget;
@@ -100,7 +100,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
   QComboBox*         typeCombo_     { nullptr }; //!< palette index/type combo
   QComboBox*         indPalCombo_   { nullptr }; //!< type combo
   QStackedWidget*    indPalStack_   { nullptr }; //!< palette index/type edit stack
-  QSpinBox*          indEdit_       { nullptr }; //!< index edit
+  CQIntegerSpin*     indEdit_       { nullptr }; //!< index edit
   QComboBox*         paletteEdit_   { nullptr }; //!< palette edit
   QFrame*            rFrame_        { nullptr }; //!< r edit frame
   CQColorsEditModel* rEdit_         { nullptr }; //!< r edit

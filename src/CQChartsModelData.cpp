@@ -53,7 +53,7 @@ description()
      "line or first comment line.").
    p("csv defaults to using a comma for the value separator. This can be changed "
      "to any character to support other separator types.").
-   p("csv format also supports specially formated comments to support meta data "
+   p("csv format also supports specially formatted comments to support meta data "
      "for specifying additional column data e.g. column types and formats.").
    p("The tcl expression is run on a specified number of rows (default 100).").
    p("The data processed can be limited by specifying a maximum number of rows, "

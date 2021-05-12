@@ -485,7 +485,7 @@ addRowObj(const ModelVisitor::VisitData &data, PlotObjs &objs) const
     ModelIndex nameInd(th, data.row, nameColumn(), data.parent);
 
     name = modelString(nameInd, ok);
-    if (! ok) name = "";
+    if (! ok) name.clear();
   }
 
   //--

@@ -31,11 +31,13 @@ enum class CQBaseModelRole {
   CachedValue       = Type + 12,        //!< cell cached value
   OutputValue       = Type + 13,        //!< cell output value
   Group             = Type + 14,        //!< cell group value
-  Format            = Type + 15,        //!< output format (used ?)
-  DataMin           = Type + 16,        //!< column calculated value min
-  DataMax           = Type + 17,        //!< column calculated value max
-  HeaderType        = Type + 18,        //!< column header type
-  HeaderTypeValues  = Type + 19         //!< column header type values
+  Format            = Type + 15,        //!< input/output format (used ?)
+  IFormat           = Type + 16,        //!< input format (used ?)
+  OFormat           = Type + 17,        //!< output format (used ?)
+  DataMin           = Type + 18,        //!< column calculated value min
+  DataMax           = Type + 19,        //!< column calculated value max
+  HeaderType        = Type + 20,        //!< column header type
+  HeaderTypeValues  = Type + 21         //!< column header type values
 };
 
 //! model value types supported by CQBaseModel

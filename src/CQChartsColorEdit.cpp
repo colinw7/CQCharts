@@ -10,11 +10,11 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQRealSpin.h>
+#include <CQIntegerSpin.h>
 #include <CQColorEdit.h>
 #include <CQCheckBox.h>
 
 #include <QComboBox>
-#include <QSpinBox>
 #include <QLabel>
 #include <QStackedWidget>
 #include <QHBoxLayout>
@@ -351,7 +351,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   //-
 
-  indEdit_ = CQUtil::makeWidget<QSpinBox>("indEdit");
+  indEdit_ = CQUtil::makeWidget<CQIntegerSpin>("indEdit");
 
   indEdit_->setRange(-1, 99);
   indEdit_->setToolTip("Palette index in theme (-1 is unset)");

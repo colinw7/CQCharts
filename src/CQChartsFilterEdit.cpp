@@ -118,8 +118,9 @@ acceptSlot()
 
   if (combo_->currentIndex() == 0) {
     if (text != filterText_) {
-      filterText_    = text;
-      filterDetails_ = "";
+      filterText_ = text;
+
+      filterDetails_.clear();
 
       if (addReplaceSwitch_->isChecked())
         emit replaceFilter(filterText_);

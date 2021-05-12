@@ -836,7 +836,8 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 {
   function = Function::EVAL;
   column   = -1;
-  expr     = "";
+
+  expr.clear();
 
   if (! exprStr.length())
     return true;

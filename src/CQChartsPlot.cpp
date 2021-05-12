@@ -17232,7 +17232,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
     QString defStr;
 
     if (! CQChartsVariant::toString(param->defValue(), defStr))
-      defStr = "";
+      defStr.clear();
 
     QVariant value;
 
@@ -17242,7 +17242,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
     QString str;
 
     if (! CQChartsVariant::toString(value, str))
-      str = "";
+      str.clear();
 
     if (str == defStr)
       continue;
@@ -17310,7 +17310,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))
-      str = "";
+      str.clear();
 
     os << "set_charts_property -plot $" << plotName().toStdString();
 

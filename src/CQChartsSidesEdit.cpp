@@ -87,7 +87,7 @@ paintEvent(QPaintEvent *)
   painter.drawComplexControl(QStyle::CC_ComboBox, opt);
 
   // draw the control (no text)
-  opt.currentText = "";
+  opt.currentText.clear();
 
   painter.drawControl(QStyle::CE_ComboBoxLabel, opt);
 

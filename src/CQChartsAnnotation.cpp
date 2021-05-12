@@ -195,7 +195,7 @@ writeProperties(std::ostream &os, const QString &varName) const
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))
-      str = "";
+      str.clear();
 
     os << "set_charts_property -annotation $" << varName.toStdString();
 
@@ -3864,7 +3864,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))
-      str = "";
+      str.clear();
 
     os << "set_charts_property -annotation $" << varName.toStdString();
 

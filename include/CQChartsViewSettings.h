@@ -46,7 +46,6 @@ class CQGroupBox;
 class CQTabSplit;
 
 class QComboBox;
-class QSpinBox;
 class QPushButton;
 class QToolButton;
 class QRadioButton;

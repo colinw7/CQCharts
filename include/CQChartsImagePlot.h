@@ -69,6 +69,14 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   //---
 
+  const CQChartsColor &bgColor() const { return bgColor_; }
+  void setBgColor(const CQChartsColor &c) { bgColor_ = c; }
+
+  const CQChartsColor &fgColor() const { return fgColor_; }
+  void setFgColor(const CQChartsColor &c) { fgColor_ = c; }
+
+  //---
+
   void getObjSelectIndices(Indices &inds) const override;
 
   //---
@@ -93,6 +101,8 @@ class CQChartsImageObj : public CQChartsPlotObj {
   double          value_      { 0.0 };                   //!< value
   Image           image_;                                //!< image
   CQBaseModelType columnType_ { CQBaseModelType::REAL }; //!< data type
+  CQChartsColor   bgColor_;                              //!< optional background color
+  CQChartsColor   fgColor_;                              //!< optional foreground color
 };
 
 //---
@@ -222,6 +232,9 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   BBox calcExtraFitBBox() const override;
 
+ signals:
+  void customDataChanged();
+
  public slots:
   void setRectStyle   (bool b);
   void setBalloonStyle(bool b);
@@ -236,10 +249,10 @@ class CQChartsImagePlot : public CQChartsPlot,
 //void setScaleCellLabels(bool b);
 
  protected:
-  void addImageObj(int row, int col, double x, double y, double dx, double dy,
-                   double value, const QModelIndex &ind, PlotObjs &objs) const;
-  void addImageObj(int row, int col, double x, double y, double dx, double dy,
-                   const Image &image, const QModelIndex &ind, PlotObjs &objs) const;
+  ImageObj *addImageObj(int row, int col, const BBox &bbox, double value,
+                        const QModelIndex &ind, PlotObjs &objs) const;
+  ImageObj *addImageObj(int row, int col, const BBox &bbox, const Image &image,
+                        const QModelIndex &ind, PlotObjs &objs) const;
 
   void drawXLabels(PaintDevice *device) const;
   void drawYLabels(PaintDevice *device) const;

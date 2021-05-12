@@ -829,7 +829,7 @@ addPointObjects() const
           }
 
           if (! ok)
-            pointName = "";
+            pointName.clear();
         }
 
         if (pointName.length())

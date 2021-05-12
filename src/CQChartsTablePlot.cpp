@@ -1693,7 +1693,7 @@ createTableObjData() const
 
       auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
                                     Qt::DisplayRole, ok);
-      if (! ok) str = "";
+      if (! ok) str.clear();
 
       //---
 

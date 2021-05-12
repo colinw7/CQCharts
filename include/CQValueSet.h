@@ -134,7 +134,7 @@ class CQRValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQRValues *th = const_cast<CQRValues *>(this);
+        auto *th = const_cast<CQRValues *>(this);
 
         th->calc();
 
@@ -288,7 +288,7 @@ class CQIValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQIValues *th = const_cast<CQIValues *>(this);
+        auto *th = const_cast<CQIValues *>(this);
 
         th->calc();
 

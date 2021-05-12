@@ -7591,7 +7591,7 @@ write(std::ostream &os) const
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))
-      str = "";
+      str.clear();
 
     os << "set_charts_property -view $view -name " << nv.first.toStdString() <<
           " -value {" << str.toStdString() << "}\n";

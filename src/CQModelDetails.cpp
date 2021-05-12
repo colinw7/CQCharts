@@ -264,7 +264,7 @@ columnDuplicates(int column, bool all) const
 
         bool ok;
 
-        QVariant var = CQModelUtil::modelValue(model(), r, c, parent, ok);
+        auto var = CQModelUtil::modelValue(model(), r, c, parent, ok);
 
         rowValues2[c] = var;
 
@@ -277,7 +277,7 @@ columnDuplicates(int column, bool all) const
 
       bool ok;
 
-      QVariant var = CQModelUtil::modelValue(model(), r, column, parent, ok);
+      auto var = CQModelUtil::modelValue(model(), r, column, parent, ok);
 
       rowValues2[0] = var;
 
@@ -330,7 +330,7 @@ const QStringList &
 CQModelColumnDetails::
 getLongNamedValues()
 {
-  static QStringList namedValues = QStringList() <<
+  static auto namedValues = QStringList() <<
    "name" << "type" << "minimum" << "maximum" << "average" << "standard_deviation" <<
    "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
    "num_null" << "median" << "lower_median" << "upper_median" <<
@@ -343,7 +343,7 @@ const QStringList &
 CQModelColumnDetails::
 getShortNamedValues()
 {
-  static QStringList namedValues = QStringList() <<
+  static auto namedValues = QStringList() <<
    "min" << "max" << "mean" << "avg" << "stddev" << "std_dev";
 
   return namedValues;
@@ -766,13 +766,13 @@ outlierValues() const
   QVariantList vars;
 
   if      (type() == CQBaseModelType::INTEGER) {
-    const CQIValues::Indices &outliers = valueSet_->ivals().outliers();
+    const auto &outliers = valueSet_->ivals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->ivals().svalue(o));
   }
   else if (type() == CQBaseModelType::REAL) {
-    const CQRValues::Indices &outliers = valueSet_->rvals().outliers();
+    const auto &outliers = valueSet_->rvals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->rvals().svalue(o));
@@ -883,7 +883,7 @@ initData()
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
       bool ok;
 
-      QVariant var = CQModelUtil::modelValue(model, data.row, details_->column(), data.parent, ok);
+      auto var = CQModelUtil::modelValue(model, data.row, details_->column(), data.parent, ok);
       if (! ok) return State::SKIP;
 
       details_->addValue(var);
@@ -911,7 +911,7 @@ initData()
         addReal(r);
       }
       else if (details_->type() == CQBaseModelType::STRING) {
-        QString s = var.toString();
+        auto s = var.toString();
 
         if (! details_->checkRow(s))
           return State::SKIP;
@@ -921,7 +921,7 @@ initData()
         addString(s);
       }
       else {
-        QString s = var.toString();
+        auto s = var.toString();
 
         if (! details_->checkRow(s))
           return State::SKIP;
@@ -1045,7 +1045,7 @@ initData()
       if (visitMin_) {
         bool ok1 = min_.isValid();
 
-        QString smin = min_.toString();
+        auto smin = min_.toString();
 
         smin = (! ok1 ? s : std::min(smin, s));
 
@@ -1056,7 +1056,7 @@ initData()
       if (visitMax_) {
         bool ok1 = min_.isValid();
 
-        QString smax = max_.toString();
+        auto smax = max_.toString();
 
         smax = (! ok1 ? s : std::max(smax, s));
 
@@ -1064,8 +1064,8 @@ initData()
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
-        QString s1 = lastValue1_.toString();
-        QString s2 = lastValue2_.toString();
+        auto s1 = lastValue1_.toString();
+        auto s2 = lastValue2_.toString();
 
         if (! monotonicSet_) {
           if (s1 != s2) {

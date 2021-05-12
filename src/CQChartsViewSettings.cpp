@@ -54,7 +54,6 @@
 #include <CQTimeRangeSlider.h>
 
 #include <QHeaderView>
-#include <QSpinBox>
 #include <QRadioButton>
 #include <QCheckBox>
 #include <QPushButton>

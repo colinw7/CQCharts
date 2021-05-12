@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + more separated/gridded plots for grouped (grid column ?)
+ + color column for image plot (+ controls)
  + ensure new color handling code handles color column
    + better testing of color combinations
  + icon spliiter group (support one of)
@@ -642,7 +644,7 @@ Plots to Add
  + Vector
 
 Plots General
- + Restrict which plots can be combined
+ + Restrict which plots can be combined (overlay)
    + Bar/Column Chart NOT paired with Pie, Bar
  + columnValueType more usage
    + Common handling of column data type determination

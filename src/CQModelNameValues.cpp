@@ -19,7 +19,7 @@ toString(const NameValues &nameValues)
 
     str += nameValue.first + '=';
 
-    QString value = nameValue.second.toString();
+    auto value = nameValue.second.toString();
 
     for (int i = 0; i < value.length(); ++i) {
       if (value[i] == ',')
@@ -53,7 +53,7 @@ fromString(const QString &str, NameValues &nameValues)
   if (! str.length())
     return true;
 
-  QStringList strs = splitNameValues(str);
+  auto strs = splitNameValues(str);
 
   for (int i = 0; i < strs.length(); ++i) {
     int pos1 = strs[i].indexOf("=");
@@ -62,8 +62,8 @@ fromString(const QString &str, NameValues &nameValues)
       nameValues[strs[i]] = "1";
     }
     else {
-      QString name  = strs[i].mid(0, pos1 ).simplified();
-      QString value = strs[i].mid(pos1 + 1).simplified();
+      auto name  = strs[i].mid(0, pos1 ).trimmed();
+      auto value = strs[i].mid(pos1 + 1).trimmed();
 
       nameValues[name] = value;
     }

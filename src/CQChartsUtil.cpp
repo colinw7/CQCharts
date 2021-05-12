@@ -450,7 +450,7 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
   };
 
   auto readLine = [](FILE *fp, QString &line) {
-    line = "";
+    line.clear();
 
     if (feof(fp)) return false;
 

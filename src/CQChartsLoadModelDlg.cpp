@@ -777,7 +777,8 @@ CQChartsLoadModelDlg::
 applySlot()
 {
   modelInd_ = -1;
-  modelId_  = "";
+
+  modelId_.clear();
 
   //----
 
@@ -867,7 +868,8 @@ CQChartsLoadModelDlg::
 cancelSlot()
 {
   modelInd_ = -1;
-  modelId_  = "";
+
+  modelId_.clear();
 
   hide();
 }
