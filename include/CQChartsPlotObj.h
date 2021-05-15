@@ -187,7 +187,7 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
-  // get/set model index
+  // get/set model index (normalized)
   QModelIndex modelInd() const;
   void setModelInd(const QModelIndex &ind);
 

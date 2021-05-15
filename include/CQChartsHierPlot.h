@@ -68,6 +68,9 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   virtual void followViewExpandChanged() { }
 
+  bool isExpandModelIndex(const QModelIndex &ind) const;
+  void expandModelIndex(const QModelIndex &ind, bool b);
+
   void expandedModelIndices(std::set<QModelIndex> &indSet) const;
 
   //---

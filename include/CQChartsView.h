@@ -471,6 +471,9 @@ class CQChartsView : public QFrame,
 
   //---
 
+  bool isExpandModelIndex(const QModelIndex &ind) const;
+  void expandModelIndex(const QModelIndex &ind, bool b);
+
   void expandedModelIndices(QModelIndexList &inds);
 
  private:
@@ -705,6 +708,8 @@ class CQChartsView : public QFrame,
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;
+
+  void mouseDoubleClickEvent(QMouseEvent *me) override;
 
   bool editMousePress  ();
   bool editMouseMove   ();
@@ -1265,6 +1270,8 @@ class CQChartsView : public QFrame,
   void selectMouseMotion();
   void selectMouseMove();
   void selectMouseRelease();
+
+  void selectMouseDoubleClick();
 
   void selectPointPress();
 

@@ -222,7 +222,7 @@ objNearestPoint(const Point &p, CQChartsPlotObj* &nearestObj) const
 
 void
 CQChartsPlot3D::
-plotObjsAtPoint(const Point &p, PlotObjs &objs) const
+plotObjsAtPoint(const Point &p, PlotObjs &objs, const Constraints & /*constraints*/) const
 {
   for (auto &po : pointObjs_) {
     for (const auto &obj : po.second) {

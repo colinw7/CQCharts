@@ -180,6 +180,9 @@ class CQChartsSelectableIFace {
   virtual bool selectPress  (const Point &, SelMod) { return false; }
   virtual bool selectMove   (const Point &) { return false; }
   virtual bool selectRelease(const Point &) { return false; }
+
+  //! handle select double click
+  virtual bool selectDoubleClick(const Point &, SelMod) { return false; }
 };
 
 // Edit Interface

@@ -6849,7 +6849,7 @@ bool
 CQChartsPlot::
 annotationsSelectPress(const Point &w, SelMod selMod)
 {
-  groupedAnnotationsAtPoint(w, pressAnnotations_);
+  groupedAnnotationsAtPoint(w, pressAnnotations_, Constraints::SELECTABLE);
 
   for (const auto &annotation : pressAnnotations_) {
     annotation->selectPress(w, selMod);
@@ -7067,7 +7067,7 @@ handleSelectMove(const Point &w, Constraints constraints, bool first)
   // notify annotations under point annotation
   Annotations annotations;
 
-  groupedAnnotationsAtPoint(w, annotations);
+  groupedAnnotationsAtPoint(w, annotations, constraints);
 
   for (const auto &annotation : annotations) {
     annotation->selectMove(w);
@@ -7127,6 +7127,97 @@ handleSelectRelease(const Point &w)
   return true;
 }
 
+bool
+CQChartsPlot::
+selectMouseDoubleClick(const Point &p, SelMod selMod)
+{
+  if (! isReady()) return false;
+
+  auto w = pixelToWindow(p);
+
+  if (handleSelectDoubleClick(w, selMod))
+    return true;
+
+  emit selectDoubleClickSignal(w);
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+handleSelectDoubleClick(const Point &w, SelMod selMod)
+{
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
+#if 0
+  if (keySelectDoubleClick(key(), w, selMod))
+    return true;
+
+  if (titleSelectDoubleClick(title(), w, selMod))
+    return true;
+#endif
+
+  //---
+
+#if 0
+  if (annotationsSelectDoubleClick(w, selMod))
+    return true;
+#endif
+
+  //---
+
+  if (objectsSelectDoubleClick(w, selMod))
+    return true;
+
+  return false;
+}
+
+CQChartsObj *
+CQChartsPlot::
+objectsSelectDoubleClick(const Point &w, SelMod selMod)
+{
+  // get selectable objects and annotations at point
+  Objs objs;
+
+  groupedObjsAtPoint(w, objs, Constraints::SELECTABLE);
+
+  // use first object for select
+  Obj *selectObj = nullptr;
+
+  if (! objs.empty())
+    selectObj = *objs.begin();
+
+  //---
+
+  if (selectObj) {
+    auto *selectPlotObj    = dynamic_cast<PlotObj    *>(selectObj);
+    auto *selectAnnotation = dynamic_cast<Annotation *>(selectObj);
+
+    if (selectPlotObj) {
+      selectPlotObj->selectDoubleClick(w, selMod);
+
+      emit objDoubleClicked  (selectPlotObj);
+      emit objIdDoubleClicked(selectPlotObj->id());
+    }
+    else if (selectAnnotation) {
+      selectAnnotation->selectDoubleClick(w, selMod);
+
+      drawForeground();
+
+      emit annotationDoubleClicked  (selectAnnotation);
+      emit annotationIdDoubleClicked(selectAnnotation->id());
+    }
+
+    // potential crash if signals cause objects to be deleted (defer !!!)
+  }
+
+  //---
+
+  return selectObj;
+}
 #if 0
 void
 CQChartsPlot::
@@ -7140,7 +7231,7 @@ selectObjsAtPoint(const Point &w, Objs &objs)
 
   Annotations annotations;
 
-  groupedAnnotationsAtPoint(w, annotations);
+  groupedAnnotationsAtPoint(w, annotations, Constraints::SELECTABLE);
 
   for (const auto &annotation : annotations)
     objs.push_back(annotation);
@@ -7533,7 +7624,7 @@ annotationsEditSelect(const Point &w)
 {
   Annotations annotations;
 
-  groupedAnnotationsAtPoint(w, annotations);
+  groupedAnnotationsAtPoint(w, annotations, Constraints::EDITABLE);
 
   for (const auto &annotation : annotations) {
     if (! annotation->isVisible() || ! annotation->isEditable())
@@ -8350,7 +8441,7 @@ rectSelect(const BBox &r, SelMod selMod)
   // get objects inside/touching rectangle
   Objs objs;
 
-  groupedObjsIntersectRect(r, objs, view()->isSelectInside(), /*select*/true);
+  groupedObjsIntersectRect(r, objs, view()->isSelectInside(), Constraints::SELECTABLE);
 
   //---
 
@@ -10400,40 +10491,24 @@ groupedObjsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) c
 {
   PlotObjs plotObjs;
 
-  groupedPlotObjsAtPoint(p, plotObjs);
+  groupedPlotObjsAtPoint(p, plotObjs, constraints);
 
-  int iconstraints = (int) constraints;
-
-  for (const auto &plotObj : plotObjs) {
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
-      continue;
-
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
-      continue;
-
+  for (const auto &plotObj : plotObjs)
     objs.push_back(plotObj);
-  }
 
   //---
 
   Annotations annotations;
 
-  groupedAnnotationsAtPoint(p, annotations);
+  groupedAnnotationsAtPoint(p, annotations, constraints);
 
-  for (const auto &annotation : annotations) {
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
-      continue;
-
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
-      continue;
-
+  for (const auto &annotation : annotations)
     objs.push_back(annotation);
-  }
 }
 
 void
 CQChartsPlot::
-groupedPlotObjsAtPoint(const Point &p, PlotObjs &plotObjs) const
+groupedPlotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constraints) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const Plot *plot) {
@@ -10442,26 +10517,45 @@ groupedPlotObjsAtPoint(const Point &p, PlotObjs &plotObjs) const
       if (plot != this)
         p1 = plot->pixelToWindow(windowToPixel(p));
 
-      plot->plotObjsAtPoint(p1, plotObjs);
+      plot->plotObjsAtPoint(p1, plotObjs, constraints);
     });
   }
   else {
-    plotObjsAtPoint(p, plotObjs);
+    plotObjsAtPoint(p, plotObjs, constraints);
   }
 }
 
 void
 CQChartsPlot::
-plotObjsAtPoint(const Point &p, PlotObjs &plotObjs) const
+plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constraints) const
 {
   assert(! isComposite());
 
-  objTreeData_.tree->objectsAtPoint(p, plotObjs);
+  // get all objects at point from quad tree
+  PlotObjs plotObjs1;
+
+  objTreeData_.tree->objectsAtPoint(p, plotObjs1);
+
+  //---
+
+  // filter to constraints
+  int iconstraints = (int) constraints;
+
+  for (const auto &plotObj : plotObjs1) {
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
+      continue;
+
+    plotObjs.push_back(plotObj);
+  }
 }
 
 void
 CQChartsPlot::
-groupedAnnotationsAtPoint(const Point &p, Annotations &annotations) const
+groupedAnnotationsAtPoint(const Point &p, Annotations &annotations,
+                          const Constraints &constraints) const
 {
   annotations.clear();
 
@@ -10472,23 +10566,31 @@ groupedAnnotationsAtPoint(const Point &p, Annotations &annotations) const
       if (plot != this)
         p1 = plot->pixelToWindow(windowToPixel(p));
 
-      plot->annotationsAtPoint(p1, annotations);
+      plot->annotationsAtPoint(p1, annotations, constraints);
     });
   }
   else {
-    annotationsAtPoint(p, annotations);
+    annotationsAtPoint(p, annotations, constraints);
   }
 }
 
 void
 CQChartsPlot::
-annotationsAtPoint(const Point &p, Annotations &annotations) const
+annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &constraints) const
 {
+  int iconstraints = (int) constraints;
+
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
       continue;
 
     if (! annotation->contains(p))
+      continue;
+
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
       continue;
 
     annotations.push_back(annotation);
@@ -10497,36 +10599,30 @@ annotationsAtPoint(const Point &p, Annotations &annotations) const
 
 void
 CQChartsPlot::
-groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
+groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside,
+                         const Constraints &constraints) const
 {
   PlotObjs plotObjs;
 
-  groupedPlotObjsIntersectRect(r, plotObjs, inside);
+  groupedPlotObjsIntersectRect(r, plotObjs, inside, constraints);
 
-  for (const auto &plotObj : plotObjs) {
-    if (select && ! plotObj->isSelectable())
-      continue;
-
+  for (const auto &plotObj : plotObjs)
     objs.push_back(plotObj);
-  }
 
   //---
 
   Annotations annotations;
 
-  annotationsIntersectRect(r, annotations, inside);
+  annotationsIntersectRect(r, annotations, inside, constraints);
 
-  for (const auto &annotation : annotations) {
-    if (select && ! annotation->isSelectable())
-      continue;
-
+  for (const auto &annotation : annotations)
     objs.push_back(annotation);
-  }
 }
 
 void
 CQChartsPlot::
-groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const
+groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
+                             const Constraints &constraints) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const Plot *plot) {
@@ -10535,26 +10631,46 @@ groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) con
       if (plot != this)
         r1 = windowToPixel(plot->pixelToWindow(r));
 
-      plot->plotObjsIntersectRect(r1, plotObjs, inside);
+      plot->plotObjsIntersectRect(r1, plotObjs, inside, constraints);
     });
   }
   else {
-    plotObjsIntersectRect(r, plotObjs, inside);
+    plotObjsIntersectRect(r, plotObjs, inside, constraints);
   }
 }
 
 void
 CQChartsPlot::
-plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const
+plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
+                      const Constraints &constraints) const
 {
   assert(! isComposite());
 
-  objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
+  // get all objects intersecting rect from quad tree
+  PlotObjs plotObjs1;
+
+  objTreeData_.tree->objectsIntersectRect(r, plotObjs1, inside);
+
+  //---
+
+  // filter to constraints
+  int iconstraints = (int) constraints;
+
+  for (const auto &plotObj : plotObjs1) {
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
+      continue;
+
+    plotObjs.push_back(plotObj);
+  }
 }
 
 void
 CQChartsPlot::
-annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const
+annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside,
+                         const Constraints &constraints) const
 {
   annotations.clear();
 
@@ -10565,23 +10681,32 @@ annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) c
       if (plot != this)
         r1 = plot->pixelToWindow(windowToPixel(r));
 
-      plot->annotationsIntersectRect1(r1, annotations, inside);
+      plot->annotationsIntersectRect1(r1, annotations, inside, constraints);
     });
   }
   else {
-    annotationsIntersectRect1(r, annotations, inside);
+    annotationsIntersectRect1(r, annotations, inside, constraints);
   }
 }
 
 void
 CQChartsPlot::
-annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const
+annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
+                          const Constraints &constraints) const
 {
+  int iconstraints = (int) constraints;
+
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
       continue;
 
     if (! annotation->intersects(r, inside))
+      continue;
+
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
       continue;
 
     annotations.push_back(annotation);

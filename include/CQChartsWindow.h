@@ -94,9 +94,16 @@ class CQChartsWindow : public QFrame {
 
   //---
 
+  void connectModelViewExpand(bool connect);
+
+  bool isExpandModelIndex(const QModelIndex &ind) const;
+  void expandModelIndex(const QModelIndex &ind, bool b);
+
   void expandedModelIndices(QModelIndexList &inds);
 
   //---
+
+  void setViewModel();
 
   void showErrorsTab();
 

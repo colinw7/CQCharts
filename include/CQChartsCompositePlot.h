@@ -323,8 +323,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void groupedObjsAtPoint(const Point &p, Objs &objs,
                           const Constraints &constraints) const override;
 
-  void groupedObjsIntersectRect(const BBox &r, Objs &objs,
-                                bool inside, bool select=false) const override;
+  void groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside,
+                                const Constraints &constraints) const override;
 
   //---
 

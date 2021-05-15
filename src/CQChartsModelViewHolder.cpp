@@ -130,6 +130,20 @@ addSearch(const QString &text)
 #endif
 }
 
+CQChartsModelViewHolder::ModelP
+CQChartsModelViewHolder::
+model() const
+{
+#ifdef CQCHARTS_MODEL_VIEW
+  return view_->modelP();
+#else
+  if (! hierarchical_)
+    return table_->modelP();
+  else
+    return tree_->modelP();
+#endif
+}
+
 void
 CQChartsModelViewHolder::
 setModel(ModelP model, bool hierarchical)

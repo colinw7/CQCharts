@@ -205,12 +205,7 @@ CQChartsWindow(View *view) :
 
   connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
 
-#ifdef CQCHARTS_MODEL_VIEW
-  connect(modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
-          this, SLOT(expansionChangeSlot()));
-  connect(modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
-          this, SLOT(expansionChangeSlot()));
-#endif
+  connectModelViewExpand(true);
 
   tableLayout->addWidget(modelView_);
 
@@ -435,12 +430,7 @@ filterChangedSlot()
   //plot->updateRangeAndObjs();
 }
 
-void
-CQChartsWindow::
-expansionChangeSlot()
-{
-  emit expansionChanged();
-}
+//------
 
 void
 CQChartsWindow::
@@ -467,8 +457,22 @@ plotSlot()
   else
     setWindowTitle(QString("Window: View %1, Plot <none>").arg(view_->id()));
 
-  if (tableFrame_->isVisible() && plot)
-    modelView_->setModel(plot->model(), plot->isHierarchical());
+  if (tableFrame_->isVisible())
+    setViewModel();
+  else
+    modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
+}
+
+void
+CQChartsWindow::
+setViewModel()
+{
+  auto *plot = view_->currentPlot(/*remap*/false);
+
+  if (plot) {
+    if (plot->model() != modelView_->model())
+      modelView_->setModel(plot->model(), plot->isHierarchical());
+  }
   else
     modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
 }
@@ -598,8 +602,57 @@ propertyItemSelected(QObject *obj, const QString &path)
 
 void
 CQChartsWindow::
+connectModelViewExpand(bool connect)
+{
+#ifdef CQCHARTS_MODEL_VIEW
+  CQChartsWidgetUtil::connectDisconnect(connect,
+    modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
+    this, SLOT(expansionChangeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(connect,
+    modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
+    this, SLOT(expansionChangeSlot()));
+#endif
+}
+
+void
+CQChartsWindow::
+expansionChangeSlot()
+{
+  emit expansionChanged();
+}
+
+bool
+CQChartsWindow::
+isExpandModelIndex(const QModelIndex &ind) const
+{
+  const_cast<CQChartsWindow *>(this)->setViewModel();
+
+#ifdef CQCHARTS_MODEL_VIEW
+  return modelView_->view()->isExpanded(ind);
+#endif
+}
+
+void
+CQChartsWindow::
+expandModelIndex(const QModelIndex &ind, bool b)
+{
+  setViewModel();
+
+#ifdef CQCHARTS_MODEL_VIEW
+  connectModelViewExpand(false);
+
+  modelView_->view()->setExpanded(ind, b);
+
+  connectModelViewExpand(true);
+#endif
+}
+
+void
+CQChartsWindow::
 expandedModelIndices(QModelIndexList &inds)
 {
+  setViewModel();
+
 #ifdef CQCHARTS_MODEL_VIEW
   modelView_->view()->expandedIndices(inds);
 #endif

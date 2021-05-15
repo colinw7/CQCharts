@@ -683,16 +683,16 @@ parseCSVColumns()
 
     if (metaColumns.size() == 4) {
       if (metaColumns[0] == "column") {
-        auto colName = metaColumns[1].c_str();
+        auto colName = QString(metaColumns[1].c_str());
 
         if (metaColumns[2] == "type") {
-          auto type = metaColumns[3].c_str();
+          auto type = QString(metaColumns[3].c_str());
 
           columnTypes_[colName] = type;
         }
         else {
-          auto name  = metaColumns[2].c_str();
-          auto value = metaColumns[3].c_str();
+          auto name  = QString(metaColumns[2].c_str());
+          auto value = QString(metaColumns[3].c_str());
 
           columnData_[colName][name] = value;
         }

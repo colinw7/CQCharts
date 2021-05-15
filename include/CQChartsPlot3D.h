@@ -132,7 +132,8 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
   bool objNearestPoint(const Point &p, CQChartsPlotObj* &obj) const override;
 
-  void plotObjsAtPoint(const Point &p, PlotObjs &objs) const override;
+  void plotObjsAtPoint(const Point &p, PlotObjs &objs,
+                       const Constraints &constraints) const override;
 
   //---
 

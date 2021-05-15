@@ -998,7 +998,7 @@ pushSlot()
 
     auto w = pixelToWindow(Point(pos));
 
-    plotObjsAtPoint(w, objs);
+    plotObjsAtPoint(w, objs, Constraints::SELECTABLE);
   }
 
   if (objs.empty())

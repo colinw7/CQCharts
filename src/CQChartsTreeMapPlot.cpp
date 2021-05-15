@@ -576,7 +576,7 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    auto *obj = createNodeObj(node, parentObj, rect, is);
+    auto *obj = createNodeObj(node, hierObj, rect, is);
 
     obj->setInd(in_);
 
@@ -611,7 +611,7 @@ initNodes() const
 
   th->hierInd_ = 0;
 
-  th->root_ = new HierNode(this, nullptr, "<root>");
+  th->root_ = createHierNode(nullptr, "<root>", QModelIndex());
 
   root_->setDepth(0);
   root_->setHierInd(th->hierInd_++);
@@ -811,13 +811,19 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   auto nameInd1 = normalizeIndex(nameInd);
 
-  auto *hier1 = new HierNode(this, hier, name, nameInd1);
+  auto *hier1 = createHierNode(hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
   hier1->setHierInd(th->hierInd_++);
 
   th->maxDepth_ = std::max(maxDepth_, depth1);
+
+  //---
+
+  bool expanded = isPathExpanded(hier1->hierName());
+
+  hier1->setExpanded(expanded);
 
   return hier1;
 }
@@ -842,7 +848,7 @@ hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex 
 
   auto nameInd1 = normalizeIndex(nameInd);
 
-  auto *node = new Node(this, hier, name, size, nameInd1);
+  auto *node = createNode(hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 
@@ -978,12 +984,18 @@ flatAddNode(const QStringList &nameStrs, double size,
 
       //---
 
-      child = new HierNode(this, parent, nameStrs[j], nameInd1);
+      child = createHierNode(parent, nameStrs[j], nameInd1);
 
       child->setSize(size1);
 
       child->setDepth(j + 1);
       child->setHierInd(th->hierInd_++);
+
+      //---
+
+      bool expanded = isPathExpanded(child->hierName());
+
+      child->setExpanded(expanded);
     }
 
     parent = child;
@@ -1006,7 +1018,7 @@ flatAddNode(const QStringList &nameStrs, double size,
 
     //---
 
-    node = new Node(this, parent, name, size, nameInd);
+    node = createNode(parent, name, size, nameInd);
 
     node->setDepth(depth);
 
@@ -1021,7 +1033,7 @@ CQChartsTreeMapPlot::
 addExtraNodes(HierNode *hier) const
 {
   if (hier->size() > 0) {
-    auto *node = new Node(this, hier, "", hier->size(), hier->ind());
+    auto *node = createNode(hier, "", hier->size(), hier->ind());
 
     auto ind1 = unnormalizeIndex(hier->ind());
 
@@ -1104,7 +1116,7 @@ addMenuItems(QMenu *menu)
 {
   PlotObjs objs;
 
-  selectedPlotObjs(objs);
+  menuPlotObjs(objs);
 
   menu->addSeparator();
 
@@ -1115,6 +1127,20 @@ addMenuItems(QMenu *menu)
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != firstHier());
   popTopAction->setEnabled(currentRoot() != firstHier());
+
+  //---
+
+  auto *obj = (! objs.empty() ? *objs.begin() : nullptr);
+
+  if (obj) {
+    auto *expandAction   = addMenuAction(menu, "Expand"  , SLOT(expandSlot()));
+    auto *collapseAction = addMenuAction(menu, "Collapse", SLOT(collapseSlot()));
+
+    const auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+
+    expandAction  ->setEnabled(hierObj);
+    collapseAction->setEnabled(true);
+  }
 
   //---
 
@@ -1130,19 +1156,8 @@ pushSlot()
 {
   PlotObjs objs;
 
-  selectedPlotObjs(objs);
-
-  if (objs.empty()) {
-    auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
-
-    auto w = pixelToWindow(Point(pos));
-
-    plotObjsAtPoint(w, objs);
-  }
-
-  if (objs.empty())
-    return;
+  menuPlotObjs(objs);
+  if (objs.empty()) return;
 
   for (const auto &obj : objs) {
     auto *hierObj = dynamic_cast<HierObj *>(obj);
@@ -1193,6 +1208,79 @@ popTopSlot()
   }
 }
 
+//---
+
+void
+CQChartsTreeMapPlot::
+expandSlot()
+{
+  PlotObjs objs;
+
+  menuPlotObjs(objs);
+  if (objs.empty()) return;
+
+  auto *obj = (! objs.empty() ? *objs.begin() : nullptr);
+
+  const auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+  if (! hierObj) return;
+
+  if (isFollowViewExpand()) {
+    if (hierObj->modelInd().isValid())
+      expandModelIndex(hierObj->modelInd(), true);
+  }
+  else {
+    hierObj->hierNode()->setExpanded(true);
+  }
+
+  drawObjs();
+}
+
+void
+CQChartsTreeMapPlot::
+collapseSlot()
+{
+  PlotObjs objs;
+
+  menuPlotObjs(objs);
+  if (objs.empty()) return;
+
+  auto *obj = (! objs.empty() ? *objs.begin() : nullptr);
+
+  auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+
+  if (isFollowViewExpand()) {
+    auto *hierObj = (nodeObj ? nodeObj->parent() : nullptr);
+    if (! hierObj) return;
+
+    if (hierObj->modelInd().isValid())
+      expandModelIndex(hierObj->modelInd(), false);
+  }
+  else {
+    auto *hierNode = nodeObj->node()->parent();
+    if (! hierNode) return;
+
+    hierNode->setExpanded(false);
+  }
+
+  drawObjs();
+}
+
+void
+CQChartsTreeMapPlot::
+menuPlotObjs(PlotObjs &objs) const
+{
+  selectedPlotObjs(objs);
+
+  if (objs.empty()) {
+    auto gpos = view()->menuPos();
+    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+
+    auto w = pixelToWindow(Point(pos));
+
+    plotObjsAtPoint(w, objs, Constraints::SELECTABLE);
+  }
+}
+
 //------
 
 void
@@ -1214,10 +1302,11 @@ followViewExpandChanged()
 {
   if (isFollowViewExpand())
     modelViewExpansionChanged();
-  else
-    resetNodeExpansion();
+  else {
+    resetNodeExpansion(true);
 
-  drawObjs();
+    updateRangeAndObjs();
+  }
 }
 
 void
@@ -1226,6 +1315,8 @@ modelViewExpansionChanged()
 {
   if (! isFollowViewExpand())
     return;
+
+  resetNodeExpansion(false);
 
   std::set<QModelIndex> indSet;
 
@@ -1241,7 +1332,10 @@ void
 CQChartsTreeMapPlot::
 setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet)
 {
-  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
+  bool expanded = (indSet.find(hierNode->ind()) != indSet.end());
+
+  if (hierNode->isExpanded() != expanded)
+    hierNode->setExpanded(expanded);
 
   for (auto &hierNode1 : hierNode->getChildren())
     setNodeExpansion(hierNode1, indSet);
@@ -1249,23 +1343,64 @@ setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet)
 
 void
 CQChartsTreeMapPlot::
-resetNodeExpansion()
+resetNodeExpansion(bool expanded)
 {
   for (auto &hierNode : root()->getChildren())
-    resetNodeExpansion(hierNode);
+    resetNodeExpansion(hierNode, expanded);
 }
 
 void
 CQChartsTreeMapPlot::
-resetNodeExpansion(HierNode *hierNode)
+resetNodeExpansion(HierNode *hierNode, bool expanded)
 {
-  hierNode->setExpanded(true);
+  if (hierNode->isExpanded() != expanded)
+    hierNode->setExpanded(expanded);
 
   for (auto &hierNode1 : hierNode->getChildren())
-    resetNodeExpansion(hierNode1);
+    resetNodeExpansion(hierNode1, expanded);
 }
 
 //---
+
+bool
+CQChartsTreeMapPlot::
+isPathExpanded(const QString &path) const
+{
+  auto p = pathExpanded_.find(path);
+  if (p == pathExpanded_.end()) return true;
+
+  return (*p).second;
+}
+
+void
+CQChartsTreeMapPlot::
+setPathExpanded(const QString &path, bool expanded)
+{
+  pathExpanded_[path] = expanded;
+}
+
+void
+CQChartsTreeMapPlot::
+resetPathExpanded()
+{
+  pathExpanded_.clear();
+}
+
+//---
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapPlot::
+createHierNode(HierNode *parent, const QString &name, const QModelIndex &nameInd) const
+{
+  return new HierNode(this, parent, name, nameInd);
+}
+
+CQChartsTreeMapNode *
+CQChartsTreeMapPlot::
+createNode(HierNode *parent, const QString &name, double size, const QModelIndex &nameInd) const
+{
+  return new Node(this, parent, name, size, nameInd);
+}
 
 CQChartsTreeMapHierObj *
 CQChartsTreeMapPlot::
@@ -1347,6 +1482,11 @@ bool
 CQChartsTreeMapHierObj::
 inside(const Point &p) const
 {
+  auto *pnode = hier_->parent();
+
+  if (pnode && ! pnode->isHierExpanded())
+    return false;
+
   BBox bbox(hier_->x(), hier_->y(), hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
   if (bbox.inside(p))
@@ -1355,11 +1495,47 @@ inside(const Point &p) const
   return false;
 }
 
+bool
+CQChartsTreeMapHierObj::
+isSelectable() const
+{
+  auto *pnode = hier_->parent();
+
+  if (pnode && ! pnode->isHierExpanded())
+    return false;
+
+  if (hier_->isHierExpanded())
+    return false;
+
+  return true;
+}
+
 void
 CQChartsTreeMapHierObj::
 getObjSelectIndices(Indices &inds) const
 {
   return addColumnSelectIndex(inds, plot_->valueColumn());
+}
+
+bool
+CQChartsTreeMapHierObj::
+selectDoubleClick(const Point &, SelMod)
+{
+  auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
+  if (plot->isFollowViewExpand()) {
+    if (modelInd().isValid())
+      plot->expandModelIndex(modelInd(), true);
+
+    plot->drawObjs();
+  }
+  else {
+    hierNode()->setExpanded(true);
+
+    plot->drawObjs();
+  }
+
+  return true;
 }
 
 void
@@ -1622,7 +1798,12 @@ bool
 CQChartsTreeMapNodeObj::
 inside(const Point &p) const
 {
-  BBox bbox(node_->x(), node_->y(), node_->x() + node_->w(), node_->y() + node_->h());
+  auto *pnode = node()->parent();
+
+  if (pnode && ! pnode->isHierExpanded())
+    return false;
+
+  BBox bbox(node()->x(), node()->y(), node()->x() + node()->w(), node()->y() + node()->h());
 
   if (bbox.inside(p))
     return true;
@@ -1732,8 +1913,12 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   strs.push_back(name);
 
-  if (plot_->isValueLabel())
-    strs.push_back(QString("%1").arg(node_->size()));
+  if (plot_->isValueLabel()) {
+    if (node_->isHier())
+      strs.push_back(QString("%1").arg(node_->hierSize()));
+    else
+      strs.push_back(QString("%1").arg(node_->size()));
+  }
 
   //---
 
@@ -1921,6 +2106,15 @@ CQChartsTreeMapHierNode::
 
   for (auto &node : nodes_)
     delete node;
+}
+
+void
+CQChartsTreeMapHierNode::
+setExpanded(bool b)
+{
+  expanded_ = b;
+
+  const_cast<Plot *>(plot_)->setPathExpanded(hierName(), expanded_);
 }
 
 bool
@@ -2272,6 +2466,10 @@ CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
 
   addFrameColWidget(optionsFrame, valueCheck_);
 
+  followViewCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Follow View", "followViewCheck_");
+
+  addFrameColWidget(optionsFrame, followViewCheck_);
+
   //---
 
   addLayoutStretch();
@@ -2285,6 +2483,8 @@ connectSlots(bool b)
 {
   CQChartsWidgetUtil::connectDisconnect(b,
     valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    followViewCheck_, SIGNAL(stateChanged(int)), this, SLOT(followViewSlot()));
 
   CQChartsHierPlotCustomControls::connectSlots(b);
 }
@@ -2308,6 +2508,8 @@ updateWidgets()
 
   valueCheck_->setChecked(plot_->isValueLabel());
 
+  followViewCheck_->setChecked(plot_->isFollowViewExpand());
+
   CQChartsHierPlotCustomControls::updateWidgets();
 
   //---
@@ -2320,6 +2522,13 @@ CQChartsTreeMapPlotCustomControls::
 valueSlot()
 {
   plot_->setValueLabel(valueCheck_->isChecked());
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+followViewSlot()
+{
+  plot_->setFollowViewExpand(followViewCheck_->isChecked());
 }
 
 CQChartsColor

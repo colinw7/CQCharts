@@ -1991,6 +1991,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool selectMouseMove   (const Point &p, bool first=false);
   virtual bool selectMouseRelease(const Point &p);
 
+  virtual bool selectMouseDoubleClick(const Point &p, SelMod selMod);
+
   //---
 
   // select interface
@@ -1998,6 +2000,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool handleSelectMove   (const Point &p, Constraints constraints=Constraints::EDITABLE,
                                    bool first=false);
   virtual bool handleSelectRelease(const Point &p);
+
+  virtual bool handleSelectDoubleClick(const Point &p, SelMod selMod);
 
   //-
 
@@ -2011,6 +2015,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 //bool annotationsSelectPress(const Point &w, SelMod selMod);
 
   Obj *objectsSelectPress(const Point &w, SelMod selMod);
+
+  Obj *objectsSelectDoubleClick(const Point &w, SelMod selMod);
 
   //-
 
@@ -2943,16 +2949,24 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void titlePressed(CQChartsTitle *);
   void titleIdPressed(const QString &);
 
-  // annotation signals (annotation pressed)
+  // annotation signals (annotation pressed, double clicked)
   void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
-  // object signals (object pressed)
+  void annotationDoubleClicked(CQChartsAnnotation *);
+  void annotationIdDoubleClicked(const QString &);
+
+  // object signals (object pressed, double clicked)
   void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
+  void objDoubleClicked(CQChartsPlotObj *);
+  void objIdDoubleClicked(const QString &);
+
   // pressed
   void selectPressSignal(const CQChartsGeom::Point &p);
+
+  void selectDoubleClickSignal(const CQChartsGeom::Point &p);
 
   // zoom/pan changed
   void zoomPanChanged();
@@ -3007,25 +3021,33 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void groupedObjsAtPoint(const Point &p, Objs &objs,
                                   const Constraints &constraints) const;
 
-  void groupedAnnotationsAtPoint(const Point &p, Annotations &annotations) const;
+  void groupedAnnotationsAtPoint(const Point &p, Annotations &annotations,
+                                 const Constraints &constraints) const;
 
-  virtual void groupedObjsIntersectRect(const BBox &r, Objs &objs,
-                                        bool inside, bool select=false) const;
+  virtual void groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside,
+                                        const Constraints &constraints) const;
 
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 
  protected:
-  virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs) const;
+  virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs,
+                               const Constraints &constraints) const;
 
-  void groupedPlotObjsAtPoint(const Point &p, PlotObjs &objs) const;
+  void groupedPlotObjsAtPoint(const Point &p, PlotObjs &objs,
+                              const Constraints &constraints) const;
 
-  void annotationsAtPoint(const Point &p, Annotations &annotations) const;
+  void annotationsAtPoint(const Point &p, Annotations &annotations,
+                          const Constraints &constraints) const;
 
-  virtual void groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
-  virtual void plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
+  virtual void groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
+                                            const Constraints &constraints) const;
+  virtual void plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
+                                     const Constraints &constraints) const;
 
-  void annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const;
-  void annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const;
+  void annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside,
+                                const Constraints &constraints) const;
+  void annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
+                                 const Constraints &constraints) const;
 
   //---
 

@@ -4,11 +4,14 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + more support for module roles in charts objects (when not columns ?)
+ + meta data in more data file formats
  + more separated/gridded plots for grouped (grid column ?)
- + color column for image plot (+ controls)
+   + treemap
+ + support columns in image plot (+ color column) (+ controls)
  + ensure new color handling code handles color column
    + better testing of color combinations
- + icon spliiter group (support one of)
+ + icon splitter group (support one of)
  + pie chart variants:
    https://www.tableau.com/about/blog/5-unusual-alternatives-pie-charts
  + pie chart double group (generic support) with split
@@ -815,11 +818,11 @@ Tree map
  + Filter to visible (keep placement, don't show) 
  + Tree map performance for large data (file tree) (small object opt)
  + Tree Map title (max) depth
+ + Push/Pop controls on title
  + Support Hier Value and Child Values (include in sum, total size)
  + Auto font size
  + Color Key
  + Color fixed size box by value
- + Show size with label
  + Html scaled not working
  + hierarchical key ? (tree map)
  + Test for extra nodes in tree map (hier with size and child with size)

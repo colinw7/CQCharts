@@ -279,6 +279,21 @@ expansionChangeSlot()
     plot->modelViewExpansionChanged();
 }
 
+bool
+CQChartsView::
+isExpandModelIndex(const QModelIndex &ind) const
+{
+  return window()->isExpandModelIndex(ind);
+}
+
+void
+CQChartsView::
+expandModelIndex(const QModelIndex &ind, bool b)
+{
+  if (window())
+    window()->expandModelIndex(ind, b);
+}
+
 void
 CQChartsView::
 expandedModelIndices(QModelIndexList &inds)
@@ -2675,6 +2690,39 @@ mouseReleaseEvent(QMouseEvent *me)
   }
 }
 
+void
+CQChartsView::
+mouseDoubleClickEvent(QMouseEvent *me)
+{
+  if (isPreview())
+    return;
+
+  if (me->button() != Qt::LeftButton)
+    return;
+
+  Point mp(me->pos());
+
+  mouseData_.reset();
+
+  mouseData_.pressPoint = adjustMousePos(mp);
+  mouseData_.button     = me->button();
+  mouseData_.pressed    = true;
+  mouseData_.movePoint  = mouseData_.pressPoint;
+  mouseData_.selMod     = modifiersToSelMod(me->modifiers());
+  mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
+
+  auto w = pixelToWindow(mousePressPoint());
+
+  plotsAt(w, mouseData_.plots, mouseData_.plot);
+
+  //---
+
+  // TODO: other modes ?
+  if (mode() == Mode::SELECT) {
+    selectMouseDoubleClick();
+  }
+}
+
 CQChartsGeom::Point
 CQChartsView::
 adjustMousePos(const Point &pos) const
@@ -3408,9 +3456,11 @@ selectPointPress()
   // select view annotation
   annotationsAtPoint(w, pressAnnotations_);
 
+#if 0
   for (const auto &annotation : pressAnnotations_) {
     annotation->selectPress(w, mouseSelMod());
   }
+#endif
 
   for (const auto &selAnnotation : pressAnnotations_) {
     if (! selAnnotation->selectPress(w, mouseSelMod()))
@@ -3453,9 +3503,11 @@ selectPointPress()
 
   //---
 
+#if 0
   // select view key
   if (key() && key()->contains(w))
     key()->selectPress(w, SelMod::REPLACE);
+#endif
 }
 
 void
@@ -3540,6 +3592,61 @@ selectMouseRelease()
 
     annotation->selectRelease(w);
   }
+}
+
+void
+CQChartsView::
+selectMouseDoubleClick()
+{
+  auto w = pixelToWindow(mousePressPoint());
+
+  //---
+
+  // key
+  if (key() && key()->contains(w)) {
+    if (key()->selectDoubleClick(w, mouseClickMod()))
+      return;
+  }
+
+  //---
+
+  // select view annotation
+  annotationsAtPoint(w, pressAnnotations_);
+
+  for (const auto &annotation : pressAnnotations_) {
+    annotation->selectDoubleClick(w, mouseSelMod());
+  }
+
+  //---
+
+  // select plot objects
+  struct SelData {
+    Point          pos;
+    CQChartsSelMod selMod;
+
+    SelData(const Point &pos, CQChartsSelMod selMod) :
+     pos(pos), selMod(selMod) {
+    }
+  };
+
+  SelData selData(mousePressPoint(), mouseSelMod());
+
+  if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
+    if (plot->selectMouseDoubleClick(data.pos, data.selMod)) {
+      auto *selPlot = plot->selectionPlot();
+      setCurrentPlot(selPlot);
+      return true;
+    }
+    return false;
+  }, selData)) {
+    return;
+  }
+
+  //---
+
+  // select view key
+  if (key() && key()->contains(w))
+    key()->selectDoubleClick(w, SelMod::REPLACE);
 }
 
 bool

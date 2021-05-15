@@ -108,6 +108,8 @@ class CQChartsTreeMapNode {
   virtual int depth() const { return depth_; }
   virtual void setDepth(int i) { depth_ = i; }
 
+  virtual bool isHier() const { return false; }
+
   bool isFiller() const { return filler_; }
   void setFiller(bool b) { filler_ = b; }
 
@@ -187,6 +189,12 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
  ~CQChartsTreeMapHierNode();
 
+  //---
+
+  bool isHier() const override { return true; }
+
+  //---
+
   int hierInd() const { return hierInd_; }
   void setHierInd(int i) { hierInd_ = i; }
 
@@ -198,7 +206,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   //---
 
   bool isExpanded() const { return expanded_; }
-  void setExpanded(bool b) { expanded_ = b; }
+  void setExpanded(bool b);
 
   bool isHierExpanded() const;
 
@@ -357,7 +365,11 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   bool inside(const Point &p) const override;
 
+  bool isSelectable() const override;
+
   void getObjSelectIndices(Indices &inds) const override;
+
+  bool selectDoubleClick(const Point &, SelMod) override;
 
   //---
 
@@ -579,6 +591,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
+  //---
+
+  bool isPathExpanded(const QString &path) const;
+  void setPathExpanded(const QString &path, bool expanded);
+
+  void resetPathExpanded();
+
  protected:
   void initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) const;
 
@@ -628,14 +647,20 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void modelViewExpansionChanged() override;
   void setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet);
 
-  void resetNodeExpansion();
-  void resetNodeExpansion(HierNode *hierNode);
+  void resetNodeExpansion(bool expanded);
+  void resetNodeExpansion(HierNode *hierNode, bool expanded);
 
   //---
 
   bool getValueSize(const ModelIndex &ind, double &size) const;
 
   //---
+
+  virtual HierNode *createHierNode(HierNode *parent, const QString &name,
+                                   const QModelIndex &nameInd) const;
+
+  virtual Node *createNode(HierNode *parent, const QString &name,
+                           double size, const QModelIndex &nameInd) const;
 
   virtual HierObj *createHierObj(HierNode *hier, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
@@ -647,8 +672,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void popSlot();
   void popTopSlot();
 
+  void expandSlot();
+  void collapseSlot();
+
  private:
   void updateCurrentRoot();
+
+  void menuPlotObjs(PlotObjs &objs) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -687,6 +717,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   mutable int in_                 { 0 };       //!< current node index
   double      windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
   double      windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+
+  using PathExpanded = std::map<QString, bool>;
+
+  PathExpanded pathExpanded_;
 };
 
 //---
@@ -710,14 +744,16 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
 
  private slots:
   void valueSlot();
+  void followViewSlot();
 
  private:
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
  private:
-  TreeMapPlot* plot_       { nullptr };
-  QCheckBox*   valueCheck_ { nullptr };
+  TreeMapPlot* plot_            { nullptr };
+  QCheckBox*   valueCheck_      { nullptr };
+  QCheckBox*   followViewCheck_ { nullptr };
 };
 
 #endif

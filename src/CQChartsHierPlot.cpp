@@ -96,6 +96,24 @@ setFollowViewExpand(bool b)
   }
 }
 
+bool
+CQChartsHierPlot::
+isExpandModelIndex(const QModelIndex &ind) const
+{
+  return view()->isExpandModelIndex(ind);
+}
+
+void
+CQChartsHierPlot::
+expandModelIndex(const QModelIndex &ind, bool b)
+{
+  auto ind1 = unnormalizeIndex(ind);
+
+  view()->expandModelIndex(ind1, b);
+
+  updateRangeAndObjs();
+}
+
 void
 CQChartsHierPlot::
 expandedModelIndices(std::set<QModelIndex> &indSet) const

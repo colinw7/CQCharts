@@ -51,6 +51,7 @@ class CQChartsModelViewHolder : public QFrame {
   void setSearch(const QString &text);
   void addSearch(const QString &text);
 
+  ModelP model() const;
   void setModel(ModelP model, bool hierarchical);
 
   QItemSelectionModel *selectionModel();

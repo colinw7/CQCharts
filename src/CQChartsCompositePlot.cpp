@@ -1718,14 +1718,15 @@ groupedObjsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) c
 
 void
 CQChartsCompositePlot::
-groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
+groupedObjsIntersectRect(const BBox &r, Objs &objs, bool inside,
+                         const Constraints &constraints) const
 {
   auto *currentPlot = this->currentPlot();
 
   if (currentPlot) {
     auto r1 = currentPlot->pixelToWindow(windowToPixel(r));
 
-    currentPlot->groupedObjsIntersectRect(r1, objs, inside, select);
+    currentPlot->groupedObjsIntersectRect(r1, objs, inside, constraints);
   }
 }
 
