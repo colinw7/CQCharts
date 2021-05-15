@@ -345,15 +345,6 @@ CQGnuDataModel.cpp \
 CQFoldedModel.cpp \
 CQHierSepModel.cpp \
 \
-CQBaseModel.cpp \
-CQDataModel.cpp \
-CQModelDetails.cpp \
-CQModelNameValues.cpp \
-CQModelUtil.cpp \
-CQModelVisitor.cpp \
-CQSortModel.cpp \
-CQValueSet.cpp \
-\
 CQSummaryModel.cpp \
 CQSubSetModel.cpp \
 CQTransposeModel.cpp \
@@ -361,7 +352,6 @@ CQBucketModel.cpp \
 CQCollapseModel.cpp \
 CQPivotModel.cpp \
 CQBucketer.cpp \
-CQTrie.cpp \
 \
 CSVGUtil.cpp \
 \
@@ -720,19 +710,8 @@ HEADERS += \
 ../include/CQCollapseModel.h \
 ../include/CQPivotModel.h \
 ../include/CQBucketer.h \
-../include/CQTrie.h \
 \
 ../include/CSVGUtil.h \
-\
-../include/CQBaseModel.h \
-../include/CQBaseModelTypes.h \
-../include/CQDataModel.h \
-../include/CQModelDetails.h \
-../include/CQModelUtil.h \
-../include/CQModelVisitor.h \
-../include/CQSortModel.h \
-../include/CQStatData.h \
-../include/CQValueSet.h \
 \
 ../include/CQHandDrawnPainter.h \
 ../include/CQFilename.h \
@@ -763,6 +742,7 @@ INCLUDEPATH += \
 ../include \
 ../../CQPropertyView/include \
 ../../CQModelView/include \
+../../CQBaseModel/include \
 ../../CQColors/include \
 ../../CQDividedArea/include \
 ../../CQCustomCombo/include \

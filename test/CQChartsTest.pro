@@ -51,6 +51,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQPropertyView/include \
+../../CQBaseModel/include \
 ../../CQColors/include \
 ../../CQUtil/include \
 ../../CQPerfMonitor/include \
@@ -74,6 +75,7 @@ unix:LIBS += \
 -L../lib \
 -L../../CQPropertyView/lib \
 -L../../CQModelView/lib \
+-L../../CQBaseModel/lib \
 -L../../CQColors/lib \
 -L../../CQCustomCombo/lib \
 -L../../CQUtil/lib \
@@ -91,7 +93,7 @@ unix:LIBS += \
 -L../../CRegExp/lib \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
--lCQCharts -lCQPropertyView -lCQModelView -lCQColors \
+-lCQCharts -lCQPropertyView -lCQModelView -lCQBaseModel -lCQColors \
 -lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCJson \
 -lCXML -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
