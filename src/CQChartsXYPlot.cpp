@@ -2420,7 +2420,7 @@ addKeyItems(PlotKey *key)
           }
 
   #if 0
-          if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
+          if (ns == 1 && (name == "" || name == QString::number(yColumn + 1))) {
             if      (titleStr().length())
               name = titleStr();
             else if (filename().length())

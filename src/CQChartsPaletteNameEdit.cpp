@@ -150,18 +150,16 @@ createEdit(QWidget *parent)
 
   auto *obj = (item ? item->object() : nullptr);
 
-  CQChartsPlot *plot   = nullptr;
-  CQChartsView *view   = nullptr;
-  CQCharts     *charts = nullptr;
+  CQChartsObjUtil::ObjData objData;
 
-  CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
+  CQChartsObjUtil::getObjData(obj, objData);
 
   //---
 
   auto *edit = new CQChartsPaletteNameEdit(parent);
 
-  if (plot)
-    edit->setCharts(plot->charts());
+  if (objData.plot)
+    edit->setCharts(objData.plot->charts());
 
   return edit;
 }

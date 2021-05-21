@@ -12,11 +12,24 @@ CQChartsHull3D()
 CQChartsHull3D::
 ~CQChartsHull3D()
 {
+  clear();
+}
+
+void
+CQChartsHull3D::
+clear()
+{
   for (PVertex v = vertices_, vn = nullptr; v && vn != vertices_; v = vn) {
     vn = v->next;
 
     delete v;
   }
+
+  vertices_ = nullptr;
+
+  Vertex::resetCount();
+
+  //---
 
   for (PEdge e = edges_, en = nullptr; e && en != edges_; e = en) {
     en = e->next;
@@ -24,11 +37,19 @@ CQChartsHull3D::
     delete e;
   }
 
+  edges_ = nullptr;
+
+  //---
+
   for (PFace f = faces_, fn = nullptr; f && fn != faces_; f = fn) {
     fn = f->next;
 
     delete f;
   }
+
+  faces_ = nullptr;
+
+  //---
 
   for (PVertex v = vvertices_, vn = nullptr; v && vn != vvertices_; v = vn) {
     vn = v->next;
@@ -36,11 +57,17 @@ CQChartsHull3D::
     delete v;
   }
 
+  vvertices_ = nullptr;
+
+  //---
+
   for (PEdge e = vedges_, en = nullptr; e && en != vedges_; e = en) {
     en = e->next;
 
     delete e;
   }
+
+  vedges_ = nullptr;
 }
 
 bool

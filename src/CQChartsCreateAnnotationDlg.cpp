@@ -1659,12 +1659,14 @@ createPointSetAnnotation()
 
   CQChartsPointSetAnnotation *annotation = nullptr;
 
+  CQChartsRect rect(CQChartsUnits::VIEW, CQChartsGeom::BBox(10, 10, 90, 90));
+
   CQChartsPoints points;
 
   if      (plot())
-    annotation = plot()->addPointSetAnnotation(points);
+    annotation = plot()->addPointSetAnnotation(rect, points);
   else if (view())
-    annotation = view()->addPointSetAnnotation(points);
+    annotation = view()->addPointSetAnnotation(rect, points);
   else
     return false;
 

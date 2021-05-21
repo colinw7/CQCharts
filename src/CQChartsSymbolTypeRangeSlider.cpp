@@ -13,8 +13,8 @@ CQChartsSymbolTypeRangeSlider(QWidget *parent) :
 {
   setSliderPos(SliderPos::BOTH);
 
-  setFillColor  (QColor("#1155bc"));
-  setStrokeColor(QColor("#aaaaaa"));
+  setFillColor  (QColor("#1155bc")); // TODO: config
+  setStrokeColor(QColor("#aaaaaa")); // TODO: config
 
   setXBorder(12);
 }

@@ -370,7 +370,7 @@ initGroup(CQChartsGroupData &data) const
       auto name = modelHHeaderString(column, ok);
 
       if (! name.length())
-        name = QString("%1").arg(column.column());
+        name = QString::number(column.column());
 
       int ind = columnBucket->addValue(column.column());
 

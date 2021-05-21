@@ -30,6 +30,7 @@
 #include <CQCustomCombo.h>
 #include <CQGroupBox.h>
 #include <CQIconButton.h>
+#include <CQIconLabel.h>
 #include <CQTabWidget.h>
 #include <CQTclUtil.h>
 #include <CQPixmapCache.h>
@@ -40,7 +41,6 @@
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QCheckBox>
-#include <QLabel>
 #include <cassert>
 
 CQChartsCreatePlotDlg::
@@ -202,6 +202,15 @@ createDataFrame()
 
   //--
 
+  // advanced controls
+  auto *advancedCheck = CQUtil::makeLabelWidget<QCheckBox>("Advanced", "advancedCheck");
+
+  advancedCheck->setToolTip("Show advanced plot options");
+
+  connect(advancedCheck, SIGNAL(stateChanged(int)), this, SLOT(advancedSlot(int)));
+
+  typeLayout->addWidget(advancedCheck);
+
   // auto analyze model data
   auto *autoAnalyzeCheck =
     CQUtil::makeLabelWidget<QCheckBox>("Auto Analyze", "autoAnalyzeCheck");
@@ -253,14 +262,6 @@ createTypeDataFrame()
   // plot type widgets in stack (one per type)
   auto *plotDataFrame  = CQUtil::makeWidget<QFrame>("plotDataFrame");
   auto *plotDataLayout = CQUtil::makeLayout<QVBoxLayout>(plotDataFrame, 2, 2);
-
-  auto *plotDataCheck = CQUtil::makeLabelWidget<QCheckBox>("Advanced", "plotDataCheck");
-
-  plotDataCheck->setToolTip("Show advanced plot options");
-
-  connect(plotDataCheck, SIGNAL(stateChanged(int)), this, SLOT(plotDataSlot(int)));
-
-  plotDataLayout->addWidget(plotDataCheck);
 
   plotDataStack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
@@ -342,13 +343,13 @@ createTypeCombo()
   QStringList items;
 
   bool plotTypeHier = false;
-  auto plotTypeDim  = PlotType::Dimension::NONE;
+  auto plotTypeCat  = PlotType::Category::NONE;
 
   QString title;
 
   for (auto &plotType : plotTypes) {
     bool hier = plotType->isHierarchical();
-    auto dim  = plotType->dimension();
+    auto cat  = plotType->category();
 
     if (hier != plotTypeHier) {
       if (hier)
@@ -357,15 +358,17 @@ createTypeCombo()
       plotTypeHier = hier;
     }
 
-    if (dim != plotTypeDim) {
-      if      (dim == PlotType::Dimension::ONE_D)
+    if (cat != plotTypeCat) {
+      if      (cat == PlotType::Category::ONE_D)
         typeCombo->addTitle("1D");
-      else if (dim == PlotType::Dimension::TWO_D)
+      else if (cat == PlotType::Category::TWO_D)
         typeCombo->addTitle("2D");
+      else if (cat == PlotType::Category::CONNECTION)
+        typeCombo->addTitle("Connection");
       else
         typeCombo->addTitle("Other");
 
-      plotTypeDim = dim;
+      plotTypeCat = cat;
     }
 
     typeCombo->addItem(plotType->desc());
@@ -525,7 +528,7 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
 
   this->charts()->getPlotTypes(plotTypes);
 
-  // create ordered list of types (1D, 2D, other, hierarchical)
+  // create ordered list of types (1D, 2D, Category, Other, Hierarchical)
 
   using DimPlotTypesMap     = std::map<int, CQCharts::PlotTypes>;
   using HierDimPlotsTypeMap = std::map<bool, DimPlotTypesMap>;
@@ -533,14 +536,14 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
   HierDimPlotsTypeMap hierDimPlotsTypeMap;
 
   for (auto &plotType : plotTypes) {
-    auto dim = plotType->dimension();
+    auto cat = plotType->category();
 
-    int dim1 = 999;
+    int cat1 = 999;
 
-    if (dim != PlotType::Dimension::NONE)
-      dim1 = int(dim);
+    if (cat != PlotType::Category::NONE)
+      cat1 = int(cat);
 
-    hierDimPlotsTypeMap[plotType->isHierarchical()][dim1].push_back(plotType);
+    hierDimPlotsTypeMap[plotType->isHierarchical()][cat1].push_back(plotType);
   }
 
   //---
@@ -548,9 +551,9 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
   plotTypes1.clear();
 
   for (auto &p1 : hierDimPlotsTypeMap) {
-    const auto &dimPlotTypesMap = p1.second;
+    const auto &catPlotTypesMap = p1.second;
 
-    for (auto &p2 : dimPlotTypesMap) {
+    for (auto &p2 : catPlotTypesMap) {
       const auto &plotTypes = p2.second;
 
       for (auto &plotType : plotTypes)
@@ -677,10 +680,8 @@ createGeneralDataFrame()
 
   xRangeFrameLayout->addWidget(rangeEditData_.yminButton);
 
-  connect(rangeEditData_.xminEdit, SIGNAL(textChanged(const QString &)),
-          this, SLOT(validateSlot()));
-  connect(rangeEditData_.yminEdit, SIGNAL(textChanged(const QString &)),
-          this, SLOT(validateSlot()));
+  connect(rangeEditData_.xminEdit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
+  connect(rangeEditData_.yminEdit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 
   //--
 
@@ -705,10 +706,8 @@ createGeneralDataFrame()
 
   yRangeFrameLayout->addWidget(rangeEditData_.ymaxButton);
 
-  connect(rangeEditData_.xmaxEdit, SIGNAL(textChanged(const QString &)),
-          this, SLOT(validateSlot()));
-  connect(rangeEditData_.ymaxEdit, SIGNAL(textChanged(const QString &)),
-          this, SLOT(validateSlot()));
+  connect(rangeEditData_.xmaxEdit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
+  connect(rangeEditData_.ymaxEdit, SIGNAL(valueChanged()), this, SLOT(validateSlot()));
 
   //----
 
@@ -1598,11 +1597,9 @@ addFormatEdit(PlotData &plotData, PlotParameter *parameter, QGridLayout *layout,
   //---
 
   // add attributes tip label
-  auto is = formatEditData.formatUpdate->iconSize();
+  auto *attributesLabel = CQUtil::makeWidget<CQIconLabel>("attributesLabel");
 
-  auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
-
-  attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
+  attributesLabel->setIcon("INFO");
   attributesLabel->setToolTip(parameter->attributes().summary());
 
   layout->addWidget(attributesLabel, row, col); ++col;
@@ -1641,7 +1638,7 @@ comboSlot(const QString &desc)
 
 void
 CQChartsCreatePlotDlg::
-plotDataSlot(int state)
+advancedSlot(int state)
 {
   advanced_ = (state != 0);
 

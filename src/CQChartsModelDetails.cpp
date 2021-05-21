@@ -836,7 +836,7 @@ uniqueValueCounts() const
     valueSet->ivals().uniqueValueCounts(ivalueCounts);
 
     for (const auto &v : ivalueCounts)
-      valueCounts.push_back(ValueCount(v.first, v.second));
+      valueCounts.emplace_back(v.first, v.second);
   }
   else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::ValueCounts rvalueCounts;
@@ -844,7 +844,7 @@ uniqueValueCounts() const
     valueSet->rvals().uniqueValueCounts(rvalueCounts);
 
     for (const auto &v : rvalueCounts)
-      valueCounts.push_back(ValueCount(v.first, v.second));
+      valueCounts.emplace_back(v.first, v.second);
   }
   else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::ValueCounts svalueCounts;
@@ -852,7 +852,7 @@ uniqueValueCounts() const
     valueSet->svals().uniqueValueCounts(svalueCounts);
 
     for (const auto &v : svalueCounts)
-      valueCounts.push_back(ValueCount(v.first, v.second));
+      valueCounts.emplace_back(v.first, v.second);
   }
   else if (type() == CQBaseModelType::TIME) {
     CQChartsRValues::ValueCounts tvalueCounts;
@@ -860,7 +860,7 @@ uniqueValueCounts() const
     valueSet->tvals().uniqueValueCounts(tvalueCounts);
 
     for (const auto &v : tvalueCounts)
-      valueCounts.push_back(ValueCount(v.first, v.second));
+      valueCounts.emplace_back(v.first, v.second);
   }
   else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::ValueCounts cvalueCounts;
@@ -868,7 +868,7 @@ uniqueValueCounts() const
     valueSet->cvals().uniqueValueCounts(cvalueCounts);
 
     for (const auto &v : cvalueCounts)
-      valueCounts.push_back(ValueCount(CQChartsVariant::fromColor(v.first), v.second));
+      valueCounts.emplace_back(CQChartsVariant::fromColor(v.first), v.second);
   }
 
   return valueCounts;
@@ -2043,7 +2043,7 @@ heatmapColor(double r, double min, double max, const QColor &bg) const
   }
   else {
     // blend default color (red) with background color using normalized value
-    auto bg1 = QColor(255, 0, 0);
+    auto bg1 = QColor(Qt::red);
     auto bg2 = bg;
 
     c = CQChartsUtil::blendColors(bg1, bg2, norm);
@@ -2058,7 +2058,7 @@ barchartColor() const
 {
   initType();
 
-  auto c = QColor(160, 160, 160); // gray
+  auto c = QColor(160, 160, 160); // gray. TODO: config
 
   auto *charts = details_->charts();
   if (! charts) return c;

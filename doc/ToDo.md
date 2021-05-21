@@ -4,7 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + more support for module roles in charts objects (when not columns ?)
+ + hier name support for connection plots (sankey) to provide extra level for grouping
+ + chord color control
+ + text place on line (used in axis)
+ + model/column combination
+ + support model/columns for annotation data
+ + more support for module roles in charts objects (when no columns ?)
  + meta data in more data file formats
  + more separated/gridded plots for grouped (grid column ?)
    + treemap

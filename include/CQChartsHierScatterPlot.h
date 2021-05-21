@@ -22,7 +22,7 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 
   bool isHierarchical() const override { return true; }
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   void addParameters() override;
 

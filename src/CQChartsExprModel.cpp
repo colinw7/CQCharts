@@ -1074,7 +1074,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     if (extraColumn.header.length())
       return extraColumn.header;
 
-    auto header = QString("%1").arg(section + 1);
+    auto header = QString::number(section + 1);
 
     return header;
   }
@@ -2128,8 +2128,11 @@ QVariant
 CQChartsExprModel::
 colorCmd(const Values &values) const
 {
-  if (values.size() == 1)
-    return QVariant(QColor(values[0].toString()));
+  if (values.size() == 1) {
+    auto c = CQChartsUtil::stringToColor(values[0].toString());
+
+    return QVariant(c);
+  }
 
   return QVariant();
 }

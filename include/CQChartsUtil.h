@@ -128,6 +128,8 @@ QColor blendColors(const std::vector<QColor> &colors);
 QColor rgbToColor(double r, double g, double b);
 QColor rgbaToColor(double r, double g, double b, double a);
 
+QColor stringToColor(const QString &str);
+
 }
 
 //------
@@ -201,6 +203,7 @@ namespace CQChartsUtil {
 using BBox     = CQChartsGeom::BBox;
 using Size     = CQChartsGeom::Size;
 using Point    = CQChartsGeom::Point;
+using Point3D  = CQChartsGeom::Point3D;
 using Polygon  = CQChartsGeom::Polygon;
 using Polygons = CQChartsGeom::Polygons;
 
@@ -220,8 +223,12 @@ QString sizeToString(const Size &s);
 QString pointToString(const Point &p);
 bool stringToPoint(const QString &str, Point &point);
 
-bool parseBBox (CQStrParse &parse, BBox  &rect , bool terminated=true);
-bool parsePoint(CQStrParse &parse, Point &point, bool terminated=true);
+QString point3DToString(const Point3D &p);
+bool stringToPoint3D(const QString &str, Point3D &point);
+
+bool parseBBox   (CQStrParse &parse, BBox    &rect , bool terminated=true);
+bool parsePoint  (CQStrParse &parse, Point   &point, bool terminated=true);
+bool parsePoint3D(CQStrParse &parse, Point3D &point, bool terminated=true);
 
 //------
 
@@ -502,6 +509,14 @@ Point nearestRectPoint(const BBox &bbox, const Point &p);
 namespace CQChartsUtil {
 
 bool encodeUtf(const QString &s, QString &res);
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QImage disabledImage(const QImage &image, const QColor &bg, double f=0.5);
 
 }
 

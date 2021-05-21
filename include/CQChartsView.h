@@ -627,7 +627,7 @@ class CQChartsView : public QFrame,
                                               const Length &outerRadius, const Angle &startAngle,
                                               const Angle &spanAngle);
   PointAnnotation     *addPointAnnotation    (const Position &pos, const Symbol &type);
-  PointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
+  PointSetAnnotation  *addPointSetAnnotation (const Rect &rect, const CQChartsPoints &values);
   PolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
   PolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
   RectangleAnnotation *addRectangleAnnotation(const Rect &rect);

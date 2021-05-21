@@ -109,7 +109,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
     ipainter()->begin(glDevice_);
 
-    ipainter()->fillRect(QRect(QPoint(0, 0), size_), QColor(0, 0, 0, 0));
+    ipainter()->fillRect(QRect(QPoint(0, 0), size_), Qt::transparent);
   }
 #endif
   else if (bufferType() == BufferType::IMAGE) {
@@ -163,17 +163,17 @@ clear()
 {
   if      (bufferType() == BufferType::PIXMAP) {
     if (pixmap_)
-      pixmap_->fill(QColor(0, 0, 0, 0));
+      pixmap_->fill(Qt::transparent);
   }
 #ifdef CQCHARTS_OPENGL
   else if (bufferType() == BufferType::OPENGL) {
     //if (glBuffer_)
-    //  glBuffer_->fill(QColor(0, 0, 0, 0));
+    //  glBuffer_->fill(Qt::transparent);
   }
 #endif
   else if (bufferType() == BufferType::IMAGE) {
     if (image_)
-      image_->fill(QColor(0, 0, 0, 0));
+      image_->fill(Qt::transparent);
   }
 }
 

@@ -8,6 +8,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTable.h>
+#include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -142,11 +143,11 @@ init()
 
   setGridColor(Color(Color::Type::INTERFACE_VALUE, 0.50));
 
-  setHeaderColor(Color(QColor("#c0c8dc")));
+  setHeaderColor(Color(QColor("#c0c8dc"))); // TODO: from style
 
   setCellColor    (Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setInsideColor  (Color(QColor("#c5c8bc")));
-  setSelectedColor(Color(QColor("#bcc5c8")));
+  setInsideColor  (Color(QColor("#c5c8bc"))); // TODO: from style
+  setSelectedColor(Color(QColor("#bcc5c8"))); // TODO: from style
 
   //---
 
@@ -447,7 +448,7 @@ rowNumsStr() const
   QStringList strs;
 
   for (const auto &r : rowNums())
-    strs << QString("%1").arg(r);
+    strs << QString::number(r);
 
   return strs.join(" ");
 }
@@ -1667,7 +1668,7 @@ createTableObjData() const
 
       rowObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
-      rowObjData.str = QString("%1").arg(n);
+      rowObjData.str = QString::number(n);
     }
 
     void drawCellValues(double x, double y, const VisitData &data) {
@@ -1709,6 +1710,17 @@ createTableObjData() const
         cellObjData.align = Qt::AlignRight | Qt::AlignVCenter;
       else
         cellObjData.align = Qt::AlignLeft | Qt::AlignVCenter;
+
+      //---
+
+      auto bgVar = plot_->modelValue(ind, Qt::BackgroundRole, ok);
+      auto fgVar = plot_->modelValue(ind, Qt::ForegroundRole, ok);
+
+      auto bgColor = CQChartsVariant::toColor(bgVar, ok);
+      auto fgColor = CQChartsVariant::toColor(fgVar, ok);
+
+      if (bgColor.isValid()) cellObjData.bgColor = bgColor;
+      if (fgColor.isValid()) cellObjData.fgColor = fgColor;
 
       //---
 
@@ -1950,7 +1962,7 @@ calcTipId() const
   auto id = headerObjData_.str;
 
   if (! id.length())
-    id = QString("%1").arg(headerObjData_.c.column());
+    id = QString::number(headerObjData_.c.column());
 
   return id;
 }
@@ -2115,7 +2127,7 @@ calcTipId() const
   auto id = rowObjData_.str;
 
   if (! id.length())
-    id = QString("%1").arg(rowObjData_.r);
+    id = QString::number(rowObjData_.r);
 
   return id;
 }
@@ -2196,7 +2208,7 @@ calcTipId() const
   auto id = cellObjData_.str;
 
   if (! id.length())
-    id = QString("%1").arg(cellObjData_.ind.column().column());
+    id = QString::number(cellObjData_.ind.column().column());
 
   return id;
 }
@@ -2314,6 +2326,11 @@ draw(PaintDevice *device) const
     }
   }
 
+  if (! bgSet && cellObjData_.bgColor.isValid()) {
+    bg    = plot_->interpColor(cellObjData_.bgColor, ColorInd());
+    bgSet = true;
+  }
+
   if (bgSet) {
     PenBrush bgPenBrush;
 
@@ -2326,25 +2343,39 @@ draw(PaintDevice *device) const
 
   //---
 
+  QColor fg;
+  bool   fgSet = false;
+
   CQChartsColor textColor;
 
-  if (! bgSet) {
-    textColor = plot_->calcTextColor(plot_->cellColor());
+  if (cellObjData_.fgColor.isValid()) {
+    fg    = plot_->interpColor(cellObjData_.bgColor, ColorInd());
+    fgSet = true;
+  }
 
-    if (useDrawColor && columnDetails) {
-      const auto &drawColor = columnDetails->tableDrawColor();
+  if (! fgSet) {
+    CQChartsColor textColor;
 
-      if (drawColor.isValid())
-        textColor = drawColor;
+    if (! bgSet) {
+      textColor = plot_->calcTextColor(plot_->cellColor());
+
+      if (useDrawColor && columnDetails) {
+        const auto &drawColor = columnDetails->tableDrawColor();
+
+        if (drawColor.isValid())
+          textColor = drawColor;
+      }
+
+      if      (isInside())
+        textColor = plot_->calcTextColor(plot_->insideColor());
+      else if (isSelected())
+        textColor = plot_->calcTextColor(plot_->selectedColor());
+    }
+    else {
+      textColor = CQChartsColor(plot_->calcTextColor(bg));
     }
 
-    if      (isInside())
-      textColor = plot_->calcTextColor(plot_->insideColor());
-    else if (isSelected())
-      textColor = plot_->calcTextColor(plot_->selectedColor());
-  }
-  else {
-    textColor = CQChartsColor(plot_->calcTextColor(bg));
+    fg = plot_->interpColor(textColor, ColorInd());
   }
 
   //---
@@ -2354,8 +2385,7 @@ draw(PaintDevice *device) const
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(textColor, ColorInd())));
+  plot_->setPen(textPenBrush, PenData(true, fg));
 
   device->setPen(textPenBrush.pen);
 

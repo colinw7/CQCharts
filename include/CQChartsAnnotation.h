@@ -17,6 +17,9 @@
 #include <CQChartsGridCell.h>
 #include <CQChartsAngle.h>
 #include <CQChartsObjRef.h>
+#include <CQChartsValueSet.h>
+#include <CQChartsModelColumn.h>
+#include <CQChartsCirclePack.h>
 
 class CQChartsAnnotationGroup;
 class CQChartsSmooth;
@@ -35,14 +38,15 @@ class CQPropertyViewItem;
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(int       ind              READ ind              WRITE setInd             )
-  Q_PROPERTY(bool      enabled          READ isEnabled        WRITE setEnabled         )
-  Q_PROPERTY(bool      checkable        READ isCheckable      WRITE setCheckable       )
-  Q_PROPERTY(bool      checked          READ isChecked        WRITE setChecked         )
-  Q_PROPERTY(bool      fitted           READ isFitted         WRITE setFitted          )
-  Q_PROPERTY(double    disabledLighter  READ disabledLighter  WRITE setDisabledLighter )
-  Q_PROPERTY(double    uncheckedLighter READ uncheckedLighter WRITE setUncheckedLighter)
-  Q_PROPERTY(DrawLayer drawLayer        READ drawLayer        WRITE setDrawLayer       )
+  Q_PROPERTY(int                 ind              READ ind              WRITE setInd             )
+  Q_PROPERTY(bool                enabled          READ isEnabled        WRITE setEnabled         )
+  Q_PROPERTY(bool                checkable        READ isCheckable      WRITE setCheckable       )
+  Q_PROPERTY(bool                checked          READ isChecked        WRITE setChecked         )
+  Q_PROPERTY(bool                fitted           READ isFitted         WRITE setFitted          )
+  Q_PROPERTY(double              disabledLighter  READ disabledLighter  WRITE setDisabledLighter )
+  Q_PROPERTY(double              uncheckedLighter READ uncheckedLighter WRITE setUncheckedLighter)
+  Q_PROPERTY(DrawLayer           drawLayer        READ drawLayer        WRITE setDrawLayer       )
+  Q_PROPERTY(CQChartsPaletteName defaultPalette   READ defaultPalette   WRITE setDefaultPalette  )
 
   Q_ENUMS(DrawLayer)
 
@@ -63,6 +67,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     PIE_SLICE,
     AXIS,
     KEY,
+    POINT3D_SET,
     POINT_SET,
     VALUE_SET,
     BUTTON,
@@ -75,16 +80,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     FOREGROUND
   };
 
-  using View       = CQChartsView;
-  using Plot       = CQChartsPlot;
-  using Group      = CQChartsAnnotationGroup;
-  using ResizeSide = CQChartsResizeSide;
-  using Color      = CQChartsColor;
-  using SelMod     = CQChartsSelMod;
-  using ColorInd   = CQChartsUtil::ColorInd;
-  using ObjRef     = CQChartsObjRef;
-  using Units      = CQChartsUnits;
-  using Alpha      = CQChartsAlpha;
+  using View        = CQChartsView;
+  using Plot        = CQChartsPlot;
+  using Group       = CQChartsAnnotationGroup;
+  using ResizeSide  = CQChartsResizeSide;
+  using Color       = CQChartsColor;
+  using SelMod      = CQChartsSelMod;
+  using ColorInd    = CQChartsUtil::ColorInd;
+  using ObjRef      = CQChartsObjRef;
+  using Units       = CQChartsUnits;
+  using Alpha       = CQChartsAlpha;
+  using PaletteName = CQChartsPaletteName;
 
   using PaintDevice     = CQChartsPaintDevice;
   using HtmlPaintDevice = CQChartsHtmlPaintDevice;
@@ -174,7 +180,16 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  void getMarginValues (double &xlm, double &xrm, double &ytm, double &ybm) const;
+  //! get/set default palette
+  const PaletteName &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const PaletteName &name);
+
+  //---
+
+  // get margin values
+  void getMarginValues(double &xlm, double &xrm, double &ytm, double &ybm) const;
+
+  // get padding values
   void getPaddingValues(double &xlp, double &xrp, double &ytp, double &ybp) const;
 
   //---
@@ -239,6 +254,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! interp color
   QColor interpColor(const Color &c, const ColorInd &ind) const;
 
+  //! get palette name
+  CQChartsPaletteName calcPalette() const;
+  QString calcPaletteName() const;
+
   //---
 
   //! handle select press
@@ -271,7 +290,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush);
+  void calcPenBrush(PenBrush &penBrush);
 
   //---
 
@@ -332,18 +351,26 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   }
 
  protected:
-  Type         type_             { Type::NONE };            //!< type
-  int          ind_              { 0 };                     //!< unique ind
-  Group*       group_            { nullptr };               //!< parent group
-  bool         enabled_          { true };                  //!< is enabled
-  bool         checkable_        { false };                 //!< is checkable
-  bool         checked_          { false };                 //!< is checked
-  bool         fitted_           { false };                 //!< is fitted
-  double       disabledLighter_  { 0.8 };                   //!< disabled lighter
-  double       uncheckedLighter_ { 0.5 };                   //!< unchecked lighter
-  BBox         annotationBBox_;                             //!< bbox (plot coords) (remove ?)
-  DrawLayer    drawLayer_        { DrawLayer::FOREGROUND }; //!< draw foreground
-  mutable bool disableSignals_   { false };                 //!< disable signals
+  Type   type_      { Type::NONE }; //!< type
+  int    ind_       { 0 };          //!< unique ind
+  Group* group_     { nullptr };    //!< parent group
+  bool   enabled_   { true };       //!< is enabled
+  bool   checkable_ { false };      //!< is checkable
+  bool   checked_   { false };      //!< is checked
+  bool   fitted_    { false };      //!< is fitted
+
+  // disabled/unchecked lighter
+  double disabledLighter_  { 0.8 }; //!< disabled lighter
+  double uncheckedLighter_ { 0.5 }; //!< unchecked lighter
+
+  BBox annotationBBox_; //!< bbox (plot coords) (remove ?)
+
+  DrawLayer drawLayer_ { DrawLayer::FOREGROUND }; //!< draw foreground
+
+  // palette
+  PaletteName defaultPalette_; //!< default palette
+
+  mutable bool disableSignals_ { false }; //!< disable signals
 };
 
 //---
@@ -1663,19 +1690,20 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
 //---
 
+class CQChartsContour;
+
 /*!
- * \brief point set annotation
+ * \brief 3d point set annotation
  * \ingroup Charts
  *
  * Set of points draw as symbols, convex hull, best fit line, density gradient or density grid
  *
  * TODO: support column
  */
-class CQChartsPointSetAnnotation : public CQChartsAnnotation {
+class CQChartsPoint3DSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsObjRef objRef   READ objRef   WRITE setObjRef  )
-  Q_PROPERTY(CQChartsPoints values   READ values   WRITE setValues  )
   Q_PROPERTY(DrawType       drawType READ drawType WRITE setDrawType)
 
   Q_ENUMS(DrawType)
@@ -1683,36 +1711,34 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
  public:
   enum class DrawType {
     SYMBOLS,
-    HULL,
-    BEST_FIT,
-    DENSITY,
-    GRID
+    CONTOUR
   };
 
  public:
-  using Points = CQChartsPoints;
+  using Point3D = CQChartsGeom::Point3D;
+  using Points  = std::vector<Point3D>;
 
  public:
-  CQChartsPointSetAnnotation(View *view, const Points &values=Points());
-  CQChartsPointSetAnnotation(Plot *plot, const Points &values=Points());
+  CQChartsPoint3DSetAnnotation(View *view, const Points &values=Points());
+  CQChartsPoint3DSetAnnotation(Plot *plot, const Points &values=Points());
 
-  virtual ~CQChartsPointSetAnnotation();
+  virtual ~CQChartsPoint3DSetAnnotation();
 
   //---
 
-  const char *typeName() const override { return "point_set"; }
+  const char *typeName() const override { return "point3d_set"; }
 
-  const char *propertyName() const override { return "pointSetAnnotation"; }
+  const char *propertyName() const override { return "point3DSetAnnotation"; }
 
-  const char *cmdName() const override { return "create_charts_point_set_annotation"; }
+  const char *cmdName() const override { return "create_charts_point3d_set_annotation"; }
 
   //---
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
-  const Points &values() const { return values_; }
-  void setValues(const Points &values) { values_ = values; updateValues(); }
+  const Points &points() const { return points_; }
+  void setValues(const Points &points) { points_ = points; updateValues(); }
 
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
@@ -1737,20 +1763,152 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
  private:
   void updateValues();
 
+  void initContour() const;
+
  private:
   void init();
 
  private:
-  using Hull     = CQChartsGrahamHull;
-  using GridCell = CQChartsGridCell;
+  using ContourP = std::unique_ptr<CQChartsContour>;
 
-  ObjRef   objRef_;                         //!< object ref
-  Points   values_;                         //!< point values
-  Hull     hull_;                           //!< hull
-  RMinMax  xrange_;                         //!< x range
-  RMinMax  yrange_;                         //!< y range
-  GridCell gridCell_;                       //!< grid cell data
-  DrawType drawType_ { DrawType::SYMBOLS }; //!< draw type
+  ObjRef          objRef_;                         //!< object ref
+  Points          points_;                         //!< points
+  CQChartsRValues xvals_;                          //!< x vals
+  CQChartsRValues yvals_;                          //!< y vals
+  CQChartsRValues zvals_;                          //!< z vals
+  DrawType        drawType_ { DrawType::SYMBOLS }; //!< draw type
+  ContourP        contour_;                        //!< contour
+};
+
+//---
+
+class CQChartsDelaunay;
+
+/*!
+ * \brief 2D point set annotation
+ * \ingroup Charts
+ *
+ * Set of points draw as symbols, convex hull, best fit line, density gradient or density grid
+ */
+class CQChartsPointSetAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsRect        rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsObjRef      objRef    READ objRef    WRITE setObjRef   )
+  Q_PROPERTY(CQChartsPoints      values    READ values    WRITE setValues   )
+  Q_PROPERTY(CQChartsModelColumn xColumn   READ xColumn   WRITE setXColumn  )
+  Q_PROPERTY(CQChartsModelColumn yColumn   READ yColumn   WRITE setYColumn  )
+  Q_PROPERTY(DrawType            drawType  READ drawType  WRITE setDrawType )
+
+  Q_ENUMS(DrawType)
+
+ public:
+  enum class DrawType {
+    SYMBOLS,
+    HULL,
+    BEST_FIT,
+    DENSITY,
+    GRID,
+    DELAUNAY
+  };
+
+  using Rect        = CQChartsRect;
+  using Points      = CQChartsPoints;
+  using ModelColumn = CQChartsModelColumn;
+
+ public:
+  CQChartsPointSetAnnotation(View *view, const Rect &rectangle=Rect(),
+                             const Points &values=Points());
+  CQChartsPointSetAnnotation(Plot *plot, const Rect &rectangle=Rect(),
+                             const Points &values=Points());
+
+  virtual ~CQChartsPointSetAnnotation();
+
+  //---
+
+  const char *typeName() const override { return "point_set"; }
+
+  const char *propertyName() const override { return "pointSetAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_point_set_annotation"; }
+
+  //---
+
+  const Rect &rectangle() const { return rectangle_; }
+  void setRectangle(const Rect &rectangle);
+
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  const Points &values() const { return values_; }
+  void setValues(const Points &values);
+
+  const ModelColumn &xColumn() const { return xColumn_; }
+  void setXColumn(const ModelColumn &c);
+
+  const ModelColumn &yColumn() const { return yColumn_; }
+  void setYColumn(const ModelColumn &c);
+
+  const DrawType &drawType() const { return drawType_; }
+  void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
+
+ private:
+  void updateValues();
+
+  void calcValues();
+
+  void drawSymbols (PaintDevice *device);
+  void drawHull    (PaintDevice *device);
+  void drawDensity (PaintDevice *device);
+  void drawBestFit (PaintDevice *device);
+  void drawGrid    (PaintDevice *device);
+  void drawDelaunay(PaintDevice *device);
+
+ private:
+  void init();
+
+ private:
+  using Hull      = CQChartsGrahamHull;
+  using HullP     = std::unique_ptr<Hull>;
+  using GridCell  = CQChartsGridCell;
+  using GridCellP = std::unique_ptr<GridCell>;
+  using Delaunay  = CQChartsDelaunay;
+  using DelaunayP = std::unique_ptr<Delaunay>;
+
+  // options
+  Rect        rectangle_;                      //!< rectangle
+  ObjRef      objRef_;                         //!< object ref
+  Points      values_;                         //!< point values
+  ModelColumn xColumn_;                        //!< x column
+  ModelColumn yColumn_;                        //!< y column
+  DrawType    drawType_ { DrawType::SYMBOLS }; //!< draw type
+
+  // data
+  RMinMax   xrange_;                 //!< x range
+  RMinMax   yrange_;                 //!< y range
+  HullP     hull_;                   //!< hull
+  bool      hullDirty_     { true }; //!< hull is dirty
+  GridCellP gridCell_;               //!< grid cell data
+  bool      gridDirty_     { true }; //!< grid is dirty
+  DelaunayP delaunay_;               //!< delaunay
+  bool      delaunayDirty_ { true }; //!< delaunay is dirty
 };
 
 //---
@@ -1764,22 +1922,27 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect   rectangle READ rectangle WRITE setRectangle)
-  Q_PROPERTY(CQChartsObjRef objRef    READ objRef    WRITE setObjRef   )
-  Q_PROPERTY(CQChartsReals  values    READ values    WRITE setValues   )
-  Q_PROPERTY(DrawType       drawType  READ drawType  WRITE setDrawType )
+  Q_PROPERTY(CQChartsRect        rectangle   READ rectangle   WRITE setRectangle  )
+  Q_PROPERTY(CQChartsObjRef      objRef      READ objRef      WRITE setObjRef     )
+  Q_PROPERTY(CQChartsReals       values      READ values      WRITE setValues     )
+  Q_PROPERTY(CQChartsModelColumn modelColumn READ modelColumn WRITE setModelColumn)
+  Q_PROPERTY(DrawType            drawType    READ drawType    WRITE setDrawType   )
 
   Q_ENUMS(DrawType)
 
  public:
   enum class DrawType {
+    BARCHART,
+    DENSITY,
+    BUBBLE,
     PIE,
-    TREEMAP,
-    DENSITY
+    RADAR,
+    TREEMAP
   };
 
-  using Rect  = CQChartsRect;
-  using Reals = CQChartsReals;
+  using Rect        = CQChartsRect;
+  using Reals       = CQChartsReals;
+  using ModelColumn = CQChartsModelColumn;
 
  public:
   CQChartsValueSetAnnotation(View *view, const Rect &rectangle=Rect(), const Reals &values=Reals());
@@ -1803,8 +1966,11 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
-  const Reals &values() const { return values_; }
-  void setValues(const Reals &values) { values_ = values; updateValues(); }
+  const Reals &values() const { return reals_; }
+  void setValues(const Reals &values);
+
+  const ModelColumn &modelColumn() const { return modelColumn_; }
+  void setModelColumn(const ModelColumn &c);
 
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
@@ -1829,18 +1995,34 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
  private:
   void updateValues();
 
+  void calcReals();
+
+  void drawBarChart(PaintDevice *device);
+  void drawBox     (PaintDevice *device);
+  void drawBubble  (PaintDevice *device);
+  void drawPie     (PaintDevice *device, const QPen &pen);
+  void drawRadar   (PaintDevice *device);
+  void drawTreeMap (PaintDevice *device, const QPen &pen);
+
  private:
   void init();
 
  private:
-  using Density  = CQChartsDensity;
-  using DensityP = std::unique_ptr<Density>;
+  using Density     = CQChartsDensity;
+  using DensityP    = std::unique_ptr<Density>;
+  using CirclePack  = CQChartsCirclePack<CQChartsCircleNode>;
+  using CirclePackP = std::unique_ptr<CirclePack>;
 
-  Rect     rectangle_;                      //!< rectangle
-  ObjRef   objRef_;                         //!< object ref
-  Reals    values_;                         //!< real values
-  DrawType drawType_ { DrawType::DENSITY }; //!< draw type
-  DensityP density_;                        //!< density object
+  // options
+  Rect        rectangle_;                        //!< rectangle
+  ObjRef      objRef_;                           //!< object ref
+  Reals       reals_;                            //!< real values
+  ModelColumn modelColumn_;                      //!< model column
+  DrawType    drawType_   { DrawType::DENSITY }; //!< draw type
+
+  // data
+  DensityP    density_;    //!< density object
+  CirclePackP circlePack_; //!< pack
 };
 
 //---

@@ -600,7 +600,7 @@ draw(PaintDevice *device) const
 
   auto sv = CMathUtil::scaledNumberString(values_.sum(), 0);
 
-  CQChartsDrawUtil::drawTextAtPoint(device, Point(tx, ty), sv.c_str(),
+  CQChartsDrawUtil::drawTextAtPoint(device, Point(tx, ty), QString::fromStdString(sv),
                                     textOptions, /*centered*/false);
 
   //---
@@ -609,11 +609,13 @@ draw(PaintDevice *device) const
   if (isInside() && nv > 1) {
     if      (plot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
       CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsGridPlot *>(plot_), device,
-                                    values_, cellRect, plot_->cellPalette());
+                                    values_, cellRect, plot_->cellPalette(),
+                                    penBrush.pen);
     }
     else if (plot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
       CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsGridPlot *>(plot_), device,
-                                        values_, cellRect, plot_->cellPalette());
+                                        values_, cellRect, plot_->cellPalette(),
+                                        penBrush.pen);
     }
 
     //---
@@ -682,7 +684,7 @@ draw(PaintDevice *device) const
 
     ty -= plot()->pixelToWindowHeight(psize.height());
 
-    auto text = QString("%1").arg(values_.sum());
+    auto text = QString::number(values_.sum());
 
     CQChartsDrawUtil::drawTextAtPoint(device, Point(tx, ty), text,
                                       textOptions, /*centered*/false);

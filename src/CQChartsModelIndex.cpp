@@ -43,7 +43,7 @@ toString() const
   QStringList strs;
 
   strs += (plot_ ? plot_->id() : "");
-  strs += QString("%1").arg(row());
+  strs += QString::number(row());
   strs += column_.toString();
 
   if (parent_.isValid())
@@ -64,7 +64,7 @@ id() const
     if (id != "")
       id += ":";
 
-    id += QString("%1").arg(parent.row());
+    id += QString::number(parent.row());
 
     parent = parent.parent();
   }

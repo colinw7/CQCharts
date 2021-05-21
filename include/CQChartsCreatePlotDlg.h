@@ -212,7 +212,7 @@ class CQChartsCreatePlotDlg : public QDialog {
  private slots:
   void comboSlot(const QString &desc);
 
-  void plotDataSlot(int);
+  void advancedSlot(int);
 
   void autoAnalyzeSlot(int);
 

@@ -32,15 +32,15 @@ void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
       const auto &optValue = option1->getValue();
 
       if     (optName == "d") {
-        pathData.d = QString(optValue.c_str());
+        pathData.d = QString::fromStdString(optValue);
       }
       else if (optName == "style") {
-        pathData.style = QString(optValue.c_str());
+        pathData.style = QString::fromStdString(optValue);
       }
     }
 
     if (pathData.d != "")
-      pathDatas.push_back(pathData);
+      pathDatas.push_back(std::move(pathData));
   }
 
   //---
@@ -118,7 +118,7 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
       }
 
       if (pathData.d != "")
-        pathDatas_.push_back(pathData);
+        pathDatas_.push_back(std::move(pathData));
     }
 
     return true;
@@ -193,7 +193,7 @@ svgFileToPaths(const QString &filename, Paths &paths, Styles &styles, BBox &bbox
     const auto &optValue = option1->getValue();
 
     if (optName == "viewBox") {
-      auto strs = QString(optValue.c_str()).split(" ", QString::SkipEmptyParts);
+      auto strs = QString::fromStdString(optValue).split(" ", QString::SkipEmptyParts);
 
       if (strs.size() == 4) {
         bool ok { false }, ok1 { true };

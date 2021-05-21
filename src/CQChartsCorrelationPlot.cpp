@@ -1012,8 +1012,8 @@ draw(PaintDevice *device) const
       BBox rect1(x1, y1, x1 + w/2.0, y1 + h/2.0);
       BBox rect2(x2 - w/2.0, y2 - h/2.0, x2, y2);
 
-      drawCellLabel(device, QString("%1").arg(minMax.min()), rect1, -4);
-      drawCellLabel(device, QString("%1").arg(minMax.max()), rect2, -4);
+      drawCellLabel(device, QString::number(minMax.min()), rect1, -4);
+      drawCellLabel(device, QString::number(minMax.max()), rect2, -4);
 
       //---
 

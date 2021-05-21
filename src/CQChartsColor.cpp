@@ -373,7 +373,7 @@ setColorStr(const QString &str)
       setValue(Type::DARKER, 0.0);
   }
   else {
-    QColor c(strs[0]);
+    auto c = CQChartsUtil::stringToColor(strs[0]);
 
     if (! c.isValid())
       return false;

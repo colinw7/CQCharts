@@ -466,8 +466,8 @@ tickLabelsStr() const
   for (const auto &p : tickLabels_) {
     QStringList strs1;
 
-    strs1 << QString("%1").arg(p.first );
-    strs1 << QString("%1").arg(p.second);
+    strs1 << QString::number(p.first);
+    strs1 << p.second;
 
     auto str1 = CQTcl::mergeList(strs1);
 
@@ -551,8 +551,8 @@ customTickLabelsStr() const
   for (const auto &p : customTickLabels_) {
     QStringList strs1;
 
-    strs1 << QString("%1").arg(p.first );
-    strs1 << QString("%1").arg(p.second);
+    strs1 << QString::number(p.first);
+    strs1 << p.second;
 
     auto str1 = CQTcl::mergeList(strs1);
 
@@ -2087,10 +2087,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
       }
       else {
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
       }
 
 #if 0
@@ -2196,10 +2196,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
       }
       else {
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
       }
 
 #if 0
@@ -2335,10 +2335,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
       }
       else {
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
       }
 
 #if 0
@@ -2444,10 +2444,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
       }
       else {
-        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
       }
 
 #if 0

@@ -83,7 +83,7 @@ addSymbol(const CQChartsSymbol &symbol)
 {
   assert(symbol.isValid());
 
-  symbols_.push_back(SymbolData(symbol));
+  symbols_.emplace_back(symbol);
 }
 
 int

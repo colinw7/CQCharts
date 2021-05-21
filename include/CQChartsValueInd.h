@@ -83,7 +83,7 @@ class CQChartsValueInd {
       if (p == setValue_.end())
         return "";
 
-      return QString("%1").arg((*p).second);
+      return QString::number((*p).second);
     }
     else if (type_ == Type::STRING) {
       auto p = setName_.find(id);
@@ -94,7 +94,7 @@ class CQChartsValueInd {
       return (*p).second;
     }
     else
-      return QString("%1").arg(id);
+      return QString::number(id);
   }
 
  private:

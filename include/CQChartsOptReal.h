@@ -58,7 +58,7 @@ class CQChartsOptReal :
   QString toString() const {
     if (! value_) return "";
 
-    return QString("%1").arg(*value_);
+    return QString::number(*value_);
   }
 
   bool fromString(const QString &s) {

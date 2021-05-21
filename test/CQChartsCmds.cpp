@@ -185,6 +185,8 @@ addCommands()
                new CQChartsCreateChartsPointAnnotationCmd       (this));
     addCommand("create_charts_point_set_annotation",
                new CQChartsCreateChartsPointSetAnnotationCmd    (this));
+    addCommand("create_charts_point3d_set_annotation",
+               new CQChartsCreateChartsPoint3DSetAnnotationCmd  (this));
     addCommand("create_charts_polygon_annotation"  ,
                new CQChartsCreateChartsPolygonAnnotationCmd     (this));
     addCommand("create_charts_polyline_annotation" ,
@@ -359,7 +361,7 @@ execCmd(CQChartsCmdArgs &argv)
         if (! CQTcl::splitList(columnsStrs[j], columnStrs))
           continue;
 
-        inputData.vars.push_back(QVariant(columnStrs));
+        inputData.vars.emplace_back(columnStrs);
       }
     }
 
@@ -758,7 +760,7 @@ execCmd(CQChartsCmdArgs &argv)
         ncvars.push_back(name);
         ncvars.push_back(column.toString());
 
-        tncvars.push_back(ncvars);
+        tncvars.push_back(std::move(ncvars));
       }
 
       return cmdBase_->setCmdRc(tncvars);
@@ -790,12 +792,11 @@ execCmd(CQChartsCmdArgs &argv)
           ncvars.push_back(name);
           ncvars.push_back(column.toString());
 
-          tncvars.push_back(ncvars);
+          tncvars.push_back(std::move(ncvars));
         }
 
-        cvars.push_back(tncvars);
-
-        tvars.push_back(cvars);
+        cvars.push_back(std::move(tncvars));
+        tvars.push_back(std::move(cvars));
       }
 
       return cmdBase_->setCmdRc(tvars);
@@ -1182,13 +1183,10 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto viewName = argv.getParseStr("view");
+  CQChartsView *view;
 
-  //---
-
-  // get view
-  auto *view = cmds()->getViewByName(viewName);
-  if (! view) return false;
+  if (! cmds()->getViewArg(argv, view))
+    return false;
 
   //---
 
@@ -2371,7 +2369,7 @@ execCmd(CQChartsCmdArgs &argv)
 
         QStringList strs;
 
-        strs << QString("%1").arg(r) << c.name();
+        strs << QString::number(r) << c.name();
 
         vars << strs;
       }
@@ -2696,7 +2694,6 @@ execCmd(CQChartsCmdArgs &argv)
 
     // set colors
     else if (nameStr == "defined_colors") {
-      using DefinedColor  = CQColorsPalette::DefinedColor;
       using DefinedColors = CQColorsPalette::DefinedColors;
 
       DefinedColors definedColors;
@@ -2761,7 +2758,7 @@ execCmd(CQChartsCmdArgs &argv)
           }
         }
 
-        definedColors.push_back(DefinedColor(v, c));
+        definedColors.emplace_back(v, c);
       }
 
       if (! definedColors.empty())
@@ -3434,7 +3431,7 @@ execCmd(CQChartsCmdArgs &argv)
         continue;
       }
 
-      columnOps.push_back(CQChartsModelUtil::FlattenData::ColumnOp(column, flattenOp));
+      columnOps.emplace_back(column, flattenOp);
     }
 
     return columnOps;
@@ -3864,7 +3861,7 @@ execCmd(CQChartsCmdArgs &argv)
           columnWidths_[i] = std::min(columnWidths_[i], maxWidth_);
       }
 
-      rows_.push_back(Row(depth, strs));
+      rows_.emplace_back(depth, strs);
 
       maxDepth_ = std::max(maxDepth_, depth);
     }
@@ -5257,7 +5254,7 @@ execCmd(CQChartsCmdArgs &argv)
     data.max      = columnDetails->maxValue();
     data.outliers = columnDetails->outlierValues();
 
-    columnDatas.push_back(data);
+    columnDatas.push_back(std::move(data));
   }
 
   //---
@@ -7426,12 +7423,8 @@ execCmd(CQChartsCmdArgs &argv)
   // get parent plot
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("plot")) {
-    auto plotName = argv.getParseStr("plot");
-
-    plot = cmds()->getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
+  if (! cmds()->getPlotArg(argv, plot))
+    return false;
 
   //---
 
@@ -8479,6 +8472,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
+  addArg(argv, "-rectangle", ArgType::Rect, "rectangle");
+
   addArg(argv, "-values", ArgType::Reals, "values");
 
   addArg(argv, "-properties", ArgType::String, "name_values");
@@ -8539,22 +8534,149 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto values = argv.getParsePoints(view, plot, "values");
+  auto rect = argv.getParseRect(view, plot, "rectangle");
 
-  if (values.points().empty()) {
+  if (! rect.isValid())
+    return errorMsg("Invalid rectangle value");
+
+  CQChartsPoints values;
+
+  if (argv.hasParseArg("values")) {
+    values = argv.getParsePoints(view, plot, "values");
+
+    if (values.points().empty())
+      return errorMsg("Invalid point values");
   }
-
-  if (values.points().empty())
-    return errorMsg("Invalid point values");
 
   //---
 
   CQChartsPointSetAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPointSetAnnotation(values);
+    annotation = view->addPointSetAnnotation(rect, values);
   else if (plot)
-    annotation = plot->addPointSetAnnotation(values);
+    annotation = plot->addPointSetAnnotation(rect, values);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsPoint3DSetAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-plot", ArgType::String, "plot name");
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-points", ArgType::String, "points");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsPoint3DSetAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsPoint3DSetAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsPoint3DSetAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getPlotArg(argv, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  //---
+
+  auto pointsStr = argv.getParseStr("points");
+
+  QStringList pointStrs;
+
+  if (! CQTcl::splitList(pointsStr, pointStrs))
+    return errorMsg(QString("Invalid points '%1'").arg(pointsStr));
+
+  std::vector<CQChartsGeom::Point3D> points;
+
+  for (const auto &str : pointStrs) {
+    CQChartsGeom::Point3D p;
+
+    if (! CQChartsUtil::stringToPoint3D(str, p))
+      return errorMsg(QString("Invalid point '%1'").arg(str));
+
+    points.push_back(p);
+  }
+
+  //---
+
+  CQChartsPoint3DSetAnnotation *annotation = nullptr;
+
+  if (plot)
+    annotation = plot->addPoint3DSetAnnotation(points);
   else
     return false;
 
@@ -9717,12 +9839,8 @@ execCmd(CQChartsCmdArgs &argv)
   // get parent plot
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("plot")) {
-    auto plotName = argv.getParseStr("plot");
-
-    plot = cmds()->getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
+  if (! cmds()->getPlotArg(argv, plot))
+    return false;
 
   //---
 
@@ -10297,20 +10415,8 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("view")) {
-    auto viewName = argv.getParseStr("view");
-
-    view = cmds()->getViewByName(viewName);
-    if (! view) return false;
-  }
-  else {
-    auto plotName = argv.getParseStr("plot");
-
-    plot = cmds()->getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-
-    view = plot->view();
-  }
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
 
   //---
 
@@ -10325,8 +10431,11 @@ execCmd(CQChartsCmdArgs &argv)
       if (! plot->printLayer(type, filename))
         return errorMsg("Failed to print layer");
     }
-    else
+    else {
+      view = plot->view();
+
       view->printFile(filename, plot);
+    }
   }
   else
     view->printFile(filename);
@@ -10384,20 +10493,8 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("view")) {
-    auto viewName = argv.getParseStr("view");
-
-    view = cmds()->getViewByName(viewName);
-    if (! view) return false;
-  }
-  else {
-    auto plotName = argv.getParseStr("plot");
-
-    plot = cmds()->getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-
-    view = plot->view();
-  }
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
 
   //---
 
@@ -10593,10 +10690,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto viewName = argv.getParseStr("view");
-
-  //---
-
   // get model
   auto modelId = argv.getParseStr("model");
 
@@ -10606,6 +10699,8 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   auto dlg = new CQChartsCreatePlotDlg(charts(), modelData);
+
+  auto viewName = argv.getParseStr("view");
 
   dlg->setViewName(viewName);
 
@@ -11308,6 +11403,44 @@ getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot)
   }
   else if (argv.hasParseArg("plot")) {
     auto plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(view, plotName);
+    if (! plot) return false;
+  }
+  else
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsCmds::
+getViewArg(CQChartsCmdArgs &argv, CQChartsView* &view)
+{
+  view = nullptr;
+
+  if (argv.hasParseArg("view")) {
+    auto viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsCmds::
+getPlotArg(CQChartsCmdArgs &argv, CQChartsPlot* &plot)
+{
+  plot = nullptr;
+
+  if (argv.hasParseArg("plot")) {
+    auto plotName = argv.getParseStr("plot");
+
+    CQChartsView *view = nullptr;
 
     plot = getPlotByName(view, plotName);
     if (! plot) return false;

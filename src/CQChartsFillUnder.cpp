@@ -77,7 +77,7 @@ toString() const
   switch (xtype_) {
     case Type::MIN: xstr += "xmin"; break;
     case Type::MAX: xstr += "xmax"; break;
-    case Type::POS: xstr += QString("%1").arg(xpos_); break;
+    case Type::POS: xstr += QString::number(xpos_); break;
     default: break;
   }
 
@@ -86,7 +86,7 @@ toString() const
   switch (ytype_) {
     case Type::MIN: ystr += "ymin"; break;
     case Type::MAX: ystr += "ymax"; break;
-    case Type::POS: ystr += QString("%1").arg(ypos_); break;
+    case Type::POS: ystr += QString::number(ypos_); break;
     default: break;
   }
 

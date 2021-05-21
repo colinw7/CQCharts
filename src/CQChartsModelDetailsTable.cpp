@@ -172,8 +172,8 @@ update()
     else
       monoStr.clear();
 
-    uniqueStr = QString("%1").arg(columnDetails->numUnique());
-    nullStr   = QString("%1").arg(columnDetails->numNull());
+    uniqueStr = QString::number(columnDetails->numUnique());
+    nullStr   = QString::number(columnDetails->numNull());
   };
 
   auto addWidgetItem = [&](const QString &name, int r, int c) {
@@ -194,7 +194,7 @@ update()
       columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
                     monoStr, uniqueStr, nullStr);
 
-      auto cstr = QString("%1").arg(c);
+      auto cstr = QString::number(c);
 
       int ic = 0;
 

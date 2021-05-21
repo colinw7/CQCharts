@@ -92,7 +92,7 @@ class CQChartsEnclosingCircle {
     uint nc = circles_.size();
 
     for (uint i = 1; i < nc; ++i)
-      points.push_back(CQChartsPointsCircle::Point(circles_[i].x(), circles_[i].y()));
+      points.emplace_back(circles_[i].x(), circles_[i].y());
 
     CQChartsPointsCircle::Circle circle;
 

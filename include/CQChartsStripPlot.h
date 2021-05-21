@@ -23,7 +23,7 @@ class CQChartsStripPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "strip"; }
   QString desc() const override { return "Strip Plot"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

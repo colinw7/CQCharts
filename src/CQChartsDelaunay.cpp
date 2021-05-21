@@ -9,6 +9,13 @@ CQChartsDelaunay() :
   setUseLower(true);
 }
 
+void
+CQChartsDelaunay::
+clear()
+{
+  CQChartsHull3D::clear();
+}
+
 bool
 CQChartsDelaunay::
 calc()

@@ -55,7 +55,7 @@ CQChartsColumnNum::
 toString() const
 {
   if (column_ >= 0)
-    return QString("%1").arg(column_);
+    return QString::number(column_);
   else
     return "";
 }

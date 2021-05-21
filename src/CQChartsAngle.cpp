@@ -25,7 +25,7 @@ QString
 CQChartsAngle::
 toString() const
 {
-  return QString("%1").arg(a_);
+  return QString::number(a_);
 }
 
 bool

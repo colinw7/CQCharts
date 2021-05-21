@@ -284,18 +284,16 @@ createEdit(QWidget *parent)
 
   //---
 
-  CQChartsPlot *plot   = nullptr;
-  CQChartsView *view   = nullptr;
-  CQCharts     *charts = nullptr;
+  CQChartsObjUtil::ObjData objData;
 
-  CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
+  CQChartsObjUtil::getObjData(obj, objData);
 
   //---
 
   auto *edit = new CQChartsColumnLineEdit(parent);
 
-  if (plot)
-    edit->setModelData(plot->getModelData());
+  if (objData.plot)
+    edit->setModelData(objData.plot->getModelData());
 
   return edit;
 }
@@ -488,7 +486,7 @@ columnToWidgets()
       columnCombo_->setColumn(column_);
 
       if (column_.hasRole())
-        roleEdit_->setText(QString("%1").arg(column_.role()));
+        roleEdit_->setText(QString::number(column_.role()));
 
       if (column_.type() == CQChartsColumn::Type::DATA_INDEX)
         indexEdit_->setText(column_.index());
@@ -547,7 +545,7 @@ widgetsToColumn()
     QString str;
 
     if (expressionEdit_->text().trimmed().length())
-      str = QString("%1").arg(expressionEdit_->text());
+      str = expressionEdit_->text();
 
     column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
   }

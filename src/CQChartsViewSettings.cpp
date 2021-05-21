@@ -251,9 +251,9 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
 
       nameItem->setData(Qt::UserRole, modelData->ind());
 
-      (void) createItem(QString("%1").arg(modelData->ind()), i, 1);
-      (void) createItem(modelData->filename()              , i, 2);
-      (void) createItem(modelData->model()->objectName()   , i, 3);
+      (void) createItem(QString::number(modelData->ind()), i, 1);
+      (void) createItem(modelData->filename()            , i, 2);
+      (void) createItem(modelData->model()->objectName() , i, 3);
 
       ++i;
     }
@@ -2379,6 +2379,10 @@ updatePlots()
 
   //---
 
+  updatePlotControls();
+
+  //---
+
   auto findPlotTab = [&](CQChartsPlot *plot) {
     for (int i = 0; i < propertiesWidgets_.plotsTab->count(); ++i) {
       auto *plotWidget =
@@ -3872,7 +3876,7 @@ setSymbol(const CQChartsSymbol &symbol)
     const auto &plotSymbol = CQChartsPlotSymbolMgr::getSymbol(symbol_);
 
     if (symbol_.isFilled()) {
-      pointsArray_.push_back(Points());
+      pointsArray_.emplace_back();
 
       points = &pointsArray_[pointsArray_.size() - 1];
 
@@ -3901,7 +3905,7 @@ setSymbol(const CQChartsSymbol &symbol)
 
       for (auto &line : plotSymbol.lines) {
         if (! connect) {
-          pointsArray_.push_back(Points());
+          pointsArray_.emplace_back();
 
           points = &pointsArray_[pointsArray_.size() - 1];
 
@@ -4014,7 +4018,7 @@ drawSymbol(QPainter *painter)
     painter->setPen(pen);
 
     if (symbol_.isFilled())
-      painter->setBrush(QColor("#55dd55"));
+      painter->setBrush(QColor("#55dd55")); // TODO: config
     else
       painter->setBrush(Qt::NoBrush);
 
@@ -4058,7 +4062,7 @@ drawGuides(QPainter *painter)
     painter->drawEllipse(QRectF(tlx, tly, brx - tlx, bry - tly));
   };
 
-  painter->setPen(QColor("#666666"));
+  painter->setPen(QColor("#666666")); // TODO: config
 
   drawEllipse(0.0, 0.0, 1.000);
   drawEllipse(0.0, 0.0, 0.875);
@@ -4074,7 +4078,7 @@ drawGuides(QPainter *painter)
 
   double d = 1.0/8.0;
 
-  painter->setPen(QColor("#666666"));
+  painter->setPen(QColor("#666666")); // TODO: config
 
   drawRect(0.0, 0.0, 1.000 - d);
 }

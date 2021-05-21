@@ -112,7 +112,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  textBox_ = new CQChartsRotatedTextBoxObj(this);
+  textBox_ = std::make_unique<RotatedTextBoxObj>(this);
 
   textBox_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
@@ -127,7 +127,6 @@ void
 CQChartsChordPlot::
 term()
 {
-  delete textBox_;
 }
 
 //---
@@ -525,7 +524,7 @@ addFromToValue(const FromToData &fromToData) const
         srcData.setLabel(value);
       }
       else if (nv.first == "color") {
-        //srcData.setColor(QColor(value));
+        //srcData.setColor(CQCharts::stringToColor(value));
       }
     }
   }
@@ -623,7 +622,7 @@ void
 CQChartsChordPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
-  auto srcStr = QString("%1").arg(id);
+  auto srcStr = QString::number(id);
 
   // find src (create if doesn't exist)
   auto &srcData = findNameData(srcStr, connectionsData.ind);
@@ -632,7 +631,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   srcData.setGroup(connectionsData.groupData);
 
   for (const auto &connection : connectionsData.connections) {
-    auto destStr = QString("%1").arg(connection.node);
+    auto destStr = QString::number(connection.node);
 
     auto &destData = findNameData(destStr, connectionsData.ind);
 
@@ -1342,6 +1341,15 @@ calcFromColor() const
   auto colorInd = calcColorInd();
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (modelInd().isValid() && plot_->colorColumn().isValid()) {
+      Color color;
+
+      ModelIndex colorModelInd(plot_, modelInd().row(), plot_->colorColumn(), modelInd().parent());
+
+      if (plot_->modelIndexColor(colorModelInd, color))
+        return plot_->interpColor(color, colorInd);
+    }
+
     if (data_.group().isValid())
       return plot_->blendGroupPaletteColor(data_.group().ivalue(), iv_.value(), 0.1);
     else
@@ -1478,8 +1486,8 @@ calcId() const
   auto *fromObj = this->fromObj();
   auto *toObj   = this->toObj  ();
 
-  auto fromName = (fromObj ? fromObj->dataName() : QString("%1").arg(from()));
-  auto toName   = (toObj   ? toObj  ->dataName() : QString("%1").arg(to  ()));
+  auto fromName = (fromObj ? fromObj->dataName() : QString::number(from()));
+  auto toName   = (toObj   ? toObj  ->dataName() : QString::number(to  ()));
 
   return QString("%1:%2").arg(fromName).arg(toName);
 }
@@ -1685,7 +1693,7 @@ CQChartsChordPlotCustomControls(CQCharts *charts) :
 {
   addConnectionColumnWidgets();
 
-  //addColorColumnWidgets("Cell Color");
+  addColorColumnWidgets("Chord Color");
 
   addLayoutStretch();
 

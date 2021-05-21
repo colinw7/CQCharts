@@ -21,6 +21,8 @@ class CQChartsConnectionPlotType : public CQChartsPlotType {
  public:
   CQChartsConnectionPlotType();
 
+  Category category() const override { return Category::CONNECTION; }
+
   void addParameters() override;
 
   bool allowXLog() const override { return false; }

@@ -91,7 +91,7 @@ bool toString(const QVariant &var, QString &str) {
       QString str1;
 
       if (toString(vars[i], str1))
-        strs.push_back(str1);
+        strs.push_back(std::move(str1));
     }
 
     str = "{" + strs.join(" ") + "}";
@@ -111,7 +111,7 @@ bool toString(const QVariant &var, QString &str) {
         case QSizePolicy::Expanding       : return QString("Expanding");
         case QSizePolicy::MinimumExpanding: return QString("MinimumExpanding");
         case QSizePolicy::Ignored         : return QString("Ignored");
-        default                           : return QString("%1").arg(policy);
+        default                           : return QString::number(policy);
       }
     };
 
@@ -324,7 +324,7 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
     return color;
   }
 
-  auto color = QColor(var.toString());
+  auto color = CQChartsUtil::stringToColor(var.toString());
   ok = color.isValid();
   return CQChartsColor(color);
 }

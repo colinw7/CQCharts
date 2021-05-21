@@ -327,16 +327,20 @@ eval(double x) const
 
 void
 CQChartsDensity::
-draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect)
+draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect, bool scaled)
 {
   constInit();
 
   BBox rect1;
 
-  if (isHorizontal())
-    rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
+  if (! scaled) {
+    if (isHorizontal())
+      rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
+    else
+      rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
+  }
   else
-    rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
+    rect1 = rect;
 
   //---
 
@@ -347,10 +351,10 @@ draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect)
 
   switch (drawType()) {
     case DrawType::WHISKER:
-      drawWhisker(device, rect1, orientation());
+      drawWhisker(device, rect1, orientation(), scaled);
       break;
     case DrawType::WHISKER_BAR:
-      drawWhiskerBar(device, rect1, orientation());
+      drawWhiskerBar(device, rect1, orientation(), scaled);
       break;
     case DrawType::DISTRIBUTION:
       drawDistribution(plot, device, rect1, orientation(), opts);
@@ -387,7 +391,8 @@ bbox(const BBox &rect) const
 
 void
 CQChartsDensity::
-drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation) const
+drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation,
+            bool scaled) const
 {
   CQChartsLength ws;
 
@@ -396,14 +401,30 @@ drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orient
   else
     ws = CQChartsLength(rect.getWidth (), CQChartsUnits::PLOT);
 
+  auto statData = statData_;
+
+  if (scaled) {
+    statData.scaled = true;
+
+    if (isHorizontal()) {
+      statData.scaleMin = rect.getXMin();
+      statData.scaleMax = rect.getXMax();
+    }
+    else {
+      statData.scaleMin = rect.getYMin();
+      statData.scaleMax = rect.getYMax();
+    }
+  }
+
   std::vector<double> outliers;
 
-  CQChartsBoxWhiskerUtil::drawWhisker(device, statData_, outliers, rect, ws, orientation);
+  CQChartsBoxWhiskerUtil::drawWhisker(device, statData, outliers, rect, ws, orientation);
 }
 
 void
 CQChartsDensity::
-drawWhiskerBar(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation) const
+drawWhiskerBar(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation,
+               bool scaled) const
 {
   std::vector<double> outliers;
 
@@ -412,16 +433,31 @@ drawWhiskerBar(PaintDevice *device, const BBox &rect, const Qt::Orientation &ori
       outliers.push_back(x);
   }
 
+  auto statData = statData_;
+
+  if (scaled) {
+    statData.scaled = true;
+
+    if (isHorizontal()) {
+      statData.scaleMin = rect.getXMin();
+      statData.scaleMax = rect.getXMax();
+    }
+    else {
+      statData.scaleMin = rect.getYMin();
+      statData.scaleMax = rect.getYMax();
+    }
+  }
+
   CQChartsLength cornerSize;
   bool           notched { false };
   bool           median  { true };
 
   if (orientation == Qt::Horizontal)
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData_, rect.getYMid(),
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, rect.getYMid(),
                                            orientation, rect.getHeight(), rect.getHeight(),
                                            cornerSize, notched, median, outliers);
   else
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData_, rect.getXMid(),
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, rect.getXMid(),
                                            orientation, rect.getWidth(), rect.getWidth(),
                                            cornerSize, notched, median, outliers);
 }

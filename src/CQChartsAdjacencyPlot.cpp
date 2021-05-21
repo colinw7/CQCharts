@@ -527,7 +527,7 @@ addFromToValue(const FromToData &fromToData) const
         srcNode->setLabel(value);
       }
       else if (nv.first == "color") {
-        //srcNode->setColor(QColor(value));
+        //srcNode->setColor(CQChartsUtil::stringToColor(value));
       }
     }
   }
@@ -827,7 +827,7 @@ initTableObjs() const
   for (int row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
-    auto srcStr = QString("%1").arg(tableConnectionData.from());
+    auto srcStr = QString::number(tableConnectionData.from());
 
     auto *srcNode = findNode(srcStr);
 
@@ -835,7 +835,7 @@ initTableObjs() const
     srcNode->setGroup(tableConnectionData.group().ig);
 
     for (const auto &value : tableConnectionData.values()) {
-      auto destStr = QString("%1").arg(value.to);
+      auto destStr = QString::number(value.to);
 
       auto *destNode = findNode(destStr);
 
@@ -911,7 +911,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   // get optional name
   ModelIndex nameModelInd;
 
-  auto name = QString("%1").arg(id);
+  auto name = QString::number(id);
 
   if (nameColumn().isValid()) {
     nameModelInd = ModelIndex(th, data.row, nameColumn(), data.parent);

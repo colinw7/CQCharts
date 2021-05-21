@@ -834,7 +834,7 @@ initConnectionObjs() const
       //----
 
       // get name
-      connectionsData.name = QString("%1").arg(connectionsData.node);
+      connectionsData.name = QString::number(connectionsData.node);
 
       if (plot_->nameColumn().isValid()) {
         connectionsData.nameModelInd =
@@ -1276,7 +1276,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
         indRowData.rowData[ic] = plot_->modelValue(columnInd, ok);
       }
 
-      indRowDatas_.push_back(indRowData);
+      indRowDatas_.push_back(std::move(indRowData));
 
       return State::OK;
     }

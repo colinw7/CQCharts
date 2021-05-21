@@ -698,7 +698,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
     groupData.ind = groupData.valueSet->sind(groupData.str);
 
-    groupDatas.push_back(groupData);
+    groupDatas.push_back(std::move(groupData));
   }
 
   //---

@@ -150,6 +150,8 @@ class CQChartsTablePlot : public CQChartsPlot {
     BBox          rect;
     Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
     QString       str;
+    CQChartsColor bgColor;
+    CQChartsColor fgColor;
 
     CellObjData() = default;
 

@@ -205,7 +205,7 @@ CQChartsSymbol(const PathData &pathData) :
       if (pathData.src == "")
         name_ = QString("path.%1").arg(s_namedPaths.numNamedPaths() + 1);
 
-      paths.push_back(path);
+      paths.push_back(std::move(path));
     }
   }
 
@@ -226,7 +226,7 @@ CQChartsSymbol(const PathData &pathData) :
     pathsStylesData.srcStr = srcStr;
 
     for (std::size_t i = 0; i < paths.size(); ++i)
-      pathsStylesData.styles.push_back(CQChartsStyle());
+      pathsStylesData.styles.emplace_back();
 
     s_namedPaths.setNamedPathData(name_, pathsStylesData);
   }
@@ -475,8 +475,9 @@ fromString(const QString &s)
         pathsStylesData.type   = type_;
         pathsStylesData.srcStr = srcStr;
 
-        pathsStylesData.paths .push_back(path);
-        pathsStylesData.styles.push_back(CQChartsStyle());
+        pathsStylesData.paths.push_back(std::move(path));
+
+        pathsStylesData.styles.emplace_back();
 
         s_namedPaths.setNamedPathData(name_, pathsStylesData);
       }
@@ -593,7 +594,7 @@ fromSVGFile(const CQChartsFile &file, const QString &name, bool styled)
   assert(np == int(styles.size()));
 
   for (int ip = 0; ip < np; ++ip) {
-    auto &path = paths [ip];
+    auto &path = paths[ip];
 
     auto path1 = CQChartsPath::moveScalePath(path.path(), bbox, 0.0, 0.0, 1.0, -1.0);
 
@@ -606,7 +607,7 @@ fromSVGFile(const CQChartsFile &file, const QString &name, bool styled)
     if (styled)
       style = styles[ip];
 
-    svgData.styles.push_back(style);
+    svgData.styles.push_back(std::move(style));
   }
 
   svgData.src = file.resolve();

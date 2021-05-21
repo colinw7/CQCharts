@@ -108,7 +108,7 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

@@ -1284,7 +1284,7 @@ bucketGroupValues() const
 
       VariantInd varInd(value, ind, dvalue);
 
-      values->bucketValues[bucket].inds.push_back(varInd);
+      values->bucketValues[bucket].inds.push_back(std::move(varInd));
     }
   }
 }
@@ -3031,7 +3031,7 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
     bucketValues(groupInd, bucket, value1, value2);
 
     if      (isExactBucketValue())
-      return QString("%1").arg(value1);
+      return QString::number(value1);
     else if (type == BucketValueType::ALL) {
       if (bucketer.isIntegral() && ! CMathUtil::isInf(value1) && ! CMathUtil::isInf(value2)) {
         int ivalue1 = CMathRound::RoundNearest(value1);
@@ -3040,16 +3040,16 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
         if (ivalue1 != ivalue2)
           return CQBucketer::bucketName(ivalue1, ivalue2, CQBucketer::NameFormat::BRACKETED);
         else
-          return QString("%1").arg(ivalue1);
+          return QString::number(ivalue1);
       }
       else {
         return CQBucketer::bucketName(value1, value2, CQBucketer::NameFormat::BRACKETED);
       }
     }
     else if (type == BucketValueType::START)
-      return QString("%1").arg(value1);
+      return QString::number(value1);
     else
-      return QString("%1").arg(value2);
+      return QString::number(value2);
   }
   else {
     if (bucket.hasValue())
@@ -3175,7 +3175,7 @@ posStr(const Point &w) const
       double value;
 
       if (barObj && barObj->bucketXValue(w.x, value)) {
-        xstr = QString("%1").arg(value);
+        xstr = QString::number(value);
         break;
       }
     }
@@ -3191,7 +3191,7 @@ posStr(const Point &w) const
       double value;
 
       if (barObj && barObj->bucketYValue(w.y, value)) {
-        ystr = QString("%1").arg(value);
+        ystr = QString::number(value);
         break;
       }
     }
@@ -3434,7 +3434,7 @@ pushSlot()
     filters.emplace_back(distObj->groupInd(), value1, value2);
   }
 
-  filterStack_.push_back(filters);
+  filterStack_.push_back(std::move(filters));
 
   updateRangeAndObjs();
 }
@@ -3753,12 +3753,12 @@ dataLabelRect() const
 
   QString ystr;
 
-  if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
+  if      (plot_->isValueCount()) { ystr = QString::number(count()); }
   else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
-  else if (plot_->isValueMin  ()) { ystr = QString("%1").arg(maxValue()); }
-  else if (plot_->isValueMax  ()) { ystr = QString("%1").arg(maxValue()); }
-  else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
-  else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
+  else if (plot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
+  else if (plot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
+  else if (plot_->isValueMean ()) { ystr = QString::number(maxValue()); }
+  else if (plot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
 
   return plot_->dataLabel()->calcRect(bbox, ystr);
 }
@@ -3937,12 +3937,12 @@ drawFg(PaintDevice *device) const
 
     QString ystr;
 
-    if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
+    if      (plot_->isValueCount()) { ystr = QString::number(count()); }
     else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
-    else if (plot_->isValueMin  ()) { ystr = QString("%1").arg(maxValue()); }
-    else if (plot_->isValueMax  ()) { ystr = QString("%1").arg(maxValue()); }
-    else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
-    else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
+    else if (plot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
+    else if (plot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
+    else if (plot_->isValueMean ()) { ystr = QString::number(maxValue()); }
+    else if (plot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
 
     //---
 
@@ -4166,7 +4166,7 @@ getBarColoredRects(ColorData &colorData) const
 
     //---
 
-    colorData.colorSizes.push_back(IndColorSize(indColor, bsize1));
+    colorData.colorSizes.emplace_back(indColor, bsize1);
 
     ++colorData.nv;
   }
@@ -4178,7 +4178,7 @@ getBarColoredRects(ColorData &colorData) const
 
     colorData.colorCount[0] = 1;
 
-    colorData.colorSizes.push_back(IndColorSize(indColor, 1.0));
+    colorData.colorSizes.emplace_back(indColor, 1.0);
 
     colorData.nv = 1;
   }

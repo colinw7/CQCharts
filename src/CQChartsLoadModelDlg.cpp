@@ -95,7 +95,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   // Expression Row Number Edit
   numberEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("numberEdit");
 
-  numberEdit_->setText(QString("%1").arg(expressionRows()));
+  numberEdit_->setText(QString::number(expressionRows()));
   numberEdit_->setToolTip("Number of rows to generate for expression");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Num Rows", "numRowsLabel"), row, 0);
@@ -324,7 +324,7 @@ previewFileSlot()
   metaLines_.clear();
 
   auto addLine = [&](const LineType &type, const QString &text) {
-    lines_.push_back(Line(type, text));
+    lines_.emplace_back(type, text);
 
     if (type == LineType::DATA)
       ++lineNum;
@@ -656,13 +656,13 @@ parseCSVColumns()
 
   if (hasHeader) {
     for (auto &c : columns)
-      columns_.push_back(c.c_str());
+      columns_.push_back(QString::fromStdString(c));
   }
   else {
     int nc = columns.size();
 
     for (int ic = 1; ic <= nc; ++ic)
-      columns_.push_back(QString("%1").arg(ic));
+      columns_.push_back(QString::number(ic));
   }
 
   for (const auto &l : metaLines_) {
@@ -683,16 +683,16 @@ parseCSVColumns()
 
     if (metaColumns.size() == 4) {
       if (metaColumns[0] == "column") {
-        auto colName = QString(metaColumns[1].c_str());
+        auto colName = QString::fromStdString(metaColumns[1]);
 
         if (metaColumns[2] == "type") {
-          auto type = QString(metaColumns[3].c_str());
+          auto type = QString::fromStdString(metaColumns[3]);
 
           columnTypes_[colName] = type;
         }
         else {
-          auto name  = QString(metaColumns[2].c_str());
-          auto value = QString(metaColumns[3].c_str());
+          auto name  = QString::fromStdString(metaColumns[2]);
+          auto value = QString::fromStdString(metaColumns[3]);
 
           columnData_[colName][name] = value;
         }
@@ -739,13 +739,13 @@ parseTSVColumns()
 
   if (hasHeader) {
     for (auto &c : columns)
-      columns_.push_back(c.c_str());
+      columns_.push_back(QString::fromStdString(c));
   }
   else {
     int nc = columns.size();
 
     for (int ic = 1; ic <= nc; ++ic)
-      columns_.push_back(QString("%1").arg(ic));
+      columns_.push_back(QString::number(ic));
   }
 }
 

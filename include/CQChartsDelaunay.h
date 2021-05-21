@@ -11,6 +11,8 @@ class CQChartsDelaunay : public CQChartsHull3D {
  public:
   CQChartsDelaunay();
 
+  void clear();
+
   bool calc();
 
  private:

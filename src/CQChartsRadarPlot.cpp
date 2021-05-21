@@ -595,7 +595,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   if (nameInd.isValid())
     nameInd1 = normalizeIndex(modelIndex(nameInd));
 
-  BBox bbox(-1, -1, 1, 1);
+  BBox bbox(-1, -1, 1, 1); // poly bounding rect ?
 
   ColorInd is(data.row, nr);
 

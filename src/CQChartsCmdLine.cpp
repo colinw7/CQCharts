@@ -166,7 +166,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
     const auto &cmds = qtcl_->commandNames();
 
-    auto matchCmds = CQStrUtil::matchStrs(str.c_str(), cmds);
+    auto matchCmds = CQStrUtil::matchStrs(QString::fromStdString(str), cmds);
 
     QString matchStr;
     bool    exact = false;
@@ -221,7 +221,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
     if (interactive) {
       auto cmd = QString("complete -command {%1} -option {*} -all").
-                         arg(command.c_str());
+                         arg(QString::fromStdString(command));
 
       QVariant res;
 
@@ -229,7 +229,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
       auto strs = resultToStrings(res);
 
-      auto matchStrs = CQStrUtil::matchStrs(option.c_str(), strs);
+      auto matchStrs = CQStrUtil::matchStrs(QString::fromStdString(option), strs);
 
       if (matchStrs.size() > 1) {
         matchStr = widget->showCompletionChooser(matchStrs);
@@ -244,7 +244,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
     if (matchStr == "") {
       // use complete command to complete command option
       auto cmd = QString("complete -command {%1} -option {%2} -exact_space").
-                         arg(command.c_str()).arg(option.c_str());
+                         arg(QString::fromStdString(command)).arg(QString::fromStdString(option));
 
       QVariant res;
 
@@ -339,7 +339,8 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
     if (interactive) {
       auto cmd =
         QString("complete -command {%1} -option {%2} -value {*} -name_values %3 -all").
-                arg(command.c_str()).arg(option.c_str()).arg(nameValues.c_str());
+                arg(QString::fromStdString(command)).arg(QString::fromStdString(option)).
+                arg(QString::fromStdString(nameValues));
 
       QVariant res;
 
@@ -347,7 +348,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
       auto strs = resultToStrings(res);
 
-      auto matchStrs = CQStrUtil::matchStrs(str.c_str(), strs);
+      auto matchStrs = CQStrUtil::matchStrs(QString::fromStdString(str), strs);
 
       if (matchStrs.size() > 1) {
         matchStr = widget->showCompletionChooser(matchStrs);
@@ -365,7 +366,8 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
       auto cmd =
         QString("complete -command {%1} -option {%2} -value {%3} -name_values %4 -exact_space").
-                arg(command.c_str()).arg(option.c_str()).arg(str.c_str()).arg(nameValues.c_str());
+                arg(QString::fromStdString(command)).arg(QString::fromStdString(option)).
+                arg(QString::fromStdString(str)).arg(QString::fromStdString(nameValues));
 
       qtcl_->eval(cmd, res);
 
@@ -394,7 +396,7 @@ executeCommand(const QString &line)
 
     COSProcess::executeCommand(line1.toStdString(), str);
 
-    command_->outputText(str.c_str());
+    command_->outputText(QString::fromStdString(str));
 
     return;
   }
@@ -416,7 +418,7 @@ executeCommand(const QString &line)
 
   COSExec::ungrabOutput();
 
-  command_->outputText(str.c_str());
+  command_->outputText(QString::fromStdString(str));
 }
 
 QSize

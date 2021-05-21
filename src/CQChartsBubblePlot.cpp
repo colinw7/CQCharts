@@ -751,7 +751,7 @@ loadModel() const
       if (plot_->valueColumn().isGroup()) {
         int groupInd = plot_->rowGroupInd(valueModelInd);
 
-        groupInds_[groupInd].push_back(valueModelInd);
+        groupInds_[groupInd].push_back(std::move(valueModelInd));
 
         return false;
       }
@@ -1221,7 +1221,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
   strs.push_back(name);
 
   if (plot_->isValueLabel() && ! node_->isFiller()) {
-    strs.push_back(QString("%1").arg(node_->size()));
+    strs.push_back(QString::number(node_->size()));
   }
 
   //---

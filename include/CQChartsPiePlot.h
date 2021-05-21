@@ -23,7 +23,7 @@ class CQChartsPiePlotType : public CQChartsGroupPlotType {
   QString name() const override { return "pie"; }
   QString desc() const override { return "Pie"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

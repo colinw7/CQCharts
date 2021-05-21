@@ -946,7 +946,7 @@ calcSymbolBoxes() const
 
       auto pbbox = BBox(-pr, yb - 2*pr, pr, yb);
 
-      symbolBoxes_.push_back(pbbox);
+      symbolBoxes_.push_back(std::move(pbbox));
 
       y -= sy;
     }
@@ -975,7 +975,7 @@ calcSymbolBoxes() const
 
       auto pbbox = BBox(-pr, yt + 2*pr, pr, yt);
 
-      symbolBoxes_.push_back(pbbox);
+      symbolBoxes_.push_back(std::move(pbbox));
 
       yt += 2*pr + pm;
 

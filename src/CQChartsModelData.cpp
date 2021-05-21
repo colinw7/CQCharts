@@ -396,7 +396,7 @@ addSelectionModel(QItemSelectionModel *model)
   connect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(selectionSlot()));
 
-  selectionModels_.push_back(SelectionModelP(model));
+  selectionModels_.emplace_back(model);
 }
 
 void
@@ -585,7 +585,7 @@ foldModel(const FoldData &foldData)
       columnFoldData.setDelta   (delta);
       columnFoldData.setIntegral(integral);
 
-      foldDatas.push_back(columnFoldData);
+      foldDatas.push_back(std::move(columnFoldData));
     }
 
     //---

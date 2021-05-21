@@ -1220,7 +1220,7 @@ CQChartsSankeyPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
   // get src node
-  auto srcStr = QString("%1").arg(id);
+  auto srcStr = QString::number(id);
 
   auto *srcNode = findNode(srcStr);
 
@@ -1257,7 +1257,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   // process connections
   for (const auto &connection : connectionsData.connections) {
     // get destination node
-    auto destStr = QString("%1").arg(connection.node);
+    auto destStr = QString::number(connection.node);
 
     auto *destNode = findNode(destStr);
 
@@ -1302,7 +1302,7 @@ initTableObjs() const
     if (tableConnectionData.values().empty())
       continue;
 
-    auto srcStr = QString("%1").arg(tableConnectionData.from());
+    auto srcStr = QString::number(tableConnectionData.from());
 
     auto *srcNode = findNode(srcStr);
 
@@ -1310,7 +1310,7 @@ initTableObjs() const
     srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
 
     for (const auto &value : tableConnectionData.values()) {
-      auto destStr = QString("%1").arg(value.to);
+      auto destStr = QString::number(value.to);
 
       auto *destNode = findNode(destStr);
 
@@ -4564,7 +4564,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
   QFontMetricsF fm(device->font());
 
-  auto str = QString("%1").arg(value);
+  auto str = QString::number(value);
 
   double ptw = fm.width(str);
 

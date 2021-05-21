@@ -136,7 +136,7 @@ class CQChartsRValues {
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
     for (const auto &vi : valset_)
-      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+      valueCounts.emplace_back(vi.first, vi.second.second);
   }
 
   void uniqueCounts(Counts &counts) {
@@ -294,7 +294,7 @@ class CQChartsIValues {
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
     for (const auto &vi : valset_)
-      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+      valueCounts.emplace_back(vi.first, vi.second.second);
   }
 
   void uniqueCounts(Counts &counts) {
@@ -437,7 +437,7 @@ class CQChartsSValues {
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
     for (const auto &vi : valset_)
-      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+      valueCounts.emplace_back(vi.first, vi.second.second);
   }
 
   void uniqueCounts(Counts &counts) {
@@ -574,7 +574,7 @@ class CQChartsCValues {
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
     for (const auto &vi : valset_)
-      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+      valueCounts.emplace_back(vi.first, vi.second.second);
   }
 
   void uniqueCounts(Counts &counts) {

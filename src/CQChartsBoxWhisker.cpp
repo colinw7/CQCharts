@@ -55,6 +55,10 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
                const std::vector<double> &outliers)
 {
   auto pointPosValue = [&](double pos, double value) {
+    if (statData.scaled)
+      value = CMathUtil::map(value, statData.min, statData.max,
+                             statData.scaleMin, statData.scaleMax);
+
     if (orientation != Qt::Horizontal)
       return Point(pos, value);
     else

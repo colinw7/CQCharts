@@ -64,33 +64,33 @@ class CQChartsPlotTypeMgr {
 class CQChartsPlotType : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QString   name               READ name              )
-  Q_PROPERTY(QString   desc               READ desc              )
-  Q_PROPERTY(QString   htmlDesc           READ description       )
-  Q_PROPERTY(Dimension dimension          READ dimension         )
-  Q_PROPERTY(QString   xColumnName        READ xColumnName       )
-  Q_PROPERTY(QString   yColumnName        READ yColumnName       )
-  Q_PROPERTY(bool      customXRange       READ customXRange      )
-  Q_PROPERTY(bool      customYRange       READ customYRange      )
-  Q_PROPERTY(bool      hasAxes            READ hasAxes           )
-  Q_PROPERTY(bool      hasXAxis           READ hasXAxis          )
-  Q_PROPERTY(bool      hasYAxis           READ hasYAxis          )
-  Q_PROPERTY(bool      hasKey             READ hasKey            )
-  Q_PROPERTY(bool      hasTitle           READ hasTitle          )
-  Q_PROPERTY(bool      hasColor           READ hasColor          )
-  Q_PROPERTY(bool      allowXAxisIntegral READ allowXAxisIntegral)
-  Q_PROPERTY(bool      allowYAxisIntegral READ allowYAxisIntegral)
-  Q_PROPERTY(bool      allowXLog          READ allowXLog         )
-  Q_PROPERTY(bool      allowYLog          READ allowYLog         )
-  Q_PROPERTY(bool      canEqualScale      READ canEqualScale     )
-  Q_PROPERTY(bool      isGroupType        READ isGroupType       )
-  Q_PROPERTY(bool      isHierarchical     READ isHierarchical    )
-  Q_PROPERTY(bool      canProbe           READ canProbe          )
-  Q_PROPERTY(bool      canRectSelect      READ canRectSelect     )
-  Q_PROPERTY(bool      hasObjs            READ hasObjs           )
-  Q_PROPERTY(bool      prioritySorted     READ isPrioritySort    )
+  Q_PROPERTY(QString  name               READ name              )
+  Q_PROPERTY(QString  desc               READ desc              )
+  Q_PROPERTY(QString  htmlDesc           READ description       )
+  Q_PROPERTY(Category category           READ category          )
+  Q_PROPERTY(QString  xColumnName        READ xColumnName       )
+  Q_PROPERTY(QString  yColumnName        READ yColumnName       )
+  Q_PROPERTY(bool     customXRange       READ customXRange      )
+  Q_PROPERTY(bool     customYRange       READ customYRange      )
+  Q_PROPERTY(bool     hasAxes            READ hasAxes           )
+  Q_PROPERTY(bool     hasXAxis           READ hasXAxis          )
+  Q_PROPERTY(bool     hasYAxis           READ hasYAxis          )
+  Q_PROPERTY(bool     hasKey             READ hasKey            )
+  Q_PROPERTY(bool     hasTitle           READ hasTitle          )
+  Q_PROPERTY(bool     hasColor           READ hasColor          )
+  Q_PROPERTY(bool     allowXAxisIntegral READ allowXAxisIntegral)
+  Q_PROPERTY(bool     allowYAxisIntegral READ allowYAxisIntegral)
+  Q_PROPERTY(bool     allowXLog          READ allowXLog         )
+  Q_PROPERTY(bool     allowYLog          READ allowYLog         )
+  Q_PROPERTY(bool     canEqualScale      READ canEqualScale     )
+  Q_PROPERTY(bool     isGroupType        READ isGroupType       )
+  Q_PROPERTY(bool     isHierarchical     READ isHierarchical    )
+  Q_PROPERTY(bool     canProbe           READ canProbe          )
+  Q_PROPERTY(bool     canRectSelect      READ canRectSelect     )
+  Q_PROPERTY(bool     hasObjs            READ hasObjs           )
+  Q_PROPERTY(bool     prioritySorted     READ isPrioritySort    )
 
-  Q_ENUMS(Dimension)
+  Q_ENUMS(Category)
 
  public:
   using View                = CQChartsView;
@@ -110,10 +110,11 @@ class CQChartsPlotType : public QObject {
   using Column              = CQChartsColumn;
   using Columns             = CQChartsColumns;
 
-  enum Dimension {
+  enum Category {
     NONE,
     ONE_D,
     TWO_D,
+    CONNECTION
   };
 
  public:
@@ -125,7 +126,7 @@ class CQChartsPlotType : public QObject {
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
 
-  virtual Dimension dimension() const { return Dimension::NONE; }
+  virtual Category category() const { return Category::NONE; }
 
   //---
 

@@ -106,17 +106,17 @@ class CQChartsDensity : public QObject {
 
   //---
 
-  void draw(const Plot *plot, PaintDevice *device, const BBox &rect);
+  void draw(const Plot *plot, PaintDevice *device, const BBox &rect, bool scaled);
 
   BBox bbox(const BBox &rect) const;
 
   //---
 
   void drawWhisker(PaintDevice *device, const BBox &rect,
-                   const Qt::Orientation &orientation) const;
+                   const Qt::Orientation &orientation, bool scaled) const;
 
   void drawWhiskerBar(PaintDevice *device, const BBox &rect,
-                      const Qt::Orientation &orientation) const;
+                      const Qt::Orientation &orientation, bool scaled) const;
 
   void drawDistribution(const Plot *plot, PaintDevice *device, const BBox &rect,
                         const Qt::Orientation &orientation,

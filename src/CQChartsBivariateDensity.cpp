@@ -101,7 +101,7 @@ calc(const CQChartsPlot *plot, const Data &data)
 
       //---
 
-      cells_.push_back(cell);
+      cells_.push_back(std::move(cell));
     }
   }
 }

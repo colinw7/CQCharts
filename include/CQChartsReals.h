@@ -8,6 +8,8 @@
 /*!
  * \brief Reals class
  * ingroup Charts
+ *
+ * container for vector of doubles with variant support
  */
 class CQChartsReals :
   public CQChartsEqBase<CQChartsReals>,
@@ -29,11 +31,16 @@ class CQChartsReals :
     fromString(s);
   }
 
+  int numReals() const { return reals_.size(); }
+
   const Reals &reals() const { return reals_; }
+  double real(int i) const { assert(i >= 0 && i < numReals()); return reals_[i]; }
 
   bool isValid() const { return true; }
 
   void setReals(const Reals &reals) { reals_ = reals; }
+
+  void addReal(double r) { reals_.push_back(r); }
 
   //---
 

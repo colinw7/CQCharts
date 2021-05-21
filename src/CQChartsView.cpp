@@ -1413,9 +1413,9 @@ addPointAnnotation(const Position &pos, const CQChartsSymbol &type)
 
 CQChartsPointSetAnnotation *
 CQChartsView::
-addPointSetAnnotation(const CQChartsPoints &values)
+addPointSetAnnotation(const Rect &rect, const CQChartsPoints &values)
 {
-  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, values));
+  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, rect, values));
 }
 
 CQChartsPolygonAnnotation *
@@ -1658,7 +1658,7 @@ addPlot(Plot *plot, const BBox &bbox)
     bbox1 = BBox(0, 0, viewportRange(), viewportRange());
 
   if (! plot->hasId()) {
-    auto id = QString("%1").arg(numPlots() + 1);
+    auto id = QString::number(numPlots() + 1);
 
     plot->setId(QString("plot:%1:%2").arg(plot->typeName()).arg(id));
 
@@ -4044,7 +4044,7 @@ updateSelText()
   else if (num == 1)
     setSelText(objs[0]->id());
   else
-    setSelText(QString("%1").arg(num));
+    setSelText(QString::number(num));
 }
 
 void
@@ -4118,7 +4118,7 @@ resizeEvent(QResizeEvent *)
 
   image_ = CQChartsUtil::newImage(QSize(iw, ih));
 
-  image_->fill(QColor(0, 0, 0, 0));
+  image_->fill(Qt::transparent);
 
   ipainter_ = new QPainter(image_);
 

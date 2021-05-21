@@ -396,6 +396,8 @@ startAnimateTimer()
   if (! animateData_.timer) {
     animateData_.timer = new QTimer(this);
 
+    animateData_.timer->moveToThread(this->thread());
+
     connect(animateData_.timer, SIGNAL(timeout()), this, SLOT(animateSlot()));
   }
 
@@ -415,8 +417,8 @@ void
 CQChartsPlot::
 animateSlot()
 {
+  // interupt range, calc objs and draw
   interruptRange();
-//interruptDraw();
 
   animateStep();
 }
@@ -1051,7 +1053,7 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objId  = QString("obj_") + QString::fromStdString(plotId) + "_" + plotObj->id();
       auto objStr = device->encodeObjId(objId).toStdString();
 
       if (imajor > 0)
@@ -1190,7 +1192,7 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objId  = QString("obj_") + QString::fromStdString(plotId) + "_" + plotObj->id();
       auto objStr = device->encodeObjId(objId).toStdString();
 
       os << "\n";
@@ -1302,7 +1304,7 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objId  = QString("obj_") + QString::fromStdString(plotId) + "_" + plotObj->id();
       auto objStr = device->encodeObjId(objId).toStdString();
 
       os << "  this." << objStr << ".draw();\n";
@@ -11830,6 +11832,16 @@ drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) co
 
   //---
 
+  // draw mouse over
+  if (overlayParts.overObjs)
+    drawGroupedObjs(device, Layer::Type::MOUSE_OVER);
+
+  if (overlayParts.overAnnotations)
+    drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
+
+  //---
+
+  // draw edit handles last
   if (overlayParts.editHandles) {
     if (device->isInteractive()) {
       auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
@@ -11837,15 +11849,6 @@ drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) co
       drawGroupedEditHandles(viewPlotDevice->painter());
     }
   }
-
-  //---
-
-  // draw mouse over
-  if (overlayParts.overObjs)
-    drawGroupedObjs(device, Layer::Type::MOUSE_OVER);
-
-  if (overlayParts.overAnnotations)
-    drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
 }
 
 void
@@ -13624,7 +13627,7 @@ autoFit()
       auto bbox1 = windowToPixel(bbox);
       auto bbox2 = plot->pixelToWindow(bbox1);
 
-      bboxes.push_back(bbox2);
+      bboxes.push_back(std::move(bbox2));
     });
 
     int i = 0;
@@ -13892,9 +13895,16 @@ addPointAnnotation(const Position &pos, const Symbol &type)
 
 CQChartsPointSetAnnotation *
 CQChartsPlot::
-addPointSetAnnotation(const CQChartsPoints &values)
+addPointSetAnnotation(const Rect &rect, const CQChartsPoints &values)
 {
-  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, values));
+  return addAnnotationT<PointSetAnnotation>(new PointSetAnnotation(this, rect, values));
+}
+
+CQChartsPoint3DSetAnnotation *
+CQChartsPlot::
+addPoint3DSetAnnotation(const Point3DArray &points)
+{
+  return addAnnotationT<Point3DSetAnnotation>(new Point3DSetAnnotation(this, points));
 }
 
 CQChartsPolygonAnnotation *
@@ -14681,7 +14691,7 @@ drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, doub
     imageBuffer.brush  = painter->brush();
     imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
 
-    imageBuffer.image.fill(QColor(0, 0, 0, 0));
+    imageBuffer.image.fill(Qt::transparent);
 
     QPainter ipainter(&imageBuffer.image);
 

@@ -357,7 +357,7 @@ createObjs(PlotObjs &objs) const
       ModelVisitor::initVisit();
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        ColumnType columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
+        auto columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
 
         columnTypes_.push_back(columnType);
       }

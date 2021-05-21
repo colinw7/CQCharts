@@ -522,9 +522,9 @@ addAxis(const Column &xColumn, const Column &yColumn, const Column &zColumn) con
       polyObj->addLabelText(pl2, label, polyObj2);
   };
 
-  QColor bc1(210, 210, 210);
-  QColor bc2(200, 200, 200);
-  QColor bc3(190, 190, 190);
+  QColor bc1(210, 210, 210); // TODO: config
+  QColor bc2(200, 200, 200); // TODO: config
+  QColor bc3(190, 190, 190); // TODO: config
 
   auto *xPolyObj1 = addZPoly(pxs0, pxs1, pxs2, pxs3, bc1, Point3D( 1, 0, 0));
   auto *xPolyObj2 = addZPoly(pxs4, pxs5, pxs6, pxs7, bc1, Point3D(-1, 0, 0));
@@ -975,7 +975,7 @@ postDraw(PaintDevice *device)
   // draw grid lines
   CQChartsPenBrush penBrush;
 
-  QColor gc(150, 150, 150);
+  QColor gc(150, 150, 150); // TODO: config
 
   plot_->setPenBrush(penBrush, PenData(true, gc), BrushData(false));
 
@@ -988,7 +988,7 @@ postDraw(PaintDevice *device)
 
   //---
 
-  QColor lc(0, 0, 0);
+  QColor lc(Qt::black);
 
   plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
@@ -1006,8 +1006,8 @@ postDraw(PaintDevice *device)
 
   //---
 
-//QColor tlc(100, 200, 100);
-  QColor tlc(0, 0, 0);
+//QColor tlc(100, 200, 100); // TODO: config
+  QColor tlc(Qt::black);
 
   plot_->setPenBrush(penBrush, PenData(true, tlc), BrushData(false));
 

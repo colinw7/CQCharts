@@ -40,10 +40,10 @@ fromString(const QString &str, const CQChartsUnits &defUnits)
   points_.clear();
 
   for (int i = 0; i < strs.length(); ++i) {
-    CQChartsPosition p(strs[i], defUnits);
+    Position p(strs[i], defUnits);
 
     if (p.isValid())
-      points_.push_back(p);
+      points_.push_back(std::move(p));
   }
 
   return true;

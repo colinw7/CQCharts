@@ -25,10 +25,17 @@ class CQChartsContour : public QObject {
   using PaintDevice   = CQChartsPaintDevice;
   using ContourLevels = std::vector<double>;
 
+#if 0
+  using ColorArray = std::vector<QColor>;
+#endif
+
  public:
   CQChartsContour(Plot *plot=nullptr);
 
   //---
+
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p) { plot_ = p; }
 
   bool isSolid() const { return solid_; }
   void setSolid(bool b) { solid_ = b; }
@@ -49,7 +56,9 @@ class CQChartsContour : public QObject {
 
   void setData(double *x, double *y, double *z, int numX, int numY);
 
-  void setContourColors(const std::vector<QColor> &colors);
+#if 0
+  void setContourColors(const ColorArray &colors);
+#endif
 
   void drawContour(PaintDevice *device);
 
@@ -71,8 +80,6 @@ class CQChartsContour : public QObject {
 
  private:
   using RealArray  = std::vector<double>;
-  using ColorArray = std::vector<QColor>;
-
   Plot*      plot_            { nullptr };
   bool       solid_           { false };
   RealArray  x_;
@@ -80,7 +87,9 @@ class CQChartsContour : public QObject {
   RealArray  z_;
   RealArray  levels_;
   int        numLevels_       { 10 };
+#if 0
   ColorArray colors_;
+#endif
   QColor     backgroundColor_ { 255, 255, 255 };
   QColor     gridPointColor_  { 128, 128, 128 };
   double     xmin_            { 0.0 };

@@ -42,7 +42,7 @@ CQChartsModelFilter::
 pushFilterData()
 {
   if (filterDatas_.empty() || ! currentFilterData().isEmpty())
-    filterDatas_.push_back(CQChartsModelFilterData());
+    filterDatas_.emplace_back();
 }
 
 void

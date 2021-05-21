@@ -42,7 +42,7 @@ stringToConnections(const QString &str, Connections &connections)
     if (! decodeConnection(str1, connection))
       return false;
 
-    connections.push_back(connection);
+    connections.push_back(std::move(connection));
 
     parse.skipSpace();
   }

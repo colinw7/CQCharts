@@ -1915,9 +1915,9 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   if (plot_->isValueLabel()) {
     if (node_->isHier())
-      strs.push_back(QString("%1").arg(node_->hierSize()));
+      strs.push_back(QString::number(node_->hierSize()));
     else
-      strs.push_back(QString("%1").arg(node_->size()));
+      strs.push_back(QString::number(node_->size()));
   }
 
   //---

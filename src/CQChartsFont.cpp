@@ -50,7 +50,7 @@ fontStr() const
 
       assert(data_.size >= 0);
 
-      word += QString("%1").arg(data_.size);
+      word += QString::number(data_.size);
 
       addWord(word);
     }

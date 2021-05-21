@@ -490,7 +490,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     if      (geometryColumnType_ == ColumnType::RECT) {
       auto bbox = CQChartsVariant::toBBox(rvar, ok3);
 
-      geometry.polygons.push_back(Polygon(bbox));
+      geometry.polygons.emplace_back(bbox);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
       auto poly = CQChartsVariant::toPolygon(rvar, ok3);
@@ -500,7 +500,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
         return;
       }
 
-      geometry.polygons.push_back(poly);
+      geometry.polygons.push_back(std::move(poly));
     }
     else if (geometryColumnType_ == ColumnType::POLYGON_LIST) {
       auto polyList = CQChartsVariant::toPolygonList(rvar, ok3);
@@ -529,7 +529,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
       auto poly = Polygon(path.path().toFillPolygon());
 
-      geometry.polygons.push_back(poly);
+      geometry.polygons.push_back(std::move(poly));
     }
     else {
       assert(false);
@@ -553,7 +553,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     }
 
     if      (shape.type == CQChartsGeometryShape::Type::RECT)
-      geometry.polygons.push_back(Polygon(shape.rect));
+      geometry.polygons.emplace_back(shape.rect);
     else if (shape.type == CQChartsGeometryShape::Type::POLYGON) {
       if (shape.polygon.size() < 2) {
         th->addDataError(geometryInd, "Too few points for polygon '" + geomStr + "'");
@@ -568,7 +568,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else if (shape.type == CQChartsGeometryShape::Type::PATH) {
       auto poly = Polygon(shape.path.qpoly());
 
-      geometry.polygons.push_back(poly);
+      geometry.polygons.push_back(std::move(poly));
     }
 
     if (geometry.polygons.empty()) {
@@ -670,7 +670,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // add to list
-  th->geometries_.push_back(geometry);
+  th->geometries_.push_back(std::move(geometry));
 }
 
 bool

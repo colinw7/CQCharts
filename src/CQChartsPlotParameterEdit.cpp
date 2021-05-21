@@ -185,7 +185,7 @@ CQChartsRealParameterEdit(const CQChartsPlotParameter *parameter) :
   else {
     lineEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-    lineEdit_->setText(QString("%1").arg(r));
+    lineEdit_->setText(QString::number(r));
 
     connect(lineEdit_, SIGNAL(textChanged(const QString &)), this, SIGNAL(valueChanged()));
 
@@ -246,7 +246,7 @@ CQChartsIntParameterEdit(const CQChartsPlotParameter *parameter) :
   else {
     lineEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-    lineEdit_->setText(QString("%1").arg(i));
+    lineEdit_->setText(QString::number(i));
 
     connect(lineEdit_, SIGNAL(textChanged(const QString &)), this, SIGNAL(valueChanged()));
 

@@ -37,7 +37,7 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setUnique().setPropPath("columns.x").setTip("X value column");
+    setUnique().setPropPath("columns.x").setTip("X value column");
   addColumnsParameter("y", "Y", "yColumns").
     setNumeric().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
@@ -145,6 +145,8 @@ init()
   setLinesColor(Color(Color::Type::PALETTE));
 
   setPoints(true);
+
+  setSymbol(Symbol::circle());
 
   setSymbolStrokeAlpha(Alpha(0.25));
   setSymbolFilled     (true);
@@ -402,13 +404,18 @@ calcRange() const
   // check columns
   bool columnsValid = true;
 
-  if (! checkColumn (xColumn(), "X", /*required*/true))
+  if (! checkColumn(xColumn(), "X"))
     columnsValid = false;
   if (! checkColumns(yColumns(), "Y", /*required*/true))
     columnsValid = false;
 
-  if (! columnsValid)
-    return Range(0.0, 0.0, 1.0, 1.0);
+  if (! columnsValid) {
+    auto dataRange = Range(0.0, 0.0, 1.0, 1.0);
+
+    th->normalizedDataRange_ = dataRange;
+
+    return dataRange;
+  }
 
   //---
 
@@ -486,7 +493,7 @@ calcRange() const
         //---
 
         double x = 0;
-        double y = i;
+        double y = data.row;
 
         // TODO: control default value ?
         if (! plot_->rowColValue(details_[i], yColumnInd, y, /*defVal*/y))
@@ -523,9 +530,7 @@ calcRange() const
   // set range from data
   for (int j = 0; j < ns; ++j) {
     auto &range = th->setRanges_[j];
-
-    if (! range.isSet())
-      continue;
+    if (! range.isSet()) continue;
 
     if (isVertical()) {
       range.updateRange(   - 0.5, range.ymin());
@@ -562,7 +567,9 @@ calcRange() const
   for (int j = 0; j < ns; ++j) {
     auto *axis = axes_[j];
 
-    const auto &range   = setRange(j);
+    const auto &range = setRange(j);
+    if (! range.isValid()) continue;
+
     const auto &yColumn = yColumns().getColumn(j);
 
     bool ok;
@@ -658,7 +665,7 @@ createObjs(PlotObjs &objs) const
           poly.addPoint(Point(y, x));
       }
 
-      polys_.push_back(poly);
+      polys_.push_back(std::move(poly));
 
       return State::OK;
     }
@@ -709,11 +716,17 @@ createObjs(PlotObjs &objs) const
     //---
 
     // add poly line object
-    ModelIndex xModelInd(th, xind.row(), Column(xind.column()), xind.parent());
+    QString xname;
 
-    bool ok;
+    if (xind.column() >= 0) {
+      ModelIndex xModelInd(th, xind.row(), Column(xind.column()), xind.parent());
 
-    auto xname = modelString(xModelInd, ok);
+      bool ok;
+
+      xname = modelString(xModelInd, ok);
+    }
+    else
+      xname = QString::number(xind.row());
 
     auto bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                      normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
@@ -740,6 +753,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       const auto &range = setRange(j);
+      if (! range.isValid()) continue;
 
       auto p = poly.point(j);
 
@@ -798,7 +812,7 @@ rowColValue(const CQChartsModelColumnDetails *details,
 
   bool ok;
 
-  if (details->isNumeric()) {
+  if (details && details->isNumeric()) {
     value = modelReal(ind, ok);
     if (! ok) return useDefault();
   }
@@ -806,7 +820,7 @@ rowColValue(const CQChartsModelColumnDetails *details,
     auto var = modelValue(ind, ok);
     if (! ok) return useDefault();
 
-    value = details->uniqueId(var);
+    value = (details ? details->uniqueId(var) : 0.0);
   }
 
   if (CMathUtil::isNaN(value))
@@ -826,8 +840,9 @@ probe(ProbeData &probeData) const
     int x1 = std::min(std::max(CMathRound::RoundDown(probeData.p.x), 0), n - 1);
     int x2 = std::min(std::max(CMathRound::RoundUp  (probeData.p.x), 0), n - 1);
 
-    const auto &range1 = setRanges_[x1];
-    const auto &range2 = setRanges_[x2];
+    auto range1 = setRange(x1);
+    auto range2 = setRange(x2);
+    if (! range1.isValid() || ! range2.isValid()) return false;
 
     for (const auto &plotObj : plotObjs_) {
       auto *obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
@@ -853,7 +868,7 @@ probe(ProbeData &probeData) const
         else
           yi = y1;
 
-        probeData.yvals.emplace_back(y, QString("%1").arg(yi));
+        probeData.yvals.emplace_back(y, QString::number(yi));
       }
     }
 #else
@@ -861,12 +876,13 @@ probe(ProbeData &probeData) const
 
     x = std::min(std::max(x, 0), n - 1);
 
-    const auto &range = setRanges_[x];
+    auto range = setRange(x);
+    if (! range.isValid()) return false;
 
     probeData.p.x = x;
 
     probeData.yvals.emplace_back(probeData.p.y, "",
-      QString("%1").arg(probeData.p.y*range.ysize() + range.ymin()));
+      QString::number(probeData.p.y*range.ysize() + range.ymin()));
 #endif
   }
   else {
@@ -875,12 +891,13 @@ probe(ProbeData &probeData) const
     y = std::max(y, 0    );
     y = std::min(y, n - 1);
 
-    const auto &range = setRanges_[y];
+    auto range = setRange(y);
+    if (! range.isValid()) return false;
 
     probeData.p.y = y;
 
     probeData.xvals.emplace_back(probeData.p.x, "",
-      QString("%1").arg(probeData.p.x*range.xsize() + range.xmin()));
+      QString::number(probeData.p.x*range.xsize() + range.xmin()));
   }
 
   return true;
@@ -969,6 +986,8 @@ drawFgAxes(PaintDevice *device) const
   if (axes_.empty())
     return;
 
+  //--
+
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setObjRange(device);
@@ -998,16 +1017,26 @@ drawFgAxes(PaintDevice *device) const
     //---
 
     const auto &range = setRange(j);
+    if (! range.isValid()) continue;
 
-    const_cast<CQChartsParallelPlot *>(this)->dataRange_ = range;
+    auto *th = const_cast<CQChartsParallelPlot *>(this);
+
+    th->dataRange_ = range;
   //setDataRange(range); // will clear objects
 
     // set display range to set range
     if (dataRange_.isSet()) {
+      Range range;
+
       if (isVertical())
-        displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
+        range = Range(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
       else
-        displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
+        range = Range(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
+
+      auto adjustedRange = adjustDataRangeBBox(range.bbox());
+
+      th->displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
+                                        adjustedRange.getXMax(), adjustedRange.getYMax());
 
       //---
 
@@ -1112,10 +1141,17 @@ setObjRange(PaintDevice *device)
   const auto &dataRange = this->dataRange();
 
   if (dataRange.isSet()) {
+    Range range;
+
     if (isVertical())
-      displayRange_->setWindowRange(dataRange.xmin(), 0, dataRange.xmax(), 1);
+      range = Range(dataRange.xmin(), 0, dataRange.xmax(), 1);
     else
-      displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
+      range = Range(0, dataRange.ymin(), 1, dataRange.ymax());
+
+    auto adjustedRange = adjustDataRangeBBox(range.bbox());
+
+    displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
+                                  adjustedRange.getXMax(), adjustedRange.getYMax());
   }
 
   //---
@@ -1138,9 +1174,11 @@ setNormalizedRange(PaintDevice *device)
 
   //---
 
+  auto adjustedRange = adjustDataRangeBBox(normalizedDataRange_.bbox());
+
   // set display range to normalized range
-  displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                                normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
+  displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
+                                adjustedRange.getXMax(), adjustedRange.getYMax());
 
   dataRange_ = normalizedDataRange_;
 
@@ -1216,18 +1254,26 @@ CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const BBox &rect, cons
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
 
 QString
 CQChartsParallelLineObj::
 calcId() const
 {
-  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+  QString xname;
 
-  bool ok;
+  if (plot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
 
-  auto xname = plot()->modelString(xModelInd, ok);
+    bool ok;
+
+    xname = plot()->modelString(xModelInd, ok);
+  }
+  else {
+    xname = QString::number(modelInd().row());
+  }
 
   return QString("%1:%2").arg(typeName()).arg(xname);
 }
@@ -1236,13 +1282,9 @@ QString
 CQChartsParallelLineObj::
 calcTipId() const
 {
-  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
-
-  bool ok;
-
-  auto xname = plot_->modelString(xModelInd, ok);
-
   CQChartsTableTip tableTip;
+
+  auto xname = this->xName();
 
   tableTip.addBoldLine(xname);
 
@@ -1265,6 +1307,26 @@ calcTipId() const
   //---
 
   return tableTip.str();
+}
+
+QString
+CQChartsParallelLineObj::
+xName() const
+{
+  QString xname;
+
+  if (plot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+
+    bool ok;
+
+    xname = plot_->modelString(xModelInd, ok);
+  }
+  else {
+    xname = QString::number(modelInd().row());
+  }
+
+  return xname;
 }
 
 bool
@@ -1306,7 +1368,13 @@ inside(const Point &p) const
     Point pl1(x1, y1);
     Point pl2(x2, y2);
 
-    if (CQChartsUtil::PointLineDistance(p, pl1, pl2, &d) && d < 1E-3)
+    if (! CQChartsUtil::PointLineDistance(p, pl1, pl2, &d))
+      continue;
+
+    auto pdx = plot_->windowToPixelWidth (d);
+    auto pdy = plot_->windowToPixelHeight(d);
+
+    if (pdx < 4 || pdy < 4)
       return true;
   }
 
@@ -1358,6 +1426,12 @@ draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
+
+  //---
+
+  auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
+
+  plot->setNormalizedRange(device);
 
   //---
 
@@ -1418,6 +1492,7 @@ getPolyLine(Polygon &poly) const
   // create unnormalized polyline
   for (int i = 0; i < poly_.size(); ++i) {
     const auto &range = plot_->setRange(i);
+    if (! range.isValid()) continue;
 
     double x, y;
 
@@ -1459,15 +1534,13 @@ QString
 CQChartsParallelPointObj::
 calcId() const
 {
-  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
-
-  bool ok;
-
-  auto xname = plot_->modelString(xModelInd, ok);
+  auto xname = this->xName();
 
   const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  auto yname = plot_->modelHHeaderString(yColumn, ok);
+  bool ok1;
+
+  auto yname = plot_->modelHHeaderString(yColumn, ok1);
 
   return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
 }
@@ -1476,19 +1549,17 @@ QString
 CQChartsParallelPointObj::
 calcTipId() const
 {
-  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
-
   CQChartsTableTip tableTip;
 
-  bool ok;
-
-  auto xname = plot_->modelString(xModelInd, ok);
+  auto xname = this->xName();
 
   tableTip.addBoldLine(xname);
 
   const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  auto yname = plot_->modelHHeaderString(yColumn, ok);
+  bool ok1;
+
+  auto yname = plot_->modelHHeaderString(yColumn, ok1);
 
   tableTip.addTableRow(yname, yval_);
 
@@ -1499,6 +1570,26 @@ calcTipId() const
   //---
 
   return tableTip.str();
+}
+
+QString
+CQChartsParallelPointObj::
+xName() const
+{
+  QString xname;
+
+  if (plot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+
+    bool ok;
+
+    xname = plot_->modelString(xModelInd, ok);
+  }
+  else {
+    xname = QString::number(modelInd().row());
+  }
+
+  return xname;
 }
 
 bool
@@ -1613,6 +1704,8 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
 
   //addFrameRowStretch(optionsFrame);
+
+  // lines selectable
 
   //---
 

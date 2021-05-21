@@ -166,7 +166,7 @@ stepPlace()
       if (isDebug())
         std::cerr << " MOVE TO: " << erect << "\n";
 
-      moveRects.push_back(MoveRect(rectData, erect));
+      moveRects.emplace_back(rectData, erect);
     }
 
     if (moveRects.empty())

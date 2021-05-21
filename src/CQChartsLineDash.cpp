@@ -235,7 +235,7 @@ toString() const
     ss << qlengths[i];
   }
 
-  return ss.str().c_str();
+  return QString::fromStdString(ss.str());
 }
 
 bool

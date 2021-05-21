@@ -858,7 +858,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
     valueInd.ind   = valInd1;
     valueInd.vrow  = data.vrow;
 
-    valueInds.push_back(valueInd);
+    valueInds.push_back(std::move(valueInd));
   }
 
   if (valueInds.empty())
@@ -2655,9 +2655,9 @@ tipText(const Point &, QString &tip) const
 
   if (hasSum) {
     if      (CMathUtil::isZero(negSum))
-      sumStr = QString("%1").arg(posSum);
+      sumStr = QString::number(posSum);
     else if (CMathUtil::isZero(posSum))
-      sumStr = QString("%1").arg(negSum);
+      sumStr = QString::number(negSum);
     else
       sumStr = QString("%1 -> %2").arg(negSum).arg(posSum);
   }

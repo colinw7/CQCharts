@@ -17,7 +17,9 @@
  */
 class CQChartsCircleNode {
   public:
-   CQChartsCircleNode(double r=1.0, double x=0.0, double y=0.0) :
+   CQChartsCircleNode() { }
+
+   CQChartsCircleNode(double r, double x, double y) :
     r_(r), x_(x), y_(y) {
      assert(! COSNaN::is_nan(x_) && ! COSNaN::is_nan(y_));
    }
@@ -56,8 +58,7 @@ class CQChartsCirclePack {
   using Nodes = std::vector<NODE*>;
 
  public:
-  CQChartsCirclePack() : ind1_(0), ind2_(1) { }
-
+  CQChartsCirclePack() { }
  ~CQChartsCirclePack() { }
 
   void reset() {
@@ -307,9 +308,9 @@ class CQChartsCirclePack {
   }
 
  private:
-  Nodes       nodes_; //!< circle nodes
-  mutable int ind1_;  //!< last but one placed circle node index
-  mutable int ind2_;  //!< last placed circle node index
+  Nodes       nodes_;      //!< circle nodes
+  mutable int ind1_ { 0 }; //!< last but one placed circle node index
+  mutable int ind2_ { 1 }; //!< last placed circle node index
 };
 
 #endif

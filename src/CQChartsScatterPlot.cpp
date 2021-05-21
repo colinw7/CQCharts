@@ -3346,7 +3346,7 @@ addDataLabelData(const BBox &bbox, const QString &text, const CQChartsLabelPosit
   dataLabelData.penBrush = penBrush;
   dataLabelData.font     = font;
 
-  dataLabelDatas_.push_back(dataLabelData);
+  dataLabelDatas_.push_back(std::move(dataLabelData));
 }
 
 void

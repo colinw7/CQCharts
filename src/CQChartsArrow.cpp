@@ -286,7 +286,7 @@ drawContents(const PenBrush &penBrush) const
   pointLabels_.clear();
 
   auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
-    pointLabels_.push_back(PointLabel(point, text, above));
+    pointLabels_.emplace_back(point, text, above);
   };
 #endif
 

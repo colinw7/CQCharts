@@ -1021,7 +1021,7 @@ CQChartsGraphPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
   // get src node
-  auto srcStr = QString("%1").arg(id);
+  auto srcStr = QString::number(id);
 
   auto *srcNode = findNode(srcStr);
 
@@ -1063,7 +1063,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   // process connections
   for (const auto &connection : connectionsData.connections) {
     // get destination node
-    auto destStr = QString("%1").arg(connection.node);
+    auto destStr = QString::number(connection.node);
 
     auto *destNode = findNode(destStr);
 
@@ -1108,7 +1108,7 @@ initTableObjs() const
     if (tableConnectionData.values().empty())
       continue;
 
-    auto srcStr = QString("%1").arg(tableConnectionData.from());
+    auto srcStr = QString::number(tableConnectionData.from());
 
     auto *srcNode = findNode(srcStr);
 
@@ -1116,7 +1116,7 @@ initTableObjs() const
     srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
 
     for (const auto &value : tableConnectionData.values()) {
-      auto destStr = QString("%1").arg(value.to);
+      auto destStr = QString::number(value.to);
 
       auto *destNode = findNode(destStr);
 
@@ -1601,7 +1601,7 @@ getGraph(int graphId, int parentGraphId) const
   if (pg == graphs_.end()) {
     auto *th = const_cast<CQChartsGraphPlot *>(this);
 
-    auto name = QString("%1").arg(graphId);
+    auto name = QString::number(graphId);
 
     auto *graph = new Graph(this, name);
 
@@ -2438,9 +2438,9 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
   assert(srcNode && destNode);
 
-  auto *edge = new Edge(this, value, srcNode, destNode);
-
   auto *th = const_cast<CQChartsGraphPlot *>(this);
+
+  auto *edge = new Edge(this, value, srcNode, destNode);
 
   th->edges_.push_back(edge);
 

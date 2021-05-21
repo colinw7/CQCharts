@@ -157,7 +157,7 @@ updateSlot()
 
   //---
 
-  modelLabel_->setText(QString("%1").arg(details->data()->ind()));
+  modelLabel_->setText(QString::number(details->data()->ind()));
 
   updateButton_->setEnabled(false);
 
@@ -170,7 +170,7 @@ updateSlot()
   numColumnsLabel_->setValue(nc);
   numRowsLabel_   ->setValue(nr);
 
-  hierLabel_->setText(QString("%1").arg(isHier ? "Yes" : "No"));
+  hierLabel_->setText(QString(isHier ? "Yes" : "No"));
 
   //---
 

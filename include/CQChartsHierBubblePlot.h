@@ -21,7 +21,7 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
   QString name() const override { return "hierbubble"; }
   QString desc() const override { return "HierBubble"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

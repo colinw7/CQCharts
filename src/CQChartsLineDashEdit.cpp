@@ -296,7 +296,7 @@ CQChartsLineDashEditAction(CQChartsLineDashEdit *parent, const std::string &id,
  QAction(parent), parent_(parent), id_(id), dash_(dash)
 {
   setIcon(icon);
-  setText(id_.c_str());
+  setText(QString::fromStdString(id_));
 
   setIconVisibleInMenu(true);
 }
@@ -316,7 +316,7 @@ pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state)
 {
   QPixmap pixmap(size);
 
-  pixmap.fill(QColor(0, 0, 0, 0));
+  pixmap.fill(Qt::transparent);
 
   QPainter painter(&pixmap);
 

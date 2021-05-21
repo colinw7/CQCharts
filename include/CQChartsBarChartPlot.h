@@ -18,7 +18,7 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

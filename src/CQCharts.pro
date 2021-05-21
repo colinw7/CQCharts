@@ -34,6 +34,7 @@ CQChartsColumn.cpp \
 CQChartsColumnNum.cpp \
 CQChartsColumnType.cpp \
 CQChartsModelIndex.cpp \
+CQChartsModelColumn.cpp \
 \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
@@ -389,6 +390,7 @@ HEADERS += \
 ../include/CQChartsColumnNum.h \
 ../include/CQChartsColumnType.h \
 ../include/CQChartsModelIndex.h \
+../include/CQChartsModelColumn.h \
 \
 ../include/CQChartsTable.h \
 ../include/CQChartsTree.h \

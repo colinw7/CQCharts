@@ -54,7 +54,7 @@ class CQChartsWheelPlotType : public CQChartsPlotType {
   QString name() const override { return "wheel"; }
   QString desc() const override { return "Wheel"; }
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   void addParameters() override;
 

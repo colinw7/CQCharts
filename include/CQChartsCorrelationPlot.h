@@ -21,8 +21,8 @@ class CQChartsCorrelationPlotType : public CQChartsPlotType {
   QString name() const override { return "correlation"; }
   QString desc() const override { return "Correlation"; }
 
-  // no dimension (uses whole model)
-  Dimension dimension() const override { return Dimension::NONE; }
+  // no category (uses whole model)
+  Category category() const override { return Category::NONE; }
 
   void addParameters() override;
 

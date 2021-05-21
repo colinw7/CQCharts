@@ -13,103 +13,118 @@
 namespace CQChartsObjUtil {
 
 void
-getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCharts* &charts) {
-  view   = nullptr;
-  charts = nullptr;
+getObjData(QObject *obj, ObjData &objData)
+{
+  objData.clear();
 
-  plot = qobject_cast<CQChartsPlot *>(obj);
+  objData.plot = qobject_cast<CQChartsPlot *>(obj);
 
-  if (plot) {
-    charts = plot->charts();
+  if (objData.plot) {
+    objData.view   = objData.plot->view();
+    objData.charts = objData.plot->charts();
     return;
   }
 
-  view = qobject_cast<CQChartsView *>(obj);
+  //---
 
-  if (view) {
-    charts = view->charts();
+  objData.view = qobject_cast<CQChartsView *>(obj);
+
+  if (objData.view) {
+    objData.charts = objData.view->charts();
     return;
   }
+
+  //---
 
   auto *axis = qobject_cast<CQChartsAxis *>(obj);
 
   if (axis) {
-    plot   = axis->plot();
-    charts = axis->charts();
-
+    objData.plot   = axis->plot();
+    objData.charts = axis->charts();
     return;
   }
+
+  //---
 
   auto *key = qobject_cast<CQChartsKey *>(obj);
 
   if (key) {
-    plot   = key->plot();
-    charts = key->charts();
+    objData.plot   = key->plot();
+    objData.charts = key->charts();
 
-    if (! plot)
-      view = key->view();
+    if (! objData.plot)
+      objData.view = key->view();
+
+    return;
+  }
+
+  //---
+
+  objData.annotation = qobject_cast<CQChartsAnnotation *>(obj);
+
+  if (objData.annotation) {
+    objData.plot   = objData.annotation->plot();
+    objData.view   = objData.annotation->view();
+    objData.charts = objData.annotation->charts();
+
+    if (! objData.plot)
+      objData.view = objData.annotation->view();
 
     return;
   }
 
-  auto *annotation = qobject_cast<CQChartsAnnotation *>(obj);
-
-  if (annotation) {
-    plot   = annotation->plot();
-    charts = annotation->charts();
-
-    if (! plot)
-      view = annotation->view();
-
-    return;
-  }
+  //---
 
   auto *mapKey = qobject_cast<CQChartsMapKey *>(obj);
 
   if (mapKey) {
-    plot = mapKey->plot();
+    objData.plot = mapKey->plot();
 
-    if (plot) {
-      charts = plot->charts();
-      return;
-    }
+    if (objData.plot)
+      objData.charts = objData.plot->charts();
+
+    return;
   }
+
+  //---
 
   auto *boxObj = qobject_cast<CQChartsBoxObj *>(obj);
 
   if (boxObj) {
-    plot   = boxObj->plot();
-    charts = boxObj->charts();
+    objData.plot   = boxObj->plot();
+    objData.charts = boxObj->charts();
 
-    if (plot)
-      return;
-
-    view = boxObj->view();
+    if (! objData.plot)
+      objData.view = boxObj->view();
 
     return;
   }
+
+  //---
 
   auto *arrow = qobject_cast<CQChartsArrow *>(obj);
 
   if (arrow) {
-    plot   = arrow->plot();
-    charts = arrow->charts();
+    objData.plot   = arrow->plot();
+    objData.charts = arrow->charts();
 
-    if (! plot)
-      view = arrow->view();
+    if (! objData.plot)
+      objData.view = arrow->view();
 
     return;
   }
 
+  //---
+
   auto *axisRug = qobject_cast<CQChartsAxisRug *>(obj);
 
   if (axisRug) {
-    plot = axisRug->plot();
+    objData.plot = axisRug->plot();
 
-    if (plot) {
-      charts = plot->charts();
-      return;
-    }
+    if (objData.plot)
+      objData.charts = objData.plot->charts();
+
+    return;
   }
 
   assert(false);

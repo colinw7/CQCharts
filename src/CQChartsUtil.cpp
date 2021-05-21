@@ -78,7 +78,7 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
     long col = toInt(strs[i], ok1);
 
     if (ok1)
-      columns.push_back(CQChartsColumn(int(col)));
+      columns.emplace_back(int(col));
     else
       ok = false;
   }
@@ -114,7 +114,7 @@ QString formatVar(const QVariant &var, const QString &fmt) {
 
   VarPrintF p(var, fmt);
 
-  return p.format().c_str();
+  return QString::fromStdString(p.format());
 }
 
 QString formatReal(double r, const QString &fmt) {
@@ -298,7 +298,7 @@ QColor grayColor(const QColor &c) {
 QColor bwColor(const QColor &c) {
   int g = qGray(c.red(), c.green(), c.blue());
 
-  return (g > 128 ? QColor(0, 0, 0) : QColor(255, 255, 255));
+  return (g > 128 ? QColor(Qt::black) : QColor(Qt::white));
 }
 
 QColor invColor(const QColor &c) {
@@ -350,6 +350,11 @@ QColor rgbaToColor(double r, double g, double b, double a) {
                 CMathUtil::clamp(int(255*g), 0, 255),
                 CMathUtil::clamp(int(255*b), 0, 255),
                 CMathUtil::clamp(int(255*a), 0, 255));
+}
+
+QColor stringToColor(const QString &str) {
+  // TODO: X11 colors ?
+  return QColor(str);
 }
 
 }
@@ -485,7 +490,7 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
   QString line;
 
   while (readLine(fp, line)) {
-    lines.push_back(line);
+    lines.push_back(std::move(line));
 
     if (maxLines >= 0 && int(lines.size()) > maxLines)
       break;
@@ -733,7 +738,7 @@ bool parsePolygons(CQStrParse &parse, std::vector<Polygon> &polygons) {
     if (! stringToPolygon(polyStr, poly))
       return false;
 
-    polygons.push_back(poly);
+    polygons.push_back(std::move(poly));
 
     parse.skipSpace();
   }
@@ -986,8 +991,103 @@ bool parsePoint(CQStrParse &parse, Point &point, bool terminated) {
 QString pointToString(const Point &p) {
   QStringList strs;
 
-  strs += QString("%1").arg(p.x);
-  strs += QString("%1").arg(p.y);
+  strs += QString::number(p.x);
+  strs += QString::number(p.y);
+
+  return CQTcl::mergeList(strs);
+}
+
+//---
+
+bool stringToPoint3D(const QString &str, Point3D &point) {
+  CQStrParse parse(str);
+
+  return parsePoint3D(parse, point, /*terminated*/ true);
+}
+
+bool parsePoint3D(CQStrParse &parse, Point3D &point, bool terminated) {
+  // parse point:
+  //  x y z
+  //  { x y z }
+
+  parse.skipSpace();
+
+  // { x y z }
+  if (parse.isChar('{')) {
+    QString str1;
+
+    if (! parse.readBracedString(str1))
+      return false;
+
+    CQStrParse parse1(str1);
+
+    if (parsePoint3D(parse1, point, terminated)) {
+      if (terminated) {
+        parse.skipSpace();
+
+        if (parse.eof())
+          return true;
+      }
+      else
+        return true;
+    }
+  }
+
+  //---
+
+  // read x y z values
+  double x = 0.0;
+
+  if (! parse.readReal(&x))
+    return false;
+
+  parse.skipSpace();
+
+  if (parse.isChar(',')) {
+    parse.skipChar();
+
+    parse.skipSpace();
+  }
+
+  double y = 0.0;
+
+  if (! parse.readReal(&y))
+    return false;
+
+  parse.skipSpace();
+
+  if (parse.isChar(',')) {
+    parse.skipChar();
+
+    parse.skipSpace();
+  }
+
+  double z = 0.0;
+
+  if (! parse.readReal(&z))
+    return false;
+
+  if (terminated) {
+    parse.skipSpace();
+
+    if (! parse.eof())
+      return false;
+  }
+
+  //---
+
+  // return point
+  point = Point3D(x, y, z);
+
+  return true;
+}
+
+QString point3DToString(const Point3D &p) {
+  QStringList strs;
+
+  strs += QString::number(p.x);
+  strs += QString::number(p.y);
+  strs += QString::number(p.z);
 
   return CQTcl::mergeList(strs);
 }
@@ -1001,8 +1101,8 @@ namespace CQChartsUtil {
 QString sizeToString(const Size &s) {
   QStringList strs;
 
-  strs += QString("%1").arg(s.width ());
-  strs += QString("%1").arg(s.height());
+  strs += QString::number(s.width ());
+  strs += QString::number(s.height());
 
   return CQTcl::mergeList(strs);
 }
@@ -1085,7 +1185,7 @@ bool
 formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
                    QStringList &strs, const FormatData &formatData) {
   auto addStr = [&](const QString &str) {
-    assert(str.length());
+    //assert(str.length());
     strs.push_back(str);
   };
 
@@ -1581,6 +1681,40 @@ bool encodeUtf(const QString &s, QString &res) {
   res = QString::fromStdWString(str);
 
   return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QImage disabledImage(const QImage &image, const QColor &bg, double f) {
+  int iw = image.width ();
+  int ih = image.height();
+
+  auto image1 = initImage(QSize(iw, ih));
+
+  for (int y = 0; y < ih; ++y) {
+    for (int x = 0; x < iw; ++x) {
+      auto rgba = image.pixel(x, y);
+
+      int r = qRed  (rgba);
+      int g = qGreen(rgba);
+      int b = qBlue (rgba);
+      int a = qAlpha(rgba);
+
+      QColor c(r, g, b, a);
+
+      auto c1 = blendColors(bg, c, f);
+
+    //c1.setAlpha(a);
+
+      image1.setPixel(x, y, c1.rgba());
+    }
+  }
+
+  return image1;
 }
 
 }

@@ -22,7 +22,7 @@ class CQChartsPivotPlotType : public CQChartsPlotType {
   QString name() const override { return "pivot"; }
   QString desc() const override { return "Pivot"; }
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   void addParameters() override;
 

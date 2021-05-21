@@ -1190,7 +1190,7 @@ calcIndLabel(const QModelIndex &ind) const
   }
 
   if (! label.length())
-    label = QString("%1").arg(ind.row());
+    label = QString::number(ind.row());
 
   return label;
 }
@@ -3128,7 +3128,7 @@ drawDonutText(PaintDevice *device) const
     labels.push_back(name());
 
   if (plot_->isCount()) {
-    auto numValuesStr = QString("%1").arg(numValues());
+    auto numValuesStr = QString::number(numValues());
 
     labels.push_back(numValuesStr);
   }

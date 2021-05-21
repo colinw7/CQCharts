@@ -19,6 +19,8 @@ static int contourFlags[] = {
   6, 7,
 };
 
+#if 0
+// TODO: move to palette
 // 20 colors
 static QColor contourColors[] = {
   QColor(0x31, 0x82, 0xBD),
@@ -42,6 +44,7 @@ static QColor contourColors[] = {
   QColor(0xBD, 0xBD, 0xBD),
   QColor(0xD9, 0xD9, 0xD9),
 };
+#endif
 
 //---
 
@@ -52,14 +55,16 @@ CQChartsContour(CQChartsPlot *plot) :
   minX_ = 1E-6;
   minY_ = 1E-6;
 
+#if 0
   colors_ = ColorArray(&contourColors[0], &contourColors[20]);
+#endif
 }
 
 void
 CQChartsContour::
 setData(double *x, double *y, double *z, int numX, int numY)
 {
-  // polulate x and calc min/max
+  // populate x and calc min/max
   x_.resize(numX);
 
   xmin_ = x[0]; xmax_ = xmin_;
@@ -120,12 +125,14 @@ setContourLevels(const ContourLevels &levels)
   numLevels_ = levels_.size();
 }
 
+#if 0
 void
 CQChartsContour::
 setContourColors(const ColorArray &colors)
 {
   colors_ = colors;
 }
+#endif
 
 void
 CQChartsContour::
@@ -165,7 +172,7 @@ drawContourLines(CQChartsPaintDevice *device)
 
   //---
 
-  device->setPen(QColor(0, 0, 0));
+  device->setPen(QColor(Qt::black)); // TODO: use interface color
 
   double xc[8];
   double yc[8];
@@ -383,10 +390,12 @@ getLevelColor(int l) const
   if (plot_)
     return plot_->interpPaletteColor(CQChartsUtil::ColorInd(l, numLevels_));
 
-  if (colors_.empty())
-    return QColor();
+#if 0
+  if (! colors_.empty())
+    return colors_[l % colors_.size()];
+#endif
 
-  return colors_[l % colors_.size()];
+  return QColor();
 }
 
 void

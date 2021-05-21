@@ -42,6 +42,7 @@
 #include <CQChartsImage.h>
 #include <CQChartsWidget.h>
 #include <CQChartsModelIndex.h>
+#include <CQChartsModelColumn.h>
 
 // editors
 #include <CQChartsAlphaEdit.h>
@@ -467,6 +468,7 @@ CQCharts()
   CQChartsLineData              ::registerMetaType();
   CQChartsLineJoin              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
+  CQChartsModelColumn           ::registerMetaType();
   CQChartsModelIndex            ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
   CQChartsObjRef                ::registerMetaType();
@@ -1028,7 +1030,7 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
       return ic.darker();
   }
 
-  return QColor(0, 0, 0);
+  return Qt::black; // TODO: default to interface color
 }
 
 //---

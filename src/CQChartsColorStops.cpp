@@ -22,7 +22,7 @@ toString() const
   QStringList strs;
 
   for (const auto &v : values_)
-    strs << QString("%1").arg(v);
+    strs << QString::number(v);
 
   if (units() == Units::PERCENT)
     strs << "%";

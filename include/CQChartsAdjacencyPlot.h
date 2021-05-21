@@ -494,10 +494,14 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   NodeMap     nodes_;                             //!< all nodes
   NameNodeMap nameNodeMap_;                       //!< name node map
   double      fontFactor_    { -1.0 };            //!< font factor
-  CellObj*    insideObj_     { nullptr };         //!< last inside object
-  NodeArray   sortedNodes_;                       //!< sorted nodes
-  NodeData    nodeData_;                          //!< node data
-  int         maxNodeDepth_  { -1 };
+
+  // inside obj
+  CellObj* insideObj_ { nullptr }; //!< last inside object
+
+  // nodes
+  NodeArray sortedNodes_;         //!< sorted nodes
+  NodeData  nodeData_;            //!< node data
+  int       maxNodeDepth_ { -1 }; //!< max node depth
 };
 
 //---

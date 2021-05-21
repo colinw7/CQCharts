@@ -401,7 +401,7 @@ paramApplySlot()
     }
     else if (param->type() == CQBaseModelType::INTEGER) {
       if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
-        value = QString("%1").arg(paramEdit.edit->getInteger());
+        value = QString::number(paramEdit.edit->getInteger());
       else
         value = paramEdit.edit->getString();
     }
@@ -549,7 +549,7 @@ setColumnData(int icolumn)
         paramSubLayout_->addWidget(paramEdit.label, paramEdit.row, 0);
         paramSubLayout_->addWidget(paramEdit.edit , paramEdit.row, 1);
 
-        paramEdits_.push_back(paramEdit);
+        paramEdits_.push_back(std::move(paramEdit));
       }
 
       paramSubLayout_->setRowStretch(paramInd, 0);

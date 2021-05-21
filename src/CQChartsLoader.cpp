@@ -359,11 +359,11 @@ createVarsModel(const InputData &inputData)
         auto &columnValues = i.second;
 
         while (int(columnValues.size()) < nr)
-          columnValues.push_back("");
+          columnValues.emplace_back();
       }
 
       for (auto &i : indColumnValues) {
-        auto &columnValues = i.second;
+        const auto &columnValues = i.second;
 
         varColumns.push_back(columnValues);
       }
@@ -695,7 +695,6 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
   using ColumnDevData       = std::map<int, DevData>;
   using ColumnColumnDevData = std::map<int, ColumnDevData>;
   using ColumnDensity       = std::map<int, CQChartsDensity *>;
-  using Point               = CQChartsGeom::Point;
 
   ColumnReal          columnSumSq;
   ColumnColumnReal    columnsCorr;
@@ -729,8 +728,8 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
         int nv1 = values1.size();
 
         for (int j = 0; j < nv1; ++j) {
-          points1.push_back(Point(values1[j], values2[j]));
-          points2.push_back(Point(values2[j], values1[j]));
+          points1.emplace_back(values1[j], values2[j]);
+          points2.emplace_back(values2[j], values1[j]);
         }
 
         columnsPoints[ic1][ic2] = points1;

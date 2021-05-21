@@ -22,7 +22,7 @@ toString() const
   QStringList strs;
 
   for (auto &r : reals_)
-    strs << QString("%1").arg(r);
+    strs << QString::number(r);
 
   return CQTcl::mergeList(strs);
 }

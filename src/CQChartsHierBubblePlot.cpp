@@ -1491,7 +1491,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   strs.push_back(name);
 
   if (plot_->isValueLabel() && ! node()->isFiller()) {
-    strs.push_back(QString("%1").arg(node()->size()));
+    strs.push_back(QString::number(node()->size()));
   }
 
   //---

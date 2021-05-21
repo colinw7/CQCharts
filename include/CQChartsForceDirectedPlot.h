@@ -65,9 +65,13 @@ class CQChartsSpringyNode : public Springy::Node {
   const OptReal &nodeValue() const { return nodeValue_; }
   void setNodeValue(const OptReal &v) { nodeValue_ = v; }
 
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
+
  private:
-  int     group_ { -1 };
-  OptReal nodeValue_;
+  int         group_ { -1 };
+  OptReal     nodeValue_;
+  QModelIndex ind_;
 };
 
 /*!
@@ -113,6 +117,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
  public:
   using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
@@ -161,6 +166,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double maxValue() const { return maxValue_; }
 
   double maxDataValue() const { return maxDataValue_; }
+
+  //---
+
+  void initSteps();
 
   //---
 
@@ -249,8 +258,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  private:
   // connection between nodes (edge)
   struct Connection {
-    int     node  { -1 };
-    OptReal value;
+    int         node  { -1 };
+    OptReal     value;
+    QModelIndex ind;
 
     Connection() = default;
 
@@ -278,6 +288,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   using IdConnectionsData = std::map<int, ConnectionsData>;
 
+  using Node = CQChartsSpringyNode;
+
  private:
   bool getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, int &destId,
                           double &value, const QChar &separator) const;
@@ -296,24 +308,26 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get unique index for string
   int getStringId(const QString &str) const;
 
+  QColor calcPointFillColor(Node *node) const;
+
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using Node            = CQChartsSpringyNode;
   using NodeMap         = std::map<int, Node *>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
   using StringIndMap    = std::map<QString, int>;
 
   // options
-  bool   running_             { true }; //!< is running
-  double nodeRadius_          { 6.0 };  //!< node radius (pixel)
-  bool   nodeScaled_          { true }; //!< node radius scaled
-  bool   edgeLinesValueWidth_ { true }; //!< use value for edge width
-  int    initSteps_           { 100 };  //!< initial steps
-  double stepSize_            { 0.01 }; //!< step size
-  double maxLineWidth_        { 8.0 };  //!< max line width
+  bool         running_             { true };  //!< is running
+  double       nodeRadius_          { 6.0 };   //!< node radius (pixel)
+  bool         nodeScaled_          { true };  //!< node radius scaled
+  bool         edgeLinesValueWidth_ { true };  //!< use value for edge width
+  int          initSteps_           { 100 };   //!< initial steps
+  double       stepSize_            { 0.01 };  //!< step size
+  mutable bool stepInit_            { false }; //!< have initial steps been run
+  double       maxLineWidth_        { 8.0 };   //!< max line width
 
   // data
   IdConnectionsData idConnections_;              //!< id connections
@@ -349,8 +363,12 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
  public slots:
   void updateWidgets() override;
 
+ private slots:
+  void runningSlot(int);
+
  private:
-  CQChartsForceDirectedPlot* plot_ { nullptr };
+  CQChartsForceDirectedPlot* plot_         { nullptr };
+  QCheckBox*                 runningCheck_ { nullptr };
 };
 
 #endif

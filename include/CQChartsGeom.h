@@ -225,7 +225,6 @@ class Point :
   QString toString() const;
   bool fromString(const QString &s);
 
-
  public:
   double x { 0 };
   double y { 0 };
@@ -2322,6 +2321,11 @@ class Point3D :
 
   Point point2D() const { return Point(x, y); }
 
+  //-----
+
+  QString toString() const;
+  bool fromString(const QString &s);
+
  public:
   double x { 0 };
   double y { 0 };
@@ -2415,5 +2419,6 @@ void registerMetaTypes();
 
 CQUTIL_DCL_META_TYPE(CQChartsGeom::BBox)
 CQUTIL_DCL_META_TYPE(CQChartsGeom::Point)
+CQUTIL_DCL_META_TYPE(CQChartsGeom::Point3D)
 
 #endif

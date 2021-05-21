@@ -19,7 +19,7 @@ using BBox        = CQChartsGeom::BBox;
 //---
 
 void drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
-             const PaletteName &paletteName);
+             const PaletteName &paletteName, const QPen &pen);
 
 //---
 
@@ -210,7 +210,7 @@ class TreeMapPlace {
 };
 
 void drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
-                 const PaletteName &paletteName);
+                 const PaletteName &paletteName, const QPen &pen);
 
 }
 

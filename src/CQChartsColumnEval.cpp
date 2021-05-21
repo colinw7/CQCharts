@@ -142,7 +142,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   QColor c;
 
   if      (values.size() == 1) {
-    c = QColor(values[0].toString());
+    c = CQChartsUtil::stringToColor(values[0].toString());
   }
   else if (values.size() == 3) {
     auto clamp = [](double x) { return CMathUtil::clamp(x, 0.0, 255.0); };

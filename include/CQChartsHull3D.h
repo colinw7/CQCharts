@@ -294,22 +294,20 @@ class CQChartsHull3D {
     using ListLink = CListLink<Edge>;
 
    public:
-    Edge() :
-     newface_(0), removed_(false) {
-      setStart(0);
-      setEnd  (0);
+    Edge() {
+      setStart(nullptr);
+      setEnd  (nullptr);
 
-      setLeftFace (0);
-      setRightFace(0);
+      setLeftFace (nullptr);
+      setRightFace(nullptr);
     }
 
-    Edge(Vertex *s, Vertex *e) :
-     newface_(0), removed_(false) {
+    Edge(Vertex *s, Vertex *e)  {
       setStart(s);
       setEnd  (e);
 
-      setLeftFace (0);
-      setRightFace(0);
+      setLeftFace (nullptr);
+      setRightFace(nullptr);
     }
 
     Vertex *start() const { return endpts_[0]; }
@@ -319,7 +317,7 @@ class CQChartsHull3D {
     void setEnd  (Vertex *v) { endpts_[1] = v; }
 
     Vertex *endPoint(uint i) const {
-      Vertex *v = 0;
+      Vertex *v = nullptr;
       switch (i) {
         case 0 : v = start(); break;
         case 1 : v = end  (); break;
@@ -337,7 +335,7 @@ class CQChartsHull3D {
     void setRightFace(Face *f) { adjface_[1] = f; }
 
     Face *face(uint i) const {
-      Face *f = 0;
+      Face *f = nullptr;
       switch (i) {
         case 0 : f = leftFace (); break;
         case 1 : f = rightFace(); break;
@@ -372,10 +370,10 @@ class CQChartsHull3D {
 #endif
 
    private:
-    PVertex endpts_[2];  //!< end points
-    PFace   adjface_[2]; //!< adjacent faces
-    PFace   newface_;    //!< pointer to incident cone face.
-    bool    removed_;    //!< true iff edge should be removed.
+    PVertex endpts_[2];               //!< end points
+    PFace   adjface_[2];              //!< adjacent faces
+    PFace   newface_     { nullptr }; //!< pointer to incident cone face.
+    bool    removed_     { false };   //!< true iff edge should be removed.
   };
 
   //-------
@@ -483,6 +481,8 @@ class CQChartsHull3D {
   void setDebug(bool debug=true) { debug_ = debug; }
   void setCheck(bool check=true) { check_ = check; }
 
+  void clear();
+
   PVertex addVertex(double x, double y, double z);
   PVertex addVertex(double x, double y);
 
@@ -512,41 +512,41 @@ class CQChartsHull3D {
 
  protected:
   /* Function declarations */
-  void    reset();
-  bool    doubleTriangle();
-  void    constructHull();
-  void    edgeOrderOnFaces();
-  bool    addOne(PVertex p);
-  PFace   makeConeFace(PEdge e, PVertex p);
-  void    makeCcw(PFace f, PEdge e, PVertex p);
-  int     volumeSign(PFace f, PVertex p);
+  void  reset();
+  bool  doubleTriangle();
+  void  constructHull();
+  void  edgeOrderOnFaces();
+  bool  addOne(PVertex p);
+  PFace makeConeFace(PEdge e, PVertex p);
+  void  makeCcw(PFace f, PEdge e, PVertex p);
+  int   volumeSign(PFace f, PVertex p);
 
-  PFace   makeFace();
-  PFace   makeFace(PVertex v0, PVertex v1, PVertex v2, PFace f);
-  PEdge   makeEdge();
+  PFace makeFace();
+  PFace makeFace(PVertex v0, PVertex v1, PVertex v2, PFace f);
+  PEdge makeEdge();
 
-  void    cleanUp(PVertex *pvnext);
-  void    cleanEdges();
-  void    cleanFaces();
-  void    cleanVertices(PVertex *pvnext);
+  void cleanUp(PVertex *pvnext);
+  void cleanEdges();
+  void cleanFaces();
+  void cleanVertices(PVertex *pvnext);
 
-  void    crossProduct(double x1, double y1, double z1, double x2, double y2, double z2,
-                       double *x3, double *y3, double *z3);
-  bool    collinear(PVertex a, PVertex b, PVertex c);
+  void crossProduct(double x1, double y1, double z1, double x2, double y2, double z2,
+                    double *x3, double *y3, double *z3);
+  bool collinear(PVertex a, PVertex b, PVertex c);
 
 #if 0
-  void    checks();
-  void    consistency();
-  void    convexity();
-  void    checkEuler(uint numV, uint numE, uint numF);
-  void    checkEndpts();
+  void checks();
+  void consistency();
+  void convexity();
+  void checkEuler(uint numV, uint numE, uint numF);
+  void checkEndpts();
 #endif
 
 #if 0
-  void    printOut(PVertex v);
-  void    printVertices();
-  void    printEdges();
-  void    printFaces();
+  void printOut(PVertex v);
+  void printVertices();
+  void printEdges();
+  void printFaces();
 #endif
 
  protected:

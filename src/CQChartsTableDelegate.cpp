@@ -188,7 +188,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     auto initSelected = [&]() {
       auto c = option.palette.color(QPalette::Highlight);
 
-      option1.palette.setColor(QPalette::Highlight, QColor(0, 0, 0, 0));
+      option1.palette.setColor(QPalette::Highlight, Qt::transparent);
       option1.palette.setColor(QPalette::HighlightedText, c);
       option1.palette.setColor(QPalette::Text, c);
 
@@ -210,7 +210,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
         dstr = dvar.toString();
 
       if (dstr.trimmed() == "")
-        dstr = QString("%1").arg(r);
+        dstr = QString::number(r);
 
       return dstr;
     };
@@ -474,7 +474,7 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   painter->fillRect(rect, QBrush(c));
 
-  painter->setPen(QColor(0, 0, 0)); // TODO: contrast border
+  painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
   painter->drawRect(rect);
 
@@ -503,7 +503,7 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 
   rect.adjust(4, 4, -4, -4);
 
-  painter->setPen(QColor(0, 0, 0)); // TODO: contrast border
+  painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
   if (symbol.isValid()) {
     painter->setBrush(Qt::NoBrush);
@@ -541,7 +541,7 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
 
   rect.adjust(4, 4, -4, -4);
 
-  painter->setPen(QColor(0, 0, 0)); // TODO: contrast border
+  painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
   if (image.isValid()) {
     image.resolve(charts());

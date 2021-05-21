@@ -21,7 +21,7 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
   QString name() const override { return "bubble"; }
   QString desc() const override { return "Bubble"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

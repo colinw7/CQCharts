@@ -465,7 +465,7 @@ createObjs(PlotObjs &objs) const
   if (! checkNumericColumn(maxColumn(), "Max", /*required*/false))
     columnsValid = false;
 
-  if (! checkNumericColumn(innerBarColumn(), "Inner Bar", /*required*/false))
+  if (! checkColumn(innerBarColumn(), "Inner Bar", /*required*/false))
     columnsValid = false;
 
   if (! checkNumericColumn(outerBarColumn(), "Outer Bar", /*required*/false))
@@ -964,7 +964,7 @@ execDrawForeground(PaintDevice *device) const
 
       CQChartsTextOptions textOptions;
 
-      auto text = QString("%1").arg(y);
+      auto text = QString::number(y);
 
       CQChartsDrawUtil::drawTextAtPoint(device, pp, text, textOptions, /*centered*/true);
     }

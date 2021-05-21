@@ -213,7 +213,7 @@ toString() const
     str = "#" + name() + " ";
 
   if      (type_ == Type::DATA) {
-    str += QString("%1").arg(column_);
+    str += QString::number(column_);
 
     if (role_ >= 0)
       str += QString("@%1").arg(role_);
@@ -239,7 +239,7 @@ toString() const
   else if (type_ == Type::GROUP)
     str += "@GROUP";
   else if (type_ == Type::DATA_INDEX) {
-    str += QString("%1").arg(column_);
+    str += QString::number(column_);
 
     if (role_ >= 0)
       str += QString("@%1").arg(role_);
@@ -307,7 +307,7 @@ stringToColumns(const QString &str, Columns &columns)
     if (! c.isValid())
       rc = false;
 
-    columns.push_back(c);
+    columns.push_back(std::move(c));
   }
 
   return rc;

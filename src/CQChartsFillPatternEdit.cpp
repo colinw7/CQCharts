@@ -140,8 +140,8 @@ CQChartsFillPatternLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
   // draw pattern
-  QColor bg(0, 0, 0);
-  QColor fg(255, 255, 255);
+  auto bg = QColor(Qt::black);
+  auto fg = QColor(Qt::white);
 
   QPen   pen;
   QBrush brush;
@@ -156,7 +156,7 @@ drawPreview(QPainter *painter, const QRect &rect)
   //---
 
   // draw text
-  CQChartsUtil::setPen(pen, true, QColor(0, 0, 0));
+  CQChartsUtil::setPen(pen, true, QColor(Qt::black));
 
   painter->setPen(pen);
 
@@ -213,8 +213,8 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   //---
 
   // draw pattern
-  QColor bg(0, 0, 0);
-  QColor fg(255, 255, 255);
+  auto bg = QColor(Qt::black);
+  auto fg = QColor(Qt::white);
 
   QPen   pen;
   QBrush brush;
@@ -228,7 +228,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  // draw border
+  // draw border (TODO: config color)
   CQChartsUtil::setPen(pen, true, QColor(200, 200, 200));
 
   painter->setPen(pen);
@@ -276,18 +276,16 @@ createEdit(QWidget *parent)
 
   auto *obj = (item ? item->object() : nullptr);
 
-  CQChartsPlot *plot   = nullptr;
-  CQChartsView *view   = nullptr;
-  CQCharts     *charts = nullptr;
+  CQChartsObjUtil::ObjData objData;
 
-  CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
+  CQChartsObjUtil::getObjData(obj, objData);
 
   //---
 
   auto *edit = new CQChartsFillPatternLineEdit(parent);
 
-  if (charts)
-    edit->setCharts(charts);
+  if (objData.charts)
+    edit->setCharts(objData.charts);
 
   return edit;
 }

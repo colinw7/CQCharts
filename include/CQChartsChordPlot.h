@@ -405,7 +405,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  RotatedTextBoxObj *textBox() const { return textBox_; }
+  RotatedTextBoxObj *textBox() const { return textBox_.get(); }
 
   //---
 
@@ -506,9 +506,10 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using ArcObjs  = std::vector<ArcObj *>;
-  using EdgeObjs = std::vector<EdgeObj *>;
-  using IndName  = std::map<int, QString>;
+  using ArcObjs            = std::vector<ArcObj *>;
+  using EdgeObjs           = std::vector<EdgeObj *>;
+  using IndName            = std::map<int, QString>;
+  using RotatedTextBoxObjP = std::unique_ptr<RotatedTextBoxObj>;
 
   // options
   double innerRadius_  { 0.9 };   //!< inner radius
@@ -519,13 +520,13 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   Angle  gapAngle_     { 2.0 };   //!< gap angle
   Angle  startAngle_   { 90.0 };  //!< start angle
 
-  RotatedTextBoxObj* textBox_        { nullptr }; //!< text box
-  double             valueToDegrees_ { 1.0 };     //!< value to degrees scale
-  NameDataMap        nameDataMap_;                //!< name data map
-  IndName            indName_;                    //!< ind name
-  ArcObjs            arcObjs_;                    //!< arc objects
-  EdgeObjs           edgeObjs_;                   //!< edge objects
-  int                maxNodeDepth_   { -1 };      //!< max node depth
+  RotatedTextBoxObjP textBox_;                //!< text box
+  double             valueToDegrees_ { 1.0 }; //!< value to degrees scale
+  NameDataMap        nameDataMap_;            //!< name data map
+  IndName            indName_;                //!< ind name
+  ArcObjs            arcObjs_;                //!< arc objects
+  EdgeObjs           edgeObjs_;               //!< edge objects
+  int                maxNodeDepth_   { -1 };  //!< max node depth
 };
 
 //---

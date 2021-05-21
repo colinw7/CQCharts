@@ -22,7 +22,7 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsPointPlotType();
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   QString xColumnName() const override { return "x"; }
   QString yColumnName() const override { return "y"; }

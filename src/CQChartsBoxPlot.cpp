@@ -1267,7 +1267,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok); // ignore fail
 
     if (! data.name.length()) {
-      data.name = QString("%1").arg(vdata.row);
+      data.name = QString::number(vdata.row);
       nameValid = false;
     }
   }
@@ -1277,7 +1277,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
   //---
 
-  dataList.push_back(data);
+  dataList.push_back(std::move(data));
 }
 
 void
@@ -2510,11 +2510,11 @@ draw(PaintDevice *device) const
   VTexts vtexts;
 
   auto addHText = [&](double xl, double xr, double y, const QString &text, bool onLeft) {
-    htexts.push_back(HText(xl, xr, y, text, onLeft));
+    htexts.emplace_back(xl, xr, y, text, onLeft);
   };
 
   auto addVText = [&](double yb, double yt, double x, const QString &text, bool onBottom) {
-    vtexts.push_back(VText(yb, yt, x, text, onBottom));
+    vtexts.emplace_back(yb, yt, x, text, onBottom);
   };
 
   //---
@@ -2559,11 +2559,11 @@ draw(PaintDevice *device) const
         bool hasRange = (fabs(this->max() - this->min()) > 1E-6);
 
         if (hasRange) {
-          auto strl = QString("%1").arg(this->min        ());
-          auto lstr = QString("%1").arg(this->lowerMedian());
-          auto mstr = QString("%1").arg(this->median     ());
-          auto ustr = QString("%1").arg(this->upperMedian());
-          auto strh = QString("%1").arg(this->max        ());
+          auto strl = QString::number(this->min        ());
+          auto lstr = QString::number(this->lowerMedian());
+          auto mstr = QString::number(this->median     ());
+          auto ustr = QString::number(this->upperMedian());
+          auto strh = QString::number(this->max        ());
 
           if (plot_->isVertical()) {
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true );
@@ -2581,7 +2581,7 @@ draw(PaintDevice *device) const
           }
         }
         else {
-          auto strl = QString("%1").arg(this->min());
+          auto strl = QString::number(this->min());
 
           if (plot_->isVertical())
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true);
@@ -2698,11 +2698,11 @@ extraFitBBox() const
     bool hasRange = (fabs(max() - min()) > 1E-6);
 
     if (hasRange) {
-      auto strl = QString("%1").arg(min        ());
-      auto lstr = QString("%1").arg(lowerMedian());
-      auto mstr = QString("%1").arg(median     ());
-      auto ustr = QString("%1").arg(upperMedian());
-      auto strh = QString("%1").arg(max        ());
+      auto strl = QString::number(min        ());
+      auto lstr = QString::number(lowerMedian());
+      auto mstr = QString::number(median     ());
+      auto ustr = QString::number(upperMedian());
+      auto strh = QString::number(max        ());
 
       if (plot_->isVertical()) {
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2720,7 +2720,7 @@ extraFitBBox() const
       }
     }
     else {
-      auto strl = QString("%1").arg(min());
+      auto strl = QString::number(min());
 
       if (plot_->isVertical())
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -3015,11 +3015,11 @@ draw(PaintDevice *device) const
   VTexts vtexts;
 
   auto addHText = [&](double xl, double xr, double y, const QString &text, bool onLeft) {
-    htexts.push_back(HText(xl, xr, y, text, onLeft));
+    htexts.emplace_back(xl, xr, y, text, onLeft);
   };
 
   auto addVText = [&](double yb, double yt, double x, const QString &text, bool onBottom) {
-    vtexts.push_back(VText(yb, yt, x, text, onBottom));
+    vtexts.emplace_back(yb, yt, x, text, onBottom);
   };
 
   //---
@@ -3058,11 +3058,11 @@ draw(PaintDevice *device) const
 
     //---
 
-    auto strl = QString("%1").arg(data_.statData.min        );
-    auto lstr = QString("%1").arg(data_.statData.lowerMedian);
-    auto mstr = QString("%1").arg(data_.statData.median     );
-    auto ustr = QString("%1").arg(data_.statData.upperMedian);
-    auto strh = QString("%1").arg(data_.statData.max        );
+    auto strl = QString::number(data_.statData.min        );
+    auto lstr = QString::number(data_.statData.lowerMedian);
+    auto mstr = QString::number(data_.statData.median     );
+    auto ustr = QString::number(data_.statData.upperMedian);
+    auto strh = QString::number(data_.statData.max        );
 
     if (plot_->isVertical()) {
       addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -3127,11 +3127,11 @@ extraFitBBox() const
   BBox pbbox;
 
   if (plot_->isTextVisible()) {
-    auto strl = QString("%1").arg(data_.statData.min        );
-    auto lstr = QString("%1").arg(data_.statData.lowerMedian);
-    auto mstr = QString("%1").arg(data_.statData.median     );
-    auto ustr = QString("%1").arg(data_.statData.upperMedian);
-    auto strh = QString("%1").arg(data_.statData.max        );
+    auto strl = QString::number(data_.statData.min        );
+    auto lstr = QString::number(data_.statData.lowerMedian);
+    auto mstr = QString::number(data_.statData.median     );
+    auto ustr = QString::number(data_.statData.upperMedian);
+    auto strh = QString::number(data_.statData.max        );
 
     if (plot_->isVertical()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);

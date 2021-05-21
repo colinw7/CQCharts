@@ -1844,7 +1844,7 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
             std::swap(col1, col2);
 
           for (int c = col1; c <= col2; ++c)
-            columns.push_back(CQChartsColumn(c));
+            columns.emplace_back(c);
         }
         else
           rc = false;
@@ -1858,7 +1858,7 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
       if (! stringToColumn(model, str, c))
         rc = false;
 
-      columns.push_back(c);
+      columns.push_back(std::move(c));
     }
   }
 
@@ -1975,7 +1975,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         parse.skipChar();
 
         if (ind.isValid() && ind.column() >= 0)
-          expr1 += quoteStr(QString("%1").arg(ind.column()), stringify);
+          expr1 += quoteStr(QString::number(ind.column()), stringify);
         else
           expr1 += "@c";
       }
@@ -1984,7 +1984,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         parse.skipChar();
 
         if (ind.isValid() && ind.row() >= 0)
-          expr1 += quoteStr(QString("%1").arg(ind.row()), stringify);
+          expr1 += quoteStr(QString::number(ind.row()), stringify);
         else
           expr1 += "@r";
       }
@@ -1996,7 +1996,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
           parse.skipChar();
 
           if (nc >= 0)
-            expr1 += quoteStr(QString("%1").arg(nc), stringify);
+            expr1 += quoteStr(QString::number(nc), stringify);
           else
             expr1 += "@nc";
         }
@@ -2005,7 +2005,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
           parse.skipChar();
 
           if (nr >= 0)
-            expr1 += quoteStr(QString("%1").arg(nr), stringify);
+            expr1 += quoteStr(QString::number(nr), stringify);
           else
             expr1 += "@nr";
         }
@@ -2086,7 +2086,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         CQChartsColumn c;
 
         if (model && stringToColumn(model, str, c))
-          expr1 += QString("%1").arg(c.column());
+          expr1 += QString::number(c.column());
         else {
           parse.setPos(pos);
 
@@ -2152,7 +2152,7 @@ bool decodeModelFilterStrs(const QAbstractItemModel *model, const QString &filte
     if (! decodeModelFilterStr(model, str, filter, column))
       continue;
 
-    filterColumns.push_back(FilterColumn(filter, column));
+    filterColumns.emplace_back(filter, column);
   }
 
   if (filterColumns.empty())

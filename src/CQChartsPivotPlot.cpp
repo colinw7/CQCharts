@@ -1244,7 +1244,7 @@ calcTipId() const
   auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value()));
+    tableTip.addTableRow(valueName, QString::number(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
@@ -1266,7 +1266,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return BBox();
 
-  auto label = QString("%1").arg(value());
+  auto label = QString::number(value());
 
   return plot_->dataLabel()->calcRect(rect(), label);
 }
@@ -1315,7 +1315,7 @@ drawFg(PaintDevice *device) const
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  auto label = QString("%1").arg(value());
+  auto label = QString::number(value());
 
   if (label != "") {
     auto pos = plot_->dataLabel()->position();
@@ -1556,7 +1556,7 @@ calcTipId() const
   auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value()));
+    tableTip.addTableRow(valueName, QString::number(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
@@ -1659,7 +1659,7 @@ calcTipId() const
   auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value()));
+    tableTip.addTableRow(valueName, QString::number(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);

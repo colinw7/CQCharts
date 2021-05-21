@@ -23,7 +23,7 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "boxplot"; }
   QString desc() const override { return "BoxPlot"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 
@@ -892,18 +892,18 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
  private:
   // raw columns
-  Columns valueColumns_;      //!< value columns
-  Column  nameColumn_;        //!< name column
-  Column  setColumn_;         //!< set column
+  Columns valueColumns_; //!< value columns
+  Column  nameColumn_;   //!< name column
+  Column  setColumn_;    //!< set column
 
   // calculated columns
-  Column  xColumn_;           //!< x column
-  Column  minColumn_;         //!< min column
-  Column  lowerMedianColumn_; //!< lower median column
-  Column  medianColumn_;      //!< median column
-  Column  upperMedianColumn_; //!< upper median column
-  Column  maxColumn_;         //!< max column
-  Column  outliersColumn_;    //!< outliers column
+  Column xColumn_;           //!< x column
+  Column minColumn_;         //!< min column
+  Column lowerMedianColumn_; //!< lower median column
+  Column medianColumn_;      //!< median column
+  Column upperMedianColumn_; //!< upper median column
+  Column maxColumn_;         //!< max column
+  Column outliersColumn_;    //!< outliers column
 
   ColumnDataType defaultColumnDataType_ { ColumnDataType::RAW };
 

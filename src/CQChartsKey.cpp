@@ -558,7 +558,7 @@ draw(PaintDevice *device) const
 
     BBox prect(p1.x, p2.y, p2.x, p1.y);
 
-    prects_.push_back(prect);
+    prects_.push_back(std::move(prect));
 
     //---
 
@@ -591,7 +591,7 @@ drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) cons
 {
   auto cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
-  cimage.fill(QColor(0, 0, 0, 0));
+  cimage.fill(Qt::transparent);
 
   BBox bbox(0, 0, bs, bs);
 
@@ -3068,9 +3068,9 @@ calcLabels(QStringList &labels) const
   double n4 = n5 - dn;       // upper mid
   double n3 = (n5 + n1)/2.0; // mid
 
-  labels.push_back(QString("%1").arg(n1));
-  labels.push_back(QString("%1").arg(n2));
-  labels.push_back(QString("%1").arg(n3));
-  labels.push_back(QString("%1").arg(n4));
-  labels.push_back(QString("%1").arg(n5));
+  labels.push_back(QString::number(n1));
+  labels.push_back(QString::number(n2));
+  labels.push_back(QString::number(n3));
+  labels.push_back(QString::number(n4));
+  labels.push_back(QString::number(n5));
 }

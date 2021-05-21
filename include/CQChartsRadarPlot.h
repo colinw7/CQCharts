@@ -21,7 +21,7 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
   QString name() const override { return "radar"; }
   QString desc() const override { return "Radar"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
+  Category category() const override { return Category::ONE_D; }
 
   void addParameters() override;
 

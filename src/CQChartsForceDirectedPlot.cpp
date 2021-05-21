@@ -13,9 +13,12 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+
+#include <QCheckBox>
 
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
@@ -132,6 +135,11 @@ CQChartsForceDirectedPlot::
 setRunning(bool b)
 {
   running_ = b;
+
+  if (! isRunning())
+    stopAnimateTimer();
+  else
+    startAnimateTimer();
 }
 
 void
@@ -299,12 +307,26 @@ createObjs(PlotObjs &) const
 
   //---
 
-  for (int i = 0; i < initSteps_; ++i)
-    forceDirected_->step(stepSize_);
+  stepInit_ = false;
+
+  if (isRunning())
+    th->initSteps();
 
   //---
 
   return true;
+}
+
+void
+CQChartsForceDirectedPlot::
+initSteps()
+{
+  if (! stepInit_) {
+    for (int i = 0; i < initSteps_; ++i)
+      forceDirected_->step(stepSize_);
+
+    stepInit_ = true;
+  }
 }
 
 void
@@ -362,6 +384,7 @@ addIdConnections() const
     node->setLabel(label);
     node->setMass (nodeMass_);
     node->setValue((1.0*group)/maxGroup_);
+    node->setInd  (connectionsData.ind);
 
     node->setGroup(group);
 
@@ -483,8 +506,9 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
 
       connection.node  = srcId;
       connection.value = OptReal(destTotal);
+      connection.ind   = srcConnectionsData.ind;
 
-      destConnectionsData.connections.push_back(connection);
+      destConnectionsData.connections.push_back(std::move(connection));
     }
   }
 
@@ -508,8 +532,9 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
 
       connection.node  = destId;
       connection.value = OptReal(destTotal);
+      connection.ind   = destConnectionsData.ind;
 
-      srcConnectionsData.connections.push_back(connection);
+      srcConnectionsData.connections.push_back(std::move(connection));
     }
   }
 }
@@ -585,8 +610,9 @@ addPathValue(const PathData &pathData) const
         Connection connection;
 
         connection.node = destConnectionsData.node;
+        connection.ind  = destConnectionsData.ind;
 
-        srcConnectionsData.connections.push_back(connection);
+        srcConnectionsData.connections.push_back(std::move(connection));
 
         destConnectionsData.parentId = srcConnectionsData.node;
       }
@@ -596,8 +622,9 @@ addPathValue(const PathData &pathData) const
 
       connection.node  = destConnectionsData.node;
       connection.value = OptReal(pathData.value);
+      connection.ind   = srcConnectionsData.ind;
 
-      srcConnectionsData.connections.push_back(connection);
+      srcConnectionsData.connections.push_back(std::move(connection));
 
       destConnectionsData.parentId = srcConnectionsData.node;
       destConnectionsData.value    = OptReal(pathData.value);
@@ -781,8 +808,9 @@ initLinkConnectionObjs() const
 
       connection.node  = destId;
       connection.value = OptReal(value);
+      connection.ind   = srcConnectionsData.ind;
 
-      srcConnectionsData.connections.push_back(connection);
+      srcConnectionsData.connections.push_back(std::move(connection));
 
       (void) plot_->getConnections(destId);
     }
@@ -931,14 +959,15 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
 
     connection1.node  = connection.node;
     connection1.value = OptReal(connection.value);
+    connection1.ind   = connectionsData.ind;
 
-    connectionsData.connections.push_back(connection1);
+    connectionsData.connections.push_back(std::move(connection1));
   }
 
   //---
 
   // get optional name
-  auto name = QString("%1").arg(id);
+  auto name = QString::number(id);
 
   if (nameColumn().isValid()) {
     ModelIndex nameModelInd(th, data.row, nameColumn(), data.parent);
@@ -1002,8 +1031,9 @@ initTableObjs() const
 
       connection.node  = value.to;
       connection.value = OptReal(value.value);
+      connection.ind   = connectionsData.ind;
 
-      connectionsData.connections.push_back(connection);
+      connectionsData.connections.push_back(std::move(connection));
     }
   }
 
@@ -1088,8 +1118,9 @@ addEdge(ConnectionsData &srcConnectionsData,
 
   connection.node  = destConnectionsData.node;
   connection.value = OptReal(value);
+  connection.ind   = srcConnectionsData.ind;
 
-  srcConnectionsData.connections.push_back(connection);
+  srcConnectionsData.connections.push_back(std::move(connection));
 }
 
 //---
@@ -1122,7 +1153,8 @@ void
 CQChartsForceDirectedPlot::
 postUpdateObjs()
 {
-  startAnimateTimer();
+  if (isRunning())
+    startAnimateTimer();
 }
 
 void
@@ -1131,6 +1163,10 @@ animateStep()
 {
   if (pressed_ || ! isRunning())
     return;
+
+  //---
+
+  initSteps();
 
   forceDirected_->step(stepSize_);
 
@@ -1151,6 +1187,14 @@ animateStep()
   }
 
   drawObjs();
+
+  //---
+
+  if (! isUpdatesEnabled()) {
+    setUpdatesEnabled(true);
+
+    setUpdatesEnabled(false);
+  }
 }
 
 bool
@@ -1376,14 +1420,7 @@ drawDeviceParts(PaintDevice *device) const
 
     auto pc = interpNodeStrokeColor(ColorInd());
 
-    QColor fc;
-
-    if      (colorType() == ColorType::GROUP)
-      fc = interpPaletteColor(ColorInd(snode->group(), maxGroup_));
-    else if (colorType() == ColorType::INDEX)
-      fc = interpPaletteColor(ColorInd(node->id(), nodes_.size()));
-    else
-      fc = interpPaletteColor(ColorInd(node->value()), /*scale*/false);
+    auto fc = calcPointFillColor(snode);
 
     if (node == forceDirected_->currentNode())
       fc = insideColor(fc);
@@ -1404,6 +1441,46 @@ drawDeviceParts(PaintDevice *device) const
   //---
 
   device->restore();
+}
+
+QColor
+CQChartsForceDirectedPlot::
+calcPointFillColor(Node *node) const
+{
+  ColorInd colorInd;
+
+  if      (colorType() == ColorType::GROUP)
+    colorInd = ColorInd(node->group(), maxGroup_);
+  else if (colorType() == ColorType::INDEX)
+    colorInd = ColorInd(node->id(), nodes_.size());
+  else
+    colorInd = ColorInd(node->value());
+
+  //---
+
+  if (colorType() == ColorType::AUTO) {
+    if (node->ind().isValid() && colorColumn().isValid()) {
+      Color color;
+
+      ModelIndex colorModelInd(this, node->ind().row(), colorColumn(), node->ind().parent());
+
+      if (modelIndexColor(colorModelInd, color))
+        return interpColor(color, colorInd);
+    }
+  }
+
+  //---
+
+  QColor fc;
+
+  if      (colorType() == ColorType::GROUP)
+    fc = interpPaletteColor(colorInd);
+  else if (colorType() == ColorType::INDEX)
+    fc = interpPaletteColor(colorInd);
+  else
+    fc = interpPaletteColor(colorInd, /*scale*/false);
+
+  return fc;
 }
 
 //---
@@ -1429,7 +1506,18 @@ CQChartsForceDirectedPlotCustomControls(CQCharts *charts) :
 {
   addConnectionColumnWidgets();
 
-  //addColorColumnWidgets("Cell Color");
+  addColorColumnWidgets("Point Color");
+
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+
+  runningCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Running", "runningCheck");
+
+  addFrameColWidget(optionsFrame, runningCheck_);
+
+  //---
 
   addLayoutStretch();
 
@@ -1440,6 +1528,9 @@ void
 CQChartsForceDirectedPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    runningCheck_, SIGNAL(stateChanged(int)), this, SLOT(runningSlot(int)));
+
   CQChartsConnectionPlotCustomControls::connectSlots(b);
 }
 
@@ -1460,9 +1551,18 @@ updateWidgets()
 
   //---
 
+  runningCheck_->setChecked(plot_->isRunning());
+
   CQChartsConnectionPlotCustomControls::updateWidgets();
 
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+runningSlot(int state)
+{
+  plot_->setRunning(state);
 }

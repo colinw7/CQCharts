@@ -15,7 +15,7 @@ using Angle     = CQChartsAngle;
 
 void
 drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
-        const PaletteName &paletteName)
+        const PaletteName &paletteName, const QPen &pen)
 {
   int nv = values.size();
   if (! nv) return;
@@ -43,6 +43,8 @@ drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
+    device->setPen(pen);
+
     CQChartsDrawUtil::drawPieSlice(device, c, 0.0, r, Angle(a), Angle(a + da1));
 
     a += da1;
@@ -51,7 +53,7 @@ drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
 
 void
 drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
-            const PaletteName &paletteName)
+            const PaletteName &paletteName, const QPen &pen)
 {
   int nv = values.size();
   if (! nv) return;
@@ -79,6 +81,8 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
       PenData(false), BrushData(true, plot->interpColor(color, ColorInd(iarea.i, nv))));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->setPen(pen);
 
     device->drawRect(bbox);
   });

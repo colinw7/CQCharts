@@ -141,8 +141,7 @@ applySlot()
       continue;
 
     if (c1 >= 0 && c1 < nc)
-      flattenData.columnOps.push_back(
-        CQChartsModelUtil::FlattenData::ColumnOp(CQChartsColumn(c1), flattenOp));
+      flattenData.columnOps.emplace_back(CQChartsColumn(c1), flattenOp);
   }
 
   //---

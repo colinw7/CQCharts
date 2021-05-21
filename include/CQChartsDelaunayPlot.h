@@ -19,7 +19,7 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
   QString name() const override { return "delaunay"; }
   QString desc() const override { return "Delaunay"; }
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   void addParameters() override;
 

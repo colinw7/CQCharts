@@ -47,7 +47,7 @@ valueToText()
 {
   int i = value_.integer();
 
-  return QString("%1").arg(i);
+  return QString::number(i);
 }
 
 QVariant

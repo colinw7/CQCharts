@@ -51,7 +51,7 @@ QStringList stringToLines(const QString &str, IS_COMPLETE isComplete) {
   int i = 0;
 
   for ( ; i < lines.size(); ++i) {
-    QString line = lines[i];
+    auto line = lines[i];
 
     bool join;
 
@@ -69,7 +69,7 @@ QStringList stringToLines(const QString &str, IS_COMPLETE isComplete) {
         line += line1;
     }
 
-    lines1.push_back(line);
+    lines1.push_back(std::move(line));
   }
 
   return lines1;

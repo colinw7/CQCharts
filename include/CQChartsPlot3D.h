@@ -445,19 +445,19 @@ class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
   QString typeName() const override { return "axis_poly"; }
 
   void addSidePolygon(const CQChartsAxisPolygon3DObj *poly, const Point3D &p1, Point3D &p2) {
-    sidePolygons_.push_back(SidePolygon(poly, p1, p2));
+    sidePolygons_.emplace_back(poly, p1, p2);
   }
 
   void addGridLine(const Point3D &p1, const Point3D &p2) {
-    gridLines_.push_back(Line(p1, p2));
+    gridLines_.emplace_back(p1, p2);
   }
 
   void addTickText(const Point3D &p, const QString &text, const CQChartsAxisPolygon3DObj *poly) {
-    tickTexts_.push_back(Text(p, text, poly));
+    tickTexts_.emplace_back(p, text, poly);
   }
 
   void addLabelText(const Point3D &p, const QString &text, const CQChartsAxisPolygon3DObj *poly) {
-    labelTexts_.push_back(Text(p, text, poly));
+    labelTexts_.emplace_back(p, text, poly);
   }
 
   void postDraw(PaintDevice *device) override;

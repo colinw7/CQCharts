@@ -19,8 +19,9 @@ class CQChartsPoints :
   static int metaTypeId;
 
  public:
-  using Points = std::vector<CQChartsPosition>;
-  using Units  = CQChartsUnits;
+  using Position = CQChartsPosition;
+  using Points   = std::vector<Position>;
+  using Units    = CQChartsUnits;
 
  public:
   CQChartsPoints(const Points &points=Points()) :
@@ -31,11 +32,15 @@ class CQChartsPoints :
     fromString(s, defUnits);
   }
 
-  const Points &points() const { return points_; }
+  //---
 
   bool isValid() const { return true; }
 
+  const Points &points() const { return points_; }
+
   void setPoints(const Points &points) { points_ = points; }
+
+  void addPoint(const Position &pos) { points_.push_back(pos); }
 
   //---
 

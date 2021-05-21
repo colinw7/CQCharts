@@ -368,10 +368,10 @@ calcBBoxData(double px, double py, const QString &text, const QFont &font,
 
   ppoints.clear();
 
-  ppoints.push_back(Point(x1, y1));
-  ppoints.push_back(Point(x2, y2));
-  ppoints.push_back(Point(x3, y3));
-  ppoints.push_back(Point(x4, y4));
+  ppoints.emplace_back(x1, y1);
+  ppoints.emplace_back(x2, y2);
+  ppoints.emplace_back(x3, y3);
+  ppoints.emplace_back(x4, y4);
 
   //---
 

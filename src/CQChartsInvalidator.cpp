@@ -4,6 +4,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsObjUtil.h>
+#include <CQChartsAnnotation.h>
 #include <CQCharts.h>
 
 void
@@ -21,18 +22,16 @@ invalidate(bool reload)
 
   //---
 
-  CQChartsPlot *plot   = nullptr;
-  CQChartsView *view   = nullptr;
-  CQCharts     *charts = nullptr;
+  CQChartsObjUtil::ObjData objData;
 
-  CQChartsObjUtil::getObjPlotViewChart(obj_, plot, view, charts);
+  CQChartsObjUtil::getObjData(obj_, objData);
 
-  if      (plot) {
-    if (plot->isUpdatesEnabled()) {
+  if      (objData.plot) {
+    if (objData.plot->isUpdatesEnabled()) {
       if (reload)
-        plot->updateRangeAndObjs();
+        objData.plot->updateRangeAndObjs();
       else
-        plot->drawObjs();
+        objData.plot->drawObjs();
     }
 
     auto *key = qobject_cast<CQChartsPlotKey *>(obj_);
@@ -40,10 +39,10 @@ invalidate(bool reload)
     if (key)
       key->updatePositionAndLayout();
   }
-  else if (view) {
-    view->invalidateObjects();
+  else if (objData.view) {
+    objData.view->invalidateObjects();
 
-    view->doUpdate();
+    objData.view->doUpdate();
   }
 }
 
@@ -53,15 +52,14 @@ QColor
 CQChartsInterpolator::
 interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const
 {
-  CQChartsPlot *plot   = nullptr;
-  CQChartsView *view   = nullptr;
-  CQCharts     *charts = nullptr;
+  CQChartsObjUtil::ObjData objData;
 
-  CQChartsObjUtil::getObjPlotViewChart(obj_, plot, view, charts);
+  CQChartsObjUtil::getObjData(obj_, objData);
 
-  if      (plot  ) return plot  ->interpColor(c, ind);
-  else if (view  ) return view  ->interpColor(c, ind);
-  else if (charts) return charts->interpColor(c, ind);
+  if      (objData.annotation) return objData.annotation->interpColor(c, ind);
+  if      (objData.plot      ) return objData.plot      ->interpColor(c, ind);
+  else if (objData.view      ) return objData.view      ->interpColor(c, ind);
+  else if (objData.charts    ) return objData.charts    ->interpColor(c, ind);
 
   return QColor();
 }

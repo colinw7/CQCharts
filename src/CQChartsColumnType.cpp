@@ -1001,7 +1001,7 @@ namedColors(const CQChartsNameValues &nameValues) const
     if (! CQTcl::splitList(str, strs1) || strs1.length() != 2)
       continue;
 
-    namedColors.setNameValue(strs1[0], QColor(strs1[1]));
+    namedColors.setNameValue(strs1[0], CQChartsUtil::stringToColor(strs1[1]));
   }
 
   return namedColors;

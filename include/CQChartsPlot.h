@@ -59,6 +59,7 @@ class CQChartsKeyAnnotation;
 class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsPointSetAnnotation;
+class CQChartsPoint3DSetAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
@@ -176,7 +177,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsColumn  imageColumn    READ imageColumn    WRITE setImageColumn   )
   Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
 
-  // color map
+  // color map (for color column)
   Q_PROPERTY(ColorType           colorType       READ colorType       WRITE setColorType      )
   Q_PROPERTY(bool                colorMapped     READ isColorMapped   WRITE setColorMapped    )
   Q_PROPERTY(double              colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
@@ -185,7 +186,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
   Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
 
-  // alpha map
+  // alpha map (for alpha column)
   Q_PROPERTY(bool   alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
   Q_PROPERTY(double alphaMapMin READ alphaMapMin   WRITE setAlphaMapMin)
   Q_PROPERTY(double alphaMapMax READ alphaMapMax   WRITE setAlphaMapMax)
@@ -2278,6 +2279,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using PieSliceAnnotation     = CQChartsPieSliceAnnotation;
   using PointAnnotation        = CQChartsPointAnnotation;
   using PointSetAnnotation     = CQChartsPointSetAnnotation;
+  using Point3DSetAnnotation   = CQChartsPoint3DSetAnnotation;
   using PolygonAnnotation      = CQChartsPolygonAnnotation;
   using PolylineAnnotation     = CQChartsPolylineAnnotation;
   using RectangleAnnotation    = CQChartsRectangleAnnotation;
@@ -2290,6 +2292,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Annotations &annotations() const { return annotations_; }
 
   // --- add annotation ---
+
+  using Point3DArray = std::vector<CQChartsGeom::Point3D>;
 
   AnnotationGroup        *addAnnotationGroup       ();
   ArcAnnotation          *addArcAnnotation         (const Position &start, const Position &end);
@@ -2308,7 +2312,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                                                     const Angle &startAngle,
                                                     const Angle &spanAngle);
   PointAnnotation        *addPointAnnotation       (const Position &pos, const Symbol &type);
-  PointSetAnnotation     *addPointSetAnnotation    (const CQChartsPoints &values);
+  PointSetAnnotation     *addPointSetAnnotation    (const Rect &rect, const CQChartsPoints &values);
+  Point3DSetAnnotation   *addPoint3DSetAnnotation  (const Point3DArray &points);
   PolygonAnnotation      *addPolygonAnnotation     (const CQChartsPolygon &polygon);
   PolylineAnnotation     *addPolylineAnnotation    (const CQChartsPolygon &polygon);
   RectangleAnnotation    *addRectangleAnnotation   (const Rect &rect);

@@ -125,6 +125,9 @@ class CQChartsCmds : public QObject {
 
   bool getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot);
 
+  bool getViewArg(CQChartsCmdArgs &argv, CQChartsView* &view);
+  bool getPlotArg(CQChartsCmdArgs &argv, CQChartsPlot* &plot);
+
   CQChartsView *getViewByName(const QString &viewName) const;
 
   bool getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plot) const;
@@ -282,6 +285,7 @@ CQCHARTS_DEF_CMD(CreateChartsKeyAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPieSliceAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPointAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPointSetAnnotation)
+CQCHARTS_DEF_CMD(CreateChartsPoint3DSetAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPolygonAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation)

@@ -223,7 +223,7 @@ drawSideRect(QPainter *p, CQChartsSides::Side rectSide, bool on)
   auto sides = edit_->sides().sides();
 
   auto bg       = palette().color(QPalette::Window);
-  auto onColor  = QColor("#586e75");
+  auto onColor  = QColor("#586e75"); // TODO: config
   auto offColor = CQChartsUtil::blendColors(onColor, bg, 0.5);
 
   auto highlight = palette().color(QPalette::Highlight);

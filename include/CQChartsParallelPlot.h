@@ -22,7 +22,7 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
   QString name() const override { return "parallel"; }
   QString desc() const override { return "Parallel"; }
 
-  Dimension dimension() const override { return Dimension::TWO_D; }
+  Category category() const override { return Category::TWO_D; }
 
   void addParameters() override;
 
@@ -101,6 +101,8 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  private:
   void getPolyLine(Polygon &poly) const;
 
+  QString xName() const;
+
  private:
   const Plot*     plot_ { nullptr }; //!< plot
   Polygon         poly_;             //!< polygon
@@ -147,6 +149,9 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   void draw(PaintDevice *device) const override;
 
  private:
+  QString xName() const;
+
+ private:
   const Plot* plot_  { nullptr };
   double      yval_  { 0.0 };
   double      x_     { 0.0 };
@@ -182,6 +187,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
  public:
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
+  using Symbol   = CQChartsSymbol;
   using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
 
@@ -228,7 +234,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  const Range &setRange(int i) const { return setRanges_[i]; }
+  Range setRange(int i) const {
+    if (i >= 0 && i < int(setRanges_.size()))
+      return setRanges_[i];
+
+    return Range();
+  }
 
   Axis *axis(int i) { return axes_[i]; }
 

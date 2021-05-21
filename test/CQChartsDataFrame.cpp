@@ -572,8 +572,7 @@ exec(CQTclCmd::CmdArgs &argv)
       if (! CQChartsModelUtil::stringToColumn(pmodel, valueStrs1[1], valueColumn))
         return errorMsg("Invalid value column");
 
-      flattenData.columnOps.push_back(
-        CQChartsModelUtil::FlattenData::ColumnOp(valueColumn, flattenOp));
+      flattenData.columnOps.emplace_back(valueColumn, flattenOp);
     }
 
     auto *filterModel = CQChartsModelUtil::flattenModel(charts, pmodel, flattenData);

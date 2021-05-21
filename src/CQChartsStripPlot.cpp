@@ -339,7 +339,11 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
   bool ok;
 
   auto value = modelReal(valueInd, ok);
-  if (! ok) th->addDataError(valueInd, "Invalid value");
+  if (! ok) {
+    if (! isSkipBad())
+      th->addDataError(valueInd, "Invalid value");
+    return;
+  }
 
   //---
 
@@ -350,7 +354,10 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
     ModelIndex nameInd(th, data.row, nameColumn(), data.parent);
 
     name = modelString(nameInd, ok);
-    if (! ok) th->addDataError(nameInd, "Invalid name");
+    if (! ok) {
+      if (! isSkipBad())
+        th->addDataError(nameInd, "Invalid name");
+    }
   }
 
   //---
