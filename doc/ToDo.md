@@ -4,9 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + text placement
+   + pie text overlap removal
+   + text place on line (used in axis, reuse axis code ?)
  + hier name support for connection plots (sankey) to provide extra level for grouping
  + chord color control
- + text place on line (used in axis)
  + model/column combination
  + support model/columns for annotation data
  + more support for module roles in charts objects (when no columns ?)

@@ -263,6 +263,22 @@ calcExtraFitBBox() const
 
 //------
 
+double
+CQChartsChordPlot::
+calcInnerRadius() const
+{
+  return std::max(innerRadius() - maxHierDepth_*0.1, 0.1);
+}
+
+double
+CQChartsChordPlot::
+calcOuterRadius() const
+{
+  return std::min(1.0 - maxHierDepth_*0.1, 1.0);
+}
+
+//------
+
 bool
 CQChartsChordPlot::
 createObjs(PlotObjs &objs) const
@@ -411,15 +427,18 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
+  auto pathModelIndex  = modelIndex(pathData.pathModelInd);
+  auto pathModelIndex1 = normalizeIndex(pathModelIndex);
+
+  auto separator = calcSeparator();
 
   auto path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
     auto path2 = path1 + separator + pathData.pathStrs[i];
 
-    auto &srcData  = findNameData(path1, QModelIndex());
-    auto &destData = findNameData(path2, QModelIndex());
+    auto &srcData  = findNameData(path1, pathModelIndex1);
+    auto &destData = findNameData(path2, pathModelIndex1);
 
     srcData .setLabel(pathData.pathStrs[i - 1]);
     destData.setLabel(pathData.pathStrs[i    ]);
@@ -510,7 +529,10 @@ void
 CQChartsChordPlot::
 addFromToValue(const FromToData &fromToData) const
 {
-  auto &srcData = findNameData(fromToData.fromStr, QModelIndex());
+  auto fromModelIndex  = modelIndex(fromToData.fromModelInd);
+  auto fromModelIndex1 = normalizeIndex(fromModelIndex);
+
+  auto &srcData = findNameData(fromToData.fromStr, fromModelIndex1);
 
   if (fromToData.depth > 0)
     srcData.setDepth(fromToData.depth);
@@ -529,10 +551,14 @@ addFromToValue(const FromToData &fromToData) const
     }
   }
   else {
+    // self
     if (fromToData.fromStr == fromToData.toStr)
       return;
 
-    auto &destData = findNameData(fromToData.toStr, QModelIndex());
+    auto toModelIndex  = modelIndex(fromToData.toModelInd);
+    auto toModelIndex1 = normalizeIndex(toModelIndex);
+
+    auto &destData = findNameData(fromToData.toStr, toModelIndex1);
 
     if (fromToData.depth > 0)
       destData.setDepth(fromToData.depth + 1);
@@ -723,6 +749,7 @@ initTableObjs(PlotObjs &objs) const
 
   th->arcObjs_ .clear();
   th->edgeObjs_.clear();
+  th->hierObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
     const auto &data = datas[row];
@@ -756,6 +783,8 @@ initTableObjs(PlotObjs &objs) const
 
       th->edgeObjs_.push_back(edgeObj);
 
+      arcObj->addEdgeObj(edgeObj);
+
       ++ind;
     }
   }
@@ -767,17 +796,17 @@ initTableObjs(PlotObjs &objs) const
 
 CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
-findNameData(const QString &name, const QModelIndex &linkInd) const
+findNameData(const QString &name, const QModelIndex &nameInd) const
 {
   auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  return findNameData(th->nameDataMap_, name, linkInd, /*global*/true);
+  return findNameData(th->nameDataMap_, name, nameInd, /*global*/true);
 }
 
 CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
 findNameData(NameDataMap &nameDataMap, const QString &name,
-             const QModelIndex &linkInd, bool global) const
+             const QModelIndex &nameInd, bool global) const
 {
   auto p = nameDataMap.find(name);
 
@@ -788,7 +817,17 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
 
     (*p).second.setFrom(ind);
     (*p).second.setName(name);
-    (*p).second.setLinkInd(linkInd);
+    (*p).second.setNameInd(nameInd);
+
+    if (isHierName()) {
+      auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+
+      if (strs.size() > 1) {
+        strs.pop_back();
+
+        (*p).second.setPath(strs);
+      }
+    }
 
     if (global) {
       auto *th = const_cast<CQChartsChordPlot *>(this);
@@ -889,12 +928,31 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   //---
 
+  auto cmpPaths = [](const QStringList &lhs, const QStringList &rhs) {
+    int nl = lhs.length();
+    int nr = rhs.length();
+
+    if (nl != nr) return (nl - nr);
+
+    for (int i = 0; i < nl; ++i) {
+      if (lhs[i] != rhs[i])
+        return (lhs[i] > rhs[i] ? 1 : -1);
+    }
+
+    return 0;
+  };
+
   if (isSorted()) {
     // sort by value/total
     std::sort(datas.begin(), datas.end(),
       [&](const ChordData &lhs, const ChordData &rhs) {
         if (lhs.group().ivalue() != rhs.group().ivalue())
           return lhs.group().ivalue() < rhs.group().ivalue();
+
+        if (lhs.path().length() || rhs.path().length()) {
+          int cmp = cmpPaths(lhs.path(), rhs.path());
+          if (cmp != 0) return (cmp < 0);
+        }
 
         return lhs.total(/*primaryOnly*/ !isSymmetric()) <
                rhs.total(/*primaryOnly*/ !isSymmetric());
@@ -909,6 +967,11 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
       [&](const ChordData &lhs, const ChordData &rhs) {
         if (lhs.group().ivalue() != rhs.group().ivalue())
           return lhs.group().ivalue() < rhs.group().ivalue();
+
+        if (lhs.path().length() || rhs.path().length()) {
+          int cmp = cmpPaths(lhs.path(), rhs.path());
+          if (cmp != 0) return (cmp < 0);
+        }
 
         return lhs.from() < rhs.from();
       });
@@ -960,7 +1023,10 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   //---
 
-  th->arcObjs_.clear();
+  maxHierDepth_ = 0;
+
+  th->arcObjs_ .clear();
+  th->hierObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
     const auto &data = datas[row];
@@ -994,9 +1060,66 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
       th->edgeObjs_.push_back(edgeObj);
 
+      edgeObj->fromObj()->addEdgeObj(edgeObj);
+
+      if (edgeObj->toObj() != edgeObj->fromObj())
+        edgeObj->toObj()->addEdgeObj(edgeObj);
+
       ++ind;
     }
+
+    //---
+
+    if (isHierName()) {
+      auto getHierObj = [&](const QString &name) {
+        for (auto *hierObj : hierObjs_)
+          if (hierObj->name() == name)
+            return hierObj;
+
+        return (CQChartsChordHierObj *) nullptr;
+      };
+
+      CQChartsChordHierObj *hierObj = nullptr;
+
+      auto path = data.path();
+
+      int np = path.length();
+
+      for (int i = 0; i < np; ++i) {
+        auto parentName = (path.length() > 1 ? path.join(calcSeparator()) : path[0]);
+
+        auto *parentHierObj = getHierObj(parentName);
+
+        if (! parentHierObj) {
+          parentHierObj = createHierObj(parentName, rect);
+
+          objs.push_back(parentHierObj);
+
+          th->hierObjs_.push_back(parentHierObj);
+        }
+
+        if (i == 0) {
+          arcObj->setHierObj(parentHierObj);
+
+          if (! parentHierObj->hasChildObj(arcObj))
+            parentHierObj->addChildObj(arcObj);
+        }
+        else {
+          hierObj->setHierObj(parentHierObj);
+
+          if (! parentHierObj->hasChildObj(hierObj))
+            parentHierObj->addChildObj(hierObj);
+        }
+
+        hierObj = parentHierObj;
+
+        path.pop_back();
+      }
+    }
   }
+
+  for (auto *hierObj : hierObjs_)
+    maxHierDepth_ = std::max(maxHierDepth_, hierObj->depth());
 }
 
 //---
@@ -1023,6 +1146,25 @@ edgeObject(int from, int to) const
   }
 
   return nullptr;
+}
+
+//---
+
+void
+CQChartsChordPlot::
+preDrawObjs(PaintDevice *) const
+{
+  maxTotal_ = 0.0;
+
+  for (const auto &plotObj : plotObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(plotObj);
+    auto *arcObj  = dynamic_cast<CQChartsChordArcObj  *>(plotObj);
+
+    if      (hierObj)
+      maxTotal_ = std::max(maxTotal_, hierObj->calcTotal());
+    else if (arcObj)
+      maxTotal_ = std::max(maxTotal_, arcObj->calcTotal());
+  }
 }
 
 //---
@@ -1064,6 +1206,13 @@ createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &va
   return new CQChartsChordEdgeObj(this, rect, data, to, value);
 }
 
+CQChartsChordHierObj *
+CQChartsChordPlot::
+createHierObj(const QString &name, const BBox &rect) const
+{
+  return new CQChartsChordHierObj(this, name, rect);
+}
+
 //---
 
 CQChartsPlotCustomControls *
@@ -1089,8 +1238,8 @@ CQChartsChordArcObj(const CQChartsChordPlot *plot, const BBox &rect, const Chord
 {
   setDetailHint(DetailHint::MAJOR);
 
-  if (data.linkInd().isValid())
-    setModelInd(data.linkInd());
+  if (data.nameInd().isValid())
+    setModelInd(data.nameInd());
 }
 
 QString
@@ -1119,9 +1268,9 @@ calcTipId() const
   if (name != "")
     tableTip.addTableRow("Group", name);
 
-  tableTip.addTableRow("Total", data_.total(/*primaryOnly*/! plot_->isSymmetric()));
+  tableTip.addTableRow("Total", calcTotal());
 
-  tableTip.addTableRow("Count", data_.values().size());
+  tableTip.addTableRow("Count", calcNumValues());
 
   //---
 
@@ -1147,11 +1296,14 @@ arcData() const
 {
   CQChartsArcData arcData;
 
-  arcData.setInnerRadius(innerRadius());
-  arcData.setOuterRadius(outerRadius());
+  arcData.setInnerRadius(calcInnerRadius());
+  arcData.setOuterRadius(calcOuterRadius());
 
-  double a1 = data_.angle().value();
-  double a2 = a1 + data_.dangle().value();
+  double a1, da;
+
+  dataAngles(a1, da);
+
+  double a2 = a1 + da;
 
   arcData.setAngle1(Angle(a1));
   arcData.setAngle2(Angle(a2));
@@ -1195,8 +1347,8 @@ CQChartsChordArcObj::
 draw(PaintDevice *device) const
 {
   // calc inner outer arc rectangles
-  double ri = innerRadius();
-  double ro = outerRadius();
+  double ri = calcInnerRadius();
+  double ro = calcOuterRadius();
 
   Point o1(-ro, -ro);
   Point o2( ro,  ro);
@@ -1208,8 +1360,9 @@ draw(PaintDevice *device) const
 
   //---
 
-  double angle1 = data_.angle().value();
-  double dangle = data_.dangle().value();
+  double angle1, dangle;
+
+  dataAngles(angle1, dangle);
 
   //---
 
@@ -1268,24 +1421,40 @@ drawFg(PaintDevice *device) const
   if (! plot_->isSymmetric())
     total = data_.maxTotal();
   else
-    total = data_.total();
+    total = calcTotal();
 
   if (CMathUtil::isZero(total))
     return;
 
-  // calc label radius
-  double ri = innerRadius();
-  double ro = outerRadius();
+  // calc name and label radius
+  auto name = dataName();
 
-  double lr = std::max(plot_->labelRadius(), 1.0);
+  double ri = calcInnerRadius();
+  double ro = calcOuterRadius();
 
-  double lr1 = ri + lr*(ro - ri);
+  double lr = 0.0;
 
-  lr1 = std::max(lr1, 0.01);
+  if (hierObj()) {
+    lr = (ri + ro)/2.0;
+
+    auto strs = name.split(plot_->calcSeparator(), QString::SkipEmptyParts);
+
+    if (strs.size() > 1)
+      name = strs[strs.size() - 1];
+  }
+  else {
+    double lr1 = labelRadius();
+
+    lr = ri + lr1*(ro - ri);
+  }
+
+  lr = std::max(lr, 0.01);
 
   // calc label angle
-  double angle1 = data_.angle().value();
-  double dangle = data_.dangle().value();
+  double angle1, dangle;
+
+  dataAngles(angle1, dangle);
+
   double angle2 = angle1 + dangle;
 
   double ta = CMathUtil::avg(angle1, angle2);
@@ -1307,7 +1476,7 @@ drawFg(PaintDevice *device) const
   // draw text using line pen
   Point center(0, 0);
 
-  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, dataName(),
+  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
                                             lpenBrush.pen, plot_->isRotatedText());
 }
 
@@ -1341,6 +1510,14 @@ calcFromColor() const
   auto colorInd = calcColorInd();
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
+      double r = CMathUtil::map(calcTotal(), 0, plot_->maxTotal(), 0.0, 1.0);
+
+      auto color = plot_->normalizedColorMapRealColor(r);
+
+      return plot_->interpColor(color, colorInd);
+    }
+
     if (modelInd().isValid() && plot_->colorColumn().isValid()) {
       Color color;
 
@@ -1370,7 +1547,7 @@ writeScriptData(ScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.total = " << data_.total(/*primaryOnly*/! plot_->isSymmetric()) << ";\n";
+  os << "  this.total = " << calcTotal() << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -1382,13 +1559,15 @@ textBBox() const
 
   //---
 
-  double ri = innerRadius();
-  double ro = outerRadius();
+  double ri = calcInnerRadius();
+  double ro = calcOuterRadius();
 
   //---
 
-  double angle1 = data_.angle().value();
-  double dangle = data_.dangle().value();
+  double angle1, dangle;
+
+  dataAngles(angle1, dangle);
+
   double angle2 = angle1 + dangle;
 
   //---
@@ -1396,7 +1575,7 @@ textBBox() const
   if (! plot_->textBox()->isTextVisible())
     return BBox();
 
-  double total = data_.total(/*primaryOnly*/! plot_->isSymmetric());
+  double total = calcTotal();
 
   if (CMathUtil::isZero(total))
     return BBox();
@@ -1404,19 +1583,18 @@ textBBox() const
   //---
 
   // calc box of text on arc center line
-  double lr = std::max(plot_->labelRadius(), 1.0);
+  double lr1 = labelRadius();
+  double lr  = ri + lr1*(ro - ri);
+
+  lr = std::max(lr, 0.01);
 
   double ta = CMathUtil::avg(angle1, angle2);
 
   Point center(0, 0);
 
-  double lr1 = ri + lr*(ro - ri);
-
-  lr1 = std::max(lr1, 0.01);
-
   BBox tbbox;
 
-  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, dataName(),
+  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr, ta, dataName(),
                                                 plot_->isRotatedText(), tbbox);
 
   return tbbox;
@@ -1424,16 +1602,23 @@ textBBox() const
 
 double
 CQChartsChordArcObj::
-innerRadius() const
+calcInnerRadius() const
 {
-  return std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+  return std::min(std::max(plot_->calcInnerRadius(), 0.01), 1.0);
 }
 
 double
 CQChartsChordArcObj::
-outerRadius() const
+calcOuterRadius() const
 {
-  return 1.0;
+  return std::min(std::max(plot_->calcOuterRadius(), 0.01), 1.0);
+}
+
+double
+CQChartsChordArcObj::
+labelRadius() const
+{
+  return std::max(plot_->labelRadius(), 1.0);
 }
 
 void
@@ -1468,6 +1653,20 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
   da = 0.0;
 }
 
+double
+CQChartsChordArcObj::
+calcTotal() const
+{
+  return data_.total(/*primaryOnly*/! plot_->isSymmetric());
+}
+
+int
+CQChartsChordArcObj::
+calcNumValues() const
+{
+  return data_.values().size();
+}
+
 //------
 
 CQChartsChordEdgeObj::
@@ -1477,6 +1676,9 @@ CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const BBox &rect, const Chor
  plot_(plot), data_(data), to_(to), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
+
+  if (data.nameInd().isValid())
+    setModelInd(data.nameInd());
 }
 
 QString
@@ -1567,7 +1769,7 @@ draw(PaintDevice *device) const
   //---
 
   // calc inner outer arc rectangles
-  double ri = fromObj->innerRadius();
+  double ri = fromObj->calcInnerRadius();
 
   Point i1(-ri, -ri);
   Point i2( ri,  ri);
@@ -1648,19 +1850,54 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
+  auto colorInd = calcColorInd();
+
+  //---
+
   // set pen and brush
   // TODO: separate arc stroke/fill control
-  auto arcStrokeColor = plot_->interpStrokeColor(ColorInd());
+  auto arcStrokeColor = plot_->interpStrokeColor(colorInd);
 
-  auto fromColor = fromObj->calcFromColor();
-  auto toColor   = toObj  ->calcFromColor();
+  //---
 
-  auto fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+  // set fill color
+  QColor fillColor;
 
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if      (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
+      double r = CMathUtil::map(value_.realOr(0.0), 0, plot_->maxTotal(), 0.0, 1.0);
+
+      auto color = plot_->normalizedColorMapRealColor(r);
+
+      fillColor = plot_->interpColor(color, colorInd);
+    }
+    else if (modelInd().isValid() && plot_->colorColumn().isValid()) {
+      Color color;
+
+      ModelIndex colorModelInd(plot_,
+        modelInd().row(), plot_->colorColumn(), modelInd().parent());
+
+      if (plot_->modelIndexColor(colorModelInd, color))
+        fillColor = plot_->interpColor(color, colorInd);
+    }
+  }
+
+  if (! fillColor.isValid()) {
+    auto fromColor = fromObj->calcFromColor();
+    auto toColor   = toObj  ->calcFromColor();
+
+    fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+  }
+
+  //---
+
+  // set fill alpha
   Alpha fillAlpha;
 
   if (! isInside() && ! isSelected())
     fillAlpha = plot_->arcAlpha();
+
+  //---
 
   plot_->setPenBrush(penBrush,
     PenData  (true, arcStrokeColor, plot_->strokeAlpha(),
@@ -1683,6 +1920,338 @@ CQChartsChordEdgeObj::
 toObj() const
 {
   return plot_->arcObject(to());
+}
+
+//------
+
+CQChartsChordHierObj::
+CQChartsChordHierObj(const CQChartsChordPlot *plot, const QString &name, const BBox &rect) :
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
+ plot_(plot), name_(name)
+{
+  setDetailHint(DetailHint::MINOR);
+}
+
+QString
+CQChartsChordHierObj::
+calcId() const
+{
+  return QString("%1:%2").arg(typeName()).arg(name());
+}
+
+QString
+CQChartsChordHierObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Name", name());
+
+  tableTip.addTableRow("Total", calcTotal());
+
+  tableTip.addTableRow("Count", calcNumValues());
+
+  return tableTip.str();
+}
+
+bool
+CQChartsChordHierObj::
+inside(const Point &p) const
+{
+  return path_.contains(p.qpoint());
+}
+
+//---
+
+void
+CQChartsChordHierObj::
+draw(PaintDevice *device) const
+{
+  // calc inner outer arc rectangles
+  double ri = calcInnerRadius();
+  double ro = calcOuterRadius();
+
+  Point o1(-ro, -ro);
+  Point o2( ro,  ro);
+  Point i1(-ri, -ri);
+  Point i2( ri,  ri);
+
+  BBox obbox(o1, o2);
+  BBox ibbox(i1, i2);
+
+  //---
+
+  double angle1 = 0.0, angle2 = 0.0;
+
+  dataAngles(angle1, angle2);
+
+  //---
+
+  // calc pen and brush
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  // draw value set segment arc path
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  QPainterPath path;
+
+  CQChartsDrawUtil::arcSegmentPath(path, ibbox, obbox, Angle(angle1), Angle(angle2 - angle1));
+
+  path_ = path;
+
+  device->drawPath(path);
+
+  device->resetColorNames();
+}
+
+void
+CQChartsChordHierObj::
+drawFg(PaintDevice *device) const
+{
+  if (name() == "")
+    return;
+
+  if (! plot_->textBox()->isTextVisible())
+    return;
+
+  // calc label radius
+  double ri = calcInnerRadius();
+  double ro = calcOuterRadius();
+
+//double lr1 = labelRadius();
+//double lr  = ri + lr1*(ro - ri);
+  double lr  = (ri + ro)/2.0;
+
+  lr = std::max(lr, 0.01);
+
+  // calc label angle
+  double angle1, angle2;
+
+  dataAngles(angle1, angle2);
+
+  double ta = CMathUtil::avg(angle1, angle2);
+
+  //---
+
+  auto name = this->name();
+
+  auto strs = name.split(plot_->calcSeparator(), QString::SkipEmptyParts);
+
+  if (strs.size() > 1)
+    name = strs[strs.size() - 1];
+
+  //---
+
+  // set connection line pen
+  // TODO: separate text and line pen control
+  auto colorInd = calcColorInd();
+
+  PenBrush lpenBrush;
+
+  auto bg = plot_->interpPaletteColor(colorInd);
+
+  plot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
+
+  //---
+
+  // draw text using line pen
+  Point center(0, 0);
+
+  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
+                                            lpenBrush.pen, plot_->isRotatedText());
+}
+
+void
+CQChartsChordHierObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  // set pen and brush
+  // TODO: separate arc stroke/fill control
+  auto segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
+
+  auto fillColor = this->fillColor();
+
+  plot_->setPenBrush(penBrush,
+    PenData  (true, segmentStrokeColor, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(true, fillColor));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+QColor
+CQChartsChordHierObj::
+fillColor() const
+{
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
+      double r = CMathUtil::map(calcTotal(), 0, plot_->maxTotal(), 0.0, 1.0);
+
+      auto color = plot_->normalizedColorMapRealColor(r);
+
+      return plot_->interpColor(color, ColorInd());
+    }
+  }
+
+  //---
+
+  std::vector<QColor> colors;
+
+  for (auto *obj : childObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(obj);
+    auto *arcObj  = dynamic_cast<CQChartsChordArcObj  *>(obj);
+
+    if      (hierObj)
+      colors.push_back(hierObj->fillColor());
+    else if (arcObj)
+      colors.push_back(arcObj->calcFromColor());
+  }
+
+  return CQChartsUtil::blendColors(colors);
+}
+
+double
+CQChartsChordHierObj::
+calcInnerRadius() const
+{
+  return plot_->calcOuterRadius() + (childDepth() - 1)*0.1;
+}
+
+double
+CQChartsChordHierObj::
+calcOuterRadius() const
+{
+  return calcInnerRadius() + 0.1;
+}
+
+double
+CQChartsChordHierObj::
+labelRadius() const
+{
+  return std::max(plot_->labelRadius(), 1.0);
+}
+
+void
+CQChartsChordHierObj::
+dataAngles(double &angle1, double &angle2) const
+{
+  angle1 = 0.0;
+  angle2 = 0.0;
+
+  bool angleSet = false;
+
+  for (auto *obj : childObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(obj);
+    auto *arcObj  = dynamic_cast<CQChartsChordArcObj  *>(obj);
+
+    if      (hierObj) {
+      double angle11 = 0.0, angle21 = 0.0;
+
+      hierObj->dataAngles(angle11, angle21);
+
+      if (! angleSet) {
+        angle1 = angle11;
+        angle2 = angle21;
+
+        angleSet = true;
+      }
+      else {
+        angle1 = std::min(angle1, angle11);
+        angle2 = std::max(angle2, angle21);
+      }
+    }
+    else if (arcObj) {
+      double angle = 0.0, dangle = 0.0;
+
+      arcObj->dataAngles(angle, dangle);
+
+      if (! angleSet) {
+        angle1 = angle;
+        angle2 = angle + dangle;
+
+        angleSet = true;
+      }
+      else {
+        angle1 = std::min(angle1, angle);
+        angle2 = std::max(angle2, angle + dangle);
+      }
+    }
+    else
+      continue;
+  }
+}
+
+double
+CQChartsChordHierObj::
+calcTotal() const
+{
+  double total = 0.0;
+
+  for (auto *obj : childObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(obj);
+    auto *arcObj  = dynamic_cast<CQChartsChordArcObj  *>(obj);
+
+    if      (hierObj)
+      total += hierObj->calcTotal();
+    else if (arcObj)
+      total += arcObj->calcTotal();
+  }
+
+  return total;
+}
+
+int
+CQChartsChordHierObj::
+calcNumValues() const
+{
+  int n = 0;
+
+  for (auto *obj : childObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(obj);
+    auto *arcObj  = dynamic_cast<CQChartsChordArcObj  *>(obj);
+
+    if      (hierObj)
+      n += hierObj->calcNumValues();
+    else if (arcObj)
+      n += arcObj->calcNumValues();
+  }
+
+  return n;
+}
+
+int
+CQChartsChordHierObj::
+depth() const
+{
+  return (hierObj() ? hierObj()->depth() : 0) + 1;
+}
+
+int
+CQChartsChordHierObj::
+childDepth() const
+{
+  if (childObjs_.empty())
+    return 0;
+
+  int depth = 1;
+
+  for (auto *obj : childObjs_) {
+    auto *hierObj = dynamic_cast<CQChartsChordHierObj *>(obj);
+
+    if (hierObj)
+      depth = std::max(depth, hierObj->childDepth() + 1);
+  }
+
+  return depth;
 }
 
 //------

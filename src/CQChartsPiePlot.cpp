@@ -2899,6 +2899,9 @@ void
 CQChartsPieGroupObj::
 drawPieBorder(PaintDevice *device) const
 {
+  if (plot_->numGroups() <= 1)
+    return;
+
   auto c = calcCenter();
 
   double ri, ro;

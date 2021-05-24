@@ -16,7 +16,7 @@ registerMetaType()
 
 bool
 CQChartsNamePair::
-stringToNames(const QString &str, Names &names, const QChar &separator)
+stringToNames(const QString &str, Names &names, const QString &separator)
 {
   names.valid = false;
 
@@ -36,7 +36,7 @@ stringToNames(const QString &str, Names &names, const QChar &separator)
 
 QString
 CQChartsNamePair::
-namesToString(const Names &names, const QChar &separator)
+namesToString(const Names &names, const QString &separator)
 {
   return QString("%1%2%3").arg(names.name1).arg(separator).arg(names.name2);
 }

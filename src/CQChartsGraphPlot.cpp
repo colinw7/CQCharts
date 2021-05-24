@@ -681,7 +681,7 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
+  auto separator = calcSeparator();
 
   auto path1 = pathData.pathStrs[0];
 

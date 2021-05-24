@@ -91,6 +91,10 @@ class CQChartsChordData {
   const Group &group() const { return data_.group(); }
   void setGroup(const Group &group) { data_.setGroup(group); }
 
+  //! get/set hier path
+  const QStringList &path() const { return path_; }
+  void setPath(const QStringList &v) { path_ = v; }
+
   //! get/set depth
   int depth() const { return data_.depth(); }
   void setDepth(int depth) { data_.setDepth(depth); }
@@ -124,8 +128,8 @@ class CQChartsChordData {
   }
 
   //! get/set linked model index
-  const QModelIndex &linkInd() const { return data_.linkInd(); }
-  void setLinkInd(const QModelIndex &i) { data_.setLinkInd(i); }
+  const QModelIndex &nameInd() const { return data_.nameInd(); }
+  void setNameInd(const QModelIndex &i) { data_.setNameInd(i); }
 
   //---
 
@@ -167,12 +171,16 @@ class CQChartsChordData {
   TableConnectionData data_;             //!< connection data
   OptReal             value_;            //!< value
   int                 parent_ { -1 };    //!< hierarchical parent
+  QStringList         path_;             //!< hier path
   bool                visible_ { true }; //!< is visible
   Angle               a_;                //!< start angle
   Angle               da_;               //!< delta angle
 };
 
 //---
+
+class CQChartsChordEdgeObj;
+class CQChartsChordHierObj;
 
 /*!
  * \brief Chord Plot Arc object
@@ -185,6 +193,9 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
   using ChordPlot = CQChartsChordPlot;
   using ChordData = CQChartsChordData;
   using ArcObj    = CQChartsChordArcObj;
+  using EdgeObj   = CQChartsChordEdgeObj;
+  using EdgeObjs  = std::vector<EdgeObj *>;
+  using HierObj   = CQChartsChordHierObj;
   using Angle     = CQChartsAngle;
 
  public:
@@ -194,6 +205,25 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
   const ChordData &data() const { return data_; }
 
   int from() const { return data().from(); }
+
+  //---
+
+  void addEdgeObj(EdgeObj *obj) { edgeObjs_.push_back(obj); }
+
+  //---
+
+  const HierObj *hierObj() const { return hierObj_; }
+  void setHierObj(HierObj *p) { hierObj_ = p; }
+
+  void addChildObj(CQChartsPlotObj *obj) { childObjs_.push_back(obj); }
+
+  bool hasChildObj(CQChartsPlotObj *obj) const {
+    for (auto *obj1 : childObjs_)
+      if (obj1 == obj)
+        return true;
+
+    return false;
+  }
 
   //---
 
@@ -213,10 +243,16 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
 
   //---
 
-  double innerRadius() const;
-  double outerRadius() const;
+  double calcInnerRadius() const;
+  double calcOuterRadius() const;
+
+  double labelRadius() const;
 
   QString dataName() const { return data_.name(); }
+
+  double calcTotal() const;
+
+  int calcNumValues() const;
 
   //---
 
@@ -254,8 +290,11 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
                    ChordData::PrimaryType primaryType=ChordData::PrimaryType::ANY) const;
 
  private:
-  const ChordPlot* plot_ { nullptr }; //!< parent plot
-  ChordData        data_;             //!< chord data
+  const ChordPlot* plot_    { nullptr }; //!< parent plot
+  ChordData        data_;                //!< chord data
+  EdgeObjs         edgeObjs_;            //!< edge objects
+  HierObj*         hierObj_ { nullptr }; //!< parent hier obj
+  PlotObjs         childObjs_;           //!< child objs
 };
 
 //---
@@ -282,6 +321,8 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
   int from() const { return data().from(); }
   int to  () const { return to_; }
+
+  const OptReal &value() const { return value_; }
 
   //---
 
@@ -311,7 +352,6 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
   //---
 
- private:
   CQChartsChordArcObj *fromObj() const;
   CQChartsChordArcObj *toObj  () const;
 
@@ -321,6 +361,90 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
   int                  to_ { -1 };        //!< to index
   OptReal              value_;            //!< edge value
   mutable QPainterPath path_;             //!< drawn path
+};
+
+//---
+
+/*!
+ * \brief Chord Plot Hier object
+ * \ingroup Charts
+ */
+class CQChartsChordHierObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using ChordPlot = CQChartsChordPlot;
+  using ChordData = CQChartsChordData;
+  using HierObj   = CQChartsChordHierObj;
+  using Angle     = CQChartsAngle;
+
+ public:
+  CQChartsChordHierObj(const ChordPlot *plot, const QString &name, const BBox &rect);
+
+  const QString &name() const { return name_; }
+
+  //---
+
+  const HierObj *hierObj() const { return hierObj_; }
+  void setHierObj(HierObj *p) { hierObj_ = p; }
+
+  void addChildObj(CQChartsPlotObj *obj) { childObjs_.push_back(obj); }
+
+  bool hasChildObj(CQChartsPlotObj *obj) const {
+    for (auto *obj1 : childObjs_)
+      if (obj1 == obj)
+        return true;
+
+    return false;
+  }
+
+  //---
+
+  QString typeName() const override { return "hier"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  void drawFg(PaintDevice *device) const override;
+
+  //---
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  QColor fillColor() const;
+
+  //---
+
+  double calcInnerRadius() const;
+  double calcOuterRadius() const;
+
+  double labelRadius() const;
+
+  void dataAngles(double &angle1, double &angle2) const;
+
+  double calcTotal() const;
+
+  int calcNumValues() const;
+
+  int depth() const;
+
+  int childDepth() const;
+
+ private:
+  const ChordPlot*     plot_    { nullptr }; //!< parent plot
+  QString              name_;                //!< hier name
+  HierObj*             hierObj_ { nullptr }; //!< parent hier obj
+  PlotObjs             childObjs_;           //!< child objs
+  mutable QPainterPath path_;                //!< drawn path
 };
 
 //---
@@ -361,6 +485,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
  public:
   using ArcObj            = CQChartsChordArcObj;
   using EdgeObj           = CQChartsChordEdgeObj;
+  using HierObj           = CQChartsChordHierObj;
   using RotatedTextBoxObj = CQChartsRotatedTextBoxObj;
   using Color             = CQChartsColor;
   using Alpha             = CQChartsAlpha;
@@ -421,8 +546,17 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  void preDrawObjs(PaintDevice *) const override;
+
   ArcObj  *arcObject (int ind) const;
   EdgeObj *edgeObject(int from, int to) const;
+
+  //---
+
+  double calcInnerRadius() const;
+  double calcOuterRadius() const;
+
+  double maxTotal() const { return maxTotal_; }
 
   //---
 
@@ -485,9 +619,9 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  ChordData &findNameData(const QString &name, const QModelIndex &linkInd) const;
+  ChordData &findNameData(const QString &name, const QModelIndex &nameInd) const;
   ChordData &findNameData(NameDataMap &nameDataMap, const QString &name,
-                          const QModelIndex &linkInd, bool global=false) const;
+                          const QModelIndex &nameInd, bool global=false) const;
 
   void addEdge(ChordData &srcData, ChordData &destData, double value, bool symmetric) const;
 
@@ -501,6 +635,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
                                 const ColorInd &ig, const ColorInd &iv) const;
   virtual EdgeObj* createEdgeObj(const BBox &rect, const ChordData &data,
                                  int to, const OptReal &value) const;
+  virtual HierObj* createHierObj(const QString &name, const BBox &rect) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -508,6 +643,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
  private:
   using ArcObjs            = std::vector<ArcObj *>;
   using EdgeObjs           = std::vector<EdgeObj *>;
+  using HierObjs           = std::vector<HierObj *>;
   using IndName            = std::map<int, QString>;
   using RotatedTextBoxObjP = std::unique_ptr<RotatedTextBoxObj>;
 
@@ -526,7 +662,10 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   IndName            indName_;                //!< ind name
   ArcObjs            arcObjs_;                //!< arc objects
   EdgeObjs           edgeObjs_;               //!< edge objects
+  HierObjs           hierObjs_;               //!< hier objects
   int                maxNodeDepth_   { -1 };  //!< max node depth
+  int                maxHierDepth_   { 0 };   //!< max hier obj depth
+  mutable double     maxTotal_       { 0.0 }; //!< max total
 };
 
 //---

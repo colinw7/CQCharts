@@ -234,12 +234,13 @@ drawCalcConnectedRadialText(PaintDevice *device, const Point &center, double ro,
   double tangle = CMathUtil::Deg2Rad(ta);
 
   double tc = std::cos(tangle);
-  double ts = std::sin(tangle);
+//double ts = std::sin(tangle);
 
-  double tx = center.x + lr*tc;
-  double ty = center.y + lr*ts;
+  bool labelRight = (tc >= 0.0);
 
-  auto pt = windowToPixel(Point(tx, ty));
+  auto p = CQChartsGeom::circlePoint(center, lr, tangle);
+
+  auto pt = windowToPixel(p);
 
   //---
 
@@ -248,17 +249,13 @@ drawCalcConnectedRadialText(PaintDevice *device, const Point &center, double ro,
 
   // connect text to outer edge
   if (lr > ro) {
-    double lx1 = center.x + ro*tc;
-    double ly1 = center.y + ro*ts;
-    double lx2 = center.x + lr*tc;
-    double ly2 = center.y + lr*ts;
+    auto pl1 = CQChartsGeom::circlePoint(center, ro, tangle);
+    auto pl2 = CQChartsGeom::circlePoint(center, lr, tangle);
 
-    auto lp1 = windowToPixel(Point(lx1, ly1));
-    auto lp2 = windowToPixel(Point(lx2, ly2));
+    auto lp1 = windowToPixel(pl1);
+    auto lp2 = windowToPixel(pl2);
 
     int tickSize = 16; // TODO: allow customize
-
-    bool labelRight = (tc >= 0);
 
     if (plot() && plot()->isInvertX())
       labelRight = ! labelRight;
@@ -294,7 +291,7 @@ drawCalcConnectedRadialText(PaintDevice *device, const Point &center, double ro,
   double angle = 0.0;
 
   if (isRotated)
-    angle = (tc >= 0.0 ? ta : 180.0 + ta);
+    angle = (labelRight ? ta : 180.0 + ta);
 
   auto t1 = (device ? device->pixelToWindow(pt1) : pt1);
 

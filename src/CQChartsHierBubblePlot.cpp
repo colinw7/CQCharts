@@ -202,7 +202,7 @@ currentRoot() const
 {
   auto *currentRoot = nodeData_.root;
 
-  auto names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+  auto names = currentRootName_.split(calcSeparator(), QString::SkipEmptyParts);
 
   if (names.empty())
     return currentRoot;
@@ -735,7 +735,7 @@ loadFlat() const
       QModelIndices nameInds;
 
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
-                                      plot_->separator(), nameStrs, nameInds))
+                                      plot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
       //---

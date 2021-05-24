@@ -366,7 +366,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 currentRoot() const
 {
-  auto names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+  auto names = currentRootName_.split(calcSeparator(), QString::SkipEmptyParts);
 
   if (names.empty())
     return firstHier();
@@ -878,7 +878,7 @@ loadFlat() const
       QModelIndices nameInds;
 
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
-                                      plot_->separator(), nameStrs, nameInds))
+                                      plot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
       QString     name;
@@ -1976,7 +1976,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
     textOptions.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
     textOptions.clipElide     = plot_->textClipElide();
     textOptions.clipped       = plot_->isTextClipped();
-    textOptions.formatSeps    = plot_->separator();
+    textOptions.formatSeps    = plot_->calcSeparator();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

@@ -126,3 +126,74 @@ name() const
 {
   return str.toStdString();
 }
+
+//------
+
+void
+CQChartsAxisTextPlacer::
+clear()
+{
+  drawTexts_.clear();
+}
+
+void
+CQChartsAxisTextPlacer::
+autoHide()
+{
+  int n = drawTexts_.size();
+  if (n <= 1) return;
+
+  const auto &firstBBox = drawTexts_[0    ].bbox;
+  const auto &lastBBox  = drawTexts_[n - 1].bbox;
+
+  // if first and last labels overlap then only draw first
+  if (lastBBox.overlaps(firstBBox)) {
+    for (int i = 1; i < n; ++i)
+      drawTexts_[i].visible = false;
+  }
+  // otherwise draw first and last and clip others
+  else {
+    auto prevBBox = firstBBox;
+
+    for (int i = 1; i < n - 1; ++i) {
+      auto &data = drawTexts_[i];
+
+      if (data.bbox.overlaps(prevBBox) || data.bbox.overlaps(lastBBox))
+        data.visible = false;
+
+      if (data.visible)
+        prevBBox = data.bbox;
+    }
+  }
+}
+
+void
+CQChartsAxisTextPlacer::
+draw(PaintDevice *device, const TextOptions &textOptions, bool showBoxes)
+{
+  for (const auto &data : drawTexts_) {
+    if (! data.visible)
+      continue;
+
+    auto p1 = device->pixelToWindow(data.p);
+
+    TextOptions options = textOptions;
+
+    options.angle = data.angle;
+    options.align = data.align;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
+  }
+
+  if (showBoxes) {
+    for (const auto &data : drawTexts_) {
+      if (! data.visible)
+        continue;
+
+      device->setPen(QColor(Qt::red));
+      device->setBrush(Qt::NoBrush);
+
+      device->drawRect(data.bbox);
+    }
+  }
+}

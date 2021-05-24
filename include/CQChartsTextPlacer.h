@@ -62,4 +62,53 @@ class CQChartsTextPlacer {
   CQChartsRectPlacer placer_;
 };
 
+class CQChartsAxisTextPlacer {
+ public:
+  using PaintDevice = CQChartsPaintDevice;
+  using TextOptions = CQChartsTextOptions;
+  using Angle       = CQChartsAngle;
+  using BBox        = CQChartsGeom::BBox;
+  using Point       = CQChartsGeom::Point;
+
+ public:
+  //! draw text data
+  struct DrawText {
+    DrawText(const Point &p, const BBox &bbox, const QString &text) :
+     p(p), bbox(bbox), text(text) {
+    }
+
+    DrawText(const Point &p, const BBox &bbox, const QString &text,
+             const Angle &angle, Qt::Alignment align) :
+     p(p), bbox(bbox), text(text), angle(angle), align(align) {
+   }
+
+   Point         p;
+   BBox          bbox;
+   QString       text;
+   Angle         angle;
+   Qt::Alignment align   { Qt::AlignHCenter };
+   bool          visible { true };
+  };
+
+ public:
+  CQChartsAxisTextPlacer() { }
+
+  void clear();
+
+  bool empty() const { return drawTexts_.empty(); }
+
+  void addDrawText(const DrawText &drawText) {
+    drawTexts_.push_back(drawText);
+  }
+
+  void autoHide();
+
+  void draw(PaintDevice *device, const TextOptions &textOptions, bool showBoxes=false);
+
+ private:
+  using DrawTexts = std::vector<DrawText>;
+
+  DrawTexts drawTexts_;
+};
+
 #endif

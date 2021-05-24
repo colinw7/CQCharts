@@ -160,7 +160,7 @@ init()
 
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
-  buttons->setToolTips("Create Plot and close dialog",
+  buttons->setToolTips("Create plot and close dialog",
                        "Create plot and keep dialog open",
                        "Close dialog without creating plot");
 
@@ -989,6 +989,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
     //---
 
+    // get parameters and child parameter groups
     auto parameters = type->groupParameters(parameterGroup->groupId());
 
     auto parameterGroups = type->groupParameterGroups(parameterGroup->groupId());
@@ -1022,6 +1023,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
     //---
 
+    // process child parameter groups
     ChildGroups childGroups1;
 
     for (const auto &parameterGroup1 : parameterGroups) {
@@ -1037,6 +1039,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
     int ng1 = childGroups1.size();
 
     for (const auto &parameterGroup1 : childGroups1) {
+      // get parameters and child parameter groups
       auto parameters1 = type->groupParameters(parameterGroup1->groupId());
 
       auto parameterGroups1 = type->groupParameterGroups(parameterGroup1->groupId());
@@ -1777,6 +1780,8 @@ setXYMin(const QString &id)
   }
 }
 
+//---
+
 void
 CQChartsCreatePlotDlg::
 autoPlaceSlot(int state)
@@ -2234,15 +2239,18 @@ updatePreviewSlot()
       summaryModel->setMaxRows(n);
     }
 
+    // random n rows
     if      (random) {
       summaryModel->setRandomMode(true);
     }
+    // first n rows when sorted by column
     else if (sorted) {
       int sortCol = summaryEditData_.sortedColEdit->value();
 
       summaryModel->setSortColumn(sortCol);
       summaryModel->setSortMode(true);
     }
+    // nth page of specified page size
     else if (paged) {
       int ps = summaryEditData_.pageSizeEdit   ->value();
       int np = summaryEditData_.currentPageEdit->value();
@@ -2287,6 +2295,8 @@ applySlot()
   auto *type = getPlotType();
   if (! type) return false;
 
+  //---
+
   // get or create view
   auto viewId = viewEdit_->text();
 
@@ -2301,6 +2311,8 @@ applySlot()
 
     viewEdit_->setText(view->id());
   }
+
+  //---
 
   // create plot
   plot_ = type->createAndInit(view, model_);
@@ -2539,15 +2551,18 @@ applyPlot(Plot *plot, bool preview)
 
   //---
 
+  // set title
   if (titleEdit_->text().length())
     plot->setTitleStr(titleEdit_->text());
 
+  // set axis labels
   if (xLabelEdit_->text().length())
     plot->setXLabel(xLabelEdit_->text());
 
   if (yLabelEdit_->text().length())
     plot->setYLabel(yLabelEdit_->text());
 
+  // set axis integral
   if (plot->xAxis())
     plot->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
 
@@ -2564,6 +2579,7 @@ applyPlot(Plot *plot, bool preview)
       plot->yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
   }
 
+  // set axis log
   plot->setLogX(xlogCheck_->isChecked());
   plot->setLogY(ylogCheck_->isChecked());
 

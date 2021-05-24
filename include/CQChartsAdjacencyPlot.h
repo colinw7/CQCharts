@@ -401,6 +401,35 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void execDrawForeground(PaintDevice *) const override;
 
  private:
+  struct RowNodeLabel {
+    Point   p;
+    QString str;
+    int     depth { 0 };
+
+    RowNodeLabel(const Point &p, const QString &str, int depth) :
+     p(p), str(str), depth(depth) {
+    }
+  };
+
+  struct ColNodeLabel {
+    Point   p;
+    QString str;
+    int     depth { 0 };
+
+    ColNodeLabel(const Point &p, const QString &str, int depth) :
+     p(p), str(str), depth(depth) {
+    }
+  };
+
+  void drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const;
+  void drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const;
+  void addRowNodeLabelStr(const Point &p, const QString &str, int depth) const;
+
+  void drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const;
+  void drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const;
+  void addColNodeLabelStr(const Point &p, const QString &str, int depth) const;
+
+ private:
   using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
@@ -469,8 +498,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using NodeMap   = std::map<int, AdjacencyNode*>;
-  using NodeArray = std::vector<AdjacencyNode*>;
+  using NodeMap   = std::map<int, AdjacencyNode *>;
+  using NodeArray = std::vector<AdjacencyNode *>;
 
   struct NodeData {
     double maxValue       { 0 };   //!< max node value
@@ -502,6 +531,19 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   NodeArray sortedNodes_;         //!< sorted nodes
   NodeData  nodeData_;            //!< node data
   int       maxNodeDepth_ { -1 }; //!< max node depth
+
+  mutable double pxs_   { 0.0 };
+  mutable double pys_   { 0.0 };
+  mutable double xts_   { 0.0 };
+  mutable double yts_   { 0.0 };
+  mutable double twMax_ { 0.0 };
+
+  using Points        = std::vector<Point>;
+  using RowNodeLabels = std::map<int, std::map<QString, Points>>;
+  using ColNodeLabels = std::map<int, std::map<QString, Points>>;
+
+  mutable RowNodeLabels rowNodeLabels_;
+  mutable ColNodeLabels colNodeLabels_;
 };
 
 //---

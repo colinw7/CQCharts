@@ -8957,20 +8957,9 @@ columnValueColor(const QVariant &var, Color &color) const
 
     //--
 
-    // map real from data range if enabled
-    double r1;
+    color = colorMapRealColor(r);
 
-    if (isColorMapped())
-      r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), colorMapMin(), colorMapMax());
-    else
-      r1 = r;
-
-    // clamp to valid value
-    r1 = CMathUtil::clamp(r1, 0.0, 1.0);
-
-    //--
-
-    color = colorFromColorMapPaletteValue(r1);
+    return true;
   }
   else if (CQChartsVariant::isColor(var)) {
     // use color value directly
@@ -9001,6 +8990,47 @@ columnValueColor(const QVariant &var, Color &color) const
   }
 
   return color.isValid();
+}
+
+CQChartsColor
+CQChartsPlot::
+colorMapRealColor(double r) const
+{
+  // map real from data range if enabled
+  double r1;
+
+  if (isColorMapped())
+    r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), colorMapMin(), colorMapMax());
+  else
+    r1 = r;
+
+  // clamp to valid value
+  r1 = CMathUtil::clamp(r1, 0.0, 1.0);
+
+  //--
+
+  return colorFromColorMapPaletteValue(r1);
+}
+
+
+CQChartsColor
+CQChartsPlot::
+normalizedColorMapRealColor(double r) const
+{
+  // map real from data range if enabled
+  double r1;
+
+  if (isColorMapped())
+    r1 = CMathUtil::map(r, 0.0, 1.0, colorMapMin(), colorMapMax());
+  else
+    r1 = r;
+
+  // clamp to valid value
+  r1 = CMathUtil::clamp(r1, 0.0, 1.0);
+
+  //--
+
+  return colorFromColorMapPaletteValue(r1);
 }
 
 CQChartsColor

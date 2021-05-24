@@ -146,7 +146,7 @@ class CQChartsSunburstNode {
 
   virtual double hierSize() const { return size(); }
 
-  virtual QString hierName(const QChar &separator='/') const;
+  virtual QString hierName(const QString &separator="/") const;
 
   virtual void setPosition(double r, const Angle &a, double dr, const Angle &da);
 

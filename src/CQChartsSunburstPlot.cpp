@@ -283,7 +283,7 @@ CQChartsSunburstPlot::
 setCurrentRoot(HierNode *hier, bool update)
 {
   if (hier)
-    currentRootName_ = hier->hierName('@');
+    currentRootName_ = hier->hierName("@");
   else
     currentRootName_.clear();
 
@@ -676,7 +676,7 @@ loadFlat(HierNode *root) const
       QModelIndices nameInds;
 
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
-                                      plot_->separator(), nameStrs, nameInds))
+                                      plot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
       auto nameInd1 = plot_->normalizeIndex(nameInds[0]);
@@ -1715,7 +1715,7 @@ CQChartsSunburstNode(const Plot *plot, HierNode *parent, const QString &name) :
 
 QString
 CQChartsSunburstNode::
-hierName(const QChar &separator) const
+hierName(const QString &separator) const
 {
   if (parent() && (plot()->isMultiRoot() || parent() != plot()->roots()[0]))
     return parent()->hierName(separator) + separator + name();

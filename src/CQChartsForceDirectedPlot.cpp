@@ -576,7 +576,7 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  auto separator = (this->separator().length() ? this->separator()[0] : '/');
+  auto separator = calcSeparator();
 
   auto path1 = pathData.pathStrs[0];
 
@@ -759,7 +759,7 @@ initLinkConnectionObjs() const
    public:
     RowVisitor(const CQChartsForceDirectedPlot *plot) :
      plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+      separator_ = plot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -823,7 +823,7 @@ initLinkConnectionObjs() const
 
    private:
     const CQChartsForceDirectedPlot* plot_      { nullptr };
-    QChar                            separator_ { '/' };
+    QString                          separator_ { "/" };
   };
 
   RowVisitor visitor(this);
@@ -836,7 +836,7 @@ initLinkConnectionObjs() const
 bool
 CQChartsForceDirectedPlot::
 getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, int &destId,
-                   double &value, const QChar &separator) const
+                   double &value, const QString &separator) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
@@ -1021,7 +1021,7 @@ initTableObjs() const
     auto &connectionsData =
       const_cast<ConnectionsData &>(getConnections(tableConnectionData.from()));
 
-    connectionsData.ind   = tableConnectionData.linkInd();
+    connectionsData.ind   = tableConnectionData.nameInd();
     connectionsData.name  = tableConnectionData.name();
     connectionsData.group = tableConnectionData.group().ig;
 

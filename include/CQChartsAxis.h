@@ -10,6 +10,7 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsOptString.h>
 #include <CQChartsAxisTickLabelPlacement.h>
+#include <CQChartsTextPlacer.h>
 #include <CInterval.h>
 
 #include <map>
@@ -598,6 +599,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
+  using TextPlacer = CQChartsAxisTextPlacer;
+
   // basic state
   const Plot*     plot_      { nullptr };        //!< parent plot
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
@@ -672,13 +675,13 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   EditHandlesP editHandles_; //!< edit handles
 
   // bbox draw state
-  mutable BBox                   bbox_;                   //!< axis box
-  mutable BBox                   fitBBox_;                //!< fit box
-  mutable BBox                   fitLBBox_;               //!< label fit box
-  mutable BBox                   fitTLBBox_;              //!< tick label fit box
-  mutable BBox                   lbbox_;                  //!< label box
-//mutable BBox                   lastTickLabelRect_;      //!< last tick box (for auto hide)
-  mutable AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
+  mutable BBox       bbox_;              //!< axis box
+  mutable BBox       fitBBox_;           //!< fit box
+  mutable BBox       fitLBBox_;          //!< label fit box
+  mutable BBox       fitTLBBox_;         //!< tick label fit box
+  mutable BBox       lbbox_;             //!< label box
+//mutable BBox       lastTickLabelRect_; //!< last tick box (for auto hide)
+  mutable TextPlacer textPlacer_;        //!< cache axis tick label draw data
 
   mutable bool usePen_     { false }; //!< use painter pen
   mutable bool forceColor_ { false }; //!< force painter color for all

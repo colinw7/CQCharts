@@ -431,6 +431,13 @@ setMinValue(double r)
   CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsConnectionPlot::
+setHierName(bool b)
+{
+  CQChartsUtil::testAndSet(hierName_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -464,6 +471,7 @@ addProperties()
   addProp("options", "maxDepth" , "", "Max Node depth");
   addProp("options", "minValue" , "", "Min Node value");
   addProp("options", "propagate", "", "Propagate values up hierarchy");
+  addProp("options", "hierName" , "", "Name is hierarchical");
 }
 
 //---
@@ -641,7 +649,7 @@ initLinkObjs() const
    public:
     RowVisitor(const CQChartsConnectionPlot *plot) :
      plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+      separator_ = plot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -751,7 +759,7 @@ initLinkObjs() const
 
   private:
     const CQChartsConnectionPlot* plot_      { nullptr };
-    QChar                         separator_ { '/' };
+    QString                       separator_ { "/" };
   };
 
   RowVisitor visitor(this);
@@ -925,7 +933,7 @@ initHierObjs() const
    public:
     RowVisitor(const CQChartsConnectionPlot *plot) :
      plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+      separator_ = plot_->calcSeparator();
     }
 
     // enter hierarchical row
@@ -1027,7 +1035,7 @@ initHierObjs() const
 
    private:
     const CQChartsConnectionPlot* plot_      { nullptr };
-    QChar                         separator_ { '/' };
+    QString                       separator_ { "/" };
     HierConnectionDataList        hierDataList_;
     HierConnectionData            hierData_;
   };
@@ -1051,7 +1059,7 @@ initPathObjs() const
    public:
     RowVisitor(const CQChartsConnectionPlot *plot) :
      plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+      separator_ = plot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1087,7 +1095,7 @@ initPathObjs() const
 
    private:
     const CQChartsConnectionPlot* plot_      { nullptr };
-    QChar                         separator_ { '/' };
+    QString                       separator_ { "/" };
   };
 
   RowVisitor visitor(this);
@@ -1208,8 +1216,7 @@ initFromToObjs() const
     }
 
    private:
-    const CQChartsConnectionPlot* plot_      { nullptr };
-    QChar                         separator_ { '/' };
+    const CQChartsConnectionPlot* plot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1376,7 +1383,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       CQChartsVariant::toString(linkVar, linkStr);
 
       tableConnectionData.setName   (linkStr);
-      tableConnectionData.setLinkInd(linkInd1);
+      tableConnectionData.setNameInd(linkInd1);
     }
 
     //---

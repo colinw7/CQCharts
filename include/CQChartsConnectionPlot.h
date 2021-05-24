@@ -96,6 +96,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(int    maxDepth  READ maxDepth    WRITE setMaxDepth )
   Q_PROPERTY(double minValue  READ minValue    WRITE setMinValue )
   Q_PROPERTY(bool   propagate READ isPropagate WRITE setPropagate)
+  Q_PROPERTY(bool   hierName  READ isHierName  WRITE setHierName )
 
   //---
 
@@ -193,6 +194,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s);
 
+  QString calcSeparator() const { return (separator().length() ? separator() : QString("/")); }
+
+  //---
+
   //! get/set symmetric
   bool isSymmetric() const { return symmetric_; }
   void setSymmetric(bool b);
@@ -218,6 +223,12 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //! get/set propagate values
   bool isPropagate() const { return propagateData_.active; }
   void setPropagate(bool b);
+
+  //---
+
+  //! get/set name is hierarhical
+  bool isHierName() const { return hierName_; }
+  void setHierName(bool b);
 
   //---
 
@@ -336,8 +347,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
     //---
 
-    const QModelIndex &linkInd() const { return linkInd_; }
-    void setLinkInd(const QModelIndex &i) { linkInd_ = i; }
+    const QModelIndex &nameInd() const { return nameInd_; }
+    void setNameInd(const QModelIndex &i) { nameInd_ = i; }
 
     const QModelIndex &groupInd() const { return groupInd_; }
     void setGroupInd(const QModelIndex &i) { groupInd_ = i; }
@@ -382,7 +393,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     GroupData   group_;                  //!< group
     int         depth_        { 0 };     //!< depth
     Values      values_;                 //!< connection values
-    QModelIndex linkInd_;                //!< link model index
+    QModelIndex nameInd_;                //!< name model index
     QModelIndex groupInd_;               //!< group model index
     double      totalValid_   { false }; //!< is total valid
     bool        totalPrimary_ { false }; //!< is total for primary only
@@ -565,6 +576,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   bool    sorted_    { false }; //!< is sorted
   int     maxDepth_  { -1 };    //!< user max depth
   double  minValue_  { -1 };    //!< user min value
+  bool    hierName_  { false }; //!< name is hierarchical
 
   PropagateData propagateData_;
 };

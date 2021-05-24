@@ -1436,7 +1436,7 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 
   //lastTickLabelRect_ = BBox();
 
-  axisTickLabelDrawDatas_.clear();
+  textPlacer_.clear();
 
   if      (customTickLabels_.size()) {
     for (const auto &p : customTickLabels_) {
@@ -2087,10 +2087,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
-        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
       else {
-        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -2196,10 +2196,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
-        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
       else {
-        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -2335,10 +2335,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
-        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
       else {
-        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -2444,10 +2444,10 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
-        axisTickLabelDrawDatas_.emplace_back(p, tbbox, text);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
       else {
-        axisTickLabelDrawDatas_.emplace_back(pt, tbbox, text, angle, align);
+        textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -2472,38 +2472,12 @@ void
 CQChartsAxis::
 drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 {
-  int n = axisTickLabelDrawDatas_.size();
-  if (n < 1) return;
-
-  //---
+  if (textPlacer_.empty())
+    return;
 
   // clip overlapping labels
-  if (isTickLabelAutoHide()) {
-    if (n > 1) {
-      const auto &firstBBox = axisTickLabelDrawDatas_[0    ].bbox;
-      const auto &lastBBox  = axisTickLabelDrawDatas_[n - 1].bbox;
-
-      // if first and last labels overlap then only draw first
-      if (lastBBox.overlaps(firstBBox)) {
-        for (int i = 1; i < n; ++i)
-          axisTickLabelDrawDatas_[i].visible = false;
-      }
-      // otherwise draw first and last and clip others
-      else {
-        auto prevBBox = firstBBox;
-
-        for (int i = 1; i < n - 1; ++i) {
-          auto &data = axisTickLabelDrawDatas_[i];
-
-          if (data.bbox.overlaps(prevBBox) || data.bbox.overlaps(lastBBox))
-            data.visible = false;
-
-          if (data.visible)
-            prevBBox = data.bbox;
-        }
-      }
-    }
-  }
+  if (isTickLabelAutoHide())
+    textPlacer_.autoHide();
 
   //---
 
@@ -2522,34 +2496,16 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 
   auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
 
-  for (const auto &data : axisTickLabelDrawDatas_) {
-    if (! data.visible)
-      continue;
+  TextOptions options;
 
-    auto p1 = plot->pixelToWindow(data.p);
+  // html not supported (axis code controls string)
+  options.contrast      = isAxesTickLabelTextContrast();
+  options.contrastAlpha = axesTickLabelTextContrastAlpha();
+  options.formatted     = isAxesTickLabelTextFormatted();
+  options.clipLength    = clipLength;
+  options.clipElide     = axesTickLabelTextClipElide();
 
-    TextOptions options;
-
-    // html not supported (axis code controls string)
-    options.angle         = data.angle;
-    options.align         = data.align;
-    options.contrast      = isAxesTickLabelTextContrast();
-    options.contrastAlpha = axesTickLabelTextContrastAlpha();
-    options.formatted     = isAxesTickLabelTextFormatted();
-    options.clipLength    = clipLength;
-    options.clipElide     = axesTickLabelTextClipElide();
-
-    CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
-  }
-
-  if (plot->showBoxes()) {
-    for (const auto &data : axisTickLabelDrawDatas_) {
-      if (! data.visible)
-        continue;
-
-      plot->drawWindowColorBox(device, data.bbox);
-    }
-  }
+  textPlacer_.draw(device, options, plot->showBoxes());
 }
 
 void

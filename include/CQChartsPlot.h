@@ -1952,6 +1952,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool columnValueColor(const QVariant &var, Color &color) const;
 
+  CQChartsColor colorMapRealColor(double r) const;
+  CQChartsColor normalizedColorMapRealColor(double r) const;
+
   CQChartsColor colorFromColorMapPaletteValue(double r) const;
 
   //---

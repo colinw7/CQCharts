@@ -415,7 +415,7 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
+  auto separator = calcSeparator();
 
   auto path1 = pathData.pathStrs[0];
 
@@ -555,6 +555,12 @@ addFromToValue(const FromToData &fromToData) const
       else if (nv.first == "color") {
       }
     }
+
+    auto fromModelInd = normalizeIndex(fromToData.fromModelInd);
+    auto toModelInd   = normalizeIndex(fromToData.toModelInd  );
+
+    srcNode ->setInd(destNode->id(), toModelInd  );
+    destNode->setInd(srcNode ->id(), fromModelInd);
   }
 }
 
@@ -1184,14 +1190,17 @@ void
 CQChartsAdjacencyPlot::
 execDrawBackground(PaintDevice *device) const
 {
+  rowNodeLabels_.clear();
+  colNodeLabels_.clear();
+
   // calc text size
   auto po = windowToPixel(Point(0.0, 1.0));
 
-  auto pxs = windowToPixelWidth (scale());
-  auto pys = windowToPixelHeight(scale());
+  pxs_ = windowToPixelWidth (scale());
+  pys_ = windowToPixelHeight(scale());
 
-  double xts = maxLen()*fontFactor_*pxs;
-  double yts = maxLen()*fontFactor_*pys;
+  xts_ = maxLen()*fontFactor_*pxs_;
+  yts_ = maxLen()*fontFactor_*pys_;
 
   //---
 
@@ -1199,15 +1208,13 @@ execDrawBackground(PaintDevice *device) const
 
   if (isTextVisible()) {
     // set font
-    double ts = std::min(pxs, pys);
+    double ts = std::min(pxs_, pys_);
 
     auto font = this->textFont().calcFont();
 
     font.setPixelSize(ts >= 1.0 ? int(ts) : 1);
 
     device->setFont(font);
-
-    QFontMetricsF fm(device->font());
 
     //---
 
@@ -1218,59 +1225,99 @@ execDrawBackground(PaintDevice *device) const
 
     //---
 
-    double twMax = 0.0;
+    twMax_ = 0.0;
 
     // draw row labels
     double px = po.x + lengthPixelWidth (bgMargin());
-    double py = po.y + lengthPixelHeight(bgMargin()) + yts;
+    double py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
     for (auto &node : sortedNodes_) {
-      const auto &str = node->name();
+      drawRowNodeLabel(device, Point(px, py), node);
 
-      double tw = fm.width(str) + 4;
-
-      twMax = std::max(twMax, tw);
-
-      Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
-
-      CQChartsTextOptions options;
-
-      options.angle         = Angle();
-      options.align         = Qt::AlignLeft;
-      options.contrast      = isTextContrast();
-      options.contrastAlpha = textContrastAlpha();
-      options.clipLength    = lengthPixelWidth(textClipLength());
-      options.clipElide     = textClipElide();
-
-      CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str,
-                                        options, /*centered*/false);
-
-      py += pys;
+      py += pys_;
     }
 
     // save draw font factor
-    th->nodeData_.drawFontFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
+    th->nodeData_.drawFontFactor = twMax_/std::min(maxLen()*pxs_, maxLen()*pys_);
 
     // draw column labels
-    px = po.x + lengthPixelWidth (bgMargin()) + xts;
-    py = po.y + lengthPixelHeight(bgMargin()) + yts;
+    px = po.x + lengthPixelWidth (bgMargin()) + xts_;
+    py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
     for (auto &node : sortedNodes_) {
-      Point p1(px + pxs/2, py - 2);
+      drawColNodeLabel(device, Point(px, py), node);
 
-      CQChartsTextOptions options;
+      px += pxs_;
+    }
+  }
 
-      options.angle         = Angle(90.0);
-      options.align         = Qt::AlignHCenter | Qt::AlignBottom;
-      options.contrast      = isTextContrast();
-      options.contrastAlpha = textContrastAlpha();
-      options.clipLength    = lengthPixelWidth(textClipLength());
-      options.clipElide     = textClipElide();
+  //---
 
-      CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), node->name(),
-                                        options, /*centered*/ true);
+  QFontMetricsF fm(device->font());
 
-      px += pxs;
+  for (const auto &pr : rowNodeLabels_) {
+    for (const auto &pr1 : pr.second) {
+      const QString &str = pr1.first;
+
+      BBox bbox1, bbox2;
+
+      for (const auto &p : pr1.second) {
+        double tw = fm.width(str) + 4;
+
+        auto p1 = Point(p.x + xts_ - tw - 4, p.y       );
+        auto p2 = Point(p.x + xts_         , p.y + pys_);
+
+        bbox1 += p1;
+        bbox1 += p2;
+
+        bbox2 += p;
+      }
+
+      //--
+
+      auto brush = device->brush();
+
+      device->setBrush(QBrush(Qt::NoBrush));
+
+      device->drawRect(device->pixelToWindow(bbox1));
+
+      device->setBrush(brush);
+
+      //--
+
+      drawRowNodeLabelStr(device, bbox2.getCenter(), str);
+    }
+  }
+
+  for (const auto &pc : colNodeLabels_) {
+    for (const auto &pc1 : pc.second) {
+      const QString &str = pc1.first;
+
+      BBox bbox1, bbox2;
+
+      for (const auto &p : pc1.second) {
+        auto p1 = Point(p.x, p.y       );
+        auto p2 = Point(p.x, p.y - pys_);
+
+        bbox1 += p1;
+        bbox1 += p2;
+
+        bbox2 += p;
+      }
+
+      //--
+
+      auto brush = device->brush();
+
+      device->setBrush(QBrush(Qt::NoBrush));
+
+      device->drawRect(device->pixelToWindow(bbox1));
+
+      device->setBrush(brush);
+
+      //--
+
+      drawColNodeLabelStr(device, bbox2.getCenter(), str);
     }
   }
 
@@ -1278,8 +1325,8 @@ execDrawBackground(PaintDevice *device) const
 
   int nn = numVisibleNodes();
 
-  double px = po.x + lengthPixelWidth (bgMargin()) + xts;
-  double py = po.y + lengthPixelHeight(bgMargin()) + yts;
+  double px = po.x + lengthPixelWidth (bgMargin()) + xts_;
+  double py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
   //---
 
@@ -1288,7 +1335,7 @@ execDrawBackground(PaintDevice *device) const
   setPenBrush(device,
    PenData(false), BrushData(true, fc, backgroundFillData()));
 
-  BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
+  BBox cellBBox(px, py, px + std::max(nn, 1)*pxs_, py + std::max(nn, 1)*pys_);
 
   device->fillRect(pixelToWindow(cellBBox));
 
@@ -1308,10 +1355,10 @@ execDrawBackground(PaintDevice *device) const
 
   double equalValue = 0.0;
 
-  py = po.y + lengthPixelHeight(bgMargin()) + yts;
+  py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
   for (auto &node1 : sortedNodes_) {
-    double px = po.x + lengthPixelWidth(bgMargin()) + xts;
+    double px = po.x + lengthPixelWidth(bgMargin()) + xts_;
 
     for (auto &node2 : sortedNodes_) {
       double value = node1->edgeValue(node2, equalValue);
@@ -1325,15 +1372,15 @@ execDrawBackground(PaintDevice *device) const
         connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
-        auto cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
+        auto cellBBox = pixelToWindow(BBox(px, py, px + pxs_, py + pys_));
 
         CQChartsDrawUtil::drawRoundedRect(device, emptyPenBrush, cellBBox, cornerSize);
       }
 
-      px += pxs;
+      px += pxs_;
     }
 
-    py += pys;
+    py += pys_;
   }
 
   if (insideObject()) {
@@ -1343,6 +1390,111 @@ execDrawBackground(PaintDevice *device) const
 
     th->drawForeground();
   }
+}
+
+void
+CQChartsAdjacencyPlot::
+drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
+{
+  const auto &name = node->name();
+
+  if (isHierName()) {
+    auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+
+    int n = strs.length();
+
+    for (int i = 0; i < n; ++i) {
+      if (i == n - 1)
+        drawRowNodeLabelStr(device, p, strs[i]);
+      else
+        addRowNodeLabelStr(p, strs[i], -i - 1);
+    }
+  }
+  else
+    drawRowNodeLabelStr(device, p, name);
+}
+
+void
+CQChartsAdjacencyPlot::
+drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const
+{
+  QFontMetricsF fm(device->font());
+
+  double tw = fm.width(str) + 4;
+
+  twMax_ = std::max(twMax_, tw);
+
+  Point pt(p.x + xts_ - tw - 2, p.y + pys_ - fm.descent()); // align right
+
+  CQChartsTextOptions options;
+
+  options.angle         = Angle();
+  options.align         = Qt::AlignLeft;
+  options.contrast      = isTextContrast();
+  options.contrastAlpha = textContrastAlpha();
+  options.clipLength    = lengthPixelWidth(textClipLength());
+  options.clipElide     = textClipElide();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str, options, /*centered*/false);
+}
+
+void
+CQChartsAdjacencyPlot::
+addRowNodeLabelStr(const Point &p, const QString &str, int depth) const
+{
+  Point p1(p.x + depth*pxs_, p.y);
+
+  rowNodeLabels_[depth][str].push_back(p1);
+}
+
+void
+CQChartsAdjacencyPlot::
+drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
+{
+  const auto &name = node->name();
+
+  if (isHierName()) {
+    auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+
+    int n = strs.length();
+
+    for (int i = 0; i < n; ++i) {
+      if (i == n - 1)
+        drawColNodeLabelStr(device, p, strs[i]);
+      else
+        addColNodeLabelStr(p, strs[i], -i - 1);
+    }
+  }
+  else
+    drawColNodeLabelStr(device, p, name);
+}
+
+void
+CQChartsAdjacencyPlot::
+drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const
+{
+  Point p1(p.x + pxs_/2.0, p.y - 2);
+
+  CQChartsTextOptions options;
+
+  options.angle         = Angle(90.0);
+  options.align         = Qt::AlignHCenter | Qt::AlignBottom;
+  options.contrast      = isTextContrast();
+  options.contrastAlpha = textContrastAlpha();
+  options.clipLength    = lengthPixelWidth(textClipLength());
+  options.clipElide     = textClipElide();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), str,
+                                    options, /*centered*/ true);
+}
+
+void
+CQChartsAdjacencyPlot::
+addColNodeLabelStr(const Point &p, const QString &str, int depth) const
+{
+  auto p1 = Point(p.x, p.y + depth*pys_);
+
+  colNodeLabels_[depth][str].push_back(p1);
 }
 
 //---

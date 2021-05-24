@@ -60,6 +60,8 @@ class CQChartsHierPlot : public CQChartsPlot {
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
 
+  QString calcSeparator() const { return (separator().length() ? separator() : QString("/")); }
+
   //---
 
   //! get/set folow view expand

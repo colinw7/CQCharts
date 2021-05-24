@@ -292,7 +292,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
  private:
   bool getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, int &destId,
-                          double &value, const QChar &separator) const;
+                          double &value, const QString &separator) const;
 
   bool getRowConnections(int group, const ModelVisitor::VisitData &data) const;
 
