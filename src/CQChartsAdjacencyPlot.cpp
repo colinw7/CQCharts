@@ -1661,12 +1661,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // get fill color for node
-  auto nodeFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
+  auto nodeFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode, bool &scaled) {
     auto colorType = plot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
              colorType == CQChartsPlot::ColorType::GROUP) {
       if (plot_->colorColumn().isValid()) {
+        scaled = false;
+
         auto ind1 = srcNode->ind(destNode->id());
 
         ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
@@ -1685,12 +1687,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       return plot_->interpFillColor(colorInd);
   };
 
-  auto nodesFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
+  auto nodesFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode, bool &scaled) {
     if  (srcNode == destNode)
-      return nodeFillColor(srcNode, destNode);
-    else
-      return CQChartsUtil::blendColors(nodeFillColor(srcNode, destNode),
-                                       nodeFillColor(destNode, srcNode), 0.5);
+      return nodeFillColor(srcNode, destNode, scaled);
+    else {
+      return CQChartsUtil::blendColors(nodeFillColor(srcNode , destNode, scaled),
+                                       nodeFillColor(destNode, srcNode , scaled), 0.5);
+    }
   };
 
   //---
@@ -1724,12 +1727,16 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //--
 
   // calc brush color (scaled to value)
-  auto bc = nodesFillColor(node1(), node2());
+  bool scaled = true;
 
-  if (node1() != node2()) {
-    double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
+  auto bc = nodesFillColor(node1(), node2(), scaled);
 
-    bc = CQChartsUtil::blendColors(bc, bg, s);
+  if (scaled) {
+    if (node1() != node2()) {
+      double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
+
+      bc = CQChartsUtil::blendColors(bc, bg, s);
+    }
   }
 
   // calc pen color (not scaled)

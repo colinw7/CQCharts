@@ -1078,10 +1078,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void addSymbolProperties(const QString &path, const QString &prefix,
                            const QString &descPrefix, bool hidden=false);
 
-  void addLineProperties(const QString &path, const QString &prefix,
-                         const QString &descPrefix, bool hidden=false);
-  void addFillProperties(const QString &path, const QString &prefix,
-                         const QString &descPrefix, bool hidden=false);
+  void addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                         uint types=uint(CQChartsStrokeDataTypes::STANDARD), bool hidden=false);
+
+  void addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                         uint types=uint(CQChartsFillDataTypes::STANDARD), bool hidden=false);
 
   void addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix,
                          uint valueTypes=CQChartsTextOptions::ValueType::SIMPLE,
@@ -1952,10 +1953,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool columnValueColor(const QVariant &var, Color &color) const;
 
-  CQChartsColor colorMapRealColor(double r) const;
-  CQChartsColor normalizedColorMapRealColor(double r) const;
+  Color colorMapRealColor(double r) const;
+  Color normalizedColorMapRealColor(double r) const;
 
-  CQChartsColor colorFromColorMapPaletteValue(double r) const;
+  Color colorFromColorMapPaletteValue(double r) const;
 
   //---
 
@@ -2780,8 +2781,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool checkColumns(const Columns &columns, const QString &name, bool required=false) const;
 
-  bool checkColumn(const Column &column, const QString &name,
-                   bool required=false) const;
+  bool checkColumn(const Column &column, const QString &name, bool required=false) const;
 
   bool checkColumn(const Column &column, const QString &name,
                    ColumnType &type, bool required=false) const;

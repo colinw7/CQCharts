@@ -243,14 +243,14 @@ CQChartsArrowDataEdit(QWidget *parent) :
 
   CQChartsWidgetUtil::addGridLabelWidget(layout, "Back Angle", backAngleEdit_, row);
 
-  // fhead
+  // fhead (TODO: fhead type)
   fheadEdit_ = CQUtil::makeWidget<CQCheckBox>("fhead");
 
   fheadEdit_->setToolTip("draw arrow head at start");
 
   CQChartsWidgetUtil::addGridLabelWidget(layout, "Front Head", fheadEdit_, row);
 
-  // fhead
+  // thead (TODO: fhead type)
   theadEdit_ = CQUtil::makeWidget<CQCheckBox>("thead");
 
   theadEdit_->setToolTip("draw arrow head at end");

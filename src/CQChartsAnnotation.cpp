@@ -3458,19 +3458,7 @@ CQChartsArrowAnnotation::
 {
 }
 
-void
-CQChartsArrowAnnotation::
-setStart(const Position &p)
-{
-  CQChartsUtil::testAndSet(start_, p, [&]() { emitDataChanged(); } );
-}
-
-void
-CQChartsArrowAnnotation::
-setEnd(const Position &p)
-{
-  CQChartsUtil::testAndSet(end_, p, [&]() { emitDataChanged(); } );
-}
+//---
 
 void
 CQChartsArrowAnnotation::
@@ -3487,6 +3475,35 @@ init()
 
   connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 }
+
+//---
+
+void
+CQChartsArrowAnnotation::
+setStart(const Position &p)
+{
+  CQChartsUtil::testAndSet(start_, p, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArrowAnnotation::
+setEnd(const Position &p)
+{
+  CQChartsUtil::testAndSet(end_, p, [&]() { emitDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsArrowAnnotation::
+setPath(const Path &path)
+{
+  path_ = path;
+
+  emitDataChanged();
+}
+
+//---
 
 const CQChartsArrowData &
 CQChartsArrowAnnotation::
@@ -3535,6 +3552,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(model, path1, "startObjRef", "", "Arrow start object reference");
   addProp(model, path1, "end"        , "", "Arrow end point");
   addProp(model, path1, "endObjRef"  , "", "Arrow end object reference");
+
+  addProp(model, path1, "path", "path", "Path name");
 
   auto linePath = path1 + "/line";
 
@@ -3761,14 +3780,40 @@ draw(PaintDevice *device)
   //---
 
   // draw arrow
-  {
-  CQChartsWidgetUtil::AutoDisconnect
-    autoDisconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  if (path_.isValid()) {
+    CQChartsArrowData arrowData;
+    QPainterPath      arrowPath;
 
-  arrow()->setFrom(start);
-  arrow()->setTo  (end  );
+    arrowData.setFHeadType((CQChartsArrowData::HeadType) arrow()->frontType());
+    arrowData.setTHeadType((CQChartsArrowData::HeadType) arrow()->tailType ());
 
-  arrow()->draw(device, penBrush);
+    auto lw = device->pixelToWindowWidth(4);
+
+    if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
+      lw = device->lengthWindowWidth(arrow()->lineWidth());
+
+    double alen = device->pixelToWindowWidth(4);
+
+    if      (arrow()->frontLength().isSet() && arrow()->tailLength().isSet())
+      alen = device->lengthWindowWidth(arrow()->frontLength());
+    else if (arrow()->frontLength().isSet())
+      alen = device->lengthWindowWidth(arrow()->frontLength());
+    else if (arrow()->tailLength().isSet())
+      alen = device->lengthWindowWidth(arrow()->tailLength());
+
+    CQChartsArrow::pathAddArrows(path_.path(), arrowData, lw,
+                                 (lw > 0.0 ? alen/lw : 1.0), arrowPath);
+
+    device->drawPath(arrowPath);
+  }
+  else {
+    CQChartsWidgetUtil::AutoDisconnect
+      autoDisconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+
+    arrow()->setFrom(start);
+    arrow()->setTo  (end  );
+
+    arrow()->draw(device, penBrush);
   }
 
   //---
@@ -4135,7 +4180,7 @@ calcPath(QPainterPath &path) const
 
   QPainterPath lpath;
 
-  if (! arrowData.isFHead() && ! arrowData.isTHead() && ! isRectilinear()) {
+  if (! arrowData.calcIsFHead() && ! arrowData.calcIsTHead() && ! isRectilinear()) {
     if (! isSelf) {
       if (startObj || endObj)
         CQChartsDrawUtil::edgePath(path, ibbox, obbox, isLine());

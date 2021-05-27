@@ -3687,10 +3687,12 @@ draw(PaintDevice *device) const
 
       CQChartsArrowData arrowData;
 
-      arrowData.setFHead(/*fhead*/true);
-      arrowData.setTHead(/*thead*/true);
+      arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+      arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
       CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 1.0, path_);
+
+      device->drawPath(path_);
 #endif
     }
     else {

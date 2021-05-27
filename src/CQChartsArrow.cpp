@@ -91,7 +91,20 @@ void
 CQChartsArrow::
 setFrontVisible(bool b)
 {
-  data_.setFHead(b); emit dataChanged();
+  if (b != data_.isFHead()) {
+    data_.setFHead(b);
+
+    if (b) {
+      if (data_.fheadType() == ArrowData::HeadType::NONE)
+        data_.setFHeadType(ArrowData::HeadType::ARROW);
+    }
+    else {
+      if (data_.fheadType() != ArrowData::HeadType::NONE)
+        data_.setFHeadType(ArrowData::HeadType::NONE);
+    }
+
+    emit dataChanged();
+  }
 }
 
 void
@@ -135,7 +148,20 @@ void
 CQChartsArrow::
 setTailVisible(bool b)
 {
-  data_.setTHead(b); emit dataChanged();
+  if (b != data_.isTHead()) {
+    data_.setTHead(b);
+
+    if (b) {
+      if (data_.fheadType() == ArrowData::HeadType::NONE)
+        data_.setFHeadType(ArrowData::HeadType::ARROW);
+    }
+    else {
+      if (data_.fheadType() != ArrowData::HeadType::NONE)
+        data_.setFHeadType(ArrowData::HeadType::NONE);
+    }
+
+    emit dataChanged();
+  }
 }
 
 void
@@ -260,67 +286,38 @@ void
 CQChartsArrow::
 draw(CQChartsPaintDevice *device, const PenBrush &penBrush) const
 {
-  device_  = device;
+  device_ = device;
 
-  drawContents(penBrush);
+  drawData_.debugLabels = isDebugLabels();
 
-  device_  = nullptr;
+  drawContents(device_, from_, to_, data_, strokeWidth(), isRectilinear(), penBrush, drawData_);
+
+  device_ = nullptr;
 }
 
 void
 CQChartsArrow::
-drawContents(const PenBrush &penBrush) const
+drawContents(PaintDevice *device, const Point &from, const Point &to,
+             const ArrowData &arrowData, const Length &strokeWidth, bool rectilinear,
+             const PenBrush &penBrush, DrawData &drawData)
 {
-  frontLine1_.reset();
-  frontLine2_.reset();
-  endLine1_  .reset();
-  endLine2_  .reset();
-  midLine_   .reset();
-  frontPoly_ .reset();
-  tailPoly_  .reset();
-  arrowPoly_ .reset();
+  drawData.reset();
 
   //---
 
 #if DEBUG_LABELS
-  pointLabels_.clear();
+  drawData.pointLabels.clear();
 
   auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
-    pointLabels_.emplace_back(point, text, above);
+    drawData.pointLabels.emplace_back(point, text, above);
   };
 #endif
 
   //---
 
-  auto windowToPixel = [&](const Point &w) {
-    if      (plot()) return plot()->windowToPixel(w);
-    else if (view()) return view()->windowToPixel(w);
-    else             return w;
-  };
-
-  auto lengthPixelWidth = [&](const CQChartsLength &l) {
-    if      (plot()) return plot()->lengthPixelWidth(l);
-    else if (view()) return view()->lengthPixelWidth(l);
-    else             return l.value();
-  };
-
-//auto lengthPixelHeight = [&](const CQChartsLength &l) {
-//  if      (plot()) return plot()->lengthPixelHeight(l);
-//  else if (view()) return view()->lengthPixelHeight(l);
-//  else             return l.value();
-//};
-
   auto lengthLocalWidth = [&](const CQChartsLength &l) {
-    if      (plot()) return CQChartsLength(plot()->lengthPlotWidth(l), CQChartsUnits::PLOT);
-    else if (view()) return CQChartsLength(view()->lengthViewWidth(l), CQChartsUnits::VIEW);
-    else             return l;
+    return CQChartsLength(device->lengthWindowWidth(l), device->parentUnits());
   };
-
-//auto lengthLocalHeight = [&](const CQChartsLength &l) {
-//  if      (plot()) return CQChartsLength(plot()->lengthPlotHeight(l), CQChartsUnits::PLOT);
-//  else if (view()) return CQChartsLength(view()->lengthViewHeight(l), CQChartsUnits::VIEW);
-//  else             return l;
-//};
 
   //---
 
@@ -329,21 +326,21 @@ drawContents(const PenBrush &penBrush) const
 
   //---
 
-  auto from = from_;
-  auto to   = to_;
-//auto to   = (isRelative() ? from_ + to_ : to_);
+  auto from1 = from;
+  auto to1   = to;
+//auto to1   = (isRelative() ? from + to : to);
 
-  if (from.x > to.x)
-    std::swap(from, to);
+  if (from1.x > to1.x)
+    std::swap(from1, to1);
 
   //---
 
   // convert start/end point to pixel start/end point
-  auto p1 = windowToPixel(from);
-  auto p4 = windowToPixel(to  );
+  auto p1 = device->windowToPixel(from1);
+  auto p4 = device->windowToPixel(to1  );
 
 #if DEBUG_LABELS
-  if (isDebugLabels()) {
+  if (drawData.debugLabels) {
     addPointLabel(p1, "p1", /*above*/false);
     addPointLabel(p4, "p4", /*above*/true );
   }
@@ -352,37 +349,36 @@ drawContents(const PenBrush &penBrush) const
   //---
 
   // convert line width, front/tail arrow length to pixel
-  double lpw = lengthPixelWidth (lengthLocalWidth (lineWidth()));
-//double lph = lengthPixelHeight(lengthLocalHeight(lineWidth()));
+  double lpw = device->lengthPixelWidth (lengthLocalWidth (arrowData.lineWidth()));
+//double lph = device->lengthPixelHeight(lengthLocalHeight(arrowData.lineWidth()));
 
-  double fl = (frontLength().value() > 0 ? lengthPixelWidth(frontLength()) : 8);
-  double tl = (tailLength ().value() > 0 ? lengthPixelWidth(tailLength ()) : 8);
+  double fl = device->lengthPixelWidth(arrowData.calcFrontLength());
+  double tl = device->lengthPixelWidth(arrowData.calcTailLength ());
 
-  bool linePoly = (lineWidth().value() > 0);
+  bool linePoly = (arrowData.lineWidth().value() > 0);
 
   //---
 
   // calc stroke width
-  double strokeWidth =
-    (this->strokeWidth().value() >= 0 ? lengthPixelWidth(this->strokeWidth()) : 4);
+  double strokeWidth1 = (strokeWidth.value() >= 0 ? device->lengthPixelWidth(strokeWidth) : 4);
 
   //---
 
   // calc line angle (radians)
   ArrowAngle a;
 
-  if (! isRectilinear())
+  if (! rectilinear)
     a = ArrowAngle(p1, p4);
 
   // calc front/tail arrow angles (radians)
-  ArrowAngle faa(CMathUtil::Deg2Rad(frontAngle().value() > 0 ? frontAngle().value() : 45));
-  ArrowAngle taa(CMathUtil::Deg2Rad(tailAngle ().value() > 0 ? tailAngle ().value() : 45));
+  ArrowAngle faa(CMathUtil::Deg2Rad(arrowData.calcFrontAngle().value()));
+  ArrowAngle taa(CMathUtil::Deg2Rad(arrowData.calcTailAngle ().value()));
 
   // calc front/tail arrow back angles (radians)
-  ArrowAngle fba(CMathUtil::Deg2Rad(frontBackAngle().value() > 0 ? frontBackAngle().value() : 90));
-  ArrowAngle tba(CMathUtil::Deg2Rad(tailBackAngle ().value() > 0 ? tailBackAngle ().value() : 90));
+  ArrowAngle fba(CMathUtil::Deg2Rad(arrowData.calcFrontBackAngle().value()));
+  ArrowAngle tba(CMathUtil::Deg2Rad(arrowData.calcTailBackAngle ().value()));
 
-  if (isRectilinear()) {
+  if (rectilinear) {
     faa = ArrowAngle(CMathUtil::Deg2Rad(30));
     taa = ArrowAngle(CMathUtil::Deg2Rad(30));
 
@@ -403,7 +399,7 @@ drawContents(const PenBrush &penBrush) const
   auto p3 = movePointOnLine(p4, a, -tpl1);
 
 #if DEBUG_LABELS
-  if (isDebugLabels()) {
+  if (drawData.debugLabels) {
     addPointLabel(p2, "p2", /*above*/false);
     addPointLabel(p3, "p3", /*above*/true );
   }
@@ -414,9 +410,9 @@ drawContents(const PenBrush &penBrush) const
   bool isFrontLineEnds = false;
   bool isTailLineEnds  = false;
 
-  if (! isRectilinear()) {
-    isFrontLineEnds = (this->isFrontLineEnds() && isFrontVisible());
-    isTailLineEnds  = (this->isTailLineEnds () && isTailVisible ());
+  if (! rectilinear) {
+    isFrontLineEnds = (arrowData.isFrontLineEnds() && arrowData.calcIsFHead());
+    isTailLineEnds  = (arrowData.isTailLineEnds () && arrowData.calcIsTHead());
   }
 
   //---
@@ -425,14 +421,14 @@ drawContents(const PenBrush &penBrush) const
   auto fHeadMid = p1;
   auto tHeadMid = p4;
 
-  if (isFrontVisible()) {
+  if (arrowData.calcIsFHead()) {
     if (! isFrontLineEnds)
-      fHeadMid = movePointOnLine(p1, a,  strokeWidth);
+      fHeadMid = movePointOnLine(p1, a,  strokeWidth1);
   }
 
-  if (isTailVisible()) {
+  if (arrowData.calcIsTHead()) {
     if (! isTailLineEnds)
-      tHeadMid = movePointOnLine(p4, a, -strokeWidth);
+      tHeadMid = movePointOnLine(p4, a, -strokeWidth1);
   }
 
   //---
@@ -453,7 +449,7 @@ drawContents(const PenBrush &penBrush) const
   GeomPolygon fHeadPoints;
   Point       pf1, pf2;
 
-  if (isFrontVisible()) {
+  if (arrowData.calcIsFHead()) {
     // calc front head angle (relative to line)
     auto a1 = ArrowAngle(a.angle + faa.angle);
     auto a2 = ArrowAngle(a.angle - faa.angle);
@@ -465,7 +461,7 @@ drawContents(const PenBrush &penBrush) const
     pf2 = movePointOnLine(p1, a2, fl);
 
 #if DEBUG_LABELS
-    if (isDebugLabels()) {
+    if (drawData.debugLabels) {
       addPointLabel(pf1, "pf1", /*above*/false);
       addPointLabel(pf2, "pf2", /*above*/true );
     }
@@ -475,11 +471,11 @@ drawContents(const PenBrush &penBrush) const
 
     if (isFrontLineEnds) {
       if (! linePoly) {
-        frontLine1_ = Line(p1, pf1);
-        frontLine2_ = Line(p1, pf2);
+        drawData.frontLine1 = Line(p1, pf1);
+        drawData.frontLine2 = Line(p1, pf2);
 
-        drawLine(p1, pf1, strokeWidth, penBrush);
-        drawLine(p1, pf2, strokeWidth, penBrush);
+        drawLine(device, p1, pf1, strokeWidth1, penBrush);
+        drawLine(device, p1, pf2, strokeWidth1, penBrush);
       }
       else {
         // calc front head angle (relative to line)
@@ -504,7 +500,7 @@ drawContents(const PenBrush &penBrush) const
         //---
 
 #if DEBUG_LABELS
-        if (isDebugLabels()) {
+        if (drawData.debugLabels) {
           addPointLabel(pf11, "pf11", /*above*/false);
           addPointLabel(pf21, "pf21", /*above*/true );
           addPointLabel(pf31, "pf31", /*above*/false);
@@ -535,7 +531,7 @@ drawContents(const PenBrush &penBrush) const
         intersectLine(p1, p2, pf1, pf1t, pf3, inside);
 
 #if DEBUG_LABELS
-        if (isDebugLabels())
+        if (drawData.debugLabels)
           addPointLabel(pf3, "pf3", /*above*/false);
 #endif
 
@@ -548,9 +544,10 @@ drawContents(const PenBrush &penBrush) const
       fHeadPoints.addPoint(pf2); // tip (above)
 
       if (! linePoly) {
-        frontPoly_ = fHeadPoints;
+        drawData.frontPoly = fHeadPoints;
 
-        drawPolygon(fHeadPoints, strokeWidth, isFilled, isStroked, penBrush);
+        drawPolygon(device, fHeadPoints, strokeWidth1, isFilled, isStroked,
+                    penBrush, drawData.path);
       }
     }
   }
@@ -560,7 +557,7 @@ drawContents(const PenBrush &penBrush) const
   GeomPolygon tHeadPoints;
   Point       pt1, pt2;
 
-  if (isTailVisible()) {
+  if (arrowData.calcIsTHead()) {
     // calc tail head angle (relative to line)
     auto a1 = ArrowAngle(a.angle + M_PI - taa.angle);
     auto a2 = ArrowAngle(a.angle + M_PI + taa.angle);
@@ -572,7 +569,7 @@ drawContents(const PenBrush &penBrush) const
     pt2 = movePointOnLine(p4, a2, tl);
 
 #if DEBUG_LABELS
-    if (isDebugLabels()) {
+    if (drawData.debugLabels) {
       addPointLabel(pt1, "pt1", /*above*/false);
       addPointLabel(pt2, "pt2", /*above*/true );
     }
@@ -582,11 +579,11 @@ drawContents(const PenBrush &penBrush) const
 
     if (isTailLineEnds) {
       if (! linePoly) {
-        endLine1_ = Line(p4, pt1);
-        endLine2_ = Line(p4, pt2);
+        drawData.endLine1 = Line(p4, pt1);
+        drawData.endLine2 = Line(p4, pt2);
 
-        drawLine(p4, pt1, strokeWidth, penBrush);
-        drawLine(p4, pt2, strokeWidth, penBrush);
+        drawLine(device, p4, pt1, strokeWidth1, penBrush);
+        drawLine(device, p4, pt2, strokeWidth1, penBrush);
       }
       else {
         // calc tail head angle (relative to line)
@@ -611,7 +608,7 @@ drawContents(const PenBrush &penBrush) const
         //---
 
 #if DEBUG_LABELS
-        if (isDebugLabels()) {
+        if (drawData.debugLabels) {
           addPointLabel(pt11, "pt11", /*above*/false);
           addPointLabel(pt21, "pt21", /*above*/true );
           addPointLabel(pt31, "pt31", /*above*/false);
@@ -642,7 +639,7 @@ drawContents(const PenBrush &penBrush) const
         intersectLine(p3, p4, pt1, pt1t, pt3, inside);
 
 #if DEBUG_LABELS
-        if (isDebugLabels())
+        if (drawData.debugLabels)
           addPointLabel(pt3, "pt3", /*above*/false);
 #endif
 
@@ -655,9 +652,10 @@ drawContents(const PenBrush &penBrush) const
       tHeadPoints.addPoint(pt2); // tip (above)
 
       if (! linePoly) {
-        tailPoly_ = tHeadPoints;
+        drawData.tailPoly = tHeadPoints;
 
-        drawPolygon(tHeadPoints, strokeWidth, isFilled, isStroked, penBrush);
+        drawPolygon(device, tHeadPoints, strokeWidth1, isFilled, isStroked,
+                    penBrush, drawData.path);
       }
     }
   }
@@ -666,7 +664,7 @@ drawContents(const PenBrush &penBrush) const
 
   // update head and tail (non line) polygon for arrow shape with line width
   if (linePoly) {
-    if (! isRectilinear()) {
+    if (! rectilinear) {
       // intersect front head point lines with arrow line (offset by width)
       if (! fHeadPoints.empty() && ! isFrontLineEnds) {
         Point fl1, fl2;
@@ -728,12 +726,12 @@ drawContents(const PenBrush &penBrush) const
       }
     }
     else {
-      if (isFrontVisible())
+      if (arrowData.calcIsFHead())
         addWidthToPoint(p2, a, lpw, pl1, pl2);
       else
         addWidthToPoint(p1, a, lpw, pl1, pl2);
 
-      if (isTailVisible())
+      if (arrowData.calcIsTHead())
         addWidthToPoint(p3, a, lpw, pl3, pl4);
       else
         addWidthToPoint(p4, a, lpw, pl3, pl4);
@@ -743,7 +741,7 @@ drawContents(const PenBrush &penBrush) const
   //---
 
 #if DEBUG_LABELS
-   if (isDebugLabels()) {
+   if (drawData.debugLabels) {
      addPointLabel(pl1, "pl1", /*above*/false);
      addPointLabel(pl2, "pl2", /*above*/true );
      addPointLabel(pl3, "pl3", /*above*/false);
@@ -784,7 +782,7 @@ drawContents(const PenBrush &penBrush) const
     };
 
     auto addLMidPoints = [&]() {
-      if (isRectilinear()) {
+      if (rectilinear) {
         auto prm = (p1 + p4)/2.0;
 
         Point plr1, plr2;
@@ -802,7 +800,7 @@ drawContents(const PenBrush &penBrush) const
         points.addPoint(plr2);
 
 #if DEBUG_LABELS
-       if (isDebugLabels()) {
+       if (drawData.debugLabels) {
          addPointLabel(plr1, "plr1", /*above*/false);
          addPointLabel(plr2, "plr2", /*above*/false);
        }
@@ -811,7 +809,7 @@ drawContents(const PenBrush &penBrush) const
     };
 
     auto addUMidPoints = [&]() {
-      if (isRectilinear()) {
+      if (rectilinear) {
         auto prm = (p1 + p4)/2.0;
 
         Point pur1, pur2;
@@ -829,7 +827,7 @@ drawContents(const PenBrush &penBrush) const
         points.addPoint(pur2);
 
 #if DEBUG_LABELS
-       if (isDebugLabels()) {
+       if (drawData.debugLabels) {
          addPointLabel(pur1, "pur1", /*above*/true);
          addPointLabel(pur2, "pur2", /*above*/true);
        }
@@ -850,15 +848,15 @@ drawContents(const PenBrush &penBrush) const
     //---
 
     if      (! isFrontLineEnds && ! isTailLineEnds) {
-      if      (isFrontVisible() && isTailVisible()) {
+      if      (arrowData.calcIsFHead() && arrowData.calcIsTHead()) {
         addFrontPoints(); addLMidPoints();
         addTailPoints (); addUMidPoints();
       }
-      else if (isTailVisible()) {
+      else if (arrowData.calcIsTHead()) {
         addFrontLinePoints(); addLMidPoints();
         addTailPoints     (); addUMidPoints();
       }
-      else if (isFrontVisible()) {
+      else if (arrowData.calcIsFHead()) {
         addFrontPoints   (); addLMidPoints();
         addTailLinePoints(); addUMidPoints();
       }
@@ -868,7 +866,7 @@ drawContents(const PenBrush &penBrush) const
       }
     }
     else if (isFrontLineEnds && ! isTailLineEnds) {
-      if (isTailVisible()) {
+      if (arrowData.calcIsTHead()) {
         addFHeadPoints();
         addTailPoints ();
       }
@@ -878,7 +876,7 @@ drawContents(const PenBrush &penBrush) const
       }
     }
     else if (isTailLineEnds && ! isFrontLineEnds) {
-      if (isFrontVisible()) {
+      if (arrowData.calcIsFHead()) {
         addFrontPoints();
         addTHeadPoints();
       }
@@ -892,56 +890,57 @@ drawContents(const PenBrush &penBrush) const
       addTHeadPoints();
     }
 
-    arrowPoly_ = points;
+    drawData.arrowPoly = points;
 
-    drawPolygon(points, strokeWidth, isFilled, isStroked, penBrush);
+    drawPolygon(device, points, strokeWidth1, isFilled, isStroked, penBrush, drawData.path);
   }
   else {
     // draw line (no line width)
-    midLine_ = Line(fHeadMid, tHeadMid);
+    drawData.midLine = Line(fHeadMid, tHeadMid);
 
-    drawLine(fHeadMid, tHeadMid, strokeWidth, penBrush);
+    drawLine(device, fHeadMid, tHeadMid, strokeWidth1, penBrush);
   }
 
   //---
 
 #if DEBUG_LABELS
   // draw debug labels
-  for (const auto &pointLabel : pointLabels_)
-    drawPointLabel(pointLabel.point, pointLabel.text, pointLabel.above);
+  for (const auto &pointLabel : drawData.pointLabels)
+    drawPointLabel(device, pointLabel.point, pointLabel.text, pointLabel.above);
 #endif
 }
 
 void
 CQChartsArrow::
-drawPolygon(const GeomPolygon &points, double width, bool filled, bool stroked,
-            const PenBrush &penBrush) const
+drawPolygon(PaintDevice *device, const GeomPolygon &points, double width,
+            bool filled, bool stroked, const PenBrush &penBrush,
+            QPainterPath &path)
 {
-  path_ = QPainterPath();
+  path = QPainterPath();
 
-  auto p0 = device_->pixelToWindow(points.point(0));
+  auto p0 = device->pixelToWindow(points.point(0));
 
-  path_.moveTo(p0.qpoint());
+  path.moveTo(p0.qpoint());
 
   for (int i = 1; i < points.size(); ++i) {
-    auto p1 = device_->pixelToWindow(points.point(i));
+    auto p1 = device->pixelToWindow(points.point(i));
 
-    path_.lineTo(p1.qpoint());
+    path.lineTo(p1.qpoint());
   }
 
-  path_.closeSubpath();
+  path.closeSubpath();
 
   //---
 
   if (filled) {
-    device_->fillPath(path_, penBrush.brush);
+    device->fillPath(path, penBrush.brush);
 
     if (stroked) {
       auto pen1 = penBrush.pen;
 
       pen1.setWidthF(width);
 
-      device_->strokePath(path_, pen1);
+      device->strokePath(path, pen1);
     }
   }
   else {
@@ -952,24 +951,17 @@ drawPolygon(const GeomPolygon &points, double width, bool filled, bool stroked,
 
     pen1.setWidthF(width);
 
-    device_->strokePath(path_, pen1);
+    device->strokePath(path, pen1);
   }
 }
 
 void
 CQChartsArrow::
-drawLine(const Point &point1, const Point &point2, double width, const PenBrush &penBrush) const
+drawLine(PaintDevice *device, const Point &point1, const Point &point2,
+         double width, const PenBrush &penBrush)
 {
   bool isStroked = (penBrush.pen  .style() != Qt::NoPen  );
   bool isFilled  = (penBrush.brush.style() != Qt::NoBrush);
-
-  //---
-
-  auto pixelToWindow = [&](const Point &w) {
-    if      (plot()) return plot()->pixelToWindow(w);
-    else if (view()) return view()->pixelToWindow(w);
-    else             return w;
-  };
 
   //---
 
@@ -984,18 +976,18 @@ drawLine(const Point &point1, const Point &point2, double width, const PenBrush 
 
   pen1.setWidthF(width);
 
-  device_->setPen(pen1);
+  device->setPen(pen1);
 
-  auto p1 = pixelToWindow(point1);
-  auto p2 = pixelToWindow(point2);
+  auto p1 = device->pixelToWindow(point1);
+  auto p2 = device->pixelToWindow(point2);
 
-  device_->drawLine(Point(p1), Point(p2));
+  device->drawLine(Point(p1), Point(p2));
 }
 
 #if DEBUG_LABELS
 void
 CQChartsArrow::
-drawPointLabel(const Point &point, const QString &text, bool above) const
+drawPointLabel(PaintDevice *device, const Point &point, const QString &text, bool above)
 {
   // draw cross symbol
   QPen tpen;
@@ -1004,19 +996,19 @@ drawPointLabel(const Point &point, const QString &text, bool above) const
 
   CQChartsUtil::setPen(tpen, true, tc);
 
-  device_->setPen(tpen);
+  device->setPen(tpen);
 
   Point p1(point.x - 4, point.y    );
   Point p2(point.x + 4, point.y    );
   Point p3(point.x    , point.y - 4);
   Point p4(point.x    , point.y + 4);
 
-  device_->drawLine(device_->pixelToWindow(p1), device_->pixelToWindow(p2));
-  device_->drawLine(device_->pixelToWindow(p3), device_->pixelToWindow(p4));
+  device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
+  device->drawLine(device->pixelToWindow(p3), device->pixelToWindow(p4));
 
   //---
 
-  QFontMetricsF fm(device_->font());
+  QFontMetricsF fm(device->font());
 
   double fw = fm.width(text);
   double fa = fm.ascent();
@@ -1024,7 +1016,7 @@ drawPointLabel(const Point &point, const QString &text, bool above) const
 
   Point pt(point.x - fw/2, point.y + (above ? -(fd + 4) : fa + 4));
 
-  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text, CQChartsAlpha(0.5));
+  CQChartsDrawUtil::drawContrastText(device, device->pixelToWindow(pt), text, CQChartsAlpha(0.5));
 }
 #endif
 
@@ -1034,26 +1026,26 @@ bool
 CQChartsArrow::
 contains(const Point &p) const
 {
-  if (arrowPoly_.valid && arrowPoly_.points.containsPoint(p, Qt::OddEvenFill))
+  if (drawData_.arrowPoly.valid && drawData_.arrowPoly.points.containsPoint(p, Qt::OddEvenFill))
     return true;
 
-  if (frontPoly_.valid && frontPoly_.points.containsPoint(p, Qt::OddEvenFill))
+  if (drawData_.frontPoly.valid && drawData_.frontPoly.points.containsPoint(p, Qt::OddEvenFill))
     return true;
 
-  if (tailPoly_.valid && tailPoly_.points.containsPoint(p, Qt::OddEvenFill))
+  if (drawData_.tailPoly.valid && drawData_.tailPoly.points.containsPoint(p, Qt::OddEvenFill))
     return true;
 
-  if (frontLine1_.valid && (frontLine1_.distance(p) < 4))
+  if (drawData_.frontLine1.valid && (drawData_.frontLine1.distance(p) < 4))
     return true;
-  if (frontLine2_.valid && (frontLine2_.distance(p) < 4))
-    return true;
-
-  if (endLine1_.valid && (endLine1_.distance(p) < 4))
-    return true;
-  if (endLine2_.valid && (endLine2_.distance(p) < 4))
+  if (drawData_.frontLine2.valid && (drawData_.frontLine2.distance(p) < 4))
     return true;
 
-  if (midLine_.valid && (midLine_.distance(p) < 4))
+  if (drawData_.endLine1.valid && (drawData_.endLine1.distance(p) < 4))
+    return true;
+  if (drawData_.endLine2.valid && (drawData_.endLine2.distance(p) < 4))
+    return true;
+
+  if (drawData_.midLine.valid && (drawData_.midLine.distance(p) < 4))
     return true;
 
   return false;
@@ -1107,7 +1099,18 @@ write(std::ostream &os, const QString &varName) const
 
 void
 CQChartsArrow::
-selfPath(QPainterPath &path, const BBox &rect, double fhead, double thead, double lw)
+drawArrow(PaintDevice *device, const Point &from, const Point &to,
+          const ArrowData &data, const Length &strokeWidth, bool rectilinear,
+          const PenBrush &penBrush)
+{
+  DrawData drawData;
+
+  drawContents(device, from, to, data, strokeWidth, rectilinear, penBrush, drawData);
+}
+
+void
+CQChartsArrow::
+selfPath(QPainterPath &path, const BBox &rect, bool fhead, bool thead, double lw)
 {
   double xr = rect.getWidth ()/2.0;
   double yr = rect.getHeight()/2.0;
@@ -1134,8 +1137,8 @@ selfPath(QPainterPath &path, const BBox &rect, double fhead, double thead, doubl
 
   CQChartsArrowData arrowData;
 
-  arrowData.setFHead(fhead);
-  arrowData.setTHead(thead);
+  arrowData.setFHeadType(fhead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
+  arrowData.setTHeadType(thead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
 
   pathAddArrows(lpath, arrowData, lw, 1.0, path);
 }
@@ -1149,14 +1152,14 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
    public:
     PathVisitor(double lw, double alen, const CQChartsArrowData &arrowData) :
      lw_(lw), alen_(alen), arrowData_(arrowData) {
-      bool isFHead = arrowData_.isFHead();
-      bool isTHead = arrowData_.isTHead();
+      bool isFHead = arrowData_.calcIsFHead();
+      bool isTHead = arrowData_.calcIsTHead();
 
       arrowData_.setFHeadType(arrowData_.fheadType());
       arrowData_.setTHeadType(arrowData_.theadType());
 
-      arrowData_.setFHead(isFHead);
-      arrowData_.setTHead(isTHead);
+      arrowData_.setFHeadType(isFHead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
+      arrowData_.setTHeadType(isTHead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
     }
 
     void moveTo(const Point &p) override {
@@ -1193,8 +1196,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
         arrowPath2_.lineTo(pi2.qpoint());
       }
       else {
-        //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
-        bool skipLast = (arrowData_.isTHead() && isLast());
+        //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
+        bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
         Point lp1, lp2;
 
@@ -1221,8 +1224,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
       auto a1 = ArrowAngle(p1_, pc1);
       auto a2 = ArrowAngle(pc1, p2 );
 
-      //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2, a2, -lw_) : p2);
-      bool skipLast = (arrowData_.isTHead() && isLast());
+      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2, a2, -lw_) : p2);
+      bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
       Point lp11, lp21, lp12, lp22;
 
@@ -1257,8 +1260,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
       auto a2 = ArrowAngle(pc1, pc2);
       auto a3 = ArrowAngle(pc2, p2 );
 
-      //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2, a3, -lw_) : p2);
-      bool skipLast = (arrowData_.isTHead() && isLast());
+      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2, a3, -lw_) : p2);
+      bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
       Point lp11, lp21, lp12, lp22, lp13, lp23;
 
@@ -1288,7 +1291,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
       if (first_) {
         ArrowAngle a(p1_, p2_);
 
-        if (arrowData_.isFHead()) {
+        if (arrowData_.calcIsFHead()) {
           // head point bottom/top
           arrowPath1_.moveTo(p1_.qpoint());
           arrowPath2_.moveTo(p1_.qpoint());
@@ -1301,8 +1304,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           //---
 
           // get end arrow points bottom top using front angle
-          auto a1 = ArrowAngle(a.angle - arrowData_.frontAngle().radians());
-          auto a2 = ArrowAngle(a.angle + arrowData_.frontAngle().radians());
+          auto a1 = ArrowAngle(a.angle - arrowData_.calcFrontAngle().radians());
+          auto a2 = ArrowAngle(a.angle + arrowData_.calcFrontAngle().radians());
 
           auto pf1 = movePointOnLine(p1_, a1, lw_);
           auto pf2 = movePointOnLine(p1_, a2, lw_);
@@ -1320,8 +1323,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           //---
 
           // get back angle intersection with line border
-          auto a3 = ArrowAngle(a.angle - arrowData_.frontBackAngle().radians());
-          auto a4 = ArrowAngle(a.angle + arrowData_.frontBackAngle().radians());
+          auto a3 = ArrowAngle(a.angle - arrowData_.calcFrontBackAngle().radians());
+          auto a4 = ArrowAngle(a.angle + arrowData_.calcFrontBackAngle().radians());
 
           auto pf3 = movePointOnLine(pi1, a3, lw_);
           auto pf4 = movePointOnLine(pi2, a4, lw_);
@@ -1361,7 +1364,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
 
     void term() override {
       if (! first_) {
-        if (arrowData_.isTHead()) {
+        if (arrowData_.calcIsTHead()) {
           ArrowAngle a(p1_, p2_);
 
           // move in to arrow left edge
@@ -1370,8 +1373,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           //---
 
           // get end arrow points bottom top using front angle
-          auto a1 = ArrowAngle(a.angle + M_PI + arrowData_.tailAngle().radians());
-          auto a2 = ArrowAngle(a.angle + M_PI - arrowData_.tailAngle().radians());
+          auto a1 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailAngle().radians());
+          auto a2 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailAngle().radians());
 
           auto pf1 = movePointOnLine(p2_, a1, lw_);
           auto pf2 = movePointOnLine(p2_, a2, lw_);
@@ -1389,8 +1392,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           //---
 
           // get back angle intersection with line border
-          auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.tailBackAngle().radians());
-          auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.tailBackAngle().radians());
+          auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailBackAngle().radians());
+          auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailBackAngle().radians());
 
           auto pf3 = movePointOnLine(pi1, a3, lw_);
           auto pf4 = movePointOnLine(pi2, a4, lw_);

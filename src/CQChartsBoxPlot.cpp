@@ -542,6 +542,14 @@ addProperties()
 
   // coloring
   addProp("coloring", "colorBySet", "", "Color by value set");
+
+  //---
+
+  // color map
+  addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -2075,6 +2083,9 @@ addMenuItems(QMenu *menu)
     (void) addCheckedAction("Violin"   , isViolin()  , SLOT(setViolin(bool)));
     (void) addCheckedAction("Error Bar", isErrorBar(), SLOT(setErrorBar(bool)));
   }
+
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }

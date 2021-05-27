@@ -209,7 +209,7 @@ class CQChartsArrow : public QObject,
   //---
 
   // get drawn path
-  const QPainterPath &drawnPath() const { return path_; }
+  const QPainterPath &drawnPath() const { return drawData_.path; }
 
   // is point inside arrow
   bool contains(const Point &p) const;
@@ -221,6 +221,7 @@ class CQChartsArrow : public QObject,
 
   //---
 
+ public:
   //! arrow angle data (caches cos/sin)
   struct ArrowAngle {
     double angle { 0.0 }; // radians
@@ -246,9 +247,14 @@ class CQChartsArrow : public QObject,
     }
   };
 
-  static void selfPath(QPainterPath &path, const BBox &rect,
-                       double fhead, double thead, double lw);
+  static void drawArrow(PaintDevice *device, const Point &from, const Point &to,
+                        const ArrowData &data, const Length &strokeWidth, bool rectilinear,
+                        const PenBrush &penBrush);
 
+  static void selfPath(QPainterPath &path, const BBox &rect,
+                       bool fhead, bool thead, double lw);
+
+  // alen is multiple of line width
   static void pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
                             double lw, double alen, QPainterPath &arrowPath);
 
@@ -262,38 +268,7 @@ class CQChartsArrow : public QObject,
                             const Point &l2s, const Point &l2e, Point &pi, bool &inside);
 
  private:
-  void init();
-
-  void drawContents(const PenBrush &penBrush) const;
-
-  void drawPolygon(const GeomPolygon &points, double w, bool filled, bool stroked,
-                   const PenBrush &penBrush) const;
-
-  void drawLine(const Point &point1, const Point &point2, double width,
-                const PenBrush &penBrush) const;
-
-#if DEBUG_LABELS
-  struct PointLabel {
-    PointLabel(const Point &point, const QString &text, bool above) :
-     point(point), text(text), above(above) {
-    }
-
-    Point   point;
-    QString text;
-    bool    above { false };
-  };
-
-  using PointLabels = std::vector<PointLabel>;
-
-  void drawPointLabel(const Point &point, const QString &text, bool above) const;
-#endif
-
-  static double pointLineDistance(const Point &p, const Point &p1, const Point &p2);
-
- signals:
-  void dataChanged();
-
- private:
+  // line
   struct Line {
     Point p1;
     Point p2;
@@ -312,6 +287,7 @@ class CQChartsArrow : public QObject,
     }
   };
 
+  // polygon
   struct Polygon {
     GeomPolygon points;
     bool        valid { false };
@@ -327,29 +303,96 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  View*                view_        { nullptr }; //!< parent view
-  Plot*                plot_        { nullptr }; //!< parent plot
-  bool                 visible_     { true };    //!< is visible
-  Point                from_        { 0, 0 };    //!< start point
-  Point                to_          { 1, 1 };    //!< end point
-  ArrowData            data_;                    //!< arrow data
-  bool                 rectilinear_ { false };
 #if DEBUG_LABELS
-  bool                 debugLabels_ { false };
-  mutable PointLabels  pointLabels_;
-#endif
-  mutable PaintDevice* device_  { nullptr }; //!< paint device
-  mutable QPainterPath path_;                //!< draw path
+  struct PointLabel {
+    PointLabel(const Point &point, const QString &text, bool above) :
+     point(point), text(text), above(above) {
+    }
 
-  // inside data
-  mutable Line    frontLine1_;
-  mutable Line    frontLine2_;
-  mutable Line    endLine1_;
-  mutable Line    endLine2_;
-  mutable Line    midLine_;
-  mutable Polygon frontPoly_;
-  mutable Polygon tailPoly_;
-  mutable Polygon arrowPoly_;
+    Point   point;
+    QString text;
+    bool    above { false };
+  };
+
+  using PointLabels = std::vector<PointLabel>;
+#endif
+
+  // draw data
+  struct DrawData {
+    Line    frontLine1;
+    Line    frontLine2;
+    Line    endLine1;
+    Line    endLine2;
+    Line    midLine;
+    Polygon frontPoly;
+    Polygon tailPoly;
+    Polygon arrowPoly;
+
+    QPainterPath path; //!< draw path
+
+    PointLabels pointLabels;
+    bool        debugLabels { false };
+
+    void reset() {
+      frontLine1.reset();
+      frontLine2.reset();
+      endLine1  .reset();
+      endLine2  .reset();
+      midLine   .reset();
+      frontPoly .reset();
+      tailPoly  .reset();
+      arrowPoly .reset();
+
+      path = QPainterPath();
+
+      pointLabels.clear();
+    }
+  };
+
+ private:
+  void init();
+
+  static void drawContents(PaintDevice *device, const Point &from, const Point &to,
+                           const ArrowData &data, const Length &strokeWidth, bool rectilinear,
+                           const PenBrush &penBrush, DrawData &drawData);
+
+  static void drawPolygon(PaintDevice *device, const GeomPolygon &points, double w,
+                          bool filled, bool stroked, const PenBrush &penBrush,
+                          QPainterPath &path);
+
+  static void drawLine(PaintDevice *device, const Point &point1, const Point &point2,
+                       double width, const PenBrush &penBrush);
+
+#if DEBUG_LABELS
+  static void drawPointLabel(PaintDevice *device, const Point &point,
+                             const QString &text, bool above);
+#endif
+
+  static double pointLineDistance(const Point &p, const Point &p1, const Point &p2);
+
+ signals:
+  void dataChanged();
+
+ private:
+  View* view_ { nullptr }; //!< parent view
+  Plot* plot_ { nullptr }; //!< parent plot
+
+  bool visible_ { true }; //!< is visible
+
+  Point from_ { 0, 0 }; //!< start point
+  Point to_   { 1, 1 }; //!< end point
+
+  ArrowData data_;                    //!< arrow data
+
+  bool rectilinear_ { false };
+
+#if DEBUG_LABELS
+  bool debugLabels_ { false };
+#endif
+
+  mutable PaintDevice* device_ { nullptr }; //!< paint device
+
+  mutable DrawData drawData_;
 };
 
 #endif

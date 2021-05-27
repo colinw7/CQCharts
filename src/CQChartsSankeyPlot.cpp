@@ -453,7 +453,7 @@ addProperties()
 
   addLineProperties("edge/stroke", "edgeStroke", "Edge");
 
-  addProp("edge/fill", "edgeFilled", "visible", "Edit fill visible");
+  addProp("edge/fill", "edgeFilled", "visible", "Edge fill visible");
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
 

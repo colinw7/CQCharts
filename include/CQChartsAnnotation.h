@@ -1132,8 +1132,8 @@ class CQChartsPathAnnotation : public CQChartsAnnotation {
   EditHandles *editHandles() const override;
 
  private:
-  ObjRef objRef_;    //!< object ref
-  Path   path_;      //!< path
+  ObjRef objRef_; //!< object ref
+  Path   path_;   //!< path
 };
 
 //---
@@ -1153,9 +1153,11 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsObjRef   startObjRef READ startObjRef WRITE setStartObjRef)
   Q_PROPERTY(CQChartsPosition end         READ end         WRITE setEnd        )
   Q_PROPERTY(CQChartsObjRef   endObjRef   READ endObjRef   WRITE setEndObjRef  )
+  Q_PROPERTY(CQChartsPath     path        READ path        WRITE setPath       )
 
  public:
   using Position = CQChartsPosition;
+  using Path     = CQChartsPath;
 
  public:
   CQChartsArrowAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
@@ -1186,6 +1188,11 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   const ObjRef &endObjRef() const { return endObjRef_; }
   void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
+
+  //---
+
+  const Path &path() const { return path_; }
+  void setPath(const Path &path);
 
   //---
 
@@ -1228,6 +1235,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Position end_         { Position::plot(Point(1, 1)) }; //!< arrow end
   ObjRef   endObjRef_;                                   //!< arrow end reference object
   ArrowP   arrow_;                                       //!< arrow data
+  Path     path_;                                        //!< path
 };
 
 //---

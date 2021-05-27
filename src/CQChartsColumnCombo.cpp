@@ -127,9 +127,13 @@ updateItems()
     return;
   }
 
+  //---
+
+  disconnect(this, SIGNAL(currentIndexChanged(int)), this, SIGNAL(columnChanged()));
+
   int icolumn = getColumn().column();
 
-  if (icolumn < 0)
+  if (icolumn < 0 && ! isAllowNone())
     icolumn = modelData_->currentColumn();
 
   auto *model = modelData_->currentModel().data();
@@ -170,4 +174,10 @@ updateItems()
 
   if (ind >= 0)
     setCurrentIndex(ind);
+
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SIGNAL(columnChanged()));
+
+  //---
+
+  emit columnChanged();
 }

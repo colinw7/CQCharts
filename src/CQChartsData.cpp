@@ -719,6 +719,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   //---
 
+  // TODO: fhead type
   nameValues.setNameValue("front_visible", isFHead());
 
   if (frontAngle().value() > 0)
@@ -735,6 +736,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   //---
 
+  // TODO: thead type
   nameValues.setNameValue("tail_visible", isTHead());
 
   if (tailAngle().value() > 0)

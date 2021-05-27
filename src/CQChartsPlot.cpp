@@ -3482,12 +3482,14 @@ addBaseProperties()
   addStyleProp(fitStyleFillStr, "fitFilled", "visible",
                "Fit background bounding box fill visible", /*hidden*/true);
 
-  addFillProperties(fitStyleFillStr, "fitFill", "Fit background", /*hidden*/true);
+  addFillProperties(fitStyleFillStr, "fitFill", "Fit background",
+                    uint(CQChartsFillDataTypes::STANDARD), /*hidden*/true);
 
   addStyleProp(fitStyleStrokeStr, "fitStroked", "visible",
                "Fit background bounding box stroke visible", /*hidden*/true);
 
-  addLineProperties(fitStyleStrokeStr, "fitStroke", "Fit background", /*hidden*/true);
+  addLineProperties(fitStyleStrokeStr, "fitStroke", "Fit background",
+                     uint(CQChartsStrokeDataTypes::STANDARD), /*hidden*/true);
 
   addStyleProp(fitStyleStrokeStr, "fitBorderSides", "sides",
                "Fit background bounding box stroked sides", /*hidden*/true);
@@ -3616,26 +3618,44 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 void
 CQChartsPlot::
 addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix,
-                  bool hidden)
+                  uint types, bool hidden)
 {
   auto prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
 
-  addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
-  addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
-  addStyleProp(path, prefix + "Width", "width", prefix1 + " width", hidden);
-  addStyleProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" , hidden);
+  if (types & uint(CQChartsStrokeDataTypes::VISIBLE))
+    addStyleProp(path, prefix + "Stroked", "visible", prefix1 + " is visible", hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::COLOR))
+    addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::ALPHA))
+    addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::WIDTH))
+    addStyleProp(path, prefix + "Width", "width", prefix1 + " width", hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::DASH))
+    addStyleProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" , hidden);
 }
 
 void
 CQChartsPlot::
 addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix,
-                  bool hidden)
+                  uint types, bool hidden)
 {
   auto prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
-  addStyleProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  , hidden);
-  addStyleProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  , hidden);
-  addStyleProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern", hidden);
+  if (types & uint(CQChartsFillDataTypes::VISIBLE))
+    addStyleProp(path, prefix + "Filled", "visible", prefix1 + " fill visible", hidden);
+
+  if (types & uint(CQChartsFillDataTypes::COLOR))
+    addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
+
+  if (types & uint(CQChartsFillDataTypes::ALPHA))
+    addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
+
+  if (types & uint(CQChartsFillDataTypes::PATTERN))
+    addStyleProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern", hidden);
 }
 
 void
@@ -8958,8 +8978,6 @@ columnValueColor(const QVariant &var, Color &color) const
     //--
 
     color = colorMapRealColor(r);
-
-    return true;
   }
   else if (CQChartsVariant::isColor(var)) {
     // use color value directly
@@ -9011,7 +9029,6 @@ colorMapRealColor(double r) const
 
   return colorFromColorMapPaletteValue(r1);
 }
-
 
 CQChartsColor
 CQChartsPlot::
@@ -15095,35 +15112,6 @@ calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
 
 bool
 CQChartsPlot::
-checkNumericColumn(const Column &column, const QString &name, bool required) const
-{
-  ColumnType type;
-
-  return checkNumericColumn(column, name, type, required);
-}
-
-bool
-CQChartsPlot::
-checkNumericColumn(const Column &column, const QString &name,
-                   ColumnType &type, bool required) const
-{
-  if (! required && ! column.isValid())
-    return true;
-
-  if (! checkColumn(column, name, type, required))
-    return false;
-
-  if (type != ColumnType::REAL && type != ColumnType::INTEGER) {
-    const_cast<Plot *>(this)->
-      addColumnError(column, QString("Non-numeric %1 column").arg(name));
-    return false;
-  }
-
-  return true;
-}
-
-bool
-CQChartsPlot::
 checkNumericColumns(const Columns &columns, const QString &name, bool required) const
 {
   if (required && ! columns.isValid())
@@ -15149,6 +15137,35 @@ checkNumericColumns(const Columns &columns, const QString &name, bool required) 
   }
 
   return valid;
+}
+
+bool
+CQChartsPlot::
+checkNumericColumn(const Column &column, const QString &name, bool required) const
+{
+  ColumnType type;
+
+  return checkNumericColumn(column, name, type, required);
+}
+
+bool
+CQChartsPlot::
+checkNumericColumn(const Column &column, const QString &name,
+                   ColumnType &type, bool required) const
+{
+  if (! required && ! column.isValid())
+    return true;
+
+  if (! checkColumn(column, name, type, required))
+    return false;
+
+  if (type != ColumnType::REAL && type != ColumnType::INTEGER) {
+    const_cast<Plot *>(this)->
+      addColumnError(column, QString("Non-numeric %1 column").arg(name));
+    return false;
+  }
+
+  return true;
 }
 
 bool

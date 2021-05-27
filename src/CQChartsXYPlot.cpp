@@ -268,6 +268,10 @@ init()
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -710,6 +714,9 @@ addProperties()
 
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -2619,6 +2626,11 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(xMenu);
   menu->addMenu(yMenu);
+
+  //---
+
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
 
   return true;
 }

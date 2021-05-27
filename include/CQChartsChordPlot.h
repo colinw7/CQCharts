@@ -183,24 +183,24 @@ class CQChartsChordEdgeObj;
 class CQChartsChordHierObj;
 
 /*!
- * \brief Chord Plot Arc object
+ * \brief Chord Plot Segment object
  * \ingroup Charts
  */
-class CQChartsChordArcObj : public CQChartsPlotObj {
+class CQChartsChordSegmentObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using ChordPlot = CQChartsChordPlot;
-  using ChordData = CQChartsChordData;
-  using ArcObj    = CQChartsChordArcObj;
-  using EdgeObj   = CQChartsChordEdgeObj;
-  using EdgeObjs  = std::vector<EdgeObj *>;
-  using HierObj   = CQChartsChordHierObj;
-  using Angle     = CQChartsAngle;
+  using ChordPlot  = CQChartsChordPlot;
+  using ChordData  = CQChartsChordData;
+  using SegmentObj = CQChartsChordSegmentObj;
+  using EdgeObj    = CQChartsChordEdgeObj;
+  using EdgeObjs   = std::vector<EdgeObj *>;
+  using HierObj    = CQChartsChordHierObj;
+  using Angle      = CQChartsAngle;
 
  public:
-  CQChartsChordArcObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
-                      const ColorInd &ig, const ColorInd &iv);
+  CQChartsChordSegmentObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
+                          const ColorInd &ig, const ColorInd &iv);
 
   const ChordData &data() const { return data_; }
 
@@ -208,7 +208,19 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
 
   //---
 
-  void addEdgeObj(EdgeObj *obj) { edgeObjs_.push_back(obj); }
+  bool hasEdgeObj(EdgeObj *obj) const {
+    for (auto *obj1 : edgeObjs_)
+      if (obj1 == obj)
+        return true;
+
+    return false;
+  }
+
+  void addEdgeObj(EdgeObj *obj) {
+    assert(! hasEdgeObj(obj));
+
+    edgeObjs_.push_back(obj);
+  }
 
   //---
 
@@ -227,7 +239,7 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
 
   //---
 
-  QString typeName() const override { return "arc"; }
+  QString typeName() const override { return "segment"; }
 
   //---
 
@@ -251,6 +263,7 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
   QString dataName() const { return data_.name(); }
 
   double calcTotal() const;
+  double calcAltTotal() const;
 
   int calcNumValues() const;
 
@@ -352,8 +365,8 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsChordArcObj *fromObj() const;
-  CQChartsChordArcObj *toObj  () const;
+  CQChartsChordSegmentObj *fromObj() const;
+  CQChartsChordSegmentObj *toObj  () const;
 
  private:
   const ChordPlot*     plot_ { nullptr }; //!< parent plot
@@ -432,6 +445,7 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
   void dataAngles(double &angle1, double &angle2) const;
 
   double calcTotal() const;
+  double calcAltTotal() const;
 
   int calcNumValues() const;
 
@@ -449,6 +463,9 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(Segment, segment)
+CQCHARTS_NAMED_SHAPE_DATA(Arc, arc)
+
 /*!
  * \brief Chord Plot
  * \ingroup Charts
@@ -465,7 +482,8 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
  *   + \image html chord_plot.png
  */
 class CQChartsChordPlot : public CQChartsConnectionPlot,
- public CQChartsObjStrokeData<CQChartsChordPlot> {
+ public CQChartsObjSegmentShapeData<CQChartsChordPlot>,
+ public CQChartsObjArcShapeData    <CQChartsChordPlot> {
   Q_OBJECT
 
   // options
@@ -473,17 +491,16 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double labelRadius READ labelRadius   WRITE setLabelRadius)
   Q_PROPERTY(bool   rotatedText READ isRotatedText WRITE setRotatedText)
 
-  // stroke
-  CQCHARTS_STROKE_DATA_PROPERTIES
+  // segment/arc shape data
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Segment, segment)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Arc    , arc    )
 
   // style
-  Q_PROPERTY(CQChartsAlpha segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
-  Q_PROPERTY(CQChartsAlpha arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
-  Q_PROPERTY(CQChartsAngle gapAngle     READ gapAngle     WRITE setGapAngle    )
-  Q_PROPERTY(CQChartsAngle startAngle   READ startAngle   WRITE setStartAngle  )
+  Q_PROPERTY(CQChartsAngle startAngle READ startAngle WRITE setStartAngle)
+  Q_PROPERTY(CQChartsAngle gapAngle   READ gapAngle   WRITE setGapAngle  )
 
  public:
-  using ArcObj            = CQChartsChordArcObj;
+  using SegmentObj        = CQChartsChordSegmentObj;
   using EdgeObj           = CQChartsChordEdgeObj;
   using HierObj           = CQChartsChordHierObj;
   using RotatedTextBoxObj = CQChartsRotatedTextBoxObj;
@@ -516,17 +533,11 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  const Alpha &segmentAlpha() const { return segmentAlpha_; }
-  void setSegmentAlpha(const Alpha &a);
-
-  const Alpha &arcAlpha() const { return arcAlpha_; }
-  void setArcAlpha(const Alpha &a);
+  const Angle &startAngle() const { return startAngle_; }
+  void setStartAngle(const Angle &a);
 
   const Angle &gapAngle() const { return gapAngle_; }
   void setGapAngle(const Angle &a);
-
-  const Angle &startAngle() const { return startAngle_; }
-  void setStartAngle(const Angle &a);
 
   //---
 
@@ -548,8 +559,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   void preDrawObjs(PaintDevice *) const override;
 
-  ArcObj  *arcObject (int ind) const;
-  EdgeObj *edgeObject(int from, int to) const;
+  SegmentObj *segmentObject(int ind) const;
+  EdgeObj    *edgeObject   (int from, int to) const;
 
   //---
 
@@ -631,36 +642,38 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual ArcObj*  createArcObj(const BBox &rect, const ChordData &data,
-                                const ColorInd &ig, const ColorInd &iv) const;
-  virtual EdgeObj* createEdgeObj(const BBox &rect, const ChordData &data,
-                                 int to, const OptReal &value) const;
-  virtual HierObj* createHierObj(const QString &name, const BBox &rect) const;
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
+  virtual SegmentObj* createSegmentObj(const BBox &rect, const ChordData &data,
+                                       const ColorInd &ig, const ColorInd &iv) const;
+  virtual EdgeObj*    createEdgeObj(const BBox &rect, const ChordData &data,
+                                    int to, const OptReal &value) const;
+  virtual HierObj*    createHierObj(const QString &name, const BBox &rect) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using ArcObjs            = std::vector<ArcObj *>;
+  using SegmentObjs        = std::vector<SegmentObj *>;
   using EdgeObjs           = std::vector<EdgeObj *>;
   using HierObjs           = std::vector<HierObj *>;
   using IndName            = std::map<int, QString>;
   using RotatedTextBoxObjP = std::unique_ptr<RotatedTextBoxObj>;
 
   // options
-  double innerRadius_  { 0.9 };   //!< inner radius
-  double labelRadius_  { 1.1 };   //!< label radius
-  bool   rotatedText_  { false }; //!< is text rotated
-  Alpha  segmentAlpha_ { 0.7 };   //!< segment alpha
-  Alpha  arcAlpha_     { 0.3 };   //!< arc alpha
-  Angle  gapAngle_     { 2.0 };   //!< gap angle
-  Angle  startAngle_   { 90.0 };  //!< start angle
+  double innerRadius_ { 0.9 };   //!< inner radius
+  double labelRadius_ { 1.1 };   //!< label radius
+  bool   rotatedText_ { false }; //!< is text rotated
+  Angle  startAngle_  { 90.0 };  //!< start angle
+  Angle  gapAngle_    { 2.0 };   //!< gap angle
 
   RotatedTextBoxObjP textBox_;                //!< text box
   double             valueToDegrees_ { 1.0 }; //!< value to degrees scale
   NameDataMap        nameDataMap_;            //!< name data map
   IndName            indName_;                //!< ind name
-  ArcObjs            arcObjs_;                //!< arc objects
+  SegmentObjs        segmentObjs_;            //!< segment objects
   EdgeObjs           edgeObjs_;               //!< edge objects
   HierObjs           hierObjs_;               //!< hier objects
   int                maxNodeDepth_   { -1 };  //!< max node depth

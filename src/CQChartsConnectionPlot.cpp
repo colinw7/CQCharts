@@ -1005,7 +1005,6 @@ initHierObjs() const
       auto value = plot_->modelReal(valueModelInd, ok1);
       if (! ok1) return addDataError(valueModelInd, "Invalid Value");
 
-
       //---
 
       HierConnectionData hierData;
@@ -1472,6 +1471,7 @@ CQChartsConnectionPlot::
 groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
 {
   auto *groupDetails = columnDetails(groupColumn());
+  if (! groupDetails) return false;
 
   bool ok1;
   auto groupVar = modelValue(groupModelInd, ok1);

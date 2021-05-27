@@ -683,14 +683,24 @@ class CQChartsArrowData {
   HeadType fheadType() const { return fheadData_.type; }
   void setFHeadType(HeadType type);
 
+  bool calcIsFHead() const { return (fheadType() != HeadType::NONE); }
+
   const Angle &frontAngle() const { return fheadData_.angle; }
   void setFrontAngle(const Angle &a) { fheadData_.angle = a; updateFrontBackAngle(); }
+
+  Angle calcFrontAngle() const { return (frontAngle().value() > 0 ? frontAngle() : Angle(45)); }
 
   const Angle &frontBackAngle() const { return fheadData_.backAngle; }
   void setFrontBackAngle(const Angle &a) { fheadData_.backAngle = a; }
 
+  Angle calcFrontBackAngle() const {
+    return (frontBackAngle().value() > 0 ? frontBackAngle() : Angle(90)); }
+
   const Length &frontLength() const { return fheadData_.length; }
   void setFrontLength(const Length &l) { fheadData_.length = l; }
+
+  Length calcFrontLength() const {
+    return (frontLength().value() > 0 ? frontLength() : Length(8, Units::PIXEL)); }
 
   bool isFrontLineEnds() const { return fheadData_.lineEnds; }
   void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
@@ -704,14 +714,25 @@ class CQChartsArrowData {
   HeadType theadType() const { return theadData_.type; }
   void setTHeadType(HeadType type);
 
+  bool calcIsTHead() const { return (theadType() != HeadType::NONE); }
+
   const Angle &tailAngle() const { return theadData_.angle; }
   void setTailAngle(const Angle &a) { theadData_.angle = a; updateTailBackAngle(); }
+
+  Angle calcTailAngle() const { return (tailAngle().value() > 0 ? tailAngle() : Angle(45)); }
 
   const Angle &tailBackAngle() const { return theadData_.backAngle; }
   void setTailBackAngle(const Angle &a) { theadData_.backAngle = a; }
 
+  Angle calcTailBackAngle() const {
+    return (tailBackAngle().value() > 0 ? tailBackAngle() : Angle(90));
+  }
+
   const Length &tailLength() const { return theadData_.length; }
   void setTailLength(const Length &l) { theadData_.length = l; }
+
+  Length calcTailLength() const {
+    return (tailLength().value() > 0 ? tailLength() : Length(8, Units::PIXEL)); }
 
   bool isTailLineEnds() const { return theadData_.lineEnds; }
   void setTailLineEnds(bool b) { theadData_.lineEnds = b; }

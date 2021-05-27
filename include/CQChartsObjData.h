@@ -570,6 +570,18 @@ class CQChartsObj##UNAME##PointData { \
 
 //------
 
+enum class CQChartsFillDataTypes {
+  VISIBLE = (1<<0),
+  COLOR   = (1<<1),
+  ALPHA   = (1<<2),
+  PATTERN = (1<<3),
+
+  NONE     = 0,
+  STANDARD = (COLOR | ALPHA | PATTERN),
+  NO_COLOR = (ALPHA | PATTERN),
+  ALL      = (VISIBLE | COLOR | ALPHA | PATTERN)
+};
+
 #define CQCHARTS_NAMED_FILL_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsFillData LNAME##FillData READ LNAME##FillData WRITE set##UNAME##FillData) \
 \
@@ -955,6 +967,19 @@ class CQChartsObj##UNAME##TextData { \
 };
 
 //------
+
+enum class CQChartsStrokeDataTypes {
+  VISIBLE = (1<<0),
+  COLOR   = (1<<1),
+  ALPHA   = (1<<2),
+  WIDTH   = (1<<3),
+  DASH    = (1<<4),
+
+  NONE     = 0,
+  STANDARD = (COLOR | ALPHA | WIDTH | DASH),
+  NO_COLOR = (ALPHA | WIDTH | DASH),
+  ALL      = (VISIBLE | COLOR | ALPHA | WIDTH | DASH)
+};
 
 #define CQCHARTS_STROKE_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsStrokeData strokeData READ strokeData WRITE setStrokeData) \

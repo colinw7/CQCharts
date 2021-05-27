@@ -385,6 +385,9 @@ addProperties()
 
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---

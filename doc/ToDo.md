@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + unnormalize modelInd before use in plots (test/assert)
+ + color column in tip
+ + sankey hier name -> depth
+ + trie to unique abbreviations
+ + chord max count per depth/relative to parent for normalize
+   + scale to max ...
+   + mouse over names
+   + chord show in/out (allow hide ?)
+ + chord fit with hier (long) labels ?
  + text placement
    + pie text overlap removal
    + text place on line (used in axis, reuse axis code ?)
