@@ -643,7 +643,7 @@ draw(PaintDevice *device) const
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
       CQChartsDrawUtil::drawRoundedRect(device, BBox(tx, ty, tx + bw, ty + bh),
-                                        CQChartsLength(4, CQChartsUnits::PIXEL));
+                                        CQChartsLength::pixel(4));
 
       //---
 

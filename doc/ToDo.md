@@ -4,6 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + all placement algorithms support hier data
+ + sankey annotation plot, arc start/end size the same
+ + hier name support for connection plots (sankey) to provide extra level for grouping
+   + display of hier name in adjacency
+ + time based display of multiple values (weather ?)
  + unnormalize modelInd before use in plots (test/assert)
  + color column in tip
  + sankey hier name -> depth
@@ -16,9 +21,6 @@ TODO:
  + text placement
    + pie text overlap removal
    + text place on line (used in axis, reuse axis code ?)
- + hier name support for connection plots (sankey) to provide extra level for grouping
- + chord color control
- + model/column combination
  + support model/columns for annotation data
  + more support for module roles in charts objects (when no columns ?)
  + meta data in more data file formats

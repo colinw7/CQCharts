@@ -15,11 +15,16 @@ class CQChartsObjRef :
   public CQChartsToStringBase<CQChartsObjRef> {
  public:
   enum class Location {
+    NONE,
     CENTER,
     LEFT,
     RIGHT,
     TOP,
     BOTTOM,
+    LL,
+    UL,
+    LR,
+    UR,
     INTERSECT
   };
 

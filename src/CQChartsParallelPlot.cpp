@@ -1668,7 +1668,7 @@ draw(PaintDevice *device) const
     sy *= 2;
   }
 
-  Length symbolSize1 = Length(CMathUtil::avg(sx, sy), CQChartsUnits::PIXEL);
+  auto symbolSize1 = Length::pixel(CMathUtil::avg(sx, sy));
 
   //---
 

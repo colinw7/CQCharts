@@ -510,7 +510,7 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 
     CQChartsPixelPaintDevice device(painter);
 
-    CQChartsLength symbolSize(rect.height()/2.0, CQChartsUnits::PIXEL);
+    auto symbolSize = CQChartsLength::pixel(rect.height()/2.0);
 
     if (symbol.isValid())
       CQChartsDrawUtil::drawSymbol(&device, symbol, CQChartsGeom::Point(rect.center()), symbolSize);

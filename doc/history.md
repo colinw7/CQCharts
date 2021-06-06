@@ -1313,3 +1313,5 @@
  + improve pie chart dumbbell support
  + pie chart support percent
  + support text placer in pie chart
+# 6/6/2021
+ + more annotation plots

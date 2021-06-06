@@ -12,6 +12,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
+#include <CQChartsTreeMapPlace.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -918,8 +919,6 @@ createObjs(PlotObjs &objs) const
   //---
 
   if      (calcTreeMap()) {
-    using TreeMapPlace = CQChartsPlotDrawUtil::TreeMapPlace;
-
     for (auto &plotObj : objs) {
       auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
       if (! groupObj) continue;
@@ -928,7 +927,7 @@ createObjs(PlotObjs &objs) const
 
       BBox bbox(0.0, 0.0, 1.0, 1.0);
 
-      TreeMapPlace place(bbox);
+      CQChartsTreeMapPlace place(bbox);
 
       double dataTotal;
 
@@ -950,7 +949,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      place.processAreas([&](const BBox &bbox, const TreeMapPlace::IArea &iarea) {
+      place.processAreas([&](const BBox &bbox, const CQChartsTreeMapPlace::IArea &iarea) {
         if (iarea.i >= 0 && iarea.i < groupObj->numObjs()) {
           auto *obj = groupObj->obj(iarea.i);
 

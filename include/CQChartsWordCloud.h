@@ -53,6 +53,7 @@ class CQChartsWordCloud : public QObject {
   struct WordData {
     QString word;
     int     count    { 0 };
+    int     ind      { -1 };
     double  fontSize { 1.0 };
     double  angle    { 0.0 };
     double  x        { 0.0 };
@@ -81,7 +82,7 @@ class CQChartsWordCloud : public QObject {
   double maxFontSize() const { return maxFontSize_; }
   void setMaxFontSize(double s) { maxFontSize_ = s; }
 
-  void addWord(const QString &word, int count);
+  int addWord(const QString &word, int count);
 
   void place(const Plot *plot);
 

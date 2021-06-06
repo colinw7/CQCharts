@@ -285,14 +285,15 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
     //! table value data
     struct Value {
-      int     to      { -1 };
-      OptReal value;
-      bool    primary { true };
+      int         to      { -1 };
+      OptReal     value;
+      QModelIndex ind;
+      bool        primary { true };
 
       Value() = default;
 
-      Value(int to, const OptReal &value, bool primary) :
-       to(to), value(value), primary(primary) {
+      Value(int to, const OptReal &value, const QModelIndex &ind, bool primary) :
+       to(to), value(value), ind(ind), primary(primary) {
       }
     };
 
@@ -323,7 +324,11 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     const Value &ivalue(int i) const { return values_[i]; }
 
     void addValue(int to, const OptReal &value, bool primary) {
-      values_.emplace_back(to, value, primary);
+      addValue(to, value, QModelIndex(), primary);
+    }
+
+    void addValue(int to, const OptReal &value, const QModelIndex &ind, bool primary) {
+      values_.emplace_back(to, value, ind, primary);
 
       totalValid_ = false;
     }
@@ -458,6 +463,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   using ConnectionList = CQChartsConnectionList;
   using Connections    = ConnectionList::Connections;
+  using NodeIndex      = std::map<int, QModelIndex>;
 
   //! connections data
   //!  Columns are node (source node id) and connections (destination node id and value)
@@ -481,7 +487,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   bool initConnectionObjs() const;
 
-  virtual void addConnectionObj(int, const ConnectionsData &) const { }
+  virtual void addConnectionObj(int, const ConnectionsData &, const NodeIndex &) const { }
 
   //---
 

@@ -225,18 +225,16 @@ positionToParent(const ObjRef &objRef, const Position &pos) const
 
   Point p(x, y);
 
-  if      (objRef.location() == ObjRef::Location::LEFT)
-    p += bbox.getMidL();
-  else if (objRef.location() == ObjRef::Location::RIGHT)
-    p += bbox.getMidR();
-  else if (objRef.location() == ObjRef::Location::BOTTOM)
-    p += bbox.getMidB();
-  else if (objRef.location() == ObjRef::Location::TOP)
-    p += bbox.getMidT();
-  else if (objRef.location() == ObjRef::Location::INTERSECT)
-    p = bbox.getCenter();
-  else
-    p += bbox.getCenter();
+  if      (objRef.location() == ObjRef::Location::LEFT     ) p += bbox.getMidL();
+  else if (objRef.location() == ObjRef::Location::RIGHT    ) p += bbox.getMidR();
+  else if (objRef.location() == ObjRef::Location::BOTTOM   ) p += bbox.getMidB();
+  else if (objRef.location() == ObjRef::Location::TOP      ) p += bbox.getMidT();
+  else if (objRef.location() == ObjRef::Location::LL       ) p += bbox.getLL();
+  else if (objRef.location() == ObjRef::Location::LR       ) p += bbox.getLR();
+  else if (objRef.location() == ObjRef::Location::UL       ) p += bbox.getUL();
+  else if (objRef.location() == ObjRef::Location::UR       ) p += bbox.getUR();
+  else if (objRef.location() == ObjRef::Location::CENTER   ) p += bbox.getCenter();
+  else if (objRef.location() == ObjRef::Location::INTERSECT) p += bbox.getCenter();
 
   return p;
 }
@@ -261,25 +259,23 @@ positionFromParent(const ObjRef &objRef, const Position &pos) const
 
   Point p(x, y);
 
-  if      (objRef.location() == ObjRef::Location::LEFT)
-    p -= bbox.getMidL();
-  else if (objRef.location() == ObjRef::Location::RIGHT)
-    p -= bbox.getMidR();
-  else if (objRef.location() == ObjRef::Location::BOTTOM)
-    p -= bbox.getMidB();
-  else if (objRef.location() == ObjRef::Location::TOP)
-    p -= bbox.getMidT();
-  else if (objRef.location() == ObjRef::Location::INTERSECT)
-    p = bbox.getCenter();
-  else
-    p -= bbox.getCenter();
+  if      (objRef.location() == ObjRef::Location::LEFT     ) p -= bbox.getMidL();
+  else if (objRef.location() == ObjRef::Location::RIGHT    ) p -= bbox.getMidR();
+  else if (objRef.location() == ObjRef::Location::BOTTOM   ) p -= bbox.getMidB();
+  else if (objRef.location() == ObjRef::Location::TOP      ) p -= bbox.getMidT();
+  if      (objRef.location() == ObjRef::Location::LL       ) p -= bbox.getLL();
+  else if (objRef.location() == ObjRef::Location::LR       ) p -= bbox.getLR();
+  else if (objRef.location() == ObjRef::Location::UL       ) p -= bbox.getUL();
+  else if (objRef.location() == ObjRef::Location::UR       ) p -= bbox.getUR();
+  else if (objRef.location() == ObjRef::Location::CENTER   ) p -= bbox.getCenter();
+  else if (objRef.location() == ObjRef::Location::INTERSECT) p -= bbox.getCenter();
 
   if      (plot())
-    return CQChartsPosition(p, CQChartsUnits::PLOT);
+    return CQChartsPosition::plot(p);
   else if (view())
-    return CQChartsPosition(p, CQChartsUnits::VIEW);
+    return CQChartsPosition::view(p);
   else
-    return CQChartsPosition(p, CQChartsUnits::PLOT);
+    return CQChartsPosition::plot(p);
 }
 
 CQChartsGeom::Point
@@ -562,9 +558,9 @@ makeLength(View *view, Plot *plot, double len)
   assert(view || plot);
 
   if      (view)
-    return Length(len, CQChartsUnits::VIEW);
+    return Length::view(len);
   else if (plot)
-    return Length(len, CQChartsUnits::PLOT);
+    return Length::plot(len);
   else
     return Length();
 }
@@ -576,9 +572,9 @@ makePosition(View *view, Plot *plot, double x, double y)
   assert(view || plot);
 
   if      (view)
-    return Position(Point(x, y), CQChartsUnits::VIEW);
+    return Position::view(Point(x, y));
   else if (plot)
-    return Position(Point(x, y), CQChartsUnits::PLOT);
+    return Position::plot(Point(x, y));
   else
     return Position();
 }
@@ -590,9 +586,9 @@ makeRect(View *view, Plot *plot, double x1, double y1, double x2, double y2)
   assert(view || plot);
 
   if      (view)
-    return Rect(BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
+    return Rect::view(BBox(x1, y1, x2, y2));
   else if (plot)
-    return Rect(BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
+    return Rect::plot(BBox(x1, y1, x2, y2));
   else
     return Rect();
 }
@@ -621,9 +617,9 @@ makeRect(View *view, Plot *plot, const Position &start, const Position &end)
     BBox bbox(pstart, pend);
 
     if      (plot)
-      rectangle = Rect(bbox, CQChartsUnits::PLOT);
+      rectangle = Rect::plot(bbox);
     else if (view)
-      rectangle = Rect(bbox, CQChartsUnits::VIEW);
+      rectangle = Rect::view(bbox);
   }
   else {
     rectangle = Rect(BBox(start.p(), end.p()), start.units());

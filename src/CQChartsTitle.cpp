@@ -255,7 +255,7 @@ void
 CQChartsTitle::
 setAbsolutePlotPosition(const Point &p)
 {
-  setAbsolutePosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
+  setAbsolutePosition(CQChartsPosition::view(plot_->windowToView(p)));
 }
 
 CQChartsGeom::BBox
@@ -269,7 +269,7 @@ void
 CQChartsTitle::
 setAbsolutePlotRectangle(const BBox &bbox)
 {
-  setAbsoluteRectangle(CQChartsRect(plot_->windowToView(bbox), CQChartsUnits::VIEW));
+  setAbsoluteRectangle(CQChartsRect::view(plot_->windowToView(bbox)));
 }
 
 CQChartsGeom::Size

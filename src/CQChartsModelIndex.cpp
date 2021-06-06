@@ -52,6 +52,31 @@ toString() const
   return CQTcl::mergeList(strs);
 }
 
+bool
+CQChartsModelIndex::
+fromString(const QString &str)
+{
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  if (strs.size() < 3)
+    return false;
+
+  // TODO: plot
+
+  bool ok;
+
+  row_ = strs[1].toInt(&ok);
+  if (! ok) return false;
+
+  CQChartsColumn c(strs[2]);
+  if (! c.isValid()) return false;
+
+  return true;
+}
+
 QString
 CQChartsModelIndex::
 id() const
@@ -75,21 +100,4 @@ id() const
   id += QString("%1:%2").arg(row()).arg(column().column());
 
   return id;
-}
-
-bool
-CQChartsModelIndex::
-fromString(const QString &str)
-{
-  QStringList strs;
-
-  if (! CQTcl::splitList(str, strs))
-    return false;
-
-  if (strs.size() < 3)
-    return false;
-
-  // TODO
-
-  return false;
 }

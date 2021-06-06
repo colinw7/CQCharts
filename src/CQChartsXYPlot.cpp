@@ -1774,11 +1774,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // get symbol size (needed for bounding box)
-        Length symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize;
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize))
-            symbolSize = Length(CQChartsUnits::NONE, 0.0);
+            symbolSize = Length();
         }
 
         double sx, sy;
@@ -1821,11 +1821,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional font size
-        Length fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize;
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(xind1.row(), xind1.parent(), fontSize))
-            fontSize = Length(CQChartsUnits::NONE, 0.0);
+            fontSize = Length();
         }
 
         if (fontSize.isValid())
@@ -3052,7 +3052,7 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
   //---
 
   // draw symbols
-  auto ss = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PLOT);
+  auto ss = CQChartsLength::plot(CMathUtil::avg(sx, sy));
 
   if (symbol.isValid()) {
     CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
@@ -3256,7 +3256,7 @@ CQChartsLength
 CQChartsXYPointObj::
 calcSymbolSize() const
 {
-  Length symbolSize(CQChartsUnits::NONE, 0.0);
+  Length symbolSize;
 
   if (extraData())
     symbolSize = this->symbolSize();
@@ -3271,7 +3271,7 @@ CQChartsLength
 CQChartsXYPointObj::
 calcFontSize() const
 {
-  Length fontSize(CQChartsUnits::NONE, 0.0);
+  Length fontSize;
 
   if (extraData())
     fontSize = this->fontSize();

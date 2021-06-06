@@ -24,6 +24,9 @@
 #include <CQChartsResizeHandle.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsWordCloud.h>
+#include <CQChartsTreeMapPlace.h>
+#include <CQChartsGraphMgr.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -360,11 +363,13 @@ void
 CQChartsAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
-  model->setObjectRoot(path, this);
+  auto path1 = path + "/" + propertyId();
 
-  auto statePath = path + "/state";
+  model->setObjectRoot(path1, this);
 
-  addProp(model, path, "id", "id", "Annotation id");
+  auto statePath = path1 + "/state";
+
+  addProp(model, path1, "id", "id", "Annotation id");
 
   addProp(model, statePath, "visible"   , "visible"   , "Is visible");
   addProp(model, statePath, "enabled"   , "enabled"   , "Is enabled"   , true);
@@ -375,11 +380,11 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(model, statePath, "editable"  , "editable"  , "Is editable"  , true);
   addProp(model, statePath, "fitted"    , "fitted"    , "Is fitted"    , true);
 
-  auto layerPath = path + "/layer";
+  auto layerPath = path1 + "/layer";
 
   addProp(model, layerPath, "drawLayer", "drawLayer", "Draw layer", true);
 
-  auto coloringPath = path + "/coloring";
+  auto coloringPath = path1 + "/coloring";
 
   addProp(model, coloringPath, "defaultPalette"  , "defaultPalette"  ,
           "Default palette");
@@ -387,6 +392,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
           "Ligher when disabled" , true);
   addProp(model, coloringPath, "uncheckedLighter", "uncheckedLighter",
           "Ligher when unchecked", true);
+
+  addProp(model, path1, "value" , "", "Associated value");
 }
 
 void
@@ -826,6 +833,27 @@ editMoveBy(const Point &f)
 
 void
 CQChartsAnnotation::
+moveTo(const Point &p)
+{
+  auto bbox = calcBBox();
+
+  auto c = (bbox.isValid() ? bbox.getCenter() : Point(0, 0));
+
+  double dx = p.x - c.x;
+  double dy = p.y - c.y;
+
+  if (bbox.isValid())
+    bbox.moveBy(Point(dx, dy));
+  else
+    bbox = BBox(p.x - 0.5, p.y - 0.5, p.x + 0.5, p.y + 0.5);
+
+  setEditBBox(bbox, CQChartsResizeSide::NONE);
+}
+
+//---
+
+void
+CQChartsAnnotation::
 calcPenBrush(PenBrush &penBrush)
 {
   // set pen and brush
@@ -894,6 +922,9 @@ drawTerm(PaintDevice *device)
     painter->endGroup();
   }
 
+  if (plot() && plot()->showBoxes())
+    plot()->drawWindowColorBox(device, annotationBBox());
+
   device->restore();
 }
 
@@ -916,7 +947,7 @@ CQChartsAnnotationGroup(Plot *plot) :
 CQChartsAnnotationGroup::
 ~CQChartsAnnotationGroup()
 {
-  for (auto &annotation : annotations_)
+  for (auto *annotation : annotations_)
     annotation->setGroup(nullptr);
 }
 
@@ -924,10 +955,39 @@ void
 CQChartsAnnotationGroup::
 init()
 {
-  setObjectName(QString("group.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
+
+//---
+
+CQChartsRect
+CQChartsAnnotationGroup::
+rectangle() const
+{
+  return Rect(annotationBBox(), parentUnits());
+}
+
+void
+CQChartsAnnotationGroup::
+setRectangle(const Rect &rect)
+{
+  assert(rect.isValid());
+
+  setAnnotationBBox(plot()->rectToPlot(rect));
+}
+
+//---
+
+void
+CQChartsAnnotationGroup::
+setShapeType(const ShapeType &s)
+{
+  CQChartsUtil::testAndSet(shapeType_, s, [&]() { invalidate(); } );
+}
+
+//---
 
 void
 CQChartsAnnotationGroup::
@@ -951,7 +1011,7 @@ removeAnnotation(CQChartsAnnotation *annotation)
 
   Annotations annotations;
 
-  for (auto &annotation1 : annotations_) {
+  for (auto *annotation1 : annotations_) {
     if (annotation != annotation1)
       annotations.push_back(annotation1);
   }
@@ -967,133 +1027,34 @@ removeAnnotation(CQChartsAnnotation *annotation)
 
 void
 CQChartsAnnotationGroup::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+doLayout()
 {
-  auto path1 = path + "/" + propertyId();
-
-  CQChartsAnnotation::addProperties(model, path1);
-
-  addProp(model, path1, "layout"       , "", "Layout children");
-  addProp(model, path1, "layoutOrient" , "", "Layout orientation");
-  addProp(model, path1, "layoutAlign"  , "", "Layout alignment");
-  addProp(model, path1, "layoutSpacing", "", "Layout spacing");
-  addProp(model, path1, "layoutMargin" , "", "Layout margin");
-}
-
-//---
-
-bool
-CQChartsAnnotationGroup::
-inside(const Point &p) const
-{
-  for (auto &annotation : annotations_)
-    if (annotation->inside(p))
-      return true;
-
-  return false;
-}
-
-//---
-
-void
-CQChartsAnnotationGroup::
-setEditBBox(const BBox &bbox, const ResizeSide &)
-{
-  if (isLayout()) {
-    setAnnotationBBox(bbox);
-
-    layout();
-  }
-  else {
-    double dx = bbox.getXMid() - annotationBBox_.getXMid();
-    double dy = bbox.getYMid() - annotationBBox_.getYMid();
-
-    for (auto &annotation : annotations_) {
-      auto bbox1 = annotation->annotationBBox();
-
-      bbox1.moveBy(Point(dx, dy));
-
-      annotation->setEditBBox(bbox1, ResizeSide::MOVE);
-    }
-  }
-}
-
-void
-CQChartsAnnotationGroup::
-flip(Qt::Orientation orient)
-{
-  if (isLayout()) {
-    // TODO
-  }
-  else {
-    bool flipX = (orient == Qt::Horizontal);
-    bool flipY = (orient == Qt::Vertical  );
-
-    auto center = annotationBBox_.getCenter();
-
-    for (auto &annotation : annotations_) {
-      auto bbox1 = annotation->annotationBBox();
-      if (! bbox1.isSet()) continue;
-
-      auto center1 = bbox1.getCenter();
-
-      Point p1 = Point((flipX ? 2*center.x - center1.x : center1.x),
-                       (flipY ? 2*center.y - center1.y : center1.y));
-
-      annotation->flip(orient);
-
-      double dx = p1.x - bbox1.getXMid();
-      double dy = p1.y - bbox1.getYMid();
-
-      bbox1.moveBy(Point(dx, dy));
-
-      annotation->setEditBBox(bbox1, ResizeSide::MOVE);
-    }
-  }
-}
-
-//---
-
-void
-CQChartsAnnotationGroup::
-draw(PaintDevice *device)
-{
-  if (needsLayout_) {
-    if (isLayout())
-      layout();
-
-    needsLayout_ = false;
-  }
+  assert(layoutType() != LayoutType::NONE);
 
   //---
 
-  for (auto &annotation : annotations_)
-    annotation->draw(device);
+  if      (layoutType() == LayoutType::HV)
+    layoutHV();
+  else if (layoutType() == LayoutType::CIRCLE)
+    layoutCircle();
+  else if (layoutType() == LayoutType::TEXT_OVERLAP)
+    layoutTextOverlap();
+  else if (layoutType() == LayoutType::TEXT_CLOUD)
+    layoutTextCloud();
+  else if (layoutType() == LayoutType::TREEMAP)
+    layoutTreemap();
+  else if (layoutType() == LayoutType::GRAPH)
+    layoutGraph();
 
-  //---
+  plot()->drawObjs();
 
-  if (! isLayout()) {
-    BBox bbox;
-
-    for (auto &annotation : annotations_) {
-      const auto &bbox1 = annotation->annotationBBox();
-      if (! bbox1.isSet()) continue;
-
-      bbox += bbox1;
-    }
-
-    setAnnotationBBox(bbox);
-  }
+  initBBox_ = true;
 }
 
 void
 CQChartsAnnotationGroup::
-layout()
+layoutHV()
 {
-  assert(isLayout());
-
-  //---
-
   // place child annotations in bbox
   double x    { 0.0 }, y    { 0.0 };
   double maxW { 0.0 }, maxH { 0.0 };
@@ -1101,7 +1062,7 @@ layout()
 
   int n = 0;
 
-  for (auto &annotation : annotations_) {
+  for (auto *annotation : annotations_) {
     const auto &bbox1 = annotation->annotationBBox();
     if (! bbox1.isSet()) continue;
 
@@ -1143,7 +1104,7 @@ layout()
 
     x += margin;
 
-    for (auto &annotation : annotations_) {
+    for (auto *annotation : annotations_) {
       const auto &bbox1 = annotation->annotationBBox();
       if (! bbox1.isSet()) continue;
 
@@ -1182,7 +1143,7 @@ layout()
 
     y -= margin;
 
-    for (auto &annotation : annotations_) {
+    for (auto *annotation : annotations_) {
       const auto &bbox1 = annotation->annotationBBox();
       if (! bbox1.isSet()) continue;
 
@@ -1211,23 +1172,643 @@ layout()
 
 void
 CQChartsAnnotationGroup::
+layoutCircle()
+{
+  class AnnotationNode : public CQChartsCircleNode {
+   public:
+    AnnotationNode(CQChartsAnnotation *annotation) :
+     annotation_(annotation) {
+    }
+
+    CQChartsAnnotation *annotation() const { return annotation_; }
+
+    double radius() const override {
+      auto bbox = annotation_->calcBBox();
+
+      return (bbox.isValid() ? bbox.getWidth()/2.0 : 1.0);
+    }
+
+   private:
+    CQChartsAnnotation *annotation_ { nullptr };
+  };
+
+  //---
+
+  // pack child annotations using circle pack
+  using Pack = CQChartsCirclePack<AnnotationNode>;
+
+  Pack pack;
+
+  using Nodes = std::vector<AnnotationNode *>;
+
+  Nodes nodes;
+
+  for (auto *annotation : annotations_) {
+    auto *annotationGroup = dynamic_cast<CQChartsAnnotationGroup *>(annotation);
+
+    if (annotationGroup)
+      annotationGroup->layoutCircle();
+
+    //---
+
+    auto *node = new AnnotationNode(annotation);
+
+    nodes.push_back(node);
+
+    pack.addNode(node);
+  }
+
+  //---
+
+  // get bounding circle
+  double xc { 0.0 }, yc { 0.0 }, r { 1.0 };
+
+  pack.boundingCircle(xc, yc, r);
+
+  //---
+
+  // move annotation
+  setDisableSignals(true);
+
+  if (! annotationBBox().isValid()) {
+    auto cbbox = childrenBBox();
+
+    setAnnotationBBox(cbbox);
+  }
+
+  BBox bbox(xc - r, yc - r, xc + r, yc + r);
+
+  moveTo(Point(xc, yc));
+
+  setAnnotationBBox(BBox(xc - r, yc - r, xc + r, yc + r));
+
+  setDisableSignals(false);
+
+  //--
+
+  for (auto *node : nodes) {
+    auto *annotation = node->annotation();
+
+    annotation->setDisableSignals(true);
+
+    annotation->moveTo(Point(node->x(), node->y()));
+
+    annotation->setDisableSignals(false);
+
+    delete node;
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+layoutTextOverlap()
+{
+  const auto &rect = plot()->dataRect();
+  if (! rect.isValid()) return;
+
+  using TextPlacer     = CQChartsTextPlacer;
+  using TextAnnotation = CQChartsTextAnnotation;
+
+  TextPlacer placer;
+
+  using AnnotationDrawTexts = std::map<TextAnnotation *, TextPlacer::DrawText *>;
+
+  AnnotationDrawTexts annotationDrawTexts;
+
+  for (auto *annotation : annotations_) {
+    auto *textAnnotation = dynamic_cast<TextAnnotation *>(annotation);
+    if (! textAnnotation) continue;
+
+    CQChartsTextOptions textOptions;
+
+    auto c = QColor(Qt::black);
+
+    auto bbox = textAnnotation->annotationBBox();
+
+    auto *drawText =
+      new TextPlacer::DrawText(textAnnotation->textStr(), bbox.getCenter(), textOptions,
+                               c, Alpha(), bbox.getCenter());
+
+    drawText->setBBox(bbox);
+
+    placer.addDrawText(drawText);
+
+    annotationDrawTexts[textAnnotation] = drawText;
+  }
+
+  placer.place(rect);
+
+  for (const auto &p : annotationDrawTexts) {
+    auto *textAnnotation = p.first;
+    auto *drawText       = p.second;
+
+    auto bbox = textAnnotation->calcBBox();
+
+    auto c = (bbox.isValid() ? bbox.getCenter() : Point(0, 0));
+
+    double dx = drawText->point.x - c.x;
+    double dy = drawText->point.y - c.y;
+
+    if (bbox.isValid())
+      bbox.moveBy(Point(dx, dy));
+    else
+      bbox = BBox(drawText->point.x - 0.0, drawText->point.y - 0.5,
+                  drawText->point.x + 0.5, drawText->point.y + 0.5);
+
+    textAnnotation->setDisableSignals(true);
+
+    textAnnotation->moveTo(bbox.getCenter());
+
+    textAnnotation->setDisableSignals(false);
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+layoutTextCloud()
+{
+  using WordCloud      = CQChartsWordCloud;
+  using TextAnnotation = CQChartsTextAnnotation;
+
+  WordCloud wordCloud;
+
+  using WordTextAnnotation = std::map<int, TextAnnotation *>;
+
+  WordTextAnnotation wordTextAnnotation;
+
+  for (auto *annotation : annotations_) {
+    auto *textAnnotation = dynamic_cast<TextAnnotation *>(annotation);
+    if (! textAnnotation) continue;
+
+    auto value = std::max(textAnnotation->value().realOr(1.0), 1.0);
+
+    int ind = wordCloud.addWord(textAnnotation->textStr(), value);
+
+    wordTextAnnotation[ind] = textAnnotation;
+  }
+
+  wordCloud.setMinFontSize(plot()->windowToPixelWidth(0.04));
+  wordCloud.setMaxFontSize(plot()->windowToPixelWidth(0.30));
+
+  wordCloud.place(plot());
+
+  for (const auto &wordData : wordCloud.wordDatas()) {
+    BBox bbox(wordData->wordRect.xmin(), wordData->wordRect.ymin(),
+              wordData->wordRect.xmax(), wordData->wordRect.ymax());
+
+    auto *textAnnotation = wordTextAnnotation[wordData->ind];
+
+    textAnnotation->setDisableSignals(true);
+
+    textAnnotation->setTextAlign (Qt::AlignHCenter | Qt::AlignVCenter);
+    textAnnotation->setTextHtml  (true); // TODO: html should not be needed !!
+    textAnnotation->setTextScaled(true);
+
+    //auto f = textAnnotation->textFont();
+    //f.setPointSizeF(wordData->fontSize);
+    //textAnnotation->setTextFont(f);
+
+    textAnnotation->setRectangle(CQChartsRect::plot(bbox));
+
+    textAnnotation->setEditBBox(bbox, CQChartsResizeSide::NONE);
+
+    textAnnotation->setDisableSignals(false);
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+layoutTreemap()
+{
+  auto bbox = annotationBBox();
+  if (! bbox.isValid()) return;
+
+  CQChartsTreeMapPlace place(bbox);
+
+  for (auto *annotation : annotations_) {
+    auto value = std::max(annotation->value().realOr(1.0), 1.0);
+    if (value <= 0.0) continue;
+
+    place.addValue(value, annotation);
+  }
+
+  place.placeValues();
+
+  place.processAreas([&](const BBox &bbox, const CQChartsTreeMapPlace::IArea &iarea) {
+    auto *annotation = static_cast<CQChartsAnnotation *>(iarea.data);
+
+    annotation->setDisableSignals(true);
+
+    annotation->setEditBBox(bbox, CQChartsResizeSide::NONE);
+
+    annotation->setDisableSignals(true);
+  });
+}
+
+void
+CQChartsAnnotationGroup::
+layoutGraph()
+{
+  auto rect = annotationBBox();
+
+  if (! rect.isValid()) {
+    setAnnotationBBox(BBox(0, 0, 100, 100));
+
+    rect = annotationBBox();
+  }
+
+  double w = rect.getWidth ();
+//double h = rect.getHeight();
+
+  CQChartsGraphMgr mgr(plot());
+
+  // use plot units to avoid conversion so we use annotation bbox
+  mgr.setNodeWidth  (Length(w/ 20.0, Units::PLOT));
+  mgr.setNodeXMargin(Length(w/100.0, Units::PLOT));
+  mgr.setNodeYMargin(Length(0.2    , Units::PLOT));
+
+//mgr.setNodeXScaled(true);
+  mgr.setNodeYScaled(true);
+
+  auto *graph = mgr.createGraph("graph");
+
+  for (auto *annotation : annotations_) {
+    if (annotation->subType() != SubType::CONNECTOR)
+      continue;
+
+    auto *connector = dynamic_cast<CQChartsConnectorAnnotation *>(annotation);
+    assert(connector);
+
+    BBox         bbox;
+    CQChartsObj *startObj = nullptr, *endObj = nullptr;
+
+    if (! objectRect(connector->startObjRef(), startObj, bbox) ||
+        ! objectRect(connector->endObjRef  (), endObj  , bbox))
+      continue;
+
+    auto *startAnnotation = dynamic_cast<CQChartsAnnotation *>(startObj);
+    auto *endAnnotation   = dynamic_cast<CQChartsAnnotation *>(endObj  );
+    if (! startAnnotation || ! endAnnotation) continue;
+
+    auto *startNode = mgr.findNode(startAnnotation->pathId());
+    auto *endNode   = mgr.findNode(endAnnotation  ->pathId());
+
+    if (! startNode) {
+      startNode = mgr.addNode(startAnnotation->pathId());
+
+      graph->addNode(startNode);
+    }
+
+    if (! endNode) {
+      endNode = mgr.addNode(endAnnotation->pathId());
+
+      graph->addNode(endNode);
+    }
+
+    CQChartsOptReal value(connector->value());
+
+    auto *edge = mgr.createEdge(value, startNode, endNode);
+
+    startNode->addDestEdge(edge);
+    endNode  ->addSrcEdge (edge);
+  }
+
+  graph->placeGraph(rect);
+
+  for (const auto *node : graph->nodes()) {
+    auto *annotation = plot()->getAnnotationByPathId(node->name());
+    if (! annotation) continue;
+
+    annotation->setDisableSignals(true);
+
+    annotation->setEditBBox(node->rect(), CQChartsResizeSide::NONE);
+
+    annotation->setDisableSignals(false);
+  }
+
+  delete graph;
+}
+
+//---
+
+void
+CQChartsAnnotationGroup::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path, desc);
+
+  auto layoutPath = path1 + "/layout";
+
+  addProp(model, layoutPath, "layoutType"   , "type"   , "Layout type");
+  addProp(model, layoutPath, "layoutOrient" , "orient" , "Layout orientation");
+  addProp(model, layoutPath, "layoutAlign"  , "align"  , "Layout alignment");
+  addProp(model, layoutPath, "layoutSpacing", "spacing", "Layout spacing");
+  addProp(model, layoutPath, "layoutMargin" , "margn"  , "Layout margin");
+
+  addProp(model, path1, "rectangle", "", "Rectangle");
+  addProp(model, path1, "shapeType", "", "Shape type");
+
+  addStrokeFillProperties(model, path1);
+}
+
+//---
+
+bool
+CQChartsAnnotationGroup::
+inside(const Point &p) const
+{
+  for (auto *annotation : annotations_)
+    if (annotation->inside(p))
+      return true;
+
+  return false;
+}
+
+//---
+
+void
+CQChartsAnnotationGroup::
+setEditBBox(const BBox &bbox, const ResizeSide &dragSide)
+{
+  moveChildren(bbox);
+
+  setAnnotationBBox(bbox);
+
+  if (dragSide != CQChartsResizeSide::NONE && dragSide != CQChartsResizeSide::MOVE) {
+    if (layoutType() != LayoutType::NONE)
+      doLayout();
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+moveChildren(const BBox &bbox)
+{
+  if (! annotationBBox_.isValid())
+    return;
+
+  double dx = bbox.getXMid() - annotationBBox_.getXMid();
+  double dy = bbox.getYMid() - annotationBBox_.getYMid();
+  if (! dx && ! dy) return;
+
+  moveChildren(dx, dy);
+}
+
+void
+CQChartsAnnotationGroup::
+moveChildren(double dx, double dy)
+{
+  for (auto *annotation : annotations_) {
+    auto bbox1 = annotation->annotationBBox();
+    if (! bbox1.isValid()) continue;
+
+    bbox1.moveBy(Point(dx, dy));
+
+    annotation->moveTo(bbox1.getCenter());
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+moveTo(const Point &p)
+{
+  auto bbox = calcBBox();
+
+  auto c = (bbox.isValid() ? bbox.getCenter() : Point(0, 0));
+
+  double dx = p.x - c.x;
+  double dy = p.y - c.y;
+
+  moveChildren(dx, dy);
+
+  if (bbox.isValid()) {
+    bbox.moveBy(Point(dx, dy));
+
+    setAnnotationBBox(bbox);
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+flip(Qt::Orientation orient)
+{
+  if (layoutType() != LayoutType::NONE) {
+    // TODO
+  }
+  else {
+    bool flipX = (orient == Qt::Horizontal);
+    bool flipY = (orient == Qt::Vertical  );
+
+    auto center = annotationBBox_.getCenter();
+
+    for (auto *annotation : annotations_) {
+      auto bbox1 = annotation->annotationBBox();
+      if (! bbox1.isSet()) continue;
+
+      auto center1 = bbox1.getCenter();
+
+      Point p1 = Point((flipX ? 2*center.x - center1.x : center1.x),
+                       (flipY ? 2*center.y - center1.y : center1.y));
+
+      annotation->flip(orient);
+
+      double dx = p1.x - bbox1.getXMid();
+      double dy = p1.y - bbox1.getYMid();
+
+      bbox1.moveBy(Point(dx, dy));
+
+      annotation->moveTo(bbox1.getCenter());
+    }
+  }
+}
+
+//---
+
+CQChartsGeom::BBox
+CQChartsAnnotationGroup::
+childrenBBox() const
+{
+  BBox bbox;
+
+  for (auto *annotation : annotations_) {
+    const auto &bbox1 = annotation->calcBBox();
+    if (! bbox1.isSet()) continue;
+
+    bbox += bbox1;
+  }
+
+  return bbox;
+}
+
+//---
+
+void
+CQChartsAnnotationGroup::
+draw(PaintDevice *device)
+{
+  if (initBBox_) {
+    auto bbox = childrenBBox();
+
+    if (bbox.isValid()) {
+      setAnnotationBBox(bbox);
+
+      initBBox_ = false;
+    }
+  }
+
+  //---
+
+  if (needsLayout_) {
+    if (layoutType() != LayoutType::NONE)
+      doLayout();
+
+    needsLayout_ = false;
+  }
+
+  //---
+
+  drawInit(device);
+
+  //---
+
+  // draw box
+  if (shapeType() != ShapeType::NONE) {
+    // set pen and brush
+    PenBrush penBrush;
+
+    calcPenBrush(penBrush);
+
+    updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+
+    //---
+
+    auto rect = annotationBBox();
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    if      (shapeType() == ShapeType::BOX)
+      device->drawRect(rect);
+    else if (shapeType() == ShapeType::CIRCLE)
+      device->drawEllipse(rect);
+  }
+
+  //---
+
+  for (auto *annotation : annotations_)
+    annotation->draw(device);
+
+  //---
+
+  if (layoutType() == LayoutType::NONE) {
+    BBox bbox;
+
+    for (auto *annotation : annotations_) {
+      const auto &bbox1 = annotation->annotationBBox();
+      if (! bbox1.isSet()) continue;
+
+      bbox += bbox1;
+    }
+
+    setAnnotationBBox(bbox);
+  }
+
+  //---
+
+  drawTerm(device);
+}
+
+void
+CQChartsAnnotationGroup::
 writeDetails(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  for (auto &annotation : annotations_)
+  for (auto *annotation : annotations_)
     annotation->write(os, parentVarName, varName);
+}
+
+//------
+
+CQChartsShapeAnnotation::
+CQChartsShapeAnnotation(View *view, Type type) :
+ CQChartsAnnotation(view, type)
+{
+}
+
+CQChartsShapeAnnotation::
+CQChartsShapeAnnotation(Plot *plot, Type type) :
+ CQChartsAnnotation(plot, type)
+{
+}
+
+CQChartsShapeAnnotation::
+~CQChartsShapeAnnotation()
+{
+}
+
+//---
+
+void
+CQChartsShapeAnnotation::
+setTextInd(const QString &ind)
+{
+  if (ind != textInd_) {
+    auto *textAnnotation = dynamic_cast<CQChartsTextAnnotation *>(
+      plot()->getAnnotationByPathId(textInd_));
+
+    if (textAnnotation)
+      textAnnotation->setVisible(true);
+
+    textInd_ = ind;
+
+    textAnnotation = dynamic_cast<CQChartsTextAnnotation *>(
+      plot()->getAnnotationByPathId(textInd_));
+
+    if (textAnnotation)
+      textAnnotation->setVisible(false);
+
+    emitDataChanged();
+  }
+}
+
+void
+CQChartsShapeAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "textInd", "", "text annotation ind");
+
+  CQChartsAnnotation::addProperties(model, path, desc);
+}
+
+void
+CQChartsShapeAnnotation::
+drawText(PaintDevice *device, const BBox &rect)
+{
+  if (textInd() == "")
+    return;
+
+  auto *textAnnotation = dynamic_cast<CQChartsTextAnnotation *>(
+    plot()->getAnnotationByPathId(textInd()));
+
+  if (! textAnnotation)
+    return;
+
+  textAnnotation->drawInRect(device, rect);
 }
 
 //------
 
 CQChartsPolyShapeAnnotation::
 CQChartsPolyShapeAnnotation(View *view, Type type, const Polygon &polygon) :
- CQChartsAnnotation(view, type), polygon_(polygon)
+ CQChartsShapeAnnotation(view, type), polygon_(polygon)
 {
 }
 
 CQChartsPolyShapeAnnotation::
 CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon) :
- CQChartsAnnotation(plot, type), polygon_(polygon)
+ CQChartsShapeAnnotation(plot, type), polygon_(polygon)
 {
 }
 
@@ -1242,14 +1823,14 @@ setPolygon(const Polygon &polygon)
 
 CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(View *view, const Rect &rectangle) :
- CQChartsAnnotation(view, Type::RECT), rectangle_(rectangle)
+ CQChartsShapeAnnotation(view, Type::RECT), rectangle_(rectangle)
 {
   init();
 }
 
 CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(Plot *plot, const Rect &rectangle) :
- CQChartsAnnotation(plot, Type::RECT), rectangle_(rectangle)
+ CQChartsShapeAnnotation(plot, Type::RECT), rectangle_(rectangle)
 {
   init();
 }
@@ -1265,7 +1846,7 @@ init()
 {
   assert(rectangle_.isValid());
 
-  setObjectName(QString("rectangle.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setMargin(CQChartsMargin());
 
@@ -1393,6 +1974,17 @@ setSymbolSize(const Length &s)
 
 //---
 
+void
+CQChartsRectangleAnnotation::
+setModelIndex(const ModelIndex &ind)
+{
+  CQChartsUtil::testAndSet(modelIndex_, ind, [&]() {
+    modelIndex_.setPlot(plot()); emitDataChanged();
+  } );
+}
+
+//---
+
 bool
 CQChartsRectangleAnnotation::
 intersectShape(const Point &p1, const Point &p2, Point &pi) const
@@ -1447,11 +2039,11 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
 
 void
 CQChartsRectangleAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "rectangle" , "", "Rectangle bounding box");
   addProp(model, path1, "start"     , "", "Rectangle bottom left", true);
@@ -1574,6 +2166,10 @@ draw(PaintDevice *device)
 
   //---
 
+  drawText(device, annotationBBox());
+
+  //---
+
   drawTerm(device);
 }
 
@@ -1617,7 +2213,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(View *view, const Position &center, const Length &xRadius,
                           const Length &yRadius) :
- CQChartsAnnotation(view, Type::ELLIPSE), center_(center), xRadius_(xRadius), yRadius_(yRadius)
+ CQChartsShapeAnnotation(view, Type::ELLIPSE), center_(center), xRadius_(xRadius), yRadius_(yRadius)
 {
   init();
 }
@@ -1625,7 +2221,7 @@ CQChartsEllipseAnnotation(View *view, const Position &center, const Length &xRad
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(Plot *plot, const Position &center, const Length &xRadius,
                           const Length &yRadius) :
- CQChartsAnnotation(plot, Type::ELLIPSE), center_(center), xRadius_(xRadius), yRadius_(yRadius)
+ CQChartsShapeAnnotation(plot, Type::ELLIPSE), center_(center), xRadius_(xRadius), yRadius_(yRadius)
 {
   init();
 }
@@ -1648,7 +2244,7 @@ init()
 {
   assert(xRadius_.value() > 0.0 && yRadius_.value() > 0.0);
 
-  setObjectName(QString("ellipse.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
 
@@ -1659,11 +2255,11 @@ init()
 
 void
 CQChartsEllipseAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "center" , "", "Ellipse center point");
   addProp(model, path1, "xRadius", "", "Ellipse x radius");
@@ -1674,11 +2270,25 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
 //---
 
+CQChartsGeom::BBox
+CQChartsEllipseAnnotation::
+calcBBox() const
+{
+  auto c = positionToParent(objRef(), center());
+
+  double xr = lengthParentWidth (xRadius());
+  double yr = lengthParentHeight(yRadius());
+
+  return BBox(c.x - xr, c.y - yr, c.x + xr, c.y + yr);
+}
+
+//---
+
 void
 CQChartsEllipseAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  center_ = Position(bbox.getCenter(), Position::Units::PLOT);
+  center_ = Position::plot(bbox.getCenter());
 
   double w = bbox.getWidth ();
   double h = bbox.getHeight();
@@ -1689,6 +2299,17 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   yRadius_ = Length(h/2, parentUnits());
 
   setAnnotationBBox(bbox);
+}
+
+//---
+
+void
+CQChartsEllipseAnnotation::
+moveTo(const Point &p)
+{
+  center_ = Position::plot(p);
+
+  setAnnotationBBox(calcBBox());
 }
 
 //---
@@ -1755,6 +2376,10 @@ draw(PaintDevice *device)
 
   //---
 
+  drawText(device, annotationBBox());
+
+  //---
+
   drawTerm(device);
 }
 
@@ -1813,7 +2438,7 @@ init()
 {
   assert(polygon_.isValid(/*closed*/true));
 
-  setObjectName(QString("polygon.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
   setFilled (true);
@@ -1823,6 +2448,8 @@ init()
   connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
           this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
+
+//---
 
 void
 CQChartsPolygonAnnotation::
@@ -1835,11 +2462,11 @@ setRoundedLines(bool b)
 
 void
 CQChartsPolygonAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsPolyShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "polygon"     , ""       , "Polygon points");
   addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
@@ -2025,6 +2652,8 @@ initSmooth() const
   }
 }
 
+//---
+
 void
 CQChartsPolygonAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
@@ -2065,7 +2694,7 @@ init()
 {
   assert(polygon_.isValid(/*closed*/false));
 
-  setObjectName(QString("polyline.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
 
@@ -2074,6 +2703,8 @@ init()
   connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
           this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
+
+//---
 
 void
 CQChartsPolylineAnnotation::
@@ -2086,11 +2717,11 @@ setRoundedLines(bool b)
 
 void
 CQChartsPolylineAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsPolyShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "polygon"     , ""       , "Polyline points");
   addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
@@ -2297,7 +2928,7 @@ initSmooth() const
   }
 }
 
-//--
+//---
 
 void
 CQChartsPolylineAnnotation::
@@ -2359,7 +2990,7 @@ void
 CQChartsTextAnnotation::
 init(const QString &textStr)
 {
-  setObjectName(QString("text.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr);
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
@@ -2369,6 +3000,8 @@ init(const QString &textStr)
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
+
+//---
 
 CQChartsPosition
 CQChartsTextAnnotation::
@@ -2430,7 +3063,7 @@ setRectangle(const OptRect &r)
       if (rectangle_.isSet())
         position_  = OptPosition(rectangleValue().center());
       else
-        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+        position_  = OptPosition(Position::pixel(Point(0, 0)));
     }
 
     rectangle_ = OptRect();
@@ -2461,11 +3094,11 @@ rectToBBox()
 
 void
 CQChartsTextAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position" , "", "Text origin");
   addProp(model, path1, "rectangle", "", "Text bounding box");
@@ -2598,6 +3231,9 @@ void
 CQChartsTextAnnotation::
 draw(PaintDevice *device)
 {
+  if (! isVisible())
+    return;
+
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
@@ -2609,8 +3245,15 @@ draw(PaintDevice *device)
 
   drawInit(device);
 
-  //---
+  drawInRect(device, rect_);
 
+  drawTerm(device);
+}
+
+void
+CQChartsTextAnnotation::
+drawInRect(PaintDevice *device, const BBox &rect)
+{
   // set rect pen and brush
   PenBrush penBrush;
 
@@ -2622,7 +3265,7 @@ draw(PaintDevice *device)
   //---
 
   // draw box
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect, cornerSize(), borderSides());
 
   //---
 
@@ -2675,7 +3318,7 @@ draw(PaintDevice *device)
   //---
 
   // set box
-//auto pbbox = windowToPixel(rect_);
+//auto pbbox = windowToPixel(rect);
 
   // get inner padding
   double xlp, xrp, ytp, ybp;
@@ -2687,10 +3330,10 @@ draw(PaintDevice *device)
 
   getMarginValues(xlm, xrm, ytm, ybm);
 
-  double tx =          rect_.getXMin  () +       xlm + xlp;
-  double ty =          rect_.getYMin  () +       ybm + ybp;
-  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+  double tx =          rect.getXMin  () +       xlm + xlp;
+  double ty =          rect.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2702,10 +3345,6 @@ draw(PaintDevice *device)
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
   }
-
-  //---
-
-  drawTerm(device);
 }
 
 void
@@ -2810,7 +3449,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const Position &position, const Image &image) :
- CQChartsAnnotation(view, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotation(view, Type::IMAGE), image_(image)
 {
   setPosition(position);
 
@@ -2819,7 +3458,7 @@ CQChartsImageAnnotation(View *view, const Position &position, const Image &image
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const Position &position, const Image &image) :
- CQChartsAnnotation(plot, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotation(plot, Type::IMAGE), image_(image)
 {
   setPosition(position);
 
@@ -2828,7 +3467,7 @@ CQChartsImageAnnotation(Plot *plot, const Position &position, const Image &image
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const Rect &rect, const Image &image) :
- CQChartsAnnotation(view, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotation(view, Type::IMAGE), image_(image)
 {
   setRectangle(rect);
 
@@ -2837,7 +3476,7 @@ CQChartsImageAnnotation(View *view, const Rect &rect, const Image &image) :
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const Rect &rect, const Image &image) :
- CQChartsAnnotation(plot, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotation(plot, Type::IMAGE), image_(image)
 {
   setRectangle(rect);
 
@@ -2853,7 +3492,7 @@ void
 CQChartsImageAnnotation::
 init()
 {
-  setObjectName(QString("image.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   disabledImage_ = Image();
 
@@ -2862,6 +3501,8 @@ init()
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
+
+//---
 
 CQChartsPosition
 CQChartsImageAnnotation::
@@ -2923,7 +3564,7 @@ setRectangle(const OptRect &r)
       if (rectangle_.isSet())
         position_  = OptPosition(rectangleValue().center());
       else
-        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+        position_  = OptPosition(Position::pixel(Point(0, 0)));
     }
 
     rectangle_ = OptRect();
@@ -2983,11 +3624,11 @@ setDisabledImage(const Image &image)
 
 void
 CQChartsImageAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position"     , "position"     , "Image origin");
   addProp(model, path1, "rectangle"    , "rectangle"    , "Image bounding box");
@@ -3056,7 +3697,7 @@ bool
 CQChartsImageAnnotation::
 inside(const Point &p) const
 {
-  return CQChartsAnnotation::inside(p);
+  return CQChartsShapeAnnotation::inside(p);
 }
 
 void
@@ -3241,14 +3882,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsPathAnnotation::
 CQChartsPathAnnotation(View *view, const Path &path) :
- CQChartsAnnotation(view, Type::PATH), path_(path)
+ CQChartsShapeAnnotation(view, Type::PATH), path_(path)
 {
   init();
 }
 
 CQChartsPathAnnotation::
 CQChartsPathAnnotation(Plot *plot, const Path &path) :
- CQChartsAnnotation(plot, Type::PATH), path_(path)
+ CQChartsShapeAnnotation(plot, Type::PATH), path_(path)
 {
   init();
 }
@@ -3262,7 +3903,7 @@ void
 CQChartsPathAnnotation::
 init()
 {
-  setObjectName(QString("path.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
   setFilled (true);
@@ -3272,6 +3913,8 @@ init()
   connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
           this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
+
+//---
 
 void
 CQChartsPathAnnotation::
@@ -3286,11 +3929,11 @@ setPath(const Path &path)
 
 void
 CQChartsPathAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "path", "path", "Path name");
 
@@ -3439,16 +4082,35 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
+CQChartsConnectorAnnotation::
+CQChartsConnectorAnnotation(View *view, Type type) :
+ CQChartsAnnotation(view, type)
+{
+}
+
+CQChartsConnectorAnnotation::
+CQChartsConnectorAnnotation(Plot *plot, Type type) :
+ CQChartsAnnotation(plot, type)
+{
+}
+
+CQChartsConnectorAnnotation::
+~CQChartsConnectorAnnotation()
+{
+}
+
+//------
+
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(View *view, const Position &start, const Position &end) :
- CQChartsAnnotation(view, Type::ARROW), start_(start), end_(end)
+ CQChartsConnectorAnnotation(view, Type::ARROW), start_(start), end_(end)
 {
   init();
 }
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(Plot *plot, const Position &start, const Position &end) :
- CQChartsAnnotation(plot, Type::ARROW), start_(start), end_(end)
+ CQChartsConnectorAnnotation(plot, Type::ARROW), start_(start), end_(end)
 {
   init();
 }
@@ -3464,7 +4126,7 @@ void
 CQChartsArrowAnnotation::
 init()
 {
-  setObjectName(QString("arrow.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -3525,7 +4187,7 @@ setArrowData(const CQChartsArrowData &data)
 
 void
 CQChartsArrowAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
@@ -3546,7 +4208,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "start"      , "", "Arrow start point");
   addProp(model, path1, "startObjRef", "", "Arrow start object reference");
@@ -3670,8 +4332,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   start.setX(x1); end.setX(x2);
   start.setY(y1); end.setY(y2);
 
-  start_ = Position(start, Position::Units::PLOT);
-  end_   = Position(end  , Position::Units::PLOT);
+  start_ = Position::plot(start);
+  end_   = Position::plot(end  );
 
   setAnnotationBBox(bbox);
 }
@@ -3962,14 +4624,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(View *view, const Position &start, const Position &end) :
- CQChartsAnnotation(view, Type::ARC), start_(start), end_(end)
+ CQChartsConnectorAnnotation(view, Type::ARC), start_(start), end_(end)
 {
   init();
 }
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(Plot *plot, const Position &start, const Position &end) :
- CQChartsAnnotation(plot, Type::ARC), start_(start), end_(end)
+ CQChartsConnectorAnnotation(plot, Type::ARC), start_(start), end_(end)
 {
   init();
 }
@@ -3997,7 +4659,7 @@ void
 CQChartsArcAnnotation::
 init()
 {
-  setObjectName(QString("arc.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -4046,11 +4708,11 @@ setLineWidth(const Length &l)
 
 void
 CQChartsArcAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "start"      , "", "Arc start point");
   addProp(model, path1, "startObjRef", "", "Arc start object reference");
@@ -4227,6 +4889,190 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
+CQChartsArcConnectorAnnotation::
+CQChartsArcConnectorAnnotation(Plot *plot, const Position &center, const Length &radius,
+                               const Angle &srcStartAngle, const Angle &srcSpanAngle,
+                               const Angle &destStartAngle, const Angle &destSpanAngle,
+                               bool self) :
+ CQChartsConnectorAnnotation(plot, Type::ARC_CONNECTOR), center_(center), radius_(radius),
+ srcStartAngle_(srcStartAngle), srcSpanAngle_(srcSpanAngle),
+ destStartAngle_(destStartAngle), destSpanAngle_(destSpanAngle), self_(self)
+{
+  init();
+}
+
+CQChartsArcConnectorAnnotation::
+~CQChartsArcConnectorAnnotation()
+{
+}
+
+void
+CQChartsArcConnectorAnnotation::
+init()
+{
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  setStroked(true);
+  setFilled (true);
+}
+
+//---
+
+void
+CQChartsArcConnectorAnnotation::
+setCenter(const Position &c)
+{
+  CQChartsUtil::testAndSet(center_, c, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setRadius(const Length &r)
+{
+  CQChartsUtil::testAndSet(radius_, r, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setSrcStartAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(srcStartAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setSrcSpanAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(srcSpanAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setDestStartAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(destStartAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setDestSpanAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(destSpanAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsArcConnectorAnnotation::
+setSelf(bool b)
+{
+  CQChartsUtil::testAndSet(self_, b, [&]() { emitDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsArcConnectorAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path, desc);
+
+  addProp(model, path1, "center"        , "", "Arc connector center");
+  addProp(model, path1, "radius"        , "", "Arc connector radius");
+  addProp(model, path1, "srcStartAngle" , "", "Arc connector source start angle");
+  addProp(model, path1, "srcSpanAngle"  , "", "Arc connector source span angle");
+  addProp(model, path1, "destStartAngle", "", "Arc connector destination start angle");
+  addProp(model, path1, "destSpanAngle" , "", "Arc connector destination span angle");
+  addProp(model, path1, "self"          , "", "Arc connector is self");
+
+  //---
+
+  addStrokeFillProperties(model, path1);
+}
+
+void
+CQChartsArcConnectorAnnotation::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsAnnotation::getPropertyNames(names, hidden);
+}
+
+//---
+
+void
+CQChartsArcConnectorAnnotation::
+setEditBBox(const BBox &, const ResizeSide &)
+{
+}
+
+//---
+
+bool
+CQChartsArcConnectorAnnotation::
+inside(const Point &p) const
+{
+  QPainterPath path;
+
+  calcPath(path);
+
+  return path.contains(p.qpoint());
+}
+
+void
+CQChartsArcConnectorAnnotation::
+draw(PaintDevice *device)
+{
+  drawInit(device);
+
+  //---
+
+  // set pen and brush
+  PenBrush penBrush;
+
+  calcPenBrush(penBrush);
+
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+
+  //---
+
+  // draw path
+  QPainterPath path;
+
+  calcPath(path);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawPath(path);
+
+  //---
+
+  drawTerm(device);
+}
+
+void
+CQChartsArcConnectorAnnotation::
+calcPath(QPainterPath &path) const
+{
+  auto center = positionToParent(this->center());
+
+  double xr = lengthParentWidth (this->radius());
+  double yr = lengthParentHeight(this->radius());
+
+  BBox ibbox(center.x - xr, center.y - yr, center.x + xr, center.y + yr);
+
+  CQChartsDrawUtil::arcsConnectorPath(path, ibbox, srcStartAngle(), srcSpanAngle(),
+                                      destStartAngle(), destSpanAngle(), isSelf());
+}
+
+void
+CQChartsArcConnectorAnnotation::
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
+{
+  writeProperties(os, varName);
+}
+
+//------
+
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(View *view, const Position &position, const Symbol &symbol) :
  CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
@@ -4266,7 +5112,7 @@ void
 CQChartsPointAnnotation::
 init(const Symbol &symbol)
 {
-  setObjectName(QString("point.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setSymbol(symbol);
 }
@@ -4275,11 +5121,11 @@ init(const Symbol &symbol)
 
 void
 CQChartsPointAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position", "", "Point position");
   addProp(model, path1, "objRef"  , "", "Object reference");
@@ -4452,7 +5298,7 @@ CQChartsPieSliceAnnotation::
 CQChartsPieSliceAnnotation(View *view, const Position &position, const Length &innerRadius,
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
- CQChartsAnnotation(view, Type::PIE_SLICE), position_(position),
+ CQChartsShapeAnnotation(view, Type::PIE_SLICE), position_(position),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
@@ -4463,7 +5309,7 @@ CQChartsPieSliceAnnotation::
 CQChartsPieSliceAnnotation(Plot *plot, const Position &position, const Length &innerRadius,
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
- CQChartsAnnotation(plot, Type::PIE_SLICE), position_(position),
+ CQChartsShapeAnnotation(plot, Type::PIE_SLICE), position_(position),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
@@ -4475,6 +5321,8 @@ CQChartsPieSliceAnnotation::
 {
 }
 
+//---
+
 void
 CQChartsPieSliceAnnotation::
 setPosition(const Position &p)
@@ -4484,9 +5332,53 @@ setPosition(const Position &p)
 
 void
 CQChartsPieSliceAnnotation::
+setObjRef(const ObjRef &o)
+{
+  CQChartsUtil::testAndSet(objRef_, o, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPieSliceAnnotation::
+setInnerRadius(const Length &r)
+{
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPieSliceAnnotation::
+setOuterRadius(const Length &r)
+{
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPieSliceAnnotation::
+setStartAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(startAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPieSliceAnnotation::
+setSpanAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(spanAngle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsPieSliceAnnotation::
+setSegment(bool b)
+{
+  CQChartsUtil::testAndSet(segment_, b, [&]() { emitDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsPieSliceAnnotation::
 init()
 {
-  setObjectName(QString("pie_slice.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -4498,17 +5390,18 @@ init()
 
 void
 CQChartsPieSliceAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position"   , "", "Pie slice position");
   addProp(model, path1, "innerRadius", "", "Pie slice inner radius");
   addProp(model, path1, "outerRadius", "", "Pie slice outer radius");
   addProp(model, path1, "startAngle" , "", "Pie slice start angle");
   addProp(model, path1, "spanAngle"  , "", "Pie slice span angle");
+  addProp(model, path1, "segment"    , "", "Pie slice is segment");
 
   addStrokeFillProperties(model, path1);
 }
@@ -4526,7 +5419,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   p += Point(dx, dy);
 
-  position_ = Position(p, Position::Units::PLOT);
+  position_ = Position::plot(p);
 
   setAnnotationBBox(bbox);
 }
@@ -4587,8 +5480,33 @@ draw(PaintDevice *device)
   // draw pie slice
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawPieSlice(device, c, CMathUtil::avg(xri, yri), CMathUtil::avg(xro, yro),
-                                 startAngle(), startAngle() + spanAngle(), false, false);
+  double ri = CMathUtil::avg(xri, yri);
+  double ro = CMathUtil::avg(xro, yro);
+
+  QPainterPath path;
+
+  if (! isSegment()) { // works for zero innter radius ?
+    auto a2 = startAngle() + spanAngle();
+
+    CQChartsDrawUtil::pieSlicePath(path, c, ri, ro, startAngle(), a2, false, false);
+
+    if (CQChartsAngle::isCircle(startAngle(), a2))
+      CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, startAngle(), a2, false, false);
+    else
+      device->drawPath(path);
+  }
+  else {
+    BBox ibbox(c.x - ri, c.y - ri, c.x + ri, c.x + ri);
+    BBox obbox(c.x - ro, c.y - ro, c.x + ro, c.x + ro);
+
+    CQChartsDrawUtil::arcSegmentPath(path, ibbox, obbox, startAngle(), spanAngle());
+
+    device->drawPath(path);
+  }
+
+  //---
+
+  drawText(device, BBox(path.boundingRect()));
 
   //---
 
@@ -4623,17 +5541,16 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsAxisAnnotation::
 CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction, double start, double end) :
- CQChartsAnnotation(plot, Type::AXIS)
+ CQChartsAnnotation(plot, Type::AXIS), direction_(direction), start_(start), end_(end)
 {
   init();
 
-  axis_ = std::make_unique<Axis>(plot, direction, start, end);
+  axis_ = std::make_unique<Axis>(plot_, direction_, start_, end_);
 
   axis_->setAnnotation     (true);
   axis_->setAllowHtmlLabels(true);
 
-  connect(axis_.get(), SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
-  connect(axis_.get(), SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
+  connectAxis(true);
 }
 
 CQChartsAxisAnnotation::
@@ -4645,7 +5562,7 @@ void
 CQChartsAxisAnnotation::
 init()
 {
-  setObjectName(QString("axis.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -4653,71 +5570,65 @@ init()
   setFilled (false);
 }
 
-Qt::Orientation
-CQChartsAxisAnnotation::
-direction()
-{
-  return axis_->direction();
-}
+//---
 
 void
 CQChartsAxisAnnotation::
-setDirection(Qt::Orientation &d)
+connectAxis(bool b)
 {
-  axis_->setDirection(d);
-}
-
-double
-CQChartsAxisAnnotation::
-start() const
-{
-  return axis_->start();
-}
-
-void
-CQChartsAxisAnnotation::
-setStart(double r)
-{
-  axis_->setStart(r);
-}
-
-double
-CQChartsAxisAnnotation::
-end() const
-{
-  return axis_->end();
-}
-
-void
-CQChartsAxisAnnotation::
-setEnd(double r)
-{
-  axis_->setEnd(r);
-}
-
-double
-CQChartsAxisAnnotation::
-position() const
-{
-  return axis_->position().realOr(0.0);
-}
-
-void
-CQChartsAxisAnnotation::
-setPosition(double r)
-{
-  axis_->setPosition(CQChartsOptReal(r));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    axis_.get(), SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    axis_.get(), SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
 }
 
 //---
 
 void
 CQChartsAxisAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+setDirection(Qt::Orientation &d)
+{
+  direction_ = d;
+
+  axis_->setDirection(direction_);
+}
+
+void
+CQChartsAxisAnnotation::
+setPosition(double r)
+{
+  position_ = r;
+
+  axis_->setPosition(CQChartsOptReal(position_));
+}
+
+void
+CQChartsAxisAnnotation::
+setStart(double r)
+{
+  start_ = r;
+
+  axis_->setStart(start_);
+}
+
+void
+CQChartsAxisAnnotation::
+setEnd(double r)
+{
+  end_ = r;
+
+  axis_->setEnd(end_);
+}
+
+//---
+
+void
+CQChartsAxisAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 
@@ -4753,6 +5664,48 @@ draw(PaintDevice *device)
 {
   if (! isVisible())
     return;
+
+  if (objRef_.isValid()) {
+    Point p1, p2;
+
+    if (direction_ == Qt::Horizontal) {
+      p1 = Point(start_, position_);
+      p2 = Point(end_  , position_);
+    }
+    else {
+      p1 = Point(position_, start_);
+      p2 = Point(position_, end_  );
+    }
+
+    auto ll = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::LL);
+    auto ur = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::UR);
+
+    auto start = positionToParent(ll, Position(p1, parentUnits()));
+    auto end   = positionToParent(ur, Position(p2, parentUnits()));
+
+    connectAxis(false);
+
+    axis_->setUpdatesEnabled(false);
+
+    if (direction_ == Qt::Horizontal) {
+      axis_->setStart   (start.x);
+      axis_->setEnd     (end  .x);
+      axis_->setPosition(OptReal(start.y));
+    }
+    else {
+      axis_->setStart   (start.y);
+      axis_->setEnd     (end  .y);
+      axis_->setPosition(OptReal(start.x));
+    }
+
+    axis_->updateCalc();
+
+    axis_->setUpdatesEnabled(true);
+
+    connectAxis(true);
+  }
+
+  //---
 
   drawInit(device);
 
@@ -4866,7 +5819,7 @@ void
 CQChartsKeyAnnotation::
 init()
 {
-  setObjectName(QString("key.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
@@ -4875,11 +5828,11 @@ init()
 
 void
 CQChartsKeyAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addStrokeProperties(model, path1 + "/stroke");
 
@@ -4990,14 +5943,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsPointSetAnnotation::
 CQChartsPointSetAnnotation(View *view, const Rect &rectangle, const Points &points) :
- CQChartsAnnotation(view, Type::POINT_SET), rectangle_(rectangle), values_(points)
+ CQChartsShapeAnnotation(view, Type::POINT_SET), rectangle_(rectangle), values_(points)
 {
   init();
 }
 
 CQChartsPointSetAnnotation::
 CQChartsPointSetAnnotation(Plot *plot, const Rect &rectangle, const Points &points) :
- CQChartsAnnotation(plot, Type::POINT_SET), rectangle_(rectangle), values_(points)
+ CQChartsShapeAnnotation(plot, Type::POINT_SET), rectangle_(rectangle), values_(points)
 {
   init();
 }
@@ -5015,7 +5968,7 @@ init()
 {
   assert(rectangle_.isValid());
 
-  setObjectName(QString("pointset.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -5144,11 +6097,11 @@ calcValues()
 
 void
 CQChartsPointSetAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "values"  , "", "Values");
   addProp(model, path1, "xColumn" , "", "X Column");
@@ -5502,14 +6455,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsPoint3DSetAnnotation::
 CQChartsPoint3DSetAnnotation(View *view, const Points &points) :
- CQChartsAnnotation(view, Type::POINT_SET), points_(points)
+ CQChartsShapeAnnotation(view, Type::POINT_SET), points_(points)
 {
   init();
 }
 
 CQChartsPoint3DSetAnnotation::
 CQChartsPoint3DSetAnnotation(Plot *plot, const Points &points) :
- CQChartsAnnotation(plot, Type::POINT3D_SET), points_(points)
+ CQChartsShapeAnnotation(plot, Type::POINT3D_SET), points_(points)
 {
   init();
 }
@@ -5523,7 +6476,7 @@ void
 CQChartsPoint3DSetAnnotation::
 init()
 {
-  setObjectName(QString("point3dset.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -5532,6 +6485,8 @@ init()
 
   updateValues();
 }
+
+//---
 
 void
 CQChartsPoint3DSetAnnotation::
@@ -5548,11 +6503,11 @@ updateValues()
 
 void
 CQChartsPoint3DSetAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "drawType", "", "Draw type");
 
@@ -5680,14 +6635,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsValueSetAnnotation::
 CQChartsValueSetAnnotation(View *view, const Rect &rectangle, const Reals &reals) :
- CQChartsAnnotation(view, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
+ CQChartsShapeAnnotation(view, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
 {
   init();
 }
 
 CQChartsValueSetAnnotation::
 CQChartsValueSetAnnotation(Plot *plot, const Rect &rectangle, const Reals &reals) :
- CQChartsAnnotation(plot, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
+ CQChartsShapeAnnotation(plot, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
 {
   init();
 }
@@ -5705,7 +6660,7 @@ init()
 {
   assert(rectangle_.isValid());
 
-  setObjectName(QString("valueset.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -5747,7 +6702,7 @@ CQChartsValueSetAnnotation::
 setModelColumn(const ModelColumn &c)
 {
   CQChartsUtil::testAndSet(modelColumn_, c, [&]() {
-    modelColumn_ = c; modelColumn_.setCharts(charts()); updateValues(); emitDataChanged();
+    modelColumn_.setCharts(charts()); updateValues(); emitDataChanged();
   } );
 }
 
@@ -5819,7 +6774,7 @@ calcReals()
 
 void
 CQChartsValueSetAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto addDensityProp = [&](const QString &path, const QString &name, const QString &alias,
                             const QString &desc) {
@@ -5832,7 +6787,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "rectangle"  , "", "Rectangle");
   addProp(model, path1, "values"     , "", "Values");
@@ -6119,11 +7074,13 @@ void
 CQChartsButtonAnnotation::
 init(const QString &textStr)
 {
-  setObjectName(QString("button.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr);
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
 }
+
+//---
 
 void
 CQChartsButtonAnnotation::
@@ -6138,11 +7095,11 @@ setPosition(const Position &p)
 
 void
 CQChartsButtonAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position", "position", "Text origin");
 
@@ -6358,7 +7315,7 @@ void
 CQChartsWidgetAnnotation::
 init()
 {
-  setObjectName(QString("widget.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -6366,6 +7323,8 @@ init()
 
   widget_.initSize();
 }
+
+//---
 
 CQChartsPosition
 CQChartsWidgetAnnotation::
@@ -6437,7 +7396,7 @@ setRectangle(const OptRect &r)
       if (rectangle_.isSet())
         position_  = OptPosition(rectangleValue().center());
       else
-        position_  = OptPosition(Position(Point(0, 0), Position::Units::PIXEL));
+        position_  = OptPosition(Position::pixel(Point(0, 0)));
     }
 
     rectangle_ = OptRect();
@@ -6573,11 +7532,11 @@ setInteractive(bool b)
 
 void
 CQChartsWidgetAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addProp(model, path1, "position"   , "position"   , "Widget position");
   addProp(model, path1, "rectangle"  , "rectangle"  , "Widget bounding box");
@@ -6830,7 +7789,7 @@ void
 CQChartsSymbolSizeMapKeyAnnotation::
 init()
 {
-  setObjectName(QString("symbolMapKey.%1").arg(ind()));
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
   setFilled (true);
@@ -6842,11 +7801,11 @@ init()
 
 void
 CQChartsSymbolSizeMapKeyAnnotation::
-addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  CQChartsAnnotation::addProperties(model, path1);
+  CQChartsAnnotation::addProperties(model, path, desc);
 
   addStrokeFillProperties(model, path1, /*isSolid*/false);
 
@@ -6886,7 +7845,7 @@ void
 CQChartsSymbolSizeMapKeyAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  position_ = Position(bbox.getCenter(), Position::Units::PLOT);
+  position_ = Position::plot(bbox.getCenter());
 }
 
 //---

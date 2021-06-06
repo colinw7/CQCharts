@@ -163,6 +163,7 @@ class CQChartsModelColumnDetails {
   QVariant maxValue() const;
 
   QVariant meanValue  (bool useNaN=true) const;
+  QVariant sumValue   (bool useNaN=true) const;
   QVariant stdDevValue(bool useNaN=true) const;
 
   QVariant dataName(const QVariant &v) const;

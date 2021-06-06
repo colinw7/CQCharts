@@ -13738,8 +13738,8 @@ setFitBBox(const BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  auto outerMargin = PlotMargin(Length(left , Units::PERCENT), Length(top   , Units::PERCENT),
-                                Length(right, Units::PERCENT), Length(bottom, Units::PERCENT));
+  auto outerMargin = PlotMargin(Length::percent(left ), Length::percent(top   ),
+                                Length::percent(right), Length::percent(bottom));
 
   setOuterMargin(outerMargin);
 }
@@ -13880,6 +13880,17 @@ CQChartsPlot::
 addArcAnnotation(const Position &start, const Position &end)
 {
   return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
+}
+
+CQChartsArcConnectorAnnotation *
+CQChartsPlot::
+addArcConnectorAnnotation(const Position &center, const Length &radius,
+                          const Angle &srcStartAngle, const Angle &srcSpanAngle,
+                          const Angle &destStartAngle, const Angle &destSpanAngle, bool self)
+{
+  return addAnnotationT<ArcConnectorAnnotation>(
+    new ArcConnectorAnnotation(this, center, radius, srcStartAngle, srcSpanAngle,
+                               destStartAngle, destSpanAngle, self));
 }
 
 CQChartsAxisAnnotation *
@@ -14749,8 +14760,8 @@ drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, doub
 
     CQChartsPixelPaintDevice device(&ipainter);
 
-    Point  spos (size, size);
-    Length ssize(size, CQChartsUnits::PIXEL);
+    auto spos  = Point(size, size);
+    auto ssize = Length::pixe(size);
 
     CQChartsDrawUtil::drawSymbol(&device, symbol, spos, ssize);
   }
@@ -14859,7 +14870,10 @@ void
 CQChartsPlot::
 setPen(PenBrush &penBrush, const PenData &penData) const
 {
-  double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
+  double width = 0.0;
+
+  if (penData.width().isValid())
+    width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
                        width, penData.dash(), penData.lineCap(), penData.lineJoin());
@@ -16803,7 +16817,7 @@ double
 CQChartsPlot::
 lengthPlotWidth(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
@@ -16825,7 +16839,7 @@ double
 CQChartsPlot::
 lengthPlotHeight(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
@@ -16847,7 +16861,7 @@ double
 CQChartsPlot::
 lengthPlotSignedWidth(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowWidth(len.value());
@@ -16869,7 +16883,7 @@ double
 CQChartsPlot::
 lengthPlotSignedHeight(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowHeight(len.value());
@@ -16898,7 +16912,7 @@ double
 CQChartsPlot::
 lengthPixelWidth(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
@@ -16920,7 +16934,7 @@ double
 CQChartsPlot::
 lengthPixelHeight(const Length &len) const
 {
-  assert(len.isValid());
+  if (! len.isValid()) return 0.0;
 
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();

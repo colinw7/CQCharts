@@ -78,9 +78,9 @@ CQChartsRectEdit::
 setRegion(const CQChartsGeom::BBox &bbox)
 {
   if      (plot_)
-    setRect(CQChartsRect(bbox, CQChartsUnits::PLOT));
+    setRect(CQChartsRect::plot(bbox));
   else if (view_)
-    setRect(CQChartsRect(bbox, CQChartsUnits::VIEW));
+    setRect(CQChartsRect::view(bbox));
 
   emit regionChanged();
 }

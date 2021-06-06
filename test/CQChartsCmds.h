@@ -275,6 +275,7 @@ CQCHARTS_DEF_CMD(SetChartsData)
 // annotation
 CQCHARTS_DEF_CMD(CreateChartsAnnotationGroup)
 CQCHARTS_DEF_CMD(CreateChartsArcAnnotation)
+CQCHARTS_DEF_CMD(CreateChartsArcConnectorAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsAxisAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsButtonAnnotation)
@@ -329,6 +330,7 @@ CQCHARTS_DEF_CMD(WriteChartsData)
 // misc
 CQCHARTS_DEF_CMD(MeasureChartsText)
 CQCHARTS_DEF_CMD(EncodeChartsText)
+CQCHARTS_DEF_CMD(BucketChartsValues)
 
 //---
 

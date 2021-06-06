@@ -1240,11 +1240,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // get symbol size (needed for bounding box)
-        Length symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize;
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize))
-            symbolSize = Length(CQChartsUnits::NONE, 0.0);
+            symbolSize = Length();
         }
 
         double sx, sy;
@@ -1288,11 +1288,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional font size
-        Length fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize;
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize))
-            fontSize = Length(CQChartsUnits::NONE, 0.0);
+            fontSize = Length();
         }
 
         if (fontSize.isValid())

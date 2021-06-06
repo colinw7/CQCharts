@@ -557,7 +557,7 @@ dataLabelFontSize() const
 {
   double dataLabelFontSize = dataLabelFont().pointSizeF();
 
-  return Length(dataLabelFontSize, CQChartsUnits::PIXEL);
+  return Length::pixel(dataLabelFontSize);
 }
 
 void

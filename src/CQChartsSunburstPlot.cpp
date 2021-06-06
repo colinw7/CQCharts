@@ -1160,6 +1160,19 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
   auto *root = dynamic_cast<RootNode *>(node);
 //auto *hier = dynamic_cast<HierNode *>(node);
 
+  bool isRoot = root;
+
+  if (! isRoot && dynamic_cast<RootNode *>(node->parent()))
+    isRoot = (roots_.size() == 1 && roots_[0]->name() == "");
+
+  //---
+
+  auto a1 = node->a();
+  auto da = node->da();
+  auto a2 = a1 + da;
+
+  bool isCircle = CQChartsAngle::isCircle(Angle(), da);
+
   //---
 
   double xc = 0.0;
@@ -1167,9 +1180,13 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   double r1, r2;
 
-  if (root) {
+  if (isRoot) {
     r1 = 0.0;
-    r2 = std::max(innerRadius(), 0.0);
+
+    if (root)
+      r2 = std::max(innerRadius(), 0.0);
+    else
+      r2 = node->r() + node->dr();
   }
   else {
     r1 = node->r();
@@ -1183,10 +1200,6 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   BBox ibbox(p11, p21);
   BBox obbox(p12, p22);
-
-  double a1 = node->a().value();
-  double da = node->da().value();
-  double a2 = a1 + da;
 
   //---
 
@@ -1211,8 +1224,6 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   QPainterPath path;
 
-  bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
-
   if (isCircle) {
     if (ibbox.getWidth() > 0.0)
       device->drawEllipse(ibbox);
@@ -1223,13 +1234,13 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
   else {
     // if has non-zero inner radius draw arc segment
     if      (ibbox.getWidth() > 0.0) {
-      CQChartsDrawUtil::arcSegmentPath(path, ibbox, obbox, Angle(a1), Angle(da));
+      CQChartsDrawUtil::arcSegmentPath(path, ibbox, obbox, a1, da);
 
       device->drawPath(path);
     }
     // draw pie slice
     else if (obbox.getWidth() > 0.0) {
-      CQChartsDrawUtil::arcPath(path, obbox, Angle(a1), Angle(da));
+      CQChartsDrawUtil::arcPath(path, obbox, a1, da);
 
       device->drawPath(path);
     }
@@ -1259,10 +1270,10 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
     // check if text visible (see treemap)
     if (! isCircle) {
-      double c1 = std::cos(CMathUtil::Deg2Rad(a1));
-      double s1 = std::sin(CMathUtil::Deg2Rad(a1));
-      double c2 = std::cos(CMathUtil::Deg2Rad(a2));
-      double s2 = std::sin(CMathUtil::Deg2Rad(a2));
+      double c1 = a1.cos();
+      double s1 = a1.sin();
+      double c2 = a2.cos();
+      double s2 = a2.sin();
 
       Point pw1(r2*c1, r2*s1);
       Point pw2(r2*c2, r2*s2);
@@ -1288,17 +1299,17 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
     //---
 
     // draw node label
-    double ta, c, s;
+    Angle  ta;
+    double c, s;
 
     if (isCircle) {
-      ta = 0.0;
-      c  = 1.0;
-      s  = 0.0;
+      c = 1.0;
+      s = 0.0;
     }
     else {
-      ta = a1 + da/2.0;
-      c  = std::cos(CMathUtil::Deg2Rad(ta));
-      s  = std::sin(CMathUtil::Deg2Rad(ta));
+      ta = Angle(a1.value() + da.value()/2.0);
+      c  = ta.cos();
+      s  = ta.sin();
     }
 
     double tx, ty;
@@ -1322,12 +1333,12 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
     auto name = (! node->isFiller() ? node->name() : node->parent()->name());
 
-    double ta1 = (c >= 0 ? ta : ta - 180);
+    auto ta1 = Angle(c >= 0 ? ta.value() : ta.value() - 180);
 
     // only contrast support (custom align and angle)
     CQChartsTextOptions options;
 
-    options.angle         = Angle(ta1);
+    options.angle         = ta1;
     options.align         = align;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();

@@ -1621,8 +1621,8 @@ editMove(const Point &p)
 
     setAbsolutePlotRectangle(wbbox_);
 
-    CQChartsLength width (wbbox_.getWidth ()                           , CQChartsUnits::PLOT);
-    CQChartsLength height(wbbox_.getHeight() - layoutData_.headerHeight, CQChartsUnits::PLOT);
+    auto width  = CQChartsLength::plot(wbbox_.getWidth ());
+    auto height = CQChartsLength::plot(wbbox_.getHeight() - layoutData_.headerHeight);
 
     setScrollWidth (CQChartsOptLength(width ));
     setScrollHeight(CQChartsOptLength(height));

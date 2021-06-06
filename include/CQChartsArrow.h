@@ -97,13 +97,13 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  // get/set visible
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b);
 
   //---
 
-  // get/set from/to point
+  //! get/set from/to point
   const Point &from() const { return from_; }
   void setFrom(const Point &v);
 
@@ -115,13 +115,13 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  // get/set line width
+  //! get/set line width
   const Length &lineWidth() const { return data_.lineWidth(); }
   void setLineWidth(const Length &l);
 
   //---
 
-  // get/set front head data
+  //! get/set front head data
   bool isFrontVisible() const { return data_.isFHead(); }
   void setFrontVisible(bool b);
 
@@ -142,7 +142,7 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  // get/set tail head data
+  //! get/set tail head data
   bool isTailVisible() const { return data_.isTHead(); }
   void setTailVisible(bool b);
 
@@ -163,7 +163,7 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  // get/set tail & head data
+  //! get/set tail & head data
   const Angle &angle() const { return data_.angle(); }
   void setAngle(const Angle &a);
 
@@ -195,28 +195,28 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  // get/set arrow data
+  //! get/set arrow data
   const ArrowData &data() const { return data_; }
   void setData(const ArrowData &data);
 
   //---
 
-  // draw arrow
+  //! draw arrow
   void draw(PaintDevice *device) const;
 
   void draw(PaintDevice *device, const PenBrush &penBrush) const;
 
   //---
 
-  // get drawn path
+  //! get drawn path
   const QPainterPath &drawnPath() const { return drawData_.path; }
 
-  // is point inside arrow
+  //! is point inside arrow
   bool contains(const Point &p) const;
 
   //---
 
-  // write to script
+  //! write to script
   void write(std::ostream &os, const QString &varName) const;
 
   //---
@@ -224,7 +224,7 @@ class CQChartsArrow : public QObject,
  public:
   //! arrow angle data (caches cos/sin)
   struct ArrowAngle {
-    double angle { 0.0 }; // radians
+    double angle { 0.0 }; //<! radians
     double sin   { 0.0 };
     double cos   { 1.0 };
 
@@ -254,7 +254,7 @@ class CQChartsArrow : public QObject,
   static void selfPath(QPainterPath &path, const BBox &rect,
                        bool fhead, bool thead, double lw);
 
-  // alen is multiple of line width
+  //! alen is multiple of line width
   static void pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
                             double lw, double alen, QPainterPath &arrowPath);
 
@@ -268,7 +268,7 @@ class CQChartsArrow : public QObject,
                             const Point &l2s, const Point &l2e, Point &pi, bool &inside);
 
  private:
-  // line
+  //! line
   struct Line {
     Point p1;
     Point p2;
@@ -287,7 +287,7 @@ class CQChartsArrow : public QObject,
     }
   };
 
-  // polygon
+  //! polygon
   struct Polygon {
     GeomPolygon points;
     bool        valid { false };
@@ -317,7 +317,7 @@ class CQChartsArrow : public QObject,
   using PointLabels = std::vector<PointLabel>;
 #endif
 
-  // draw data
+  //! draw data
   struct DrawData {
     Line    frontLine1;
     Line    frontLine2;
@@ -330,8 +330,10 @@ class CQChartsArrow : public QObject,
 
     QPainterPath path; //!< draw path
 
+#if DEBUG_LABELS
     PointLabels pointLabels;
     bool        debugLabels { false };
+#endif
 
     void reset() {
       frontLine1.reset();
@@ -345,7 +347,9 @@ class CQChartsArrow : public QObject,
 
       path = QPainterPath();
 
+#if DEBUG_LABELS
       pointLabels.clear();
+#endif
     }
   };
 
@@ -382,7 +386,7 @@ class CQChartsArrow : public QObject,
   Point from_ { 0, 0 }; //!< start point
   Point to_   { 1, 1 }; //!< end point
 
-  ArrowData data_;                    //!< arrow data
+  ArrowData data_; //!< arrow data
 
   bool rectilinear_ { false };
 
@@ -390,9 +394,7 @@ class CQChartsArrow : public QObject,
   bool debugLabels_ { false };
 #endif
 
-  mutable PaintDevice* device_ { nullptr }; //!< paint device
-
-  mutable DrawData drawData_;
+  mutable DrawData drawData_; //!< draw data
 };
 
 #endif

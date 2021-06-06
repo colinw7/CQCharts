@@ -106,7 +106,7 @@ calcPosition(Position &pos, Qt::Alignment &align) const
 
       auto *th = const_cast<CQChartsMapKey *>(this);
 
-      th->setPosition(Position(Point(px, py), Position::Units::PIXEL));
+      th->setPosition(Position::pixel(Point(px, py)));
     }
 
     pos   = this->position();
@@ -129,7 +129,7 @@ calcPosition(Position &pos, Qt::Alignment &align) const
     else if (location().onBottom ()) {
       y = bbox.getYMin(); align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop); }
 
-    pos = Position(Point(x, y), Position::Units::PLOT);
+    pos = Position::plot(Point(x, y));
   }
 }
 
@@ -262,7 +262,7 @@ editMove(const Point &p)
   else if (talign_ & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
 
   setLocation(Location(Location::Type::ABSOLUTE_POSITION));
-  setPosition(CQChartsPosition(Point(x, y), CQChartsUnits::PLOT));
+  setPosition(CQChartsPosition::plot(Point(x, y)));
 
   editHandles()->setDragPos(p);
 
@@ -1257,7 +1257,7 @@ draw(PaintDevice *device, const DrawData &drawData)
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
         device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
-        CQChartsLength(ss, CQChartsUnits::PIXEL));
+        CQChartsLength::pixel(ss));
 
       //---
 
@@ -1301,7 +1301,7 @@ draw(PaintDevice *device, const DrawData &drawData)
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
         device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
-        CQChartsLength(ss, CQChartsUnits::PIXEL));
+        CQChartsLength::pixel(ss));
 
       //---
 

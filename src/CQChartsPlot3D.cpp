@@ -890,8 +890,7 @@ postDraw(PaintDevice *device)
 
   auto symbol = Symbol::circle();
 
-  CQChartsDrawUtil::drawSymbol(device, symbol, trp.point2D(),
-                               Length(4, CQChartsUnits::PIXEL), penBrush);
+  CQChartsDrawUtil::drawSymbol(device, symbol, trp.point2D(), Length::pixel(4), penBrush);
 #endif
 }
 

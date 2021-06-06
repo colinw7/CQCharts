@@ -730,7 +730,7 @@ drawBackground(QPainter *p)
   auto zoomData    = plot->zoomData();
   auto outerMargin = plot->outerMargin();
 
-  CQChartsLength margin(this->margin(), CQChartsUnits::PIXEL);
+  auto margin = CQChartsLength::pixel(this->margin());
 
   plot->setOuterMargin(CQChartsPlotMargin(margin, CQChartsLength(), margin, CQChartsLength()));
 

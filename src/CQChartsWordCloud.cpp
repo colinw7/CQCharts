@@ -19,13 +19,17 @@ CQChartsWordCloud::
     delete wordData;
 }
 
-void
+int
 CQChartsWordCloud::
 addWord(const QString &word, int count)
 {
   assert(count > 0);
 
+  int ind = wordDataArray_.size() + 1;
+
   auto *wordData = new WordData(word, count);
+
+  wordData->ind = ind;
 
   wordDatas_[word] = wordData;
 
@@ -33,18 +37,14 @@ addWord(const QString &word, int count)
 
   minCount_ = std::min((minCount_ > 0 ? minCount_ : count), count);
   maxCount_ = std::max((maxCount_ > 0 ? maxCount_ : count), count);
+
+  return ind;
 }
 
 void
 CQChartsWordCloud::
 place(const Plot *plot)
 {
-  auto mapCount = [](double value, double srcMin, double srcMax, double destMin, double destMax) {
-    double s = (value - srcMin)/(srcMax - srcMin);
-
-    return s*(destMax - destMin) + destMin;
-  };
-
   tree_.reset();
 
   auto font = plot->font().font();
@@ -62,14 +62,14 @@ place(const Plot *plot)
   for (auto &cw : countWordDatas) {
     for (auto &wordData : cw.second) {
       wordData->fontSize =
-        mapCount(wordData->count, 1, maxCount_, minFontSize(), maxFontSize());
+        CMathUtil::map(wordData->count, 1, maxCount_, minFontSize(), maxFontSize());
 
       wordData->x = rand.gen();
       wordData->y = rand.gen();
 
       //---
 
-      font.setPointSize(wordData->fontSize);
+      font.setPointSizeF(wordData->fontSize);
 
       QFontMetricsF fm(font);
 

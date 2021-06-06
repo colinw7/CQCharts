@@ -161,47 +161,49 @@ addCommands()
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
-    addCommand("create_charts_annotation_group"    ,
+    addCommand("create_charts_annotation_group",
                new CQChartsCreateChartsAnnotationGroupCmd       (this));
-    addCommand("create_charts_arc_annotation"      ,
+    addCommand("create_charts_arc_annotation",
                new CQChartsCreateChartsArcAnnotationCmd         (this));
-    addCommand("create_charts_arrow_annotation"    ,
+    addCommand("create_charts_arc_connector_annotation",
+               new CQChartsCreateChartsArcConnectorAnnotationCmd(this));
+    addCommand("create_charts_arrow_annotation",
                new CQChartsCreateChartsArrowAnnotationCmd       (this));
-    addCommand("create_charts_axis_annotation"     ,
+    addCommand("create_charts_axis_annotation",
                new CQChartsCreateChartsAxisAnnotationCmd        (this));
-    addCommand("create_charts_button_annotation"   ,
+    addCommand("create_charts_button_annotation",
                new CQChartsCreateChartsButtonAnnotationCmd      (this));
-    addCommand("create_charts_ellipse_annotation"  ,
+    addCommand("create_charts_ellipse_annotation",
                new CQChartsCreateChartsEllipseAnnotationCmd     (this));
-    addCommand("create_charts_image_annotation"    ,
+    addCommand("create_charts_image_annotation",
                new CQChartsCreateChartsImageAnnotationCmd       (this));
-    addCommand("create_charts_path_annotation"     ,
+    addCommand("create_charts_path_annotation",
                new CQChartsCreateChartsPathAnnotationCmd        (this));
-    addCommand("create_charts_key_annotation"      ,
+    addCommand("create_charts_key_annotation",
                new CQChartsCreateChartsKeyAnnotationCmd         (this));
     addCommand("create_charts_pie_slice_annotation",
                new CQChartsCreateChartsPieSliceAnnotationCmd    (this));
-    addCommand("create_charts_point_annotation"    ,
+    addCommand("create_charts_point_annotation",
                new CQChartsCreateChartsPointAnnotationCmd       (this));
     addCommand("create_charts_point_set_annotation",
                new CQChartsCreateChartsPointSetAnnotationCmd    (this));
     addCommand("create_charts_point3d_set_annotation",
                new CQChartsCreateChartsPoint3DSetAnnotationCmd  (this));
-    addCommand("create_charts_polygon_annotation"  ,
+    addCommand("create_charts_polygon_annotation",
                new CQChartsCreateChartsPolygonAnnotationCmd     (this));
-    addCommand("create_charts_polyline_annotation" ,
+    addCommand("create_charts_polyline_annotation",
                new CQChartsCreateChartsPolylineAnnotationCmd    (this));
     addCommand("create_charts_rectangle_annotation",
                new CQChartsCreateChartsRectangleAnnotationCmd   (this));
-    addCommand("create_charts_text_annotation"     ,
+    addCommand("create_charts_text_annotation",
                new CQChartsCreateChartsTextAnnotationCmd        (this));
     addCommand("create_charts_value_set_annotation",
                new CQChartsCreateChartsValueSetAnnotationCmd    (this));
-    addCommand("create_charts_widget_annotation"   ,
+    addCommand("create_charts_widget_annotation",
                new CQChartsCreateChartsWidgetAnnotationCmd      (this));
     addCommand("create_charts_symbol_map_key_annotation",
                new CQChartsCreateChartsSymbolMapKeyAnnotationCmd(this));
-    addCommand("remove_charts_annotation"          ,
+    addCommand("remove_charts_annotation",
                new CQChartsRemoveChartsAnnotationCmd            (this));
 
     // key
@@ -224,6 +226,8 @@ addCommands()
     // measure/encode text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
     addCommand("encode_charts_text" , new CQChartsEncodeChartsTextCmd (this));
+
+    addCommand("bucket_charts_values", new CQChartsBucketChartsValuesCmd(this));
 
     // dialogs
     addCommand("show_charts_load_model_dlg"   , new CQChartsShowChartsLoadModelDlgCmd(this));
@@ -1111,6 +1115,88 @@ execCmd(CQChartsCmdArgs &argv)
     text1 = CQTsvModel::encodeString(text);
 
   return cmdBase_->setCmdRc(text1);
+}
+
+//------
+
+void
+CQChartsBucketChartsValuesCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-values", ArgType::String, "values to bucket");
+}
+
+QStringList
+CQChartsBucketChartsValuesCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBucketChartsValuesCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBucketChartsValuesCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto str = argv.getParseStr("values");
+
+  QStringList strs;
+
+  (void) CQTcl::splitList(str, strs);
+
+  CQChartsRValues rvals;
+
+  for (const auto &str : strs) {
+    bool ok;
+    double r = str.toDouble(&ok);
+
+    rvals.addValue(r);
+  }
+
+  CQBucketer bucketer;
+
+  bucketer.setType(CQBucketer::Type::REAL_AUTO);
+  bucketer.setNumAuto(20);
+  bucketer.setRMin(rvals.min());
+  bucketer.setRMax(rvals.max());
+
+  using BucketCount = std::map<int, int>;
+
+  BucketCount bucketCount;
+
+  for (const auto &v : rvals.values()) {
+    int bucket = bucketer.bucket(v.value());
+
+    bucketCount[bucket]++;
+  }
+
+  QVariantList vars;
+
+  for (const auto &bc : bucketCount) {
+    double rmin, rmax;
+
+    bucketer.bucketValues(bc.first, rmin, rmax);
+
+    QVariantList vars1;
+
+    vars1.push_back(QVariant(rmin));
+    vars1.push_back(QVariant(rmax));
+    vars1.push_back(QVariant(bc.second));
+
+    vars.push_back(vars1);
+  }
+
+  return cmdBase_->setCmdRc(vars);
 }
 
 //------
@@ -2026,7 +2112,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-key_item"  , ArgType::String, "key item name");
   argv.endCmdGroup();
 
-//addArg(argv, "-object", ArgType::String , "object id");
+  addArg(argv, "-object", ArgType::String , "object id");
   addArg(argv, "-name"  , ArgType::String , "property name");
   addArg(argv, "-value" , ArgType::String , "property view");
 //addArg(argv, "-hidden", ArgType::Boolean, "include hidden data").setHidden(true);
@@ -2066,7 +2152,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-//auto objectId = argv.getParseStr ("object"); // plot object
+  auto objectId = argv.getParseStr ("object"); // plot object
   auto name     = argv.getParseStr ("name");
   auto value    = argv.getParseStr ("value");
 //bool hidden   = argv.getParseBool("hidden");
@@ -2088,8 +2174,43 @@ execCmd(CQChartsCmdArgs &argv)
     auto *plot = cmds()->getPlotByName(nullptr, plotName);
     if (! plot) return errorMsg("Invalid plot '" + plotName + "'");
 
-    if (! plot->setProperty(name, value))
-      return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
+    CQChartsPlotObj *plotObj = nullptr;
+    CQChartsObj     *obj     = nullptr;
+
+    if (objectId.length()) {
+      plotObj = plot->getPlotObject(objectId);
+
+      if (! plotObj) {
+        auto *key   = plot->key();
+        auto *xaxis = plot->xAxis();
+        auto *yaxis = plot->yAxis();
+        auto *title = plot->title();
+
+        if      (key && key->id() == objectId)
+          obj = key;
+        else if (xaxis && xaxis->id() == objectId)
+          obj = xaxis;
+        else if (yaxis && yaxis->id() == objectId)
+          obj = yaxis;
+        else if (title && title->id() == objectId)
+          obj = title;
+      }
+      else
+        obj = plotObj;
+
+      if (! obj)
+        return errorMsg("Invalid object id '" + objectId + "'");
+    }
+
+    // plot object property
+    if (plotObj) {
+      if (! CQUtil::setProperty(plotObj, name, value))
+        return errorMsg("Failed to set plot object property '" + name + "' '" + value + "'");
+    }
+    else {
+      if (! plot->setProperty(name, value))
+        return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
+    }
   }
   // set annotation property
   else if (argv.hasParseArg("annotation")) {
@@ -5885,6 +6006,26 @@ execCmd(CQChartsCmdArgs &argv)
 
         return cmdBase_->setCmdRc(c);
       }
+      else if (name1 == "unique_id") {
+        if (! argv.hasParseArg("column"))
+          return errorMsg("No columns specified");
+
+        if (! argv.hasParseArg("data"))
+          return errorMsg("No data specified");
+
+        const auto *details = modelData->details();
+
+        if (! column.isValid() || column.column() >= details->numColumns())
+          return errorMsg("Invalid column specified");
+
+        auto *columnDetails = details->columnDetails(column);
+
+        auto dataStr = argv.getParseStr("data");
+
+        auto id = columnDetails->uniqueId(dataStr);
+
+        return cmdBase_->setCmdRc(id);
+      }
       else {
         CQChartsModelTypeData columnTypeData;
 
@@ -6054,45 +6195,35 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "view_width") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::VIEW);
-
-      double w = view->lengthViewWidth(len);
+      double w = view->lengthViewWidth(CQChartsLength::view(data));
 
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "view_height") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::VIEW);
-
-      double h = view->lengthViewHeight(len);
+      double h = view->lengthViewHeight(CQChartsLength::view(data));
 
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::VIEW);
-
-      double w = view->lengthPixelWidth(len);
+      double w = view->lengthPixelWidth(CQChartsLength::view(data));
 
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::VIEW);
-
-      double h = view->lengthPixelHeight(len);
+      double h = view->lengthPixelHeight(CQChartsLength::view(data));
 
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_position") {
       auto data = argv.getParseStr("data");
 
-      CQChartsPosition pos(data, CQChartsUnits::VIEW);
-
-      auto p = view->positionToPixel(pos);
+      auto p = view->positionToPixel(CQChartsPosition::view(data));
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
@@ -6384,45 +6515,35 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "plot_width") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::PLOT);
-
-      double w = plot->lengthPlotWidth(len);
+      double w = plot->lengthPlotWidth(CQChartsLength::plot(data));
 
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "plot_height") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::PLOT);
-
-      double h = plot->lengthPlotHeight(len);
+      double h = plot->lengthPlotHeight(CQChartsLength::plot(data));
 
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::PLOT);
-
-      double w = plot->lengthPixelWidth(len);
+      double w = plot->lengthPixelWidth(CQChartsLength::plot(data));
 
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       auto data = argv.getParseStr("data");
 
-      CQChartsLength len(data, CQChartsUnits::PLOT);
-
-      double h = plot->lengthPixelHeight(len);
+      double h = plot->lengthPixelHeight(CQChartsLength::plot(data));
 
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_position") {
       auto data = argv.getParseStr("data");
 
-      CQChartsPosition pos(data, CQChartsUnits::PLOT);
-
-      auto p = plot->positionToPixel(pos);
+      auto p = plot->positionToPixel(CQChartsPosition::plot(data));
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
@@ -6922,6 +7043,30 @@ execCmd(CQChartsCmdArgs &argv)
 
       plot->setModel(modelData->currentModel());
     }
+    else if (name == "tick_label") {
+      if (objectId.length()) {
+        auto *obj = plot->getObject(objectId);
+        if (! obj) return errorMsg("Invalid plot object id '" + objectId + "'");
+
+        QStringList strs;
+        if (! CQTcl::splitList(value, strs) || strs.size() != 2)
+          return errorMsg(QString("Invalid tick label '%1'").arg(value));
+
+        bool ok;
+        int i = strs[0].toInt(&ok);
+        if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
+
+        auto *xaxis = plot->xAxis();
+        auto *yaxis = plot->yAxis();
+
+        if      (xaxis == obj) {
+          xaxis->setTickLabel(i, strs[1]);
+        }
+        else if (yaxis == obj) {
+          yaxis->setTickLabel(i, strs[1]);
+        }
+      }
+    }
     // plot object property
     else if (name == "?") {
       static auto names = QStringList() << "updates_enabled" << "set_hidden";
@@ -6932,7 +7077,41 @@ execCmd(CQChartsCmdArgs &argv)
   }
   // annotation data
   else if (argv.hasParseArg("annotation")) {
-    return errorMsg("Invalid annotation name '" + name + "' specified");
+    auto annotationName = argv.getParseStr("annotation");
+
+    auto *annotation = cmds()->getAnnotationByName(annotationName);
+    if (! annotation) return false;
+
+    if      (name == "tick_label") {
+      auto *axisAnnotation = dynamic_cast<CQChartsAxisAnnotation *>(annotation);
+
+      if (! axisAnnotation)
+        return errorMsg("Invalid axis annotation");
+
+      QStringList strs;
+      if (! CQTcl::splitList(value, strs) || strs.size() != 2)
+        return errorMsg(QString("Invalid tick label '%1'").arg(value));
+
+      bool ok;
+      int i = strs[0].toInt(&ok);
+      if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
+
+      axisAnnotation->axis()->setTickLabel(i, strs[1]);
+    }
+    else if (name == "fit") {
+      auto *annotationGroup = dynamic_cast<CQChartsAnnotationGroup *>(annotation);
+
+      if (! annotationGroup)
+        return errorMsg("Invalid group annotation");
+
+      annotationGroup->doLayout();
+    }
+    else if (name == "?") {
+      static auto names = QStringList() << "tick_label" << "fit";
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("Invalid annotation name '" + name + "' specified");
   }
   else {
     if      (name == "path_list") {
@@ -7344,6 +7523,121 @@ execCmd(CQChartsCmdArgs &argv)
     annotation = plot->addArcAnnotation(start, end);
   else
     return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-plot", ArgType::String, "plot name");
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-center", ArgType::Position, "center");
+  addArg(argv, "-radius", ArgType::Length  , "radius");
+
+  addArg(argv, "-src_start_angle", ArgType::String, "source start angle");
+  addArg(argv, "-src_span_angle" , ArgType::String, "source span angle");
+
+  addArg(argv, "-dest_start_angle", ArgType::String, "destination start angle");
+  addArg(argv, "-dest_span_angle" , ArgType::String, "destination span angle");
+
+  addArg(argv, "-self", ArgType::Boolean, "connects to self");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  //auto errorMsg = [&](const QString &msg) { charts()->errorMsg(msg); return false; };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsArcConnectorAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getPlotArg(argv, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  auto center = argv.getParsePosition(nullptr, plot, "center");
+  auto radius = argv.getParseLength  (nullptr, plot, "radius");
+
+  auto srcStartAngle = argv.getParseAngle("src_start_angle");
+  auto srcSpanAngle  = argv.getParseAngle("src_span_angle");
+
+  auto destStartAngle = argv.getParseAngle("dest_start_angle");
+  auto destSpanAngle  = argv.getParseAngle("dest_span_angle");
+
+  auto self = argv.getParseBool("self");
+
+  //---
+
+  auto *annotation =
+    plot->addArcConnectorAnnotation(center, radius, srcStartAngle, srcSpanAngle,
+                                    destStartAngle, destSpanAngle, self);
 
   if (id != "")
     annotation->setId(id);
@@ -7891,7 +8185,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addImageAnnotation(rect, image);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
+    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
 
     if (argv.hasParseArg("position"))
       pos = argv.getParsePosition(view, plot, "position");
@@ -9157,9 +9451,9 @@ execCmd(CQChartsCmdArgs &argv)
     CQChartsRect rect;
 
     if      (view)
-      rect = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::VIEW);
+      rect = CQChartsRect::view(CQChartsGeom::BBox(start, end));
     else if (plot)
-      rect = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::PLOT);
+      rect = CQChartsRect::plot(CQChartsGeom::BBox(start, end));
 
     if      (view)
       annotation = view->addRectangleAnnotation(rect);
@@ -9352,7 +9646,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addTextAnnotation(rect, text);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
+    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
 
     if      (view)
       annotation = view->addTextAnnotation(pos, text);
@@ -9607,7 +9901,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addButtonAnnotation(pos, text);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
+    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
 
     if      (view)
       annotation = view->addButtonAnnotation(pos, text);
@@ -9752,7 +10046,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addWidgetAnnotation(rect, widget);
   }
   else {
-    CQChartsPosition pos(CQChartsGeom::Point(0, 0), CQChartsPosition::Units::PLOT);
+    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
 
     if (argv.hasParseArg("position"))
       pos = argv.getParsePosition(view, plot, "position");

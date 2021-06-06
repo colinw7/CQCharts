@@ -129,7 +129,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   int xl = 3;
 
-  data.setSize(CQChartsLength(s, CQChartsUnits::PIXEL));
+  data.setSize(CQChartsLength::pixel(s));
 
   QRect rect1(int(rect.left() + xl), int(rect.center().y() - is), int(2.0*is), int(2.0*is));
 
@@ -465,7 +465,7 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   CQChartsPixelPaintDevice device(painter);
 
-  CQChartsLength symbolSize(CQChartsUnits::PIXEL, size);
+  auto symbolSize = CQChartsLength::pixel(size);
 
   if (data.symbol().isValid())
     CQChartsDrawUtil::drawSymbol(&device, data.symbol(), p, symbolSize);

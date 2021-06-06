@@ -395,7 +395,7 @@ CQChartsModelColumnDetails::
 getShortNamedValues()
 {
   static auto namedValues = QStringList() <<
-    "min" << "max" << "mean" << "avg" << "stdev" << "stddev" << "std_dev";
+    "min" << "max" << "mean" << "sum" << "avg" << "stdev" << "stddev" << "std_dev";
 
   return namedValues;
 }
@@ -414,6 +414,8 @@ getNamedValue(const QString &name) const
     return this->maxValue();
   else if (name == "mean" || name == "avg" || name == "average")
     return this->meanValue();
+  else if (name == "sum")
+    return this->sumValue();
   else if (name == "stdev"   || name == "stddev" ||
            name == "std_dev" || name == "standard_deviation")
     return this->stdDevValue();
@@ -562,6 +564,31 @@ meanValue(bool useNaN) const
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().mean();
+  }
+  else if (type() == CQBaseModelType::COLOR) {
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
+  }
+
+  return QVariant();
+}
+
+QVariant
+CQChartsModelColumnDetails::
+sumValue(bool useNaN) const
+{
+  auto *valueSet = this->calcValueSet();
+
+  if      (type() == CQBaseModelType::INTEGER) {
+    return valueSet->ivals().sum();
+  }
+  else if (type() == CQBaseModelType::REAL) {
+    return valueSet->rvals().sum();
+  }
+  else if (type() == CQBaseModelType::STRING) {
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
+  }
+  else if (type() == CQBaseModelType::TIME) {
+    return valueSet->tvals().sum();
   }
   else if (type() == CQBaseModelType::COLOR) {
     return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());

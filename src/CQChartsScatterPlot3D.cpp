@@ -752,7 +752,7 @@ addPointObjects() const
         //---
 
         // get symbol size (needed for bounding box)
-        Length symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize;
 
         double sx, sy;
 
@@ -794,7 +794,7 @@ addPointObjects() const
         //---
 
         // set optional font size
-        Length fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize;
 
         if (fontSize.isValid())
           pointObj->setFontSize(fontSize);
@@ -848,11 +848,11 @@ addPointObjects() const
           setPenBrush(penBrush,
             PenData(true, tc, dataLabel()->textAlpha()), BrushData(false));
 
-          Length fontSize(CQChartsUnits::NONE, 0.0);
+          Length fontSize;
 
           if (fontSizeColumn().isValid()) {
             if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSizeData_, fontSize))
-              fontSize = Length(CQChartsUnits::NONE, 0.0);
+              fontSize = Length();
           }
 
           auto font = this->font();

@@ -735,6 +735,8 @@ CQChartsDendrogramPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
   connectSlots(true);
 }
 

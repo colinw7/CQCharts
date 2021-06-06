@@ -114,8 +114,8 @@ class CQChartsChordData {
   const Value &ivalue(int i) const { return data_.ivalue(i); }
 
   //! add value
-  void addValue(int to, double value, bool primary=true) {
-    data_.addValue(to, OptReal(value), primary);
+  void addValue(int to, double value, const QModelIndex &ind, bool primary=true) {
+    data_.addValue(to, OptReal(value), ind, primary);
   }
 
   void setToValue(int to, double value) {
@@ -328,7 +328,7 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
  public:
   CQChartsChordEdgeObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
-                       int to, const OptReal &value);
+                       int to, const OptReal &value, const QModelIndex &ind);
 
   const ChordData &data() const { return data_; }
 
@@ -620,7 +620,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   bool initConnectionObjs() const;
 
-  void addConnectionObj(int id, const ConnectionsData &connectionsData) const override;
+  void addConnectionObj(int id, const ConnectionsData &connectionsData,
+                        const NodeIndex &nodeIndex) const override;
 
   //---
 
@@ -634,7 +635,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   ChordData &findNameData(NameDataMap &nameDataMap, const QString &name,
                           const QModelIndex &nameInd, bool global=false) const;
 
-  void addEdge(ChordData &srcData, ChordData &destData, double value, bool symmetric) const;
+  void addEdge(ChordData &srcData, const QModelIndex &srcInd, ChordData &destData,
+               const QModelIndex &destInd, double value, bool symmetric) const;
 
   ChordData &getIndData(int ind);
 
@@ -649,7 +651,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   virtual SegmentObj* createSegmentObj(const BBox &rect, const ChordData &data,
                                        const ColorInd &ig, const ColorInd &iv) const;
   virtual EdgeObj*    createEdgeObj(const BBox &rect, const ChordData &data,
-                                    int to, const OptReal &value) const;
+                                    int to, const OptReal &value, const QModelIndex &ind) const;
   virtual HierObj*    createHierObj(const QString &name, const BBox &rect) const;
 
  protected:

@@ -122,8 +122,8 @@ drawPreview(QPainter *painter, const QRect &rect)
 {
   auto data = this->arrowData();
 
-  data.setLength   (CQChartsLength(16, CQChartsUnits::PIXEL));
-  data.setLineWidth(CQChartsLength( 6, CQChartsUnits::PIXEL));
+  data.setLength   (CQChartsLength::pixel(16));
+  data.setLineWidth(CQChartsLength::pixel( 6));
 
   CQChartsArrowDataEditPreview::draw(painter, data, rect, plot(), view());
 }

@@ -224,7 +224,6 @@ class CQChartsSankeyPlotNode {
   //---
 
   const ModelInds &modelInds() const { return modelInds_; }
-
   void addModelInd(const ModelIndex &i) { modelInds_.push_back(i); }
 
   //---
@@ -456,8 +455,10 @@ class CQChartsSankeyPlotEdge {
 
   //---
 
-  const ModelInds &modelInds() const { return modelInds_; }
+  const QModelIndex &modelInd() const { return modelInd_; }
+  void setModelInd(const QModelIndex &v) { modelInd_ = v; }
 
+  const ModelInds &modelInds() const { return modelInds_; }
   void addModelInd(const ModelIndex &i) { modelInds_.push_back(i); }
 
   //---
@@ -497,6 +498,7 @@ class CQChartsSankeyPlotEdge {
 #ifdef CQCHARTS_GRAPH_PATH_ID
   int         pathId_   { -1 };      //!< path id
 #endif
+  QModelIndex modelInd_;             //!< original row model index
   ModelInds   modelInds_;            //!< model inds
   Node*       srcNode_  { nullptr }; //!< source node
   Node*       destNode_ { nullptr }; //!< destination node
@@ -1262,7 +1264,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool initConnectionObjs() const;
 
-  void addConnectionObj(int id, const ConnectionsData &connectionsData) const override;
+  void addConnectionObj(int id, const ConnectionsData &connectionsData,
+                        const NodeIndex &nodeIndex) const override;
 
   //---
 

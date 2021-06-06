@@ -1073,6 +1073,11 @@ addFromToValue(const FromToData &fromToData) const
         edge->addModelInd(modelInd);
     };
 
+    auto fromModelIndex  = modelIndex(fromToData.fromModelInd);
+    auto fromModelIndex1 = normalizeIndex(fromModelIndex);
+
+    edge->setModelInd(fromModelIndex1);
+
     addModelInd(fromToData.fromModelInd  );
     addModelInd(fromToData.toModelInd    );
     addModelInd(fromToData.valueModelInd );
@@ -1105,6 +1110,7 @@ addFromToValue(const FromToData &fromToData) const
     //---
 
     // set edge color (if color column specified)
+    // Note: from and to are same row so we can use either
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
@@ -1217,7 +1223,7 @@ initConnectionObjs() const
 
 void
 CQChartsSankeyPlot::
-addConnectionObj(int id, const ConnectionsData &connectionsData) const
+addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex &) const
 {
   // get src node
   auto srcStr = QString::number(id);
@@ -3098,7 +3104,8 @@ addDrawText(const QString &str, const Point &point, const CQChartsTextOptions &o
             const QColor &color, const Alpha &alpha, const Point &targetPoint,
             const BBox &bbox) const
 {
-  auto *drawText = new CQChartsTextPlacer::DrawText(str, point, options, color, alpha, targetPoint);
+  auto *drawText =
+    new CQChartsTextPlacer::DrawText(str, point, options, color, alpha, targetPoint);
 
   drawText->setBBox(bbox);
 
@@ -4471,7 +4478,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   double ptw = fm.width(str);
 
-  double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
+  auto clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
@@ -4671,12 +4678,56 @@ calcFillColor() const
       fc = node()->calcColor();
   }
   else {
-    auto ic = calcColorInd();
+    auto colorInd = calcColorInd();
 
     if (fillColor().isValid())
-      fc = plot_->interpColor(fillColor(), ic);
+      fc = plot_->interpColor(fillColor(), colorInd);
+    else if (plot_->colorColumn().isValid()) {
+      using Colors = std::vector<QColor>;
+
+      Colors colors;
+
+      for (const auto &edge : node()->srcEdges()) {
+        auto *edgeObj = edge->obj();
+
+        auto ind  = edgeObj->modelInd();
+        auto ind1 = plot_->unnormalizeIndex(ind);
+
+        ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+        Color color;
+
+        if (plot_->modelIndexColor(colorModelInd, color)) {
+          auto c = plot_->interpColor(color, colorInd);
+
+          colors.push_back(c);
+        }
+      }
+
+      for (const auto &edge : node()->destEdges()) {
+        auto *edgeObj = edge->obj();
+
+        auto ind  = edgeObj->modelInd();
+        auto ind1 = plot_->unnormalizeIndex(ind);
+
+        ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+
+        Color color;
+
+        if (plot_->modelIndexColor(colorModelInd, color)) {
+          auto c = plot_->interpColor(color, colorInd);
+
+          colors.push_back(c);
+        }
+      }
+
+      if (! colors.empty())
+        fc = CQChartsUtil::blendColors(colors);
+      else
+        fc = plot_->interpNodeFillColor(colorInd);
+    }
     else
-      fc = plot_->interpNodeFillColor(ic);
+      fc = plot_->interpNodeFillColor(colorInd);
   }
 
   return fc;
@@ -4700,6 +4751,9 @@ CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
   //setDetailHint(DetailHint::MAJOR);
 
   setZoomText(plot->isZoomText());
+
+  if (edge->modelInd().isValid())
+    setModelInd(edge->modelInd());
 }
 
 CQChartsSankeyEdgeObj::

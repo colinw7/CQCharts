@@ -88,6 +88,7 @@ CQChartsGraphPlot(View *view, const ModelP &model) :
  CQChartsObjEdgeShapeData <CQChartsGraphPlot>(this),
  CQChartsObjGraphShapeData<CQChartsGraphPlot>(this)
 {
+  graphMgr_ = std::make_unique<CQChartsGraphPlotMgr>(this);
 }
 
 CQChartsGraphPlot::
@@ -166,18 +167,10 @@ void
 CQChartsGraphPlot::
 clearNodesAndEdges()
 {
-  for (const auto &pn : nameNodeMap_) {
-    auto *node = pn.second;
+  graphMgr_->clearNodesAndEdges();
 
-    delete node;
-  }
-
-  for (const auto &edge : edges_)
-    delete edge;
-
-  nameNodeMap_.clear();
-  indNodeMap_ .clear();
-  edges_      .clear();
+  nodes_.clear();
+  edges_.clear();
 
   clearGraphs();
 
@@ -188,39 +181,96 @@ clearNodesAndEdges()
 
 //---
 
+const CQChartsLength &
+CQChartsGraphPlot::
+nodeXMargin() const
+{
+  return graphMgr_->nodeXMargin();
+}
+
 void
 CQChartsGraphPlot::
 setNodeXMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeXMargin_, l, [&]() { updateRangeAndObjs(); } );
+  if (l != nodeXMargin()) {
+    graphMgr_->setNodeXMargin(l);
+
+    updateRangeAndObjs();
+  }
+}
+
+const CQChartsLength &
+CQChartsGraphPlot::
+nodeYMargin() const
+{
+  return graphMgr_->nodeYMargin();
 }
 
 void
 CQChartsGraphPlot::
 setNodeYMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeYMargin_, l, [&]() { updateRangeAndObjs(); } );
+  if (l != nodeYMargin()) {
+    graphMgr_->setNodeYMargin(l);
+
+    updateRangeAndObjs();
+  }
+}
+
+//---
+
+const CQChartsLength &
+CQChartsGraphPlot::
+nodeWidth() const
+{
+  return graphMgr_->nodeWidth();
 }
 
 void
 CQChartsGraphPlot::
 setNodeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeWidth_, l, [&]() { updateRangeAndObjs(); } );
+  if (l != nodeWidth()) {
+    graphMgr_->setNodeWidth(l);
+
+    updateRangeAndObjs();
+  }
+}
+
+bool
+CQChartsGraphPlot::
+isNodeXScaled() const
+{
+  return graphMgr_->isNodeXScaled();
 }
 
 void
 CQChartsGraphPlot::
 setNodeXScaled(bool b)
 {
-  CQChartsUtil::testAndSet(nodeXScaled_, b, [&]() { updateRangeAndObjs(); } );
+  if (isNodeXScaled() != b) {
+    graphMgr_->setNodeXScaled(b);
+
+    updateRangeAndObjs();
+  }
+}
+
+CQChartsGraphPlot::NodeShape
+CQChartsGraphPlot::
+nodeShape() const
+{
+  return (NodeShape) graphMgr_->nodeShape();
 }
 
 void
 CQChartsGraphPlot::
 setNodeShape(const NodeShape &s)
 {
-  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateRangeAndObjs(); } );
+  if (s != nodeShape()) {
+    graphMgr_->setNodeShape((GraphMgr::NodeShape) s);
+
+    updateRangeAndObjs();
+  }
 }
 
 //---
@@ -257,20 +307,42 @@ setBlendEdgeColor(bool b)
 
 //---
 
+CQChartsGraphPlot::Align
+CQChartsGraphPlot::
+align() const
+{
+  return (CQChartsGraphPlot::Align) graphMgr_->align();
+}
+
 void
 CQChartsGraphPlot::
 setAlign(const Align &a)
 {
-  CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
+  if (a != align()) {
+    graphMgr_->setAlign((CQChartsGraphMgr::Align) a);
+
+    updateRangeAndObjs();
+  }
 }
 
 //---
+
+bool
+CQChartsGraphPlot::
+isAdjustNodes() const
+{
+  return graphMgr_->isAdjustNodes();
+}
 
 void
 CQChartsGraphPlot::
 setAdjustNodes(bool b)
 {
-  CQChartsUtil::testAndSet(adjustNodes_, b, [&]() { updateRangeAndObjs(); } );
+  if (b != isAdjustNodes()) {
+    graphMgr_->setAdjustNodes(b);
+
+    updateRangeAndObjs();
+  }
 }
 
 void
@@ -430,8 +502,7 @@ nodesBBox() const
   // calc bounding box of all nodes (all graphs)
   BBox bbox;
 
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
+  for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
     bbox += node->rect();
@@ -528,8 +599,7 @@ fitToBBox(const BBox &bbox)
 
   double f = std::min(xf, yf);
 
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
+  for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
     double nx1 = x2 + (node->rect().getXMin() - x1)*f;
@@ -544,7 +614,7 @@ fitToBBox(const BBox &bbox)
 
   //---
 
-  for (auto &pg : graphs_) {
+  for (auto &pg : graphMgr_->graphs()) {
     auto *graph = pg.second;
 
     graph->updateRect();
@@ -742,8 +812,7 @@ propagatePathValues()
 {
   // propagate node value up through edges and parent nodes
   for (int depth = maxNodeDepth_; depth >= 0; --depth) {
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+    for (const auto &node : nodes_) {
       if (node->depth() != depth) continue;
 
       // set node value from sum of dest values
@@ -1018,7 +1087,7 @@ initConnectionObjs() const
 
 void
 CQChartsGraphPlot::
-addConnectionObj(int id, const ConnectionsData &connectionsData) const
+addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex &) const
 {
   // get src node
   auto srcStr = QString::number(id);
@@ -1243,9 +1312,7 @@ filterObjs()
 {
   // hide nodes below depth
   if (maxDepth() > 0) {
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
-
+    for (const auto &node : nodes_) {
       if (node->depth() > maxDepth())
         node->setVisible(false);
     }
@@ -1253,9 +1320,7 @@ filterObjs()
 
   // hide nodes less than min value
   if (minValue() > 0) {
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
-
+    for (const auto &node : nodes_) {
       if (! node->value().isSet() || node->value().real() < minValue())
         node->setVisible(false);
     }
@@ -1305,8 +1370,9 @@ CQChartsGraphPlot::
 addObjects(PlotObjs &objs) const
 {
   // add node objects (per graph)
-  for (auto &pg : graphs_) {
-    auto *graph = pg.second;
+  for (auto &pg : graphMgr_->graphs()) {
+    auto *graph = dynamic_cast<CQChartsGraphPlotGraph *>(pg.second);
+    assert(graph);
 
     if (graph->nodes().empty() || ! graph->rect().isValid())
       continue;
@@ -1352,92 +1418,11 @@ void
 CQChartsGraphPlot::
 placeGraphs() const
 {
-  for (auto &pg : graphs_) {
+  for (auto &pg : graphMgr_->graphs()) {
     auto *graph = pg.second;
 
-    placeGraph(graph);
+    graph->placeGraph(bbox_);
   }
-}
-
-// place nodes in graph
-void
-CQChartsGraphPlot::
-placeGraph(Graph *graph) const
-{
-  if (graph->isPlaced())
-    return;
-
-  //---
-
-  // place children first
-  for (const auto &child : graph->children())
-    child->place();
-
-  //---
-
-  // get placeable nodes (nodes and sub graphs)
-  auto nodes = graph->placeNodes();
-
-  placeGraphNodes(graph, nodes);
-}
-
-void
-CQChartsGraphPlot::
-placeGraphNodes(Graph *graph, const Nodes &nodes) const
-{
-  auto *th = const_cast<CQChartsGraphPlot *>(this);
-
-  //---
-
-  // set max depth of all graph nodes
-  updateGraphMaxDepth(graph, nodes);
-
-  //---
-
-  // place graph nodes at x position
-  for (const auto &node : nodes) {
-    int xpos = calcXPos(graph, node);
-
-    graph->addDepthSize(xpos, node->edgeSum());
-    graph->addDepthNode(xpos, node);
-  }
-
-  //---
-
-  // calc max height (fron node count) and max size (from value) for each x
-  graph->setMaxHeight(0);
-  graph->setTotalSize(0.0);
-
-  for (const auto &depthNodes : graph->depthNodesMap()) {
-    const auto &nodes = depthNodes.second.nodes;
-    double      size  = depthNodes.second.size;
-
-    graph->setMaxHeight(std::max(graph->maxHeight(), int(nodes.size())));
-    graph->setTotalSize(std::max(graph->totalSize(), size));
-  }
-
-  //---
-
-  // calc y value scale and margins to fit in bbox
-  th->calcValueMarginScale(graph);
-
-  //---
-
-  // place node objects at each depth (xpos)
-  placeDepthNodes(graph);
-
-  //---
-
-  // adjust nodes in graph
-  adjustGraphNodes(graph, nodes);
-
-  //---
-
-  graph->updateRect();
-
-  //---
-
-  graph->setPlaced(true);
 }
 
 void
@@ -1447,8 +1432,7 @@ createGraphs() const
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
   // Add nodes to graph for group
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
+  for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
     int graphId       = node->graphId();
@@ -1467,7 +1451,7 @@ createGraphs() const
 
   //---
 
-  if (graphs_.size() == 1 && isAutoCreateGraphs()) {
+  if (graphMgr_->graphs().size() == 1 && isAutoCreateGraphs()) {
     autoCreateGraphs();
   }
 }
@@ -1478,8 +1462,7 @@ autoCreateGraphs() const
 {
   Nodes noSrcNodes;
 
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
+  for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
     if (node->srcEdges().empty())
@@ -1538,7 +1521,7 @@ autoCreateGraphs() const
 
   //---
 
-  auto *root = graphs_.begin()->second;
+  auto *root = graphMgr_->graphs().begin()->second;
 
   auto rootNodes = root->nodes();
 
@@ -1592,234 +1575,18 @@ autoCreateGraphs() const
   }
 }
 
-CQChartsGraphPlotGraph *
+CQChartsGraphGraph *
 CQChartsGraphPlot::
 getGraph(int graphId, int parentGraphId) const
 {
-  auto pg = graphs_.find(graphId);
-
-  if (pg == graphs_.end()) {
-    auto *th = const_cast<CQChartsGraphPlot *>(this);
-
-    auto name = QString::number(graphId);
-
-    auto *graph = new Graph(this, name);
-
-    graph->setId(graphId);
-
-    pg = th->graphs_.insert(th->graphs_.end(), Graphs::value_type(graphId, graph));
-
-    //---
-
-    if (parentGraphId >= 0) {
-      auto *parentGraph = getGraph(parentGraphId, -1);
-
-      graph->setParent(parentGraph);
-
-      parentGraph->addChild(graph);
-    }
-  }
-
-  return (*pg).second;
+  return graphMgr_->getOrCreateGraph(graphId, parentGraphId);
 }
 
 void
 CQChartsGraphPlot::
 clearGraphs()
 {
-  for (auto &pg : graphs_)
-    delete pg.second;
-
-  graphs_.clear();
-}
-
-void
-CQChartsGraphPlot::
-calcValueMarginScale(Graph *graph)
-{
-  // get node margins
-  double nodeYMargin = calcNodeYMargin();
-
-  //---
-
-  double ys = 2.0;
-
-  if (bbox_.isSet()) {
-  //ys = bbox.getHeight();
-    ys = std::max(bbox_.getWidth(), bbox_.getHeight());
-  }
-
-  double ys1 = nodeYMargin*ys;
-  double ys2 = ys - ys1;
-
-  //---
-
-  // calc value margin/scale
-  graph->setValueMargin(graph->maxHeight() > 1.0 ? ys1/(graph->maxHeight() - 1) : 0.0);
-  graph->setValueScale (graph->maxHeight() > 0.0 ? ys2/ graph->maxHeight()      : 1.0);
-}
-
-double
-CQChartsGraphPlot::
-calcNodeXMargin() const
-{
-  double nodeXMargin = lengthPlotWidth(this->nodeXMargin());
-
-  nodeXMargin = std::min(std::max(nodeXMargin, 0.0), 1.0);
-
-  auto pixelNodeXMargin = windowToPixelWidth(nodeXMargin);
-
-  if (pixelNodeXMargin < minNodeMargin())
-    nodeXMargin = pixelToWindowWidth(minNodeMargin());
-
-  return nodeXMargin;
-}
-
-double
-CQChartsGraphPlot::
-calcNodeYMargin() const
-{
-  double nodeYMargin = lengthPlotHeight(this->nodeYMargin());
-
-  nodeYMargin = std::min(std::max(nodeYMargin, 0.0), 1.0);
-
-  auto pixelNodeYMargin = windowToPixelHeight(nodeYMargin);
-
-  if (pixelNodeYMargin < minNodeMargin())
-    nodeYMargin = pixelToWindowHeight(minNodeMargin());
-
-  return nodeYMargin;
-}
-
-void
-CQChartsGraphPlot::
-placeDepthNodes(Graph *graph) const
-{
-  // place node objects at each depth (xpos)
-  for (const auto &depthNodes : graph->depthNodesMap()) {
-    int         xpos  = depthNodes.first;
-    const auto &nodes = depthNodes.second.nodes;
-
-    placeDepthSubNodes(graph, xpos, nodes);
-  }
-}
-
-void
-CQChartsGraphPlot::
-placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
-{
-  double xmargin = calcNodeXMargin();
-
-  // place nodes to fit in bbox
-  double xs = bbox_.getWidth ();
-  double ys = bbox_.getHeight();
-
-  double dx = 1.0;
-
-  if (graph->maxNodeDepth() > 0) {
-    if (isNodeXScaled())
-      dx = xs/(graph->maxNodeDepth() + 1);
-    else
-      dx = xs/graph->maxNodeDepth();
-  }
-
-  double xm = lengthPlotWidth (nodeWidth());
-  double ym = lengthPlotHeight(nodeWidth());
-
-  if (isNodeXScaled()) {
-    xm = dx - xmargin;
-    ym = xm;
-  }
-
-  //---
-
-  // get sum of margins nodes at depth
-  double height = graph->valueMargin()*(graph->maxHeight() - 1);
-
-  height += graph->maxHeight()*graph->valueScale();
-
-  //---
-
-  // calc tip (placing top to bottom)
-  double y1 = bbox_.getYMax() - (ys - height)/2.0;
-
-  //---
-
-  double nh = graph->valueScale();
-
-  double dy = nh + graph->valueMargin();
-
-  y1 = bbox_.getYMid() + dy*graph->maxHeight()/2.0;
-
-  y1 -= dy*(graph->maxHeight() - nodes.size())/2.0;
-
-  y1 -= graph->valueMargin()/2.0;
-
-  //---
-
-  for (const auto &node : nodes) {
-    // calc height
-    double h = nh;
-
-    if (h <= 0.0)
-      h = 0.1;
-
-    //---
-
-    // calc rect
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
-
-    int xpos1 = calcXPos(graph, node);
-    assert(xpos == xpos1);
-
-    double x11 = bbox_.getXMin() + xpos*dx; // left
-    double x12 = x11 + xm;
-
-    double yc = y1 - h/2.0; // placement center
-
-    double y11 = yc - ym/2.0;
-    double y12 = yc + ym/2.0;
-
-    //---
-
-    BBox rect;
-
-    auto shapeType = (NodeObj::ShapeType) node->shapeType();
-
-    if (shapeType == NodeObj::ShapeType::NONE)
-      shapeType = (NodeObj::ShapeType) nodeShape();
-
-    if (shapeType == (NodeObj::ShapeType) NODE_SHAPE_DIAMOND ||
-        shapeType == (NodeObj::ShapeType) NODE_SHAPE_BOX ||
-        shapeType == (NodeObj::ShapeType) NODE_SHAPE_POLYGON ||
-        shapeType == (NodeObj::ShapeType) NODE_SHAPE_CIRCLE ||
-        shapeType == (NodeObj::ShapeType) NODE_SHAPE_DOUBLE_CIRCLE) {
-      rect = BBox(x11, y11, x12, y12);
-    }
-    else {
-      if      (srcDepth == 0)
-        rect = BBox(x11, y11, x12, y12); // no inputs (left align)
-      else if (destDepth == 0) {
-        x11 -= xm; x12 -= xm;
-
-        rect = BBox(x11, y11, x12, y12); // no outputs (right align)
-      }
-      else {
-        x11 -= xm/2.0; x12 -= xm/2.0;
-
-        rect = BBox(x11, y11, x12, y12); // center align
-      }
-    }
-
-    //---
-
-    node->setRect(rect);
-
-    //---
-
-    y1 -= h + graph->valueMargin();
-  }
+  graphMgr_->clearGraphs();
 }
 
 CQChartsGraphPlot::NodeObj *
@@ -1827,7 +1594,7 @@ CQChartsGraphPlot::
 createObjFromNode(Graph *, Node *node) const
 {
 //int numNodes = graph->nodes().size(); // node id needs to be per graph
-  int numNodes = indNodeMap_.size();
+  int numNodes = this->numNodes();
 
   ColorInd iv(node->id(), numNodes);
 
@@ -1844,55 +1611,12 @@ createObjFromNode(Graph *, Node *node) const
   for (const auto &modelInd : node->modelInds())
     nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
-  node->setObj(nodeObj);
+  auto *pnode = dynamic_cast<CQChartsGraphPlotNode *>(node);
+  assert(pnode);
+
+  pnode->setObj(nodeObj);
 
   return nodeObj;
-}
-
-int
-CQChartsGraphPlot::
-calcXPos(Graph *graph, Node *node) const
-{
-  int xpos = 0;
-
-  if (node->depth() >= 0) {
-    xpos = node->depth();
-  }
-  else {
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
-
-    if      (srcDepth == 0)
-      xpos = 0;
-    else if (destDepth == 0)
-      xpos = graph->maxNodeDepth();
-    else {
-      if      (align() == Align::SRC)
-        xpos = srcDepth;
-      else if (align() == Align::DEST)
-        xpos = graph->maxNodeDepth() - destDepth;
-      else if (align() == Align::JUSTIFY) {
-        double f = 1.0*srcDepth/(srcDepth + destDepth);
-
-        xpos = int(f*graph->maxNodeDepth());
-      }
-#if 0
-      else if (align() == Align::RAND) {
-        CQChartsRand::RealInRange rand(0, alignRand_);
-
-        xpos = CMathRound::RoundNearest(rand.gen());
-
-        const_cast<Node *>(node)->setDepth(xpos);
-      }
-#endif
-    }
-  }
-
-  //--
-
-  node->setXPos(xpos);
-
-  return xpos;
 }
 
 CQChartsGraphEdgeObj *
@@ -1922,47 +1646,12 @@ addEdgeObj(Edge *edge) const
 
   edgeObj->setShapeType(shapeType);
 
-  edge->setObj(edgeObj);
+  auto *pedge = dynamic_cast<CQChartsGraphPlotEdge *>(edge);
+  assert(pedge);
+
+  pedge->setObj(edgeObj);
 
   return edgeObj;
-}
-
-void
-CQChartsGraphPlot::
-updateGraphMaxDepth(Graph *graph, const Nodes &nodes) const
-{
-  // calc max depth (source or dest) depending on align for xpos calc
-  bool set = false;
-
-  graph->setMinNodeDepth(0);
-  graph->setMaxNodeDepth(0);
-
-  auto updateNodeDepth = [&](int depth) {
-    if (! set) {
-      graph->setMinNodeDepth(depth);
-      graph->setMaxNodeDepth(depth);
-
-      set = true;
-    }
-    else {
-      graph->setMinNodeDepth(std::min(graph->minNodeDepth(), depth));
-      graph->setMaxNodeDepth(std::max(graph->maxNodeDepth(), depth));
-    }
-  };
-
-  for (const auto &node : nodes) {
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
-
-    if      (align() == Align::SRC)
-      updateNodeDepth(srcDepth);
-    else if (align() == Align::DEST)
-      updateNodeDepth(destDepth);
-    else {
-      updateNodeDepth(srcDepth);
-      updateNodeDepth(destDepth);
-    }
-  }
 }
 
 bool
@@ -1971,393 +1660,16 @@ adjustNodes() const
 {
   bool changed = false;
 
-  for (auto &pg : graphs_) {
+  for (auto &pg : graphMgr_->graphs()) {
     auto *graph = pg.second;
 
-    auto nodes = graph->placeNodes();
+    auto nodes = graph->placeableNodes();
 
-    if (adjustGraphNodes(graph, nodes))
+    if (graph->adjustGraphNodes(nodes))
       changed = true;
   }
 
   return changed;
-}
-
-bool
-CQChartsGraphPlot::
-adjustGraphNodes(Graph *graph, const Nodes &nodes) const
-{
-//auto *th = const_cast<CQChartsGraphPlot *>(this);
-
-  //---
-
-  // update range
-//th->bbox_ = nodesBBox();
-
-//th->dataRange_ = calcRange();
-
-  //---
-
-  initPosNodesMap(graph, nodes);
-
-  //---
-
-  if (isAdjustNodes()) {
-    int numPasses = 25;
-
-    for (int pass = 0; pass < numPasses; ++pass) {
-      //std::cerr << "Pass " << pass << "\n";
-
-      if (! adjustNodeCenters(graph)) {
-        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
-        break;
-      }
-    }
-
-    //---
-
-    reorderNodeEdges(graph, nodes);
-  }
-
-  //---
-
-//placeDepthNodes(graph);
-
-  //---
-
-  return true;
-}
-
-void
-CQChartsGraphPlot::
-initPosNodesMap(Graph *graph, const Nodes &nodes) const
-{
-  // get nodes by x pos
-  graph->resetPosNodes();
-
-  for (const auto &node : nodes)
-    graph->addPosNode(node);
-}
-
-bool
-CQChartsGraphPlot::
-adjustNodeCenters(Graph *graph) const
-{
-  // adjust nodes so centered on src nodes
-  bool changed = false;
-
-  // second to last
-  int posNodesDepth = graph->posNodesMap().size();
-
-  for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
-    if (adjustPosNodes(graph, xpos))
-      changed = true;
-  }
-
-  removeOverlaps(graph);
-
-  //---
-
-  // second to last to first
-  for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
-    if (adjustPosNodes(graph, xpos))
-      changed = true;
-  }
-
-  removeOverlaps(graph);
-
-  return changed;
-}
-
-bool
-CQChartsGraphPlot::
-adjustPosNodes(Graph *graph, int xpos) const
-{
-  if (! graph->hasPosNodes(xpos))
-    return false;
-
-  bool changed = false;
-
-  const auto &nodes = graph->posNodes(xpos);
-
-  for (const auto &node : nodes) {
-    if (adjustNode(node))
-      changed = true;
-  }
-
-  return changed;
-}
-
-bool
-CQChartsGraphPlot::
-removeOverlaps(Graph *graph) const
-{
-  bool changed = false;
-
-  for (const auto &posNodes : graph->posNodesMap()) {
-    if (removePosOverlaps(graph, posNodes.second))
-      changed = true;
-  }
-
-  return changed;
-}
-
-bool
-CQChartsGraphPlot::
-removePosOverlaps(Graph *graph, const Nodes &nodes) const
-{
-  double ym = pixelToWindowHeight(minNodeMargin());
-
-  //---
-
-  // get nodes sorted by y (max to min)
-  PosNodeMap posNodeMap;
-
-  createPosNodeMap(nodes, posNodeMap);
-
-  //---
-
-  // remove overlaps between nodes
-  bool changed = false;
-
-  Node *node1 = nullptr;
-
-  for (const auto &posNode : posNodeMap) {
-    auto *node2 = posNode.second;
-
-    if (node1) {
-      const auto &rect1 = node1->rect();
-      const auto &rect2 = node2->rect();
-
-      if (rect2.getYMax() >= rect1.getYMin() - ym) {
-        double dy = rect1.getYMin() - ym - rect2.getYMax();
-
-        if (std::abs(dy) > 1E-6) {
-          node2->moveBy(Point(0, dy));
-          changed = true;
-        }
-      }
-    }
-
-    node1 = node2;
-  }
-
-  //---
-
-  // move back inside bbox (needed ?)
-  if (node1) {
-    const auto &rect1 = node1->rect();
-
-    if (rect1.getYMin() < bbox_.getYMin())
-      spreadPosNodes(graph, nodes);
-  }
-
-  return changed;
-}
-
-bool
-CQChartsGraphPlot::
-spreadPosNodes(Graph *, const Nodes &nodes) const
-{
-  PosNodeMap posNodeMap;
-
-  createPosNodeMap(nodes, posNodeMap);
-
-  BBox spreadBBox;
-
-  Node *node1 = nullptr, *node2 = nullptr;
-
-  for (const auto &posNode : posNodeMap) {
-    node2 = posNode.second;
-
-    if (! node1) node1 = node2;
-
-    spreadBBox += node2->rect();
-  }
-
-  if (! node1 || ! node2)
-    return false;
-
-  //---
-
-  double dy1 = node1->rect().getHeight()/2.0; // top
-  double dy2 = node2->rect().getHeight()/2.0; // bottom
-
-  if (! spreadBBox.isValid() || (spreadBBox.getHeight() - dy1 - dy2) <= 0.0)
-    return false;
-
-  double ymin = bbox_.getYMin() + dy2;
-  double ymax = bbox_.getYMax() - dy1;
-
-  double dy = ymin - node2->rect().getYMid();
-  double ys = (ymax - ymin)/(spreadBBox.getHeight() - dy1 - dy2);
-
-  if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(ys, 1.0))
-    return false;
-
-  for (const auto &posNode : posNodeMap) {
-    auto *node = posNode.second;
-
-    node->moveBy(Point(0, dy));
-
-    double y1 = ys*(node->rect().getYMid() - ymin) + ymin;
-
-    node->moveBy(Point(0, y1 - node->rect().getYMid()));
-  }
-
-  return true;
-}
-
-bool
-CQChartsGraphPlot::
-reorderNodeEdges(Graph *, const Nodes &nodes) const
-{
-  bool changed = false;
-
-  // sort node edges nodes by bbox
-  for (const auto &node : nodes) {
-    PosEdgeMap srcPosEdgeMap;
-
-    createPosEdgeMap(node->srcEdges(), srcPosEdgeMap, /*isSrc*/true);
-
-    if (srcPosEdgeMap.size() > 1) {
-      Edges srcEdges;
-
-      for (const auto &srcPosNode : srcPosEdgeMap)
-        srcEdges.push_back(srcPosNode.second);
-
-      node->setSrcEdges(srcEdges);
-
-      changed = true;
-    }
-
-    //---
-
-    PosEdgeMap destPosEdgeMap;
-
-    createPosEdgeMap(node->destEdges(), destPosEdgeMap, /*isSrc*/false);
-
-    if (destPosEdgeMap.size() > 1) {
-      Edges destEdges;
-
-      for (const auto &destPosNode : destPosEdgeMap)
-        destEdges.push_back(destPosNode.second);
-
-      node->setDestEdges(destEdges);
-
-      changed = true;
-    }
-  }
-
-  return changed;
-}
-
-void
-CQChartsGraphPlot::
-createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const
-{
-  for (const auto &node : nodes) {
-    if (! node->isVisible()) continue;
-
-    const auto &rect = node->rect();
-    if (! rect.isValid()) continue;
-
-    // use distance from top (decreasing)
-    double y = bbox_.getYMax() - rect.getYMid();
-
-    auto p = posNodeMap.find(y);
-
-    while (p != posNodeMap.end()) {
-      y -= 0.001;
-
-      p = posNodeMap.find(y);
-    }
-
-    posNodeMap[y] = node;
-  }
-}
-
-void
-CQChartsGraphPlot::
-createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
-{
-  for (const auto &edge : edges) {
-    auto *node = (isSrc ? edge->srcNode() : edge->destNode());
-    if (! node->isVisible()) continue;
-
-    const auto &rect = node->rect();
-    if (! rect.isValid()) continue;
-
-    // use distance from top (decreasing)
-    double y = bbox_.getYMax() - rect.getYMid();
-
-    auto p = posEdgeMap.find(y);
-
-    while (p != posEdgeMap.end()) {
-      y -= 0.001;
-
-      p = posEdgeMap.find(y);
-    }
-
-    posEdgeMap[y] = edge;
-  }
-}
-
-bool
-CQChartsGraphPlot::
-adjustNode(Node *node) const
-{
-  // get bounds of source edges
-  BBox srcBBox;
-
-  for (const auto &edge : node->srcEdges()) {
-    if (edge->isSelf()) continue;
-
-    auto *srcNode = edge->srcNode();
-    if (! srcNode->isVisible()) continue;
-
-    srcBBox += srcNode->rect();
-  }
-
-  //---
-
-  // get bounds of dest edges
-  BBox destBBox;
-
-  for (const auto &edge : node->destEdges()) {
-    if (edge->isSelf()) continue;
-
-    auto *destNode = edge->destNode();
-    if (! destNode->isVisible()) continue;
-
-    destBBox += destNode->rect();
-  }
-
-  //---
-
-  // calc average y
-  double midY = 0.0;
-
-  if      (srcBBox.isValid() && destBBox.isValid())
-    midY = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
-  else if (srcBBox.isValid())
-    midY = srcBBox.getYMid();
-  else if (destBBox.isValid())
-    midY = destBBox.getYMid();
-  else
-    return false;
-
-  //---
-
-  // move node to average
-  double dy = midY - node->rect().getYMid();
-
-  if (std::abs(dy) < 1E-6) // better tolerance
-    return false;
-
-  node->moveBy(Point(0.0, dy));
-
-  return true;
 }
 
 //---
@@ -2367,12 +1679,12 @@ void
 CQChartsGraphPlot::
 adjustGraphs() const
 {
-  if (graphs_.size() <= 1)
+  if (graphMgr_->graphs().size() <= 1)
     return;
 
   double h = 0;
 
-  for (auto &pg : graphs_) {
+  for (auto &pg : graphMgr_->graphs()) {
     auto *graph = pg.second;
 
     h += graph->rect().getHeight();
@@ -2382,7 +1694,7 @@ adjustGraphs() const
 
   double y = -1.0;
 
-  for (auto &pg : graphs_) {
+  for (auto &pg : graphMgr_->graphs()) {
     auto *graph = pg.second;
 
     double dy = y - f*graph->rect().getYMin();
@@ -2397,54 +1709,40 @@ adjustGraphs() const
 
 //---
 
-CQChartsGraphPlotNode *
+CQChartsGraphNode *
 CQChartsGraphPlot::
 findNode(const QString &name) const
 {
-  auto p = nameNodeMap_.find(name);
+  auto *node = graphMgr_->findNode(name);
 
-  if (p != nameNodeMap_.end())
-    return (*p).second;
-
-  auto *node = createNode(name);
+  if (! node)
+    node = createNode(name);
 
   return node;
 }
 
-CQChartsGraphPlotNode *
+CQChartsGraphNode *
 CQChartsGraphPlot::
 createNode(const QString &name) const
 {
-  auto *node = new Node(this, name);
-
-  node->setId(nameNodeMap_.size());
+  auto *node = graphMgr_->addNode(name);
 
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
-
-  assert(node == (*p1).second);
-
-  th->indNodeMap_[node->id()] = node;
-
-  node->setName(name);
+  th->nodes_.push_back(node);
 
   return node;
 }
 
-CQChartsGraphPlotEdge *
+CQChartsGraphEdge *
 CQChartsGraphPlot::
 createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
-  assert(srcNode && destNode);
+  auto *edge = graphMgr_->addEdge(value, srcNode, destNode);
 
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
-  auto *edge = new Edge(this, value, srcNode, destNode);
-
   th->edges_.push_back(edge);
-
-  edge->setId(th->edges_.size());
 
   return edge;
 }
@@ -2485,8 +1783,7 @@ printStats()
 
   NodeData nodeData;
 
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
+  for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
     if (node->srcEdges().empty())
@@ -2566,387 +1863,6 @@ createCustomControls()
 
 //------
 
-CQChartsGraphPlotNode::
-CQChartsGraphPlotNode(const Plot *plot, const QString &str) :
- plot_(plot), str_(str)
-{
-}
-
-CQChartsGraphPlotNode::
-~CQChartsGraphPlotNode()
-{
-  assert(! obj_);
-}
-
-void
-CQChartsGraphPlotNode::
-addSrcEdge(Edge *edge, bool primary)
-{
-  edge->destNode()->parent_ = edge->srcNode();
-
-  srcEdges_.push_back(edge);
-
-  srcDepth_ = -1;
-
-  if (! primary)
-    nonPrimaryEdges_.push_back(edge);
-}
-
-void
-CQChartsGraphPlotNode::
-addDestEdge(Edge *edge, bool primary)
-{
-  edge->destNode()->parent_ = edge->srcNode();
-
-  destEdges_.push_back(edge);
-
-  destDepth_ = -1;
-
-  if (! primary)
-    nonPrimaryEdges_.push_back(edge);
-}
-
-bool
-CQChartsGraphPlotNode::
-hasDestNode(Node *destNode) const
-{
-  for (auto &destEdge : destEdges()) {
-    if (destEdge->destNode() == destNode)
-      return true;
-  }
-
-  return false;
-}
-
-int
-CQChartsGraphPlotNode::
-srcDepth() const
-{
-  if (depth() >= 0)
-    return depth() - 1;
-
-  NodeSet visited;
-
-  visited.insert(this);
-
-  return calcSrcDepth(visited);
-}
-
-int
-CQChartsGraphPlotNode::
-calcSrcDepth(NodeSet &visited) const
-{
-  if (srcDepth_ >= 0)
-    return srcDepth_;
-
-  auto *th = const_cast<CQChartsGraphPlotNode *>(this);
-
-  if (srcEdges_.empty()) {
-    th->srcDepth_ = 0;
-  }
-  else {
-    int depth = 0;
-
-    for (const auto &edge : srcEdges_) {
-      if (edge->isSelf()) continue;
-
-      auto *node = edge->srcNode();
-
-      auto p = visited.find(node);
-
-      if (p == visited.end()) {
-        visited.insert(node);
-
-        depth = std::max(depth, node->calcSrcDepth(visited));
-      }
-    }
-
-    th->srcDepth_ = depth + 1;
-  }
-
-  return srcDepth_;
-}
-
-int
-CQChartsGraphPlotNode::
-destDepth() const
-{
-  if (depth() >= 0)
-    return depth() + 1;
-
-  NodeSet visited;
-
-  visited.insert(this);
-
-  return calcDestDepth(visited);
-}
-
-int
-CQChartsGraphPlotNode::
-calcDestDepth(NodeSet &visited) const
-{
-  if (destDepth_ >= 0)
-    return destDepth_;
-
-  auto *th = const_cast<CQChartsGraphPlotNode *>(this);
-
-  if (destEdges_.empty()) {
-    th->destDepth_ = 0;
-  }
-  else {
-    int depth = 0;
-
-    for (const auto &edge : destEdges_) {
-      if (edge->isSelf()) continue;
-
-      auto *node = edge->destNode();
-
-      auto p = visited.find(node);
-
-      if (p == visited.end()) {
-        visited.insert(node);
-
-        depth = std::max(depth, node->calcDestDepth(visited));
-      }
-    }
-
-    th->destDepth_ = depth + 1;
-  }
-
-  return destDepth_;
-}
-
-const CQChartsGraphPlotNode::BBox &
-CQChartsGraphPlotNode::
-rect() const
-{
-  if (obj_) {
-    assert(obj_->rect() == rect_);
-  }
-
-  return rect_;
-}
-
-void
-CQChartsGraphPlotNode::
-setRect(const BBox &rect)
-{
-  assert(rect.isSet());
-
-  rect_ = rect;
-
-  if (obj_) // TODO: assert null or use move by
-    obj_->setRect(rect);
-}
-
-CQChartsGraphPlotGraph *
-CQChartsGraphPlotNode::
-graph() const
-{
-  if (graphId_ < 0)
-    return nullptr;
-
-  return plot_->getGraph(graphId_, -1);
-}
-
-double
-CQChartsGraphPlotNode::
-edgeSum() const
-{
-  double sum = std::max(srcEdgeSum(), destEdgeSum());
-
-  if (CMathUtil::realEq(sum, 0.0))
-    sum = 1.0;
-
-  return sum;
-}
-
-double
-CQChartsGraphPlotNode::
-srcEdgeSum() const
-{
-  double value = 0.0;
-
-  for (const auto &edge : srcEdges_) {
-    if (edge->hasValue())
-      value += edge->value().real();
-  }
-
-  return value;
-}
-
-double
-CQChartsGraphPlotNode::
-destEdgeSum() const
-{
-  double value = 0.0;
-
-  for (const auto &edge : destEdges_) {
-    if (edge->hasValue())
-      value += edge->value().real();
-  }
-
-  return value;
-}
-
-//---
-
-void
-CQChartsGraphPlotNode::
-setObj(Obj *obj)
-{
-  obj_ = obj;
-}
-
-//---
-
-void
-CQChartsGraphPlotNode::
-moveBy(const Point &delta)
-{
-  rect_.moveBy(delta);
-
-  //---
-
-  if (obj_)
-    obj_->moveBy(delta);
-
-  //---
-
-  moveSrcEdgeRectsBy (delta);
-  moveDestEdgeRectsBy(delta);
-}
-
-void
-CQChartsGraphPlotNode::
-scale(double fx, double fy)
-{
-  rect_.scale(fx, fy);
-
-  //---
-
-  if (obj_)
-    obj_->scale(fx, fy);
-}
-
-//---
-
-void
-CQChartsGraphPlotNode::
-placeEdges()
-{
-  double x1 = rect().getXMin();
-  double x2 = rect().getXMax();
-  double y1 = rect().getYMin();
-  double y2 = rect().getYMax();
-
-  clearSrcEdgeRects ();
-  clearDestEdgeRects();
-
-  if (this->srcEdges().size() == 1) {
-    auto *edge = *this->srcEdges().begin();
-
-    setSrcEdgeRect(edge, BBox(x1, y1, x2, y2));
-  }
-  else {
-    double total = 0.0;
-
-    for (const auto &edge : this->srcEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
-    }
-
-    double y3 = y2; // top
-
-    for (const auto &edge : this->srcEdges()) {
-      if (! edge->hasValue()) {
-        setSrcEdgeRect(edge, BBox());
-        continue;
-      }
-
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-      double y4 = y3 - h1;
-
-      if (! hasSrcEdgeRect(edge))
-        setSrcEdgeRect(edge, BBox(x1, y4, x2, y3));
-
-      y3 = y4;
-    }
-  }
-
-  //---
-
-  if (this->destEdges().size() == 1) {
-    auto *edge = *this->destEdges().begin();
-
-    setDestEdgeRect(edge, BBox(x1, y1, x2, y2));
-  }
-  else {
-    double total = 0.0;
-
-    for (const auto &edge : this->destEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
-    }
-
-    double y3 = y2; // top
-
-    for (const auto &edge : this->destEdges()) {
-      if (! edge->hasValue()) {
-        setDestEdgeRect(edge, BBox());
-        continue;
-      }
-
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-      double y4 = y3 - h1;
-
-      if (! hasDestEdgeRect(edge))
-        setDestEdgeRect(edge, BBox(x1, y4, x2, y3));
-
-      y3 = y4;
-    }
-  }
-}
-
-void
-CQChartsGraphPlotNode::
-setSrcEdgeRect(Edge *edge, const BBox &bbox)
-{
-  srcEdgeRect_[edge] = bbox;
-}
-
-void
-CQChartsGraphPlotNode::
-setDestEdgeRect(Edge *edge, const BBox &bbox)
-{
-  destEdgeRect_[edge] = bbox;
-}
-
-//------
-
-CQChartsGraphPlotEdge::
-CQChartsGraphPlotEdge(const Plot *plot, const OptReal &value, Node *srcNode, Node *destNode) :
- plot_(plot), value_(value), srcNode_(srcNode), destNode_(destNode)
-{
-}
-
-CQChartsGraphPlotEdge::
-~CQChartsGraphPlotEdge()
-{
-  assert(! obj_);
-}
-
-//---
-
-void
-CQChartsGraphPlotEdge::
-setObj(Obj *obj)
-{
-  obj_ = obj;
-}
-
-//------
-
 CQChartsGraphNodeObj::
 CQChartsGraphNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), iv),
@@ -2964,8 +1880,10 @@ CQChartsGraphNodeObj(const Plot *plot, const BBox &rect, Node *node, const Color
 CQChartsGraphNodeObj::
 ~CQChartsGraphNodeObj()
 {
-  if (node_)
-    node_->setObj(nullptr);
+  auto *pnode = dynamic_cast<CQChartsGraphPlotNode *>(node_);
+
+  if (pnode)
+    pnode->setObj(nullptr);
 }
 
 QString
@@ -2993,7 +1911,7 @@ void
 CQChartsGraphNodeObj::
 setValue(double r)
 {
-  node()->setValue(CQChartsGraphPlotNode::OptReal(r));
+  node()->setValue(CQChartsGraphNode::OptReal(r));
 }
 
 int
@@ -3021,7 +1939,7 @@ void
 CQChartsGraphNodeObj::
 setShapeType(const ShapeType &s)
 {
-  node()->setShapeType((CQChartsGraphPlotNode::ShapeType) s);
+  node()->setShapeType((CQChartsGraphNode::ShapeType) s);
 }
 
 int
@@ -3247,11 +2165,19 @@ getConnected() const
 {
   PlotObjs plotObjs;
 
-  for (auto &edgeRect : node()->srcEdgeRects())
-    plotObjs.push_back(edgeRect.first->obj());
+  for (auto &edgeRect : node()->srcEdgeRects()) {
+    auto *pedge = dynamic_cast<CQChartsGraphPlotEdge *>(edgeRect.first);
+    assert(pedge);
 
-  for (auto &edgeRect : node()->destEdgeRects())
-    plotObjs.push_back(edgeRect.first->obj());
+    plotObjs.push_back(pedge->obj());
+  }
+
+  for (auto &edgeRect : node()->destEdgeRects()) {
+    auto *pedge = dynamic_cast<CQChartsGraphPlotEdge *>(edgeRect.first);
+    assert(pedge);
+
+    plotObjs.push_back(pedge->obj());
+  }
 
   return plotObjs;
 }
@@ -3465,8 +2391,10 @@ CQChartsGraphEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
 CQChartsGraphEdgeObj::
 ~CQChartsGraphEdgeObj()
 {
-  if (edge_)
-    edge_->setObj(nullptr);
+  auto *pedge = dynamic_cast<CQChartsGraphPlotEdge *>(edge_);
+
+  if (pedge)
+    pedge->setObj(nullptr);
 }
 
 //---
@@ -3482,7 +2410,7 @@ void
 CQChartsGraphEdgeObj::
 setShapeType(const ShapeType &s)
 {
-  edge()->setShapeType((CQChartsGraphPlotEdge::ShapeType) s);
+  edge()->setShapeType((CQChartsGraphEdge::ShapeType) s);
 }
 
 //---
@@ -3491,8 +2419,12 @@ QString
 CQChartsGraphEdgeObj::
 calcId() const
 {
-  auto *srcObj  = edge()->srcNode ()->obj();
-  auto *destObj = edge()->destNode()->obj();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
 
   return QString("%1:%2:%3:%4").arg(typeName()).
            arg(srcObj->calcId()).arg(destObj->calcId()).arg(edge()->id());
@@ -3515,8 +2447,12 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto *srcObj  = edge()->srcNode ()->obj();
-  auto *destObj = edge()->destNode()->obj();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
 
   auto srcName  = srcObj ->hierName();
   auto destName = destObj->hierName();
@@ -3573,8 +2509,12 @@ getConnected() const
 {
   PlotObjs plotObjs;
 
-  auto *srcObj  = edge()->srcNode ()->obj();
-  auto *destObj = edge()->destNode()->obj();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
 
   plotObjs.push_back(srcObj);
   plotObjs.push_back(destObj);
@@ -3604,8 +2544,12 @@ draw(PaintDevice *device) const
   //---
 
   // get connection rect of source and destination object
-  auto *srcObj  = edge()->srcNode ()->obj();
-  auto *destObj = edge()->destNode()->obj();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
 
   bool isSelf = (srcObj == destObj);
 
@@ -3741,8 +2685,12 @@ drawFg(PaintDevice *device) const
   //---
 
   // get connection rect of source and destination object
-  auto *srcObj  = edge()->srcNode ()->obj();
-  auto *destObj = edge()->destNode()->obj();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
 
   bool isSelf = (srcObj == destObj);
 
@@ -3810,8 +2758,9 @@ CQChartsGraphEdgeObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
-  auto *srcNode  = edge()->srcNode ();
-  auto *destNode = edge()->destNode();
+  auto *srcNode  = dynamic_cast<CQChartsGraphPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
 
   //---
 
@@ -3842,7 +2791,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor sc;
 
   if (plot()->isBlendEdgeColor()) {
-    int numNodes = plot()->numNodes();
+    int numNodes = plot_->numNodes();
 
     ColorInd ic1(srcNode ->id(), numNodes);
     ColorInd ic2(destNode->id(), numNodes);
@@ -3900,8 +2849,10 @@ CQChartsGraphGraphObj(const Plot *plot, const BBox &rect, Graph *graph) :
 CQChartsGraphGraphObj::
 ~CQChartsGraphGraphObj()
 {
-  if (graph_)
-    graph_->setObj(nullptr);
+  auto *pgraph = dynamic_cast<CQChartsGraphPlotGraph *>(graph_);
+
+  if (pgraph)
+    pgraph->setObj(nullptr);
 }
 
 QString
@@ -4083,230 +3034,6 @@ writeScriptData(ScriptPaintDevice *device) const
 
 //------
 
-CQChartsGraphPlotGraph::
-CQChartsGraphPlotGraph(const Plot *plot, const QString &str) :
- CQChartsGraphPlotNode(plot, str)
-{
-  shapeType_ = ShapeType::BOX;
-}
-
-CQChartsGraphPlotGraph::
-~CQChartsGraphPlotGraph()
-{
-  if (obj_)
-    obj_->setGraph(nullptr);
-}
-
-void
-CQChartsGraphPlotGraph::
-addChild(Graph *graph)
-{
-  children_.push_back(graph);
-}
-
-void
-CQChartsGraphPlotGraph::
-addNode(Node *node)
-{
-  srcDepth_  = -1;
-  destDepth_ = -1;
-
-  nodes_.push_back(node);
-}
-
-void
-CQChartsGraphPlotGraph::
-removeAllNodes()
-{
-  srcDepth_  = -1;
-  destDepth_ = -1;
-
-  nodes_.clear();
-}
-
-//---
-
-void
-CQChartsGraphPlotGraph::
-setObj(Obj *obj)
-{
-  obj_ = obj;
-}
-
-//---
-
-void
-CQChartsGraphPlotGraph::
-setRect(const BBox &rect)
-{
-  // rect is always from nodes so adjust nodes to give rect
-  updateRect();
-
-  double fx = rect.getWidth ()/rect_.getWidth ();
-  double fy = rect.getHeight()/rect_.getHeight();
-
-  scale(fx, fy);
-
-  updateRect();
-
-  double dx = rect.getXMin() - rect_.getXMin();
-  double dy = rect.getYMin() - rect_.getYMin();
-
-  moveBy(Point(dx, dy));
-
-  updateRect();
-}
-
-void
-CQChartsGraphPlotGraph::
-updateRect()
-{
-  BBox bbox;
-
-  for (const auto &child : children())
-    bbox += child->rect();
-
-  for (const auto &node : nodes())
-    bbox += node->rect().getCenter();
-
-  rect_ = bbox;
-
-  if (obj_)
-    obj_->setRect(rect_);
-}
-
-//---
-
-int
-CQChartsGraphPlotGraph::
-srcDepth() const
-{
-  if (srcDepth_ < 0) {
-    auto *th = const_cast<CQChartsGraphPlotGraph *>(this);
-
-    th->srcDepth_ = 0;
-
-    for (const auto &node : nodes()) {
-      for (const auto &edge : node->srcEdges()) {
-        auto *srcNode = edge->srcNode();
-        if (! srcNode->isVisible()) continue;
-
-        if (srcNode->graphId() != id())
-          ++th->srcDepth_;
-      }
-    }
-  }
-
-  return srcDepth_;
-}
-
-int
-CQChartsGraphPlotGraph::
-destDepth() const
-{
-  if (destDepth_ < 0) {
-    auto *th = const_cast<CQChartsGraphPlotGraph *>(this);
-
-    th->destDepth_ = 0;
-
-    for (const auto &node : nodes()) {
-      for (const auto &edge : node->destEdges()) {
-        auto *destNode = edge->destNode();
-
-        if (! destNode->isVisible()) continue;
-
-        if (destNode->graphId() != id())
-          ++th->destDepth_;
-      }
-    }
-  }
-
-  return destDepth_;
-}
-
-//---
-
-CQChartsGraphPlotGraph::Nodes
-CQChartsGraphPlotGraph::
-placeNodes() const
-{
-  Nodes nodes;
-
-  for (auto &child : this->children())
-    nodes.push_back(child);
-
-  for (auto &node : this->nodes())
-    nodes.push_back(node);
-
-  return nodes;
-}
-
-void
-CQChartsGraphPlotGraph::
-place() const
-{
-  if (isPlaced())
-    return;
-
-  auto *th = const_cast<CQChartsGraphPlotGraph *>(this);
-
-  plot_->placeGraph(th);
-}
-
-void
-CQChartsGraphPlotGraph::
-moveBy(const Point &delta)
-{
-  Node::moveBy(delta);
-
-  for (const auto &child : children())
-    child->moveBy(delta);
-
-  for (const auto &node : nodes())
-    node->moveBy(delta);
-
-  //---
-
-  if (obj_)
-    obj_->moveBy(delta);
-}
-
-void
-CQChartsGraphPlotGraph::
-scale(double fx, double fy)
-{
-  auto p = rect().getCenter();
-
-  for (const auto &child : children()) {
-    auto p1 = child->rect().getCenter();
-
-    child->scale(fx, fy);
-
-    auto p2 = child->rect().getCenter();
-
-    double xc = p.x + (p1.x - p.x)*fx;
-    double yc = p.y + (p1.y - p.y)*fy;
-
-    child->moveBy(Point(xc - p2.x, yc - p2.y));
-  }
-
-  for (const auto &node : nodes()) {
-    auto p1 = node->rect().getCenter();
-
-    double xc = p.x + (p1.x - p.x)*fx;
-    double yc = p.y + (p1.y - p.y)*fy;
-
-    node->moveBy(Point(xc - p1.x, yc - p1.y));
-  }
-
-  //---
-
-  if (obj_)
-    obj_->setRect(rect_);
-}
-
-//------
-
 CQChartsGraphPlotCustomControls::
 CQChartsGraphPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "graph")
@@ -4363,4 +3090,174 @@ CQChartsGraphPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
   plot_->setNodeFillColor(c);
+}
+
+//---
+
+CQChartsGraphPlotMgr::
+CQChartsGraphPlotMgr(CQChartsGraphPlot *plot) :
+ CQChartsGraphMgr(plot), plot_(plot)
+{
+}
+
+CQChartsGraphMgr::Graph *
+CQChartsGraphPlotMgr::
+createGraph(const QString &name) const
+{
+  auto *th = const_cast<CQChartsGraphPlotMgr *>(this);
+
+  return new CQChartsGraphPlotGraph(th, name);
+}
+
+CQChartsGraphMgr::Node *
+CQChartsGraphPlotMgr::
+createNode(const QString &name) const
+{
+  auto *th = const_cast<CQChartsGraphPlotMgr *>(this);
+
+  return new CQChartsGraphPlotNode(th, name);
+}
+
+CQChartsGraphMgr::Edge *
+CQChartsGraphPlotMgr::
+createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
+{
+  auto *th = const_cast<CQChartsGraphPlotMgr *>(this);
+
+  return new CQChartsGraphPlotEdge(th, value, srcNode, destNode);
+}
+
+//---
+
+CQChartsGraphPlotGraph::
+CQChartsGraphPlotGraph(GraphMgr *mgr, const QString &name) :
+ CQChartsGraphGraph(mgr, name)
+{
+}
+
+CQChartsGraphPlotGraph::
+~CQChartsGraphPlotGraph()
+{
+  if (obj_)
+    obj_->setGraph(nullptr);
+}
+
+void
+CQChartsGraphPlotGraph::
+setObj(Obj *obj)
+{
+  obj_ = obj;
+}
+
+void
+CQChartsGraphPlotGraph::
+updateRect()
+{
+  CQChartsGraphGraph::updateRect();
+
+  if (obj_)
+    obj_->setRect(rect_);
+}
+
+void
+CQChartsGraphPlotGraph::
+moveBy(const Point &delta)
+{
+  CQChartsGraphGraph::moveBy(delta);
+
+  if (obj_)
+    obj_->moveBy(delta);
+}
+
+void
+CQChartsGraphPlotGraph::
+scale(double fx, double fy)
+{
+  CQChartsGraphGraph::scale(fx, fy);
+
+  if (obj_)
+    obj_->setRect(rect_);
+}
+
+//---
+
+CQChartsGraphPlotNode::
+CQChartsGraphPlotNode(GraphMgr *mgr, const QString &name) :
+ CQChartsGraphNode(mgr, name)
+{
+}
+
+CQChartsGraphPlotNode::
+~CQChartsGraphPlotNode()
+{
+  assert(! obj_);
+}
+
+void
+CQChartsGraphPlotNode::
+setObj(Obj *obj)
+{
+  obj_ = obj;
+}
+
+const CQChartsGraphNode::BBox &
+CQChartsGraphPlotNode::
+rect() const
+{
+  if (obj_) {
+    assert(obj_->rect() == rect_);
+  }
+
+  return CQChartsGraphNode::rect();
+}
+
+void
+CQChartsGraphPlotNode::
+setRect(const BBox &rect)
+{
+  CQChartsGraphNode::setRect(rect);
+
+  if (obj_) // TODO: assert null or use move by
+    obj_->setRect(rect);
+}
+
+void
+CQChartsGraphPlotNode::
+moveBy(const Point &delta)
+{
+  CQChartsGraphNode::moveBy(delta);
+
+  if (obj_)
+    obj_->moveBy(delta);
+}
+
+void
+CQChartsGraphPlotNode::
+scale(double fx, double fy)
+{
+  CQChartsGraphNode::scale(fx, fy);
+
+  if (obj_)
+    obj_->scale(fx, fy);
+}
+
+//---
+
+CQChartsGraphPlotEdge::
+CQChartsGraphPlotEdge(GraphMgr *mgr, const OptReal &value, Node *srcNode, Node *destNode) :
+ CQChartsGraphEdge(mgr, value, srcNode, destNode)
+{
+}
+
+CQChartsGraphPlotEdge::
+~CQChartsGraphPlotEdge()
+{
+  assert(! obj_);
+}
+
+void
+CQChartsGraphPlotEdge::
+setObj(Obj *obj)
+{
+  obj_ = obj;
 }

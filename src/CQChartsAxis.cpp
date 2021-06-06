@@ -874,7 +874,8 @@ calcAndRedraw()
 {
   needsCalc_ = true;
 
-  redraw();
+  if (isUpdatesEnabled())
+    redraw();
 }
 
 void
@@ -2550,7 +2551,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
     auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
 
-    auto len = Length(amax - amin, CQChartsUnits::PLOT);
+    auto len = Length::plot(amax - amin);
 
     double plen = 0.0;
 

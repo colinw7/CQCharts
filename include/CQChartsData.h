@@ -700,7 +700,7 @@ class CQChartsArrowData {
   void setFrontLength(const Length &l) { fheadData_.length = l; }
 
   Length calcFrontLength() const {
-    return (frontLength().value() > 0 ? frontLength() : Length(8, Units::PIXEL)); }
+    return (frontLength().value() > 0 ? frontLength() : Length::pixel(8)); }
 
   bool isFrontLineEnds() const { return fheadData_.lineEnds; }
   void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
@@ -732,7 +732,7 @@ class CQChartsArrowData {
   void setTailLength(const Length &l) { theadData_.length = l; }
 
   Length calcTailLength() const {
-    return (tailLength().value() > 0 ? tailLength() : Length(8, Units::PIXEL)); }
+    return (tailLength().value() > 0 ? tailLength() : Length::pixel(8)); }
 
   bool isTailLineEnds() const { return theadData_.lineEnds; }
   void setTailLineEnds(bool b) { theadData_.lineEnds = b; }

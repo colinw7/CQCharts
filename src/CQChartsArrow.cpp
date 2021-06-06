@@ -286,13 +286,11 @@ void
 CQChartsArrow::
 draw(CQChartsPaintDevice *device, const PenBrush &penBrush) const
 {
-  device_ = device;
-
+#if DEBUG_LABELS
   drawData_.debugLabels = isDebugLabels();
+#endif
 
-  drawContents(device_, from_, to_, data_, strokeWidth(), isRectilinear(), penBrush, drawData_);
-
-  device_ = nullptr;
+  drawContents(device, from_, to_, data_, strokeWidth(), isRectilinear(), penBrush, drawData_);
 }
 
 void
@@ -348,14 +346,19 @@ drawContents(PaintDevice *device, const Point &from, const Point &to,
 
   //---
 
+  bool linePoly = (arrowData.lineWidth().value() > 0);
+
   // convert line width, front/tail arrow length to pixel
-  double lpw = device->lengthPixelWidth (lengthLocalWidth (arrowData.lineWidth()));
-//double lph = device->lengthPixelHeight(lengthLocalHeight(arrowData.lineWidth()));
+  double lpw = 0.0;
+//double lph = 0.0;
+
+  if (linePoly) {
+    lpw = device->lengthPixelWidth (lengthLocalWidth (arrowData.lineWidth()));
+  //lph = device->lengthPixelHeight(lengthLocalHeight(arrowData.lineWidth()));
+  }
 
   double fl = device->lengthPixelWidth(arrowData.calcFrontLength());
   double tl = device->lengthPixelWidth(arrowData.calcTailLength ());
-
-  bool linePoly = (arrowData.lineWidth().value() > 0);
 
   //---
 

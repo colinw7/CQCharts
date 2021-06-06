@@ -72,7 +72,7 @@ class CQChartsAngle :
 
     double a21 = a2 - a1;
 
-    return CMathUtil::realEq(std::abs(a21), 360.0);
+    return (std::abs(a21) > 360.0 || CMathUtil::realEq(std::abs(a21), 360.0));
   }
 
   // point at angle on circle

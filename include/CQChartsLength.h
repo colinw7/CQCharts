@@ -24,6 +24,15 @@ class CQChartsLength :
   using Units = CQChartsUnits;
 
  public:
+  static CQChartsLength view   (double value) { return CQChartsLength(value, Units::VIEW); }
+  static CQChartsLength plot   (double value) { return CQChartsLength(value, Units::PLOT); }
+  static CQChartsLength pixel  (double value) { return CQChartsLength(value, Units::PIXEL); }
+  static CQChartsLength percent(double value) { return CQChartsLength(value, Units::PERCENT); }
+
+  static CQChartsLength view(const QString &str) { return CQChartsLength(str, Units::VIEW); }
+  static CQChartsLength plot(const QString &str) { return CQChartsLength(str, Units::PLOT); }
+
+ public:
   CQChartsLength() = default;
 
   CQChartsLength(const Units &units, double value) :
@@ -85,7 +94,7 @@ class CQChartsLength :
                            const Units &defUnits=Units::PIXEL);
 
  private:
-  Units  units_ { Units::PIXEL };
+  Units  units_ { Units::NONE };
   double value_ { 0.0 };
 };
 

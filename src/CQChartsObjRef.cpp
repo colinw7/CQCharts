@@ -70,8 +70,12 @@ locationToName(const Location &location)
     case Location::RIGHT    : return "right";
     case Location::TOP      : return "top";
     case Location::BOTTOM   : return "bottom";
+    case Location::LL       : return "ll";
+    case Location::UL       : return "ul";
+    case Location::LR       : return "lr";
+    case Location::UR       : return "ur";
     case Location::INTERSECT: return "intersect";
-    default                 : return "center";
+    default                 : return "none";
   };
 }
 
@@ -86,7 +90,11 @@ nameToLocation(const QString &name)
   else if (lname == "right"    ) return Location::RIGHT;
   else if (lname == "top"      ) return Location::TOP;
   else if (lname == "bottom"   ) return Location::BOTTOM;
+  else if (lname == "ll"       ) return Location::LL;
+  else if (lname == "ul"       ) return Location::UL;
+  else if (lname == "lr"       ) return Location::LR;
+  else if (lname == "ur"       ) return Location::UR;
   else if (lname == "intersect") return Location::INTERSECT;
 
-  return Location::CENTER;
+  return Location::NONE;
 }

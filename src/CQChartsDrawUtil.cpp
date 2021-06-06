@@ -763,7 +763,7 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
   double cy = bbox.getYMid();
   double ss = pbbox.getMinSize();
 
-  Length symbolSize(ss/2.0, Length::Units::PIXEL);
+  auto symbolSize = Length::pixel(ss/2.0);
 
   drawSymbol(device, symbol, Point(cx, cy), symbolSize);
 }

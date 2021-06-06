@@ -397,9 +397,9 @@ drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orient
   CQChartsLength ws;
 
   if (orientation == Qt::Horizontal)
-    ws = CQChartsLength(rect.getHeight(), CQChartsUnits::PLOT);
+    ws = CQChartsLength::plot(rect.getHeight());
   else
-    ws = CQChartsLength(rect.getWidth (), CQChartsUnits::PLOT);
+    ws = CQChartsLength::plot(rect.getWidth ());
 
   auto statData = statData_;
 

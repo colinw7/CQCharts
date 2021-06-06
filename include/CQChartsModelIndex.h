@@ -11,7 +11,9 @@ class CQChartsPlot;
  * \brief Class for Model Index (wrapper aroung QModelIndex using CQChartsColumn)
  * \ingroup Charts
  */
-class CQChartsModelIndex {
+class CQChartsModelIndex :
+  public CQChartsComparatorBase<CQChartsModelIndex>,
+  public CQChartsToStringBase<CQChartsModelIndex> {
  public:
   static void registerMetaType();
 
@@ -54,13 +56,55 @@ class CQChartsModelIndex {
 
   bool isValid() const;
 
-  QString toString() const;
+  //---
 
+  //! compare for (==, !=, <, >, <=, >=)
+  friend int cmp(const CQChartsModelIndex &lhs, const CQChartsModelIndex &rhs) {
+    if (lhs.plot_ > rhs.plot_) return  1;
+    if (lhs.plot_ < rhs.plot_) return  1;
+
+    int c1 = cmpInd(lhs.parent_, rhs.parent_);
+    if (c1 != 0) return c1;
+
+    if (lhs.row_ > rhs.row_) return  1;
+    if (lhs.row_ < rhs.row_) return -1;
+
+    if (lhs.column_ > rhs.column_) return  1;
+    if (lhs.column_ < rhs.column_) return -1;
+
+    return 0;
+  }
+
+  //---
+
+  QString toString() const;
   bool fromString(const QString &s);
 
   //---
 
   QString id() const;
+
+ private:
+  static int cmpInd(const QModelIndex &i1, const QModelIndex &i2) {
+    if      (i1.parent().isValid() && i2.parent().isValid()) {
+      int c1 = cmpInd(i1.parent(), i2.parent());
+      if (c1 != 0) return c1;
+    }
+    else if (i1.parent().isValid()) {
+      return 1;
+    }
+    else if (i2.parent().isValid()) {
+      return -1;
+    }
+
+    if (i1.row() > i2.row()) return  1;
+    if (i1.row() < i2.row()) return -1;
+
+    if (i1.column() > i2.column()) return  1;
+    if (i1.column() < i2.column()) return -1;
+
+    return 0;
+  }
 
  private:
   const Plot* plot_       { nullptr };

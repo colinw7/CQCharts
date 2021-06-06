@@ -3,6 +3,7 @@
 #include <CQChartsPaintDevice.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsColor.h>
+#include <CQChartsTreeMapPlace.h>
 
 namespace CQChartsPlotDrawUtil {
 
@@ -61,7 +62,7 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
   double sum = values.sum();
   if (sum <= 0.0) return;
 
-  TreeMapPlace place(bbox);
+  CQChartsTreeMapPlace place(bbox);
 
   for (int i = 0; i < nv; ++i)
     place.addValue(values.value(i).value());
@@ -74,7 +75,7 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
 
   color.setPaletteName(paletteName.name());
 
-  place.processAreas([&](const BBox &bbox, const TreeMapPlace::IArea &iarea) {
+  place.processAreas([&](const BBox &bbox, const CQChartsTreeMapPlace::IArea &iarea) {
     PenBrush penBrush;
 
     plot->setPenBrush(penBrush,

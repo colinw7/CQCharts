@@ -416,6 +416,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   double calcEnd      () const { updateCalc(); return calcEnd_      ; }
   double calcIncrement() const { updateCalc(); return calcIncrement_; }
 
+  void updateCalc() const;
+
   //---
 
   double majorTickIncrement() const;
@@ -583,8 +585,6 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
  private:
   void calcAndRedraw();
-
-  void updateCalc() const;
 
   void calc();
 

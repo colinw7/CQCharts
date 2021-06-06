@@ -63,7 +63,6 @@ class CQChartsModelColumn :
   //---
 
   QString toString() const;
-
   bool fromString(const QString &s);
 
  private:

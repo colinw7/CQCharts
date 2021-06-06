@@ -911,11 +911,20 @@ initConnectionObjs() const
   // add connections
   const auto &idConnectionsData = visitor.idConnectionsData();
 
+  NodeIndex nodeIndex;
+
   for (const auto &idConnections : idConnectionsData) {
     int         id              = idConnections.first;
     const auto &connectionsData = idConnections.second;
 
-    addConnectionObj(id, connectionsData);
+    nodeIndex[id] = connectionsData.ind;
+  }
+
+  for (const auto &idConnections : idConnectionsData) {
+    int         id              = idConnections.first;
+    const auto &connectionsData = idConnections.second;
+
+    addConnectionObj(id, connectionsData, nodeIndex);
   }
 
   return true;

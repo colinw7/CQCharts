@@ -1174,7 +1174,7 @@ draw(PaintDevice *device) const
 
       double s = rect().getMinSize()/2.0 - std::min(sx, sy);
 
-      CQChartsLength ss(3, CQChartsUnits::PIXEL);
+      auto ss = CQChartsLength::pixel(3);
 
       //---
 

@@ -31,8 +31,7 @@ class CQChartsMargin :
   }
 
   CQChartsMargin(double l, double t, double r, double b) {
-    set(Length(l, Units::PERCENT), Length(t, Units::PERCENT),
-        Length(r, Units::PERCENT), Length(b, Units::PERCENT));
+    set(Length::percent(l), Length::percent(t), Length::percent(r), Length::percent(b));
   }
 
   explicit CQChartsMargin(const Length &l) {
@@ -40,7 +39,7 @@ class CQChartsMargin :
   }
 
   explicit CQChartsMargin(double l) {
-    set(Length(l, Units::PERCENT));
+    set(Length::percent(l));
   }
 
   virtual ~CQChartsMargin() { }

@@ -49,6 +49,7 @@ class CQChartsPlotCustomControls;
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
 class CQChartsArcAnnotation;
+class CQChartsArcConnectorAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsAxisAnnotation;
 class CQChartsButtonAnnotation;
@@ -2273,6 +2274,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using Annotations            = std::vector<Annotation *>;
   using AnnotationGroup        = CQChartsAnnotationGroup;
   using ArcAnnotation          = CQChartsArcAnnotation;
+  using ArcConnectorAnnotation = CQChartsArcConnectorAnnotation;
   using ArrowAnnotation        = CQChartsArrowAnnotation;
   using AxisAnnotation         = CQChartsAxisAnnotation;
   using ButtonAnnotation       = CQChartsButtonAnnotation;
@@ -2301,6 +2303,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   AnnotationGroup        *addAnnotationGroup       ();
   ArcAnnotation          *addArcAnnotation         (const Position &start, const Position &end);
+  ArcConnectorAnnotation *addArcConnectorAnnotation(const Position &center, const Length &radius,
+                                                    const Angle &srcStartAngle,
+                                                    const Angle &srcSpanAngle,
+                                                    const Angle &destStartAngle,
+                                                    const Angle &destSpanAngle, bool self);
   ArrowAnnotation        *addArrowAnnotation       (const Position &start, const Position &end);
   AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
                                                     double end);

@@ -4827,7 +4827,7 @@ draw(PaintDevice *device) const
   //---
 
   auto symbol     = Symbol::circle();
-  auto symbolSize = Length(6, CQChartsUnits::PIXEL);
+  auto symbolSize = Length::pixel(6);
 
   auto pll = prect.getLL();
 

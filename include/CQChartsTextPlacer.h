@@ -80,15 +80,17 @@ class CQChartsAxisTextPlacer {
     DrawText(const Point &p, const BBox &bbox, const QString &text,
              const Angle &angle, Qt::Alignment align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
-   }
+    }
 
-   Point         p;
-   BBox          bbox;
-   QString       text;
-   Angle         angle;
-   Qt::Alignment align   { Qt::AlignHCenter };
-   bool          visible { true };
+    Point         p;
+    BBox          bbox;
+    QString       text;
+    Angle         angle;
+    Qt::Alignment align   { Qt::AlignHCenter };
+    bool          visible { true };
   };
+
+  using DrawTexts = std::vector<DrawText>;
 
  public:
   CQChartsAxisTextPlacer() { }
@@ -101,13 +103,13 @@ class CQChartsAxisTextPlacer {
     drawTexts_.push_back(drawText);
   }
 
+  const DrawTexts &drawTexts() const { return drawTexts_; }
+
   void autoHide();
 
   void draw(PaintDevice *device, const TextOptions &textOptions, bool showBoxes=false);
 
  private:
-  using DrawTexts = std::vector<DrawText>;
-
   DrawTexts drawTexts_;
 };
 

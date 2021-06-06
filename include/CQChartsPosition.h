@@ -23,9 +23,12 @@ class CQChartsPosition :
   using Units = CQChartsUnits;
 
  public:
-  static CQChartsPosition plot(const Point &p) {
-    return CQChartsPosition(p, Units::PLOT);
-  }
+  static CQChartsPosition view (const Point &p) { return CQChartsPosition(p, Units::VIEW); }
+  static CQChartsPosition plot (const Point &p) { return CQChartsPosition(p, Units::PLOT); }
+  static CQChartsPosition pixel(const Point &p) { return CQChartsPosition(p, Units::PIXEL); }
+
+  static CQChartsPosition view(const QString &str) { return CQChartsPosition(str, Units::VIEW); }
+  static CQChartsPosition plot(const QString &str) { return CQChartsPosition(str, Units::PLOT); }
 
  public:
   CQChartsPosition() { }

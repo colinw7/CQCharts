@@ -409,8 +409,8 @@ initHierObjsConnection(const QString &srcStr, const ModelIndex &srcLinkInd, doub
   auto &destData = findNameData(destStr, destModelIndex1);
 
   // create link from src to dest for values
-  // (hier always symmetric)
-  addEdge(srcData, destData, destValue, /*symmetric*/true);
+  // (hier always symmetric - edge is from child to parent)
+  addEdge(srcData, srcModelIndex1, destData, destModelIndex1, destValue, /*symmetric*/true);
 }
 
 //---
@@ -451,15 +451,15 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  auto pathModelIndex  = modelIndex(pathData.pathModelInd);
+  auto pathModelIndex  = modelIndex(pathData.pathModelInd); // leaf index
   auto pathModelIndex1 = normalizeIndex(pathModelIndex);
 
   auto separator = calcSeparator();
 
-  auto path1 = pathData.pathStrs[0];
+  auto path1 = pathData.pathStrs[0]; // parent
 
   for (int i = 1; i < n; ++i) {
-    auto path2 = path1 + separator + pathData.pathStrs[i];
+    auto path2 = path1 + separator + pathData.pathStrs[i]; // child
 
     auto &srcData  = findNameData(path1, pathModelIndex1);
     auto &destData = findNameData(path2, pathModelIndex1);
@@ -471,20 +471,24 @@ addPathValue(const PathData &pathData) const
     destData.setDepth(i);
 
     if (i < n - 1) {
+      // parent to non-leaf
       if (! srcData.hasTo(destData.from())) {
-        addEdge(srcData, destData, pathData.value.realOr(1.0), /*symmetric*/true);
+        addEdge(srcData, QModelIndex(), destData, QModelIndex(),
+                pathData.value.realOr(1.0), /*symmetric*/true);
 
         destData.setParent(srcData.from());
       }
     }
     else {
-      addEdge(srcData, destData, pathData.value.realOr(1.0), /*symmetric*/true);
+      // parent to leaf
+      addEdge(srcData, pathModelIndex1.parent(), destData, pathModelIndex1,
+              pathData.value.realOr(1.0), /*symmetric*/true);
 
       destData.setParent(srcData.from());
       destData.setValue (OptReal(pathData.value));
     }
 
-    path1 = path2;
+    path1 = path2; // update parent
   }
 }
 
@@ -587,7 +591,8 @@ addFromToValue(const FromToData &fromToData) const
     if (fromToData.depth > 0)
       destData.setDepth(fromToData.depth + 1);
 
-    addEdge(srcData, destData, fromToData.value.realOr(1.0), /*symmetric*/true);
+    addEdge(srcData, fromModelIndex1, destData, toModelIndex1,
+            fromToData.value.realOr(1.0), /*symmetric*/true);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       auto value = nv.second.toString();
@@ -641,7 +646,9 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   auto &destData = findNameData(linkConnectionData.destStr, linkInd1);
 
   // create link from src to dest for value
-  addEdge(srcData, destData, linkConnectionData.value.realOr(1.0), /*symmetric*/true);
+  // (src and dest are same row of model)
+  addEdge(srcData, linkInd1, destData, linkInd1,
+          linkConnectionData.value.realOr(1.0), /*symmetric*/true);
 
   //---
 
@@ -670,7 +677,7 @@ initConnectionObjs() const
 
 void
 CQChartsChordPlot::
-addConnectionObj(int id, const ConnectionsData &connectionsData) const
+addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex &nodeIndex) const
 {
   auto srcStr = QString::number(id);
 
@@ -685,8 +692,12 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
 
     auto &destData = findNameData(destStr, connectionsData.ind);
 
+    auto p = nodeIndex.find(connection.node);
+    assert(p != nodeIndex.end());
+    auto ind = (*p).second;
+
     // create link from src to dest for value
-    addEdge(srcData, destData, connection.value, /*symmetric*/false);
+    addEdge(srcData, connectionsData.ind, destData, ind, connection.value, /*symmetric*/false);
   }
 }
 
@@ -803,7 +814,7 @@ initTableObjs(PlotObjs &objs) const
       if (! value.primary)
         continue;
 
-      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value);
+      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
       objs.push_back(edgeObj);
 
@@ -869,12 +880,13 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
 
 void
 CQChartsChordPlot::
-addEdge(ChordData &srcData, ChordData &destData, double value, bool symmetric) const
+addEdge(ChordData &srcData, const QModelIndex &srcInd, ChordData &destData,
+        const QModelIndex &destInd, double value, bool symmetric) const
 {
-  srcData.addValue(destData.from(), value, /*primary*/true );
+  srcData.addValue(destData.from(), value, destInd, /*primary*/true );
 
   if (symmetric)
-    destData.addValue(srcData.from(), value, /*primary*/false);
+    destData.addValue(srcData.from(), value, srcInd, /*primary*/false);
 }
 
 //---
@@ -1100,7 +1112,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
       if (! value.primary)
         continue;
 
-      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value);
+      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
       objs.push_back(edgeObj);
 
@@ -1250,9 +1262,10 @@ createSegmentObj(const BBox &rect, const ChordData &data,
 
 CQChartsChordEdgeObj *
 CQChartsChordPlot::
-createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &value) const
+createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &value,
+              const QModelIndex &ind) const
 {
-  return new CQChartsChordEdgeObj(this, rect, data, to, value);
+  return new CQChartsChordEdgeObj(this, rect, data, to, value, ind);
 }
 
 CQChartsChordHierObj *
@@ -1376,12 +1389,8 @@ calcTipId() const
         auto r = plot_->modelReal(tipModelInd, ok2);
         if (! ok2) continue;
 
-        if (! plot_->isSymmetric()) {
-          if      (obj->fromObj() == this)
-            rovals.addValue(r);
-          else if (obj->toObj() == this)
-            rivals.addValue(r);
-        }
+        if (obj->toObj() != this)
+          rovals.addValue(r);
         else
           rivals.addValue(r);
       }
@@ -1389,12 +1398,8 @@ calcTipId() const
         auto str = plot_->modelString(tipModelInd, ok2);
         if (! ok2) continue;
 
-        if (! plot_->isSymmetric()) {
-          if      (obj->fromObj() == this)
-            sovals.addValue(str);
-          else if (obj->toObj() == this)
-            sivals.addValue(str);
-        }
+        if (obj->toObj() != this)
+          sovals.addValue(str);
         else
           sivals.addValue(str);
       }
@@ -1405,18 +1410,16 @@ calcTipId() const
         tableTip.addTableRow(QString("%1 (Out)").arg(name), rovals.sum());
         tableTip.addTableRow(QString("%1 (In)").arg(name), rivals.sum());
       }
-      else {
-        tableTip.addTableRow(name, rivals.sum());
-      }
+      else
+        tableTip.addTableRow(name, rovals.sum());
     }
     else {
       if (! plot_->isSymmetric()) {
         tableTip.addTableRow(QString("%1 (Out)").arg(name), sovals.numUnique());
         tableTip.addTableRow(QString("%1 (In)").arg(name), sivals.numUnique());
       }
-      else {
-        tableTip.addTableRow(name, rivals.numUnique());
-      }
+      else
+        tableTip.addTableRow(name, sovals.numUnique());
     }
 
     tableTip.addColumn(c);
@@ -1681,9 +1684,9 @@ calcFromColor() const
       return plot_->interpColor(color, colorInd);
     }
 
-    double total = 0.0;
-
     if (plot_->colorColumn().isValid()) {
+      double total = 0.0;
+
       for (const auto &obj : edgeObjs_) {
         auto ind  = obj->modelInd();
         auto ind1 = plot_->unnormalizeIndex(ind);
@@ -1858,14 +1861,14 @@ calcNumValues() const
 
 CQChartsChordEdgeObj::
 CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
-                     int to, const OptReal &value) :
+                     int to, const OptReal &value, const QModelIndex &ind) :
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
  plot_(plot), data_(data), to_(to), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
 
-  if (data.nameInd().isValid())
-    setModelInd(data.nameInd());
+  if (ind.isValid())
+    setModelInd(ind);
 }
 
 QString
@@ -2039,45 +2042,6 @@ draw(PaintDevice *device) const
     auto p1 = path.pointAtPercent(0.23);
     auto p2 = path.pointAtPercent(0.27);
 
-#if 0
-    QPainterPath arrowPath;
-
-    arrowPath.moveTo(p1);
-    arrowPath.lineTo(p2);
-
-    CQChartsArrowData arrowData;
-
-    arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
-
-    QPainterPath arrowPath1;
-
-    CQChartsArrow::pathAddArrows(arrowPath, arrowData, 0.01, 0.1, arrowPath1);
-
-    device->drawPath(arrowPath1);
-#endif
-
-#if 0
-    auto *plot = const_cast<CQChartsChordPlot *>(plot_);
-
-    plot->setUpdatesEnabled(false);
-
-    CQChartsArrow arrow(plot, Point(p1), Point(p2));
-
-    if (p1.x() < p2.x()) {
-      arrow.setFrontVisible(false);
-      arrow.setTailVisible (true);
-    }
-    else {
-      arrow.setFrontVisible(true);
-      arrow.setTailVisible (false);
-    }
-
-    arrow.setLineWidth(CQChartsLength(8, CQChartsUnits::PIXEL));
-
-    arrow.draw(device, penBrush);
-
-    plot->setUpdatesEnabled(true);
-#else
     CQChartsArrowData arrowData;
 
     if (p1.x() < p2.x()) {
@@ -2089,11 +2053,17 @@ draw(PaintDevice *device) const
       arrowData.setTHeadType(CQChartsArrowData::HeadType::NONE );
     }
 
-    CQChartsLength strokeWidth(8, CQChartsUnits::PIXEL);
+    auto c = CQChartsUtil::bwColor(penBrush.pen.color());
+
+    PenBrush arrowPenBrush;
+
+    plot_->setPenBrush(arrowPenBrush,
+      PenData(false), BrushData(true, c));
+
+    auto strokeWidth = CQChartsLength::pixel(1);
 
     CQChartsArrow::drawArrow(device, Point(p1), Point(p2), arrowData, strokeWidth,
-                             /*rectilinear*/false, penBrush);
-#endif
+                             /*rectilinear*/false, arrowPenBrush);
   }
 }
 
