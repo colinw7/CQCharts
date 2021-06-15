@@ -102,6 +102,8 @@ class CQChartsDensity : public QObject {
 
   //---
 
+  double eval(double x) const;
+
   double yval(double x) const;
 
   //---
@@ -151,8 +153,6 @@ class CQChartsDensity : public QObject {
 
   void constInit() const;
   void init();
-
-  double eval(double x) const;
 
  signals:
   void dataChanged();

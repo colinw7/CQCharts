@@ -1041,9 +1041,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
- signals:
-  void customDataChanged();
-
  public slots:
   //! set points visible
   void setPointsSlot(bool b);

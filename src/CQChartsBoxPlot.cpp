@@ -238,6 +238,13 @@ init()
   //---
 
   addColorMapKey();
+
+  //---
+
+  rawCustomColumns_ = (QStringList() << "values" << "name" << "set");
+
+  calculatedCustomColumns_ = (QStringList() <<
+    "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers");
 }
 
 void
@@ -253,21 +260,24 @@ void
 CQChartsBoxPlot::
 setValueColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSetColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(setColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(setColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -276,49 +286,56 @@ void
 CQChartsBoxPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMinColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(minColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(minColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setLowerMedianColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMedianColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(medianColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(medianColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setUpperMedianColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMaxColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(maxColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(maxColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
 CQChartsBoxPlot::
 setOutliersColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outliersColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -566,10 +583,12 @@ CQChartsBoxPlot::
 setOrientation(const Qt::Orientation &orient)
 {
   CQChartsUtil::testAndSet(orientation_, orient, [&]() {
-      CQChartsAxis::swap(xAxis(), yAxis());
+    CQChartsAxis::swap(xAxis(), yAxis());
 
-      updateRangeAndObjs();
-      } );
+    updateRangeAndObjs();
+
+    emit customDataChanged();
+  } );
 }
 
 //---
@@ -578,7 +597,8 @@ void
 CQChartsBoxPlot::
 setNormalized(bool b)
 {
-  CQChartsUtil::testAndSet(normalized_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(normalized_, b, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -587,7 +607,8 @@ void
 CQChartsBoxPlot::
 setNotched(bool b)
 {
-  CQChartsUtil::testAndSet(notched_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(notched_, b, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 //---
@@ -614,6 +635,8 @@ setPointsType(const PointsType &pointsType)
     pointsType_ = pointsType;
 
     updateRangeAndObjs();
+
+    emit customDataChanged();
   }
 }
 
@@ -623,7 +646,8 @@ void
 CQChartsBoxPlot::
 setViolin(bool b)
 {
-  CQChartsUtil::testAndSet(violin_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(violin_, b, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
@@ -646,7 +670,8 @@ void
 CQChartsBoxPlot::
 setErrorBar(bool b)
 {
-  CQChartsUtil::testAndSet(errorBar_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(errorBar_, b, [&]() {
+    updateRangeAndObjs(); emit customDataChanged(); } );
 }
 
 void
@@ -1230,12 +1255,12 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   data.dataMax = data.statData.max;
 
   if (isShowOutliers() && outliersColumn().isValid()) {
-    ModelIndex outliersInd(th, vdata.row, outliersColumn(), vdata.parent);
+    data.outliersInd = ModelIndex(th, vdata.row, outliersColumn(), vdata.parent);
 
-    data.outliers = modelReals(outliersInd, ok);
+    data.outliers = modelReals(data.outliersInd, ok);
 
     if (! ok) {
-      th->addDataError(outliersInd, "Invalid outlier real values");
+      th->addDataError(data.outliersInd, "Invalid outlier real values");
       return;
     }
 
@@ -1589,28 +1614,40 @@ initRawObjs(PlotObjs &objs) const
           plotSymbolSize(outlierSymbolSize(), osx, osy);
 
           for (auto &o : whisker->outliers()) {
-            double ovalue = whisker->rvalue(o);
+            auto ovalue = whisker->value(o);
+
+            auto orvalue = double(ovalue);
 
             BBox rect;
 
             if (! isNormalized()) {
               if (isVertical())
-                rect = BBox(pos - osx, ovalue - osy, pos + osx, ovalue + osy);
+                rect = BBox(pos - osx, orvalue - osy, pos + osx, orvalue + osy);
               else
-                rect = BBox(ovalue - osx, pos - osy, ovalue + osx, pos + osy);
+                rect = BBox(orvalue - osx, pos - osy, orvalue + osx, pos + osy);
             }
             else {
-              double ovalue1 =
-                CMathUtil::map(ovalue, whisker->vmin(), whisker->vmax(), ymargin, 1.0 - ymargin);
+              double orvalue1 =
+                CMathUtil::map(orvalue, whisker->vmin(), whisker->vmax(), ymargin, 1.0 - ymargin);
 
               if (isVertical())
-                rect = BBox(pos - osx, ovalue1 - osy, pos + osx, ovalue1 + osy);
+                rect = BBox(pos - osx, orvalue1 - osy, pos + osx, orvalue1 + osy);
               else
-                rect = BBox(ovalue1 - osx, pos - osy, ovalue1 + osx, pos + osy);
+                rect = BBox(orvalue1 - osx, pos - osy, orvalue1 + osx, pos + osy);
             }
 
             auto *outlierObj = createOutlierObj(rect, setId, groupInd, whisker,
                                                 ColorInd(is, ns), ColorInd(ig, ng), o);
+
+            Color pointColor;
+
+            if (colorColumn().isValid()) {
+              if (! colorColumnColor(ovalue.ind.row(), ovalue.ind.parent(), pointColor))
+                pointColor = Color(Color::Type::NONE);
+            }
+
+            if (pointColor.isValid())
+              outlierObj->setColor(pointColor);
 
             objs.push_back(outlierObj);
           }
@@ -1661,8 +1698,10 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
   const auto &density = whisker->density();
 
-  double ymin = density.ymin1();
-  double ymax = density.ymax1();
+  //double ymin = density.ymin1();
+  //double ymax = density.ymax1();
+  double ymin = density.ymin();
+  double ymax = density.ymax();
 
   CQChartsRand::RealInRange rand(-vw2, vw2);
 
@@ -1673,7 +1712,8 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     double d = rand.gen();
 
-    double yv = density.yval(value)/(ymax - ymin);
+    //double yv = density.yval(value)/(ymax - ymin);
+    double yv = density.eval(value)/(ymax - ymin);
 
     double x = pos + yv*d;
     double y = value.value;
@@ -1744,14 +1784,14 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     if (placePosRect(0, rect))
       return false;
 
-    double w = rect.getWidth();
+    double w = (isVertical() ? rect.getWidth() : rect.getHeight());
 
     int d = 1;
 
     while (true) {
       auto rect1 = rect;
 
-      if (! isNormalized())
+      if (isVertical())
         rect1.moveBy(Point(-d*w, 0.0));
       else
         rect1.moveBy(Point(0.0, -d*w));
@@ -1763,7 +1803,7 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
       auto rect2 = rect;
 
-      if (! isNormalized())
+      if (isVertical())
         rect2.moveBy(Point(d*w, 0.0));
       else
         rect2.moveBy(Point(0.0, d*w));
@@ -1777,7 +1817,43 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     }
   };
 
+  std::map<double, int> valueCount;
+
   int nv = whisker->numValues();
+
+  for (int iv = 0; iv < nv; ++iv) {
+    const auto &value = whisker->value(iv);
+
+    valueCount[value.value]++; // TODO: tolerance
+  }
+
+  int maxV = 0;
+
+  for (const auto &vc : valueCount)
+    maxV = std::max(maxV, vc.second);
+
+  double ds = (maxV > 0 ? 1.0/maxV : 0.0);
+
+  double sx, sy;
+
+  plotSymbolSize(jitterSymbolSize(), sx, sy);
+
+  if (isVertical()) {
+    if (ds < sx) {
+      double s = (sx > 0.0 ? ds/sx : 1.0);
+
+      sx *= s;
+      sy *= s;
+    }
+  }
+  else {
+    if (ds < sy) {
+      double s = (sy > 0.0 ? ds/sy : 1.0);
+
+      sx *= s;
+      sy *= s;
+    }
+  }
 
   for (int iv = 0; iv < nv; ++iv) {
     const auto &value = whisker->value(iv);
@@ -1786,10 +1862,6 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     double y = value.value;
 
     double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers()) : y);
-
-    double sx, sy;
-
-    plotSymbolSize(jitterSymbolSize(), sx, sy);
 
     Point pos;
     BBox  rect;
@@ -1899,6 +1971,18 @@ initCalcObjs(PlotObjs &objs) const
 
         auto *outlierObj = createOutlierObj(rect, -1, -1, nullptr,
                                             ColorInd(is, ns), ColorInd(), io);
+
+        Color pointColor;
+
+        if (colorColumn().isValid()) {
+          const auto &ind = whiskerData.outliersInd;
+
+          if (! colorColumnColor(ind.row(), ind.parent(), pointColor))
+            pointColor = Color(Color::Type::NONE);
+        }
+
+        if (pointColor.isValid())
+          outlierObj->setColor(pointColor);
 
         objs.push_back(outlierObj);
 
@@ -2858,6 +2942,11 @@ void
 CQChartsBoxPlotOutlierObj::
 draw(PaintDevice *device) const
 {
+  auto symbol     = plot_->outlierSymbol();
+  auto symbolSize = plot_->outlierSymbolSize();
+
+  //---
+
   // get color index
   auto colorInd = this->calcColorInd();
 
@@ -2871,6 +2960,9 @@ draw(PaintDevice *device) const
 
   plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
+  if (color_.isValid())
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
+
   plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   //---
@@ -2882,8 +2974,7 @@ draw(PaintDevice *device) const
   Point pos(ox, oy);
 
   if (plot_->outlierSymbol().isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, plot_->outlierSymbol(), pos,
-                                 plot_->outlierSymbolSize());
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pos, symbolSize);
 }
 
 double
@@ -3897,13 +3988,10 @@ updateWidgets()
 
   auto type = plot_->calcColumnDataType();
 
-  if (type == CQChartsBoxPlot::ColumnDataType::RAW) {
-    showColumnWidgets(QStringList() << "values" << "name" << "set");
-  }
-  else {
-    showColumnWidgets(QStringList() <<
-      "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers");
-  }
+  if (type == CQChartsBoxPlot::ColumnDataType::RAW)
+    showColumnWidgets(plot_->rawCustomColumns());
+  else
+    showColumnWidgets(plot_->calculatedCustomColumns());
 
   //---
 

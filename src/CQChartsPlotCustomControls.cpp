@@ -35,17 +35,23 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   layout_->addWidget(titleFrame);
 
+  //--
+
   titleWidget_ = CQUtil::makeLabelWidget<QLabel>("", "title");
+
+  titleLayout->addWidget(titleWidget_);
+
+  //---
 
   numericCheck_ = CQUtil::makeWidget<CQIconButton>("numericColumnsCheck");
 
   numericCheck_->setIcon("NUMERIC_COLUMNS");
   numericCheck_->setCheckable(true);
+  numericCheck_->setChecked(isNumericOnly());
   numericCheck_->setToolTip("Restrict to columns with numeric values");
 
   numericCheck_->setVisible(false);
 
-  titleLayout->addWidget(titleWidget_);
   titleLayout->addWidget(numericCheck_);
 
   //---
@@ -102,17 +108,8 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
       assert(false);
   }
 
-  if (isNumeric) {
-#if 0
-    numericCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Numeric Only", "numericCheck");
-
-    numericCheck_->setToolTip("Restrict to columns with numeric values");
-
-    frameData.layout->addWidget(numericCheck_, frameData.row, 0, 1, 2); ++frameData.row;
-#else
+  if (isNumeric)
     numericCheck_->setVisible(true);
-#endif
-  }
 
   //addFrameRowStretch(frameData);
 }
@@ -229,12 +226,9 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(b,
       columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
 
-  if (numericCheck_) {
-  //CQChartsWidgetUtil::connectDisconnect(b,
-  //  numericCheck_, SIGNAL(stateChanged(int)), this, SLOT(numericOnlySlot(int)));
+  if (numericCheck_)
     CQChartsWidgetUtil::connectDisconnect(b,
       numericCheck_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
-  }
 }
 
 void
@@ -252,6 +246,33 @@ setPlot(CQChartsPlot *plot)
     connect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
   }
+}
+
+void
+CQChartsPlotCustomControls::
+setNumericOnly(bool b)
+{
+  if (b != numericOnly_) {
+    numericOnly_ = b;
+
+    connectSlots(false);
+
+    if (numericCheck_)
+      numericCheck_->setChecked(isNumericOnly());
+
+    updateNumericOnly();
+
+    connectSlots(true);
+  }
+}
+
+void
+CQChartsPlotCustomControls::
+setShowTitle(bool b)
+{
+  showTitle_ = b;
+
+  titleWidget_->setVisible(showTitle_);
 }
 
 void
@@ -325,19 +346,7 @@ void
 CQChartsPlotCustomControls::
 numericOnlySlot(bool state)
 {
-  for (auto *columnEdit : columnEdits_) {
-    auto *parameter = columnEdit->parameter();
-
-    if (parameter->isNumeric())
-      columnEdit->setNumericOnly(state);
-  }
-
-  for (auto *columnsEdit : columnsEdits_) {
-    auto *parameter = columnsEdit->parameter();
-
-    if (parameter->isNumeric())
-      columnsEdit->setNumericOnly(state);
-  }
+  setNumericOnly(state);
 }
 
 CQChartsPlotType *
@@ -584,7 +593,30 @@ updateWidgets()
 
   //---
 
+  updateNumericOnly();
+
+  //---
+
   connectSlots(true);
+}
+
+void
+CQChartsPlotCustomControls::
+updateNumericOnly()
+{
+  for (auto *columnEdit : columnEdits_) {
+    auto *parameter = columnEdit->parameter();
+
+    if (parameter->isNumeric())
+      columnEdit->setNumericOnly(isNumericOnly());
+  }
+
+  for (auto *columnsEdit : columnsEdits_) {
+    auto *parameter = columnsEdit->parameter();
+
+    if (parameter->isNumeric())
+      columnsEdit->setNumericOnly(isNumericOnly());
+  }
 }
 
 void

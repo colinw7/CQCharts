@@ -798,9 +798,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void calcDensityMapImpl(int groupInd);
 
- signals:
-  void customDataChanged();
-
  public slots:
   // set plot type
   void setPlotType(PlotType plotType);

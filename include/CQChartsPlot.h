@@ -3002,6 +3002,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // emitted when color details changed (color column, color range, color palette)
   void colorDetailsChanged();
 
+  // emitted when custom data changed
+  void customDataChanged();
+
  protected:
   //! \brief RAII class to enable/disable no update state
   struct NoUpdate {

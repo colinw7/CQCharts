@@ -137,7 +137,7 @@ load(const QString &filename)
     // stop if hit maximum rows
     ++nr;
 
-    if (maxRows_ > 0 && nr >= maxRows_)
+    if (maxRows() > 0 && nr >= maxRows())
       break;
   }
 
@@ -152,8 +152,8 @@ load(const QString &filename)
   //---
 
   // if columns specified filter and reorder data by columns
-  if (columns_.length())
-    applyFilterColumns(columns_);
+  if (columns().length())
+    applyFilterColumns(columns());
 
   //---
 
@@ -217,7 +217,7 @@ load(const QString &filename)
           }
         }
         else if (type == "max") {
-          CQBaseModelType columnType = this->columnType(icolumn);
+          auto columnType = this->columnType(icolumn);
 
           if      (columnType == CQBaseModelType::INTEGER) {
             bool ok;

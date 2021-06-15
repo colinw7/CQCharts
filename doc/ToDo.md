@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + jitter box plot with group/set
+ + simple color editor (palette or color)
  + all placement algorithms support hier data
  + sankey annotation plot, arc start/end size the same
  + hier name support for connection plots (sankey) to provide extra level for grouping

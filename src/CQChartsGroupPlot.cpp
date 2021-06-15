@@ -420,8 +420,19 @@ initGroup(CQChartsGroupData &data) const
       columnType = columnValueType(data.column);
 
       if (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-        if (data.bucketer.type() == CQBucketer::Type::STRING && ! data.exactValue)
-          initRange = true;
+        if      (data.bucketer.type() == CQBucketer::Type::STRING) {
+          if (! data.exactValue)
+            initRange = true;
+        }
+        else if (columnType == ColumnType::INTEGER &&
+                 data.bucketer.type() == CQBucketer::Type::REAL_AUTO) {
+          if (! data.exactValue) {
+            auto *details = columnDetails(data.column);
+
+            if (details && details->numUnique() < 20) // TODO: config
+              data.exactValue = true;
+          }
+        }
       }
     }
 

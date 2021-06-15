@@ -737,9 +737,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind,
                                const ColorInd &ig) const;
 
- signals:
-  void customDataChanged();
-
  public slots:
   void setDonut   (bool b);
   void setTreeMap (bool b);

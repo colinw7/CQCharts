@@ -993,9 +993,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
- signals:
-  void customDataChanged();
-
  public slots:
   // set plot type
   void setPlotType(PlotType plotType);

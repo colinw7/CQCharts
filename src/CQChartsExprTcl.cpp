@@ -190,34 +190,34 @@ int
 CQChartsExprTcl::
 columnCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 {
-  auto *eval = static_cast<CQChartsExprTcl *>(clientData);
+  auto *tcl = static_cast<CQChartsExprTcl *>(clientData);
 
   Values values;
 
-  eval->parseCmd(objc, objv, values);
+  tcl->parseCmd(objc, objv, values);
 
   int ind = 0;
 
   int col = 0;
 
-  if (! eval->getColumnValue(values, ind, col)) {
-    eval->incErrorCount();
+  if (! tcl->getColumnValue(values, ind, col)) {
+    tcl->incErrorCount();
     return TCL_ERROR;
   }
 
-  if (! eval->checkColumn(col)) {
-    eval->incErrorCount();
+  if (! tcl->checkColumn(col)) {
+    tcl->incErrorCount();
     return TCL_ERROR;
   }
 
-  auto res = eval->getModelData(eval->row(), col);
+  auto res = tcl->getModelData(tcl->row(), col);
 
   if (! res.isValid()) {
-    eval->incErrorCount();
+    tcl->incErrorCount();
     return TCL_ERROR;
   }
 
-  eval->setResult(res);
+  tcl->setResult(res);
 
   return TCL_OK;
 }

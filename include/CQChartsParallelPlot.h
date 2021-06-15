@@ -294,9 +294,6 @@ class CQChartsParallelPlot : public CQChartsPlot,
                                    const QModelIndex &ind, const ColorInd &is,
                                    const ColorInd &iv) const;
 
- signals:
-  void customDataChanged();
-
  public slots:
   // set horizontal
   void setHorizontal(bool b);

@@ -78,12 +78,14 @@ using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
  * \ingroup Charts
  */
 struct CQChartsBoxWhiskerData {
-  using Outliers = std::vector<double>;
+  using Outliers   = std::vector<double>;
+  using ModelIndex = CQChartsModelIndex;
 
   QModelIndex ind;             //!< model index
   QString     name;            //!< x value name
   double      x       { 0.0 }; //!< x value
   CQStatData  statData;        //!< stats data
+  ModelIndex  outliersInd;     //!< outlier ind
   Outliers    outliers;        //!< outlier y values
   double      dataMin { 0.0 }; //!< min data value
   double      dataMax { 1.0 }; //!< max data value
@@ -269,10 +271,17 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
   //---
 
+  const Color &color() const { return color_; }
+  void setColor(const Color &c) { color_ = c; }
+
+  //---
+
   QString calcId   () const override;
   QString calcTipId() const override;
 
   void getObjSelectIndices(Indices &inds) const override;
+
+  //---
 
   void draw(PaintDevice *device) const override;
 
@@ -284,6 +293,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   int            groupInd_ { 0 };       //!< group ind
   const Whisker* whisker_  { nullptr }; //!< whisker data
   int            io_       { 0 };       //!< outlier index
+  Color          color_;                //!< custom color
 };
 
 //---
@@ -818,6 +828,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  const QStringList &rawCustomColumns() const { return rawCustomColumns_; }
+  void setRawCustomColumns(const QStringList &s) { rawCustomColumns_ = s; }
+
+  const QStringList &calculatedCustomColumns() const { return calculatedCustomColumns_; }
+  void setCalculatedCustomColumns(const QStringList &s) { calculatedCustomColumns_ = s; }
+
  public slots:
   // set horizontal
   void setHorizontal(bool b);
@@ -940,6 +956,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   WhiskerDataList    whiskerDataList_;                        //!< whisker data
   bool               isWhiskersGrouped_ { false };            //!< is grouped whiskers
   bool               forceNoYAxis_      { false };            //!< force no y axis
+
+  QStringList rawCustomColumns_;
+  QStringList calculatedCustomColumns_;
 };
 
 //---

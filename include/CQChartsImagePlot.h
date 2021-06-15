@@ -232,9 +232,6 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   BBox calcExtraFitBBox() const override;
 
- signals:
-  void customDataChanged();
-
  public slots:
   void setRectStyle   (bool b);
   void setBalloonStyle(bool b);

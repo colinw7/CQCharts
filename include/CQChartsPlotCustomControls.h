@@ -30,6 +30,9 @@ class QVBoxLayout;
 class CQChartsPlotCustomControls : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(bool numericOnly READ isNumericOnly WRITE setNumericOnly)
+  Q_PROPERTY(bool showTitle   READ isShowTitle   WRITE setShowTitle  )
+
  public:
   CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType);
 
@@ -37,6 +40,12 @@ class CQChartsPlotCustomControls : public QFrame {
 
   virtual CQChartsPlot *plot() const { return plot_; }
   virtual void setPlot(CQChartsPlot *plot);
+
+  bool isNumericOnly() const { return numericOnly_; }
+  void setNumericOnly(bool b);
+
+  bool isShowTitle() const { return showTitle_; }
+  void setShowTitle(bool b);
 
   //---
 
@@ -118,6 +127,8 @@ class CQChartsPlotCustomControls : public QFrame {
 
   void connectSlots(bool b);
 
+  void updateNumericOnly();
+
  protected:
   using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
@@ -128,11 +139,13 @@ class CQChartsPlotCustomControls : public QFrame {
   QString       plotType_;
   CQChartsPlot* plot_ { nullptr };
 
+  bool numericOnly_ { false };
+  bool showTitle_   { false };
+
   QLabel* titleWidget_ { nullptr };
 
   ColumnEdits   columnEdits_;
   ColumnsEdits  columnsEdits_;
-//QCheckBox*    numericCheck_ { nullptr };
   CQIconButton* numericCheck_ { nullptr };
 
   CQChartsColumnControlGroup* colorControlGroup_ { nullptr };

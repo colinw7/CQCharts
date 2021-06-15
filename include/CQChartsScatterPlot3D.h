@@ -406,9 +406,6 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
                                    const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
- signals:
-  void customDataChanged();
-
  protected slots:
   void dataLabelChanged();
 
