@@ -571,13 +571,13 @@ CQChartsWordCloudPlotCustomControls::
 CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wordCloud")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // value and count columns
-  addColumnWidgets(QStringList() << "value" << "count", optionsFrame);
+  addColumnWidgets(QStringList() << "value" << "count", columnsFrame);
 
   //---
 

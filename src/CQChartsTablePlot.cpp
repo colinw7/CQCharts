@@ -2438,12 +2438,12 @@ CQChartsTablePlotCustomControls::
 CQChartsTablePlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "table")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "columns", optionsFrame);
+  addColumnWidgets(QStringList() << "columns", columnsFrame);
 
   //---
 

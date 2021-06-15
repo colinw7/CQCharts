@@ -1799,13 +1799,13 @@ CQChartsWheelPlotCustomControls::
 CQChartsWheelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wheel")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   addColumnWidgets(QStringList() <<
-    "x" << "y" << "min" << "max" << "innerBar" << "outerBar" << "outerBubble", optionsFrame);
+    "x" << "y" << "min" << "max" << "innerBar" << "outerBar" << "outerBubble", columnsFrame);
 
   //---
 

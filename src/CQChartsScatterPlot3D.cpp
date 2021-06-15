@@ -1799,14 +1799,14 @@ CQChartsScatterPlot3DCustomControls::
 CQChartsScatterPlot3DCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "scatter3d")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   addColumnWidgets(QStringList() <<
     "x" << "y" << "z" << "name" << "label" <<
-    "symbolType" << "symbolSize" << "fontSize", optionsFrame);
+    "symbolType" << "symbolSize" << "fontSize", columnsFrame);
 
   //---
 

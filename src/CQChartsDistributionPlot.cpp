@@ -4979,8 +4979,8 @@ CQChartsDistributionPlotCustomControls::
 CQChartsDistributionPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "distribution")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
@@ -4988,7 +4988,12 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
 //auto columns = QStringList() << "values" << "name" << "data";
   auto columns = QStringList() << "values" << "data";
 
-  addColumnWidgets(columns, optionsFrame);
+  addColumnWidgets(columns, columnsFrame);
+
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

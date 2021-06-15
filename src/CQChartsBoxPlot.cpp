@@ -3858,8 +3858,8 @@ CQChartsBoxPlotCustomControls::
 CQChartsBoxPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "box")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
@@ -3868,7 +3868,7 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
 
   columnsTypeCombo_->setPropName("columnDataType");
 
-  addFrameWidget(optionsFrame, "Columns Type", columnsTypeCombo_);
+  addFrameWidget(columnsFrame, "Columns Type", columnsTypeCombo_);
 
   //---
 
@@ -3877,9 +3877,12 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
     "values" << "name" << "set" <<
     "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers";
 
-  addColumnWidgets(columnNames, optionsFrame);
+  addColumnWidgets(columnNames, columnsFrame);
 
   //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   orientationCombo_ = createEnumEdit("orientation");
   pointsTypeCombo_  = createEnumEdit("pointsType");

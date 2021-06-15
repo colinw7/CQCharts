@@ -1624,15 +1624,15 @@ CQChartsBubblePlotCustomControls::
 CQChartsBubblePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "bubble")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // values, name and label columns
   static auto columnNames = QStringList() << "name" << "value";
 
-  addColumnWidgets(columnNames, optionsFrame);
+  addColumnWidgets(columnNames, columnsFrame);
 
   //---
 

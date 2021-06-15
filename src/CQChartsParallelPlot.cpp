@@ -1689,13 +1689,18 @@ CQChartsParallelPlotCustomControls::
 CQChartsParallelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "parallel")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // x and y columns
-  addColumnWidgets(QStringList() << "x" << "y", optionsFrame);
+  addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
+
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

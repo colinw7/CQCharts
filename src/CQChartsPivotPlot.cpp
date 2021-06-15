@@ -1965,12 +1965,12 @@ CQChartsPivotPlotCustomControls::
 CQChartsPivotPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "pivot")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "x" << "y" << "value", optionsFrame);
+  addColumnWidgets(QStringList() << "x" << "y" << "value", columnsFrame);
 
   //---
 

@@ -1034,12 +1034,12 @@ CQChartsHierScatterPlotCustomControls::
 CQChartsHierScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "hierscatter")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", optionsFrame);
+  addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", columnsFrame);
 
   //---
 

@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + distribution plot custom controls include group
+ + allow columns to be editied as single column
+ + column property support name (associated plot ?)
  + jitter box plot with group/set
  + simple color editor (palette or color)
  + all placement algorithms support hier data

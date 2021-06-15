@@ -1104,14 +1104,14 @@ CQChartsGeometryPlotCustomControls::
 CQChartsGeometryPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "geometry")
 {
-   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   static auto columnNames = QStringList() << "geometry" << "name" << "value" << "style";
 
-  addColumnWidgets(columnNames, optionsFrame);
+  addColumnWidgets(columnNames, columnsFrame);
 
   //---
 

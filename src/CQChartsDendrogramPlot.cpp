@@ -726,12 +726,12 @@ CQChartsDendrogramPlotCustomControls::
 CQChartsDendrogramPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "dendrogram")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "name" << "value", optionsFrame);
+  addColumnWidgets(QStringList() << "name" << "value", columnsFrame);
 
   //---
 

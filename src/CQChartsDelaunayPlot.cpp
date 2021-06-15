@@ -926,14 +926,19 @@ CQChartsDelaunayPlotCustomControls::
 CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "delaunay")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   static auto columnNames = QStringList() << "x" << "y" << "name" << "value";
 
-  addColumnWidgets(columnNames, optionsFrame);
+  addColumnWidgets(columnNames, columnsFrame);
+
+  //---
+
+  // options group
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   //---
 

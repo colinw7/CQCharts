@@ -1171,13 +1171,13 @@ CQChartsRadarPlotCustomControls::
 CQChartsRadarPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "radar")
 {
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // name and values columns
-  addColumnWidgets(QStringList() << "name" << "values", optionsFrame);
+  addColumnWidgets(QStringList() << "name" << "values", columnsFrame);
 
   //---
 
