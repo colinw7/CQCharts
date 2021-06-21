@@ -163,10 +163,10 @@ load(const QString &filename)
   //---
 
   // process meta data
-  const CCsv::Data &meta = csv.meta();
+  meta_ = csv.meta();
 
-  if (! meta.empty()) {
-    for (const auto &fields : meta) {
+  if (! meta_.empty()) {
+    for (const auto &fields : meta_) {
       int numFields = fields.size();
 
       // handle column data:
@@ -193,7 +193,7 @@ load(const QString &filename)
             setColumnType(icolumn, columnType);
         }
         else if (type == "min") {
-          CQBaseModelType columnType = this->columnType(icolumn);
+          auto columnType = this->columnType(icolumn);
 
           if      (columnType == CQBaseModelType::INTEGER) {
             bool ok;
@@ -262,6 +262,7 @@ load(const QString &filename)
           continue;
         }
 
+        // get role
         int role = CQModelUtil::nameToRole(roleStr);
 
         if (role < 0) {
@@ -269,6 +270,7 @@ load(const QString &filename)
           continue;
         }
 
+        // get cell index
         int row = -1, col = -1;
 
         auto indStrs = indStr.split(":");
@@ -284,6 +286,8 @@ load(const QString &filename)
           continue;
         }
 
+        // get value(s)
+        // <value> | <type>:<value>
         auto valueStrs = value.split(":");
 
         QVariant var;
@@ -381,23 +385,49 @@ void
 CQCsvModel::
 save(std::ostream &os)
 {
-  save(this, os);
+  save(this, os, configData_, meta_);
 }
 
 void
 CQCsvModel::
-save(QAbstractItemModel *model, std::ostream &os)
+save(QAbstractItemModel *model, std::ostream &os,
+     const ConfigData &configData, const MetaData &meta)
 {
   int nc = model->columnCount();
   int nr = model->rowCount();
 
   //---
 
+  if (meta.size()) {
+    os << "#META_DATA\n";
+
+    for (const auto &values : meta) {
+      os << "# ";
+
+      int i = 0;
+
+      for (const auto &v : values) {
+        if (i > 0)
+          os << ",";
+
+        os << v;
+
+        ++i;
+      }
+
+      os << "\n";
+    }
+
+    os << "#END_META_DATA\n";
+  }
+
+  //---
+
   bool hasHHeader = false;
 
-  if (isFirstLineHeader()) {
+  if (configData.firstLineHeader) {
     for (int c = 0; c < nc; ++c) {
-      QVariant var = model->headerData(c, Qt::Horizontal);
+      auto var = model->headerData(c, Qt::Horizontal, configData.headerRole);
 
       if (var.isValid()) {
         hasHHeader = true;
@@ -408,9 +438,9 @@ save(QAbstractItemModel *model, std::ostream &os)
 
   bool hasVHeader = false;
 
-  if (isFirstColumnHeader()) {
+  if (configData.firstColumnHeader) {
     for (int r = 0; r < nr; ++r) {
-      QVariant var = model->headerData(r, Qt::Vertical);
+      auto var = model->headerData(r, Qt::Vertical, configData.headerRole);
 
       if (var.isValid()) {
         hasVHeader = true;
@@ -422,20 +452,20 @@ save(QAbstractItemModel *model, std::ostream &os)
   //---
 
   // output horizontal header on first line if enabled and model has horizontal header data
-  if (isFirstLineHeader() && hasHHeader) {
+  if (configData.firstLineHeader && hasHHeader) {
     bool output = false;
 
     // if vertical header then add empty cell
-    if (isFirstColumnHeader() && hasVHeader)
+    if (configData.firstColumnHeader && hasVHeader)
       output = true;
 
     for (int c = 0; c < nc; ++c) {
-      QVariant var = model->headerData(c, Qt::Horizontal);
+      auto var = model->headerData(c, Qt::Horizontal, configData.headerRole);
 
       if (output)
-        os << separator().toLatin1();
+        os << configData.separator.toLatin1();
 
-      os << encodeVariant(var, separator());
+      os << encodeVariant(var, configData.separator);
 
       output = true;
     }
@@ -450,10 +480,10 @@ save(QAbstractItemModel *model, std::ostream &os)
     bool output = false;
 
     // output vertical header value if enabled and model has vertical header data
-    if (isFirstColumnHeader() && hasVHeader) {
-      QVariant var = model->headerData(r, Qt::Vertical);
+    if (configData.firstColumnHeader && hasVHeader) {
+      auto var = model->headerData(r, Qt::Vertical, configData.headerRole);
 
-      os << encodeVariant(var, separator());
+      os << encodeVariant(var, configData.separator);
 
       output = true;
     }
@@ -461,14 +491,14 @@ save(QAbstractItemModel *model, std::ostream &os)
     //---
 
     for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
+      auto ind = model->index(r, c);
 
-      QVariant var = model->data(ind);
+      auto var = model->data(ind, configData.dataRole);
 
       if (output)
-        os << separator().toLatin1();
+        os << configData.separator.toLatin1();
 
-      os << encodeVariant(var, separator());
+      os << encodeVariant(var, configData.separator);
 
       output = true;
     }
@@ -494,7 +524,7 @@ encodeVariant(const QVariant &var, const QChar &separator)
     str = std::to_string(i);
   }
   else {
-    QString qstr = var.toString();
+    auto qstr = var.toString();
 
     str = encodeString(qstr, separator).toStdString();
   }
@@ -529,7 +559,8 @@ encodeString(const QString &str, const QChar &separator)
     int pos = str.indexOf('\"');
 
     if (pos >= 0) {
-      QString str1 = str;
+      auto str1 = str;
+
       QString str2;
 
       while (pos >= 0) {

@@ -13,6 +13,25 @@ class CQCsvModel : public CQDataModel {
   Q_PROPERTY(bool  firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
   Q_PROPERTY(bool  firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
   Q_PROPERTY(QChar separator         READ separator           WRITE setSeparator        )
+  Q_PROPERTY(int   headerRole        READ headerRole          WRITE setHeaderRole       )
+  Q_PROPERTY(int   dataRole          READ dataRole            WRITE setDataRole         )
+
+ public:
+  struct ConfigData {
+    bool        commentHeader     { false };           //!< first comment line has column names
+    bool        firstLineHeader   { false };           //!< first non-comment line has column names
+    bool        firstColumnHeader { false };           //!< first column in each line is row name
+    QChar       separator         { ',' };             //!< field separator
+    int         maxRows           { -1 };              //!< max rows
+    QStringList columns;                               //!< specific columns (and order)
+    int         headerRole        { Qt::DisplayRole }; //!< header data role
+    int         dataRole          { Qt::DisplayRole }; //!< data role
+
+    ConfigData() { }
+  };
+
+  using MetaFields = std::vector<std::string>;
+  using MetaData   = std::vector<MetaFields>;
 
  public:
   CQCsvModel();
@@ -20,28 +39,34 @@ class CQCsvModel : public CQDataModel {
   //---
 
   //! get/set use first line comment for horizontal header
-  bool isCommentHeader() const { return loadData_.commentHeader; }
-  void setCommentHeader(bool b) { loadData_.commentHeader = b; }
+  bool isCommentHeader() const { return configData_.commentHeader; }
+  void setCommentHeader(bool b) { configData_.commentHeader = b; }
 
   //! get/set use first line as horizontal header
-  bool isFirstLineHeader() const { return loadData_.firstLineHeader; }
-  void setFirstLineHeader(bool b) { loadData_.firstLineHeader = b; }
+  bool isFirstLineHeader() const { return configData_.firstLineHeader; }
+  void setFirstLineHeader(bool b) { configData_.firstLineHeader = b; }
 
   //! get/set use column for vertical header
-  bool isFirstColumnHeader() const { return loadData_.firstColumnHeader; }
-  void setFirstColumnHeader(bool b) { loadData_.firstColumnHeader = b; }
+  bool isFirstColumnHeader() const { return configData_.firstColumnHeader; }
+  void setFirstColumnHeader(bool b) { configData_.firstColumnHeader = b; }
 
   //! get/set file separator (default ',')
-  const QChar &separator() const { return loadData_.separator; }
-  void setSeparator(const QChar &v) { loadData_.separator = v; }
+  const QChar &separator() const { return configData_.separator; }
+  void setSeparator(const QChar &v) { configData_.separator = v; }
 
   //! get/set max rows to read
-  int maxRows() const { return loadData_.maxRows; }
-  void setMaxRows(int i) { loadData_.maxRows = i; }
+  int maxRows() const { return configData_.maxRows; }
+  void setMaxRows(int i) { configData_.maxRows = i; }
 
   //! get/set column names/numbers to read (also specifies order)
-  const QStringList &columns() const { return loadData_.columns; }
-  void setColumns(const QStringList &v) { loadData_.columns = v; }
+  const QStringList &columns() const { return configData_.columns; }
+  void setColumns(const QStringList &v) { configData_.columns = v; }
+
+  int headerRole() const { return configData_.headerRole; }
+  void setHeaderRole(int i) { configData_.headerRole = i; }
+
+  int dataRole() const { return configData_.dataRole; }
+  void setDataRole(int i) { configData_.dataRole = i; }
 
   //---
 
@@ -52,7 +77,11 @@ class CQCsvModel : public CQDataModel {
 
   //! save model to CSV file
   void save(std::ostream &os);
-  void save(QAbstractItemModel *model, std::ostream &os);
+
+  static void save(QAbstractItemModel *model, std::ostream &os,
+                   const ConfigData &configData=ConfigData(), const MetaData &meta=MetaData());
+
+  //---
 
   //! encode string (suitable for CSV value)
   static QString encodeString(const QString &str, const QChar &separator=',');
@@ -62,16 +91,8 @@ class CQCsvModel : public CQDataModel {
   static std::string encodeVariant(const QVariant &var, const QChar &separator=',');
 
  protected:
-  struct LoadData {
-    bool        commentHeader     { false }; //!< first comment line has column names
-    bool        firstLineHeader   { false }; //!< first non-comment line has column names
-    bool        firstColumnHeader { false }; //!< first column in each line is row name
-    QChar       separator         { ',' };   //!< field separator
-    int         maxRows           { -1 };    //!< max rows
-    QStringList columns;                     //!< specific columns (and order)
-  };
-
-  LoadData loadData_;
+  ConfigData configData_; //!< config data
+  MetaData   meta_;       //!< meta data
 };
 
 #endif

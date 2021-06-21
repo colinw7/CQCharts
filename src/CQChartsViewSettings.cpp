@@ -2252,9 +2252,7 @@ CQChartsViewSettings::
 editModelSlot()
 {
   long ind = modelsWidgets_.modelTable->selectedModel();
-
-  if (ind < 0)
-    return;
+  if (ind < 0) return;
 
   auto *charts = window_->view()->charts();
 

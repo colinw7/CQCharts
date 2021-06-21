@@ -16,6 +16,9 @@
 #include <CQTsvModel.h>
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
+#ifdef CQCHARTS_EXCEL
+#include <CQExcelModel.h>
+#endif
 
 #include <CQPerfMonitor.h>
 #include <CQTclUtil.h>
@@ -133,9 +136,6 @@ loadCsv(const CQChartsFile &file, const InputData &inputData)
 
   auto *csvModel = new CQCsvModel;
 
-  auto *csv = new CQChartsFilterModel(charts_, csvModel);
-  csv->setObjectName("csvFilterModel");
-
   csvModel->setCommentHeader    (inputData.commentHeader);
   csvModel->setFirstLineHeader  (inputData.firstLineHeader);
   csvModel->setFirstColumnHeader(inputData.firstColumnHeader);
@@ -150,15 +150,34 @@ loadCsv(const CQChartsFile &file, const InputData &inputData)
     csvModel->setColumns(inputData.columns);
 
   if (! csvModel->load(file.resolve())) {
-    delete csv;
+    delete csvModel;
     return nullptr;
   }
 
   //---
 
-  setFilter(csv, inputData);
+  bool isExprModel = true;
 
-  return csv;
+  CQDataModel *dataModel = csvModel;
+
+#ifdef CQCHARTS_EXCEL
+  if (inputData.spreadsheet) {
+    auto *spreadsheetModel = new CQExcel::Model;
+
+    spreadsheetModel->copyModel(dataModel);
+
+    dataModel = spreadsheetModel;
+
+    isExprModel = false;
+  }
+#endif
+
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel, isExprModel);
+  filterModel->setObjectName("csvFilterModel");
+
+  setFilter(filterModel, inputData);
+
+  return filterModel;
 }
 
 CQChartsFilterModel *

@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + easy red/green distribution split
  + distribution plot custom controls include group
  + allow columns to be editied as single column
  + column property support name (associated plot ?)

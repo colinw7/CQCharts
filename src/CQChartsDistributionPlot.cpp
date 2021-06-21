@@ -394,6 +394,20 @@ setMaxBucketValue(double r)
   }
 }
 
+void
+CQChartsDistributionPlot::
+calcMinMaxBucketValue(double &rmin, double &rmax) const
+{
+  rmin = minBucketValue();
+  rmax = maxBucketValue();
+
+  if (underflowBucket().isSet())
+    rmin = std::max(underflowBucket().real(), rmin);
+
+  if (overflowBucket().isSet())
+    rmax = std::min(overflowBucket().real(), rmax);
+}
+
 int
 CQChartsDistributionPlot::
 numAutoBuckets() const
@@ -520,18 +534,12 @@ initBucketer(CQBucketer &bucketer)
   bucketer.setRStart(startBucketValue());
   bucketer.setRDelta(deltaBucketValue());
 
-  auto rmin = minBucketValue  ();
-  auto rmax = maxBucketValue  ();
+  double rmin, rmax;
 
-  if (underflowBucket_.isSet())
-    bucketer.setRMin(std::max(underflowBucket_.real(), rmin));
-  else
-    bucketer.setRMin(rmin);
+  calcMinMaxBucketValue(rmin, rmax);
 
-  if (overflowBucket_.isSet())
-    bucketer.setRMax(std::min(overflowBucket_.real(), rmax));
-  else
-    bucketer.setRMax(rmax);
+  bucketer.setRMin(rmin);
+  bucketer.setRMax(rmax);
 
   bucketer.setRStops(bucketer_.rstops());
 
@@ -942,59 +950,53 @@ calcRange() const
 
   //---
 
-  if (visitModel_) {
-    // check columns
-    bool columnsValid = true;
+  // check columns
+  bool columnsValid = true;
 
-    // value columns required
-    // name, data, color columns optional
+  // value columns required
+  // name, data, color columns optional
 
-    if (! checkColumns(valueColumns(), "Values", /*required*/true))
-      columnsValid = false;
+  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
 
-    if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
-    if (! checkColumn(dataColumn (), "Data" )) columnsValid = false;
-    if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(dataColumn (), "Data" )) columnsValid = false;
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
-    if (! columnsValid)
-      return Range();
-
-    //---
-
-    // init grouping
-    initGroupData(valueColumns(), nameColumn());
-
-    //---
-
-    clearGroupValues();
-
-    //---
-
-    // process model data (build grouped sets of values)
-    class DistributionVisitor : public ModelVisitor {
-     public:
-      DistributionVisitor(const CQChartsDistributionPlot *plot) :
-       plot_(plot) {
-      }
-
-      State visit(const QAbstractItemModel *, const VisitData &data) override {
-        plot_->addRow(data);
-
-        return State::OK;
-      }
-
-     private:
-      const CQChartsDistributionPlot *plot_ { nullptr };
-    };
-
-    DistributionVisitor distributionVisitor(this);
-
-    visitModel(distributionVisitor);
-  }
+  if (! columnsValid)
+    return Range();
 
   //---
 
-  visitModel_ = true;
+  // init grouping
+  initGroupData(valueColumns(), nameColumn());
+
+  //---
+
+  clearGroupValues();
+
+  //---
+
+  // process model data (build grouped sets of values)
+  class DistributionVisitor : public ModelVisitor {
+   public:
+    DistributionVisitor(const CQChartsDistributionPlot *plot) :
+     plot_(plot) {
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRow(data);
+
+      return State::OK;
+    }
+
+   private:
+    const CQChartsDistributionPlot *plot_ { nullptr };
+  };
+
+  DistributionVisitor distributionVisitor(this);
+
+  visitModel(distributionVisitor);
 
   //---
 
@@ -1109,8 +1111,8 @@ bucketGroupValues() const
         int imin = values->valueSet->imin();
         int imax = values->valueSet->imax();
 
-        if (underflowBucket_.isSet()) imin = std::max(int(underflowBucket_.real()), imin);
-        if (overflowBucket_ .isSet()) imax = std::min(int(overflowBucket_ .real()), imax);
+        if (underflowBucket().isSet()) imin = std::max(int(underflowBucket().real()), imin);
+        if (overflowBucket ().isSet()) imax = std::min(int(overflowBucket ().real()), imax);
 
         if (iv == 0) {
           bucketer.setIntegral(true);
@@ -1129,8 +1131,8 @@ bucketGroupValues() const
         double rmin = values->valueSet->rmin();
         double rmax = values->valueSet->rmax();
 
-        if (underflowBucket_.isSet()) rmin = std::max(underflowBucket_.real(), rmin);
-        if (overflowBucket_ .isSet()) rmax = std::min(overflowBucket_ .real(), rmax);
+        if (underflowBucket().isSet()) rmin = std::max(underflowBucket().real(), rmin);
+        if (overflowBucket ().isSet()) rmax = std::min(overflowBucket ().real(), rmax);
 
         if (iv == 0) {
           bucketer.setIntegral(false);
@@ -1171,8 +1173,8 @@ bucketGroupValues() const
         int imin = values->valueSet->imin();
         int imax = values->valueSet->imax();
 
-        if (underflowBucket_.isSet()) imin = std::max(int(underflowBucket_.real()), imin);
-        if (overflowBucket_ .isSet()) imax = std::min(int(overflowBucket_ .real()), imax);
+        if (underflowBucket().isSet()) imin = std::max(int(underflowBucket().real()), imin);
+        if (overflowBucket ().isSet()) imax = std::min(int(overflowBucket ().real()), imax);
 
         bucketer.setIMin(imin);
         bucketer.setIMax(imax);
@@ -1184,8 +1186,8 @@ bucketGroupValues() const
         double rmin = values->valueSet->rmin();
         double rmax = values->valueSet->rmax();
 
-        if (underflowBucket_.isSet()) rmin = std::max(underflowBucket_.real(), rmin);
-        if (overflowBucket_ .isSet()) rmax = std::min(overflowBucket_ .real(), rmax);
+        if (underflowBucket().isSet()) rmin = std::max(underflowBucket().real(), rmin);
+        if (overflowBucket ().isSet()) rmax = std::min(overflowBucket ().real(), rmax);
 
         bucketer.setRMin(rmin);
         bucketer.setRMax(rmax);
@@ -1847,10 +1849,10 @@ calcBucket(int groupInd, double value) const
   bool exactValue = isExactBucketValue();
 
   if (! exactValue && bucketType() == CQBucketer::Type::REAL_AUTO) {
-    if (underflowBucket_.isSet() && value < underflowBucket_.real())
+    if (underflowBucket().isSet() && value < underflowBucket().real())
       return Bucket(Bucket::Type::UNDERFLOW);
 
-    if (overflowBucket_.isSet() && value > overflowBucket_.real())
+    if (overflowBucket().isSet() && value > overflowBucket().real())
       return Bucket(Bucket::Type::OVERFLOW);
   }
 
@@ -4109,7 +4111,7 @@ getBarColoredRects(ColorData &colorData) const
     double colorValue = 0.0;
 
     if (ok && var.isValid()) {
-      if (isColor) {
+      if (isColor || var.type() == QVariant::Color) {
         bool ok;
         color = CQChartsVariant::toColor(var, ok);
         colorSet = ok;
@@ -5124,7 +5126,11 @@ updateWidgets()
   rangeBucketRadio_->setEnabled(! isString);
   stopsBucketRadio_->setEnabled(! isString);
 
-  bucketRange_    ->setRangeMinMax(plot_->minBucketValue(), plot_->maxBucketValue());
+  double rmin, rmax;
+
+  plot_->calcMinMaxBucketValue(rmin, rmax);
+
+  bucketRange_    ->setRangeMinMax(rmin, rmax);
   startBucketEdit_->setValue(plot_->startBucketValue());
   deltaBucketEdit_->setValue(plot_->deltaBucketValue());
   numBucketsEdit_ ->setValue(plot_->numAutoBuckets());

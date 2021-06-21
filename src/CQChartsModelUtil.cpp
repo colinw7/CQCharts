@@ -903,6 +903,40 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
   }
 }
 
+//---
+
+#ifdef CQCHARTS_EXCEL
+const CQExcel::Model *
+getExcelModel(const QAbstractItemModel *model)
+{
+  return getExcelModel(const_cast<QAbstractItemModel *>(model));
+}
+
+CQExcel::Model *
+getExcelModel(QAbstractItemModel *model)
+{
+  auto *excelModel = qobject_cast<CQExcel::Model *>(model);
+  if (excelModel) return excelModel;
+
+  auto *sortModel = getSortFilterProxyModel(model);
+  if (! sortModel) return nullptr;
+
+  auto *sourceModel = sortModel->sourceModel();
+
+  excelModel = qobject_cast<CQExcel::Model *>(sourceModel);
+  if (excelModel) return excelModel;
+
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+  if (! proxyModel) return nullptr;
+
+  sourceModel = proxyModel->sourceModel();
+
+  return getExcelModel(sourceModel);
+}
+#endif
+
+//---
+
 const CQChartsExprModel *
 getExprModel(const QAbstractItemModel *model)
 {
@@ -960,6 +994,8 @@ getExprModel(QAbstractItemModel *model)
 #endif
 }
 
+//---
+
 CQHierSepModel *
 getHierSepModel(QAbstractItemModel *model)
 {
@@ -982,6 +1018,8 @@ getHierSepModel(QAbstractItemModel *model)
 
 }
 
+//---
+
 QSortFilterProxyModel *
 getSortFilterProxyModel(QAbstractItemModel *model)
 {
@@ -990,6 +1028,8 @@ getSortFilterProxyModel(QAbstractItemModel *model)
 
   return sortModel;
 }
+
+//---
 
 const CQDataModel *
 getDataModel(const QAbstractItemModel *model)
@@ -1020,6 +1060,8 @@ getDataModel(QAbstractItemModel *model)
 
   return nullptr;
 }
+
+//---
 
 QAbstractItemModel *
 getBaseModel(QAbstractItemModel *model)

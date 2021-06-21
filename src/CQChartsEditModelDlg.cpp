@@ -12,6 +12,9 @@
 #include <CQCsvModel.h>
 #include <CQColorsPalette.h>
 #include <CQTabSplit.h>
+#ifdef CQCHARTS_EXCEL
+#include <CQExcelFrame.h>
+#endif
 
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -47,6 +50,22 @@ init()
     setWindowTitle("Edit Model");
 
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //---
+
+#ifdef CQCHARTS_EXCEL
+  auto *excelModel = CQChartsModelUtil::getExcelModel(model_.data());
+
+  if (excelModel) {
+    auto *excelFrame = new CQExcel::Frame;
+
+    excelFrame->setModel(model_.data());
+
+    layout->addWidget(excelFrame);
+
+    return;
+  }
+#endif
 
   //---
 

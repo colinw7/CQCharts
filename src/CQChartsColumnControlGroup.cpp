@@ -126,6 +126,7 @@ setTitle(const QString &s)
   groupBox_->setTitle(s);
 }
 
+#if 0
 void
 CQChartsColumnControlGroup::
 controlButtonClicked(QAbstractButton *button)
@@ -134,6 +135,7 @@ controlButtonClicked(QAbstractButton *button)
 
   setColumnStack(ind == 1);
 }
+#endif
 
 void
 CQChartsColumnControlGroup::
@@ -227,6 +229,10 @@ setCurrentIndex(int ind)
              this, SLOT(controlButtonClicked(QAbstractButton *)));
 
   radioGroup_->buttons().at(ind)->setChecked(true);
+#else
+  disconnect(columnCheck_, SIGNAL(clicked()), this, SLOT(columnCheckSlot()));
+
+  columnCheck_->setChecked(ind == 1);
 #endif
 
   if (hasKey()) {
@@ -237,5 +243,7 @@ setCurrentIndex(int ind)
 #if 0
   connect(radioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
           this, SLOT(controlButtonClicked(QAbstractButton *)));
+#else
+  connect(columnCheck_, SIGNAL(clicked()), this, SLOT(columnCheckSlot()));
 #endif
 }

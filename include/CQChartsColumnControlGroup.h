@@ -38,7 +38,7 @@ class CQChartsColumnControlGroup : public QFrame {
  private slots:
   void keyCheckSlot();
 
-  void controlButtonClicked(QAbstractButton *button);
+//void controlButtonClicked(QAbstractButton *button);
   void columnCheckSlot();
 
  private:
@@ -52,14 +52,14 @@ class CQChartsColumnControlGroup : public QFrame {
   void showKey(bool b);
 
  private:
-  CQGroupBox*         groupBox_     { nullptr };
-  bool                hasKey_       { true };
-  CQIconButton* keyCheck_     { nullptr };
-  CQIconButton* columnCheck_  { nullptr };
-  QStackedWidget*     stack_        { nullptr };
-  QButtonGroup*       radioGroup_   { nullptr };
-  QFrame*             globalWidget_ { nullptr };
-  QFrame*             columnWidget_ { nullptr };
+  CQGroupBox*     groupBox_     { nullptr };
+  bool            hasKey_       { true };
+  CQIconButton*   keyCheck_     { nullptr };
+  CQIconButton*   columnCheck_  { nullptr };
+  QStackedWidget* stack_        { nullptr };
+//QButtonGroup*   radioGroup_   { nullptr };
+  QFrame*         globalWidget_ { nullptr };
+  QFrame*         columnWidget_ { nullptr };
 };
 
 #endif

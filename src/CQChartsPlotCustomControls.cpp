@@ -12,7 +12,6 @@
 #include <CQCharts.h>
 
 #include <CQIconButton.h>
-//#include <CQTabSplit.h>
 #include <CQGroupBox.h>
 #include <CQUtil.h>
 
@@ -30,10 +29,10 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   //---
 
-  auto *titleFrame  = CQUtil::makeWidget<QFrame>("titleFrame");
-  auto *titleLayout = CQUtil::makeLayout<QHBoxLayout>(titleFrame, 0, 2);
+  titleFrame_ = CQUtil::makeWidget<QFrame>("titleFrame");
+  auto *titleLayout = CQUtil::makeLayout<QHBoxLayout>(titleFrame_, 0, 2);
 
-  layout_->addWidget(titleFrame);
+  layout_->addWidget(titleFrame_);
 
   //--
 
@@ -43,28 +42,16 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   //---
 
-  numericCheck_ = CQUtil::makeWidget<CQIconButton>("numericColumnsCheck");
+  numericIcon_ = CQUtil::makeWidget<CQIconButton>("numericIcon");
 
-  numericCheck_->setIcon("NUMERIC_COLUMNS");
-  numericCheck_->setCheckable(true);
-  numericCheck_->setChecked(isNumericOnly());
-  numericCheck_->setToolTip("Restrict to columns with numeric values");
+  numericIcon_->setIcon("NUMERIC_COLUMNS");
+  numericIcon_->setCheckable(true);
+  numericIcon_->setChecked(isNumericOnly());
+  numericIcon_->setToolTip("Restrict to columns with numeric values");
 
-  numericCheck_->setVisible(false);
+  numericIcon_->setVisible(false);
 
-  titleLayout->addWidget(numericCheck_);
-
-  //---
-
-#if 0
-  split_ = CQUtil::makeWidget<CQTabSplit>("split");
-
-  split_->setOrientation(Qt::Vertical);
-  split_->setGrouped(true);
-  split_->setAutoFit(true);
-
-  layout_->addWidget(split_);
-#endif
+  titleLayout->addWidget(numericIcon_);
 }
 
 void
@@ -109,9 +96,7 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
   }
 
   if (isNumeric)
-    numericCheck_->setVisible(true);
-
-  //addFrameRowStretch(frameData);
+    numericIcon_->setVisible(true);
 }
 
 void
@@ -191,16 +176,17 @@ addColorColumnWidgets(const QString &title)
 
   connect(colorControlGroupData.group, SIGNAL(showKey(bool)),
           this, SLOT(showColorKeySlot(bool)));
-
-  //---
-
-  connectSlots(true);
 }
 
 void
 CQChartsPlotCustomControls::
 connectSlots(bool b)
 {
+  if (b == connected_)
+    return;
+
+  connected_ = b;
+
   if (plot_)
     CQChartsWidgetUtil::connectDisconnect(b,
       plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
@@ -226,9 +212,9 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(b,
       columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
 
-  if (numericCheck_)
+  if (numericIcon_)
     CQChartsWidgetUtil::connectDisconnect(b,
-      numericCheck_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
+      numericIcon_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
 }
 
 void
@@ -257,10 +243,12 @@ setNumericOnly(bool b)
 
     connectSlots(false);
 
-    if (numericCheck_)
-      numericCheck_->setChecked(isNumericOnly());
+    if (numericIcon_)
+      numericIcon_->setChecked(isNumericOnly());
 
     updateNumericOnly();
+
+    emit numericOnlyChanged();
 
     connectSlots(true);
   }
@@ -272,7 +260,9 @@ setShowTitle(bool b)
 {
   showTitle_ = b;
 
-  titleWidget_->setVisible(showTitle_);
+  titleFrame_->setVisible(showTitle_);
+
+  // TODO: also hides numeric check
 }
 
 void
@@ -390,9 +380,6 @@ createGroupFrame(const QString &name, const QString &objName, bool stretch)
 {
   auto frameData = createFrame(objName, stretch);
 
-#if 0
-  split_->addWidget(frameData.frame, name);
-#else
   frameData.groupBox = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
 
   auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(frameData.groupBox, 0, 0);
@@ -403,7 +390,6 @@ createGroupFrame(const QString &name, const QString &objName, bool stretch)
   groupLayout->addWidget(frameData.frame);
 
   layout_->addWidget(frameData.groupBox);
-#endif
 
   return frameData;
 }
@@ -582,6 +568,9 @@ updateWidgets()
 
     columnEdit->setModelData(plot()->getModelData());
     columnEdit->setColumn   (plot()->getNamedColumn(parameter->name()));
+
+    if (parameter->isNumeric())
+      columnEdit->setNumericOnly(isNumericOnly());
   }
 
   for (auto *columnsEdit : columnsEdits_) {
@@ -589,6 +578,9 @@ updateWidgets()
 
     columnsEdit->setModelData(plot()->getModelData());
     columnsEdit->setColumns  (plot()->getNamedColumns(parameter->name()));
+
+    if (parameter->isNumeric())
+      columnsEdit->setNumericOnly(isNumericOnly());
   }
 
   //---
@@ -642,9 +634,9 @@ colorRangeSlot()
   plot()->setColorMapMin(colorRange_->sliderMin());
   plot()->setColorMapMax(colorRange_->sliderMax());
 
-  connectSlots(true);
-
   updateWidgets();
+
+  connectSlots(true);
 }
 
 void

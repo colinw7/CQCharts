@@ -281,6 +281,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-tcl" , ArgType::String , "load from tcl data");
   argv.endCmdGroup();
 
+  addArg(argv, "-spreadsheet", ArgType::Boolean, "convert to spreadsheet model");
+
   // input data control
   addArg(argv, "-comment_header"     , ArgType::Boolean, "first comment is horizontal header");
   addArg(argv, "-first_line_header"  , ArgType::Boolean, "first line is horizontal header");
@@ -439,12 +441,22 @@ execCmd(CQChartsCmdArgs &argv)
       return errorMsg("Extra filename");
   }
 
+  //---
+
+  bool spreadsheet = argv.getParseBool("spreadsheet");
+
+  inputData.spreadsheet = spreadsheet;
+
+  //---
+
   auto *charts = this->charts();
 
   CQChartsFile file(charts, filename);
 
   if (! cmds()->loadFileModel(file, fileType, inputData))
     return false;
+
+  //---
 
   auto *modelData = charts->currentModelData();
 
@@ -11967,9 +11979,7 @@ loadFileModel(const CQChartsFile &file, CQChartsFileType type, const CQChartsInp
   bool hierarchical;
 
   auto *model = loadFile(file, type, inputData, hierarchical);
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   ModelP modelp(model);
 

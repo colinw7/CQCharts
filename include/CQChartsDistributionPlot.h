@@ -694,6 +694,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double maxBucketValue() const;
   void setMaxBucketValue(double r);
 
+  void calcMinMaxBucketValue(double &rmin, double &rmax) const;
+
   int numAutoBuckets() const;
   void setNumAutoBuckets(int i);
 
@@ -1113,11 +1115,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQChartsReals   bucketStops_;              //!< explicit bucket stops
   bool            exactValue_     { false }; //!< force bucket of exact values
 
-  FilterStack        filterStack_;             //!< filter stack
-  GroupData          groupData_;               //!< grouped value sets
-  double             barWidth_       { 1.0 };  //!< bar width
-  mutable bool       visitModel_     { true }; //!< visit model
-  mutable std::mutex mutex_;                   //!< mutex
+  FilterStack        filterStack_;          //!< filter stack
+  GroupData          groupData_;            //!< grouped value sets
+  double             barWidth_    { 1.0 };  //!< bar width
+  mutable std::mutex mutex_;                //!< mutex
 };
 
 //---

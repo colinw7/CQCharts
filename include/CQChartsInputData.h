@@ -18,6 +18,7 @@ struct CQChartsInputData {
   bool        firstLineHeader   { false }; //!< horizontal header comes from first line
   bool        firstColumnHeader { false }; //!< vertical header comes from first column
   bool        transpose         { false }; //!< transpose data (rows, columns switched)
+  bool        spreadsheet       { false }; //!< convert to spreadsheet
   QString     separator;                   //!< value separator characters
   QStringList columns;                     //!< specific input column names/numbers
   int         numRows           { 100 };   //!< number of rows to generate with tcl expression

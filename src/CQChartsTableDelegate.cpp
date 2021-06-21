@@ -472,10 +472,10 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   auto c = charts()->interpColor(color, CQChartsUtil::ColorInd());
 
-  painter->fillRect(rect, QBrush(c));
-
+  painter->setBrush(QBrush(c));
   painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
+//painter->fillRect(rect, QBrush(c));
   painter->drawRect(rect);
 
 //QFontMetrics fm(painter->font());

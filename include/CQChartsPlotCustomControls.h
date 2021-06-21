@@ -97,6 +97,9 @@ class CQChartsPlotCustomControls : public QFrame {
 
   void updateColorKeyVisible();
 
+ signals:
+  void numericOnlyChanged();
+
  public slots:
   virtual void updateWidgets();
 
@@ -142,11 +145,12 @@ class CQChartsPlotCustomControls : public QFrame {
   bool numericOnly_ { false };
   bool showTitle_   { false };
 
+  QFrame* titleFrame_  { nullptr };
   QLabel* titleWidget_ { nullptr };
 
   ColumnEdits   columnEdits_;
   ColumnsEdits  columnsEdits_;
-  CQIconButton* numericCheck_ { nullptr };
+  CQIconButton* numericIcon_ { nullptr };
 
   CQChartsColumnControlGroup* colorControlGroup_ { nullptr };
   CQChartsColorLineEdit*      colorEdit_         { nullptr };
@@ -154,6 +158,8 @@ class CQChartsPlotCustomControls : public QFrame {
   CQChartsColorRangeSlider*   colorRange_        { nullptr };
   CQChartsPaletteNameEdit*    colorPaletteEdit_  { nullptr };
   CQChartsMapKeyWidget*       colorMapKeyWidget_ { nullptr };
+
+  bool connected_ { false };
 
   CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
 };

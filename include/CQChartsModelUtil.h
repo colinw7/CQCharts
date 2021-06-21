@@ -5,6 +5,9 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
+#ifdef CQCHARTS_EXCEL
+#include <CQExcelModel.h>
+#endif
 
 class CQDataModel;
 class CQHierSepModel;
@@ -112,12 +115,21 @@ namespace CQChartsModelUtil {
 
 using ExprModel = CQChartsExprModel;
 
+#ifdef CQCHARTS_EXCEL
+using ExcelModel = CQExcel::Model;
+#endif
+
 void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
 
 int processExpression(QAbstractItemModel *model, const QString &exprStr);
 
 int processExpression(QAbstractItemModel *model, ExprModel::Function function,
                       const Column &column, const QString &expr);
+
+#ifdef CQCHARTS_EXCEL
+const ExcelModel *getExcelModel(const QAbstractItemModel *model);
+ExcelModel *getExcelModel(QAbstractItemModel *model);
+#endif
 
 const ExprModel *getExprModel(const QAbstractItemModel *model);
 ExprModel *getExprModel(QAbstractItemModel *model);
