@@ -3592,3 +3592,17 @@ countSlot()
 {
   plot_->setCount(countCheck_->isChecked());
 }
+
+CQChartsColor
+CQChartsPiePlotCustomControls::
+getColorValue()
+{
+  return plot_->fillColor();
+}
+
+void
+CQChartsPiePlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setFillColor(c);
+}

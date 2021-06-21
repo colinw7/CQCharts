@@ -4099,3 +4099,17 @@ errorBarSlot()
 
   updateWidgets();
 }
+
+CQChartsColor
+CQChartsBoxPlotCustomControls::
+getColorValue()
+{
+  return plot_->jitterSymbolFillColor();
+}
+
+void
+CQChartsBoxPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setJitterSymbolFillColor(c);
+}

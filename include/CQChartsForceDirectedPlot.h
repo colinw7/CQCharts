@@ -367,6 +367,10 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
   void runningSlot(int);
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsForceDirectedPlot* plot_         { nullptr };
   QCheckBox*                 runningCheck_ { nullptr };
 };

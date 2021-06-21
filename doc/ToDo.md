@@ -4,9 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + color value for distribution plot
  + easy red/green distribution split
  + distribution plot custom controls include group
- + allow columns to be editied as single column
+ + allow columns to be edited/simplified to single column
  + column property support name (associated plot ?)
  + jitter box plot with group/set
  + simple color editor (palette or color)

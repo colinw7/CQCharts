@@ -478,8 +478,6 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 //painter->fillRect(rect, QBrush(c));
   painter->drawRect(rect);
 
-//QFontMetrics fm(painter->font());
-
   int x = rect.right() + 2;
 //int y = rect.top() + fm.ascent();
 

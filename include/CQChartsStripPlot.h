@@ -224,6 +224,10 @@ class CQChartsStripPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void setPlot(CQChartsPlot *plot) override;
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsStripPlot* plot_ { nullptr };
 };
 

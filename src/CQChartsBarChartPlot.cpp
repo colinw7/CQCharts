@@ -2893,3 +2893,17 @@ colorBySetSlot()
 {
   plot_->setColorBySet(colorBySetCheck_->isChecked());
 }
+
+CQChartsColor
+CQChartsBarChartPlotCustomControls::
+getColorValue()
+{
+  return plot_->barFillColor();
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setBarFillColor(c);
+}

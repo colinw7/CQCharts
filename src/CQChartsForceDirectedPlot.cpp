@@ -118,6 +118,7 @@ init()
 
   setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
 
+  setNodeFillColor  (Color());
   setNodeStrokeAlpha(Alpha(0.5));
 }
 
@@ -1467,6 +1468,9 @@ calcPointFillColor(Node *node) const
       if (modelIndexColor(colorModelInd, color))
         return interpColor(color, colorInd);
     }
+
+    if (nodeFillColor().isValid())
+      return interpColor(nodeFillColor(), colorInd);
   }
 
   //---
@@ -1565,4 +1569,18 @@ CQChartsForceDirectedPlotCustomControls::
 runningSlot(int state)
 {
   plot_->setRunning(state);
+}
+
+CQChartsColor
+CQChartsForceDirectedPlotCustomControls::
+getColorValue()
+{
+  return plot_->nodeFillColor();
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setNodeFillColor(c);
 }

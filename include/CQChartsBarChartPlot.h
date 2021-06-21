@@ -680,6 +680,10 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void colorBySetSlot();
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsBarChartPlot*      plot_             { nullptr };
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };

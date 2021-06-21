@@ -788,3 +788,17 @@ setPlot(CQChartsPlot *plot)
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
+
+CQChartsColor
+CQChartsStripPlotCustomControls::
+getColorValue()
+{
+  return plot_->symbolFillColor();
+}
+
+void
+CQChartsStripPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setSymbolFillColor(c);
+}

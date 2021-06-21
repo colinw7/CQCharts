@@ -1161,6 +1161,10 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void bucketStopsSlot();
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsDistributionPlot* plot_ { nullptr };
 
   CQChartsEnumParameterEdit* orientationCombo_{ nullptr };

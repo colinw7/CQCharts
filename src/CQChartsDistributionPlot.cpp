@@ -5273,3 +5273,17 @@ bucketStopsSlot()
 {
   plot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
 }
+
+CQChartsColor
+CQChartsDistributionPlotCustomControls::
+getColorValue()
+{
+  return plot_->barFillColor();
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setBarFillColor(c);
+}

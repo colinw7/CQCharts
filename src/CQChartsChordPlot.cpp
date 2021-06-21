@@ -124,8 +124,11 @@ init()
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
-  setSegmentFillAlpha(Alpha(0.7));
+  setSegmentFillColor  (Color());
+  setSegmentFillAlpha  (Alpha(0.7));
+  setSegmentStrokeAlpha(Alpha(0.9));
 
+  setArcFillColor  (Color());
   setArcFillAlpha  (Alpha(0.3));
   setArcStrokeAlpha(Alpha(0.3));
 
@@ -816,6 +819,8 @@ initTableObjs(PlotObjs &objs) const
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
+      edgeObj->setIv(ColorInd(ind, nv));
+
       objs.push_back(edgeObj);
 
       th->edgeObjs_.push_back(edgeObj);
@@ -1113,6 +1118,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
         continue;
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
+
+      edgeObj->setIv(ColorInd(ind, nv));
 
       objs.push_back(edgeObj);
 
@@ -2113,10 +2120,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   if (! fillColor.isValid()) {
-    auto fromColor = fromObj->calcFromColor();
-    auto toColor   = toObj  ->calcFromColor();
+    if (plot_->arcFillColor().isValid()) {
+      fillColor = plot_->interpColor(plot_->arcFillColor(), colorInd);
+    }
+    else {
+      auto fromColor = fromObj->calcFromColor();
+      auto toColor   = toObj  ->calcFromColor();
 
-    fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+      fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+    }
   }
 
   //---
@@ -2554,4 +2566,18 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+CQChartsColor
+CQChartsChordPlotCustomControls::
+getColorValue()
+{
+  return plot_->arcFillColor();
+}
+
+void
+CQChartsChordPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setArcFillColor(c);
 }

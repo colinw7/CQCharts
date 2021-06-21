@@ -5374,3 +5374,17 @@ updateWidgets()
 
   connectSlots(true);
 }
+
+CQChartsColor
+CQChartsSankeyPlotCustomControls::
+getColorValue()
+{
+  return plot_->nodeFillColor();
+}
+
+void
+CQChartsSankeyPlotCustomControls::
+setColorValue(const CQChartsColor &c)
+{
+  plot_->setNodeFillColor(c);
+}

@@ -2,6 +2,7 @@
 #include <CCsv.h>
 
 #include <CQModelUtil.h>
+#include <CQStrParse.h>
 
 #include <QColor>
 #include <QBuffer>
@@ -288,20 +289,38 @@ load(const QString &filename)
 
         // get value(s)
         // <value> | <type>:<value>
-        auto valueStrs = value.split(":");
-
         QVariant var;
 
-        if (valueStrs.length() == 2) {
-          int type = QMetaType::type(valueStrs[0].toLatin1().constData());
+        CQStrParse parse(value);
+
+        parse.skipSpace();
+
+        int i1 = parse.getPos();
+
+        while (! parse.eof() && parse.isAlnum())
+          parse.skipChar();
+
+        int i2 = parse.getPos();
+
+        parse.skipSpace();
+
+        if (parse.isChar(':')) {
+          parse.skipChar();
+
+          parse.skipSpace();
+
+          auto lhs = value.mid(i1, i2 - i1);
+          auto rhs = value.mid(parse.getPos());
+
+          int type = QMetaType::type(lhs.toLatin1().constData());
 
           if (type < 0) {
-            std::cerr << "Invalid type '" << valueStrs[0].toStdString() << "'\n";
+            std::cerr << "Invalid type '" << lhs.toStdString() << "'\n";
             continue;
           }
 
           if (type == QMetaType::QColor) {
-            var = QColor(valueStrs[1]);
+            var = QColor(rhs);
           }
           else {
             QByteArray ba;
@@ -313,7 +332,7 @@ load(const QString &filename)
             QDataStream out(&obuffer);
             out.setVersion(dataStreamVersion());
 
-            out << valueStrs[1];
+            out << rhs;
 
             // create user type data from data stream using registered DataStream methods
             QBuffer ibuffer(&ba);
@@ -326,14 +345,14 @@ load(const QString &filename)
 
             // const cast is safe since we operate on a newly constructed variant
             if (! QMetaType::load(in, type, const_cast<void *>(var.constData()))) {
-              std::cerr << "Invalid data '" << valueStrs[1].toStdString() <<
-                           "' for type '" << valueStrs[0].toStdString() << "'\n";
+              std::cerr << "Invalid data '" << rhs.toStdString() <<
+                           "' for type '" << lhs.toStdString() << "'\n";
               continue;
             }
           }
         }
         else {
-          var = valueStrs[1];
+          var = value;
         }
 
         if (row < 0 || col < 0) {

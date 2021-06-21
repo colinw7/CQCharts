@@ -854,6 +854,10 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   void countSlot    ();
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   PiePlot*     plot_           { nullptr };
   CQEnumCombo* drawTypeCombo_  { nullptr };
   QCheckBox*   separatedCheck_ { nullptr };

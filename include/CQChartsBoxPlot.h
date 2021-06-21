@@ -994,6 +994,10 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void errorBarSlot();
 
  private:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ private:
   CQChartsBoxPlot*           plot_             { nullptr };
   CQEnumCombo*               columnsTypeCombo_ { nullptr };
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
