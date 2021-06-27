@@ -244,7 +244,9 @@ void
 CQChartsTablePlot::
 setColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(columns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(columns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---

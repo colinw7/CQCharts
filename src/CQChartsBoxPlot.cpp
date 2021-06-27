@@ -423,7 +423,9 @@ void
 CQChartsBoxPlot::
 setColorBySet(bool b)
 {
-  CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
+    resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 bool

@@ -138,21 +138,27 @@ void
 CQChartsHierScatterPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsHierScatterPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    resetAxes(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsHierScatterPlot::
 setYColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() {
+    resetAxes(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
@@ -160,9 +166,7 @@ CQChartsHierScatterPlot::
 setGroupColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
-    initGroupValueSets();
-
-    updateRangeAndObjs();
+    initGroupValueSets(); updateRangeAndObjs(); emit customDataChanged();
   } );
 }
 

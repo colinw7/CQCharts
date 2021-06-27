@@ -170,49 +170,63 @@ void
 CQChartsWheelPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setYColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setMinColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(minColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(minColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setMaxColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(maxColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(maxColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setInnerBarColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(innerBarColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(innerBarColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setOuterBarColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(outerBarColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outerBarColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWheelPlot::
 setOuterBubbleColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(outerBubbleColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outerBubbleColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //------

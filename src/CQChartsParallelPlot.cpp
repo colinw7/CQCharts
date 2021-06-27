@@ -182,14 +182,18 @@ void
 CQChartsParallelPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsParallelPlot::
 setYColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---

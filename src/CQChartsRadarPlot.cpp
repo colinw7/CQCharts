@@ -162,14 +162,18 @@ void
 CQChartsRadarPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsRadarPlot::
 setValueColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -180,7 +184,7 @@ getNamedColumn(const QString &name) const
 {
   Column c;
   if (name == "name") c = this->nameColumn();
-  else             c = CQChartsPlot::getNamedColumn(name);
+  else                c = CQChartsPlot::getNamedColumn(name);
 
   return c;
 }
@@ -190,7 +194,7 @@ CQChartsRadarPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
   if (name == "name") this->setNameColumn(c);
-  else             CQChartsPlot::setNamedColumn(name, c);
+  else                CQChartsPlot::setNamedColumn(name, c);
 }
 
 CQChartsColumns

@@ -550,8 +550,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // emitted when symbol size details changed (symbol size column, symbol size range)
   void symbolSizeDetailsChanged();
 
-  // emitted when symbol size details changed (symbol size column, symbol size range)
+  // emitted when symbol type details changed (symbol type column, symbol type range)
   void symbolTypeDetailsChanged();
+
+  // emitted when font size details changed (font size column, font size range)
+  void fontSizeDetailsChanged();
 
  protected:
   //! best fit data

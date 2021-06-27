@@ -122,35 +122,45 @@ void
 CQChartsGridPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsGridPlot::
 setLabelColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsGridPlot::
 setRowColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(rowColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(rowColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsGridPlot::
 setColumnColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(columnColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(columnColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsGridPlot::
 setValueColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -205,7 +215,9 @@ void
 CQChartsGridPlot::
 setDrawType(const DrawType &t)
 {
-  CQChartsUtil::testAndSet(drawType_, t, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(drawType_, t, [&]() {
+    drawObjs(); emit customDataChanged();
+  } );
 }
 
 void

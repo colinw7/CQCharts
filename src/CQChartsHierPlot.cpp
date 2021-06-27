@@ -33,14 +33,18 @@ void
 CQChartsHierPlot::
 setNameColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(nameColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumns_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsHierPlot::
 setValueColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -89,11 +93,9 @@ void
 CQChartsHierPlot::
 setFollowViewExpand(bool b)
 {
-  if (followViewExpand_ != b) {
-    followViewExpand_ = b;
-
-    followViewExpandChanged();
-  }
+  CQChartsUtil::testAndSet(followViewExpand_, b, [&]() {
+    followViewExpandChanged(); emit customDataChanged();
+  } );
 }
 
 bool

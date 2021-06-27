@@ -235,7 +235,9 @@ void
 CQChartsTreeMapPlot::
 setValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(nodeData_.valueLabel, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeData_.valueLabel, b, [&]() {
+    drawObjs(); emit customDataChanged();
+  } );
 }
 
 void

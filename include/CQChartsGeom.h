@@ -1469,14 +1469,14 @@ class Matrix :
     memcpy(&m00_, &a.m00_, 9*sizeof(double));
   }
 
-  const Matrix &operator=(const Matrix &a) {
+  Matrix &operator=(const Matrix &a) {
     if (this != &a)
       memcpy(&m00_, &a.m00_, 9*sizeof(double));
 
     return *this;
   }
 
-  const Matrix &operator=(Matrix &&a) {
+  Matrix &operator=(Matrix &&a) {
     if (this != &a)
       memcpy(&m00_, &a.m00_, 9*sizeof(double));
 

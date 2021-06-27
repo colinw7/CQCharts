@@ -409,35 +409,45 @@ void
 CQChartsPointPlot::
 setFontSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapUnits(const QString &s)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
 }
 
 //---
@@ -587,7 +597,9 @@ void
 CQChartsPointPlot::
 setBestFit(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { resetBestFit(); updateObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() {
+    resetBestFit(); updateObjs(); emit customDataChanged();
+  } );
 }
 
 void
@@ -633,7 +645,9 @@ void
 CQChartsPointPlot::
 setHull(bool b)
 {
-  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() {
+    updateObjs(); emit customDataChanged();
+  } );
 }
 
 void

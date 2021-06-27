@@ -350,7 +350,9 @@ void
 CQChartsScatterPlot::
 setPlotType(PlotType type)
 {
-  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_, type, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---

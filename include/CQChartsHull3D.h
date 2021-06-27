@@ -59,7 +59,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag, T, DIST> {
 
  ~CInputIterator() { }
 
-  const CInputIterator &operator=(const CInputIterator &i) {
+  CInputIterator &operator=(const CInputIterator &i) {
     state_ = i.state_;
     return *this;
   }

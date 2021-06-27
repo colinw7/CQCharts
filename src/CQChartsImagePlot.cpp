@@ -212,7 +212,7 @@ void
 CQChartsImagePlot::
 setRectStyle(bool b)
 {
-  CellStyle cellStyle = (b ? CellStyle::RECT : CellStyle::BALLOON);
+  auto cellStyle = (b ? CellStyle::RECT : CellStyle::BALLOON);
 
   setCellStyle(cellStyle);
 }
@@ -221,7 +221,7 @@ void
 CQChartsImagePlot::
 setBalloonStyle(bool b)
 {
-  CellStyle cellStyle = (b ? CellStyle::BALLOON : CellStyle::RECT);
+  auto cellStyle = (b ? CellStyle::BALLOON : CellStyle::RECT);
 
   setCellStyle(cellStyle);
 }
@@ -231,7 +231,8 @@ CQChartsImagePlot::
 setCellStyle(const CellStyle &cellStyle)
 {
   CQChartsUtil::testAndSet(cellStyle_, cellStyle, [&]() {
-    drawObjs(); emit customDataChanged(); } );
+    drawObjs(); emit customDataChanged();
+  } );
 }
 
 //---

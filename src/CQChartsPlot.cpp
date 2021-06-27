@@ -1931,7 +1931,7 @@ setEveryData(const EveryData &everyData)
 {
   assert(! isComposite());
 
-  CQChartsUtil::testAndSet(everyData_, everyData, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(everyData_, everyData, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

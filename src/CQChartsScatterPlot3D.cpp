@@ -177,14 +177,18 @@ void
 CQChartsScatterPlot3D::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsScatterPlot3D::
 setLabelColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -193,21 +197,27 @@ void
 CQChartsScatterPlot3D::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsScatterPlot3D::
 setYColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsScatterPlot3D::
 setZColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(zColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(zColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -223,7 +233,9 @@ void
 CQChartsScatterPlot3D::
 setSymbolTypeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
+    updateObjs(); emit customDataChanged();
+  } );
 }
 
 const CQChartsColumn &
@@ -237,7 +249,9 @@ void
 CQChartsScatterPlot3D::
 setSymbolSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 const CQChartsColumn &
@@ -251,7 +265,9 @@ void
 CQChartsScatterPlot3D::
 setFontSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---

@@ -80,6 +80,7 @@ unix:LIBS += \
 -L../../CQCustomCombo/lib \
 -L../../CQUtil/lib \
 -L../../CJson/lib \
+-L../../CCsv/lib \
 -L../../CXML/lib \
 -L../../CQPerfMonitor/lib \
 -L../../CConfig/lib \
@@ -94,7 +95,7 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQModelView -lCQBaseModel -lCQColors \
--lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCJson \
+-lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCJson -lCCsv \
 -lCXML -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
 -lCUtil -lCStrUtil -lCOS \

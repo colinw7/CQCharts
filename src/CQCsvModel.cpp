@@ -251,17 +251,14 @@ load(const QString &filename)
       // handle cell data:
       //   cell <cell_index> <role> <value>
       else if (fields[0] == "cell") {
-        QString indStr, roleStr, value;
-
-        if (numFields == 4) {
-          indStr  = fields[1].c_str();
-          roleStr = fields[2].c_str();
-          value   = fields[3].c_str();
-        }
-        else {
+        if (numFields != 4) {
           std::cerr << "Invalid cell data\n";
           continue;
         }
+
+        auto indStr  = QString::fromStdString(fields[1]);
+        auto roleStr = QString::fromStdString(fields[2]);
+        auto value   = QString::fromStdString(fields[3]);
 
         // get role
         int role = CQModelUtil::nameToRole(roleStr);
@@ -274,15 +271,7 @@ load(const QString &filename)
         // get cell index
         int row = -1, col = -1;
 
-        auto indStrs = indStr.split(":");
-
-        if (indStrs.length() == 2) {
-          bool ok;
-          row = indStrs[0].toInt(&ok); if (! ok) row = -1;
-          col = indStrs[1].toInt(&ok); if (! ok) col = -1;
-        }
-
-        if (row < 0 || col < 0) {
+        if (! CQModelUtil::stringToRowCol(indStr, row, col)) {
           std::cerr << "Invalid index '" << fields[1] << "'\n";
           continue;
         }

@@ -164,28 +164,36 @@ void
 CQChartsDelaunayPlot::
 setXColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDelaunayPlot::
 setYColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDelaunayPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDelaunayPlot::
 setValueColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -221,14 +229,18 @@ void
 CQChartsDelaunayPlot::
 setDelaunay(bool b)
 {
-  CQChartsUtil::testAndSet(delaunay_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(delaunay_, b, [&]() {
+    drawObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
-  CQChartsUtil::testAndSet(voronoi_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(voronoi_, b, [&]() {
+    drawObjs(); emit customDataChanged();
+  } );
 }
 
 void

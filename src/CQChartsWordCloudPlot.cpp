@@ -149,14 +149,18 @@ void
 CQChartsWordCloudPlot::
 setValueColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsWordCloudPlot::
 setCountColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(countColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(countColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //------

@@ -1,4 +1,4 @@
-This package depends on other packages until my github directory.
+This package depends on other packages in my github directory.
 
 To get all code to successfully build follow the following steps:
  + Download charts into directory

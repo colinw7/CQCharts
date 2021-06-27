@@ -146,21 +146,27 @@ void
 CQChartsPivotPlot::
 setXColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(xColumns_, c, [&]() { updatePivot(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumns_, c, [&]() {
+    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsPivotPlot::
 setYColumns(const Columns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updatePivot(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() {
+    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsPivotPlot::
 setValueColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updatePivot(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -1971,6 +1977,10 @@ CQChartsPivotPlotCustomControls(CQCharts *charts) :
   //---
 
   addColumnWidgets(QStringList() << "x" << "y" << "value", columnsFrame);
+
+  //---
+
+  // TODO: orientation, plot type
 
   //---
 

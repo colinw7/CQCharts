@@ -77,6 +77,8 @@ CQChartsColumnsLineEdit::
 setNumericOnly(bool b)
 {
   numericOnly_ = b;
+
+  dataEdit_->setNumericOnly(b);
 }
 
 void
@@ -515,6 +517,26 @@ setColumns(const CQChartsColumns &columns)
   columnsToWidgets();
 
   emit columnsChanged();
+}
+
+void
+CQChartsColumnsEdit::
+setNumericOnly(bool b)
+{
+  numericOnly_ = b;
+
+  if (isBasic_) {
+    int ne = columnCombos_.size();
+
+    for (int i = 0; i < ne; ++i)
+      columnCombos_[i]->setNumericOnly(b);
+  }
+  else {
+    int ne = columnEdits_.size();
+
+    for (int i = 0; i < ne; ++i)
+      columnEdits_[i]->setNumericOnly(b);
+  }
 }
 
 void

@@ -4,7 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + color value for distribution plot
+ + Load CSV form line number
+ + annotation obj ref to plot object
  + easy red/green distribution split
  + distribution plot custom controls include group
  + allow columns to be edited/simplified to single column

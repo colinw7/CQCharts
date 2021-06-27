@@ -73,7 +73,8 @@ class QLabel;
 class CQChartsColumnsEdit : public CQChartsEditBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
+  Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
+  Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
 
  public:
   CQChartsColumnsEdit(QWidget *parent=nullptr, bool isBasic=false);
@@ -83,6 +84,9 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
+
+  bool isNumericOnly() const { return numericOnly_; }
+  void setNumericOnly(bool b);
 
   QSize sizeHint() const override;
 
@@ -106,8 +110,9 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   using ColumnCombos = std::vector<CQChartsColumnCombo *>;
   using ColumnEdits  = std::vector<CQChartsColumnLineEdit *>;
 
-  bool               isBasic_      { false };
   CQChartsColumns    columns_;
+  bool               isBasic_      { false };
+  bool               numericOnly_  { false };
   CQChartsModelData* modelData_    { nullptr };
   QFrame*            controlFrame_ { nullptr };
   QFrame*            columnsFrame_ { nullptr };

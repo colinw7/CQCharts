@@ -247,14 +247,18 @@ void
 CQChartsDistributionPlot::
 setNameColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDistributionPlot::
 setDataColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(dataColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dataColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -670,46 +674,37 @@ void
 CQChartsDistributionPlot::
 setPlotType(PlotType type)
 {
-  switch (type) {
-    case PlotType::NORMAL      : setNormal    (true); break;
-    case PlotType::STACKED     : setStacked   (true); break;
-    case PlotType::SIDE_BY_SIDE: setSideBySide(true); break;
-    case PlotType::OVERLAY     : setOverlaid  (true); break;
-    case PlotType::SCATTER     : setScatter   (true); break;
-    case PlotType::DENSITY     : setDensity   (true); break;
-    default                    : assert(false); break;
-  }
+  CQChartsUtil::testAndSet(plotType_, type, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDistributionPlot::
 setNormal(bool)
 {
-  CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  setPlotType(PlotType::NORMAL);
 }
 
 void
 CQChartsDistributionPlot::
 setStacked(bool b)
 {
-  CQChartsUtil::testAndSet(plotType_,
-    (b ? PlotType::STACKED : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
+  setPlotType(b ? PlotType::STACKED : PlotType::NORMAL);
 }
 
 void
 CQChartsDistributionPlot::
 setSideBySide(bool b)
 {
-  CQChartsUtil::testAndSet(plotType_,
-    (b ? PlotType::SIDE_BY_SIDE : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
+  setPlotType(b ? PlotType::SIDE_BY_SIDE : PlotType::NORMAL);
 }
 
 void
 CQChartsDistributionPlot::
 setOverlaid(bool b)
 {
-  CQChartsUtil::testAndSet(plotType_,
-    (b ? PlotType::OVERLAY : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
+  setPlotType(b ? PlotType::OVERLAY : PlotType::NORMAL);
 }
 
 //---
@@ -734,62 +729,51 @@ void
 CQChartsDistributionPlot::
 setValueType(ValueType type)
 {
-  switch (type) {
-    case ValueType::COUNT: setValueCount(true); break;
-    case ValueType::RANGE: setValueRange(true); break;
-    case ValueType::MIN  : setValueMin  (true); break;
-    case ValueType::MAX  : setValueMax  (true); break;
-    case ValueType::MEAN : setValueMean (true); break;
-    case ValueType::SUM  : setValueSum  (true); break;
-    default              : assert(false); break;
-  }
+  CQChartsUtil::testAndSet(valueType_, type, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueCount(bool)
 {
-  CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  setValueType(ValueType::COUNT);
 }
 
 void
 CQChartsDistributionPlot::
 setValueRange(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_,
-    (b ? ValueType::RANGE : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::RANGE : ValueType::COUNT);
 }
 
 void
 CQChartsDistributionPlot::
 setValueMin(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_,
-    (b ? ValueType::MIN : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MIN : ValueType::COUNT);
 }
 
 void
 CQChartsDistributionPlot::
 setValueMax(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_,
-    (b ? ValueType::MAX : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MAX : ValueType::COUNT);
 }
 
 void
 CQChartsDistributionPlot::
 setValueMean(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_,
-    (b ? ValueType::MEAN : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MEAN : ValueType::COUNT);
 }
 
 void
 CQChartsDistributionPlot::
 setValueSum(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_,
-    (b ? ValueType::SUM : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::SUM : ValueType::COUNT);
 }
 
 //---
@@ -826,8 +810,7 @@ void
 CQChartsDistributionPlot::
 setDensity(bool b)
 {
-  CQChartsUtil::testAndSet(plotType_,
-    (b ? PlotType::DENSITY : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
+  setPlotType(b ? PlotType::DENSITY : PlotType::NORMAL);
 }
 
 void
@@ -864,8 +847,7 @@ void
 CQChartsDistributionPlot::
 setScatter(bool b)
 {
-  CQChartsUtil::testAndSet(plotType_,
-    (b ? PlotType::SCATTER : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
+  setPlotType(b ? PlotType::SCATTER : PlotType::NORMAL);
 }
 
 void
