@@ -1661,6 +1661,7 @@ addPlot(Plot *plot, const BBox &bbox)
     auto id = QString::number(numPlots() + 1);
 
     plot->setId(QString("plot:%1:%2").arg(plot->typeName()).arg(id));
+    plot->setTipId(plot->id());
 
     plot->setObjectName(plot->id());
   }

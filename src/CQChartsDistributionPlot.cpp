@@ -4036,9 +4036,7 @@ getBarColoredRects(ColorData &colorData) const
   plot_->getInds(groupInd_, bucket_, vinds);
 
   int nvi = vinds.size();
-
-  if (nvi <= 1)
-    return false;
+  if (nvi < 1) return false;
 
   //---
 

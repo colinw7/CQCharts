@@ -47,6 +47,9 @@ tipId() const
     if (! tipId_) {
       const_cast<CQChartsObj*>(this)->tipId_ = calcTipId();
 
+      if (! (*tipId_).length())
+        const_cast<CQChartsObj*>(this)->tipId_ = id();
+
       assert((*tipId_).length());
     }
   }
