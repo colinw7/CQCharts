@@ -9,6 +9,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsImage;
+class CQCharts;
 
 /*!
  * \brief Abstract Base Class for Painter
@@ -55,15 +56,23 @@ class CQChartsPaintDevice {
  public:
   CQChartsPaintDevice(View *view) : view_(view) { }
   CQChartsPaintDevice(Plot *plot) : plot_(plot) { }
-  CQChartsPaintDevice() { }
+
+  CQChartsPaintDevice(CQCharts *charts=nullptr) : charts_(charts) { }
 
   //---
 
-  const View *view() const { return view_; }
+  View *view() const { return view_; }
   void setView(View *p) { view_ = p; }
 
-  const Plot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
   void setPlot(Plot *p) { plot_ = p; }
+
+  CQCharts *charts() const { return charts_; }
+  void setCharts(CQCharts *charts) { charts_ = charts; }
+
+  //---
+
+  CQCharts *calcCharts() const;
 
   //---
 
@@ -184,8 +193,9 @@ class CQChartsPaintDevice {
   virtual bool invertY() const { return false; }
 
  protected:
-  View* view_ { nullptr };
-  Plot* plot_ { nullptr };
+  CQCharts* charts_ { nullptr };
+  View*     view_   { nullptr };
+  Plot*     plot_   { nullptr };
 };
 
 #endif

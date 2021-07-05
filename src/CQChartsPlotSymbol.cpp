@@ -1,6 +1,8 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
+#include <CQCharts.h>
+#include <CQChartsSymbolSet.h>
 
 #include <cmath>
 #include <cassert>
@@ -543,6 +545,8 @@ drawSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
     renderer->drawPaths(symbol.paths(), symbol.styles());
   else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
     symbols.drawSymbol(symbol.symbolType(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL_SET)
+    drawSymbol(getSymbolSetSymbol(symbol, renderer), renderer);
 }
 
 void
@@ -558,6 +562,8 @@ strokeSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
     renderer->drawPaths(symbol.paths(), symbol.styles());
   else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
     symbols.strokeSymbol(symbol.symbolType(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL_SET)
+    strokeSymbol(getSymbolSetSymbol(symbol, renderer), renderer);
 }
 
 void
@@ -573,6 +579,23 @@ fillSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
     renderer->drawPaths(symbol.paths(), symbol.styles());
   else if (symbol.type() == CQChartsSymbol::Type::SYMBOL)
     symbols.fillSymbol(symbol.symbolType(), renderer);
+  else if (symbol.type() == CQChartsSymbol::Type::SYMBOL_SET)
+    fillSymbol(getSymbolSetSymbol(symbol, renderer), renderer);
+}
+
+CQChartsSymbol
+CQChartsPlotSymbolMgr::
+getSymbolSetSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
+{
+  auto *charts = renderer->charts();
+  assert(charts);
+
+  auto *symbolSetMgr = charts->symbolSetMgr();
+
+  auto *symbolSet = symbolSetMgr->symbolSet(symbol.setName());
+  if (! symbolSet) CQChartsSymbol();
+
+  return symbolSet->symbol(symbol.setInd());
 }
 
 //------
@@ -583,6 +606,15 @@ CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p, const Length &si
 {
   strokePen_ = device_->pen  ();
   fillBrush_ = device_->brush();
+}
+
+//---
+
+CQCharts *
+CQChartsPlotSymbolRenderer::
+charts() const
+{
+  return device_->calcCharts();
 }
 
 //---

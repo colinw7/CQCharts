@@ -260,6 +260,7 @@ CQChartsUtil.cpp \
 CQChartsWidgetUtil.cpp \
 \
 CQChartsVariant.cpp \
+CQChartsFile.cpp \
 CQChartsGeom.cpp \
 \
 CQChartsAnalyzeFile.cpp \

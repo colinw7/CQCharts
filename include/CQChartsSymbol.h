@@ -96,10 +96,15 @@ class CQChartsSymbol :
   static CQChartsSymbol vline() { return CQChartsSymbol(SymbolType::Type::VLINE); }
   static CQChartsSymbol hline() { return CQChartsSymbol(SymbolType::Type::HLINE); }
 
+  static CQChartsSymbol set(const QString &name, int ind) {
+    CQChartsSymbol s; s.name_ = name; s.type_ = Type::SYMBOL_SET; s.ind_ = ind; return s;
+  }
+
  public:
   enum Type {
     NONE,
     SYMBOL,
+    SYMBOL_SET,
     CHAR,
     PATH,
     SVG
@@ -133,6 +138,15 @@ class CQChartsSymbol :
   // symbol data
   const SymbolType &symbolType() const { assert(type_ == Type::SYMBOL); return symbolType_; }
   void setSymbolType(const SymbolType &t) { reset(); type_ = Type::SYMBOL; symbolType_ = t; }
+
+  //---
+
+  // symbol set data
+  const QString &setName() const { assert(type_ == Type::SYMBOL_SET); return name_; }
+  void setSetName(const QString &s) { reset(); type_ = Type::SYMBOL_SET; name_ = s; }
+
+  int setInd() const { assert(type_ == Type::SYMBOL_SET); return ind_; }
+  void setSetInd(int ind) { reset(); type_ = Type::SYMBOL_SET; ind_ = ind; }
 
   //---
 
@@ -195,8 +209,9 @@ class CQChartsSymbol :
   }
 
  private:
-  Type       type_ { Type::NONE };
+  Type       type_    { Type::NONE };
   SymbolType symbolType_;
+  int        ind_     { -1 };
   QString    c_;
   QString    name_;
   bool       filled_  { true };

@@ -75,8 +75,10 @@ class CQChartsPlotCustomControls : public QFrame {
 
   void addColorColumnWidgets(const QString &title="Color");
 
-  void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w);
-  void addFrameWidget(FrameData &frameData, QWidget *w);
+  void addFrameWidget(FrameData &frameData, const QString &label, QWidget *w, bool nextRow=true);
+  void addFrameWidget(FrameData &frameData, QWidget *w, bool nextRow=true);
+
+  void addFrameSpacer(FrameData &frameData, bool nextRow=true);
 
   void addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow=false);
 
@@ -145,8 +147,8 @@ class CQChartsPlotCustomControls : public QFrame {
   bool numericOnly_ { false };
   bool showTitle_   { false };
 
-  QFrame* titleFrame_  { nullptr };
-  QLabel* titleWidget_ { nullptr };
+  QFrame* titleFrame_ { nullptr };
+  QLabel* titleLabel_ { nullptr };
 
   ColumnEdits   columnEdits_;
   ColumnsEdits  columnsEdits_;

@@ -1315,3 +1315,6 @@
  + support text placer in pie chart
 # 6/6/2021
  + more annotation plots
+# 7/5/2021
+ + add more custom controls for xy plot and improve invalidation
+ + add optional xy line end labels

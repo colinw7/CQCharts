@@ -10,6 +10,7 @@
 
 class CQChartsPlotSymbolRenderer;
 class CQChartsPaintDevice;
+class CQCharts;
 
 //---
 
@@ -78,6 +79,8 @@ namespace CQChartsPlotSymbolMgr {
   void drawSymbol  (const Symbol &symbol, SymbolRenderer *renderer);
   void strokeSymbol(const Symbol &symbol, SymbolRenderer *renderer);
   void fillSymbol  (const Symbol &symbol, SymbolRenderer *renderer);
+
+  Symbol getSymbolSetSymbol(const Symbol &symbol, SymbolRenderer *renderer);
 }
 
 //---
@@ -109,6 +112,8 @@ class CQChartsPlotSymbolRenderer {
   //---
 
   PaintDevice *device() const { return device_; }
+
+  CQCharts *charts() const;
 
   void moveTo(double x, double y);
 

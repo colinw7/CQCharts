@@ -324,9 +324,10 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
     return color;
   }
 
-  auto color = CQChartsUtil::stringToColor(var.toString());
+  auto color = CQChartsColor(var.toString());
   ok = color.isValid();
-  return CQChartsColor(color);
+
+  return color;
 }
 
 QVariant fromColor(const CQChartsColor &c) {
@@ -352,6 +353,7 @@ CQChartsFont toFont(const QVariant &var, bool &ok) {
 
   CQChartsFont font(var.toString());
   ok = font.isValid();
+
   return font;
 }
 

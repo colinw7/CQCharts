@@ -27,17 +27,19 @@ invalidate(bool reload)
   CQChartsObjUtil::getObjData(obj_, objData);
 
   if      (objData.plot) {
-    if (objData.plot->isUpdatesEnabled()) {
+    //if (objData.plot->isUpdatesEnabled()) {
       if (reload)
         objData.plot->updateRangeAndObjs();
       else
         objData.plot->drawObjs();
-    }
+    //}
 
     auto *key = qobject_cast<CQChartsPlotKey *>(obj_);
 
-    if (key)
-      key->updatePositionAndLayout();
+    if (key) {
+      if (objData.plot->isUpdatesEnabled())
+        key->updatePositionAndLayout();
+    }
   }
   else if (objData.view) {
     objData.view->invalidateObjects();

@@ -77,13 +77,17 @@ CQChartsSymbolSet(const QString &name) :
 {
 }
 
-void
+CQChartsSymbol
 CQChartsSymbolSet::
 addSymbol(const CQChartsSymbol &symbol)
 {
   assert(symbol.isValid());
 
+  auto ind = int(symbols_.size());
+
   symbols_.emplace_back(symbol);
+
+  return CQChartsSymbol::set(name_, ind);
 }
 
 int

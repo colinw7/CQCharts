@@ -394,6 +394,25 @@ cellName(int row, int column) const
 
 bool
 Model::
+decodeCellRange(const QString &str, int &row1, int &col1, int &row2, int &col2) const
+{
+  auto p = str.indexOf(":");
+  if (p < 0) return false;
+
+  auto lhs = str.mid(0, p);
+  auto rhs = str.mid(p + 1);
+
+  if (! decodeCellName(lhs, row1, col1))
+    return false;
+
+  if (! decodeCellName(rhs, row2, col2))
+    return false;
+
+  return true;
+}
+
+bool
+Model::
 decodeCellName(const QString &name, int &row, int &col) const
 {
   row = 0;

@@ -482,8 +482,13 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void drawBestFit      (PaintDevice *device) const;
   void drawStatsLines   (PaintDevice *device) const;
   void drawMovingAverage(PaintDevice *device) const;
+  void drawLineLabel    (PaintDevice *device) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  BBox fitBBox() const;
 
   //---
 
@@ -657,6 +662,17 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
+class CQChartsXYInvalidator : public CQChartsInvalidator {
+ public:
+  CQChartsXYInvalidator(QObject *obj) :
+    CQChartsInvalidator(obj) {
+  }
+
+  void invalidate(bool reload) override;
+};
+
+//---
+
 CQCHARTS_NAMED_LINE_DATA(Impulse, impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate, bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder, fillUnder)
@@ -688,10 +704,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsColumn  vectorXColumn READ vectorXColumn WRITE setVectorXColumn)
   Q_PROPERTY(CQChartsColumn  vectorYColumn READ vectorYColumn WRITE setVectorYColumn)
 
-  // x is string
+  // x is unique string (map to index)
   Q_PROPERTY(bool mapXColumn READ isMapXColumn WRITE setMapXColumn)
 
-  // bivariate
+  // bivariate line data
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
 
   // stacked, cumulative
@@ -704,7 +720,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // vectors
   Q_PROPERTY(bool vectors READ isVectors WRITE setVectors)
 
-  // impulse
+  // impulse line data
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse, impulse)
 
   // point: (display, symbol)
@@ -718,6 +734,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // lines (selectable, rounded, display, stroke)
   Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
   Q_PROPERTY(bool roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
+  Q_PROPERTY(bool lineLabel       READ isLineLabel       WRITE setLineLabel      )
 
   CQCHARTS_LINE_DATA_PROPERTIES
 
@@ -841,12 +858,15 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  // lines selectable, rounded
+  // lines selectable, rounded, line label
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
+
+  bool isLineLabel() const { return lineLabel_; }
+  void setLineLabel(bool b);
 
   //---
 
@@ -1122,10 +1142,13 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   int  pointStart_      { 0 };     //!< point start (0=start, -1=end, -2=middle)
 
   // plot type
-  bool stacked_         { false }; //!< is stacked
-  bool cumulative_      { false }; //!< cumulate values
-  bool roundedLines_    { false }; //!< draw rounded (smooth) lines
+  bool stacked_    { false }; //!< is stacked
+  bool cumulative_ { false }; //!< cumulate values
+
+  // line options
   bool linesSelectable_ { false }; //!< are lines selectable
+  bool roundedLines_    { false }; //!< draw rounded (smooth) lines
+  bool lineLabel_       { false }; //!< draw line label
 
   // overlays
   struct MovingAverageData {
@@ -1154,6 +1177,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
 
   mutable int maxNumPoints_ { 0 };
+
+  CQChartsXYInvalidator xyInvalidator_;
 };
 
 //---
@@ -1181,13 +1206,21 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   void linesSlot(int);
   void fillUnderSlot(int);
   void stackedSlot(int);
+  void impulseSlot(int);
+  void bestFitSlot(int);
+  void hullSlot(int);
+  void movingAverageSlot(int);
 
  private:
-  CQChartsXYPlot* plot_           { nullptr };
-  QCheckBox*      pointsCheck_    { nullptr };
-  QCheckBox*      linesCheck_     { nullptr };
-  QCheckBox*      fillUnderCheck_ { nullptr };
-  CQCheckBox*     stackedCheck_   { nullptr };
+  CQChartsXYPlot* plot_               { nullptr };
+  QCheckBox*      pointsCheck_        { nullptr };
+  QCheckBox*      linesCheck_         { nullptr };
+  QCheckBox*      fillUnderCheck_     { nullptr };
+  CQCheckBox*     stackedCheck_       { nullptr };
+  CQCheckBox*     impulseCheck_       { nullptr };
+  CQCheckBox*     bestFitCheck_       { nullptr };
+  CQCheckBox*     hullCheck_          { nullptr };
+  CQCheckBox*     movingAverageCheck_ { nullptr };
 };
 
 #endif

@@ -4,14 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + Load CSV form line number
- + annotation obj ref to plot object
+ + Shape edit swatch and string
+ + Load CSV from line number
  + easy red/green distribution split
  + distribution plot custom controls include group
- + allow columns to be edited/simplified to single column
+ + allow columns property to be edited/simplified as if single column
  + column property support name (associated plot ?)
  + jitter box plot with group/set
- + simple color editor (palette or color)
+ + simple color editor (only palette or color)
+ + tcl command to auto place texts
  + all placement algorithms support hier data
  + sankey annotation plot, arc start/end size the same
  + hier name support for connection plots (sankey) to provide extra level for grouping

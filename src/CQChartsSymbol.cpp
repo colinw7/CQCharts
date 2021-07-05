@@ -367,6 +367,10 @@ toString() const
         s += ":filled";
     }
   }
+  else if (type_ == Type::SYMBOL_SET) {
+    if (name_.length() && ind_ >= 0)
+      s = QString("symbol_set:%1:%2").arg(name_).arg(ind_);
+  }
   else if (type_ == Type::CHAR) {
     if (charName() != "")
       s = QString("char:%1:%2").arg(charName()).arg(charStr());
@@ -425,6 +429,22 @@ fromString(const QString &s)
       stroked_ = false;
     else if (attr == "stroked")
       filled_ = false;
+  }
+  else if (s.left(11) == "symbol_set:") {
+    type_ = Type::SYMBOL_SET;
+
+    auto s1 = s.mid(11);
+
+    auto pos = s1.indexOf(":");
+    if (pos <= 0) return false;
+
+    name_ = s1.mid(0, pos);
+
+    auto indStr = s1.mid(pos + 1);
+
+    bool ok;
+    ind_ = indStr .toInt(&ok);
+    if (! ok) return false;
   }
   else if (s.left(5) == "char:") {
     type_ = Type::CHAR;

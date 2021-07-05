@@ -18,6 +18,7 @@ Tcl(Model *model) :
   createExprCommand("row"    , (CQTcl::ObjCmdProc) &Tcl::rowCmd    , this);
   createExprCommand("eval"   , (CQTcl::ObjCmdProc) &Tcl::evalCmd   , this);
   createExprCommand("concat" , (CQTcl::ObjCmdProc) &Tcl::concatCmd , this);
+  createExprCommand("sumup"  , (CQTcl::ObjCmdProc) &Tcl::sumUpCmd  , this);
 }
 
 int
@@ -162,6 +163,49 @@ concatCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   return TCL_OK;
 }
 
+int
+Tcl::
+sumUpCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
+{
+  auto *tcl = static_cast<Tcl *>(clientData);
+
+  QVariantList values;
+
+  tcl->argValues(objc, objv, values);
+
+  QString res;
+
+  if (values.size() != 1)
+    return TCL_ERROR;
+
+  auto *model = tcl->model();
+
+  int col;
+
+  if (! model->decodeColumnName(values[0].toString(), col))
+    return TCL_ERROR;
+
+  int row = tcl->row();
+
+  auto sum = 0.0;
+
+  for (int r = row; r >= 0; --r) {
+    auto ind = model->index(r, col, QModelIndex());
+
+    auto var = model->data(ind, Qt::DisplayRole);
+
+    bool ok;
+    auto v = var.toDouble(&ok);
+
+    if (ok)
+      sum += v;
+  }
+
+  tcl->setResult(sum);
+
+  return TCL_OK;
+}
+
 bool
 Tcl::
 processCmd(const QString &name, int objc, const Tcl_Obj **objv)
@@ -178,17 +222,9 @@ processCmd(const QString &name, int objc, const Tcl_Obj **objv)
     for (const auto &value : values) {
       auto str = value.toString();
 
-      auto p = str.indexOf(":");
+      int row1, col1, row2, col2;
 
-      if (p >= 0) {
-        auto lhs = str.mid(0, p);
-        auto rhs = str.mid(p + 1);
-
-        int row1, col1, row2, col2;
-
-        if (! model->decodeCellName(lhs, row1, col1)) return false;
-        if (! model->decodeCellName(rhs, row2, col2)) return false;
-
+      if (model->decodeCellRange(str, row1, col1, row2, col2)) {
         for (int r = row1; r <= row2; ++r) {
           for (int c = col1; c <= col2; ++c) {
             auto ind = model->index(r, c, QModelIndex());

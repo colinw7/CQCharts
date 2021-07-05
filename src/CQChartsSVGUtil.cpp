@@ -21,9 +21,7 @@ using PathDatas = std::vector<PathData>;
 
 #ifdef CXML_PARSER
 void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
-  bool isPath = (tag->getName() == "path");
-
-  if (isPath) {
+  if      (tag->getName() == "path") {
     // process options
     PathData pathData;
 
@@ -41,6 +39,12 @@ void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
 
     if (pathData.d != "")
       pathDatas.push_back(std::move(pathData));
+  }
+  else if (tag->getName() == "circle") {
+    // TODO ?
+  }
+  else if (tag->getName() == "ellipse") {
+    // TODO ?
   }
 
   //---

@@ -426,7 +426,7 @@ class CQChartsShapeData {
 
   //---
 
-  bool isValid() const { return fill_.isValid() && stroke_.isValid(); }
+  bool isValid() const { return fill_.isValid() || stroke_.isValid(); }
 
   QString toString() const;
   bool fromString(const QString &s);

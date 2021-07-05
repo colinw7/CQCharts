@@ -36,9 +36,9 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   //--
 
-  titleWidget_ = CQUtil::makeLabelWidget<QLabel>("", "title");
+  titleLabel_ = CQUtil::makeLabelWidget<QLabel>("", "title");
 
-  titleLayout->addWidget(titleWidget_);
+  titleLayout->addWidget(titleLabel_);
 
   //---
 
@@ -411,27 +411,60 @@ createFrame(const QString &objName, bool stretch)
 
 void
 CQChartsPlotCustomControls::
-addFrameWidget(FrameData &frameData, const QString &label, QWidget *w)
+addFrameWidget(FrameData &frameData, const QString &label, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(new QLabel(label), frameData.row, 0);
-  frameData.layout->addWidget(w                , frameData.row, 1); ++frameData.row;
+  frameData.layout->addWidget(new QLabel(label), frameData.row, frameData.col++);
+  frameData.layout->addWidget(w                , frameData.row, frameData.col++);
+
+  if (nextRow) {
+    frameData.col = 0;
+
+    ++frameData.row;
+  }
 }
 
 void
 CQChartsPlotCustomControls::
-addFrameWidget(FrameData &frameData, QWidget *w)
+addFrameWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(w, frameData.row, 0, 1, 2); ++frameData.row;
+  frameData.layout->addWidget(w, frameData.row, frameData.col, 1, 2);
+
+  frameData.col += 2;
+
+  if (nextRow) {
+    frameData.col = 0;
+
+    ++frameData.row;
+  }
+}
+
+void
+CQChartsPlotCustomControls::
+addFrameSpacer(FrameData &frameData, bool nextRow)
+{
+  auto *spacer = CQUtil::makeLabelWidget<QLabel>(" ", "spacer");
+
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  frameData.layout->addWidget(spacer, frameData.row, frameData.col++);
+
+  if (nextRow) {
+    frameData.col = 0;
+
+    ++frameData.row;
+  }
 }
 
 void
 CQChartsPlotCustomControls::
 addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(w, frameData.row, frameData.col); ++frameData.col;
+  frameData.layout->addWidget(w, frameData.row, frameData.col++);
 
   if (nextRow) {
     addFrameRowStretch(frameData);
+
+    frameData.col = 0;
 
     ++frameData.row;
   }
@@ -441,7 +474,7 @@ void
 CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
-  frameData.layout->setRowStretch(frameData.row, 1);
+  frameData.layout->setRowStretch(frameData.row, frameData.col);
 }
 
 void
@@ -529,12 +562,13 @@ updateWidgets()
 
   //---
 
-  auto titleStr = plot()->titleStr();
+  auto titleDesc = plot()->type()->desc();
+  auto titleStr  = plot()->titleStr();
 
   if (titleStr == "")
     titleStr = plot()->calcName();
 
-  titleWidget_->setText(QString("<b>%1</b>").arg(titleStr));
+  titleLabel_->setText(QString("<b>%1: %2</b>").arg(titleDesc).arg(titleStr));
 
   //----
 

@@ -3109,9 +3109,9 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("filled"))
     symbol.setFilled(argv.getParseBool("filled"));
 
-  symbolSet->addSymbol(symbol);
+  auto ssymbol = symbolSet->addSymbol(symbol);
 
-  return true;
+  return cmdBase_->setCmdRc(ssymbol.toString());
 }
 
 //------

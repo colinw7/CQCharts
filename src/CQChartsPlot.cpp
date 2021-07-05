@@ -127,7 +127,7 @@ init()
   setDataFilled(true ); setDataStroked(false);
   setFitFilled (false); setFitStroked (false);
 
-  setDataClip(true);
+  //setDataClip(true);
 
   setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
   setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.12)); // #e5ecf6 (BLEND_INTERFACE)
@@ -2240,6 +2240,13 @@ setDataClip(bool b)
   CQChartsUtil::testAndSet(dataClip_, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsPlot::
+setFitClip(bool b)
+{
+  CQChartsUtil::testAndSet(fitClip_, b, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -3431,7 +3438,7 @@ addBaseProperties()
   auto plotStyleFillStr   = plotStyleStr + "/fill";
   auto plotStyleStrokeStr = plotStyleStr + "/stroke";
 
-  addProp(plotStyleStr, "plotClip", "clip" , "Clip to plot bounding box");
+  addProp(plotStyleStr, "plotClip", "clip", "Clip to plot bounding box");
 
   addProp(plotStyleStr, "plotShapeData", "shape", "Plot background shape data", /*hidden*/true);
 
@@ -3455,7 +3462,7 @@ addBaseProperties()
   auto dataStyleFillStr   = dataStyleStr + "/fill";
   auto dataStyleStrokeStr = dataStyleStr + "/stroke";
 
-  addProp(dataStyleStr, "dataClip", "clip" , "Clip to data bounding box");
+  addProp(dataStyleStr, "dataClip", "clip", "Clip to data bounding box");
 
   addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data", /*hidden*/true);
 
@@ -3478,6 +3485,8 @@ addBaseProperties()
   auto fitStyleStr       = QString("fitBox");
   auto fitStyleFillStr   = fitStyleStr + "/fill";
   auto fitStyleStrokeStr = fitStyleStr + "/stroke";
+
+  addProp(dataStyleStr, "fitClip", "clip", "Clip to fit bounding box");
 
   addStyleProp(fitStyleFillStr, "fitFilled", "visible",
                "Fit background bounding box fill visible", /*hidden*/true);
@@ -14628,6 +14637,11 @@ setClipRect(PaintDevice *device) const
 
     device->setClipRect(bbox);
   }
+  else if (plot1->isFitClip()) {
+    auto fitRect = fitBBox();
+
+    device->setClipRect(fitRect);
+  }
   else if (plot1->isPlotClip()) {
     auto plotRect = calcPlotRect();
 
@@ -17206,10 +17220,7 @@ CQChartsGeom::Size
 CQChartsPlot::
 pixelToWindowSize(const Size &ps) const
 {
-  double w = pixelToWindowWidth (ps.width ());
-  double h = pixelToWindowHeight(ps.height());
-
-  return Size(w, h);
+  return Size(pixelToWindowWidth(ps.width()), pixelToWindowHeight(ps.height()));
 }
 
 double
@@ -17248,6 +17259,13 @@ CQChartsPlot::
 windowToSignedPixelHeight(double wh) const
 {
   return -CMathUtil::sign(wh)*windowToPixelHeight(wh);
+}
+
+CQChartsGeom::Size
+CQChartsPlot::
+windowToPixelSize(const Size &s) const
+{
+  return Size(windowToPixelWidth(s.width()), windowToPixelHeight(s.height()));
 }
 
 double

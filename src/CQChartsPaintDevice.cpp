@@ -2,6 +2,15 @@
 #include <CQChartsPlot.h>
 #include <QBuffer>
 
+CQCharts *
+CQChartsPaintDevice::
+calcCharts() const
+{
+  if (plot()) return plot()->charts();
+  if (view()) return view()->charts();
+  return charts_;
+}
+
 void
 CQChartsPaintDevice::
 drawPolygonSides(const BBox &bbox, int n, const Angle &angle)

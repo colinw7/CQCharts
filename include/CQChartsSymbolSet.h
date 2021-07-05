@@ -63,7 +63,7 @@ class CQChartsSymbolSet {
   const QString &name() const { return name_; }
 
   //! add symbol
-  void addSymbol(const CQChartsSymbol &symbol);
+  CQChartsSymbol addSymbol(const CQChartsSymbol &symbol);
 
   int numSymbols() const;
 

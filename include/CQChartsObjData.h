@@ -35,9 +35,18 @@ class CQChartsObjLineData {
   using LineData = CQChartsLineData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjLineData(OBJ *obj) :
-   lineDataObj_(obj) {
+   lineDataObj_(obj), invalidator_(obj) {
   }
+
+  CQChartsObjLineData(OBJ *obj, Invalidator *invalidator) :
+   lineDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
+  }
+
+  //---
 
   bool isReloadObj() const { return reloadObj_; }
   void setReloadObj(bool b) { reloadObj_ = b; }
@@ -108,7 +117,7 @@ class CQChartsObjLineData {
 
  private:
   virtual void lineDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(lineDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
@@ -116,7 +125,9 @@ class CQChartsObjLineData {
   bool reloadObj_   { true };
 
  protected:
-  LineData lineData_;
+  LineData     lineData_;
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------
@@ -151,8 +162,15 @@ class CQChartsObj##UNAME##LineData { \
   using LineData = CQChartsLineData; \
 \
  public: \
+  using Invalidator = CQChartsInvalidator; \
+\
+ public: \
   CQChartsObj##UNAME##LineData(OBJ *obj) : \
-   LNAME##LineDataObj_(obj) { \
+   LNAME##LineDataObj_(obj), LNAME##Invalidator_(obj) { \
+  } \
+\
+  CQChartsObj##UNAME##LineData(OBJ *obj, Invalidator *invalidator) : \
+   LNAME##LineDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
@@ -223,15 +241,18 @@ class CQChartsObj##UNAME##LineData { \
 \
  private: \
   virtual void LNAME##LineDataInvalidate(bool reload=false) { \
-    CQChartsInvalidator(LNAME##LineDataObj_).invalidate(reload); \
+    LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
+                           LNAME##Invalidator_.invalidate(reload); \
   } \
 \
  private: \
   OBJ* LNAME##LineDataObj_ { nullptr }; \
 \
  protected: \
-  LineData LNAME##LineData_; \
-  bool     LNAME##ReloadObj_ { true }; \
+  LineData     LNAME##LineData_; \
+  bool         LNAME##ReloadObj_ { true }; \
+  Invalidator  LNAME##Invalidator_; \
+  Invalidator* LNAME##PInvalidator_ { nullptr }; \
 };
 
 //------
@@ -282,9 +303,18 @@ class CQChartsObjPointData {
   using SymbolData  = CQChartsSymbolData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjPointData(OBJ *obj) :
-   pointDataObj_(obj) {
+   pointDataObj_(obj), invalidator_(obj) {
   }
+
+  CQChartsObjPointData(OBJ *obj, Invalidator *invalidator) :
+   pointDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
+  }
+
+  //---
 
   bool isReloadObj() const { return reloadObj_; }
   void setReloadObj(bool b) { reloadObj_ = b; }
@@ -389,15 +419,17 @@ class CQChartsObjPointData {
 
  private:
   virtual void pointDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(pointDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
   OBJ* pointDataObj_ { nullptr };
 
  protected:
-  SymbolData pointData_;
-  bool       reloadObj_ { true };
+  SymbolData   pointData_;
+  bool         reloadObj_ { true };
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------
@@ -450,8 +482,15 @@ class CQChartsObj##UNAME##PointData { \
   using SymbolData  = CQChartsSymbolData; \
 \
  public: \
+  using Invalidator = CQChartsInvalidator; \
+\
+ public: \
   CQChartsObj##UNAME##PointData(OBJ *obj) : \
-   LNAME##PointDataObj_(obj) { \
+   LNAME##PointDataObj_(obj), LNAME##Invalidator_(obj) { \
+  } \
+\
+  CQChartsObj##UNAME##PointData(OBJ *obj, Invalidator *invalidator) : \
+   LNAME##PointDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
@@ -557,15 +596,18 @@ class CQChartsObj##UNAME##PointData { \
 \
  private: \
   virtual void LNAME##PointDataInvalidate(bool reload=false) { \
-    CQChartsInvalidator(LNAME##PointDataObj_).invalidate(reload); \
+    LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
+                           LNAME##Invalidator_.invalidate(reload); \
   } \
 \
  private: \
   OBJ* LNAME##PointDataObj_ { nullptr }; \
 \
  protected: \
-  SymbolData LNAME##PointData_; \
-  bool       LNAME##ReloadObj_ { true }; \
+  SymbolData   LNAME##PointData_; \
+  bool         LNAME##ReloadObj_ { true }; \
+  Invalidator  LNAME##Invalidator_; \
+  Invalidator* LNAME##PInvalidator_ { nullptr }; \
 };
 
 //------
@@ -609,8 +651,15 @@ class CQChartsObj##UNAME##FillData { \
   using FillData    = CQChartsFillData; \
 \
  public: \
+  using Invalidator = CQChartsInvalidator; \
+\
+ public: \
   CQChartsObj##UNAME##FillData(OBJ *obj) : \
-   LNAME##FillDataObj_(obj) { \
+   LNAME##FillDataObj_(obj), LNAME##Invalidator_(obj) { \
+  } \
+\
+  CQChartsObj##UNAME##FillData(OBJ *obj, Invalidator *invalidator) : \
+   LNAME##FillDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
@@ -652,15 +701,18 @@ class CQChartsObj##UNAME##FillData { \
 \
  private: \
   virtual void LNAME##FillDataInvalidate(bool reload=false) { \
-    CQChartsInvalidator(LNAME##FillDataObj_).invalidate(reload); \
+    LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
+                           LNAME##Invalidator_.invalidate(reload); \
   } \
 \
  private: \
   OBJ* LNAME##FillDataObj_ { nullptr }; \
 \
  protected: \
-  FillData LNAME##FillData_; \
-  bool     LNAME##ReloadObj_ { true }; \
+  FillData     LNAME##FillData_; \
+  bool         LNAME##ReloadObj_ { true }; \
+  Invalidator  LNAME##Invalidator_; \
+  Invalidator* LNAME##PInvalidator_ { nullptr }; \
 };
 
 //------
@@ -698,9 +750,18 @@ class CQChartsObjTextData {
   using TextData = CQChartsTextData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjTextData(OBJ *obj) :
-   textDataObj_(obj) {
+   textDataObj_(obj), invalidator_(obj) {
   }
+
+  CQChartsObjTextData(OBJ *obj, Invalidator *invalidator) :
+   textDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
+  }
+
+  //---
 
   bool isReloadObj() const { return reloadObj_; }
   void setReloadObj(bool b) { reloadObj_ = b; }
@@ -797,15 +858,17 @@ class CQChartsObjTextData {
 
  protected:
   virtual void textDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(textDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
   OBJ* textDataObj_ { nullptr };
 
  protected:
-  TextData textData_;
-  bool     reloadObj_ { true };
+  TextData     textData_;
+  bool         reloadObj_ { true };
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------
@@ -857,8 +920,15 @@ class CQChartsObj##UNAME##TextData { \
   using TextData = CQChartsTextData; \
 \
  public: \
+  using Invalidator = CQChartsInvalidator; \
+\
+ public: \
   CQChartsObj##UNAME##TextData(OBJ *obj) : \
-   LNAME##TextDataObj_(obj) { \
+   LNAME##TextDataObj_(obj), LNAME##Invalidator_(obj) { \
+  } \
+\
+  CQChartsObj##UNAME##TextData(OBJ *obj, Invalidator *invalidator) : \
+   LNAME##TextDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
@@ -955,15 +1025,18 @@ class CQChartsObj##UNAME##TextData { \
 \
  private: \
   virtual void LNAME##TextDataInvalidate(bool reload=false) { \
-    CQChartsInvalidator(LNAME##TextDataObj_).invalidate(reload); \
+    LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
+                           LNAME##Invalidator_.invalidate(reload); \
   } \
 \
  private: \
   OBJ* LNAME##TextDataObj_ { nullptr }; \
 \
  protected: \
-  TextData LNAME##TextData_; \
-  bool     LNAME##ReloadObj_ { true }; \
+  TextData     LNAME##TextData_; \
+  bool         LNAME##ReloadObj_ { true }; \
+  Invalidator  LNAME##Invalidator_; \
+  Invalidator* LNAME##PInvalidator_ { nullptr }; \
 };
 
 //------
@@ -1010,8 +1083,15 @@ class CQChartsObjStrokeData {
   using StrokeData = CQChartsStrokeData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjStrokeData(OBJ *obj) :
-   strokeDataObj_(obj) {
+   strokeDataObj_(obj), invalidator_(obj) {
+  }
+
+  CQChartsObjStrokeData(OBJ *obj, Invalidator *invalidator) :
+   strokeDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
   //---
@@ -1083,14 +1163,16 @@ class CQChartsObjStrokeData {
 
  private:
   virtual void strokeDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(strokeDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
   OBJ* strokeDataObj_ { nullptr };
 
  protected:
-  StrokeData strokeData_;
+  StrokeData   strokeData_;
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------
@@ -1130,8 +1212,15 @@ class CQChartsObjShapeData {
   using ShapeData   = CQChartsShapeData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjShapeData(OBJ *obj) :
-   shapeDataObj_(obj) {
+   shapeDataObj_(obj), invalidator_(obj) {
+  }
+
+  CQChartsObjShapeData(OBJ *obj, Invalidator *invalidator) :
+   shapeDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
   //---
@@ -1234,14 +1323,16 @@ class CQChartsObjShapeData {
 
  private:
   virtual void shapeDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(shapeDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
   OBJ* shapeDataObj_ { nullptr };
 
  protected:
-  ShapeData shapeData_;
+  ShapeData    shapeData_;
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------
@@ -1295,8 +1386,15 @@ class CQChartsObj##UNAME##ShapeData { \
   using ShapeData   = CQChartsShapeData; \
 \
  public: \
+  using Invalidator = CQChartsInvalidator; \
+\
+ public: \
   CQChartsObj##UNAME##ShapeData(OBJ *obj) : \
-   LNAME##ShapeDataObj_(obj) { \
+   LNAME##ShapeDataObj_(obj), LNAME##Invalidator_(obj) { \
+  } \
+\
+  CQChartsObj##UNAME##ShapeData(OBJ *obj, Invalidator *invalidator) : \
+   LNAME##ShapeDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
@@ -1402,15 +1500,18 @@ class CQChartsObj##UNAME##ShapeData { \
 \
  private: \
   virtual void LNAME##ShapeDataInvalidate(bool reload=false) { \
-    CQChartsInvalidator(LNAME##ShapeDataObj_).invalidate(reload); \
+    LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
+                           LNAME##Invalidator_.invalidate(reload); \
   } \
 \
  private: \
   OBJ* LNAME##ShapeDataObj_ { nullptr }; \
 \
  protected: \
-  ShapeData LNAME##ShapeData_; \
-  bool      LNAME##ReloadObj_ { true }; \
+  ShapeData    LNAME##ShapeData_; \
+  bool         LNAME##ReloadObj_ { true }; \
+  Invalidator  LNAME##Invalidator_; \
+  Invalidator* LNAME##PInvalidator_ { nullptr }; \
 };
 
 //------
@@ -1458,8 +1559,15 @@ class CQChartsObjBoxData {
   using BoxData     = CQChartsBoxData;
 
  public:
+  using Invalidator = CQChartsInvalidator;
+
+ public:
   CQChartsObjBoxData(OBJ *obj) :
-   boxDataObj_(obj) {
+   boxDataObj_(obj), invalidator_(obj) {
+  }
+
+  CQChartsObjBoxData(OBJ *obj, Invalidator *invalidator) :
+   boxDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
   //---
@@ -1575,14 +1683,16 @@ class CQChartsObjBoxData {
 
  private:
   virtual void boxDataInvalidate(bool reload=false) {
-    CQChartsInvalidator(boxDataObj_).invalidate(reload);
+    pinvalidator_ ? pinvalidator_->invalidate(reload) : invalidator_.invalidate(reload);
   }
 
  private:
   OBJ* boxDataObj_ { nullptr };
 
  protected:
-  BoxData boxData_;
+  BoxData      boxData_;
+  Invalidator  invalidator_;
+  Invalidator* pinvalidator_ { nullptr };
 };
 
 //------

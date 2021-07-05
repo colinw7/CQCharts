@@ -32,6 +32,7 @@ class Tcl : public CQTcl {
   static int cellCmd   (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
   static int evalCmd   (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
   static int concatCmd (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
+  static int sumUpCmd  (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
   bool processCmd(const QString &name, int objc, const Tcl_Obj **objv);
 

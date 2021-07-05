@@ -17,9 +17,11 @@ class CQChartsInvalidator {
     obj_(obj) {
   }
 
-  void invalidate(bool reload);
+  virtual ~CQChartsInvalidator() { }
 
- private:
+  virtual void invalidate(bool reload);
+
+ protected:
   QObject* obj_ { nullptr };
 };
 
@@ -33,9 +35,11 @@ class CQChartsInterpolator {
     obj_(obj) {
   }
 
-  QColor interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const;
+  virtual ~CQChartsInterpolator() { }
 
- private:
+  virtual QColor interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const;
+
+ protected:
   QObject* obj_ { nullptr };
 };
 

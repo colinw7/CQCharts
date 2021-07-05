@@ -260,6 +260,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit, fit)
 
   Q_PROPERTY(CQChartsSides fitBorderSides READ fitBorderSides WRITE setFitBorderSides)
+  Q_PROPERTY(bool          fitClip        READ isFitClip      WRITE setFitClip       )
 
   // key
   Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
@@ -692,6 +693,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // fit area
   const Sides &fitBorderSides() const { return fitBorderSides_; }
   void setFitBorderSides(const Sides &s);
+
+  bool isFitClip() const { return fitClip_; }
+  void setFitClip(bool b);
 
   //---
 
@@ -1426,6 +1430,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   double windowToSignedPixelWidth (double ww) const;
   double windowToSignedPixelHeight(double wh) const;
+
+  Size windowToPixelSize(const Size &s) const;
 
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
@@ -3350,6 +3356,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Sides dataBorderSides_  { "tlbr" }; //!< data border sides
   bool  dataClip_         { false };  //!< is clipped at data limits
   Sides fitBorderSides_   { "tlbr" }; //!< fit border sides
+  bool  fitClip_          { false };  //!< is clipped at fit limits
 
   // title
   TitleP  titleObj_; //!< title object

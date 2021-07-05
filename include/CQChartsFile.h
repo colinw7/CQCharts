@@ -3,20 +3,20 @@
 
 #include <QString>
 
+class CQCharts;
+
 class CQChartsFile {
  public:
-  CQChartsFile() {}
+  CQChartsFile() { }
 
-  explicit CQChartsFile(CQCharts *charts, const QString &name) :
-   charts_(charts), name_(name) {
-  }
+  explicit CQChartsFile(CQCharts *charts, const QString &name);
 
-  bool isValid() const { return (charts_ && name_ != ""); }
+  bool isValid() const;
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  QString resolve() const { return name_; }
+  QString resolve() const;
 
  private:
   CQCharts *charts_ { nullptr };

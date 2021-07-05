@@ -112,6 +112,7 @@ class Model : public CQDataModel {
   QString columnName(int c) const;
   QString cellName  (int r, int c) const;
 
+  bool decodeCellRange(const QString &name, int &row1, int &col1, int &row2, int &col2) const;
   bool decodeCellName(const QString &name, int &row, int &col) const;
 
   bool decodeColumnName(const QString &name, int &col) const;
