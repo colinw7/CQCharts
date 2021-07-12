@@ -778,6 +778,8 @@ CQChartsStripPlotCustomControls(CQCharts *charts) :
 {
   addGroupColumnWidgets();
   addColorColumnWidgets();
+
+  addLayoutStretch();
 }
 
 void

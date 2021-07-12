@@ -1885,6 +1885,10 @@ CQChartsHierBubblePlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

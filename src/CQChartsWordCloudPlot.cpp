@@ -589,6 +589,10 @@ CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

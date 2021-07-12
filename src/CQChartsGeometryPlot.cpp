@@ -1127,6 +1127,10 @@ CQChartsGeometryPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

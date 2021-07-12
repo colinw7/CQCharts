@@ -1823,6 +1823,10 @@ CQChartsWheelPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

@@ -1047,6 +1047,10 @@ CQChartsHierScatterPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

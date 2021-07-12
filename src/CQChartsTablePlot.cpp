@@ -2449,6 +2449,10 @@ CQChartsTablePlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 

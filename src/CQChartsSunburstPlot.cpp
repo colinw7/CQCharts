@@ -1845,6 +1845,10 @@ CQChartsSunburstPlotCustomControls(CQCharts *charts) :
 
   //---
 
+  addLayoutStretch();
+
+  //---
+
   connectSlots(true);
 }
 
