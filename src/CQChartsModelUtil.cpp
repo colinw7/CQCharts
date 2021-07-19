@@ -185,9 +185,9 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     return (columnTypeData.type != ModelType::NONE);
   };
 
-  if (column.type() == CQChartsColumn::Type::DATA ||
-      column.type() == CQChartsColumn::Type::DATA_INDEX ||
-      column.type() == CQChartsColumn::Type::HHEADER) {
+  if (column.type() == Column::Type::DATA ||
+      column.type() == Column::Type::DATA_INDEX ||
+      column.type() == Column::Type::HHEADER) {
     // get column number and validate
     int icolumn = column.column();
 
@@ -200,7 +200,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     auto *columnTypeMgr = charts->columnTypeMgr();
 
     if (columnTypeMgr->getModelColumnType(model, CQChartsColumn(icolumn), columnTypeData)) {
-      if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
+      if (column.type() == Column::Type::DATA_INDEX) {
         const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
         if (typeData)
@@ -215,7 +215,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     // determine column type from values
     // TODO: cache (in plot ?), max visited values
 
-    if (column.type() == CQChartsColumn::Type::HHEADER)
+    if (column.type() == Column::Type::HHEADER)
       return setRetType(ModelType::STRING);
 
     auto *baseModel =
@@ -235,7 +235,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
 
     return setRetType(columnType);
   }
-  else if (column.type() == CQChartsColumn::Type::GROUP) {
+  else if (column.type() == Column::Type::GROUP) {
     return setRetType(ModelType::INTEGER);
   }
   else {
@@ -289,7 +289,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQCha
 
   auto *columnTypeMgr = charts->columnTypeMgr();
 
-  if (column.type() == CQChartsColumn::Type::HHEADER) {
+  if (column.type() == Column::Type::HHEADER) {
     auto columnType = columnTypeMgr->getType(typeData.headerType);
     if (! columnType) return false;
 
@@ -1162,8 +1162,8 @@ QVariant modelHeaderValueI(const QAbstractItemModel *model, const CQChartsColumn
   if (column.hasName())
     return column.name();
 
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX)
     return QVariant();
 
   int icolumn = column.column();
@@ -1233,8 +1233,8 @@ QString modelHHeaderString(const QAbstractItemModel *model, const CQChartsColumn
 
 bool setModelHeaderValueI(QAbstractItemModel *model, const CQChartsColumn &column,
                           Qt::Orientation orient, const QVariant &var, int role) {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX)
     return false;
 
   if (role >= 0)
@@ -1267,8 +1267,8 @@ bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column
 
 bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                    const QVariant &var, int role) {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX)
     return false;
 
   auto ind = model->index(row, column.column(), QModelIndex());
@@ -1308,12 +1308,12 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return QVariant();
   }
 
-  if      (column.type() == CQChartsColumn::Type::DATA) {
+  if      (column.type() == Column::Type::DATA) {
     auto ind = model->index(row, column.column(), parent);
 
     return modelValue(model, ind, role, ok);
   }
-  else if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
+  else if (column.type() == Column::Type::DATA_INDEX) {
     int icolumn = column.column();
 
     auto ind = model->index(row, icolumn, parent);
@@ -1337,35 +1337,35 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     return ivar;
   }
-  else if (column.type() == CQChartsColumn::Type::ROW) {
+  else if (column.type() == Column::Type::ROW) {
     ok = true;
 
     return row + column.rowOffset();
   }
-  else if (column.type() == CQChartsColumn::Type::COLUMN) {
+  else if (column.type() == Column::Type::COLUMN) {
     ok = true;
 
     return column.columnCol();
   }
-  else if (column.type() == CQChartsColumn::Type::CELL) {
+  else if (column.type() == Column::Type::CELL) {
     ok = true;
 
     auto ind = model->index(row, column.cellCol(), parent);
 
     return modelValue(model, ind, role, ok);
   }
-  else if (column.type() == CQChartsColumn::Type::VHEADER) {
+  else if (column.type() == Column::Type::VHEADER) {
     auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 
     return var;
   }
-  else if (column.type() == CQChartsColumn::Type::GROUP) {
+  else if (column.type() == Column::Type::GROUP) {
     auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical,
                                              CQBaseModelRole::Group, ok);
 
     return var;
   }
-  else if (column.type() == CQChartsColumn::Type::EXPR) {
+  else if (column.type() == Column::Type::EXPR) {
     bool showError = false;
 
     QVariant var;
@@ -1837,16 +1837,15 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
     auto lhs = str1.mid(0, pos);
     auto rhs = str1.mid(pos + 1, str1.length() - pos - 2);
 
-    CQChartsColumn column1;
+    Column column1;
 
     if (! stringToColumn(model, lhs, column1))
       return false;
 
-    if (column1.type() != CQChartsColumn::Type::DATA)
+    if (column1.type() != Column::Type::DATA)
       return false;
 
-    column = CQChartsColumn(CQChartsColumn::Type::DATA_INDEX,
-                            column1.column(), rhs, column1.role());
+    column = Column::makeDataIndex(column1.column(), rhs, column1.role());
 
     return true;
   }

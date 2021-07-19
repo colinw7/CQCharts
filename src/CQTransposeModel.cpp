@@ -51,7 +51,7 @@ void
 CQTransposeModel::
 connectDisconnectSlots(bool b)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
@@ -117,7 +117,7 @@ int
 CQTransposeModel::
 columnCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->rowCount(mapToSource(parent));
 }
@@ -127,7 +127,7 @@ int
 CQTransposeModel::
 rowCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->columnCount(mapToSource(parent));
 }
@@ -162,7 +162,7 @@ QVariant
 CQTransposeModel::
 data(const QModelIndex &index, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->data(mapToSource(index), role);
 }
@@ -171,7 +171,7 @@ bool
 CQTransposeModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->setData(mapToSource(index), value, role);
 }
@@ -180,9 +180,9 @@ QVariant
 CQTransposeModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
-  Qt::Orientation orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
+  auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
   return model->headerData(section, orientation1, role);
 }
@@ -191,9 +191,9 @@ bool
 CQTransposeModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
-  Qt::Orientation orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
+  auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
   return model->setHeaderData(section, orientation1, value, role);
 }
@@ -202,7 +202,7 @@ Qt::ItemFlags
 CQTransposeModel::
 flags(const QModelIndex &index) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->flags(mapToSource(index));
 }
@@ -232,7 +232,7 @@ mapToSource(const QModelIndex &proxyIndex) const
   int r = proxyIndex.row   ();
   int c = proxyIndex.column();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->index(c, r);
 }
@@ -338,7 +338,7 @@ void
 CQTransposeModel::
 headerDataChangedSlot(Qt::Orientation orientation, int first, int last)
 {
-  Qt::Orientation orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
+  auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
   emit headerDataChanged(orientation1, first, last);
 }

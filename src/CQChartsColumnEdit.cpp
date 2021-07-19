@@ -68,7 +68,7 @@ column() const
 
 void
 CQChartsColumnLineEdit::
-setColumn(const CQChartsColumn &column)
+setColumn(const Column &column)
 {
   updateColumn(column, /*updateText*/true);
 }
@@ -82,7 +82,7 @@ setNumericOnly(bool b)
 
 void
 CQChartsColumnLineEdit::
-updateColumn(const CQChartsColumn &column, bool updateText)
+updateColumn(const Column &column, bool updateText)
 {
   connectSlots(false);
 
@@ -100,12 +100,12 @@ void
 CQChartsColumnLineEdit::
 textChanged()
 {
-  CQChartsColumn column;
+  Column column;
 
   auto text = edit_->text();
 
   if (text.trimmed() == "") {
-    column = CQChartsColumn();
+    column = Column();
   }
   else {
     if (modelData()) {
@@ -115,7 +115,7 @@ textChanged()
         return;
     }
     else {
-      column = CQChartsColumn(text);
+      column = Column(text);
     }
   }
 
@@ -241,7 +241,7 @@ QString
 CQChartsColumnPropertyViewType::
 valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
 {
-  auto column = value.value<CQChartsColumn>();
+  auto column = value.value<Column>();
 
   QString str;
 
@@ -325,7 +325,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
-  auto column = var.value<CQChartsColumn>();
+  auto column = var.value<Column>();
 
   edit->setColumn(column);
 }
@@ -453,7 +453,7 @@ column() const
 
 void
 CQChartsColumnEdit::
-setColumn(const CQChartsColumn &column)
+setColumn(const Column &column)
 {
   column_ = column;
 
@@ -479,8 +479,8 @@ columnToWidgets()
   if (column_.isValid()) {
     nameEdit_->setText(column_.name());
 
-    if      (column_.type() == CQChartsColumn::Type::DATA ||
-             column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+    if      (column_.type() == Column::Type::DATA ||
+             column_.type() == Column::Type::DATA_INDEX) {
       typeCombo_->setCurrentIndex(0);
 
       columnCombo_->setColumn(column_);
@@ -488,21 +488,21 @@ columnToWidgets()
       if (column_.hasRole())
         roleEdit_->setText(QString::number(column_.role()));
 
-      if (column_.type() == CQChartsColumn::Type::DATA_INDEX)
+      if (column_.type() == Column::Type::DATA_INDEX)
         indexEdit_->setText(column_.index());
     }
-    else if (column_.type() == CQChartsColumn::Type::EXPR) {
+    else if (column_.type() == Column::Type::EXPR) {
       typeCombo_->setCurrentIndex(1);
 
       expressionEdit_->setText(column_.expr());
     }
-    else if (column_.type() == CQChartsColumn::Type::ROW) {
+    else if (column_.type() == Column::Type::ROW) {
       typeCombo_->setCurrentIndex(2);
     }
-    else if (column_.type() == CQChartsColumn::Type::VHEADER) {
+    else if (column_.type() == Column::Type::VHEADER) {
       typeCombo_->setCurrentIndex(3);
     }
-    else if (column_.type() == CQChartsColumn::Type::GROUP) {
+    else if (column_.type() == Column::Type::GROUP) {
       typeCombo_->setCurrentIndex(4);
     }
   }
@@ -522,7 +522,7 @@ void
 CQChartsColumnEdit::
 widgetsToColumn()
 {
-  CQChartsColumn column;
+  Column column;
 
   if      (typeCombo_->currentIndex() == 0) {
     auto icolumn = columnCombo_->getColumn();
@@ -535,11 +535,9 @@ widgetsToColumn()
       role = -1;
 
     if (indexEdit_->text().trimmed().length())
-      column = CQChartsColumn(CQChartsColumn::Type::DATA_INDEX, icolumn.column(),
-                              indexEdit_->text().trimmed(), int(role));
+      column = Column::makeDataIndex(icolumn.column(), indexEdit_->text().trimmed(), int(role));
     else
-      column = CQChartsColumn(CQChartsColumn::Type::DATA, icolumn.column(),
-                              "", int(role));
+      column = Column::makeData(icolumn.column(), int(role));
   }
   else if (typeCombo_->currentIndex() == 1) {
     QString str;
@@ -547,16 +545,16 @@ widgetsToColumn()
     if (expressionEdit_->text().trimmed().length())
       str = expressionEdit_->text();
 
-    column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
+    column = Column::makeExpr(str);
   }
   else if (typeCombo_->currentIndex() == 2) {
-    column = CQChartsColumn(CQChartsColumn::Type::ROW, -1, "", -1);
+    column = Column::makeRow();
   }
   else if (typeCombo_->currentIndex() == 3) {
-    column = CQChartsColumn(CQChartsColumn::Type::VHEADER, -1, "", -1);
+    column = Column::makeVHeader();
   }
   else if (typeCombo_->currentIndex() == 4) {
-    column = CQChartsColumn(CQChartsColumn::Type::GROUP, -1, "", -1);
+    column = Column::makeGroup();
   }
 
   if (nameEdit_->text().trimmed().length())

@@ -40,7 +40,7 @@ void
 CQCollapseModel::
 connectSlots(bool b)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
@@ -193,7 +193,7 @@ CQCollapseModel::
 columnCount(const QModelIndex &) const
 {
   // extra count column
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->columnCount() + 1;
 }
@@ -208,7 +208,7 @@ rowCount(const QModelIndex &parent) const
   if (parent.isValid())
     return 0;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->rowCount(parent);
 }
@@ -256,7 +256,7 @@ data(const QModelIndex &index, int role) const
 
   //---
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   int c  = index.column();
   int nc = model->columnCount();
@@ -268,7 +268,7 @@ data(const QModelIndex &index, int role) const
 
   // count in last column
   if (c == nc) {
-    QModelIndex ind1 = model->index(index.row(), 0, QModelIndex());
+    auto ind1 = model->index(index.row(), 0, QModelIndex());
 
     if (role == Qt::DisplayRole || role == Qt::EditRole)
       return model->rowCount(ind1);
@@ -307,7 +307,7 @@ QVariant
 CQCollapseModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   int nc = model->columnCount();
 
@@ -361,7 +361,7 @@ bool
 CQCollapseModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &var, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   int nc = model->columnCount();
 
@@ -386,7 +386,7 @@ Qt::ItemFlags
 CQCollapseModel::
 flags(const QModelIndex & /*index*/) const
 {
-  //QAbstractItemModel *model = this->sourceModel();
+  //auto *model = this->sourceModel();
 
   // pass to source model
   // TODO: remove editable, others ?
@@ -436,7 +436,7 @@ mapToSource(const QModelIndex &proxyIndex) const
   if (c < 0 || c >= columnCount())
     return QModelIndex();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->index(r, c);
 }
@@ -459,7 +459,7 @@ CQCollapseModel::VariantData &
 CQCollapseModel::
 getVariantData(int r, int c, int role) const
 {
-  CQCollapseModel *th = const_cast<CQCollapseModel *>(this);
+  auto *th = const_cast<CQCollapseModel *>(this);
 
   auto pr = th->rowDataMap_.find(r);
 
@@ -492,26 +492,26 @@ void
 CQCollapseModel::
 collapseRowColumn(int row, int column, int role, VariantData &variantData) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   //---
 
-  QModelIndex ind = model->index(row, column, QModelIndex());
+  auto ind = model->index(row, column, QModelIndex());
 
-  QVariant var = model->data(ind, Qt::DisplayRole);
+  auto var = model->data(ind, Qt::DisplayRole);
 
   variantData.setParent(var);
 
   //---
 
-  QModelIndex parent = model->index(row, 0, QModelIndex());
+  auto parent = model->index(row, 0, QModelIndex());
 
   int nr = model->rowCount(parent);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex index = model->index(r, column, parent);
+    auto index = model->index(r, column, parent);
 
-    QVariant var = model->data(index, role);
+    auto var = model->data(index, role);
 
     variantData.addChild(var);
   }
@@ -525,10 +525,10 @@ displayValue(const ColumnConfig &config) const
 {
   // get display value if not cached
   if (! displayValue_.isValid()) {
-    CQCollapseModel::VariantData *th = const_cast<CQCollapseModel::VariantData *>(this);
+    auto *th = const_cast<CQCollapseModel::VariantData *>(this);
 
     if (config.collapseOp == CollapseOp::UNIQUE) {
-      QString pstr = parent_.toString();
+      auto pstr = parent_.toString();
 
       if (pstr != "") {
         th->displayValue_ = pstr;
@@ -540,9 +540,9 @@ displayValue(const ColumnConfig &config) const
         int nc = children_.length();
 
         for (int i = 0; i < nc; ++i) {
-          const QVariant &var = children_[i];
+          const auto &var = children_[i];
 
-          QString str1 = var.toString();
+          auto str1 = var.toString();
 
           if (str1 == "")
             continue;
@@ -578,7 +578,7 @@ displayValue(const ColumnConfig &config) const
           int    nv  = 0;
 
           for (int i = 0; i < nc; ++i) {
-            const QVariant &var = children_[i];
+            const auto &var = children_[i];
 
             bool ok;
 

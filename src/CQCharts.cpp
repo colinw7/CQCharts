@@ -29,6 +29,7 @@
 #include <CQChartsScatterPlot.h>
 #include <CQChartsScatterPlot3D.h>
 #include <CQChartsStripPlot.h>
+#include <CQChartsSummaryPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
@@ -578,6 +579,7 @@ init()
   plotTypeMgr()->addTypeT<CQChartsScatterPlotType      >("scatter"      );
   plotTypeMgr()->addTypeT<CQChartsScatterPlot3DType    >("scatter3d"    );
   plotTypeMgr()->addTypeT<CQChartsStripPlotType        >("strip"        );
+  plotTypeMgr()->addTypeT<CQChartsSummaryPlotType      >("summary"      );
   plotTypeMgr()->addTypeT<CQChartsSunburstPlotType     >("sunburst"     );
   plotTypeMgr()->addTypeT<CQChartsTablePlotType        >("table"        );
   plotTypeMgr()->addTypeT<CQChartsTreeMapPlotType      >("treemap"      );

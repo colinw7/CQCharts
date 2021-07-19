@@ -667,8 +667,8 @@ bool
 CQChartsModelColumnDetails::
 isMonotonic() const
 {
-  if (column_.type() == CQChartsColumn::Type::DATA ||
-      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+  if (column_.type() == Column::Type::DATA ||
+      column_.type() == Column::Type::DATA_INDEX) {
     bool ok;
 
     auto *model = details_->model();
@@ -691,8 +691,8 @@ bool
 CQChartsModelColumnDetails::
 isIncreasing() const
 {
-  if (column_.type() == CQChartsColumn::Type::DATA ||
-      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+  if (column_.type() == Column::Type::DATA ||
+      column_.type() == Column::Type::DATA_INDEX) {
     bool ok;
 
     auto *model = details_->model();
@@ -729,7 +729,7 @@ numUnique() const
 {
   auto *valueSet = this->calcValueSet();
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     return details_->numRows();
   }
 
@@ -761,7 +761,7 @@ uniqueValues() const
 
   QVariantList vars;
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     return vars; // TODO
   }
 
@@ -817,7 +817,7 @@ uniqueCounts() const
 
   QVariantList vars;
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     return vars; // TODO
   }
 
@@ -853,7 +853,7 @@ uniqueValueCounts() const
 
   ValueCounts valueCounts;
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     return valueCounts; // TODO
   }
 
@@ -911,7 +911,7 @@ uniqueId(const QVariant &var) const
 
   bool ok;
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     long i = CQChartsVariant::toInt(var, ok);
 
     return (ok ? int(i) : -1);
@@ -956,7 +956,7 @@ QVariant
 CQChartsModelColumnDetails::
 uniqueValue(int i) const
 {
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     return QVariant(i);
   }
 
@@ -1236,6 +1236,43 @@ map(const QVariant &var) const
   return 0;
 }
 
+//---
+
+QVariant
+CQChartsModelColumnDetails::
+value(int i) const
+{
+  if      (type() == CQBaseModelType::INTEGER) {
+    const auto &value = valueSet_->ivals().value(i);
+
+    return (value ? value.value() : QVariant());
+  }
+  else if (type() == CQBaseModelType::REAL) {
+    const auto &value = valueSet_->rvals().value(i);
+
+    return (value ? value.value() : QVariant());
+  }
+  else if (type() == CQBaseModelType::STRING) {
+    const auto &value = valueSet_->svals().value(i);
+
+    return (value ? value.value() : QVariant());
+  }
+  else if (type() == CQBaseModelType::TIME) {
+    const auto &value = valueSet_->tvals().value(i);
+
+    return (value ? value.value() : QVariant());
+  }
+  else if (type() == CQBaseModelType::COLOR) {
+    const auto &value = valueSet_->cvals().value(i);
+
+    return CQChartsVariant::fromColor(value);
+  }
+
+  return QVariant();
+}
+
+//---
+
 void
 CQChartsModelColumnDetails::
 resetTypeInitialized()
@@ -1315,7 +1352,7 @@ calcCache()
 
   //---
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     initialized_ = true;
 
     return true;
@@ -1776,8 +1813,8 @@ calcType()
   if (! column_.isValid())
     return false;
 
-  if (column_.type() == CQChartsColumn::Type::DATA ||
-      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+  if (column_.type() == Column::Type::DATA ||
+      column_.type() == Column::Type::DATA_INDEX) {
     int icolumn = column_.column();
 
     int numColumns = details_->numColumns();
@@ -1788,7 +1825,7 @@ calcType()
 
   //---
 
-  if (column_.type() == CQChartsColumn::Type::ROW) {
+  if (column_.type() == Column::Type::ROW) {
     typeData_.type     = CQBaseModelType::INTEGER;
     typeData_.baseType = CQBaseModelType::INTEGER;
 
@@ -1958,6 +1995,7 @@ void
 CQChartsModelColumnDetails::
 addValue(const QVariant &value)
 {
+  // add unique value
   auto p = valueInds_.find(value);
 
   if (p == valueInds_.end()) {

@@ -350,7 +350,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
     auto altColorStr = image.text("altColor");
     auto altAlphaStr = image.text("altAlpha");
 
-    QColor altColor = Qt::transparent;
+    auto altColor = QColor(Qt::transparent);
 
     if (altColorStr.length()) {
       altColor = CQChartsUtil::stringToColor(altColorStr);

@@ -191,8 +191,8 @@ class CQBucketer {
   int    calcIStart() const;
 
  private:
-  using StringInd = std::map<QString,int>;
-  using IndString = std::map<int,QString>;
+  using StringInd = std::map<QString, int>;
+  using IndString = std::map<int, QString>;
 
   // general data
   Type   type_      { Type::STRING }; //!< data type

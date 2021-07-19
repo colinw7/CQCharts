@@ -91,6 +91,7 @@ CQChartsPivotPlot.cpp \
 CQChartsRadarPlot.cpp \
 CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
+CQChartsSummaryPlot.cpp \
 CQChartsStripPlot.cpp \
 CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
@@ -449,6 +450,7 @@ HEADERS += \
 ../include/CQChartsRadarPlot.h \
 ../include/CQChartsSankeyPlot.h \
 ../include/CQChartsScatterPlot.h \
+../include/CQChartsSummaryPlot.h \
 ../include/CQChartsStripPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \

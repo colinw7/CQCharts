@@ -8767,7 +8767,7 @@ getNamedColumn(const QString &name) const
   else if (name == "color"  ) c = this->colorColumn();
   else if (name == "alpha"  ) c = this->alphaColumn();
   else if (name == "font"   ) c = this->fontColumn();
-  else assert(false);
+  else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 
   return c;
 }
@@ -8782,7 +8782,7 @@ setNamedColumn(const QString &name, const Column &c)
   else if (name == "color"  ) this->setColorColumn(c);
   else if (name == "alpha"  ) this->setAlphaColumn(c);
   else if (name == "font"   ) this->setFontColumn(c);
-  else assert(false);
+  else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 }
 
 CQChartsColumns
@@ -8793,7 +8793,7 @@ getNamedColumns(const QString &name) const
   if      (name == "tip"    ) c = this->tipColumns();
   else if (name == "notip"  ) c = this->noTipColumns();
   else if (name == "control") c = this->controlColumns();
-  else assert(false);
+  else CQCHARTS_QASSERT(false, "Invalid columns name: " + name);
 
   return c;
 }
@@ -8805,7 +8805,7 @@ setNamedColumns(const QString &name, const Columns &c)
   if      (name == "tip"    ) this->setTipColumns(c);
   else if (name == "notip"  ) this->setNoTipColumns(c);
   else if (name == "control") this->setControlColumns(c);
-  else assert(false);
+  else CQCHARTS_QASSERT(false, "Invalid columns name: " + name);
 }
 
 //---
@@ -9418,6 +9418,19 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   }
 
   return symbolType.isValid();
+}
+
+//------
+
+CQChartsSymbolSet *
+CQChartsPlot::
+defaultSymbolSet() const
+{
+  auto *symbolSetMgr = charts()->symbolSetMgr();
+  auto *symbolSet    = symbolSetMgr->symbolSet(defaultSymbolSetName_.length() ?
+                         defaultSymbolSetName_ : "all");
+
+  return symbolSet;
 }
 
 //------
@@ -10783,6 +10796,26 @@ objNearestPoint(const Point &p, PlotObj* &obj) const
   double ty = dataRange().ysize()/32.0;
 
   return objTreeData_.tree->objectNearest(p, tx, ty, obj);
+}
+
+//---
+
+void
+CQChartsPlot::
+addRootMenuItems(QMenu *menu)
+{
+  addMenuAction(menu, "Collapse", SLOT(collapseRootSlot()));
+}
+
+void
+CQChartsPlot::
+collapseRootSlot()
+{
+  assert(rootPlot());
+
+  const_cast<CQChartsPlot *>(rootPlot())->setVisible(true);
+
+  setVisible(false);
 }
 
 //---
@@ -15344,10 +15377,7 @@ CQChartsModelColumnDetails *
 CQChartsPlot::
 columnDetails(const Column &column) const
 {
-  auto *modelData = getModelData();
-  if (! modelData) return nullptr;
-
-  auto *details = modelData->details();
+  auto *details = modelDetails();
   if (! details) return nullptr;
 
   return details->columnDetails(column);
@@ -15358,6 +15388,16 @@ CQChartsPlot::
 getModelData() const
 {
   return charts()->getModelData(model_.data());
+}
+
+CQChartsModelDetails *
+CQChartsPlot::
+modelDetails() const
+{
+  auto *modelData = getModelData();
+  if (! modelData) return nullptr;
+
+  return modelData->details();
 }
 
 //------
@@ -15585,8 +15625,7 @@ bool
 CQChartsPlot::
 isHierarchical() const
 {
-  auto *modelData = getModelData();
-  auto *details   = (modelData ? modelData->details() : nullptr);
+  auto *details = modelDetails();
 
   if (details)
     return details->isHierarchical();
@@ -15943,7 +15982,7 @@ modelHHeaderTip(const Column &column, bool &ok) const
 {
   auto str = modelHHeaderString(model().data(), column, (int) CQBaseModelRole::Tip, ok);
 
-  if (! ok)
+  if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
 
   return str;

@@ -214,7 +214,7 @@ initMapping()
 
   //---
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   int nr = (model ? model->rowCount() : 0);
 
@@ -293,9 +293,9 @@ initMapping()
     rowValues.resize(nr);
 
     for (int r = 0; r < nr; ++r) {
-      QModelIndex ind = model->index(r, sortColumn(), QModelIndex());
+      auto ind = model->index(r, sortColumn(), QModelIndex());
 
-      QVariant value = model->data(ind, sortRole());
+      auto value = model->data(ind, sortRole());
 
       rowValues[r] = ValueRow(value, r);
     }
@@ -373,7 +373,7 @@ int
 CQSummaryModel::
 columnCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return (model ? model->columnCount(parent) : 0);
 }
@@ -383,9 +383,9 @@ int
 CQSummaryModel::
 rowCount(const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
-  QModelIndex parent1 = (parent.isValid() ? mapToSource(parent) : QModelIndex());
+  auto parent1 = (parent.isValid() ? mapToSource(parent) : QModelIndex());
 
   if      (mode() == Mode::PAGED) {
     int nr = (model ? model->rowCount(parent1) : 0);
@@ -444,7 +444,7 @@ QVariant
 CQSummaryModel::
 data(const QModelIndex &index, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   return model->data(mapToSource(index), role);
@@ -454,7 +454,7 @@ bool
 CQSummaryModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   return model->setData(mapToSource(index), value, role);
@@ -464,7 +464,7 @@ QVariant
 CQSummaryModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   return model->headerData(section, orientation, role);
@@ -474,7 +474,7 @@ bool
 CQSummaryModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   return model->setHeaderData(section, orientation, value, role);
@@ -484,7 +484,7 @@ Qt::ItemFlags
 CQSummaryModel::
 flags(const QModelIndex &index) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return 0;
 
   return model->flags(mapToSource(index));
@@ -501,7 +501,7 @@ mapFromSource(const QModelIndex &sourceIndex) const
   int r = sourceIndex.row   ();
   int c = sourceIndex.column();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   if      (mode() == Mode::NORMAL) {
     if (r < 0 || r >= model->rowCount())
@@ -586,7 +586,7 @@ mapToSource(const QModelIndex &proxyIndex) const
       r = rowInds_[r];
   }
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
 
   return model->index(r, c);
 }

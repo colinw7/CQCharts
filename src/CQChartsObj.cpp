@@ -19,7 +19,7 @@ id() const
     if (! id_) {
       const_cast<CQChartsObj*>(this)->id_ = calcId();
 
-      assert((*id_).length());
+      CQCHARTS_ASSERT((*id_).length(), "Object has empty id");
     }
   }
 

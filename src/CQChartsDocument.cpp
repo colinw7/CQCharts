@@ -9,7 +9,7 @@ CQChartsDocument(QWidget *parent) :
   setOpenLinks(false);
   setOpenExternalLinks(false);
 
-  QString imagePath = "/home/colinw/dev/progs/charts/doc/CQCharts";
+  auto imagePath = QString("/home/colinw/dev/progs/charts/doc/CQCharts");
 
   document()->setMetaInformation(QTextDocument::DocumentUrl, "file:" + imagePath + "/");
 

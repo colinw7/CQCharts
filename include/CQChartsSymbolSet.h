@@ -37,7 +37,7 @@ class CQChartsSymbolSetMgr : public QObject {
   using SymbolSets      = std::vector<CQChartsSymbolSet *>;
   using NamedSymbolSets = std::map<QString, CQChartsSymbolSet *>;
 
-  CQCharts*       charts_;
+  CQCharts*       charts_ { nullptr };
   SymbolSets      symbolSets_;
   NamedSymbolSets namedSymbolSets_;
 };

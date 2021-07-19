@@ -96,7 +96,8 @@ CQChartsGroupPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit groupCustomDataChanged(); } );
+    resetSetHidden(); updateRangeAndObjs(); emit groupCustomDataChanged();
+  } );
 }
 
 //---
@@ -106,7 +107,8 @@ CQChartsGroupPlot::
 setRowGrouping(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.rowGrouping, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
+    updateRangeAndObjs(); emit groupCustomDataChanged();
+  } );
 }
 
 void
@@ -114,7 +116,8 @@ CQChartsGroupPlot::
 setUsePath(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.usePath, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
+    updateRangeAndObjs(); emit groupCustomDataChanged();
+  } );
 }
 
 void
@@ -122,7 +125,8 @@ CQChartsGroupPlot::
 setUseRow(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.useRow, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
+    updateRangeAndObjs(); emit groupCustomDataChanged();
+  } );
 }
 
 //---
@@ -132,7 +136,8 @@ CQChartsGroupPlot::
 setExactBucketValue(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.exactValue, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged(); } );
+    updateRangeAndObjs(); emit groupCustomDataChanged();
+  } );
 }
 
 void

@@ -148,7 +148,7 @@ typeNames(QStringList &names, bool hidden) const
 
   for (auto &typeData : typeData_) {
     if (! hidden && typeData.second->isHidden())
-       continue;
+      continue;
 
     auto name = CQBaseModel::typeName(typeData.first);
 
@@ -382,8 +382,8 @@ CQChartsColumnTypeMgr::
 getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column,
                    CQChartsModelTypeData &typeData) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX) {
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX) {
     typeData.type     = Type::STRING;
     typeData.baseType = Type::STRING;
     return true;

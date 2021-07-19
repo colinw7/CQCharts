@@ -145,7 +145,7 @@ class CQChartsPlotCustomControls : public QFrame {
   CQChartsPlot* plot_ { nullptr };
 
   bool numericOnly_ { false };
-  bool showTitle_   { false };
+  bool showTitle_   { true };
 
   QFrame* titleFrame_ { nullptr };
   QLabel* titleLabel_ { nullptr };

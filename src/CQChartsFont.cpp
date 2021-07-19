@@ -98,8 +98,12 @@ setFontStr(const QString &str)
     }
     else if (parse.isWord("bolditalic") || parse.isWord("bold_italic") ||
              parse.isWord("bold-italic")) {
-      parse.skipWord("italic");
+      if (parse.isWord("bolditalic"))
+        parse.skipWord("bolditalic");
+      else
+        parse.skipWord("bold_italic");
 
+      inheritData.bold   = true;
       inheritData.italic = true;
       valid              = true;
     }

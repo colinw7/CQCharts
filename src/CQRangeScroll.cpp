@@ -236,7 +236,7 @@ QSize
 CQRangeScroll::
 minimumSizeHint() const
 {
-  QSize s = scroll_->minimumSizeHint();
+  auto s = scroll_->minimumSizeHint();
 
   if (orientation_ == Qt::Horizontal)
     return QSize(s.width(), s.height() + 32);
@@ -335,8 +335,8 @@ paintEvent(QPaintEvent *)
   int pixel1 = scroll_->posToPixel(scroll_->pos()                 );
   int pixel2 = scroll_->posToPixel(scroll_->pos() + scroll_->len());
 
-  QColor c = scroll_->rangeColor();
-  double a = scroll_->rangeAlpha();
+  auto c = scroll_->rangeColor();
+  auto a = scroll_->rangeAlpha();
 
   c.setAlphaF(a);
 
@@ -369,11 +369,11 @@ paintEvent(QPaintEvent *)
 {
   QPainter p(this);
 
-  QBrush b = palette().window();
+  auto b = palette().window();
 
   p.fillRect(rect(), b);
 
-  QColor c = palette().text().color();
+  auto c = palette().text().color();
 
   p.setPen(c);
 

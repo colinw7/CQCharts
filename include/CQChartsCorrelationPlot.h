@@ -32,6 +32,8 @@ class CQChartsCorrelationPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  //---
+
   Plot *create(View *view, const ModelP &model) const override;
 };
 
@@ -182,13 +184,13 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
-  // cell labels
+  //! get is cell labels
   bool isCellLabels() const { return cellLabels_; }
 
-  // x labels
+  //! get is x labels
   bool isXLabels() const { return xLabels_; }
 
-  // y labels
+  //! get is y labels
   bool isYLabels() const { return yLabels_; }
 
   //---
@@ -235,8 +237,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   using CellObj = CQChartsCorrelationCellObj;
 
-  CellObj *createCellObj(const BBox &rect, int row, int col, double value,
-                         const QModelIndex &ind) const;
+  virtual CellObj *createCellObj(const BBox &rect, int row, int col, double value,
+                                 const QModelIndex &ind) const;
 
  public slots:
   void setCellLabels(bool b);
@@ -260,17 +262,20 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  CQChartsFilterModel*      correlationModel_  { nullptr }; //!< correlation model
-  ModelP                    correlationModelP_;             //!< correlation model shared pointer
-  CQChartsCorrelationModel* baseModel_         { nullptr }; //!< base correlation model
-  bool                      cellLabels_        { true };    //!< cell labels
-  bool                      xLabels_           { true };    //!< x labels
-  bool                      yLabels_           { true };    //!< y labels
-  int                       nc_                { 0 };       //!< number of grid columns
-  mutable double            labelScale_        { 1.0 };     //!< label scale
-  DiagonalType              diagonalType_      { DiagonalType::NAME };
-  OffDiagonalType           upperDiagonalType_ { OffDiagonalType::PIE };
-  OffDiagonalType           lowerDiagonalType_ { OffDiagonalType::SHADE };
+  using FilterModel      = CQChartsFilterModel;
+  using CorrelationModel = CQChartsCorrelationModel;
+
+  FilterModel*      correlationModel_  { nullptr };                //!< correlation model
+  ModelP            correlationModelP_;                            //!< correlation model pointer
+  CorrelationModel* baseModel_         { nullptr };                //!< base correlation model
+  bool              cellLabels_        { true };                   //!< cell labels
+  bool              xLabels_           { true };                   //!< x labels
+  bool              yLabels_           { true };                   //!< y labels
+  int               nc_                { 0 };                      //!< number of grid columns
+  mutable double    labelScale_        { 1.0 };                    //!< label scale
+  DiagonalType      diagonalType_      { DiagonalType::NAME };     //!< diagonal type
+  OffDiagonalType   upperDiagonalType_ { OffDiagonalType::PIE };   //!< upper diagonal type
+  OffDiagonalType   lowerDiagonalType_ { OffDiagonalType::SHADE }; //!< lower diagonal type
 };
 
 //---
@@ -285,15 +290,19 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
  public:
   CQChartsCorrelationPlotCustomControls(CQCharts *charts);
 
+  virtual void init();
+
+  virtual void addWidgets();
+
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  void connectSlots(bool b);
+ protected:
+  virtual void connectSlots(bool b);
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected slots:
   void diagonalTypeSlot();
   void upperDiagonalTypeSlot();
   void lowerDiagonalTypeSlot();

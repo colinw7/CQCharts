@@ -60,7 +60,7 @@ save(QAbstractItemModel *model, std::ostream &os)
   QStringList strs;
 
   for (int c = 0; c < nc; ++c) {
-    QVariant var = model->headerData(c, Qt::Horizontal);
+    auto var = model->headerData(c, Qt::Horizontal);
 
     strs << var.toString();
   }
@@ -71,9 +71,9 @@ save(QAbstractItemModel *model, std::ostream &os)
     os << "  {\n";
 
     for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
+      auto ind = model->index(r, c);
 
-      QVariant var = model->data(ind);
+      auto var = model->data(ind);
 
       os << "    \"" << strs[c].toStdString() << "\": ";
 
@@ -343,7 +343,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     QString str;
 
     if (headerString(section, str)) {
-      CQBaseModelType type = columnType(section);
+      auto type = columnType(section);
 
       str += ":" + typeName(type);
 

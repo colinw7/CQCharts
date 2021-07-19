@@ -8840,10 +8840,23 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto rect = argv.getParseRect(view, plot, "rectangle");
+  CQChartsRect rect;
 
-  if (! rect.isValid())
-    return errorMsg("Invalid rectangle value");
+  if (argv.hasParseArg("rectangle")) {
+    rect = argv.getParseRect(view, plot, "rectangle");
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle value");
+  }
+  else {
+    CQChartsGeom::Point start(0, 0);
+    CQChartsGeom::Point end  (1, 1);
+
+    if      (view)
+      rect = CQChartsRect::view(CQChartsGeom::BBox(start, end));
+    else if (plot)
+      rect = CQChartsRect::plot(CQChartsGeom::BBox(start, end));
+  }
 
   CQChartsPoints values;
 

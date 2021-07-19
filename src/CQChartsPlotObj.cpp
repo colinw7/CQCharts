@@ -286,11 +286,11 @@ CQChartsPlotObj::
 addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA &&
+      column.type() != Column::Type::DATA_INDEX)
     return;
 
-  auto ind = plot()->selectIndex(row, CQChartsColumn(column.column()), parent);
+  auto ind = plot()->selectIndex(row, Column(column.column()), parent);
 
   //addSelectIndex(inds, ind);
   inds.insert(ind);

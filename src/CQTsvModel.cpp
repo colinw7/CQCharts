@@ -146,7 +146,7 @@ save(QAbstractItemModel *model, std::ostream &os)
 
   if (isFirstLineHeader()) {
     for (int c = 0; c < nc; ++c) {
-      QVariant var = model->headerData(c, Qt::Horizontal);
+      auto var = model->headerData(c, Qt::Horizontal);
 
       if (var.isValid()) {
         hasHHeader = true;
@@ -159,7 +159,7 @@ save(QAbstractItemModel *model, std::ostream &os)
 
   if (isFirstColumnHeader()) {
     for (int r = 0; r < nr; ++r) {
-      QVariant var = model->headerData(r, Qt::Vertical);
+      auto var = model->headerData(r, Qt::Vertical);
 
       if (var.isValid()) {
         hasVHeader = true;
@@ -179,7 +179,7 @@ save(QAbstractItemModel *model, std::ostream &os)
       output = true;
 
     for (int c = 0; c < nc; ++c) {
-      QVariant var = model->headerData(c, Qt::Horizontal);
+      auto var = model->headerData(c, Qt::Horizontal);
 
       if (output)
         os << "\t";
@@ -200,7 +200,7 @@ save(QAbstractItemModel *model, std::ostream &os)
 
     // output vertical header value if enabled and model has vertical header data
     if (isFirstColumnHeader() && hasVHeader) {
-      QVariant var = model->headerData(r, Qt::Vertical);
+      auto var = model->headerData(r, Qt::Vertical);
 
       os << encodeVariant(var);
 
@@ -210,9 +210,9 @@ save(QAbstractItemModel *model, std::ostream &os)
     //---
 
     for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
+      auto ind = model->index(r, c);
 
-      QVariant var = model->data(ind);
+      auto var = model->data(ind);
 
       if (output)
         os << "\t";
@@ -243,7 +243,7 @@ encodeVariant(const QVariant &var) const
     str = std::to_string(i);
   }
   else {
-    QString qstr = var.toString();
+    auto qstr = var.toString();
 
     str = encodeString(qstr).toStdString();
   }
@@ -260,7 +260,7 @@ encodeString(const QString &str)
   int len = str.length();
 
   for (int i = 0; i < len; ++i) {
-    QChar c = str[i];
+    auto c = str[i];
 
     if      (c == '\n') str1 += "\\n";
     else if (c == '\t') str1 += "\\t";

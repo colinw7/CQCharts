@@ -45,6 +45,7 @@ class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
 class CQChartsPlotCustomControls;
+class CQChartsSymbolSet;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -72,6 +73,7 @@ class CQChartsSymbolSizeMapKeyAnnotation;
 class CQChartsPlotParameter;
 class CQChartsDisplayRange;
 class CQChartsValueSet;
+class CQChartsModelDetails;
 class CQChartsModelColumnDetails;
 class CQChartsModelData;
 class CQChartsEditHandles;
@@ -276,6 +278,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // default palette
   Q_PROPERTY(CQChartsPaletteName defaultPalette READ defaultPalette WRITE setDefaultPalette)
 
+  // default symbol set name
+  Q_PROPERTY(QString defaultSymbolSetName READ defaultSymbolSetName WRITE setDefaultSymbolSetName)
+
   // scaled fonts
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
@@ -341,7 +346,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief associated plot for overlay/y1y2
   struct ConnectData {
-    Plot* parent  { nullptr }; //!< parent plot
+    Plot* parent  { nullptr }; //!< parent plot (for composite)
+    Plot* root    { nullptr }; //!< root plot (for expand/collapse)
     bool  x1x2    { false };   //!< is double x axis plot
     bool  y1y2    { false };   //!< is double y axis plot
     bool  overlay { false };   //!< is overlay plot
@@ -470,6 +476,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using Symbol       = CQChartsSymbol;
   using ColorStops   = CQChartsColorStops;
   using PaletteName  = CQChartsPaletteName;
+
+  using ModelData          = CQChartsModelData;
+  using ModelDetails       = CQChartsModelDetails;
+  using ModelColumnDetails = CQChartsModelColumnDetails;
 
  public:
   CQChartsPlot(View *view, PlotType *type, const ModelP &model);
@@ -718,6 +728,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! get/set default symbol set name
+  const QString &defaultSymbolSetName() const { return defaultSymbolSetName_; }
+  void setDefaultSymbolSetName(const QString &name) { defaultSymbolSetName_ = name; }
+
+  CQChartsSymbolSet *defaultSymbolSet() const;
+
+  //---
+
   // scaled font size
   double minScaleFontSize() const { return minScaleFontSize_; }
   void setMinScaleFontSize(double r) { minScaleFontSize_ = r; }
@@ -906,6 +924,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // composite plot control data
   virtual bool isComposite() const { return false; }
 
   Plot *parentPlot() const { return connectData_.parent; }
@@ -916,6 +935,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual Plot *childPlot(int) const { return nullptr; }
 
   int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
+
+  //---
+
+  // expand/collapse control data
+  const Plot *rootPlot() const { return connectData_.root; }
+  void setRootPlot(Plot *root) { connectData_.root = root; }
 
   //---
 
@@ -2213,6 +2238,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool addMenuItems(QMenu *) { return false; }
 
+  void addRootMenuItems(QMenu *menu);
+
   QAction *addMenuAction(QMenu *menu, const QString &name, const char *slot);
 
   QAction *addMenuCheckedAction(QMenu *menu, const QString &name, bool isSet, const char *slot);
@@ -2814,11 +2841,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool columnDetails(const Column &column, QString &typeName,
                      QVariant &minValue, QVariant &maxValue) const;
 
-  CQChartsModelColumnDetails *columnDetails(const Column &column) const;
+  ModelColumnDetails *columnDetails(const Column &column) const;
 
   //---
 
-  CQChartsModelData *getModelData() const;
+  ModelData *getModelData() const;
+
+  ModelDetails *modelDetails() const;
 
   //---
 
@@ -2927,6 +2956,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void colorMapKeyInsideXSlot(bool);
   void colorMapKeyInsideYSlot(bool);
 
+  void collapseRootSlot();
+
  signals:
   // model data changed
   void modelChanged();
@@ -3030,8 +3061,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     bool  update_ { false };
   };
 
-  using ObjSet     = std::set<Obj *>;
-  using SizeObjSet = std::map<double, ObjSet>;
+  using ObjP        = QPointer<Obj>;
+  using ObjPSet     = std::set<ObjP>;
+  using SizeObjPSet = std::map<double, ObjPSet>;
 
  protected:
   void connectModel();
@@ -3413,6 +3445,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // palette
   PaletteName defaultPalette_; //!< default palette
 
+  // symbol set
+  QString defaultSymbolSetName_ { "filled" }; //!< default symbol set name
+
   // scaling
   bool equalScale_ { false }; //!< equal scaled
 
@@ -3460,10 +3495,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // inside data
   struct InsideData {
-    Point      p;             //!< inside point
-    int        ind     { 0 }; //!< current inside object ind
-    ObjSet     objs;          //!< inside plot objects
-    SizeObjSet sizeObjs;      //!< inside plot objects
+    Point       p;             //!< inside point
+    int         ind     { 0 }; //!< current inside object ind
+    ObjPSet     objs;          //!< inside plot objects
+    SizeObjPSet sizeObjs;      //!< inside plot objects
 
     void clear() {
       p   = Point();

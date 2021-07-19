@@ -1193,10 +1193,14 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
  public:
   CQChartsXYPlotCustomControls(CQCharts *charts);
 
+  virtual void init();
+
+  virtual void addWidgets();
+
   void setPlot(CQChartsPlot *plot) override;
 
  private:
-  void connectSlots(bool b);
+  virtual void connectSlots(bool b);
 
  public slots:
   void updateWidgets() override;
@@ -1212,15 +1216,16 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   void movingAverageSlot(int);
 
  private:
-  CQChartsXYPlot* plot_               { nullptr };
-  QCheckBox*      pointsCheck_        { nullptr };
-  QCheckBox*      linesCheck_         { nullptr };
-  QCheckBox*      fillUnderCheck_     { nullptr };
-  CQCheckBox*     stackedCheck_       { nullptr };
-  CQCheckBox*     impulseCheck_       { nullptr };
-  CQCheckBox*     bestFitCheck_       { nullptr };
-  CQCheckBox*     hullCheck_          { nullptr };
-  CQCheckBox*     movingAverageCheck_ { nullptr };
+  CQChartsXYPlot* plot_ { nullptr };
+
+  QCheckBox*  pointsCheck_        { nullptr };
+  QCheckBox*  linesCheck_         { nullptr };
+  QCheckBox*  fillUnderCheck_     { nullptr };
+  CQCheckBox* stackedCheck_       { nullptr };
+  CQCheckBox* impulseCheck_       { nullptr };
+  CQCheckBox* bestFitCheck_       { nullptr };
+  CQCheckBox* hullCheck_          { nullptr };
+  CQCheckBox* movingAverageCheck_ { nullptr };
 };
 
 #endif

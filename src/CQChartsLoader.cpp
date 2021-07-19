@@ -158,7 +158,7 @@ loadCsv(const CQChartsFile &file, const InputData &inputData)
 
   bool isExprModel = true;
 
-  CQDataModel *dataModel = csvModel;
+  auto *dataModel = dynamic_cast<CQDataModel *>(csvModel);
 
 #ifdef CQCHARTS_EXCEL
   if (inputData.spreadsheet) {

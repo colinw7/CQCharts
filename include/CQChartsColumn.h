@@ -22,8 +22,7 @@
  * The column can also specify the role of the data extracted from the model
  */
 class CQChartsColumn :
-  public CQChartsComparatorBase<CQChartsColumn> ,
-  public CQChartsToStringBase<CQChartsColumn> {
+  public CQChartsComparatorBase<CQChartsColumn>, public CQChartsToStringBase<CQChartsColumn> {
  public:
   enum class Type {
     NONE,
@@ -42,6 +41,26 @@ class CQChartsColumn :
   static void registerMetaType();
 
   static int metaTypeId;
+
+ public:
+  static CQChartsColumn makeData(int column, int role=-1) {
+    return CQChartsColumn(Type::DATA, column, "", role);
+  }
+
+  static CQChartsColumn makeDataIndex(int column, const QString &ind, int role=-1) {
+    return CQChartsColumn(Type::DATA_INDEX, column, ind, role);
+  }
+
+  static CQChartsColumn makeExpr(const QString &expr) {
+    return CQChartsColumn(Type::EXPR, -1, expr, -1);
+  }
+
+  static CQChartsColumn makeRow() { return CQChartsColumn(Type::ROW, -1, "", -1); }
+
+  static CQChartsColumn makeHHeader(int c) { return CQChartsColumn(Type::HHEADER, c, "", -1); }
+  static CQChartsColumn makeVHeader() { return CQChartsColumn(Type::VHEADER, -1, "", -1); }
+
+  static CQChartsColumn makeGroup() { return CQChartsColumn(Type::GROUP, -1, "", -1); }
 
  public:
   CQChartsColumn() = default;
@@ -181,8 +200,7 @@ class CQChartsColumn :
  * \ingroup Charts
  */
 class CQChartsColumns :
-  public CQChartsEqBase<CQChartsColumns>,
-  public CQChartsToStringBase<CQChartsColumns> {
+  public CQChartsEqBase<CQChartsColumns>, public CQChartsToStringBase<CQChartsColumns> {
  public:
   using Columns = std::vector<CQChartsColumn>;
 

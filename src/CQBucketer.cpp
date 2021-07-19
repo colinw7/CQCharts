@@ -46,7 +46,7 @@ bucket(const QVariant &var) const
   bool ok;
 
   if      (type() == Type::STRING) {
-    QString str = var.toString();
+    auto str = var.toString();
 
     return stringBucket(str);
   }

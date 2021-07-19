@@ -864,6 +864,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsCorrelationPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1343,6 +1345,23 @@ CQChartsCorrelationPlotCustomControls::
 CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "correlation")
 {
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+addWidgets()
+{
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
@@ -1353,14 +1372,6 @@ CQChartsCorrelationPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
-
-  //addFrameRowStretch(optionsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void
@@ -1397,6 +1408,8 @@ updateWidgets()
   diagonalTypeCombo_     ->setCurrentValue((int) plot_->diagonalType());
   upperDiagonalTypeCombo_->setCurrentValue((int) plot_->upperDiagonalType());
   lowerDiagonalTypeCombo_->setCurrentValue((int) plot_->lowerDiagonalType());
+
+  CQChartsPlotCustomControls::updateWidgets();
 
   //---
 

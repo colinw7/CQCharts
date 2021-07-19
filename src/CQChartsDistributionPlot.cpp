@@ -3271,6 +3271,10 @@ addMenuItems(QMenu *menu)
   if (canDrawColorMapKey())
     addColorMapKeyItems(menu);
 
+  //---
+
+  addRootMenuItems(menu);
+
   return true;
 }
 

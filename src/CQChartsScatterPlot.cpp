@@ -2351,6 +2351,10 @@ addMenuItems(QMenu *menu)
   menu->addMenu(xMenu);
   menu->addMenu(yMenu);
 
+  //---
+
+  addRootMenuItems(menu);
+
   return true;
 }
 
@@ -3386,6 +3390,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsScatterPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -4274,6 +4280,23 @@ CQChartsScatterPlotCustomControls::
 CQChartsScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPointPlotCustomControls(charts, "scatter")
 {
+}
+
+void
+CQChartsScatterPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsScatterPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -4289,11 +4312,11 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
-  bestFitCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
-  convexHullCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "convexHullCheck");
+  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
+  hullCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "hullCheck");
 
   addFrameColWidget(optionsFrame, bestFitCheck_);
-  addFrameColWidget(optionsFrame, convexHullCheck_);
+  addFrameColWidget(optionsFrame, hullCheck_);
 
   //---
 
@@ -4309,23 +4332,10 @@ CQChartsScatterPlotCustomControls(CQCharts *charts) :
   //---
 
 #if 0
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
   plotTypeCombo_ = createEnumEdit("plotType");
 
   addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
-
-  addFrameRowStretch(optionsFrame);
 #endif
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void
@@ -4401,7 +4411,7 @@ connectSlots(bool b)
   CQChartsWidgetUtil::connectDisconnect(b,
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
-    convexHullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
+    hullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
 
   if (plotTypeCombo_)
     CQChartsWidgetUtil::connectDisconnect(b,
@@ -4468,6 +4478,11 @@ updateWidgets()
 
   //---
 
+  bestFitCheck_->setChecked(plot_->isBestFit());
+  hullCheck_   ->setChecked(plot_->isHull());
+
+  //---
+
   if (plotTypeCombo_)
     plotTypeCombo_->setCurrentValue((int) plot_->plotType());
 
@@ -4520,7 +4535,7 @@ void
 CQChartsScatterPlotCustomControls::
 convexHullSlot()
 {
-  plot_->setHull(convexHullCheck_->isChecked());
+  plot_->setHull(hullCheck_->isChecked());
 }
 
 void

@@ -216,6 +216,10 @@ class CQChartsModelColumnDetails {
 
   //---
 
+  QVariant value(int i) const;
+
+  //---
+
   ValueSet *valueSet() const { return valueSet_; }
 
   //---

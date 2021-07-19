@@ -500,9 +500,10 @@ class CQChartsSValues {
  */
 class CQChartsCValues {
  public:
-  using Values      = std::vector<CQChartsColor>;
+  using Color       = CQChartsColor;
+  using Values      = std::vector<Color>;
   using Counts      = std::vector<int>;
-  using ValueCount  = std::pair<CQChartsColor, int>;
+  using ValueCount  = std::pair<Color, int>;
   using ValueCounts = std::vector<ValueCount>;
 
  public:
@@ -523,14 +524,14 @@ class CQChartsCValues {
   int size() const { return values_.size(); }
 
   // get nth value (non-unique)
-  const CQChartsColor &value(int i) const { return values_[i]; }
+  const Color &value(int i) const { return values_[i]; }
 
-  int addValue(const CQChartsColor &c);
+  int addValue(const Color &c);
 
   int numNull() const { return numNull_; }
 
   // color to id
-  int id(const CQChartsColor &c) const {
+  int id(const Color &c) const {
     // get color set index
     auto p = valset_.find(c);
 
@@ -541,21 +542,21 @@ class CQChartsCValues {
   }
 
   // id to color
-  CQChartsColor ivalue(int i) const {
+  Color ivalue(int i) const {
     // get string for index
     auto p = setvals_.find(i);
 
     if (p == setvals_.end())
-      return CQChartsColor();
+      return Color();
 
     return (*p).second;
   }
 
   // min/max value
-  CQChartsColor min(const CQChartsColor &def=CQChartsColor()) const {
+  Color min(const Color &def=Color()) const {
     return (valset_.empty() ? def : valset_. begin()->first);
   }
-  CQChartsColor max(const CQChartsColor &def=CQChartsColor()) const {
+  Color max(const Color &def=Color()) const {
     return (valset_.empty() ? def : valset_.rbegin()->first);
   }
 
@@ -569,7 +570,7 @@ class CQChartsCValues {
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
 
-    return QVariant::fromValue<CQChartsColor>(valset_.begin()->first);
+    return QVariant::fromValue<Color>(valset_.begin()->first);
   }
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
@@ -588,7 +589,7 @@ class CQChartsCValues {
   }
 
   // map value into real in range
-  double map(const CQChartsColor &c, double mapMin=0.0, double mapMax=1.0) const {
+  double map(const Color &c, double mapMin=0.0, double mapMax=1.0) const {
     // get color set index
     int i = id(c);
 
@@ -603,8 +604,8 @@ class CQChartsCValues {
 
  private:
   using KeyCount  = std::pair<int, int>;
-  using ValueSet  = std::map<CQChartsColor, KeyCount, CQChartsUtil::ColorCmp>;
-  using SetValues = std::map<int, CQChartsColor>;
+  using ValueSet  = std::map<Color, KeyCount, CQChartsUtil::ColorCmp>;
+  using SetValues = std::map<int, Color>;
 
   Values    values_;        //!< all color values
   ValueSet  valset_;        //!< unique indexed color values

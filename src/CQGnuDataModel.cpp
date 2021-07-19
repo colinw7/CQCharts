@@ -18,7 +18,7 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
   QTextStream in(&file);
 
   while (! in.atEnd()) {
-    QString line = in.readLine();
+    auto line = in.readLine();
 
     lines.push_back(line);
   }
@@ -172,7 +172,7 @@ load(const QString &filename)
           pline.skipChar();
 
           while (! pline.eof() && ! pline.isChar('"')) {
-            QChar c = pline.getChar();
+            auto c = pline.getChar();
 
             if (c == '\\') {
               if (! pline.eof())
@@ -187,7 +187,7 @@ load(const QString &filename)
           if (pline.isString(comment)) {
             line1 = pline.getAt(0, pline.getPos()).simplified();
 
-            QString cstr = pline.getAt(pline.getPos() + comment.length()).simplified();
+            auto cstr = pline.getAt(pline.getPos() + comment.length()).simplified();
 
             commentStrs_[setNum][subSetNum][lineNum] = cstr;
 
@@ -351,7 +351,7 @@ parseFileLine(const QString &str, QString &field0, Fields &fields, bool firstCol
       QString word;
 
       while (! line.eof() && ! line.isChar('"')) {
-        QChar c = line.getChar();
+        auto c = line.getChar();
 
         if (c == '\\') {
           if (! line.eof()) {

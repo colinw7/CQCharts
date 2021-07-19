@@ -924,6 +924,10 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  public:
   CQChartsScatterPlotCustomControls(CQCharts *charts);
 
+  virtual void init();
+
+  virtual void addWidgets();
+
   void addSymbolLabelWidgets();
   void addFontSizeWidgets   ();
 
@@ -933,7 +937,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void setColorValue(const CQChartsColor &c) override;
 
  private:
-  void connectSlots(bool b);
+  virtual void connectSlots(bool b);
 
  public slots:
   void updateWidgets() override;
@@ -956,8 +960,8 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  private:
   CQChartsScatterPlot* plot_ { nullptr };
 
-  QCheckBox* bestFitCheck_    { nullptr };
-  QCheckBox* convexHullCheck_ { nullptr };
+  QCheckBox* bestFitCheck_ { nullptr };
+  QCheckBox* hullCheck_    { nullptr };
 
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
 //CQCheckBox*                pointLabelsCheck_ { nullptr };

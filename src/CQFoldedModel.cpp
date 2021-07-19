@@ -39,7 +39,7 @@ QAbstractItemModel *
 CQFoldedModel::
 sourceModel() const
 {
-  QAbstractItemModel *sourceModel = QAbstractProxyModel::sourceModel();
+  auto *sourceModel = QAbstractProxyModel::sourceModel();
 
   return sourceModel;
 }
@@ -74,7 +74,7 @@ void
 CQFoldedModel::
 doResetModel()
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   beginResetModel();
@@ -142,7 +142,7 @@ void
 CQFoldedModel::
 connectSlots(bool b)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
@@ -181,7 +181,7 @@ fold()
   //---
 
   // check column valid
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   numColumns_ = model->columnCount();
@@ -216,7 +216,7 @@ fold()
 
   foldPos_ = 0;
 
-  CQFoldedModel *sourceFoldedModel = sourceFoldedModel_;
+  auto *sourceFoldedModel = sourceFoldedModel_;
 
   while (sourceFoldedModel) {
     ++foldPos_;
@@ -243,7 +243,7 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
   int nr = model->rowCount(parent);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex parent1 = model->index(r, 0, parent);
+    auto parent1 = model->index(r, 0, parent);
 
     int nr1 = model->rowCount(parent1);
 
@@ -251,9 +251,9 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
       calcRMinMax(model, parent1, rset, rmin, rmax);
     }
     else {
-      QModelIndex ind = model->index(r, foldColumn(), parent);
+      auto ind = model->index(r, foldColumn(), parent);
 
-      QVariant var = model->data(ind, Qt::DisplayRole);
+      auto var = model->data(ind, Qt::DisplayRole);
 
       bool ok;
 
@@ -278,7 +278,7 @@ void
 CQFoldedModel::
 foldNode(Node *parent, int depth)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   assert(model);
 
   // fold rows at column
@@ -286,13 +286,13 @@ foldNode(Node *parent, int depth)
 
   for (int r = 0; r < nr; ++r) {
     // if leaf node then add to folded rows for this parent node
-    QModelIndex ind = model->index(r, 0, parent->sourceInd);
+    auto ind = model->index(r, 0, parent->sourceInd);
 
     if (! model->hasChildren(ind)) {
       // get value for column
-      QModelIndex ind = model->index(r, foldColumn(), parent->sourceInd);
+      auto ind = model->index(r, foldColumn(), parent->sourceInd);
 
-      QVariant var = model->data(ind, Qt::DisplayRole);
+      auto var = model->data(ind, Qt::DisplayRole);
 
       int bucket = bucketer_.bucket(var);
 
@@ -308,7 +308,7 @@ foldNode(Node *parent, int depth)
       node->addSourceRow(r);
     }
     else {
-      QString str = model->data(ind, Qt::DisplayRole).toString();
+      auto str = model->data(ind, Qt::DisplayRole).toString();
 
       Node *child = new Node(parent, ind);
 
@@ -336,7 +336,7 @@ CQFoldedModel::
 columnCount(const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return 0;
 
     return model->columnCount(parent);
@@ -351,7 +351,7 @@ CQFoldedModel::
 rowCount(const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return 0;
 
     return model->rowCount(parent);
@@ -379,7 +379,7 @@ CQFoldedModel::
 index(int row, int column, const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return QModelIndex();
 
     return model->index(row, column, parent);
@@ -411,7 +411,7 @@ parent(const QModelIndex &child) const
   //---
 
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return QModelIndex();
 
     return model->parent(child);
@@ -461,7 +461,7 @@ hasChildren(const QModelIndex &parent) const
   //---
 
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return false;
 
     return model->hasChildren(parent);
@@ -487,7 +487,7 @@ QVariant
 CQFoldedModel::
 data(const QModelIndex &index, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   //---
@@ -512,7 +512,7 @@ data(const QModelIndex &index, int role) const
     }
 
     // get source model index for folded row number
-    QModelIndex ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
+    auto ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
 
     if (! ind1.isValid())
       return QVariant();
@@ -546,7 +546,7 @@ data(const QModelIndex &index, int role) const
     }
     // forward non-fold node to source mode
     else {
-      QModelIndex ind1 = mapToSource(index);
+      auto ind1 = mapToSource(index);
 
       return model->data(ind1, role);
     }
@@ -559,7 +559,7 @@ bool
 CQFoldedModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   //---
@@ -582,7 +582,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
       return false;
 
     // get source model index for folded row number
-    QModelIndex ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
+    auto ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
 
     if (! ind1.isValid())
       return false;
@@ -607,7 +607,7 @@ QVariant
 CQFoldedModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   //---
@@ -636,7 +636,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
       role == static_cast<int>(CQBaseModelRole::Sorted) ||
       role == static_cast<int>(CQBaseModelRole::SortOrder)) {
     // get node data
-    QModelIndex ind = index(0, section, QModelIndex());
+    auto ind = index(0, section, QModelIndex());
 
     NodeData nodeData = indexNode(ind);
 
@@ -658,7 +658,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     int c = mapColumnToSource(section);
     if (c < 0) return QVariant();
 
-    QVariant value = model->headerData(c, orientation, role);
+    auto value = model->headerData(c, orientation, role);
 
     return value;
   }
@@ -672,7 +672,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   int c = mapColumnToSource(section);
   if (c < 0) return QVariant();
 
-  QVariant var = model->headerData(c, orientation, role);
+  auto var = model->headerData(c, orientation, role);
 
   if (var.isValid())
     return var;
@@ -684,7 +684,7 @@ bool
 CQFoldedModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   //---
@@ -713,7 +713,7 @@ Qt::ItemFlags
 CQFoldedModel::
 flags(const QModelIndex &index) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return 0;
 
   //---
@@ -736,7 +736,7 @@ flags(const QModelIndex &index) const
       return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
     // get source model index for folded row number
-    QModelIndex ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
+    auto ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
 
     if (! ind1.isValid())
       return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
@@ -775,7 +775,7 @@ mapFromSource(const QModelIndex &sourceIndex) const
   //---
 
   // map parent index
-  QModelIndex parent = mapFromSource(sourceIndex.parent());
+  auto parent = mapFromSource(sourceIndex.parent());
 
   if (! parent.isValid())
     return QModelIndex();
@@ -830,7 +830,7 @@ mapToSource(const QModelIndex &proxyIndex) const
 
     Node *pnode = nodeData.parent;
 
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return QModelIndex();
 
     if (! pnode)
@@ -904,7 +904,7 @@ foldedChildIndex(Node *pnode, int row, int column) const
     return QModelIndex();
 
   // create source model index for folded row number
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QModelIndex();
 
   int r = pnode->sourceRows[row];

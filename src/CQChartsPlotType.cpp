@@ -1,7 +1,6 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlot.h>
 #include <CQUtil.h>
-#include <cassert>
 
 CQChartsPlotTypeMgr::
 CQChartsPlotTypeMgr()
@@ -19,11 +18,12 @@ void
 CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
-  assert(nameTypes_.find(name) == nameTypes_.end());
+  CQCHARTS_QASSERT(nameTypes_.find(name) == nameTypes_.end(), "Type already exists: " + name);
 
   nameTypes_[name] = type;
 
-  assert(typeNameNames_.find(type->name()) == typeNameNames_.end());
+  CQCHARTS_QASSERT(typeNameNames_.find(type->name()) == typeNameNames_.end(),
+                   "Plot Type and name mismatch: " + name);
 
   typeNameNames_[type->name()] = name;
 
@@ -44,7 +44,7 @@ CQChartsPlotTypeMgr::
 type(const QString &name) const
 {
   auto p = nameTypes_.find(name);
-  assert(p != nameTypes_.end());
+  CQCHARTS_QASSERT(p != nameTypes_.end(), "Invalid type: " + name);
 
   return (*p).second;
 }
@@ -165,7 +165,7 @@ getParameter(const QString &name) const
     if (parameter->name() == name)
       return parameter;
 
-  assert(false);
+  CQCHARTS_QASSERT(false, "Invalid parameter name: " + name);
 
   return nullptr;
 }
@@ -239,7 +239,7 @@ void
 CQChartsPlotType::
 endParameterGroup()
 {
-  assert(! parameterGroupIds_.empty());
+  CQCHARTS_ASSERT(! parameterGroupIds_.empty(), "No parameter groups");
 
   parameterGroupIds_.pop_back();
 }

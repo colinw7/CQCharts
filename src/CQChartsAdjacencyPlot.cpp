@@ -1257,7 +1257,7 @@ execDrawBackground(PaintDevice *device) const
 
   for (const auto &pr : rowNodeLabels_) {
     for (const auto &pr1 : pr.second) {
-      const QString &str = pr1.first;
+      const auto &str = pr1.first;
 
       BBox bbox1, bbox2;
 
@@ -1291,7 +1291,7 @@ execDrawBackground(PaintDevice *device) const
 
   for (const auto &pc : colNodeLabels_) {
     for (const auto &pc1 : pc.second) {
-      const QString &str = pc1.first;
+      const auto &str = pc1.first;
 
       BBox bbox1, bbox2;
 

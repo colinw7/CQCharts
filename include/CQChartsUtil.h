@@ -14,10 +14,39 @@
 #include <QPen>
 #include <QStringList>
 
+#include <cassert>
+
 class CQChartsLineDash;
 class CQChartsStyle;
 class CQChartsPath;
 class CQStrParse;
+
+//---
+
+#ifndef NDEBUG
+# define CQCHARTS_ASSERT(condition, message) \
+  do { \
+    if (! (condition)) { \
+      std::cerr << "Assertion `" #condition "` failed in " << __FILE__ << \
+                   " line " << __LINE__ << ": " << message << "\n"; \
+      std::terminate(); \
+    } \
+  } while (false)
+
+# define CQCHARTS_QASSERT(condition, message) \
+  do { \
+    if (! (condition)) { \
+      std::cerr << "Assertion `" #condition "` failed in " << __FILE__ << \
+                   " line " << __LINE__ << ": " << message.toStdString() << "\n"; \
+      std::terminate(); \
+    } \
+  } while (false)
+#else
+# define CQCHARTS_ASSERT(condition, message) do { } while (false)
+# define CQCHARTS_QASSERT(condition, message) do { } while (false)
+#endif
+
+//---
 
 // conversion
 

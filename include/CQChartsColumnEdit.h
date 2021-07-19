@@ -130,6 +130,9 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  */
 class CQChartsColumnPropertyViewType : public CQPropertyViewType {
  public:
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsColumnPropertyViewType();
 
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -157,6 +160,9 @@ class CQChartsColumnPropertyViewType : public CQPropertyViewType {
  * \ingroup Charts
  */
 class CQChartsColumnPropertyViewEditor : public CQPropertyViewEditorFactory {
+ public:
+  using Column = CQChartsColumn;
+
  public:
   CQChartsColumnPropertyViewEditor();
 

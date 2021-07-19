@@ -21,7 +21,7 @@
 #include <CQCharts.h>
 
 #include <CQUtil.h>
-#include <CQPropertyViewModel.h>
+//#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CQCheckBox.h>
@@ -926,7 +926,7 @@ initAxes()
   if (! isColumnSeries())
     xAxisColumn = xColumn();
   else {
-    xAxisColumn = Column(Column::Type::HHEADER, yColumns().getColumn(0).column(), "");
+    xAxisColumn = Column::makeHHeader(yColumns().getColumn(0).column());
   }
 
   if (isOverlay()) {
@@ -2900,6 +2900,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsXYPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -4828,6 +4830,23 @@ CQChartsXYPlotCustomControls::
 CQChartsXYPlotCustomControls(CQCharts *charts) :
  CQChartsPointPlotCustomControls(charts, "xy")
 {
+}
+
+void
+CQChartsXYPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsXYPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -4862,20 +4881,12 @@ CQChartsXYPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Impulse", impulseCheck_, /*nextRow*/false);
   addFrameSpacer(optionsFrame);
 
-  addFrameWidget(optionsFrame, "Best Fit", bestFitCheck_, /*nextRow*/false);
-  addFrameWidget(optionsFrame, "Hull"    , hullCheck_, /*nextRow*/false);
+  addFrameWidget(optionsFrame, "Best Fit"   , bestFitCheck_, /*nextRow*/false);
+  addFrameWidget(optionsFrame, "Convex Hull", hullCheck_   , /*nextRow*/false);
   addFrameSpacer(optionsFrame);
 
   addFrameWidget(optionsFrame, "Moving Average", movingAverageCheck_, /*nextRow*/false);
   addFrameSpacer(optionsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

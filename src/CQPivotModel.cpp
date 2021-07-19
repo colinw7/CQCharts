@@ -44,7 +44,7 @@ columnCount(const QModelIndex &parent) const
   if (parent.isValid())
     return 0;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return 0;
 
   updateModel();
@@ -64,7 +64,7 @@ rowCount(const QModelIndex &parent) const
   if (parent.isValid())
     return 0;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return 0;
 
   updateModel();
@@ -121,7 +121,7 @@ data(const QModelIndex &index, int role) const
   if (c < 0 || c >= nc)
     return QVariant();
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   //---
@@ -224,7 +224,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (c < 0 || c >= nc)
     return false;
 
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   //---
@@ -246,7 +246,7 @@ QVariant
 CQPivotModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   int nc = columnCount();
@@ -293,7 +293,7 @@ bool
 CQPivotModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   int nc = columnCount();
@@ -318,7 +318,7 @@ Qt::ItemFlags
 CQPivotModel::
 flags(const QModelIndex &index) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return 0;
 
   int r = index.row   ();
@@ -368,7 +368,7 @@ updateModel() const
 
   //---
 
-  CQPivotModel *th = const_cast<CQPivotModel *>(this);
+  auto *th = const_cast<CQPivotModel *>(this);
 
   th->updateModel();
 }
@@ -385,7 +385,7 @@ updateModel()
   vRowKeys_.clear();
   values_  .clear();
 
-  QAbstractItemModel *sm = sourceModel();
+  auto *sm = sourceModel();
 
   int nr = sm->rowCount();
 
@@ -393,9 +393,9 @@ updateModel()
     Keys hkeys;
 
     for (auto &column : hColumns_) {
-      QModelIndex ind = sm->index(row, column);
+      auto ind = sm->index(row, column);
 
-      QVariant data = sm->data(ind);
+      auto data = sm->data(ind);
 
       if (data.isValid())
         hkeys.add(data.toString());
@@ -406,9 +406,9 @@ updateModel()
     Keys vkeys;
 
     for (auto &column : vColumns_) {
-      QModelIndex ind = sm->index(row, column);
+      auto ind = sm->index(row, column);
 
-      QVariant data = sm->data(ind).toString();
+      auto data = sm->data(ind);
 
       if (data.isValid())
         vkeys.add(data.toString());
@@ -437,9 +437,9 @@ updateModel()
     Values &values = values_[hkeys.key()][vkeys.key()];
 
     if (valueColumn_ >= 0) {
-      QModelIndex ind = sm->index(row, valueColumn_);
+      auto ind = sm->index(row, valueColumn_);
 
-      QVariant data = sm->data(ind);
+      auto data = sm->data(ind);
 
       if (data.isValid()) {
         bool ok;
@@ -468,7 +468,7 @@ updateModel()
   Keys hkeys;
 
   for (auto &column : hColumns_) {
-    QString value = sm->headerData(column, Qt::Horizontal).toString();
+    auto value = sm->headerData(column, Qt::Horizontal).toString();
 
     hkeys.add(value);
   }
@@ -481,7 +481,7 @@ updateModel()
   Keys vkeys;
 
   for (auto &column : vColumns_) {
-    QString value = sm->headerData(column, Qt::Horizontal).toString();
+    auto value = sm->headerData(column, Qt::Horizontal).toString();
 
     vkeys.add(value);
   }
@@ -498,13 +498,13 @@ calcData()
   vdata_.resize(nr);
 
   for (const auto &pv : vKeysRow_) {
-    const QString &vkey = pv.first;
-    int            r    = pv.second;
+    const auto &vkey = pv.first;
+    int         r    = pv.second;
 
     ValueData data;
 
     for (const auto &ph : hKeysCol_) {
-      const QString &hkey = ph.first;
+      const auto &hkey = ph.first;
 
       const Values &values = values_[hkey][vkey];
 
@@ -536,13 +536,13 @@ calcData()
   hdata_.resize(nc);
 
   for (const auto &ph : hKeysCol_) {
-    const QString &hkey = ph.first;
-    int            c    = ph.second;
+    const auto &hkey = ph.first;
+    int         c    = ph.second;
 
     ValueData data;
 
     for (const auto &pv : vKeysRow_) {
-      const QString &vkey = pv.first;
+      const auto &vkey = pv.first;
 
       const Values &values = values_[hkey][vkey];
 

@@ -4,6 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Custom Controls interface
+   init(), addWidgets() all virtual
+ + Summary plot. Input is multiple columns output is
+   + Grid of scatter/barchart
+   + Parallel Plot ?
+   + Others (use existing correlation plot)
  + Shape edit swatch and string
  + Load CSV from line number
  + easy red/green distribution split

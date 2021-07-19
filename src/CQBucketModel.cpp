@@ -301,7 +301,7 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
   int nr = model->rowCount(parent);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex parent1 = model->index(r, 0, parent);
+    auto parent1 = model->index(r, 0, parent);
 
     int nr1 = model->rowCount(parent1);
 
@@ -309,9 +309,9 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
       calcRMinMax(model, parent1, rset, rmin, rmax);
     }
     else {
-      QModelIndex ind = model->index(r, bucketColumn(), parent);
+      auto ind = model->index(r, bucketColumn(), parent);
 
-      QVariant var = model->data(ind, Qt::DisplayRole);
+      auto var = model->data(ind, Qt::DisplayRole);
 
       bool ok;
 
@@ -422,7 +422,7 @@ data(const QModelIndex &index, int role) const
   int c1 = mapColumn(c);
 
   if (c1 >= 0) {
-    QModelIndex ind = model->index(r, c1, index.parent());
+    auto ind = model->index(r, c1, index.parent());
 
     return model->data(ind, role);
   }
@@ -435,9 +435,9 @@ data(const QModelIndex &index, int role) const
 
   if (! isMultiColumn()) {
     if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-      QModelIndex ind = model->index(r, bucketColumn(), index.parent());
+      auto ind = model->index(r, bucketColumn(), index.parent());
 
-      QVariant var = model->data(ind, bucketRole());
+      auto var = model->data(ind, bucketRole());
 
       int bucket = bucketer_.bucket(var);
 
@@ -454,9 +454,9 @@ data(const QModelIndex &index, int role) const
   }
   else {
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-      QModelIndex ind = model->index(r, bucketColumn(), index.parent());
+      auto ind = model->index(r, bucketColumn(), index.parent());
 
-      QVariant var = model->data(ind, bucketRole());
+      auto var = model->data(ind, bucketRole());
 
       int bucket = bucketer_.bucket(var);
 
@@ -503,7 +503,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   int c1 = mapColumn(c);
 
   if (c1 >= 0) {
-    QModelIndex ind = model->index(r, c, index.parent());
+    auto ind = model->index(r, c, index.parent());
 
     return model->setData(ind, value, role);
   }
@@ -547,7 +547,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
   if (! isMultiColumn()) {
     if (role == Qt::DisplayRole) {
-      QString name = model->headerData(bucketColumn(), orientation, role).toString();
+      auto name = model->headerData(bucketColumn(), orientation, role).toString();
 
       return QString("bucket(%1)").arg(name);
     }
@@ -621,7 +621,7 @@ flags(const QModelIndex &index) const
   int c1 = mapColumn(c);
 
   if (c1 >= 0) {
-    QModelIndex ind = model->index(r, c1, index.parent());
+    auto ind = model->index(r, c1, index.parent());
 
     return model->flags(ind);
   }
