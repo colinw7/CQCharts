@@ -1201,6 +1201,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsHierBubblePlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1880,16 +1882,25 @@ CQChartsHierBubblePlotCustomControls::
 CQChartsHierBubblePlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "hierbubble")
 {
-  addHierColumnWidgets ();
-  addColorColumnWidgets();
+}
 
-  //---
+void
+CQChartsHierBubblePlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
 
-  //---
-
   connectSlots(true);
+}
+
+void
+CQChartsHierBubblePlotCustomControls::
+addWidgets()
+{
+  addHierColumnWidgets ();
+  addColorColumnWidgets();
 }
 
 void

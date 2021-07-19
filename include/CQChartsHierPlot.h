@@ -111,7 +111,7 @@ class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  protected:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  private:
   CQChartsHierPlot* plot_ { nullptr };

@@ -607,7 +607,7 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  protected:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  private slots:
   void columnsTypeSlot();

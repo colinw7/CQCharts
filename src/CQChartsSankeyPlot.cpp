@@ -3156,6 +3156,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsSankeyPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -5335,13 +5337,26 @@ CQChartsSankeyPlotCustomControls::
 CQChartsSankeyPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "sankey")
 {
-  addConnectionColumnWidgets();
+}
 
-  addColorColumnWidgets("Node/Edge Color");
+void
+CQChartsSankeyPlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
 
   connectSlots(true);
+}
+
+void
+CQChartsSankeyPlotCustomControls::
+addWidgets()
+{
+  addConnectionColumnWidgets();
+
+  addColorColumnWidgets("Node/Edge Color");
 }
 
 void

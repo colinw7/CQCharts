@@ -27,7 +27,7 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
   FrameData &groupFrame() { return groupFrame_; }
 
  protected:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;

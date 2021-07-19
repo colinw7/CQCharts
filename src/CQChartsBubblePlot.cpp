@@ -970,6 +970,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsBubblePlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1628,6 +1630,23 @@ CQChartsBubblePlotCustomControls::
 CQChartsBubblePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "bubble")
 {
+}
+
+void
+CQChartsBubblePlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsBubblePlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1642,12 +1661,6 @@ CQChartsBubblePlotCustomControls(CQCharts *charts) :
 
   addGroupColumnWidgets();
   addColorColumnWidgets();
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

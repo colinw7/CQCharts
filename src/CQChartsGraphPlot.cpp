@@ -1854,6 +1854,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsGraphPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -3038,13 +3040,26 @@ CQChartsGraphPlotCustomControls::
 CQChartsGraphPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "graph")
 {
-  addConnectionColumnWidgets();
+}
 
-  addColorColumnWidgets("Cell Color");
+void
+CQChartsGraphPlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
 
   connectSlots(true);
+}
+
+void
+CQChartsGraphPlotCustomControls::
+addWidgets()
+{
+  addConnectionColumnWidgets();
+
+  addColorColumnWidgets("Cell Color");
 }
 
 void

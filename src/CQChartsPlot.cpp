@@ -10804,6 +10804,8 @@ void
 CQChartsPlot::
 addRootMenuItems(QMenu *menu)
 {
+  menu->addSeparator();
+
   addMenuAction(menu, "Collapse", SLOT(collapseRootSlot()));
 }
 

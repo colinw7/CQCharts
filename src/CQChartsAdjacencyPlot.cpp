@@ -1542,6 +1542,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsAdjacencyPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1793,13 +1795,28 @@ CQChartsAdjacencyPlotCustomControls::
 CQChartsAdjacencyPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "adjacency")
 {
-  addConnectionColumnWidgets();
+}
 
-  addColorColumnWidgets("Cell Color");
+void
+CQChartsAdjacencyPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  //---
 
   addLayoutStretch();
 
   connectSlots(true);
+}
+
+void
+CQChartsAdjacencyPlotCustomControls::
+addWidgets()
+{
+  addConnectionColumnWidgets();
+
+  addColorColumnWidgets("Cell Color");
 }
 
 void

@@ -405,6 +405,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsContourPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -418,6 +420,23 @@ CQChartsContourPlotCustomControls::
 CQChartsContourPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "contour")
 {
+}
+
+void
+CQChartsContourPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsContourPlotCustomControls::
+addWidgets()
+{
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
@@ -426,14 +445,6 @@ CQChartsContourPlotCustomControls(CQCharts *charts) :
   addFrameWidget(optionsFrame, "Solid", solidCheck_);
 
   // TODO: num levels, palette
-
-  //addFrameRowStretch(optionsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

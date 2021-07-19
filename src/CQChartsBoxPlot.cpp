@@ -2244,6 +2244,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsBoxPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -3860,6 +3862,23 @@ CQChartsBoxPlotCustomControls::
 CQChartsBoxPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "box")
 {
+}
+
+void
+CQChartsBoxPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsBoxPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -3938,12 +3957,6 @@ CQChartsBoxPlotCustomControls(CQCharts *charts) :
   addGroupColumnWidgets();
 
   addColorColumnWidgets("Point Color");
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

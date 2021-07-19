@@ -580,6 +580,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsDendrogramPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -730,18 +732,29 @@ CQChartsDendrogramPlotCustomControls::
 CQChartsDendrogramPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "dendrogram")
 {
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   addColumnWidgets(QStringList() << "name" << "value", columnsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

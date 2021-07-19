@@ -466,7 +466,7 @@ tickLabelsStr() const
   for (const auto &p : tickLabels_) {
     QStringList strs1;
 
-    strs1 << QString::number(p.first);
+    strs1 << CQChartsUtil::realToString(p.first);
     strs1 << p.second;
 
     auto str1 = CQTcl::mergeList(strs1);
@@ -551,7 +551,7 @@ customTickLabelsStr() const
   for (const auto &p : customTickLabels_) {
     QStringList strs1;
 
-    strs1 << QString::number(p.first);
+    strs1 << CQChartsUtil::realToString(p.first);
     strs1 << p.second;
 
     auto str1 = CQTcl::mergeList(strs1);

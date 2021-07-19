@@ -1446,6 +1446,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsTreeMapPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -2455,6 +2457,23 @@ CQChartsTreeMapPlotCustomControls::
 CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "treemap")
 {
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+addWidgets()
+{
   addHierColumnWidgets();
 
   addColorColumnWidgets();
@@ -2471,12 +2490,6 @@ CQChartsTreeMapPlotCustomControls(CQCharts *charts) :
   followViewCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Follow View", "followViewCheck_");
 
   addFrameColWidget(optionsFrame, followViewCheck_);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

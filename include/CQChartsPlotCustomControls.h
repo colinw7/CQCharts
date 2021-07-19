@@ -38,6 +38,12 @@ class CQChartsPlotCustomControls : public QFrame {
 
   virtual ~CQChartsPlotCustomControls() { }
 
+  virtual void init() { }
+
+  virtual void addWidgets() { }
+
+  //---
+
   virtual CQChartsPlot *plot() const { return plot_; }
   virtual void setPlot(CQChartsPlot *plot);
 
@@ -130,7 +136,7 @@ class CQChartsPlotCustomControls : public QFrame {
   CQChartsBoolParameterEdit *createBoolEdit(const QString &name, bool choice=true);
   CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
 
-  void connectSlots(bool b);
+  virtual void connectSlots(bool b);
 
   void updateNumericOnly();
 

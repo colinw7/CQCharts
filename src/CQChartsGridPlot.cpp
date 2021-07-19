@@ -494,6 +494,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsGridPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -715,6 +717,23 @@ CQChartsGridPlotCustomControls::
 CQChartsGridPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "grid")
 {
+}
+
+void
+CQChartsGridPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsGridPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -729,12 +748,6 @@ CQChartsGridPlotCustomControls(CQCharts *charts) :
   drawTypeCombo_ = createEnumEdit("drawType");
 
   addFrameWidget(optionsFrame, "Draw Type", drawTypeCombo_);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

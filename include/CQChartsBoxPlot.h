@@ -973,15 +973,23 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
  public:
   CQChartsBoxPlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  public slots:
   void updateWidgets() override;
 
  protected:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
- private slots:
+ protected:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ protected slots:
   void columnsTypeSlot();
 
   void orientationSlot();
@@ -992,10 +1000,6 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void colorBySetSlot();
   void violinSlot();
   void errorBarSlot();
-
- private:
-  CQChartsColor getColorValue() override;
-  void setColorValue(const CQChartsColor &c) override;
 
  private:
   CQChartsBoxPlot*           plot_             { nullptr };

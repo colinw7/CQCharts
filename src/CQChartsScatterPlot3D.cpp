@@ -1468,6 +1468,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsScatterPlot3DCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1815,6 +1817,23 @@ CQChartsScatterPlot3DCustomControls::
 CQChartsScatterPlot3DCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "scatter3d")
 {
+}
+
+void
+CQChartsScatterPlot3DCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsScatterPlot3DCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1823,10 +1842,6 @@ CQChartsScatterPlot3DCustomControls(CQCharts *charts) :
   addColumnWidgets(QStringList() <<
     "x" << "y" << "z" << "name" << "label" <<
     "symbolType" << "symbolSize" << "fontSize", columnsFrame);
-
-  //---
-
-  connectSlots(true);
 }
 
 void

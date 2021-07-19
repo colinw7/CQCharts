@@ -1133,6 +1133,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsWheelPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1813,6 +1815,23 @@ CQChartsWheelPlotCustomControls::
 CQChartsWheelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wheel")
 {
+}
+
+void
+CQChartsWheelPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsWheelPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1820,14 +1839,6 @@ CQChartsWheelPlotCustomControls(CQCharts *charts) :
 
   addColumnWidgets(QStringList() <<
     "x" << "y" << "min" << "max" << "innerBar" << "outerBar" << "outerBubble", columnsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

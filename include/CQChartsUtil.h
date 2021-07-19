@@ -229,6 +229,14 @@ int countLeadingBraces(CQStrParse &parse);
 
 namespace CQChartsUtil {
 
+QString realToString(double r);
+
+}
+
+//---
+
+namespace CQChartsUtil {
+
 using BBox     = CQChartsGeom::BBox;
 using Size     = CQChartsGeom::Size;
 using Point    = CQChartsGeom::Point;

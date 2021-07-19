@@ -190,15 +190,19 @@ class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsWordCloudPlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private:
+ protected:
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 

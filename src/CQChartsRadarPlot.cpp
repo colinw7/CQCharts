@@ -937,6 +937,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsRadarPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1175,6 +1177,23 @@ CQChartsRadarPlotCustomControls::
 CQChartsRadarPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "radar")
 {
+}
+
+void
+CQChartsRadarPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsRadarPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1186,14 +1205,6 @@ CQChartsRadarPlotCustomControls(CQCharts *charts) :
   //---
 
   addColorColumnWidgets("Fill Color");
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

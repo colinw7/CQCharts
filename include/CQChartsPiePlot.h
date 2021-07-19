@@ -837,25 +837,29 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
  public:
   CQChartsPiePlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ protected slots:
   void drawTypeSlot ();
   void separatedSlot();
   void donutSlot    ();
   void summarySlot  ();
   void dumbbellSlot ();
   void countSlot    ();
-
- private:
-  CQChartsColor getColorValue() override;
-  void setColorValue(const CQChartsColor &c) override;
 
  private:
   PiePlot*     plot_           { nullptr };

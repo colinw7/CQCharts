@@ -69,7 +69,7 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn  groupColumn READ groupColumn WRITE setGroupColumn)
 
   // border (TODO: length)
-  Q_PROPERTY(double border READ border WRITE setBorder)
+  Q_PROPERTY(CQChartsLength border READ border WRITE setBorder)
 
   Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
   Q_PROPERTY(bool yLabels READ isYLabels WRITE setYLabels)
@@ -78,6 +78,9 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   Q_PROPERTY(DiagonalType    diagonalType      READ diagonalType      WRITE setDiagonalType     )
   Q_PROPERTY(OffDiagonalType upperDiagonalType READ upperDiagonalType WRITE setUpperDiagonalType)
   Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
+
+  // scatter
+  Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
 
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
@@ -135,8 +138,8 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   //---
 
   //! get/set border
-  double border() const { return border_; }
-  void setBorder(double r) { border_ = r; }
+  const Length &border() const { return border_; }
+  void setBorder(const Length &l);
 
   //---
 
@@ -160,9 +163,18 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   //---
 
+  const Length &symbolSize() const { return symbolSize_; }
+  void setSymbolSize(const Length &l);
+
+  //---
+
+  // overlays
+
+  //! get/set best fit
   bool isBestFit() const { return bestFit_; }
   void setBestFit(bool b);
 
+  //! get/set density
   bool isDensity() const { return density_; }
   void setDensity(bool b);
 
@@ -196,6 +208,10 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   void execDrawBackground(PaintDevice *) const override;
 
+  //---
+
+  CQChartsGeom::BBox fitBBox() const override;
+
  protected:
   using CellObj = CQChartsSummaryCellObj;
 
@@ -223,9 +239,10 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   Columns columns_;     //!< columns
   Column  groupColumn_; //!< group column
 
-  double border_  { 0.05 }; //!< border
-  bool   xLabels_ { true }; //!< x labels
-  bool   yLabels_ { true }; //!< y labels
+  Length border_ { 0.05, Units::PLOT }; //!< border
+
+  bool xLabels_ { true }; //!< x labels
+  bool yLabels_ { true }; //!< y labels
 
   DiagonalType    diagonalType_      { DiagonalType::DISTRIBUTION };   //!< diagonal type
   OffDiagonalType upperDiagonalType_ { OffDiagonalType::SCATTER };     //!< upper diagonal type
@@ -236,6 +253,8 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   bool bestFit_ { false };
   bool density_ { false };
+
+  Length symbolSize_ { 5, Units::PIXEL };
 
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 };
@@ -333,14 +352,14 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsSummaryPlotCustomControls(CQCharts *charts);
 
-  virtual void init();
+  void init() override;
 
-  virtual void addWidgets();
+  void addWidgets() override;
 
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
-  virtual void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;

@@ -1745,6 +1745,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsPiePlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -3448,6 +3450,23 @@ CQChartsPiePlotCustomControls::
 CQChartsPiePlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "pie")
 {
+}
+
+void
+CQChartsPiePlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsPiePlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -3483,12 +3502,6 @@ CQChartsPiePlotCustomControls(CQCharts *charts) :
   addFrameColWidget(optionsFrame, countCheck_   );
 
   addFrameColWidget(optionsFrame, CQChartsWidgetUtil::createHStretch());
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

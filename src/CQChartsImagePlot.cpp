@@ -814,6 +814,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsImagePlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1071,20 +1073,29 @@ CQChartsImagePlotCustomControls::
 CQChartsImagePlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "image")
 {
+}
+
+void
+CQChartsImagePlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsImagePlotCustomControls::
+addWidgets()
+{
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
   cellStyleCombo_ = createEnumEdit("cellStyle");
 
   addFrameWidget(optionsFrame, "Cell Style", cellStyleCombo_);
-
-  //addFrameRowStretch(optionsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

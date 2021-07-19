@@ -1193,19 +1193,19 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
  public:
   CQChartsXYPlotCustomControls(CQCharts *charts);
 
-  virtual void init();
+  void init() override;
 
-  virtual void addWidgets();
+  void addWidgets() override;
 
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  virtual void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected slots:
   void pointsSlot(int);
   void linesSlot(int);
   void fillUnderSlot(int);

@@ -1495,6 +1495,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsForceDirectedPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1508,6 +1510,23 @@ CQChartsForceDirectedPlotCustomControls::
 CQChartsForceDirectedPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "forcedirected")
 {
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+addWidgets()
+{
   addConnectionColumnWidgets();
 
   addColorColumnWidgets("Point Color");
@@ -1520,12 +1539,6 @@ CQChartsForceDirectedPlotCustomControls(CQCharts *charts) :
   runningCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Running", "runningCheck");
 
   addFrameColWidget(optionsFrame, runningCheck_);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

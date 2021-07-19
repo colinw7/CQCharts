@@ -1934,6 +1934,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsTablePlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -2440,20 +2442,29 @@ CQChartsTablePlotCustomControls::
 CQChartsTablePlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "table")
 {
+}
+
+void
+CQChartsTablePlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsTablePlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   addColumnWidgets(QStringList() << "columns", columnsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

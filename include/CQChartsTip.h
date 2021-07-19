@@ -56,6 +56,11 @@ class CQChartsTableTip {
     inTable_ = true;
   }
 
+  void addTableRow(const QString &name, const QVariant &value) {
+    // TODO: custom tip for color ....
+    addTableRow(name, value.toString());
+  }
+
   QString str() {
     if (str_ == "")
       return str_;

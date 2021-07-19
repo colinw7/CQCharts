@@ -360,10 +360,14 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsGeometryPlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  private:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;

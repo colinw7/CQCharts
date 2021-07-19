@@ -734,21 +734,25 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
  public:
   CQChartsTreeMapPlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
-  void valueSlot();
-  void followViewSlot();
-
- private:
+ protected:
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
+
+ protected slots:
+  void valueSlot();
+  void followViewSlot();
 
  private:
   TreeMapPlot* plot_            { nullptr };

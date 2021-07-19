@@ -429,6 +429,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsWordCloudPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -575,6 +577,23 @@ CQChartsWordCloudPlotCustomControls::
 CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "wordCloud")
 {
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -586,14 +605,6 @@ CQChartsWordCloudPlotCustomControls(CQCharts *charts) :
   //---
 
   addColorColumnWidgets("Text Color");
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

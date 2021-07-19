@@ -1879,6 +1879,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsBarChartPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -2758,6 +2760,23 @@ CQChartsBarChartPlotCustomControls::
 CQChartsBarChartPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "barchart")
 {
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -2791,12 +2810,6 @@ CQChartsBarChartPlotCustomControls(CQCharts *charts) :
 
   addGroupColumnWidgets();
   addColorColumnWidgets();
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

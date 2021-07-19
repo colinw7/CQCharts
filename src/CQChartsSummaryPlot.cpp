@@ -17,6 +17,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsTip.h>
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
@@ -204,6 +205,19 @@ setUpperDiagonalType(const OffDiagonalType &t)
   } );
 }
 
+//---
+
+void
+CQChartsSummaryPlot::
+setSymbolSize(const Length &l)
+{
+  CQChartsUtil::testAndSet(symbolSize_, l, [&]() {
+    drawObjs(); emit customDataChanged();
+  } );
+}
+
+//---
+
 void
 CQChartsSummaryPlot::
 setBestFit(bool b)
@@ -262,6 +276,17 @@ setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
     resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
+setBorder(const Length &l)
+{
+  CQChartsUtil::testAndSet(border_, l, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
   } );
 }
 
@@ -326,6 +351,10 @@ addProperties()
   addProp("cell", "diagonalType"     , "diagonal"     , "Diagonal cell type");
   addProp("cell", "lowerDiagonalType", "lowerDiagonal", "Lower Diagonal cell type");
   addProp("cell", "upperDiagonalType", "upperDiagonal", "Upper Diagonal cell type");
+
+  addProp("cell", "symbolSize", "symbolSize", "Scatter symbol size");
+
+  addProp("cell", "border", "border", "Border Size");
 }
 
 //---
@@ -475,8 +504,11 @@ addMenuItems(QMenu *menu)
 
   menuObj_ = (! objs.empty() ? *objs.begin() : nullptr);
 
-  if (menuObj_)
+  if (menuObj_) {
+    menu->addSeparator();
+
     addMenuAction(menu, "Expand", SLOT(expandSlot()));
+  }
 
   return true;
 }
@@ -499,8 +531,8 @@ expandSlot()
 
     scatterPlot_->setXColumn(column1);
     scatterPlot_->setYColumn(column2);
-
     scatterPlot_->setGroupColumn(groupColumn());
+    scatterPlot_->setTipColumns(columns());
 
     scatterPlot_->setVisible(true);
   }
@@ -510,6 +542,7 @@ expandSlot()
     setVisible(false);
 
     distributionPlot_->setValueColumns(Columns(column));
+    distributionPlot_->setTipColumns(columns());
 
     distributionPlot_->setVisible(true);
   }
@@ -559,25 +592,55 @@ execDrawBackground(PaintDevice *device) const
 
     //---
 
-    Point p1(bbox.getXMid(), -border());
+    if (isXLabels()) {
+      auto th = pixelToWindowHeight(tsize.height());
 
-    CQChartsTextOptions options1;
+      Point p1(bbox.getXMid(), -th);
 
-    options1.align = Qt::AlignHCenter | Qt::AlignVCenter;
+      CQChartsTextOptions options1;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, p1, str, options1, /*centered*/false);
+      options1.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p1, str, options1, /*centered*/false);
+    }
 
     //---
 
-    Point p2(pixelToWindowWidth(tsize.height()), bbox.getYMid());
+    if (isYLabels()) {
+      auto th = pixelToWindowWidth(tsize.height());
+      auto tw = pixelToWindowWidth(tsize.width());
 
-    CQChartsTextOptions options2;
+      Point p2(tw/2.0 - th, bbox.getYMid());
 
-    options2.angle = Angle(90.0);
-    options2.align = Qt::AlignHCenter | Qt::AlignVCenter;
+      CQChartsTextOptions options2;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, p2, str, options2, /*centered*/false);
+      options2.angle = Angle(90.0);
+      options2.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p2, str, options2, /*centered*/false);
+    }
   }
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsSummaryPlot::
+fitBBox() const
+{
+  auto font = view()->viewFont(this->font());
+
+  auto tsize = CQChartsDrawUtil::calcTextSize("X", font, CQChartsTextOptions());
+
+  auto tw = pixelToWindowWidth (tsize.height());
+  auto th = pixelToWindowHeight(tsize.height());
+
+  auto bbox = CQChartsPlot::fitBBox();
+
+  bbox += Point(-tw, -th);
+  bbox += Point( tw,  th);
+
+  return bbox;
 }
 
 //------
@@ -626,6 +689,8 @@ QString
 CQChartsSummaryCellObj::
 calcTipId() const
 {
+  CQChartsTableTip tableTip;
+
   if (row_ != col_) {
     auto column1 = plot_->columns().getColumn(row_);
     auto column2 = plot_->columns().getColumn(col_);
@@ -634,28 +699,51 @@ calcTipId() const
     auto xtip = plot_->modelHHeaderTip(column1, ok);
     auto ytip = plot_->modelHHeaderTip(column2, ok);
 
-    return QString("%1 : %2").arg(xtip).arg(ytip);
+    tableTip.addTableRow("X Column", xtip);
+    tableTip.addTableRow("Y Column", ytip);
+
+    auto correlation = plot_->modelDetails()->correlation(column1, column2);
+
+    tableTip.addTableRow("Correlation", correlation);
   }
   else {
-    auto column1 = plot_->columns().getColumn(row_);
+    auto column = plot_->columns().getColumn(row_);
+
+    auto *details = plot_->columnDetails(column);
 
     bool ok;
-    auto tip = plot_->modelHHeaderTip(column1, ok);
+    auto tip = plot_->modelHHeaderTip(column, ok);
 
-    return tip;
+    tableTip.addTableRow("Column", tip);
+
+    tableTip.addTableRow("Num Values", details->valueCount());
+    tableTip.addTableRow("Num Unique", details->numUnique());
+    tableTip.addTableRow("Num Null"  , details->numNull());
+
+    if (details->isNumeric()) {
+      tableTip.addTableRow("Min"   , details->minValue());
+      tableTip.addTableRow("Max"   , details->maxValue());
+      tableTip.addTableRow("Mean"  , details->meanValue());
+      tableTip.addTableRow("StdDev", details->stdDevValue());
+    }
   }
+
+  return tableTip.str();
 }
 
 void
 CQChartsSummaryCellObj::
 draw(PaintDevice *device) const
 {
+  auto bx = plot_->lengthPlotWidth (plot_->border());
+  auto by = plot_->lengthPlotHeight(plot_->border());
+
   auto bbox = this->rect();
 
-  pxmin_ = bbox.getXMin() + plot_->border();
-  pxmax_ = bbox.getXMax() - plot_->border();
-  pymin_ = bbox.getYMin() + plot_->border();
-  pymax_ = bbox.getYMax() - plot_->border();
+  pxmin_ = bbox.getXMin() + bx;
+  pxmax_ = bbox.getXMax() - by;
+  pymin_ = bbox.getYMin() + bx;
+  pymax_ = bbox.getYMax() - by;
 
   //---
 
@@ -748,8 +836,6 @@ drawScatter(PaintDevice *device) const
 
   auto symbol = CQChartsSymbol::circle();
 
-  auto ss = CQChartsLength::pixel(5);
-
   PenBrush penBrush;
 
   plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
@@ -759,35 +845,30 @@ drawScatter(PaintDevice *device) const
   poly_ = Polygon();
 
   for (int i = 0; i < nx; ++i) {
-    double x, y;
+    double x = 0.0, y = 0.0;
 
     if (details1->isNumeric()) {
       bool ok;
-      double r = details1->value(i).toDouble(&ok);
+      x = details1->value(i).toDouble(&ok);
       if (! ok) continue;
-
-      x = CMathUtil::map(r, xmin_, xmax_, pxmin_, pxmax_);
     }
-    else {
-      int id = details1->uniqueId(details1->value(i));
-
-      x = CMathUtil::map(id, xmin_, xmax_, pxmin_, pxmax_);
-    }
+    else
+      x = details1->uniqueId(details1->value(i));
 
     if (details2->isNumeric()) {
       bool ok;
-      double r = details2->value(i).toDouble(&ok);
+      y = details2->value(i).toDouble(&ok);
       if (! ok) continue;
-
-      y = CMathUtil::map(r, ymin_, ymax_, pymin_, pymax_);
     }
-    else {
-      int id = details2->uniqueId(details2->value(i));
+    else
+      y = details2->uniqueId(details2->value(i));
 
-      y = CMathUtil::map(id, ymin_, ymax_, pymin_, pymax_);
-    }
+    //---
 
-    Point ps(x, y);
+    auto x1 = CMathUtil::map(x, xmin_, xmax_, pxmin_, pxmax_);
+    auto y1 = CMathUtil::map(y, ymin_, ymax_, pymin_, pymax_);
+
+    Point ps(x1, y1);
 
     //---
 
@@ -816,11 +897,11 @@ drawScatter(PaintDevice *device) const
 
     //---
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, ss);
+    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, plot_->symbolSize());
 
     //---
 
-    poly_.addPoint(ps);
+    poly_.addPoint(Point(x, y)); // untransformed point
   }
 
   //---
@@ -837,6 +918,7 @@ drawBestFit(PaintDevice *device) const
 
   auto drawFitPoly = [&](const Polygon &polygon) {
     auto pbbox = polygon.boundingBox();
+    if (! pbbox.isValid()) return;
 
     CQChartsFitData fitData;
 

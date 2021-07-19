@@ -286,15 +286,19 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsImagePlotCustomControls(CQCharts *charts);
 
+  void init() override;
+
+  void addWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
- private:
-  void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected slots:
   void cellStyleSlot();
 
  private:

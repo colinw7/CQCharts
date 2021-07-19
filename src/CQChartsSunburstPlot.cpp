@@ -1391,6 +1391,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsSunburstPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1840,16 +1842,25 @@ CQChartsSunburstPlotCustomControls::
 CQChartsSunburstPlotCustomControls(CQCharts *charts) :
  CQChartsHierPlotCustomControls(charts, "sunburst")
 {
-  addHierColumnWidgets ();
-  addColorColumnWidgets();
+}
 
-  //---
+void
+CQChartsSunburstPlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
 
-  //---
-
   connectSlots(true);
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+addWidgets()
+{
+  addHierColumnWidgets ();
+  addColorColumnWidgets();
 }
 
 void

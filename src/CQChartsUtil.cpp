@@ -682,6 +682,13 @@ int countLeadingBraces(CQStrParse &parse) {
 
 //---
 
+QString realToString(double r) {
+  return QString::number(r);
+  //return QString("%1").arg(r);
+}
+
+//---
+
 bool stringToPolygons(const QString &str, std::vector<Polygon> &polygons) {
   CQStrParse parse(str);
 

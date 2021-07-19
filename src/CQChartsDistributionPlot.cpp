@@ -3508,6 +3508,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsDistributionPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -4965,6 +4967,23 @@ CQChartsDistributionPlotCustomControls::
 CQChartsDistributionPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "distribution")
 {
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -5058,12 +5077,6 @@ CQChartsDistributionPlotCustomControls(CQCharts *charts) :
 
   addGroupColumnWidgets();
   addColorColumnWidgets ();
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

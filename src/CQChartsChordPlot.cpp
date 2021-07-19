@@ -1290,6 +1290,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsChordPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -2528,13 +2530,26 @@ CQChartsChordPlotCustomControls::
 CQChartsChordPlotCustomControls(CQCharts *charts) :
  CQChartsConnectionPlotCustomControls(charts, "chord")
 {
-  addConnectionColumnWidgets();
+}
 
-  addColorColumnWidgets("Chord Color");
+void
+CQChartsChordPlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
 
   connectSlots(true);
+}
+
+void
+CQChartsChordPlotCustomControls::
+addWidgets()
+{
+  addConnectionColumnWidgets();
+
+  addColorColumnWidgets("Chord Color");
 }
 
 void

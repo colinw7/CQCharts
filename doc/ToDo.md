@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Summary Plot
+   + Parallel Plot
+   + Correlation Plot
+   + Customization
+   + Hide sub plots
+   + Push in support all plots
+   + fit box
+   + stats on tip
+   + convex hull on scatter
  + Custom Controls interface
    init(), addWidgets() all virtual
  + Summary plot. Input is multiple columns output is

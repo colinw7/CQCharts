@@ -878,6 +878,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsHierScatterPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1038,20 +1040,29 @@ CQChartsHierScatterPlotCustomControls::
 CQChartsHierScatterPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "hierscatter")
 {
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", columnsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

@@ -924,25 +924,26 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
  public:
   CQChartsScatterPlotCustomControls(CQCharts *charts);
 
-  virtual void init();
+  void init() override;
 
-  virtual void addWidgets();
+  void addWidgets() override;
 
   void addSymbolLabelWidgets();
   void addFontSizeWidgets   ();
 
   void setPlot(CQChartsPlot *plot) override;
 
-  CQChartsColor getColorValue() override;
-  void setColorValue(const CQChartsColor &c) override;
-
- private:
-  virtual void connectSlots(bool b);
+ protected:
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected:
+  CQChartsColor getColorValue() override;
+  void setColorValue(const CQChartsColor &c) override;
+
+ protected slots:
   void bestFitSlot();
   void convexHullSlot();
 

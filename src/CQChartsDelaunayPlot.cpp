@@ -786,6 +786,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsDelaunayPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -938,6 +940,23 @@ CQChartsDelaunayPlotCustomControls::
 CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "delaunay")
 {
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -959,14 +978,6 @@ CQChartsDelaunayPlotCustomControls(CQCharts *charts) :
 
   addFrameWidget(optionsFrame, "Delaunay", delaunayCheck_);
   addFrameWidget(optionsFrame, "Voronoi" , voronoiCheck_ );
-
-  //addFrameRowStretch(optionsFrame);
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

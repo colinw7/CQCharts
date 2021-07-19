@@ -1206,6 +1206,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsPivotPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1971,6 +1973,23 @@ CQChartsPivotPlotCustomControls::
 CQChartsPivotPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "pivot")
 {
+}
+
+void
+CQChartsPivotPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsPivotPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1981,14 +2000,6 @@ CQChartsPivotPlotCustomControls(CQCharts *charts) :
   //---
 
   // TODO: orientation, plot type
-
-  //---
-
-  addLayoutStretch();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

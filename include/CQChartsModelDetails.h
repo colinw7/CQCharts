@@ -216,6 +216,8 @@ class CQChartsModelColumnDetails {
 
   //---
 
+  int valueCount() const;
+
   QVariant value(int i) const;
 
   //---

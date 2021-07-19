@@ -661,6 +661,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsStripPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -776,10 +778,25 @@ CQChartsStripPlotCustomControls::
 CQChartsStripPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "strip")
 {
-  addGroupColumnWidgets();
-  addColorColumnWidgets();
+}
+
+void
+CQChartsStripPlotCustomControls::
+init()
+{
+  addWidgets();
 
   addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsStripPlotCustomControls::
+addWidgets()
+{
+  addGroupColumnWidgets();
+  addColorColumnWidgets();
 }
 
 void

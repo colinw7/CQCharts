@@ -50,7 +50,7 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void showSymbolTypeMapKeySlot(bool b);
 
  protected:
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  private:
   using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;

@@ -1241,6 +1241,8 @@ createCustomControls()
 {
   auto *controls = new CQChartsParallelPlotCustomControls(charts());
 
+  controls->init();
+
   controls->setPlot(this);
 
   controls->updateWidgets();
@@ -1693,6 +1695,23 @@ CQChartsParallelPlotCustomControls::
 CQChartsParallelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "parallel")
 {
+}
+
+void
+CQChartsParallelPlotCustomControls::
+init()
+{
+  addWidgets();
+
+  addLayoutStretch();
+
+  connectSlots(true);
+}
+
+void
+CQChartsParallelPlotCustomControls::
+addWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1719,12 +1738,6 @@ CQChartsParallelPlotCustomControls(CQCharts *charts) :
   //---
 
   addColorColumnWidgets("Line Color");
-
-  //---
-
-  addLayoutStretch();
-
-  connectSlots(true);
 }
 
 void

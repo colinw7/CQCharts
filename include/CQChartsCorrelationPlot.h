@@ -290,14 +290,14 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
  public:
   CQChartsCorrelationPlotCustomControls(CQCharts *charts);
 
-  virtual void init();
+  void init() override;
 
-  virtual void addWidgets();
+  void addWidgets() override;
 
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
-  virtual void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;

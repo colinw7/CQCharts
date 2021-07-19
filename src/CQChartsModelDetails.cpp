@@ -1238,6 +1238,29 @@ map(const QVariant &var) const
 
 //---
 
+int
+CQChartsModelColumnDetails::
+valueCount() const
+{
+  if      (type() == CQBaseModelType::INTEGER) {
+    return valueSet_->ivals().size();
+  }
+  else if (type() == CQBaseModelType::REAL) {
+    return valueSet_->rvals().size();
+  }
+  else if (type() == CQBaseModelType::STRING) {
+    return valueSet_->svals().size();
+  }
+  else if (type() == CQBaseModelType::TIME) {
+    return valueSet_->tvals().size();
+  }
+  else if (type() == CQBaseModelType::COLOR) {
+    return valueSet_->cvals().size();
+  }
+
+  return 0;
+}
+
 QVariant
 CQChartsModelColumnDetails::
 value(int i) const
@@ -1928,7 +1951,7 @@ calcBucketer()
     int n = i2 - i1 + 1;
     int d = n/num;
 
-    if (d < 0) d = 1;
+    if (d <= 0) d = 1;
 
     bucketer_->setIStart(i1);
     bucketer_->setIDelta(d);
