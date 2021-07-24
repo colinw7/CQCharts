@@ -21,6 +21,7 @@
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
+#include <CQChartsParallelPlot.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -45,6 +46,11 @@ addParameters()
    setGroupable().setBasic().setPropPath("columns.group").setTip("Group column");
 
   // options
+  addEnumParameter("plotType", "Plot Type", "plotTy[e").
+    addNameValue("MATRIX"  , int(CQChartsSummaryPlot::PlotType::MATRIX  )).
+    addNameValue("PARALLEL", int(CQChartsSummaryPlot::PlotType::PARALLEL)).
+    setTip("Plot Type");
+
   addEnumParameter("diagonalType", "Diagonal Cell Type", "diagonalType").
     addNameValue("NONE"        , int(CQChartsSummaryPlot::DiagonalType::NONE        )).
     addNameValue("BOXPLOT"     , int(CQChartsSummaryPlot::DiagonalType::BOXPLOT     )).
@@ -145,6 +151,8 @@ init()
 
     auto *plot = type->createAndInit(view(), model());
 
+    plot->setVisible(false);
+
     int n = view()->numPlots();
 
     plot->setId(QString("Chart.%1.%2").arg(n + 1).arg(typeName));
@@ -155,7 +163,6 @@ init()
 
     view()->addPlot(plot, bbox);
 
-    plot->setVisible(false);
     plot->setRootPlot(this);
 
     return plot;
@@ -163,17 +170,108 @@ init()
 
   scatterPlot_      = dynamic_cast<ScatterPlot      *>(createPlot("scatter"));
   distributionPlot_ = dynamic_cast<DistributionPlot *>(createPlot("distribution"));
+  parallelPlot_     = dynamic_cast<ParallelPlot     *>(createPlot("parallel"));
 
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
 
   distributionPlot_->setValueColumns(Columns(Column::makeRow()));
+
+  parallelPlot_->setYColumns(Columns(Column::makeRow()));
 }
 
 void
 CQChartsSummaryPlot::
 term()
 {
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
+setPlotType(const PlotType &t, bool update)
+{
+  CQChartsUtil::testAndSet(plotType_, t, [&]() {
+    if (update) updatePlots();
+
+    emit customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setExpanded(bool b)
+{
+  CQChartsUtil::testAndSet(expanded_, b, [&]() {
+    updatePlots(); emit customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+updatePlotsSlot()
+{
+  updatePlots();
+}
+
+void
+CQChartsSummaryPlot::
+updatePlots()
+{
+  Plot *currentPlot = this;
+
+  if (! isExpanded() && (plotType() == PlotType::PARALLEL)) {
+    parallelPlot_->setYColumns(columns());
+
+    currentPlot = parallelPlot_;
+  }
+  else
+    parallelPlot_->setYColumns(Columns(Column::makeRow()));
+
+  if (isExpanded() && (expandRow_ != expandCol_)) {
+    auto column1 = columns().getColumn(expandRow_);
+    auto column2 = columns().getColumn(expandCol_);
+
+    scatterPlot_->setXColumn(column1);
+    scatterPlot_->setYColumn(column2);
+    scatterPlot_->setGroupColumn(groupColumn());
+    scatterPlot_->setTipColumns(columns());
+
+    currentPlot = scatterPlot_;
+  }
+  else {
+    scatterPlot_->setXColumn(Column::makeRow());
+    scatterPlot_->setYColumn(Column::makeRow());
+  }
+
+  if (isExpanded() && (expandRow_ == expandCol_)) {
+     auto column = columns().getColumn(expandRow_);
+
+    distributionPlot_->setValueColumns(Columns(column));
+    distributionPlot_->setTipColumns(columns());
+
+    currentPlot = distributionPlot_;
+  }
+  else {
+    distributionPlot_->setValueColumns(Columns(Column::makeRow()));
+  }
+
+  currentPlot->setVisible(true);
+
+  view()->setCurrentPlot(currentPlot);
+
+  if (this != currentPlot)
+    this->setVisible(false);
+
+  if (parallelPlot_ != currentPlot)
+    parallelPlot_->setVisible(false);
+
+  if (scatterPlot_ != currentPlot)
+    scatterPlot_->setVisible(false);
+
+  if (distributionPlot_ != currentPlot)
+    distributionPlot_->setVisible(false);
 }
 
 //---
@@ -237,17 +335,6 @@ setDensity(bool b)
 }
 
 //---
-
-void
-CQChartsSummaryPlot::
-setModel(const ModelP &model)
-{
-  model_ = model;
-
-  updateRangeAndObjs();
-
-  emit modelChanged();
-}
 
 void
 CQChartsSummaryPlot::
@@ -342,6 +429,9 @@ addProperties()
   addProp("columns", "columns"    , "columns", "Columns");
   addProp("columns", "groupColumn", "group"  , "Group column");
 
+  // style
+  addProp("options", "plotType", "plotType", "Plot type");
+
   // x/y axis label text
   addProp("xaxis/text", "xLabels", "visible", "X labels visible");
 
@@ -355,6 +445,10 @@ addProperties()
   addProp("cell", "symbolSize", "symbolSize", "Scatter symbol size");
 
   addProp("cell", "border", "border", "Border Size");
+
+  // overlays
+  addProp("overlays", "bestFit", "bestFit", "Show best fit on scatter");
+  addProp("overlays", "density", "density", "Show density on distribution");
 }
 
 //---
@@ -520,32 +614,19 @@ expandSlot()
   auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(menuObj_);
   if (! cellObj) return;
 
-  int row = cellObj->row();
-  int col = cellObj->col();
+  expandRow_ = cellObj->row();
+  expandCol_ = cellObj->col();
 
-  if (row != col) {
-    auto column1 = columns().getColumn(row);
-    auto column2 = columns().getColumn(col);
+  setExpanded(true);
+}
 
-    setVisible(false);
+void
+CQChartsSummaryPlot::
+notifyCollapse()
+{
+  setPlotType(PlotType::MATRIX, /*update*/false);
 
-    scatterPlot_->setXColumn(column1);
-    scatterPlot_->setYColumn(column2);
-    scatterPlot_->setGroupColumn(groupColumn());
-    scatterPlot_->setTipColumns(columns());
-
-    scatterPlot_->setVisible(true);
-  }
-  else {
-    auto column = columns().getColumn(row);
-
-    setVisible(false);
-
-    distributionPlot_->setValueColumns(Columns(column));
-    distributionPlot_->setTipColumns(columns());
-
-    distributionPlot_->setVisible(true);
-  }
+  setExpanded(false);
 }
 
 //------
@@ -709,22 +790,24 @@ calcTipId() const
   else {
     auto column = plot_->columns().getColumn(row_);
 
-    auto *details = plot_->columnDetails(column);
-
     bool ok;
     auto tip = plot_->modelHHeaderTip(column, ok);
 
     tableTip.addTableRow("Column", tip);
 
-    tableTip.addTableRow("Num Values", details->valueCount());
-    tableTip.addTableRow("Num Unique", details->numUnique());
-    tableTip.addTableRow("Num Null"  , details->numNull());
+    auto *details = plot_->columnDetails(column);
 
-    if (details->isNumeric()) {
-      tableTip.addTableRow("Min"   , details->minValue());
-      tableTip.addTableRow("Max"   , details->maxValue());
-      tableTip.addTableRow("Mean"  , details->meanValue());
-      tableTip.addTableRow("StdDev", details->stdDevValue());
+    if (details) {
+      tableTip.addTableRow("Num Values", details->valueCount());
+      tableTip.addTableRow("Num Unique", details->numUnique());
+      tableTip.addTableRow("Num Null"  , details->numNull());
+
+      if (details->isNumeric()) {
+        tableTip.addTableRow("Min"   , details->minValue());
+        tableTip.addTableRow("Max"   , details->maxValue());
+        tableTip.addTableRow("Mean"  , details->meanValue());
+        tableTip.addTableRow("StdDev", details->stdDevValue());
+      }
     }
   }
 
@@ -797,6 +880,7 @@ drawScatter(PaintDevice *device) const
 
   auto *details1 = plot_->columnDetails(column1);
   auto *details2 = plot_->columnDetails(column2);
+  if (! details1 || ! details2) return;
 
   auto *groupDetails = (plot_->groupColumn().isValid() ?
     plot_->columnDetails(plot_->groupColumn()) : nullptr);
@@ -832,7 +916,7 @@ drawScatter(PaintDevice *device) const
 
   int nx = details1->numRows();
   int ny = details2->numRows();
-  assert(nx == ny);
+  if (nx != ny) return;
 
   auto symbol = CQChartsSymbol::circle();
 
@@ -976,6 +1060,7 @@ drawCorrelation(PaintDevice *device) const
 
   auto *details1 = plot_->columnDetails(column1);
   auto *details2 = plot_->columnDetails(column2);
+  if (! details1 || ! details2) return;
 
   if (details1->isNumeric() && details2->isNumeric()) {
     if (! plot_->groupColumn().isValid()) {
@@ -998,23 +1083,94 @@ drawCorrelation(PaintDevice *device) const
 
       QFontMetricsF fm(device->font());
 
-      double dy1 = plot_->pixelToWindowHeight(fm.height());
+      double dy1 = plot_->pixelToWindowHeight(fm.height() + 2);
 
-      double x = bbox.getXMid();
-      double y = bbox.getYMid() - ng*std::min(dy, dy1)/2.0;
+      struct LabelData {
+        QString str;
+        int     ig  { 0 };
+        double  tw  { 0.0 };
+        double  thw { 0.0 };
+        double  thh { 0.0 };
+      };
+
+      using LabelDatas = std::vector<LabelData>;
+
+      LabelDatas labelDatas;
 
       for (const auto &pg : groupValues_.groupIndData) {
+        LabelData labelData;
+
+        labelData.ig = pg.first;
+
         const auto &indData = pg.second;
 
         auto correlation = CMathCorrelation::calc(indData.x, indData.y);
 
+        labelData.str = QString::number(correlation);
+
+        //---
+
+        auto tsize =
+          CQChartsDrawUtil::calcTextSize(labelData.str, device->font(), CQChartsTextOptions());
+
+        labelData.tw  = plot_->pixelToWindowWidth (tsize.width ());
+        labelData.thw = plot_->pixelToWindowWidth (tsize.height());
+        labelData.thh = plot_->pixelToWindowHeight(tsize.height());
+
+        //---
+
+        labelDatas.push_back(std::move(labelData));
+      }
+
+      //---
+
+      double maxWidth = 0.0;
+
+      for (const auto &labelData : labelDatas)
+        maxWidth = std::max(maxWidth, labelData.tw);
+
+      //---
+
+      PenBrush tpenBrush;
+
+      auto tc = plot_->interpInterfaceColor(1.0);
+
+      plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
+
+      //---
+
+      double x = bbox.getXMid();
+      double y = bbox.getYMid() - ng*std::min(dy, dy1)/2.0;
+
+      for (const auto &labelData : labelDatas) {
+        CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+        //---
+
         CQChartsTextOptions options;
 
-        options.align = Qt::AlignHCenter | Qt::AlignVCenter;
+        options.align = Qt::AlignLeft | Qt::AlignVCenter;
 
-        auto p = Point(x, y);
+        auto p = Point(x - maxWidth/2.0, y);
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p, QString::number(correlation), options);
+        CQChartsDrawUtil::drawTextAtPoint(device, p, labelData.str, options);
+
+        //---
+
+        PenBrush bpenBrush;
+
+        auto fc = plot_->interpPaletteColor(ColorInd(labelData.ig, ng));
+
+        plot_->setPenBrush(bpenBrush, PenData(false), BrushData(true, fc));
+
+        CQChartsDrawUtil::setPenBrush(device, bpenBrush);
+
+        auto bbox = BBox(p.x - labelData.thw - labelData.thw/2.0, p.y - labelData.thh/2.0,
+                         p.x                 - labelData.thh/2.0, p.y + labelData.thh/2.0);
+
+        device->drawRect(bbox);
+
+        //--
 
         y += std::min(dy, dy1);
       }
@@ -1029,6 +1185,7 @@ drawBoxPlot(PaintDevice *device) const
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   int nc = plot_->columns().count();
 
@@ -1077,6 +1234,7 @@ drawDistribution(PaintDevice *device) const
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   int nc = plot_->columns().count();
 
@@ -1159,6 +1317,7 @@ drawDensity(PaintDevice *device) const
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   //---
 
@@ -1210,6 +1369,7 @@ drawPie(PaintDevice *device) const
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   int nc = plot_->columns().count();
 
@@ -1248,9 +1408,15 @@ void
 CQChartsSummaryCellObj::
 calcBucketCounts(BucketCount &bucketCount, int &maxCount, double &rmin, double &rmax) const
 {
+  bucketCount = BucketCount();
+  maxCount    = 0;
+  rmin        = 0.0;
+  rmax        = 0.0;
+
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   bool ok;
   double min = details->minValue().toDouble(&ok);
@@ -1291,9 +1457,13 @@ void
 CQChartsSummaryCellObj::
 calcValueCounts(ValueCounts &valueCounts, int &maxCount) const
 {
+  valueCounts = ValueCounts();
+  maxCount    = 0;
+
   auto column = plot_->columns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
+  if (! details) return;
 
   maxCount = 0;
 
@@ -1326,6 +1496,7 @@ initGroupedValues()
 
     auto *details1 = plot_->columnDetails(column1);
     auto *details2 = plot_->columnDetails(column2);
+    if (! details1 || ! details2) return;
 
     for (int ir = 0; ir < nr; ++ir) {
       auto var = groupDetails->value(ir);
@@ -1363,6 +1534,7 @@ initGroupedValues()
     auto column = plot_->columns().getColumn(row_);
 
     auto *details = plot_->columnDetails(column);
+    if (! details) return;
 
     for (int ir = 0; ir < nr; ++ir) {
       auto var = groupDetails->value(ir);
@@ -1422,9 +1594,13 @@ addWidgets()
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
+  plotTypeCombo_ = createEnumEdit("plotType");
+
   diagonalTypeCombo_      = createEnumEdit("diagonalType");
   upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");
   lowerDiagonalTypeCombo_ = createEnumEdit("lowerDiagonalType");
+
+  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
 
   addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
   addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
@@ -1441,6 +1617,8 @@ void
 CQChartsSummaryPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
     diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -1460,9 +1638,15 @@ void
 CQChartsSummaryPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsSummaryPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1473,6 +1657,7 @@ updateWidgets()
 
   //---
 
+  plotTypeCombo_         ->setCurrentValue((int) plot_->plotType());
   diagonalTypeCombo_     ->setCurrentValue((int) plot_->diagonalType());
   upperDiagonalTypeCombo_->setCurrentValue((int) plot_->upperDiagonalType());
   lowerDiagonalTypeCombo_->setCurrentValue((int) plot_->lowerDiagonalType());
@@ -1491,12 +1676,19 @@ updateWidgets()
 
 void
 CQChartsSummaryPlotCustomControls::
+plotTypeSlot()
+{
+  plot_->setPlotType((CQChartsSummaryPlot::PlotType) plotTypeCombo_->currentValue(),
+                     /*update*/false);
+
+  QTimer::singleShot(10, plot_, SLOT(updatePlotsSlot()));
+}
+
+void
+CQChartsSummaryPlotCustomControls::
 diagonalTypeSlot()
 {
-  plot_->setDiagonalType((CQChartsSummaryPlot::DiagonalType)
-                         diagonalTypeCombo_->currentValue());
-
-  updateWidgets();
+  plot_->setDiagonalType((CQChartsSummaryPlot::DiagonalType) diagonalTypeCombo_->currentValue());
 }
 
 void
@@ -1505,8 +1697,6 @@ upperDiagonalTypeSlot()
 {
   plot_->setUpperDiagonalType((CQChartsSummaryPlot::OffDiagonalType)
                               upperDiagonalTypeCombo_->currentValue());
-
-  updateWidgets();
 }
 
 void
@@ -1515,8 +1705,6 @@ lowerDiagonalTypeSlot()
 {
   plot_->setLowerDiagonalType((CQChartsSummaryPlot::OffDiagonalType)
                               lowerDiagonalTypeCombo_->currentValue());
-
-  updateWidgets();
 }
 
 void

@@ -942,6 +942,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Plot *rootPlot() const { return connectData_.root; }
   void setRootPlot(Plot *root) { connectData_.root = root; }
 
+  virtual void notifyCollapse() { }
+
   //---
 
   // Connection (overlay, x1x2, y1y2, tabbed

@@ -2828,17 +2828,25 @@ updatePlotControls()
   // add controls for plot and child plots
   auto *plot = currentPlot();
 
-  quickControlFrame_->setPlot(plot);
+  auto *rootPlot = (plot ? const_cast<Plot *>(plot->rootPlot()) : nullptr);
+
+  auto *controlPlot = (rootPlot ? rootPlot : plot);
+
+  //---
+
+  quickControlFrame_->setPlot(controlPlot);
   quickControlFrame_->setPlotControls();
 
   //---
 
-  delete plotCustomControls_;
+  if (! plotCustomControls_ || plotCustomControls_->plot() != controlPlot) {
+    delete plotCustomControls_;
 
-  plotCustomControls_ = (plot ? plot->createCustomControls() : nullptr);
+    plotCustomControls_ = (controlPlot ? controlPlot->createCustomControls() : nullptr);
 
-  if (plotCustomControls_)
-    customControlFrame_->layout()->addWidget(plotCustomControls_);
+    if (plotCustomControls_)
+      customControlFrame_->layout()->addWidget(plotCustomControls_);
+  }
 
   //---
 

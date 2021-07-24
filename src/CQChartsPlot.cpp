@@ -10815,9 +10815,15 @@ collapseRootSlot()
 {
   assert(rootPlot());
 
-  const_cast<CQChartsPlot *>(rootPlot())->setVisible(true);
+  auto *rootPlot = const_cast<CQChartsPlot *>(this->rootPlot());
+
+  rootPlot->setVisible(true);
 
   setVisible(false);
+
+  view()->setCurrentPlot(rootPlot);
+
+  rootPlot->notifyCollapse();
 }
 
 //---
@@ -15986,6 +15992,9 @@ modelHHeaderTip(const Column &column, bool &ok) const
 
   if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
+
+  if (column.hasColumn())
+    str += QString(" (#%1").arg(column.column());
 
   return str;
 }

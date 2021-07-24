@@ -929,6 +929,10 @@ addMenuItems(QMenu *menu)
   if (canDrawColorMapKey())
     addColorMapKeyItems(menu);
 
+  //---
+
+  addRootMenuItems(menu);
+
   return true;
 }
 
@@ -1533,7 +1537,8 @@ CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval,
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv),
  plot_(plot), yval_(yval), x_(x), y_(y)
 {
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
 
 QString

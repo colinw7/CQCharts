@@ -7,6 +7,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 

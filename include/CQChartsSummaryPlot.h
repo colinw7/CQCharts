@@ -5,13 +5,10 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsColumnNum.h>
-#include <CQSummaryModel.h>
 
 class CQChartsScatterPlot;
 class CQChartsDistributionPlot;
-
-class QScrollBar;
+class CQChartsParallelPlot;
 
 //---
 
@@ -68,7 +65,10 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumns columns     READ columns     WRITE setColumns    )
   Q_PROPERTY(CQChartsColumn  groupColumn READ groupColumn WRITE setGroupColumn)
 
-  // border (TODO: length)
+  // plot type
+  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
+
+  // border
   Q_PROPERTY(CQChartsLength border READ border WRITE setBorder)
 
   Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
@@ -90,10 +90,16 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   // TODO: hull
 
+  Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
 
  public:
+  enum class PlotType {
+    MATRIX,
+    PARALLEL
+  };
+
   enum class DiagonalType {
     NONE,
     BOXPLOT,
@@ -111,6 +117,7 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   using ScatterPlot       = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
+  using ParallelPlot     = CQChartsParallelPlot;
 
  public:
   CQChartsSummaryPlot(View *view, const ModelP &model);
@@ -120,10 +127,6 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   void init() override;
   void term() override;
-
-  //---
-
-  void setModel(const ModelP &model) override;
 
   //---
 
@@ -151,7 +154,17 @@ class CQChartsSummaryPlot : public CQChartsPlot {
 
   //---
 
-  // cell types
+  //! get/set plot type
+  const PlotType &plotType() const { return plotType_; }
+  void setPlotType(const PlotType &t, bool update=true);
+
+  // get/set expanded
+  bool isExpanded() const { return expanded_; }
+  void setExpanded(bool b);
+
+  //---
+
+  //! get/set matrix cell types
   const DiagonalType &diagonalType() const { return diagonalType_; }
   void setDiagonalType(const DiagonalType &t);
 
@@ -215,6 +228,8 @@ class CQChartsSummaryPlot : public CQChartsPlot {
  protected:
   using CellObj = CQChartsSummaryCellObj;
 
+  void updatePlots();
+
   virtual CellObj *createCellObj(const BBox &bbox, int row, int col) const;
 
  public slots:
@@ -222,6 +237,8 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   void setYLabels(bool b);
 
   void expandSlot();
+
+  void updatePlotsSlot();
 
  private slots:
   void modelTypeChangedSlot(int modelId);
@@ -231,6 +248,8 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   void lowerDiagonalTypeSlot(bool);
 
  protected:
+  void notifyCollapse() override;
+
   CQChartsPlotCustomControls *createCustomControls() override;
 
   BBox cellBBox(int row, int col) const;
@@ -244,12 +263,19 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   bool xLabels_ { true }; //!< x labels
   bool yLabels_ { true }; //!< y labels
 
+  PlotType plotType_ { PlotType::MATRIX }; //!< unexpanded plot type
+  bool     expanded_ { false };
+
+  int expandRow_ { 0 };
+  int expandCol_ { 0 };
+
   DiagonalType    diagonalType_      { DiagonalType::DISTRIBUTION };   //!< diagonal type
   OffDiagonalType upperDiagonalType_ { OffDiagonalType::SCATTER };     //!< upper diagonal type
   OffDiagonalType lowerDiagonalType_ { OffDiagonalType::CORRELATION }; //!< lower diagonal type
 
   ScatterPlot*      scatterPlot_      { nullptr };
   DistributionPlot* distributionPlot_ { nullptr };
+  ParallelPlot*     parallelPlot_     { nullptr };
 
   bool bestFit_ { false };
   bool density_ { false };
@@ -365,6 +391,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  protected slots:
+  void plotTypeSlot();
+
   void diagonalTypeSlot();
   void upperDiagonalTypeSlot();
   void lowerDiagonalTypeSlot();
@@ -375,6 +403,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
  private:
   CQChartsSummaryPlot* plot_ { nullptr };
 
+  CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };
   CQChartsEnumParameterEdit* upperDiagonalTypeCombo_ { nullptr };
   CQChartsEnumParameterEdit* lowerDiagonalTypeCombo_ { nullptr };

@@ -884,8 +884,11 @@ void
 CQChartsView::
 setCurrentPlot(Plot *plot)
 {
-  if (plot)
+  if (plot) {
+    assert(plot->isVisible());
+
     setCurrentPlotInd(getIndForPlot(plot));
+  }
   else
     setCurrentPlotInd(-1);
 }
@@ -1688,13 +1691,17 @@ addPlot(Plot *plot, const BBox &bbox)
 
   //---
 
-  if (currentPlotInd_ < 0)
-    setCurrentPlot(plot);
+  if (currentPlotInd_ < 0) {
+    if (plot->isVisible())
+      setCurrentPlot(plot);
+  }
 
   auto *currentPlot = this->currentPlot(/*remap*/false);
 
-  if (currentPlot->parentPlot() && ! plot->parentPlot())
-    setCurrentPlot(plot);
+  if (currentPlot && currentPlot->parentPlot() && ! plot->parentPlot()) {
+    if (plot->isVisible())
+      setCurrentPlot(plot);
+  }
 
   separatorsInvalid_ = true;
 
@@ -2295,12 +2302,19 @@ void
 CQChartsView::
 autoPlacePlots()
 {
-  int np = plots().size();
+  Plots visiblePlots;
+
+  for (const auto &plot : plots()) {
+    if (plot->isVisible())
+      visiblePlots.push_back(plot);
+  }
+
+  int np = visiblePlots.size();
 
   int nr = std::max(int(std::sqrt(np)), 1);
   int nc = (np + nr - 1)/nr;
 
-  placePlots(plots(), /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
+  placePlots(visiblePlots, /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
 }
 
 void

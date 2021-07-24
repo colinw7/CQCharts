@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Scalable object to allow fit multiple (scalable) objects in rect
+ + Use default symbol set (name) for all plots (scatter)
  + Summary Plot
    + Parallel Plot
    + Correlation Plot
@@ -11,7 +13,6 @@ TODO:
    + Hide sub plots
    + Push in support all plots
    + fit box
-   + stats on tip
    + convex hull on scatter
  + Custom Controls interface
    init(), addWidgets() all virtual

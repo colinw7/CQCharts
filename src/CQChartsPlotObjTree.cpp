@@ -58,7 +58,7 @@ addObjectsThread()
     const auto &range = plot_->objTreeRange();
 
     if (range.isSet()) {
-      BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+      auto bbox = range.bbox();
 
       plotObjTree = new PlotObjTree(bbox);
 
