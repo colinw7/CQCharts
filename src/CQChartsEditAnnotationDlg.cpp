@@ -1002,8 +1002,8 @@ createPolygonEdit(const QString &name, const CQChartsPolygon &poly, const QStrin
 
   edit->setPolygon(poly);
 
-  if      (annotation()->view()) edit->setUnits(CQChartsUnits::VIEW);
-  else if (annotation()->plot()) edit->setUnits(CQChartsUnits::PLOT);
+  if      (annotation()->view()) edit->setUnits(Units::VIEW);
+  else if (annotation()->plot()) edit->setUnits(Units::PLOT);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -1071,19 +1071,19 @@ ellipseCenterSlot(bool)
     CQChartsGeom::Point center1;
     double              xr1 = 0.0;
     double              yr1 = 0.0;
-    CQChartsUnits       units1 { CQChartsUnits::PIXEL };
+    CQChartsUnits       units1 { Units::PIXEL };
 
     if      (annotation->view()) {
       center1 = annotation->view()->positionToView(center);
       xr1     = annotation->view()->lengthViewWidth(xr);
       yr1     = annotation->view()->lengthViewHeight(yr);
-      units1  = CQChartsUnits::VIEW;
+      units1  = Units::VIEW;
     }
     else if (annotation->plot()) {
       center1 = annotation->plot()->positionToPlot(center);
       xr1     = annotation->plot()->lengthPlotWidth(xr);
       yr1     = annotation->plot()->lengthPlotHeight(yr);
-      units1  = CQChartsUnits::PLOT;
+      units1  = Units::PLOT;
     }
 
     auto rp = CQChartsGeom::Point(xr1, yr1);

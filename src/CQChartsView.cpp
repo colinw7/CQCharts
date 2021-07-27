@@ -7729,21 +7729,21 @@ positionToView(const Position &pos) const
   auto p  = pos.p();
   auto p1 = p;
 
-  if      (pos.units() == CQChartsUnits::PIXEL)
+  if      (pos.units() == Units::PIXEL)
     p1 = pixelToWindow(p);
-  else if (pos.units() == CQChartsUnits::VIEW)
+  else if (pos.units() == Units::VIEW)
     p1 = p;
-  else if (pos.units() == CQChartsUnits::PERCENT) {
+  else if (pos.units() == Units::PERCENT) {
     p1.setX(p.getX()*viewportRange()/100.0);
     p1.setY(p.getY()*viewportRange()/100.0);
   }
-  else if (pos.units() == CQChartsUnits::EM) {
+  else if (pos.units() == Units::EM) {
     double x = pixelToWindowWidth (p.getX()*fontEm());
     double y = pixelToWindowHeight(p.getY()*fontEm());
 
     return Point(x, y);
   }
-  else if (pos.units() == CQChartsUnits::EX) {
+  else if (pos.units() == Units::EX) {
     double x = pixelToWindowWidth (p.getX()*fontEx());
     double y = pixelToWindowHeight(p.getY()*fontEx());
 
@@ -7760,21 +7760,21 @@ positionToPixel(const Position &pos) const
   auto p  = pos.p();
   auto p1 = p;
 
-  if      (pos.units() == CQChartsUnits::PIXEL)
+  if      (pos.units() == Units::PIXEL)
     p1 = p;
-  else if (pos.units() == CQChartsUnits::VIEW)
+  else if (pos.units() == Units::VIEW)
     p1 = windowToPixel(p);
-  else if (pos.units() == CQChartsUnits::PERCENT) {
+  else if (pos.units() == Units::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
     p1.setY(p.getY()*height()/100.0);
   }
-  else if (pos.units() == CQChartsUnits::EM) {
+  else if (pos.units() == Units::EM) {
     double x = p.getX()*fontEm();
     double y = p.getY()*fontEm();
 
     return Point(x, y);
   }
-  else if (pos.units() == CQChartsUnits::EX) {
+  else if (pos.units() == Units::EX) {
     double x = p.getX()*fontEx();
     double y = p.getY()*fontEx();
 
@@ -7793,17 +7793,17 @@ rectToView(const CQChartsRect &rect) const
   auto r  = rect.bbox();
   auto r1 = r;
 
-  if      (rect.units() == CQChartsUnits::PIXEL)
+  if      (rect.units() == Units::PIXEL)
     r1 = pixelToWindow(r);
-  else if (rect.units() == CQChartsUnits::VIEW)
+  else if (rect.units() == Units::VIEW)
     r1 = r;
-  else if (rect.units() == CQChartsUnits::PERCENT) {
+  else if (rect.units() == Units::PERCENT) {
     r1.setXMin(r.getXMin()*viewportRange()/100.0);
     r1.setYMin(r.getYMin()*viewportRange()/100.0);
     r1.setXMax(r.getXMax()*viewportRange()/100.0);
     r1.setYMax(r.getYMax()*viewportRange()/100.0);
   }
-  else if (rect.units() == CQChartsUnits::EM) {
+  else if (rect.units() == Units::EM) {
     double x1 = pixelToWindowWidth (r.getXMin()*fontEm());
     double y1 = pixelToWindowHeight(r.getYMin()*fontEm());
     double x2 = pixelToWindowWidth (r.getXMax()*fontEm());
@@ -7811,7 +7811,7 @@ rectToView(const CQChartsRect &rect) const
 
     return BBox(x1, y1, x2, y2);
   }
-  else if (rect.units() == CQChartsUnits::EX) {
+  else if (rect.units() == Units::EX) {
     double x1 = pixelToWindowWidth (r.getXMin()*fontEx());
     double y1 = pixelToWindowHeight(r.getYMin()*fontEx());
     double x2 = pixelToWindowWidth (r.getXMax()*fontEx());
@@ -7830,17 +7830,17 @@ rectToPixel(const CQChartsRect &rect) const
   auto r  = rect.bbox();
   auto r1 = r;
 
-  if      (rect.units() == CQChartsUnits::PIXEL)
+  if      (rect.units() == Units::PIXEL)
     r1 = r;
-  else if (rect.units() == CQChartsUnits::VIEW)
+  else if (rect.units() == Units::VIEW)
     r1 = windowToPixel(r);
-  else if (rect.units() == CQChartsUnits::PERCENT) {
+  else if (rect.units() == Units::PERCENT) {
     r1.setXMin(r.getXMin()*width ()/100.0);
     r1.setYMin(r.getYMin()*height()/100.0);
     r1.setXMax(r.getXMax()*width ()/100.0);
     r1.setYMax(r.getYMax()*height()/100.0);
   }
-  else if (rect.units() == CQChartsUnits::EM) {
+  else if (rect.units() == Units::EM) {
     double x1 = r.getXMin()*fontEm();
     double y1 = r.getYMin()*fontEm();
     double x2 = r.getXMax()*fontEm();
@@ -7848,7 +7848,7 @@ rectToPixel(const CQChartsRect &rect) const
 
     return BBox(x1, y1, x2, y2);
   }
-  else if (rect.units() == CQChartsUnits::EX) {
+  else if (rect.units() == Units::EX) {
     double x1 = r.getXMin()*fontEx();
     double y1 = r.getYMin()*fontEx();
     double x2 = r.getXMax()*fontEx();
@@ -7866,15 +7866,15 @@ double
 CQChartsView::
 lengthViewWidth(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return pixelToWindowWidth(len.value());
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == CQChartsUnits::PERCENT)
+  else if (len.units() == Units::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return pixelToWindowWidth(len.value()*fontEm());
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return pixelToWindowWidth(len.value()*fontEx());
 
   return len.value();
@@ -7884,15 +7884,15 @@ double
 CQChartsView::
 lengthViewHeight(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return pixelToWindowHeight(len.value());
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == CQChartsUnits::PERCENT)
+  else if (len.units() == Units::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return pixelToWindowHeight(len.value()*fontEm());
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return pixelToWindowHeight(len.value()*fontEx());
 
   return len.value();
@@ -7902,15 +7902,15 @@ double
 CQChartsView::
 lengthViewSignedWidth(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return pixelToSignedWindowWidth(len.value());
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == CQChartsUnits::PERCENT)
+  else if (len.units() == Units::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return pixelToSignedWindowWidth(len.value()*fontEm());
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return pixelToSignedWindowWidth(len.value()*fontEx());
 
   return len.value();
@@ -7920,15 +7920,15 @@ double
 CQChartsView::
 lengthViewSignedHeight(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return pixelToSignedWindowHeight(len.value());
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == CQChartsUnits::PERCENT)
+  else if (len.units() == Units::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return pixelToSignedWindowHeight(len.value()*fontEm());
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return pixelToSignedWindowHeight(len.value()*fontEx());
 
   return len.value();
@@ -7938,18 +7938,18 @@ double
 CQChartsView::
 lengthPixelWidth(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return windowToPixelWidth(len.value());
-  else if (len.units() == CQChartsUnits::PERCENT) {
+  else if (len.units() == Units::PERCENT) {
     int w = (isAutoSize() ? width() : sizeData_.width);
 
     return len.value()*w/100.0;
   }
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return len.value()*fontEm();
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return len.value()*fontEx();
 
   return len.value();
@@ -7959,18 +7959,18 @@ double
 CQChartsView::
 lengthPixelHeight(const Length &len) const
 {
-  if      (len.units() == CQChartsUnits::PIXEL)
+  if      (len.units() == Units::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsUnits::VIEW)
+  else if (len.units() == Units::VIEW)
     return windowToPixelHeight(len.value());
-  else if (len.units() == CQChartsUnits::PERCENT) {
+  else if (len.units() == Units::PERCENT) {
     int h = (isAutoSize() ? height() : sizeData_.height);
 
     return len.value()*h/100.0;
   }
-  else if (len.units() == CQChartsUnits::EM)
+  else if (len.units() == Units::EM)
     return len.value()*fontEm();
-  else if (len.units() == CQChartsUnits::EX)
+  else if (len.units() == Units::EX)
     return len.value()*fontEx();
 
   return len.value();

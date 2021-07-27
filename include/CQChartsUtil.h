@@ -229,7 +229,7 @@ int countLeadingBraces(CQStrParse &parse);
 
 namespace CQChartsUtil {
 
-QString realToString(double r);
+QString realToString(double r, int ndp=-1);
 
 }
 
@@ -355,18 +355,19 @@ double limitLineWidth(double w);
 
 namespace CQChartsUtil {
 
-inline QString unitsString(const CQChartsUnits &units) {
-  if      (units == CQChartsUnits::PIXEL  ) return "px";
-  else if (units == CQChartsUnits::PERCENT) return "%" ;
-  else if (units == CQChartsUnits::PLOT   ) return "P" ;
-  else if (units == CQChartsUnits::VIEW   ) return "V" ;
-  else if (units == CQChartsUnits::EM     ) return "em";
-  else if (units == CQChartsUnits::EX     ) return "ex";
-  else                                      return ""  ;
+using Units = CQChartsUnits;
+
+inline QString unitsString(const Units &units) {
+  if      (units == Units::PIXEL  ) return "px";
+  else if (units == Units::PERCENT) return "%" ;
+  else if (units == Units::PLOT   ) return "P" ;
+  else if (units == Units::VIEW   ) return "V" ;
+  else if (units == Units::EM     ) return "em";
+  else if (units == Units::EX     ) return "ex";
+  else                              return ""  ;
 }
 
-bool decodeUnits(const QString &str, CQChartsUnits &units,
-                 const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+bool decodeUnits(const QString &str, Units &units, const Units &defUnits=Units::PLOT);
 
 QStringList unitNames(bool includeNone=false);
 

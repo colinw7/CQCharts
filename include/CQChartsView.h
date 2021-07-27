@@ -264,6 +264,7 @@ class CQChartsView : public QFrame,
   using ColorInd    = CQChartsUtil::ColorInd;
   using RegionMgr   = CQChartsRegionMgr;
   using KeyBehavior = CQChartsKeyPressBehavior;
+  using Units       = CQChartsUnits;
 
  public:
   static double viewportRange() { return 100.0; }

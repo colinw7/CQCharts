@@ -7332,14 +7332,14 @@ execCmd(CQChartsCmdArgs &argv)
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
 
     if      (strs.length() == 1) {
-      CQChartsLength len(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      auto len = CQChartsLength(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
       if (! len.isValid()) return errorMsg(QString("Invalid length string '%1'").arg(strs[0]));
 
       if (len.value() > 0) arrowData.setLength(len);
     }
     else if (strs.length() == 2) {
-      CQChartsLength len1(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-      CQChartsLength len2(strs[1], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      auto len1 = CQChartsLength(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      auto len2 = CQChartsLength(strs[1], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
       if (! len1.isValid() || ! len2.isValid())
         return errorMsg(QString("Invalid length strings '%1' '%2'").arg(strs[0]).arg(strs[1]));
 

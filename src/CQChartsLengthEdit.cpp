@@ -59,7 +59,7 @@ editChanged()
 {
   double value = edit_->value();
 
-  auto units = (length_.isValid() ? length_.units() : CQChartsUnits::NONE);
+  auto units = (length_.isValid() ? length_.units() : Units::NONE);
 
   CQChartsLength length(value, units);
 
@@ -104,7 +104,7 @@ lengthToWidgets()
   }
   else {
     edit_     ->setValue(0.0);
-    unitsEdit_->setUnits(CQChartsUnits::NONE);
+    unitsEdit_->setUnits(Units::NONE);
   }
 
   connectSlots(true);

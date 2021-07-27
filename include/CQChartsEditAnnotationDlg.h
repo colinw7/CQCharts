@@ -1,6 +1,7 @@
 #ifndef CQChartsEditAnnotationDlg_H
 #define CQChartsEditAnnotationDlg_H
 
+#include <CQChartsTypes.h>
 #include <QDialog>
 
 class CQChartsAnnotation;
@@ -48,9 +49,13 @@ class CQChartsEditAnnotationDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsEditAnnotationDlg(QWidget *parent, CQChartsAnnotation *annotation);
+  using Annotation = CQChartsAnnotation;
+  using Units      = CQChartsUnits;
 
-  CQChartsAnnotation *annotation() const { return annotation_; }
+ public:
+  CQChartsEditAnnotationDlg(QWidget *parent, Annotation *annotation);
+
+  Annotation *annotation() const { return annotation_; }
 
  private:
   struct Widgets {
@@ -229,25 +234,25 @@ class CQChartsEditAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQChartsAnnotation* annotation_       { nullptr }; //!< annotation
-  CQChartsLineEdit*   idEdit_           { nullptr }; //!< id edit
-  CQChartsLineEdit*   tipEdit_          { nullptr }; //!< tip edit
-  QVBoxLayout*        frameLayout_      { nullptr }; //!< frame layout
-  RectWidgets         rectWidgets_;                  //!< rect edit widgets
-  EllipseWidgets      ellipseWidgets_;               //!< ellipse edit widgets
-  PolygonWidgets      polygonWidgets_;               //!< polygon edit widgets
-  PolylineWidgets     polylineWidgets_;              //!< polyline edit widgets
-  TextWidgets         textWidgets_;                  //!< text edit widgets
-  ImageWidgets        imageWidgets_;                 //!< image edit widgets
-  ArrowWidgets        arrowWidgets_;                 //!< arrow edit widgets
-  PointWidgets        pointWidgets_;                 //!< point edit widgets
-  PieSliceWidgets     pieSliceWidgets_;              //!< pie slice widgets
-  AxisWidgets         axisWidgets_;                  //!< axis widgets
-  KeyWidgets          keyWidgets_;                   //!< key widgets
-  PointSetWidgets     pointSetWidgets_;              //!< point set widgets
-  ValueSetWidgets     valueSetWidgets_;              //!< value set widgets
-  ButtonWidgets       buttonWidgets_;                //!< button widgets
-  QLabel*             msgLabel_         { nullptr }; //!< error message label
+  Annotation*       annotation_       { nullptr }; //!< annotation
+  CQChartsLineEdit* idEdit_           { nullptr }; //!< id edit
+  CQChartsLineEdit* tipEdit_          { nullptr }; //!< tip edit
+  QVBoxLayout*      frameLayout_      { nullptr }; //!< frame layout
+  RectWidgets       rectWidgets_;                  //!< rect edit widgets
+  EllipseWidgets    ellipseWidgets_;               //!< ellipse edit widgets
+  PolygonWidgets    polygonWidgets_;               //!< polygon edit widgets
+  PolylineWidgets   polylineWidgets_;              //!< polyline edit widgets
+  TextWidgets       textWidgets_;                  //!< text edit widgets
+  ImageWidgets      imageWidgets_;                 //!< image edit widgets
+  ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
+  PointWidgets      pointWidgets_;                 //!< point edit widgets
+  PieSliceWidgets   pieSliceWidgets_;              //!< pie slice widgets
+  AxisWidgets       axisWidgets_;                  //!< axis widgets
+  KeyWidgets        keyWidgets_;                   //!< key widgets
+  PointSetWidgets   pointSetWidgets_;              //!< point set widgets
+  ValueSetWidgets   valueSetWidgets_;              //!< value set widgets
+  ButtonWidgets     buttonWidgets_;                //!< button widgets
+  QLabel*           msgLabel_         { nullptr }; //!< error message label
 };
 
 #endif

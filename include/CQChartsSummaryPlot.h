@@ -280,7 +280,7 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   bool bestFit_ { false };
   bool density_ { false };
 
-  Length symbolSize_ { 5, Units::PIXEL };
+  Length symbolSize_ { 0.03, Units::PLOT }; //!< scatter symbol size
 
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 };
@@ -295,7 +295,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsSummaryPlot;
+  using Plot   = CQChartsSummaryPlot;
+  using Length = CQChartsLength;
 
  public:
   CQChartsSummaryCellObj(const Plot *plot, const BBox &bbox, int row, int col);

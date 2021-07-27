@@ -1423,9 +1423,9 @@ layoutGraph()
   CQChartsGraphMgr mgr(plot());
 
   // use plot units to avoid conversion so we use annotation bbox
-  mgr.setNodeWidth  (Length(w/ 20.0, Units::PLOT));
-  mgr.setNodeXMargin(Length(w/100.0, Units::PLOT));
-  mgr.setNodeYMargin(Length(0.2    , Units::PLOT));
+  mgr.setNodeWidth  (Length::plot(w/ 20.0));
+  mgr.setNodeXMargin(Length::plot(w/100.0));
+  mgr.setNodeYMargin(Length::plot(0.2    ));
 
 //mgr.setNodeXScaled(true);
   mgr.setNodeYScaled(true);

@@ -24,13 +24,8 @@ class CQChartsRect :
   using Length   = CQChartsLength;
 
  public:
-  static CQChartsRect view(const BBox &bbox) {
-    return CQChartsRect(bbox, Units::VIEW);
-  }
-
-  static CQChartsRect plot(const BBox &bbox) {
-    return CQChartsRect(bbox, Units::PLOT);
-  }
+  static CQChartsRect view(const BBox &bbox) { return CQChartsRect(bbox, Units::VIEW); }
+  static CQChartsRect plot(const BBox &bbox) { return CQChartsRect(bbox, Units::PLOT); }
 
  public:
   CQChartsRect(const Units &units, const BBox &bbox) :

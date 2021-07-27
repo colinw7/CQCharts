@@ -14,6 +14,9 @@ TODO:
    + Push in support all plots
    + fit box
    + convex hull on scatter
+   + clip correlation key or auto scale
+   + clip/elide axis labels (rotate 90 ?)
+ + Color axis to match plot (x1/x2 y1/y2)
  + Custom Controls interface
    init(), addWidgets() all virtual
  + Summary plot. Input is multiple columns output is

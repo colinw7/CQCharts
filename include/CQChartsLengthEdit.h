@@ -17,6 +17,9 @@ class CQChartsLengthEdit : public QFrame {
   Q_PROPERTY(CQChartsLength length READ length WRITE setLength)
 
  public:
+  using Units = CQChartsUnits;
+
+ public:
   CQChartsLengthEdit(QWidget *parent=nullptr);
 
   const CQChartsLength &length() const;

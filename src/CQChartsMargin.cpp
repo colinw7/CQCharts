@@ -44,17 +44,17 @@ fromString(const QString &str)
   if      (strs.length() == 1) {
     CQChartsLength length;
 
-    if (! length.setValue(strs[0], CQChartsUnits::PERCENT)) return false;
+    if (! length.setValue(strs[0], Units::PERCENT)) return false;
 
     set(length);
   }
   else if (strs.length() == 4) {
     CQChartsLength left, top, right, bottom;
 
-    if (! left  .setValue(strs[0], CQChartsUnits::PERCENT)) return false;
-    if (! top   .setValue(strs[1], CQChartsUnits::PERCENT)) return false;
-    if (! right .setValue(strs[2], CQChartsUnits::PERCENT)) return false;
-    if (! bottom.setValue(strs[3], CQChartsUnits::PERCENT)) return false;
+    if (! left  .setValue(strs[0], Units::PERCENT)) return false;
+    if (! top   .setValue(strs[1], Units::PERCENT)) return false;
+    if (! right .setValue(strs[2], Units::PERCENT)) return false;
+    if (! bottom.setValue(strs[3], Units::PERCENT)) return false;
 
     set(left, top, right, bottom);
   }

@@ -15,6 +15,7 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsValueSet.h>
+#include <CQChartsDrawObj.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
@@ -362,7 +363,13 @@ CQChartsSummaryPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+    resetSetHidden(); updateRangeAndObjs();
+
+    if (isExpanded() && (expandRow_ != expandCol_)) {
+      scatterPlot_->setGroupColumn(groupColumn());
+    }
+
+    emit customDataChanged();
   } );
 }
 
@@ -680,7 +687,8 @@ execDrawBackground(PaintDevice *device) const
 
       CQChartsTextOptions options1;
 
-      options1.align = Qt::AlignHCenter | Qt::AlignVCenter;
+      options1.align      = Qt::AlignHCenter | Qt::AlignVCenter;
+      options1.clipLength = lengthPixelWidth(Length::plot(1.0));
 
       CQChartsDrawUtil::drawTextAtPoint(device, p1, str, options1, /*centered*/false);
     }
@@ -1072,108 +1080,72 @@ drawCorrelation(PaintDevice *device) const
 
       auto p = bbox.getCenter();
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p, QString::number(correlation), options);
+      auto cstr = CQChartsUtil::realToString(correlation, 5);
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p, cstr, options);
     }
     else {
       const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
 
       int ng = groupValues_.groupIndData.size();
 
-      double dy = (ng > 0 ? bbox.getHeight()/(ng + 1) : 0);
-
       QFontMetricsF fm(device->font());
 
-      double dy1 = plot_->pixelToWindowHeight(fm.height() + 2);
+      double bx = plot_->pixelToWindowWidth (2);
+      double by = plot_->pixelToWindowHeight(2);
+      double dx = plot_->pixelToWindowWidth (fm.height());
+      double dy = plot_->pixelToWindowHeight(fm.height());
 
-      struct LabelData {
-        QString str;
-        int     ig  { 0 };
-        double  tw  { 0.0 };
-        double  thw { 0.0 };
-        double  thh { 0.0 };
-      };
+      auto *drawObj = new CQChartsDrawObj;
 
-      using LabelDatas = std::vector<LabelData>;
-
-      LabelDatas labelDatas;
+      double x = bx;
+      double y = by;
 
       for (const auto &pg : groupValues_.groupIndData) {
-        LabelData labelData;
-
-        labelData.ig = pg.first;
-
+        int         ig      = pg.first;
         const auto &indData = pg.second;
+
+        PenBrush rpenBrush;
+
+        auto fc = plot_->interpPaletteColor(ColorInd(ig, ng));
+
+        plot_->setPenBrush(rpenBrush, PenData(false), BrushData(true, fc));
+
+        auto *drawRect = new CQChartsDrawRect(BBox(x, y, x + dx, y + dy), rpenBrush);
+
+        drawObj->addChild(drawRect);
+
+        //---
 
         auto correlation = CMathCorrelation::calc(indData.x, indData.y);
 
-        labelData.str = QString::number(correlation);
+        auto cstr = CQChartsUtil::realToString(correlation, 5);
+
+        PenBrush tpenBrush;
+
+        auto tc = plot_->interpInterfaceColor(1.0);
+
+        plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
+
+        auto *drawText = new CQChartsDrawText(Point(x + dx + 2*bx, y + dy/2.0), cstr,
+                                              device->font(), tpenBrush);
+
+        drawObj->addChild(drawText);
 
         //---
 
-        auto tsize =
-          CQChartsDrawUtil::calcTextSize(labelData.str, device->font(), CQChartsTextOptions());
-
-        labelData.tw  = plot_->pixelToWindowWidth (tsize.width ());
-        labelData.thw = plot_->pixelToWindowWidth (tsize.height());
-        labelData.thh = plot_->pixelToWindowHeight(tsize.height());
-
-        //---
-
-        labelDatas.push_back(std::move(labelData));
+        y += dy + by;
       }
 
       //---
 
-      double maxWidth = 0.0;
+      BBox pbbox(pxmin_, pymin_, pxmax_, pymax_);
 
-      for (const auto &labelData : labelDatas)
-        maxWidth = std::max(maxWidth, labelData.tw);
+      drawObj->place(device, pbbox);
 
-      //---
+      drawObj->draw(device);
 
-      PenBrush tpenBrush;
-
-      auto tc = plot_->interpInterfaceColor(1.0);
-
-      plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
-
-      //---
-
-      double x = bbox.getXMid();
-      double y = bbox.getYMid() - ng*std::min(dy, dy1)/2.0;
-
-      for (const auto &labelData : labelDatas) {
-        CQChartsDrawUtil::setPenBrush(device, tpenBrush);
-
-        //---
-
-        CQChartsTextOptions options;
-
-        options.align = Qt::AlignLeft | Qt::AlignVCenter;
-
-        auto p = Point(x - maxWidth/2.0, y);
-
-        CQChartsDrawUtil::drawTextAtPoint(device, p, labelData.str, options);
-
-        //---
-
-        PenBrush bpenBrush;
-
-        auto fc = plot_->interpPaletteColor(ColorInd(labelData.ig, ng));
-
-        plot_->setPenBrush(bpenBrush, PenData(false), BrushData(true, fc));
-
-        CQChartsDrawUtil::setPenBrush(device, bpenBrush);
-
-        auto bbox = BBox(p.x - labelData.thw - labelData.thw/2.0, p.y - labelData.thh/2.0,
-                         p.x                 - labelData.thh/2.0, p.y + labelData.thh/2.0);
-
-        device->drawRect(bbox);
-
-        //--
-
-        y += std::min(dy, dy1);
-      }
+      delete drawObj;
     }
   }
 }
@@ -1219,7 +1191,7 @@ drawBoxPlot(PaintDevice *device) const
 
     BBox bbox(pxmin_, pymin_, pxmax_, pymax_);
 
-    CQChartsLength width(0.1, CQChartsUnits::PLOT);
+    auto width = Length::plot(0.1);
 
     CQChartsBoxWhiskerUtil::drawWhisker(device, whisker, bbox, width, Qt::Vertical);
   }

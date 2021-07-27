@@ -682,9 +682,11 @@ int countLeadingBraces(CQStrParse &parse) {
 
 //---
 
-QString realToString(double r) {
-  return QString::number(r);
-  //return QString("%1").arg(r);
+QString realToString(double r, int ndp) {
+  if (ndp < 0)
+    return QString::number(r);
+  else
+    return QString("%1").arg(r, 0, 'f', ndp);
 }
 
 //---
@@ -1536,23 +1538,25 @@ double limitLineWidth(double w) {
 
 namespace CQChartsUtil {
 
+using Units = CQChartsUnits;
+
 bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &defUnits) {
   CQStrParse parse(str);
 
   parse.skipSpace();
 
   if      (parse.isString("px") || parse.isString("pixel"))
-    units = CQChartsUnits::PIXEL;
+    units = Units::PIXEL;
   else if (parse.isString("%" ) || parse.isString("percent"))
-    units = CQChartsUnits::PERCENT;
+    units = Units::PERCENT;
   else if (parse.isString("V" ) || parse.isString("view"))
-    units = CQChartsUnits::VIEW;
+    units = Units::VIEW;
   else if (parse.isString("P" ) || parse.isString("plot"))
-    units = CQChartsUnits::PLOT;
+    units = Units::PLOT;
   else if (parse.isString("em"))
-    units = CQChartsUnits::EM;
+    units = Units::EM;
   else if (parse.isString("ex"))
-    units = CQChartsUnits::EX;
+    units = Units::EX;
   else if (parse.eof())
     units = defUnits;
   else

@@ -933,8 +933,8 @@ createPolygonEdit(const QString &name, const QString &tip) const
 
   edit->setPlot(plot());
 
-  if      (plot()) edit->setUnits(CQChartsUnits::PLOT);
-  else if (view()) edit->setUnits(CQChartsUnits::VIEW);
+  if      (plot()) edit->setUnits(Units::PLOT);
+  else if (view()) edit->setUnits(Units::VIEW);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -1239,9 +1239,9 @@ createPolygonAnnotation()
 
   auto polygon = polygonWidgets_.pointsEdit->polygon();
 
-  if (polygon.units() == CQChartsUnits::NONE) {
-    if      (plot()) polygon.setUnits(CQChartsUnits::PLOT);
-    else if (view()) polygon.setUnits(CQChartsUnits::VIEW);
+  if (polygon.units() == Units::NONE) {
+    if      (plot()) polygon.setUnits(Units::PLOT);
+    else if (view()) polygon.setUnits(Units::VIEW);
   }
 
   if (! polygon.isValid(/*closed*/true))
@@ -1291,9 +1291,9 @@ createPolylineAnnotation()
 
   auto polygon = polylineWidgets_.pointsEdit->polygon();
 
-  if (polygon.units() == CQChartsUnits::NONE) {
-    if      (plot()) polygon.setUnits(CQChartsUnits::PLOT);
-    else if (view()) polygon.setUnits(CQChartsUnits::VIEW);
+  if (polygon.units() == Units::NONE) {
+    if      (plot()) polygon.setUnits(Units::PLOT);
+    else if (view()) polygon.setUnits(Units::VIEW);
   }
 
   if (! polygon.isValid(/*closed*/false))
@@ -1659,7 +1659,7 @@ createPointSetAnnotation()
 
   CQChartsPointSetAnnotation *annotation = nullptr;
 
-  CQChartsRect rect(CQChartsUnits::VIEW, CQChartsGeom::BBox(10, 10, 90, 90));
+  auto rect = CQChartsRect::view(CQChartsGeom::BBox(10, 10, 90, 90));
 
   CQChartsPoints points;
 
@@ -1691,7 +1691,7 @@ createValueSetAnnotation()
 
   CQChartsValueSetAnnotation *annotation = nullptr;
 
-  CQChartsRect rect(CQChartsUnits::VIEW, CQChartsGeom::BBox(10, 10, 90, 90));
+  auto rect = CQChartsRect::view(CQChartsGeom::BBox(10, 10, 90, 90));
 
   CQChartsReals reals;
 
