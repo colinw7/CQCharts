@@ -118,7 +118,9 @@ create(View *view, const ModelP &model) const
 
 CQChartsSummaryPlot::
 CQChartsSummaryPlot(View *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("summary"), model)
+ CQChartsPlot(view, view->charts()->plotType("summary"), model),
+ CQChartsObjXLabelTextData<CQChartsSummaryPlot>(this),
+ CQChartsObjYLabelTextData<CQChartsSummaryPlot>(this)
 {
 }
 
@@ -143,6 +145,12 @@ init()
   //---
 
   addTitle();
+
+  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop);
+  setYLabelTextAlign(Qt::AlignRight | Qt::AlignVCenter);
+
+  setXLabelTextFont(CQChartsFont().decFontSize(4));
+  setYLabelTextFont(CQChartsFont().decFontSize(4));
 
   //---
 
@@ -442,7 +450,13 @@ addProperties()
   // x/y axis label text
   addProp("xaxis/text", "xLabels", "visible", "X labels visible");
 
+  addTextProperties("xaxis/text", "xLabelText", "X label",
+                    CQChartsTextOptions::ValueType::ALL);
+
   addProp("yaxis/text", "yLabels", "visible", "Y labels visible");
+
+  addTextProperties("yaxis/text", "yLabelText", "Y label",
+                    CQChartsTextOptions::ValueType::ALL);
 
   // cell types
   addProp("cell", "diagonalType"     , "diagonal"     , "Diagonal cell type");
@@ -676,37 +690,92 @@ execDrawBackground(PaintDevice *device) const
 
     //---
 
-    auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
-
-    //---
-
     if (isXLabels()) {
-      auto th = pixelToWindowHeight(tsize.height());
+      view()->setPlotPainterFont(this, device, xLabelTextFont());
 
-      Point p1(bbox.getXMid(), -th);
+      auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
 
-      CQChartsTextOptions options1;
+      //---
 
-      options1.align      = Qt::AlignHCenter | Qt::AlignVCenter;
-      options1.clipLength = lengthPixelWidth(Length::plot(1.0));
+      PenBrush tpenBrush;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, str, options1, /*centered*/false);
+      auto tc = interpXLabelTextColor(ColorInd());
+
+      setPen(tpenBrush, PenData(true, tc, xLabelTextAlpha()));
+
+      device->setPen(tpenBrush.pen);
+
+      //---
+
+      auto thh = pixelToWindowHeight(tsize.height());
+
+      Point p1(bbox.getXMid(), -thh/2.0);
+
+      CQChartsTextOptions textOptions;
+
+      textOptions.angle         = xLabelTextAngle();
+    //textOptions.angle         = Angle(0.0);
+      textOptions.align         = xLabelTextAlign();
+      textOptions.contrast      = isXLabelTextContrast();
+      textOptions.contrastAlpha = xLabelTextContrastAlpha();
+      textOptions.formatted     = isXLabelTextFormatted();
+      textOptions.scaled        = isXLabelTextScaled();
+      textOptions.html          = isXLabelTextHtml();
+      textOptions.clipLength    = lengthPixelWidth(Length::plot(1.0));
+    //textOptions.clipLength    = lengthPixelWidth(xLabelTextClipLength());
+      textOptions.clipElide     = xLabelTextClipElide();
+      textOptions.clipped       = false;
+
+      textOptions = adjustTextOptions(textOptions);
+
+      //---
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p1, str, textOptions);
     }
 
     //---
 
     if (isYLabels()) {
-      auto th = pixelToWindowWidth(tsize.height());
-      auto tw = pixelToWindowWidth(tsize.width());
+      view()->setPlotPainterFont(this, device, yLabelTextFont());
 
-      Point p2(tw/2.0 - th, bbox.getYMid());
+      auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
 
-      CQChartsTextOptions options2;
+      //---
 
-      options2.angle = Angle(90.0);
-      options2.align = Qt::AlignHCenter | Qt::AlignVCenter;
+      PenBrush tpenBrush;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p2, str, options2, /*centered*/false);
+      auto tc = interpYLabelTextColor(ColorInd());
+
+      setPen(tpenBrush, PenData(true, tc, yLabelTextAlpha()));
+
+      device->setPen(tpenBrush.pen);
+
+      //---
+
+      auto thw = pixelToWindowWidth(tsize.height());
+
+      Point p2(-thw/2.0, bbox.getYMid());
+
+      CQChartsTextOptions textOptions;
+
+      textOptions.angle         = yLabelTextAngle();
+    //textOptions.angle         = Angle(90.0);
+      textOptions.align         = yLabelTextAlign();
+      textOptions.contrast      = isYLabelTextContrast();
+      textOptions.contrastAlpha = yLabelTextContrastAlpha();
+      textOptions.formatted     = isYLabelTextFormatted();
+      textOptions.scaled        = isYLabelTextScaled();
+      textOptions.html          = isYLabelTextHtml();
+      textOptions.clipLength    = lengthPixelWidth(Length::plot(1.0));
+    //textOptions.clipLength    = lengthPixelWidth(yLabelTextClipLength());
+      textOptions.clipElide     = yLabelTextClipElide();
+      textOptions.clipped       = false;
+
+      textOptions = adjustTextOptions(textOptions);
+
+      //---
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p2, str, textOptions);
     }
   }
 }
@@ -721,13 +790,12 @@ fitBBox() const
 
   auto tsize = CQChartsDrawUtil::calcTextSize("X", font, CQChartsTextOptions());
 
-  auto tw = pixelToWindowWidth (tsize.height());
-  auto th = pixelToWindowHeight(tsize.height());
+  auto thw = pixelToWindowWidth (tsize.height());
+  auto thh = pixelToWindowHeight(tsize.height());
 
   auto bbox = CQChartsPlot::fitBBox();
 
-  bbox += Point(-tw, -th);
-  bbox += Point( tw,  th);
+  bbox += Point(-1.0 - thw/2.0, -thh - thh/2.0);
 
   return bbox;
 }
@@ -791,9 +859,29 @@ calcTipId() const
     tableTip.addTableRow("X Column", xtip);
     tableTip.addTableRow("Y Column", ytip);
 
-    auto correlation = plot_->modelDetails()->correlation(column1, column2);
+    if (! plot_->groupColumn().isValid()) {
+      auto correlation = plot_->modelDetails()->correlation(column1, column2);
 
-    tableTip.addTableRow("Correlation", correlation);
+      tableTip.addTableRow("Correlation", correlation);
+    }
+    else {
+      auto *groupDetails = plot_->columnDetails(plot_->groupColumn());
+
+      const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
+
+      for (const auto &pg : groupValues_.groupIndData) {
+        int         ig      = pg.first;
+        const auto &indData = pg.second;
+
+        if (indData.x.size() == indData.y.size()) {
+          auto correlation = CMathCorrelation::calc(indData.x, indData.y);
+
+          auto groupVar = (groupDetails ? groupDetails->uniqueValue(ig) : QVariant());
+
+          tableTip.addTableRow(QString("Correlation (%1)").arg(groupVar.toString()), correlation);
+        }
+      }
+    }
   }
   else {
     auto column = plot_->columns().getColumn(row_);
@@ -843,7 +931,7 @@ draw(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, fg), BrushData(true, bg));
+  plot_->setPenBrush(penBrush, PenData(true, fg, Alpha(0.3)), BrushData(true, bg));
 
   plot_->updateObjPenBrushState(this, penBrush, drawType());
 
@@ -1061,8 +1149,6 @@ void
 CQChartsSummaryCellObj::
 drawCorrelation(PaintDevice *device) const
 {
-  auto bbox = this->rect();
-
   auto column1 = plot_->columns().getColumn(row_);
   auto column2 = plot_->columns().getColumn(col_);
 
@@ -1070,19 +1156,29 @@ drawCorrelation(PaintDevice *device) const
   auto *details2 = plot_->columnDetails(column2);
   if (! details1 || ! details2) return;
 
+  PenBrush tpenBrush;
+
+  auto tc = plot_->interpInterfaceColor(1.0);
+
+  plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
+
   if (details1->isNumeric() && details2->isNumeric()) {
+    auto *drawObj = new CQChartsDrawObj;
+
+    double bx = plot_->pixelToWindowWidth (2);
+    double by = plot_->pixelToWindowHeight(2);
+
+    double x = bx;
+    double y = by;
+
     if (! plot_->groupColumn().isValid()) {
       auto correlation = plot_->modelDetails()->correlation(column1, column2);
 
-      CQChartsTextOptions options;
-
-      options.align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-      auto p = bbox.getCenter();
-
       auto cstr = CQChartsUtil::realToString(correlation, 5);
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p, cstr, options);
+      auto *drawText = new CQChartsDrawText(Point(x, y), cstr, device->font(), tpenBrush);
+
+      drawObj->addChild(drawText);
     }
     else {
       const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
@@ -1091,15 +1187,8 @@ drawCorrelation(PaintDevice *device) const
 
       QFontMetricsF fm(device->font());
 
-      double bx = plot_->pixelToWindowWidth (2);
-      double by = plot_->pixelToWindowHeight(2);
       double dx = plot_->pixelToWindowWidth (fm.height());
       double dy = plot_->pixelToWindowHeight(fm.height());
-
-      auto *drawObj = new CQChartsDrawObj;
-
-      double x = bx;
-      double y = by;
 
       for (const auto &pg : groupValues_.groupIndData) {
         int         ig      = pg.first;
@@ -1117,36 +1206,32 @@ drawCorrelation(PaintDevice *device) const
 
         //---
 
-        auto correlation = CMathCorrelation::calc(indData.x, indData.y);
+        if (indData.x.size() == indData.y.size()) {
+          auto correlation = CMathCorrelation::calc(indData.x, indData.y);
 
-        auto cstr = CQChartsUtil::realToString(correlation, 5);
+          auto cstr = CQChartsUtil::realToString(correlation, 5);
 
-        PenBrush tpenBrush;
+          auto *drawText = new CQChartsDrawText(Point(x + dx + 2*bx, y + dy/2.0), cstr,
+                                                device->font(), tpenBrush);
 
-        auto tc = plot_->interpInterfaceColor(1.0);
-
-        plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
-
-        auto *drawText = new CQChartsDrawText(Point(x + dx + 2*bx, y + dy/2.0), cstr,
-                                              device->font(), tpenBrush);
-
-        drawObj->addChild(drawText);
+          drawObj->addChild(drawText);
+        }
 
         //---
 
         y += dy + by;
       }
-
-      //---
-
-      BBox pbbox(pxmin_, pymin_, pxmax_, pymax_);
-
-      drawObj->place(device, pbbox);
-
-      drawObj->draw(device);
-
-      delete drawObj;
     }
+
+    //---
+
+    BBox pbbox(pxmin_, pymin_, pxmax_, pymax_);
+
+    drawObj->place(device, pbbox);
+
+    drawObj->draw(device);
+
+    delete drawObj;
   }
 }
 
@@ -1221,6 +1306,18 @@ drawDistribution(PaintDevice *device) const
 
   //---
 
+  auto drawRect = [&](const BBox &bbox) {
+    auto pw = device->windowToSignedPixelWidth(bbox.getWidth());
+
+    if (pw <= 2) {
+      auto xm = bbox.getXMid();
+
+      device->drawLine(Point(xm, bbox.getYMin()), Point(xm, bbox.getYMax()));
+    }
+    else
+      device->drawRect(bbox);
+  };
+
   if (details->isNumeric()) {
     BucketCount bucketCount;
     int         maxCount = 0;
@@ -1246,7 +1343,7 @@ drawDistribution(PaintDevice *device) const
 
       BBox bbox(x1, y1, x2, y2);
 
-      device->drawRect(bbox);
+      drawRect(bbox);
     }
 
     //---
@@ -1271,7 +1368,7 @@ drawDistribution(PaintDevice *device) const
 
       BBox bbox(x, pymin_, x + dx, r);
 
-      device->drawRect(bbox);
+      drawRect(bbox);
 
       x += dx;
     }

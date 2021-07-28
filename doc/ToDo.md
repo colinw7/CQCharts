@@ -7,15 +7,17 @@ TODO:
  + Scalable object to allow fit multiple (scalable) objects in rect
  + Use default symbol set (name) for all plots (scatter)
  + Summary Plot
-   + Parallel Plot
    + Correlation Plot
-   + Customization
-   + Hide sub plots
+   + Customization based on numeric/non-numeric
    + Push in support all plots
    + fit box
    + convex hull on scatter
    + clip correlation key or auto scale
    + clip/elide axis labels (rotate 90 ?)
+   + axis font control
+   + check small bar not-disappearing (use line)
+   + column hide from menu
+   + group key
  + Color axis to match plot (x1/x2 y1/y2)
  + Custom Controls interface
    init(), addWidgets() all virtual

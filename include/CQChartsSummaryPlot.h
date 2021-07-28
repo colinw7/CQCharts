@@ -58,7 +58,9 @@ class CQChartsSummaryCellObj;
  * \brief Summary Plot
  * \ingroup Charts
  */
-class CQChartsSummaryPlot : public CQChartsPlot {
+class CQChartsSummaryPlot : public CQChartsPlot,
+ public CQChartsObjXLabelTextData<CQChartsSummaryPlot>,
+ public CQChartsObjYLabelTextData<CQChartsSummaryPlot> {
   Q_OBJECT
 
   // columns
@@ -71,8 +73,14 @@ class CQChartsSummaryPlot : public CQChartsPlot {
   // border
   Q_PROPERTY(CQChartsLength border READ border WRITE setBorder)
 
+  // x/y labels
   Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(XLabel, xLabel)
+
   Q_PROPERTY(bool yLabels READ isYLabels WRITE setYLabels)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel, yLabel)
 
   // cell types
   Q_PROPERTY(DiagonalType    diagonalType      READ diagonalType      WRITE setDiagonalType     )
@@ -115,9 +123,11 @@ class CQChartsSummaryPlot : public CQChartsPlot {
     CORRELATION
   };
 
-  using ScatterPlot       = CQChartsScatterPlot;
+  using ScatterPlot      = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
   using ParallelPlot     = CQChartsParallelPlot;
+  using Length           = CQChartsLength;
+  using ColorInd         = CQChartsUtil::ColorInd;
 
  public:
   CQChartsSummaryPlot(View *view, const ModelP &model);

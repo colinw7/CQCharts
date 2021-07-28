@@ -283,8 +283,7 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
   int column2 = br.column();
 #endif
 
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -293,8 +292,7 @@ void
 CQChartsModelData::
 modelLayoutChangedSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -303,8 +301,7 @@ void
 CQChartsModelData::
 modelResetSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -313,8 +310,7 @@ void
 CQChartsModelData::
 modelRowsInsertedSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -323,8 +319,7 @@ void
 CQChartsModelData::
 modelRowsRemovedSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -333,8 +328,7 @@ void
 CQChartsModelData::
 modelColumnsInsertedSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
 }
@@ -343,10 +337,17 @@ void
 CQChartsModelData::
 modelColumnsRemovedSlot()
 {
-  if (details_)
-    details_->reset();
+  resetDetails();
 
   emitModelChanged();
+}
+
+void
+CQChartsModelData::
+resetDetails()
+{
+  if (details_)
+    details_->reset();
 }
 
 CQChartsModelData::ModelP

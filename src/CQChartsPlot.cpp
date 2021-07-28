@@ -3873,7 +3873,7 @@ CQPropertyViewItem *
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
-  assert(CQUtil::hasProperty(object, name));
+  CQCHARTS_QASSERT(CQUtil::hasProperty(object, name), QString("No property '" + name + "'"));
 
   return propertyModel()->addProperty(path, object, name, alias);
 }
@@ -15994,7 +15994,7 @@ modelHHeaderTip(const Column &column, bool &ok) const
     str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
 
   if (column.hasColumn())
-    str += QString(" (#%1").arg(column.column());
+    str += QString(" (#%1)").arg(column.column());
 
   return str;
 }

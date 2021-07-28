@@ -1005,7 +1005,7 @@ bucketRange(int i, QVariant &vmin, QVariant &vmax) const
   if (type() == CQBaseModelType::REAL) {
     double rmin, rmax;
 
-    bucketer_->bucketRValues(i, rmin, rmax);
+    bucketer_->bucketValues(i, rmin, rmax);
 
     vmin = rmin;
     vmax = rmax;

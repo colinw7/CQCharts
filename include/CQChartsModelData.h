@@ -139,6 +139,8 @@ class CQChartsModelData : public QObject {
   ModelDetails *details();
   const ModelDetails *details() const;
 
+  void resetDetails();
+
   //---
 
   ModelP currentModel() const;
