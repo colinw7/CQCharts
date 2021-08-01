@@ -174,7 +174,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumns yColumns READ yColumns WRITE setYColumns)
 
   // options
-  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
+  Q_PROPERTY(Qt::Orientation orientation  READ orientation  WRITE setOrientation)
+  Q_PROPERTY(AxisLabelPos    axisLabelPos READ axisLabelPos WRITE setAxisLabelPos)
 
   // lines (display, stroke)
   CQCHARTS_LINE_DATA_PROPERTIES
@@ -184,12 +185,22 @@ class CQChartsParallelPlot : public CQChartsPlot,
   // points (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
 
+  Q_ENUMS(AxisLabelPos)
+
  public:
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using Symbol   = CQChartsSymbol;
   using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
+  using Length   = CQChartsLength;
+
+  enum class AxisLabelPos {
+    AXIS,
+    TOP,
+    BOTTOM,
+    ALTERNATE
+  };
 
  public:
   CQChartsParallelPlot(View *view, const ModelP &model);
@@ -211,6 +222,11 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
+  //! get visible y columns
+  const Columns &visibleYColumns() const { return visibleYColumns_; }
+
+  //---
+
   Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
@@ -219,7 +235,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  // get/set orientation
+  //! get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &orient);
 
@@ -228,9 +244,15 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  // lines
+  //! get/set lines selectable
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
+
+  //---
+
+  //! get/set axis label pos
+  const AxisLabelPos &axisLabelPos() const { return axisLabelPos_; }
+  void setAxisLabelPos(const AxisLabelPos &p);
 
   //---
 
@@ -248,6 +270,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void addProperties() override;
 
   Range calcRange() const override;
+
+  void updateAxes();
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -283,6 +307,13 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   void execDrawForeground(PaintDevice *) const override;
 
+  //---
+
+  void resetYColumnVisible();
+
+  bool isYColumnVisible(int ic) const;
+  void setYColumnVisible(int ic, bool visible);
+
  protected:
   using LineObj  = CQChartsParallelLineObj;
   using PointObj = CQChartsParallelPointObj;
@@ -299,6 +330,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void setHorizontal(bool b);
 
  protected:
+  void updateVisibleYColumns();
+
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
@@ -308,23 +341,34 @@ class CQChartsParallelPlot : public CQChartsPlot,
     NORMALIZED
   };
 
-  using Ranges = std::vector<Range>;
-  using YAxes  = std::vector<CQChartsAxis*>;
-  using AxisP  = std::unique_ptr<CQChartsAxis>;
+  using Ranges        = std::vector<Range>;
+  using YAxes         = std::vector<CQChartsAxis*>;
+  using AxisP         = std::unique_ptr<CQChartsAxis>;
+  using ColumnVisible = std::map<int, bool>;
 
-  Column             xColumn_;                             //!< x value column
-  Columns            yColumns_;                            //!< y value columns
-  Qt::Orientation    orientation_     { Qt::Vertical };    //!< axis orientation
-  bool               linesSelectable_ { false };           //!< are lines selectable
-  Ranges             setRanges_;                           //!< value set ranges
-  Qt::Orientation    adir_            { Qt::Horizontal };  //!< axis direction
-  AxisP              masterAxis_;                          //!< master axis
-  YAxes              axes_;                                //!< value axes
-  mutable std::mutex axesMutex_;                           //!< value axes
-  Range              normalizedDataRange_;                 //!< normalized data range
-  double             max_tw_          { 0.0 };             //!< max text width
-  BBox               axesBBox_;                            //!< axes bbox
-  RangeType          rangeType_       { RangeType::NONE }; //!< current range type
+  Column  xColumn_;         //!< x value column
+  Columns yColumns_;        //!< y value columns
+  Columns visibleYColumns_; //!< visible y columns
+
+  Qt::Orientation orientation_     { Qt::Vertical }; //!< axis orientation
+  bool            linesSelectable_ { false };        //!< are lines selectable
+
+  Ranges setRanges_; //!< value set ranges
+
+  Qt::Orientation    adir_                 { Qt::Horizontal }; //!< axis direction
+  AxisP              masterAxis_;                              //!< master axis
+  YAxes              axes_;                                    //!< value axes
+  mutable std::mutex axesMutex_;                               //!< value axes
+  Range              normalizedDataRange_;                     //!< normalized data range
+  BBox               axesBBox_;                                //!< axes bbox
+
+  double max_tw_ { 0.0 };             //!< max text width
+
+  RangeType rangeType_ { RangeType::NONE }; //!< current range type
+
+  ColumnVisible yColumnVisible_;
+
+  AxisLabelPos axisLabelPos_ { AxisLabelPos::TOP };
 };
 
 //---

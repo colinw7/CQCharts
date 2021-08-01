@@ -1318,3 +1318,7 @@
 # 7/5/2021
  + add more custom controls for xy plot and improve invalidation
  + add optional xy line end labels
+# 7/13/2021
+ + add summary plot
+# 8/1/2021
+ + add column visibility and grouped values controls in summary plot

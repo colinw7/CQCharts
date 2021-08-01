@@ -192,7 +192,13 @@ CQChartsParallelPlot::
 setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    visibleYColumns_ = yColumns_;
+
+    resetYColumnVisible();
+
+    updateRangeAndObjs();
+
+    emit customDataChanged();
   } );
 }
 
@@ -264,6 +270,15 @@ setLinesSelectable(bool b)
   CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { drawObjs(); } );
 }
 
+//---
+
+void
+CQChartsParallelPlot::
+setAxisLabelPos(const AxisLabelPos &p)
+{
+  CQChartsUtil::testAndSet(axisLabelPos_, p, [&]() { drawObjs(); } );
+}
+
 //------
 
 void
@@ -290,10 +305,15 @@ addProperties()
 
   addLineProperties("lines/stroke", "lines", "");
 
+  //---
+
   // axes
   auto addAxisProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(propertyModel()->addProperty(path, masterAxis_.get(), name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = propertyModel()->addProperty(path, masterAxis_.get(), name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   auto addAxisStyleProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -303,6 +323,8 @@ addProperties()
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
+
+  addProp("axis", "axisLabelPos", "labelPos", "Axis label position");
 
   auto linePath = QString("axis/stroke");
 
@@ -397,11 +419,20 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcRange");
 
+  //---
+
   NoUpdate noUpdate(this);
 
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
   th->clearErrors();
+
+  th->updateVisibleYColumns();
+
+  //---
+
+  // update axes to match columns
+  th->updateAxes();
 
   //---
 
@@ -410,7 +441,7 @@ calcRange() const
 
   if (! checkColumn(xColumn(), "X"))
     columnsValid = false;
-  if (! checkColumns(yColumns(), "Y", /*required*/true))
+  if (! checkColumns(visibleYColumns(), "Y", /*required*/true))
     columnsValid = false;
 
   if (! columnsValid) {
@@ -423,48 +454,6 @@ calcRange() const
 
   //---
 
-  // create axes
-  int ns = yColumns().count();
-
-  auto adir = orientation();
-
-  if (int(axes_.size()) != ns || adir_ != adir) {
-    th->adir_ = adir;
-
-    for (auto &axis : th->axes_)
-      delete axis;
-
-    th->axes_.clear();
-
-    for (int j = 0; j < ns; ++j) {
-      auto *axis = new CQChartsAxis(this, adir_, 0, 1);
-
-      axis->moveToThread(th->thread());
-
-      axis->setParent(th);
-      axis->setPlot  (this);
-
-      axis->setUpdatesEnabled(false);
-
-      th->axes_.push_back(axis);
-    }
-  }
-
-  //---
-
-  // update axis style
-  for (int j = 0; j < ns; ++j) {
-    auto *axis = axes_[j];
-
-    const auto &yColumn = yColumns().getColumn(j);
-
-    axis->setColumn(yColumn);
-
-    th->setAxisColumnLabels(axis);
-  }
-
-  //---
-
   // calc range for each value column (set)
   class RowVisitor : public ModelVisitor {
    public:
@@ -473,12 +462,12 @@ calcRange() const
    public:
     RowVisitor(const Plot *plot) :
      plot_(plot) {
-      ns_ = plot_->yColumns().count();
+      ns_ = plot_->visibleYColumns().count();
 
       details_.resize(ns_);
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
         details_[i] = plot_->columnDetails(yColumn);
 
@@ -490,7 +479,7 @@ calcRange() const
       for (int i = 0; i < ns_; ++i) {
         auto &range = setRanges_[i];
 
-        const auto &yColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
         ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
 
@@ -532,6 +521,8 @@ calcRange() const
   //---
 
   // set range from data
+  int ns = visibleYColumns().count();
+
   for (int j = 0; j < ns; ++j) {
     auto &range = th->setRanges_[j];
     if (! range.isSet()) continue;
@@ -574,7 +565,7 @@ calcRange() const
     const auto &range = setRange(j);
     if (! range.isValid()) continue;
 
-    const auto &yColumn = yColumns().getColumn(j);
+    const auto &yColumn = visibleYColumns().getColumn(j);
 
     bool ok;
 
@@ -606,6 +597,67 @@ calcRange() const
   return dataRange;
 }
 
+void
+CQChartsParallelPlot::
+updateAxes()
+{
+  // create axes
+  int ns = visibleYColumns().count();
+
+  auto adir = orientation();
+
+  if (int(axes_.size()) != ns || adir_ != adir) {
+    adir_ = adir;
+
+    for (auto &axis : axes_)
+      delete axis;
+
+    axes_.clear();
+
+    for (int j = 0; j < ns; ++j) {
+      auto *axis = new CQChartsAxis(this, adir_, 0, 1);
+
+      axis->moveToThread(this->thread());
+
+      axis->setParent(this);
+      axis->setPlot  (this);
+
+      axis->setUpdatesEnabled(false);
+
+      axes_.push_back(axis);
+    }
+  }
+
+  //---
+
+  // update axis style
+  for (int j = 0; j < ns; ++j) {
+    auto *axis = axes_[j];
+
+    const auto &yColumn = visibleYColumns().getColumn(j);
+
+    axis->setColumn(yColumn);
+
+    setAxisColumnLabels(axis);
+  }
+}
+
+void
+CQChartsParallelPlot::
+updateVisibleYColumns()
+{
+  visibleYColumns_ = Columns();
+
+  int nc = yColumns().count();
+
+  for (int ic = 0; ic < nc; ++ic) {
+    if (! isYColumnVisible(ic))
+      continue;
+
+    visibleYColumns_.addColumn(yColumns().getColumn(ic));
+  }
+}
+
 bool
 CQChartsParallelPlot::
 createObjs(PlotObjs &objs) const
@@ -627,12 +679,12 @@ createObjs(PlotObjs &objs) const
    public:
     RowVisitor(const Plot *plot) :
      plot_(plot) {
-      ns_ = plot_->yColumns().count();
+      ns_ = plot_->visibleYColumns().count();
 
       details_.resize(ns_);
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
         details_[i] = plot_->columnDetails(yColumn);
       }
@@ -650,7 +702,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->yColumns().getColumn(i);
+        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
         ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
 
@@ -747,7 +799,7 @@ createObjs(PlotObjs &objs) const
     int nl = poly.size();
 
     for (int j = 0; j < nl; ++j) {
-      const auto &yColumn = yColumns().getColumn(j);
+      const auto &yColumn = visibleYColumns().getColumn(j);
 
       ModelIndex yColumnInd(th, i, yColumn, xind.parent());
 
@@ -837,7 +889,7 @@ bool
 CQChartsParallelPlot::
 probe(ProbeData &probeData) const
 {
-  int n = yColumns().count();
+  int n = visibleYColumns().count();
 
   if (isVertical()) {
 #if 0
@@ -1009,14 +1061,18 @@ drawFgAxes(PaintDevice *device) const
   double tm = 4.0;
 
   // draw axes
-  int ns = yColumns().count();
+  int ns = visibleYColumns().count();
 
   for (int j = 0; j < ns; ++j) {
+    assert(j < int(axes_.size()));
+
     auto *axis = axes_[j];
 
     axis->setAxesLineData         (masterAxis_->axesLineData());
     axis->setAxesLabelTextData    (masterAxis_->axesLabelTextData());
     axis->setAxesTickLabelTextData(masterAxis_->axesTickLabelTextData());
+
+    axis->setAxesLabelTextVisible(axisLabelPos() == AxisLabelPos::AXIS);
 
     view()->setPlotPainterFont(this, device, masterAxis_->axesLabelTextFont());
 
@@ -1065,49 +1121,78 @@ drawFgAxes(PaintDevice *device) const
     //---
 
     // draw set label
-    auto label = axis->label().string();
+    if (axisLabelPos() != AxisLabelPos::AXIS) {
+      auto axisLabelPos = this->axisLabelPos();
+      auto axisLabelLen = Length::plot(1.0);
 
-    Point p;
+      if (axisLabelPos == AxisLabelPos::ALTERNATE) {
+        axisLabelPos = (j & 1 ? AxisLabelPos::BOTTOM : AxisLabelPos::TOP);
+        axisLabelLen = Length::plot(2.0);
+      }
 
-    if (dataRange_.isSet()) {
-      if (isVertical())
-        p = windowToPixel(Point(j, dataRange_.ymax()));
-      else
-        p = windowToPixel(Point(dataRange_.xmax(), j));
+      auto label = axis->label().string();
+
+      Point p;
+
+      if (dataRange_.isSet()) {
+        if (axisLabelPos == AxisLabelPos::TOP) {
+          if (isVertical())
+            p = windowToPixel(Point(j, dataRange_.ymax()));
+          else
+            p = windowToPixel(Point(dataRange_.xmax(), j));
+        }
+        else {
+          if (isVertical())
+            p = windowToPixel(Point(j, dataRange_.ymin()));
+          else
+            p = windowToPixel(Point(dataRange_.xmin(), j));
+        }
+      }
+
+      double tw = fm.width(label);
+      double ta = fm.ascent();
+      double td = fm.descent();
+
+      th->max_tw_ = std::max(max_tw_, tw);
+
+      PenBrush tpenBrush;
+
+      auto tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
+
+      setPen(tpenBrush, PenData(true, tc, masterAxis_->axesLabelTextAlpha()));
+
+      device->setPen(tpenBrush.pen);
+
+      Point tp;
+
+      if (axisLabelPos == AxisLabelPos::TOP) {
+        if (isVertical())
+          tp = Point(p.x - tw/2.0, p.y - td - tm);
+        else
+          tp = Point(p.x + tm, p.y - (ta - td)/2);
+      }
+      else {
+        if (isVertical())
+          tp = Point(p.x - tw/2.0, p.y + ta + tm);
+        else
+          tp = Point(p.x - tw - tm, p.y - (ta - td)/2);
+      }
+
+      CQChartsTextOptions options;
+
+      options.angle         = Angle();
+      options.align         = Qt::AlignLeft;
+      options.contrast      = masterAxis_->isAxesLabelTextContrast();
+      options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
+      options.clipLength    = lengthPixelWidth(masterAxis_->axesLabelTextClipLength());
+      options.clipElide     = masterAxis_->axesLabelTextClipElide();
+
+      if (options.clipLength <= 0)
+        options.clipLength = lengthPixelWidth(axisLabelLen);
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,
+                                        options, /*centered*/false);
     }
-
-    double tw = fm.width(label);
-    double ta = fm.ascent();
-    double td = fm.descent();
-
-    th->max_tw_ = std::max(max_tw_, tw);
-
-    PenBrush tpenBrush;
-
-    auto tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
-
-    setPen(tpenBrush, PenData(true, tc, masterAxis_->axesLabelTextAlpha()));
-
-    device->setPen(tpenBrush.pen);
-
-    Point tp;
-
-    if (isVertical())
-      tp = Point(p.x - tw/2.0, p.y - td - tm);
-    else
-      tp = Point(p.x + tm, p.y - (ta - td)/2);
-
-    CQChartsTextOptions options;
-
-    options.angle         = Angle();
-    options.align         = Qt::AlignLeft;
-    options.contrast      = masterAxis_->isAxesLabelTextContrast();
-    options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
-    options.clipLength    = lengthPixelWidth(masterAxis_->axesLabelTextClipLength());
-    options.clipElide     = masterAxis_->axesLabelTextClipElide();
-
-    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,
-                                      options, /*centered*/false);
 
     //---
 
@@ -1239,6 +1324,36 @@ execDrawForeground(PaintDevice *device) const
 
 //---
 
+void
+CQChartsParallelPlot::
+resetYColumnVisible()
+{
+  yColumnVisible_.clear();
+}
+
+bool
+CQChartsParallelPlot::
+isYColumnVisible(int ic) const
+{
+  auto p = yColumnVisible_.find(ic);
+  if (p == yColumnVisible_.end()) return true;
+
+  return (*p).second;
+}
+
+void
+CQChartsParallelPlot::
+setYColumnVisible(int ic, bool visible)
+{
+  yColumnVisible_[ic] = visible;
+
+  updateRangeAndObjs();
+
+  emit customDataChanged();
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsParallelPlot::
 createCustomControls()
@@ -1301,7 +1416,7 @@ calcTipId() const
   int nl = poly_.size();
 
   for (int j = 0; j < nl; ++j) {
-    const auto &yColumn = plot_->yColumns().getColumn(j);
+    const auto &yColumn = plot_->visibleYColumns().getColumn(j);
 
     bool ok;
 
@@ -1426,7 +1541,7 @@ getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
 
-  for (const auto &c : plot_->yColumns())
+  for (const auto &c : plot_->visibleYColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1547,7 +1662,7 @@ calcId() const
 {
   auto xname = this->xName();
 
-  const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
+  const auto &yColumn = plot_->visibleYColumns().getColumn(iv_.i);
 
   bool ok1;
 
@@ -1566,7 +1681,7 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
+  const auto &yColumn = plot_->visibleYColumns().getColumn(iv_.i);
 
   bool ok1;
 

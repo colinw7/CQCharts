@@ -150,6 +150,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  //! get visible columns
+  const Columns &visibleColumns() const { return visibleColumns_; }
+
+  //---
+
   //! get/set border
   const Length &border() const { return border_; }
   void setBorder(const Length &l);
@@ -235,6 +240,28 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   CQChartsGeom::BBox fitBBox() const override;
 
+  //---
+
+  void resetColumnVisible();
+
+  bool isColumnVisible(int ic) const;
+  void setColumnVisible(int ic, bool visible);
+
+  //---
+
+  using BucketCount = std::map<int, int>;
+
+  void calcBucketCounts(int ic, BucketCount &bucketCount, int &maxCount,
+                        double &rmin, double &rmax) const;
+  void calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
+                        double &rmin, double &rmax) const;
+
+  using ValueCount  = std::pair<QVariant, int>;
+  using ValueCounts = std::vector<ValueCount>;
+
+  void calcValueCounts(int ic, ValueCounts &valueCounts, int &maxCount) const;
+  void calcValueCounts(const Column &column, ValueCounts &valueCounts, int &maxCount) const;
+
  protected:
   using CellObj = CQChartsSummaryCellObj;
 
@@ -258,6 +285,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void lowerDiagonalTypeSlot(bool);
 
  protected:
+  void updateVisibleColumns();
+
   void notifyCollapse() override;
 
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -265,8 +294,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   BBox cellBBox(int row, int col) const;
 
  private:
-  Columns columns_;     //!< columns
-  Column  groupColumn_; //!< group column
+  using ColumnVisible = std::map<int, bool>;
+
+  Columns columns_;        //!< columns
+  Column  groupColumn_;    //!< group column
+  Columns visibleColumns_; //!< visible columns
 
   Length border_ { 0.05, Units::PLOT }; //!< border
 
@@ -293,6 +325,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Length symbolSize_ { 0.03, Units::PLOT }; //!< scatter symbol size
 
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
+
+  ColumnVisible columnVisible_;
 };
 
 //---
@@ -323,11 +357,6 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void draw(PaintDevice *device) const override;
 
  private:
-  using BucketCount = std::map<int, int>;
-  using ValueCount  = std::pair<QVariant, int>;
-  using ValueCounts = std::vector<ValueCount>;
-
- private:
   void drawScatter     (PaintDevice *device) const;
   void drawBestFit     (PaintDevice *device) const;
   void drawCorrelation (PaintDevice *device) const;
@@ -335,9 +364,6 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawDistribution(PaintDevice *device) const;
   void drawDensity     (PaintDevice *device) const;
   void drawPie         (PaintDevice *device) const;
-
-  void calcBucketCounts(BucketCount &bucketCount, int &maxCount, double &rmin, double &rmax) const;
-  void calcValueCounts(ValueCounts &valueCouns, int &maxCount) const;
 
   void initGroupedValues();
 
@@ -381,6 +407,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
 #include <CQChartsPlotCustomControls.h>
 
+class CQChartsSummaryPlotGroupStats;
+class CQChartsSummaryPlotColumnChooser;
+
 class QCheckBox;
 
 class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
@@ -421,6 +450,54 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   QCheckBox* bestFitCheck_ { nullptr };
   QCheckBox* densityCheck_ { nullptr };
+
+  CQChartsSummaryPlotGroupStats*    stats_   { nullptr };
+  CQChartsSummaryPlotColumnChooser* chooser_ { nullptr };
+};
+
+//---
+
+class CQTableWidget;
+
+class CQChartsSummaryPlotGroupStats : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *plot=nullptr);
+
+  CQChartsSummaryPlot *plot() const { return plot_; }
+  void setPlot(CQChartsSummaryPlot *plot) { plot_ = plot; }
+
+  void updateWidgets();
+
+  QSize sizeHint() const override;
+
+ private:
+  CQChartsSummaryPlot* plot_      { nullptr };
+  CQTableWidget*       valueList_ { nullptr };
+};
+
+//---
+
+class CQChartsSummaryPlotColumnChooser : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot=nullptr);
+
+  CQChartsSummaryPlot *plot() const { return plot_; }
+  void setPlot(CQChartsSummaryPlot *plot) { plot_ = plot; }
+
+  void updateWidgets();
+
+  QSize sizeHint() const override;
+
+ private slots:
+  void columnClickSlot(int row, int column, bool b);
+
+ private:
+  CQChartsSummaryPlot* plot_       { nullptr };
+  CQTableWidget*       columnList_ { nullptr };
 };
 
 #endif
