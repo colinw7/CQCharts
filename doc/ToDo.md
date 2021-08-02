@@ -4,19 +4,17 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Optional draw key in custom controls for all plots
  + Scalable object to allow fit multiple (scalable) objects in rect
    + Use in more places
  + Use default symbol set (name) for all plots (scatter)
  + Summary Plot
-   + Correlation Plot
-   + Customization based on numeric/non-numeric
+   + Add Correlation Plot
+   + Support Cell Plot Customization based on numeric/non-numeric
    + Push in support all plots
    + convex hull on scatter
    + clip/elide axis labels (rotate 90 ?)
-   + axis font control
-   + check small bar not-disappearing (use line)
-   + column hide (show) from menu, key, controls ?
-   + group key
+   + allow skip individual group values
  + Color axis to match plot (x1/x2 y1/y2)
  + Custom Controls interface
    init(), addWidgets() all virtual

@@ -10815,7 +10815,15 @@ collapseRootSlot()
 {
   assert(rootPlot());
 
+  collapseRoot();
+}
+
+void
+CQChartsPlot::
+collapseRoot()
+{
   auto *rootPlot = const_cast<CQChartsPlot *>(this->rootPlot());
+  if (! rootPlot) return;
 
   rootPlot->setVisible(true);
 

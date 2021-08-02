@@ -126,6 +126,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using ScatterPlot      = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
   using ParallelPlot     = CQChartsParallelPlot;
+  using CellObj          = CQChartsSummaryCellObj;
   using Length           = CQChartsLength;
   using ColorInd         = CQChartsUtil::ColorInd;
 
@@ -173,7 +174,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const PlotType &plotType() const { return plotType_; }
   void setPlotType(const PlotType &t, bool update=true);
 
-  // get/set expanded
+  //! get/set expanded
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b);
 
@@ -262,9 +263,14 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void calcValueCounts(int ic, ValueCounts &valueCounts, int &maxCount) const;
   void calcValueCounts(const Column &column, ValueCounts &valueCounts, int &maxCount) const;
 
- protected:
-  using CellObj = CQChartsSummaryCellObj;
+  //---
 
+  CellObj *selectedCellObj() const;
+
+  void expandCell(CellObj *cellObj);
+  void collapseCell();
+
+ protected:
   void updatePlots();
 
   virtual CellObj *createCellObj(const BBox &bbox, int row, int col) const;
@@ -306,10 +312,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool yLabels_ { true }; //!< y labels
 
   PlotType plotType_ { PlotType::MATRIX }; //!< unexpanded plot type
-  bool     expanded_ { false };
 
-  int expandRow_ { 0 };
-  int expandCol_ { 0 };
+  bool expanded_  { false };
+  int  expandRow_ { 0 };
+  int  expandCol_ { 0 };
 
   DiagonalType    diagonalType_      { DiagonalType::DISTRIBUTION };   //!< diagonal type
   OffDiagonalType upperDiagonalType_ { OffDiagonalType::SCATTER };     //!< upper diagonal type
@@ -411,6 +417,7 @@ class CQChartsSummaryPlotGroupStats;
 class CQChartsSummaryPlotColumnChooser;
 
 class QCheckBox;
+class QPushButton;
 
 class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
@@ -440,6 +447,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void bestFitSlot(int);
   void densitySlot(int);
 
+  void expandSlot();
+
  private:
   CQChartsSummaryPlot* plot_ { nullptr };
 
@@ -453,6 +462,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   CQChartsSummaryPlotGroupStats*    stats_   { nullptr };
   CQChartsSummaryPlotColumnChooser* chooser_ { nullptr };
+
+  QPushButton *expandButton_ { nullptr };
 };
 
 //---

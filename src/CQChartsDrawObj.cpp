@@ -34,6 +34,9 @@ place(PaintDevice *device, const BBox &placeBBox)
 
   scale_ = std::min(xs, ys);
 
+  if (maxScale_ > 0.0)
+    scale_ = std::min(scale_, maxScale_);
+
   double dx = (placeBBox.getWidth () - scale_*bbox.getWidth ())/2.0;
   double dy = (placeBBox.getHeight() - scale_*bbox.getHeight())/2.0;
 

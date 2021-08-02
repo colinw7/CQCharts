@@ -2936,6 +2936,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool contains(const Point &p) const override;
 
+  //---
+
+  void collapseRoot();
+
  protected slots:
   void animateSlot();
 

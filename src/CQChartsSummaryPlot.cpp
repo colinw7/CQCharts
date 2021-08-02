@@ -147,6 +147,8 @@ init()
 
   //---
 
+  setId("summaryPlot");
+
   addTitle();
 
   setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop);
@@ -183,6 +185,7 @@ init()
   scatterPlot_      = dynamic_cast<ScatterPlot      *>(createPlot("scatter"));
   distributionPlot_ = dynamic_cast<DistributionPlot *>(createPlot("distribution"));
   parallelPlot_     = dynamic_cast<ParallelPlot     *>(createPlot("parallel"));
+  assert(scatterPlot_ && distributionPlot_ && parallelPlot_);
 
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
@@ -647,20 +650,20 @@ bool
 CQChartsSummaryPlot::
 addMenuItems(QMenu *menu)
 {
-  PlotObjs objs;
+  menuObj_ = selectedCellObj();
 
-  selectedPlotObjs(objs);
-
-  if (objs.empty()) {
+  if (! menuObj_) {
     auto gpos = view()->menuPos();
     auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
     auto w = pixelToWindow(Point(pos));
 
-    plotObjsAtPoint(w, objs, Constraints::SELECTABLE);
-  }
+    PlotObjs objs;
 
-  menuObj_ = (! objs.empty() ? *objs.begin() : nullptr);
+    plotObjsAtPoint(w, objs, Constraints::SELECTABLE);
+
+    menuObj_ = (! objs.empty() ? *objs.begin() : nullptr);
+  }
 
   if (menuObj_) {
     menu->addSeparator();
@@ -671,6 +674,20 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
+CQChartsSummaryCellObj *
+CQChartsSummaryPlot::
+selectedCellObj() const
+{
+  PlotObjs objs;
+
+  selectedPlotObjs(objs);
+  if (objs.empty()) return nullptr;
+
+  auto *obj = *objs.begin();
+
+  return dynamic_cast<CQChartsSummaryCellObj *>(obj);
+}
+
 void
 CQChartsSummaryPlot::
 expandSlot()
@@ -678,10 +695,29 @@ expandSlot()
   auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(menuObj_);
   if (! cellObj) return;
 
+  expandCell(cellObj);
+}
+
+void
+CQChartsSummaryPlot::
+expandCell(CellObj *cellObj)
+{
   expandRow_ = cellObj->row();
   expandCol_ = cellObj->col();
 
   setExpanded(true);
+}
+
+void
+CQChartsSummaryPlot::
+collapseCell()
+{
+  if (isExpanded()) {
+    if (expandRow_ != expandCol_)
+      scatterPlot_->collapseRoot();
+    else
+      distributionPlot_->collapseRoot();
+  }
 }
 
 void
@@ -836,9 +872,33 @@ fitBBox() const
   auto thw = pixelToWindowWidth (tsize.height());
   auto thh = pixelToWindowHeight(tsize.height());
 
+  //---
+
+  double maxWidth = 0.0;
+
+  int nc = visibleColumns().count();
+
+  for (int ic = 0; ic < nc; ++ic) {
+    auto column = visibleColumns().getColumn(ic);
+
+    bool ok;
+    auto str = modelHHeaderString(column, ok);
+
+    auto font = view()->viewFont(xLabelTextFont());
+
+    auto tsize = CQChartsDrawUtil::calcTextSize(str, font, CQChartsTextOptions());
+
+    maxWidth = std::max(maxWidth, pixelToWindowWidth(tsize.width()));
+  }
+
+  if (maxWidth > 1.0)
+    maxWidth = 1.0;
+
+  //---
+
   auto bbox = CQChartsPlot::fitBBox();
 
-  bbox += Point(-1.0 - thw/2.0, -thh - thh/2.0);
+  bbox += Point(-maxWidth - thw/2.0, -thh - thh/2.0);
 
   return bbox;
 }
@@ -1234,7 +1294,6 @@ drawScatter(PaintDevice *device) const
 
       auto *symbolSet = plot_->defaultSymbolSet();
 
-      //symbol1 = symbolSet->interpI(ig, 0, ng - 1).symbol;
       symbol1 = symbolSet->interpI(ig).symbol;
     }
     else {
@@ -1401,6 +1460,8 @@ drawCorrelation(PaintDevice *device) const
     //---
 
     BBox pbbox(pxmin_, pymin_, pxmax_, pymax_);
+
+    drawObj->setMaxScale(1.5);
 
     drawObj->place(device, pbbox);
 
@@ -1777,10 +1838,6 @@ initGroupedValues()
 
 //------
 
-// columns show/hide control
-
-// stats widget (values and color if group)
-
 CQChartsSummaryPlotGroupStats::
 CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *plot) :
  plot_(plot)
@@ -1806,7 +1863,7 @@ updateWidgets()
 
   valueList_->clear();
 
-  if (! isVisible())
+  if (! groupColumn.isValid())
     return;
 
   auto *groupDetails = plot_->columnDetails(plot_->groupColumn());
@@ -2069,6 +2126,20 @@ addWidgets()
 
   addFrameColWidget(optionsFrame, bestFitCheck_);
   addFrameColWidget(optionsFrame, densityCheck_);
+
+  //---
+
+  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 0, 0);
+
+  expandButton_ = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
+
+  buttonLayout->addWidget (expandButton_);
+  buttonLayout->addStretch(1);
+
+  connect(expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
+
+  layout_->addWidget(buttonFrame);
 }
 
 void
@@ -2096,8 +2167,10 @@ void
 CQChartsSummaryPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
+  if (plot_) {
     disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+    disconnect(plot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
+  }
 
   plot_ = dynamic_cast<CQChartsSummaryPlot *>(plot);
 
@@ -2106,8 +2179,10 @@ setPlot(CQChartsPlot *plot)
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
+  if (plot_) {
     connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+    connect(plot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
+  }
 }
 
 void
@@ -2128,6 +2203,17 @@ updateWidgets()
 
   stats_  ->updateWidgets();
   chooser_->updateWidgets();
+
+  //---
+
+  if (! plot_->isExpanded()) {
+    expandButton_->setText("Expand");
+    expandButton_->setEnabled(plot_->selectedCellObj());
+  }
+  else {
+    expandButton_->setText("Collapse");
+    expandButton_->setEnabled(true);
+  }
 
   //---
 
@@ -2183,4 +2269,14 @@ CQChartsSummaryPlotCustomControls::
 densitySlot(int state)
 {
   plot_->setDensity(state);
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+expandSlot()
+{
+  if (! plot_->isExpanded())
+    plot_->expandCell(plot_->selectedCellObj());
+  else
+    plot_->collapseCell();
 }

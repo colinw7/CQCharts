@@ -23,6 +23,9 @@ class CQChartsDrawObj {
 
   void addChild(DrawObj *obj);
 
+  double maxScale() const { return maxScale_; }
+  void setMaxScale(double r) { maxScale_ = r; }
+
   virtual BBox calcBBox(PaintDevice *device) const;
 
   void moveScale(double dx, double dy, double s);
@@ -36,12 +39,13 @@ class CQChartsDrawObj {
  protected:
   using Children = std::vector<DrawObj *>;
 
-  DrawObj*       parent_ { nullptr };
+  DrawObj*       parent_   { nullptr };
   Children       children_;
   BBox           bbox_;
   PenBrush       penBrush_;
   mutable BBox   sbbox_;
-  mutable double scale_ { 1.0 };
+  mutable double scale_    { 1.0 };
+  double         maxScale_ { -1.0 };
 };
 
 //---
