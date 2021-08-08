@@ -409,7 +409,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
  * \brief Pie Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsPieKeyColor : public CQChartsKeyColorBox {
+class CQChartsPieKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -441,7 +441,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  * \brief Pie Plot Key Text
  * \ingroup Charts
  */
-class CQChartsPieKeyText : public CQChartsKeyText {
+class CQChartsPieKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

@@ -2323,6 +2323,17 @@ isKeyVisibleAndNonEmpty() const
 
 //---
 
+void
+CQChartsPlot::
+setControlsKey(bool b)
+{
+  controlsKey_ = b;
+
+  emit customDataChanged();
+}
+
+//---
+
 bool
 CQChartsPlot::
 isColorKey() const
@@ -3561,7 +3572,8 @@ addBaseProperties()
   if (key()) {
     key()->addProperties(propertyModel(), "key");
 
-    addProp("key", "colorKey", "colorColumn", "Use Color Column for Key");
+    addProp("key", "controlsKey", "inControls" , "Show Key in Controls Widget");
+    addProp("key", "colorKey"   , "colorColumn", "Use Color Column for Key");
   }
 
   // title
@@ -4127,8 +4139,8 @@ addColorKeyItems(CQChartsPlotKey *key)
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](const QString &name, const QColor &c) {
-    auto *colorItem = new CQChartsKeyColorBox(this, ColorInd(), ColorInd(), ColorInd());
-    auto *textItem  = new CQChartsKeyText    (this, name, ColorInd());
+    auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ColorInd());
+    auto *textItem  = new CQChartsTextKeyItem    (this, name, ColorInd());
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -6030,6 +6042,10 @@ initObjs()
   //---
 
   resetKeyItems();
+
+  //---
+
+  emit customDataChanged();
 
   return true;
 }
@@ -15121,7 +15137,7 @@ calcTextColor(const CQChartsColor &bg) const
 
 CQChartsPlot::ColorInd
 CQChartsPlot::
-calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
+calcColorInd(const PlotObj *obj, const CQChartsColorBoxKeyItem *keyBox,
              const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
   ColorInd colorInd;

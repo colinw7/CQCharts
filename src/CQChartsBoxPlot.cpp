@@ -3765,7 +3765,7 @@ draw(PaintDevice *device) const
 
 CQChartsBoxKeyColor::
 CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyColorBox(plot, is, ig, ColorInd())
+ CQChartsColorBoxKeyItem(plot, is, ig, ColorInd())
 {
 }
 
@@ -3788,7 +3788,7 @@ QBrush
 CQChartsBoxKeyColor::
 fillBrush() const
 {
-  auto c = CQChartsKeyColorBox::fillBrush().color();
+  auto c = CQChartsColorBoxKeyItem::fillBrush().color();
 
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
@@ -3838,7 +3838,7 @@ boxObj() const
 CQChartsBoxKeyText::
 CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
                    const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyText(plot, text, (is.n > 1 ? is : ig))
+ CQChartsTextKeyItem(plot, text, (is.n > 1 ? is : ig))
 {
 }
 
@@ -3848,7 +3848,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  auto c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
   if (plot->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
@@ -3957,6 +3957,10 @@ addWidgets()
   addGroupColumnWidgets();
 
   addColorColumnWidgets("Point Color");
+
+  //---
+
+  addKeyList();
 }
 
 void
@@ -3989,9 +3993,15 @@ void
 CQChartsBoxPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

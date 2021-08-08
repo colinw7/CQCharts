@@ -4843,7 +4843,7 @@ draw(PaintDevice *device) const
 CQChartsDistKeyColorBox::
 CQChartsDistKeyColorBox(Plot *plot, const ColorInd &ig, const ColorInd &iv,
                         const RangeValue &xv, const RangeValue &yv) :
- CQChartsKeyColorBox(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
+ CQChartsColorBoxKeyItem(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
 {
   setClickable(true);
 }
@@ -4921,7 +4921,7 @@ setSetHidden(bool b)
 
 CQChartsDistKeyText::
 CQChartsDistKeyText(Plot *plot, const QString &text, const ColorInd &iv) :
- CQChartsKeyText(plot, text, iv)
+ CQChartsTextKeyItem(plot, text, iv)
 {
 }
 
@@ -4929,7 +4929,7 @@ QColor
 CQChartsDistKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  auto c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
   adjustFillColor(c);
 
@@ -5077,6 +5077,10 @@ addWidgets()
 
   addGroupColumnWidgets();
   addColorColumnWidgets ();
+
+  //---
+
+  addKeyList();
 }
 
 void

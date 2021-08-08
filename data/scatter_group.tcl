@@ -23,4 +23,4 @@ connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
 #place_charts_plots -horizontal [list $plot1 $plot2]
 
-set_charts_property -plot $plot1 -name points.symbol -value "\u2660"
+#set_charts_property -plot $plot1 -name points.symbol -value "\u2660"

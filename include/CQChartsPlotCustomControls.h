@@ -4,6 +4,7 @@
 #include <CQChartsColor.h>
 
 #include <QFrame>
+#include <QPointer>
 
 class CQCharts;
 class CQChartsPlot;
@@ -26,6 +27,8 @@ class QCheckBox;
 class QLabel;
 class QGridLayout;
 class QVBoxLayout;
+
+class CQChartsPlotCustomKey;
 
 class CQChartsPlotCustomControls : public QFrame {
   Q_OBJECT
@@ -129,12 +132,15 @@ class CQChartsPlotCustomControls : public QFrame {
   void numericOnlySlot(bool state);
 
   void showColorKeySlot(bool b);
+  void showKeyListSlot(bool b);
 
  protected:
   CQChartsPlotType *plotType() const;
 
   CQChartsBoolParameterEdit *createBoolEdit(const QString &name, bool choice=true);
   CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
+
+  void addKeyList();
 
   virtual void connectSlots(bool b);
 
@@ -170,6 +176,61 @@ class CQChartsPlotCustomControls : public QFrame {
   bool connected_ { false };
 
   CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
+
+  CQGroupBox*            keyGroup_ { nullptr };
+  CQChartsPlotCustomKey *keyList_  { nullptr };
+};
+
+//---
+
+class CQTableWidget;
+class CQChartsKeyItem;
+
+class CQChartsPlotCustomKey : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsPlotCustomKey(CQChartsPlot *plot=nullptr);
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+
+  void updateWidgets();
+
+  QSize sizeHint() const override;
+
+ private:
+  void addItems(const CQChartsKeyItem *item, int &row);
+
+ private slots:
+  void boolClickSlot(int row, int column, bool b);
+
+ private:
+  using ItemP = QPointer<CQChartsKeyItem>;
+
+  struct ItemData {
+    ItemP    item;
+    QVariant value;
+    bool     clickable { false };
+  };
+
+  using ColItems = std::map<int, ItemData>;
+
+  struct RowData {
+    ColItems colItems;
+    bool     clickable { false };
+  };
+
+  using RowItems = std::map<int, RowData>;
+
+  struct RowColItemData {
+    RowItems rowItems;
+    bool     clickable { false };
+  };
+
+  CQChartsPlot*  plot_  { nullptr };
+  CQTableWidget* table_ { nullptr };
+  RowColItemData itemData_;
 };
 
 #endif

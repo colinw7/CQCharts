@@ -349,7 +349,7 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
  * \brief Scatter Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
+class CQChartsScatterColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -358,7 +358,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   using Obj    = CQChartsPlotObj;
 
  public:
-  CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig);
+  CQChartsScatterColorKeyItem(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig);
 
   Plot *plot() const { return plot_; }
 

@@ -789,7 +789,7 @@ addKeyItems(PlotKey *key)
     const auto &name = group->name();
 
     auto *colorItem = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
-    auto *textItem  = new CQChartsKeyText(this, name, ColorInd(i, n));
+    auto *textItem  = new CQChartsTextKeyItem        (this, name, ColorInd(i, n));
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -1000,7 +1000,7 @@ draw(PaintDevice *device) const
 CQChartsHierScatterKeyColor::
 CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                             const ColorInd &ic) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic), group_(group)
+ CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic), group_(group)
 {
 }
 
@@ -1024,7 +1024,7 @@ QBrush
 CQChartsHierScatterKeyColor::
 fillBrush() const
 {
-  auto c = CQChartsKeyColorBox::fillBrush().color();
+  auto c = CQChartsColorBoxKeyItem::fillBrush().color();
 
   //auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
@@ -1063,6 +1063,10 @@ addWidgets()
   //---
 
   addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", columnsFrame);
+
+  //---
+
+  addKeyList();
 }
 
 void
@@ -1076,9 +1080,15 @@ void
 CQChartsHierScatterPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsHierScatterPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

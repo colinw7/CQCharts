@@ -10435,8 +10435,8 @@ execCmd(CQChartsCmdArgs &argv)
 
     CQChartsUtil::ColorInd colorInd;
 
-    auto *item1 = new CQChartsKeyLine(plotKey, colorInd, colorInd);
-    auto *item2 = new CQChartsKeyText(plotKey, text    , colorInd);
+    auto *item1 = new CQChartsLineKeyItem(plotKey, colorInd, colorInd);
+    auto *item2 = new CQChartsTextKeyItem(plotKey, text    , colorInd);
 
     item1->setSymbolData(symbolData);
 
@@ -10460,8 +10460,8 @@ execCmd(CQChartsCmdArgs &argv)
 
     CQChartsUtil::ColorInd colorInd;
 
-    auto *item1 = new CQChartsKeyColorBox(plotKey, colorInd, colorInd, colorInd);
-    auto *item2 = new CQChartsKeyText    (plotKey, text    , colorInd);
+    auto *item1 = new CQChartsColorBoxKeyItem(plotKey, colorInd, colorInd, colorInd);
+    auto *item2 = new CQChartsTextKeyItem    (plotKey, text    , colorInd);
 
     item1->setColor(color);
 
@@ -10501,7 +10501,7 @@ execCmd(CQChartsCmdArgs &argv)
   else {
     CQChartsUtil::ColorInd colorInd;
 
-    auto *item = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+    auto *item = new CQChartsTextKeyItem(plotKey->plot(), text, colorInd);
 
     if (argv.hasParseArg("id")) {
       auto id = argv.getParseStr("id");

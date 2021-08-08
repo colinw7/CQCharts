@@ -326,7 +326,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  * \brief Bar Chart Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsBarKeyColor : public CQChartsKeyColorBox {
+class CQChartsBarKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
@@ -363,7 +363,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
  * \brief Bar Chart Key Text
  * \ingroup Charts
  */
-class CQChartsBarKeyText : public CQChartsKeyText {
+class CQChartsBarKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

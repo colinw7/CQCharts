@@ -1322,3 +1322,5 @@
  + add summary plot
 # 8/1/2021
  + add column visibility and grouped values controls in summary plot
+# 8/8/2021
+ + add key support to custom controls

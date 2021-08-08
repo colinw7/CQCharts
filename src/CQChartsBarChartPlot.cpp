@@ -2478,7 +2478,7 @@ valueSet() const
 CQChartsBarKeyColor::
 CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                     const ColorInd &ig, const ColorInd &iv) :
- CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot), name_(name)
+ CQChartsColorBoxKeyItem(plot, is, ig, iv), plot_(plot), name_(name)
 {
   setClickable(true);
 }
@@ -2730,7 +2730,7 @@ setSetHidden(bool b)
 
 CQChartsBarKeyText::
 CQChartsBarKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
- CQChartsKeyText(plot, text, ic)
+ CQChartsTextKeyItem(plot, text, ic)
 {
 }
 
@@ -2738,7 +2738,7 @@ QColor
 CQChartsBarKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  auto c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
   adjustFillColor(c);
 
@@ -2810,6 +2810,10 @@ addWidgets()
 
   addGroupColumnWidgets();
   addColorColumnWidgets();
+
+  //---
+
+  addKeyList();
 }
 
 void
@@ -2839,9 +2843,15 @@ void
 CQChartsBarChartPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

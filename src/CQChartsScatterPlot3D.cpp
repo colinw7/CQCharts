@@ -1101,7 +1101,7 @@ addPointKeyItems(CQChartsPlotKey *key)
     ColorInd ic(i, n);
 
     auto *colorItem = new CQChartsScatterKeyColor3D(this, ind , ic);
-    auto *textItem  = new CQChartsKeyText          (this, name, ic);
+    auto *textItem  = new CQChartsTextKeyItem      (this, name, ic);
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -1752,7 +1752,7 @@ postDraw(PaintDevice *device)
 
 CQChartsScatterKeyColor3D::
 CQChartsScatterKeyColor3D(CQChartsScatterPlot3D *plot, int groupInd, const ColorInd &ic) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
+ CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
 {
 }
 
@@ -1791,7 +1791,7 @@ fillBrush() const
   else {
     c = plot->interpSymbolFillColor(ic_);
 
-    //c = CQChartsKeyColorBox::fillBrush().color();
+    //c = CQChartsColorBoxKeyItem::fillBrush().color();
   }
 
   CQChartsDrawUtil::setColorAlpha(c, plot->symbolFillAlpha());
@@ -1842,6 +1842,10 @@ addWidgets()
   addColumnWidgets(QStringList() <<
     "x" << "y" << "z" << "name" << "label" <<
     "symbolType" << "symbolSize" << "fontSize", columnsFrame);
+
+  //---
+
+  addKeyList();
 }
 
 void

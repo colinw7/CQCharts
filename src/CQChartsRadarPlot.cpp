@@ -679,8 +679,8 @@ addKeyItems(PlotKey *key)
     void addKeyItem(const QString &name, const ColorInd &ic) {
       auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
-      auto *colorItem = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
-      auto *textItem  = new CQChartsKeyText(plot, name, ic);
+      auto *colorItem = new CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic);
+      auto *textItem  = new CQChartsTextKeyItem    (plot, name, ic);
 
       auto *groupItem = new CQChartsKeyItemGroup(plot);
 
@@ -1205,6 +1205,10 @@ addWidgets()
   //---
 
   addColorColumnWidgets("Fill Color");
+
+  //---
+
+  addKeyList();
 }
 
 void
@@ -1218,9 +1222,15 @@ void
 CQChartsRadarPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsRadarPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

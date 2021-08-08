@@ -4509,7 +4509,7 @@ writeScriptData(ScriptPaintDevice *device) const
 
 CQChartsXYKeyColor::
 CQChartsXYKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyColorBox(plot, is, ig, ColorInd()), plot_(plot)
+ CQChartsColorBoxKeyItem(plot, is, ig, ColorInd()), plot_(plot)
 {
   setClickable(true);
 }
@@ -4591,7 +4591,7 @@ draw(PaintDevice *device, const BBox &rect) const
   if (plot()->isKeyLine())
     drawLine(device, rect);
   else
-    CQChartsKeyColorBox::draw(device, rect);
+    CQChartsColorBoxKeyItem::draw(device, rect);
 }
 
 void
@@ -4772,10 +4772,10 @@ fillBrush() const
       alpha = plot()->linesAlpha();
     }
     else
-      c = CQChartsKeyColorBox::fillBrush().color();
+      c = CQChartsColorBoxKeyItem::fillBrush().color();
   }
   else
-    c = CQChartsKeyColorBox::fillBrush().color();
+    c = CQChartsColorBoxKeyItem::fillBrush().color();
 
   bool hidden = false;
 
@@ -4808,7 +4808,7 @@ plotObj() const
 
 CQChartsXYKeyText::
 CQChartsXYKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyText(plot, text, is.n > 1 ? is : ig), plot_(plot)
+ CQChartsTextKeyItem(plot, text, is.n > 1 ? is : ig), plot_(plot)
 {
 }
 
@@ -4816,7 +4816,7 @@ QColor
 CQChartsXYKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  auto c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
   if (plot()->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
@@ -4887,6 +4887,10 @@ addWidgets()
 
   addFrameWidget(optionsFrame, "Moving Average", movingAverageCheck_, /*nextRow*/false);
   addFrameSpacer(optionsFrame);
+
+  //---
+
+  addKeyList();
 }
 
 void

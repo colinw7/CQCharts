@@ -1936,7 +1936,7 @@ writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const
 
 CQChartsPivotKeyColor::
 CQChartsPivotKeyColor(PivotPlot *plot, const ColorInd &ic) :
- CQChartsKeyColorBox(plot, ColorInd(), ic, ColorInd())
+ CQChartsColorBoxKeyItem(plot, ColorInd(), ic, ColorInd())
 {
 }
 
@@ -1963,7 +1963,7 @@ fillBrush() const
 
 CQChartsPivotKeyText::
 CQChartsPivotKeyText(PivotPlot *plot, const QString &name) :
- CQChartsKeyText(plot, name, ColorInd())
+ CQChartsTextKeyItem(plot, name, ColorInd())
 {
 }
 
@@ -2000,6 +2000,10 @@ addWidgets()
   //---
 
   // TODO: orientation, plot type
+
+  //---
+
+  addKeyList();
 }
 
 void
@@ -2013,9 +2017,15 @@ void
 CQChartsPivotPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsPivotPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

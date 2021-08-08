@@ -439,7 +439,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
  * \brief Box Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
+class CQChartsBoxKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -466,7 +466,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
  * \brief Box Plot Key Text
  * \ingroup Charts
  */
-class CQChartsBoxKeyText : public CQChartsKeyText {
+class CQChartsBoxKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

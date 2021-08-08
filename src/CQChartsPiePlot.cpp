@@ -3290,7 +3290,7 @@ bgColor() const
 
 CQChartsPieKeyColor::
 CQChartsPieKeyColor(PiePlot *plot, PlotObj *obj) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd()), obj_(obj)
+ CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ColorInd()), obj_(obj)
 {
   setClickable(true);
 }
@@ -3375,7 +3375,7 @@ setIndex() const
 
 CQChartsPieKeyText::
 CQChartsPieKeyText(PiePlot *plot, PlotObj *plotObj) :
- CQChartsKeyText(plot, "", ColorInd()), obj_(plotObj)
+ CQChartsTextKeyItem(plot, "", ColorInd()), obj_(plotObj)
 {
   auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
@@ -3392,7 +3392,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto *plot = qobject_cast<PiePlot *>(plot_);
 
-  auto c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
   auto is = setIndex();
 
@@ -3502,6 +3502,10 @@ addWidgets()
   addFrameColWidget(optionsFrame, countCheck_   );
 
   addFrameColWidget(optionsFrame, CQChartsWidgetUtil::createHStretch());
+
+  //---
+
+  addKeyList();
 }
 
 void

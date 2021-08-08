@@ -609,7 +609,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  * \brief XY Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsXYKeyColor : public CQChartsKeyColorBox {
+class CQChartsXYKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -641,7 +641,7 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
  * \brief XY Plot Key Text
  * \ingroup Charts
  */
-class CQChartsXYKeyText : public CQChartsKeyText {
+class CQChartsXYKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

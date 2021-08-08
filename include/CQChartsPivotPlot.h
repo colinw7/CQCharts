@@ -255,7 +255,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
  * \brief Pivot Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
+class CQChartsPivotKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -271,7 +271,7 @@ class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
  * \brief Pivot Plot Key Text
  * \ingroup Charts
  */
-class CQChartsPivotKeyText : public CQChartsKeyText {
+class CQChartsPivotKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

@@ -147,7 +147,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
  * \brief Scatter Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsScatterKeyColor3D : public CQChartsKeyColorBox {
+class CQChartsScatterKeyColor3D : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:

@@ -223,7 +223,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
  * \brief Hierarchical Scatter Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
+class CQChartsHierScatterKeyColor : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:

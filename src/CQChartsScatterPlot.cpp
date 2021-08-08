@@ -2140,8 +2140,8 @@ addPointKeyItems(PlotKey *key)
   auto addKeyItem = [&](int groupInd, const QString &name, const ColorInd &is, const ColorInd &ig) {
     auto ic = (is.n > 1 ? is : ig);
 
-    auto *colorItem = new CQChartsScatterKeyColor(this, groupInd, is, ig);
-    auto *textItem  = new CQChartsKeyText        (this, name, ic);
+    auto *colorItem = new CQChartsScatterColorKeyItem(this, groupInd, is, ig);
+    auto *textItem  = new CQChartsTextKeyItem        (this, name, ic);
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -4143,16 +4143,16 @@ draw(PaintDevice *device) const
 
 //------
 
-CQChartsScatterKeyColor::
-CQChartsScatterKeyColor(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyColorBox(plot, is, ig, ColorInd()), plot_(plot), groupInd_(groupInd)
+CQChartsScatterColorKeyItem::
+CQChartsScatterColorKeyItem(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig) :
+ CQChartsColorBoxKeyItem(plot, is, ig, ColorInd()), plot_(plot), groupInd_(groupInd)
 {
   setClickable(true);
 }
 
 #if 0
 bool
-CQChartsScatterKeyColor::
+CQChartsScatterColorKeyItem::
 selectPress(const Point &, SelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
@@ -4177,7 +4177,7 @@ selectPress(const Point &, SelMod selMod)
 #endif
 
 void
-CQChartsScatterKeyColor::
+CQChartsScatterColorKeyItem::
 doSelect(SelMod)
 {
   CQChartsPlot::PlotObjs objs;
@@ -4193,7 +4193,7 @@ doSelect(SelMod)
 }
 
 QBrush
-CQChartsScatterKeyColor::
+CQChartsScatterColorKeyItem::
 fillBrush() const
 {
   auto ic = (is_.n > 1 ? is_ : ig_);
@@ -4205,7 +4205,7 @@ fillBrush() const
   else {
     c = plot_->interpSymbolFillColor(ic);
 
-    //c = CQChartsKeyColorBox::fillBrush().color();
+    //c = CQChartsColorBoxKeyItem::fillBrush().color();
   }
 
   CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
@@ -4219,7 +4219,7 @@ fillBrush() const
 }
 
 bool
-CQChartsScatterKeyColor::
+CQChartsScatterColorKeyItem::
 tipText(const Point &, QString &tip) const
 {
   if (groupInd_ < -1) return false;
@@ -4246,7 +4246,7 @@ tipText(const Point &, QString &tip) const
 }
 
 CQChartsUtil::ColorInd
-CQChartsScatterKeyColor::
+CQChartsScatterColorKeyItem::
 setIndex() const
 {
   return (groupInd_ >= -1 ? ColorInd(groupInd_, 1) : is_);
@@ -4336,6 +4336,10 @@ addWidgets()
 
   addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
 #endif
+
+  //---
+
+  addKeyList();
 }
 
 void

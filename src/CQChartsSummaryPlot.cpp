@@ -31,7 +31,6 @@
 
 #include <QMenu>
 #include <QCheckBox>
-#include <QHeaderView>
 #include <QVBoxLayout>
 
 CQChartsSummaryPlotType::
@@ -1142,6 +1141,10 @@ void
 CQChartsSummaryCellObj::
 draw(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::draw");
+
+  //---
+
   auto bx = plot_->lengthPlotWidth (plot_->border());
   auto by = plot_->lengthPlotHeight(plot_->border());
 
@@ -1199,6 +1202,10 @@ void
 CQChartsSummaryCellObj::
 drawScatter(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawScatter");
+
+  //---
+
   auto column1 = plot_->visibleColumns().getColumn(row_);
   auto column2 = plot_->visibleColumns().getColumn(col_);
 
@@ -1322,6 +1329,10 @@ void
 CQChartsSummaryCellObj::
 drawBestFit(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawBestFit");
+
+  //---
+
   auto bbox = this->rect();
 
   auto drawFitPoly = [&](const Polygon &polygon) {
@@ -1377,6 +1388,10 @@ void
 CQChartsSummaryCellObj::
 drawCorrelation(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawCorrelation");
+
+  //---
+
   auto column1 = plot_->visibleColumns().getColumn(row_);
   auto column2 = plot_->visibleColumns().getColumn(col_);
 
@@ -1475,6 +1490,10 @@ void
 CQChartsSummaryCellObj::
 drawBoxPlot(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawBoxPlot");
+
+  //---
+
   auto column = plot_->visibleColumns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
@@ -1524,6 +1543,10 @@ void
 CQChartsSummaryCellObj::
 drawDistribution(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawDistribution");
+
+  //---
+
   auto column = plot_->visibleColumns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
@@ -1654,6 +1677,10 @@ void
 CQChartsSummaryCellObj::
 drawDensity(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawDensity");
+
+  //---
+
   auto bbox = this->rect();
 
   //---
@@ -1710,6 +1737,10 @@ void
 CQChartsSummaryCellObj::
 drawPie(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawPie");
+
+  //---
+
   auto column = plot_->visibleColumns().getColumn(row_);
 
   auto *details = plot_->columnDetails(column);
@@ -1752,6 +1783,10 @@ void
 CQChartsSummaryCellObj::
 initGroupedValues()
 {
+  CQPerfTrace trace("CQChartsSummaryCellObj::initGroupedValues");
+
+  //---
+
   if (groupValues_.set)
     return;
 
@@ -1847,8 +1882,6 @@ CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *plot) :
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   valueList_ = CQUtil::makeWidget<CQTableWidget>("valueList");
-
-  valueList_->verticalHeader()->hide();
 
   layout->addWidget(valueList_);
 }
@@ -1957,6 +1990,8 @@ updateWidgets()
   }
 
   setMinimumHeight(sizeHint().height());
+
+  valueList_->fixTableColumnWidths();
 }
 
 QSize
@@ -1984,8 +2019,6 @@ CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot) :
 
   connect(columnList_, SIGNAL(boolClicked(int, int, bool)),
           this, SLOT(columnClickSlot(int, int, bool)));
-
-  columnList_->verticalHeader()->hide();
 
   layout->addWidget(columnList_);
 }
@@ -2040,6 +2073,8 @@ updateWidgets()
   }
 
   setMinimumHeight(sizeHint().height());
+
+  columnList_->fixTableColumnWidths();
 }
 
 void

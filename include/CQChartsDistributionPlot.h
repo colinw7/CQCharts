@@ -468,7 +468,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  * \brief Distribution Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
+class CQChartsDistKeyColorBox : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -503,7 +503,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
  * \brief Distribution Plot Key Text
  * \ingroup Charts
  */
-class CQChartsDistKeyText : public CQChartsKeyText {
+class CQChartsDistKeyText : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:

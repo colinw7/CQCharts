@@ -642,15 +642,25 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   int colSpan() const { return colSpan_; }
   void setColSpan(int i) { colSpan_ = i; }
 
+  //---
+
   //! get/set bounding box
-  const BBox &bbox() const { return bbox_; }
+  virtual const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
 
-  bool isInside() const { return inside_; }
+  //---
+
+  //! get/set is inside
+  virtual bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
-  bool isClickable() const { return clickable_; }
+  //---
+
+  // get/set clickable and is clicked
+  virtual bool isClickable() const { return clickable_; }
   void setClickable(bool b) { clickable_ = b; }
+
+  virtual bool isClicked() const;
 
   //---
 
@@ -677,6 +687,8 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   virtual void setSetHidden(bool b);
 
   //---
+
+  virtual QVariant drawValue() const = 0;
 
   virtual void draw(PaintDevice *device, const BBox &rect) const = 0;
 
@@ -752,6 +764,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   //---
 
+  QVariant drawValue() const override { return QVariant(); }
+
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
@@ -765,14 +779,14 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
  * \brief Key Text Item base class
  * \ingroup Charts
  */
-class CQChartsKeyText : public CQChartsKeyItem {
+class CQChartsTextKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
-  CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic);
-  CQChartsKeyText(PlotKey *key, const QString &text, const ColorInd &ic);
+  CQChartsTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic);
+  CQChartsTextKeyItem(PlotKey *key, const QString &text, const ColorInd &ic);
 
   Plot *plot() const { return plot_; }
 
@@ -782,6 +796,8 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Size size() const override;
 
   virtual QColor interpTextColor(const ColorInd &ind) const;
+
+  QVariant drawValue() const override { return QVariant(text_); }
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 
@@ -796,7 +812,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
  * \brief Key Color Box Item base class
  * \ingroup Charts
  */
-class CQChartsKeyColorBox : public CQChartsKeyItem {
+class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsLength cornerRadius READ cornerRadius WRITE setCornerRadius)
@@ -809,12 +825,12 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
-  CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig,
-                      const ColorInd &iv, const RangeValue &xv=RangeValue(),
-                      const RangeValue &yv=RangeValue());
-  CQChartsKeyColorBox(PlotKey *key, const ColorInd &is, const ColorInd &ig,
-                      const ColorInd &iv, const RangeValue &xv=RangeValue(),
-                      const RangeValue &yv=RangeValue());
+  CQChartsColorBoxKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig,
+                          const ColorInd &iv, const RangeValue &xv=RangeValue(),
+                          const RangeValue &yv=RangeValue());
+  CQChartsColorBoxKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig,
+                          const ColorInd &iv, const RangeValue &xv=RangeValue(),
+                          const RangeValue &yv=RangeValue());
 
   Plot *plot() const { return plot_; }
 
@@ -849,6 +865,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   //---
 
+  QVariant drawValue() const override;
+
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
@@ -871,7 +889,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
  * \brief Key Line Item base class
  * \ingroup Charts
  */
-class CQChartsKeyLine : public CQChartsKeyItem {
+class CQChartsLineKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
@@ -879,8 +897,8 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
-  CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig);
-  CQChartsKeyLine(PlotKey *key, const ColorInd &is, const ColorInd &ig);
+  CQChartsLineKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsLineKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig);
 
   Plot *plot() const { return plot_; }
 
@@ -902,6 +920,8 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   bool selectPress(const Point &w, SelMod selMod) override;
 
   //---
+
+  QVariant drawValue() const override { return value_; }
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 
@@ -951,6 +971,8 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   //---
 
   Size size() const override;
+
+  QVariant drawValue() const override { return QVariant(); } // TODO
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 

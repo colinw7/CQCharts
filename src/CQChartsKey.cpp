@@ -2228,8 +2228,8 @@ updateItems()
   int col = 0;
 
   auto addKeyRow = [&](const QString &name, const ColorInd &ic) {
-    auto *colorItem = new CQChartsKeyColorBox(this, ColorInd(), ColorInd(), ic);
-    auto *textItem  = new CQChartsKeyText    (this, name, ic);
+    auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ic);
+    auto *textItem  = new CQChartsTextKeyItem    (this, name, ic);
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -2240,7 +2240,7 @@ updateItems()
 
     nextRowCol(row, col);
 
-    return std::pair<CQChartsKeyColorBox *, CQChartsKeyText*>(colorItem, textItem);
+    return std::pair<CQChartsColorBoxKeyItem *, CQChartsTextKeyItem *>(colorItem, textItem);
   };
 
   clearItems();
@@ -2356,6 +2356,18 @@ adjustFillColor(QColor &c) const
 
 bool
 CQChartsKeyItem::
+isClicked() const
+{
+  if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW)
+    return ! isSetHidden();
+  else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT)
+    return false;
+  else
+    return false;
+}
+
+bool
+CQChartsKeyItem::
 isSetHidden() const
 {
   auto *plot = key_->plot();
@@ -2376,6 +2388,7 @@ void
 CQChartsKeyItem::
 doSelect(SelMod)
 {
+  // TODO:
 }
 
 bool
@@ -2424,7 +2437,10 @@ addRowItems(KeyItem *litem, KeyItem *ritem)
     std::swap(litem, ritem);
 
   addItem(litem);
-  addItem(ritem );
+  addItem(ritem);
+
+  litem->setCol(0);
+  ritem->setCol(1);
 }
 
 void
@@ -2556,20 +2572,20 @@ draw(PaintDevice *device, const BBox &rect) const
 
 //------
 
-CQChartsKeyText::
-CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
+CQChartsTextKeyItem::
+CQChartsTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic) :
  CQChartsKeyItem(plot->key(), ic), plot_(plot), text_(text)
 {
 }
 
-CQChartsKeyText::
-CQChartsKeyText(PlotKey *key, const QString &text, const ColorInd &ic) :
+CQChartsTextKeyItem::
+CQChartsTextKeyItem(PlotKey *key, const QString &text, const ColorInd &ic) :
  CQChartsKeyItem(key, ic), plot_(key->plot()), text_(text)
 {
 }
 
 CQChartsGeom::Size
-CQChartsKeyText::
+CQChartsTextKeyItem::
 size() const
 {
   auto *plot     = key_->plot();
@@ -2594,14 +2610,14 @@ size() const
 }
 
 QColor
-CQChartsKeyText::
+CQChartsTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
   return key_->interpTextColor(ind);
 }
 
 void
-CQChartsKeyText::
+CQChartsTextKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot     = key_->plot();
@@ -2633,9 +2649,9 @@ draw(PaintDevice *device, const BBox &rect) const
 
 //------
 
-CQChartsKeyColorBox::
-CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
-                    const RangeValue &xv, const RangeValue &yv) :
+CQChartsColorBoxKeyItem::
+CQChartsColorBoxKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+                        const RangeValue &xv, const RangeValue &yv) :
  CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.isValid());
@@ -2645,9 +2661,9 @@ CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig, const Co
   setClickable(true);
 }
 
-CQChartsKeyColorBox::
-CQChartsKeyColorBox(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
-                    const RangeValue &xv, const RangeValue &yv) :
+CQChartsColorBoxKeyItem::
+CQChartsColorBoxKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+                        const RangeValue &xv, const RangeValue &yv) :
  CQChartsKeyItem(key, iv), plot_(key->plot()), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.isValid());
@@ -2658,14 +2674,14 @@ CQChartsKeyColorBox(PlotKey *key, const ColorInd &is, const ColorInd &ig, const 
 }
 
 QColor
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 interpStrokeColor(const ColorInd &ic) const
 {
   return plot()->interpColor(strokeColor(), ic);
 }
 
 CQChartsGeom::Size
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 size() const
 {
   auto *plot     = key_->plot();
@@ -2684,7 +2700,7 @@ size() const
 }
 
 bool
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 selectPress(const Point &w, SelMod selMod)
 {
   if (! value_.isValid())
@@ -2708,8 +2724,17 @@ selectPress(const Point &w, SelMod selMod)
   return true;
 }
 
+QVariant
+CQChartsColorBoxKeyItem::
+drawValue() const
+{
+  auto brush = fillBrush();
+
+  return QVariant(brush.color());
+}
+
 void
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot     = key_->plot();
@@ -2737,7 +2762,7 @@ draw(PaintDevice *device, const BBox &rect) const
 }
 
 QBrush
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 fillBrush() const
 {
   auto *plot = key_->plot();
@@ -2765,7 +2790,7 @@ fillBrush() const
 }
 
 QPen
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 strokePen() const
 {
   auto ic = calcColorInd();
@@ -2773,22 +2798,22 @@ strokePen() const
   return interpStrokeColor(ic);
 }
 
-CQChartsKeyColorBox::ColorInd
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::ColorInd
+CQChartsColorBoxKeyItem::
 calcColorInd() const
 {
   return plot()->calcColorInd(nullptr, this, is_, ig_, iv_);
 }
 
 double
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 xColorValue(bool relative) const
 {
   return (relative ? xv_.map() : xv_.v);
 }
 
 double
-CQChartsKeyColorBox::
+CQChartsColorBoxKeyItem::
 yColorValue(bool relative) const
 {
   return (relative ? yv_.map() : yv_.v);
@@ -2796,22 +2821,22 @@ yColorValue(bool relative) const
 
 //------
 
-CQChartsKeyLine::
-CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig) :
+CQChartsLineKeyItem::
+CQChartsLineKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig) :
  CQChartsKeyItem(plot->key(), is.n > 1 ? is : ig), is_(is), ig_(ig)
 {
   setClickable(true);
 }
 
-CQChartsKeyLine::
-CQChartsKeyLine(PlotKey *key, const ColorInd &is, const ColorInd &ig) :
+CQChartsLineKeyItem::
+CQChartsLineKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig) :
  CQChartsKeyItem(key, is.n > 1 ? is : ig), is_(is), ig_(ig)
 {
   setClickable(true);
 }
 
 CQChartsGeom::Size
-CQChartsKeyLine::
+CQChartsLineKeyItem::
 size() const
 {
   auto *plot     = key_->plot();
@@ -2831,7 +2856,7 @@ size() const
 }
 
 bool
-CQChartsKeyLine::
+CQChartsLineKeyItem::
 selectPress(const Point &w, SelMod selMod)
 {
   if (! value_.isValid())
@@ -2856,7 +2881,7 @@ selectPress(const Point &w, SelMod selMod)
 }
 
 void
-CQChartsKeyLine::
+CQChartsLineKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot     = key_->plot();

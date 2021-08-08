@@ -8,11 +8,14 @@
 #include <CQChartsColorRangeSlider.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsMapKey.h>
+#include <CQChartsKey.h>
+#include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQIconButton.h>
 #include <CQGroupBox.h>
+#include <CQTableWidget.h>
 #include <CQUtil.h>
 
 #include <QLabel>
@@ -176,6 +179,28 @@ addColorColumnWidgets(const QString &title)
 
   connect(colorControlGroupData.group, SIGNAL(showKey(bool)),
           this, SLOT(showColorKeySlot(bool)));
+}
+
+void
+CQChartsPlotCustomControls::
+addKeyList()
+{
+  assert(! keyList_);
+
+  // key frame
+  auto keyFrame = createGroupFrame("Key", "keyFrame");
+
+  keyGroup_ = keyFrame.groupBox;
+
+  keyGroup_->setCheckable(true);
+
+  connect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+
+  keyList_  = new CQChartsPlotCustomKey;
+
+  keyList_->setPlot(plot());
+
+  addFrameWidget(keyFrame, keyList_);
 }
 
 void
@@ -522,6 +547,15 @@ showColorKeySlot(bool)
   updateColorKeyVisible();
 }
 
+void
+CQChartsPlotCustomControls::
+showKeyListSlot(bool b)
+{
+  if (! plot_) return;
+
+  plot_->setControlsKey(b);
+}
+
 CQChartsBoolParameterEdit *
 CQChartsPlotCustomControls::
 createBoolEdit(const QString &name, bool choice)
@@ -623,6 +657,24 @@ updateWidgets()
 
   //---
 
+  if (keyList_) {
+    bool keyListVisible = plot_->isControlsKey();
+
+    disconnect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+
+    keyGroup_->setChecked(keyListVisible);
+
+    connect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+
+    keyList_->setPlot   (plot_);
+    keyList_->setVisible(keyListVisible);
+
+    if (keyListVisible)
+      keyList_->updateWidgets();
+  }
+
+  //--
+
   connectSlots(true);
 }
 
@@ -678,4 +730,195 @@ CQChartsPlotCustomControls::
 colorPaletteSlot()
 {
   plot()->setColorMapPalette(colorPaletteEdit_->paletteName());
+}
+
+//---
+
+CQChartsPlotCustomKey::
+CQChartsPlotCustomKey(CQChartsPlot *plot) :
+ plot_(plot)
+{
+  setObjectName("keyList");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  table_ = CQUtil::makeWidget<CQTableWidget>("table");
+
+  connect(table_, SIGNAL(boolClicked(int, int, bool)),
+          this, SLOT(boolClickSlot(int, int, bool)));
+
+  layout->addWidget(table_);
+}
+
+void
+CQChartsPlotCustomKey::
+updateWidgets()
+{
+  table_->clear();
+
+  if (! plot_) return;
+
+  //---
+
+  auto createHeaderItem = [&](int c, const QString &name) {
+    table_->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
+  };
+
+  //---
+
+  auto createColorTableItem = [&](const QColor &color) {
+    auto *item = new CQTableWidgetColorItem(table_, color);
+
+    item->setToolTip(color.name());
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  auto createStringTableItem = [&](const QString &str) {
+    auto *item = new QTableWidgetItem(str);
+
+    item->setToolTip(str);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  auto createBoolTableItem = [&](bool b) {
+    auto *item = new CQTableWidgetBoolItem(table_, b);
+
+    item->setToolTip(b ? "true" : "false");
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  //---
+
+  auto *key = plot_->key();
+  if (! key) return;
+
+  const auto &items = key->items();
+
+  itemData_ = RowColItemData();
+
+  int row = 0;
+
+  for (const auto &item : items)
+    addItems(item, row);
+
+  table_->setRowCount   (itemData_.rowItems.size());
+  table_->setColumnCount(itemData_.clickable ? 3 : 2);
+
+  int col = 0;
+
+  if (itemData_.clickable)
+    createHeaderItem(col++, "Select");
+
+  createHeaderItem(col++, "Name");
+  createHeaderItem(col++, "Value");
+
+  for (const auto &pr : itemData_.rowItems) {
+    int row1 = pr.first;
+
+    int col = 0;
+
+    CQTableWidgetBoolItem *selItem = nullptr;
+
+    if (itemData_.clickable) {
+      selItem = createBoolTableItem(false);
+
+      table_->setItem(row1, col++, selItem);
+    }
+
+    for (const auto &cr : pr.second.colItems) {
+      int         col1 = cr.first;
+      const auto &data = cr.second;
+
+      if (CQChartsVariant::isColor(data.value)) {
+        bool ok;
+        auto c = CQChartsVariant::toColor(data.value, ok);
+
+        table_->setItem(row1, col + col1, createColorTableItem(c.color()));
+      }
+      else
+        table_->setItem(row1, col + col1, createStringTableItem(data.value.toString()));
+
+      if (data.clickable && selItem)
+        selItem->setValue(data.item->isClicked());
+    }
+  }
+
+  setMinimumHeight(sizeHint().height());
+
+  table_->fixTableColumnWidths();
+}
+
+void
+CQChartsPlotCustomKey::
+addItems(const CQChartsKeyItem *item, int &row)
+{
+  auto *group = dynamic_cast<const CQChartsKeyItemGroup *>(item);
+
+  if (group) {
+    int row1 = row + item->row();
+
+    for (auto &item1 : group->items())
+      addItems(item1, row1);
+  }
+  else {
+    int row1 = row + item->row();
+
+    auto &rowData = itemData_.rowItems[row1];
+
+    int col1 = item->col();
+
+    auto &colData = rowData.colItems[col1];
+
+    colData.item      = ItemP(const_cast<CQChartsKeyItem *>(item));
+    colData.value     = item->drawValue();
+    colData.clickable = item->isClickable();
+
+    if (colData.clickable) {
+      rowData  .clickable = true;
+      itemData_.clickable = true;
+    }
+  }
+}
+
+void
+CQChartsPlotCustomKey::
+boolClickSlot(int row, int column, bool /*b*/)
+{
+  if (column == 0) {
+    for (const auto &pr : itemData_.rowItems) {
+      if (row != pr.first)
+        continue;
+
+      if (! pr.second.clickable)
+        return;
+
+      for (const auto &cr : pr.second.colItems) {
+        const auto &data = cr.second;
+
+        if (data.clickable && data.item) {
+          data.item->selectPress(CQChartsGeom::Point(0, 0), CQChartsKeyItem::SelMod::REPLACE);
+          break;
+        }
+      }
+
+      break;
+    }
+  }
+}
+
+QSize
+CQChartsPlotCustomKey::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  int nr = std::min(table_->rowCount() + 1, 6);
+
+  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
 }

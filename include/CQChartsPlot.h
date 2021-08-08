@@ -38,7 +38,7 @@ class CQChartsCompositePlot;
 class CQChartsAxis;
 class CQChartsPlotKey;
 class CQChartsKeyItem;
-class CQChartsKeyColorBox;
+class CQChartsColorBoxKeyItem;
 class CQChartsMapKey;
 class CQChartsColorMapKey;
 class CQChartsTitle;
@@ -265,8 +265,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(bool          fitClip        READ isFitClip      WRITE setFitClip       )
 
   // key
-  Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
-  Q_PROPERTY(bool colorKey   READ isColorKey   WRITE setColorKey  )
+  Q_PROPERTY(bool keyVisible  READ isKeyVisible  WRITE setKeyVisible )
+  Q_PROPERTY(bool controlsKey READ isControlsKey WRITE setControlsKey)
+  Q_PROPERTY(bool colorKey    READ isColorKey    WRITE setColorKey   )
 
   // color map key
   Q_PROPERTY(bool colorMapKey READ isColorMapKey WRITE setColorMapKey)
@@ -751,6 +752,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setKeyVisible(bool b);
 
   virtual bool isKeyVisibleAndNonEmpty() const;
+
+  bool isControlsKey() const { return controlsKey_; }
+  void setControlsKey(bool b);
 
   virtual bool isColorKey() const;
   virtual void setColorKey(bool b);
@@ -2809,7 +2813,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  ColorInd calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
+  ColorInd calcColorInd(const PlotObj *obj, const CQChartsColorBoxKeyItem *keyBox,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const;
 
   //---
@@ -3411,8 +3415,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   AxisSideDelta yAxisSideDelta_;
 
   // key
-  PlotKeyP keyObj_;             //!< key object
-  bool     colorKey_ { false }; //!< use color column for key
+  PlotKeyP keyObj_;                //!< key object
+  bool     controlsKey_ { false }; //!< show key in custom controls
+  bool     colorKey_    { false }; //!< use color column for key
 
   // color map key
   using ColorMapKeyP = std::unique_ptr<CQChartsColorMapKey>;

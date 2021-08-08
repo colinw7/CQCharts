@@ -4,7 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Pie spokes plot
+  ~/Desktop/pie_spokes.png
  + Optional draw key in custom controls for all plots
+ + Use ScrollArea for custom controls (all tabs)
  + Scalable object to allow fit multiple (scalable) objects in rect
    + Use in more places
  + Use default symbol set (name) for all plots (scatter)
