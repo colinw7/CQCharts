@@ -70,6 +70,10 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
+  CQChartsTextOptions textOptions() const;
+
+  //---
+
   virtual void textBoxObjInvalidate();
 
   //---

@@ -4078,26 +4078,28 @@ addKey()
 
 void
 CQChartsPlot::
-resetKeyItems()
+resetKeyItems(bool add)
 {
   CQPerfTrace trace("CQChartsPlot::resetKeyItems");
 
   if (isOverlay()) {
     // if first plot then add all chained plot items to this plot's key
     if (isFirstPlot())
-      processOverlayPlots([&](Plot *plot) { resetPlotKeyItems(plot); });
+      processOverlayPlots([&](Plot *plot) {
+        resetPlotKeyItems(plot, add);
+      });
   }
   else if (parentPlot()) {
-    parentPlot()->resetPlotKeyItems(this);
+    parentPlot()->resetPlotKeyItems(this, add);
   }
   else {
-    resetPlotKeyItems(this);
+    resetPlotKeyItems(this, add);
   }
 }
 
 void
 CQChartsPlot::
-resetPlotKeyItems(CQChartsPlot *plot)
+resetPlotKeyItems(CQChartsPlot *plot, bool add)
 {
   if (isOverlay()) {
     auto *key = firstPlot()->key();
@@ -4106,7 +4108,8 @@ resetPlotKeyItems(CQChartsPlot *plot)
     if (plot->isFirstPlot())
       key->clearItems();
 
-    plot->doAddKeyItems(key);
+    if (add)
+      plot->doAddKeyItems(key);
   }
   else {
     auto *key = plot->key();
@@ -4114,7 +4117,8 @@ resetPlotKeyItems(CQChartsPlot *plot)
 
     key->clearItems();
 
-    plot->doAddKeyItems(key);
+    if (add)
+      plot->doAddKeyItems(key);
   }
 }
 
@@ -6036,12 +6040,14 @@ initObjs()
 
   //---
 
+  resetKeyItems(/*add*/false);
+
   if (! createObjs())
     return false;
 
   //---
 
-  resetKeyItems();
+  resetKeyItems(/*add*/true);
 
   //---
 
@@ -15016,6 +15022,15 @@ setBrush(PaintDevice *device, const BrushData &brushData) const
 
 void
 CQChartsPlot::
+setPainterFont(PaintDevice *device, const Font &font) const
+{
+  view()->setPlotPainterFont(this, device, font);
+}
+
+//------
+
+void
+CQChartsPlot::
 updateObjPenBrushState(const Obj *obj, PenBrush &penBrush, DrawType drawType) const
 {
   updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
@@ -15216,6 +15231,9 @@ checkNumericColumns(const Columns &columns, const QString &name, bool required) 
   int iv = 0;
 
   for (const auto &column : columns) {
+    if (! column.isColumn()) // TODO: handle non-column column type
+      continue;
+
     auto type = columnValueType(column);
 
     if (type == ColumnType::NONE)
@@ -15251,6 +15269,9 @@ checkNumericColumn(const Column &column, const QString &name,
 
   if (! checkColumn(column, name, type, required))
     return false;
+
+  if (! column.isColumn()) // TODO: handle non-column column type
+    return true;
 
   if (type != ColumnType::REAL && type != ColumnType::INTEGER) {
     const_cast<Plot *>(this)->
@@ -15335,6 +15356,18 @@ columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
     columnTypeData.type     = ColumnType::NONE;
     columnTypeData.baseType = ColumnType::NONE;
     return false;
+  }
+
+  if (column.hasExpr()) {
+    columnTypeData.type     = ColumnType::REAL;
+    columnTypeData.baseType = ColumnType::REAL;
+    return true;
+  }
+
+  if (column.isRow()) {
+    columnTypeData.type     = ColumnType::INTEGER;
+    columnTypeData.baseType = ColumnType::INTEGER;
+    return true;
   }
 
   auto *columnDetails = this->columnDetails(column);

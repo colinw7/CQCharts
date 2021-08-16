@@ -24,11 +24,15 @@
 
 CQChartsPlotCustomControls::
 CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
- QFrame(nullptr), charts_(charts), plotType_(plotType)
+ QScrollArea(nullptr), charts_(charts), plotType_(plotType)
 {
   setObjectName("customControls");
 
-  layout_ = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  frame_  = CQUtil::makeWidget<QFrame>("frame");
+  layout_ = CQUtil::makeLayout<QVBoxLayout>(frame_, 2, 2);
+
+  setWidget(frame_);
+  setWidgetResizable(true);
 
   //---
 
@@ -919,6 +923,97 @@ sizeHint() const
   QFontMetrics fm(font());
 
   int nr = std::min(table_->rowCount() + 1, 6);
+
+  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
+}
+
+//------
+
+CQChartsPlotColumnChooser::
+CQChartsPlotColumnChooser(CQChartsPlot *plot) :
+ plot_(plot)
+{
+  setObjectName("columnChooser");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  columnList_ = CQUtil::makeWidget<CQTableWidget>("columnList");
+
+  connect(columnList_, SIGNAL(boolClicked(int, int, bool)),
+          this, SLOT(columnClickSlot(int, int, bool)));
+
+  layout->addWidget(columnList_);
+}
+
+void
+CQChartsPlotColumnChooser::
+updateWidgets()
+{
+  int nc = getColumns().count();
+
+  columnList_->clear();
+
+  columnList_->setColumnCount(2);
+  columnList_->setRowCount(nc);
+
+  auto createHeaderItem = [&](int c, const QString &name) {
+    columnList_->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
+  };
+
+  createHeaderItem(0, "Visible");
+  createHeaderItem(1, "Name");
+
+  auto createStringTableItem = [&](const QString &str) {
+    auto *item = new QTableWidgetItem(str);
+
+    item->setToolTip(str);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  auto createBoolTableItem = [&](bool b) {
+    auto *item = new CQTableWidgetBoolItem(columnList_, b);
+
+    item->setToolTip(b ? "true" : "false");
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  for (int ic = 0; ic < nc; ++ic) {
+    auto column = getColumns().getColumn(ic);
+
+    bool ok;
+    auto name = plot_->modelHHeaderTip(column, ok);
+
+    auto *visibleItem = createBoolTableItem(isColumnVisible(ic));
+    auto *nameItem    = createStringTableItem(name);
+
+    columnList_->setItem(ic, 0, visibleItem);
+    columnList_->setItem(ic, 1, nameItem);
+  }
+
+  setMinimumHeight(sizeHint().height());
+
+  columnList_->fixTableColumnWidths();
+}
+
+void
+CQChartsPlotColumnChooser::
+columnClickSlot(int row, int column, bool b)
+{
+  if (column == 0)
+    setColumnVisible(row, b);
+}
+
+QSize
+CQChartsPlotColumnChooser::
+sizeHint() const
+{
+  int nr = std::min(columnList_->rowCount() + 1, 6);
+
+  QFontMetrics fm(font());
 
   return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
 }

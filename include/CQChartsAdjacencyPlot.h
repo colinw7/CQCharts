@@ -491,7 +491,6 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   void createNameNodeObjs(PlotObjs &objs) const;
 
-
   //---
 
  protected:

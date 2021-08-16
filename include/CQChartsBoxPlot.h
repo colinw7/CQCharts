@@ -668,6 +668,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get visible value columns
+  const Columns &visibleValueColumns() const { return visibleValueColumns_; }
+
+  //---
+
   Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
@@ -834,6 +839,13 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   const QStringList &calculatedCustomColumns() const { return calculatedCustomColumns_; }
   void setCalculatedCustomColumns(const QStringList &s) { calculatedCustomColumns_ = s; }
 
+  //---
+
+  void resetValueColumnVisible();
+
+  bool isValueColumnVisible(int ic) const;
+  void setValueColumnVisible(int ic, bool visible);
+
  public slots:
   // set horizontal
   void setHorizontal(bool b);
@@ -904,9 +916,13 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  void updateVisibleValueColumns();
+
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
+  using ColumnVisible = std::map<int, bool>;
+
   // raw columns
   Columns valueColumns_; //!< value columns
   Column  nameColumn_;   //!< name column
@@ -920,6 +936,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Column upperMedianColumn_; //!< upper median column
   Column maxColumn_;         //!< max column
   Column outliersColumn_;    //!< outliers column
+
+  Columns       visibleValueColumns_; //!< calculated visible value columns
+  ColumnVisible valueColumnVisible_;  //!< visible value column list
 
   ColumnDataType defaultColumnDataType_ { ColumnDataType::RAW };
 
@@ -965,6 +984,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
 #include <CQChartsGroupPlotCustomControls.h>
 
+class CQChartsBoxPlotColumnChooser;
 class CQEnumCombo;
 
 class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
@@ -1002,8 +1022,12 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void errorBarSlot();
 
  private:
-  CQChartsBoxPlot*           plot_             { nullptr };
-  CQEnumCombo*               columnsTypeCombo_ { nullptr };
+  CQChartsBoxPlot* plot_ { nullptr };
+
+  CQEnumCombo* columnsTypeCombo_ { nullptr };
+
+  CQChartsBoxPlotColumnChooser* chooser_ { nullptr };
+
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
   CQChartsEnumParameterEdit* pointsTypeCombo_  { nullptr };
   CQChartsBoolParameterEdit* normalizedCheck_  { nullptr };
@@ -1011,6 +1035,20 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   CQChartsBoolParameterEdit* violinCheck_      { nullptr };
   CQChartsBoolParameterEdit* errorBarCheck_    { nullptr };
   CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
+};
+
+//---
+
+class CQChartsBoxPlotColumnChooser : public CQChartsPlotColumnChooser {
+  Q_OBJECT
+
+ public:
+  CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *plot=nullptr);
+
+  const CQChartsColumns &getColumns() const override;
+
+  bool isColumnVisible(int ic) const override;
+  void setColumnVisible(int ic, bool visible) override;
 };
 
 #endif

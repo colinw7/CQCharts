@@ -550,13 +550,13 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
 
   CQChartsPixelPaintDevice device(painter);
 
-  CQChartsTextOptions options;
+  CQChartsTextOptions textOptions;
 
-  options.angle         = CQChartsAngle();
-  options.align         = Qt::AlignLeft;
-  options.contrast      = data.isContrast();
-  options.contrastAlpha = data.contrastAlpha();
-  options.clipLength    = plot->lengthPixelWidth(data.clipLength());
+  textOptions.angle         = CQChartsAngle();
+  textOptions.align         = Qt::AlignLeft;
+  textOptions.contrast      = data.isContrast();
+  textOptions.contrastAlpha = data.contrastAlpha();
+  textOptions.clipLength    = plot->lengthPixelWidth(data.clipLength());
 
-  CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, options);
+  CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, textOptions);
 }

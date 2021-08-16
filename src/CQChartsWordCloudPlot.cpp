@@ -519,10 +519,10 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsTextOptions textOptions;
+  auto textOptions = plot_->textOptions();
 
-  textOptions.contrast         = plot_->isTextContrast();
-  textOptions.contrastAlpha    = plot_->textContrastAlpha();
+  textOptions.angle            = CQChartsAngle();
+  textOptions.align            = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.scaled           = true;
   textOptions.minScaleFontSize = 4;
   textOptions.maxScaleFontSize = 1000;

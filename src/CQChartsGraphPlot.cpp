@@ -2247,7 +2247,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2297,26 +2297,25 @@ drawFg(PaintDevice *device) const
   auto pt = plot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot_->textOptions(device);
 
-  options.angle         = Angle();
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
-  options.align         = Qt::AlignLeft;
-  options.clipLength    = clipLength;
-  options.clipElide     = plot_->textClipElide();
+  textOptions.angle     = Angle();
+  textOptions.align     = Qt::AlignLeft;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
       shapeType() == ShapeType::DOUBLE_CIRCLE) {
-    options.align = Qt::AlignHCenter | Qt::AlignVCenter;
+    textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-    CQChartsDrawUtil::drawTextInBox(device, rect(), str, options);
+    CQChartsDrawUtil::drawTextInBox(device, rect(), str, textOptions);
   }
   else {
-    options.align = Qt::AlignLeft;
+    textOptions.align = Qt::AlignLeft;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }
 }
 
@@ -2709,7 +2708,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2743,16 +2742,15 @@ drawFg(PaintDevice *device) const
   auto pt = plot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot_->textOptions(device);
 
-  options.angle         = Angle();
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
-  options.align         = Qt::AlignLeft;
-  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-  options.clipElide     = plot_->textClipElide();
+  textOptions.angle     = Angle();
+  textOptions.align     = Qt::AlignLeft;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 }
 
 void

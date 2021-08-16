@@ -1255,7 +1255,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
   auto clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
   auto clipElide  = plot_->textClipElide();
 
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   QStringList strs1;
 

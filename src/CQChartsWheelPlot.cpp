@@ -931,7 +931,7 @@ execDrawForeground(PaintDevice *device) const
 
   //---
 
-  view()->setPlotPainterFont(this, device, gridFont());
+  setPainterFont(device, gridFont());
 
   // draw month grid
   static const char *monthNames[] = {
@@ -1034,7 +1034,7 @@ execDrawOverlay(PaintDevice *device) const
   //---
 
   // draw mouse object details in center
-  view()->setPlotPainterFont(this, device, textFont());
+  setPainterFont(device, textFont());
 
   auto tc = interpColor(textColor(), ColorInd());
 

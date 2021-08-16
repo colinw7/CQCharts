@@ -1264,7 +1264,7 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
     //---
 
     // set font
-    view()->setPlotPainterFont(this, device, textFont());
+    setPainterFont(device, textFont());
 
     //---
 
@@ -1336,16 +1336,12 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
     auto ta1 = Angle(c >= 0 ? ta.value() : ta.value() - 180);
 
     // only contrast support (custom align and angle)
-    CQChartsTextOptions options;
+    auto textOptions = this->textOptions();
 
-    options.angle         = ta1;
-    options.align         = align;
-    options.contrast      = isTextContrast();
-    options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = lengthPixelWidth(textClipLength());
-    options.clipElide     = textClipElide();
+    textOptions.angle = ta1;
+    textOptions.align = align;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, name, textOptions, /*centered*/true);
 
     //---
 

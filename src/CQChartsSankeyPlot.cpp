@@ -4358,7 +4358,7 @@ drawFgRect(PaintDevice *device, const BBox &rect) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   //---
 
@@ -4541,22 +4541,19 @@ drawFgText(PaintDevice *device, const BBox &rect) const
   }
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot()->textOptions();
 
-  options.angle         = Angle();
-  options.contrast      = plot()->isTextContrast();
-  options.contrastAlpha = plot()->textContrastAlpha();
-  options.align         = Qt::AlignLeft;
-  options.clipLength    = clipLength;
-  options.clipElide     = plot()->textClipElide();
+  textOptions.angle      = Angle();
+  textOptions.align      = Qt::AlignLeft;
+  textOptions.clipLength = clipLength;
 
   if (plot_->isAdjustText()) {
-    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, pt, str, options);
+    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, pt, str, textOptions);
 
-    plot_->addDrawText(str, pt, options, c, plot_->textAlpha(), rect.getCenter(), bbox);
+    plot_->addDrawText(str, pt, textOptions, c, plot_->textAlpha(), rect.getCenter(), bbox);
   }
   else {
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }
 }
 
@@ -5042,7 +5039,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot()->view()->setPlotPainterFont(plot(), device, plot()->textFont());
+  plot()->setPainterFont(device, plot()->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -5071,16 +5068,12 @@ drawFg(PaintDevice *device) const
   auto pt = plot()->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot()->textOptions();
 
-  options.angle         = Angle();
-  options.contrast      = plot()->isTextContrast();
-  options.contrastAlpha = plot()->textContrastAlpha();
-  options.align         = Qt::AlignLeft;
-  options.clipLength    = plot()->lengthPixelWidth(plot()->textClipLength());
-  options.clipElide     = plot()->textClipElide();
+  textOptions.angle = Angle();
+  textOptions.align = Qt::AlignLeft;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 }
 #endif
 

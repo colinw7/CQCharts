@@ -265,7 +265,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
-  void resetPlotKeyItems(Plot *plot) override;
+  void resetPlotKeyItems(Plot *plot, bool add=true) override;
 
   //---
 

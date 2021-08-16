@@ -18,11 +18,13 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQTableWidget.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
 #include <QApplication>
 #include <QMenu>
+#include <QVBoxLayout>
 
 CQChartsParallelPlotType::
 CQChartsParallelPlotType()
@@ -642,6 +644,8 @@ updateAxes()
   }
 }
 
+//------
+
 void
 CQChartsParallelPlot::
 updateVisibleYColumns()
@@ -657,6 +661,8 @@ updateVisibleYColumns()
     visibleYColumns_.addColumn(yColumns().getColumn(ic));
   }
 }
+
+//------
 
 bool
 CQChartsParallelPlot::
@@ -1074,7 +1080,7 @@ drawFgAxes(PaintDevice *device) const
 
     axis->setAxesLabelTextVisible(axisLabelPos() == AxisLabelPos::AXIS);
 
-    view()->setPlotPainterFont(this, device, masterAxis_->axesLabelTextFont());
+    setPainterFont(device, masterAxis_->axesLabelTextFont());
 
     QFontMetricsF fm(device->font());
 
@@ -1178,20 +1184,16 @@ drawFgAxes(PaintDevice *device) const
           tp = Point(p.x - tw - tm, p.y - (ta - td)/2);
       }
 
-      CQChartsTextOptions options;
+      auto textOptions = masterAxis_->axesLabelTextOptions();
 
-      options.angle         = Angle();
-      options.align         = Qt::AlignLeft;
-      options.contrast      = masterAxis_->isAxesLabelTextContrast();
-      options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
-      options.clipLength    = lengthPixelWidth(masterAxis_->axesLabelTextClipLength());
-      options.clipElide     = masterAxis_->axesLabelTextClipElide();
+      textOptions.angle = Angle();
+      textOptions.align = Qt::AlignLeft;
 
-      if (options.clipLength <= 0)
-        options.clipLength = lengthPixelWidth(axisLabelLen);
+      if (textOptions.clipLength <= 0)
+        textOptions.clipLength = lengthPixelWidth(axisLabelLen);
 
       CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,
-                                        options, /*centered*/false);
+                                        textOptions, /*centered*/false);
     }
 
     //---
@@ -1811,6 +1813,43 @@ draw(PaintDevice *device) const
 
 //------
 
+CQChartsParallelPlotColumnChooser::
+CQChartsParallelPlotColumnChooser(CQChartsParallelPlot *plot) :
+ CQChartsPlotColumnChooser(plot)
+{
+}
+
+const CQChartsColumns &
+CQChartsParallelPlotColumnChooser::
+getColumns() const
+{
+  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
+  assert(plot);
+
+  return plot->yColumns();
+}
+
+bool
+CQChartsParallelPlotColumnChooser::
+isColumnVisible(int ic) const
+{
+  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
+
+  return (plot ? plot->isYColumnVisible(ic) : false);
+}
+
+void
+CQChartsParallelPlotColumnChooser::
+setColumnVisible(int ic, bool visible)
+{
+  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
+
+  if (plot)
+    plot->setYColumnVisible(ic, visible);
+}
+
+//------
+
 CQChartsParallelPlotCustomControls::
 CQChartsParallelPlotCustomControls(CQCharts *charts) :
  CQChartsPlotCustomControls(charts, "parallel")
@@ -1832,13 +1871,18 @@ void
 CQChartsParallelPlotCustomControls::
 addWidgets()
 {
-  // columns group
+  // columns frame
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // x and y columns
   addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
+
+  // column chooser
+  chooser_ = new CQChartsParallelPlotColumnChooser;
+
+  addFrameWidget(columnsFrame, chooser_);
 
   //---
 
@@ -1879,6 +1923,8 @@ setPlot(CQChartsPlot *plot)
 
   plot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
 
+  chooser_->setPlot(plot_);
+
   CQChartsPlotCustomControls::setPlot(plot);
 
   if (plot_)
@@ -1894,6 +1940,8 @@ updateWidgets()
   //---
 
   orientationCombo_->setCurrentValue((int) plot_->orientation());
+
+  chooser_->updateWidgets();
 
   //---
 

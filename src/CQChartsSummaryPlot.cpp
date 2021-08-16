@@ -769,7 +769,7 @@ execDrawBackground(PaintDevice *device) const
     //---
 
     if (isXLabels()) {
-      view()->setPlotPainterFont(this, device, xLabelTextFont());
+      setPainterFont(device, xLabelTextFont());
 
       auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
 
@@ -789,20 +789,11 @@ execDrawBackground(PaintDevice *device) const
 
       Point p1(bbox.getXMid(), -thh/2.0);
 
-      CQChartsTextOptions textOptions;
+      auto textOptions = xLabelTextOptions(device);
 
-      textOptions.angle         = xLabelTextAngle();
-    //textOptions.angle         = Angle(0.0);
-      textOptions.align         = xLabelTextAlign();
-      textOptions.contrast      = isXLabelTextContrast();
-      textOptions.contrastAlpha = xLabelTextContrastAlpha();
-      textOptions.formatted     = isXLabelTextFormatted();
-      textOptions.scaled        = isXLabelTextScaled();
-      textOptions.html          = isXLabelTextHtml();
-      textOptions.clipLength    = lengthPixelWidth(Length::plot(1.0));
-    //textOptions.clipLength    = lengthPixelWidth(xLabelTextClipLength());
-      textOptions.clipElide     = xLabelTextClipElide();
-      textOptions.clipped       = false;
+    //textOptions.angle      = Angle(0.0);
+      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
+      textOptions.clipped    = false;
 
       textOptions = adjustTextOptions(textOptions);
 
@@ -814,7 +805,7 @@ execDrawBackground(PaintDevice *device) const
     //---
 
     if (isYLabels()) {
-      view()->setPlotPainterFont(this, device, yLabelTextFont());
+      setPainterFont(device, yLabelTextFont());
 
       auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
 
@@ -834,20 +825,11 @@ execDrawBackground(PaintDevice *device) const
 
       Point p2(-thw/2.0, bbox.getYMid());
 
-      CQChartsTextOptions textOptions;
+      auto textOptions = yLabelTextOptions(device);
 
-      textOptions.angle         = yLabelTextAngle();
-    //textOptions.angle         = Angle(90.0);
-      textOptions.align         = yLabelTextAlign();
-      textOptions.contrast      = isYLabelTextContrast();
-      textOptions.contrastAlpha = yLabelTextContrastAlpha();
-      textOptions.formatted     = isYLabelTextFormatted();
-      textOptions.scaled        = isYLabelTextScaled();
-      textOptions.html          = isYLabelTextHtml();
-      textOptions.clipLength    = lengthPixelWidth(Length::plot(1.0));
-    //textOptions.clipLength    = lengthPixelWidth(yLabelTextClipLength());
-      textOptions.clipElide     = yLabelTextClipElide();
-      textOptions.clipped       = false;
+    //textOptions.angle      = Angle(90.0);
+      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
+      textOptions.clipped    = false;
 
       textOptions = adjustTextOptions(textOptions);
 
@@ -2009,91 +1991,37 @@ sizeHint() const
 
 CQChartsSummaryPlotColumnChooser::
 CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot) :
- plot_(plot)
+ CQChartsPlotColumnChooser(plot)
 {
-  setObjectName("columnChooser");
+}
 
-  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+const CQChartsColumns &
+CQChartsSummaryPlotColumnChooser::
+getColumns() const
+{
+  auto *plot = dynamic_cast<CQChartsSummaryPlot *>(this->plot());
+  assert(plot);
 
-  columnList_ = CQUtil::makeWidget<CQTableWidget>("columnList");
+  return plot->columns();
+}
 
-  connect(columnList_, SIGNAL(boolClicked(int, int, bool)),
-          this, SLOT(columnClickSlot(int, int, bool)));
+bool
+CQChartsSummaryPlotColumnChooser::
+isColumnVisible(int ic) const
+{
+  auto *plot = dynamic_cast<CQChartsSummaryPlot *>(this->plot());
 
-  layout->addWidget(columnList_);
+  return (plot ? plot->isColumnVisible(ic) : false);
 }
 
 void
 CQChartsSummaryPlotColumnChooser::
-updateWidgets()
+setColumnVisible(int ic, bool visible)
 {
-  int nc = plot_->columns().count();
+  auto *plot = dynamic_cast<CQChartsSummaryPlot *>(this->plot());
 
-  columnList_->clear();
-
-  columnList_->setColumnCount(2);
-  columnList_->setRowCount(nc);
-
-  auto createHeaderItem = [&](int c, const QString &name) {
-    columnList_->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
-  };
-
-  createHeaderItem(0, "Visible");
-  createHeaderItem(1, "Name");
-
-  auto createStringTableItem = [&](const QString &str) {
-    auto *item = new QTableWidgetItem(str);
-
-    item->setToolTip(str);
-    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-    return item;
-  };
-
-  auto createBoolTableItem = [&](bool b) {
-    auto *item = new CQTableWidgetBoolItem(columnList_, b);
-
-    item->setToolTip(b ? "true" : "false");
-    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-    return item;
-  };
-
-  for (int ic = 0; ic < nc; ++ic) {
-    auto column = plot_->columns().getColumn(ic);
-
-    bool ok;
-    auto name = plot_->modelHHeaderTip(column, ok);
-
-    auto *visibleItem = createBoolTableItem(plot_->isColumnVisible(ic));
-    auto *nameItem    = createStringTableItem(name);
-
-    columnList_->setItem(ic, 0, visibleItem);
-    columnList_->setItem(ic, 1, nameItem);
-  }
-
-  setMinimumHeight(sizeHint().height());
-
-  columnList_->fixTableColumnWidths();
-}
-
-void
-CQChartsSummaryPlotColumnChooser::
-columnClickSlot(int row, int column, bool b)
-{
-  if (column == 0)
-    plot_->setColumnVisible(row, b);
-}
-
-QSize
-CQChartsSummaryPlotColumnChooser::
-sizeHint() const
-{
-  int nr = std::min(columnList_->rowCount() + 1, 6);
-
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
+  if (plot)
+    plot->setColumnVisible(ic, visible);
 }
 
 //------

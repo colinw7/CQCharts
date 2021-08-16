@@ -1,8 +1,9 @@
 #ifndef CQChartsTextOptions_H
 #define CQChartsTextOptions_H
 
-#include <CQChartsAngle.h>
+#include <CQChartsFont.h>
 #include <CQChartsAlpha.h>
+#include <CQChartsAngle.h>
 #include <QString>
 
 /*!
@@ -26,10 +27,14 @@ struct CQChartsTextOptions {
     ALL    = (ANGLE | CONTRAST | ALIGN | FORMATTED | SCALED | HTML | CLIP_LENGTH | CLIP_ELIDE)
   };
 
+  QColor            color; //!< color
+  CQChartsFont      font;  //!< font
+  CQChartsAlpha     alpha; //!< alpha
+
   CQChartsAngle     angle;                                 //!< angle
   bool              contrast         { false };            //!< contrast
   CQChartsAlpha     contrastAlpha    { 0.5 };              //!< contrast alpha
-  Qt::Alignment     align            { Qt::AlignHCenter|
+  Qt::Alignment     align            { Qt::AlignHCenter |
                                        Qt::AlignVCenter }; //!< align
   bool              formatted        { false };            //!< formatted
   QString           formatSeps;                            //!< format separators

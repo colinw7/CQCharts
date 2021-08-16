@@ -3,7 +3,7 @@
 
 #include <CQChartsColor.h>
 
-#include <QFrame>
+#include <QScrollArea>
 #include <QPointer>
 
 class CQCharts;
@@ -30,7 +30,7 @@ class QVBoxLayout;
 
 class CQChartsPlotCustomKey;
 
-class CQChartsPlotCustomControls : public QFrame {
+class CQChartsPlotCustomControls : public QScrollArea {
   Q_OBJECT
 
   Q_PROPERTY(bool numericOnly READ isNumericOnly WRITE setNumericOnly)
@@ -150,7 +150,9 @@ class CQChartsPlotCustomControls : public QFrame {
   using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
 
-  CQCharts*    charts_ { nullptr };
+  CQCharts* charts_ { nullptr };
+
+  QFrame*      frame_  { nullptr };
   QVBoxLayout* layout_ { nullptr };
 
   QString       plotType_;
@@ -231,6 +233,36 @@ class CQChartsPlotCustomKey : public QFrame {
   CQChartsPlot*  plot_  { nullptr };
   CQTableWidget* table_ { nullptr };
   RowColItemData itemData_;
+};
+
+//---
+
+#include <CQChartsColumn.h>
+
+class CQChartsPlotColumnChooser : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsPlotColumnChooser(CQChartsPlot *plot=nullptr);
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+
+  void updateWidgets();
+
+  virtual const CQChartsColumns &getColumns() const = 0;
+
+  virtual bool isColumnVisible(int ic) const = 0;
+  virtual void setColumnVisible(int ic, bool visible) = 0;
+
+  QSize sizeHint() const override;
+
+ private slots:
+  void columnClickSlot(int row, int column, bool b);
+
+ private:
+  CQChartsPlot*  plot_       { nullptr };
+  CQTableWidget* columnList_ { nullptr };
 };
 
 #endif

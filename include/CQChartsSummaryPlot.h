@@ -468,8 +468,6 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
 //---
 
-class CQTableWidget;
-
 class CQChartsSummaryPlotGroupStats : public QFrame {
   Q_OBJECT
 
@@ -490,25 +488,16 @@ class CQChartsSummaryPlotGroupStats : public QFrame {
 
 //---
 
-class CQChartsSummaryPlotColumnChooser : public QFrame {
+class CQChartsSummaryPlotColumnChooser : public CQChartsPlotColumnChooser {
   Q_OBJECT
 
  public:
   CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot=nullptr);
 
-  CQChartsSummaryPlot *plot() const { return plot_; }
-  void setPlot(CQChartsSummaryPlot *plot) { plot_ = plot; }
+  const CQChartsColumns &getColumns() const override;
 
-  void updateWidgets();
-
-  QSize sizeHint() const override;
-
- private slots:
-  void columnClickSlot(int row, int column, bool b);
-
- private:
-  CQChartsSummaryPlot* plot_       { nullptr };
-  CQTableWidget*       columnList_ { nullptr };
+  bool isColumnVisible(int ic) const override;
+  void setColumnVisible(int ic, bool visible) override;
 };
 
 #endif

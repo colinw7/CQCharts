@@ -1558,8 +1558,8 @@ addKeyItems(PlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
-    auto *colorItem = new CQChartsBarKeyColor(this, name, is, ig, iv);
-    auto *textItem  = new CQChartsBarKeyText (this, name, iv);
+    auto *colorItem = new CQChartsBarColorKeyItem(this, name, is, ig, iv);
+    auto *textItem  = new CQChartsBarTextKeyItem (this, name, iv);
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
@@ -2475,8 +2475,8 @@ valueSet() const
 
 //------
 
-CQChartsBarKeyColor::
-CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
+CQChartsBarColorKeyItem::
+CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
                     const ColorInd &ig, const ColorInd &iv) :
  CQChartsColorBoxKeyItem(plot, is, ig, iv), plot_(plot), name_(name)
 {
@@ -2485,7 +2485,7 @@ CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
 
 #if 0
 bool
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 selectPress(const Point &, CQChartsSelMod selMod)
 {
   if (selMod == CQChartsSelMod::ADD) {
@@ -2505,7 +2505,7 @@ selectPress(const Point &, CQChartsSelMod selMod)
 
 #if 0
 void
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 doSelect(SelMod)
 {
   CQChartsPlot::PlotObjs objs;
@@ -2522,7 +2522,7 @@ doSelect(SelMod)
 #endif
 
 QBrush
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 fillBrush() const
 {
   // calc bar color
@@ -2587,7 +2587,7 @@ fillBrush() const
 }
 
 QPen
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 strokePen() const
 {
   auto colorInd = calcColorInd();
@@ -2605,7 +2605,7 @@ strokePen() const
 }
 
 bool
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 tipText(const Point &, QString &tip) const
 {
   int    count  = -1;
@@ -2700,7 +2700,7 @@ tipText(const Point &, QString &tip) const
 
 #if 0
 bool
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 isSetHidden() const
 {
   if      (is_.n > 1)
@@ -2714,7 +2714,7 @@ isSetHidden() const
 }
 
 void
-CQChartsBarKeyColor::
+CQChartsBarColorKeyItem::
 setSetHidden(bool b)
 {
   if      (is_.n > 1)
@@ -2728,14 +2728,14 @@ setSetHidden(bool b)
 
 //------
 
-CQChartsBarKeyText::
-CQChartsBarKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
+CQChartsBarTextKeyItem::
+CQChartsBarTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic) :
  CQChartsTextKeyItem(plot, text, ic)
 {
 }
 
 QColor
-CQChartsBarKeyText::
+CQChartsBarTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
@@ -2747,7 +2747,7 @@ interpTextColor(const ColorInd &ind) const
 
 #if 0
 bool
-CQChartsBarKeyText::
+CQChartsBarTextKeyItem::
 isSetHidden() const
 {
   return plot_->CQChartsPlot::isSetHidden(ic_.i);

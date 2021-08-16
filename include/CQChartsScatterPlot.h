@@ -615,7 +615,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setFixedSymbol(const Symbol &s) override { setSymbol(s); }
   const Symbol &fixedSymbol() const override { return symbol(); }
 
-
   //---
 
   void addNameValue(int groupInd, const QString &name, const Point &p, int row,

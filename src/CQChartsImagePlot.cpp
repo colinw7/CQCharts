@@ -549,7 +549,7 @@ void
 CQChartsImagePlot::
 drawXLabels(PaintDevice *device) const
 {
-  view()->setPlotPainterFont(this, device, xLabelTextFont());
+  setPainterFont(device, xLabelTextFont());
 
   //---
 
@@ -563,18 +563,9 @@ drawXLabels(PaintDevice *device) const
 
   //---
 
-  CQChartsTextOptions textOptions;
+  auto textOptions = xLabelTextOptions(device);
 
-  textOptions.angle         = xLabelTextAngle();
-  textOptions.align         = xLabelTextAlign();
-  textOptions.contrast      = isXLabelTextContrast();
-  textOptions.contrastAlpha = xLabelTextContrastAlpha();
-  textOptions.formatted     = isXLabelTextFormatted();
-  textOptions.scaled        = isXLabelTextScaled();
-  textOptions.html          = isXLabelTextHtml();
-  textOptions.clipLength    = lengthPixelWidth(xLabelTextClipLength());
-  textOptions.clipElide     = xLabelTextClipElide();
-  textOptions.clipped       = false;
+  textOptions.clipped = false;
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -642,7 +633,7 @@ void
 CQChartsImagePlot::
 drawYLabels(PaintDevice *device) const
 {
-  view()->setPlotPainterFont(this, device, yLabelTextFont());
+  setPainterFont(device, yLabelTextFont());
 
   //---
 
@@ -656,18 +647,9 @@ drawYLabels(PaintDevice *device) const
 
   //---
 
-  CQChartsTextOptions textOptions;
+  auto textOptions = yLabelTextOptions(device);
 
-  textOptions.angle         = yLabelTextAngle();
-  textOptions.align         = yLabelTextAlign();
-  textOptions.contrast      = isYLabelTextContrast();
-  textOptions.contrastAlpha = yLabelTextContrastAlpha();
-  textOptions.formatted     = isYLabelTextFormatted();
-  textOptions.scaled        = isYLabelTextScaled();
-  textOptions.html          = isYLabelTextHtml();
-  textOptions.clipLength    = lengthPixelWidth(yLabelTextClipLength());
-  textOptions.clipElide     = yLabelTextClipElide();
-  textOptions.clipped       = false;
+  textOptions.clipped = false;
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -939,7 +921,7 @@ draw(PaintDevice *device) const
       //---
 
       // set font
-      plot_->view()->setPlotPainterFont(plot_, device, plot_->cellLabelTextFont());
+      plot_->setPainterFont(device, plot_->cellLabelTextFont());
 
       //---
 
@@ -961,16 +943,7 @@ draw(PaintDevice *device) const
 
       auto valueStr = CQChartsUtil::formatReal(value());
 
-      CQChartsTextOptions textOptions;
-
-      textOptions.align         = plot_->cellLabelTextAlign();
-      textOptions.contrast      = plot_->isCellLabelTextContrast();
-      textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
-      textOptions.formatted     = plot_->isCellLabelTextFormatted();
-      textOptions.scaled        = plot_->isCellLabelTextScaled();
-      textOptions.html          = plot_->isCellLabelTextHtml();
-      textOptions.clipLength    = plot_->lengthPixelWidth(plot_->cellLabelTextClipLength());
-      textOptions.clipElide     = plot_->cellLabelTextClipElide();
+      auto textOptions = plot_->cellLabelTextOptions(device);
 
       textOptions = plot_->adjustTextOptions(textOptions);
 

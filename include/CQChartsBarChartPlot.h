@@ -326,7 +326,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  * \brief Bar Chart Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsBarKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsBarColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
@@ -335,8 +335,8 @@ class CQChartsBarKeyColor : public CQChartsColorBoxKeyItem {
   using Plot = CQChartsBarChartPlot;
 
  public:
-  CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
-                      const ColorInd &ig, const ColorInd &iv);
+  CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
+                          const ColorInd &ig, const ColorInd &iv);
 
 #if 0
   //! handle select press
@@ -363,14 +363,14 @@ class CQChartsBarKeyColor : public CQChartsColorBoxKeyItem {
  * \brief Bar Chart Key Text
  * \ingroup Charts
  */
-class CQChartsBarKeyText : public CQChartsTextKeyItem {
+class CQChartsBarTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsBarChartPlot;
 
  public:
-  CQChartsBarKeyText(Plot *plot, const QString &text, const ColorInd &ic);
+  CQChartsBarTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 

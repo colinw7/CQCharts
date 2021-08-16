@@ -410,6 +410,12 @@ void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
 
 }
 
+namespace CQChartsDrawUtil {
+  using PaintDevice = CQChartsPaintDevice;
+
+  double lengthPixelWidth(PaintDevice *device, const Length &len);
+}
+
 //---
 
 namespace CQChartsDrawUtil {

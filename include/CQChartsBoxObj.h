@@ -22,8 +22,6 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   CQCHARTS_BOX_DATA_PROPERTIES
 
  public:
-  using ColorInd = CQChartsUtil::ColorInd;
-
   enum class ShapeType {
     NONE,
     TRIANGLE,
@@ -38,6 +36,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   using PropertyModel = CQPropertyViewModel;
   using Alpha         = CQChartsAlpha;
   using FillPattern   = CQChartsFillPattern;
+  using Length        = CQChartsLength;
+  using ColorInd      = CQChartsUtil::ColorInd;
 
  public:
   CQChartsBoxObj(View *view);
@@ -79,6 +79,14 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   void draw(PaintDevice *device, const Polygon &poly) const;
 
   void draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const;
+  void draw(PaintDevice *device, const Polygon &poly, const PenBrush &penBrush) const;
+
+  static void drawBox(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush,
+                      const Length &cornerSize, const Sides &borderSides);
+  static void drawPolygon(PaintDevice *device, const Polygon &poly, const PenBrush &penBrush,
+                          const Length &cornerSize);
+
+  void calcPenBrush(PenBrush &penBrush) const;
 
   //---
 

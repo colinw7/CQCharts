@@ -3,7 +3,6 @@
 
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGeom.h>
 
@@ -47,27 +46,6 @@ class CQChartsPiePlot;
 
 //---
 
-/*!
- * \brief Pie Plot Text object
- * \ingroup Charts
- */
-class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
- public:
-  using PiePlot = CQChartsPiePlot;
-
- public:
-  CQChartsPieTextObj(const PiePlot *plot);
-
-  const PiePlot *plot() const { return plot_; }
-
-  CQChartsTextOptions textOptions() const;
-
- private:
-  const PiePlot* plot_ { nullptr };
-};
-
-//---
-
 class CQChartsPieGroupObj;
 
 /*!
@@ -103,6 +81,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
   //---
 
   QString typeName() const override { return "pie"; }
+
+  //---
+
+  const PiePlot *plot() const { return plot_; }
 
   //---
 
@@ -240,6 +222,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;
+
+  //---
+
+  bool isHidden() const;
 
  protected:
   const PiePlot* plot_       { nullptr };  //!< parent plot
@@ -409,7 +395,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
  * \brief Pie Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsPieKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsPieColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -418,7 +404,7 @@ class CQChartsPieKeyColor : public CQChartsColorBoxKeyItem {
   using SelMod  = CQChartsSelMod;
 
  public:
-  CQChartsPieKeyColor(PiePlot *plot, PlotObj *obj);
+  CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj);
 
   Plot *plot() const { return plot_; }
 
@@ -441,7 +427,7 @@ class CQChartsPieKeyColor : public CQChartsColorBoxKeyItem {
  * \brief Pie Plot Key Text
  * \ingroup Charts
  */
-class CQChartsPieKeyText : public CQChartsTextKeyItem {
+class CQChartsPieTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
@@ -449,7 +435,7 @@ class CQChartsPieKeyText : public CQChartsTextKeyItem {
   using PlotObj = CQChartsPlotObj;
 
  public:
-  CQChartsPieKeyText(PiePlot *plot, PlotObj *obj);
+  CQChartsPieTextKeyItem(PiePlot *plot, PlotObj *obj);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
@@ -462,15 +448,32 @@ class CQChartsPieKeyText : public CQChartsTextKeyItem {
 //---
 
 CQCHARTS_NAMED_SHAPE_DATA(Group, group)
+CQCHARTS_NAMED_TEXT_DATA (Group, group)
+CQCHARTS_NAMED_BOX_DATA  (TextLabel, textLabel)
+CQCHARTS_NAMED_TEXT_DATA (TextLabel, textLabel)
+CQCHARTS_NAMED_TEXT_DATA (RadiusLabel, radiusLabel)
 
 /*!
  * \brief Pie Chart Plot
  * \ingroup Charts
+ *
+ * derives from:
+ *   CQChartsObjShapeData           : segment shapes
+ *   CQChartsObjGridLineData        : grid lines
+ *   CQChartsObjGroupShapeData      : group shapes
+ *   CQChartsObjGroupTextData       : group text
+ *   CQChartsObjTextLabelBoxData    : text label box
+ *   CQChartsObjTextLabelTextData   : text label text
+ *   CQChartsObjRadiusLabelTextData : radius label text
  */
 class CQChartsPiePlot : public CQChartsGroupPlot,
- public CQChartsObjShapeData     <CQChartsPiePlot>,
- public CQChartsObjGridLineData  <CQChartsPiePlot>,
- public CQChartsObjGroupShapeData<CQChartsPiePlot> {
+ public CQChartsObjShapeData          <CQChartsPiePlot>,
+ public CQChartsObjGridLineData       <CQChartsPiePlot>,
+ public CQChartsObjGroupShapeData     <CQChartsPiePlot>,
+ public CQChartsObjGroupTextData      <CQChartsPiePlot>,
+ public CQChartsObjTextLabelBoxData   <CQChartsPiePlot>,
+ public CQChartsObjTextLabelTextData  <CQChartsPiePlot>,
+ public CQChartsObjRadiusLabelTextData<CQChartsPiePlot> {
   Q_OBJECT
 
   // columns
@@ -481,12 +484,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // options
   // . separated, donut, treemap, summary, count
-  Q_PROPERTY(DrawType drawType  READ drawType    WRITE setDrawType )
-  Q_PROPERTY(bool     separated READ isSeparated WRITE setSeparated)
-  Q_PROPERTY(bool     donut     READ isDonut     WRITE setDonut    )
-  Q_PROPERTY(bool     summary   READ isSummary   WRITE setSummary  )
-  Q_PROPERTY(bool     dumbbell  READ isDumbbell  WRITE setDumbbell )
-  Q_PROPERTY(bool     count     READ isCount     WRITE setCount    )
+  Q_PROPERTY(DrawType drawType   READ drawType     WRITE setDrawType  )
+  Q_PROPERTY(bool     separated  READ isSeparated  WRITE setSeparated )
+  Q_PROPERTY(bool     donut      READ isDonut      WRITE setDonut     )
+  Q_PROPERTY(bool     summary    READ isSummary    WRITE setSummary   )
+  Q_PROPERTY(bool     dumbbell   READ isDumbbell   WRITE setDumbbell  )
+  Q_PROPERTY(bool     count      READ isCount      WRITE setCount     )
+  Q_PROPERTY(bool     donutTitle READ isDonutTitle WRITE setDonutTitle)
   // . min/max value
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
@@ -501,7 +505,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
 
   // text
-  Q_PROPERTY(bool textVisible READ isTextVisible WRITE setTextVisible)
+//Q_PROPERTY(bool textVisible READ isTextVisible WRITE setTextVisible)
   Q_PROPERTY(bool rotatedText READ isRotatedText WRITE setRotatedText)
 
   // explode
@@ -509,11 +513,26 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool         explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double       explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
 
+  // group shape and text
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Group, group)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Group, group)
+
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  // group shape
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Group, group)
+  // text label box
+  CQCHARTS_NAMED_BOX_DATA_PROPERTIES(TextLabel, textLabel)
+
+  // text label text
+  Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(TextLabel, textLabel)
+
+  // radius label text
+  Q_PROPERTY(bool radiusLabels READ isRadiusLabels WRITE setRadiusLabels)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(RadiusLabel, radiusLabel)
 
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid, grid)
@@ -534,11 +553,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
     EDGE
   };
 
-  using PieTextObj  = CQChartsPieTextObj;
   using PieGroupObj = CQChartsPieGroupObj;
   using PieObj      = CQChartsPieObj;
   using Color       = CQChartsColor;
   using ColorInd    = CQChartsUtil::ColorInd;
+  using Angle       = CQChartsAngle;
 
  public:
   CQChartsPiePlot(View *view, const ModelP &model);
@@ -598,6 +617,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool isCount() const { return count_; }
 
+  bool isDonutTitle() const { return donutTitle_; }
+
   //---
 
   double minValue() const { return minValue_; }
@@ -634,6 +655,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  // separated groups
   bool isSeparated() const { return separated_; }
   void setSeparated(bool b);
 
@@ -641,16 +663,17 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  bool isTextVisible() const;
-  void setTextVisible(bool b);
+  // text label visible
+//bool isTextVisible() const;
+//void setTextVisible(bool b);
 
-  //---
-
+  // rotate text label
   bool isRotatedText() const { return rotatedText_; }
   void setRotatedText(bool b);
 
   //---
 
+  // explode
   const ExplodeStyle &explodeStyle() const { return explodeData_.style; }
   void setExplodeStyle(const ExplodeStyle &v) { explodeData_.style = v; }
 
@@ -662,12 +685,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  double insideOffset() const { return insideData_.offset; }
-  double insideRadius() const { return insideData_.radius; }
+  // text labels
+  bool isTextLabels() const { return textLabels_; }
+
+  // radius labels
+  bool isRadiusLabels() const { return radiusLabels_; }
 
   //---
 
-  PieTextObj *textBox() const { return textBox_; }
+  double insideOffset() const { return insideData_.offset; }
+  double insideRadius() const { return insideData_.radius; }
 
   //---
 
@@ -684,6 +711,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   void adjustObjAngles() const;
 
   //---
+
+  bool isGroupHidden(int groupInd) const;
 
   bool isIndexHidden(const ModelIndex &ind) const;
 
@@ -729,8 +758,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  virtual PieTextObj *createTextObj() const;
-
   virtual PieGroupObj *createGroupObj(const BBox &bbox, const ColorInd &groupInd,
                                       const QString &name, const ColorInd &ig) const;
 
@@ -738,12 +765,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
                                const ColorInd &ig) const;
 
  public slots:
-  void setDonut   (bool b);
-  void setTreeMap (bool b);
-  void setWaffle  (bool b);
-  void setSummary (bool b);
-  void setDumbbell(bool b);
-  void setCount   (bool b);
+  void setDonut     (bool b);
+  void setTreeMap   (bool b);
+  void setWaffle    (bool b);
+  void setSummary   (bool b);
+  void setDumbbell  (bool b);
+  void setCount     (bool b);
+  void setDonutTitle(bool b);
+
+  void setTextLabels  (bool b);
+  void setRadiusLabels(bool b);
 
  private:
   void addRow(const ModelVisitor::VisitData &data, PlotObjs &objs) const;
@@ -796,11 +827,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Column  radiusColumn_;   //!< radius value column
   Column  keyLabelColumn_; //!< key label column
 
+  // draw
   DrawType drawType_    { DrawType::PIE }; //!< draw type
   bool     donut_       { false };         //!< show donut
   bool     summary_     { false };         //!< show summary
   bool     dumbbell_    { false };         //!< show dumbbell
   bool     count_       { false };         //!< show value counts
+  bool     donutTitle_  { false };         //!< show title in donut center
   double   minValue_    { -1.0 };          //!< min value
   double   maxValue_    { -1.0 };          //!< max value
   double   innerRadius_ { 0.3 };           //!< relative inner donut radius
@@ -813,13 +846,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool     separated_   { true };          //!< are grouped pie objects drawn separately
   bool     rotatedText_ { false };         //!< is label rotated
 
-  ExplodeData     explodeData_;                 //!< explode data
-  InsideData      insideData_;                  //!< inside data
-  PieTextObj*     textBox_         { nullptr }; //!< text box
-  Point           center_;                      //!< center point
-  GroupDatas      groupDatas_;                  //!< data per group
-  GroupObjs       groupObjs_;                   //!< group objects
-  CQChartsRValues values_;                      //!< all values
+  ExplodeData     explodeData_; //!< explode data
+  InsideData      insideData_;  //!< inside data
+
+  bool textLabels_   { true }; //!< show labels
+  bool radiusLabels_ { true }; //!< show radius labels
+
+  Point           center_;     //!< center point
+  GroupDatas      groupDatas_; //!< data per group
+  GroupObjs       groupObjs_;  //!< group objects
+  CQChartsRValues values_;     //!< all values
 };
 
 //---

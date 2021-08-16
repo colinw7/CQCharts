@@ -1426,16 +1426,12 @@ drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) con
 
   Point pt(p.x + xts_ - tw - 2, p.y + pys_ - fm.descent()); // align right
 
-  CQChartsTextOptions options;
+  auto textOptions = this->textOptions(device);
 
-  options.angle         = Angle();
-  options.align         = Qt::AlignLeft;
-  options.contrast      = isTextContrast();
-  options.contrastAlpha = textContrastAlpha();
-  options.clipLength    = lengthPixelWidth(textClipLength());
-  options.clipElide     = textClipElide();
+  textOptions.angle = Angle();
+  textOptions.align = Qt::AlignLeft;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str, options, /*centered*/false);
+  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str, textOptions, /*centered*/false);
 }
 
 void
@@ -1475,17 +1471,12 @@ drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) con
 {
   Point p1(p.x + pxs_/2.0, p.y - 2);
 
-  CQChartsTextOptions options;
+  auto textOptions = this->textOptions(device);
 
-  options.angle         = Angle(90.0);
-  options.align         = Qt::AlignHCenter | Qt::AlignBottom;
-  options.contrast      = isTextContrast();
-  options.contrastAlpha = textContrastAlpha();
-  options.clipLength    = lengthPixelWidth(textClipLength());
-  options.clipElide     = textClipElide();
+  textOptions.angle = Angle(90.0);
+  textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), str,
-                                    options, /*centered*/ true);
+  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), str, textOptions, /*centered*/ true);
 }
 
 void

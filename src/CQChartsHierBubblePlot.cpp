@@ -1516,7 +1516,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   if (plot_->isTextScaled()) {
     // calc text size
@@ -1557,12 +1557,10 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)
-  CQChartsTextOptions textOptions;
+  auto textOptions = plot_->textOptions();
 
-  textOptions.contrast      = plot_->isTextContrast ();
-  textOptions.contrastAlpha = plot_->textContrastAlpha();
-  textOptions.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-  textOptions.clipElide     = plot_->textClipElide();
+  textOptions.angle = CQChartsAngle();
+  textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

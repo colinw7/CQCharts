@@ -694,7 +694,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   //---
 
@@ -714,16 +714,15 @@ draw(PaintDevice *device) const
     p = Point(p1.x + cs + tm, p1.y + dy); // align left
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot_->textOptions(device);
 
-  options.angle         = Angle();
-  options.align         = Qt::AlignLeft;
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-  options.clipElide     = plot_->textClipElide();
+  textOptions.angle     = Angle();
+  textOptions.align     = Qt::AlignLeft;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, textOptions);
 }
 
 //------

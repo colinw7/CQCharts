@@ -95,6 +95,30 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
     addStyleProp(path, "textAlign", "align", desc1 + " alignment");
 }
 
+//---
+
+CQChartsTextOptions
+CQChartsTextBoxObj::
+textOptions() const
+{
+  CQChartsTextOptions textOptions;
+
+  textOptions.angle         = textAngle();
+  textOptions.align         = textAlign();
+  textOptions.contrast      = isTextContrast();
+  textOptions.contrastAlpha = textContrastAlpha();
+  textOptions.formatted     = isTextFormatted();
+  textOptions.scaled        = isTextScaled();
+  textOptions.html          = isTextHtml();
+  textOptions.clipLength    = lengthPixelWidth(textClipLength());
+  textOptions.clipElide     = textClipElide();
+//textOptions.clipped       = isTextClipped();
+
+  return textOptions;
+}
+
+//---
+
 void
 CQChartsTextBoxObj::
 textBoxObjInvalidate()

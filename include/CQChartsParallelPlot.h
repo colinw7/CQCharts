@@ -346,9 +346,11 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using AxisP         = std::unique_ptr<CQChartsAxis>;
   using ColumnVisible = std::map<int, bool>;
 
-  Column  xColumn_;         //!< x value column
-  Columns yColumns_;        //!< y value columns
-  Columns visibleYColumns_; //!< visible y columns
+  Column  xColumn_;  //!< x value column
+  Columns yColumns_; //!< y value columns
+
+  Columns       visibleYColumns_; //!< calculated visible y columns
+  ColumnVisible yColumnVisible_;  //!< visible y column list
 
   Qt::Orientation orientation_     { Qt::Vertical }; //!< axis orientation
   bool            linesSelectable_ { false };        //!< are lines selectable
@@ -366,14 +368,14 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   RangeType rangeType_ { RangeType::NONE }; //!< current range type
 
-  ColumnVisible yColumnVisible_;
-
   AxisLabelPos axisLabelPos_ { AxisLabelPos::TOP };
 };
 
 //---
 
 #include <CQChartsPlotCustomControls.h>
+
+class CQChartsParallelPlotColumnChooser;
 
 class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
@@ -401,8 +403,25 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   void orientationSlot();
 
  private:
-  CQChartsParallelPlot*      plot_             { nullptr };
+  CQChartsParallelPlot* plot_ { nullptr };
+
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
+
+  CQChartsParallelPlotColumnChooser* chooser_ { nullptr };
+};
+
+//---
+
+class CQChartsParallelPlotColumnChooser : public CQChartsPlotColumnChooser {
+  Q_OBJECT
+
+ public:
+  CQChartsParallelPlotColumnChooser(CQChartsParallelPlot *plot=nullptr);
+
+  const CQChartsColumns &getColumns() const override;
+
+  bool isColumnVisible(int ic) const override;
+  void setColumnVisible(int ic, bool visible) override;
 };
 
 #endif

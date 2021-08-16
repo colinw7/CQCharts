@@ -1412,14 +1412,14 @@ currentPlotSlot()
 // add key items for specified child plot
 void
 CQChartsCompositePlot::
-resetPlotKeyItems(Plot *plot)
+resetPlotKeyItems(Plot *plot, bool add)
 {
   if (compositeType_ == CompositeType::TABBED) {
     // key for current plot
     auto *currentPlot = this->currentPlot();
     if (plot != currentPlot) return;
 
-    CQChartsPlot::resetPlotKeyItems(currentPlot);
+    CQChartsPlot::resetPlotKeyItems(currentPlot, add);
   }
   else {
     // shared key (add only for first visible (current) plot)
@@ -1435,7 +1435,8 @@ resetPlotKeyItems(Plot *plot)
       if (! plot->isVisible())
         continue;
 
-      plot->doAddKeyItems(key);
+      if (add)
+        plot->doAddKeyItems(key);
     }
   }
 }

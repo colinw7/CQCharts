@@ -886,14 +886,9 @@ addPointObjects() const
             }
           }
 
-          CQChartsTextOptions textOptions;
+          auto textOptions = dataLabel()->textOptions();
 
-          textOptions.angle         = dataLabel()->textAngle();
-          textOptions.align         = Qt::AlignHCenter | Qt::AlignBottom;
-          textOptions.contrast      = dataLabel()->isTextContrast();
-          textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
-          textOptions.clipLength    = lengthPixelWidth(dataLabel()->textClipLength());
-          textOptions.clipElide     = dataLabel()->textClipElide();
+          textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
           auto *textObj = createTextObj(p, p, pointName);
 

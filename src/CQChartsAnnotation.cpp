@@ -3295,18 +3295,9 @@ drawInRect(PaintDevice *device, const BBox &rect)
   //---
 
   // set text options
-  CQChartsTextOptions textOptions;
+  auto textOptions = this->textOptions();
 
-  textOptions.angle         = textAngle();
-  textOptions.align         = textAlign();
-  textOptions.contrast      = isTextContrast();
-  textOptions.contrastAlpha = textContrastAlpha();
-  textOptions.formatted     = isTextFormatted();
-  textOptions.scaled        = isTextScaled();
-  textOptions.html          = isTextHtml();
-  textOptions.clipLength    = lengthPixelWidth(textClipLength());
-  textOptions.clipElide     = textClipElide();
-  textOptions.clipped       = false;
+  textOptions.clipped = false;
 
   adjustTextOptions(textOptions);
 
@@ -7896,18 +7887,10 @@ draw(PaintDevice *device)
   //---
 
   // set text options for text
-  CQChartsTextOptions textOptions;
+  auto textOptions = this->textOptions();
 
-  textOptions.angle         = textAngle();
-  textOptions.align         = Qt::AlignLeft;
-  textOptions.contrast      = isTextContrast();
-  textOptions.contrastAlpha = textContrastAlpha();
-  textOptions.formatted     = isTextFormatted();
-  textOptions.scaled        = isTextScaled();
-  textOptions.html          = isTextHtml();
-  textOptions.clipLength    = lengthPixelWidth(textClipLength());
-  textOptions.clipElide     = textClipElide();
-  textOptions.clipped       = false;
+  textOptions.align   = Qt::AlignLeft;
+  textOptions.clipped = false;
 
   adjustTextOptions(textOptions);
 

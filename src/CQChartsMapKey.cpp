@@ -401,11 +401,10 @@ drawContiguous(PaintDevice *device)
   auto drawTextLabel = [&](const Point &p, const QString &label) {
     auto p1 = device->pixelToWindow(p);
 
-    CQChartsTextOptions textOptions;
+    auto textOptions = this->textOptions();
 
-    textOptions.align         = Qt::AlignLeft;
-    textOptions.contrast      = isTextContrast();
-    textOptions.contrastAlpha = textContrastAlpha();
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
   };
@@ -515,11 +514,10 @@ drawDiscreet(PaintDevice *device)
   auto drawTextLabel = [&](const Point &p, const QString &label) {
     auto p1 = device->pixelToWindow(p);
 
-    CQChartsTextOptions textOptions;
+    auto textOptions = this->textOptions();
 
-    textOptions.align         = Qt::AlignLeft;
-    textOptions.contrast      = isTextContrast();
-    textOptions.contrastAlpha = textContrastAlpha();
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
   };
@@ -749,10 +747,10 @@ drawParts(PaintDevice *device)
 
   //---
 
-  CQChartsTextOptions textOptions;
+  auto textOptions = this->textOptions();
 
-  textOptions.contrast      = isTextContrast();
-  textOptions.contrastAlpha = textContrastAlpha();
+  textOptions.angle = Angle();
+  textOptions.align = Qt::AlignRight | Qt::AlignVCenter;
 
   drawText(device, textOptions, drawData_.usePenBrush);
 }
@@ -1209,11 +1207,10 @@ draw(PaintDevice *device, const DrawData &drawData)
 
     auto p1 = device->pixelToWindow(p);
 
-    CQChartsTextOptions textOptions;
+    auto textOptions = this->textOptions();
 
-    textOptions.align         = Qt::AlignLeft;
-    textOptions.contrast      = isTextContrast();
-    textOptions.contrastAlpha = textContrastAlpha();
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
   };

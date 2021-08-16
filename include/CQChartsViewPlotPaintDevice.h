@@ -105,6 +105,10 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
   void setRenderHints(QPainter::RenderHints hints, bool on) override;
 
+  //---
+
+  void setPainterFont(const Font &font) override;
+
  private:
   void updateBackground();
 

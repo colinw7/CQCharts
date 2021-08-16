@@ -1622,7 +1622,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->headerTextFont());
+  plot_->setPainterFont(device, plot_->headerTextFont());
 
   //---
 
@@ -1645,18 +1645,9 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   // draw label
   if (visible) {
-    CQChartsTextOptions textOptions;
+    auto textOptions = plot_->headerTextOptions(device);
 
-    textOptions.angle         = plot_->headerTextAngle();
-    textOptions.contrast      = plot_->isHeaderTextContrast();
-    textOptions.contrastAlpha = plot_->headerTextContrastAlpha();
-    textOptions.align         = plot_->headerTextAlign();
-    textOptions.formatted     = plot_->isHeaderTextFormatted();
-    textOptions.scaled        = plot_->isHeaderTextScaled();
-    textOptions.html          = plot_->isHeaderTextHtml();
-    textOptions.clipLength    = plot_->lengthPixelWidth(plot_->headerTextClipLength());
-    textOptions.clipElide     = plot_->headerTextClipElide();
-    textOptions.clipped       = plot_->isTitleTextClipped();
+    textOptions.clipped = plot_->isTitleTextClipped();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1952,7 +1943,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   //---
 
@@ -1968,19 +1959,10 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   // draw label
   if (visible) {
-    CQChartsTextOptions textOptions;
+    auto textOptions = plot_->textOptions();
 
-    textOptions.angle         = plot_->textAngle();
-    textOptions.contrast      = plot_->isTextContrast();
-    textOptions.contrastAlpha = plot_->textContrastAlpha();
-    textOptions.align         = plot_->textAlign();
-    textOptions.formatted     = plot_->isTextFormatted();
-    textOptions.scaled        = plot_->isTextScaled();
-    textOptions.html          = plot_->isTextHtml();
-    textOptions.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-    textOptions.clipElide     = plot_->textClipElide();
-    textOptions.clipped       = plot_->isTextClipped();
-    textOptions.formatSeps    = plot_->calcSeparator();
+    textOptions.clipped    = plot_->isTextClipped();
+    textOptions.formatSeps = plot_->calcSeparator();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

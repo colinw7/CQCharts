@@ -532,25 +532,19 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // set text options
-    CQChartsTextOptions textOptions;
+    auto textOptions = this->textOptions();
 
-    textOptions.angle         = CQChartsAngle();
-    textOptions.align         = textAlign();
-    textOptions.contrast      = isTextContrast();
-    textOptions.contrastAlpha = textContrastAlpha();
-    textOptions.formatted     = true;
-    textOptions.scaled        = false;
-    textOptions.html          = isTextHtml();
-    textOptions.clipLength    = lengthPixelWidth(textClipLength());
-    textOptions.clipElide     = textClipElide();
-    textOptions.clipped       = false;
+    textOptions.angle     = CQChartsAngle();
+    textOptions.formatted = true;
+    textOptions.scaled    = false;
+    textOptions.clipped   = false;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
     //---
 
     // set font
-    view()->setPlotPainterFont(plot(), device, textFont());
+    plot()->setPainterFont(device, textFont());
 
     //---
 
@@ -578,25 +572,19 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsTextOptions textOptions;
+    auto textOptions = subTitle_->textOptions();
 
-    textOptions.angle         = CQChartsAngle();
-    textOptions.align         = subTitle_->textAlign();
-    textOptions.contrast      = subTitle_->isTextContrast();
-    textOptions.contrastAlpha = subTitle_->textContrastAlpha();
-    textOptions.formatted     = true;
-    textOptions.scaled        = false;
-    textOptions.html          = subTitle_->isTextHtml();
-    textOptions.clipLength    = lengthPixelWidth(subTitle_->textClipLength());
-    textOptions.clipElide     = subTitle_->textClipElide();
-    textOptions.clipped       = false;
+    textOptions.angle     = CQChartsAngle();
+    textOptions.formatted = true;
+    textOptions.scaled    = false;
+    textOptions.clipped   = false;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
     //---
 
     // set font
-    view()->setPlotPainterFont(plot(), device, subTitle_->textFont());
+    plot()->setPainterFont(device, subTitle_->textFont());
 
     //---
 

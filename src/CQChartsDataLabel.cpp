@@ -118,7 +118,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
   device->save();
 
-  plot()->view()->setPlotPainterFont(plot(), device, font);
+  plot()->setPainterFont(device, font);
 
   //---
 
@@ -272,16 +272,12 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
         auto p1 = plot()->pixelToWindow(Point(px, py));
 
-        TextOptions options;
+        auto textOptions = this->textOptions();
 
-        options.angle         = Angle();
-        options.align         = Qt::AlignLeft;
-        options.contrast      = isTextContrast();
-        options.contrastAlpha = textContrastAlpha();
-        options.clipLength    = lengthPixelWidth(textClipLength());
-        options.clipElide     = textClipElide();
+        textOptions.angle = Angle();
+        textOptions.align = Qt::AlignLeft;
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, textOptions);
       }
     }
   }
@@ -343,14 +339,14 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
     Margin border(xlm, ytm, xrm, ybm);
 
-    TextOptions options;
+    TextOptions textOptions;
 
-    options.angle = textAngle();
-    options.align = align;
+    textOptions.angle = textAngle();
+    textOptions.align = align;
 
     auto pt = device->windowToPixel(Point(px, py));
 
-    CQChartsRotatedText::calcBBoxData(pt.x, pt.y, ystr, device->font(), options, border,
+    CQChartsRotatedText::calcBBoxData(pt.x, pt.y, ystr, device->font(), textOptions, border,
                                       pbbox, ppoints, /*alignBBox*/ true);
 
     // draw polygon
@@ -367,19 +363,14 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
     if (ystr.length()) {
       auto p1 = plot()->pixelToWindow(Point(px, py));
 
-      TextOptions options;
+      auto textOptions = this->textOptions();
 
-      options.angle         = textAngle();
-      options.align         = align;
-      options.contrast      = isTextContrast();
-      options.contrastAlpha = textContrastAlpha();
-      options.clipLength    = lengthPixelWidth(textClipLength());
-      options.clipElide     = textClipElide();
+      textOptions.align = align;
 
-//    CQChartsRotatedText::draw(device, plot()->pixelToWindow(p1), ystr, options,
+//    CQChartsRotatedText::draw(device, plot()->pixelToWindow(p1), ystr, textOptions,
 //                              /*alignBBox*/ true);
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options, /*centered*/true);
+      CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, textOptions, /*centered*/true);
     }
   }
 
@@ -588,12 +579,12 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 
     Margin border(xlm, ytm, xrm, ybm);
 
-    TextOptions options;
+    TextOptions textOptions;
 
-    options.angle = textAngle();
-    options.align = align;
+    textOptions.angle = textAngle();
+    textOptions.align = align;
 
-    CQChartsRotatedText::calcBBoxData(px, py, ystr, font, options, border,
+    CQChartsRotatedText::calcBBoxData(px, py, ystr, font, textOptions, border,
                                       pbbox1, ppoints, /*alignBBox*/ true);
 
     wbbox = plot()->pixelToWindow(pbbox1);

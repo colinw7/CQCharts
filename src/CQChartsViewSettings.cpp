@@ -966,9 +966,14 @@ addWidgets()
 
     objectName[0] = objectName[0].toLower();
 
-    auto *frame = CQUtil::makeWidget<QFrame>(objectName);
+    auto *area = CQUtil::makeWidget<QScrollArea>(objectName);
 
-    tab_->addTab(frame, name);
+    auto *frame = CQUtil::makeWidget<QFrame>(area, "frame");
+
+    area->setWidget(frame);
+    area->setWidgetResizable(true);
+
+    tab_->addTab(area, name);
 
     return frame;
   };
@@ -1792,7 +1797,7 @@ initThemeFrame(QFrame *themeFrame)
   //----
 
   // create palettes splitter and add canvas and control
-  auto *palettesSplitter = CQUtil::makeWidget<QSplitter>("splitter");
+  auto *palettesSplitter = CQUtil::makeWidget<CQTabSplit>("splitter");
 
   palettesSplitter->setOrientation(Qt::Vertical);
 
@@ -1801,8 +1806,8 @@ initThemeFrame(QFrame *themeFrame)
   themeWidgets_.palettesPlot    = new CQColorsEditCanvas(this, theme->palette());
   themeWidgets_.palettesControl = new CQColorsEditControl(themeWidgets_.palettesPlot);
 
-  palettesSplitter->addWidget(themeWidgets_.palettesPlot);
-  palettesSplitter->addWidget(themeWidgets_.palettesControl);
+  palettesSplitter->addWidget(themeWidgets_.palettesPlot   , "Plot"   );
+  palettesSplitter->addWidget(themeWidgets_.palettesControl, "Control");
 
   connect(themeWidgets_.palettesControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 
@@ -1811,7 +1816,7 @@ initThemeFrame(QFrame *themeFrame)
   //----
 
   // create interface splitter and add canvas and control
-  auto *interfaceSplitter = CQUtil::makeWidget<QSplitter>("splitter");
+  auto *interfaceSplitter = CQUtil::makeWidget<CQTabSplit>("splitter");
 
   interfaceSplitter->setOrientation(Qt::Vertical);
 
@@ -1821,8 +1826,8 @@ initThemeFrame(QFrame *themeFrame)
   themeWidgets_.interfacePlot->setGray(true);
   themeWidgets_.interfaceControl = new CQColorsEditControl(themeWidgets_.interfacePlot);
 
-  interfaceSplitter->addWidget(themeWidgets_.interfacePlot);
-  interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
+  interfaceSplitter->addWidget(themeWidgets_.interfacePlot   , "Plot");
+  interfaceSplitter->addWidget(themeWidgets_.interfaceControl, "Control");
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 

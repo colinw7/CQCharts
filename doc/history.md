@@ -1324,3 +1324,8 @@
  + add column visibility and grouped values controls in summary plot
 # 8/8/2021
  + add key support to custom controls
+# 8/15/2021
+ + add radial labels for pie plot
+ + allow title to be displayed in center of pie plot
+ + use text shape crtp instead of text object and refactor rotated text shape apis
+ + use text options API to populate from data instead of duplicted code

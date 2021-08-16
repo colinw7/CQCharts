@@ -1956,7 +1956,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
   //---
 
-  view()->setPlotPainterFont(plot, device, axesTickLabelTextFont());
+  plot->setPainterFont(device, axesTickLabelTextFont());
 
   auto angle      = axesTickLabelTextAngle();
   auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
@@ -2495,18 +2495,14 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 
   //---
 
-  auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
-
-  TextOptions options;
-
   // html not supported (axis code controls string)
-  options.contrast      = isAxesTickLabelTextContrast();
-  options.contrastAlpha = axesTickLabelTextContrastAlpha();
-  options.formatted     = isAxesTickLabelTextFormatted();
-  options.clipLength    = clipLength;
-  options.clipElide     = axesTickLabelTextClipElide();
+  auto textOptions = axesTickLabelTextOptions(device);
 
-  textPlacer_.draw(device, options, plot->showBoxes());
+  textOptions.angle = Angle();
+  textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
+  textOptions.html  = false;
+
+  textPlacer_.draw(device, textOptions, plot->showBoxes());
 }
 
 void
@@ -2538,7 +2534,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   device->setPen(tpenBrush.pen);
 
-  view()->setPlotPainterFont(plot, device, axesLabelTextFont());
+  plot->setPainterFont(device, axesLabelTextFont());
 
   //---
 
@@ -2616,27 +2612,25 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       // angle, align not supported
       // formatted not supported (axis code controls string)
       // html supported only for user label or annotation axis
-      TextOptions options;
+      auto textOptions = axesLabelTextOptions(device);
 
-      options.angle         = Angle();
-      options.align         = Qt::AlignLeft;
-      options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesLabelTextContrastAlpha();
-      options.html          = html;
-      options.clipLength    = clipLength;
-      options.clipElide     = clipElide;
+      textOptions.angle      = Angle();
+      textOptions.align      = Qt::AlignLeft;
+      textOptions.html       = html;
+      textOptions.clipLength = clipLength;
+      textOptions.clipElide  = clipElide;
 
-      if (options.html) {
-        options.align = Qt::AlignCenter;
+      if (textOptions.html) {
+        textOptions.align = Qt::AlignCenter;
 
         auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMax() + (ta + td)/2.0 + tgap));
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(pt);
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/false);
       }
 
       if (! plot_->isInvertY()) {
@@ -2659,27 +2653,25 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       // angle, align not supported
       // formatted not supported (axis code controls string)
       // html supported only for user label or annotation axis
-      TextOptions options;
+      auto textOptions = axesLabelTextOptions(device);
 
-      options.angle         = Angle();
-      options.align         = Qt::AlignLeft;
-      options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesLabelTextContrastAlpha();
-      options.html          = html;
-      options.clipLength    = clipLength;
-      options.clipElide     = clipElide;
+      textOptions.angle      = Angle();
+      textOptions.align      = Qt::AlignLeft;
+      textOptions.html       = html;
+      textOptions.clipLength = clipLength;
+      textOptions.clipElide  = clipElide;
 
-      if (options.html) {
-        options.align = Qt::AlignCenter;
+      if (textOptions.html) {
+        textOptions.align = Qt::AlignCenter;
 
         auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMin() - (ta + td)/2.0 - tgap));
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(pt);
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/false);
       }
 
       if (! plot_->isInvertY()) {
@@ -2717,28 +2709,26 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     //double tx = lbbox_.getXMin() - tgap - td;
       double tx = lbbox_.getXMin() - tgap;
 
-      TextOptions options;
+      auto textOptions = axesLabelTextOptions(device);
 
-      options.angle         = Angle(90.0);
-      options.align         = Qt::AlignLeft | Qt::AlignBottom;
-      options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesLabelTextContrastAlpha();
-      options.html          = html;
-      options.clipLength    = clipLength;
-      options.clipElide     = clipElide;
+      textOptions.angle      = Angle(90.0);
+      textOptions.align      = Qt::AlignLeft | Qt::AlignBottom;
+      textOptions.html       = html;
+      textOptions.clipLength = clipLength;
+      textOptions.clipElide  = clipElide;
 
-      if (options.html) {
-        options.align = Qt::AlignCenter;
+      if (textOptions.html) {
+        textOptions.align = Qt::AlignCenter;
 
         auto p1 = plot->pixelToWindow(Point(lbbox_.getXMin() - tgap - (ta + td)/2.0,
                                             (a2.y + a1.y)/2));
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(Point(tx, aym));
 
-        CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
+        CQChartsRotatedText::draw(device, p1, text, textOptions, /*alignBBox*/false);
       }
 
       if (! plot_->isInvertX()) {
@@ -2766,28 +2756,26 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       double tx = lbbox_.getXMax() + tgap + ta + td;
 #endif
 
-      TextOptions options;
+      auto textOptions = axesLabelTextOptions(device);
 
-      options.angle         = Angle(90.0);
-      options.align         = Qt::AlignLeft | Qt::AlignBottom;
-      options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesLabelTextContrastAlpha();
-      options.html          = html;
-      options.clipLength    = clipLength;
-      options.clipElide     = clipElide;
+      textOptions.angle      = Angle(90.0);
+      textOptions.align      = Qt::AlignLeft | Qt::AlignBottom;
+      textOptions.html       = html;
+      textOptions.clipLength = clipLength;
+      textOptions.clipElide  = clipElide;
 
-      if (options.html) {
-        options.align = Qt::AlignCenter;
+      if (textOptions.html) {
+        textOptions.align = Qt::AlignCenter;
 
         auto p1 = plot->pixelToWindow(Point(lbbox_.getXMax() + tgap + (ta + td)/2.0,
                                             (a2.y + a1.y)/2));
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(Point(tx, aym));
 
-        CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
+        CQChartsRotatedText::draw(device, p1, text, textOptions, /*alignBBox*/false);
       }
 
       if (! plot_->isInvertX()) {

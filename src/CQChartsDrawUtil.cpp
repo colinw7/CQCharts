@@ -163,13 +163,16 @@ void
 drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
                         const CQChartsSides &sides)
 {
+  // draw rounded rect if corners
   if (xsize > 0 || ysize > 0) {
+    // TODO: support sides with corners
     QPainterPath path;
 
     path.addRoundedRect(bbox.qrect(), xsize, ysize);
 
     device->drawPath(path);
   }
+  // draw rect if no corners
   else {
     QPainterPath path;
 
@@ -1889,6 +1892,18 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   painter->restore();
 
   delete ipainter;
+}
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+double
+lengthPixelWidth(PaintDevice *device, const Length &len)
+{
+  return device->lengthPixelWidth(len);
 }
 
 }

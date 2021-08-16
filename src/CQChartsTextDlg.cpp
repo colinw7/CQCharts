@@ -63,21 +63,21 @@ paintEvent(QPaintEvent *)
 
   CQChartsPixelPaintDevice device(&painter);
 
-  CQChartsTextOptions options;
+  CQChartsTextOptions textOptions;
 
-  options.angle            = angle();
-  options.contrast         = isContrast();
-  options.contrastAlpha    = contrastAlpha();
-  options.align            = align();
-  options.formatted        = isFormatted();
-  options.scaled           = isScaled();
-  options.html             = isHtml();
-  options.clipLength       = device.lengthPixelWidth(clipLength());
-  options.clipElide        = clipElide();
-  options.minScaleFontSize = 4.0;
-  options.maxScaleFontSize = 400.0;
+  textOptions.angle            = angle();
+  textOptions.contrast         = isContrast();
+  textOptions.contrastAlpha    = contrastAlpha();
+  textOptions.align            = align();
+  textOptions.formatted        = isFormatted();
+  textOptions.scaled           = isScaled();
+  textOptions.html             = isHtml();
+  textOptions.clipLength       = device.lengthPixelWidth(clipLength());
+  textOptions.clipElide        = clipElide();
+  textOptions.minScaleFontSize = 4.0;
+  textOptions.maxScaleFontSize = 400.0;
 
-  CQChartsDrawUtil::drawTextInBox(&device, CQChartsGeom::BBox(rect_), text_, options);
+  CQChartsDrawUtil::drawTextInBox(&device, CQChartsGeom::BBox(rect_), text_, textOptions);
 }
 
 QSize

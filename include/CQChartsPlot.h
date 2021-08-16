@@ -1508,8 +1508,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void addKey();
 
-  virtual void resetKeyItems();
-  virtual void resetPlotKeyItems(Plot *plot);
+  virtual void resetKeyItems(bool add=true);
+  virtual void resetPlotKeyItems(Plot *plot, bool add=true);
 
   // add items to key
   virtual void doAddKeyItems(PlotKey *key);
@@ -2766,6 +2766,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setPen(PaintDevice *device, const CQChartsPenData &penData) const;
 
   void setBrush(PaintDevice *device, const CQChartsBrushData &brushData) const;
+
+  //---
+
+  void setPainterFont(PaintDevice *device, const Font &font) const;
 
   //---
 

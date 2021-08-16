@@ -4,10 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + Pie spokes plot
-  ~/Desktop/pie_spokes.png
  + Optional draw key in custom controls for all plots
- + Use ScrollArea for custom controls (all tabs)
+   + Add plot title to key
  + Scalable object to allow fit multiple (scalable) objects in rect
    + Use in more places
  + Use default symbol set (name) for all plots (scatter)
@@ -801,6 +799,11 @@ Parallel Plot
  + Optional label on axis or title
 
 Pie Chart
+ + Pie spokes plot
+  ~/Desktop/pie_spokes.png
+ + Group with radius value broken
+ + Value Label
+ + Improve Fit
  + Stacked (multiple categories)
  + Radial labels (see radar)
  + Better expand display when grouped
@@ -862,6 +865,7 @@ Table Plot
  + Cell/Cross/None mouse over highlight
 
 Tree map
+ + Don't draw below tolerance to only show large (outliers)
  + Rotate text if text aspect > box aspect
  + Filter to visible (keep placement, don't show) 
  + Tree map performance for large data (file tree) (small object opt)

@@ -492,6 +492,7 @@ setRoundedLines(bool b)
 {
   CQChartsUtil::testAndSet(roundedLines_, b, [&]() { drawObjs(); } );
 }
+
 void
 CQChartsXYPlot::
 setLineLabel(bool b)

@@ -494,6 +494,7 @@ drawEllipse(const BBox &bbox, const Angle &a)
     if (a.value() != 0.0) {
       painter_->save();
 
+      // Note: reverse order (move to zero, rotate, move back)
       painter_->translate(prect.center());
       painter_->rotate   (-a.value());
       painter_->translate(-prect.center());
@@ -693,6 +694,7 @@ setTransformRotate(const Point &p, double angle)
 
   auto t = painter_->transform();
 
+  // Note: reverse order (rotate at zero and move to pos)
   t.translate(p1.x, p1.y);
   t.rotate(-angle);
 
@@ -718,4 +720,16 @@ CQChartsViewPlotPaintDevice::
 setRenderHints(QPainter::RenderHints hints, bool on)
 {
   painter_->setRenderHints(hints, on);
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setPainterFont(const Font &font)
+{
+  if      (plot_)
+    plot_->setPainterFont(this, font);
+  else if (view_)
+    view_->setPainterFont(this, font);
+  else
+    assert(false);
 }

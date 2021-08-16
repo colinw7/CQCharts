@@ -793,7 +793,7 @@ execDrawBackground(PaintDevice *device) const
 
     //---
 
-    view()->setPlotPainterFont(this, device, textFont());
+    setPainterFont(device, textFont());
 
     int    nl = 5;
     double dr = valueRadius_/nl;
@@ -832,16 +832,13 @@ execDrawBackground(PaintDevice *device) const
             auto align = alignForPosition(x, y);
 
             // only contrast support (custom align, zero angle)
-            CQChartsTextOptions options;
+            auto textOptions = this->textOptions();
 
-            options.angle         = Angle();
-            options.align         = align;
-            options.contrast      = isTextContrast();
-            options.contrastAlpha = textContrastAlpha();
-            options.clipLength    = lengthPixelWidth(textClipLength());
-            options.clipElide     = textClipElide();
+            textOptions.angle = Angle();
+            textOptions.align = align;
 
-            CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
+            CQChartsDrawUtil::drawTextAtPoint(device, p1, name, textOptions,
+                                              /*centered*/false, 2, 2);
           }
         }
 

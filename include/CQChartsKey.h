@@ -668,6 +668,12 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
 
   //---
 
+  //! get/set value for visibility filter
+  const QVariant &value() const { return value_; }
+  void setValue(const QVariant &v) { value_ = v; }
+
+  //---
+
   // implement select interface
   bool selectPress(const Point &, SelMod) override;
   bool selectMove (const Point &) override;
@@ -688,7 +694,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
 
   //---
 
-  virtual QVariant drawValue() const = 0;
+  virtual QVariant drawValue() const { return QVariant(); }
 
   virtual void draw(PaintDevice *device, const BBox &rect) const = 0;
 
@@ -704,6 +710,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   bool         inside_    { false };   //!< is inside
   mutable BBox bbox_;                  //!< bounding box
   bool         clickable_ { false };   //!< clickable
+  QVariant     value_;                 //!< associated value
 };
 
 //---
@@ -763,8 +770,6 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   void doSelect(SelMod selMod) override;
 
   //---
-
-  QVariant drawValue() const override { return QVariant(); }
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 
@@ -855,9 +860,6 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
   const Color &color() const { return color_; }
   void setColor(const Color &color) { color_ = color; }
 
-  const QVariant &value() const { return value_; }
-  void setValue(const QVariant &v) { value_ = v; }
-
   //---
 
   // implement select interface
@@ -880,7 +882,6 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
   RangeValue xv_;                   //!< x value
   RangeValue yv_;                   //!< y value
   Color      color_;                //!< custom color
-  QVariant   value_;                //!< associated value
 };
 
 //---
@@ -908,11 +909,6 @@ class CQChartsLineKeyItem : public CQChartsKeyItem {
 
   const SymbolData &symbolData() const { return symbolData_; }
   void setSymbolData(const SymbolData &symbolData) { symbolData_ = symbolData; }
-
-  //---
-
-  const QVariant &value() const { return value_; }
-  void setValue(const QVariant &v) { value_ = v; }
 
   //---
 

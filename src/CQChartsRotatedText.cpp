@@ -11,10 +11,10 @@ void
 drawInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
           const CQChartsTextOptions &options, bool /*alignBBox*/, bool /*isRadial*/)
 {
-  double a1 = options.angle.radians();
+  auto a1 = -options.angle;
 
-  double c = std::cos(-a1);
-  double s = std::sin(-a1);
+  double c = a1.cos();
+  double s = a1.sin();
 
   //---
 
@@ -121,10 +121,10 @@ draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
   double th = fm.height();
   double tw = fm.width(text);
 
-  double a1 = options.angle.radians();
+  auto a1 = -options.angle;
 
-  double c = std::cos(-a1);
-  double s = std::sin(-a1);
+  double c = a1.cos();
+  double s = a1.sin();
 
   //---
 
@@ -298,10 +298,10 @@ calcBBoxData(double px, double py, const QString &text, const QFont &font,
   double th = fm.height()    + xlm + xrm;
   double tw = fm.width(text) + ybm + ytm;
 
-  double a1 = options.angle.radians();
+  auto a1 = -options.angle;
 
-  double c = std::cos(-a1);
-  double s = std::sin(-a1);
+  double c = a1.cos();
+  double s = a1.sin();
 
   //---
 

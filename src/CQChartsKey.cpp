@@ -537,16 +537,7 @@ draw(PaintDevice *device) const
 
     BBox rect1(px2, py1, px2 + pw - bs - ybm - ytm, py2);
 
-    CQChartsTextOptions textOptions;
-
-    textOptions.align         = textAlign();
-    textOptions.contrast      = isTextContrast();
-    textOptions.contrastAlpha = textContrastAlpha();
-    textOptions.formatted     = isTextFormatted();
-    textOptions.scaled        = isTextScaled();
-    textOptions.html          = isTextHtml();
-    textOptions.clipLength    = lengthPixelWidth(textClipLength());
-    textOptions.clipElide     = textClipElide();
+    auto textOptions = this->textOptions();
 
     CQChartsDrawUtil::drawTextInBox(device, view()->pixelToWindow(rect1), name, textOptions);
 
@@ -1982,16 +1973,7 @@ draw(CQChartsPaintDevice *device) const
   // draw header
   if (headerStr().length()) {
     // set text options
-    CQChartsTextOptions textOptions;
-
-    textOptions.align         = headerTextAlign();
-    textOptions.contrast      = isHeaderTextContrast();
-    textOptions.contrastAlpha = headerTextContrastAlpha();
-    textOptions.formatted     = isHeaderTextFormatted();
-    textOptions.scaled        = isHeaderTextScaled();
-    textOptions.html          = isHeaderTextHtml();
-    textOptions.clipLength    = lengthPixelWidth(headerTextClipLength());
-    textOptions.clipElide     = headerTextClipElide();
+    auto textOptions = this->headerTextOptions();
 
     textOptions = plot()->adjustTextOptions(textOptions);
 
@@ -2625,22 +2607,13 @@ draw(PaintDevice *device, const BBox &rect) const
 
   //---
 
-  plot->view()->setPlotPainterFont(plot, device, key_->textFont());
+  plot->setPainterFont(device, key_->textFont());
 
   auto tc = interpTextColor(ColorInd());
 
   device->setPen(tc);
 
-  CQChartsTextOptions textOptions;
-
-  textOptions.align         = key_->textAlign();
-  textOptions.contrast      = key_->isTextContrast();
-  textOptions.contrastAlpha = key_->textContrastAlpha();
-  textOptions.formatted     = key_->isTextFormatted();
-  textOptions.scaled        = key_->isTextScaled();
-  textOptions.html          = key_->isTextHtml();
-  textOptions.clipLength    = drawPlot->lengthPixelWidth(key_->textClipLength());
-  textOptions.clipElide     = key_->textClipElide();
+  auto textOptions = key_->textOptions();
 
   textOptions = plot->adjustTextOptions(textOptions);
 
@@ -2969,7 +2942,7 @@ CQChartsGradientKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   // get char height
-  plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
+  plot_->setPainterFont(device, key_->textFont());
 
   QFontMetricsF fm(device->font());
 

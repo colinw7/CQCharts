@@ -2245,6 +2245,12 @@ inline Point circlePoint(const Point &c, double r, double a) {
   return Point(c.x + r*ca, c.y + r*sa);
 }
 
+inline Point ellipsePoint(const Point &c, double xr, double yr, double a) {
+  double ca = std::cos(a); double sa = std::sin(a);
+
+  return Point(c.x + xr*ca, c.y + yr*sa);
+}
+
 #if 0
 inline Point ellipsePoint(const Point &c, double xr, double yr, double a) {
   double ca = std::cos(a); double sa = std::sin(a);

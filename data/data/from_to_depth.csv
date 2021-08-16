@@ -1,0 +1,9 @@
+From,To,Value,Color
+A/A,Z,5,5
+A/B,Y,12,12
+A/C,X,8,8
+A/D,W,20,20
+B/A/A,Z,5,5
+B/A/B,Y,12,12
+B/B/C,X,8,8
+B/B/D,W,20,20

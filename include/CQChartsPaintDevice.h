@@ -9,6 +9,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsImage;
+class CQChartsFont;
 class CQCharts;
 
 /*!
@@ -30,6 +31,7 @@ class CQChartsPaintDevice {
   using Plot    = CQChartsPlot;
   using Angle   = CQChartsAngle;
   using Image   = CQChartsImage;
+  using Font    = CQChartsFont;
   using Length  = CQChartsLength;
   using Units   = CQChartsUnits;
   using Point   = CQChartsGeom::Point;
@@ -191,6 +193,10 @@ class CQChartsPaintDevice {
   bool isInvertY() const;
 
   virtual bool invertY() const { return false; }
+
+  //---
+
+  virtual void setPainterFont(const Font &) { assert(false); }
 
  protected:
   CQCharts* charts_ { nullptr };

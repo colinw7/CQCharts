@@ -261,7 +261,14 @@ CQChartsBoxPlot::
 setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    visibleValueColumns_ = valueColumns_;
+
+    resetValueColumnVisible();
+
+    updateRangeAndObjs();
+
+    emit customDataChanged();
+  } );
 }
 
 void
@@ -757,6 +764,8 @@ calcRange() const
 
   th->clearErrors();
 
+  th->updateVisibleValueColumns();
+
   //---
 
   Range dataRange;
@@ -807,7 +816,7 @@ updateRawRange() const
   // value columns required
   // name, group and set column optional
 
-  if (! checkNumericColumns(valueColumns(), "Values", /*required*/true))
+  if (! checkNumericColumns(visibleValueColumns(), "Values", /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
@@ -830,7 +839,7 @@ updateRawRange() const
 
   //---
 
-  initGroupData(valueColumns(), nameColumn());
+  initGroupData(visibleValueColumns(), nameColumn());
 
   //---
 
@@ -969,7 +978,7 @@ updateRawRange() const
   //---
 
 //xAxis->setColumn(setColumn());
-  yAxis->setColumn(valueColumns().column());
+  yAxis->setColumn(visibleValueColumns().column());
 
   //---
 
@@ -1012,8 +1021,8 @@ valueColumnName(const QString &def) const
 
   auto yname = yLabel();
 
-  if (valueColumns().count() == 1 && ! yname.length())
-    yname = modelHHeaderString(valueColumns().column(), ok);
+  if (visibleValueColumns().count() == 1 && ! yname.length())
+    yname = modelHHeaderString(visibleValueColumns().column(), ok);
 
   if (! yname.length())
     yname = def;
@@ -1406,7 +1415,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
 
   //---
 
-  for (const auto &valueColumn : valueColumns()) {
+  for (const auto &valueColumn : visibleValueColumns()) {
     ModelIndex ind(th, vdata.row, valueColumn, vdata.parent);
 
     // get group
@@ -1511,6 +1520,24 @@ calcExtraFitBBox() const
   }
 
   return bbox;
+}
+
+//------
+
+void
+CQChartsBoxPlot::
+updateVisibleValueColumns()
+{
+  visibleValueColumns_ = Columns();
+
+  int nc = valueColumns().count();
+
+  for (int ic = 0; ic < nc; ++ic) {
+    if (! isValueColumnVisible(ic))
+      continue;
+
+    visibleValueColumns_.addColumn(valueColumns().getColumn(ic));
+  }
 }
 
 //------
@@ -2238,6 +2265,36 @@ createPointObj(const BBox &rect, int setId, int groupInd, const Point &p, const 
 
 //---
 
+void
+CQChartsBoxPlot::
+resetValueColumnVisible()
+{
+  valueColumnVisible_.clear();
+}
+
+bool
+CQChartsBoxPlot::
+isValueColumnVisible(int ic) const
+{
+  auto p = valueColumnVisible_.find(ic);
+  if (p == valueColumnVisible_.end()) return true;
+
+  return (*p).second;
+}
+
+void
+CQChartsBoxPlot::
+setValueColumnVisible(int ic, bool visible)
+{
+  valueColumnVisible_[ic] = visible;
+
+  updateRangeAndObjs();
+
+  emit customDataChanged();
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsBoxPlot::
 createCustomControls()
@@ -2641,7 +2698,7 @@ draw(PaintDevice *device) const
 
       // draw labels
       if (plot_->isTextVisible()) {
-        plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+        plot_->setPainterFont(device, plot_->textFont());
 
         //---
 
@@ -3150,7 +3207,7 @@ draw(PaintDevice *device) const
 
     //---
 
-    plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+    plot_->setPainterFont(device, plot_->textFont());
 
     //---
 
@@ -3488,25 +3545,24 @@ drawHText(PaintDevice *device, double pxl, double pxr, double py,
 
   double px = ((onLeft && ! invertX) || (! onLeft && invertX) ? pxl : pxr);
 
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
   auto tp = (onLeft ? Point(px - margin - fm.width(text), py) : Point(px + margin, py));
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot_->textOptions(device);
 
-  options.angle         = Angle();
-  options.align         = Qt::AlignLeft | Qt::AlignVCenter;
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-  options.clipElide     = plot_->textClipElide();
+  textOptions.angle     = Angle();
+  textOptions.align     = Qt::AlignLeft | Qt::AlignVCenter;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
   auto tw = plot_->pixelToWindow(tp); // left/midy
 
-  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
 
   auto pbbox = BBox(tp.x                , tp.y - psize.height()/2.0,
                     tp.x + psize.width(), tp.y + psize.height()/2.0);
@@ -3516,7 +3572,7 @@ drawHText(PaintDevice *device, double pxl, double pxr, double py,
   if (! checkDrawBBox(bbox))
     return false;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, textOptions);
 
   return true;
 }
@@ -3534,7 +3590,7 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
 
   double py = ((onBottom && ! invertY) || (! onBottom && invertY) ? pyb : pyt);
 
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3544,18 +3600,17 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
   auto tp = (onBottom ? Point(px - xf, py + margin + yf) : Point(px - xf, py - margin - yf));
 
   // only support contrast
-  CQChartsTextOptions options;
+  auto textOptions = plot_->textOptions(device);
 
-  options.angle         = Angle();
-  options.align         = Qt::AlignLeft | Qt::AlignVCenter;
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
-  options.clipElide     = plot_->textClipElide();
+  textOptions.angle     = Angle();
+  textOptions.align     = Qt::AlignLeft | Qt::AlignVCenter;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
   auto tw = plot_->pixelToWindow(tp); // left/midy
 
-  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
   auto size  = plot()->pixelToWindowSize(psize);
 
   bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
@@ -3563,7 +3618,7 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
   if (! checkDrawBBox(bbox))
     return false;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, textOptions);
 
   return true;
 }
@@ -3693,8 +3748,8 @@ calcTipId() const
 
   //---
 
-  if (plot_->valueColumns().count() == 1)
-    addColumnRowValue(plot_->valueColumns().column());
+  if (plot_->visibleValueColumns().count() == 1)
+    addColumnRowValue(plot_->visibleValueColumns().column());
 
   addColumnRowValue(plot_->colorColumn());
 
@@ -3858,6 +3913,43 @@ interpTextColor(const ColorInd &ind) const
 
 //------
 
+CQChartsBoxPlotColumnChooser::
+CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *plot) :
+ CQChartsPlotColumnChooser(plot)
+{
+}
+
+const CQChartsColumns &
+CQChartsBoxPlotColumnChooser::
+getColumns() const
+{
+  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+  assert(plot);
+
+  return plot->valueColumns();
+}
+
+bool
+CQChartsBoxPlotColumnChooser::
+isColumnVisible(int ic) const
+{
+  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+
+  return (plot ? plot->isValueColumnVisible(ic) : false);
+}
+
+void
+CQChartsBoxPlotColumnChooser::
+setColumnVisible(int ic, bool visible)
+{
+  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+
+  if (plot)
+    plot->setValueColumnVisible(ic, visible);
+}
+
+//------
+
 CQChartsBoxPlotCustomControls::
 CQChartsBoxPlotCustomControls(CQCharts *charts) :
  CQChartsGroupPlotCustomControls(charts, "box")
@@ -3879,7 +3971,7 @@ void
 CQChartsBoxPlotCustomControls::
 addWidgets()
 {
-  // columns group
+  // columns frame
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
@@ -3899,6 +3991,11 @@ addWidgets()
     "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers";
 
   addColumnWidgets(columnNames, columnsFrame);
+
+  // column chooser
+  chooser_ = new CQChartsBoxPlotColumnChooser;
+
+  addFrameWidget(columnsFrame, chooser_);
 
   //---
 
@@ -3998,6 +4095,8 @@ setPlot(CQChartsPlot *plot)
 
   plot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
 
+  chooser_->setPlot(plot_);
+
   CQChartsGroupPlotCustomControls::setPlot(plot);
 
   if (plot_)
@@ -4020,6 +4119,8 @@ updateWidgets()
     showColumnWidgets(plot_->rawCustomColumns());
   else
     showColumnWidgets(plot_->calculatedCustomColumns());
+
+  chooser_->updateWidgets();
 
   //---
 

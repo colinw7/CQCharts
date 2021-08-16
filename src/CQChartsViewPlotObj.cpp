@@ -178,7 +178,7 @@ CQChartsViewPlotObj::
 setPainterFont(PaintDevice *device, const Font &font) const
 {
   if      (plot())
-    view()->setPlotPainterFont(plot(), device, font);
+    plot()->setPainterFont(device, font);
   else if (view())
     view()->setPainterFont(device, font);
 }
@@ -189,7 +189,7 @@ CQChartsViewPlotObj::
 setPainterFont(QPainter *painter, const Font &font) const
 {
   if      (plot())
-    view()->setPlotPainterFont(plot(), painter, font);
+    plot()->setPainterFont(painter, font);
   else if (view())
     view()->setPainterFont(painter, font);
 }

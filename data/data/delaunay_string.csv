@@ -1,0 +1,17 @@
+# x,y,name,value
+A,A,AA,0
+B,A,BA,1
+C,A,CA,2
+D,A,DA,3
+A,B,AB,1
+B,B,BB,2
+C,B,CB,3
+D,B,DB,4
+A,C,AC,2
+B,C,BC,3
+C,C,CC,4
+D,C,DC,5
+A,D,AD,3
+B,D,BD,4
+C,D,CD,5
+D,D,DD,6

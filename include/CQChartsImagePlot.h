@@ -122,7 +122,7 @@ class CQChartsImagePlot : public CQChartsPlot,
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
 
-  // cell
+  // cell (shape and label text)
   Q_PROPERTY(CellStyle cellStyle READ cellStyle WRITE setCellStyle)
 
   Q_PROPERTY(bool cellLabels READ isCellLabels WRITE setCellLabels)

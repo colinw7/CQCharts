@@ -92,6 +92,10 @@ class CQChartsAngle :
 
   //---
 
+  void flipX() { a_ = 180.0 + a_; }
+
+  //---
+
   // operator +, +=
   friend CQChartsAngle operator+(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
     return CQChartsAngle(lhs.a_ + rhs.a_);

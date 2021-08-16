@@ -1745,25 +1745,19 @@ draw(PaintDevice *device) const
 
     //---
 
-    CQChartsTextOptions textOptions;
+    auto textOptions = plot_->dataLabel()->textOptions();
 
-    textOptions.angle         = Angle();
-    textOptions.align         = Qt::AlignHCenter | Qt::AlignVCenter;
-    textOptions.contrast      = plot_->dataLabel()->isTextContrast();
-    textOptions.contrastAlpha = plot_->dataLabel()->textContrastAlpha();
-    textOptions.formatted     = false;
-    textOptions.scaled        = plot_->dataLabel()->isTextScaled();
-    textOptions.html          = false;
-    textOptions.clipLength    = plot_->lengthPixelWidth(plot_->dataLabel()->textClipLength());
-    textOptions.clipElide     = plot_->dataLabel()->textClipElide();
-    textOptions.clipped       = false;
-    textOptions.margin        = 0;
+    textOptions.angle     = Angle();
+    textOptions.align     = Qt::AlignHCenter | Qt::AlignVCenter;
+    textOptions.formatted = false;
+    textOptions.html      = false;
+    textOptions.clipped   = false;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
     device->setPen(CQChartsUtil::bwColor(vbg));
 
-    plot_->view()->setPlotPainterFont(plot_, device, plot_->dataLabel()->textFont());
+    plot_->setPainterFont(device, plot_->dataLabel()->textFont());
 
     BBox tbbox;
 
