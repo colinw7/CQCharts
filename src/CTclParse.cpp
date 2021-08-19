@@ -289,9 +289,9 @@ readArgList(Tokens &tokens)
         if (! readWord(str2, ';', tokens1))
           return false;
 
-        str2 = parse_->getBefore(pos);
+        str2 = parse_->getBefore(pos1);
 
-        auto *token = new CTclToken(CTclToken::Type::STRING, str2, pos);
+        auto *token = new CTclToken(CTclToken::Type::STRING, str2, pos1);
 
         for (const auto &token1 : tokens1)
           token->addToken(token1);
@@ -418,7 +418,7 @@ readExecString(Tokens &tokens)
 
 bool
 CTclParse::
-readLiteralString(std::string &str, Tokens &tokens)
+readLiteralString(std::string &str, Tokens &)
 {
   assert(parse_->isChar('{'));
 
@@ -635,7 +635,7 @@ readSingleQuotedString(std::string &str)
 
 bool
 CTclParse::
-readVariableName(std::string &varName, bool &is_array, Tokens &tokens)
+readVariableName(std::string &varName, bool &is_array, Tokens &)
 {
   // ${name} - name can have any characters
   if (parse_->isChar('{')) {
