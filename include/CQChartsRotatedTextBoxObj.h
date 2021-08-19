@@ -15,63 +15,74 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   using PaintDevice = CQChartsPaintDevice;
   using TextOptions = CQChartsTextOptions;
   using Length      = CQChartsLength;
+  using Angle       = CQChartsAngle;
   using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsRotatedTextBoxObj(Plot *plot);
 
+  // draw rotated text
   void draw(PaintDevice *device, const Point &c, const QString &text,
             double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
-            bool isRotated=false) const;
+            bool isRadial=false) const;
 
+  // draw rotated texts
   void draw(PaintDevice *device, const Point &c, const QString &text1, const QString &text2,
             double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
-            bool isRotated=false) const;
+            bool isRadial=false) const;
 
-  static void draw(PaintDevice *device, const Point &c, const QString &text1,
-                   const QString &text2, bool isRotated, const PenBrush &penBrush,
-                   const TextOptions &textOptions, const Margin &margin, const Length &cornerSize,
-                   const Sides &borderSides, BBox &drawBBox);
+  // draw rotated texts (static)
+  static void draw(PaintDevice *device, const Point &c, const QString &text1, const QString &text2,
+                   bool isRadial, const PenBrush &penBrush, const TextOptions &textOptions,
+                   const Margin &margin, const Length &cornerSize, const Sides &borderSides,
+                   BBox &drawBBox);
 
+  // bbox of rotated text
   BBox bbox(const Point &pcenter, const QString &text, double angle=0.0,
             Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
-            bool isRotated=false) const;
+            bool isRadial=false) const;
 
+  // bbox of rotated view text (static)
   static BBox bbox(Plot *plot, const Point &pcenter, const QString &text,
-                   bool isRotated, const TextOptions &textOptions, const Margin &margin);
+                   bool isRadial, const TextOptions &textOptions, const Margin &margin);
+  // bbox of rotated plot text (static)
   static BBox bbox(View *view, const Point &pcenter, const QString &text,
-                   bool isRotated, const TextOptions &textOptions, const Margin &margin);
+                   bool isRadial, const TextOptions &textOptions, const Margin &margin);
 
-  void drawConnectedRadialText(PaintDevice *device, const Point &center,
-                               double ro, double lr, double ta, const QString &text,
+  // draw rotated text connected to radial point
+  void drawConnectedRadialText(PaintDevice *device, const Point &center, double ro,
+                               double lr, const Angle &ta, const QString &text,
                                const QPen &lpen, bool isRotated);
 
-  static void drawConnectedRadialText(PaintDevice *device, const Point &center,
-                                      double ro, double lr, const QString &text,
-                                      const QPen &lpen, bool isRotated, const PenBrush &penBrush,
+  // draw rotated text connected to radial point (static)
+  static void drawConnectedRadialText(PaintDevice *device, const Point &center, double ro,
+                                      double lr, const Angle &la, const QString &text,
+                                      const QPen &lpen, const PenBrush &penBrush,
                                       const TextOptions &textOptions, const Margin &margin,
                                       const Length &cornerSize, const Sides &borderSides);
 
-  void calcConnectedRadialTextBBox(const Point &center, double ro, double lr, double ta,
+  // get bbox of rotated text connected to radial point
+  void calcConnectedRadialTextBBox(const Point &center, double ro, double lr, const Angle &ta,
                                    const QString &text, bool isRotated, BBox &tbbox);
 
-  static void calcConnectedRadialTextBBox(Plot *plot, const Point &center, double ro, double lr,
-                                          const QString &text, bool isRotated,
+  // get bbox of rotated plot text connected to radial point (static)
+  static void calcConnectedRadialTextBBox(Plot *plot, const Point &center, double ro,
+                                          double lr, const Angle &la, const QString &text,
                                           const TextOptions &textOptions,
                                           const Margin &margin, BBox &tbbox);
-
-  static void calcConnectedRadialTextBBox(View *view, const Point &center, double ro, double lr,
-                                          const QString &text, bool isRotated,
+  // get bbox of rotated view text connected to radial point (static)
+  static void calcConnectedRadialTextBBox(View *view, const Point &center, double ro,
+                                          double lr, const Angle &la, const QString &text,
                                           const TextOptions &textOptions,
                                           const Margin &margin, BBox &tbbox);
 
  private:
   static BBox bbox1(View *view, Plot *plot, const Point &pcenter, const QString &text,
-                    bool isRotated, const TextOptions &textOptions, const Margin &margin);
+                    bool isRadial, const TextOptions &textOptions, const Margin &margin);
 
   static void drawCalcConnectedRadialText(View *view, Plot *plot, PaintDevice *device,
                                           const Point &center, double ro, double lr,
-                                          const QString &text, const QPen &lpen, bool isRotated,
+                                          const Angle &la, const QString &text, const QPen &lpen,
                                           const PenBrush &penBrush, const TextOptions &textOptions,
                                           const Margin &margin, const Length &cornerSize,
                                           const Sides &borderSides, BBox &tbbox);

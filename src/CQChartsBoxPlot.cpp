@@ -431,7 +431,7 @@ CQChartsBoxPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+    resetSetHidden(); emit customDataChanged();
   } );
 }
 
@@ -1102,8 +1102,7 @@ updateCalcRange() const
   if (! checkNumericColumn(medianColumn     (), "Median"      )) columnsValid = false;
   if (! checkNumericColumn(upperMedianColumn(), "Upper Median")) columnsValid = false;
   if (! checkNumericColumn(maxColumn        (), "Max"         )) columnsValid = false;
-  if (! checkNumericColumn(outliersColumn   (), "Outliers"    )) columnsValid = false;
-  if (! checkNumericColumn(idColumn         (), "Id"          )) columnsValid = false;
+  if (! checkColumn       (idColumn         (), "Id"          )) columnsValid = false;
 
   if (outliersColumn().isValid()) {
     // TODO: check is numeric array
@@ -1727,8 +1726,6 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
   const auto &density = whisker->density();
 
-  //double ymin = density.ymin1();
-  //double ymax = density.ymax1();
   double ymin = density.ymin();
   double ymax = density.ymax();
 
@@ -1741,8 +1738,7 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     double d = rand.gen();
 
-    //double yv = density.yval(value)/(ymax - ymin);
-    double yv = density.eval(value)/(ymax - ymin);
+    double yv = (ymax > ymin ? density.eval(value)/(ymax - ymin) : 0.0);
 
     double x = pos + yv*d;
     double y = value.value;
@@ -3034,7 +3030,7 @@ draw(PaintDevice *device) const
 
   Point pos(ox, oy);
 
-  if (plot_->outlierSymbol().isValid())
+  if (symbol.isValid())
     CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pos, symbolSize);
 }
 
@@ -3833,8 +3829,6 @@ selectPress(const Point &, CQChartsSelMod)
   auto ic = (is_.n > 1 ? is_ : ig_);
 
   plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
-
-  plot->updateRangeAndObjs();
 
   return true;
 }

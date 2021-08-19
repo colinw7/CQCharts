@@ -4855,8 +4855,6 @@ selectPress(const Point &, SelMod)
 {
   setSetHidden(! isSetHidden());
 
-  plot_->updateRangeAndObjs();
-
   return true;
 }
 #endif

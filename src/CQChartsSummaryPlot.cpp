@@ -398,7 +398,7 @@ CQChartsSummaryPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    resetSetHidden(); updateRangeAndObjs();
+    resetSetHidden();
 
     if (isExpanded() && (expandRow_ != expandCol_)) {
       scatterPlot_->setGroupColumn(groupColumn());

@@ -379,7 +379,7 @@ CQChartsBarChartPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+    resetSetHidden(); emit customDataChanged();
   });
 }
 
@@ -2496,8 +2496,6 @@ selectPress(const Point &, CQChartsSelMod selMod)
   else {
     setSetHidden(! isSetHidden());
   }
-
-  plot_->updateRangeAndObjs();
 
   return true;
 }

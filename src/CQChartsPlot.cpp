@@ -2354,8 +2354,6 @@ setColorKey(bool b)
 
     resetKeyItems();
 
-    updateRangeAndObjs();
-
     updateKeyPosition(/*force*/true);
   });
 }
@@ -14920,14 +14918,22 @@ void
 CQChartsPlot::
 setSetHidden(int id, bool hidden)
 {
-  idHidden_[id] = hidden;
+  if (hidden != isSetHidden(id)) {
+    idHidden_[id] = hidden;
+
+    updateRangeAndObjs();
+  }
 }
 
 void
 CQChartsPlot::
 resetSetHidden()
 {
-  idHidden_.clear();
+  if (! idHidden_.empty()) {
+    idHidden_.clear();
+
+    updateRangeAndObjs();
+  }
 }
 
 void

@@ -684,6 +684,11 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
+  if (! isVisible())
+    return Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   NoUpdate noUpdate(this);
 
   auto *th = const_cast<CQChartsScatterPlot *>(this);
@@ -1063,6 +1068,9 @@ CQChartsScatterPlot::
 createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsScatterPlot::createObjs");
+
+  if (! isVisible())
+    return true;
 
   NoUpdate noUpdate(this);
 
@@ -4170,8 +4178,6 @@ selectPress(const Point &, SelMod selMod)
     plot->setSetHidden(ih.i, ! plot->isSetHidden(ih.i));
   }
 
-  plot->updateRangeAndObjs();
-
   return true;
 }
 #endif
@@ -4347,15 +4353,18 @@ CQChartsScatterPlotCustomControls::
 addSymbolLabelWidgets()
 {
   // point labels group
-  auto *groupBox    = CQUtil::makeWidget<CQGroupBox>("symbolLabelGroup");
-  auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(groupBox, 0, 0);
+  symbolLabelGroup_ = CQUtil::makeWidget<CQGroupBox>("symbolLabelGroup");
 
-  groupBox->setTitle("Point Label");
+  auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(symbolLabelGroup_, 0, 0);
 
-  groupBox->setTitleScale(0.85);
-  groupBox->setTitleColored(true);
+  symbolLabelGroup_->setTitle("Point Label");
+  symbolLabelGroup_->setCheckable(true);
 
-  layout_->addWidget(groupBox);
+  symbolLabelGroup_->setTitleScale(0.85);
+  symbolLabelGroup_->setTitleColored(true);
+  symbolLabelGroup_->setEnableChecked(false);
+
+  layout_->addWidget(symbolLabelGroup_);
 
   //---
 
@@ -4364,13 +4373,11 @@ addSymbolLabelWidgets()
   //---
 
   // label text and font
-//pointLabelsCheck_ = CQUtil::makeWidget<CQCheckBox>("pointLabels");
   labelColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("labelColumnCombo");
   positionEdit_     = CQUtil::makeWidget<CQEnumCombo>("positionEdit");
 
   positionEdit_->setPropName("position");
 
-//addFrameWidget(pointLabelsFrame, "Visible" , pointLabelsCheck_);
   addFrameWidget(pointLabelsFrame, "Column"  , labelColumnCombo_);
   addFrameWidget(pointLabelsFrame, "Position", positionEdit_);
 
@@ -4422,8 +4429,8 @@ connectSlots(bool b)
       plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
 
   if (labelColumnCombo_) {
-  //CQChartsWidgetUtil::connectDisconnect(b,
-  //  pointLabelsCheck_, SIGNAL(stateChanged(int)), this, SLOT(pointLabelsSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      symbolLabelGroup_, SIGNAL(clicked(bool)), this, SLOT(pointLabelsSlot()));
     CQChartsWidgetUtil::connectDisconnect(b,
       labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
     CQChartsWidgetUtil::connectDisconnect(b,
@@ -4495,10 +4502,10 @@ updateWidgets()
   if (labelColumnCombo_) {
     bool hasLabelColumn = plot_->labelColumn().isValid();
 
-  //pointLabelsCheck_->setEnabled(hasLabelColumn);
+  //symbolLabelGroup_->setEnabled(hasLabelColumn);
     positionEdit_    ->setEnabled(hasLabelColumn);
 
-  //pointLabelsCheck_->setChecked(plot_->isPointLabels());
+    symbolLabelGroup_->setChecked(plot_->isPointLabels());
     labelColumnCombo_->setModelColumn(plot_->getModelData(), plot_->labelColumn());
     positionEdit_    ->setObj(plot_->dataLabel());
   }
@@ -4550,14 +4557,12 @@ plotTypeSlot()
     plot_->setPlotType((CQChartsScatterPlot::PlotType) plotTypeCombo_->currentValue());
 }
 
-#if 0
 void
 CQChartsScatterPlotCustomControls::
 pointLabelsSlot()
 {
-  plot_->setPointLabels(pointLabelsCheck_->isChecked());
+  plot_->setPointLabels(symbolLabelGroup_->isChecked());
 }
-#endif
 
 void
 CQChartsScatterPlotCustomControls::

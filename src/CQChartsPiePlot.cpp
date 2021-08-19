@@ -406,6 +406,27 @@ setDonutTitle(bool b)
 
 void
 CQChartsPiePlot::
+setValueType(const ValueType &t)
+{
+  CQChartsUtil::testAndSet(valueType_, t, [&]() { updateRangeAndObjs(); } );
+}
+
+QString
+CQChartsPiePlot::
+valueTypeName() const
+{
+  if      (valueType() == ValueType::MIN ) return "Min";
+  else if (valueType() == ValueType::MAX ) return "Max";
+  else if (valueType() == ValueType::MEAN) return "Mean";
+  else if (valueType() == ValueType::SUM ) return "Sum";
+
+  return "";
+}
+
+//---
+
+void
+CQChartsPiePlot::
 setMinValue(double r)
 {
   CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
@@ -556,8 +577,9 @@ addProperties()
   addProp("options", "count"     , "", "Show count of groups");
   addProp("options", "donutTitle", "", "Show title in donut center");
 
-  addProp("options", "minValue", "", "Custom min value");
-  addProp("options", "maxValue", "", "Custom max value");
+  addProp("options", "valueType", "", "Value type (when multiple values per name)");
+  addProp("options", "minValue" , "", "Custom min value");
+  addProp("options", "maxValue" , "", "Custom max value");
 
   addProp("options", "innerRadius", "", "Inner radius for donut")->
     setMinValue(0.0).setMaxValue(1.0);
@@ -598,8 +620,7 @@ addProperties()
   addProp("labels", "textLabels" , "visible", "Labels visible");
   addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at")->setMinValue(0.0);
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
-
-  addProp("labels", "adjustText", "", "Adjust text placement");
+  addProp("labels", "adjustText" , ""       , "Adjust text placement");
 
   addProp("labels/box", "textLabelMargin" , "margin" , "Label box outer margin");
   addProp("labels/box", "textLabelPadding", "padding", "Label box inner padding");
@@ -976,20 +997,20 @@ createObjs(PlotObjs &objs) const
 
       CQChartsTreeMapPlace place(bbox);
 
-      double dataTotal;
+      double dataTotal { 0.0 };
 
       if (maxValue() > 0.0)
         dataTotal = maxValue(); // assume max is sum e.g. values are percent
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->value();
+        auto v = obj->calcValue((CQChartsPieObj::ValueType) valueType());
 
         place.addValue(v);
 
         dataTotal -= v;
       }
 
-      if (dataTotal > 0)
+      if (dataTotal > 0.0)
         place.addValue(dataTotal);
 
       place.placeValues();
@@ -1019,7 +1040,7 @@ createObjs(PlotObjs &objs) const
       double err  = 0.0;
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->value() + err;
+        auto v = obj->calcValue((CQChartsPieObj::ValueType) valueType()) + err;
 
         auto r = CMathUtil::map(v, 0.0, dataTotal, 0.0, 100.0);
         int  n = CMathRound::RoundNearest(r);
@@ -1164,9 +1185,8 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
     obj->setOuterRadius(ro);
     obj->setValueRadius(rv);
 
-    obj->setLabel  (label);
-    obj->setValue  (value);
-    obj->setMissing(valueMissing);
+    obj->setLabel(label);
+    obj->addValue(value);
 
     if (hasRadius)
       obj->setOptRadius(radius);
@@ -1193,7 +1213,9 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
     // duplicate labels add to value (and radius ?)
 
     if (! valueMissing)
-      obj->setValue(obj->value() + value);
+      obj->addValue(CQChartsPieObj::OptReal(value));
+    else
+      obj->addValue(CQChartsPieObj::OptReal());
 
     if (hasRadius) {
       if (obj->optRadius())
@@ -1271,6 +1293,34 @@ calcDataTotal() const
   DataTotalVisitor dataTotalVisitor(this);
 
   visitModel(dataTotalVisitor);
+
+  for (auto &pg : th->groupDatas_) {
+    auto &groupData = pg.second;
+
+    groupData.dataTotal = 0.0;
+    groupData.numValues = 0.0;
+
+    for (auto &nv : groupData.nameValueData) {
+      const auto &name      = nv.first;
+      auto       &valueData = nv.second;
+
+      double value = 0.0;
+
+      if      (valueType() == ValueType::MIN ) value = valueData.values.min();
+      else if (valueType() == ValueType::MAX ) value = valueData.values.max();
+      else if (valueType() == ValueType::MEAN) value = valueData.values.mean();
+      else if (valueType() == ValueType::SUM ) value = valueData.values.sum();
+
+      valueData.dataTotal  = value;
+      groupData.dataTotal += value;
+
+      ++groupData.numValues;
+
+      std::cerr << name.toStdString() << " : " << valueData.dataTotal << "\n";
+    }
+
+    std::cerr << groupData.dataTotal << "\n";
+  }
 }
 
 void
@@ -1309,11 +1359,11 @@ addRowColumnDataTotal(const ModelIndex &ind) const
     pg = th->groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
   }
 
-  const auto &groupData = (*pg).second;
+  auto &groupData = (*pg).second;
 
   //---
 
-  // get value
+  // get column value
   double value        = 1.0;
   bool   valueMissing = false;
 
@@ -1322,18 +1372,29 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
   //---
 
-  if (! valueMissing)
-    th->values_.addValue(value);
+  // get value label (used for unique values in group)
+  auto label = calcIndLabel(modelIndex(ind));
 
   //---
 
-  // sum values
-  if (! hidden) {
-    auto &groupData1 = const_cast<GroupData &>(groupData);
+  auto pv = groupData.nameValueData.find(label);
 
-    ++groupData1.numValues;
+  if (pv == groupData.nameValueData.end())
+    pv = groupData.nameValueData.insert(pv, NameValueData::value_type(label, ValueData()));
 
-    groupData1.dataTotal += value;
+  auto &valueData = (*pv).second;
+
+  if (! valueMissing) {
+    if (! hidden)
+      valueData.values.addValue(CQChartsRValues::OptReal(value));
+
+    th->values_.addValue(CQChartsRValues::OptReal(value));
+  }
+  else {
+    if (! hidden)
+      valueData.values.addValue(CQChartsRValues::OptReal());
+
+    th->values_.addValue(CQChartsRValues::OptReal());
   }
 
   //---
@@ -1347,10 +1408,8 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
     if (getColumnSizeValue(rind, radius, radiusMissing)) {
       if (! hidden) {
-        auto &groupData1 = const_cast<GroupData &>(groupData);
-
-        groupData1.radiusScaled = true;
-        groupData1.radiusMax    = std::max(groupData.radiusMax, radius);
+        groupData.radiusScaled = true;
+        groupData.radiusMax    = std::max(groupData.radiusMax, radius);
       }
     }
   }
@@ -1544,7 +1603,7 @@ adjustObjAngles() const
         //---
 
         // set angle based on value
-        double value = obj->value();
+        double value = obj->calcValue((CQChartsPieObj::ValueType) valueType());
 
         double angle  = da1*value;
         double angle2 = angle1 + angle;
@@ -1925,14 +1984,17 @@ calcTipId() const
 
   // add tip values
   if (groupName.length())
-    tableTip.addTableRow("Group", groupName);
+    addColumnRowValue(plot_->groupColumn(), groupName);
 
-  tableTip.addTableRow("Name" , label);
-  tableTip.addTableRow("Value", valueStr);
+  addColumnRowValue(plot_->labelColumn(), "Name" , label);
 
-  if (optRadius()) {
-    tableTip.addTableRow("Radius", *optRadius());
-  }
+  if (plot_->valueColumns().count() == 1)
+    addColumnRowValue(plot_->valueColumns().column(), "Value", valueStr);
+  else
+    tableTip.addTableRow("Value", valueStr);
+
+  if (optRadius())
+    addColumnRowValue(plot_->radiusColumn(), "Radius", CQChartsUtil::realToString(*optRadius()));
 
   //---
 
@@ -1973,7 +2035,8 @@ valueStr() const
 {
   int valueColumn = modelInd().column();
 
-  return plot_->columnStr(Column(valueColumn), value_);
+  return plot_->columnStr(Column(valueColumn),
+           calcValue((CQChartsPieObj::ValueType) plot_->valueType()));
 }
 
 CQChartsArcData
@@ -2015,8 +2078,6 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "innerRadius")->setDesc("Inner radius");
   model->addProperty(path1, this, "outerRadius")->setDesc("Outer radius");
   model->addProperty(path1, this, "label"      )->setDesc("Label");
-  model->addProperty(path1, this, "value"      )->setDesc("Value");
-  model->addProperty(path1, this, "missing"    )->setDesc("Value missing");
 //model->addProperty(path1, this, "radius"     )->setDesc("Radius");
   model->addProperty(path1, this, "keyLabel"   )->setDesc("Key label");
   model->addProperty(path1, this, "color"      )->setDesc("Color");
@@ -2055,6 +2116,25 @@ getObjSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->valueColumns())
     addColumnSelectIndex(inds, c);
+}
+
+void
+CQChartsPieObj::
+addValue(const OptReal &r)
+{
+  values_.addValue(r);
+}
+
+double
+CQChartsPieObj::
+calcValue(const ValueType &valueType) const
+{
+  if      (valueType == ValueType::MIN ) return values_.min();
+  else if (valueType == ValueType::MAX ) return values_.max();
+  else if (valueType == ValueType::MEAN) return values_.mean();
+  else if (valueType == ValueType::SUM ) return values_.sum();
+
+  return 0.0;
 }
 
 bool
@@ -2096,10 +2176,10 @@ extraFitBBox() const
 
     auto textOptions1 = textOptions;
 
-    textOptions1.angle = Angle(0.0);
+    textOptions1.angle = Angle();
 
     bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_), pc, label(),
-                                   /*isRotated*/false, textOptions1, CQChartsMargin());
+                                   /*isRadial*/false, textOptions1, CQChartsMargin());
   }
   // draw on arc center line
   else {
@@ -2132,11 +2212,11 @@ extraFitBBox() const
     if (plot_->numGroups() == 1 && lr > 1.0) {
       auto textOptions1 = textOptions;
 
-      textOptions1.angle = ta;
+      if (plot_->isRotatedText())
+        textOptions1.angle = ta;
 
       RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(plot_),
-                                                     c, rv, lr1, label(),
-                                                     plot_->isRotatedText(), textOptions1,
+                                                     c, rv, lr1, ta, label(), textOptions1,
                                                      plot_->textLabelMargin(), bbox);
     }
     else {
@@ -2144,10 +2224,10 @@ extraFitBBox() const
       auto pt = CQChartsAngle::circlePoint(c, lr1, ta);
 
       // calc text angle
-      double angle = 0.0;
+      Angle angle = ta;
 
-      if (plot_->isRotatedText())
-        angle = (ta.cos() >= 0.0 ? ta.value() : 180.0 + ta.value());
+      if (plot_->isRotatedText() && ta.cos() < 0.0)
+        angle.flipX();
 
       // calc text box
       auto textOptions1 = textOptions;
@@ -2156,7 +2236,7 @@ extraFitBBox() const
       textOptions1.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
       bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_),
-                                     plot_->windowToPixel(pt), label(), /*isRotated*/false,
+                                     plot_->windowToPixel(pt), label(), plot_->isRotatedText(),
                                      textOptions1, plot_->textLabelMargin());
     }
   }
@@ -2291,7 +2371,7 @@ drawSegment(PaintDevice *device) const
     if (plot_->isInvertX())
       labelRight = ! labelRight;
 
-    if (! labelRight)
+    if (plot_->isRotatedText() && ! labelRight)
       textOptions.angle.flipX();
 
     device->setPen(tpenBrush.pen);
@@ -2347,6 +2427,8 @@ drawSegment(PaintDevice *device) const
       //---
 
       auto textOptions = plot_->textLabelTextOptions();
+
+      textOptions.html = true; // calcTipId is HTML
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -2543,11 +2625,11 @@ drawSegmentLabel(PaintDevice *device) const
 
   //---
 
-  auto drawLabels = [&](const Point &p, double angle=0.0,
+  auto drawLabels = [&](const Point &p, const Angle angle=Angle(),
                         Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) {
     auto textOptions1 = textOptions;
 
-    textOptions1.angle = Angle(angle);
+    textOptions1.angle = angle;
     textOptions1.align = align;
 
     QString label1, label2;
@@ -2555,12 +2637,12 @@ drawSegmentLabel(PaintDevice *device) const
     if (labels.length() >= 1)
       label1 = labels.at(0);
     if (labels.length() >= 2)
-      label1 = labels.at(1);
+      label2 = labels.at(1);
 
     BBox drawBBox;
 
-    RotatedTextBoxObj::draw(device, p, label1, label2, /*isRotated*/false,
-                            lpenBrush, textOptions1, plot_->textLabelMargin(),
+    RotatedTextBoxObj::draw(device, p, label1, label2, plot_->isRotatedText(), lpenBrush,
+                            textOptions1, plot_->textLabelMargin(),
                             plot_->textLabelCornerSize(), plot_->textLabelBorderSides(),
                             drawBBox);
   };
@@ -2580,16 +2662,22 @@ drawSegmentLabel(PaintDevice *device) const
     // calc text angle
     auto ta = CQChartsAngle::avg(angle1(), angle2());
 
-    if (plot_->numGroups() == 1 && lr > 1.0) {
-      auto label1 = labels.at(0);
+    // get label
+    QString label;
 
+    if      (labels.length() == 1)
+      label = labels.at(0);
+    else if (labels.length() >= 2)
+      label = QString("%1 (%2)").arg(labels.at(0)).arg(labels[1]);
+
+    if (plot_->numGroups() == 1 && lr > 1.0) {
       auto textOptions1 = textOptions;
 
-      textOptions1.angle = ta;
+      if (plot_->isRotatedText())
+        textOptions1.angle = ta;
 
-      RotatedTextBoxObj::drawConnectedRadialText(device, c, rv, lr1, label1,
-                                                 penBrush.pen, plot_->isRotatedText(),
-                                                 lpenBrush, textOptions1,
+      RotatedTextBoxObj::drawConnectedRadialText(device, c, rv, lr1, ta, label,
+                                                 penBrush.pen, lpenBrush, textOptions1,
                                                  plot_->textLabelMargin(),
                                                  plot_->textLabelCornerSize(),
                                                  plot_->textLabelBorderSides());
@@ -2598,8 +2686,7 @@ drawSegmentLabel(PaintDevice *device) const
         BBox bbox;
 
         RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(plot_),
-                                                       c, rv, lr1, label1,
-                                                       plot_->isRotatedText(), textOptions1,
+                                                       c, rv, lr1, ta, label, textOptions1,
                                                        plot_->textLabelMargin(), bbox);
 
         plot_->drawWindowColorBox(device, bbox);
@@ -2610,10 +2697,15 @@ drawSegmentLabel(PaintDevice *device) const
       auto pt = CQChartsAngle::circlePoint(c, lr1, ta);
 
       // calc text angle
-      double angle = 0.0;
+      auto angle = (plot_->isRotatedText() ? ta : Angle());
 
-      if (plot_->isRotatedText())
-        angle = (ta.cos() >= 0.0 ? ta.value() : 180.0 + ta.value());
+      bool labelRight = (ta.cos() >= 0.0);
+
+      if (plot_->isInvertX())
+        labelRight = ! labelRight;
+
+      if (plot_->isRotatedText() && ! labelRight)
+        angle.flipX();
 
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -2621,17 +2713,15 @@ drawSegmentLabel(PaintDevice *device) const
       drawLabels(pt, angle, align);
 
       if (plot_->showBoxes()) {
-        auto label1 = labels.at(0);
-
         // calc text box
         auto textOptions1 = textOptions;
 
-        textOptions1.angle = Angle(angle);
+        textOptions1.angle = angle;
         textOptions1.align = align;
 
         auto bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_),
-                                            plot_->windowToPixel(pt), label1,
-                                            /*isRotated*/false, textOptions1,
+                                            plot_->windowToPixel(pt), label,
+                                            plot_->isRotatedText(), textOptions1,
                                             plot_->textLabelMargin());
 
         plot_->drawWindowColorBox(device, bbox);
@@ -2714,7 +2804,7 @@ getDrawLabels(QStringList &labels) const
   if (label.trimmed().length())
     labels.push_back(label);
 
-  if (plot_->isCount() && valueStr.length())
+  if (valueStr.length() && plot_->isCount())
     labels.push_back(valueStr);
 }
 
@@ -2793,7 +2883,7 @@ writeScriptData(ScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.value = " << value() << ";\n";
+  os << "  this.value = " << calcValue((CQChartsPieObj::ValueType) plot_->valueType()) << ";\n";
 }
 
 QColor
@@ -3253,7 +3343,8 @@ drawDumbbell(PaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     // draw symbol
-    double r = CMathUtil::map(obj->value(), vmin, vmax, x1, x2);
+    double r = CMathUtil::map(obj->calcValue((CQChartsPieObj::ValueType) plot_->valueType()),
+                              vmin, vmax, x1, x2);
 
     auto p = Point(r, c.y);
 
@@ -3370,6 +3461,8 @@ drawDonutText(PaintDevice *device) const
     if (plot_->isCount()) {
       auto numValuesStr = QString::number(numValues());
 
+      numValuesStr +=  QString(" (%1)").arg(plot_->valueTypeName());
+
       labels.push_back(numValuesStr);
     }
   }
@@ -3434,8 +3527,13 @@ drawDonutText(PaintDevice *device) const
 
     CQChartsDrawUtil::drawTextInBox(device, bbox, labels[0], textOptions1);
   }
-  else
-    CQChartsDrawUtil::drawTextsAtPoint(device, pt, labels, textOptions);
+  else {
+    auto textOptions1 = textOptions;
+
+    textOptions1.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+    CQChartsDrawUtil::drawTextsAtPoint(device, pt, labels, textOptions1);
+  }
 }
 
 CQChartsGeom::Point
@@ -3556,8 +3654,6 @@ selectPress(const Point &, CQChartsSelMod)
   auto is = setIndex();
 
   plot->setSetHidden(is.i, ! plot->isSetHidden(is.i));
-
-  plot->updateObjs();
 
   return true;
 }

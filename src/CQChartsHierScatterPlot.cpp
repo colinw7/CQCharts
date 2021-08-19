@@ -1012,8 +1012,6 @@ selectPress(const Point &, CQChartsSelMod)
 
   //plot->setSetHidden(ic_.i, ! plot->isSetHidden(ic_.i));
 
-  //plot->updateObjs();
-
   if (group_->numGroups())
     plot->setCurrentGroup(group_);
 

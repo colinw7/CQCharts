@@ -2322,8 +2322,6 @@ doShow(SelMod selMod)
     for (int i = 0; i < ic.n; ++i)
       plot->setSetHidden(i, state);
   }
-
-  plot->updateObjs();
 }
 
 void
@@ -2603,7 +2601,7 @@ CQChartsTextKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot     = key_->plot();
-  auto *drawPlot = key_->drawPlot();
+//auto *drawPlot = key_->drawPlot();
 
   //---
 

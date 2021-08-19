@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Scatter Plot controls include label visible
+ + Strip plot key
+ + Pie plot grouping average or sum
  + Optional draw key in custom controls for all plots
    + Add plot title to key
  + Scalable object to allow fit multiple (scalable) objects in rect

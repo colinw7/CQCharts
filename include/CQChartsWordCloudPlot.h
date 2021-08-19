@@ -26,6 +26,7 @@ class CQChartsWordCloudPlotType : public CQChartsPlotType {
   void addParameters() override;
 
   bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
 
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }

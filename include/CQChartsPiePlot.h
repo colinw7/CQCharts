@@ -60,12 +60,17 @@ class CQChartsPieObj : public CQChartsPlotObj {
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
   Q_PROPERTY(QString       label       READ label       WRITE setLabel      )
-  Q_PROPERTY(double        value       READ value       WRITE setValue      )
-  Q_PROPERTY(bool          missing     READ isMissing   WRITE setMissing    )
   Q_PROPERTY(QString       keyLabel    READ keyLabel    WRITE setKeyLabel   )
   Q_PROPERTY(bool          exploded    READ isExploded  WRITE setExploded   )
 
  public:
+  enum class ValueType {
+    MIN,
+    MAX,
+    MEAN,
+    SUM
+  };
+
   using PiePlot  = CQChartsPiePlot;
   using GroupObj = CQChartsPieGroupObj;
   using ArcData  = CQChartsArcData;
@@ -127,11 +132,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
 
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
-
-  bool isMissing() const { return missing_; }
-  void setMissing(bool b) { missing_ = b; }
+  void addValue(const OptReal &r);
+  double calcValue(const ValueType &valueType) const;
 
   const OptReal &optRadius() const { return radius_; }
   void setOptRadius(const OptReal &r) { radius_ = r; }
@@ -228,26 +230,25 @@ class CQChartsPieObj : public CQChartsPlotObj {
   bool isHidden() const;
 
  protected:
-  const PiePlot* plot_       { nullptr };  //!< parent plot
-  ColorInd       colorIndex_;              //!< color index
-  Angle          angle1_     { 0.0 };      //!< wedge start angle
-  Angle          angle2_     { 360.0 };    //!< wedge end angle
-  double         ri_         { 0.0 };      //!< inner radius
-  double         ro_         { 0.0 };      //!< outer radius
-  double         rv_         { 0.0 };      //!< value radius
-  QString        label_      { "" };       //!< label
-  double         value_      { 0 };        //!< value
-  bool           missing_    { false };    //!< value missing
-  OptReal        radius_;                  //!< optional radius value
-  double         radiusScale_ { 1.0 };     //!< radius scale
-  QString        keyLabel_    { "" };      //!< key label
-  Color          color_;                   //!< calculated color
-  GroupObj*      groupObj_    { nullptr }; //!< parent group object
-  bool           exploded_    { false };   //!< exploded
-  BBox           treeMapBBox_;             //!< tree map bbox
-  int            waffleStart_ { 0 };       //!< waffle start box
-  int            waffleCount_ { 0 };       //!< waffle number of boxes
-  mutable BBox   waffleBBox_;              //!< waffle bbox
+  const PiePlot*  plot_       { nullptr };  //!< parent plot
+  ColorInd        colorIndex_;              //!< color index
+  Angle           angle1_     { 0.0 };      //!< wedge start angle
+  Angle           angle2_     { 360.0 };    //!< wedge end angle
+  double          ri_         { 0.0 };      //!< inner radius
+  double          ro_         { 0.0 };      //!< outer radius
+  double          rv_         { 0.0 };      //!< value radius
+  QString         label_      { "" };       //!< label
+  CQChartsRValues values_;                  //!< value
+  OptReal         radius_;                  //!< optional radius value
+  double          radiusScale_ { 1.0 };     //!< radius scale
+  QString         keyLabel_    { "" };      //!< key label
+  Color           color_;                   //!< calculated color
+  GroupObj*       groupObj_    { nullptr }; //!< parent group object
+  bool            exploded_    { false };   //!< exploded
+  BBox            treeMapBBox_;             //!< tree map bbox
+  int             waffleStart_ { 0 };       //!< waffle start box
+  int             waffleCount_ { 0 };       //!< waffle number of boxes
+  mutable BBox    waffleBBox_;              //!< waffle bbox
 };
 
 //---
@@ -491,6 +492,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool     dumbbell   READ isDumbbell   WRITE setDumbbell  )
   Q_PROPERTY(bool     count      READ isCount      WRITE setCount     )
   Q_PROPERTY(bool     donutTitle READ isDonutTitle WRITE setDonutTitle)
+  // value
+  Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
   // . min/max value
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
@@ -539,6 +542,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   Q_ENUMS(DrawType)
   Q_ENUMS(ExplodeStyle)
+  Q_ENUMS(ValueType)
 
  public:
   enum class DrawType {
@@ -551,6 +555,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   enum class ExplodeStyle {
     OUTSET,
     EDGE
+  };
+
+  enum class ValueType {
+    MIN  = int(CQChartsPieObj::ValueType::MIN),
+    MAX  = int(CQChartsPieObj::ValueType::MAX),
+    MEAN = int(CQChartsPieObj::ValueType::MEAN),
+    SUM  = int(CQChartsPieObj::ValueType::SUM)
   };
 
   using PieGroupObj = CQChartsPieGroupObj;
@@ -618,6 +629,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool isCount() const { return count_; }
 
   bool isDonutTitle() const { return donutTitle_; }
+
+  //---
+
+  const ValueType &valueType() const { return valueType_; }
+  void setValueType(const ValueType &t);
+
+  QString valueTypeName() const;
 
   //---
 
@@ -793,17 +811,25 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
+  struct ValueData {
+    CQChartsRValues values;
+    double          dataTotal { 0.0 };
+  };
+
+  using NameValueData = std::map<QString, ValueData>;
+
   struct GroupData {
     GroupData(const QString &name) :
      name(name) {
     }
 
-    QString      name;                     //!< name
-    double       dataTotal    { 0.0 };     //!< data column value total
-    int          numValues    { 0 };       //!< data column num values
-    double       radiusMax    { 0.0 };     //!< radius column value max
-    bool         radiusScaled { false };   //!< has radius column value max
-    PieGroupObj* groupObj     { nullptr }; //!< associated group obj
+    QString       name;                     //!< name
+    NameValueData nameValueData;            //!< values and total per label
+    double        dataTotal    { 0.0 };     //!< data column value total
+    int           numValues    { 0 };       //!< data column num values
+    double        radiusMax    { 0.0 };     //!< radius column value max
+    bool          radiusScaled { false };   //!< has radius column value max
+    PieGroupObj*  groupObj     { nullptr }; //!< associated group obj
   };
 
   using GroupInd   = std::map<QString, int>;
@@ -828,23 +854,24 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Column  keyLabelColumn_; //!< key label column
 
   // draw
-  DrawType drawType_    { DrawType::PIE }; //!< draw type
-  bool     donut_       { false };         //!< show donut
-  bool     summary_     { false };         //!< show summary
-  bool     dumbbell_    { false };         //!< show dumbbell
-  bool     count_       { false };         //!< show value counts
-  bool     donutTitle_  { false };         //!< show title in donut center
-  double   minValue_    { -1.0 };          //!< min value
-  double   maxValue_    { -1.0 };          //!< max value
-  double   innerRadius_ { 0.3 };           //!< relative inner donut radius
-  double   outerRadius_ { 0.9 };           //!< relative outer donut radius
-  double   labelRadius_ { 1.1 };           //!< label radius
-  Angle    startAngle_  { 90 };            //!< first pie start angle
-  Angle    angleExtent_ { 360.0 };         //!< pie angle extent
-  Angle    gapAngle_    { 0.0 };           //!< angle gap between segments
-  bool     adjustText_  { false };         //!< adjust text position
-  bool     separated_   { true };          //!< are grouped pie objects drawn separately
-  bool     rotatedText_ { false };         //!< is label rotated
+  DrawType  drawType_    { DrawType::PIE };  //!< draw type
+  bool      donut_       { false };          //!< show donut
+  bool      summary_     { false };          //!< show summary
+  bool      dumbbell_    { false };          //!< show dumbbell
+  bool      count_       { false };          //!< show value counts
+  bool      donutTitle_  { false };          //!< show title in donut center
+  ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)
+  double    minValue_    { -1.0 };           //!< min value
+  double    maxValue_    { -1.0 };           //!< max value
+  double    innerRadius_ { 0.3 };            //!< relative inner donut radius
+  double    outerRadius_ { 0.9 };            //!< relative outer donut radius
+  double    labelRadius_ { 1.1 };            //!< label radius
+  Angle     startAngle_  { 90 };             //!< first pie start angle
+  Angle     angleExtent_ { 360.0 };          //!< pie angle extent
+  Angle     gapAngle_    { 0.0 };            //!< angle gap between segments
+  bool      adjustText_  { false };          //!< adjust text position
+  bool      separated_   { true };           //!< are grouped pie objects drawn separately
+  bool      rotatedText_ { false };          //!< is label rotated
 
   ExplodeData     explodeData_; //!< explode data
   InsideData      insideData_;  //!< inside data

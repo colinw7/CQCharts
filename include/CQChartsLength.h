@@ -51,15 +51,17 @@ class CQChartsLength :
 
   bool isValid() const { return (units_ != Units::NONE && ! CMathUtil::isNaN(value_)); }
 
-  bool isSet() const { return (units_ != Units::PIXEL || value_ != 0.0); }
+  bool isSet() const { return (units_ != Units::NONE && value_ != 0.0); }
 
   //---
 
   const Units &units() const { return units_; }
 
+#if 0
   double unitsValue(const Units &units) const {
     assert(isValid() && units_ == units); return value_;
   }
+#endif
 
   double value() const { assert(isValid()); return value_; }
 

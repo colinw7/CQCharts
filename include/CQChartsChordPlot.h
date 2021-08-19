@@ -190,13 +190,14 @@ class CQChartsChordSegmentObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using ChordPlot  = CQChartsChordPlot;
-  using ChordData  = CQChartsChordData;
-  using SegmentObj = CQChartsChordSegmentObj;
-  using EdgeObj    = CQChartsChordEdgeObj;
-  using EdgeObjs   = std::vector<EdgeObj *>;
-  using HierObj    = CQChartsChordHierObj;
-  using Angle      = CQChartsAngle;
+  using ChordPlot   = CQChartsChordPlot;
+  using ChordData   = CQChartsChordData;
+  using PrimaryType = ChordData::PrimaryType;
+  using SegmentObj  = CQChartsChordSegmentObj;
+  using EdgeObj     = CQChartsChordEdgeObj;
+  using EdgeObjs    = std::vector<EdgeObj *>;
+  using HierObj     = CQChartsChordHierObj;
+  using Angle       = CQChartsAngle;
 
  public:
   CQChartsChordSegmentObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
@@ -297,10 +298,9 @@ class CQChartsChordSegmentObj : public CQChartsPlotObj {
 
   BBox textBBox() const;
 
-  void dataAngles(double &a, double &da) const;
+  void dataAngles(Angle &a, Angle &da) const;
 
-  void valueAngles(int ind, double &a, double &da,
-                   ChordData::PrimaryType primaryType=ChordData::PrimaryType::ANY) const;
+  void valueAngles(int ind, Angle &a, Angle &da, PrimaryType primaryType=PrimaryType::ANY) const;
 
  private:
   const ChordPlot* plot_    { nullptr }; //!< parent plot
@@ -320,11 +320,12 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using ChordPlot = CQChartsChordPlot;
-  using ChordData = CQChartsChordData;
-  using EdgeObj   = CQChartsChordEdgeObj;
-  using OptReal   = CQChartsOptReal;
-  using Angle     = CQChartsAngle;
+  using ChordPlot   = CQChartsChordPlot;
+  using ChordData   = CQChartsChordData;
+  using PrimaryType = ChordData::PrimaryType;
+  using EdgeObj     = CQChartsChordEdgeObj;
+  using OptReal     = CQChartsOptReal;
+  using Angle       = CQChartsAngle;
 
  public:
   CQChartsChordEdgeObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
@@ -442,7 +443,7 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
 
   double labelRadius() const;
 
-  void dataAngles(double &angle1, double &angle2) const;
+  void dataAngles(Angle &angle1, Angle &angle2) const;
 
   double calcTotal() const;
   double calcAltTotal() const;

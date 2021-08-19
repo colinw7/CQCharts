@@ -33,16 +33,6 @@ class CQChartsConnectionList {
    setValue(s);
   }
 
-  CQChartsConnectionList(const CQChartsConnectionList &rhs) :
-   connections_(rhs.connections_) {
-  }
-
-  CQChartsConnectionList &operator=(const CQChartsConnectionList &rhs) {
-    connections_ = rhs.connections_;
-
-    return *this;
-  }
-
   const Connections &connections() const { return connections_; }
 
   bool setValue(const QString &str) {

@@ -951,6 +951,8 @@ updateWidgets()
 {
   int nc = getColumns().count();
 
+  setVisible(nc > 1);
+
   columnList_->clear();
 
   columnList_->setColumnCount(2);

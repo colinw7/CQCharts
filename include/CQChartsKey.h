@@ -292,7 +292,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
  public:
   using KeyItem  = CQChartsKeyItem;
-  using KeyItems = std::vector<KeyItem*>;
+  using KeyItems = std::vector<KeyItem *>;
 
  public:
   CQChartsPlotKey(Plot *plot);
@@ -366,14 +366,18 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
+  //---
+
   void clearItems();
 
   void addItem(KeyItem *item, int row, int col, int nrows=1, int ncols=1);
 
+  const KeyItems &items() const { return items_; }
+
+  //---
+
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
-
-  const KeyItems &items() const { return items_; }
 
   //---
 
@@ -740,8 +744,6 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   void setKey(PlotKey *p) override;
 
-  const KeyItems &items() const { return items_; }
-
   //---
 
   void addRowItems(KeyItem *litem, KeyItem *ritem);
@@ -749,6 +751,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   void addItem(KeyItem *item);
 
   void removeItem(KeyItem *item, bool keep=false);
+
+  const KeyItems &items() const { return items_; }
 
   //---
 

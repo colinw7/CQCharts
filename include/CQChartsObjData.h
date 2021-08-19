@@ -1043,7 +1043,7 @@ class CQChartsObj##UNAME##TextData { \
 \
   CQChartsTextOptions LNAME##TextOptions(CQChartsPaintDevice *device=nullptr) const { \
     CQChartsTextOptions textOptions; \
- \
+\
     textOptions.angle         = LNAME##TextAngle(); \
     textOptions.contrast      = is##UNAME##TextContrast(); \
     textOptions.contrastAlpha = LNAME##TextContrastAlpha(); \
@@ -1056,7 +1056,7 @@ class CQChartsObj##UNAME##TextData { \
     if (device) \
       textOptions.clipLength = \
         CQChartsDrawUtil::lengthPixelWidth(device, LNAME##TextClipLength()); \
- \
+\
     return textOptions; \
   } \
 \

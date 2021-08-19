@@ -759,7 +759,7 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
-  double angle1 = this->startAngle().value();
+  Angle angle1 = this->startAngle();
 
   for (int row = 0; row < nv; ++row) {
     auto &data = datas[row];
@@ -776,13 +776,12 @@ initTableObjs(PlotObjs &objs) const
     if (CMathUtil::isZero(total1))
       continue;
 
-    double dangle = valueToDegrees(total1);
-
-    double angle2 = angle1 + dangle;
+    auto dangle = Angle(valueToDegrees(total1));
+    auto angle2 = angle1 + dangle;
 
     data.setAngles(Angle(angle1), Angle(dangle));
 
-    angle1 = angle2 + gap;
+    angle1 = angle2 + Angle(gap);
   }
 
   //---
@@ -1062,7 +1061,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   //---
 
-  double angle1 = this->startAngle().value();
+  auto angle1 = this->startAngle();
 
   for (int row = 0; row < nv; ++row) {
     auto &data = datas[row];
@@ -1074,13 +1073,12 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     else
       total1 = data.total();
 
-    double dangle = valueToDegrees(total1);
-
-    double angle2 = angle1 + dangle;
+    auto dangle = Angle(valueToDegrees(total1));
+    auto angle2 = angle1 + dangle;
 
     data.setAngles(Angle(angle1), Angle(dangle));
 
-    angle1 = angle2 + gap;
+    angle1 = angle2 + Angle(gap);
   }
 
   //---
@@ -1458,14 +1456,14 @@ arcData() const
   arcData.setInnerRadius(calcInnerRadius());
   arcData.setOuterRadius(calcOuterRadius());
 
-  double a1, da;
+  Angle a1, da;
 
   dataAngles(a1, da);
 
-  double a2 = a1 + da;
+  auto a2 = a1 + da;
 
-  arcData.setAngle1(Angle(a1));
-  arcData.setAngle2(Angle(a2));
+  arcData.setAngle1(a1);
+  arcData.setAngle2(a2);
 
   return arcData;
 }
@@ -1519,7 +1517,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  double angle1, dangle;
+  Angle angle1, dangle;
 
   dataAngles(angle1, dangle);
 
@@ -1611,13 +1609,13 @@ drawFg(PaintDevice *device) const
   lr = std::max(lr, 0.01);
 
   // calc label angle
-  double angle1, dangle;
+  Angle angle1, dangle;
 
   dataAngles(angle1, dangle);
 
-  double angle2 = angle1 + dangle;
+  auto angle2 = Angle(angle1 + dangle);
 
-  double ta = CMathUtil::avg(angle1, angle2);
+  auto ta = Angle::avg(angle1, angle2);
 
   //---
 
@@ -1751,11 +1749,11 @@ textBBox() const
 
   //---
 
-  double angle1, dangle;
+  Angle angle1, dangle;
 
   dataAngles(angle1, dangle);
 
-  double angle2 = angle1 + dangle;
+  auto angle2 = angle1 + dangle;
 
   //---
 
@@ -1775,7 +1773,7 @@ textBBox() const
 
   lr = std::max(lr, 0.01);
 
-  double ta = CMathUtil::avg(angle1, angle2);
+  auto ta = Angle::avg(angle1, angle2);
 
   Point center(0, 0);
 
@@ -1810,17 +1808,17 @@ labelRadius() const
 
 void
 CQChartsChordSegmentObj::
-dataAngles(double &a, double &da) const
+dataAngles(Angle &a, Angle &da) const
 {
-  a  = data_.angle ().value();
-  da = data_.dangle().value();
+  a  = data_.angle ();
+  da = data_.dangle();
 }
 
 void
 CQChartsChordSegmentObj::
-valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) const
+valueAngles(int ind, Angle &a, Angle &da, ChordData::PrimaryType primaryType) const
 {
-  a = data_.angle().value();
+  a = data_.angle();
 
   for (const auto &value : data_.values()) {
     if (primaryType == ChordData::PrimaryType::PRIMARY && ! value.primary)
@@ -1829,7 +1827,7 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
     if (primaryType == ChordData::PrimaryType::NON_PRIMARY && value.primary)
       continue;
 
-    da = plot_->valueToDegrees(value.value.realOr(0.0));
+    da = Angle(plot_->valueToDegrees(value.value.realOr(0.0)));
 
     if (ind == value.to)
       return;
@@ -1837,7 +1835,7 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
     a += da;
   }
 
-  da = 0.0;
+  da = Angle();
 }
 
 double
@@ -1978,20 +1976,20 @@ draw(PaintDevice *device) const
   //---
 
   // get from/to angles
-  double a1, da1, a2, da2;
+  Angle a1, da1, a2, da2;
 
   if (! plot_->isSymmetric()) {
-    fromObj->valueAngles(to  (), a1, da1, ChordData::PrimaryType::PRIMARY    );
-    toObj  ->valueAngles(from(), a2, da2, ChordData::PrimaryType::NON_PRIMARY);
+    fromObj->valueAngles(to  (), a1, da1, PrimaryType::PRIMARY    );
+    toObj  ->valueAngles(from(), a2, da2, PrimaryType::NON_PRIMARY);
   }
   else {
     fromObj->valueAngles(to  (), a1, da1);
     toObj  ->valueAngles(from(), a2, da2);
   }
 
-  if (CMathUtil::isZero(da1))
+  if (da1.isZero())
     return;
-//if (CMathUtil::isZero(da2))
+//if (da2.isZero())
 //  return;
 
   //---
@@ -2042,11 +2040,11 @@ draw(PaintDevice *device) const
   if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     QPainterPath path;
 
-    double a1c = a1 + da1/2.0;
-    double a2c = a2 + da2/2.0;
+    auto a1c = Angle(a1.value() + da1.value()/2.0);
+    auto a2c = Angle(a2.value() + da2.value()/2.0);
 
     CQChartsDrawUtil::arcsConnectorPath(path, ibbox,
-      Angle(a1c - 0.05), Angle(0.1), Angle(a2c - 0.05), Angle(0.1), isSelf);
+      Angle(a1c.value() - 0.05), Angle(0.1), Angle(a2c.value() - 0.05), Angle(0.1), isSelf);
 
     auto p1 = path.pointAtPercent(0.23);
     auto p2 = path.pointAtPercent(0.27);
@@ -2231,7 +2229,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  double angle1 = 0.0, angle2 = 0.0;
+  Angle angle1, angle2;
 
   dataAngles(angle1, angle2);
 
@@ -2283,11 +2281,11 @@ drawFg(PaintDevice *device) const
   lr = std::max(lr, 0.01);
 
   // calc label angle
-  double angle1, angle2;
+  Angle angle1, angle2;
 
   dataAngles(angle1, angle2);
 
-  double ta = CMathUtil::avg(angle1, angle2);
+  auto ta = Angle::avg(angle1, angle2);
 
   //---
 
@@ -2393,10 +2391,10 @@ labelRadius() const
 
 void
 CQChartsChordHierObj::
-dataAngles(double &angle1, double &angle2) const
+dataAngles(Angle &angle1, Angle &angle2) const
 {
-  angle1 = 0.0;
-  angle2 = 0.0;
+  angle1 = Angle();
+  angle2 = Angle();
 
   bool angleSet = false;
 
@@ -2405,7 +2403,7 @@ dataAngles(double &angle1, double &angle2) const
     auto *segmentObj = dynamic_cast<CQChartsChordSegmentObj *>(obj);
 
     if      (hierObj) {
-      double angle11 = 0.0, angle21 = 0.0;
+      Angle angle11, angle21;
 
       hierObj->dataAngles(angle11, angle21);
 
@@ -2421,7 +2419,7 @@ dataAngles(double &angle1, double &angle2) const
       }
     }
     else if (segmentObj) {
-      double angle = 0.0, dangle = 0.0;
+      Angle angle, dangle;
 
       segmentObj->dataAngles(angle, dangle);
 

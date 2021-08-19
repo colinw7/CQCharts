@@ -171,12 +171,12 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   struct ExtraData {
-    Symbol  symbol;                          //!< symbol
-    Length  symbolSize { Units::NONE, 0.0 }; //!< symbol size
-    Color   color;                           //!< symbol fill color
-    Alpha   alpha;                           //!< symbol fill alpha
-    Length  fontSize   { Units::NONE, 0.0 }; //!< font size
-    Font    font;                            //!< text font
+    Symbol  symbol;     //!< symbol
+    Length  symbolSize; //!< symbol size
+    Color   color;      //!< symbol fill color
+    Alpha   alpha;      //!< symbol fill alpha
+    Length  fontSize;   //!< font size
+    Font    font;       //!< text font
   };
 
  private:
@@ -948,7 +948,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
   void plotTypeSlot();
 
-//void pointLabelsSlot();
+  void pointLabelsSlot();
   void labelColumnSlot();
   void positionSlot();
 
@@ -964,7 +964,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   QCheckBox* hullCheck_    { nullptr };
 
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
-//CQCheckBox*                pointLabelsCheck_ { nullptr };
+  CQGroupBox*                symbolLabelGroup_ { nullptr };
   CQChartsColumnCombo*       labelColumnCombo_ { nullptr };
   CQEnumCombo*               positionEdit_     { nullptr };
 

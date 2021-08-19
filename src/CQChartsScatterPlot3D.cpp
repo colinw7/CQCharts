@@ -1768,8 +1768,6 @@ selectPress(const Point &, CQChartsSelMod selMod)
     plot->setSetHidden(ih, ! plot->isSetHidden(ih));
   }
 
-  plot->updateRangeAndObjs();
-
   return true;
 }
 

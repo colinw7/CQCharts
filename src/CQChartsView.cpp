@@ -7866,6 +7866,8 @@ double
 CQChartsView::
 lengthViewWidth(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return pixelToWindowWidth(len.value());
   else if (len.units() == Units::VIEW)
@@ -7884,6 +7886,8 @@ double
 CQChartsView::
 lengthViewHeight(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return pixelToWindowHeight(len.value());
   else if (len.units() == Units::VIEW)
@@ -7902,6 +7906,8 @@ double
 CQChartsView::
 lengthViewSignedWidth(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return pixelToSignedWindowWidth(len.value());
   else if (len.units() == Units::VIEW)
@@ -7920,6 +7926,8 @@ double
 CQChartsView::
 lengthViewSignedHeight(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return pixelToSignedWindowHeight(len.value());
   else if (len.units() == Units::VIEW)
@@ -7938,6 +7946,8 @@ double
 CQChartsView::
 lengthPixelWidth(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return len.value();
   else if (len.units() == Units::VIEW)
@@ -7959,6 +7969,8 @@ double
 CQChartsView::
 lengthPixelHeight(const Length &len) const
 {
+  if (! len.isValid()) return 0.0;
+
   if      (len.units() == Units::PIXEL)
     return len.value();
   else if (len.units() == Units::VIEW)
