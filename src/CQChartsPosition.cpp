@@ -23,7 +23,7 @@ toString() const
   if (! isValid())
     return "";
 
-  auto ustr = CQChartsUtil::unitsString(units_);
+  auto ustr = CQChartsUnits::unitsString(units_);
 
   return QString("%1 %2 %3").arg(p_.x).arg(p_.y).arg(ustr);
 }
@@ -57,7 +57,7 @@ decodeString(const QString &str, Units &units, Point &point, const Units &defUni
   units = defUnits;
 
   if (strs.length() > 2) {
-    if (! CQChartsUtil::decodeUnits(strs[2], units, defUnits))
+    if (! CQChartsUnits::decodeUnits(strs[2], units, defUnits))
       return false;
   }
 

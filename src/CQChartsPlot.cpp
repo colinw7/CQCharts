@@ -9349,7 +9349,7 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
     int i = 0, n = 1;
 
     // use index of value in unique values to generate value in range
-    // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+    // (CQChartsSymbolType::minValue, CQChartsSymbolType::maxValue)
     auto *columnDetails = this->columnDetails(symbolTypeData.column);
 
     if (columnDetails) {
@@ -9459,6 +9459,8 @@ void
 CQChartsPlot::
 initSymbolSizeData(SymbolSizeData &symbolSizeData) const
 {
+  bool initMap = ! symbolSizeData.valid;
+
   symbolSizeData.valid = false;
 
   if (! symbolSizeData.column.isValid())
@@ -9510,22 +9512,25 @@ initSymbolSizeData(SymbolSizeData &symbolSizeData) const
     }
   }
 
+  if (initMap) {
+    symbolSizeData.user_map_min = symbolSizeData.map_min;
+    symbolSizeData.user_map_max = symbolSizeData.map_max;
+  }
+
   symbolSizeData.valid = true;
 }
 
 bool
 CQChartsPlot::
 columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
-                 Length &symbolSize) const
+                 Length &symbolSize, Qt::Orientation &sizeDir) const
 {
   if (! symbolSizeData.valid)
     return false;
 
   auto *th = const_cast<Plot *>(this);
 
-  auto units = Units::PIXEL;
-
-  (void) CQChartsUtil::decodeUnits(symbolSizeData.units, units);
+  auto units = symbolSizeData.units;
 
   ModelIndex symbolSizeModelInd(th, row, symbolSizeData.column, parent);
 
@@ -9537,14 +9542,14 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
   if      (CQChartsVariant::isNumeric(var)) {
     if (symbolSizeData.mapped) {
       // map value in range (symbolSizeData.data_min, symbolSizeData.data_max) to
-      // (symbolSizeData.map_min, symbolSizeData.map_max)
+      // (symbolSizeData.user_map_min, symbolSizeData.user_map_max)
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
       double r1 = CMathUtil::map(r, symbolSizeData.data_min, symbolSizeData.data_max,
-                                 symbolSizeData.map_min, symbolSizeData.map_max);
+                                 symbolSizeData.user_map_min, symbolSizeData.user_map_max);
 
-      symbolSize = Length(r1, units);
+      symbolSize = Length(r1, units.type());
     }
     else {
       // use value directly for size
@@ -9570,16 +9575,19 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
 
 //    double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
 //                              CQChartsSymbolSize::maxValue());
-      double r = CMathUtil::map(i, 0, n - 1, symbolSizeData.map_min, symbolSizeData.map_max);
+      double r = CMathUtil::map(i, 0, n - 1,
+                                symbolSizeData.user_map_min, symbolSizeData.user_map_max);
 
-      symbolSize = Length(r, units);
+      symbolSize = Length(r, units.type());
     }
     else {
       auto str = CQChartsVariant::toString(var, ok);
 
-      symbolSize = Length(str, units);
+      symbolSize = Length(str, units.type());
     }
   }
+
+  sizeDir = symbolSizeData.direction;
 
   return symbolSize.isValid();
 }
@@ -9590,6 +9598,8 @@ void
 CQChartsPlot::
 initFontSizeData(FontSizeData &fontSizeData) const
 {
+  bool initMap = ! fontSizeData.valid;
+
   fontSizeData.valid = false;
 
   if (! fontSizeData.column.isValid())
@@ -9635,22 +9645,25 @@ initFontSizeData(FontSizeData &fontSizeData) const
     }
   }
 
+  if (initMap) {
+    fontSizeData.user_map_min = fontSizeData.map_min;
+    fontSizeData.user_map_max = fontSizeData.map_max;
+  }
+
   fontSizeData.valid = true;
 }
 
 bool
 CQChartsPlot::
 columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
-               Length &fontSize) const
+               Length &fontSize, Qt::Orientation &sizeDir) const
 {
   if (! fontSizeData.valid)
     return false;
 
   auto *th = const_cast<Plot *>(this);
 
-  auto units = Units::PIXEL;
-
-  (void) CQChartsUtil::decodeUnits(fontSizeData.units, units);
+  auto units = fontSizeData.units;
 
   ModelIndex fontSizeModelInd(th, row, fontSizeData.column, parent);
 
@@ -9661,15 +9674,15 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
 
   if      (CQChartsVariant::isNumeric(var)) {
     if (fontSizeData.mapped) {
-      // map value in range (fontSizeData.map_min, fontSizeData.data_max) to
-      // (fontSizeData.map_min, fontSizeData.map_max)
+      // map value in range (fontSizeData.data_min, fontSizeData.data_max) to
+      // (fontSizeData.user_map_min, fontSizeData.user_map_max)
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
       double r1 = CMathUtil::map(r, fontSizeData.data_min, fontSizeData.data_max,
-                                 fontSizeData.map_min, fontSizeData.map_max);
+                                 fontSizeData.user_map_min, fontSizeData.user_map_max);
 
-      fontSize = Length(r1, units);
+      fontSize = Length(r1, units.type());
     }
     else {
       // use value directly for size
@@ -9683,7 +9696,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
   else {
     if (fontSizeData.mapped) {
       // use index of value in unique values to generate value in range
-      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      // (CQChartsFontSize::minValue, CQChartsFontSize::maxValue)
       auto *columnDetails = this->columnDetails(fontSizeData.column);
       if (! columnDetails) return false;
 
@@ -9695,16 +9708,19 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
 
 //    double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
 //                              CQChartsFontSize::maxValue());
-      double r = CMathUtil::map(i, 0, n - 1, fontSizeData.map_min, fontSizeData.map_max);
+      double r = CMathUtil::map(i, 0, n - 1,
+                                fontSizeData.user_map_min, fontSizeData.user_map_max);
 
-      fontSize = Length(r, units);
+      fontSize = Length(r, units.type());
     }
     else {
       auto str = CQChartsVariant::toString(var, ok);
 
-      fontSize = Length(str, units);
+      fontSize = Length(str, units.type());
     }
   }
+
+  sizeDir = fontSizeData.direction;
 
   return fontSize.isValid();
 }
@@ -14964,7 +14980,7 @@ setPen(PenBrush &penBrush, const PenData &penData) const
   double width = 0.0;
 
   if (penData.width().isValid())
-    width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
+    width = limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
                        width, penData.dash(), penData.lineCap(), penData.lineJoin());
@@ -17474,26 +17490,40 @@ windowToPixel(const QPainterPath &path) const
 
 void
 CQChartsPlot::
-plotSymbolSize(const Length &s, double &sx, double &sy) const
+plotSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
 {
-  sx = lengthPlotWidth (s);
-  sy = lengthPlotHeight(s);
+  if (dir == Qt::Horizontal) {
+    sx = lengthPlotWidth(s);
+    sy = pixelToWindowHeight(windowToPixelWidth(sx));
+  }
+  else {
+    sy = lengthPlotHeight(s);
+    sx = pixelToWindowHeight(windowToPixelWidth(sy));
+  }
 }
 
 void
 CQChartsPlot::
-pixelSymbolSize(const Length &s, double &sx, double &sy) const
+pixelSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
 {
-  sx = limitSymbolSize(lengthPixelWidth (s));
-  sy = limitSymbolSize(lengthPixelHeight(s));
+  if (dir == Qt::Horizontal) {
+    sx = limitSymbolSize(lengthPixelWidth(s));
+    sy = sx;
+  }
+  else {
+    sy = limitSymbolSize(lengthPixelHeight(s));
+    sx = sy;
+  }
 }
+
+//------
 
 double
 CQChartsPlot::
 limitSymbolSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return CMathUtil::clamp(s, 1.0, CQChartsSymbolSize::maxPixelValue());
+  return CMathUtil::clamp(s, 1.0, charts()->maxSymbolSize());
 }
 
 double
@@ -17501,7 +17531,15 @@ CQChartsPlot::
 limitFontSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return CMathUtil::clamp(s, 1.0, CQChartsFontSize::maxPixelValue());
+  return CMathUtil::clamp(s, 1.0, charts()->maxFontSize());
+}
+
+double
+CQChartsPlot::
+limitLineWidth(double w) const
+{
+  // ensure not a crazy number : TODO: property for limits
+  return CMathUtil::clamp(w, 0.0, charts()->maxLineWidth());
 }
 
 //------

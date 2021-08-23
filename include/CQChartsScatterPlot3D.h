@@ -54,7 +54,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
  public:
   using Plot    = CQChartsScatterPlot3D;
   using Length  = CQChartsLength;
-  using Units   = CQChartsUnits;
+  using Units   = CQChartsUnits::Type;
   using Symbol  = CQChartsSymbol;
   using Point3D = CQChartsGeom::Point3D;
 

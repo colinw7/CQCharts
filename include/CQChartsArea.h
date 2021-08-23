@@ -1,8 +1,8 @@
-#ifndef CQChartsLength_H
-#define CQChartsLength_H
+#ifndef CQChartsArea_H
+#define CQChartsArea_H
 
-#include <CQChartsTypes.h>
 #include <CQChartsUnits.h>
+#include <CQChartsTypes.h>
 #include <CQChartsTmpl.h>
 #include <CMathUtil.h>
 #include <QString>
@@ -10,42 +10,41 @@
 #include <cassert>
 
 /*!
- * \brief Length class
+ * \brief Area class
  * \ingroup Charts
  */
-class CQChartsLength :
-  public CQChartsEqBase<CQChartsLength>,
-  public CQChartsToStringBase<CQChartsLength> {
+class CQChartsArea :
+  public CQChartsEqBase<CQChartsArea>,
+  public CQChartsToStringBase<CQChartsArea> {
  public:
   static void registerMetaType();
 
   static int metaTypeId;
 
  public:
-  using Length = CQChartsLength;
-  using Units  = CQChartsUnits::Type;
+  using Units = CQChartsUnits::Type;
 
  public:
-  static Length view   (double value) { return Length(value, Units::VIEW); }
-  static Length plot   (double value) { return Length(value, Units::PLOT); }
-  static Length pixel  (double value) { return Length(value, Units::PIXEL); }
-  static Length percent(double value) { return Length(value, Units::PERCENT); }
+  static CQChartsArea view   (double value) { return CQChartsArea(value, Units::VIEW); }
+  static CQChartsArea plot   (double value) { return CQChartsArea(value, Units::PLOT); }
+  static CQChartsArea pixel  (double value) { return CQChartsArea(value, Units::PIXEL); }
+  static CQChartsArea percent(double value) { return CQChartsArea(value, Units::PERCENT); }
 
-  static Length view(const QString &str) { return Length(str, Units::VIEW); }
-  static Length plot(const QString &str) { return Length(str, Units::PLOT); }
+  static CQChartsArea view(const QString &str) { return CQChartsArea(str, Units::VIEW); }
+  static CQChartsArea plot(const QString &str) { return CQChartsArea(str, Units::PLOT); }
 
  public:
-  CQChartsLength() = default;
+  CQChartsArea() = default;
 
-  CQChartsLength(const Units &units, double value) :
+  CQChartsArea(const Units &units, double value) :
    units_(units), value_(value) {
   }
 
-  CQChartsLength(double value, const Units &units) :
+  CQChartsArea(double value, const Units &units) :
    units_(units), value_(value) {
   }
 
-  explicit CQChartsLength(const QString &s, const Units &units=Units::PLOT) {
+  explicit CQChartsArea(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
   }
 
@@ -84,7 +83,7 @@ class CQChartsLength :
 
   //---
 
-  friend bool operator==(const Length &lhs, const Length &rhs) {
+  friend bool operator==(const CQChartsArea &lhs, const CQChartsArea &rhs) {
     if (lhs.units_ != rhs.units_) return false;
     if (lhs.value_ != rhs.value_) return false;
 
@@ -106,6 +105,6 @@ class CQChartsLength :
 
 #include <CQUtilMeta.h>
 
-CQUTIL_DCL_META_TYPE(CQChartsLength)
+CQUTIL_DCL_META_TYPE(CQChartsArea)
 
 #endif

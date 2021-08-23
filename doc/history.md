@@ -1329,3 +1329,7 @@
  + allow title to be displayed in center of pie plot
  + use text shape crtp instead of text object and refactor rotated text shape apis
  + use text options API to populate from data instead of duplicted code
+# 8/22/2021
+ + support min symbol size and min label size in scatter plot
+ + support min area in tree map and bubble plots
+ + add units as qproperty type

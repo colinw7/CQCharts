@@ -30,7 +30,7 @@ toString() const
 
 bool
 CQChartsPoints::
-fromString(const QString &str, const CQChartsUnits &defUnits)
+fromString(const QString &str, const Units &defUnits)
 {
   QStringList strs;
 

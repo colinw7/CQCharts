@@ -16,7 +16,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   using Plot  = CQChartsPlot;
   using Angle = CQChartsAngle;
   using Image = CQChartsImage;
-  using Units = CQChartsUnits;
+  using Units = CQChartsUnits::Type;
 
  public:
   CQChartsViewPlotPaintDevice(View *view, QPainter *painter);

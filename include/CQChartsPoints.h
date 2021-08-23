@@ -21,7 +21,7 @@ class CQChartsPoints :
  public:
   using Position = CQChartsPosition;
   using Points   = std::vector<Position>;
-  using Units    = CQChartsUnits;
+  using Units    = CQChartsUnits::Type;
 
  public:
   CQChartsPoints(const Points &points=Points()) :

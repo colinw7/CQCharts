@@ -565,7 +565,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
   Color  lineColor_ { QColor(0, 0, 0) };
   Alpha  lineAlpha_ { 0.5 };
-  Length lineWidth_ { 4, Units::PIXEL };
+  Length lineWidth_ { Length::pixel(4) };
 
   Color gridColor_ { QColor(0, 0, 0) };
   Alpha gridAlpha_ { 0.5 };

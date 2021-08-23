@@ -12,31 +12,12 @@ enum class CQChartsSelMod {
 namespace CQChartsSymbolSize {
   inline double minValue() { return 3.0; }
   inline double maxValue() { return 64.0; }
-
-  inline double maxPixelValue() { return 1000.0; }
 }
 
 namespace CQChartsFontSize {
   inline double minValue() { return 6.0; }
   inline double maxValue() { return 48.0; }
-
-  inline double maxPixelValue() { return 1000.0; }
 }
-
-namespace CQChartsLineWidth {
-  inline double maxPixelValue() { return 64.0; }
-}
-
-//! value units
-enum class CQChartsUnits {
-  NONE,
-  VIEW,
-  PLOT,
-  PIXEL,
-  PERCENT,
-  EM,
-  EX
-};
 
 //! resize side
 enum class CQChartsResizeSide {

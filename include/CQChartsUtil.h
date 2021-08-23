@@ -347,32 +347,6 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
               const Alpha &fillAlpha=Alpha(),
               const FillPattern &pattern=FillPattern(FillPattern::Type::SOLID));
 
-double limitLineWidth(double w);
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-using Units = CQChartsUnits;
-
-inline QString unitsString(const Units &units) {
-  if      (units == Units::PIXEL  ) return "px";
-  else if (units == Units::PERCENT) return "%" ;
-  else if (units == Units::PLOT   ) return "P" ;
-  else if (units == Units::VIEW   ) return "V" ;
-  else if (units == Units::EM     ) return "em";
-  else if (units == Units::EX     ) return "ex";
-  else                              return ""  ;
-}
-
-bool decodeUnits(const QString &str, Units &units, const Units &defUnits=Units::PLOT);
-
-QStringList unitNames(bool includeNone=false);
-
-QStringList unitTipNames(bool includeNone=false);
-
 }
 
 //------
@@ -482,6 +456,14 @@ inline double areaToRadius(double a) {
 
 inline double clampDegrees(double a) {
   return CMathUtil::clamp(a, -360.0, 360.0);
+}
+
+inline double circleArea(double r) {
+  return M_PI*r*r;
+}
+
+inline double ellipseArea(double xr, double yr) {
+  return M_PI*xr*yr;
 }
 
 }

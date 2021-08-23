@@ -1,6 +1,7 @@
 #ifndef CQChartsCreateAnnotationDlg_H
 #define CQChartsCreateAnnotationDlg_H
 
+#include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
 #include <QDialog>
 
@@ -44,7 +45,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
  public:
   using View  = CQChartsView;
   using Plot  = CQChartsPlot;
-  using Units = CQChartsUnits;
+  using Units = CQChartsUnits::Type;
 
  public:
   CQChartsCreateAnnotationDlg(QWidget *parent, View *view);

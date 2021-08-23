@@ -2,6 +2,7 @@
 #define CQChartsPosition_H
 
 #include <CQChartsGeom.h>
+#include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
 #include <QString>
 #include <iostream>
@@ -20,7 +21,7 @@ class CQChartsPosition :
 
  public:
   using Point = CQChartsGeom::Point;
-  using Units = CQChartsUnits;
+  using Units = CQChartsUnits::Type;
 
  public:
   static CQChartsPosition view (const Point &p) { return CQChartsPosition(p, Units::VIEW); }

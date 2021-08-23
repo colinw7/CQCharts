@@ -1386,7 +1386,7 @@ namespace CQChartsUtil {
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
             double strokeWidth, const LineDash &strokeDash, const LineCap &lineCap,
             const LineJoin &lineJoin) {
-  double width = limitLineWidth(strokeWidth);
+  //strokeWidth = limitLineWidth(strokeWidth);
 
   // calc pen (stroke)
   if (stroked) {
@@ -1398,8 +1398,8 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &str
 
     pen.setCosmetic(true);
 
-    if (width > 0)
-      pen.setWidthF(width);
+    if (strokeWidth > 0)
+      pen.setWidthF(strokeWidth);
     else
       pen.setWidthF(0.0);
 
@@ -1527,60 +1527,12 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
   }
 }
 
+#if 0
 double limitLineWidth(double w) {
   // TODO: configuration setting
   return CMathUtil::clamp(w, 0.0, CQChartsLineWidth::maxPixelValue());
 }
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-using Units = CQChartsUnits;
-
-bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &defUnits) {
-  CQStrParse parse(str);
-
-  parse.skipSpace();
-
-  if      (parse.isString("px") || parse.isString("pixel"))
-    units = Units::PIXEL;
-  else if (parse.isString("%" ) || parse.isString("percent"))
-    units = Units::PERCENT;
-  else if (parse.isString("V" ) || parse.isString("view"))
-    units = Units::VIEW;
-  else if (parse.isString("P" ) || parse.isString("plot"))
-    units = Units::PLOT;
-  else if (parse.isString("em"))
-    units = Units::EM;
-  else if (parse.isString("ex"))
-    units = Units::EX;
-  else if (parse.eof())
-    units = defUnits;
-  else
-    return false;
-
-  return true;
-}
-
-QStringList unitNames(bool includeNone) {
-  static auto names      = QStringList() << "px" << "%" << "P" << "V" << "em" << "ex";
-  static auto none_names = QStringList() << "none" << names;
-
-  return (includeNone ? none_names : names);
-}
-
-QStringList unitTipNames(bool includeNone) {
-  static auto names = QStringList() <<
-    "px (Pixel)" << "% (Percent)" << "P (Plot)" << "V (View)" <<
-    "em (Font Height)" << "ex (Font 'x' Character Width)";
-
-  static auto none_names = QStringList() << "None" << names;
-
-  return (includeNone ? none_names : names);
-}
+#endif
 
 }
 

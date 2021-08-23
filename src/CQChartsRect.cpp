@@ -18,10 +18,10 @@ registerMetaType()
 
 bool
 CQChartsRect::
-setValue(const QString &str, const CQChartsUnits &defUnits)
+setValue(const QString &str, const Units &defUnits)
 {
-  CQChartsUnits units;
-  BBox          bbox;
+  Units units;
+  BBox  bbox;
 
   if (! decodeString(str, units, bbox, defUnits))
     return false;
@@ -58,7 +58,7 @@ CQChartsRect::
 toString() const
 {
   if (isValid()) {
-    auto ustr = CQChartsUtil::unitsString(units_);
+    auto ustr = CQChartsUnits::unitsString(units_);
 
     return QString("%1 %2 %3 %4 %5").
              arg(bbox_.getXMin()).arg(bbox_.getYMin()).
@@ -70,7 +70,7 @@ toString() const
 
 bool
 CQChartsRect::
-decodeString(const QString &str, CQChartsUnits &units, BBox &bbox, const CQChartsUnits &defUnits)
+decodeString(const QString &str, Units &units, BBox &bbox, const Units &defUnits)
 {
   CQStrParse parse(str);
 
@@ -79,7 +79,7 @@ decodeString(const QString &str, CQChartsUnits &units, BBox &bbox, const CQChart
 
   parse.skipSpace();
 
-  if (! CQChartsUtil::decodeUnits(parse.getAt(), units, defUnits))
+  if (! CQChartsUnits::decodeUnits(parse.getAt(), units, defUnits))
     return false;
 
   return true;

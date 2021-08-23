@@ -137,7 +137,9 @@ void
 CQChartsTreeMapPlot::
 setTitles(bool b)
 {
-  CQChartsUtil::testAndSet(titleData_.visible, b, [&]() { updateCurrentRoot(); } );
+  CQChartsUtil::testAndSet(titleData_.visible, b, [&]() {
+    updateCurrentRoot(); emit customDataChanged();
+  } );
 }
 
 void
@@ -247,6 +249,13 @@ setMarginWidth(const Length &l)
   CQChartsUtil::testAndSet(nodeData_.marginWidth, l, [&]() { updateCurrentRoot(); } );
 }
 
+void
+CQChartsTreeMapPlot::
+setMinArea(const Area &a)
+{
+  CQChartsUtil::testAndSet(minArea_, a, [&]() { drawObjs(); } );
+}
+
 //----
 
 void
@@ -293,6 +302,7 @@ addProperties()
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
   addProp("options", "followViewExpand", "", "Follow view expand");
+  addProp("options", "minArea"         , "", "Min box area");
 
   // margins
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
@@ -1827,6 +1837,9 @@ draw(PaintDevice *device) const
 
   //---
 
+  if (this->isMinArea())
+    return;
+
   auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
   auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
@@ -2024,6 +2037,28 @@ calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
+}
+
+bool
+CQChartsTreeMapNodeObj::
+isMinArea() const
+{
+  auto &minArea = plot_->minArea();
+
+  if (! minArea.isValid())
+    return false;
+
+  if      (minArea.units() == Units::PLOT) {
+    return (minArea.value() > (node_->w()*node_->h()));
+  }
+  else if (minArea.units() == Units::PIXEL) {
+    auto pw = plot_->windowToPixelWidth (node_->w());
+    auto ph = plot_->windowToPixelHeight(node_->h());
+
+    return (minArea.value() > (pw*ph));
+  }
+  else
+    return false;
 }
 
 bool
@@ -2465,12 +2500,12 @@ addWidgets()
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame");
 
-  valueCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Show Value", "valueCheck");
-
-  addFrameColWidget(optionsFrame, valueCheck_);
-
+  headerCheck_     = CQUtil::makeLabelWidget<QCheckBox>("Show Header", "headerCheck");
+  valueCheck_      = CQUtil::makeLabelWidget<QCheckBox>("Show Value" , "valueCheck");
   followViewCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Follow View", "followViewCheck_");
 
+  addFrameColWidget(optionsFrame, headerCheck_);
+  addFrameColWidget(optionsFrame, valueCheck_);
   addFrameColWidget(optionsFrame, followViewCheck_);
 }
 
@@ -2478,6 +2513,8 @@ void
 CQChartsTreeMapPlotCustomControls::
 connectSlots(bool b)
 {
+  CQChartsWidgetUtil::connectDisconnect(b,
+    headerCheck_, SIGNAL(stateChanged(int)), this, SLOT(headerSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
     valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -2503,8 +2540,8 @@ updateWidgets()
 
   //---
 
-  valueCheck_->setChecked(plot_->isValueLabel());
-
+  headerCheck_    ->setChecked(plot_->isTitles());
+  valueCheck_     ->setChecked(plot_->isValueLabel());
   followViewCheck_->setChecked(plot_->isFollowViewExpand());
 
   CQChartsHierPlotCustomControls::updateWidgets();
@@ -2512,6 +2549,13 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+headerSlot()
+{
+  plot_->setTitles(headerCheck_->isChecked());
 }
 
 void

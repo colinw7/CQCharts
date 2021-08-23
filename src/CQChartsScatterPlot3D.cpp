@@ -864,10 +864,12 @@ addPointObjects() const
           setPenBrush(penBrush,
             PenData(true, tc, dataLabel()->textAlpha()), BrushData(false));
 
-          Length fontSize;
+          Length          fontSize;
+          Qt::Orientation fontSizeDir;
 
           if (fontSizeColumn().isValid()) {
-            if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSizeData_, fontSize))
+            if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSizeData_,
+                                 fontSize, fontSizeDir))
               fontSize = Length();
           }
 

@@ -152,16 +152,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(QString symbolTypeSetName READ symbolTypeSetName  WRITE setSymbolTypeSetName)
 
   // symbol size map
-  Q_PROPERTY(bool    symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped  )
-  Q_PROPERTY(double  symbolSizeMapMin   READ symbolSizeMapMin   WRITE setSymbolSizeMapMin  )
-  Q_PROPERTY(double  symbolSizeMapMax   READ symbolSizeMapMax   WRITE setSymbolSizeMapMax  )
-  Q_PROPERTY(QString symbolSizeMapUnits READ symbolSizeMapUnits WRITE setSymbolSizeMapUnits)
+  Q_PROPERTY(bool          symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped  )
+  Q_PROPERTY(double        symbolSizeMapMin   READ symbolSizeMapMin   WRITE setSymbolSizeMapMin  )
+  Q_PROPERTY(double        symbolSizeMapMax   READ symbolSizeMapMax   WRITE setSymbolSizeMapMax  )
+  Q_PROPERTY(CQChartsUnits symbolSizeMapUnits READ symbolSizeMapUnits WRITE setSymbolSizeMapUnits)
 
   // font size map
-  Q_PROPERTY(bool    fontSizeMapped   READ isFontSizeMapped WRITE setFontSizeMapped  )
-  Q_PROPERTY(double  fontSizeMapMin   READ fontSizeMapMin   WRITE setFontSizeMapMin  )
-  Q_PROPERTY(double  fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
-  Q_PROPERTY(QString fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
+  Q_PROPERTY(bool          fontSizeMapped   READ isFontSizeMapped WRITE setFontSizeMapped  )
+  Q_PROPERTY(double        fontSizeMapMin   READ fontSizeMapMin   WRITE setFontSizeMapMin  )
+  Q_PROPERTY(double        fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
+  Q_PROPERTY(CQChartsUnits fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
 
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
@@ -200,6 +200,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // symbol type map key
   Q_PROPERTY(bool symbolTypeMapKey READ isSymbolTypeMapKey WRITE setSymbolTypeMapKey)
+
+  // options
+  Q_PROPERTY(CQChartsLength minSymbolSize READ minSymbolSize WRITE setMinSymbolSize)
+  Q_PROPERTY(CQChartsLength minLabelSize  READ minLabelSize  WRITE setMinLabelSize )
 
   Q_ENUMS(DrawLayer)
 
@@ -290,12 +294,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   double symbolSizeMapMin() const { return symbolSizeData_.map_min; }
   void setSymbolSizeMapMin(double r);
-
   double symbolSizeMapMax() const { return symbolSizeData_.map_max; }
   void setSymbolSizeMapMax(double r);
 
-  const QString &symbolSizeMapUnits() const { return symbolSizeData_.units; }
-  void setSymbolSizeMapUnits(const QString &s);
+  double symbolSizeUserMapMin() const { return symbolSizeData_.user_map_min; }
+  void setSymbolSizeUserMapMin(double r);
+  double symbolSizeUserMapMax() const { return symbolSizeData_.user_map_max; }
+  void setSymbolSizeUserMapMax(double r);
+
+  const CQChartsUnits &symbolSizeMapUnits() const { return symbolSizeData_.units; }
+  void setSymbolSizeMapUnits(const CQChartsUnits &u);
 
   virtual void setFixedSymbolSize(const Length &s) = 0;
   virtual const Length &fixedSymbolSize() const = 0;
@@ -345,8 +353,13 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   double fontSizeMapMax() const { return fontSizeData_.map_max; }
   void setFontSizeMapMax(double r);
 
-  const QString &fontSizeMapUnits() const { return fontSizeData_.units; }
-  void setFontSizeMapUnits(const QString &s);
+  double fontSizeUserMapMin() const { return fontSizeData_.user_map_min; }
+  void setFontSizeUserMapMin(double r);
+  double fontSizeUserMapMax() const { return fontSizeData_.user_map_max; }
+  void setFontSizeUserMapMax(double r);
+
+  const CQChartsUnits &fontSizeMapUnits() const { return fontSizeData_.units; }
+  void setFontSizeMapUnits(const CQChartsUnits &u);
 
   //---
 
@@ -445,6 +458,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get/set min symbol size
+  const Length &minSymbolSize() const { return minSymbolSize_; }
+  void setMinSymbolSize(const Length &l);
+
+  //! get/set min label size
+  const Length &minLabelSize() const { return minLabelSize_; }
+  void setMinLabelSize(const Length &l);
+
+  //---
+
   CQChartsGeom::BBox fitBBox() const override;
 
   //---
@@ -463,12 +486,14 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   void initSymbolSizeData() const;
-  bool columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize) const;
+  bool columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize,
+                        Qt::Orientation &sizeDir) const;
 
   //---
 
   void initFontSizeData() const;
-  bool columnFontSize(int row, const QModelIndex &parent, Length &fontSize) const;
+  bool columnFontSize(int row, const QModelIndex &parent, Length &fontSize,
+                      Qt::Orientation &sizeDir) const;
 
   //---
 
@@ -620,8 +645,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   GroupFitData    groupFitData_;    //!< group fit data
   GroupHull       groupHull_;       //!< group hull
 
-  RugP xRug_; //! x rug
-  RugP yRug_; //! y rug
+  RugP xRug_; //!< x rug
+  RugP yRug_; //!< y rug
+
+  // options
+  Length minSymbolSize_; //!< min symbol size
+  Length minLabelSize_;  //!< min label size
 };
 
 #endif

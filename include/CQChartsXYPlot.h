@@ -199,7 +199,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using Length      = CQChartsLength;
   using Color       = CQChartsColor;
   using Image       = CQChartsImage;
-  using Units       = CQChartsUnits;
+  using Units       = CQChartsUnits::Type;
 
  public:
   CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &p,
@@ -1185,8 +1185,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
 #include <CQChartsPointPlotCustomControls.h>
 
-class CQCheckBox;
-
 class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
 
@@ -1218,14 +1216,14 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
  private:
   CQChartsXYPlot* plot_ { nullptr };
 
-  QCheckBox*  pointsCheck_        { nullptr };
-  QCheckBox*  linesCheck_         { nullptr };
-  QCheckBox*  fillUnderCheck_     { nullptr };
-  CQCheckBox* stackedCheck_       { nullptr };
-  CQCheckBox* impulseCheck_       { nullptr };
-  CQCheckBox* bestFitCheck_       { nullptr };
-  CQCheckBox* hullCheck_          { nullptr };
-  CQCheckBox* movingAverageCheck_ { nullptr };
+  QCheckBox* pointsCheck_        { nullptr };
+  QCheckBox* linesCheck_         { nullptr };
+  QCheckBox* fillUnderCheck_     { nullptr };
+  QCheckBox* stackedCheck_       { nullptr };
+  QCheckBox* impulseCheck_       { nullptr };
+  QCheckBox* bestFitCheck_       { nullptr };
+  QCheckBox* hullCheck_          { nullptr };
+  QCheckBox* movingAverageCheck_ { nullptr };
 };
 
 #endif

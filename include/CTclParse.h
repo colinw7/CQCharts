@@ -26,8 +26,8 @@ class CTclToken {
   using Tokens = std::vector<CTclToken *>;
 
  public:
-  CTclToken(Type type, const std::string &str, int pos) :
-   type_(type), str_(str), pos_(pos) {
+  CTclToken(Type type, const std::string &str, int lineNum, int linePos) :
+   type_(type), str_(str), lineNum_(lineNum), linePos_(linePos) {
   }
 
   Type type() const { return type_; }
@@ -35,7 +35,14 @@ class CTclToken {
 
   const std::string &str() const { return str_; }
 
+  int lineNum() const { return lineNum_; }
+  void setLineNum(int num) { lineNum_ = num; }
+
+  int linePos() const { return linePos_; }
+  void setLinePos(int pos) { linePos_ = pos; }
+
   int pos() const { return pos_; }
+  void setPos(int pos) { pos_ = pos; }
 
   int endPos() const { return pos_ + str_.size() - 1; }
 
@@ -49,14 +56,27 @@ class CTclToken {
     return (pos >= pos_ && pos <= endPos());
   }
 
-  void print(std::ostream &os) {
+  void print(std::ostream &os, bool children=true) {
     os << typeName(type_) << ":" << str_ << "@" << pos_;
 
-    if (! tokens_.empty()) {
+    if (children && ! tokens_.empty()) {
       os << '[';
 
       for (const auto &token : tokens_)
         token->print(os);
+
+      os << ']';
+    }
+  }
+
+  void printStr(std::ostream &os, bool children=true) {
+    os << str_;
+
+    if (children && ! tokens_.empty()) {
+      os << '[';
+
+      for (const auto &token : tokens_)
+        token->printStr(os);
 
       os << ']';
     }
@@ -73,9 +93,11 @@ class CTclToken {
   }
 
  private:
-  Type        type_ { Type::NONE };
+  Type        type_    { Type::NONE };
   std::string str_;
-  int         pos_  { -1 };
+  int         pos_     { -1 };
+  int         lineNum_ { -1 };
+  int         linePos_ { -1 };
   Tokens      tokens_;
 };
 
@@ -151,7 +173,19 @@ class CTclParse {
   static bool needsBraces(const std::string &str);
 
  private:
+  struct ParseData {
+    int pos     { 0 };
+    int lineNum { 0 };
+    int linePos { 0 };
+  };
+
+ private:
   bool isCompleteLine1(char endChar);
+
+  ParseData getParseData() const;
+
+  CTclToken *createToken(CTclToken::Type type, const std::string str,
+                         const ParseData &parseData) const;
 
  private:
   using ParseStack = std::vector<CStrParse *>;
@@ -160,6 +194,12 @@ class CTclParse {
   ParseStack parseStack_;
   char       separator_ { ';' };
   bool       debug_     { false };
+
+#ifdef DEBUG_LINES
+  using FileLines = std::vector<std::string>;
+
+  FileLines fileLines_;
+#endif
 };
 
 #endif

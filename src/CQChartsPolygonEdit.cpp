@@ -358,7 +358,7 @@ setPolygon(const CQChartsPolygon &polygon)
   updateState();
 }
 
-const CQChartsUnits &
+const CQChartsUnits::Type &
 CQChartsPolygonEdit::
 units() const
 {
@@ -367,7 +367,7 @@ units() const
 
 void
 CQChartsPolygonEdit::
-setUnits(const CQChartsUnits &units)
+setUnits(const Units &units)
 {
   auto polygon = polygon_;
 

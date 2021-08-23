@@ -27,7 +27,7 @@ class CQChartsGraphMgr {
   using Edge    = CQChartsGraphEdge;
   using Edges   = std::vector<Edge *>;
   using Length  = CQChartsLength;
-  using Units   = CQChartsUnits;
+  using Units   = CQChartsUnits::Type;
   using OptReal = CQChartsOptReal;
 
   enum class Align {
@@ -129,20 +129,20 @@ class CQChartsGraphMgr {
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
 
-  Plot*       plot_          { nullptr };           //!< parent plot
-  Graphs      graphs_;                              //!< graphs
-  Align       align_         { Align::JUSTIFY };    //!< align
-  bool        nodeXScaled_   { false };             //!< is node x scaled
-  bool        nodeYScaled_   { false };             //!< is node y scaled
-  bool        adjustNodes_   { true };              //!< adjust nodes
-  Length      nodeWidth_     { 16, Units::PIXEL };  //!< node x width
-  Length      nodeXMargin_   { 0.01, Units::PLOT }; //!< node x margin
-  Length      nodeYMargin_   { 0.2, Units::PLOT };  //!< node y margin
-  NodeShape   nodeShape_     { NODE_SHAPE_NONE };   //!< node shape
-  double      minNodeMargin_ { 4 };                 //!< minimum node margin (in pixels)
-  NameNodeMap nameNodeMap_;                         //!< name node map
-  IndNodeMap  indNodeMap_;                          //!< ind node map
-  Edges       edges_;                               //!< all edges
+  Plot*       plot_          { nullptr };            //!< parent plot
+  Graphs      graphs_;                               //!< graphs
+  Align       align_         { Align::JUSTIFY };     //!< align
+  bool        nodeXScaled_   { false };              //!< is node x scaled
+  bool        nodeYScaled_   { false };              //!< is node y scaled
+  bool        adjustNodes_   { true };               //!< adjust nodes
+  Length      nodeWidth_     { Length::pixel(16) };  //!< node x width
+  Length      nodeXMargin_   { Length::plot(0.01) }; //!< node x margin
+  Length      nodeYMargin_   { Length::plot(0.2) };  //!< node y margin
+  NodeShape   nodeShape_     { NODE_SHAPE_NONE };    //!< node shape
+  double      minNodeMargin_ { 4 };                  //!< minimum node margin (in pixels)
+  NameNodeMap nameNodeMap_;                          //!< name node map
+  IndNodeMap  indNodeMap_;                           //!< ind node map
+  Edges       edges_;                                //!< all edges
 };
 
 //---

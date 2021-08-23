@@ -16,7 +16,7 @@ class CQChartsPolygon :
  public:
   using Polygon = CQChartsGeom::Polygon;
   using Point   = CQChartsGeom::Point;
-  using Units   = CQChartsUnits;
+  using Units   = CQChartsUnits::Type;
 
  public:
   static void registerMetaType();
@@ -102,7 +102,7 @@ class CQChartsPolygon :
 
     //---
 
-    QString ustr = CQChartsUtil::unitsString(units_);
+    QString ustr = CQChartsUnits::unitsString(units_);
 
     QString str;
 

@@ -1,5 +1,8 @@
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
+
+#include <CQPropertyView.h>
 
 CQChartsUnitsEdit::
 CQChartsUnitsEdit(QWidget *parent) :
@@ -9,8 +12,8 @@ CQChartsUnitsEdit(QWidget *parent) :
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  auto unitNames = CQChartsUtil::unitNames   (/*includeNone*/true);
-  auto tipNames  = CQChartsUtil::unitTipNames(/*includeNone*/true);
+  auto unitNames = CQChartsUnits::unitNames   (/*includeNone*/true);
+  auto tipNames  = CQChartsUnits::unitTipNames(/*includeNone*/true);
 
   addItems(unitNames);
 
@@ -24,7 +27,7 @@ CQChartsUnitsEdit(QWidget *parent) :
   updateTip();
 }
 
-const CQChartsUnits &
+const CQChartsUnits::Type &
 CQChartsUnitsEdit::
 units() const
 {
@@ -33,11 +36,11 @@ units() const
 
 void
 CQChartsUnitsEdit::
-setUnits(const CQChartsUnits &units)
+setUnits(const Units &units)
 {
   units_ = units;
 
-  auto ustr = CQChartsUtil::unitsString(units_);
+  auto ustr = CQChartsUnits::unitsString(units_);
 
   int ind = findText(ustr, Qt::MatchExactly);
 
@@ -55,7 +58,7 @@ indexChanged()
 {
   auto ustr = currentText();
 
-  (void) CQChartsUtil::decodeUnits(ustr, units_, /*default*/units_);
+  (void) CQChartsUnits::decodeUnits(ustr, units_, /*default*/units_);
 
   updateTip();
 
@@ -68,7 +71,7 @@ updateTip()
 {
   int ind = std::max(currentIndex(), 0);
 
-  setToolTip(CQChartsUtil::unitTipNames(/*includeNone*/true)[ind]);
+  setToolTip(CQChartsUnits::unitTipNames(/*includeNone*/true)[ind]);
 }
 
 QSize
@@ -78,4 +81,116 @@ sizeHint() const
   QFontMetrics fm(font());
 
   return QSize(fm.width("none") + 8, fm.height() + 4);
+}
+
+//------
+
+#include <CQPropertyViewItem.h>
+#include <CQPropertyViewDelegate.h>
+
+CQChartsUnitsPropertyViewType::
+CQChartsUnitsPropertyViewType()
+{
+}
+
+CQPropertyViewEditorFactory *
+CQChartsUnitsPropertyViewType::
+getEditor() const
+{
+  return new CQChartsUnitsPropertyViewEditor;
+}
+
+bool
+CQChartsUnitsPropertyViewType::
+setEditorData(CQPropertyViewItem *item, const QVariant &value)
+{
+  return item->setData(value);
+}
+
+void
+CQChartsUnitsPropertyViewType::
+draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+     const QStyleOptionViewItem &option, const QModelIndex &ind,
+     const QVariant &value, const ItemState &itemState)
+{
+  delegate->drawBackground(painter, option, ind, itemState);
+
+  bool ok;
+  auto units = CQChartsVariant::toUnits(value, ok);
+  if (! ok) return;
+
+  auto str = units.toString();
+
+  QFontMetrics fm(option.font);
+
+  int w = fm.width(str);
+
+  //---
+
+  auto option1 = option;
+
+  option1.rect.setRight(option1.rect.left() + w + 2*margin());
+
+  delegate->drawString(painter, option1, str, ind, itemState);
+}
+
+QString
+CQChartsUnitsPropertyViewType::
+tip(const QVariant &value) const
+{
+  bool ok;
+  auto units = CQChartsVariant::toUnits(value, ok);
+  if (! ok) return "";
+
+  return units.toString();
+}
+
+//------
+
+CQChartsUnitsPropertyViewEditor::
+CQChartsUnitsPropertyViewEditor()
+{
+}
+
+QWidget *
+CQChartsUnitsPropertyViewEditor::
+createEdit(QWidget *parent)
+{
+  auto *edit = new CQChartsUnitsEdit(parent);
+
+  return edit;
+}
+
+void
+CQChartsUnitsPropertyViewEditor::
+connect(QWidget *w, QObject *obj, const char *method)
+{
+  auto *edit = qobject_cast<CQChartsUnitsEdit *>(w);
+  assert(edit);
+
+  QObject::connect(edit, SIGNAL(unitsChanged()), obj, method);
+}
+
+QVariant
+CQChartsUnitsPropertyViewEditor::
+getValue(QWidget *w)
+{
+  auto *edit = qobject_cast<CQChartsUnitsEdit *>(w);
+  assert(edit);
+
+  return CQChartsVariant::fromUnits(CQChartsUnits(edit->units()));
+}
+
+void
+CQChartsUnitsPropertyViewEditor::
+setValue(QWidget *w, const QVariant &value)
+{
+  auto *edit = qobject_cast<CQChartsUnitsEdit *>(w);
+  assert(edit);
+
+  bool ok;
+  auto units = CQChartsVariant::toUnits(value, ok);
+  if (! ok) return;
+
+  edit->setUnits(units.type());
 }

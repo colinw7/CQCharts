@@ -431,7 +431,9 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   QPen pen;
 
-  double width = CQChartsUtil::limitLineWidth(data.stroke().width().value());
+  double width = data.stroke().width().value();
+
+  width = (plot ? plot->limitLineWidth(width) : view->limitLineWidth(width));
 
   CQChartsUtil::setPen(pen, data.stroke().isVisible(), pc,
                        data.stroke().alpha(), width, data.stroke().dash());

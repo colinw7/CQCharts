@@ -5,6 +5,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <cmath>
 #include <sys/types.h>
 
 /*!

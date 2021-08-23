@@ -394,9 +394,9 @@ isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const
   //---
 
   if (textAngle().isZero()) {
-    auto font = plot()->view()->plotFont(plot(), textFont());
+    auto pfont = plot()->view()->plotFont(plot(), textFont());
 
-    QFontMetricsF fm(font);
+    QFontMetricsF fm(pfont);
 
     double tw = fm.width(ystr);
     double th = fm.descent() + fm.ascent();
@@ -453,6 +453,16 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 
   //---
 
+  return calcRect(bbox, ystr, position, textFont());
+}
+
+CQChartsGeom::BBox
+CQChartsDataLabel::
+calcRect(const BBox &bbox, const QString &ystr, const Position &position,
+         const Font &font) const
+{
+  auto pfont = plot()->view()->plotFont(plot(), font);
+
   auto pbbox = windowToPixel(bbox);
 
   double xm = 2;
@@ -472,8 +482,6 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 
   //---
 
-  auto font = plot()->view()->plotFont(plot(), textFont());
-
   auto position1 = adjustPosition(position);
 
   //---
@@ -481,7 +489,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
   BBox wbbox;
 
   if (textAngle().isZero()) {
-    QFontMetricsF fm(font);
+    QFontMetricsF fm(pfont);
 
     double tw = fm.width(ystr);
 
@@ -584,7 +592,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
     textOptions.angle = textAngle();
     textOptions.align = align;
 
-    CQChartsRotatedText::calcBBoxData(px, py, ystr, font, textOptions, border,
+    CQChartsRotatedText::calcBBoxData(px, py, ystr, pfont, textOptions, border,
                                       pbbox1, ppoints, /*alignBBox*/ true);
 
     wbbox = plot()->pixelToWindow(pbbox1);

@@ -1,23 +1,23 @@
-#include <CQChartsLength.h>
+#include <CQChartsArea.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
 #include <CQTclUtil.h>
 
-CQUTIL_DEF_META_TYPE(CQChartsLength, toString, fromString)
+CQUTIL_DEF_META_TYPE(CQChartsArea, toString, fromString)
 
-int CQChartsLength::metaTypeId;
+int CQChartsArea::metaTypeId;
 
 void
-CQChartsLength::
+CQChartsArea::
 registerMetaType()
 {
-  metaTypeId = CQUTIL_REGISTER_META(CQChartsLength);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsArea);
 
-  CQPropertyViewMgrInst->setUserName("CQChartsLength", "length");
+  CQPropertyViewMgrInst->setUserName("CQChartsArea", "area");
 }
 
 bool
-CQChartsLength::
+CQChartsArea::
 setValue(const QString &str, const Units &defUnits)
 {
   Units  units;
@@ -33,7 +33,7 @@ setValue(const QString &str, const Units &defUnits)
 }
 
 QString
-CQChartsLength::
+CQChartsArea::
 toString() const
 {
   auto ustr = CQChartsUnits::unitsString(units_);
@@ -42,10 +42,10 @@ toString() const
 }
 
 bool
-CQChartsLength::
+CQChartsArea::
 decodeString(const QString &str, Units &units, double &value, const Units &defUnits)
 {
-  // format is <l> [<units>]
+  // format is <area> [<units>]
 
   QStringList strs;
 

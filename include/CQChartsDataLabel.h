@@ -129,6 +129,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   BBox calcRect(const BBox &pbbox, const QString &ystr) const;
   BBox calcRect(const BBox &pbbox, const QString &ystr, const Position &position) const;
+  BBox calcRect(const BBox &pbbox, const QString &ystr, const Position &position,
+                const Font &font) const;
 
   Qt::Alignment textAlignment() const;
 

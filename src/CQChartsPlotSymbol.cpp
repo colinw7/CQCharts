@@ -602,7 +602,16 @@ getSymbolSetSymbol(const CQChartsSymbol &symbol, SymbolRenderer *renderer)
 
 CQChartsPlotSymbolRenderer::
 CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p, const Length &size) :
- device_(device), p_(p), size_(size)
+ device_(device), p_(p), xsize_(size), ysize_(size)
+{
+  strokePen_ = device_->pen  ();
+  fillBrush_ = device_->brush();
+}
+
+CQChartsPlotSymbolRenderer::
+CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p,
+                           const Length &xsize, const Length &ysize) :
+ device_(device), p_(p), xsize_(xsize), ysize_(ysize)
 {
   strokePen_ = device_->pen  ();
   fillBrush_ = device_->brush();
@@ -971,8 +980,8 @@ void
 CQChartsPlotSymbolRenderer::
 mapXY(double x, double y, double &x1, double &y1) const
 {
-  x1 = x*device_->lengthWindowWidth (size_);
-  y1 = y*device_->lengthWindowHeight(size_);
+  x1 = x*device_->lengthWindowWidth (xsize_);
+  y1 = y*device_->lengthWindowHeight(ysize_);
 
   if (device_->invertY())
     y1 = -y1;

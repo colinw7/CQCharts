@@ -17,7 +17,7 @@ class CQChartsMargin :
 
  public:
   using Length = CQChartsLength;
-  using Units  = CQChartsUnits;
+  using Units  = CQChartsUnits::Type;
 
  public:
   explicit CQChartsMargin(const QString &str) {

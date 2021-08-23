@@ -2,6 +2,7 @@
 #include <CStrParse.h>
 #include <CStrUtil.h>
 #include <CFile.h>
+#include <map>
 #include <cmath>
 #include <cassert>
 
@@ -16,8 +17,11 @@ class CTclStrParse : public CStrParse {
   bool fillBuffer();
 
  private:
-  CTclParse* tcl_  { nullptr };
-  CFile*     file_ { nullptr };
+  CTclParse* tcl_        { nullptr };
+  CFile*     file_       { nullptr };
+  int        filePos_    { 0 };
+  int        lineNum_    { 0 };
+  int        lineOffset_ { 0 };
 };
 
 //------
@@ -117,6 +121,10 @@ parseFile(const std::string &filename, Tokens &tokens)
     return false;
   }
 
+#ifdef DEBUG_LINES
+  CFile::toLines(filename, fileLines_);
+#endif
+
   startFileParse(filename);
 
   bool rc = true;
@@ -124,13 +132,18 @@ parseFile(const std::string &filename, Tokens &tokens)
   while (! parse_->eof()) {
     Tokens tokens1;
 
-    if (! readArgList(tokens1)) {
-      rc = false;
+    try {
+      if (! readArgList(tokens1)) {
+        rc = false;
+        break;
+      }
+
+      for (auto &token1 : tokens1)
+        tokens.push_back(token1);
+    }
+    catch (...) {
       break;
     }
-
-    for (auto &token1 : tokens1)
-      tokens.push_back(token1);
   }
 
   endParse();
@@ -187,16 +200,16 @@ readArgList(Tokens &tokens)
       return true;
     }
     else if (parse_->isChar('[')) {
-      Tokens tokens1;
+      auto parseData = getParseData();
 
-      int pos = parse_->getPos();
+      Tokens tokens1;
 
       if (! readExecString(tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::SUB_COMMAND, str, pos);
+      auto *token = createToken(CTclToken::Type::SUB_COMMAND, str, parseData);
 
       if (tokens1.size() > 0)
         tokens1[0]->setType(CTclToken::Type::COMMAND);
@@ -207,21 +220,21 @@ readArgList(Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar(']')) {
-      return true;
+      //return true;
+      return false;
     }
     else if (parse_->isChar('{')) {
+      auto parseData = getParseData();
+
       std::string str;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readLiteralString(str, tokens1))
         return false;
 
-      str = parse_->getBefore(pos);
+      str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::LITERAL_STRING, str, pos);
+      auto *token = createToken(CTclToken::Type::LITERAL_STRING, str, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -229,18 +242,17 @@ readArgList(Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('\"')) {
+      auto parseData = getParseData();
+
       std::string str;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readDoubleQuotedString(str, tokens1))
         return false;
 
-      str = parse_->getBefore(pos);
+      str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::QUOTED_STRING, str, pos);
+      auto *token = createToken(CTclToken::Type::QUOTED_STRING, str, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -248,70 +260,76 @@ readArgList(Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('\'')) {
-      std::string str;
+      auto parseData = getParseData();
 
-      int pos = parse_->getPos();
+      std::string str;
 
       if (! readSingleQuotedString(str))
         return false;
 
-      tokens.push_back(new CTclToken(CTclToken::Type::QUOTED_STRING, str, pos));
+      tokens.push_back(createToken(CTclToken::Type::QUOTED_STRING, str, parseData));
     }
     else if (parse_->isChar('$')) {
+      auto parseData = getParseData();
+
       parse_->skipChar();
 
       std::string varName;
       bool        is_array;
-
-      int pos = parse_->getPos();
 
       Tokens tokens1;
 
       if (! readVariableName(varName, is_array, tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::VARIABLE, str, pos);
+      auto *token = createToken(CTclToken::Type::VARIABLE, str, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
 
-      tokens.push_back(token);
-
       if (! parse_->isSpace()) {
         int pos1 = parse_->getPos();
 
-        std::string str2;
+        std::string str1;
+        Tokens      tokens11;
 
-        Tokens tokens1;
-
-        if (! readWord(str2, ';', tokens1))
+        if (! readWord(str1, ';', tokens11))
           return false;
 
-        str2 = parse_->getBefore(pos1);
+        str1 = parse_->getBefore(pos1);
 
-        auto *token = new CTclToken(CTclToken::Type::STRING, str2, pos1);
+        if (tokens1.empty()) {
+          delete token;
 
-        for (const auto &token1 : tokens1)
-          token->addToken(token1);
+          str1 = str + str1;
+        }
+        else
+          tokens.push_back(token);
 
-        tokens.push_back(token);
+        auto *token1 = createToken(CTclToken::Type::STRING, str1, parseData);
+
+        for (const auto &token2 : tokens11)
+          token->addToken(token2);
+
+        tokens.push_back(token1);
       }
+      else
+        tokens.push_back(token);
     }
     else {
+      auto parseData = getParseData();
+
       std::string str;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readWord(str, ';', tokens1))
         return false;
 
-      str = parse_->getBefore(pos);
+      str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::STRING, str, pos);
+      auto *token = createToken(CTclToken::Type::STRING, str, parseData);
 
       if (tokens.empty())
         token->setType(CTclToken::Type::COMMAND);
@@ -338,18 +356,17 @@ readExecString(Tokens &tokens)
 
   while (! parse_->isChar(']')) {
     if      (parse_->isChar('{')) {
+      auto parseData = getParseData();
+
       std::string str1;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readLiteralString(str1, tokens1))
         return false;
 
-      str1 = parse_->getBefore(pos);
+      str1 = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::LITERAL_STRING, str1, pos);
+      auto *token = createToken(CTclToken::Type::LITERAL_STRING, str1, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -357,18 +374,17 @@ readExecString(Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('\"')) {
+      auto parseData = getParseData();
+
       std::string str1;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readDoubleQuotedString(str1, tokens1))
         return false;
 
-      str1 = parse_->getBefore(pos);
+      str1 = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::QUOTED_STRING, str1, pos);
+      auto *token = createToken(CTclToken::Type::QUOTED_STRING, str1, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -376,28 +392,47 @@ readExecString(Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('\'')) {
-      std::string str1;
+      auto parseData = getParseData();
 
-      int pos = parse_->getPos();
+      std::string str1;
 
       if (! readSingleQuotedString(str1))
         return false;
 
-      tokens.push_back(new CTclToken(CTclToken::Type::QUOTED_STRING, str1, pos));
+      tokens.push_back(createToken(CTclToken::Type::QUOTED_STRING, str1, parseData));
     }
-    else {
-      std::string str;
-
-      int pos = parse_->getPos();
+    else if (parse_->isChar('[')) {
+      auto parseData = getParseData();
 
       Tokens tokens1;
+
+      if (! readExecString(tokens1))
+        return false;
+
+      auto str = parse_->getBefore(parseData.pos);
+
+      auto *token = createToken(CTclToken::Type::SUB_COMMAND, str, parseData);
+
+      if (tokens1.size() > 0)
+        tokens1[0]->setType(CTclToken::Type::COMMAND);
+
+      for (const auto &token1 : tokens1)
+        token->addToken(token1);
+
+      tokens.push_back(token);
+    }
+    else {
+      auto parseData = getParseData();
+
+      std::string str;
+      Tokens      tokens1;
 
       if (! readWord(str, ']', tokens1))
         return false;
 
-      str = parse_->getBefore(pos);
+      str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::STRING, str, pos);
+      auto *token = createToken(CTclToken::Type::STRING, str, parseData);
 
       if (tokens.empty())
         token->setType(CTclToken::Type::COMMAND);
@@ -469,16 +504,16 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
 
   while (! parse_->isChar('\"')) {
     if      (parse_->isChar('[')) {
-      Tokens tokens1;
+      auto parseData = getParseData();
 
-      int pos = parse_->getPos();
+      Tokens tokens1;
 
       if (! readExecString(tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::SUB_COMMAND, str, pos);
+      auto *token = createToken(CTclToken::Type::SUB_COMMAND, str, parseData);
 
       if (tokens1.size() > 0)
         tokens1[0]->setType(CTclToken::Type::COMMAND);
@@ -489,21 +524,20 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('$')) {
+      auto parseData = getParseData();
+
       parse_->skipChar();
 
       std::string varName;
       bool        is_array;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readVariableName(varName, is_array, tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::VARIABLE, str, pos);
+      auto *token = createToken(CTclToken::Type::VARIABLE, str, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -717,16 +751,16 @@ readWord(std::string &str, char endChar, Tokens &tokens)
       break;
 
     if      (parse_->isChar('[')) {
-      Tokens tokens1;
+      auto parseData = getParseData();
 
-      int pos = parse_->getPos();
+      Tokens tokens1;
 
       if (! readExecString(tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::SUB_COMMAND, str, pos);
+      auto *token = createToken(CTclToken::Type::SUB_COMMAND, str, parseData);
 
       if (tokens1.size() > 0)
         tokens1[0]->setType(CTclToken::Type::COMMAND);
@@ -737,21 +771,20 @@ readWord(std::string &str, char endChar, Tokens &tokens)
       tokens.push_back(token);
     }
     else if (parse_->isChar('$')) {
+      auto parseData = getParseData();
+
       parse_->skipChar();
 
       std::string varName;
       bool        is_array;
-
-      int pos = parse_->getPos();
-
-      Tokens tokens1;
+      Tokens      tokens1;
 
       if (! readVariableName(varName, is_array, tokens1))
         return false;
 
-      auto str = parse_->getBefore(pos);
+      auto str = parse_->getBefore(parseData.pos);
 
-      auto *token = new CTclToken(CTclToken::Type::VARIABLE, str, pos);
+      auto *token = createToken(CTclToken::Type::VARIABLE, str, parseData);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -783,6 +816,53 @@ readWord(std::string &str, char endChar, Tokens &tokens)
   }
 
   return true;
+}
+
+CTclParse::ParseData
+CTclParse::
+getParseData() const
+{
+  ParseData parseData;
+
+  parseData.pos     = parse_->getPos();
+  parseData.lineNum = parse_->lineNum();
+  parseData.linePos = parse_->linePos();
+
+  return parseData;
+}
+
+CTclToken *
+CTclParse::
+createToken(CTclToken::Type type, const std::string str, const ParseData &parseData) const
+{
+#ifdef DEBUG_LINES
+  if (! fileLines_.empty()) {
+    auto str1 = str;
+
+    auto p = str1.find('\n');
+
+    if (p != std::string::npos)
+      str1 = str1.substr(0, p);
+
+    int len = str1.size();
+
+    assert(parseData.lineNum >= 1 && parseData.lineNum <= int(fileLines_.size()));
+
+    const auto &line = fileLines_[parseData.lineNum - 1];
+
+    assert(parseData.linePos >= 0 && parseData.linePos < int(line.size()));
+
+    auto str2 = line.substr(parseData.linePos, len);
+
+    assert(str1 == str2);
+  }
+#endif
+
+  auto *token = new CTclToken(type, str, parseData.lineNum, parseData.linePos);
+
+  token->setPos(parseData.pos);
+
+  return token;
 }
 
 void
@@ -874,6 +954,8 @@ fillBuffer()
   if (! file_->readLine(line))
     return false;
 
+  ++lineNum_;
+
   uint len = line.size();
 
   while (len > 0 && line[len - 1] == '\\') {
@@ -882,6 +964,8 @@ fillBuffer()
     std::string line1;
 
     if (file_->readLine(line1)) {
+      ++lineNum_;
+
       uint len1 = line1.size();
 
       uint i = 0;
@@ -896,9 +980,11 @@ fillBuffer()
   }
 
   if (getPos() > 0)
-    addString(tcl_->getSeparator() + line);
+    addString("\n" + line);
   else
     addString(line);
+
+  //std::cerr << "===\n" << getString() << "\n===\n";
 
   return true;
 }
@@ -910,7 +996,7 @@ eof() const
   if (! CStrParse::eof())
     return false;
 
-  CTclStrParse *th = const_cast<CTclStrParse *>(this);
+  auto *th = const_cast<CTclStrParse *>(this);
 
   th->fillBuffer();
 

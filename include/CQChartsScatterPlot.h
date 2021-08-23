@@ -69,7 +69,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   using Length  = CQChartsLength;
   using Color   = CQChartsColor;
   using Font    = CQChartsFont;
-  using Units   = CQChartsUnits;
+  using Units   = CQChartsUnits::Type;
   using OptBool = boost::optional<bool>;
 
  public:
@@ -129,6 +129,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void setSymbolSize(const Length &s) { extraData().symbolSize = s; }
   Length calcSymbolSize() const;
 
+  // symbol dir
+  const Qt::Orientation &symbolDir() const { return extraData().symbolDir; }
+  void setSymbolDir(const Qt::Orientation &o) { extraData().symbolDir = o; }
+
   // font size
   const Length &fontSize() const { return extraData().fontSize; }
   void setFontSize(const Length &s) { extraData().fontSize = s; }
@@ -146,6 +150,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Font font() const { return extraData().font; }
   void setFont(const Font &f) { extraData().font = f; }
 
+  // label dir
+  const Qt::Orientation &labelDir() const { return extraData().labelDir; }
+  void setLabelDir(const Qt::Orientation &o) { extraData().labelDir = o; }
+
   //---
 
   bool inside(const Point &p) const override;
@@ -158,11 +166,17 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void drawPoint(PaintDevice *device) const;
 
+  bool isMinSymbolSize() const;
+
   void drawDataLabel(PaintDevice *device) const;
+
+  bool isMinLabelSize() const;
 
   //---
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  Font calcFont() const;
 
   //---
 
@@ -171,12 +185,14 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   struct ExtraData {
-    Symbol  symbol;     //!< symbol
-    Length  symbolSize; //!< symbol size
-    Color   color;      //!< symbol fill color
-    Alpha   alpha;      //!< symbol fill alpha
-    Length  fontSize;   //!< font size
-    Font    font;       //!< text font
+    Symbol          symbol;                       //!< symbol
+    Length          symbolSize;                   //!< symbol size
+    Qt::Orientation symbolDir { Qt::Horizontal }; //!< symbol dir
+    Color           color;                        //!< symbol fill color
+    Alpha           alpha;                        //!< symbol fill alpha
+    Length          fontSize;                     //!< label font size
+    Font            font;                         //!< label text font
+    Qt::Orientation labelDir { Qt::Horizontal };  //!< label dir
   };
 
  private:

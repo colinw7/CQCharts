@@ -177,19 +177,19 @@ T plotStringToValue(const QString &, CQChartsPlot *) {
 template<>
 inline CQChartsLength
 viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
-  return CQChartsLength(str, (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+  return CQChartsLength(str, (view ? CQChartsUnits::Type::VIEW : CQChartsUnits::Type::PLOT));
 }
 
 template<>
 inline CQChartsPosition
 viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
-  return CQChartsPosition(str, (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+  return CQChartsPosition(str, (view ? CQChartsUnits::Type::VIEW : CQChartsUnits::Type::PLOT));
 }
 
 template<>
 inline CQChartsRect
 viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
-  return CQChartsRect(str, (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+  return CQChartsRect(str, (view ? CQChartsUnits::Type::VIEW : CQChartsUnits::Type::PLOT));
 }
 
 template<>
@@ -214,7 +214,7 @@ plotStringToValue(const QString &str, CQChartsPlot *plot) {
 template<>
 inline CQChartsPoints
 viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
-  return CQChartsPoints(str, (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+  return CQChartsPoints(str, (view ? CQChartsUnits::Type::VIEW : CQChartsUnits::Type::PLOT));
 }
 
 //---

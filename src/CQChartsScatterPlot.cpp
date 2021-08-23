@@ -556,6 +556,9 @@ addProperties()
   // options
   addProp("options", "plotType", "plotType", "Plot type");
 
+  addProp("filter", "minSymbolSize", "", "Min symbol size");
+  addProp("filter", "minLabelSize" , "", "Min label size");
+
   //---
 
   // best fit line and deviation fill
@@ -1250,16 +1253,19 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // get symbol size (needed for bounding box)
-        Length symbolSize;
+        Length          symbolSize;
+        Qt::Orientation symbolSizeDir;
 
         if (symbolSizeColumn().isValid()) {
-          if (! columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize))
+          if (! columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize,
+                                 symbolSizeDir))
             symbolSize = Length();
         }
 
         double sx, sy;
 
-        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(), sx, sy);
+        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(),
+                       sx, sy, symbolSizeDir);
 
         //---
 
@@ -1275,8 +1281,10 @@ addPointObjects(PlotObjs &objs) const
         if (valuePoint.ind.isValid())
           pointObj->setModelInd(valuePoint.ind);
 
-        if (symbolSize.isValid())
+        if (symbolSize.isValid()) {
           pointObj->setSymbolSize(symbolSize);
+          pointObj->setSymbolDir (symbolSizeDir);
+        }
 
         objs.push_back(pointObj);
 
@@ -1298,15 +1306,18 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional font size
-        Length fontSize;
+        Length          fontSize;
+        Qt::Orientation fontSizeDir;
 
         if (fontSizeColumn().isValid()) {
-          if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize))
+          if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize, fontSizeDir))
             fontSize = Length();
         }
 
-        if (fontSize.isValid())
+        if (fontSize.isValid()) {
           pointObj->setFontSize(fontSize);
+          pointObj->setLabelDir(fontSizeDir);
+        }
 
         //---
 
@@ -3621,7 +3632,7 @@ inside(const Point &p) const
 {
   double sx, sy;
 
-  plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy);
+  plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
 
   auto p1 = plot_->windowToPixel(pos_);
 
@@ -3652,6 +3663,9 @@ void
 CQChartsScatterPointObj::
 draw(PaintDevice *device) const
 {
+  if (this->isMinSymbolSize())
+    return;
+
   // calc pen and brush
   PenBrush penBrush;
 
@@ -3668,12 +3682,11 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol and size
-  auto symbol     = this->calcSymbol();
-  auto symbolSize = this->calcSymbolSize();
+  auto symbol = this->calcSymbol();
 
   double sx, sy;
 
-  plot()->pixelSymbolSize(symbolSize, sx, sy);
+  plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
 
   //---
 
@@ -3688,7 +3701,8 @@ draw(PaintDevice *device) const
     auto ps1 = plot_->pixelToWindow(ps);
 
     if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps1, symbolSize);
+      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps1,
+                                   Length::pixel(sx), Length::pixel(sy));
   }
   else {
     double aspect = (1.0*image.width())/image.height();
@@ -3715,10 +3729,41 @@ draw(PaintDevice *device) const
     drawDataLabel(device);
 }
 
+bool
+CQChartsScatterPointObj::
+isMinSymbolSize() const
+{
+  auto &minSymbolSize = plot_->minSymbolSize();
+
+  if (! minSymbolSize.isValid())
+    return false;
+
+  double sx, sy;
+
+  if      (minSymbolSize.units() == Units::PLOT) {
+    plot()->plotSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
+
+    if (symbolDir() == Qt::Horizontal)
+      return (minSymbolSize.value() > sx);
+    else
+      return (minSymbolSize.value() > sy);
+  }
+  else if (minSymbolSize.units() == Units::PIXEL) {
+    plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
+
+    return (minSymbolSize.value() > sx);
+  }
+  else
+    return false;
+}
+
 void
 CQChartsScatterPointObj::
 drawDataLabel(PaintDevice *) const
 {
+  if (this->isMinLabelSize())
+    return;
+
   const auto *dataLabel = plot_->dataLabel();
 
   //---
@@ -3733,23 +3778,8 @@ drawDataLabel(PaintDevice *) const
 
   //---
 
-  // get custom font size (from font column)
-  auto fontSize = this->calcFontSize();
-
-  //---
-
   // get label font
-  auto font  = plot_->dataLabelFont();
-  auto font1 = font;
-
-  if (fontSize.isValid()) {
-    double fontPixelSize = plot_->lengthPixelHeight(fontSize);
-
-    // scale to font size
-    fontPixelSize = plot_->limitFontSize(fontPixelSize);
-
-    font1.setPointSizeF(fontPixelSize);
-  }
+  auto font = calcFont();
 
   //---
 
@@ -3758,13 +3788,48 @@ drawDataLabel(PaintDevice *) const
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(calcSymbolSize(), sx, sy);
+  plot_->pixelSymbolSize(calcSymbolSize(), sx, sy, symbolDir());
 
-  BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  BBox tbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
   const_cast<CQChartsScatterPlot *>(plot_)->
-    addDataLabelData(plot_->pixelToWindow(ptbbox), name(),
-                     plot_->dataLabelPosition(), penBrush, font1);
+    addDataLabelData(plot_->pixelToWindow(tbbox), name(),
+                     plot_->dataLabelPosition(), penBrush, font);
+}
+
+bool
+CQChartsScatterPointObj::
+isMinLabelSize() const
+{
+  auto &minLabelSize = plot_->minLabelSize();
+
+  if (! minLabelSize.isValid())
+    return false;
+
+  // get label font
+  auto font = calcFont();
+
+  // get text size (pixels)
+  const auto *dataLabel = plot_->dataLabel();
+
+  BBox tbbox(-1, -1, 1, 1); // just need size do use dummy value
+
+  auto wsize = dataLabel->calcRect(tbbox, name(),
+                 (CQChartsDataLabel::Position) plot_->dataLabelPosition(), font).size();
+
+  if      (minLabelSize.units() == Units::PLOT) {
+    if (labelDir() == Qt::Horizontal)
+      return (minLabelSize.value() > wsize.width());
+    else
+      return (minLabelSize.value() > wsize.height());
+  }
+  else if (minLabelSize.units() == Units::PIXEL) {
+    auto psize = plot_->windowToPixelSize(wsize);
+
+    return (minLabelSize.value() > psize.width());
+  }
+  else
+    return false;
 }
 
 void
@@ -3830,6 +3895,36 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush, drawType());
+}
+
+CQChartsFont
+CQChartsScatterPointObj::
+calcFont() const
+{
+  // get custom font size (from font column)
+  auto fontSize = this->calcFontSize();
+
+  //---
+
+  // get label font
+  auto font  = plot_->dataLabelFont();
+  auto font1 = font;
+
+  if (fontSize.isValid()) {
+    double fontPixelSize;
+
+    if (labelDir() == Qt::Horizontal)
+      fontPixelSize = plot_->lengthPixelWidth(fontSize);
+    else
+      fontPixelSize = plot_->lengthPixelHeight(fontSize);
+
+    // limit to max font size
+    fontPixelSize = plot_->limitFontSize(fontPixelSize);
+
+    font1.setPointSizeF(fontPixelSize);
+  }
+
+  return font1;
 }
 
 double
@@ -4623,6 +4718,6 @@ void
 CQChartsScatterPlotCustomControls::
 fontSizeRangeSlot(double min, double max)
 {
-  plot_->setFontSizeMapMin(min);
-  plot_->setFontSizeMapMax(max);
+  plot_->setFontSizeUserMapMin(min);
+  plot_->setFontSizeUserMapMax(max);
 }

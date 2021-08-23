@@ -401,7 +401,9 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
 
   QPen pen;
 
-  double width = CQChartsUtil::limitLineWidth(shape.stroke().width().value());
+  double width = shape.stroke().width().value();
+
+  width = (plot ? plot->limitLineWidth(width) : view->limitLineWidth(width));
 
   CQChartsUtil::setPen(pen, shape.stroke().isVisible(), pc,
                        shape.stroke().alpha(), width, shape.stroke().dash());

@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsData.h>
+#include <CQChartsArea.h>
 #include <QModelIndex>
 
 //---
@@ -279,6 +280,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   using Node    = CQChartsTreeMapNode;
   using HierObj = CQChartsTreeMapHierObj;
   using NodeObj = CQChartsTreeMapNodeObj;
+  using Units   = CQChartsUnits::Type;
 
  public:
   CQChartsTreeMapNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
@@ -314,6 +316,8 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   void drawText(PaintDevice *device, const BBox &bbox) const;
 
   void calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
+
+  bool isMinArea() const;
 
   bool isNodePoint() const;
 
@@ -433,9 +437,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  Q_PROPERTY(bool hierName    READ isHierName    WRITE setHierName   )
-  Q_PROPERTY(int  numSkipHier READ numSkipHier   WRITE setNumSkipHier)
-  Q_PROPERTY(bool textClipped READ isTextClipped WRITE setTextClipped)
+  // options
+  Q_PROPERTY(bool         hierName    READ isHierName    WRITE setHierName   )
+  Q_PROPERTY(int          numSkipHier READ numSkipHier   WRITE setNumSkipHier)
+  Q_PROPERTY(bool         textClipped READ isTextClipped WRITE setTextClipped)
+  Q_PROPERTY(CQChartsArea minArea     READ minArea       WRITE setMinArea    )
 
  public:
   using Node     = CQChartsTreeMapNode;
@@ -447,6 +453,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   using OptLength = CQChartsOptLength;
   using OptReal   = CQChartsOptReal;
   using Length    = CQChartsLength;
+  using Area      = CQChartsArea;
   using Color     = CQChartsColor;
   using Alpha     = CQChartsAlpha;
   using ColorInd  = CQChartsUtil::ColorInd;
@@ -497,25 +504,29 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
-  // get/set node hierarchical name
+  //! get/set node hierarchical name
   bool isHierName() const { return nodeData_.hierName; }
   void setHierName(bool b);
 
-  // num of levels to skip (from the start) for hierarchical name
+  //! get/set num of levels to skip (from the start) for hierarchical name
   int numSkipHier() const { return nodeData_.numSkipHier; }
   void setNumSkipHier(int n);
 
-  // get/set node text clipped
+  //! get/set node text clipped
   bool isTextClipped() const { return nodeData_.textClipped; }
   void setTextClipped(bool b);
 
-  // get/set value label
+  //! get/set value label
   bool isValueLabel() const { return nodeData_.valueLabel; }
   void setValueLabel(bool b);
 
-  // box margin
+  //! get/src box margin
   const Length &marginWidth() const { return nodeData_.marginWidth; }
   void setMarginWidth(const Length &l);
+
+  //! get/set min area
+  const Area &minArea() const { return minArea_; }
+  void setMinArea(const Area &a);
 
   //---
 
@@ -525,7 +536,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
-  // is color by id
+  //! get/set is color by id
   bool isColorById() const { return colorById_; }
   void setColorById(bool b);
 
@@ -535,6 +546,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   HierNode *firstHier() const { return firstHier_; }
 
+  //! get/set current root
   HierNode *currentRoot() const;
   void setCurrentRoot(HierNode *r, bool update=true);
 
@@ -713,6 +725,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   int         numColorIds_        { 0 };       //!< num used color ids
   int         maxDepth_           { 1 };       //!< max hier depth
   int         hierInd_            { 0 };       //!< current hier ind
+  Area        minArea_;                        //!< min area
   mutable int ig_                 { 0 };       //!< current group index
   mutable int in_                 { 0 };       //!< current node index
   double      windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
@@ -751,11 +764,13 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
   void setColorValue(const CQChartsColor &c) override;
 
  protected slots:
+  void headerSlot();
   void valueSlot();
   void followViewSlot();
 
  private:
   TreeMapPlot* plot_            { nullptr };
+  QCheckBox*   headerCheck_     { nullptr };
   QCheckBox*   valueCheck_      { nullptr };
   QCheckBox*   followViewCheck_ { nullptr };
 };

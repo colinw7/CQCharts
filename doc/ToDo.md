@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + move symbol/font size pixel limits to charts and allow config
+ + more controls e.g. tree map header show/hide
  + Scatter Plot controls include label visible
  + Strip plot key
  + Pie plot grouping average or sum

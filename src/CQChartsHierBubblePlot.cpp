@@ -77,7 +77,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-//setExactValue(false);
+//setExactBucketValue(false);
 
   //---
 
@@ -92,6 +92,8 @@ init()
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
   setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
+
+ //marginSet_ = false;
 
   //---
 
@@ -116,6 +118,20 @@ CQChartsHierBubblePlot::
 setValueLabel(bool b)
 {
   CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsHierBubblePlot::
+setSorted(bool b)
+{
+  CQChartsUtil::testAndSet(sortData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsHierBubblePlot::
+setSortReverse(bool b)
+{
+  CQChartsUtil::testAndSet(sortData_.reverse, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -149,6 +165,13 @@ setMinSize(const OptReal &r)
   CQChartsUtil::testAndSet(minSize_, r, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsHierBubblePlot::
+setMinArea(const Area &a)
+{
+  CQChartsUtil::testAndSet(minArea_, a, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -160,9 +183,11 @@ addProperties()
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
   addProp("options", "sorted"          , "", "Sort values by size");
+  addProp("options", "sortReverse"     , "", "Sort values large to small");
   addProp("options", "followViewExpand", "", "Follow view expand");
 
-  addProp("filter", "minSize", "minSize", "Min size");
+  addProp("filter", "minSize", "", "Min size");
+  addProp("filter", "minArea", "", "Min circle area");
 
   // coloring
   addProp("coloring", "colorById", "colorById", "Color by id");
@@ -290,6 +315,16 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+#if 0
+  if (! marginSet_) {
+    if (title()->textStr().length() > 0) {
+      th->setOuterMargin(PlotMargin(Length("4px"), Length("5%"), Length("4px"), Length("4px")));
+
+      marginSet_ = true;
+    }
+  }
+#endif
+
   // init value sets
 //initValueSets();
 
@@ -298,8 +333,8 @@ createObjs(PlotObjs &objs) const
   // check columns
   bool columnsValid = true;
 
-  // value column required
-  // name, id, color columns optional
+  // name column required
+  // value, color columns optional
 
   if (! checkColumns(nameColumns(), "Name", /*required*/true))
     columnsValid = false;
@@ -716,6 +751,8 @@ addNode(HierNode *hier, const QString &name, double size, const QModelIndex &nam
   return node;
 }
 
+//----
+
 void
 CQChartsHierBubblePlot::
 loadFlat() const
@@ -798,6 +835,8 @@ loadFlat() const
 
   addExtraNodes(nodeData_.root);
 }
+
+//---
 
 CQChartsHierBubbleNode *
 CQChartsHierBubblePlot::
@@ -924,6 +963,8 @@ childNode(HierNode *parent, const QString &name) const
   return nullptr;
 }
 
+//---
+
 bool
 CQChartsHierBubblePlot::
 getValueSize(const ModelIndex &ind, double &size) const
@@ -958,6 +999,71 @@ getValueSize(const ModelIndex &ind, double &size) const
 
 //------
 
+void
+CQChartsHierBubblePlot::
+postResize()
+{
+  CQChartsPlot::postResize();
+
+  resetDataRange(/*updateRange*/true, /*updateObjs*/false);
+}
+
+//------
+
+bool
+CQChartsHierBubblePlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsHierBubblePlot::
+execDrawForeground(PaintDevice *device) const
+{
+  drawBounds(device, currentRoot());
+
+  if (isColorMapKey())
+    drawColorMapKey(device);
+}
+
+void
+CQChartsHierBubblePlot::
+drawBounds(PaintDevice *device, HierNode *hier) const
+{
+  if (! hier)
+    return;
+
+  double xc = hier->x();
+  double yc = hier->y();
+  double r  = hier->radius();
+
+  //---
+
+  Point p1(xc - r, yc - r);
+  Point p2(xc + r, yc + r);
+
+  BBox bbox(p1, p2);
+
+  //---
+
+  // draw bubble
+  PenBrush penBrush;
+
+  auto bc = interpStrokeColor(ColorInd());
+
+  setPenBrush(penBrush, PenData(true, bc), BrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawEllipse(bbox);
+}
+
+//------
+
 bool
 CQChartsHierBubblePlot::
 addMenuItems(QMenu *menu)
@@ -983,6 +1089,8 @@ addMenuItems(QMenu *menu)
 
   return true;
 }
+
+//---
 
 void
 CQChartsHierBubblePlot::
@@ -1053,18 +1161,7 @@ popTopSlot()
   }
 }
 
-//------
-
-void
-CQChartsHierBubblePlot::
-postResize()
-{
-  CQChartsPlot::postResize();
-
-  resetDataRange(/*updateRange*/true, /*updateObjs*/false);
-}
-
-//------
+//----
 
 void
 CQChartsHierBubblePlot::
@@ -1121,60 +1218,6 @@ resetNodeExpansion(HierNode *hierNode)
 
   for (auto &hierNode1 : hierNode->getChildren())
     resetNodeExpansion(hierNode1);
-}
-
-//------
-
-bool
-CQChartsHierBubblePlot::
-hasForeground() const
-{
-  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
-    return false;
-
-  return true;
-}
-
-void
-CQChartsHierBubblePlot::
-execDrawForeground(PaintDevice *device) const
-{
-  drawBounds(device, currentRoot());
-
-  if (isColorMapKey())
-    drawColorMapKey(device);
-}
-
-void
-CQChartsHierBubblePlot::
-drawBounds(PaintDevice *device, HierNode *hier) const
-{
-  if (! hier)
-    return;
-
-  double xc = hier->x();
-  double yc = hier->y();
-  double r  = hier->radius();
-
-  //---
-
-  Point p1(xc - r, yc - r);
-  Point p2(xc + r, yc + r);
-
-  BBox bbox(p1, p2);
-
-  //---
-
-  // draw bubble
-  PenBrush penBrush;
-
-  auto bc = interpStrokeColor(ColorInd());
-
-  setPenBrush(penBrush, PenData(true, bc), BrushData(false));
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  device->drawEllipse(bbox);
 }
 
 //---
@@ -1431,6 +1474,9 @@ draw(PaintDevice *device) const
 
   //---
 
+  if (this->isMinArea())
+    return;
+
   double r = this->radius();
 
   Point p1(node()->x() - r, node()->y() - r);
@@ -1475,15 +1521,13 @@ draw(PaintDevice *device) const
   if (isCirclePoint)
     return;
 
-  //---
-
   if (plot_->isTextVisible())
-    drawText(device, bbox);
+    drawText(device, bbox, penBrush.brush.color());
 }
 
 void
 CQChartsHierBubbleNodeObj::
-drawText(PaintDevice *device, const BBox &bbox) const
+drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1499,6 +1543,8 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // calc text pen
+  plot_->charts()->setContrastColor(brushColor);
+
   auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
@@ -1516,7 +1562,12 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // set font
+  auto clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
+  auto clipElide  = plot_->textClipElide();
+
   plot_->setPainterFont(device, plot_->textFont());
+
+  QStringList strs1;
 
   if (plot_->isTextScaled()) {
     // calc text size
@@ -1524,8 +1575,14 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
     double tw = 0;
 
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
+
+      tw = std::max(tw, fm.width(str1));
+
+      strs1.push_back(str1);
+    }
 
     double th = strs.size()*fm.height();
 
@@ -1544,6 +1601,14 @@ drawText(PaintDevice *device, const BBox &bbox) const
     // scale font
     device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
   }
+  else {
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
+
+      strs1.push_back(str1);
+    }
+  }
 
   //---
 
@@ -1553,25 +1618,30 @@ drawText(PaintDevice *device, const BBox &bbox) const
   //---
 
   // draw label
-  device->setClipRect(bbox);
+  double xm = plot_->pixelToWindowWidth (3);
+  double ym = plot_->pixelToWindowHeight(3);
+
+  device->setClipRect(bbox.adjusted(xm, ym, -xm, -ym));
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)
   auto textOptions = plot_->textOptions();
 
-  textOptions.angle = CQChartsAngle();
-  textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
+  textOptions.angle      = CQChartsAngle();
+  textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
+  textOptions.clipLength = 0.0;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
   device->setPen(tPenBrush.pen);
 
-  auto tp = pc;
+  CQChartsDrawUtil::drawTextsAtPoint(device, plot_->pixelToWindow(pc), strs1, textOptions);
 
-  if      (strs.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp), name, textOptions);
+#if 0
+  if      (strs1.size() == 1) {
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(pc), strs1[0], textOptions);
   }
-  else if (strs.size() == 2) {
+  else if (strs1.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
@@ -1579,16 +1649,43 @@ drawText(PaintDevice *device, const BBox &bbox) const
     auto tp1 = plot_->pixelToWindow(Point(pc.x, pc.y - th/2));
     auto tp2 = plot_->pixelToWindow(Point(pc.x, pc.y + th/2));
 
-    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
   }
   else {
     assert(false);
   }
+#endif
+
+  plot_->charts()->resetContrastColor();
 
   //---
 
   device->restore();
+}
+
+bool
+CQChartsHierBubbleNodeObj::
+isMinArea() const
+{
+  auto &minArea = plot_->minArea();
+
+  if (! minArea.isValid())
+    return false;
+
+  double r = this->radius();
+
+  if      (minArea.units() == Units::PLOT) {
+    return (minArea.value() > CQChartsUtil::circleArea(r));
+  }
+  else if (minArea.units() == Units::PIXEL) {
+    auto pw = plot_->windowToPixelWidth (r);
+    auto ph = plot_->windowToPixelHeight(r);
+
+    return (minArea.value() > CQChartsUtil::ellipseArea(pw, ph));
+  }
+  else
+    return false;
 }
 
 bool
@@ -1732,7 +1829,8 @@ packNodes()
 
   // sort nodes
   if (plot_->isSorted())
-    std::sort(packNodes.begin(), packNodes.end(), CQChartsHierBubbleNodeCmp());
+    std::sort(packNodes.begin(), packNodes.end(),
+              CQChartsHierBubbleNodeCmp(plot_->isSortReverse()));
 
   // pack nodes
   for (auto &packNode : packNodes)
@@ -1839,7 +1937,6 @@ void
 CQChartsHierBubbleNode::
 initRadius()
 {
-  // area = PI*r*r; r = std::sqrt(area/PI)
   r_ = CQChartsUtil::areaToRadius(hierSize());
 }
 

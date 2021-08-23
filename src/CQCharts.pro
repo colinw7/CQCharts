@@ -221,6 +221,8 @@ CQChartsConnectionList.cpp \
 CQChartsSides.cpp \
 CQChartsFillUnder.cpp \
 CQChartsPaletteName.cpp \
+CQChartsArea.cpp \
+CQChartsUnits.cpp \
 \
 CQChartsSymbol.cpp \
 CQChartsSymbolType.cpp \
@@ -620,6 +622,8 @@ HEADERS += \
 ../include/CQChartsSides.h \
 ../include/CQChartsFillUnder.h \
 ../include/CQChartsPaletteName.h \
+../include/CQChartsArea.h \
+../include/CQChartsUnits.h \
 \
 ../include/CQChartsOptInt.h \
 ../include/CQChartsOptLength.h \

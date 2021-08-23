@@ -750,9 +750,16 @@ void
 drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
            const Point &c, const Length &size)
 {
+  drawSymbol(device, penBrush, symbol, c, size, size);
+}
+
+void
+drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
+           const Point &c, const Length &xsize, const Length &ysize)
+{
   setPenBrush(device, penBrush);
 
-  drawSymbol(device, symbol, c, size);
+  drawSymbol(device, symbol, c, xsize, ysize);
 }
 
 void
@@ -764,20 +771,29 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
 
   double cx = bbox.getXMid();
   double cy = bbox.getYMid();
-  double ss = pbbox.getMinSize();
+  double sx = pbbox.getWidth();
+  double sy = pbbox.getHeight();
 
-  auto symbolSize = Length::pixel(ss/2.0);
+  auto xsize = Length::pixel(sx/2.0);
+  auto ysize = Length::pixel(sy/2.0);
 
-  drawSymbol(device, symbol, Point(cx, cy), symbolSize);
+  drawSymbol(device, symbol, Point(cx, cy), xsize, ysize);
 }
 
 void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size)
 {
-  if (! size.isValid())
+  drawSymbol(device, symbol, c, size, size);
+}
+
+void
+drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
+           const Length &xsize, const Length &ysize)
+{
+  if (! xsize.isValid() || ! ysize.isValid())
     return;
 
-  CQChartsPlotSymbolRenderer srenderer(device, Point(c), size);
+  CQChartsPlotSymbolRenderer srenderer(device, Point(c), xsize, ysize);
 
   if      (symbol.isFilled() && ! symbol.isStroked())
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer); // filled

@@ -2754,7 +2754,6 @@ execCmd(CQChartsCmdArgs &argv)
     // model
     else if (nameStr == "red_model" || nameStr == "green_model" || nameStr == "blue_model") {
       bool ok;
-
       int i = (int) CQChartsUtil::toInt(valueStr, ok);
       if (! ok) return errorMsg(QString("Invalid model index '%1'").arg(valueStr));
 
@@ -2766,7 +2765,6 @@ execCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "gray" || nameStr == "red_negative" ||
              nameStr == "green_negative" || nameStr == "blue_negative") {
       bool ok;
-
       bool b = CQChartsUtil::stringToBool(valueStr, &ok);
       if (! ok) return errorMsg(QString("Invalid boolean '%1'").arg(valueStr));
 
@@ -2780,7 +2778,6 @@ execCmd(CQChartsCmdArgs &argv)
              nameStr == "green_min" || nameStr == "green_max" ||
              nameStr == "blue_min"  || nameStr == "blue_max") {
       bool ok;
-
       double r = CQChartsUtil::toReal(valueStr, ok);
       if (! ok) return errorMsg(QString("Invalid real '%1'").arg(valueStr));
 
@@ -5731,7 +5728,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       static auto names = QStringList() <<
        "models" << "views" << "plot_types" << "plots" << "annotations" << "current_model" <<
        "column_types" << "column_type.names" << "column_type.descs" << "annotation_types" <<
-       "symbols" << "procs" << "proc_data" << "role_names" << "path_list";
+       "symbols" << "procs" << "proc_data" << "role_names" << "path_list" << "view_key" <<
+       "max_symbol_size" << "max_font_size" << "max_line_width";
       return names;
     }
   }
@@ -6739,6 +6737,18 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(strs);
     }
+    else if (name == "view_key") {
+      return cmdBase_->setCmdRc(charts->hasViewKey());
+    }
+    else if (name == "max_symbol_size") {
+      return cmdBase_->setCmdRc(charts->maxSymbolSize());
+    }
+    else if (name == "max_font_size") {
+      return cmdBase_->setCmdRc(charts->maxFontSize());
+    }
+    else if (name == "max_line_width") {
+      return cmdBase_->setCmdRc(charts->maxLineWidth());
+    }
     else if (name == "?") {
       NameValueMap nameValues;
 
@@ -7134,8 +7144,33 @@ execCmd(CQChartsCmdArgs &argv)
 
       charts->setPathList(strs);
     }
+    else if (name == "view_key") {
+      bool ok;
+      bool b = CQChartsUtil::stringToBool(value, &ok);
+
+      charts->setViewKey(b);
+    }
+    else if (name == "max_symbol_size") {
+      bool ok;
+      double r = CQChartsUtil::toReal(value, ok);
+
+      charts->setMaxSymbolSize(r);
+    }
+    else if (name == "max_font_size") {
+      bool ok;
+      double r = CQChartsUtil::toReal(value, ok);
+
+      charts->setMaxFontSize(r);
+    }
+    else if (name == "max_line_width") {
+      bool ok;
+      double r = CQChartsUtil::toReal(value, ok);
+
+      charts->setMaxLineWidth(r);
+    }
     else if (name == "?") {
-      static auto names = QStringList() << "path_list";
+      static auto names = QStringList() << "path_list" << "view_key" <<
+        "max_symbol_size" << "max_font_size" << "max_line_width";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -7332,14 +7367,17 @@ execCmd(CQChartsCmdArgs &argv)
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
 
     if      (strs.length() == 1) {
-      auto len = CQChartsLength(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      auto len = CQChartsLength(strs[0], (view ? CQChartsUnits::Type::VIEW :
+                                                 CQChartsUnits::Type::PLOT));
       if (! len.isValid()) return errorMsg(QString("Invalid length string '%1'").arg(strs[0]));
 
       if (len.value() > 0) arrowData.setLength(len);
     }
     else if (strs.length() == 2) {
-      auto len1 = CQChartsLength(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-      auto len2 = CQChartsLength(strs[1], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      auto len1 = CQChartsLength(strs[0], (view ? CQChartsUnits::Type::VIEW :
+                                                  CQChartsUnits::Type::PLOT));
+      auto len2 = CQChartsLength(strs[1], (view ? CQChartsUnits::Type::VIEW :
+                                                  CQChartsUnits::Type::PLOT));
       if (! len1.isValid() || ! len2.isValid())
         return errorMsg(QString("Invalid length strings '%1' '%2'").arg(strs[0]).arg(strs[1]));
 

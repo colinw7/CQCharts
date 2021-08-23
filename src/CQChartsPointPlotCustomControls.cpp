@@ -309,8 +309,8 @@ symbolSizeRangeSlot(double min, double max)
 {
   connectSlots(false);
 
-  plot_->setSymbolSizeMapMin(min);
-  plot_->setSymbolSizeMapMax(max);
+  plot_->setSymbolSizeUserMapMin(min);
+  plot_->setSymbolSizeUserMapMax(max);
 
   connectSlots(true);
 

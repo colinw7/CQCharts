@@ -296,7 +296,14 @@ void drawSimpleText(PaintDevice *device, const Point &pos, const QString &text);
 
 void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
                 const Point &c, const Length &size);
-void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size);
+void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
+                const Point &c, const Length &xsize, const Length &ysize);
+
+void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
+                const Length &size);
+void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
+                const Length &xsize, const Length &ysize);
+
 void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox);
 
 //---

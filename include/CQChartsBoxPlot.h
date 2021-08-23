@@ -950,16 +950,16 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   bool            notched_      { false };            //!< show notch
 
   // violin
-  bool   violin_      { false };            //!< show violin
-  Length violinWidth_ { 0.6, Units::PLOT }; //!< violin width
-  bool   violinBox_   { false };            //!< show box width violin
+  bool   violin_      { false };             //!< show violin
+  Length violinWidth_ { Length::plot(0.6) }; //!< violin width
+  bool   violinBox_   { false };             //!< show box width violin
 
   // error bar
   bool         errorBar_     { false };                   //!< show error bar
   ErrorBarType errorBarType_ { ErrorBarType::CROSS_BAR }; //!< error bar type
 
-  Length boxWidth_   { 0.2, Units::PLOT }; //!< box width
-  bool   colorBySet_ { false };            //!< color by set
+  Length boxWidth_   { Length::plot(0.2) }; //!< box width
+  bool   colorBySet_ { false };             //!< color by set
 
   // whisker
   double whiskerRange_  { 1.5 }; //!< whisker range

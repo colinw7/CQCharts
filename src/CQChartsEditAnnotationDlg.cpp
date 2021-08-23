@@ -1071,7 +1071,7 @@ ellipseCenterSlot(bool)
     CQChartsGeom::Point center1;
     double              xr1 = 0.0;
     double              yr1 = 0.0;
-    CQChartsUnits       units1 { Units::PIXEL };
+    Units               units1 { Units::PIXEL };
 
     if      (annotation->view()) {
       center1 = annotation->view()->positionToView(center);

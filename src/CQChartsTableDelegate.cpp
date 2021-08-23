@@ -510,8 +510,7 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 
     auto symbolSize = CQChartsLength::pixel(rect.height()/2.0);
 
-    if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(&device, symbol, CQChartsGeom::Point(rect.center()), symbolSize);
+    CQChartsDrawUtil::drawSymbol(&device, symbol, CQChartsGeom::Point(rect.center()), symbolSize);
   }
 
   QFontMetrics fm(painter->font());

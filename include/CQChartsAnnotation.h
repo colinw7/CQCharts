@@ -110,7 +110,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using SelMod      = CQChartsSelMod;
   using ColorInd    = CQChartsUtil::ColorInd;
   using ObjRef      = CQChartsObjRef;
-  using Units       = CQChartsUnits;
+  using Units       = CQChartsUnits::Type;
   using Alpha       = CQChartsAlpha;
   using PaletteName = CQChartsPaletteName;
   using OptReal     = CQChartsOptReal;
@@ -777,9 +777,9 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotation {
   int       numSides_  { -1 };               //!< number of sides
   Angle     angle_;                          //!< rotation angle
 
-  Length lineWidth_  { Units::PLOT, 1.0 }; //!< dot line width
-  Symbol symbol_     { Symbol::circle() }; //!< dot symbol
-  Length symbolSize_ { Units::PLOT, 1.0 }; //!< dot symbol size
+  Length lineWidth_  { Length::plot(1.0) }; //!< dot line width
+  Symbol symbol_     { Symbol::circle() };  //!< dot symbol
+  Length symbolSize_ { Length::plot(1.0) }; //!< dot symbol size
 
   ModelIndex modelIndex_; //!< model index
 };
@@ -803,7 +803,7 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotation {
  public:
   using Position = CQChartsPosition;
   using Length   = CQChartsLength;
-  using Units    = CQChartsUnits;
+  using Units    = CQChartsUnits::Type;
 
  public:
   CQChartsEllipseAnnotation(View *view, const Position &center=Position(),
@@ -867,10 +867,10 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotation {
   void init();
 
  private:
-  Position center_;                       //!< ellipse center
-  Length   xRadius_ { 1.0, Units::PLOT }; //!< ellipse x radius
-  Length   yRadius_ { 1.0, Units::PLOT }; //!< ellipse y radius
-  ObjRef   objRef_;                       //!< object ref
+  Position center_;                        //!< ellipse center
+  Length   xRadius_ { Length::plot(1.0) }; //!< ellipse x radius
+  Length   yRadius_ { Length::plot(1.0) }; //!< ellipse y radius
+  ObjRef   objRef_;                        //!< object ref
 };
 
 //---
@@ -1544,7 +1544,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
   bool     rectilinear_ { false };                               //!< is rectilinear
   HeadType frontType_   { HeadType::NONE };                      //!< front head type
   HeadType tailType_    { HeadType::NONE };                      //!< tail head type
-  Length   lineWidth_   { 16, CQChartsUnits::PIXEL };            //!< line width
+  Length   lineWidth_   { Length::pixel(16) };                   //!< line width
 };
 
 //---

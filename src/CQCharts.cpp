@@ -85,6 +85,7 @@
 #include <CQChartsTextBoxDataEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTitleLocationEdit.h>
+#include <CQChartsUnitsEdit.h>
 
 #include <CQChartsOptIntEdit.h>
 #include <CQChartsOptRealEdit.h>
@@ -444,6 +445,7 @@ CQCharts()
 
   CQChartsAlpha                 ::registerMetaType();
   CQChartsAngle                 ::registerMetaType();
+  CQChartsArea                  ::registerMetaType();
   CQChartsArrowData             ::registerMetaType();
   CQChartsAxisSide              ::registerMetaType();
   CQChartsAxisTickLabelPlacement::registerMetaType();
@@ -493,6 +495,7 @@ CQCharts()
   CQChartsTextData              ::registerMetaType();
   CQChartsThemeName             ::registerMetaType();
   CQChartsTitleLocation         ::registerMetaType();
+  CQChartsUnits                 ::registerMetaType();
   CQChartsWidget                ::registerMetaType();
 
   CQChartsOptInt     ::registerMetaType();
@@ -668,6 +671,7 @@ init()
     viewMgr->addTypeT<CQChartsSymbolTypePropertyViewType      >("CQChartsSymbolType"      );
     viewMgr->addTypeT<CQChartsTextBoxDataPropertyViewType     >("CQChartsTextBoxData"     );
     viewMgr->addTypeT<CQChartsTextDataPropertyViewType        >("CQChartsTextData"        );
+    viewMgr->addTypeT<CQChartsUnitsPropertyViewType           >("CQChartsUnits"           );
 
     viewMgr->addTypeT<CQChartsOptIntPropertyViewType     >("CQChartsOptInt"     );
     viewMgr->addTypeT<CQChartsOptRealPropertyViewType    >("CQChartsOptReal"    );
@@ -711,6 +715,7 @@ init()
     widgetMgr->addWidgetFactoryT<CQChartsPositionEdit  >("CQChartsPositionEdit"  );
     widgetMgr->addWidgetFactoryT<CQChartsSymbolEdit    >("CQChartsSymbolEdit"    );
     widgetMgr->addWidgetFactoryT<CQChartsSymbolTypeEdit>("CQChartsSymbolTypeEdit");
+    widgetMgr->addWidgetFactoryT<CQChartsUnitsEdit     >("CQChartsUnitsEdit"     );
 
     widgetMgr->addWidgetFactoryNoArgsT<
       CQChartsPlotPropertyEditGroup>("CQChartsPlotPropertyEditGroup");

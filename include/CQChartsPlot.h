@@ -450,7 +450,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
   using Length      = CQChartsLength;
-  using Units       = CQChartsUnits;
+  using Units       = CQChartsUnits::Type;
   using Angle       = CQChartsAngle;
   using FillPattern = CQChartsFillPattern;
   using LineDash    = CQChartsLineDash;
@@ -1489,11 +1489,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
  public:
-  void plotSymbolSize (const Length &s, double &sx, double &sy) const;
-  void pixelSymbolSize(const Length &s, double &sx, double &sy) const;
+  void plotSymbolSize (const Length &s, double &sx, double &sy,
+                       const Qt::Orientation &dir=Qt::Horizontal) const;
+  void pixelSymbolSize(const Length &s, double &sx, double &sy,
+                       const Qt::Orientation &dir=Qt::Horizontal) const;
 
   double limitSymbolSize(double s) const;
   double limitFontSize(double s) const;
+  double limitLineWidth(double w) const;
 
   //---
 
@@ -1688,40 +1691,46 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief symbol size (column) data
   struct SymbolSizeData {
-    Column  column;              //!< symbol size column
-    bool    valid     { false }; //!< symbol size valid
-    bool    mapped    { false }; //!< symbol size values mapped
-    double  data_min  { 0.0 };   //!< model data min
-    double  data_max  { 1.0 };   //!< model data max
-    double  data_mean { 0.0 };   //!< model data mean
-    double  map_min   { 0.0 };   //!< mapped size min
-    double  map_max   { 1.0 };   //!< mapped size max
-    QString units     { "px" };  //!< mapped size units
+    Column          column;                          //!< symbol size column
+    bool            valid        { false };          //!< symbol size valid
+    bool            mapped       { false };          //!< symbol size values mapped
+    double          data_min     { 0.0 };            //!< model data min
+    double          data_max     { 1.0 };            //!< model data max
+    double          data_mean    { 0.0 };            //!< model data mean
+    double          map_min      { 0.0 };            //!< mapped size min
+    double          map_max      { 1.0 };            //!< mapped size max
+    double          user_map_min { 0.0 };            //!< user specified mapped size min
+    double          user_map_max { 1.0 };            //!< user specified mapped size max
+    CQChartsUnits   units        { Units::PIXEL };   //!< mapped size units
+    Qt::Orientation direction    { Qt::Horizontal }; //!< mapped size direction
   };
 
   void initSymbolSizeData(SymbolSizeData &symbolSizeData) const;
 
   bool columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
-                        Length &symbolSize) const;
+                        Length &symbolSize, Qt::Orientation &sizeDir) const;
 
   //---
 
   //! \brief font size (column) data
   struct FontSizeData {
-    Column  column;             //!< font size column
-    bool    valid    { false }; //!< font size valid
-    bool    mapped   { false }; //!< font size values mapped
-    double  data_min { 0.0 };   //!< model data min
-    double  data_max { 1.0 };   //!< model data max
-    double  map_min  { 0.0 };   //!< mapped size min
-    double  map_max  { 1.0 };   //!< mapped size max
-    QString units    { "px" };  //!< mapped size units
+    Column          column;                          //!< font size column
+    bool            valid        { false };          //!< font size valid
+    bool            mapped       { false };          //!< font size values mapped
+    double          data_min     { 0.0 };            //!< model data min
+    double          data_max     { 1.0 };            //!< model data max
+    double          map_min      { 0.0 };            //!< mapped size min
+    double          map_max      { 1.0 };            //!< mapped size max
+    double          user_map_min { 0.0 };            //!< user specified mapped size min
+    double          user_map_max { 1.0 };            //!< user specified mapped size max
+    CQChartsUnits   units        { Units::PIXEL };   //!< mapped size units
+    Qt::Orientation direction    { Qt::Horizontal }; //!< mapped size direction
   };
 
   void initFontSizeData(FontSizeData &fontSizeData) const;
 
   bool columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
-                      Length &fontSize) const;
+                      Length &fontSize, Qt::Orientation &sizeDir) const;
 
   //---
 

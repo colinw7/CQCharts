@@ -264,7 +264,7 @@ class CQChartsView : public QFrame,
   using ColorInd    = CQChartsUtil::ColorInd;
   using RegionMgr   = CQChartsRegionMgr;
   using KeyBehavior = CQChartsKeyPressBehavior;
-  using Units       = CQChartsUnits;
+  using Units       = CQChartsUnits::Type;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -751,6 +751,10 @@ class CQChartsView : public QFrame,
   void drawKey(PaintDevice *device, const Layer::Type &layerType);
 
   void lockPainter(bool lock);
+
+  //---
+
+  double limitLineWidth(double w) const;
 
   //---
 

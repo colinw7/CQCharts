@@ -6,6 +6,7 @@
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsData.h>
+#include <CQChartsArea.h>
 #include <QModelIndex>
 
 //---
@@ -291,6 +292,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   using Plot    = CQChartsBubblePlot;
   using Node    = CQChartsBubbleNode;
   using HierObj = CQChartsBubbleHierObj;
+  using Units   = CQChartsUnits::Type;
 
  public:
   CQChartsBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
@@ -332,7 +334,11 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
+  bool isMinArea() const;
+
   bool isCirclePoint() const;
+
+  //---
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
@@ -421,10 +427,12 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
   // options
-  Q_PROPERTY(bool            valueLabel  READ isValueLabel  WRITE setValueLabel )
-  Q_PROPERTY(bool            sorted      READ isSorted      WRITE setSorted     )
-  Q_PROPERTY(bool            sortReverse READ isSortReverse WRITE setSortReverse)
-  Q_PROPERTY(CQChartsOptReal minSize     READ minSize       WRITE setMinSize    )
+  Q_PROPERTY(bool valueLabel  READ isValueLabel  WRITE setValueLabel )
+  Q_PROPERTY(bool sorted      READ isSorted      WRITE setSorted     )
+  Q_PROPERTY(bool sortReverse READ isSortReverse WRITE setSortReverse)
+
+  Q_PROPERTY(CQChartsOptReal minSize READ minSize WRITE setMinSize)
+  Q_PROPERTY(CQChartsArea    minArea READ minArea WRITE setMinArea)
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -443,6 +451,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   using HierObj  = CQChartsBubbleHierObj;
   using NodeObj  = CQChartsBubbleNodeObj;
   using Length   = CQChartsLength;
+  using Area     = CQChartsArea;
   using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;
 
@@ -495,6 +504,10 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   //! get/set min size
   const OptReal &minSize() const { return minSize_; }
   void setMinSize(const OptReal &r);
+
+  //! get/set min area
+  const Area &minArea() const { return minArea_; }
+  void setMinArea(const Area &a);
 
   //---
 
@@ -650,14 +663,16 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
 
   // options
-  bool           valueLabel_  { false }; //!< draw value with name
-  SortData       sortData_;              //!< sort data
-  OptReal        minSize_;               //!< min size
-  NodeData       nodeData_;              //!< node data
-  PlaceData      placeData_;             //!< place data
-  ColorData      colorData_;             //!< color data
-  bool           colorById_   { true };  //!< color by id
-  GroupHierNodes groupHierNodes_;        //!< hier group nodes
+  bool      valueLabel_ { false }; //!< draw value with name
+  SortData  sortData_;             //!< sort data
+  OptReal   minSize_;              //!< min size
+  Area      minArea_;              //!< min area
+  NodeData  nodeData_;             //!< node data
+  PlaceData placeData_;            //!< place data
+  ColorData colorData_;            //!< color data
+  bool      colorById_  { true };  //!< color by id
+
+  GroupHierNodes groupHierNodes_; //!< hier group nodes
 
   mutable bool marginSet_ { false }; //!< is margin set
 };

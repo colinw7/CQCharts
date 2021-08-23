@@ -4862,6 +4862,16 @@ lockPainter(bool lock)
     painterMutex_.unlock();
 }
 
+//-----
+
+double
+CQChartsView::
+limitLineWidth(double w) const
+{
+  // ensure not a crazy number : TODO: property for limits
+  return CMathUtil::clamp(w, 0.0, charts()->maxLineWidth());
+}
+
 //------
 
 void
@@ -4876,7 +4886,7 @@ void
 CQChartsView::
 setPen(PenBrush &penBrush, const PenData &penData) const
 {
-  double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
+  double width = limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
                        width, penData.dash(), penData.lineCap(), penData.lineJoin());

@@ -24,9 +24,9 @@
 //#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-#include <CQCheckBox.h>
 
 #include <QMenu>
+#include <QCheckBox>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -1784,16 +1784,17 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // get symbol size (needed for bounding box)
-        Length symbolSize;
+        Length          symbolSize;
+        Qt::Orientation sizeDir;
 
         if (symbolSizeColumn().isValid()) {
-          if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize))
+          if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize, sizeDir))
             symbolSize = Length();
         }
 
         double sx, sy;
 
-        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(), sx, sy);
+        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(), sx, sy, sizeDir);
 
         //---
 
@@ -1831,10 +1832,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional font size
-        Length fontSize;
+        Length          fontSize;
+        Qt::Orientation fontSizeDir;
 
         if (fontSizeColumn().isValid()) {
-          if (! columnFontSize(xind1.row(), xind1.parent(), fontSize))
+          if (! columnFontSize(xind1.row(), xind1.parent(), fontSize, fontSizeDir))
             fontSize = Length();
         }
 
@@ -4866,28 +4868,27 @@ addWidgets()
   linesCheck_     = CQUtil::makeLabelWidget<QCheckBox>("Lines"     , "linesCheck");
   fillUnderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Fill Under", "fillUnderCheck");
 
-  stackedCheck_       = CQUtil::makeWidget<CQCheckBox>("stackedCheck");
-  impulseCheck_       = CQUtil::makeWidget<CQCheckBox>("impulseCheck");
-  bestFitCheck_       = CQUtil::makeWidget<CQCheckBox>("bestFitCheck");
-  hullCheck_          = CQUtil::makeWidget<CQCheckBox>("hullCheck");
-  movingAverageCheck_ = CQUtil::makeWidget<CQCheckBox>("movingAverageCheck");
+  stackedCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Stacked"       , "stackedCheck");
+  impulseCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Impulse"       , "impulseCheck");
+  bestFitCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"      , "bestFitCheck");
+  hullCheck_          = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull"   , "hullCheck");
+  movingAverageCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Moving Average", "movingAverageCheck");
 
   addFrameColWidget(optionsFrame, pointsCheck_);
-  addFrameColWidget(optionsFrame, linesCheck_);
-  addFrameSpacer   (optionsFrame, /*nextRow*/false);
-  addFrameColWidget(optionsFrame, fillUnderCheck_);
+  addFrameColWidget(optionsFrame, linesCheck_ );
   addFrameSpacer   (optionsFrame);
 
-  addFrameWidget(optionsFrame, "Stacked", stackedCheck_, /*nextRow*/false);
-  addFrameWidget(optionsFrame, "Impulse", impulseCheck_, /*nextRow*/false);
-  addFrameSpacer(optionsFrame);
+  addFrameColWidget(optionsFrame, fillUnderCheck_);
+  addFrameColWidget(optionsFrame, stackedCheck_  );
+  addFrameColWidget(optionsFrame, impulseCheck_  );
+  addFrameSpacer   (optionsFrame);
 
-  addFrameWidget(optionsFrame, "Best Fit"   , bestFitCheck_, /*nextRow*/false);
-  addFrameWidget(optionsFrame, "Convex Hull", hullCheck_   , /*nextRow*/false);
-  addFrameSpacer(optionsFrame);
+  addFrameColWidget(optionsFrame, bestFitCheck_      );
+  addFrameColWidget(optionsFrame, hullCheck_         );
+  addFrameColWidget(optionsFrame, movingAverageCheck_);
+  addFrameSpacer   (optionsFrame);
 
-  addFrameWidget(optionsFrame, "Moving Average", movingAverageCheck_, /*nextRow*/false);
-  addFrameSpacer(optionsFrame);
+  //addFrameSpacer(optionsFrame);
 
   //---
 

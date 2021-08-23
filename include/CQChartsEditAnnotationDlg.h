@@ -1,6 +1,7 @@
 #ifndef CQChartsEditAnnotationDlg_H
 #define CQChartsEditAnnotationDlg_H
 
+#include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
 #include <QDialog>
 
@@ -50,7 +51,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
  public:
   using Annotation = CQChartsAnnotation;
-  using Units      = CQChartsUnits;
+  using Units      = CQChartsUnits::Type;
 
  public:
   CQChartsEditAnnotationDlg(QWidget *parent, Annotation *annotation);

@@ -21,12 +21,17 @@ setPlot(CQChartsPlot *plot)
 {
   plot_ = plot;
 
-  setRangeMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
-
   auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_);
 
-  if (pointPlot)
-    setSliderMinMax(pointPlot->symbolSizeMapMin(), pointPlot->symbolSizeMapMax());
+  if (pointPlot) {
+    setRangeMinMax(pointPlot->symbolSizeMapMin(), pointPlot->symbolSizeMapMax(),
+                   /*reset*/false);
+    setSliderMinMax(pointPlot->symbolSizeUserMapMin(), pointPlot->symbolSizeUserMapMax(),
+                    /*reset*/false);
+  }
+  else
+    setRangeMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue(),
+                   /*reset*/false);
 
   update();
 }

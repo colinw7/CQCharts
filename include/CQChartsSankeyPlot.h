@@ -1441,10 +1441,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool            valueLabel_  { false };          //!< value label
 
   // bbox, margin, node width
-  BBox   targetBBox_    { -1, -1, 1, 1 };     //!< target range bbox
-  Length nodeMargin_    { 0.2, Units::PLOT }; //!< node margin (y)
-  double minNodeMargin_ { 0.1 };              //!< minimum node margin (in pixels)
-  Length nodeWidth_     { 16, Units::PIXEL }; //!< node x width in pixels
+  BBox   targetBBox_    { -1, -1, 1, 1 };      //!< target range bbox
+  Length nodeMargin_    { Length::plot(0.2) }; //!< node margin (y)
+  double minNodeMargin_ { 0.1 };               //!< minimum node margin (in pixels)
+  Length nodeWidth_     { Length::pixel(16) }; //!< node x width in pixels
 
   // mouse inside/selected text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)

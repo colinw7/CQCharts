@@ -67,13 +67,16 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
 
  public:
+  using Units = CQChartsUnits::Type;
+
+ public:
   CQChartsPolygonEdit(QWidget *parent=nullptr);
 
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
-  const CQChartsUnits &units() const;
-  void setUnits(const CQChartsUnits &units);
+  const Units &units() const;
+  void setUnits(const Units &units);
 
   const CQChartsPlot *plot() const { return plot_; }
   void setPlot(CQChartsPlot *plot) override;

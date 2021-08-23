@@ -745,8 +745,8 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   bool      edgeScaled_       { true };            //!< is edge scaled
 
   // bbox, margin, node width
-  BBox   targetBBox_  { -1, -1, 1, 1 };      //!< target range bbox
-  Length edgeWidth_   { 8, Units::PIXEL };   //!< edge width
+  BBox   targetBBox_  { -1, -1, 1, 1 };     //!< target range bbox
+  Length edgeWidth_   { Length::pixel(8) }; //!< edge width
 
   // coloring
   bool blendEdgeColor_ { true }; //!< blend edge color

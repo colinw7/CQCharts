@@ -306,7 +306,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Column  groupColumn_;    //!< group column
   Columns visibleColumns_; //!< visible columns
 
-  Length border_ { 0.05, Units::PLOT }; //!< border
+  Length border_ { Length::plot(0.05) }; //!< border
 
   bool xLabels_ { true }; //!< x labels
   bool yLabels_ { true }; //!< y labels
@@ -328,7 +328,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool bestFit_ { false };
   bool density_ { false };
 
-  Length symbolSize_ { 0.03, Units::PLOT }; //!< scatter symbol size
+  Length symbolSize_ { Length::plot(0.03) }; //!< scatter symbol size
 
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 

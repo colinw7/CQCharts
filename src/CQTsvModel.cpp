@@ -1,5 +1,6 @@
 #include <CQTsvModel.h>
 #include <CTsv.h>
+#include <iostream>
 
 CQTsvModel::
 CQTsvModel()

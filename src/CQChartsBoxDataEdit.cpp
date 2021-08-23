@@ -401,7 +401,9 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
   auto pc = interpColor(plot, view, data.shape().stroke().color());
   auto fc = interpColor(plot, view, data.shape().fill().color());
 
-  double width = CQChartsUtil::limitLineWidth(data.shape().stroke().width().value());
+  double width = data.shape().stroke().width().value();
+
+  width = (plot ? plot->limitLineWidth(width) : view->limitLineWidth(width));
 
   CQChartsUtil::setPen(penBrush.pen,
     data.shape().stroke().isVisible(), pc, data.shape().stroke().alpha(),

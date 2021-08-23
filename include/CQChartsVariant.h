@@ -6,6 +6,7 @@
 #include <CQChartsSymbol.h>
 #include <CQChartsImage.h>
 #include <CQChartsLength.h>
+#include <CQChartsUnits.h>
 #include <CQUtil.h>
 
 namespace CQChartsVariant {
@@ -158,6 +159,28 @@ inline bool isImage(const QVariant &var) {
 CQChartsImage toImage(const QVariant &var, bool &ok);
 
 QVariant fromImage(const CQChartsImage &image);
+
+}
+
+//---
+
+namespace CQChartsVariant {
+
+inline bool isUnits(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsUnits::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+CQChartsUnits toUnits(const QVariant &var, bool &ok);
+
+QVariant fromUnits(const CQChartsUnits &units);
 
 }
 

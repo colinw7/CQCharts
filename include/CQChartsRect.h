@@ -19,7 +19,7 @@ class CQChartsRect :
 
  public:
   using BBox     = CQChartsGeom::BBox;
-  using Units    = CQChartsUnits;
+  using Units    = CQChartsUnits::Type;
   using Position = CQChartsPosition;
   using Length   = CQChartsLength;
 

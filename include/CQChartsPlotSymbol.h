@@ -104,6 +104,8 @@ class CQChartsPlotSymbolRenderer {
 
  public:
   CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p, const Length &size);
+  CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p,
+                             const Length &xsize, const Length &ysize);
 
   void drawSymbol  (Symbol symbol);
   void strokeSymbol(Symbol symbol);
@@ -160,7 +162,8 @@ class CQChartsPlotSymbolRenderer {
  private:
   PaintDevice*   device_  { nullptr };  //!< device
   Point          p_       { 0.0, 0.0 }; //!< symbol center
-  Length         size_;                 //!< size as length
+  Length         xsize_;                //!< x size as length
+  Length         ysize_;                //!< y size as length
   double         w_       { 0.0 };      //!< line width
   QPainterPath   path_;                 //!< path
   QPen           strokePen_;            //!< stroke pen

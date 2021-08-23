@@ -381,6 +381,7 @@ CQChartsPointPlot::
 setSymbolSizeMapMin(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() {
+    symbolSizeData_.user_map_min = symbolSizeData_.map_min;
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
@@ -390,15 +391,34 @@ CQChartsPointPlot::
 setSymbolSizeMapMax(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() {
+    symbolSizeData_.user_map_max = symbolSizeData_.map_max;
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
 void
 CQChartsPointPlot::
-setSymbolSizeMapUnits(const QString &s)
+setSymbolSizeUserMapMin(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() {
+  CQChartsUtil::testAndSet(symbolSizeData_.user_map_min, r, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeUserMapMax(double r)
+{
+  CQChartsUtil::testAndSet(symbolSizeData_.user_map_max, r, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeMapUnits(const CQChartsUnits &u)
+{
+  CQChartsUtil::testAndSet(symbolSizeData_.units, u, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
@@ -428,6 +448,7 @@ CQChartsPointPlot::
 setFontSizeMapMin(double r)
 {
   CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() {
+    fontSizeData_.user_map_min = fontSizeData_.map_min;
     updateRangeAndObjs(); emit fontSizeDetailsChanged();
   } );
 }
@@ -437,15 +458,34 @@ CQChartsPointPlot::
 setFontSizeMapMax(double r)
 {
   CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() {
+    fontSizeData_.user_map_max = fontSizeData_.map_max;
     updateRangeAndObjs(); emit fontSizeDetailsChanged();
   } );
 }
 
 void
 CQChartsPointPlot::
-setFontSizeMapUnits(const QString &s)
+setFontSizeUserMapMin(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() {
+  CQChartsUtil::testAndSet(fontSizeData_.user_map_min, r, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
+}
+
+void
+CQChartsPointPlot::
+setFontSizeUserMapMax(double r)
+{
+  CQChartsUtil::testAndSet(fontSizeData_.user_map_max, r, [&]() {
+    updateRangeAndObjs(); emit fontSizeDetailsChanged();
+  } );
+}
+
+void
+CQChartsPointPlot::
+setFontSizeMapUnits(const CQChartsUnits &u)
+{
+  CQChartsUtil::testAndSet(fontSizeData_.units, u, [&]() {
     updateRangeAndObjs(); emit fontSizeDetailsChanged();
   } );
 }
@@ -481,9 +521,10 @@ initSymbolSizeData() const
 
 bool
 CQChartsPointPlot::
-columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize) const
+columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize,
+                 Qt::Orientation &sizeDir) const
 {
-  return CQChartsPlot::columnSymbolSize(row, parent, symbolSizeData_, symbolSize);
+  return CQChartsPlot::columnSymbolSize(row, parent, symbolSizeData_, symbolSize, sizeDir);
 }
 
 //------
@@ -499,9 +540,10 @@ initFontSizeData() const
 
 bool
 CQChartsPointPlot::
-columnFontSize(int row, const QModelIndex &parent, Length &fontSize) const
+columnFontSize(int row, const QModelIndex &parent, Length &fontSize,
+               Qt::Orientation &sizeDir) const
 {
-  return CQChartsPlot::columnFontSize(row, parent, fontSizeData_, fontSize);
+  return CQChartsPlot::columnFontSize(row, parent, fontSizeData_, fontSize, sizeDir);
 }
 
 //---
@@ -1292,6 +1334,22 @@ updateMapKey(CQChartsMapKey *key) const
     updateSymbolSizeMapKey();
   else
     CQChartsPlot::updateMapKey(key);
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setMinSymbolSize(const Length &l)
+{
+  CQChartsUtil::testAndSet(minSymbolSize_, l, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setMinLabelSize(const Length &l)
+{
+  CQChartsUtil::testAndSet(minLabelSize_, l, [&]() { drawObjs(); } );
 }
 
 //---

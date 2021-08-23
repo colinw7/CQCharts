@@ -27,7 +27,7 @@ decodeString(const QString &str, Units &units, Polygon &polygon, const Units &de
 
   parse.skipSpace();
 
-  if (! CQChartsUtil::decodeUnits(parse.getAt(), units, defUnits))
+  if (! CQChartsUnits::decodeUnits(parse.getAt(), units, defUnits))
     return false;
 
   return true;

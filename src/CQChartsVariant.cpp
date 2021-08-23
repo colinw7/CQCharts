@@ -417,6 +417,30 @@ QVariant fromImage(const CQChartsImage &image) {
 
 //---
 
+CQChartsUnits toUnits(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsUnits::metaTypeId)
+      return var.value<CQChartsUnits>();
+  }
+
+  CQChartsUnits units(var.toString());
+
+  if (units.isSet())
+    return units;
+
+  ok = false;
+
+  return CQChartsUnits();
+}
+
+QVariant fromUnits(const CQChartsUnits &units) {
+  return QVariant::fromValue<CQChartsUnits>(units);
+}
+
+//---
+
 CQChartsLength toLength(const QVariant &var, bool &ok) {
   ok = true;
 

@@ -88,7 +88,10 @@ class QTimer;
 class CQCharts : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(bool viewKey READ hasViewKey WRITE setViewKey)
+  Q_PROPERTY(bool   viewKey       READ hasViewKey    WRITE setViewKey      )
+  Q_PROPERTY(double maxSymbolSize READ maxSymbolSize WRITE setMaxSymbolSize)
+  Q_PROPERTY(double maxFontSize   READ maxFontSize   WRITE setMaxFontSize  )
+  Q_PROPERTY(double maxLineWidth  READ maxLineWidth  WRITE setMaxLineWidth )
 
  public:
   enum class ProcType {
@@ -131,8 +134,23 @@ class CQCharts : public QObject {
 
   void addExitTimer(double secs);
 
+  //---
+
+  //! get/set has view key
   bool hasViewKey() const { return viewKey_; }
   void setViewKey(bool b) { viewKey_ = b; }
+
+  //! get/set max symbol size
+  double maxSymbolSize() const { return maxSymbolSize_; }
+  void setMaxSymbolSize(double r) { maxSymbolSize_ = r; }
+
+  //! get/set max font size
+  double maxFontSize() const { return maxFontSize_; }
+  void setMaxFontSize(double r) { maxFontSize_ = r; }
+
+  //! get/set max line width
+  double maxLineWidth() const { return maxLineWidth_; }
+  void setMaxLineWidth(double r) { maxLineWidth_ = r; }
 
   //---
 
@@ -409,7 +427,13 @@ class CQCharts : public QObject {
   using SymbolSetMgrP   = std::unique_ptr<CQChartsSymbolSetMgr>;
 
   QTimer*                  exitTimer_       { nullptr }; //!< auto exit timer
-  bool                     viewKey_         { true };    //!< has view key
+
+  // options
+  bool   viewKey_       { true };  //!< has view key
+  double maxSymbolSize_ { 100.0 }; //!< max symbol size (pixels)
+  double maxFontSize_   { 100.0 }; //!< max font size (height in pixels)
+  double maxLineWidth_  { 64.0 };  //!< max line width (pixels)
+
   PlotTypeMgrP             plotTypeMgr_;                 //!< plot type manager
   ColumnTypeMgrP           columnTypeMgr_;               //!< column type manager
   InterfaceThemeP          interfaceTheme_;              //!< interface theme

@@ -33,7 +33,7 @@ class CQChartsPaintDevice {
   using Image   = CQChartsImage;
   using Font    = CQChartsFont;
   using Length  = CQChartsLength;
-  using Units   = CQChartsUnits;
+  using Units   = CQChartsUnits::Type;
   using Point   = CQChartsGeom::Point;
   using BBox    = CQChartsGeom::BBox;
   using Size    = CQChartsGeom::Size;

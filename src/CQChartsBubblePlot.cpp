@@ -1,7 +1,7 @@
 #include <CQChartsBubblePlot.h>
 #include <CQChartsView.h>
-#include <CQChartsUtil.h>
 #include <CQChartsTitle.h>
+#include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
@@ -107,8 +107,8 @@ init()
 
   setFillColor(Color(Color::Type::PALETTE));
 
-  setStroked(true);
   setFilled (true);
+  setStroked(true);
 
   setTextContrast(true);
   setTextFontSize(12.0);
@@ -232,6 +232,13 @@ setMinSize(const OptReal &r)
   CQChartsUtil::testAndSet(minSize_, r, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsBubblePlot::
+setMinArea(const Area &a)
+{
+  CQChartsUtil::testAndSet(minArea_, a, [&]() { drawObjs(); } );
+}
+
 //----
 
 void
@@ -251,7 +258,8 @@ addProperties()
   addProp("options", "sorted"     , "", "Sort values by size (default small to large)");
   addProp("options", "sortReverse", "", "Sort values large to small");
 
-  addProp("filter", "minSize", "minSize", "Min size");
+  addProp("filter", "minSize", "", "Min size");
+  addProp("filter", "minArea", "", "Min circle area");
 
   // coloring
   addProp("coloring", "colorById", "colorById", "Color by id");
@@ -512,6 +520,8 @@ CQChartsBubblePlot::
 placeNodes(HierNode *hier) const
 {
   auto *th = const_cast<CQChartsBubblePlot *>(this);
+
+  //---
 
   initNodes(hier);
 
@@ -929,7 +939,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
   device->drawEllipse(bbox);
 }
 
-//---
+//------
 
 bool
 CQChartsBubblePlot::
@@ -1167,6 +1177,9 @@ void
 CQChartsBubbleNodeObj::
 draw(PaintDevice *device) const
 {
+  if (this->isMinArea())
+    return;
+
   double r = this->radius();
 
   Point p1(node_->x() - r, node_->y() - r);
@@ -1315,12 +1328,11 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not supported as changes scale calc)
-  CQChartsTextOptions textOptions;
+  auto textOptions = plot_->textOptions();
 
-  textOptions.contrast      = plot_->isTextContrast();
-  textOptions.contrastAlpha = plot_->textContrastAlpha();
-//textOptions.clipLength    = clipLength;
-//textOptions.clipElide     = clipElide;
+  textOptions.angle      = CQChartsAngle();
+  textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
+  textOptions.clipLength = 0.0;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1353,6 +1365,30 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
   //---
 
   device->restore();
+}
+
+bool
+CQChartsBubbleNodeObj::
+isMinArea() const
+{
+  auto &minArea = plot_->minArea();
+
+  if (! minArea.isValid())
+    return false;
+
+  double r = this->radius();
+
+  if      (minArea.units() == Units::PLOT) {
+    return (minArea.value() > CQChartsUtil::circleArea(r));
+  }
+  else if (minArea.units() == Units::PIXEL) {
+    auto pw = plot_->windowToPixelWidth (r);
+    auto ph = plot_->windowToPixelHeight(r);
+
+    return (minArea.value() > CQChartsUtil::ellipseArea(pw, ph));
+  }
+  else
+    return false;
 }
 
 bool
