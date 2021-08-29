@@ -482,19 +482,19 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   const OptLength &titleHeight() const { return titleData_.height; }
   void setTitleHeight(const OptLength &l);
 
-  // get/set title hierarchical name
+  //! get/set title hierarchical name
   bool isTitleHierName() const { return titleData_.hierName; }
   void setTitleHierName(bool b);
 
-  // get/set header text clipped
+  //! get/set header text clipped
   bool isTitleTextClipped() const { return titleData_.textClipped; }
   void setTitleTextClipped(bool b);
 
-  // get/set title margin
+  //! get/set title margin
   double titleMargin() const { return titleData_.margin; }
   void setTitleMargin(double r);
 
-  // get/set title depth
+  //! get/set title depth
   int titleDepth() const { return titleData_.depth; }
   void setTitleDepth(int d);
 
@@ -520,7 +520,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool isValueLabel() const { return nodeData_.valueLabel; }
   void setValueLabel(bool b);
 
-  //! get/src box margin
+  //! get/set box margin
   const Length &marginWidth() const { return nodeData_.marginWidth; }
   void setMarginWidth(const Length &l);
 

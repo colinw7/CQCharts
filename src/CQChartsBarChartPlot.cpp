@@ -2374,11 +2374,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   auto barColor = calcBarColor();
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
-              plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    BrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
-              plot_->barFillPattern()));
+  auto penData = plot_->barPenData(bc);
+
+  if (skipBorder)
+    penData.setVisible(false);
+
+  plot_->setPenBrush(penBrush, penData, plot_->barBrushData(barColor));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2576,8 +2577,7 @@ fillBrush() const
 
   QBrush brush;
 
-  BrushData barBrushData(plot_->isBarFilled(), barColor,
-                         plot_->barFillAlpha(), plot_->barFillPattern());
+  auto barBrushData = plot_->barBrushData(barColor);
 
   CQChartsDrawUtil::setBrush(brush, barBrushData);
 
@@ -2592,14 +2592,13 @@ strokePen() const
 
   auto bc = plot_->interpBarStrokeColor(colorInd);
 
-  QPen pen;
+  auto penData = plot_->barPenData(bc);
 
-  double width = plot_->lengthPixelWidth(plot_->barStrokeWidth());
+  PenBrush penBrush;
 
-  CQChartsUtil::setPen(pen, plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-                       width, plot_->barStrokeDash());
+  plot_->setPen(penBrush, penData);
 
-  return pen;
+  return penBrush.pen;
 }
 
 bool

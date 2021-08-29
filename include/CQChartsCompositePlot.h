@@ -189,7 +189,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   const PlotMargin &fitMargin() const override;
   void setFitMargin(const PlotMargin &m) override;
 
-  void resetExtraBBox() const override;
+  void resetExtraFitBBox() const override;
 
  protected:
   bool needsAutoFit() const override;

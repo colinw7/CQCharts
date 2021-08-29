@@ -493,6 +493,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void setPen(PenBrush &penBrush, const CQChartsPenData &penData) const;
+
+  //---
+
   bool isDrawGrid() const;
 
   void drawGrid(const Plot *plot, PaintDevice *device) const;

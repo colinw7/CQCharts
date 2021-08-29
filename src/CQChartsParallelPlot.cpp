@@ -336,6 +336,8 @@ addProperties()
   addAxisStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
   addAxisStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
   addAxisStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+  addAxisStyleProp(linePath, "axesLinesCap"  , "cap"    , "Axis stroke cap");
+//addAxisStyleProp(linePath, "axesLinesJoin" , "join"   , "Axis stroke join");
 
   //---
 
@@ -1598,11 +1600,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
-    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
     Color indColor;
 
-    if (plot_->modelIndexColor(ind2, indColor))
+    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
       penBrush.pen.setColor(plot_->interpColor(indColor, colorInd));
   }
 

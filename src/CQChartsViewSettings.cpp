@@ -1064,9 +1064,23 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   propertiesWidgets_.propertiesSplit->setOrientation(Qt::Vertical);
   propertiesWidgets_.propertiesSplit->setGrouped(true);
-//propertiesWidgets_.propertiesSplit->setState(CQTabSplit::State::TAB);
+  propertiesWidgets_.propertiesSplit->setState(CQTabSplit::State::TAB);
 
   propertiesLayout->addWidget(propertiesWidgets_.propertiesSplit);
+
+  //----
+
+  // Create Global Properties Frame
+  auto *globalFrame       = CQUtil::makeWidget<QFrame>("globalFrame");
+  auto *globalFrameLayout = CQUtil::makeLayout<QVBoxLayout>(globalFrame, 2, 2);
+
+  propertiesWidgets_.propertiesSplit->addWidget(globalFrame, "Global");
+
+  //--
+
+  propertiesWidgets_.globalPropertyTree = new GlobalPropertiesWidget(this);
+
+  globalFrameLayout->addWidget(propertiesWidgets_.globalPropertyTree);
 
   //----
 
@@ -1155,19 +1169,21 @@ initPropertiesFrame(QFrame *propertiesFrame)
   CQToolTip::setToolTip(propertiesWidgets_.plotTipButton, propertiesWidgets_.plotTip);
 #endif
 
-  //---
+  //--
 
   quickControlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>("quickControlFrame");
 
   propertiesWidgets_.propertiesSplit->addWidget(quickControlFrame_, "Quick Controls");
 
-  //---
+  //----
 
-  int viewSize  = INT_MAX*0.3;
-  int quickSize = INT_MAX*0.1; // quick controls
-  int plotSize  = INT_MAX - viewSize - quickSize;
+  int globalSize = INT_MAX*0.1;
+  int viewSize   = INT_MAX*0.2;
+  int quickSize  = INT_MAX*0.1; // quick controls
+  int plotSize   = INT_MAX - viewSize - quickSize;
 
-  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({viewSize, plotSize, quickSize}));
+  propertiesWidgets_.propertiesSplit->
+    setSizes(QList<int>({globalSize, viewSize, plotSize, quickSize}));
 }
 
 void
@@ -3476,6 +3492,51 @@ plotLayersClickedSlot(int row, int column)
     plot->invalidateLayer(buffer->type());
   else
     plot->drawObjs();
+}
+
+//------
+
+CQChartsViewSettingsGlobalPropertiesWidget::
+CQChartsViewSettingsGlobalPropertiesWidget(CQChartsViewSettings *settings)
+{
+  setObjectName("globalPropertiesWidget");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //--
+
+  auto *charts = settings->window()->view()->charts();
+
+  propertyTree_ = new CQChartsPropertyViewTree(settings, charts->propertyModel());
+
+  propertyTree_->setObjectName("propertyTree");
+
+  connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
+          this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
+
+  connect(propertyTree_, SIGNAL(filterStateChanged(bool, bool)),
+          this, SLOT(filterStateSlot(bool, bool)));
+
+  //--
+
+  filterEdit_ = new CQChartsViewSettingsFilterEdit(propertyTree_);
+
+  filterEdit_->setVisible(propertyTree_->isFilterDisplayed());
+
+  //--
+
+  layout->addWidget(filterEdit_);
+  layout->addWidget(propertyTree_);
+}
+
+void
+CQChartsViewSettingsGlobalPropertiesWidget::
+filterStateSlot(bool visible, bool focus)
+{
+  filterEdit_->setVisible(visible);
+
+  if (focus)
+    filterEdit_->setFocus();
 }
 
 //------

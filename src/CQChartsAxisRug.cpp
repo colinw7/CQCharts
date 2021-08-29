@@ -99,7 +99,7 @@ void
 CQChartsAxisRug::
 dataInvalidate()
 {
-  plot()->resetExtraBBox();
+  plot()->resetExtraFitBBox();
 
   plot()->drawObjs();
 }

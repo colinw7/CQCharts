@@ -780,11 +780,7 @@ drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) con
     auto strokeColor = interpBestFitStrokeColor(ic);
     auto fillColor   = interpBestFitFillColor  (ic);
 
-    setPenBrush(penBrush,
-      PenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
-                bestFitStrokeWidth(), bestFitStrokeDash()),
-      BrushData(isBestFitFilled(), fillColor, bestFitFillAlpha(),
-                bestFitFillPattern()));
+    setPenBrush(penBrush, bestFitPenData(strokeColor), bestFitBrushData(fillColor));
 
     updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 

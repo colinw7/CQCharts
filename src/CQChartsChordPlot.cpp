@@ -1667,10 +1667,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     fromAlpha = plot_->segmentFillAlpha();
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isSegmentStroked(), segmentStrokeColor, plot_->segmentStrokeAlpha(),
-              plot_->segmentStrokeWidth(), plot_->segmentStrokeDash()),
-    BrushData(plot_->isSegmentFilled(), fromColor, fromAlpha,
-              plot_->segmentFillPattern()));
+    plot_->segmentPenData(segmentStrokeColor),
+    plot_->segmentBrushData(fromColor, fromAlpha));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2064,8 +2062,7 @@ draw(PaintDevice *device) const
 
     PenBrush arrowPenBrush;
 
-    plot_->setPenBrush(arrowPenBrush,
-      PenData(false), BrushData(true, c));
+    plot_->setPenBrush(arrowPenBrush, PenData(false), BrushData(true, c));
 
     auto strokeWidth = CQChartsLength::pixel(1);
 
@@ -2112,9 +2109,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       auto ind  = modelInd();
       auto ind1 = plot_->unnormalizeIndex(ind);
 
-      ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
-      if (plot_->modelIndexColor(colorModelInd, color))
+      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color))
         fillColor = plot_->interpColor(color, colorInd);
     }
   }
@@ -2142,10 +2137,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isArcStroked(), arcStrokeColor, plot_->arcStrokeAlpha(),
-              plot_->arcStrokeWidth(), plot_->arcStrokeDash()),
-    BrushData(plot_->isArcFilled(), fillColor, fillAlpha,
-              plot_->arcFillPattern()));
+    plot_->arcPenData(arcStrokeColor), plot_->arcBrushData(fillColor, fillAlpha));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2328,10 +2320,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto fillColor = this->fillColor();
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isSegmentFilled(), segmentStrokeColor, plot_->segmentStrokeAlpha(),
-              plot_->segmentStrokeWidth(), plot_->segmentStrokeDash()),
-    BrushData(plot_->isSegmentStroked(), fillColor, plot_->segmentFillAlpha(),
-              plot_->segmentFillPattern()));
+    plot_->segmentPenData(segmentStrokeColor), plot_->segmentBrushData(fillColor));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

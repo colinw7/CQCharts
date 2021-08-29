@@ -1947,8 +1947,7 @@ fillBrush() const
 
   PenBrush penBrush;
 
-  plot->setBrush(penBrush,
-    BrushData(plot->isBarFilled(), fc, plot->barFillAlpha(), plot->barFillPattern()));
+  plot->setBrush(penBrush, plot->barBrushData(fc));
 
   return penBrush.brush;
 }

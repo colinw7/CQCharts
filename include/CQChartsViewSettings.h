@@ -3,6 +3,7 @@
 
 #include <QFrame>
 
+class CQChartsViewSettingsGlobalPropertiesWidget;
 class CQChartsViewSettingsViewPropertiesWidget;
 class CQChartsViewSettingsPlotPropertiesWidget;
 class CQChartsViewSettingsObjectPropertiesWidget;
@@ -75,8 +76,8 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsWindow *window() const { return window_; }
 
+  CQChartsPropertyViewTree *globalPropertyTree() const;
   CQChartsPropertyViewTree *viewPropertyTree() const;
-
   CQChartsPropertyViewTree *plotPropertyTree(Plot *plot) const;
 
   void showQueryTab();
@@ -241,6 +242,7 @@ class CQChartsViewSettings : public QFrame {
   CQChartsAnnotation *getSelectedPlotAnnotation() const;
 
  private:
+  using GlobalPropertiesWidget = CQChartsViewSettingsGlobalPropertiesWidget;
   using ViewPropertiesWidget   = CQChartsViewSettingsViewPropertiesWidget;
   using PlotPropertiesWidget   = CQChartsViewSettingsPlotPropertiesWidget;
   using ObjectPropertiesWidget = CQChartsViewSettingsObjectPropertiesWidget;
@@ -260,12 +262,12 @@ class CQChartsViewSettings : public QFrame {
   using ViewError            = CQChartsViewError;
 
   struct PropertiesWidgets {
-    CQTabSplit*           propertiesSplit  { nullptr }; //!< properties split
-//  FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
-    ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
-    CQTabWidget*          plotsTab         { nullptr }; //!< plots settings tab
-//  CQChartsPlotTip*      plotTip          { nullptr }; //!< current plot tip
-//  QToolButton*          plotTipButton    { nullptr }; //!< current plot tip button
+    CQTabSplit*             propertiesSplit    { nullptr }; //!< properties split
+    GlobalPropertiesWidget* globalPropertyTree { nullptr }; //!< global settings tree
+    ViewPropertiesWidget*   viewPropertyTree   { nullptr }; //!< view settings tree
+    CQTabWidget*            plotsTab           { nullptr }; //!< plots settings tab
+//  CQChartsPlotTip*        plotTip            { nullptr }; //!< current plot tip
+//  QToolButton*            plotTipButton      { nullptr }; //!< current plot tip button
   };
 
   struct ModelsWidgets {
@@ -378,6 +380,31 @@ class CQChartsViewSettings : public QFrame {
   QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
 
   int maxPlotObjs_ { 100 };
+};
+
+//---
+
+/*!
+ * \brief View settings global properties widget
+ * \ingroup Charts
+ */
+class CQChartsViewSettingsGlobalPropertiesWidget : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsViewSettingsGlobalPropertiesWidget(CQChartsViewSettings *settings);
+
+  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
+
+ signals:
+  void propertyItemSelected(QObject *obj, const QString &path);
+
+ private slots:
+  void filterStateSlot(bool show, bool focus);
+
+ private:
+  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
+  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
 };
 
 //---

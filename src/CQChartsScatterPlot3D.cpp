@@ -1690,9 +1690,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot_->interpColor(color, ic);
 
-    CQChartsDrawUtil::setColorAlpha(c, scatterPlot()->symbolFillAlpha());
-
-    penBrush.brush.setColor(c);
+    penBrush.brush.setColor(CQChartsDrawUtil::setColorAlpha(c, scatterPlot()->symbolFillAlpha()));
   }
 
   if (updateState)

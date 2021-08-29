@@ -2299,12 +2299,7 @@ drawSegment(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    auto gridColor = plot_->interpGridLinesColor(ColorInd());
-
-    plot_->setPenBrush(penBrush,
-      PenData  (true, gridColor, plot_->gridLinesAlpha(),
-                plot_->gridLinesWidth(), plot_->gridLinesDash()),
-      BrushData(false));
+    plot_->setGridLineDataPen(penBrush.pen, ColorInd());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2864,9 +2859,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
   auto fc = fillColor();
   auto fa = (inside ? Alpha(0.7) : plot_->fillAlpha());
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
-    BrushData(plot_->isFilled(), fc, fa, plot_->fillPattern()));
+  plot_->setPenBrush(penBrush, plot_->penData(pc, pa), plot_->brushData(fc, fa));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

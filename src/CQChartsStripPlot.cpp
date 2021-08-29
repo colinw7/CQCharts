@@ -750,13 +750,11 @@ draw(PaintDevice *device) const
   if (plot_->colorColumn().isValid()) {
     auto ind1 = modelInd();
 
-    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
     Color indColor;
 
     auto symbolColor = penBrush.brush.color();
 
-    if (plot_->modelIndexColor(ind2, indColor)) {
+    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor)) {
       symbolColor = plot_->interpColor(indColor, colorInd);
 
       CQChartsDrawUtil::updateBrushColor(penBrush.brush, symbolColor);

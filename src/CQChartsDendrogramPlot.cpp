@@ -667,10 +667,8 @@ draw(PaintDevice *device) const
 
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
-              plot_->plotStrokeWidth(), plot_->nodeStrokeDash()),
-    BrushData(filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->nodePenData(strokeColor),
+    filled ? plot_->nodeBrushData(fillColor) : BrushData(false));
 
   plot_->updateObjPenBrushState(this, penBrush);
 

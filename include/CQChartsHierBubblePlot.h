@@ -233,7 +233,7 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
   //! get has child nodes
   bool hasNodes() const { return ! nodes_.empty(); }
 
-  //! get/set child nodes
+  //! get child nodes
   const Nodes &getNodes() const { return nodes_; }
   Nodes &getNodes() { return nodes_; }
 
@@ -436,16 +436,18 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  using Node     = CQChartsHierBubbleNode;
-  using Pack     = CQChartsCirclePack<Node>;
-  using Nodes    = std::vector<Node*>;
-  using HierNode = CQChartsHierBubbleHierNode;
-  using HierObj  = CQChartsHierBubbleHierObj;
-  using NodeObj  = CQChartsHierBubbleNodeObj;
-  using Length   = CQChartsLength;
-  using Area     = CQChartsArea;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Node      = CQChartsHierBubbleNode;
+  using Pack      = CQChartsCirclePack<Node>;
+  using Nodes     = std::vector<Node*>;
+  using HierNode  = CQChartsHierBubbleHierNode;
+  using HierObj   = CQChartsHierBubbleHierObj;
+  using NodeObj   = CQChartsHierBubbleNodeObj;
+  using Length    = CQChartsLength;
+  using Area      = CQChartsArea;
+  using Color     = CQChartsColor;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsHierBubblePlot(View *view, const ModelP &model);

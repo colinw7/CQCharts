@@ -1392,9 +1392,7 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &str
   if (stroked) {
     auto color = strokeColor;
 
-    CQChartsDrawUtil::setColorAlpha(color, strokeAlpha);
-
-    pen.setColor(color);
+    pen.setColor(CQChartsDrawUtil::setColorAlpha(color, strokeAlpha));
 
     pen.setCosmetic(true);
 

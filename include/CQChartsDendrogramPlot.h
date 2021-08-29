@@ -99,11 +99,12 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  using HierNode = CQChartsDendrogram::HierNode;
-  using Node     = CQChartsDendrogram::Node;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using PenBrush = CQChartsPenBrush;
+  using HierNode  = CQChartsDendrogram::HierNode;
+  using Node      = CQChartsDendrogram::Node;
+  using Color     = CQChartsColor;
+  using PenBrush  = CQChartsPenBrush;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);

@@ -543,11 +543,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (plot_->colorColumn().isValid() && plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
-    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
     Color indColor;
 
-    if (plot_->modelIndexColor(ind2, indColor))
+    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
       textColor = plot_->interpColor(indColor, colorInd);
     else
       textColor = plot_->interpTextColor(colorInd);

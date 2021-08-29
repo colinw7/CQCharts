@@ -997,10 +997,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (bgColor().isValid())
     fc = plot()->interpColor(bgColor(), ic);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-              plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
-    BrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(), plot_->cellFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->cellPenData(bc), plot_->cellBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

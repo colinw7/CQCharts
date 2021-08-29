@@ -153,6 +153,7 @@ class CQChartsImagePlot : public CQChartsPlot,
   using Image    = CQChartsImage;
   using ImageObj = CQChartsImageObj;
   using Color    = CQChartsColor;
+  using PenData  = CQChartsPenData;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:

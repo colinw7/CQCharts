@@ -444,16 +444,18 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  using Node     = CQChartsBubbleNode;
-  using Pack     = CQChartsCirclePack<Node>;
-  using Nodes    = std::vector<Node*>;
-  using HierNode = CQChartsBubbleHierNode;
-  using HierObj  = CQChartsBubbleHierObj;
-  using NodeObj  = CQChartsBubbleNodeObj;
-  using Length   = CQChartsLength;
-  using Area     = CQChartsArea;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Node      = CQChartsBubbleNode;
+  using Pack      = CQChartsCirclePack<Node>;
+  using Nodes     = std::vector<Node*>;
+  using HierNode  = CQChartsBubbleHierNode;
+  using HierObj   = CQChartsBubbleHierObj;
+  using NodeObj   = CQChartsBubbleNodeObj;
+  using Length    = CQChartsLength;
+  using Area      = CQChartsArea;
+  using Color     = CQChartsColor;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsBubblePlot(View *view, const ModelP &model);

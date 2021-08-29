@@ -18,7 +18,6 @@ registerMetaType()
 CQChartsLineDash::
 CQChartsLineDash()
 {
-  init();
 }
 
 CQChartsLineDash::
@@ -70,6 +69,11 @@ int
 CQChartsLineDash::
 cmp(const CQChartsLineDash &dash) const
 {
+  if (! set_ || ! dash.set_) {
+    if (     set_) return 1;
+    if (dash.set_) return -1;
+  }
+
   if (getOffset() > dash.getOffset()) return  1;
   if (getOffset() < dash.getOffset()) return -1;
 
@@ -93,7 +97,7 @@ void
 CQChartsLineDash::
 scale(double factor)
 {
-  assert(factor > 0);
+  assert(isSet() && factor > 0.0);
 
   setOffset(getOffset()*factor);
 
@@ -114,6 +118,7 @@ copy(const CQChartsLineDash &dash)
   if (&dash == this)
     return *this;
 
+  set_     = dash.set_;
   offset_  = dash.offset_;
   lengths_ = dash.lengths_;
 
@@ -124,6 +129,8 @@ void
 CQChartsLineDash::
 setDashes(const Lengths &lengths, double offset)
 {
+  set_ = true;
+
   QLengths qlengths;
 
   for (const auto &len : lengths) {
@@ -139,6 +146,8 @@ void
 CQChartsLineDash::
 setDashes(ushort pattern)
 {
+  set_ = true;
+
   int bits[16];
 
   for (uint i = 0; i < 16; ++i) {
@@ -203,6 +212,8 @@ CLineDash
 CQChartsLineDash::
 lineDash() const
 {
+  if (! isSet()) return CLineDash();
+
   if (isSolid()) return CLineDash();
 
   auto qlengths = getLengths();
@@ -221,7 +232,11 @@ QString
 CQChartsLineDash::
 toString() const
 {
-  if (isSolid()) return "solid";
+  if (! isSet())
+    return "";
+
+  if (isSolid())
+    return "solid";
 
   std::stringstream ss;
 
@@ -242,9 +257,13 @@ bool
 CQChartsLineDash::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    set_ = false;
+    return true;
+  }
+
   if (str == "solid") {
     init();
-
     return true;
   }
 
@@ -320,6 +339,8 @@ void
 CQChartsLineDash::
 init()
 {
+  set_ = true;
+
   setOffset(0.0);
 
   QLengths qlengths;

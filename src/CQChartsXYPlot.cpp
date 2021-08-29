@@ -1785,7 +1785,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         // get symbol size (needed for bounding box)
         Length          symbolSize;
-        Qt::Orientation sizeDir;
+        Qt::Orientation sizeDir { Qt::Horizontal };
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize, sizeDir))
@@ -1833,7 +1833,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         // set optional font size
         Length          fontSize;
-        Qt::Orientation fontSizeDir;
+        Qt::Orientation fontSizeDir { Qt::Horizontal };
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(xind1.row(), xind1.parent(), fontSize, fontSizeDir))
@@ -3050,12 +3050,7 @@ drawLines(PaintDevice *device, const Point &p1, const Point &p2) const
   // calc pen and brush
   PenBrush penBrush;
 
-  auto lc = plot()->interpBivariateLinesColor(is_);
-
-  plot()->setPenBrush(penBrush,
-    PenData  (true, lc, plot()->bivariateLinesAlpha(),
-              plot()->bivariateLinesWidth(), plot()->bivariateLinesDash()),
-    BrushData(false));
+  plot()->setBivariateLineDataPen(penBrush.pen, is_);
 
   plot()->updateObjPenBrushState(this, penBrush);
 
@@ -3209,21 +3204,19 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
-  PenBrush penBrush;
-
-  auto strokeColor = plot()->interpImpulseLinesColor(ic);
-
   double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
 
-  if (lw <= 1) {
-    plot()->setPenBrush(penBrush,
-      PenData  (true, strokeColor, plot()->impulseLinesAlpha(),
-                plot()->impulseLinesWidth(), plot()->impulseLinesDash()),
-      BrushData(false));
+  bool isThinLine (lw <= 1.0);
+
+  PenBrush penBrush;
+
+  if (isThinLine) {
+    plot()->setImpulseLineDataPen(penBrush.pen, ic);
   }
   else {
-    plot()->setPenBrush(penBrush,
-      PenData(false), BrushData(true, strokeColor, plot()->impulseLinesAlpha()));
+    auto strokeColor = plot()->interpImpulseLinesColor(ic);
+
+    plot()->setPenBrush(penBrush, PenData(false), plot()->impulseLineDataBrushData(strokeColor));
   }
 
   plot()->updateObjPenBrushState(this, penBrush);
@@ -3236,7 +3229,7 @@ draw(PaintDevice *device) const
   auto p1 = plot()->windowToPixel(Point(x(), y1()));
   auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
-  if (lw <= 1) {
+  if (isThinLine) {
     device->drawLine(plot_->pixelToWindow(p1), plot_->pixelToWindow(p2));
   }
   else {
@@ -3673,9 +3666,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     auto c = plot()->interpColor(color, ic);
 
-    CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
-
-    penBrush.brush.setColor(c);
+    penBrush.brush.setColor(CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha()));
   }
 
   if (updateState)
@@ -4168,12 +4159,7 @@ drawStatsLines(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot()->interpStatsLinesColor(ic);
-
-  plot()->setPenBrush(penBrush,
-    PenData  (true, c, plot()->statsLinesAlpha(),
-              plot()->statsLinesWidth(), plot()->statsLinesDash()),
-    BrushData(false));
+  plot()->setStatsLineDataPen(penBrush.pen, ic);
 
   plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
 
@@ -4232,12 +4218,7 @@ drawMovingAverage(PaintDevice *device) const
 
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  auto strokeColor = plot()->interpMovingAverageLinesColor(ic);
-
-  plot()->setPenBrush(penBrush,
-    PenData  (true, strokeColor, plot()->movingAverageLinesAlpha(),
-              plot()->movingAverageLinesWidth(), plot()->movingAverageLinesDash()),
-    BrushData(false));
+  plot()->setMovingAverageLineDataPen(penBrush.pen, ic);
 
   plot()->updateObjPenBrushState(this, penBrush);
 
@@ -4286,11 +4267,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  auto c = plot()->interpLinesColor(ic);
-
-  plot()->setPenBrush(penBrush,
-    PenData  (true, c, plot()->linesAlpha(), plot()->linesWidth(), plot()->linesDash()),
-    BrushData(false));
+  plot()->setLineDataPen(penBrush.pen, ic);
 
   if (updateState)
     plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
@@ -4326,7 +4303,7 @@ void
 CQChartsXYPolylineObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
-  calcPenBrush(penBrush_, /*updateState*/ false);
+  calcPenBrush(penBrush_, /*updateState*/false);
 
   CQChartsPlotObj::writeScriptData(device);
 }
@@ -4503,7 +4480,7 @@ void
 CQChartsXYPolygonObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
-  calcPenBrush(penBrush_, /*updateState*/ false);
+  calcPenBrush(penBrush_, /*updateState*/false);
 
   CQChartsPlotObj::writeScriptData(device);
 }
@@ -4656,14 +4633,11 @@ drawLine(PaintDevice *device, const BBox &rect) const
     PenBrush linePenBrush;
 
     if      (plot()->isLines()) {
-      auto lineColor = plot()->interpLinesColor(ic_);
+      plot()->setLineDataPen(linePenBrush.pen, ic_);
 
       if (plot()->isSetHidden(ic_.i))
-        lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
-
-      plot()->setPenBrush(linePenBrush,
-        PenData  (true, lineColor, plot()->linesAlpha(), plot()->linesWidth(), plot()->linesDash()),
-        BrushData(false));
+        linePenBrush.pen.setColor(
+          CQChartsUtil::blendColors(linePenBrush.pen.color(), hideBg, hideAlpha));
     }
     else if (plot()->isBestFit()) {
       auto fitColor = plot()->interpBestFitStrokeColor(ic_);
@@ -4677,15 +4651,11 @@ drawLine(PaintDevice *device, const BBox &rect) const
         BrushData(false));
     }
     else {
-      auto impulseColor = plot()->interpImpulseLinesColor(ic_);
+      plot()->setImpulseLineDataPen(linePenBrush.pen, ic_);
 
       if (plot()->isSetHidden(ic_.i))
-        impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
-
-      plot()->setPenBrush(linePenBrush,
-        PenData  (true, impulseColor, plot()->impulseLinesAlpha(),
-                  plot()->impulseLinesWidth(), plot()->impulseLinesDash()),
-        BrushData(false));
+        linePenBrush.pen.setColor(
+          CQChartsUtil::blendColors(linePenBrush.pen.color(), hideBg, hideAlpha));
     }
 
     linePenBrush.brush = QBrush(Qt::NoBrush);
@@ -4728,10 +4698,8 @@ drawLine(PaintDevice *device, const BBox &rect) const
     PenBrush penBrush;
 
     plot()->setPenBrush(penBrush,
-      PenData  (plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
-                plot()->symbolStrokeWidth(), plot()->symbolStrokeDash()),
-      BrushData(plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),
-                plot()->symbolFillPattern()));
+      plot_->symbolPenData  (pointStrokeColor),
+      plot_->symbolBrushData(pointFillColor));
 
     auto *obj = plotObj();
 

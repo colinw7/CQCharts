@@ -962,8 +962,7 @@ draw(PaintDevice *device) const
   auto strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
 
   plot_->setPenBrush(penBrush,
-    PenData  (true, strokeColor, plot_->symbolStrokeAlpha()),
-    BrushData(true, fillColor  , plot_->symbolFillAlpha()));
+    plot_->symbolPenData(strokeColor), plot_->symbolBrushData(fillColor));
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

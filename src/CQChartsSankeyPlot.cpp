@@ -4645,8 +4645,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     node()->strokeDash () : plot_->nodeStrokeDash());
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isNodeStroked(), bc, strokeAlpha, strokeWidth, strokeDash),
-    BrushData(plot_->isNodeFilled (), fc, fillAlpha, fillPattern));
+    plot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
+    plot_->nodeBrushData(fc, fillAlpha, fillPattern));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -4692,11 +4692,9 @@ calcFillColor() const
         auto ind  = edgeObj->modelInd();
         auto ind1 = plot_->unnormalizeIndex(ind);
 
-        ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
         Color color;
 
-        if (plot_->modelIndexColor(colorModelInd, color)) {
+        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
           auto c = plot_->interpColor(color, colorInd);
 
           colors.push_back(c);
@@ -4709,11 +4707,9 @@ calcFillColor() const
         auto ind  = edgeObj->modelInd();
         auto ind1 = plot_->unnormalizeIndex(ind);
 
-        ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
         Color color;
 
-        if (plot_->modelIndexColor(colorModelInd, color)) {
+        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
           auto c = plot_->interpColor(color, colorInd);
 
           colors.push_back(c);
@@ -5156,10 +5152,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   plot()->setPenBrush(penBrush,
-    PenData  (plot()->isEdgeStroked(), sc, plot()->edgeStrokeAlpha(),
-              plot()->edgeStrokeWidth(), plot()->edgeStrokeDash()),
-    BrushData(plot()->isEdgeFilled(), fillColor, plot()->edgeFillAlpha(),
-              fillPattern));
+    plot()->edgePenData(sc), plot()->edgeBrushData(fillColor, Alpha(), fillPattern));
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush);

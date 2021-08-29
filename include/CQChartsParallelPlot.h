@@ -191,9 +191,10 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using Symbol   = CQChartsSymbol;
-  using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
+  using PenData  = CQChartsPenData;
   using Length   = CQChartsLength;
+  using ColorInd = CQChartsUtil::ColorInd;
 
   enum class AxisLabelPos {
     AXIS,

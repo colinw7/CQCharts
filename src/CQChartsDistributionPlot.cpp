@@ -2907,9 +2907,7 @@ addKeyItems(PlotKey *key)
             if (ok) {
               auto c = interpColor(color, ColorInd());
 
-              CQChartsDrawUtil::setColorAlpha(c, barFillAlpha());
-
-              color = Color(c);
+              color = Color(CQChartsDrawUtil::setColorAlpha(c, barFillAlpha()));
             }
           }
 
@@ -3312,12 +3310,9 @@ CQChartsDistributionPlot::
 drawStatsLines(PaintDevice *device) const
 {
   // set pen
-  auto bc = interpStatsLinesColor(ColorInd());
-
   PenBrush penBrush;
 
-  setPen(penBrush,
-    PenData(true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()));
+  setStatsLineDataPen(penBrush.pen, ColorInd());
 
   device->setPen(penBrush.pen);
 
@@ -4120,9 +4115,7 @@ getBarColoredRects(ColorData &colorData) const
 
       auto c1 = plot_->interpColor(color, ColorInd());
 
-      CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha());
-
-      color    = Color(c1);
+      color    = Color(CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha()));
       colorSet = true;
     }
 
@@ -4300,8 +4293,7 @@ calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool up
   }
 
   plot_->setPenBrush(barPenBrush,
-    PenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash()),
-    BrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
+    plot_->barPenData(bc, Alpha(), bw), plot_->barBrushData(fc));
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
@@ -4592,12 +4584,9 @@ CQChartsDistributionDensityObj::
 drawStatsLines(PaintDevice *device) const
 {
   // set pen
-  auto bc = plot_->interpStatsLinesColor(ColorInd());
-
   PenBrush penBrush;
 
-  plot_->setPen(penBrush,
-    PenData(true, bc, plot_->statsLinesAlpha(), plot_->statsLinesWidth(), plot_->statsLinesDash()));
+  plot_->setStatsLineDataPen(penBrush.pen, ColorInd());
 
   device->setPen(penBrush.pen);
 
@@ -4689,10 +4678,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = plot_->interpBarStrokeColor(is_);
   auto fc = plot_->interpBarFillColor  (is_);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-              plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    BrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->barPenData(bc), plot_->barBrushData(fc));
 
   //---
 

@@ -489,7 +489,7 @@ void
 CQChartsScatterPlot::
 setXDensity(bool b)
 {
-  if (b != isXDensity()) { xAxisDensity_->setVisible(b); resetExtraBBox(); drawObjs(); }
+  if (b != isXDensity()) { xAxisDensity_->setVisible(b); resetExtraFitBBox(); drawObjs(); }
 }
 
 bool
@@ -503,7 +503,7 @@ void
 CQChartsScatterPlot::
 setYDensity(bool b)
 {
-  if (b != isYDensity()) { yAxisDensity_->setVisible(b); resetExtraBBox(); drawObjs(); }
+  if (b != isYDensity()) { yAxisDensity_->setVisible(b); resetExtraFitBBox(); drawObjs(); }
 }
 
 //------
@@ -519,7 +519,7 @@ void
 CQChartsScatterPlot::
 setXWhisker(bool b)
 {
-  if (b != isXWhisker()) { xAxisWhisker_->setVisible(b); resetExtraBBox(); drawObjs(); }
+  if (b != isXWhisker()) { xAxisWhisker_->setVisible(b); resetExtraFitBBox(); drawObjs(); }
 }
 
 bool
@@ -533,7 +533,7 @@ void
 CQChartsScatterPlot::
 setYWhisker(bool b)
 {
-  if (b != isYWhisker()) { yAxisWhisker_->setVisible(b); resetExtraBBox(); drawObjs(); }
+  if (b != isYWhisker()) { yAxisWhisker_->setVisible(b); resetExtraFitBBox(); drawObjs(); }
 }
 
 //------
@@ -1254,7 +1254,7 @@ addPointObjects(PlotObjs &objs) const
 
         // get symbol size (needed for bounding box)
         Length          symbolSize;
-        Qt::Orientation symbolSizeDir;
+        Qt::Orientation symbolSizeDir { Qt::Horizontal };
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize,
@@ -1307,7 +1307,7 @@ addPointObjects(PlotObjs &objs) const
 
         // set optional font size
         Length          fontSize;
-        Qt::Orientation fontSizeDir;
+        Qt::Orientation fontSizeDir { Qt::Horizontal };
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize, fontSizeDir))
@@ -2826,11 +2826,7 @@ drawStatsLines(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    auto c = interpStatsLinesColor(ic);
-
-    setPenBrush(penBrush,
-      PenData  (true, c, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()),
-      BrushData(false));
+    setStatsLineDataPen(penBrush.pen, ic);
 
     updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
@@ -3026,9 +3022,7 @@ drawXYDensityWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
   auto strokeColor = interpSymbolStrokeColor(ig);
   auto fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush,
-    PenData  (true, strokeColor, symbolStrokeAlpha()),
-    BrushData(true, fillColor, symbolFillAlpha(), symbolFillPattern()));
+  setPenBrush(penBrush, symbolPenData(strokeColor), symbolBrushData(fillColor));
 
   if (boxWhisker->direction() == Qt::Horizontal)
     xAxisDensity_->draw(device, penBrush, delta);
@@ -3124,9 +3118,7 @@ drawXYWhiskerWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
   auto strokeColor = interpSymbolStrokeColor(ig);
   auto fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush,
-    PenData  (true, strokeColor, symbolStrokeAlpha()),
-    BrushData(true, fillColor, symbolFillAlpha(), symbolFillPattern()));
+  setPenBrush(penBrush, symbolPenData(strokeColor), symbolBrushData(fillColor));
 
   if (boxWhisker->direction() == Qt::Horizontal)
     xAxisWhisker_->draw(device, penBrush, ig.i, delta);
@@ -3773,8 +3765,7 @@ drawDataLabel(PaintDevice *) const
 
   auto tc = dataLabel->interpTextColor(calcColorInd());
 
-  plot_->setPenBrush(penBrush,
-    PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
 
   //---
 
@@ -3890,8 +3881,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData(stroked, sc, sa, plot_->symbolStrokeWidth(), plot_->symbolStrokeDash()),
-    CQChartsBrushData(filled, fc, fa, plot_->symbolFillPattern()));
+    (stroked ? plot()->symbolPenData  (sc, sa) : PenData  (false)),
+    (filled  ? plot()->symbolBrushData(fc, fa) : BrushData(false)));
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush, drawType());
@@ -4037,11 +4028,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto pc = plot_->interpGridCellStrokeColor(ColorInd());
   auto fc = plot_->interpPaletteColor(ic);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
-              plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash()),
-    BrushData(plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(),
-              plot_->gridCellFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->gridCellPenData(pc), plot_->gridCellBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -4147,11 +4134,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto pc = plot_->interpGridCellStrokeColor(ColorInd());
   auto fc = plot_->interpPaletteColor(ic);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
-              plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash()),
-    BrushData(plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(),
-              plot_->gridCellFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->gridCellPenData(pc), plot_->gridCellBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

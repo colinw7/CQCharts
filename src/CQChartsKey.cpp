@@ -343,6 +343,12 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  auto addStyleProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = addProp(name, desc, hidden);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   //---
 
   addProp("visible"    , "Is visible");
@@ -357,7 +363,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp("interactive"  , "Key supports click", true);
   addProp("pressBehavior", "Key click behavior", true);
 
-  addProp("hiddenAlpha", "Alpha for hidden items");
+  addStyleProp("hiddenAlpha", "Alpha for hidden items");
 
   addProp("columns", "Number of item columns");
 

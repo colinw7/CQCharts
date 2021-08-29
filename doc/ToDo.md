@@ -4,8 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + move symbol/font size pixel limits to charts and allow config
- + more controls e.g. tree map header show/hide
+ + common code for bubble/hier bubble
+ + remove box objs for plot properties
+ + symbol line join, left to right (top/bottom to bottom/top depending on previous dir)
+ + more plot controls
  + Scatter Plot controls include label visible
  + Strip plot key
  + Pie plot grouping average or sum

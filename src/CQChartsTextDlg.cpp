@@ -3,6 +3,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQCharts.h>
 #include <QHBoxLayout>
 
 CQChartsTextDlg::
@@ -23,19 +24,30 @@ CQChartsTextDlg(QWidget *parent) :
   layout->addWidget(canvas_);
   layout->addWidget(propertyTree_);
 
-  propertyModel_->addProperty("", canvas_, "text"         );
-  propertyModel_->addProperty("", canvas_, "color"        );
-  propertyModel_->addProperty("", canvas_, "alpha"        );
-  propertyModel_->addProperty("", canvas_, "font"         );
-  propertyModel_->addProperty("", canvas_, "angle"        );
-  propertyModel_->addProperty("", canvas_, "contrast"     );
-  propertyModel_->addProperty("", canvas_, "contrastAlpha");
-  propertyModel_->addProperty("", canvas_, "align"        );
-  propertyModel_->addProperty("", canvas_, "formatted"    );
-  propertyModel_->addProperty("", canvas_, "scaled"       );
-  propertyModel_->addProperty("", canvas_, "html"         );
-  propertyModel_->addProperty("", canvas_, "clipLength"   );
-  propertyModel_->addProperty("", canvas_, "clipElide"    );
+  auto addProp = [&](const QString &name) {
+    return propertyModel_->addProperty("", canvas_, name);
+  };
+
+  auto addStyleProp = [&](const QString &name) {
+    auto *item = addProp(name);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  addProp("text");
+
+  addStyleProp("color"        );
+  addStyleProp("alpha"        );
+  addStyleProp("font"         );
+  addStyleProp("angle"        );
+  addStyleProp("contrast"     );
+  addStyleProp("contrastAlpha");
+  addStyleProp("align"        );
+  addStyleProp("formatted"    );
+  addStyleProp("scaled"       );
+  addStyleProp("html"         );
+  addStyleProp("clipLength"   );
+  addStyleProp("clipElide"    );
 }
 
 QSize

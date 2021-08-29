@@ -1355,10 +1355,7 @@ drawDeviceParts(PaintDevice *device) const
   // draw edges
   PenBrush edgePenBrush;
 
-  auto edgeColor = this->interpEdgeLinesColor(ColorInd());
-
-  setPen(edgePenBrush,
-    PenData(true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash()));
+  setEdgeLineDataPen(edgePenBrush.pen, ColorInd());
 
   for (auto &edge : forceDirected_->edges()) {
     bool isTemp = false;
@@ -1426,9 +1423,7 @@ drawDeviceParts(PaintDevice *device) const
     if (node == forceDirected_->currentNode())
       fc = insideColor(fc);
 
-    setPenBrush(penBrush,
-      PenData  (true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash()),
-      BrushData(true, fc, nodeFillAlpha(), nodeFillPattern()));
+    setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1463,9 +1458,7 @@ calcPointFillColor(Node *node) const
     if (node->ind().isValid() && colorColumn().isValid()) {
       Color color;
 
-      ModelIndex colorModelInd(this, node->ind().row(), colorColumn(), node->ind().parent());
-
-      if (modelIndexColor(colorModelInd, color))
+      if (colorColumnColor(node->ind().row(), node->ind().parent(), color))
         return interpColor(color, colorInd);
     }
 

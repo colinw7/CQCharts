@@ -117,7 +117,6 @@ init()
 
   setNodeFilled(true);
   setNodeFillColor(bg);
-  setNodeFillAlpha(Alpha(1.0));
 
   setNodeStroked(true);
   setNodeStrokeAlpha(Alpha(0.2));
@@ -2348,8 +2347,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     node()->strokeDash () : plot_->nodeStrokeDash());
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isNodeStroked(), bc, strokeAlpha, strokeWidth, strokeDash),
-    BrushData(plot_->isNodeFilled (), fc, fillAlpha, fillPattern));
+    plot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
+    plot_->nodeBrushData(fc, fillAlpha, fillPattern));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2807,11 +2806,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
-              plot_->edgeStrokeWidth(), plot_->edgeStrokeDash()),
-    BrushData(plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(),
-              plot_->edgeFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->edgePenData(sc), plot_->edgeBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -3013,11 +3008,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = plot_->interpGraphStrokeColor(ic);
   auto fc = plot_->interpGraphFillColor  (ic);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isGraphStroked(), bc, plot_->graphStrokeAlpha(),
-              plot_->graphStrokeWidth(), plot_->graphStrokeDash()),
-    BrushData(plot_->isGraphFilled(), fc, plot_->graphFillAlpha(),
-              plot_->graphFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->graphPenData(bc), plot_->graphBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

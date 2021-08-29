@@ -24,4 +24,4 @@ connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 #set plot2 [create_charts_plot -view $view2 -model $model -type boxplot \
 #  -columns {{values 0} {group 4}}]
 
-show_charts_create_plot_dlg -model $model
+#show_charts_create_plot_dlg -model $model

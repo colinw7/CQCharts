@@ -32,33 +32,36 @@ QString
 CQChartsFillPattern::
 toString() const
 {
+  if (! isValid())
+    return "";
+
   auto str = typeToString(type_);
 
   if      (type_ == Type::PALETTE) {
     auto name = palette().toString();
 
     if (name != "")
-      str += ":" + name;
+      str += ",name=" + name;
   }
   else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
     auto name = image().toString();
 
     if (name != "")
-      str += ":" + name;
+      str += ",name=" + name;
   }
 
   if (altColor().isValid()) {
-    str += QString(":%1").arg(altColor().toString());
+    str += QString(",altColor=%1").arg(altColor().toString());
 
     if (altAlpha() != Alpha())
-      str += QString("|%1").arg(altAlpha().toString());
+      str += QString(",altAlpha=%1").arg(altAlpha().toString());
   }
 
   if (scale() != 1.0)
-    str += QString("*%1").arg(scale());
+    str += QString(",scale=%1").arg(scale());
 
   if (! angle().isZero())
-    str += QString("@%1").arg(angle().toString());
+    str += QString(",angle=%1").arg(angle().toString());
 
   return str;
 }
@@ -71,208 +74,67 @@ fromString(const QString &s)
 }
 
 // format:
-//   <typeStr>[:<dataStr>][:<altColor>[|<altAlpha>]][*<scale>][@<angle>]
+//   <typeStr>[,name=<dataStr>][,altColor=<altColor>][,altAlpha=<altAlpha>]
+//            [,scale=<scale>][,angle=<angle>]
 bool
 CQChartsFillPattern::
 setValue(const QString &s)
 {
   reset();
 
-  //---
-
-  QString typeStr, dataStr, altColorStr, scaleStr, angleStr;
-
-  auto updateType = [&]() {
-    auto type = stringToType(typeStr);
-    if (type == Type::NONE) return false;
-
-    type_ = type;
-
+  if (s.trimmed() == "")
     return true;
-  };
 
   //---
 
-  auto lhs = s;
+  auto strs = s.trimmed().split(',', QString::SkipEmptyParts);
 
-  QString rhs;
+  for (int i = 0; i < strs.length(); ++i) {
+    if (i == 0) {
+      auto type = stringToType(strs[0]);
+      if (type == Type::NONE) return false;
 
-  auto pos = lhs.indexOf(":");
-
-  // :<dataStr>[:<altColor>[|<altAlpha>]][*<scale>][@<angle>]
-  if (pos >= 0) {
-    rhs     = lhs.mid(pos + 1);
-    typeStr = lhs.mid(0, pos);
-
-    //---
-
-    // update type which can change later parse
-    if (! updateType())
-      return false;
-
-    //---
-
-    auto pos1 = rhs.indexOf(":");
-
-    // :<altColor>[|<altAlpha>][*<scale>][@<angle>]
-    if (pos1 >= 0) {
-      dataStr = rhs.mid(0, pos1);
-      rhs     = rhs.mid(pos1 + 1);
-
-      auto pos2 = rhs.indexOf("*");
-
-      // *<scale>[@<angle>]
-      if (pos2 >= 0) {
-        altColorStr = rhs.mid(0, pos2);
-        rhs         = rhs.mid(pos2 + 1);
-
-        auto pos3 = rhs.indexOf("@");
-
-        // @<angle>
-        if (pos3 >= 0) {
-          angleStr = rhs.mid(pos3 + 1);
-          scaleStr = rhs.mid(0, pos3);
-        }
-        else
-          scaleStr = rhs;
-      }
-      // [@<angle>]
-      else {
-        auto pos3 = rhs.indexOf("@");
-
-        // @<angle>
-        if (pos3 >= 0) {
-          angleStr    = rhs.mid(pos3 + 1);
-          altColorStr = rhs.mid(0, pos3);
-        }
-        else
-          altColorStr = rhs;
-      }
+      type_ = type;
     }
-    // [*<scale>][@<angle>]
     else {
-      auto pos2 = rhs.indexOf("*");
+      auto pos = strs[i].indexOf("=");
 
-      // *<scale>[@<angle>]
-      if (pos2 >= 0) {
-        dataStr = rhs.mid(0, pos2);
-        rhs     = rhs.mid(pos2 + 1);
+      auto name  = strs[i].mid(0, pos).trimmed();
+      auto value = strs[i].mid(pos + 1).trimmed();
 
-        auto pos3 = rhs.indexOf("@");
+      if      (name == "name") {
+        if      (type_ == Type::PALETTE)
+          palette_ = CQChartsPaletteName(name);
+        else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
+          image_ = CQChartsImage(name); // TODO
 
-        // @<angle>
-        if (pos3 >= 0) {
-          angleStr = rhs.mid(pos3 + 1);
-          scaleStr = rhs.mid(0, pos3);
+          if      (type_ == Type::TEXTURE)
+            image_.setImageType("texture");
+          else if (type_ == Type::MASK)
+            image_.setImageType("mask");
+          else
+            image_.setImageType("image");
         }
-        else
-          scaleStr = rhs;
       }
-      // [@<angle>]
-      else {
-        auto pos3 = rhs.indexOf("@");
-
-        // @<angle>
-        if (pos3 >= 0) {
-          angleStr = rhs.mid(pos3 + 1);
-          dataStr  = rhs.mid(0, pos3);
-        }
-        else
-          dataStr = rhs;
+      else if (name == "altColor") {
+        altColor_ = Color(value);
+      }
+      else if (name == "altAlpha") {
+        bool ok;
+        altAlpha_ = Alpha(value.toDouble(&ok));
+        if (! ok) altAlpha_ = Alpha();
+      }
+      else if (name == "scale") {
+        bool ok;
+        scale_ = value.toDouble(&ok);
+        if (! ok) scale_ = 1.0;
+      }
+      else if (name == "angle") {
+        bool ok;
+        angle_ = Angle(value.toDouble(&ok));
+        if (! ok) angle_ = Angle();
       }
     }
-  }
-  // [*<scale>][@<angle>]
-  else {
-    rhs = lhs;
-
-    auto pos1 = rhs.indexOf("*");
-
-    // *<scale>[@<angle>]
-    if (pos1 >= 0) {
-      typeStr = rhs.mid(0, pos1);
-      rhs     = rhs.mid(pos1 + 1);
-
-      //---
-
-      // get type
-      if (! updateType())
-        return false;
-
-      //---
-
-      auto pos2 = rhs.indexOf("@");
-
-      // @<angle>
-      if (pos2 >= 0) {
-        angleStr = rhs.mid(pos2 + 1);
-        scaleStr = rhs.mid(0, pos2);
-      }
-      else
-        scaleStr = rhs;
-    }
-    // [@<angle>]
-    else {
-      auto pos2 = rhs.indexOf("@");
-
-      if (pos2 >= 0) {
-        angleStr = rhs.mid(pos2 + 1);
-        typeStr  = rhs.mid(0, pos2);
-      }
-      else
-        typeStr = rhs;
-
-      //---
-
-      // get type
-      if (! updateType())
-        return false;
-    }
-  }
-
-  if (scaleStr != "") {
-    bool ok;
-    scale_ = scaleStr.toDouble(&ok);
-    if (! ok) scale_ = 1.0;
-  }
-
-  //---
-
-  assert(type_ != Type::NONE);
-
-  if      (type_ == Type::PALETTE)
-    palette_ = CQChartsPaletteName(dataStr);
-  else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
-    image_ = CQChartsImage(dataStr); // TODO
-
-    if      (type_ == Type::TEXTURE)
-      image_.setImageType("texture");
-    else if (type_ == Type::MASK)
-      image_.setImageType("mask");
-    else
-      image_.setImageType("image");
-  }
-
-  if (angleStr != "") {
-    bool ok;
-    angle_ = Angle(angleStr.toDouble(&ok));
-    if (! ok) angle_ = Angle();
-  }
-
-  if (altColorStr != "") {
-    auto pos = altColorStr.indexOf('|');
-
-    if (pos >= 0) {
-      auto altAlphaStr = altColorStr.mid(pos + 1);
-
-      altColorStr = altColorStr.mid(0, pos);
-
-      bool ok;
-      altAlpha_ = Alpha(altAlphaStr.toDouble(&ok));
-      if (! ok) altAlpha_ = Alpha();
-    }
-
-    altColor_ = Color(altColorStr);
   }
 
   return true;

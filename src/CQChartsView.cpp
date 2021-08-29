@@ -309,7 +309,7 @@ CQChartsView::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                    const QString &desc, bool hidden=false) {
+                     const QString &desc, bool hidden=false) {
     auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     if (hidden) CQCharts::setItemIsHidden(item);
@@ -400,6 +400,8 @@ addProperties()
                "Highlight stroke visible");
   addStyleProp("select/highlight/stroke", "selectedStrokeColor", "color"  ,
                "Highlight stroke color");
+  addStyleProp("select/highlight/stroke", "selectedStrokeAlpha", "alpha"  ,
+               "Highlight stroke color");
   addStyleProp("select/highlight/stroke", "selectedStrokeWidth", "width"  ,
                "Highlight stroke width");
   addStyleProp("select/highlight/stroke", "selectedStrokeDash" , "dash"   ,
@@ -419,6 +421,7 @@ addProperties()
   addStyleProp("inside/highlight/fill"  , "insideFillPattern", "pattern", "Inside fill pattern");
   addStyleProp("inside/highlight/stroke", "insideStroked"    , "visible", "Inside stroke visible");
   addStyleProp("inside/highlight/stroke", "insideStrokeColor", "color"  , "Inside stroke color");
+  addStyleProp("inside/highlight/stroke", "insideStrokeAlpha", "alpha"  , "Inside stroke alpha");
   addStyleProp("inside/highlight/stroke", "insideStrokeWidth", "width"  , "Inside stroke width");
   addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
 
@@ -4619,6 +4622,8 @@ propertyItemChanged(QObject *, const QString &)
 {
 }
 
+//---
+
 void
 CQChartsView::
 updateNoData()
@@ -5026,7 +5031,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         if (isInsideBlend())
           alpha = Alpha(bc.alphaF());
         else
-          alpha = Alpha(1.0);
+          alpha = Alpha();
       }
 
       setBrush(penBrush, BrushData(true, ibc, alpha, insideFillPattern()));
@@ -5121,7 +5126,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         if (isInsideBlend())
           alpha = Alpha(bc.alphaF());
         else
-          alpha = Alpha(1.0);
+          alpha = Alpha();
       }
 
       setBrush(penBrush, BrushData(true, ibc, alpha, selectedFillPattern()));

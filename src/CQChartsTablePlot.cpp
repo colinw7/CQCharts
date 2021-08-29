@@ -593,22 +593,24 @@ addProperties()
   addProp("options", "rowNums"  , "rowNums"  , "Explicit row numbers for ROWS mode");
 
   // header
-  addProp("header", "headerVisible", "visible"   , "Header visible");
-  addProp("header", "headerColor"  , "color"     , "Header color"  );
-  addProp("header", "headerFont"   , "headerFont", "Header font"  );
+  addProp("header", "headerVisible", "visible", "Header visible");
+
+  addStyleProp("header", "headerColor", "color"     , "Header color");
+  addStyleProp("header", "headerFont" , "headerFont", "Header font" );
 
   // grid
-  addProp("options", "gridColor"    , "gridColor"    , "Grid color");
+  addStyleProp("options", "gridColor", "gridColor", "Grid color");
 
   // cells
-  addProp("options", "cellColor"    , "cellColor"    , "Cell color");
-  addProp("options", "insideColor"  , "insideColor"  , "Cell inside color");
-  addProp("options", "selectedColor", "selectedColor", "Cell selected color");
+  addStyleProp("options", "cellColor"    , "cellColor"    , "Cell color");
+  addStyleProp("options", "insideColor"  , "insideColor"  , "Cell inside color");
+  addStyleProp("options", "selectedColor", "selectedColor", "Cell selected color");
 
   addProp("options", "rowColumn" , "rowColumn" , "Display row number column");
-  addProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
-  addProp("options", "cellMargin", "cellMargin", "Cell margin")->setMinValue(0);
   addProp("options", "followView", "followView", "Follow view");
+
+  addStyleProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
+  addStyleProp("options", "cellMargin", "cellMargin", "Cell margin")->setMinValue(0);
 }
 
 CQChartsGeom::Range

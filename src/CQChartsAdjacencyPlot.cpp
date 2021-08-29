@@ -1332,8 +1332,7 @@ execDrawBackground(PaintDevice *device) const
 
   auto fc = interpBackgroundFillColor(ColorInd());
 
-  setPenBrush(device,
-   PenData(false), BrushData(true, fc, backgroundFillData()));
+  setPenBrush(device, PenData(false), BrushData(true, fc, backgroundFillData()));
 
   BBox cellBBox(px, py, px + std::max(nn, 1)*pxs_, py + std::max(nn, 1)*pys_);
 
@@ -1664,11 +1663,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
         auto ind1 = srcNode->ind(destNode->id());
 
-        ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
         Color indColor;
 
-        if (plot_->modelIndexColor(ind2, indColor))
+        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
           return plot_->interpColor(indColor, ColorInd());
       }
 

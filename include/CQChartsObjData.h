@@ -24,15 +24,17 @@ Q_PROPERTY(CQChartsLineJoin linesJoin  READ linesJoin  WRITE setLinesJoin )
 template<class OBJ>
 class CQChartsObjLineData {
  public:
-  using Color    = CQChartsColor;
-  using Alpha    = CQChartsAlpha;
-  using Length   = CQChartsLength;
-  using LineDash = CQChartsLineDash;
-  using LineCap  = CQChartsLineCap;
-  using LineJoin = CQChartsLineJoin;
-  using PenBrush = CQChartsPenBrush;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using LineData = CQChartsLineData;
+  using Color     = CQChartsColor;
+  using Alpha     = CQChartsAlpha;
+  using Length    = CQChartsLength;
+  using LineDash  = CQChartsLineDash;
+  using LineCap   = CQChartsLineCap;
+  using LineJoin  = CQChartsLineJoin;
+  using PenBrush  = CQChartsPenBrush;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
+  using LineData  = CQChartsLineData;
 
  public:
   using Invalidator = CQChartsInvalidator;
@@ -101,10 +103,19 @@ class CQChartsObjLineData {
     QColor lc = interpLinesColor(ind);
 
     PenBrush penBrush;
-    lineDataObj_->setPen(penBrush,
-      CQChartsPenData(isLines(), lc, linesAlpha(), linesWidth(), linesDash(),
-                      linesCap(), linesJoin()));
+    lineDataObj_->setPen(penBrush, lineDataPenData(lc));
     pen = penBrush.pen;
+  }
+
+  PenData lineDataPenData(const QColor &lc, const Alpha &alpha=Alpha()) const {
+    auto strokeAlpha = (! alpha.isSet() ? linesAlpha() : alpha);
+    return PenData(isLines(), lc, strokeAlpha, linesWidth(), linesDash(),
+                   linesCap(), linesJoin());
+  }
+
+  BrushData lineDataBrushData(const QColor &lc, const Alpha &alpha=Alpha()) const {
+    auto fillAlpha = (! alpha.isSet() ? linesAlpha() : alpha);
+    return BrushData(true, lc, fillAlpha);
   }
 
   //---
@@ -151,15 +162,17 @@ Q_PROPERTY(CQChartsLineJoin LNAME##LinesJoin  READ LNAME##LinesJoin  WRITE set##
 template<class OBJ> \
 class CQChartsObj##UNAME##LineData { \
  public: \
-  using Color    = CQChartsColor; \
-  using Alpha    = CQChartsAlpha; \
-  using Length   = CQChartsLength; \
-  using LineDash = CQChartsLineDash; \
-  using LineCap  = CQChartsLineCap; \
-  using LineJoin = CQChartsLineJoin; \
-  using PenBrush = CQChartsPenBrush; \
-  using ColorInd = CQChartsUtil::ColorInd; \
-  using LineData = CQChartsLineData; \
+  using Color     = CQChartsColor; \
+  using Alpha     = CQChartsAlpha; \
+  using Length    = CQChartsLength; \
+  using LineDash  = CQChartsLineDash; \
+  using LineCap   = CQChartsLineCap; \
+  using LineJoin  = CQChartsLineJoin; \
+  using PenBrush  = CQChartsPenBrush; \
+  using PenData   = CQChartsPenData; \
+  using BrushData = CQChartsBrushData; \
+  using ColorInd  = CQChartsUtil::ColorInd; \
+  using LineData  = CQChartsLineData; \
 \
  public: \
   using Invalidator = CQChartsInvalidator; \
@@ -226,11 +239,19 @@ class CQChartsObj##UNAME##LineData { \
     QColor lc = interp##UNAME##LinesColor(ind); \
 \
     PenBrush penBrush; \
-    LNAME##LineDataObj_->setPen(penBrush, \
-      CQChartsPenData(is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
-                      LNAME##LinesWidth(), LNAME##LinesDash(), LNAME##LinesCap(), \
-                      LNAME##LinesJoin())); \
+    LNAME##LineDataObj_->setPen(penBrush, LNAME##LineDataPenData(lc)); \
     pen = penBrush.pen; \
+  } \
+\
+  PenData LNAME##LineDataPenData(const QColor &lc, const Alpha &alpha=Alpha()) const { \
+    auto strokeAlpha = (! alpha.isSet() ? LNAME##LinesAlpha() : alpha); \
+    return PenData(is##UNAME##Lines(), lc, strokeAlpha, LNAME##LinesWidth(), \
+                   LNAME##LinesDash(), LNAME##LinesCap(), LNAME##LinesJoin()); \
+  } \
+\
+  BrushData LNAME##LineDataBrushData(const QColor &lc, const Alpha &alpha=Alpha()) const { \
+    auto fillAlpha = (! alpha.isSet() ? LNAME##LinesAlpha() : alpha); \
+    return BrushData(true, lc, fillAlpha); \
   } \
 \
   const LineData &LNAME##LineData() const { return LNAME##LineData_; } \
@@ -276,6 +297,10 @@ Q_PROPERTY(CQChartsLength      symbolStrokeWidth \
            READ symbolStrokeWidth WRITE setSymbolStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash    symbolStrokeDash \
            READ symbolStrokeDash  WRITE setSymbolStrokeDash ) \
+Q_PROPERTY(CQChartsLineCap     symbolStrokeCap \
+           READ symbolStrokeCap   WRITE setSymbolStrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin    symbolStrokeJoin \
+           READ symbolStrokeJoin  WRITE setSymbolStrokeJoin ) \
 Q_PROPERTY(bool                symbolFilled \
            READ isSymbolFilled    WRITE setSymbolFilled     ) \
 Q_PROPERTY(CQChartsColor       symbolFillColor \
@@ -297,8 +322,12 @@ class CQChartsObjPointData {
   using Alpha       = CQChartsAlpha;
   using Length      = CQChartsLength;
   using LineDash    = CQChartsLineDash;
+  using LineCap     = CQChartsLineCap;
+  using LineJoin    = CQChartsLineJoin;
   using FillPattern = CQChartsFillPattern;
   using PenBrush    = CQChartsPenBrush;
+  using PenData     = CQChartsPenData;
+  using BrushData   = CQChartsBrushData;
   using ColorInd    = CQChartsUtil::ColorInd;
   using SymbolData  = CQChartsSymbolData;
 
@@ -371,6 +400,18 @@ class CQChartsObjPointData {
       pointData_.stroke().setDash(d); pointDataInvalidate(); }
   }
 
+  const LineCap &symbolStrokeCap() const { return pointData_.stroke().lineCap(); }
+  void setSymbolStrokeCap(const LineCap &c) {
+    if (c != pointData_.stroke().lineCap()) {
+      pointData_.stroke().setLineCap(c); pointDataInvalidate(); }
+  }
+
+  const LineJoin &symbolStrokeJoin() const { return pointData_.stroke().lineJoin(); }
+  void setSymbolStrokeJoin(const LineJoin &j) {
+    if (j != pointData_.stroke().lineJoin()) {
+      pointData_.stroke().setLineJoin(j); pointDataInvalidate(); }
+  }
+
   bool isSymbolFilled() const { return pointData_.fill().isVisible(); }
   void setSymbolFilled(bool b) {
     if (b != pointData_.fill().isVisible()) {
@@ -403,10 +444,19 @@ class CQChartsObjPointData {
 
   void setSymbolPenBrush(PenBrush &penBrush, const ColorInd &ind) const {
     pointDataObj_->setPenBrush(penBrush,
-      CQChartsPenData(isSymbolStroked(), interpSymbolStrokeColor(ind), symbolStrokeAlpha(),
-                      symbolStrokeWidth(), symbolStrokeDash()),
-      CQChartsBrushData(isSymbolFilled(), interpSymbolFillColor(ind), symbolFillAlpha(),
-                        symbolFillPattern()));
+      symbolPenData  (interpSymbolStrokeColor(ind)),
+      symbolBrushData(interpSymbolFillColor  (ind)));
+  }
+
+  PenData symbolPenData(const QColor &c, const Alpha &alpha=Alpha()) const {
+    auto strokeAlpha = (! alpha.isSet() ? symbolStrokeAlpha() : alpha);
+    return PenData(isSymbolStroked(), c, strokeAlpha, symbolStrokeWidth(), symbolStrokeDash(),
+                   symbolStrokeCap(), symbolStrokeJoin());
+  }
+
+  BrushData symbolBrushData(const QColor &c, const Alpha &alpha=Alpha()) const {
+    auto fillAlpha = (! alpha.isSet() ? symbolFillAlpha() : alpha);
+    return BrushData(isSymbolFilled(), c, fillAlpha, symbolFillPattern());
   }
 
   //---
@@ -454,6 +504,10 @@ Q_PROPERTY(CQChartsLength      LNAME##SymbolStrokeWidth \
            READ LNAME##SymbolStrokeWidth WRITE set##UNAME##SymbolStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash    LNAME##SymbolStrokeDash \
            READ LNAME##SymbolStrokeDash  WRITE set##UNAME##SymbolStrokeDash ) \
+Q_PROPERTY(CQChartsLineCap     LNAME##SymbolStrokeCap \
+           READ LNAME##SymbolStrokeCap   WRITE set##UNAME##SymbolStrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin    LNAME##SymbolStrokeJoin \
+           READ LNAME##SymbolStrokeJoin  WRITE set##UNAME##SymbolStrokeJoin ) \
 Q_PROPERTY(bool                LNAME##SymbolFilled \
            READ is##UNAME##SymbolFilled  WRITE set##UNAME##SymbolFilled     ) \
 Q_PROPERTY(CQChartsColor       LNAME##SymbolFillColor \
@@ -476,8 +530,12 @@ class CQChartsObj##UNAME##PointData { \
   using Alpha       = CQChartsAlpha; \
   using Length      = CQChartsLength; \
   using LineDash    = CQChartsLineDash; \
+  using LineCap     = CQChartsLineCap; \
+  using LineJoin    = CQChartsLineJoin; \
   using FillPattern = CQChartsFillPattern; \
   using PenBrush    = CQChartsPenBrush; \
+  using PenData     = CQChartsPenData; \
+  using BrushData   = CQChartsBrushData; \
   using ColorInd    = CQChartsUtil::ColorInd; \
   using SymbolData  = CQChartsSymbolData; \
 \
@@ -549,6 +607,19 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##PointData_.stroke().setDash(d); LNAME##PointDataInvalidate(); } \
   } \
 \
+  const LineCap &LNAME##SymbolStrokeCap() const { return LNAME##PointData_.stroke().lineCap(); } \
+  void set##UNAME##SymbolStrokeCap(const LineCap &c) { \
+    if (c != LNAME##PointData_.stroke().lineCap()) { \
+      LNAME##PointData_.stroke().setLineCap(c); LNAME##PointDataInvalidate(); } \
+  } \
+\
+  const LineJoin &LNAME##SymbolStrokeJoin() const { \
+    return LNAME##PointData_.stroke().lineJoin(); } \
+  void set##UNAME##SymbolStrokeJoin(const LineJoin &j) { \
+    if (j != LNAME##PointData_.stroke().lineJoin()) { \
+      LNAME##PointData_.stroke().setLineJoin(j); LNAME##PointDataInvalidate(); } \
+  } \
+\
   bool is##UNAME##SymbolFilled() const { return LNAME##PointData_.fill().isVisible(); } \
   void set##UNAME##SymbolFilled(bool b) { \
     if (b != LNAME##PointData_.fill().isVisible()) { \
@@ -581,11 +652,11 @@ class CQChartsObj##UNAME##PointData { \
 \
   void set##UNAME##SymbolPenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
     LNAME##PointDataObj_->setPenBrush(penBrush, \
-      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
-                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
-                      LNAME##SymbolStrokeDash()), \
-      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
-                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
+      PenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
+              LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
+              LNAME##SymbolStrokeCap(), LNAME##SymbolStrokeJoin()), \
+      BrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
+                LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
   } \
 \
   const SymbolData &LNAME##SymbolData() const { return LNAME##PointData_; } \
@@ -1084,11 +1155,13 @@ enum class CQChartsStrokeDataTypes {
   ALPHA   = (1<<2),
   WIDTH   = (1<<3),
   DASH    = (1<<4),
+  CAP     = (1<<5),
+  JOIN    = (1<<6),
 
   NONE     = 0,
-  STANDARD = (COLOR | ALPHA | WIDTH | DASH),
-  NO_COLOR = (ALPHA | WIDTH | DASH),
-  ALL      = (VISIBLE | COLOR | ALPHA | WIDTH | DASH)
+  STANDARD = (COLOR | ALPHA | WIDTH | DASH | CAP),
+  NO_COLOR = (ALPHA | WIDTH | DASH | CAP),
+  ALL      = (VISIBLE | COLOR | ALPHA | WIDTH | DASH | CAP | JOIN)
 };
 
 #define CQCHARTS_STROKE_DATA_PROPERTIES \
@@ -1245,6 +1318,8 @@ class CQChartsObjShapeData {
   using LineCap     = CQChartsLineCap;
   using LineJoin    = CQChartsLineJoin;
   using FillPattern = CQChartsFillPattern;
+  using PenData     = CQChartsPenData;
+  using BrushData   = CQChartsBrushData;
   using ColorInd    = CQChartsUtil::ColorInd;
   using ShapeData   = CQChartsShapeData;
 
@@ -1352,6 +1427,19 @@ class CQChartsObjShapeData {
 
   //---
 
+  PenData penData(const QColor &c, const Alpha &alpha=Alpha()) const {
+    auto strokeAlpha = (! alpha.isSet() ? this->strokeAlpha() : alpha);
+    return PenData(isStroked(), c, strokeAlpha, strokeWidth(), strokeDash(),
+                   strokeCap(), strokeJoin());
+  }
+
+  BrushData brushData(const QColor &c, const Alpha &alpha=Alpha()) const {
+    auto fillAlpha = (! alpha.isSet() ? this->fillAlpha() : alpha);
+    return BrushData(isFilled(), c, fillAlpha, fillPattern());
+  }
+
+  //---
+
   const ShapeData &shapeData() const { return shapeData_; }
 
   void setShapeData(const ShapeData &data) {
@@ -1419,6 +1507,8 @@ class CQChartsObj##UNAME##ShapeData { \
   using LineCap     = CQChartsLineCap; \
   using LineJoin    = CQChartsLineJoin; \
   using FillPattern = CQChartsFillPattern; \
+  using PenData     = CQChartsPenData; \
+  using BrushData   = CQChartsBrushData; \
   using ColorInd    = CQChartsUtil::ColorInd; \
   using ShapeData   = CQChartsShapeData; \
 \
@@ -1525,14 +1615,30 @@ class CQChartsObj##UNAME##ShapeData { \
     LNAME##ShapeData_ = data; LNAME##ShapeDataInvalidate(); \
   } \
 \
-  CQChartsPenData LNAME##PenData(const ColorInd &colorInd) const { \
-    return CQChartsPenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(colorInd), \
-                           LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash()); \
+  PenData LNAME##PenData(const ColorInd &colorInd) const { \
+    return PenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(colorInd), \
+                   LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash(), \
+                   LNAME##StrokeCap(), LNAME##StrokeJoin()); \
   } \
 \
-  CQChartsBrushData LNAME##BrushData(const ColorInd &colorInd) const { \
-    return CQChartsBrushData(is##UNAME##Filled(), interp##UNAME##FillColor(colorInd), \
-                             LNAME##FillAlpha(), LNAME##FillPattern()); \
+  PenData LNAME##PenData(const QColor &c, const Alpha &alpha=Alpha(), \
+                         const Length &width=Length(), const LineDash &dash=LineDash()) const { \
+    auto strokeAlpha = (! alpha.isSet() ? LNAME##StrokeAlpha() : alpha); \
+    auto strokeWidth = (! width.isSet() ? LNAME##StrokeWidth() : width); \
+    auto strokeDash  = (! dash .isSet() ? LNAME##StrokeDash () : dash ); \
+    return PenData(is##UNAME##Stroked(), c, strokeAlpha, strokeWidth, strokeDash); \
+  } \
+\
+  BrushData LNAME##BrushData(const ColorInd &colorInd) const { \
+    return BrushData(is##UNAME##Filled(), interp##UNAME##FillColor(colorInd), \
+                     LNAME##FillAlpha(), LNAME##FillPattern()); \
+  } \
+\
+  BrushData LNAME##BrushData(const QColor &c, const Alpha &alpha=Alpha(), \
+                             const FillPattern &pattern=FillPattern()) const { \
+    auto fillAlpha   = (! alpha  .isSet  () ? LNAME##FillAlpha  () : alpha); \
+    auto fillPattern = (! pattern.isValid() ? LNAME##FillPattern() : pattern); \
+    return BrushData(is##UNAME##Filled(), c, fillAlpha, fillPattern); \
   } \
 \
  private: \
@@ -1786,6 +1892,8 @@ class CQChartsObj##UNAME##BoxData { \
   using FillPattern = CQChartsFillPattern; \
   using Sides       = CQChartsSides; \
   using PenBrush    = CQChartsPenBrush; \
+  using PenData     = CQChartsPenData; \
+  using BrushData   = CQChartsBrushData; \
   using ColorInd    = CQChartsUtil::ColorInd; \
   using BoxData     = CQChartsBoxData; \
 \
@@ -1910,11 +2018,11 @@ class CQChartsObj##UNAME##BoxData { \
 \
   void set##UNAME##BoxDataPenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
     LNAME##BoxDataObj_->setPenBrush(penBrush, \
-      CQChartsPenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(ind), \
-                      LNAME##StrokeAlpha(), LNAME##StrokeWidth(), \
-                      LNAME##StrokeDash()), \
-      CQChartsBrushData(is##UNAME##Filled(), interp##UNAME##FillColor(ind), \
-                        LNAME##FillAlpha(), LNAME##FillPattern())); \
+      PenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(ind), \
+              LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash(), \
+              LNAME##StrokeCap(), LNAME##StrokeJoin()), \
+      BrushData(is##UNAME##Filled(), interp##UNAME##FillColor(ind), \
+                LNAME##FillAlpha(), LNAME##FillPattern())); \
   } \
 \
  private: \

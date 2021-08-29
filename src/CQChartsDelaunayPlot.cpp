@@ -669,9 +669,7 @@ drawVoronoi(PaintDevice *device) const
     auto pc = interpVoronoiStrokeColor(ColorInd());
     auto fc = interpVoronoiFillColor  (ColorInd());
 
-    setPenBrush(penBrush,
-      PenData  (true, pc, voronoiStrokeAlpha(), voronoiStrokeWidth(), voronoiStrokeDash()),
-      BrushData(true, fc, voronoiFillAlpha(), voronoiFillPattern()));
+    setPenBrush(penBrush, voronoiPenData(pc), voronoiBrushData(fc));
 
     for (auto pv = delaunayData_->verticesBegin(); pv != delaunayData_->verticesEnd(); ++pv) {
       const auto *v1 = *pv;
@@ -735,11 +733,7 @@ drawVoronoi(PaintDevice *device) const
   if (isVoronoiLines() || isVoronoiCircles()) {
     PenBrush penBrush;
 
-    auto lc = interpVoronoiLinesColor(ColorInd());
-
-    setPenBrush(penBrush,
-      PenData(true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash()),
-      BrushData(false));
+    setVoronoiLineDataPen(penBrush.pen, ColorInd());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

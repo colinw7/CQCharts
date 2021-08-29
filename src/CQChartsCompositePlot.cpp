@@ -696,9 +696,9 @@ setFitMargin(const PlotMargin &m)
 
 void
 CQChartsCompositePlot::
-resetExtraBBox() const
+resetExtraFitBBox() const
 {
-  return (currentPlot() ? currentPlot()->resetExtraBBox() : CQChartsPlot::resetExtraBBox());
+  return (currentPlot() ? currentPlot()->resetExtraFitBBox() : CQChartsPlot::resetExtraFitBBox());
 }
 
 bool

@@ -226,6 +226,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using Alpha      = CQChartsAlpha;
   using ColorInd   = CQChartsUtil::ColorInd;
   using PenBrush   = CQChartsPenBrush;
+  using PenData    = CQChartsPenData;
+  using BrushData  = CQChartsBrushData;
   using Symbol     = CQChartsSymbol;
 
  public:
@@ -349,7 +351,6 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   double fontSizeMapMin() const { return fontSizeData_.map_min; }
   void setFontSizeMapMin(double r);
-
   double fontSizeMapMax() const { return fontSizeData_.map_max; }
   void setFontSizeMapMax(double r);
 

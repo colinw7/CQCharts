@@ -1136,11 +1136,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (plot_->colorColumn().isValid() && plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
-    ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
     Color indColor;
 
-    if (plot_->modelIndexColor(ind2, indColor))
+    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
       fillColor = plot_->interpColor(indColor, colorInd);
     else
       fillColor = plot_->interpFillColor(colorInd);
@@ -1150,10 +1148,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   auto strokeColor = plot_->interpStrokeColor(colorInd);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
-              plot_->strokeWidth(), plot_->strokeDash()),
-    BrushData(plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern()));
+  plot_->setPenBrush(penBrush, plot_->penData(strokeColor), plot_->brushData(fillColor));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

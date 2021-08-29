@@ -310,6 +310,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using Angle         = CQChartsAngle;
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
+  using PenData       = CQChartsPenData;
+  using BrushData     = CQChartsBrushData;
   using ColorInd      = CQChartsUtil::ColorInd;
 
  public:

@@ -518,12 +518,14 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
 //using WhiskerSide = CQChartsAxisBoxWhisker::Side;
 
-  using Length   = CQChartsLength;
-  using Alpha    = CQChartsAlpha;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using PenBrush = CQChartsPenBrush;
-  using Symbol   = CQChartsSymbol;
+  using Length    = CQChartsLength;
+  using Alpha     = CQChartsAlpha;
+  using Color     = CQChartsColor;
+  using Symbol    = CQChartsSymbol;
+  using PenBrush  = CQChartsPenBrush;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsScatterPlot(View *view, const ModelP &model);

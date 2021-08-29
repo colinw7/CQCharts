@@ -408,20 +408,20 @@ addProperties()
   addProp("options", "coldTemp"   , "coldTemp"   , "Cold Temperature");
   addProp("options", "tempPalette", "tempPalette", "Temperature Palette");
 
-  addProp("options", "lineColor", "lineColor", "Line Color");
-  addProp("options", "lineAlpha", "lineAlpha", "Line Alpha");
-  addProp("options", "lineWidth", "lineWidth", "Line Width");
+  addStyleProp("options", "lineColor", "lineColor", "Line Color");
+  addStyleProp("options", "lineAlpha", "lineAlpha", "Line Alpha");
+  addStyleProp("options", "lineWidth", "lineWidth", "Line Width");
 
-  addProp("options", "gridColor", "gridColor", "Grid Color");
-  addProp("options", "gridAlpha", "gridAlpha", "Grid Alpha");
-  addProp("options", "gridFont" , "gridFont" , "Grid Font");
+  addStyleProp("options", "gridColor", "gridColor", "Grid Color");
+  addStyleProp("options", "gridAlpha", "gridAlpha", "Grid Alpha");
+  addStyleProp("options", "gridFont" , "gridFont" , "Grid Font");
 
-  addProp("options", "textColor", "textColor", "Text Color");
-  addProp("options", "textFont" , "textFont" , "Text Font");
+  addStyleProp("options", "textColor", "textColor", "Text Color");
+  addStyleProp("options", "textFont" , "textFont" , "Text Font");
 
-  addProp("options", "innerBarColor"   , "innerBarColor"   , "Inner Bar Color");
-  addProp("options", "outerBarColor"   , "outerBarColor"   , "Outer Bar Color");
-  addProp("options", "outerBubbleColor", "outerBubbleColor", "Outer Bubble Color");
+  addStyleProp("options", "innerBarColor"   , "innerBarColor"   , "Inner Bar Color");
+  addStyleProp("options", "outerBarColor"   , "outerBarColor"   , "Outer Bar Color");
+  addStyleProp("options", "outerBubbleColor", "outerBubbleColor", "Outer Bubble Color");
 }
 
 CQChartsGeom::Range
@@ -1288,8 +1288,7 @@ draw(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    plot_->setPenBrush(penBrush,
-      PenData(false), BrushData(true, QColor(), Alpha(), fillPattern));
+    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, QColor(), Alpha(), fillPattern));
 
     if (updateState)
       plot_->updateObjPenBrushState(this, penBrush);

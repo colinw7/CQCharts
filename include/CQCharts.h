@@ -31,7 +31,9 @@ class CQChartsManageModelsDlg;
 class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
 
+class CQPropertyViewModel;
 class CQPropertyViewItem;
+
 class CQTcl;
 
 class QTimer;
@@ -344,6 +346,11 @@ class CQCharts : public QObject {
 
   //---
 
+  // property model
+  CQPropertyViewModel *propertyModel() const { return propertyModel_.get(); }
+
+  //---
+
   static void setItemIsStyle(CQPropertyViewItem *item);
   static bool getItemIsStyle(const CQPropertyViewItem *item);
 
@@ -372,6 +379,13 @@ class CQCharts : public QObject {
 
   const CQChartsExprTcl *currentExpr() const { return currentExpr_; }
   void setCurrentExpr(CQChartsExprTcl *p) { currentExpr_ = p; }
+
+  //---
+
+  void addProperties();
+
+  CQPropertyViewItem *addProperty(const QString &path, QObject *object,
+                                  const QString &name, const QString &alias);
 
   //---
 
@@ -410,6 +424,8 @@ class CQCharts : public QObject {
   void interfaceThemeChanged();
 
  private slots:
+  void propertyItemChanged(QObject *, const QString &);
+
   void exitSlot();
 
  private:
@@ -425,8 +441,10 @@ class CQCharts : public QObject {
   using PlotTypeMgrP    = std::unique_ptr<CQChartsPlotTypeMgr>;
   using ColumnTypeMgrP  = std::unique_ptr<CQChartsColumnTypeMgr>;
   using SymbolSetMgrP   = std::unique_ptr<CQChartsSymbolSetMgr>;
+  using PropertyModel   = CQPropertyViewModel;
+  using PropertyModelP  = std::unique_ptr<PropertyModel>;
 
-  QTimer*                  exitTimer_       { nullptr }; //!< auto exit timer
+  QTimer* exitTimer_ { nullptr }; //!< auto exit timer
 
   // options
   bool   viewKey_       { true };  //!< has view key
@@ -434,24 +452,44 @@ class CQCharts : public QObject {
   double maxFontSize_   { 100.0 }; //!< max font size (height in pixels)
   double maxLineWidth_  { 64.0 };  //!< max line width (pixels)
 
-  PlotTypeMgrP             plotTypeMgr_;                 //!< plot type manager
-  ColumnTypeMgrP           columnTypeMgr_;               //!< column type manager
-  InterfaceThemeP          interfaceTheme_;              //!< interface theme
-  CQChartsThemeName        plotTheme_;                   //!< plot theme name
-  SymbolSetMgrP            symbolSetMgr_;                //!< symbol set manager
-  QColor                   contrastColor_;               //!< color for contrast color calc
-  int                      currentModelInd_ { -1 };      //!< current model index
-  ModelDatas               modelDatas_;                  //!< model datas
-  int                      lastModelInd_    { 0 };       //!< last model ind
-  NameViews                views_;                       //!< views
-  TypeProcs                typeProcs_;                   //!< tcl procs
+  // plot types
+  PlotTypeMgrP plotTypeMgr_; //!< plot type manager
+
+  // column types
+  ColumnTypeMgrP columnTypeMgr_; //!< column type manager
+
+  // theme
+  InterfaceThemeP   interfaceTheme_; //!< interface theme
+  CQChartsThemeName plotTheme_;      //!< plot theme name
+  QColor            contrastColor_;  //!< color for contrast color calc
+
+  SymbolSetMgrP symbolSetMgr_; //!< symbol set manager
+
+  // model data
+  int        currentModelInd_ { -1 }; //!< current model index
+  ModelDatas modelDatas_;             //!< model datas
+  int        lastModelInd_    { 0 };  //!< last model ind
+
+  // views
+  NameViews views_;  //!< views
+
+  // type procs
+  TypeProcs typeProcs_; //!< tcl procs
+
+  // dialogs
   CQChartsLoadModelDlg*    loadModelDlg_    { nullptr }; //!< load model dialog
   CQChartsManageModelsDlg* manageModelsDlg_ { nullptr }; //!< manage models dialog
   CQChartsEditModelDlg*    editModelDlg_    { nullptr }; //!< edit model dialog
   CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
-  CQTcl*                   cmdTcl_          { nullptr }; //!< command line tcl
-  CQChartsExprTcl*         currentExpr_     { nullptr }; //!< current expression evaluator
-  QStringList              pathList_;
+
+  // tcl
+  CQTcl*           cmdTcl_      { nullptr }; //!< command line tcl
+  CQChartsExprTcl* currentExpr_ { nullptr }; //!< current expression evaluator
+
+  PropertyModelP propertyModel_; //!< property model
+
+  // paths
+  QStringList pathList_; //!< list of paths for external files
 };
 
 #endif

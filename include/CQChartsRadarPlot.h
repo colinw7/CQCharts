@@ -145,8 +145,9 @@ class CQChartsRadarPlot : public CQChartsPlot,
   using Angle    = CQChartsAngle;
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
-  using ColorInd = CQChartsUtil::ColorInd;
   using PenBrush = CQChartsPenBrush;
+  using PenData  = CQChartsPenData;
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsRadarPlot(View *view, const ModelP &model);

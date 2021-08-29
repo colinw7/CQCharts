@@ -1333,3 +1333,7 @@
  + support min symbol size and min label size in scatter plot
  + support min area in tree map and bubble plots
  + add units as qproperty type
+# 8/29/2021
+ + Add cap and join to add stroke properties
+ + Cleanup init of pen/brush from stroke/fill properties
+ + Fix fill gradient to/from string conversion

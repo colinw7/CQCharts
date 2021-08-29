@@ -1088,8 +1088,8 @@ draw(PaintDevice *device) const
       fillPattern.setScale(4.0);
 
       plot_->setPenBrush(penBrush,
-        PenData  (true, lc, Alpha(1.0)),
-        BrushData(true, lc, Alpha(1.0), fillPattern));
+        PenData  (true, lc, Alpha()),
+        BrushData(true, lc, Alpha(), fillPattern));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1263,11 +1263,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto fc = plot_->interpCellFillColor  (ic);
   auto bc = plot_->interpCellStrokeColor(ic);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-              plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
-    BrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
-              plot_->cellFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->cellPenData(bc), plot_->cellBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

@@ -53,6 +53,8 @@ class CQChartsLineDash :
 
   //---
 
+  bool isSet() const { return set_; }
+
   void scale(double factor);
 
   CQChartsLineDash &copy(const CQChartsLineDash &dash);
@@ -90,7 +92,8 @@ class CQChartsLineDash :
   void init();
 
  private:
-  double   offset_;
+  bool     set_    { false };
+  double   offset_ { 0.0 };
   QLengths lengths_;
 };
 

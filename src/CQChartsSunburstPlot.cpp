@@ -706,9 +706,7 @@ loadFlat(HierNode *root) const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
-
-        if (plot_->modelIndexColor(colorInd, color))
+        if (plot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -1211,9 +1209,7 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
   auto bc = interpStrokeColor(colorInd);
   auto fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
-  setPenBrush(penBrush,
-    PenData  (isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled(), fc, fillAlpha(), fillPattern()));
+  setPenBrush(penBrush, penData(bc), brushData(fc));
 
   if (nodeObj)
     updateObjPenBrushState(nodeObj, penBrush);

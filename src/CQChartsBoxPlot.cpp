@@ -2779,10 +2779,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = plot_->interpBoxStrokeColor(colorInd);
   auto fc = plot_->interpBoxFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-              plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-    BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush, drawType());
@@ -3126,12 +3123,9 @@ draw(PaintDevice *device) const
   PenBrush penBrush;
 
   auto bc = plot_->interpBoxStrokeColor(ColorInd());
-  auto fc = plot_->interpBoxFillColor(ColorInd());
+  auto fc = plot_->interpBoxFillColor  (ColorInd());
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-              plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-    BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
 
   plot_->updateObjPenBrushState(this, penBrush, drawType());
 
@@ -3451,10 +3445,7 @@ draw(PaintDevice *device) const
     auto bc = plot_->interpBoxStrokeColor(ig_);
     auto fc = plot_->interpBoxFillColor  (ig_);
 
-    plot_->setPenBrush(pPenBrush,
-      PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-                plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-      BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+    plot_->setPenBrush(pPenBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
 
     plot_->updateObjPenBrushState(this, pPenBrush, drawType());
 

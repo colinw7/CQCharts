@@ -271,6 +271,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
     addStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
     addStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
     addStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+    addStyleProp(linePath, "axesLinesCap"  , "cap"    , "Axis stroke cap");
+  //addStyleProp(linePath, "axesLinesJoin" , "join"   , "Axis stroke dash");
   }
 
   //---
@@ -366,27 +368,35 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addProp(gridPath, "gridLinesDisplayed", "lines", "Axis major and/or minor grid lines visible");
   addProp(gridPath, "gridFillDisplayed" , "fill" , "Axis major and/or minor fill visible");
 
-  addStyleProp(gridMajorStrokePath, "axesMajorGridLineData"  , "style"  ,
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLineData"  , "style",
                "Axis major grid stroke style", true);
-  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesColor", "color"  ,
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesColor", "color",
                "Axis major grid stroke color");
-  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesAlpha", "alpha"  ,
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesAlpha", "alpha",
                "Axis major grid stroke alpha");
-  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesWidth", "width"  ,
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesWidth", "width",
                "Axis major grid stroke width");
-  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesDash" , "dash"   ,
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesDash" , "dash",
                "Axis major grid stroke dash");
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesCap"  , "cap",
+               "Axis major grid stroke cap");
+//addStyleProp(gridMajorStrokePath, "axesMajorGridLinesJoin" , "join",
+//             "Axis major grid stroke join");
 
-  addStyleProp(gridMinorStrokePath, "axesMinorGridLineData"  , "style"  ,
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLineData"  , "style",
                "Axis minor grid stroke style", true);
-  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesColor", "color"  ,
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesColor", "color",
                "Axis minor grid stroke color");
-  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesAlpha", "alpha"  ,
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesAlpha", "alpha",
                "Axis minor grid stroke alpha");
-  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesWidth", "width"  ,
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesWidth", "width",
                "Axis minor grid stroke width");
-  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesDash" , "dash"   ,
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesDash" , "dash",
                "Axis minor grid stroke dash");
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesCap"  , "cap",
+               "Axis minor grid stroke cap");
+//addStyleProp(gridMinorStrokePath, "axesMinorGridLinesJoin" , "join",
+//             "Axis minor grid stroke join");
 
   addStyleProp(gridMajorFillPath, "axesGridFillData"   , "style"  ,
                "Axis grid fill style", true);
@@ -1160,6 +1170,13 @@ editMoveBy(const Point &d)
 
 //---
 
+void
+CQChartsAxis::
+setPen(PenBrush &penBrush, const CQChartsPenData &penData) const
+{
+  plot()->setPen(penBrush, penData);
+}
+
 bool
 CQChartsAxis::
 isDrawGrid() const
@@ -1760,10 +1777,7 @@ drawLine(const Plot *, PaintDevice *device, double apos, double amin, double ama
 {
   PenBrush penBrush;
 
-  auto lc = interpAxesLinesColor(ColorInd());
-
-  plot_->setPen(penBrush,
-    PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
+  setAxesLineDataPen(penBrush.pen, ColorInd());
 
   if (! usePen_)
     device->setPen(penBrush.pen);
@@ -1784,11 +1798,7 @@ drawMajorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, d
 {
   PenBrush penBrush;
 
-  auto lc = interpAxesMajorGridLinesColor(ColorInd());
-
-  plot_->setPen(penBrush,
-    PenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
-            axesMajorGridLinesDash()));
+  setAxesMajorGridLineDataPen(penBrush.pen, ColorInd());
 
   if (forceColor_)
     penBrush.pen.setColor(savePen_.color());
@@ -1809,11 +1819,7 @@ drawMinorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, d
 {
   PenBrush penBrush;
 
-  auto lc = interpAxesMinorGridLinesColor(ColorInd());
-
-  plot_->setPen(penBrush,
-    PenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
-            axesMinorGridLinesDash()));
+  setAxesMinorGridLineDataPen(penBrush.pen, ColorInd());
 
   if (forceColor_)
     penBrush.pen.setColor(savePen_.color());
@@ -1870,10 +1876,7 @@ drawTickLine(const Plot *plot, PaintDevice *device,
 
   PenBrush penBrush;
 
-  auto lc = interpAxesLinesColor(ColorInd());
-
-  plot_->setPen(penBrush,
-    PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
+  setAxesLineDataPen(penBrush.pen, ColorInd());
 
   if (! usePen_)
     device->setPen(penBrush.pen);

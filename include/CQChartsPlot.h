@@ -796,7 +796,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Length &fitMarginBottom() const { return fitMargin().bottom(); }
   void setFitMarginBottom(const Length &b);
 
-  virtual void resetExtraBBox() const;
+  virtual void resetExtraFitBBox() const;
 
  protected:
   virtual bool needsAutoFit() const;

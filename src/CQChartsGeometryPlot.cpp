@@ -981,11 +981,9 @@ drawFg(PaintDevice *device) const
     if (plot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
-      ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
       Color indColor;
 
-      if (plot_->modelIndexColor(ind2, indColor))
+      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
         bc = plot_->interpColor(indColor, colorInd);
       else
         bc = QColor();
@@ -994,8 +992,8 @@ drawFg(PaintDevice *device) const
     PenBrush penBrush;
 
     plot_->setPenBrush(penBrush,
-      PenData  (/*stroke*/true, pc),
-      BrushData(/*filled*/true, bc, Alpha(0.5)));
+      PenData  (/*stroked*/true, pc),
+      BrushData(/*filled*/ true, bc, Alpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1021,11 +1019,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     if (plot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
-      ModelIndex ind2(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
-
       Color indColor;
 
-      if (plot_->modelIndexColor(ind2, indColor))
+      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
         return plot_->interpColor(indColor, colorInd);
     }
 
@@ -1061,10 +1057,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // calc pen and brush
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-              plot_->strokeWidth(), plot_->strokeDash()),
-    BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
 
   if (style().isValid()) {
     penBrush.pen   = style().pen  ();

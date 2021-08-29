@@ -144,6 +144,7 @@
 
 // property view
 #include <CQPropertyView.h>
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
 // generic widgets
@@ -531,6 +532,15 @@ CQCharts()
 
   addProc(ProcType::SCRIPT, "plotObjClick", "id", "charts.log('Click ' + id);");
   addProc(ProcType::SCRIPT, "annotationClick", "id", "charts.log('Click ' + id);");
+
+  //---
+
+  propertyModel_ = std::make_unique<CQPropertyViewModel>();
+
+  connect(propertyModel_.get(), SIGNAL(valueChanged(QObject *, const QString &)),
+          this, SLOT(propertyItemChanged(QObject *, const QString &)));
+
+  addProperties();
 
   //---
 
@@ -1750,6 +1760,41 @@ createSymbolSet(const QString &name)
   symbolSetMgr()->addSymbolSet(symbolSet);
 
   return symbolSet;
+}
+
+//---
+
+void
+CQCharts::
+addProperties()
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                    const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addProp("", "viewKey"      , "", "View key");
+  addProp("", "maxSymbolSize", "", "Max symbol size");
+  addProp("", "maxFontSize"  , "", "Max font size");
+  addProp("", "maxLineWidth" , "", "Max line width");
+}
+
+CQPropertyViewItem *
+CQCharts::
+addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
+{
+  assert(CQUtil::hasProperty(object, name));
+
+  return propertyModel()->addProperty(path, object, name, alias);
+}
+
+void
+CQCharts::
+propertyItemChanged(QObject *, const QString &)
+{
 }
 
 //---

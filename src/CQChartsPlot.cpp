@@ -2473,7 +2473,7 @@ setNeedsAutoFit(bool b)
 
 void
 CQChartsPlot::
-resetExtraBBox() const
+resetExtraFitBBox() const
 {
   assert(! isComposite());
 
@@ -3615,23 +3615,27 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   addStyleProp(fillPath, symbolPrefix + "Filled"     , "visible",
                prefix1 + " fill visible", hidden);
-  addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color"  ,
+  addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color",
                prefix1 + " fill color", hidden);
-  addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  ,
+  addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha",
                prefix1 + " fill alpha", hidden);
   addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern",
                prefix1 + " fill pattern", hidden);
 
   addStyleProp(strokePath, symbolPrefix + "Stroked"    , "visible",
                prefix1 + " stroke visible", hidden);
-  addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color"  ,
+  addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color",
                prefix1 + " stroke color", hidden);
-  addStyleProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  ,
+  addStyleProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha",
                prefix1 + " stroke alpha", hidden);
-  addStyleProp(strokePath, symbolPrefix + "StrokeWidth", "width"  ,
+  addStyleProp(strokePath, symbolPrefix + "StrokeWidth", "width",
                prefix1 + " stroke width", hidden);
-  addStyleProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   ,
+  addStyleProp(strokePath, symbolPrefix + "StrokeDash" , "dash",
                prefix1 + " stroke dash", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeJoin" , "join",
+               prefix1 + " stroke join", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeCap"  , "cap",
+               prefix1 + " stroke cap", hidden);
 }
 
 void
@@ -3654,7 +3658,13 @@ addLineProperties(const QString &path, const QString &prefix, const QString &des
     addStyleProp(path, prefix + "Width", "width", prefix1 + " width", hidden);
 
   if (types & uint(CQChartsStrokeDataTypes::DASH))
-    addStyleProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" , hidden);
+    addStyleProp(path, prefix + "Dash" , "dash", prefix1 + " dash" , hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::CAP))
+    addStyleProp(path, prefix + "Cap" , "cap", prefix1 + " cap" , hidden);
+
+  if (types & uint(CQChartsStrokeDataTypes::JOIN))
+    addStyleProp(path, prefix + "Join" , "join", prefix1 + " join" , hidden);
 }
 
 void
@@ -5077,7 +5087,7 @@ updateAndAdjustRanges()
   if (isOverlay())
     clearOverlayErrors();
 
-  resetExtraBBox();
+  resetExtraFitBBox();
 
   calcDataRange_  = calcRange();
   dataRange_      = adjustDataRange(getCalcDataRange());
@@ -6069,7 +6079,7 @@ createObjs()
 {
   //std::cerr << "createObjs " << calcName().toStdString() << "\n";
 
-  resetExtraBBox();
+  resetExtraFitBBox();
 
   //---
 

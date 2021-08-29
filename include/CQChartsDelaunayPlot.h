@@ -138,9 +138,11 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using PenBrush = CQChartsPenBrush;
+  using Color     = CQChartsColor;
+  using PenBrush  = CQChartsPenBrush;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsDelaunayPlot(View *view, const ModelP &model);

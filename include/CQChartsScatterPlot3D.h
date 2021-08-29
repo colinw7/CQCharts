@@ -205,9 +205,11 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  using Point3D = CQChartsGeom::Point3D;
-  using Symbol  = CQChartsSymbol;
-  using Color   = CQChartsColor;
+  using Point3D   = CQChartsGeom::Point3D;
+  using Symbol    = CQChartsSymbol;
+  using Color     = CQChartsColor;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
 
   //! value data
   struct ValueData {

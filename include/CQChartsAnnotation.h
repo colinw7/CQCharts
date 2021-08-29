@@ -1683,6 +1683,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using PenBrush   = CQChartsPenBrush;
+  using PenData    = CQChartsPenData;
+  using BrushData  = CQChartsBrushData;
   using ColorInd   = CQChartsUtil::ColorInd;
 
  public:

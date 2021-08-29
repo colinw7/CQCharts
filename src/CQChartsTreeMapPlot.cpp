@@ -302,7 +302,9 @@ addProperties()
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
   addProp("options", "followViewExpand", "", "Follow view expand");
-  addProp("options", "minArea"         , "", "Min box area");
+
+  // filter
+  addProp("filter", "minArea", "", "Min box area");
 
   // margins
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
@@ -771,9 +773,7 @@ loadHier() const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
-
-        if (plot_->modelIndexColor(colorInd, color))
+        if (plot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -936,9 +936,7 @@ loadFlat() const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        ModelIndex colorInd(plot_, data.row, plot_->colorColumn(), data.parent);
-
-        if (plot_->modelIndexColor(colorInd, color))
+        if (plot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -1703,11 +1701,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   else
     fc = hierColor;
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isHeaderStroked(), bc, plot_->headerStrokeAlpha(),
-              plot_->headerStrokeWidth(), plot_->headerStrokeDash()),
-    BrushData(plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(),
-              plot_->headerFillPattern()));
+  plot_->setPenBrush(penBrush, plot_->headerPenData(bc), plot_->headerBrushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2020,19 +2014,12 @@ calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 
   if (isNodePoint) {
     if      (plot_->isFilled())
-      plot_->setPenBrush(penBrush,
-        PenData  (true, fc, plot_->fillAlpha()),
-        BrushData(true, fc, plot_->fillAlpha(), plot_->fillPattern()));
+      plot_->setPenBrush(penBrush, PenData(true, fc, plot_->fillAlpha()), plot_->brushData(fc));
     else if (plot_->isStroked())
-      plot_->setPenBrush(penBrush,
-        PenData  (true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
-        BrushData(true, bc, plot_->strokeAlpha()));
+      plot_->setPenBrush(penBrush, plot_->penData(bc), BrushData(true, bc, plot_->strokeAlpha()));
   }
   else {
-    plot_->setPenBrush(penBrush,
-      PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                plot_->strokeWidth(), plot_->strokeDash()),
-      BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+    plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
   }
 
   if (updateState)

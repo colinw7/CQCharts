@@ -258,7 +258,7 @@ addProperties()
   addProp("options", "sorted"     , "", "Sort values by size (default small to large)");
   addProp("options", "sortReverse", "", "Sort values large to small");
 
-  addProp("filter", "minSize", "", "Min size");
+  addProp("filter", "minSize", "", "Min size value");
   addProp("filter", "minArea", "", "Min circle area");
 
   // coloring
@@ -932,7 +932,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
 
   auto bc = interpStrokeColor(ColorInd());
 
-  setPenBrush(penBrush, PenData(true, bc), BrushData(false));
+  setPenBrush(penBrush, penData(bc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1076,10 +1076,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = plot_->interpStrokeColor(colorInd);
   auto fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-              plot_->strokeWidth(), plot_->strokeDash()),
-    BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1418,19 +1415,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (isCirclePoint) {
     if      (plot_->isFilled())
-      plot_->setPenBrush(penBrush,
-        PenData  (true, fc, plot_->fillAlpha()),
-        BrushData(true, fc, plot_->fillAlpha(), plot_->fillPattern()));
+      plot_->setPenBrush(penBrush, PenData(true, fc, plot_->fillAlpha()), plot_->brushData(fc));
     else if (plot_->isStroked())
-      plot_->setPenBrush(penBrush,
-        PenData  (true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
-        BrushData(true, bc, plot_->strokeAlpha()));
+      plot_->setPenBrush(penBrush, plot_->penData(bc), BrushData(true, bc, plot_->strokeAlpha()));
   }
   else {
-    plot_->setPenBrush(penBrush,
-      PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                plot_->strokeWidth(), plot_->strokeDash()),
-      BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+    plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
   }
 
   if (updateState)

@@ -660,6 +660,12 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
     return item;
   };
 
+  auto addStyleProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = addProp(name, desc, hidden);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   addProp("dataMin", "Model Data Min");
   addProp("dataMax", "Model Data Max");
 
@@ -673,7 +679,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp("textAlign"  , "Text Align");
   addProp("paletteName", "Palette Name");
 
-  addProp("alpha", "Alpha");
+  addStyleProp("alpha", "Alpha");
 
   //---
 

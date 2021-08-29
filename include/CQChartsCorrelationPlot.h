@@ -158,6 +158,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   using Angle    = CQChartsAngle;
   using Color    = CQChartsColor;
+  using PenData  = CQChartsPenData;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:

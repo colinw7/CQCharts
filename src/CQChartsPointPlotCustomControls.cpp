@@ -90,10 +90,6 @@ addSymbolSizeWidgets()
 
   connect(symbolTypeControlGroupData.group, SIGNAL(showKey(bool)),
           this, SLOT(showSymbolTypeMapKeySlot(bool)));
-
-  //---
-
-  connectSlots(true);
 }
 
 void
