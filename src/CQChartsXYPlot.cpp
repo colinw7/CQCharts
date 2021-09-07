@@ -3943,6 +3943,7 @@ interpY(double x, std::vector<double> &yvals) const
   return ! yvals.empty();
 }
 
+#if 0
 bool
 CQChartsXYPolylineObj::
 isOutlier(double y) const
@@ -3951,6 +3952,7 @@ isOutlier(double y) const
 
   return statData_.isOutlier(y);
 }
+#endif
 
 void
 CQChartsXYPolylineObj::

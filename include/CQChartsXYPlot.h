@@ -461,8 +461,6 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool isSelectable() const override;
 
-  bool isOutlier(double y) const;
-
   bool interpY(double x, std::vector<double> &yvals) const;
 
   //---
