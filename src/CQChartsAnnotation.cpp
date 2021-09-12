@@ -42,9 +42,9 @@ CQChartsAnnotation::
 typeNames()
 {
   static auto names = QStringList() <<
-    "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "path" <<
-    "arrow" << "arc" << "point" << "pie_slice" << "axis" << "key" << "point_set" <<
-    "value_set" << "button" << "widget" << "group";
+    "arc" << "arrow" << "axis" << "button" << "ellipse" << "image" << "key" << "path" <<
+    "pie_slice" << "point" << "point_set" << "polygon" << "polyline" << "rectangle" <<
+    "text" << "value_set" << "widget" << "group";
 
   return names;
 }
@@ -210,40 +210,6 @@ writeProperties(std::ostream &os, const QString &varName) const
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
 }
-
-#if 0
-void
-CQChartsAnnotation::
-writeFill()
-{
-  if (isFilled())
-    os << " -filled 1";
-
-  if (fillColor().isValid())
-    os << " -fill_color {" << fillColor().toString().toStdString() << "}";
-
-  if (fillAlpha() != Alpha())
-    os << " -fill_alpha " << fillAlpha().value();
-}
-
-void
-CQChartsAnnotation::
-writeStroke()
-{
-  if (isStroked())
-    os << " -stroked 1";
-
-  if (strokeColor().isValid())
-    os << " -stroke_color {" << strokeColor().toString().toStdString() << "}";
-
-  if (strokeAlpha() != Alpha())
-    os << " -stroke_alpha " << strokeAlpha().value();
-
-  if (strokeWidth().isSet())
-    os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
-}
-
-#endif
 
 //---
 
@@ -5270,11 +5236,6 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
   if (symbolData.size().isSet())
     os << " -size {" << symbolData.size().toString().toStdString() << "}";
-
-#if 0
-  writeFill  ();
-  writeStroke();
-#endif
 
   os << "]\n";
 

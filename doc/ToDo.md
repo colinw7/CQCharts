@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + alpha edit use percent slider
  + common code for bubble/hier bubble
  + remove box objs for plot properties
  + symbol line join, left to right (top/bottom to bottom/top depending on previous dir)
