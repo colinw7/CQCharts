@@ -354,7 +354,7 @@ readExecString(Tokens &tokens)
 
   parse_->skipSpace();
 
-  while (! parse_->isChar(']')) {
+  while (! parse_->eof() && ! parse_->isChar(']')) {
     if      (parse_->isChar('{')) {
       auto parseData = getParseData();
 
@@ -472,6 +472,18 @@ readLiteralString(std::string &str, Tokens &)
 
       str += "{" + str1 + "}";
     }
+    else if (parse_->isChar('\\')) {
+      parse_->skipChar();
+
+      char c;
+
+      if (! parse_->readChar(&c)) {
+        std::cerr << "Unterminated string" << std::endl;
+        return false;
+      }
+
+      str += c;
+    }
     else {
       char c;
 
@@ -502,7 +514,7 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
 
   parse_->skipChar();
 
-  while (! parse_->isChar('\"')) {
+  while (! parse_->eof() && ! parse_->isChar('\"')) {
     if      (parse_->isChar('[')) {
       auto parseData = getParseData();
 
@@ -651,7 +663,7 @@ readSingleQuotedString(std::string &str)
 
   parse_->skipChar();
 
-  while (! parse_->isChar('\'')) {
+  while (! parse_->eof() && ! parse_->isChar('\'')) {
     char c;
 
     if (! parse_->readChar(&c)) {
@@ -833,7 +845,7 @@ getParseData() const
 
 CTclToken *
 CTclParse::
-createToken(CTclToken::Type type, const std::string str, const ParseData &parseData) const
+createToken(CTclToken::Type type, const std::string &str, const ParseData &parseData) const
 {
 #ifdef DEBUG_LINES
   if (! fileLines_.empty()) {

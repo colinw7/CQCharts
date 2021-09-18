@@ -6,8 +6,6 @@
 #include <CQChartsConnectionList.h>
 #include <CQChartsOptInt.h>
 
-#include <CQPerfMonitor.h>
-
 //---
 
 /*!

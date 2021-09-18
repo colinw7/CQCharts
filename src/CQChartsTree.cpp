@@ -7,8 +7,6 @@
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
-#include <QMenu>
-#include <QActionGroup>
 #include <cassert>
 
 CQChartsTree::
@@ -78,11 +76,7 @@ addMenuActions(QMenu *menu)
   };
 
   auto addActionGroup = [&](QMenu *menu, const char *slotName) {
-    auto *actionGroup = new QActionGroup(menu);
-
-    connect(actionGroup, SIGNAL(triggered(QAction *)), this, slotName);
-
-    return actionGroup;
+    return CQUtil::createActionGroup(menu, this, slotName);
   };
 
   //---
@@ -92,10 +86,7 @@ addMenuActions(QMenu *menu)
   auto *selectActionGroup = addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
 
   auto addSelectAction = [&](const QString &name, bool checked) {
-    auto *action = new QAction(name, selectMenu);
-
-    action->setCheckable(true);
-    action->setChecked  (checked);
+    auto *action = CQUtil::addCheckedAction(selectMenu, name, checked);
 
     selectActionGroup->addAction(action);
   };
@@ -104,7 +95,7 @@ addMenuActions(QMenu *menu)
   addSelectAction("Rows"   , selectionBehavior() == SelectRows   );
   addSelectAction("Columns", selectionBehavior() == SelectColumns);
 
-  selectMenu->addActions(selectActionGroup->actions());
+  CQUtil::addActionGroupToMenu(selectActionGroup);
 
   //---
 
@@ -113,7 +104,7 @@ addMenuActions(QMenu *menu)
   auto *exportActionGroup = addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
 
   auto addExportAction = [&](const QString &name) {
-    auto *action = new QAction(name, exportMenu);
+    auto *action = CQUtil::addAction(exportMenu, name);
 
     exportActionGroup->addAction(action);
   };
@@ -122,7 +113,7 @@ addMenuActions(QMenu *menu)
   addExportAction("TSV");
   addExportAction("JSON");
 
-  exportMenu->addActions(exportActionGroup->actions());
+  CQUtil::addActionGroupToMenu(exportActionGroup);
 }
 
 void

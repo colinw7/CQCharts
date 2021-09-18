@@ -1344,43 +1344,22 @@ addMenuItems(QMenu *menu)
     return subMenu;
   };
 
-  auto createActionGroup = [](QMenu *menu) {
-    return new QActionGroup(menu);
-  };
-
-  auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
-                                 const char *slotName) {
-    auto *menu = qobject_cast<QMenu *>(group->parent());
-
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(checked);
-
-    connect(action, SIGNAL(triggered()), this, slotName);
-
-    group->addAction(action);
-
-    return action;
-  };
-
   if (compositeType_ == CompositeType::NONE) {
     auto *currentPlotMenu = addSubMenu(menu, "Current Plot");
 
-    auto *currentPlotGroup = createActionGroup(currentPlotMenu);
+    auto *currentPlotGroup = CQUtil::createActionGroup(currentPlotMenu);
 
     int ind = 0;
 
     for (const auto &plot : plots_) {
       auto *plotAction =
-        addGroupCheckAction(currentPlotGroup, plot->id(), false, SLOT(currentPlotSlot()));
-
-      plotAction->setChecked(plot == currentPlot());
+        CQUtil::addGroupCheckAction(currentPlotGroup, plot->id(), plot == currentPlot(),
+                                    this, SLOT(currentPlotSlot()));
 
       plotAction->setData(ind++);
     }
 
-    currentPlotMenu->addActions(currentPlotGroup->actions());
+    CQUtil::addActionGroupToMenu(currentPlotGroup);
   }
 
   return true;

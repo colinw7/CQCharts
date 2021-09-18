@@ -6,9 +6,6 @@
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
-#include <QMenu>
-#include <QActionGroup>
-#include <QAction>
 #include <QLabel>
 #include <QContextMenuEvent>
 
@@ -219,34 +216,22 @@ contextMenuEvent(QContextMenuEvent *e)
 
   //---
 
-  auto *actionGroup = new QActionGroup(menu);
+  auto posTextType = status_->window()->view()->posTextType();
 
-  auto *plotAction  = menu->addAction("Plot" );
-  auto *viewAction  = menu->addAction("View" );
-  auto *pixelAction = menu->addAction("Pixel");
-
-  plotAction ->setCheckable(true);
-  viewAction ->setCheckable(true);
-  pixelAction->setCheckable(true);
-
-  actionGroup->addAction(plotAction);
-  actionGroup->addAction(viewAction);
-  actionGroup->addAction(pixelAction);
+  auto *actionGroup = CQUtil::createActionGroup(menu);
 
   actionGroup->setExclusive(true);
 
-  auto posTextType = status_->window()->view()->posTextType();
-
-  if      (posTextType == CQChartsView::PosTextType::PLOT)
-    plotAction->setChecked(true);
-  else if (posTextType == CQChartsView::PosTextType::VIEW)
-    viewAction->setChecked(true);
-  else if (posTextType == CQChartsView::PosTextType::PIXEL)
-    pixelAction->setChecked(true);
-
   connect(actionGroup, SIGNAL(triggered(QAction *)), this, SLOT(posTextTypeAction(QAction *)));
 
-  menu->addActions(actionGroup->actions());
+  CQUtil::addGroupCheckAction(actionGroup, "Plot",
+                              posTextType == CQChartsView::PosTextType::PLOT);
+  CQUtil::addGroupCheckAction(actionGroup, "View",
+                              posTextType == CQChartsView::PosTextType::VIEW);
+  CQUtil::addGroupCheckAction(actionGroup, "Pixel",
+                              posTextType == CQChartsView::PosTextType::PIXEL);
+
+  CQUtil::addActionGroupToMenu(actionGroup);
 
   //---
 

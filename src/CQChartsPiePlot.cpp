@@ -1784,16 +1784,7 @@ CQChartsPiePlot::
 addMenuItems(QMenu *menu)
 {
   auto addCheckAction = [&](const QString &name, bool checked, const char *slotName) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(checked);
-
-    connect(action, SIGNAL(triggered(bool)), this, slotName);
-
-    menu->addAction(action);
-
-    return action;
+    return CQUtil::addCheckedAction(menu, name, checked, this, slotName);
   };
 
   menu->addSeparator();

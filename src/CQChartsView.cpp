@@ -5367,46 +5367,20 @@ showMenu(const Point &p)
   };
 
   auto createActionGroup = [](QMenu *menu) {
-    return new QActionGroup(menu);
+    return CQUtil::createActionGroup(menu);
   };
 
   auto addAction = [&](QMenu *menu, const QString &name, const char *slotName) {
-    auto *action = new QAction(name, menu);
-
-    connect(action, SIGNAL(triggered()), this, slotName);
-
-    menu->addAction(action);
-
-    return action;
+    return CQUtil::addAction(menu, name, this, slotName);
   };
 
   auto addCheckAction = [&](QMenu *menu, const QString &name, bool checked, const char *slotName) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(checked);
-
-    connect(action, SIGNAL(triggered(bool)), this, slotName);
-
-    menu->addAction(action);
-
-    return action;
+    return CQUtil::addCheckedAction(menu, name, checked, this, slotName);
   };
 
   auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
                                  const char *slotName) {
-    auto *menu = qobject_cast<QMenu *>(group->parent());
-
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(checked);
-
-    connect(action, SIGNAL(triggered()), this, slotName);
-
-    group->addAction(action);
-
-    return action;
+    return CQUtil::addGroupCheckAction(group, name, checked, this, slotName);
   };
 
   //---
@@ -5434,7 +5408,7 @@ showMenu(const Point &p)
 
     modeActionGroup->setExclusive(true);
 
-    modeMenu->addActions(modeActionGroup->actions());
+    CQUtil::addActionGroupToMenu(modeActionGroup);
   }
 
   //---
@@ -5523,7 +5497,7 @@ showMenu(const Point &p)
       plotAction->setData(ind);
     }
 
-    plotsMenu->addActions(plotsGroup->actions());
+    CQUtil::addActionGroupToMenu(plotsGroup);
   }
 
   //------
@@ -5534,16 +5508,7 @@ showMenu(const Point &p)
     //---
 
     auto addKeyCheckAction = [&](const QString &label, bool checked, const char *slot) {
-      auto *action = new QAction(label, plotKeyMenu);
-
-      action->setCheckable(true);
-      action->setChecked(checked);
-
-      connect(action, SIGNAL(triggered(bool)), this, slot);
-
-      plotKeyMenu->addAction(action);
-
-      return action;
+      return CQUtil::addCheckedAction(plotKeyMenu, label, checked, this, slot);
     };
 
     //---
@@ -5611,16 +5576,12 @@ showMenu(const Point &p)
 
     auto *xAxisSideMenu = addSubMenu(xAxisMenu, "Side");
 
-    auto *xAxisSideGroup = createActionGroup(xAxisMenu);
+    auto *xAxisSideGroup = createActionGroup(xAxisSideMenu);
 
     auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      auto *action = new QAction(label, xAxisSideMenu);
-
-      action->setCheckable(true);
+      auto *action = CQUtil::addGroupCheckAction(xAxisSideGroup, label, false);
 
       xAxisSideActionMap[side] = action;
-
-      xAxisSideGroup->addAction(action);
 
       return action;
     };
@@ -5633,7 +5594,7 @@ showMenu(const Point &p)
 
     connect(xAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(xAxisSideSlot(QAction *)));
 
-    xAxisSideMenu->addActions(xAxisSideGroup->actions());
+    CQUtil::addActionGroupToMenu(xAxisSideGroup);
   }
 
   //------
@@ -5664,16 +5625,12 @@ showMenu(const Point &p)
 
     auto *yAxisSideMenu = addSubMenu(yAxisMenu, "Side");
 
-    auto *yAxisSideGroup = createActionGroup(yAxisMenu);
+    auto *yAxisSideGroup = createActionGroup(yAxisSideMenu);
 
     auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      auto *action = new QAction(label, yAxisSideMenu);
-
-      action->setCheckable(true);
+      auto *action = CQUtil::addGroupCheckAction(yAxisSideGroup, label, false);
 
       yAxisSideActionMap[side] = action;
-
-      yAxisSideGroup->addAction(action);
 
       return action;
     };
@@ -5686,7 +5643,7 @@ showMenu(const Point &p)
 
     connect(yAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(yAxisSideSlot(QAction *)));
 
-    yAxisSideMenu->addActions(yAxisSideGroup->actions());
+    CQUtil::addActionGroupToMenu(yAxisSideGroup);
   }
 
   //---
@@ -5710,17 +5667,13 @@ showMenu(const Point &p)
 
     auto *titleLocationMenu = addSubMenu(titleMenu, "Location");
 
-    auto *titleLocationGroup = createActionGroup(titleMenu);
+    auto *titleLocationGroup = createActionGroup(titleLocationMenu);
 
     auto addTitleLocationGroupAction =
      [&](const QString &label, const CQChartsTitleLocation::Type &location) {
-      auto *action = new QAction(label, titleLocationMenu);
-
-      action->setCheckable(true);
+      auto *action = CQUtil::addGroupCheckAction(titleLocationGroup, label, false);
 
       titleLocationActionMap[location] = action;
-
-      titleLocationGroup->addAction(action);
 
       return action;
     };
@@ -5743,7 +5696,7 @@ showMenu(const Point &p)
     connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
             this, SLOT(titleLocationSlot(QAction *)));
 
-    titleLocationMenu->addActions(titleLocationGroup->actions());
+    CQUtil::addActionGroupToMenu(titleLocationGroup);
   }
 
   //------
@@ -5780,10 +5733,11 @@ showMenu(const Point &p)
 
   popupMenu->addSeparator();
 
-  if (hasPlots)
+  if (hasPlots && window())
     addCheckAction(popupMenu, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
 
-  addCheckAction(popupMenu, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
+  if (window())
+    addCheckAction(popupMenu, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
 
   //---
 
@@ -5794,29 +5748,13 @@ showMenu(const Point &p)
   auto *interfaceGroup = createActionGroup(themeMenu);
 
   auto addInterfaceAction = [&](const QString &label, const char *slotName) {
-    auto *action = new QAction(label, themeMenu);
-
-    action->setCheckable(true);
-
-    interfaceGroup->addAction(action);
-
-    connect(action, SIGNAL(triggered()), this, slotName);
-
-    return action;
+    return CQUtil::addGroupCheckAction(interfaceGroup, label, false, this, slotName);
   };
 
   auto *themeGroup = createActionGroup(themeMenu);
 
   auto addThemeAction = [&](const QString &label, const char *slotName) {
-    auto *action = new QAction(label, themeMenu);
-
-    action->setCheckable(true);
-
-    themeGroup->addAction(action);
-
-    connect(action, SIGNAL(triggered()), this, slotName);
-
-    return action;
+    return CQUtil::addGroupCheckAction(themeGroup, label, false, this, slotName);
   };
 
   auto *lightPaletteAction = addInterfaceAction("Light", SLOT(lightPaletteSlot()));
@@ -5825,7 +5763,7 @@ showMenu(const Point &p)
   lightPaletteAction->setChecked(! isDark());
   darkPaletteAction ->setChecked(  isDark());
 
-  themeMenu->addActions(interfaceGroup->actions());
+  CQUtil::addActionGroupToMenu(interfaceGroup);
 
   //---
 
@@ -5843,7 +5781,7 @@ showMenu(const Point &p)
     themeAction->setChecked(this->themeName().name() == theme->name());
   }
 
-  themeMenu->addActions(themeGroup->actions());
+  CQUtil::addActionGroupToMenu(themeGroup);
 
   //---
 
@@ -5915,7 +5853,7 @@ addKeyLocationActions(QMenu *menu, const CQChartsKeyLocation &location,
   };
 
   auto createActionGroup = [](QMenu *menu) {
-    return new QActionGroup(menu);
+    return CQUtil::createActionGroup(menu);
   };
 
   //---
@@ -5930,13 +5868,9 @@ addKeyLocationActions(QMenu *menu, const CQChartsKeyLocation &location,
 
   auto addKeyLocationGroupAction =
    [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-    auto *action = new QAction(label, keyLocationMenu);
-
-    action->setCheckable(true);
+    auto *action = CQUtil::addGroupCheckAction(keyLocationActionGroup, label, false);
 
     keyLocationActionMap[location] = action;
-
-    keyLocationActionGroup->addAction(action);
 
     return action;
   };
@@ -5968,7 +5902,7 @@ addKeyLocationActions(QMenu *menu, const CQChartsKeyLocation &location,
 
   connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)), slotObj, slotName);
 
-  keyLocationMenu->addActions(keyLocationActionGroup->actions());
+  CQUtil::addActionGroupToMenu(keyLocationActionGroup);
 }
 
 QMenu *

@@ -1,5 +1,7 @@
 #include <CQChartsViewExpander.h>
 
+#include <CQUtil.h>
+
 #include <QPainter>
 #include <QMouseEvent>
 #include <QMenu>
@@ -222,50 +224,26 @@ mousePressEvent(QMouseEvent *me)
   else if (me->button() == Qt::RightButton) {
     auto *menu = new QMenu;
 
-    auto *sideGroup = new QActionGroup(menu);
+    auto *sideGroup = CQUtil::createActionGroup(menu);
 
     if (isVertical()) {
-      auto *leftAction  = new QAction("Left"  , menu);
-      auto *rightAction = new QAction("Right" , menu);
-
-      leftAction ->setCheckable(true);
-      rightAction->setCheckable(true);
-
-      leftAction ->setChecked(side_ == Side::LEFT);
-      rightAction->setChecked(side_ == Side::RIGHT);
-
-      sideGroup->addAction(leftAction);
-      sideGroup->addAction(rightAction);
-
-      connect(leftAction , SIGNAL(triggered()), this, SLOT(leftSlot()));
-      connect(rightAction, SIGNAL(triggered()), this, SLOT(rightSlot()));
+      CQUtil::addGroupCheckAction(sideGroup, "Left" , side_ == Side::LEFT,
+                                  this, SLOT(leftSlot()));
+      CQUtil::addGroupCheckAction(sideGroup, "Right", side_ == Side::RIGHT,
+                                  this, SLOT(rightSlot()));
     }
     else {
-      auto *topAction    = new QAction("Top"   , menu);
-      auto *bottomAction = new QAction("Bottom", menu);
-
-      topAction   ->setCheckable(true);
-      bottomAction->setCheckable(true);
-
-      topAction   ->setChecked(side_ == Side::LEFT );
-      bottomAction->setChecked(side_ == Side::RIGHT);
-
-      sideGroup->addAction(topAction   );
-      sideGroup->addAction(bottomAction);
-
-      connect(topAction   , SIGNAL(triggered()), this, SLOT(topSlot()));
-      connect(bottomAction, SIGNAL(triggered()), this, SLOT(bottomSlot()));
+      CQUtil::addGroupCheckAction(sideGroup, "Top"   , side_ == Side::LEFT,
+                                  this, SLOT(topSlot()));
+      CQUtil::addGroupCheckAction(sideGroup, "Bottom", side_ == Side::RIGHT,
+                                  this, SLOT(bottomSlot()));
     }
 
-    menu->addActions(sideGroup->actions());
+    CQUtil::addActionGroupToMenu(sideGroup);
 
     menu->addSeparator();
 
-    auto *detachAction = new QAction((! isDetached() ? "Detach" : "Attach"), menu);
-
-    connect(detachAction, SIGNAL(triggered()), this, SLOT(detachLaterSlot()));
-
-    menu->addAction(detachAction);
+    CQUtil::addAction(menu, ! isDetached() ? "Detach" : "Attach", this, SLOT(detachLaterSlot()));
 
     //menu->popup(me->globalPos());
     menu->exec(me->globalPos());

@@ -832,11 +832,8 @@ bool
 CQChartsHierScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto *popAction   = new QAction("Pop Filter"  , menu);
-  auto *resetAction = new QAction("Reset Filter", menu);
-
-  connect(popAction  , SIGNAL(triggered()), this, SLOT(popCurrentGroup()));
-  connect(resetAction, SIGNAL(triggered()), this, SLOT(resetCurrentGroup()));
+  auto *popAction   = CQUtil::addAction(menu, "Pop Filter"  , this, SLOT(popCurrentGroup()));
+  auto *resetAction = CQUtil::addAction(menu, "Reset Filter", this, SLOT(resetCurrentGroup()));
 
   popAction  ->setEnabled(currentGroup() != rootGroup_);
   resetAction->setEnabled(currentGroup() != rootGroup_);

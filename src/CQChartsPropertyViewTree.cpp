@@ -31,26 +31,11 @@ CQChartsPropertyViewTree::
 addMenuItems(QMenu *menu)
 {
   auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    connect(action, SIGNAL(triggered()), this, slot);
-
-    menu->addAction(action);
-
-    return action;
+    return CQUtil::addAction(menu, name, this, slot);
   };
 
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto *action = new QAction(name, menu);
-
-    action->setCheckable(true);
-    action->setChecked(isSet);
-
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-    menu->addAction(action);
-
-    return action;
+    return CQUtil::addCheckedAction(menu, name, isSet, this, slot);
   };
 
   //--

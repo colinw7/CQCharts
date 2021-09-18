@@ -10,6 +10,7 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQPerfMonitor.h>
 #include <CQEnumCombo.h>
 #include <CQTabSplit.h>
 

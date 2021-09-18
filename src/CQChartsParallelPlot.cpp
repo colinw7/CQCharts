@@ -973,16 +973,9 @@ bool
 CQChartsParallelPlot::
 addMenuItems(QMenu *menu)
 {
-  auto *horizontalAction = new QAction("Horizontal", menu);
-
-  horizontalAction->setCheckable(true);
-  horizontalAction->setChecked(isHorizontal());
-
-  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
-
   menu->addSeparator();
 
-  menu->addAction(horizontalAction);
+  CQUtil::addCheckedAction(menu, "Horizontal", isHorizontal(), this, SLOT(setHorizontal(bool)));
 
   //---
 

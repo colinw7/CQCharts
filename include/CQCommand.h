@@ -202,12 +202,25 @@ class CommandWidget : public QFrame {
 
   void outputText(const QString &str);
 
+  virtual void textChanged() { }
+
+  virtual QColor posColor(int /*pos*/) const { return QColor(); }
+
   virtual bool complete(const QString & /*text*/, int /*pos*/,
                         QString & /*newText*/, CompleteMode /*completeMode*/) const {
     return false;
   }
 
   QString showCompletionChooser(const QStringList &strs, bool modal=true);
+
+  //---
+
+ protected:
+  const QString &getText() const;
+
+  void setText(const QString &text);
+
+  //---
 
  private:
   void outputTypeText(const QString &str, const LineType &type, int ind);
@@ -221,7 +234,11 @@ class CommandWidget : public QFrame {
   void drawSelectedChars(QPainter *painter, int lineNum1, int charNum1,
                          int lineNum2, int charNum2);
 
+  void drawPosText(QPainter *painter, int &x, int y, const QString &text, int &pos);
+
   void drawText(QPainter *painter, int x, int y, const QString &text);
+
+  //---
 
   void copy(const QString &text) const;
   void paste();

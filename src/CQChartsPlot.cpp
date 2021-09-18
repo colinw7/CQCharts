@@ -10886,29 +10886,14 @@ QAction *
 CQChartsPlot::
 addMenuAction(QMenu *menu, const QString &name, const char *slot)
 {
-  auto *action = new QAction(name, menu);
-
-  if (slot)
-    connect(action, SIGNAL(triggered()), this, slot);
-
-  menu->addAction(action);
-
-  return action;
+  return CQUtil::addAction(menu, name, this, slot);
 }
 
 QAction *
 CQChartsPlot::
 addMenuCheckedAction(QMenu *menu, const QString &name, bool isSet, const char *slot)
 {
-  auto *action = addMenuAction(menu, name, nullptr);
-
-  action->setCheckable(true);
-  action->setChecked(isSet);
-
-  if (slot)
-    connect(action, SIGNAL(triggered(bool)), this, slot);
-
-  return action;
+  return CQUtil::addCheckedAction(menu, name, isSet, this, slot);
 }
 
 //---

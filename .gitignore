@@ -11,3 +11,5 @@ test/CQChartsTest
 bin/
 obj/
 lib/
+
+examples/sankey_view/CQChartsSankeyView

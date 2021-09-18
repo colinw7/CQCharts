@@ -205,7 +205,7 @@ paintEvent(QPaintEvent *)
   //---
 
   // get entry text before/after cursor
-  const auto &str = entry_.getText();
+  const auto &str = getText();
   int         pos = entry_.getPos();
 
   auto lhs = str.mid(0, pos);
@@ -213,18 +213,16 @@ paintEvent(QPaintEvent *)
 
   //---
 
+  int tpos = 0;
+
   // draw entry text before and after cursor
   painter.setPen(commandColor_);
 
-  drawText(&painter, x, y, lhs);
-
-  x += lhs.length()*charWidth_;
+  drawPosText(&painter, x, y, lhs, tpos);
 
   int cx = x;
 
-  drawText(&painter, x, y, rhs);
-
-  x += rhs.length()*charWidth_;
+  drawPosText(&painter, x, y, rhs, tpos);
 
   //---
 
@@ -400,6 +398,34 @@ drawSelectedChars(QPainter *painter, int lineNum1, int charNum1, int lineNum2, i
 
 void
 CommandWidget::
+drawPosText(QPainter *painter, int &x, int y, const QString &text, int &pos)
+{
+  auto c = painter->pen().color();
+
+  auto c1 = c;
+
+  for (int i = 0; i < text.length(); ++i) {
+    auto c2 = posColor(pos);
+
+    if (c2.isValid() && c2 != c1) {
+      painter->setPen(c2);
+
+      c1 = c2;
+    }
+
+    painter->drawText(x, y - charDescent_, text[i]);
+
+    x += charWidth_;
+
+    ++pos;
+  }
+
+  if (c != c1)
+    painter->setPen(c);
+}
+
+void
+CommandWidget::
 drawText(QPainter *painter, int x, int y, const QString &text)
 {
   for (int i = 0; i < text.length(); ++i) {
@@ -486,10 +512,8 @@ event(QEvent *e)
 
       QString text;
 
-      if (complete(entry_.getText(), entry_.getPos(), text, completeMode)) {
-        entry_.setText(text);
-
-        entry_.cursorEnd();
+      if (complete(getText(), entry_.getPos(), text, completeMode)) {
+        setText(text);
 
         update();
       }
@@ -512,7 +536,7 @@ keyPressEvent(QKeyEvent *event)
   auto mod = event->modifiers();
 
   if (key == Qt::Key_Return || key == Qt::Key_Enter) {
-    auto str = entry_.getText();
+    auto str = getText(); // copy as entry is cleared
 
     outputTypeText(str + "\n", LineType::COMMAND, ++lastInd_);
 
@@ -525,6 +549,8 @@ keyPressEvent(QKeyEvent *event)
     commands_.push_back(str);
 
     commandNum_ = -1;
+
+    textChanged();
   }
   else if (key == Qt::Key_Left) {
     entry_.cursorLeft();
@@ -543,9 +569,7 @@ keyPressEvent(QKeyEvent *event)
       --commandNum_;
     }
 
-    entry_.setText(command);
-
-    entry_.cursorEnd();
+    setText(command);
   }
   else if (key == Qt::Key_Down) {
     ++commandNum_;
@@ -559,15 +583,17 @@ keyPressEvent(QKeyEvent *event)
     else
       commandNum_ = -1;
 
-    entry_.setText(command);
-
-    entry_.cursorEnd();
+    setText(command);
   }
   else if (key == Qt::Key_Backspace) {
     entry_.backSpace();
+
+    textChanged();
   }
   else if (key == Qt::Key_Delete) {
     entry_.deleteChar();
+
+    textChanged();
   }
   else if (key == Qt::Key_Insert) {
     paste();
@@ -586,23 +612,37 @@ keyPressEvent(QKeyEvent *event)
       entry_.cursorStart();
     else if (key == Qt::Key_E) // end
       entry_.cursorEnd();
-//  else if (key == Qt::Key_U) // delete all before
-//    entry_.clearBefore();
-    else if (key == Qt::Key_H)
+    else if (key == Qt::Key_U) { // delete all before
+      //entry_.clearBefore();
+      //textChanged();
+    }
+    else if (key == Qt::Key_H) {
       entry_.backSpace();
-//  else if (key == Qt::Key_W) // delete word before
-//    entry_.clearWordBefore();
-//  else if (key == Qt::Key_K) // delete all after
-//    entry_.clearAfter();
-//  else if (key == Qt::Key_T) // swap chars before
-//    entry_.swapBefore();
-    else if (key == Qt::Key_C)
+      textChanged();
+    }
+    else if (key == Qt::Key_W) { // delete word before
+      //entry_.clearWordBefore();
+      //textChanged();
+    }
+    else if (key == Qt::Key_K) { // delete all after
+      //entry_.clearAfter();
+      //textChanged();
+    }
+    else if (key == Qt::Key_T) { // swap chars before
+      //entry_.swapBefore();
+      //textChanged();
+    }
+    else if (key == Qt::Key_C) {
       copy(selectedText());
-    else if (key == Qt::Key_V)
+    }
+    else if (key == Qt::Key_V) {
       paste();
+    }
   }
   else {
     entry_.insert(event->text());
+
+    textChanged();
   }
 
   update();
@@ -683,6 +723,26 @@ selectedText() const
   return str;
 }
 
+const QString &
+CommandWidget::
+getText() const
+{
+  return entry_.getText();
+}
+
+void
+CommandWidget::
+setText(const QString &text)
+{
+  entry_.setText(text);
+
+  entry_.cursorEnd();
+
+  textChanged();
+}
+
+//---
+
 void
 CommandWidget::
 copySlot()
@@ -717,7 +777,11 @@ paste()
   auto text = clipboard->text(QClipboard::Selection);
 
   entry_.insert(text);
+
+  textChanged();
 }
+
+//---
 
 void
 CommandWidget::

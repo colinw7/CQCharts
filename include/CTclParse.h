@@ -184,7 +184,7 @@ class CTclParse {
 
   ParseData getParseData() const;
 
-  CTclToken *createToken(CTclToken::Type type, const std::string str,
+  CTclToken *createToken(CTclToken::Type type, const std::string &str,
                          const ParseData &parseData) const;
 
  private:

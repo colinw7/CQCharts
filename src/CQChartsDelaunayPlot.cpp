@@ -563,16 +563,9 @@ bool
 CQChartsDelaunayPlot::
 addMenuItems(QMenu *menu)
 {
-  auto *voronoiAction = new QAction("Voronoi", menu);
-
-  voronoiAction->setCheckable(true);
-  voronoiAction->setChecked(isVoronoi());
-
-  connect(voronoiAction, SIGNAL(triggered(bool)), this, SLOT(setVoronoi(bool)));
+  CQUtil::addCheckedAction(menu, "Voronoi", isVoronoi(), this, SLOT(setVoronoi(bool)));
 
   menu->addSeparator();
-
-  menu->addAction(voronoiAction);
 
   return true;
 }
