@@ -1006,6 +1006,8 @@ event(QEvent *e)
 
       hide();
 
+      e->setAccepted(true);
+
       return true;
     }
     else if (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter) {
@@ -1014,10 +1016,14 @@ event(QEvent *e)
 
       hide();
 
+      e->setAccepted(true);
+
       return true;
     }
     else if (ke->key() == Qt::Key_Up || ke->key() == Qt::Key_Down) {
       QListWidget::event(e);
+
+      e->setAccepted(true);
 
       return true;
     }

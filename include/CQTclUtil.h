@@ -442,7 +442,9 @@ inline long toInt(const QVariant &var, bool &ok) {
 
 //---
 
-class CQTcl : public CTcl {
+class CQTcl : public QObject, public CTcl {
+  Q_OBJECT
+
  public:
   using Vars       = std::vector<QVariant>;
   using ObjCmdProc = Tcl_ObjCmdProc *;
@@ -535,8 +537,13 @@ class CQTcl : public CTcl {
   }
 
   QString resToString(const QVariant &res) {
-    if (res.type() == QVariant::List) {
-      QList<QVariant> vars = res.toList();
+    if      (res.type() == QVariant::StringList) {
+      auto strs = res.value<QStringList>();
+
+      return mergeList(strs);
+    }
+    else if (res.type() == QVariant::List) {
+      auto vars = res.toList();
 
       QStringList strs;
 
@@ -546,10 +553,31 @@ class CQTcl : public CTcl {
         strs.push_back(str);
       }
 
-      return "{" + strs.join(" ") + "}";
+      return mergeList(strs);
     }
     else
       return res.toString();
+  }
+
+  QStringList resToStrings(const QVariant &res) {
+    QStringList strs;
+
+    if      (res.type() == QVariant::StringList) {
+      strs = res.value<QStringList>();
+    }
+    else if (res.type() == QVariant::List) {
+      QList<QVariant> vars = res.toList();
+
+      for (int i = 0; i < vars.length(); ++i) {
+        QString str = resToString(vars[i]);
+
+        strs.push_back(str);
+      }
+    }
+    else
+      strs.push_back(res.toString());
+
+    return strs;
   }
 
   QVariant variantFromObj(const Tcl_Obj *obj) {

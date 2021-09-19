@@ -118,7 +118,7 @@ class CmdArg {
 
   const NameValues &nameValues() const { return nameValues_; }
 
- private:
+ protected:
   int        ind_      { -1 };              //!< command ind
   QString    name_;                         //!< arg name
   bool       isOpt_    { false };           //!< is option
@@ -151,7 +151,7 @@ class CmdGroup {
 
   bool isRequired() const { return (type_ == Type::OneReq); }
 
- private:
+ protected:
   int  ind_  { -1 };
   Type type_ { Type::None };
 };
@@ -183,10 +183,12 @@ class CmdArgs {
 
     QString opt() const { assert(isOpt_); return toString(var_).mid(1); }
 
-   private:
+   protected:
     QVariant var_;             //!< arg value
     bool     isOpt_ { false }; //!< is option
   };
+
+  using CmdArgArray = std::vector<CmdArg>;
 
   //---
 
@@ -208,6 +210,8 @@ class CmdArgs {
   // add argument
   CmdArg &addCmdArg(const QString &name, int type,
                     const QString &argDesc="", const QString &desc="");
+
+  const CmdArgArray &cmdArgs() const { return cmdArgs_; }
 
   //---
 
@@ -358,7 +362,6 @@ class CmdArgs {
   static bool stringToBool(const QString &str, bool *ok);
 
  protected:
-  using CmdArgArray = std::vector<CmdArg>;
   using CmdGroups   = std::vector<CmdGroup>;
   using NameInt     = std::map<QString, int>;
   using NameReal    = std::map<QString, double>;
@@ -405,11 +408,15 @@ class Cmd {
 
   virtual ~Cmd() { }
 
+  Mgr *mgr() const { return mgr_; }
+
+  CQTcl *qtcl() const { return mgr_->qtcl(); }
+
   virtual int exec(int objc, const Tcl_Obj **objv);
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
- private:
+ protected:
   Mgr*        mgr_   { nullptr };
   QString     name_;
   Tcl_Command cmdId_ { nullptr };
@@ -432,6 +439,8 @@ class CmdProc {
 
   Mgr *mgr() const { return mgr_; }
 
+  CQTcl *qtcl() const { return mgr_->qtcl(); }
+
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
@@ -442,7 +451,8 @@ class CmdProc {
 
   virtual void addArgs(CmdArgs & /*args*/) { }
 
-  virtual QStringList getArgValues(const QString& /*arg*/, const NameValueMap& /*nameValueMap*/) {
+  virtual QStringList getArgValues(const QString& /*arg*/,
+                                   const NameValueMap& /*nameValueMap*/ = NameValueMap()) {
     return QStringList();
   }
 
@@ -483,7 +493,7 @@ class CQTclCmd##NAME##InstCmd : public CQTclCmd::CmdProc { \
   QStringList getArgValues(const QString &arg, \
                            const NameValueMap &nameValueMap=NameValueMap()) override; \
  \
- private: \
+ protected: \
   QString id_; \
 };
 

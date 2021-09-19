@@ -378,6 +378,7 @@ CQFloatTip.cpp \
 CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
 \
+CQTclUtil.cpp \
 CTclParse.cpp \
 
 HEADERS += \
@@ -744,6 +745,7 @@ HEADERS += \
 ../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
 \
+../include/CQTclUtil.h \
 ../include/CTclParse.h \
 
 DESTDIR     = ../lib
