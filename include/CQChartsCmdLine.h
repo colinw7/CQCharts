@@ -50,6 +50,9 @@ class CQChartsCmdLine : public QFrame {
   Q_OBJECT
 
  public:
+  using OptionValues = std::map<std::string, std::string>;
+
+ public:
   CQChartsCmdLine(CQCharts *charts, QWidget *parent=nullptr);
  ~CQChartsCmdLine();
 
@@ -57,6 +60,19 @@ class CQChartsCmdLine : public QFrame {
 
   bool complete(CQChartsCmdWidget *widget, const QString &text, int pos,
                 QString &newText, bool interactive) const;
+
+  bool completeCommand(CQChartsCmdWidget *widget, const QString &lhs, const QString &str,
+                       const QString &rhs, bool interactive, QString &command) const;
+
+  bool completeOption(CQChartsCmdWidget *widget, const QString &command, const QString &lhs,
+                      const QString &option, const QString &rhs, bool interactive,
+                      QString &newText) const;
+
+  bool completeArg(CQChartsCmdWidget *widget, const QString &cmdName, const QString &option,
+                   const OptionValues &optionValues, const QString &lhs, const QString &arg,
+                   const QString &rhs, bool interactive, QString &newText) const;
+
+  QStringList resultToStrings(const QVariant &var) const;
 
   QSize sizeHint() const override;
 

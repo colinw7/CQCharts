@@ -132,7 +132,7 @@ class CQChartsSankeyPlotNode {
   void setInd(const ModelIndex &ind) { ind_ = ind; }
 
   //! get/set source edges
-  const Edges &srcEdges() const { return srcEdges_ ; }
+  const Edges &srcEdges() const { return srcEdges_; }
   void setSrcEdges(const Edges &edges) { srcEdges_  = edges; }
 
   //! get/set destination edges
@@ -215,7 +215,7 @@ class CQChartsSankeyPlotNode {
 
   // get/set position
   int pos() const { return pos_; }
-  void setPos(int x) { pos_ = x; }
+  void setPos(int x) { assert(x >= 0); pos_ = x; }
 
   // get/set rect
   const BBox &rect() const;
@@ -261,9 +261,10 @@ class CQChartsSankeyPlotNode {
     return (p != srcEdgeRect_.end());
   }
 
-  const BBox &srcEdgeRect(Edge *edge) const {
+  BBox srcEdgeRect(Edge *edge) const {
     auto p = srcEdgeRect_.find(edge);
-    assert(p != srcEdgeRect_.end());
+    //assert(p != srcEdgeRect_.end());
+    if (p == srcEdgeRect_.end()) return BBox();
 
     return (*p).second;
   }
@@ -290,9 +291,10 @@ class CQChartsSankeyPlotNode {
     return (p != destEdgeRect_.end());
   }
 
-  const BBox &destEdgeRect(Edge *edge) const {
+  BBox destEdgeRect(Edge *edge) const {
     auto p = destEdgeRect_.find(edge);
-    assert(p != destEdgeRect_.end());
+    //assert(p != destEdgeRect_.end());
+    if (p == destEdgeRect_.end()) return BBox();
 
     return (*p).second;
   }
@@ -909,6 +911,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // placement
   Q_PROPERTY(Align  align              READ align                WRITE setAlign             )
+  Q_PROPERTY(bool   alignFirstLast     READ isAlignFirstLast     WRITE setAlignFirstLast    )
   Q_PROPERTY(Spread spread             READ spread               WRITE setSpread            )
   Q_PROPERTY(bool   alignEnds          READ isAlignEnds          WRITE setAlignEnds         )
 #ifdef CQCHARTS_GRAPH_PATH_ID
@@ -923,6 +926,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 //Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
   Q_PROPERTY(int    adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
   Q_PROPERTY(bool   adjustText         READ isAdjustText         WRITE setAdjustText        )
+  Q_PROPERTY(bool   constrainMove      READ isConstrainMove      WRITE setConstrainMove     )
 
   // edge scaling
   Q_PROPERTY(bool useMaxTotals READ useMaxTotals WRITE setUseMaxTotals)
@@ -1118,6 +1122,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
 
+  //! get/set node align first/last
+  bool isAlignFirstLast() const { return alignFirstLast_; }
+  void setAlignFirstLast(bool b);
+
   //! get/set node spread
   const Spread &spread() const { return spread_; }
   void setSpread(const Spread &s);
@@ -1175,6 +1183,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set adjust text
   bool isAdjustText() const { return adjustText_; }
   void setAdjustText(bool b);
+
+  //---
+
+  //! get/set constraint move
+  bool isConstrainMove() const { return constrainMove_; }
+  void setConstrainMove(bool b) { constrainMove_ = b; }
 
   //---
 
@@ -1418,6 +1432,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  protected:
   // placement
   Align  align_              { Align::JUSTIFY };     //!< align
+  bool   alignFirstLast_     { false };              //!< align first/last
   Spread spread_             { Spread::FIRST_LAST }; //!< spread
   int    alignRand_          { 10 };                 //!< number of random values for align
   bool   alignEnds_          { true };               //!< align start left and end right
@@ -1433,6 +1448,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 //bool   adjustSelected_     { false };              //!< adjust only selected
   int    adjustIterations_   { 25 };                 //!< number of adjust iterations
   bool   adjustText_         { false };              //!< adjust text position
+  bool   constrainMove_      { true };               //!< constrain move
 
   // options
   bool            edgeLine_    { false };          //!< draw line for edge

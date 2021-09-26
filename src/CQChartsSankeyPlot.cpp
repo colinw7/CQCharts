@@ -290,6 +290,13 @@ setAlign(const Align &a)
 
 void
 CQChartsSankeyPlot::
+setAlignFirstLast(bool b)
+{
+  CQChartsUtil::testAndSet(alignFirstLast_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setSpread(const Spread &s)
 {
   CQChartsUtil::testAndSet(spread_, s, [&]() { updateRangeAndObjs(); } );
@@ -403,6 +410,7 @@ addProperties()
 
   // placement
   addProp("placement", "align"             , "align"             , "Node alignment");
+  addProp("placement", "alignFirstLast"    , "alignFirstLast"    , "Node align first/last");
   addProp("placement", "spread"            , "spread"            , "Node spread");
   addProp("placement", "alignEnds"         , "alignEnds"         , "Align start/end nodes");
 #ifdef CQCHARTS_GRAPH_PATH_ID
@@ -416,6 +424,7 @@ addProperties()
 //addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
   addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
   addProp("placement", "adjustText"        , "adjustText"        , "Adjust text placement");
+  addProp("placement", "constrainMove"     , "constrainMove"     , "Constrain move in edit mode");
 
   // options
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
@@ -1637,6 +1646,8 @@ calcGraphNodesPos(const Nodes &nodes) const
   // place graph nodes at x position
   graph_->clearDepthNodesMap();
 
+  updateGraphMaxDepth(nodes);
+
   for (const auto &node : nodes) {
     int pos = calcPos(node);
 
@@ -1921,27 +1932,76 @@ calcPos(Node *node) const
     pos = node->depth();
   }
   else {
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
+    int maxNodeDepth = graph_->maxNodeDepth();
 
-    if      (srcDepth == 0)
-      pos = 0;
-    else if (destDepth == 0)
-      pos = graph_->maxNodeDepth();
+    int srcDepth  = node->srcDepth (); // min depth of previous nodes
+    int destDepth = node->destDepth(); // max depth of subsequent nodes
+
+    if      (srcDepth == 0) {
+      if (isAlignFirstLast()) {
+        if (! node->destEdges().empty()) {
+          int minDest = node->destDepth();
+
+          for (const auto &edge : node->destEdges()) {
+            auto *node1 = edge->destNode();
+
+            minDest = std::min(minDest, calcPos(node1));
+          }
+
+          pos = std::max(minDest - 1, 0);
+        }
+        else
+          pos = 0;
+#if 0
+        if (node->destEdges().size() == 1)
+          pos = std::max(calcPos((*node->destEdges().begin())->destNode()) - 1, 0);
+        else
+          pos = 0;
+#endif
+      }
+      else
+        pos = 0;
+    }
+    else if (destDepth == 0) {
+      if (isAlignFirstLast()) {
+        if (! node->srcEdges().empty()) {
+          int maxSrc = 0;
+
+          for (const auto &edge : node->srcEdges()) {
+            auto *node1 = edge->srcNode();
+
+            maxSrc = std::max(maxSrc, calcPos(node1));
+          }
+
+          pos = std::min(maxSrc + 1, maxNodeDepth);
+        }
+        else
+          pos = maxNodeDepth;
+#if 0
+        if (node->srcEdges().size() == 1)
+          pos = std::min(calcPos((*node->srcEdges().begin())->srcNode()) + 1, maxNodeDepth);
+        else
+          pos = maxNodeDepth;
+#endif
+      }
+      else
+        pos = maxNodeDepth;
+    }
     else {
       if      (align() == Align::SRC)
         pos = srcDepth;
       else if (align() == Align::DEST)
-        pos = graph_->maxNodeDepth() - destDepth;
+        pos = maxNodeDepth - destDepth;
       else if (align() == Align::JUSTIFY || align() == Align::LARGEST) {
         double f = 1.0*srcDepth/(srcDepth + destDepth);
 
-        pos = int(f*graph_->maxNodeDepth());
+        pos = int(f*maxNodeDepth);
       }
       else if (align() == Align::RAND) {
         CQChartsRand::RealInRange rand(0, alignRand_);
 
         pos = CMathRound::RoundNearest(rand.gen());
+        assert(pos >= 0 && pos <= alignRand_);
 
         const_cast<Node *>(node)->setDepth(pos);
       }
@@ -3026,7 +3086,7 @@ keyPress(int key, int modifier)
   }
   else if (key == Qt::Key_O) {
     bool spread    = false;
-    bool constrain = false;
+    bool constrain = true;
     bool force     = true;
 
     if (removeOverlaps(spread, constrain, force))
@@ -3287,6 +3347,7 @@ srcDepth() const
   if (depth() >= 0)
     return depth() - 1;
 
+  // use visited to detect loops
   NodeSet visited;
 
   visited.insert(this);
@@ -3317,9 +3378,13 @@ calcSrcDepth(NodeSet &visited) const
       auto p = visited.find(node);
 
       if (p == visited.end()) {
-        visited.insert(node);
+        //visited.insert(node);
 
         depth = std::max(depth, node->calcSrcDepth(visited));
+      }
+      else {
+        depth = std::max(depth, int(visited.size() - 1));
+      //depth = std::max(depth, node->srcDepth());
       }
     }
 
@@ -3336,6 +3401,7 @@ destDepth() const
   if (depth() >= 0)
     return depth() + 1;
 
+  // use visited to detect loops
   NodeSet visited;
 
   visited.insert(this);
@@ -3366,9 +3432,13 @@ calcDestDepth(NodeSet &visited) const
       auto p = visited.find(node);
 
       if (p == visited.end()) {
-        visited.insert(node);
+        //visited.insert(node);
 
         depth = std::max(depth, node->calcDestDepth(visited));
+      }
+      else {
+        depth = std::max(depth, int(visited.size() - 1));
+      //depth = std::max(depth, node->destDepth());
       }
     }
 
@@ -4120,10 +4190,16 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
   double dx = 0.0, dy = 0.0;
 
-  if (plot_->isHorizontal())
-    dy = bbox.getYMin() - rect_.getYMin();
-  else
+  if (plot()->isConstrainMove()) {
+    if (plot_->isHorizontal())
+      dy = bbox.getYMin() - rect_.getYMin();
+    else
+      dx = bbox.getXMin() - rect_.getXMin();
+  }
+  else {
     dx = bbox.getXMin() - rect_.getXMin();
+    dy = bbox.getYMin() - rect_.getYMin();
+  }
 
   node()->moveBy(Point(dx, dy));
 }

@@ -1121,6 +1121,10 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   propertiesWidgets_.propertiesSplit->addWidget(plotsFrame, "Plots");
 
+  //---
+
+  propertiesWidgets_.propertiesSplit->setCurrentIndex(2);
+
   //--
 
   propertiesWidgets_.plotsTab = CQUtil::makeWidget<CQTabWidget>("tab");
@@ -1129,6 +1133,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   connect(propertiesWidgets_.plotsTab, SIGNAL(currentChanged(int)),
           this, SLOT(plotsTabChangedSlot()));
+
   //--
 
   auto *plotEditFrame       = CQUtil::makeWidget<QFrame>("plotEditFrame");

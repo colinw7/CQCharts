@@ -117,28 +117,6 @@ CQChartsCmdLine::
 complete(CQChartsCmdWidget *widget, const QString &text, int pos,
          QString &newText, bool interactive) const
 {
-  auto resultToStrings = [&](const QVariant &var) {
-    QStringList strs;
-
-    if (var.type() == QVariant::List) {
-      auto vars = var.toList();
-
-      for (int i = 0; i < vars.length(); ++i) {
-        auto str = vars[i].toString();
-
-        strs.push_back(str);
-      }
-    }
-    else {
-      if (! CQTcl::splitList(var.toString(), strs))
-        strs << var.toString();
-    }
-
-    return strs;
-  };
-
-  //---
-
   int len = text.length();
 
   if (pos >= len)
@@ -154,57 +132,46 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
   auto *token = parse.getTokenForPos(tokens, pos);
 
+  if (! token)
+    token = parse.getTokenForPos(tokens, pos - 1);
+
   //---
 
   auto lhs = text.mid(0, token ? token->pos() : pos + 1);
   auto str = (token ? token->str() : "");
   auto rhs = text.mid(token ? token->endPos() + 1 : pos + 1);
 
+  //---
+
+  std::string  command;
+  int          commandPos { -1 };
+  std::string  option;
+//int          optionPos { -1 };
+  OptionValues optionValues;
+
   // complete command
   if      (token && token->type() == CTclToken::Type::COMMAND) {
-    //std::cerr << "Command: " << str << "\n";
+    command    = str;
+    commandPos = token->pos();
 
-    const auto &cmds = qtcl_->commandNames();
-
-    auto matchCmds = CQStrUtil::matchStrs(QString::fromStdString(str), cmds);
-
-    QString matchStr;
-    bool    exact = false;
-
-    if (interactive && matchCmds.size() > 1) {
-      matchStr = widget->showCompletionChooser(matchCmds);
-
-      if (matchStr != "")
-        exact = true;
-    }
-
-    //---
-
-    newText = lhs;
-
-    if (matchStr == "")
-      newText += CQStrUtil::longestMatch(matchCmds, exact);
-    else
-      newText += matchStr;
-
-    if (exact)
-      newText += " ";
-
-    newText += rhs;
-
-    return (newText.length() > text.length());
+    return completeCommand(widget, lhs, QString::fromStdString(command), rhs, interactive, newText);
   }
   // complete option
   else if (str[0] == '-') {
-    // get previous command token for command name
-    std::string command;
+    option    = str.substr(1);
+//  optionPos = token->pos();
 
+    // get previous command token for command name
     for (int pos1 = pos - 1; pos1 >= 0; --pos1) {
       auto *token1 = parse.getTokenForPos(tokens, pos1);
       if (! token1) continue;
 
+      const auto &str = token1->str();
+      if (str.empty()) continue;
+
       if (token1->type() == CTclToken::Type::COMMAND) {
-        command = token1->str();
+        command    = str;
+        commandPos = token1->pos();
         break;
       }
     }
@@ -212,60 +179,13 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
     if (command == "")
       return false;
 
-    auto option = str.substr(1);
-
     //---
 
-    // get all options for interactive complete
-    QString matchStr;
-
-    if (interactive) {
-      auto cmd = QString("complete -command {%1} -option {*} -all").
-                         arg(QString::fromStdString(command));
-
-      QVariant res;
-
-      (void) qtcl_->eval(cmd, res);
-
-      auto strs = resultToStrings(res);
-
-      auto matchStrs = CQStrUtil::matchStrs(QString::fromStdString(option), strs);
-
-      if (matchStrs.size() > 1) {
-        matchStr = widget->showCompletionChooser(matchStrs);
-
-        if (matchStr != "")
-          matchStr = "-" + matchStr + " ";
-      }
-    }
-
-    //---
-
-    if (matchStr == "") {
-      // use complete command to complete command option
-      auto cmd = QString("complete -command {%1} -option {%2} -exact_space").
-                         arg(QString::fromStdString(command)).arg(QString::fromStdString(option));
-
-      QVariant res;
-
-      (void) qtcl_->eval(cmd, res);
-
-      matchStr = res.toString();
-    }
-
-    newText = lhs + matchStr + rhs;
-
-    return (newText.length() > text.length());
+    return completeOption(widget, QString::fromStdString(command),
+                          lhs, QString::fromStdString(option), rhs, interactive, newText);
   }
   else {
     // get previous tokens for option name and command name
-    using OptionValues = std::map<std::string, std::string>;
-
-    std::string  command;
-    int          commandPos { -1 };
-    std::string  option;
-    OptionValues optionValues;
-
     for (int pos1 = pos - 1; pos1 >= 0; --pos1) {
       auto *token1 = parse.getTokenForPos(tokens, pos1);
       if (! token1) continue;
@@ -279,8 +199,10 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
         break;
       }
       else if (str[0] == '-') {
-        if (option.empty())
-          option = str.substr(1);
+        if (option.empty()) {
+          option    = str.substr(1);
+//        optionPos = token1->pos();
+        }
 
         if (pos1 > token1->pos())
           pos1 = token1->pos(); // move to start
@@ -320,65 +242,202 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
     //---
 
-    std::string nameValues;
-
-    for (const auto &nv : optionValues) {
-      if (! nameValues.empty())
-        nameValues += " ";
-
-      nameValues += "{{" + nv.first + "} {" + nv.second + "}}";
-    }
-
-    nameValues = "{" + nameValues + "}";
-
-    //---
-
-    // get all option values for interactive complete
-    QString matchStr;
-
-    if (interactive) {
-      auto cmd =
-        QString("complete -command {%1} -option {%2} -value {*} -name_values %3 -all").
-                arg(QString::fromStdString(command)).arg(QString::fromStdString(option)).
-                arg(QString::fromStdString(nameValues));
-
-      QVariant res;
-
-      (void) qtcl_->eval(cmd, res);
-
-      auto strs = resultToStrings(res);
-
-      auto matchStrs = CQStrUtil::matchStrs(QString::fromStdString(str), strs);
-
-      if (matchStrs.size() > 1) {
-        matchStr = widget->showCompletionChooser(matchStrs);
-
-        if (matchStr != "")
-          matchStr = matchStr + " ";
-      }
-    }
-
-    //---
-
-    if (matchStr == "") {
-      // use complete command to complete command option value
-      QVariant res;
-
-      auto cmd =
-        QString("complete -command {%1} -option {%2} -value {%3} -name_values %4 -exact_space").
-                arg(QString::fromStdString(command)).arg(QString::fromStdString(option)).
-                arg(QString::fromStdString(str)).arg(QString::fromStdString(nameValues));
-
-      qtcl_->eval(cmd, res);
-
-      matchStr = res.toString();
-    }
-
-    newText = lhs + matchStr + rhs;
-
-    return (newText.length() > text.length());
+    return completeArg(widget, QString::fromStdString(command), QString::fromStdString(option),
+                       optionValues, lhs, "", rhs, interactive, newText);
   }
 }
+
+bool
+CQChartsCmdLine::
+completeCommand(CQChartsCmdWidget *widget, const QString &lhs, const QString &command,
+                const QString &rhs, bool interactive, QString &newText) const
+{
+  const auto &cmds = qtcl_->commandNames();
+
+  auto matchCmds = CQStrUtil::matchStrs(command, cmds);
+
+  QString matchStr;
+  bool    exact = false;
+
+  if      (matchCmds.size() == 1) {
+    matchStr = matchCmds[0];
+    exact    = true;
+  }
+  else if (matchCmds.size() > 1) {
+    if (interactive) {
+      matchStr = widget->showCompletionChooser(matchCmds);
+
+      if (matchStr != "")
+        exact = true;
+    }
+  }
+  else {
+    matchStr = CQStrUtil::longestMatch(matchCmds, exact);
+  }
+
+  //---
+
+  newText = lhs;
+
+  if (matchStr != "")
+    newText += matchStr;
+
+  if (exact)
+    newText += " ";
+
+  newText += rhs;
+
+  return (matchStr.length() > command.length());
+}
+
+bool
+CQChartsCmdLine::
+completeOption(CQChartsCmdWidget *widget, const QString &command, const QString &lhs,
+               const QString &option, const QString &rhs, bool interactive, QString &newText) const
+{
+  // get all options for interactive complete
+  QString matchStr;
+  bool    exact = false;
+
+  if (interactive) {
+    auto cmd = QString("complete -command {%1} -option {*} -all").arg(command);
+
+    QVariant res;
+
+    (void) qtcl_->eval(cmd, res);
+
+    auto strs = resultToStrings(res);
+
+    auto matchStrs = CQStrUtil::matchStrs(option, strs);
+
+    if      (matchStrs.size() == 1) {
+      matchStr = matchStrs[0];
+      exact    = true;
+    }
+    else if (matchStrs.size() > 1) {
+      matchStr = widget->showCompletionChooser(matchStrs);
+
+      if (matchStr != "") {
+        matchStr = "-" + matchStr + " ";
+        exact    = true;
+      }
+    }
+  }
+
+  //---
+
+  if (matchStr == "") {
+    // use complete command to complete command option
+    auto cmd = QString("complete -command {%1} -option {%2} -exact_space").
+                       arg(command).arg(option);
+
+    QVariant res;
+
+    (void) qtcl_->eval(cmd, res);
+
+    matchStr = res.toString();
+  }
+
+  newText = lhs;
+
+  if (matchStr != "")
+    newText += matchStr;
+
+  if (exact)
+    newText += " ";
+
+  newText += rhs;
+
+  return (matchStr.length() > option.length());
+}
+
+bool
+CQChartsCmdLine::
+completeArg(CQChartsCmdWidget *widget, const QString &command, const QString &option,
+            const OptionValues &optionValues, const QString &lhs, const QString &arg,
+            const QString &rhs, bool interactive, QString &newText) const
+{
+  std::string nameValues;
+
+  for (const auto &nv : optionValues) {
+    if (! nameValues.empty())
+      nameValues += " ";
+
+    nameValues += "{{" + nv.first + "} {" + nv.second + "}}";
+  }
+
+  nameValues = "{" + nameValues + "}";
+
+  //---
+
+  // get all option values for interactive complete
+  QString matchStr;
+
+  if (interactive) {
+    auto cmd =
+      QString("complete -command {%1} -option {%2} -value {*} -name_values %3 -all").
+              arg(command).arg(option).arg(QString::fromStdString(nameValues));
+
+    QVariant res;
+
+    (void) qtcl_->eval(cmd, res);
+
+    auto strs = resultToStrings(res);
+
+    auto matchStrs = CQStrUtil::matchStrs(arg, strs);
+
+    if (matchStrs.size() > 1) {
+      matchStr = widget->showCompletionChooser(matchStrs);
+
+      if (matchStr != "")
+        matchStr = matchStr + " ";
+    }
+  }
+
+  //---
+
+  if (matchStr == "") {
+    // use complete command to complete command option value
+    QVariant res;
+
+    auto cmd =
+      QString("complete -command {%1} -option {%2} -value {%3} -name_values %4 -exact_space").
+              arg(command).arg(option).arg(arg).arg(QString::fromStdString(nameValues));
+
+    qtcl_->eval(cmd, res);
+
+    matchStr = res.toString();
+  }
+
+  newText = lhs + matchStr + rhs;
+
+  return (matchStr.length() > arg.length());
+}
+
+QStringList
+CQChartsCmdLine::
+resultToStrings(const QVariant &var) const
+{
+  QStringList strs;
+
+  if (var.type() == QVariant::List) {
+    auto vars = var.toList();
+
+    for (int i = 0; i < vars.length(); ++i) {
+      auto str = vars[i].toString();
+
+      strs.push_back(str);
+    }
+  }
+  else {
+    if (! CQTcl::splitList(var.toString(), strs))
+      strs << var.toString();
+  }
+
+  return strs;
+}
+
+//---
 
 void
 CQChartsCmdLine::
