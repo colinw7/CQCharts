@@ -19,7 +19,8 @@ class CTclToken {
     STRING,
     COMMAND,
     SUB_COMMAND,
-    VARIABLE
+    VARIABLE,
+    SEPARATOR
   };
 
  public:
@@ -89,6 +90,7 @@ class CTclToken {
     else if (type == Type::COMMAND       ) return "command";
     else if (type == Type::SUB_COMMAND   ) return "sub_command";
     else if (type == Type::VARIABLE      ) return "variable";
+    else if (type == Type::SEPARATOR     ) return "separator";
     else                                   return "?";
   }
 

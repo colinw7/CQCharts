@@ -187,6 +187,8 @@ bool
 CTclParse::
 readArgList(Tokens &tokens)
 {
+  bool isComment = false;
+
   while (! parse_->eof()) {
     while (parse_->isChar(' ') || parse_->isChar('\t'))
       parse_->skipChar();
@@ -194,8 +196,19 @@ readArgList(Tokens &tokens)
     if (parse_->eof())
       return true;
 
-    if      (parse_->isChar(';') || parse_->isChar('\n')) {
+    if      (parse_->isChar('\n')) {
       parse_->skipChar();
+
+      return true;
+    }
+    else if (parse_->isChar(';') && ! isComment) {
+      auto parseData = getParseData();
+
+      parse_->skipChar();
+
+      auto *token = createToken(CTclToken::Type::SEPARATOR, ";", parseData);
+
+      tokens.push_back(token);
 
       return true;
     }
@@ -324,15 +337,20 @@ readArgList(Tokens &tokens)
       std::string str;
       Tokens      tokens1;
 
-      if (! readWord(str, ';', tokens1))
+      char endChar = (! isComment ? ';' : '\0');
+
+      if (! readWord(str, endChar, tokens1))
         return false;
 
       str = parse_->getBefore(parseData.pos);
 
       auto *token = createToken(CTclToken::Type::STRING, str, parseData);
 
-      if (tokens.empty())
+      if (tokens.empty()) {
         token->setType(CTclToken::Type::COMMAND);
+
+        isComment = (str == "#");
+      }
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -446,7 +464,8 @@ readExecString(Tokens &tokens)
     parse_->skipSpace();
   }
 
-  parse_->skipChar();
+  if (! parse_->eof())
+    parse_->skipChar();
 
   return true;
 }
@@ -461,8 +480,10 @@ readLiteralString(std::string &str, Tokens &)
 
   parse_->skipChar();
 
+  bool isCommand = true;
+
   while (! parse_->eof() && ! parse_->isChar('}')) {
-    if (parse_->isChar('{')) {
+    if      (parse_->isChar('{')) {
       std::string str1;
 
       Tokens tokens1;
@@ -478,30 +499,87 @@ readLiteralString(std::string &str, Tokens &)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Unterminated string" << std::endl;
+        std::cerr << "Unterminated string\n";
         return false;
       }
 
       str += c;
+    }
+    else if (parse_->isChar('\"')) {
+      parse_->skipChar();
+
+      str += "\"";
+
+      while (! parse_->eof() && ! parse_->isChar('\"')) {
+        char c;
+
+        if (! parse_->readChar(&c)) {
+          std::cerr << "Unterminated string\n";
+          return false;
+        }
+
+        str += c;
+
+        if (c == '\\') {
+          if (! parse_->readChar(&c)) {
+            std::cerr << "Unterminated string\n";
+            return false;
+          }
+
+          str += c;
+        }
+      }
+
+      if (! parse_->eof()) {
+        parse_->skipChar();
+
+        str += "\"";
+      }
+    }
+    else if (isCommand && parse_->isChar('#')) {
+      while (! parse_->eof() && ! parse_->isChar('\n')) {
+        char c;
+
+        if (! parse_->readChar(&c))
+          break;
+
+        str += c;
+      }
     }
     else {
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Unterminated string" << std::endl;
+        std::cerr << "Unterminated string\n";
         return false;
       }
 
       str += c;
+
+      if (c == ';' || c == '\n') {
+        isCommand = true;
+
+        while (! parse_->eof() && parse_->isSpace()) {
+          char c;
+
+          if (! parse_->readChar(&c))
+            break;
+
+          str += c;
+        }
+      }
+      else
+        isCommand = false;
     }
   }
 
   if (! parse_->isChar('}')) {
-    std::cerr << "Unterminated string" << std::endl;
+    std::cerr << "Unterminated string\n";
     return false;
   }
 
-  parse_->skipChar();
+  if (! parse_->eof())
+    parse_->skipChar();
 
   return true;
 }
@@ -562,7 +640,7 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Invalid char after \\" << std::endl;
+        std::cerr << "Invalid char after \\\n";
         return false;
       }
 
@@ -584,7 +662,7 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
 
           while (! parse_->eof()) {
             if (! parse_->readChar(&c)) {
-              std::cerr << "Invalid octal" << std::endl;
+              std::cerr << "Invalid octal\n";
               return false;
             }
 
@@ -611,7 +689,7 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
 
           while (! parse_->eof()) {
             if (! parse_->readChar(&c)) {
-              std::cerr << "Invalid hex" << std::endl;
+              std::cerr << "Invalid hex\n";
               return false;
             }
 
@@ -642,7 +720,7 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Invalid char" << std::endl;
+        std::cerr << "Invalid char\n";
         return false;
       }
 
@@ -650,7 +728,8 @@ readDoubleQuotedString(std::string &str, Tokens &tokens)
     }
   }
 
-  parse_->skipChar();
+  if (! parse_->eof())
+    parse_->skipChar();
 
   return true;
 }
@@ -667,14 +746,15 @@ readSingleQuotedString(std::string &str)
     char c;
 
     if (! parse_->readChar(&c)) {
-      std::cerr << "Unterminated string" << std::endl;
+      std::cerr << "Unterminated string\n";
       return false;
     }
 
     str += c;
   }
 
-  parse_->skipChar();
+  if (! parse_->eof())
+    parse_->skipChar();
 
   return true;
 }
@@ -697,7 +777,7 @@ readVariableName(std::string &varName, bool &is_array, Tokens &)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Missing variable char" << std::endl;
+        std::cerr << "Missing variable char\n";
         return false;
       }
 
@@ -726,7 +806,7 @@ readVariableName(std::string &varName, bool &is_array, Tokens &)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Missing variable char" << std::endl;
+        std::cerr << "Missing variable char\n";
         return false;
       }
 
@@ -742,7 +822,7 @@ readVariableName(std::string &varName, bool &is_array, Tokens &)
     }
 
     if (depth != 0) {
-      std::cerr << "Invalid () nesting" << std::endl;
+      std::cerr << "Invalid () nesting\n";
       return false;
     }
 
@@ -809,7 +889,7 @@ readWord(std::string &str, char endChar, Tokens &tokens)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Invalid char after \\" << std::endl;
+        std::cerr << "Invalid char after \\\n";
         return false;
       }
 
@@ -819,7 +899,7 @@ readWord(std::string &str, char endChar, Tokens &tokens)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Invalid char" << std::endl;
+        std::cerr << "Invalid char\n";
         return false;
       }
 
