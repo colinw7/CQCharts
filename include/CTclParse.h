@@ -36,6 +36,9 @@ class CTclToken {
 
   const std::string &str() const { return str_; }
 
+  const std::string &altStr() const { return altStr_; }
+  void setAltStr(const std::string &s) { altStr_ = s; }
+
   int lineNum() const { return lineNum_; }
   void setLineNum(int num) { lineNum_ = num; }
 
@@ -97,6 +100,7 @@ class CTclToken {
  private:
   Type        type_    { Type::NONE };
   std::string str_;
+  std::string altStr_;
   int         pos_     { -1 };
   int         lineNum_ { -1 };
   int         linePos_ { -1 };
@@ -173,6 +177,8 @@ class CTclParse {
   CTclToken *getTokenForPos(const Tokens &tokens, int pos) const;
 
   static bool needsBraces(const std::string &str);
+
+  void syntaxError(const std::string &str, int initPos);
 
  private:
   struct ParseData {

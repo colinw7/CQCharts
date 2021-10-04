@@ -117,7 +117,7 @@ CTclParse::
 parseFile(const std::string &filename, Tokens &tokens)
 {
   if (! CFile::isRegular(filename)) {
-    std::cerr << "Invalid file " << filename << std::endl;
+    std::cerr << "Invalid file " << filename << "\n";
     return false;
   }
 
@@ -245,9 +245,11 @@ readArgList(Tokens &tokens)
       if (! readLiteralString(str, tokens1))
         return false;
 
-      str = parse_->getBefore(parseData.pos);
+      auto str1 = parse_->getBefore(parseData.pos);
 
-      auto *token = createToken(CTclToken::Type::LITERAL_STRING, str, parseData);
+      auto *token = createToken(CTclToken::Type::LITERAL_STRING, str1, parseData);
+
+      token->setAltStr(str);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -263,9 +265,11 @@ readArgList(Tokens &tokens)
       if (! readDoubleQuotedString(str, tokens1))
         return false;
 
-      str = parse_->getBefore(parseData.pos);
+      auto str1 = parse_->getBefore(parseData.pos);
 
-      auto *token = createToken(CTclToken::Type::QUOTED_STRING, str, parseData);
+      auto *token = createToken(CTclToken::Type::QUOTED_STRING, str1, parseData);
+
+      token->setAltStr(str);
 
       for (const auto &token1 : tokens1)
         token->addToken(token1);
@@ -474,13 +478,17 @@ bool
 CTclParse::
 readLiteralString(std::string &str, Tokens &)
 {
+  int initPos = parse_->getPos();
+
   assert(parse_->isChar('{'));
 
   SetSeparator sepSep(this, '\n');
 
   parse_->skipChar();
 
+#if 0
   bool isCommand = true;
+#endif
 
   while (! parse_->eof() && ! parse_->isChar('}')) {
     if      (parse_->isChar('{')) {
@@ -499,7 +507,7 @@ readLiteralString(std::string &str, Tokens &)
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Unterminated string\n";
+        syntaxError("Unterminated string", initPos);
         return false;
       }
 
@@ -514,7 +522,7 @@ readLiteralString(std::string &str, Tokens &)
         char c;
 
         if (! parse_->readChar(&c)) {
-          std::cerr << "Unterminated string\n";
+          syntaxError("Unterminated string", initPos);
           return false;
         }
 
@@ -522,7 +530,7 @@ readLiteralString(std::string &str, Tokens &)
 
         if (c == '\\') {
           if (! parse_->readChar(&c)) {
-            std::cerr << "Unterminated string\n";
+            syntaxError("Unterminated string", initPos);
             return false;
           }
 
@@ -536,6 +544,7 @@ readLiteralString(std::string &str, Tokens &)
         str += "\"";
       }
     }
+#if 0
     else if (isCommand && parse_->isChar('#')) {
       while (! parse_->eof() && ! parse_->isChar('\n')) {
         char c;
@@ -546,18 +555,19 @@ readLiteralString(std::string &str, Tokens &)
         str += c;
       }
     }
+#endif
     else {
       char c;
 
       if (! parse_->readChar(&c)) {
-        std::cerr << "Unterminated string\n";
+        syntaxError("Unterminated string", initPos);
         return false;
       }
 
       str += c;
 
       if (c == ';' || c == '\n') {
-        isCommand = true;
+        //isCommand = true;
 
         while (! parse_->eof() && parse_->isSpace()) {
           char c;
@@ -568,13 +578,14 @@ readLiteralString(std::string &str, Tokens &)
           str += c;
         }
       }
-      else
-        isCommand = false;
+      else {
+        //isCommand = false;
+      }
     }
   }
 
   if (! parse_->isChar('}')) {
-    std::cerr << "Unterminated string\n";
+    syntaxError("Unterminated string", initPos);
     return false;
   }
 
@@ -738,6 +749,8 @@ bool
 CTclParse::
 readSingleQuotedString(std::string &str)
 {
+  int initPos = parse_->getPos();
+
   assert(parse_->isChar('\''));
 
   parse_->skipChar();
@@ -746,7 +759,7 @@ readSingleQuotedString(std::string &str)
     char c;
 
     if (! parse_->readChar(&c)) {
-      std::cerr << "Unterminated string\n";
+      syntaxError("Unterminated string", initPos);
       return false;
     }
 
@@ -1020,6 +1033,16 @@ needsBraces(const std::string &str)
   }
 
   return (len == 0 || is_space);
+}
+
+void
+CTclParse::
+syntaxError(const std::string &msg, int initPos)
+{
+  std::cerr << "Error: " << msg << "\n  ";
+
+  //std::cerr << parse_->stateStr() << "\n";
+  std::cerr << parse_->getBefore(initPos) << parse_->getCharAt() << "\b_" << parse_->getAfter();
 }
 
 //--------------
