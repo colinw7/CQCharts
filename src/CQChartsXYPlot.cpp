@@ -1788,7 +1788,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Qt::Orientation sizeDir { Qt::Horizontal };
 
         if (symbolSizeColumn().isValid()) {
-          if (! columnSymbolSize(xind1.row(), xind1.parent(), symbolSize, sizeDir))
+          if (! columnSymbolSize(xind.row(), xind.parent(), symbolSize, sizeDir))
             symbolSize = Length();
         }
 
@@ -1804,10 +1804,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig, iv1);
-
-        if (xind1.isValid())
-          pointObj->setModelInd(xind1);
+        auto *pointObj = th->createPointObj(groupInd, bbox, p, xind1, is1, ig, iv1);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
@@ -1822,7 +1819,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsSymbol symbol;
 
         if (symbolTypeColumn().isValid()) {
-          if (! columnSymbolType(xind1.row(), xind1.parent(), symbol))
+          if (! columnSymbolType(xind.row(), xind.parent(), symbol))
             symbol = CQChartsSymbol();
         }
 
@@ -1836,7 +1833,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Qt::Orientation fontSizeDir { Qt::Horizontal };
 
         if (fontSizeColumn().isValid()) {
-          if (! columnFontSize(xind1.row(), xind1.parent(), fontSize, fontSizeDir))
+          if (! columnFontSize(xind.row(), xind.parent(), fontSize, fontSizeDir))
             fontSize = Length();
         }
 
@@ -1849,7 +1846,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Color symbolColor;
 
         if (colorColumn().isValid()) {
-          if (! colorColumnColor(xind1.row(), xind1.parent(), symbolColor))
+          if (! colorColumnColor(xind.row(), xind.parent(), symbolColor))
             symbolColor = Color();
         }
 
@@ -1863,7 +1860,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         Column  pointNameColumn;
 
         if (labelColumn().isValid()) {
-          ModelIndex labelModelInd(th, xind1.row(), labelColumn(), xind1.parent());
+          ModelIndex labelModelInd(th, xind.row(), labelColumn(), xind.parent());
 
           bool ok;
           pointName = modelString(labelModelInd, ok);
@@ -1889,7 +1886,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsImage image;
 
         if (imageColumn().isValid()) {
-          ModelIndex imageColumnInd(th, xind1.row(), imageColumn(), xind1.parent());
+          ModelIndex imageColumnInd(th, xind.row(), imageColumn(), xind.parent());
 
           bool ok;
 
@@ -1913,7 +1910,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (vectorXColumn().isValid()) {
             bool ok;
 
-            ModelIndex vectorXInd(th, xind1.row(), vectorXColumn(), parent);
+            ModelIndex vectorXInd(th, xind.row(), vectorXColumn(), parent);
 
             vx = modelReal(vectorXInd, ok);
 
@@ -1924,7 +1921,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (vectorYColumn().isValid()) {
             bool ok;
 
-            ModelIndex vectorYInd(th, xind1.row(), vectorYColumn(), parent);
+            ModelIndex vectorYInd(th, xind.row(), vectorYColumn(), parent);
 
             vy = modelReal(vectorYInd, ok);
 
@@ -2258,10 +2255,10 @@ addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
 
 CQChartsXYPointObj *
 CQChartsXYPlot::
-createPointObj(int groupInd, const BBox &rect, const Point &p, const ColorInd &is,
-               const ColorInd &ig, const ColorInd &iv) const
+createPointObj(int groupInd, const BBox &rect, const Point &p, const QModelIndex &ind,
+               const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
-  return new CQChartsXYPointObj(this, groupInd, rect, p, is, ig, iv);
+  return new CQChartsXYPointObj(this, groupInd, rect, p, ind, is, ig, iv);
 }
 
 CQChartsXYBiLineObj *
@@ -3243,10 +3240,14 @@ draw(PaintDevice *device) const
 
 CQChartsXYPointObj::
 CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
-                   const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+                   const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                   const ColorInd &iv) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
 {
+  if (ind.isValid())
+    setModelInd(ind);
+
 }
 
 CQChartsXYPointObj::
@@ -4731,7 +4732,7 @@ fillBrush() const
 
   QColor c;
   Alpha  alpha;
-  auto   pattern = CQChartsFillPattern(CQChartsFillPattern::Type::SOLID);
+  auto   pattern = CQChartsFillPattern::makeSolid();
 
   if      (plot()->canBivariateLines()) {
     c = plot()->interpBivariateLinesColor(is_);

@@ -512,7 +512,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //! get edit handles
   EditHandles *editHandles() const override;
 
-  void drawEditHandles(QPainter *painter) const override;
+  void drawEditHandles(PaintDevice *device) const override;
 
   void setEditHandlesBBox() const;
 

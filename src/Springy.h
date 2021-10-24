@@ -1,16 +1,17 @@
-#ifndef CQChartsSpringy_H
-#define CQChartsSpringy_H
+#ifndef Springy_H
+#define Springy_H
 
+#include <string>
 #include <vector>
 #include <map>
 #include <cmath>
+#include <cassert>
 
 namespace Springy {
   class Node;
 
   /*!
    * \brief Vector
-   * \ingroup Charts
    */
   class Vector {
    public:
@@ -68,12 +69,11 @@ namespace Springy {
 
   /*!
    * \brief Point
-   * \ingroup Charts
    */
   class Point {
    public:
-    Point(const Vector &position, double mass) :
-     p_(position), mass_(mass), v_(), a_() {
+    Point(const Vector &position=Vector(), double mass=1.0) :
+     p_(position), mass_(mass) {
     }
 
     const Vector &p() const { return p_; }
@@ -107,27 +107,31 @@ namespace Springy {
 
   /*!
    * \brief Spring
-   * \ingroup Charts
    */
   class Spring {
    public:
-    Spring(Point *point1, Point *point2, double length, double k) :
+    Spring(Point *point1=nullptr, Point *point2=nullptr, double length=1.0, double k=1.0) :
      point1_(point1), point2_(point2), length_(length), k_(k) {
     }
 
     Point *point1() const { return point1_; }
+    void setPoint1(Point *p) { point1_ = p; }
+
     Point *point2() const { return point2_; }
+    void setPoint2(Point *p) { point2_ = p; }
 
     double length() const { return length_; }
+    void setLength(double l) { length_ = l; }
 
     double k() const { return k_; }
+    void setK(double k) { k_ = k; }
 
 /*
-  double distanceToPoint(const Point &point) {
-    auto n  = point2.p.subtract(point1.p).normalise().normal();
-    auto ac = point .p.subtract(point1.p);
-    return abs(ac.x * n.x + ac.y * n.y);
-  }
+    double distanceToPoint(const Point &point) {
+      auto n  = point2.p.subtract(point1.p).normalise().normal();
+      auto ac = point .p.subtract(point1.p);
+      return abs(ac.x * n.x + ac.y * n.y);
+    }
 */
 
    private:
@@ -143,12 +147,11 @@ namespace Springy {
 
   /*!
    * \brief Node
-   * \ingroup Charts
    */
   class Node {
    public:
     explicit Node(int id) :
-     id_(id), mass_(1.0), label_(), value_(0) {
+     id_(id) {
       pos_ = Vector::random();
     }
 
@@ -162,8 +165,8 @@ namespace Springy {
     double mass() const { return mass_; }
     void setMass(double m) { mass_ = m; }
 
-    const QString &label() const { return label_; }
-    void setLabel(const QString &label) { label_ = label; }
+    const std::string &label() const { return label_; }
+    void setLabel(const std::string &label) { label_ = label; }
 
     double value() const { return value_; }
     void setValue(double v) { value_ = v; }
@@ -172,12 +175,12 @@ namespace Springy {
     void setFixed(bool b) { fixed_ = b; }
 
    private:
-    int     id_     { 0 };     //!< id
-    Vector  pos_;              //!< position
-    double  mass_   { 1.0 };   //!< mass
-    QString label_;            //!< label
-    double  value_  { 0.0 };   //!< value
-    bool    fixed_  { false }; //!< is fixed
+    int         id_     { 0 };     //!< id
+    Vector      pos_;              //!< position
+    double      mass_   { 1.0 };   //!< mass
+    std::string label_;            //!< label
+    double      value_  { 0.0 };   //!< value
+    bool        fixed_  { false }; //!< is fixed
   };
 
   using Nodes = std::vector<Node*>;
@@ -186,12 +189,11 @@ namespace Springy {
 
   /*!
    * \brief Edge
-   * \ingroup Charts
    */
   class Edge {
    public:
-    Edge(int id, Node *source, Node *target) :
-     id_(id), source_(source), target_(target), length_(1.0), value_(0) {
+    Edge(int id, Node *source=nullptr, Node *target=nullptr) :
+     id_(id), source_(source), target_(target) {
     }
 
     virtual ~Edge() { }
@@ -199,7 +201,10 @@ namespace Springy {
     int id() const { return id_; }
 
     Node *source() const { return source_; }
+    void setSource(Node *n) { source_ = n; }
+
     Node *target() const { return target_; }
+    void setTarget(Node *n) { target_ = n; }
 
     double length() const { return length_; }
     void setLength(double l) { length_ = l; }
@@ -221,15 +226,12 @@ namespace Springy {
 
   /*!
    * \brief Graph
-   * \ingroup Charts
    */
   class Graph {
    public:
-    Graph() :
-     nextNodeId_(0), nextEdgeId_(0) {
-    }
+    Graph() { }
 
-   ~Graph() {
+    virtual ~Graph() {
       for (auto &node : nodes_)
         delete node;
 
@@ -298,39 +300,46 @@ namespace Springy {
       return edge;
     }
 
-    template<typename T>
-    T *newNodeT() {
-      auto *node = new T(nextNodeId_++);
-
-      addNode(node);
-
-      return node;
-    }
-
     Node *newNode() {
-      auto *node = new Node(nextNodeId_++);
+      auto *node = makeNode();
 
       addNode(node);
 
       return node;
-    }
-
-    template<typename T>
-    T *newEdgeT(Node *source, Node *target) {
-      auto *edge = new T(nextEdgeId_++, source, target);
-
-      addEdge(edge);
-
-      return edge;
     }
 
     Edge *newEdge(Node *source, Node *target) {
-      auto *edge = new Edge(nextEdgeId_++, source, target);
+      assert(source && target);
+
+      auto *edge = makeEdge();
+
+      edge->setSource(source);
+      edge->setTarget(target);
 
       addEdge(edge);
 
       return edge;
     }
+
+    //------
+
+    virtual Node *makeNode() const {
+      return new Node(nextNodeId_++);
+    }
+
+    virtual Edge *makeEdge() const {
+      return new Edge(nextEdgeId_++);
+    }
+
+    virtual Point *makePoint() const {
+      return new Point();
+    }
+
+    virtual Spring *makeSpring() const {
+      return new Spring();
+    }
+
+    //------
 
     // find the edges from node1 to node2
     Edges getEdges(Node *node1, Node *node2) {
@@ -415,15 +424,16 @@ namespace Springy {
     Nodes         nodes_;
     Edges         edges_;
     NodeNodeEdges adjacency_;
-    int           nextNodeId_ { -1 };
-    int           nextEdgeId_ { -1 };
+
+   protected:
+    mutable int nextNodeId_ { 0 };
+    mutable int nextEdgeId_ { 0 };
   };
 
   //-----------
 
   /*!
    * \brief Layout
-   * \ingroup Charts
    */
   class Layout {
    public:
@@ -447,7 +457,10 @@ namespace Springy {
       auto p = th->nodePoints_.find(node->id());
 
       if (p == th->nodePoints_.end()) {
-        auto point = new Point(node->position(), node->mass());
+        auto *point = graph_->makePoint();
+
+        point->setP   (node->position());
+        point->setMass(node->mass());
 
         if (node->isFixed())
           point->setFixed(true);
@@ -475,8 +488,12 @@ namespace Springy {
             existingSpring = (*p1).second;
 
             // MLK ?
-            Spring *tspring =
-             new Spring(existingSpring->point1(), existingSpring->point2(), 0.0, 0.0);
+            auto *tspring = graph_->makeSpring();
+
+            tspring->setPoint1(existingSpring->point1());
+            tspring->setPoint2(existingSpring->point2());
+            tspring->setLength(0.0);
+            tspring->setK(0.0);
 
             isTemp = true;
 
@@ -493,8 +510,12 @@ namespace Springy {
             existingSpring = (*p1).second;
 
             // MLK ?
-            Spring *tspring =
-              new Spring(existingSpring->point2(), existingSpring->point1(), 0.0, 0.0);
+            auto *tspring = graph_->makeSpring();
+
+            tspring->setPoint1(existingSpring->point2());
+            tspring->setPoint2(existingSpring->point1());
+            tspring->setLength(0.0);
+            tspring->setK(0.0);
 
             isTemp = true;
 
@@ -502,9 +523,16 @@ namespace Springy {
           }
         }
 
-        edgeSprings_[edge->id()] =
-          new Spring(nodePoint(edge->source()), nodePoint(edge->target()),
-                     edge->length(), stiffness_);
+        auto *spring = graph_->makeSpring();
+
+        spring->setPoint1(nodePoint(edge->source()));
+        spring->setPoint2(nodePoint(edge->target()));
+
+        spring->setLength(edge->length());
+
+        spring->setK(stiffness_);
+
+        edgeSprings_[edge->id()] = spring;
       }
 
       return edgeSprings_[edge->id()];
@@ -513,12 +541,12 @@ namespace Springy {
     // Physics stuff
     void applyCoulombsLaw() {
       for (auto n1 : graph_->nodes()) {
-        auto point1 = nodePoint(n1);
+        auto *point1 = nodePoint(n1);
 
         for (auto n2 : graph_->nodes()) {
           if (n1 == n2) continue;
 
-          auto point2 = nodePoint(n2);
+          auto *point2 = nodePoint(n2);
 
           if (point1 != point2) {
             auto d = point1->p().subtract(point2->p());
@@ -540,7 +568,7 @@ namespace Springy {
       for (auto edge : graph_->edges()) {
         bool isTemp = false;
 
-        auto spring = this->edgeSpring(edge, isTemp);
+        auto *spring = this->edgeSpring(edge, isTemp);
 
         // the direction of the spring
         Vector d = spring->point2()->p().subtract(spring->point1()->p());
@@ -560,7 +588,7 @@ namespace Springy {
 
     void attractToCentre() {
       for (auto node : graph_->nodes()) {
-        auto point = this->nodePoint(node);
+        auto *point = this->nodePoint(node);
 
         Vector direction = point->p().multiply(-1.0);
 
@@ -570,7 +598,7 @@ namespace Springy {
 
     void updateVelocity(double timestep) {
       for (auto node : graph_->nodes()) {
-        auto point = this->nodePoint(node);
+        auto *point = this->nodePoint(node);
 
         // Is this, along with updatePosition below, the only places that your
         // integration code exist?
@@ -581,7 +609,7 @@ namespace Springy {
 
     void updatePosition(double timestep) {
       for (auto node : graph_->nodes()) {
-        auto point = this->nodePoint(node);
+        auto *point = this->nodePoint(node);
 
         // Same question as above; along with updateVelocity, is this all of
         // your integration code?
@@ -595,7 +623,7 @@ namespace Springy {
       double energy = 0.0;
 
       for (auto node : graph_->nodes()) {
-        auto point = this->nodePoint(node);
+        auto *point = this->nodePoint(node);
 
         double speed = point->v().magnitude();
 
@@ -617,10 +645,10 @@ namespace Springy {
     NodePoint nearest(const Vector &p) const {
       Node*  minNode     = nullptr;
       Point* minPoint    = nullptr;
-      double minDistance = 0;
+      double minDistance = 0.0;
 
       for (auto n : graph_->nodes()) {
-        auto point = this->nodePoint(n);
+        auto *point = this->nodePoint(n);
 
         double distance = point->p().subtract(p).magnitude();
 
@@ -636,7 +664,7 @@ namespace Springy {
 
     void calcRange(double &xmin, double &ymin, double &xmax, double &ymax) const {
       for (auto n : graph_->nodes()) {
-        auto point = this->nodePoint(n);
+        auto *point = this->nodePoint(n);
 
         const Vector &p = point->p();
 

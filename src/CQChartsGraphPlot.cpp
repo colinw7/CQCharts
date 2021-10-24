@@ -361,7 +361,8 @@ addProperties()
 
   //---
 
-  // placment
+  // placement
+  addProp("placement", "align"           , "align"           , "Node alignment");
   addProp("placement", "adjustNodes"     , "adjustNodes"     , "Adjust node placement");
   addProp("placement", "autoCreateGraphs", "autoCreateGraphs", "Auto create graphs");
 
@@ -414,9 +415,10 @@ addProperties()
 
   // text
   addProp("text", "textVisible", "visible", "Text label visible");
-  addProp("text", "align"      , "align"  , "Text label align");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::FORMATTED |
+                    CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
@@ -2298,11 +2300,9 @@ drawFg(PaintDevice *device) const
   // only support contrast
   auto textOptions = plot_->textOptions(device);
 
-  textOptions.angle     = Angle();
-  textOptions.align     = Qt::AlignLeft;
-  textOptions.formatted = false;
-  textOptions.scaled    = false;
-  textOptions.html      = false;
+  textOptions.angle = Angle();
+  textOptions.align = Qt::AlignLeft;
+  textOptions.html  = false;
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||

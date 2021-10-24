@@ -1078,7 +1078,7 @@ draw(PaintDevice *device) const
 
       auto lc = Qt::white;
 
-      auto fillPattern = CQChartsFillPattern(CQChartsFillPattern::Type::SOLID);
+      auto fillPattern = CQChartsFillPattern::makeSolid();
 
       if      (value() > 0)
         fillPattern = CQChartsFillPattern(CQChartsFillPattern::Type::FDIAG);

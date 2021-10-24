@@ -1635,7 +1635,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   BrushData LNAME##BrushData(const QColor &c, const Alpha &alpha=Alpha(), \
-                             const FillPattern &pattern=FillPattern()) const { \
+                             const FillPattern &pattern=FillPattern::makeSolid()) const { \
     auto fillAlpha   = (! alpha  .isSet  () ? LNAME##FillAlpha  () : alpha); \
     auto fillPattern = (! pattern.isValid() ? LNAME##FillPattern() : pattern); \
     return BrushData(is##UNAME##Filled(), c, fillAlpha, fillPattern); \

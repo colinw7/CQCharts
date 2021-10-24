@@ -94,6 +94,8 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   void columnsChanged();
 
  private slots:
+  void resetModelData();
+
   void addSlot();
   void removeSlot();
 

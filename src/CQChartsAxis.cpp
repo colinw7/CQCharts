@@ -1686,13 +1686,13 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 
 void
 CQChartsAxis::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
   setEditHandlesBBox();
 
-  editHandles()->draw(painter);
+  editHandles()->draw(device);
 }
 
 void

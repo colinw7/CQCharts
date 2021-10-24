@@ -122,7 +122,8 @@ class CQChartsBrushData {
   CQChartsBrushData() = default;
 
   explicit CQChartsBrushData(bool visible, const QColor &color=QColor(),
-                             const Alpha &alpha=Alpha(), const FillPattern &pattern=FillPattern()) :
+                             const Alpha &alpha=Alpha(),
+                             const FillPattern &pattern=FillPattern::makeSolid()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 
@@ -314,7 +315,7 @@ void diamondPath(QPainterPath &path, const BBox &bbox);
 
 void trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &p3);
 
-void editHandlePath(QPainterPath &path, const BBox &bbox);
+void editHandlePath(PaintDevice *device, QPainterPath &path, const BBox &bbox);
 
 //---
 
@@ -379,9 +380,9 @@ void selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear=false)
 
 //---
 
-void cornerHandlePath(QPainterPath &path, const Point &p);
-void resizeHandlePath(QPainterPath &path, const Point &p);
-void extraHandlePath (QPainterPath &path, const Point &p);
+void cornerHandlePath(PaintDevice *device, QPainterPath &path, const Point &p);
+void resizeHandlePath(PaintDevice *device, QPainterPath &path, const Point &p);
+void extraHandlePath (PaintDevice *device, QPainterPath &path, const Point &p);
 
 //---
 

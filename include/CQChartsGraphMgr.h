@@ -580,8 +580,32 @@ class CQChartsGraphGraph : public CQChartsGraphNode {
   using Graph         = CQChartsGraphGraph;
   using Graphs        = std::vector<Graph *>;
   using Edge          = CQChartsGraphEdge;
-  using PosNodeMap    = std::map<double, Node *>;
-  using PosEdgeMap    = std::map<double, Edge *>;
+
+  struct NodePos {
+    double pos { 0.0 };
+    int    id  { -1 };
+
+    NodePos(double pos, int id) :
+     pos(pos), id(id) {
+    }
+
+    friend bool operator<(const NodePos &pos1, const NodePos &pos2) {
+      if (std::fabs(pos1.pos - pos2.pos) >= 1E-4)
+        return pos1.pos < pos2.pos;
+
+      return (pos1.id < pos2.id);
+    }
+
+    friend bool operator==(const NodePos &pos1, const NodePos &pos2) {
+      if (std::fabs(pos1.pos - pos2.pos) >= 1E-4)
+        return false;
+
+      return (pos1.id == pos2.id);
+    }
+  };
+
+  using PosNodeMap = std::map<NodePos, Node *>;
+  using PosEdgeMap = std::map<NodePos, Edge *>;
 
  public:
   CQChartsGraphGraph(GraphMgr *mgr, const QString &name);

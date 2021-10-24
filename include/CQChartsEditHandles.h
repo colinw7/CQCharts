@@ -8,8 +8,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsResizeHandle;
-
-class QPainter;
+class CQChartsPaintDevice;
 
 /*!
  * \brief object edit handles
@@ -30,6 +29,7 @@ class CQChartsEditHandles : public QObject {
   using BBox         = CQChartsGeom::BBox;
   using Point        = CQChartsGeom::Point;
   using Handle       = CQChartsResizeHandle;
+  using PaintDevice  = CQChartsPaintDevice;
   using ExtraHandles = std::vector<Handle *>;
   using ResizeSide   = CQChartsResizeSide;
 
@@ -107,7 +107,7 @@ class CQChartsEditHandles : public QObject {
 
   //---
 
-  void draw(QPainter *painter) const;
+  void draw(PaintDevice *device) const;
 
  signals:
   void extraHandleMoved(const QVariant &data, double dx, double dy);

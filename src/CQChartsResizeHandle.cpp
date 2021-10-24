@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <QPainter>
+#include <CQChartsPaintDevice.h>
 
 CQChartsResizeHandle::
 CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side) :
@@ -18,7 +18,7 @@ CQChartsResizeHandle(const CQChartsPlot *plot, CQChartsResizeSide side) :
 
 void
 CQChartsResizeHandle::
-draw(QPainter *painter) const
+draw(PaintDevice *device) const
 {
   // set pen and brush
   CQChartsPenBrush penBrush;
@@ -26,63 +26,71 @@ draw(QPainter *painter) const
   auto pc = strokeColor();
   auto bc = fillColor();
 
-  if (isSelected())
+  auto a = fillAlpha();
+
+  if (isSelected()) {
+  //bc = QColor(Qt::red);
     bc = CQChartsUtil::invColor(bc);
+    a  = CQChartsAlpha(1.0);
+  }
 
   if      (plot()) {
     plot()->setPen  (penBrush, CQChartsPenData(true, pc));
-    plot()->setBrush(penBrush, CQChartsBrushData(true, bc, fillAlpha()));
+    plot()->setBrush(penBrush, CQChartsBrushData(true, bc, a));
   }
   else if (view()) {
     view()->setPen  (penBrush, CQChartsPenData(true, pc));
-    view()->setBrush(penBrush, CQChartsBrushData(true, bc, fillAlpha()));
+    view()->setBrush(penBrush, CQChartsBrushData(true, bc, a));
   }
 
-  painter->setPen  (penBrush.pen);
-  painter->setBrush(penBrush.brush);
+  device->setPen  (penBrush.pen);
+  device->setBrush(penBrush.brush);
 
   //---
 
-  path_ = calcPath();
+  path_ = calcPath(device);
 
-  painter->drawPath(path_);
+  if (isSelected())
+    device->fillPath(path_, penBrush.brush);
+
+  device->drawPath(path_);
 }
 
 QPainterPath
 CQChartsResizeHandle::
-calcPath() const
+calcPath(PaintDevice *device) const
 {
   QPainterPath path;
 
   if      (side() == CQChartsResizeSide::MOVE) {
-    auto c = windowToPixel(bbox_.getCenter());
+    auto c = bbox_.getCenter();
 
-    CQChartsDrawUtil::resizeHandlePath(path, c);
+    CQChartsDrawUtil::resizeHandlePath(device, path, c);
   }
   else if (side() == CQChartsResizeSide::LL) {
-    auto ll = windowToPixel(bbox_.getLL());
+    auto ll = bbox_.getLL();
 
-    CQChartsDrawUtil::cornerHandlePath(path, ll);
+    CQChartsDrawUtil::cornerHandlePath(device, path, ll);
   }
   else if (side() == CQChartsResizeSide::LR) {
-    auto lr = windowToPixel(bbox_.getLR());
+    auto lr = bbox_.getLR();
 
-    CQChartsDrawUtil::cornerHandlePath(path, lr);
+    CQChartsDrawUtil::cornerHandlePath(device, path, lr);
   }
   else if (side() == CQChartsResizeSide::UL) {
-    auto ul = windowToPixel(bbox_.getUL());
+    auto ul = bbox_.getUL();
 
-    CQChartsDrawUtil::cornerHandlePath(path, ul);
+    CQChartsDrawUtil::cornerHandlePath(device, path, ul);
   }
   else if (side() == CQChartsResizeSide::UR) {
-    auto ur = windowToPixel(bbox_.getUR());
+    auto ur = bbox_.getUR();
 
-    CQChartsDrawUtil::cornerHandlePath(path, ur);
+    CQChartsDrawUtil::cornerHandlePath(device, path, ur);
   }
   else if (side() == CQChartsResizeSide::EXTRA) {
-    auto c = windowToPixel(bbox_.getCenter());
+    auto c = bbox_.getCenter();
 
-    CQChartsDrawUtil::extraHandlePath(path, c);
+    CQChartsDrawUtil::extraHandlePath(device, path, c);
   }
   else {
     assert(false);
@@ -109,16 +117,5 @@ bool
 CQChartsResizeHandle::
 inside(const Point &w) const
 {
-  auto p = windowToPixel(w);
-
-  return path_.contains(p.qpoint());
-}
-
-CQChartsGeom::Point
-CQChartsResizeHandle::
-windowToPixel(const Point &p) const
-{
-  if (view_) return view_->windowToPixel(p);
-  if (plot_) return plot_->windowToPixel(p);
-  return p;
+  return path_.contains(w.qpoint());
 }

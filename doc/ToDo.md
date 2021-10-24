@@ -4,12 +4,22 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ . use invisible edges for graph placement
+ . layout algrithms
+   . https://en.wikipedia.org/wiki/Graph_drawing
+   . connectivity
+   . spring
+   . crossings
+   . symmetry
+   . edge complexity (curves)
+   . angular resolution
+   . spectral layout (adjaceny matrix)
+ + text on side
  + alpha edit use percent slider
  + common code for bubble/hier bubble
  + remove box objs for plot properties
  + symbol line join, left to right (top/bottom to bottom/top depending on previous dir)
  + more plot controls
- + Scatter Plot controls include label visible
  + Strip plot key
  + Pie plot grouping average or sum
  + Optional draw key in custom controls for all plots

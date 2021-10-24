@@ -59,7 +59,7 @@ editHandles() const
 
 void
 CQChartsViewPlotObj::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   assert(view()->mode() == View::Mode::EDIT && isSelected());
 
@@ -68,7 +68,7 @@ drawEditHandles(QPainter *painter) const
 
   setEditHandlesBBox();
 
-  editHandles()->draw(painter);
+  editHandles()->draw(device);
 }
 
 void

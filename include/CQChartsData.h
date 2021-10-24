@@ -265,7 +265,7 @@ class CQChartsFillData {
   }
 
   explicit CQChartsFillData(bool visible, const Color &color=Color(), const Alpha &alpha=Alpha(),
-                            const FillPattern &pattern=FillPattern()) :
+                            const FillPattern &pattern=FillPattern::makeSolid()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 

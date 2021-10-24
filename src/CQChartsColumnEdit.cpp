@@ -435,13 +435,26 @@ void
 CQChartsColumnEdit::
 setModelData(const CQChartsModelData *modelData)
 {
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
+
   modelData_ = modelData;
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
   updateColumnsFromModel();
 
   columnToWidgets();
 
   updateState();
+}
+
+void
+CQChartsColumnEdit::
+resetModelData()
+{
+  modelData_ = nullptr;
 }
 
 const CQChartsColumn &

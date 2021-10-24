@@ -1,0 +1,3 @@
+From,To,Attributes
+node_A,,"label='shape=record|{above|middle|below}|right',shape=record"
+node_B,,"label='shape=plaintext|{curly|braces and|bars without}|effect',shape=plaintext"

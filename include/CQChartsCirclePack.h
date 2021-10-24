@@ -2,14 +2,15 @@
 #define CQChartsCirclePack_H
 
 #include <CQChartsEnclosingCircle.h>
+#include <CMathGeom2D.h>
 #include <COSNaN.h>
-#include <cassert>
 
 #include <set>
 #include <map>
 #include <vector>
 #include <cmath>
 #include <sys/types.h>
+#include <cassert>
 
 /*!
  * \brief Circle Pack Node
@@ -216,7 +217,7 @@ class CQChartsCirclePack {
   }
 
   double calcAtan(double dy, double dx) const {
-    double a = atan2(dy, dx);
+    double a = std::atan2(dy, dx);
 
     if (a < 0) a = 2*M_PI - a;
 
@@ -260,6 +261,9 @@ class CQChartsCirclePack {
   static bool CircleCircleIntersect(double x1, double y1, double r1,
                                     double x2, double y2, double r2,
                                     double *xi1, double *yi1, double *xi2, double *yi2) {
+#if 1
+    return CMathGeom2D::CircleCircleIntersect(x1, y1, r1, x2, y2, r2, xi1, yi1, xi2, yi2);
+#else
     // distance between circle centers
     double dx = x2 - x1;
     double dy = y2 - y1;
@@ -301,6 +305,7 @@ class CQChartsCirclePack {
            ! COSNaN::is_nan(*xi2) && ! COSNaN::is_nan(*yi2));
 
     return true;
+#endif
   }
 
   static bool realEq(double r1, double r2) {

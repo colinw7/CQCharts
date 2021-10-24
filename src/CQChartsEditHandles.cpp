@@ -3,7 +3,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsEnv.h>
-#include <QPainter>
+#include <CQChartsPaintDevice.h>
 
 CQChartsEditHandles::
 CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode) :
@@ -166,7 +166,7 @@ updateBBox(double dx, double dy)
 
 void
 CQChartsEditHandles::
-draw(QPainter *painter) const
+draw(PaintDevice *device) const
 {
   QPen pen(Qt::black);
 
@@ -182,13 +182,13 @@ draw(QPainter *painter) const
 
   QPainterPath path;
 
-  CQChartsDrawUtil::editHandlePath(path, pbbox);
+  CQChartsDrawUtil::editHandlePath(device, path, pbbox);
 
-  painter->strokePath(path, pen);
+  device->strokePath(path, pen);
 
   //---
 
-  moveHandle_->setBBox(bbox_); moveHandle_->draw(painter);
+  moveHandle_->setBBox(bbox_); moveHandle_->draw(device);
 
   if (mode() == Mode::RESIZE) {
     for (const auto &pc : cornerHandles_) {
@@ -196,18 +196,18 @@ draw(QPainter *painter) const
 
       cornerHandle->setBBox(bbox_);
 
-      cornerHandle->draw(painter);
+      cornerHandle->draw(device);
     }
   }
 
   for (auto &handle : extraHandles_) {
-    handle->draw(painter);
+    handle->draw(device);
   }
 
   if (CQChartsEnv::getBool("CQ_CHARTS_DRAW_EDIT_HANDLE_BOX", false)) {
-    painter->setPen(Qt::red);
-    painter->setBrush(Qt::NoBrush);
+    device->setPen(QColor(Qt::red));
+    device->setBrush(Qt::NoBrush);
 
-    painter->drawRect(pbbox.qrect());
+    device->drawRect(pbbox);
   }
 }

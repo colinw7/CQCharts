@@ -1,0 +1,8 @@
+From,To,Attributes
+A,,"shape=diamond"
+A,B,"shape=arrow"
+A,C,"shape=arrow"
+A,D,"arrowhead=none,shape=arrow"
+B,,"shape=box"
+C,,"shape=circle"
+D,,"shape=circle"

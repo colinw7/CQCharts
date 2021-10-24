@@ -31,6 +31,8 @@ class CQChartsColumnNumLineEdit : public QFrame {
   void columnChanged();
 
  private slots:
+  void resetModelData();
+
   void columnComboChanged();
 
  private:

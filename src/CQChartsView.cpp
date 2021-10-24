@@ -4149,6 +4149,9 @@ resizeEvent(QResizeEvent *)
     if (sizeData_.hbar) sizeData_.hbar->setVisible(false);
     if (sizeData_.vbar) sizeData_.vbar->setVisible(false);
 
+    invalidateObjects();
+    invalidateOverlay();
+
     doResize(w, h);
   }
   else {
@@ -4200,6 +4203,9 @@ resizeEvent(QResizeEvent *)
       sizeData_.vbar->setRange(0, sizeData_.height - h);
       sizeData_.vbar->setPageStep(h);
     }
+
+    invalidateObjects();
+    invalidateOverlay();
 
     // needed if size not changed ?
     doResize(sizeData_.width, sizeData_.height);
@@ -4818,11 +4824,8 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
 
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
-        if (device->isInteractive()) {
-          auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-
-          annotation->drawEditHandles(painter->painter());
-        }
+        if (device->isInteractive())
+          annotation->drawEditHandles(device);
     }
   }
 }
@@ -4848,11 +4851,8 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
 
   if (layerType == CQChartsLayer::Type::SELECTION) {
     if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
-      if (device->isInteractive()) {
-        auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-
-        key()->drawEditHandles(painter->painter());
-      }
+      if (device->isInteractive())
+        key()->drawEditHandles(device);
     }
   }
 }

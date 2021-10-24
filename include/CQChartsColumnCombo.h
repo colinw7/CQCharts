@@ -48,6 +48,8 @@ class CQChartsColumnCombo : public QComboBox {
   void columnChanged();
 
  private slots:
+  void resetModelData();
+
   void updateItems();
 
  private:

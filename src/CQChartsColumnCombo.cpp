@@ -97,7 +97,17 @@ connectSlots(bool b)
       modelData, SIGNAL(modelChanged()), this, SLOT(updateItems()));
     CQChartsWidgetUtil::connectDisconnect(b,
       modelData, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
+
+    CQChartsWidgetUtil::connectDisconnect(b,
+      modelData, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
   }
+}
+
+void
+CQChartsColumnCombo::
+resetModelData()
+{
+  modelData_ = nullptr;
 }
 
 void

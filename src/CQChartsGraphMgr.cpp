@@ -291,6 +291,8 @@ placeNodes(const Nodes &nodes) const
 {
   auto *th = const_cast<CQChartsGraphGraph *>(this);
 
+  //---
+
   // set max depth of all graph nodes
   updateMaxDepth(nodes);
 
@@ -392,8 +394,8 @@ calcXPos(Node *node) const
     xpos = node->depth();
   }
   else {
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
+    int srcDepth  = node->srcDepth (); // min depth of previous nodes
+    int destDepth = node->destDepth(); // max depth of subsequent nodes
 
     if      (srcDepth == 0)
       xpos = 0;
@@ -451,7 +453,7 @@ calcValueMarginScale()
 
   // calc value margin/scale
   setValueMargin(maxHeight() > 1.0 ? boxSize1/(maxHeight() - 1) : 0.0);
-  setValueScale (maxHeight() > 0.0 ? boxSize2/ totalSize()      : 1.0);
+  setValueScale (totalSize() > 0.0 ? boxSize2/ totalSize()      : 1.0);
 }
 
 double
@@ -530,7 +532,7 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
 
   //---
 
-  // calc tip (placing top to bottom)
+  // calc top (placing top to bottom)
   double y1 = bbox_.getYMax() - (ys - height)/2.0;
 
   //---
@@ -963,15 +965,12 @@ createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const
     // use distance from top (decreasing)
     double y = bbox_.getYMax() - rect.getYMid();
 
-    auto p = posNodeMap.find(y);
+    NodePos pos(y, node->id());
 
-    while (p != posNodeMap.end()) {
-      y -= 0.001;
+    auto p = posNodeMap.find(pos);
+    assert(p == posNodeMap.end());
 
-      p = posNodeMap.find(y);
-    }
-
-    posNodeMap[y] = node;
+    posNodeMap[pos] = node;
   }
 }
 
@@ -989,15 +988,12 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     // use distance from top (decreasing)
     double y = bbox_.getYMax() - rect.getYMid();
 
-    auto p = posEdgeMap.find(y);
+    NodePos pos(y, edge->id());
 
-    while (p != posEdgeMap.end()) {
-      y -= 0.001;
+    auto p = posEdgeMap.find(pos);
+    assert(p == posEdgeMap.end());
 
-      p = posEdgeMap.find(y);
-    }
-
-    posEdgeMap[y] = edge;
+    posEdgeMap[pos] = edge;
   }
 }
 

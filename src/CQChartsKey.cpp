@@ -565,13 +565,13 @@ draw(PaintDevice *device) const
 
 void
 CQChartsViewKey::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
   setEditHandlesBBox();
 
-  editHandles()->draw(painter);
+  editHandles()->draw(device);
 }
 
 void
@@ -2100,13 +2100,13 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsPlotKey::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
   setEditHandlesBBox();
 
-  editHandles()->draw(painter);
+  editHandles()->draw(device);
 }
 
 void

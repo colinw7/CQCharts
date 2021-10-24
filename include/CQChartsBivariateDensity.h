@@ -5,7 +5,10 @@
 #include <vector>
 
 class CQChartsPlot;
+class CQChartsAlpha;
+class CQChartsFillPattern;
 class CQChartsPaintDevice;
+
 class CMathBivariate;
 
 /*!
@@ -15,6 +18,8 @@ class CMathBivariate;
 class CQChartsBivariateDensity {
  public:
   using Plot        = CQChartsPlot;
+  using Alpha       = CQChartsAlpha;
+  using FillPattern = CQChartsFillPattern;
   using PaintDevice = CQChartsPaintDevice;
   using Point       = CQChartsGeom::Point;
   using Values      = std::vector<Point>;

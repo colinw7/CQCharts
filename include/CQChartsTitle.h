@@ -11,7 +11,6 @@
 class CQChartsPlot;
 class CQPropertyViewModel;
 class CQChartsPaintDevice;
-class QPainter;
 
 /*!
  * \brief Title Object

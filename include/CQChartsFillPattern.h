@@ -58,6 +58,9 @@ class CQChartsFillPattern :
   using Angle       = CQChartsAngle;
 
  public:
+  static CQChartsFillPattern makeSolid() { return CQChartsFillPattern(Type::SOLID); }
+
+ public:
   CQChartsFillPattern() { }
 
   explicit CQChartsFillPattern(Type type) :

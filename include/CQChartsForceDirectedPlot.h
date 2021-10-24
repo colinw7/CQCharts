@@ -47,47 +47,6 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 //---
 
 /*!
- * \brief Spring Node Customization
- * \ingroup Charts
- */
-class CQChartsSpringyNode : public Springy::Node {
- public:
-  using OptReal = CQChartsOptReal;
-
- public:
-  explicit CQChartsSpringyNode(int id) :
-   Springy::Node(id) {
-  }
-
-  int group() const { return group_; }
-  void setGroup(int i) { group_ = i; }
-
-  const OptReal &nodeValue() const { return nodeValue_; }
-  void setNodeValue(const OptReal &v) { nodeValue_ = v; }
-
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
-
- private:
-  int         group_ { -1 };
-  OptReal     nodeValue_;
-  QModelIndex ind_;
-};
-
-/*!
- * \brief Spring Edge Customization
- * \ingroup Charts
- */
-class CQChartsSpringyEdge : public Springy::Edge {
- public:
-  CQChartsSpringyEdge(int id, Springy::Node *node1, Springy::Node *node2) :
-   Springy::Edge(id, node1, node2) {
-  }
-};
-
-//---
-
-/*!
  * \brief Force Directed Plot
  * \ingroup Charts
  */
@@ -96,18 +55,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeLineData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
-  // options
-  Q_PROPERTY(bool   running      READ isRunning    WRITE setRunning     )
-  Q_PROPERTY(double nodeRadius   READ nodeRadius   WRITE setNodeRadius  )
-  Q_PROPERTY(bool   nodeScaled   READ isNodeScaled WRITE setNodeScaled  )
-  Q_PROPERTY(double rangeSize    READ rangeSize    WRITE setRangeSize   )
-  Q_PROPERTY(double maxLineWidth READ maxLineWidth WRITE setMaxLineWidth)
+  // control
+  Q_PROPERTY(bool   running   READ isRunning WRITE setRunning  )
+  Q_PROPERTY(double rangeSize READ rangeSize WRITE setRangeSize)
+
+  // node
+  Q_PROPERTY(double nodeRadius   READ nodeRadius   WRITE setNodeRadius)
+  Q_PROPERTY(bool   nodeScaled   READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(bool   nodeLabel    READ isNodeLabel  WRITE setNodeLabel )
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
 
   // edge line
-  Q_PROPERTY(bool edgeLinesValueWidth READ isEdgeLinesValueWidth WRITE setEdgeLinesValueWidth)
+  Q_PROPERTY(bool   edgeLinesValueWidth READ isEdgeLinesValueWidth WRITE setEdgeLinesValueWidth)
+  Q_PROPERTY(double maxLineWidth        READ maxLineWidth          WRITE setMaxLineWidth)
 
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
 
@@ -139,27 +101,35 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //----
 
-  // get/set is placement running
+  //! get/set is placement running
   bool isRunning() const { return running_; }
   void setRunning(bool b);
 
-  // get/set node size (radius)
-  double nodeRadius() const { return nodeRadius_; }
-  void setNodeRadius(double r);
-
-  // get/set node scaled
-  bool isNodeScaled() const { return nodeScaled_; }
-  void setNodeScaled(bool b);
-
-  // get/set use edge value for width
-  bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
-  void setEdgeLinesValueWidth(bool b);
-
-  // get/set range size
+  //! get/set range size
   double rangeSize() const { return rangeSize_; }
   void setRangeSize(double r);
 
-  // get/set max line width
+  //----
+
+  //! get/set node size (radius)
+  double nodeRadius() const { return nodeRadius_; }
+  void setNodeRadius(double r);
+
+  //! get/set node scaled
+  bool isNodeScaled() const { return nodeScaled_; }
+  void setNodeScaled(bool b);
+
+  //! get/set node label
+  bool isNodeLabel() const { return nodeLabel_; }
+  void setNodeLabel(bool b);
+
+  //---
+
+  //! get/set use edge value for width
+  bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
+  void setEdgeLinesValueWidth(bool b);
+
+  //! get/set max line width
   double maxLineWidth() const { return maxLineWidth_; }
   void setMaxLineWidth(double r);
 
@@ -330,6 +300,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double       stepSize_            { 0.01 };  //!< step size
   mutable bool stepInit_            { false }; //!< have initial steps been run
   double       maxLineWidth_        { 8.0 };   //!< max line width
+  bool         nodeLabel_           { false }; //!< max line width
 
   // data
   IdConnectionsData idConnections_;              //!< id connections

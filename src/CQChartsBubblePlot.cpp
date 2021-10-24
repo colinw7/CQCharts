@@ -12,7 +12,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 #include <QAction>
 

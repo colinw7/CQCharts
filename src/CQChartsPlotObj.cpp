@@ -327,13 +327,13 @@ draw(PaintDevice *) const
 
 void
 CQChartsPlotObj::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
   setEditHandlesBBox();
 
-  editHandles()->draw(painter);
+  editHandles()->draw(device);
 }
 
 void

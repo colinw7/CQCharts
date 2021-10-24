@@ -10,7 +10,7 @@
 
 class CQChartsView;
 class CQChartsPlot;
-class QPainter;
+class CQChartsPaintDevice;
 
 /*!
  * \brief edit object resize handle
@@ -24,12 +24,13 @@ class CQChartsResizeHandle : QObject {
   Q_PROPERTY(QColor        strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
-  using View       = CQChartsView;
-  using Plot       = CQChartsPlot;
-  using ResizeSide = CQChartsResizeSide;
-  using Alpha      = CQChartsAlpha;
-  using Point      = CQChartsGeom::Point;
-  using BBox       = CQChartsGeom::BBox;
+  using View        = CQChartsView;
+  using Plot        = CQChartsPlot;
+  using ResizeSide  = CQChartsResizeSide;
+  using Alpha       = CQChartsAlpha;
+  using PaintDevice = CQChartsPaintDevice;
+  using Point       = CQChartsGeom::Point;
+  using BBox        = CQChartsGeom::BBox;
 
  public:
   CQChartsResizeHandle() = default;
@@ -70,9 +71,9 @@ class CQChartsResizeHandle : QObject {
 
   //---
 
-  virtual void draw(QPainter *painter) const;
+  virtual void draw(PaintDevice *device) const;
 
-  virtual QPainterPath calcPath() const;
+  virtual QPainterPath calcPath(PaintDevice *device) const;
 
   //---
 

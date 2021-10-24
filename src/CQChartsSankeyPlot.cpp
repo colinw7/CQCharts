@@ -1771,19 +1771,19 @@ double
 CQChartsSankeyPlot::
 calcNodeMargin() const
 {
-  double nodeMargin = (isHorizontal() ?
-    lengthPlotHeight(this->nodeMargin()) : lengthPlotWidth(this->nodeMargin()));
+  double nodeMargin = (isHorizontal() ? lengthPlotHeight(this->nodeMargin()) :
+                                        lengthPlotWidth (this->nodeMargin()));
 
   nodeMargin = std::min(std::max(nodeMargin, 0.0), 1.0);
 
   // get pixel margin perp to position axis
-  auto pixelNodeMargin = (isHorizontal() ?
-    windowToPixelHeight(nodeMargin) : windowToPixelWidth(nodeMargin));
+  auto pixelNodeMargin = (isHorizontal() ? windowToPixelHeight(nodeMargin) :
+                                           windowToPixelWidth (nodeMargin));
 
   // stop margin from being too small
   if (pixelNodeMargin < minNodeMargin())
-    nodeMargin = (isHorizontal() ?
-      pixelToWindowHeight(minNodeMargin()) : pixelToWindowWidth(minNodeMargin()));
+    nodeMargin = (isHorizontal() ? pixelToWindowHeight(minNodeMargin()) :
+                                   pixelToWindowWidth (minNodeMargin()));
 
   return nodeMargin;
 }
@@ -1813,8 +1813,8 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   int minPos = this->minPos();
   int maxPos = this->maxPos();
 
-  double posMargin = (isHorizontal() ?
-    lengthPlotWidth(nodeWidth()) : lengthPlotHeight(nodeWidth()));
+  double posMargin = (isHorizontal() ? lengthPlotWidth (nodeWidth()) :
+                                       lengthPlotHeight(nodeWidth()));
 
   //---
 
@@ -2389,8 +2389,8 @@ bool
 CQChartsSankeyPlot::
 removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) const
 {
-  double perpMargin = (isHorizontal() ?
-    pixelToWindowHeight(minNodeMargin()) : pixelToWindowWidth(minNodeMargin()));
+  double perpMargin = (isHorizontal() ? pixelToWindowHeight(minNodeMargin()) :
+                                        pixelToWindowWidth (minNodeMargin()));
 
   //---
 

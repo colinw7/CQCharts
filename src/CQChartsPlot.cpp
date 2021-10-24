@@ -408,9 +408,13 @@ void
 CQChartsPlot::
 stopAnimateTimer()
 {
-  delete animateData_.timer;
+  if (animateData_.timer) {
+    animateData_.timer->moveToThread(this->thread());
 
-  animateData_.timer = nullptr;
+    animateData_.timer->stop();
+
+    //delete animateData_.timer; animateData_.timer = nullptr;
+  }
 }
 
 void
@@ -11979,11 +11983,8 @@ drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) co
 
   // draw edit handles last
   if (overlayParts.editHandles) {
-    if (device->isInteractive()) {
-      auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-
-      drawGroupedEditHandles(viewPlotDevice->painter());
-    }
+    if (device->isInteractive())
+      drawGroupedEditHandles(device);
   }
 }
 
@@ -13375,7 +13376,7 @@ hasGroupedEditHandles() const
 
 void
 CQChartsPlot::
-drawGroupedEditHandles(QPainter *painter) const
+drawGroupedEditHandles(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedEditHandles");
 
@@ -13385,11 +13386,11 @@ drawGroupedEditHandles(QPainter *painter) const
       return;
 
     processOverlayPlots([&](const Plot *plot) {
-      plot->drawEditHandles(painter);
+      plot->drawEditHandles(device);
     });
   }
   else {
-    drawEditHandles(painter);
+    drawEditHandles(device);
   }
 }
 
@@ -13462,43 +13463,43 @@ hasEditHandles() const
 
 void
 CQChartsPlot::
-drawEditHandles(QPainter *painter) const
+drawEditHandles(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawEditHandles");
 
   if      (isEditable() && isSelected()) {
     const_cast<Plot *>(this)->editHandles()->setBBox(this->calcViewBBox());
 
-    editHandles()->draw(painter);
+    editHandles()->draw(device);
   }
 
   if (title() && title()->isEditable() && title()->isSelected())
-    title()->drawEditHandles(painter);
+    title()->drawEditHandles(device);
 
   auto *key1 = getFirstPlotKey();
 
   if (key1 && key1->isEditable() && key1->isSelected())
-    key1->drawEditHandles(painter);
+    key1->drawEditHandles(device);
 
   for (const auto *mapKey : mapKeys_) {
     if (mapKey->isVisible() && mapKey->isEditable() && mapKey->isSelected())
-      mapKey->drawEditHandles(painter);
+      mapKey->drawEditHandles(device);
   }
 
   if (xAxis() && xAxis()->isEditable() && xAxis()->isSelected())
-    xAxis()->drawEditHandles(painter);
+    xAxis()->drawEditHandles(device);
 
   if (yAxis() && yAxis()->isEditable() && yAxis()->isSelected())
-    yAxis()->drawEditHandles(painter);
+    yAxis()->drawEditHandles(device);
 
   for (const auto &annotation : annotations()) {
     if (annotation->isVisible() && annotation->isEditable() && annotation->isSelected())
-      annotation->drawEditHandles(painter);
+      annotation->drawEditHandles(device);
   }
 
   for (auto &plotObj : plotObjects()) {
     if (plotObj->isEditable() && plotObj->isSelected())
-      plotObj->drawEditHandles(painter);
+      plotObj->drawEditHandles(device);
   }
 }
 

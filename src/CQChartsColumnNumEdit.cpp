@@ -44,11 +44,24 @@ CQChartsColumnNumLineEdit::
 setModelData(CQChartsModelData *modelData)
 {
   if (modelData != modelData_) {
+    if (modelData_)
+      disconnect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
+
     modelData_ = modelData;
+
+    if (modelData_)
+      connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
     if (modelData_)
       combo_->setModel(modelData->model().data());
   }
+}
+
+void
+CQChartsColumnNumLineEdit::
+resetModelData()
+{
+  modelData_ = nullptr;
 }
 
 const CQChartsColumnNum &

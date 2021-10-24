@@ -875,7 +875,7 @@ trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &
 //---
 
 void
-editHandlePath(QPainterPath &path, const BBox &bbox)
+editHandlePath(PaintDevice *, QPainterPath &path, const BBox &bbox)
 {
   path = QPainterPath();
 
@@ -1547,40 +1547,44 @@ selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear)
 //---
 
 void
-cornerHandlePath(QPainterPath &path, const Point &p)
+cornerHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
-  double s = 16;
+  double sx = device->pixelToWindowWidth (16);
+  double sy = device->pixelToWindowHeight(16);
 
-  path.addEllipse(p.x - s/2, p.y - s/2, s, s);
+  path.addEllipse(p.x - sx/2, p.y - sy/2, sx, sy);
 }
 
 void
-resizeHandlePath(QPainterPath &path, const Point &p)
+resizeHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
-  double ms1 = 12;
-  double ms2 = 4;
+  double msx1 = device->pixelToWindowWidth (12);
+  double msy1 = device->pixelToWindowHeight(12);
+  double msx2 = device->pixelToWindowWidth (4);
+  double msy2 = device->pixelToWindowHeight(4);
 
-  path.moveTo(p.x - ms1, p.y      );
-  path.lineTo(p.x - ms2, p.y + ms2);
-  path.lineTo(p.x      , p.y + ms1);
-  path.lineTo(p.x + ms2, p.y + ms2);
-  path.lineTo(p.x + ms1, p.y      );
-  path.lineTo(p.x + ms2, p.y - ms2);
-  path.lineTo(p.x      , p.y - ms1);
-  path.lineTo(p.x - ms2, p.y - ms2);
+  path.moveTo(p.x - msx1, p.y       );
+  path.lineTo(p.x - msx2, p.y + msy2);
+  path.lineTo(p.x       , p.y + msy1);
+  path.lineTo(p.x + msx2, p.y + msy2);
+  path.lineTo(p.x + msx1, p.y       );
+  path.lineTo(p.x + msx2, p.y - msy2);
+  path.lineTo(p.x       , p.y - msy1);
+  path.lineTo(p.x - msx2, p.y - msy2);
 
   path.closeSubpath();
 }
 
 void
-extraHandlePath(QPainterPath &path, const Point &p)
+extraHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
-  double s = 16;
+  double sx = device->pixelToWindowWidth (16);
+  double sy = device->pixelToWindowHeight(16);
 
-  path.moveTo(QPointF(p.x - s/2, p.y - s/2));
-  path.lineTo(QPointF(p.x + s/2, p.y - s/2));
-  path.lineTo(QPointF(p.x + s/2, p.y + s/2));
-  path.lineTo(QPointF(p.x - s/2, p.y + s/2));
+  path.moveTo(QPointF(p.x - sx/2, p.y - sy/2));
+  path.lineTo(QPointF(p.x + sx/2, p.y - sy/2));
+  path.lineTo(QPointF(p.x + sx/2, p.y + sy/2));
+  path.lineTo(QPointF(p.x - sx/2, p.y + sy/2));
 
   path.closeSubpath();
 }

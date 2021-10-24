@@ -190,6 +190,7 @@ class CQChartsEditableIFace {
  public:
   using EditHandles = CQChartsEditHandles;
   using ResizeSide  = CQChartsResizeSide;
+  using PaintDevice = CQChartsPaintDevice;
   using BBox        = CQChartsGeom::BBox;
   using Point       = CQChartsGeom::Point;
 
@@ -214,7 +215,7 @@ class CQChartsEditableIFace {
   virtual bool isEditResize() const { return false; }
 
   //! draw
-  virtual void drawEditHandles(QPainter *painter) const = 0;
+  virtual void drawEditHandles(PaintDevice *device) const = 0;
 };
 
 #endif

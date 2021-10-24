@@ -417,7 +417,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (alpha() != Alpha())
     nameValues.setNameValue("fillAlpha", alpha().value());
 
-  if (pattern() != CQChartsFillPattern(CQChartsFillPattern::Type::SOLID))
+  if (pattern() != CQChartsFillPattern::makeSolid())
     nameValues.setNameValueType<CQChartsFillPattern>("fillPattern", pattern());
 }
 

@@ -203,7 +203,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &p,
-                     const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
+                     const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                     const ColorInd &iv);
 
  ~CQChartsXYPointObj();
 
@@ -954,7 +955,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //---
 
   virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
-                                   const ColorInd &is, const ColorInd &ig,
+                                   const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
   virtual BiLineObj *createBiLineObj(int groupInd, const BBox &rect, double x, double y1,

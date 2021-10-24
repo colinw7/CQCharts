@@ -2681,11 +2681,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool hasGroupedEditHandles() const;
 
-  virtual void drawGroupedEditHandles(QPainter *painter) const;
+  virtual void drawGroupedEditHandles(PaintDevice *device) const;
 
   virtual bool hasEditHandles() const;
 
-  void drawEditHandles(QPainter *painter) const override;
+  void drawEditHandles(PaintDevice *device) const override;
 
   //---
 

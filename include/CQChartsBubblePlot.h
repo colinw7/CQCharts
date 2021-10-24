@@ -30,7 +30,6 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
   bool customYRange() const override { return false; }
 
   bool hasAxes() const override { return false; }
-  bool hasKey () const override { return false; }
 
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }

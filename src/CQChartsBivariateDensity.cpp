@@ -118,7 +118,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     plot->setPenBrush(penBrush,
       CQChartsPenData  (false),
-      CQChartsBrushData(true, c, CQChartsAlpha(cell.alpha), CQChartsFillPattern()));
+      CQChartsBrushData(true, c, Alpha(cell.alpha), FillPattern::makeSolid()));
 
     //---
 

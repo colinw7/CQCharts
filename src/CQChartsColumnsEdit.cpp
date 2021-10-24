@@ -483,7 +483,13 @@ setModelData(CQChartsModelData *modelData)
 {
   connectSlots(false);
 
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
+
   modelData_ = modelData;
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
   if (isBasic_) {
     int ne = columnCombos_.size();
@@ -499,6 +505,13 @@ setModelData(CQChartsModelData *modelData)
   }
 
   connectSlots(true);
+}
+
+void
+CQChartsColumnsEdit::
+resetModelData()
+{
+  modelData_ = nullptr;
 }
 
 const CQChartsColumns &
