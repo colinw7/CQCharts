@@ -83,7 +83,9 @@ unix:LIBS += \
 -L../../CCsv/lib \
 -L../../CXML/lib \
 -L../../CQPerfMonitor/lib \
+-L../../CQDot/lib \
 -L../../CConfig/lib \
+-L../../CCommand/lib \
 -L../../CImageLib/lib \
 -L../../CFont/lib \
 -L../../CMath/lib \
@@ -95,8 +97,8 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQModelView -lCQBaseModel -lCQColors \
--lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCJson -lCCsv \
--lCXML -lCConfig -lCImageLib -lCFont -lCMath \
+-lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCQDot -lCJson -lCCsv \
+-lCXML -lCCommand -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
 -lCUtil -lCStrUtil -lCOS \
--lreadline -lpng -ljpeg -ltre -ltcl
+-lreadline -lpng -ljpeg -ltre -ltcl -lcurses

@@ -39,7 +39,10 @@ class CQChartsSpringyNode : public Springy::Node {
  */
 class CQChartsSpringyEdge : public Springy::Edge {
  public:
-  CQChartsSpringyEdge(int id, Springy::Node *node1=nullptr, Springy::Node *node2=nullptr) :
+  using NodeP = Springy::NodeP;
+
+ public:
+  CQChartsSpringyEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
    Springy::Edge(id, node1, node2) {
   }
 };
@@ -54,12 +57,12 @@ class CQChartsSpringyGraph : public Springy::Graph {
    Springy::Graph() {
   }
 
-  Springy::Node *makeNode() const override {
-    return new CQChartsSpringyNode(++nextNodeId_);
+  Springy::NodeP makeNode() const override {
+    return Springy::NodeP(new CQChartsSpringyNode(++nextNodeId_));
   }
 
-  Springy::Edge *makeEdge() const override {
-    return new CQChartsSpringyEdge(++nextEdgeId_);
+  Springy::EdgeP makeEdge() const override {
+    return Springy::EdgeP(new CQChartsSpringyEdge(++nextEdgeId_));
   }
 };
 
@@ -71,8 +74,8 @@ class CQChartsForceDirected : public CForceDirected {
    CForceDirected() {
   }
 
-  Springy::Graph *makeGraph() const override {
-    return new CQChartsSpringyGraph;
+  Springy::GraphP makeGraph() const override {
+    return Springy::GraphP(new CQChartsSpringyGraph);
   }
 };
 

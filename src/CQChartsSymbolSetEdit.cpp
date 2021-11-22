@@ -4,7 +4,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsObjUtil.h>
 
-#include <CQPropertyView.h>
+//#include <CQPropertyView.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
@@ -102,6 +102,7 @@ comboChanged()
 
 //------
 
+#if 0
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
 
@@ -132,9 +133,11 @@ tip(const QVariant &value) const
 
   return str;
 }
+#endif
 
 //------
 
+#if 0
 CQChartsSymbolSetPropertyViewEditor::
 CQChartsSymbolSetPropertyViewEditor()
 {
@@ -156,8 +159,8 @@ createEdit(QWidget *parent)
 
   auto *edit = new CQChartsSymbolSetEdit(parent);
 
-  if (objData.plot)
-    edit->setCharts(objData.plot->charts());
+  if (objData.charts)
+    edit->setCharts(objData.charts);
 
   return edit;
 }
@@ -193,3 +196,4 @@ setValue(QWidget *w, const QVariant &var)
 
   edit->setSymbolSetName(name);
 }
+#endif

@@ -1,5 +1,8 @@
 #include <CQChartsGraphMgr.h>
 #include <CQChartsPlot.h>
+#include <CQChartsRand.h>
+
+#include <CMathRound.h>
 
 #include <cassert>
 
@@ -102,21 +105,28 @@ CQChartsGraphMgr::Node *
 CQChartsGraphMgr::
 addNode(const QString &name) const
 {
-  auto *th = const_cast<CQChartsGraphMgr *>(this);
-
   auto *node = createNode(name);
-
-  node->setId(nameNodeMap_.size());
-
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
-
-  assert(node == (*p1).second);
-
-  th->indNodeMap_[node->id()] = node;
 
   node->setName(name);
 
+  addNode(node);
+
   return node;
+}
+
+void
+CQChartsGraphMgr::
+addNode(Node *node) const
+{
+  auto *th = const_cast<CQChartsGraphMgr *>(this);
+
+  node->setId(nameNodeMap_.size());
+
+  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(),
+              NameNodeMap::value_type(node->str(), node));
+  assert(node == (*p1).second);
+
+  th->indNodeMap_[node->id()] = node;
 }
 
 CQChartsGraphMgr::Node *
@@ -134,15 +144,22 @@ addEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
   assert(srcNode && destNode);
 
-  auto *th = const_cast<CQChartsGraphMgr *>(this);
-
   auto *edge = createEdge(value, srcNode, destNode);
+
+  addEdge(edge);
+
+  return edge;
+}
+
+void
+CQChartsGraphMgr::
+addEdge(Edge *edge) const
+{
+  auto *th = const_cast<CQChartsGraphMgr *>(this);
 
   th->edges_.push_back(edge);
 
   edge->setId(th->edges_.size());
-
-  return edge;
 }
 
 CQChartsGraphMgr::Edge *
@@ -158,11 +175,8 @@ void
 CQChartsGraphMgr::
 clearNodesAndEdges()
 {
-  for (const auto &pn : nameNodeMap_) {
-    auto *node = pn.second;
-
-    delete node;
-  }
+  for (const auto &pn : nameNodeMap_)
+    delete pn.second;
 
   nameNodeMap_.clear();
   indNodeMap_ .clear();
@@ -298,12 +312,12 @@ placeNodes(const Nodes &nodes) const
 
   //---
 
-  // place graph nodes at x position
+  // place graph nodes at each position
   for (const auto &node : nodes) {
-    int xpos = calcXPos(node);
+    int pos = calcPos(node);
 
-    th->addDepthSize(xpos, node->edgeSum());
-    th->addDepthNode(xpos, node);
+    th->addDepthSize(pos, node->edgeSum());
+    th->addDepthNode(pos, node);
   }
 
   //---
@@ -316,18 +330,18 @@ placeNodes(const Nodes &nodes) const
     const auto &nodes = depthNodes.second.nodes;
     double      size  = depthNodes.second.size;
 
-    th->setMaxHeight(std::max(maxHeight(), int(nodes.size())));
-    th->setTotalSize(std::max(totalSize(), size));
+    th->setMaxHeight(std::max(maxHeight(), int(nodes.size()))); // max number of nodes at pos
+    th->setTotalSize(std::max(totalSize(), size));              // max sum of node sizes at pos
   }
 
   //---
 
-  // calc y value scale and margins to fit in bbox
+  // calc perp value scale and margins to fit in bbox
   th->calcValueMarginScale();
 
   //---
 
-  // place node objects at each depth (xpos)
+  // place node objects at each depth (position)
   placeDepthNodes();
 
   //---
@@ -350,7 +364,7 @@ updateMaxDepth(const Nodes &nodes) const
 {
   auto *th = const_cast<CQChartsGraphGraph *>(this);
 
-  // calc max depth (source or dest) depending on align for xpos calc
+  // calc max depth (source or dest) depending on align for pos calc
   bool set = false;
 
   th->setMinNodeDepth(0);
@@ -386,56 +400,101 @@ updateMaxDepth(const Nodes &nodes) const
 
 int
 CQChartsGraphGraph::
-calcXPos(Node *node) const
+calcPos(Node *node) const
 {
-  int xpos = 0;
+  int pos = 0;
 
   if (node->depth() >= 0) {
-    xpos = node->depth();
+    pos = node->depth();
   }
   else {
+    int maxNodeDepth = this->maxNodeDepth();
+
     int srcDepth  = node->srcDepth (); // min depth of previous nodes
     int destDepth = node->destDepth(); // max depth of subsequent nodes
 
-    if      (srcDepth == 0)
-      xpos = 0;
-    else if (destDepth == 0)
-      xpos = maxNodeDepth();
+    if      (srcDepth == 0) {
+      if (mgr_->isAlignFirstLast()) {
+        if (! node->destEdges().empty()) {
+          node->setCalculating(true);
+
+          int minDest = node->destDepth();
+
+          for (const auto &edge : node->destEdges()) {
+            auto *node1 = edge->destNode();
+
+            if (! node1->isCalculating())
+              minDest = std::min(minDest, calcPos(node1));
+          }
+
+          pos = std::max(minDest - 1, 0);
+
+          node->setCalculating(false);
+        }
+        else
+          pos = 0;
+      }
+      else
+        pos = 0;
+    }
+    else if (destDepth == 0) {
+      if (mgr_->isAlignFirstLast()) {
+        if (! node->srcEdges().empty()) {
+          node->setCalculating(true);
+
+          int maxSrc = 0;
+
+          for (const auto &edge : node->srcEdges()) {
+            auto *node1 = edge->srcNode();
+
+            if (! node1->isCalculating())
+              maxSrc = std::max(maxSrc, calcPos(node1));
+          }
+
+          pos = std::min(maxSrc + 1, maxNodeDepth);
+
+          node->setCalculating(false);
+        }
+        else
+          pos = maxNodeDepth;
+      }
+      else
+        pos = maxNodeDepth;
+    }
     else {
       if      (mgr_->align() == GraphMgr::Align::SRC)
-        xpos = srcDepth;
+        pos = srcDepth;
       else if (mgr_->align() == GraphMgr::Align::DEST)
-        xpos = maxNodeDepth() - destDepth;
+        pos = maxNodeDepth - destDepth;
       else if (mgr_->align() == GraphMgr::Align::JUSTIFY) {
         double f = 1.0*srcDepth/(srcDepth + destDepth);
 
-        xpos = int(f*maxNodeDepth());
+        pos = int(f*maxNodeDepth);
       }
-#if 0
-      else if (ngr_->align() == GraphMgr::Align::RAND) {
-        CQChartsRand::RealInRange rand(0, alignRand_);
+      else if (mgr_->align() == GraphMgr::Align::RAND) {
+        CQChartsRand::RealInRange rand(0, mgr_->alignRand());
 
-        xpos = CMathRound::RoundNearest(rand.gen());
+        pos = CMathRound::RoundNearest(rand.gen());
+        assert(pos >= 0 && pos <= mgr_->alignRand());
 
-        const_cast<Node *>(node)->setDepth(xpos);
+        const_cast<Node *>(node)->setDepth(pos);
       }
-#endif
     }
   }
 
   //--
 
-  node->setXPos(xpos);
+  node->setPos(pos);
 
-  return xpos;
+  return pos;
 }
 
 void
 CQChartsGraphGraph::
 calcValueMarginScale()
 {
-  // get node margins
-  double nodeYMargin = calcNodeYMargin();
+  // get perp node margins (in window coords ?)
+  double nodeMargin = calcNodeMargin();
 
   //---
 
@@ -446,7 +505,7 @@ calcValueMarginScale()
     boxSize = std::max(bbox_.getWidth(), bbox_.getHeight());
   }
 
-  double boxSize1 = nodeYMargin*boxSize;
+  double boxSize1 = nodeMargin*boxSize;
   double boxSize2 = boxSize - boxSize1; // size minus margin
 
   //---
@@ -456,152 +515,173 @@ calcValueMarginScale()
   setValueScale (totalSize() > 0.0 ? boxSize2/ totalSize()      : 1.0);
 }
 
-double
-CQChartsGraphGraph::
-calcNodeYMargin() const
-{
-  auto *plot = mgr_->plot();
-
-  double nodeYMargin = plot->lengthPlotHeight(mgr_->nodeYMargin());
-
-  nodeYMargin = std::min(std::max(nodeYMargin, 0.0), 1.0);
-
-  // get pixel margin perp to position axis
-  auto pixelNodeYMargin = plot->windowToPixelHeight(nodeYMargin);
-
-  // stop margin from being too small
-  if (pixelNodeYMargin < mgr_->minNodeMargin())
-    nodeYMargin = plot->pixelToWindowHeight(mgr_->minNodeMargin());
-
-  return nodeYMargin;
-}
-
 void
 CQChartsGraphGraph::
 placeDepthNodes() const
 {
-  // place node objects at each depth (xpos)
+  // place node objects at each depth (pos)
   for (const auto &depthNodes : depthNodesMap()) {
-    int         xpos  = depthNodes.first;
+    int         pos   = depthNodes.first;
     const auto &nodes = depthNodes.second.nodes;
 
-    placeDepthSubNodes(xpos, nodes);
+    placeDepthSubNodes(pos, nodes);
   }
 }
 
 void
 CQChartsGraphGraph::
-placeDepthSubNodes(int xpos, const Nodes &nodes) const
+placeDepthSubNodes(int pos, const Nodes &nodes) const
 {
   auto *plot = mgr_->plot();
 
-  double xmargin = calcNodeXMargin();
+  // get node spacing (parallel to flow)
+  double parallelMargin = calcNodeSpacing();
 
-  // place nodes to fit in bbox
-  double xs = bbox_.getWidth ();
-  double ys = bbox_.getHeight();
+  // get delta to next node for each position (node size plus margin)
+  double posDelta;
 
-  double dx = 1.0;
+  int maxNodeDepth = this->maxNodeDepth(); // max depth (one less the depth count)
 
-  if (maxNodeDepth() > 0) {
-    if (mgr_->isNodeXScaled())
-      dx = xs/(maxNodeDepth() + 1);
+  // get parallel size
+  double parallelSize = (mgr_->isHorizontal() ? bbox_.getWidth() : bbox_.getHeight());
+
+  if (mgr_->isNodeScaled())
+    posDelta = parallelSize/(maxNodeDepth + 1);
+  else
+    posDelta = (maxNodeDepth > 0 ? parallelSize/maxNodeDepth : 0.0);
+
+  // get node size in parallel and perp directions
+  double nodePosSize, nodePerpSize;
+
+  if (mgr_->isNodeScaled())
+    nodePosSize = (parallelSize - maxNodeDepth*parallelMargin)/(maxNodeDepth + 1);
+  else
+    nodePosSize = (mgr_->isHorizontal() ? plot->lengthPlotWidth (mgr_->nodeWidth()) :
+                                          plot->lengthPlotHeight(mgr_->nodeWidth()));
+
+  if (mgr_->isNodePerpScaled()) {
+    // get perp size
+    double perpSize = (mgr_->isHorizontal() ? bbox_.getHeight() : bbox_.getWidth());
+
+    int maxHeight = this->maxHeight();
+
+    double nodeMargin = calcNodeMargin();
+
+    if (maxHeight > 0)
+      nodePerpSize = (perpSize - (maxHeight - 1)*nodeMargin)/maxHeight;
     else
-      dx = xs/maxNodeDepth();
+      nodePerpSize = 0.0;
   }
-
-  double xm = plot->lengthPlotWidth (mgr_->nodeWidth());
-  double ym = plot->lengthPlotHeight(mgr_->nodeWidth());
-
-  if (mgr_->isNodeXScaled()) {
-    xm = dx - xmargin;
-    ym = xm;
+  else {
+    nodePerpSize = (mgr_->isHorizontal() ? plot->lengthPlotHeight(mgr_->nodeHeight()) :
+                                           plot->lengthPlotWidth (mgr_->nodeHeight()));
   }
 
   //---
 
-  double vs = valueScale();
+  // get scale factor for node value
+  double valueScale = 1.0;
 
-  if (vs <= 0.0)
-    vs = 1.0;
-
-  // get sum of margins nodes at depth
-  double height = valueMargin()*(maxHeight() - 1);
-
-  height += maxHeight()*vs;
+  if (mgr_->isNodeValueScaled())
+    valueScale = std::max(this->valueScale(), 1.0);
 
   //---
 
-  // calc top (placing top to bottom)
-  double y1 = bbox_.getYMax() - (ys - height)/2.0;
+  auto valueMargin = this->valueMargin();
 
-  //---
+  // calc start perp pos (placing top to bottom, left to right)
+  double perpPos1;
 
-  double nh = vs;
-
-  double dy = nh + valueMargin();
-
-  y1 = bbox_.getYMid() + dy*maxHeight()/2.0;
-
-  y1 -= dy*(maxHeight() - nodes.size())/2.0;
-
-  y1 -= valueMargin()/2.0;
+  if (mgr_->isHorizontal()) {
+    perpPos1  = bbox_.getYMid() + (nodePerpSize + valueMargin)*nodes.size()/2.0; // top
+    perpPos1 -= valueMargin/2.0;
+  }
+  else {
+    perpPos1  = bbox_.getXMid() - (nodePerpSize + valueMargin)*nodes.size()/2.0; // left
+    perpPos1 += valueMargin/2.0;
+  }
 
   //---
 
   for (const auto &node : nodes) {
-    // calc height
-    double h = nh;
-
-    if (h <= 0.0)
-      h = 0.1;
+    int pos1 = calcPos(node);
+    assert(pos == pos1);
 
     //---
 
-    // calc rect
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
+    // calc perp node size
+    //double nodePerpSize1 = valueScale;
 
-    int xpos1 = calcXPos(node);
-    assert(xpos == xpos1);
-
-    double x11 = bbox_.getXMin() + xpos*dx; // left
-    double x12 = x11 + xm;
-
-    double yc = y1 - h/2.0; // placement center
-
-    double ym1 = ym;
-
-    if (mgr_->isNodeYScaled())
-      ym1 = vs*node->edgeSum();
-
-    double y11 = yc - ym1/2.0;
-    double y12 = yc + ym1/2.0;
+    //if (nodePerpSize1 <= 0.0)
+    //  nodePerpSize1 = 0.1;
 
     //---
 
-    BBox rect;
+    // calc perp node size (scale by value if set)
+    double nodePerpSize2 = nodePerpSize;
 
+    if (mgr_->isNodeValueScaled())
+      nodePerpSize2 = valueScale*node->edgeSum();
+
+    //---
+
+    // calc min/max node perp pos
+    //double nodePerpMid = perpPos1 - nodePerpSize/2.0; // placement center
+
+    double nodePerpPos1 = perpPos1;
+    double nodePerpPos2 = perpPos1 + nodePerpSize2;
+
+    //---
+
+    // calc min/max parallel pos
+    // (adjust align for first left/top edge (minPos) or right/bottom edge (maxPos))
+    double posMid = (mgr_->isHorizontal() ?
+     CMathUtil::map(pos, 0, maxNodeDepth,
+                    bbox_.getXMin() + nodePosSize/2.0, bbox_.getXMax() - nodePosSize/2.0) :
+     CMathUtil::map(pos, 0, maxNodeDepth,
+                    bbox_.getYMax() - nodePosSize/2.0, bbox_.getYMin() + nodePosSize/2.0));
+
+    double posStart = posMid - nodePosSize/2.0;
+    double posEnd   = posMid + nodePosSize/2.0;
+
+    if (posStart > posEnd) std::swap(posStart, posEnd);
+
+    //---
+
+    // get node shape
     auto shapeType = node->shapeType();
 
     if (shapeType == Node::ShapeType::NONE)
       shapeType = (Node::ShapeType) mgr_->nodeShape();
 
+    //---
+
+    // set node rect based on shape
+    BBox rect;
+
     if (shapeType != Node::ShapeType::NONE) {
-      rect = BBox(x11, y11, x12, y12);
+      rect = CQChartsGeom::makeDirBBox(! mgr_->isHorizontal(),
+        posStart, nodePerpPos1, posEnd, nodePerpPos2);
     }
     else {
-      if      (srcDepth == 0)
-        rect = BBox(x11, y11, x12, y12); // no inputs (left align)
-      else if (destDepth == 0) {
-        x11 -= xm; x12 -= xm;
+      int srcDepth  = node->srcDepth ();
+      int destDepth = node->destDepth();
 
-        rect = BBox(x11, y11, x12, y12); // no outputs (right align)
+      if      (srcDepth == 0) {
+        rect = CQChartsGeom::makeDirBBox(! mgr_->isHorizontal(),
+          posStart, nodePerpPos1, posEnd, nodePerpPos2); // no inputs (left/bottom align)
+      }
+      else if (destDepth == 0) {
+        posStart -= nodePosSize; posEnd -= nodePosSize;
+
+        rect = CQChartsGeom::makeDirBBox(! mgr_->isHorizontal(),
+          posStart, nodePerpPos1, posEnd, nodePerpPos2); // no outputs (right/top align)
       }
       else {
-        x11 -= xm/2.0; x12 -= xm/2.0;
+        posStart -= nodePosSize/2.0; posEnd -= nodePosSize/2.0;
 
-        rect = BBox(x11, y11, x12, y12); // center align
+        rect = CQChartsGeom::makeDirBBox(! mgr_->isHorizontal(),
+          posStart, nodePerpPos1, posEnd, nodePerpPos2); // center align
       }
     }
 
@@ -611,56 +691,85 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
 
     //---
 
-    y1 -= h + valueMargin();
+    // move to next perp pos (down or right)
+    if (mgr_->isHorizontal())
+      perpPos1 -= nodePerpSize + valueMargin;
+    else
+      perpPos1 += nodePerpSize + valueMargin;
   }
 }
 
 double
 CQChartsGraphGraph::
-calcNodeXMargin() const
+calcNodeMargin() const
 {
   auto *plot = mgr_->plot();
 
-  double nodeXMargin = plot->lengthPlotWidth(mgr_->nodeXMargin());
+  double margin = (mgr_->isHorizontal() ? plot->lengthPlotHeight(mgr_->nodeMargin()) :
+                                          plot->lengthPlotWidth (mgr_->nodeMargin()));
 
-  nodeXMargin = std::min(std::max(nodeXMargin, 0.0), 1.0);
+  margin = std::min(std::max(margin, 0.0), 1.0);
 
-  auto pixelNodeXMargin = plot->windowToPixelWidth(nodeXMargin);
+  // get pixel margin perp to position axis
+  auto pixelMargin = (mgr_->isHorizontal() ? plot->windowToPixelHeight(margin) :
+                                             plot->windowToPixelWidth (margin));
 
-  if (pixelNodeXMargin < mgr_->minNodeMargin())
-    nodeXMargin = plot->pixelToWindowWidth(mgr_->minNodeMargin());
+  // stop margin from being too small
+  if (pixelMargin < mgr_->minNodeMargin())
+    margin = (mgr_->isHorizontal() ? plot->pixelToWindowHeight(mgr_->minNodeMargin()) :
+                                     plot->pixelToWindowWidth (mgr_->minNodeMargin()));
 
-  return nodeXMargin;
+  return margin;
+}
+
+double
+CQChartsGraphGraph::
+calcNodeSpacing() const
+{
+  auto *plot = mgr_->plot();
+
+  double spacing = (mgr_->isHorizontal() ? plot->lengthPlotWidth (mgr_->nodeSpacing()) :
+                                           plot->lengthPlotHeight(mgr_->nodeSpacing()));
+
+  spacing = std::min(std::max(spacing, 0.0), 1.0);
+
+  auto pixelSpacing = (mgr_->isHorizontal() ? plot->windowToPixelWidth (spacing) :
+                                              plot->windowToPixelHeight(spacing));
+
+  if (pixelSpacing < mgr_->minNodeMargin())
+    spacing = (mgr_->isHorizontal() ? plot->pixelToWindowWidth (mgr_->minNodeMargin()) :
+                                      plot->pixelToWindowHeight(mgr_->minNodeMargin()));
+
+  return spacing;
 }
 
 bool
 CQChartsGraphGraph::
 adjustGraphNodes(const Nodes &nodes) const
 {
+  if (! mgr_->isAdjustNodes())
+    return false;
+
   initPosNodesMap(nodes);
 
   //---
 
-  if (mgr_->isAdjustNodes()) {
-    int numPasses = 25;
+  int numPasses = mgr_->adjustIterations();
 
-    for (int pass = 0; pass < numPasses; ++pass) {
-      //std::cerr << "Pass " << pass << "\n";
-
-      if (! adjustNodeCenters()) {
-        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
-        break;
-      }
+  for (int pass = 0; pass < numPasses; ++pass) {
+    if (! adjustNodeCenters()) {
+      //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
+      break;
     }
-
-    //---
-
-    reorderNodeEdges(nodes);
   }
 
   //---
 
-//placeDepthNodes();
+  removeOverlaps();
+
+  //---
+
+  reorderNodeEdges(nodes);
 
   //---
 
@@ -673,7 +782,7 @@ initPosNodesMap(const Nodes &nodes) const
 {
   auto *th = const_cast<CQChartsGraphGraph *>(this);
 
-  // get nodes by x pos
+  // get nodes by pos
   th->resetPosNodes();
 
   for (const auto &node : nodes)
@@ -684,28 +793,72 @@ bool
 CQChartsGraphGraph::
 adjustNodeCenters() const
 {
+  if (! mgr_->isAdjustCenters())
+    return false;
+
+  bool changed = false;
+
+  if (adjustNodeCentersLtoR())
+    changed = true;
+
+  if (adjustNodeCentersRtoL())
+    changed = true;
+
+  return changed;
+}
+
+bool
+CQChartsGraphGraph::
+adjustNodeCentersLtoR() const
+{
+  if (! mgr_->isAdjustCenters())
+    return false;
+
+  if (mgr_->align() == CQChartsGraphMgr::Align::DEST)
+    return false;
+
   // adjust nodes so centered on src nodes
   bool changed = false;
 
-  // second to last
-  int posNodesDepth = posNodesMap().size();
+  // second to last minus one (last if SRC align)
+  int startPos = 1;
+  int endPos   = posNodesMap().size() - 1;
 
-  for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
-    if (adjustPosNodes(xpos))
+  if (mgr_->align() == CQChartsGraphMgr::Align::SRC)
+    ++endPos;
+
+  for (int pos = startPos; pos <= endPos; ++pos) {
+    if (adjustPosNodes(pos))
       changed = true;
   }
 
-  removeOverlaps();
+  return changed;
+}
 
-  //---
+bool
+CQChartsGraphGraph::
+adjustNodeCentersRtoL() const
+{
+  if (! mgr_->isAdjustCenters())
+    return false;
 
-  // second to last to first
-  for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
-    if (adjustPosNodes(xpos))
+  if (mgr_->align() == CQChartsGraphMgr::Align::SRC)
+    return false;
+
+  // adjust nodes so centered on dest nodes
+  bool changed = false;
+
+  // last minus one to second (first if DEST align)
+  int startPos = 1;
+  int endPos   = posNodesMap().size() - 1;
+
+  if (mgr_->align() == CQChartsGraphMgr::Align::DEST)
+    --startPos;
+
+  for (int pos = endPos; pos >= startPos; --pos) {
+    if (adjustPosNodes(pos))
       changed = true;
   }
-
-  removeOverlaps();
 
   return changed;
 }
@@ -714,6 +867,11 @@ bool
 CQChartsGraphGraph::
 reorderNodeEdges(const Nodes &nodes) const
 {
+  if (! mgr_->isReorderEdges())
+    return false;
+
+  //---
+
   bool changed = false;
 
   // sort node edges nodes by bbox
@@ -756,14 +914,14 @@ reorderNodeEdges(const Nodes &nodes) const
 
 bool
 CQChartsGraphGraph::
-adjustPosNodes(int xpos) const
+adjustPosNodes(int pos) const
 {
-  if (! hasPosNodes(xpos))
+  if (! hasPosNodes(pos))
     return false;
 
   bool changed = false;
 
-  const auto &nodes = posNodes(xpos);
+  const auto &nodes = posNodes(pos);
 
   for (const auto &node : nodes) {
     if (adjustNode(node))
@@ -777,6 +935,9 @@ bool
 CQChartsGraphGraph::
 adjustNode(Node *node) const
 {
+  if (node->isFixed())
+    return false;
+
   // get bounds of source edges
   BBox srcBBox;
 
@@ -805,27 +966,49 @@ adjustNode(Node *node) const
 
   //---
 
-  // calc average y
-  double midY = 0.0;
+  // calc average perp position
+  double midPerpPos = 0.0;
 
-  if      (srcBBox.isValid() && destBBox.isValid())
-    midY = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
-  else if (srcBBox.isValid())
-    midY = srcBBox.getYMid();
-  else if (destBBox.isValid())
-    midY = destBBox.getYMid();
-  else
-    return false;
+  if (mgr_->isHorizontal()) {
+    if      (srcBBox.isValid() && destBBox.isValid())
+      midPerpPos = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
+    else if (srcBBox.isValid())
+      midPerpPos = srcBBox.getYMid();
+    else if (destBBox.isValid())
+      midPerpPos = destBBox.getYMid();
+    else
+      return false;
+  }
+  else {
+    if      (srcBBox.isValid() && destBBox.isValid())
+      midPerpPos = CMathUtil::avg(srcBBox.getXMid(), destBBox.getXMid());
+    else if (srcBBox.isValid())
+      midPerpPos = srcBBox.getXMid();
+    else if (destBBox.isValid())
+      midPerpPos = destBBox.getXMid();
+    else
+      return false;
+  }
 
   //---
 
   // move node to average
-  double dy = midY - node->rect().getYMid();
+  if (mgr_->isHorizontal()) {
+    double dy = midPerpPos - node->rect().getYMid();
 
-  if (std::abs(dy) < 1E-6) // better tolerance
-    return false;
+    if (std::abs(dy) < 1E-6) // better tolerance
+      return false;
 
-  node->moveBy(Point(0.0, dy));
+    node->moveBy(Point(0.0, dy));
+  }
+  else {
+    double dx = midPerpPos - node->rect().getXMid();
+
+    if (std::abs(dx) < 1E-6) // better tolerance ?
+      return false;
+
+    node->moveBy(Point(dx, 0.0));
+  }
 
   return true;
 }
@@ -834,6 +1017,9 @@ bool
 CQChartsGraphGraph::
 removeOverlaps() const
 {
+  if (! mgr_->isRemoveOverlaps())
+    return false;
+
   bool changed = false;
 
   for (const auto &posNodes : posNodesMap()) {
@@ -850,11 +1036,12 @@ removePosOverlaps(const Nodes &nodes) const
 {
   auto *plot = mgr_->plot();
 
-  double ym = plot->pixelToWindowHeight(mgr_->minNodeMargin());
+  double perpMargin = (mgr_->isHorizontal() ? plot->pixelToWindowHeight(mgr_->minNodeMargin()) :
+                                              plot->pixelToWindowWidth (mgr_->minNodeMargin()));
 
   //---
 
-  // get nodes sorted by y (max to min)
+  // get nodes sorted by perp position (max to min)
   PosNodeMap posNodeMap;
 
   createPosNodeMap(nodes, posNodeMap);
@@ -869,16 +1056,28 @@ removePosOverlaps(const Nodes &nodes) const
   for (const auto &posNode : posNodeMap) {
     auto *node2 = posNode.second;
 
-    if (node1) {
+    if (node1 && ! node2->isFixed()) {
       const auto &rect1 = node1->rect();
       const auto &rect2 = node2->rect();
 
-      if (rect2.getYMax() >= rect1.getYMin() - ym) {
-        double dy = rect1.getYMin() - ym - rect2.getYMax();
+      if (mgr_->isHorizontal()) {
+        if (rect2.getYMax() >= rect1.getYMin() - perpMargin) {
+          double dy = rect1.getYMin() - perpMargin - rect2.getYMax();
 
-        if (std::abs(dy) > 1E-6) {
-          node2->moveBy(Point(0, dy));
-          changed = true;
+          if (std::abs(dy) > 1E-6) {
+            node2->moveBy(Point(0.0, dy));
+            changed = true;
+          }
+        }
+      }
+      else {
+        if (rect2.getXMax() >= rect1.getXMin() - perpMargin) {
+          double dx = rect1.getXMin() - perpMargin - rect2.getXMax();
+
+          if (std::abs(dx) > 1E-6) {
+            node2->moveBy(Point(dx, 0.0));
+            changed = true;
+          }
         }
       }
     }
@@ -888,11 +1087,18 @@ removePosOverlaps(const Nodes &nodes) const
 
   //---
 
-  // move back inside bbox (needed ?)
+  // move nodes back inside bbox (needed ?)
   if (node1) {
     const auto &rect1 = node1->rect();
 
-    if (rect1.getYMin() < bbox_.getYMin())
+    bool spread1 = false;
+
+    if (mgr_->isHorizontal())
+      spread1 = (rect1.getYMin() < bbox_.getYMin());
+    else
+      spread1 = (rect1.getXMin() < bbox_.getXMin());
+
+    if (spread1)
       spreadPosNodes(nodes);
   }
 
@@ -924,29 +1130,63 @@ spreadPosNodes(const Nodes &nodes) const
 
   //---
 
-  double dy1 = node1->rect().getHeight()/2.0; // top
-  double dy2 = node2->rect().getHeight()/2.0; // bottom
+  if (mgr_->isHorizontal()) {
+    double dy1 = node1->rect().getHeight()/2.0; // top
+    double dy2 = node2->rect().getHeight()/2.0; // bottom
 
-  if (! spreadBBox.isValid() || (spreadBBox.getHeight() - dy1 - dy2) <= 0.0)
-    return false;
+    if (! spreadBBox.isValid() || (spreadBBox.getHeight() - dy1 - dy2) <= 0.0)
+      return false;
 
-  double ymin = bbox_.getYMin() + dy2;
-  double ymax = bbox_.getYMax() - dy1;
+    double ymin = bbox_.getYMin() + dy2;
+    double ymax = bbox_.getYMax() - dy1;
 
-  double dy = ymin - node2->rect().getYMid();
-  double ys = (ymax - ymin)/(spreadBBox.getHeight() - dy1 - dy2);
+    double dy      = ymin - node2->rect().getYMid();
+    double boxSize = (ymax - ymin)/(spreadBBox.getHeight() - dy1 - dy2);
 
-  if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(ys, 1.0))
-    return false;
+    if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(boxSize, 1.0))
+      return false;
 
-  for (const auto &posNode : posNodeMap) {
-    auto *node = posNode.second;
+    for (const auto &posNode : posNodeMap) {
+      auto *node = posNode.second;
 
-    node->moveBy(Point(0, dy));
+      if (node->isFixed())
+        continue;
 
-    double y1 = ys*(node->rect().getYMid() - ymin) + ymin;
+      node->moveBy(Point(0.0, dy));
 
-    node->moveBy(Point(0, y1 - node->rect().getYMid()));
+      double y1 = boxSize*(node->rect().getYMid() - ymin) + ymin;
+
+      node->moveBy(Point(0.0, y1 - node->rect().getYMid()));
+    }
+  }
+  else {
+    double dx1 = node1->rect().getWidth()/2.0; // right
+    double dx2 = node2->rect().getWidth()/2.0; // left
+
+    if (! spreadBBox.isValid() || (spreadBBox.getWidth() - dx1 - dx2) <= 0.0)
+      return false;
+
+    double xmin = bbox_.getXMin() + dx2;
+    double xmax = bbox_.getXMax() - dx1;
+
+    double dx      = xmin - node2->rect().getXMid();
+    double boxSize = (xmax - xmin)/(spreadBBox.getWidth() - dx1 - dx2);
+
+    if (CMathUtil::realEq(dx, 0.0) && CMathUtil::realEq(boxSize, 1.0))
+      return false;
+
+    for (const auto &posNode : posNodeMap) {
+      auto *node = posNode.second;
+
+      if (node->isFixed())
+        continue;
+
+      node->moveBy(Point(dx, 0.0));
+
+      double x1 = boxSize*(node->rect().getXMid() - xmin) + xmin;
+
+      node->moveBy(Point(x1 - node->rect().getXMid(), 0.0));
+    }
   }
 
   return true;
@@ -962,15 +1202,20 @@ createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const
     const auto &rect = node->rect();
     if (! rect.isValid()) continue;
 
-    // use distance from top (decreasing)
-    double y = bbox_.getYMax() - rect.getYMid();
+    double dist;
 
-    NodePos pos(y, node->id());
+    // use distance from top/left (decreasing)
+    if (mgr_->isHorizontal())
+      dist = bbox_.getYMax() - rect.getYMid();
+    else
+      dist = bbox_.getXMin() - rect.getXMid();
 
-    auto p = posNodeMap.find(pos);
+    NodePos perpPos(dist, node->id());
+
+    auto p = posNodeMap.find(perpPos);
     assert(p == posNodeMap.end());
 
-    posNodeMap[pos] = node;
+    posNodeMap[perpPos] = node;
   }
 }
 
@@ -985,10 +1230,15 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     const auto &rect = node->rect();
     if (! rect.isValid()) continue;
 
-    // use distance from top (decreasing)
-    double y = bbox_.getYMax() - rect.getYMid();
+    double dist;
 
-    NodePos pos(y, edge->id());
+    // use distance from top/left (decreasing)
+    if (mgr_->isHorizontal())
+      dist = bbox_.getYMax() - rect.getYMid();
+    else
+      dist = bbox_.getXMin() - rect.getXMid();
+
+    NodePos pos(dist, edge->id());
 
     auto p = posEdgeMap.find(pos);
     assert(p == posEdgeMap.end());
@@ -1082,8 +1332,12 @@ moveBy(const Point &delta)
   for (const auto &child : children())
     child->moveBy(delta);
 
-  for (const auto &node : nodes())
+  for (const auto &node : nodes()) {
+    if (node->isFixed())
+      continue;
+
     node->moveBy(delta);
+  }
 }
 
 void
@@ -1106,6 +1360,9 @@ scale(double fx, double fy)
   }
 
   for (const auto &node : nodes()) {
+    if (node->isFixed())
+      continue;
+
     auto p1 = node->rect().getCenter();
 
     double xc = p.x + (p1.x - p.x)*fx;
@@ -1115,7 +1372,7 @@ scale(double fx, double fy)
   }
 }
 
-//---
+//------
 
 CQChartsGraphNode::
 CQChartsGraphNode(GraphMgr *mgr, const QString &str) :
@@ -1132,6 +1389,8 @@ void
 CQChartsGraphNode::
 addSrcEdge(Edge *edge, bool primary)
 {
+  assert(edge->destNode());
+
   edge->destNode()->parent_ = edge->srcNode();
 
   srcEdges_.push_back(edge);
@@ -1146,6 +1405,8 @@ void
 CQChartsGraphNode::
 addDestEdge(Edge *edge, bool primary)
 {
+  assert(edge->destNode());
+
   edge->destNode()->parent_ = edge->srcNode();
 
   destEdges_.push_back(edge);
@@ -1175,6 +1436,7 @@ srcDepth() const
   if (depth() >= 0)
     return depth() - 1;
 
+  // use visited to detect loops
   NodeSet visited;
 
   visited.insert(this);
@@ -1209,6 +1471,10 @@ calcSrcDepth(NodeSet &visited) const
 
         depth = std::max(depth, node->calcSrcDepth(visited));
       }
+      else {
+        depth = std::max(depth, int(visited.size() - 1));
+      //depth = std::max(depth, node->srcDepth());
+      }
     }
 
     th->srcDepth_ = depth + 1;
@@ -1224,6 +1490,7 @@ destDepth() const
   if (depth() >= 0)
     return depth() + 1;
 
+  // use visited to detect loops
   NodeSet visited;
 
   visited.insert(this);
@@ -1257,6 +1524,10 @@ calcDestDepth(NodeSet &visited) const
         visited.insert(node);
 
         depth = std::max(depth, node->calcDestDepth(visited));
+      }
+      else {
+        depth = std::max(depth, int(visited.size() - 1));
+      //depth = std::max(depth, node->destDepth());
       }
     }
 
@@ -1367,6 +1638,13 @@ placeEdges()
   clearSrcEdgeRects ();
   clearDestEdgeRects();
 
+  double nodeSize;
+
+  if (mgr_->isHorizontal())
+    nodeSize = rect().getHeight();
+  else
+    nodeSize = rect().getWidth();
+
   if (this->srcEdges().size() == 1) {
     auto *edge = *this->srcEdges().begin();
 
@@ -1380,7 +1658,7 @@ placeEdges()
         total += edge->value().real();
     }
 
-    double y3 = y2; // top
+    double perpPos3 = (mgr_->isHorizontal() ? y2 : x1); // top/left
 
     for (const auto &edge : this->srcEdges()) {
       if (! edge->hasValue()) {
@@ -1388,13 +1666,22 @@ placeEdges()
         continue;
       }
 
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-      double y4 = y3 - h1;
+      double perpSize2 = (total > 0.0 ? nodeSize*edge->value().real()/total : 0.0);
 
-      if (! hasSrcEdgeRect(edge))
-        setSrcEdgeRect(edge, BBox(x1, y4, x2, y3));
+      double perpPos4 = (mgr_->isHorizontal() ? perpPos3 - perpSize2 : perpPos3 + perpSize2);
 
-      y3 = y4;
+      if (! hasSrcEdgeRect(edge)) {
+        BBox rect1;
+
+        if (mgr_->isHorizontal())
+          rect1 = BBox(x1, perpPos4, x2, perpPos3);
+        else
+          rect1 = BBox(perpPos3, y1, perpPos4, y2);
+
+        setSrcEdgeRect(edge, rect1);
+      }
+
+      perpPos3 = perpPos4;
     }
   }
 
@@ -1413,7 +1700,7 @@ placeEdges()
         total += edge->value().real();
     }
 
-    double y3 = y2; // top
+    double perpPos3 = (mgr_->isHorizontal() ? y2 : x1); // top/left
 
     for (const auto &edge : this->destEdges()) {
       if (! edge->hasValue()) {
@@ -1421,13 +1708,22 @@ placeEdges()
         continue;
       }
 
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-      double y4 = y3 - h1;
+      double perpSize2 = (total > 0.0 ? nodeSize*edge->value().real()/total : 0.0);
 
-      if (! hasDestEdgeRect(edge))
-        setDestEdgeRect(edge, BBox(x1, y4, x2, y3));
+      double perpPos4 = (mgr_->isHorizontal() ? perpPos3 - perpSize2 : perpPos3 + perpSize2);
 
-      y3 = y4;
+      if (! hasDestEdgeRect(edge)) {
+        BBox rect1;
+
+        if (mgr_->isHorizontal())
+          rect1 = BBox(x1, perpPos4, x2, perpPos3);
+        else
+          rect1 = BBox(perpPos3, y1, perpPos4, y2);
+
+        setDestEdgeRect(edge, rect1);
+      }
+
+      perpPos3 = perpPos4;
     }
   }
 }

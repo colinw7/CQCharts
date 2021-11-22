@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <CQChartsForceDirected.h>
+#include <CForceDirected.h>
 
 /*!
  * \brief Force Directed plot type
@@ -286,7 +287,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using NodeMap         = std::map<int, Node *>;
+  using NodeP           = CForceDirected::NodeP;
+  using NodeMap         = std::map<int, NodeP>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
   using StringIndMap    = std::map<QString, int>;

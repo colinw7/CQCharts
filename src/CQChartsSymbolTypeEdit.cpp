@@ -4,7 +4,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
-#include <CQPropertyView.h>
+//#include <CQPropertyView.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
@@ -82,6 +82,7 @@ comboChanged()
 
 //------
 
+#if 0
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
 
@@ -218,3 +219,4 @@ setValue(QWidget *w, const QVariant &var)
 
   edit->setSymbolType(symbol.symbolType());
 }
+#endif

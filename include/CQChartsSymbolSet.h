@@ -57,6 +57,8 @@ class CQChartsSymbolSet {
   };
 
  public:
+  CQChartsSymbolSet() = default;
+
   explicit CQChartsSymbolSet(const QString &name);
 
   //! get name

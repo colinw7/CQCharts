@@ -1390,11 +1390,11 @@ layoutGraph()
 
   // use plot units to avoid conversion so we use annotation bbox
   mgr.setNodeWidth  (Length::plot(w/ 20.0));
-  mgr.setNodeXMargin(Length::plot(w/100.0));
-  mgr.setNodeYMargin(Length::plot(0.2    ));
+  mgr.setNodeMargin (Length::plot(w/100.0));
+  mgr.setNodeSpacing(Length::plot(0.2    ));
 
-//mgr.setNodeXScaled(true);
-  mgr.setNodeYScaled(true);
+//mgr.setNodeScaled    (true);
+  mgr.setNodePerpScaled(true);
 
   auto *graph = mgr.createGraph("graph");
 

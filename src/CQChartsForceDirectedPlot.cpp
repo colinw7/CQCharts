@@ -402,25 +402,27 @@ addIdConnections() const
     const auto &name  = connectionsData.name;
     int         group = connectionsData.group;
 
-    auto *node = dynamic_cast<CQChartsSpringyNode *>(forceDirected_->newNode());
-    assert(node);
+    auto node = forceDirected_->newNode();
+
+    auto *pnode = dynamic_cast<CQChartsSpringyNode *>(node.get());
+    assert(pnode);
 
     forceDirected_->addNode(node);
 
     //auto id = QString("%1:%2").arg(name).arg(group);
 
-    node->setLabel(name.toStdString());
-    node->setMass (nodeMass_);
-    node->setValue((1.0*group)/maxGroup_);
-    node->setInd  (connectionsData.ind);
+    pnode->setLabel(name.toStdString());
+    pnode->setMass (nodeMass_);
+    pnode->setValue((1.0*group)/maxGroup_);
+    pnode->setInd  (connectionsData.ind);
 
-    node->setGroup(group);
+    pnode->setGroup(group);
 
     if (connectionsData.value.isSet())
-      node->setNodeValue(connectionsData.value);
+      pnode->setNodeValue(connectionsData.value);
 
-    th->nodes_          [id        ] = node;
-    th->connectionNodes_[node->id()] = id;
+    th->nodes_          [id         ] = node;
+    th->connectionNodes_[pnode->id()] = id;
   }
 
   th->widthScale_ = (maxValue() > 0.0 ? 1.0/maxValue() : 1.0);
@@ -440,14 +442,14 @@ addIdConnections() const
     auto pn = nodes_.find(id);
     assert(pn != nodes_.end());
 
-    auto *node = (*pn).second;
+    auto node = (*pn).second;
     assert(node);
 
     for (const auto &connection : connectionsData.connections) {
       auto pn1 = nodes_.find(connection.node);
       if (pn1 == nodes_.end()) continue;
 
-      auto *node1 = (*pn1).second;
+      auto node1 = (*pn1).second;
       assert(node1);
 
       if (! connection.value.isSet())
@@ -457,11 +459,13 @@ addIdConnections() const
 
       assert(value > 0.0);
 
-      auto *edge = dynamic_cast<CQChartsSpringyEdge *>(forceDirected_->newEdge(node, node1));
-      assert(edge);
+      auto edge = forceDirected_->newEdge(node, node1);
 
-      edge->setLength(1.0/value);
-      edge->setValue(value);
+      auto *pedge = dynamic_cast<CQChartsSpringyEdge *>(edge.get());
+      assert(pedge);
+
+      pedge->setLength(1.0/value);
+      pedge->setValue(value);
     }
   }
 }
@@ -1311,7 +1315,7 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
   if (! isRunning()) {
     auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
-    auto *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first);
+    auto *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first.get());
     if (! node) return false;
 
     CQChartsTableTip tableTip;
@@ -1447,7 +1451,7 @@ drawDeviceParts(PaintDevice *device) const
   double ym = pixelToWindowHeight(2*r);
 
   for (auto &node : forceDirected_->nodes()) {
-    auto *snode = dynamic_cast<CQChartsSpringyNode *>(node);
+    auto *snode = dynamic_cast<CQChartsSpringyNode *>(node.get());
 
     double rn  = r;
     double xmn = xm;
@@ -1460,7 +1464,7 @@ drawDeviceParts(PaintDevice *device) const
       ymn = pixelToWindowHeight(2*rn);
     }
 
-    auto *point = forceDirected_->point(node);
+    auto point = forceDirected_->point(node);
 
     const auto &p1 = point->p();
 

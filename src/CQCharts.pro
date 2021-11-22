@@ -76,6 +76,7 @@ CQChartsContourPlot.cpp \
 CQChartsCorrelationPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
+CQChartsDotPlot.cpp \
 CQChartsDistributionPlot.cpp \
 CQChartsEmptyPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
@@ -440,6 +441,7 @@ HEADERS += \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \
 ../include/CQChartsDistributionPlot.h \
+../include/CQChartsDotPlot.h \
 ../include/CQChartsEmptyPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
@@ -767,6 +769,8 @@ INCLUDEPATH += \
 ../../CCsv/include \
 ../../CXML/include \
 ../../CQPerfMonitor/include \
+../../CQDot/include \
+../../CCommand/include \
 ../../CImageLib/include \
 ../../CFont/include \
 ../../CReadLine/include \

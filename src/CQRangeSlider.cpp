@@ -160,7 +160,7 @@ void
 CQRangeSlider::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  auto *menu = new QMenu;
+  auto *menu = new QMenu(this);
 
   //---
 

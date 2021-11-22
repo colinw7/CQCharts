@@ -159,8 +159,8 @@ createEdit(QWidget *parent)
 
   auto *edit = new CQChartsImageEdit(parent);
 
-  if (objData.plot)
-    edit->setCharts(objData.plot->charts());
+  if (objData.charts)
+    edit->setCharts(objData.charts);
 
   return edit;
 }

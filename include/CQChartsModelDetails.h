@@ -74,10 +74,10 @@ class CQChartsModelDetails : public QObject {
   std::vector<int> columnDuplicates(const Column &column, bool all) const;
 
   void updateSimple();
-  void updateFull();
+  //void updateFull();
 
   void initSimpleData() const;
-  void initFullData() const;
+  //void initFullData() const;
 
  private:
   enum class Initialized {

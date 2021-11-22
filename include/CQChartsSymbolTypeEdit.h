@@ -38,6 +38,7 @@ class CQChartsSymbolTypeEdit : public QFrame {
 
 //------
 
+#if 0
 #include <CQPropertyViewType.h>
 
 /*!
@@ -81,5 +82,6 @@ class CQChartsSymbolTypePropertyViewEditor : public CQPropertyViewEditorFactory 
 
   void setValue(QWidget *w, const QVariant &var);
 };
+#endif
 
 #endif

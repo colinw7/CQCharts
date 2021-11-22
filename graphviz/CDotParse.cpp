@@ -1,19 +1,41 @@
 #include <CDotParse.h>
 #include <CFileParse.h>
+#include <CAStarNode.h>
 
-CDotParse::
-CDotParse(const std::string &filename)
+#include <list>
+#include <cassert>
+
+namespace CDotParse {
+
+Parse::
+Parse(const std::string &filename)
 {
   parse_ = std::make_unique<CFileParse>(filename);
 
   parse_->setStream(true);
 }
 
+Parse::
+~Parse()
+{
+}
+
 bool
-CDotParse::
+Parse::
 parse()
 {
   EnterLeave el(this, "parse");
+
+  if (parse_->isChar('#')) {
+    while (! parse_->eof()) {
+      if (parse_->isChar('\n'))
+        break;
+
+      parse_->skipChar();
+    }
+  }
+
+  //---
 
   while (! parse_->eof()) {
     skipSpace();
@@ -43,48 +65,55 @@ parse()
 
   if (isPrint()) {
     for (const auto &pg : graphs_)
-      pg.second->print();
+      pg.second->print(std::cout);
   }
 
   if (isCSV()) {
     std::cout << "From,To,Attributes,Graph\n";
 
     for (const auto &pg : graphs_)
-      pg.second->outputCSV();
+      pg.second->outputCSV(std::cout);
   }
 
   return true;
 }
 
 bool
-CDotParse::
+Parse::
 parseGraph()
 {
   EnterLeave el(this, "parseGraph");
 
-  skipSpace();
-
-  // graph id
-  std::string id;
-
-  if (! parseID(id))
-    return errorMsg("expected identfier");
-
-  currentGraph_ = getGraph(id);
-
-  skipSpace();
-
-  if (parse_->isChar('{')) {
-    parse_->skipChar();
-
-    parseStatementList();
-
+  while (true) {
     skipSpace();
 
-    if (! parse_->isChar('}'))
-      return errorMsg("expected }");
+    if (parse_->eof())
+      break;
 
-    parse_->skipChar();
+    if      (parse_->isChar('[')) {
+      parseAttrList("");
+    }
+    else if (parse_->isChar('{')) {
+      parse_->skipChar();
+
+      parseStatementList();
+
+      skipSpace();
+
+      if (! parse_->isChar('}'))
+        return errorMsg("expected }");
+
+      parse_->skipChar();
+    }
+    else {
+      // graph id
+      std::string id;
+
+      if (! parseID(id))
+        return errorMsg("expected identfier");
+
+      currentGraph_ = getGraph(id);
+    }
   }
 
   currentGraph_ = nullptr;
@@ -94,12 +123,17 @@ parseGraph()
 }
 
 bool
-CDotParse::
+Parse::
 parseStatementList()
 {
   EnterLeave el(this, "parseStatementList");
 
   while (true) {
+    skipSpace();
+
+    if (parse_->eof())
+      break;
+
     if (! parseStatement())
       return errorMsg("parseStatement failed");
 
@@ -119,7 +153,7 @@ parseStatementList()
 }
 
 bool
-CDotParse::
+Parse::
 parseStatement()
 {
   EnterLeave el(this, "parseStatement");
@@ -170,8 +204,6 @@ parseStatement()
 
     auto *subGraph = getGraph(id1);
 
-    subGraph->setParent(currentGraph_);
-
     currentGraph_->addGraph(subGraph);
 
     currentGraph_ = subGraph;
@@ -192,6 +224,8 @@ parseStatement()
         return errorMsg("expected }");
 
       parse_->skipChar();
+
+      skipSpace();
     }
 
     currentGraph_ = subGraph->parent();
@@ -209,7 +243,7 @@ parseStatement()
   }
   // node [ <attributes> ]
   else if (parse_->isChar('[')) {
-    currentNode_ = getNode(id);
+    currentNode_ = getNode(id).get();
 
     parseAttrList("");
   }
@@ -221,7 +255,7 @@ parseStatement()
 
     std::vector<Node *> nodes1;
 
-    Node *node1 = getNode(id);
+    Node *node1 = getNode(id).get();
 
     nodes1.push_back(node1);
 
@@ -233,18 +267,18 @@ parseStatement()
 
         skipSpace();
 
-        while (! parse_->isChar('}')) {
+        while (! parse_->eof() && ! parse_->isChar('}')) {
           std::string id1;
 
           if (! parseID(id1))
             return errorMsg("expected identfier");
 
-          Node *node2 = getNode(id1);
+          Node *node2 = getNode(id1).get();
 
           nodes2.push_back(node2);
 
           for (const auto &n1 : nodes1)
-            currentEdge_ = n1->addEdge(node2);
+            currentEdge_ = n1->addNodeEdge(node2).get();
 
           skipSpace();
 
@@ -273,12 +307,12 @@ parseStatement()
         if (! parseID(id1))
           return errorMsg("expected identfier");
 
-        Node *node2 = getNode(id1);
+        Node *node2 = getNode(id1).get();
 
         nodes2.push_back(node2);
 
         for (const auto &n1 : nodes1)
-          currentEdge_ = n1->addEdge(node2);
+          currentEdge_ = n1->addNodeEdge(node2).get();
 
         skipSpace();
 
@@ -306,17 +340,17 @@ parseStatement()
     currentEdge_ = nullptr;
   }
   else if (parse_->isChar('}')) {
-    currentNode_ = getNode(id);
+    currentNode_ = getNode(id).get();
   }
   else {
-    currentNode_ = getNode(id);
+    currentNode_ = getNode(id).get();
   }
 
   return true;
 }
 
 bool
-CDotParse::
+Parse::
 parseAttrList(const std::string &id)
 {
   EnterLeave el(this, "parseAttrList " + id);
@@ -324,10 +358,20 @@ parseAttrList(const std::string &id)
   while (true) {
     skipSpace();
 
+    if (parse_->eof())
+      break;
+
     if (! parse_->isChar('['))
       return errorMsg("expected [");
 
     parse_->skipChar();
+
+    parse_->skipSpace();
+
+    if (parse_->isChar(']')) {
+      parse_->skipChar();
+      break;
+    }
 
     if (! parseAList(id))
       return errorMsg("parseAList failed");
@@ -349,13 +393,16 @@ parseAttrList(const std::string &id)
 }
 
 bool
-CDotParse::
+Parse::
 parseAList(const std::string &id)
 {
   EnterLeave el(this, "parseAList " + id);
 
   while (true) {
     skipSpace();
+
+    if (parse_->eof())
+      break;
 
     std::string id1;
 
@@ -371,25 +418,38 @@ parseAList(const std::string &id)
 
     skipSpace();
 
-    std::string id2;
+    if (parse_->isDigit() || parse_->isChar('.') || parse_->isChar('-')) {
+      double r;
 
-    if (! parseID(id2))
-      return errorMsg("expected identifier");
+      if (! parse_->readReal(&r))
+        return errorMsg("expected real");
 
-    if      (id == "graph") {
-      currentGraph_->setAttribute(id1, id2);
-    }
-    else if (id == "node") {
-      currentGraph_->setNodeAttribute(id1, id2);
-    }
-    else if (id == "edge") {
-      currentGraph_->setEdgeAttribute(id1, id2);
+      if      (currentEdge_)
+        currentEdge_->setAttribute(id1, std::to_string(r));
+      else if (currentNode_)
+        currentNode_->setAttribute(id1, std::to_string(r));
     }
     else {
-      if      (currentEdge_)
-        currentEdge_->setAttribute(id1, id2);
-      else if (currentNode_)
-        currentNode_->setAttribute(id1, id2);
+      std::string id2;
+
+      if (! parseID(id2))
+        return errorMsg("expected identifier");
+
+      if      (id == "graph") {
+        currentGraph_->setAttribute(id1, id2);
+      }
+      else if (id == "node") {
+        currentGraph_->setNodeAttribute(id1, id2);
+      }
+      else if (id == "edge") {
+        currentGraph_->setEdgeAttribute(id1, id2);
+      }
+      else {
+        if      (currentEdge_)
+          currentEdge_->setAttribute(id1, id2);
+        else if (currentNode_)
+          currentNode_->setAttribute(id1, id2);
+      }
     }
 
     //---
@@ -410,7 +470,7 @@ parseAList(const std::string &id)
 }
 
 bool
-CDotParse::
+Parse::
 parseID(std::string &id)
 {
   EnterLeave el(this, "parseID");
@@ -499,8 +559,15 @@ parseID(std::string &id)
     }
   }
   else if (parse_->isDigit()) {
-    while (parse_->isDigit())
+    while (! parse_->eof() && parse_->isDigit())
       id += parse_->readChar();
+
+    if (parse_->isChar('.')) {
+      id += parse_->readChar();
+
+      while (! parse_->eof() && parse_->isDigit())
+        id += parse_->readChar();
+    }
   }
   else {
     if (! parse_->readIdentifier(id))
@@ -515,7 +582,7 @@ parseID(std::string &id)
 }
 
 bool
-CDotParse::
+Parse::
 parseIdentifier(std::string &id)
 {
   EnterLeave el(this, "parseIdentifier");
@@ -531,16 +598,34 @@ parseIdentifier(std::string &id)
 }
 
 void
-CDotParse::
+Parse::
 skipSpace()
 {
   while (true) {
     // skip space
-    parse_->skipSpace();
+    while (! parse_->eof() && parse_->isSpace()) {
+      std::string sstr;
+
+      while (! parse_->eof() && parse_->isSpace())
+        sstr += parse_->readChar();
+
+      if (parse_->isChar('#')) {
+        auto p = sstr.find('\n');
+
+        if (p != std::string::npos) {
+          while (! parse_->eof()) {
+            if (parse_->isChar('\n'))
+              break;
+
+            parse_->skipChar();
+          }
+        }
+      }
+    }
 
     // skip comments
     if      (parse_->isString("//")) {
-      while (parse_->isString("//")) {
+      while (! parse_->eof() && parse_->isString("//")) {
         parse_->skipChar(2);
 
         while (! parse_->eof() && ! parse_->isChar('\n'))
@@ -568,7 +653,7 @@ skipSpace()
 }
 
 void
-CDotParse::
+Parse::
 enter(const std::string &proc) const
 {
   if (isDebug()) {
@@ -579,7 +664,7 @@ enter(const std::string &proc) const
 }
 
 void
-CDotParse::
+Parse::
 leave(const std::string &proc) const
 {
   --depth_;
@@ -590,7 +675,7 @@ leave(const std::string &proc) const
 }
 
 void
-CDotParse::
+Parse::
 depthSpaces() const
 {
   for (int i = 0; i < depth_; ++i)
@@ -598,7 +683,7 @@ depthSpaces() const
 }
 
 bool
-CDotParse::
+Parse::
 errorMsg(const std::string &msg) const
 {
   std::cerr << "Error: " << parse_->fileName() << "@" <<
@@ -607,109 +692,473 @@ errorMsg(const std::string &msg) const
   return false;
 }
 
-CDotParse::Graph *
-CDotParse::
+Graph *
+Parse::
 getGraph(const std::string &name)
 {
   auto p = graphs_.find(name);
 
-  if (p == graphs_.end())
-    p = graphs_.insert(p, GraphMap::value_type(name, new Graph(name)));
+  if (p == graphs_.end()) {
+    auto graph = GraphP(makeGraph(name));
 
-  return (*p).second;
+    p = graphs_.insert(p, GraphMap::value_type(name, graph));
+  }
+
+  return (*p).second.get();
 }
 
-CDotParse::Node *
-CDotParse::
+NodeP
+Parse::
 getNode(const std::string &name)
 {
   for (auto &pg : graphs_) {
-    auto *graph = pg.second;
+    auto graph = pg.second;
 
-    auto *node = graph->getNode(name, /*create*/false);
+    auto node = graph->getNode(name, /*create*/false);
     if (node) return node;
   }
 
-  return currentGraph_->getNode(name, /*create*/true);
+  return currentGraph()->getNode(name, /*create*/true);
+}
+
+Graph *
+Parse::
+makeGraph(const std::string &name) const
+{
+  return new Graph(const_cast<Parse *>(this), name);
+}
+
+Graph *
+Parse::
+currentGraph() const
+{
+  if (currentGraph_)
+    return currentGraph_;
+
+  assert(! graphs_.empty());
+
+  return graphs_.begin()->second.get();
+}
+
+Node *
+Parse::
+makeCurrentNode(const std::string &name) const
+{
+  assert(currentGraph());
+
+  return makeNode(currentGraph(), name);
+}
+
+Node *
+Parse::
+makeNode(Graph *graph, const std::string &name) const
+{
+  return new Node(graph, name);
+}
+
+Edge *
+Parse::
+makeEdge(Node *node1, Node *node2) const
+{
+  //assert(node1->graph() == this && node2->graph() == this);
+
+  return new Edge(node1, node2);
 }
 
 //---
 
-CDotParse::Graph::
-Graph(const std::string &name) :
- name_(name)
+Graph::
+Graph(Parse *parse, const std::string &name) :
+ parse_(parse), name_(name)
 {
 }
 
-CDotParse::Node *
-CDotParse::Graph::
+Graph::
+~Graph()
+{
+}
+
+NodeP
+Graph::
 getNode(const std::string &name, bool create)
 {
   auto p = nodes_.find(name);
 
-  if (p == nodes_.end()) {
-    if (! create)
-      return nullptr;
+  if (p != nodes_.end())
+    return (*p).second;
 
-    //---
+  if (! create)
+    return NodeP();
 
-    Node *node = new Node(name);
+  //---
 
-    node->setGraph(this);
+  return addNode(name);
+}
 
-    p = nodes_.insert(p, NodeMap::value_type(name, node));
+NodeP
+Graph::
+addNode(const std::string &name)
+{
+  auto node = NodeP(parse()->makeNode(this, name));
 
-    for (const auto &pn : nodeAttributes()) {
-      node->setAttribute(pn.first, pn.second);
-    }
-  }
+  for (const auto &pn : nodeAttributes())
+    node->setAttribute(pn.first, pn.second);
 
-  return (*p).second;
+  addNode(node);
+
+  return node;
 }
 
 void
-CDotParse::Graph::
+Graph::
+addNode(NodeP node)
+{
+  auto p = nodes_.find(node->name());
+  assert(p == nodes_.end());
+
+  nodes_[node->name()] = node;
+}
+
+EdgeP
+Graph::
+addEdge(Node *fromNode, Node *toNode)
+{
+  return fromNode->addNodeEdge(toNode);
+}
+
+void
+Graph::
+addEdge(EdgeP edge)
+{
+  edges_.insert(edge);
+}
+
+void
+Graph::
+removeEdge(EdgeP edge)
+{
+  auto p = edges_.find(edge);
+
+  if (p != edges_.end())
+    edges_.erase(p);
+}
+
+void
+Graph::
 setAttribute(const std::string &name, const std::string &value)
 {
   attributes_.setNameValue(name, value);
 }
 
 void
-CDotParse::Graph::
+Graph::
 setNodeAttribute(const std::string &name, const std::string &value)
 {
   nodeAttributes_.setNameValue(name, value);
 }
 
 void
-CDotParse::Graph::
+Graph::
 setEdgeAttribute(const std::string &name, const std::string &value)
 {
   edgeAttributes_.setNameValue(name, value);
 }
 
 void
-CDotParse::Graph::
-print() const
+Graph::
+addGraph(Graph *graph)
 {
-  std::cout << "Graph " << name_ << "\n";
+  graph->setParent(this);
+
+  graphs_.insert(graph);
+}
+
+void
+Graph::
+print(std::ostream &os) const
+{
+  os << "Graph " << name_ << "\n";
 
   for (auto &pn : nodes_) {
-    std::cout << " "; pn.second->print(); std::cout << "\n";
+    os << " "; pn.second->print(os); os << "\n";
   }
 }
 
 void
-CDotParse::Graph::
-outputCSV() const
+Graph::
+outputCSV(std::ostream &os) const
 {
   for (auto &pn : nodes_)
-    pn.second->outputCSV();
+    pn.second->outputCSV(os);
 }
+
+GraphP
+Graph::
+minimumSpaningTree() const
+{
+  auto newGraph = GraphP(parse_->makeGraph(""));
+
+  int num_nodes = nodes_.size();
+  int num_edges = edges_.size();
+
+  if (num_nodes == 0 || num_edges == 0)
+    return newGraph;
+
+  std::list<EdgeP> in_edges;
+
+  for (auto &edge : edges_)
+    in_edges.push_back(edge);
+
+  int num_in_edges = in_edges.size();
+
+  while (num_in_edges > 0) {
+    EdgeP  min_edge;
+    double min_cost { };
+
+    for (auto &iedge : in_edges) {
+      auto cost = iedge->cost();
+
+      if (min_edge == nullptr || cost < min_cost) {
+        min_edge = iedge;
+        min_cost = cost;
+      }
+    }
+
+    if (! min_edge)
+      break;
+
+    in_edges.remove(min_edge);
+
+    --num_in_edges;
+
+    auto *minFromNode = min_edge->fromNode();
+    auto *minToNode   = min_edge->toNode  ();
+
+    const std::string &name1 = minFromNode->name();
+    const std::string &name2 = minToNode  ->name();
+
+    minFromNode = newGraph->getNode(name1).get();
+    minToNode   = newGraph->getNode(name2).get();
+
+    if (minFromNode == nullptr)
+      minFromNode = newGraph->addNode(name1).get();
+
+    if (minToNode == nullptr)
+      minToNode = newGraph->addNode(name2).get();
+
+    min_edge = newGraph->addEdge(minFromNode, minToNode);
+
+    min_edge->setCost(min_cost);
+
+    if (newGraph->isCycle(minFromNode) || newGraph->isCycle(minToNode)) {
+      newGraph->removeEdge(min_edge);
+    }
+  }
+
+  if (parse_->isDebug()) {
+    std::cout << "Kruskal" << std::endl;
+
+    std::cout << *newGraph << std::endl;
+  }
+
+  return newGraph;
+}
+
+Graph::NodeArray
+Graph::
+shortestPath(NodeP fromNode, NodeP toNode) const
+{
+  class ShortestPath : public CAStar<Node> {
+   public:
+    ShortestPath(Graph *graph) :
+     graph_(graph) {
+    }
+
+    virtual ~ShortestPath() { }
+
+    Graph *graph() const { return graph_; }
+
+    // smallest/optimal cost to goal
+    double pathCostEstimate(Node * /*startNode*/, Node * /*goalNode*/) override {
+      return 1;
+    }
+
+    double traverseCost(Node * /*node*/, Node * /*newNode*/) override {
+      return 1;
+    }
+
+    NodeList getNextNodes(Node *node) const override {
+      NodeList nodes;
+
+      for (const auto &edge : node->edges())
+        nodes.push_back(edge->toNode());
+
+      return nodes;
+    }
+
+   private:
+    Graph *graph_ { nullptr };
+  };
+
+  ShortestPath shortestPath(const_cast<Graph *>(this));
+
+  ShortestPath::NodeList nodes;
+
+  NodeArray pnodes;
+
+  if (! shortestPath.search(fromNode.get(), toNode.get(), nodes))
+    return pnodes;
+
+  for (auto *node : nodes)
+    pnodes.push_back(node);
+
+  return pnodes;
+}
+
+bool
+Graph::
+isCycle(Node *node) const
+{
+  resetEdgeVisited();
+
+  return isCycle(node, node);
+}
+
+bool
+Graph::
+isCycle(Node *node, Node *startNode) const
+{
+  auto edges = startNode->edges();
+
+  for (auto &edge : edges) {
+    if (edge->isVisited())
+      continue;
+
+    edge->setVisited(true);
+
+    auto *fromNode = edge->fromNode();
+    auto *toNode   = edge->toNode  ();
+
+    if (fromNode == startNode) {
+      if (node == toNode)
+        return true;
+
+      if (isCycle(node, toNode))
+        return true;
+    }
+    else {
+      if (node == fromNode)
+        return true;
+
+      if (isCycle(node, fromNode))
+        return true;
+    }
+  }
+
+  return false;
+}
+
+void
+Graph::
+resetNodeVisited() const
+{
+  for (const auto &node : nodes())
+    node.second->setVisited(false);
+}
+
+void
+Graph::
+resetEdgeVisited() const
+{
+  for (const auto &edge : edges())
+    edge->setVisited(false);
+}
+
+Graph::Graphs
+Graph::
+subGraphs() const
+{
+  Graphs graphs;
+
+  resetNodeVisited();
+  resetEdgeVisited();
+
+  int ind = 0;
+
+  // find next start node
+  auto nextStartNode = [&]() {
+    NodeP startNode;
+
+    for (const auto &node : nodes()) {
+      if (! node.second->isVisited())
+        return node.second;
+    }
+
+    return NodeP();
+  };
+
+  // get start node
+  auto startNode = nextStartNode();
+
+  while (startNode) {
+    // create sub graph for node
+    auto subName = "subgraph_" + std::to_string(ind++);
+
+    auto subGraph = GraphP(parse_->makeGraph(subName));
+
+    graphs.push_back(subGraph);
+
+    // add node edges
+    addNodeToSubGraph(startNode.get(), subGraph);
+
+    // next start node
+    startNode = nextStartNode();
+  }
+
+  return graphs;
+}
+
+void
+Graph::
+addNodeToSubGraph(Node *startNode, GraphP subGraph) const
+{
+  startNode->setVisited(true);
+
+  auto edges = startNode->edges();
+
+  for (auto &edge : edges) {
+    if (edge->isVisited())
+      continue;
+
+    edge->setVisited(true);
+
+    auto subEdge = EdgeP(parse_->makeEdge(edge->fromNode(), edge->toNode()));
+
+    subGraph->addEdge(subEdge);
+
+    addNodeToSubGraph(edge->toNode(), subGraph);
+  }
+}
+
+#if 0
+Graph::Edges
+Graph::
+getEdges() const
+{
+  std::set<EdgeP> edges;
+
+  for (const auto &pn : nodes_) {
+    for (auto &edge : pn.second->edges())
+      edges.insert(edge);
+  }
+
+  return edges;
+}
+#endif
 
 //---
 
-CDotParse::Edge::
+Edge::
 Edge(Node *fromNode, Node *toNode) :
  fromNode_(fromNode), toNode_(toNode)
 {
@@ -717,50 +1166,50 @@ Edge(Node *fromNode, Node *toNode) :
 }
 
 void
-CDotParse::Edge::
+Edge::
 setAttribute(const std::string &name, const std::string &value)
 {
   attributes_.setNameValue(name, value);
 }
 
 void
-CDotParse::Edge::
-print() const
+Edge::
+print(std::ostream &os) const
 {
-  std::cout << fromNode_->name() << " -> " << toNode_->name();
+  os << fromNode_->name() << " -> " << toNode_->name();
 
   if (! attributes().empty()) {
-    std::cout << " [";
+    os << " [";
 
     bool first = true;
 
     for (const auto &pn : attributes()) {
       if (! first)
-        std::cout << ",";
+        os << ",";
 
-      std::cout << pn.first << "=" << pn.second;
+      os << pn.first << "=" << pn.second;
 
       first = false;
     }
 
-    std::cout << "]";
+    os << "]";
   }
 }
 
 void
-CDotParse::Edge::
-outputCSV() const
+Edge::
+outputCSV(std::ostream &os) const
 {
-  std::cout << fromNode_->name() << "," << toNode_->name() << "," << attributesCSVStr() << ",";
+  os << fromNode_->name() << "," << toNode_->name() << "," << attributesCSVStr() << ",";
 
   if (graph())
-    std::cout << graph()->hierName();
+    os << graph()->hierName();
 
-  std::cout << "\n";
+  os << "\n";
 }
 
 std::string
-CDotParse::Edge::
+Edge::
 attributesCSVStr() const
 {
   std::string str = "\"";
@@ -799,84 +1248,102 @@ attributesCSVStr() const
 
 //---
 
-CDotParse::Node::
-Node(const std::string &name) :
- name_(name)
+Node::
+Node(Graph *graph, const std::string &name) :
+ graph_(graph), name_(name)
 {
+  assert(graph);
+
   setAttribute("shape", "circle");
 }
 
 void
-CDotParse::Node::
+Node::
 setAttribute(const std::string &name, const std::string &value)
 {
+  if      (name == "color")
+    setColor(value);
+  else if (name == "label")
+    setLabel(value);
+
   attributes_.setNameValue(name, value);
 }
 
-CDotParse::Edge *
-CDotParse::Node::
-addEdge(Node *node)
+EdgeP
+Node::
+addNodeEdge(Node *node)
 {
   // TODO: check for existing edge
-  Edge *edge = new Edge(this, node);
+  auto edge = EdgeP(graph()->parse()->makeEdge(this, node));
 
-  edges_.push_back(edge);
+  addEdge(edge);
 
-  for (const auto &pn : graph()->nodeAttributes()) {
+  for (const auto &pn : graph()->nodeAttributes())
     edge->setAttribute(pn.first, pn.second);
-  }
+
+  graph_->addEdge(edge);
+
+  if (node->graph_ != graph_)
+    graph_->addEdge(edge);
 
   return edge;
 }
 
 void
-CDotParse::Node::
-print() const
+Node::
+addEdge(EdgeP edge)
 {
-  std::cout << "Node: " << name();
+  edges_.push_back(edge);
+}
+
+void
+Node::
+print(std::ostream &os) const
+{
+  os << "Node: " << name();
 
   if (! attributes().empty()) {
-    std::cout << " [";
+    os << " [";
 
     bool first = true;
 
     for (const auto &pn : attributes()) {
       if (! first)
-        std::cout << ",";
+        os << ",";
 
-      std::cout << pn.first << "=" << pn.second;
+      os << pn.first << "=" << pn.second;
 
       first = false;
     }
 
-    std::cout << "]";
+    os << "]";
   }
 
   if (! edges_.empty()) {
     for (const auto &edge : edges_) {
-      std::cout << "\n "; edge->print();
+      os << "\n "; edge->print(os);
     }
   }
 }
 
 void
-CDotParse::Node::
-outputCSV() const
+Node::
+outputCSV(std::ostream &os) const
 {
-  std::cout << name() << ",," << attributesCSVStr() << ",";
+  os << name() << ",," << attributesCSVStr() << ",";
 
   if (graph())
-    std::cout << graph()->hierName();
+    os << graph()->hierName();
 
-  std::cout << "\n";
+  os << "\n";
 
   for (const auto &edge : edges_) {
-    edge->outputCSV();
+    edge->outputCSV(os);
   }
 }
 
 std::string
-CDotParse::Node::
+Node::
 attributesCSVStr() const
 {
   std::string str = "\"";
@@ -924,4 +1391,6 @@ attributesCSVStr() const
   str += "\"";
 
   return str;
+}
+
 }

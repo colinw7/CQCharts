@@ -1586,7 +1586,7 @@ placeGraphNodes(const Nodes &nodes, bool placed) const
 
   //---
 
-  // set x pos of nodes
+  // set pos of nodes
   calcGraphNodesPos(nodes);
 
   //---
@@ -1613,7 +1613,7 @@ placeGraphNodes(const Nodes &nodes, bool placed) const
 
   //---
 
-  // calc y value scale and margins to fit in bbox
+  // calc perp value scale and margins to fit in bbox
   th->calcValueMarginScale();
 
   //---
@@ -1643,11 +1643,12 @@ void
 CQChartsSankeyPlot::
 calcGraphNodesPos(const Nodes &nodes) const
 {
-  // place graph nodes at x position
   graph_->clearDepthNodesMap();
 
+  // set max depth of all graph nodes
   updateGraphMaxDepth(nodes);
 
+  // place graph nodes at each position
   for (const auto &node : nodes) {
     int pos = calcPos(node);
 
@@ -1866,15 +1867,13 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
     // map pos to bbox range minus margins
     if (isAlignEnds()) {
-      posStart = (isHorizontal() ?
-        targetBBox_.getXMin() + posMargin/2.0 : targetBBox_.getYMin() + posMargin/2.0);
-      posEnd   = (isHorizontal() ?
-        targetBBox_.getXMax() - posMargin/2.0 : targetBBox_.getYMax() - posMargin/2.0);
+      posStart = (isHorizontal() ? targetBBox_.getXMin() : targetBBox_.getYMin()) + posMargin/2.0;
+      posEnd   = (isHorizontal() ? targetBBox_.getXMax() : targetBBox_.getYMax()) - posMargin/2.0;
     }
     // map pos to bbox range (use for left)
     else {
-      posStart = (isHorizontal() ?  targetBBox_.getXMin() : targetBBox_.getYMin());
-      posEnd   = (isHorizontal() ?  targetBBox_.getXMax() : targetBBox_.getYMax());
+      posStart = (isHorizontal() ? targetBBox_.getXMin() : targetBBox_.getYMin());
+      posEnd   = (isHorizontal() ? targetBBox_.getXMax() : targetBBox_.getYMax());
     }
 
     double nodePos1 = CMathUtil::map(pos1, minPos, maxPos, posStart, posEnd);
@@ -1952,12 +1951,6 @@ calcPos(Node *node) const
         }
         else
           pos = 0;
-#if 0
-        if (node->destEdges().size() == 1)
-          pos = std::max(calcPos((*node->destEdges().begin())->destNode()) - 1, 0);
-        else
-          pos = 0;
-#endif
       }
       else
         pos = 0;
@@ -1977,12 +1970,6 @@ calcPos(Node *node) const
         }
         else
           pos = maxNodeDepth;
-#if 0
-        if (node->srcEdges().size() == 1)
-          pos = std::min(calcPos((*node->srcEdges().begin())->srcNode()) + 1, maxNodeDepth);
-        else
-          pos = maxNodeDepth;
-#endif
       }
       else
         pos = maxNodeDepth;
@@ -2216,7 +2203,7 @@ adjustNodeCentersLtoR(bool placed, bool force) const
   int endPos   = maxPos - 1;
 
   if (align() == Align::SRC)
-    endPos = maxPos;
+    ++endPos;
 
   for (int pos = startPos; pos <= endPos; ++pos) {
     if (adjustPosNodes(pos, placed))

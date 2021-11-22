@@ -33,7 +33,9 @@ class CQChartsGraphMgr {
   enum class Align {
     SRC,
     DEST,
-    JUSTIFY
+    JUSTIFY,
+    LARGEST,
+    RAND
   };
 
   enum NodeShape {
@@ -57,6 +59,15 @@ class CQChartsGraphMgr {
 
   //---
 
+  //! get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o) { orientation_ = o; }
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
+  //---
+
   const Graphs &graphs() const { return graphs_; }
 
   bool hasGraph(int graphId) const;
@@ -74,7 +85,10 @@ class CQChartsGraphMgr {
   //---
 
   Node *addNode(const QString &name) const;
+  void addNode(Node *node) const;
+
   Edge *addEdge(const OptReal &value, Node *srcNode, Node *destNode) const;
+  void addEdge(Edge *edge) const;
 
   Node *findNode(const QString &name) const;
 
@@ -85,31 +99,67 @@ class CQChartsGraphMgr {
 
   //! get/set node align
   const Align &align() const { return align_; }
-  void setAlign(const Align &v) { align_ = v; }
+  void setAlign(const Align &a) { align_ = a; }
 
-  //! get/set is node x scaled
-  bool isNodeXScaled() const { return nodeXScaled_; }
-  void setNodeXScaled(bool b) { nodeXScaled_ = b; }
+  //! get/set node align first/last
+  bool isAlignFirstLast() const { return alignFirstLast_; }
+  void setAlignFirstLast(bool b) { alignFirstLast_ = b; }
 
-  //! get/set is node y scaled
-  bool isNodeYScaled() const { return nodeYScaled_; }
-  void setNodeYScaled(bool b) { nodeYScaled_ = b; }
+  //! get/set number of random values for align
+  int alignRand() const { return alignRand_; }
+  void setAlignRand(int i) { alignRand_ = i; }
+
+  //---
+
+  //! get/set is node parallel scaled (x)
+  bool isNodeScaled() const { return nodeScaled_; }
+  void setNodeScaled(bool b) { nodeScaled_ = b; }
+
+  //! get/set is node perp scaled (y)
+  bool isNodePerpScaled() const { return nodePerpScaled_; }
+  void setNodePerpScaled(bool b) { nodePerpScaled_ = b; }
+
+  //! get/set is node perp scaled to node value
+  bool isNodeValueScaled() const { return nodeValueScaled_; }
+  void setNodeValueScaled(bool b) { nodeValueScaled_ = b; }
+
+  //---
 
   //! get/set is adjust nodes
   bool isAdjustNodes() const { return adjustNodes_; }
   void setAdjustNodes(bool b) { adjustNodes_ = b; }
 
+  //! get/set adjust center
+  bool isAdjustCenters() const { return adjustCenters_; }
+  void setAdjustCenters(bool b) { adjustCenters_ = b; }
+
+  //! get/set remove overlaps
+  bool isRemoveOverlaps() const { return removeOverlaps_; }
+  void setRemoveOverlaps(bool b) { removeOverlaps_ = b; }
+
+  //! get/set reorder edges
+  bool isReorderEdges() const { return reorderEdges_; }
+  void setReorderEdges(bool b) { reorderEdges_ = b; }
+
+  //! get/set adjust iterations
+  int adjustIterations() const { return adjustIterations_; }
+  void setAdjustIterations(int i) { adjustIterations_ = i; }
+
   //! get/set node width
   const Length &nodeWidth() const { return nodeWidth_; }
   void setNodeWidth(const Length &l) { nodeWidth_ = l; }
 
-  //! get/set node x margin
-  const Length &nodeXMargin() const { return nodeXMargin_; }
-  void setNodeXMargin(const Length &l) { nodeXMargin_ = l; }
+  //! get/set node height
+  const Length &nodeHeight() const { return nodeHeight_; }
+  void setNodeHeight(const Length &l) { nodeHeight_ = l; }
 
-  //! get/set node y margin
-  const Length &nodeYMargin() const { return nodeYMargin_; }
-  void setNodeYMargin(const Length &l) { nodeYMargin_ = l; }
+  //! get/set node margin (perp)
+  const Length &nodeMargin() const { return nodeMargin_; }
+  void setNodeMargin(const Length &l) { nodeMargin_ = l; }
+
+  //! get/set node margin (parallel)
+  const Length &nodeSpacing() const { return nodeSpacing_; }
+  void setNodeSpacing(const Length &l) { nodeSpacing_ = l; }
 
   //! get/set node shape
   const NodeShape &nodeShape() { return nodeShape_; }
@@ -129,20 +179,29 @@ class CQChartsGraphMgr {
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
 
-  Plot*       plot_          { nullptr };            //!< parent plot
-  Graphs      graphs_;                               //!< graphs
-  Align       align_         { Align::JUSTIFY };     //!< align
-  bool        nodeXScaled_   { false };              //!< is node x scaled
-  bool        nodeYScaled_   { false };              //!< is node y scaled
-  bool        adjustNodes_   { true };               //!< adjust nodes
-  Length      nodeWidth_     { Length::pixel(16) };  //!< node x width
-  Length      nodeXMargin_   { Length::plot(0.01) }; //!< node x margin
-  Length      nodeYMargin_   { Length::plot(0.2) };  //!< node y margin
-  NodeShape   nodeShape_     { NODE_SHAPE_NONE };    //!< node shape
-  double      minNodeMargin_ { 4 };                  //!< minimum node margin (in pixels)
-  NameNodeMap nameNodeMap_;                          //!< name node map
-  IndNodeMap  indNodeMap_;                           //!< ind node map
-  Edges       edges_;                                //!< all edges
+  Plot*           plot_             { nullptr };            //!< parent plot
+  Graphs          graphs_;                                  //!< graphs
+  Qt::Orientation orientation_      { Qt::Vertical };       //!< orientation
+  Align           align_            { Align::SRC };         //!< align
+  bool            alignFirstLast_   { true };               //!< align first/last
+  int             alignRand_        { 10 };                 //!< number of random values for align
+  bool            nodeScaled_       { false };              //!< is node parallel scaled
+  bool            nodePerpScaled_   { true };               //!< is node perp scaled
+  bool            nodeValueScaled_  { false };              //!< is node perp size scaled by value
+  bool            adjustNodes_      { true };               //!< adjust nodes
+  bool            adjustCenters_    { true };               //!< adjust centers
+  bool            removeOverlaps_   { true };               //!< remove overlaps
+  bool            reorderEdges_     { true };               //!< reorder edges
+  int             adjustIterations_ { 25 };                 //!< number of adjust iterations
+  Length          nodeWidth_        { Length::pixel(64) };  //!< node width
+  Length          nodeHeight_       { Length::pixel(64) };  //!< node height
+  Length          nodeMargin_       { Length::plot(0.05) }; //!< node margin (perp)
+  Length          nodeSpacing_      { Length::plot(0.05) }; //!< node spacing (parallel)
+  NodeShape       nodeShape_        { NODE_SHAPE_NONE };    //!< node shape
+  double          minNodeMargin_    { 4 };                  //!< minimum node margin (in pixels)
+  NameNodeMap     nameNodeMap_;                             //!< name node map
+  IndNodeMap      indNodeMap_;                              //!< ind node map
+  Edges           edges_;                                   //!< all edges
 };
 
 //---
@@ -228,9 +287,11 @@ class CQChartsGraphNode {
   const ModelIndex &ind() const { return ind_; }
   void setInd(const ModelIndex &ind) { ind_ = ind; }
 
+  //---
+
   //! get/set source edges
-  const Edges &srcEdges() const { return srcEdges_ ; }
-  void setSrcEdges(const Edges &edges) { srcEdges_  = edges; }
+  const Edges &srcEdges() const { return srcEdges_; }
+  void setSrcEdges(const Edges &edges) { srcEdges_ = edges; }
 
   //! get/set destination edges
   const Edges &destEdges() const { return destEdges_; }
@@ -243,7 +304,13 @@ class CQChartsGraphNode {
   void addDestEdge(Edge *edge, bool primary=true);
 
   //! has destination edge
-  bool hasDestNode(CQChartsGraphNode *destNode) const;
+  bool hasDestNode(Node *destNode) const;
+
+  //---
+
+  //! get/set fixed
+  bool isFixed() const { return fixed_; }
+  void setFixed(bool b) { fixed_ = b; }
 
   //---
 
@@ -264,7 +331,7 @@ class CQChartsGraphNode {
   int numSides() const { return numSides_; }
   void setNumSides(int n) { numSides_ = n; }
 
-  //! get/set ill color
+  //! get/set fill color
   const Color &fillColor() const { return fillData_.color; }
   void setFillColor(const Color &c) { fillData_.color = c; }
 
@@ -295,8 +362,8 @@ class CQChartsGraphNode {
   //---
 
   // get/set x pos
-  int xpos() const { return xpos_; }
-  void setXPos(int x) { xpos_ = x; }
+  int pos() const { return pos_; }
+  void setPos(int pos) { pos_ = pos; }
 
   // get/set rect
   virtual const BBox &rect() const;
@@ -401,9 +468,14 @@ class CQChartsGraphNode {
   }
 
  protected:
+  friend class CQChartsGraphGraph;
+
   //! calc src/destination depth
   int calcSrcDepth (NodeSet &visited) const;
   int calcDestDepth(NodeSet &visited) const;
+
+  bool isCalculating() const { return calculating_; }
+  void setCalculating(bool b) { calculating_ = b; }
 
  protected:
   struct FillData {
@@ -419,20 +491,23 @@ class CQChartsGraphNode {
     LineDash dash;  //!< stroke dash
   };
 
-  GraphMgr*   mgr_           { nullptr }; //!< graph manager
-  Node*       parent_        { nullptr }; //!< parent node
-  QString     str_;                       //!< string
-  int         id_            { -1 };      //!< id
-  bool        visible_       { true };    //!< is visible
-  ModelIndex  ind_;                       //!< model index
-  QString     name_;                      //!< name
-  QString     label_;                     //!< label
-  OptReal     value_;                     //!< value
-  int         group_         { -1 };      //!< group
-  int         ngroup_        { 0 };       //!< number of groups
-  int         depth_         { -1 };      //!< depth
-  int         graphId_       { -1 };      //!< graph id
-  int         parentGraphId_ { -1 };      //!< parent graph id
+  GraphMgr* mgr_           { nullptr }; //!< graph manager
+  Node*     parent_        { nullptr }; //!< parent node
+  QString   str_;                       //!< string
+  int       id_            { -1 };      //!< id
+  bool      visible_       { true };    //!< is visible
+  QString   name_;                      //!< name
+  QString   label_;                     //!< label
+  OptReal   value_;                     //!< value
+  int       group_         { -1 };      //!< group
+  int       ngroup_        { 0 };       //!< number of groups
+  int       depth_         { -1 };      //!< depth
+  int       graphId_       { -1 };      //!< graph id
+  int       parentGraphId_ { -1 };      //!< parent graph id
+
+  bool fixed_ { false }; //!< fixed
+
+  ModelIndex ind_; //!< model index
 
   // appearance
   ShapeType  shapeType_ { ShapeType::NONE }; //!< shape type
@@ -446,11 +521,13 @@ class CQChartsGraphNode {
   Edges     nonPrimaryEdges_;           //!< non-primary edges
   int       srcDepth_      { -1 };      //!< source depth (calculated)
   int       destDepth_     { -1 };      //!< destination depth (calculated)
-  int       xpos_          { -1 };      //!< x position
+  int       pos_           { -1 };      //!< position
   BBox      rect_;                      //!< placed rectangle
   ModelInds modelInds_;                 //!< model inds
   EdgeRect  srcEdgeRect_;               //!< edge to src
   EdgeRect  destEdgeRect_;              //!< edge to dest
+
+  bool calculating_ { false };
 };
 
 //---
@@ -635,17 +712,19 @@ class CQChartsGraphGraph : public CQChartsGraphNode {
   int minNodeDepth() const { return minNodeDepth_; }
   void setMinNodeDepth(int i) { minNodeDepth_ = i; }
 
-  //! get/set max node depth
+  //! get/set max node depth (parallel)
   int maxNodeDepth() const { return maxNodeDepth_; }
   void setMaxNodeDepth(int i) { maxNodeDepth_ = i; }
 
-  //! get/set max height
+  //! get/set max height (perp)
   int maxHeight() const { return maxHeight_; }
   void setMaxHeight(int i) { maxHeight_ = i; }
 
-  //! get/set total size
+  //! get/set total size (perp)
   double totalSize() const { return totalSize_; }
   void setTotalSize(double r) { totalSize_ = r; }
+
+  //----
 
   //! get depth nodes
   const DepthNodesMap &depthNodesMap() const { return depthNodesMap_; }
@@ -663,7 +742,7 @@ class CQChartsGraphGraph : public CQChartsGraphNode {
   void resetPosNodes() { posNodesMap_.clear(); }
 
   //! add pos node
-  void addPosNode(Node *node) { posNodesMap_[node->xpos()].push_back(node); }
+  void addPosNode(Node *node) { posNodesMap_[node->pos()].push_back(node); }
 
   //! has nodes at pos
   bool hasPosNodes(int pos) const { return (posNodesMap_.find(pos) != posNodesMap_.end()); }
@@ -685,15 +764,15 @@ class CQChartsGraphGraph : public CQChartsGraphNode {
 
   void updateMaxDepth(const Nodes &nodes) const;
 
-  int calcXPos(Node *node) const;
+  int calcPos(Node *node) const;
 
   void calcValueMarginScale();
 
-  double calcNodeXMargin() const;
-  double calcNodeYMargin() const;
+  double calcNodeMargin() const;
+  double calcNodeSpacing() const;
 
   void placeDepthNodes() const;
-  void placeDepthSubNodes(int xpos, const Nodes &nodes) const;
+  void placeDepthSubNodes(int pos, const Nodes &nodes) const;
 
   bool adjustGraphNodes(const Nodes &nodes) const;
 
@@ -701,9 +780,12 @@ class CQChartsGraphGraph : public CQChartsGraphNode {
 
   bool adjustNodeCenters() const;
 
+  bool adjustNodeCentersLtoR() const;
+  bool adjustNodeCentersRtoL() const;
+
   bool reorderNodeEdges(const Nodes &nodes) const;
 
-  bool adjustPosNodes(int xpos) const;
+  bool adjustPosNodes(int pos) const;
 
   bool adjustNode(Node *node) const;
 

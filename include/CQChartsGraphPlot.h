@@ -66,7 +66,7 @@ class CQChartsGraphPlotMgr : public CQChartsGraphMgr {
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const override;
 
  private:
-  CQChartsGraphPlot *plot_ { nullptr };
+  CQChartsGraphPlot* plot_ { nullptr };
 };
 
 class CQChartsGraphPlotGraph : public CQChartsGraphGraph {
@@ -87,7 +87,7 @@ class CQChartsGraphPlotGraph : public CQChartsGraphGraph {
   void scale(double fx, double fy) override;
 
  private:
-  Obj *obj_ { nullptr }; //!< graph plot object
+  Obj* obj_ { nullptr }; //!< graph plot object
 };
 
 class CQChartsGraphPlotNode : public CQChartsGraphNode {
@@ -108,7 +108,7 @@ class CQChartsGraphPlotNode : public CQChartsGraphNode {
   void scale(double fx, double fy) override;
 
  private:
-  Obj *obj_ { nullptr }; //!< node plot object
+  Obj* obj_ { nullptr }; //!< node plot object
 };
 
 class CQChartsGraphPlotEdge : public CQChartsGraphEdge {
@@ -124,7 +124,7 @@ class CQChartsGraphPlotEdge : public CQChartsGraphEdge {
   void setObj(Obj *obj);
 
  private:
-  Obj *obj_ { nullptr }; //!< edge plot object
+  Obj* obj_ { nullptr }; //!< edge plot object
 };
 
 //---
@@ -450,20 +450,28 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(CQChartsLength nodeXMargin READ nodeXMargin   WRITE setNodeXMargin)
-  Q_PROPERTY(CQChartsLength nodeYMargin READ nodeYMargin   WRITE setNodeYMargin)
-  Q_PROPERTY(CQChartsLength nodeWidth   READ nodeWidth     WRITE setNodeWidth  )
-  Q_PROPERTY(bool           nodeXScaled READ isNodeXScaled WRITE setNodeXScaled)
-  Q_PROPERTY(NodeShape      nodeShape   READ nodeShape     WRITE setNodeShape  )
-  Q_PROPERTY(EdgeShape      edgeShape   READ edgeShape     WRITE setEdgeShape  )
-  Q_PROPERTY(bool           edgeScaled  READ isEdgeScaled  WRITE setEdgeScaled )
+  Q_PROPERTY(CQChartsLength  nodeXMargin READ nodeXMargin   WRITE setNodeXMargin)
+  Q_PROPERTY(CQChartsLength  nodeYMargin READ nodeYMargin   WRITE setNodeYMargin)
+  Q_PROPERTY(CQChartsLength  nodeWidth   READ nodeWidth     WRITE setNodeWidth  )
+  Q_PROPERTY(CQChartsLength  nodeHeight  READ nodeHeight    WRITE setNodeHeight )
+  Q_PROPERTY(bool            nodeXScaled READ isNodeXScaled WRITE setNodeXScaled)
+  Q_PROPERTY(bool            nodeYScaled READ isNodeYScaled WRITE setNodeYScaled)
+  Q_PROPERTY(NodeShape       nodeShape   READ nodeShape     WRITE setNodeShape  )
+  Q_PROPERTY(EdgeShape       edgeShape   READ edgeShape     WRITE setEdgeShape  )
+  Q_PROPERTY(bool            edgeScaled  READ isEdgeScaled  WRITE setEdgeScaled )
+  Q_PROPERTY(Qt::Orientation orientation READ orientation   WRITE setOrientation)
 
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
 
   // placement
   Q_PROPERTY(Align align            READ align              WRITE setAlign           )
+  Q_PROPERTY(bool  alignFirstLast   READ isAlignFirstLast   WRITE setAlignFirstLast  )
   Q_PROPERTY(bool  adjustNodes      READ isAdjustNodes      WRITE setAdjustNodes     )
+  Q_PROPERTY(bool  adjustCenters    READ isAdjustCenters    WRITE setAdjustCenters   )
+  Q_PROPERTY(bool  removeOverlaps   READ isRemoveOverlaps   WRITE setRemoveOverlaps  )
+  Q_PROPERTY(bool  reorderEdges     READ isReorderEdges     WRITE setReorderEdges    )
+  Q_PROPERTY(int   adjustIterations READ adjustIterations   WRITE setAdjustIterations)
   Q_PROPERTY(bool  autoCreateGraphs READ isAutoCreateGraphs WRITE setAutoCreateGraphs)
 
   // node/edge shape data
@@ -536,13 +544,21 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set x width
+  //! get/set parallel width
   const Length &nodeWidth() const;
   void setNodeWidth(const Length &l);
+
+  //! get/set perp height
+  const Length &nodeHeight() const;
+  void setNodeHeight(const Length &l);
 
   //! get/set is node x scaled
   bool isNodeXScaled() const;
   void setNodeXScaled(bool b);
+
+  //! get/set is node y scaled
+  bool isNodeYScaled() const;
+  void setNodeYScaled(bool b);
 
   //! get/set node shape
   NodeShape nodeShape() const;
@@ -564,6 +580,15 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   //---
 
+  //! get/set orientation
+  const Qt::Orientation &orientation() const;
+  void setOrientation(const Qt::Orientation &o);
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
+  //---
+
   //! get/set blend node colors for edge
   bool isBlendEdgeColor() const { return blendEdgeColor_; }
   void setBlendEdgeColor(bool b);
@@ -574,10 +599,33 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   Align align() const;
   void setAlign(const Align &a);
 
+  //! get/set node align first/last
+  bool isAlignFirstLast() const;
+  void setAlignFirstLast(bool b);
+
   //---
 
+  //! get/set adjust nodes
   bool isAdjustNodes() const;
   void setAdjustNodes(bool b);
+
+  //! get/set adjust center
+  bool isAdjustCenters() const;
+  void setAdjustCenters(bool b);
+
+  //! get/set remove overlaps
+  bool isRemoveOverlaps() const;
+  void setRemoveOverlaps(bool b);
+
+  //! get/set reorder edges
+  bool isReorderEdges() const;
+  void setReorderEdges(bool b);
+
+  //! get/set adjust iterations
+  int adjustIterations() const;
+  void setAdjustIterations(int n);
+
+  //---
 
   bool isAutoCreateGraphs() const { return autoCreateGraphs_; }
   void setAutoCreateGraphs(bool b);
@@ -599,7 +647,11 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   //---
 
+  const Nodes &nodes() const { return nodes_; }
+
   int numNodes() const { return nodes_.size(); }
+
+  const Edges &edges() const { return edges_; }
 
   //---
 
@@ -727,6 +779,10 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   void printStats();
 
+ protected slots:
+  void fixSelected();
+  void unfixSelected();
+
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
@@ -742,11 +798,11 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   bool      adjustNodes_      { true };            //!< adjust nodes
   bool      autoCreateGraphs_ { false };           //!< auto create graphs
   EdgeShape edgeShape_        { EDGE_SHAPE_ARC };  //!< edge shape
-  bool      edgeScaled_       { true };            //!< is edge scaled
+  bool      edgeScaled_       { false };           //!< is edge scaled
 
   // bbox, margin, node width
-  BBox   targetBBox_  { -1, -1, 1, 1 };     //!< target range bbox
-  Length edgeWidth_   { Length::pixel(8) }; //!< edge width
+  BBox   targetBBox_ { -1, -1, 1, 1 };     //!< target range bbox
+  Length edgeWidth_  { Length::pixel(8) }; //!< edge width
 
   // coloring
   bool blendEdgeColor_ { true }; //!< blend edge color
@@ -758,10 +814,22 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   BBox             bbox_;                    //!< bbox
   CQChartsValueInd groupValueInd_;           //!< group value ind
   int              maxNodeDepth_  { 0 };     //!< max node depth (all graphs)
-  double           boxMargin_     { 0.01 };  //!< bounding box margin
+//double           boxMargin_     { 0.01 };  //!< bounding box margin
   double           edgeMargin_    { 0.01 };  //!< edge bounding box margin
   bool             pressed_       { false }; //!< mouse pressed
   int              numGroups_     { 1 };     //!< node number of groups
+
+  struct FixedNode {
+    FixedNode() { }
+
+    FixedNode(const BBox &r) { rect = r; }
+
+    BBox rect;
+  };
+
+  using FixedNodes = std::map<QString, FixedNode>;
+
+  FixedNodes fixedNodes_;
 };
 
 //---

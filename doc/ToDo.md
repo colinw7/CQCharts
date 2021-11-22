@@ -4,16 +4,20 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- . use invisible edges for graph placement
- . layout algrithms
-   . https://en.wikipedia.org/wiki/Graph_drawing
-   . connectivity
-   . spring
-   . crossings
-   . symmetry
-   . edge complexity (curves)
-   . angular resolution
-   . spectral layout (adjaceny matrix)
+ + graphs
+   + node set for nodes with single source and no dests or single dest and no nodes
+   + better fixed node handling
+   + respect initial node order for edges
+ + use invisible edges for graph placement
+ + layout algorithms
+   + https://en.wikipedia.org/wiki/Graph_drawing
+   + connectivity
+   + spring
+   + crossings
+   + symmetry
+   + edge complexity (curves)
+   + angular resolution
+   + spectral layout (adjaceny matrix)
  + text on side
  + alpha edit use percent slider
  + common code for bubble/hier bubble

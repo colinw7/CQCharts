@@ -107,6 +107,7 @@ initSimpleData() const
   }
 }
 
+#if 0
 void
 CQChartsModelDetails::
 initFullData() const
@@ -121,6 +122,7 @@ initFullData() const
     }
   }
 }
+#endif
 
 void
 CQChartsModelDetails::
@@ -170,6 +172,7 @@ updateSimple()
   initialized_ = Initialized::SIMPLE;
 }
 
+#if 0
 void
 CQChartsModelDetails::
 updateFull()
@@ -191,6 +194,7 @@ updateFull()
 
   initialized_ = Initialized::FULL;
 }
+#endif
 
 void
 CQChartsModelDetails::

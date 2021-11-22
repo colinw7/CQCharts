@@ -1458,7 +1458,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // bbox, margin, node width
   BBox   targetBBox_    { -1, -1, 1, 1 };      //!< target range bbox
-  Length nodeMargin_    { Length::plot(0.2) }; //!< node margin (y)
+  Length nodeMargin_    { Length::plot(0.2) }; //!< node margin (perp)
   double minNodeMargin_ { 0.1 };               //!< minimum node margin (in pixels)
   Length nodeWidth_     { Length::pixel(16) }; //!< node x width in pixels
 
@@ -1485,7 +1485,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   double      boxMargin_     { 0.01 };    //!< bounding box margin
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling
-  bool        pressed_       { false };   //!< mouse pressed
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
   mutable IMinMax pathIdMinMax_; //!< min/max path id

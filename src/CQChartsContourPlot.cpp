@@ -349,7 +349,7 @@ bool
 CQChartsContourPlot::
 addMenuItems(QMenu *)
 {
-  return true;
+  return false;
 }
 
 //------
