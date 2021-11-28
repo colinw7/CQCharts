@@ -30,7 +30,12 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
     POLYGON,
     CIRCLE,
     DOUBLE_CIRCLE,
-    DOT_LINE
+    DOT_LINE,
+    RECORD,
+    PLAIN_TEXT,
+    RARROW,
+    OVAL,
+    RPROMOTER
   };
 
   using PropertyModel = CQPropertyViewModel;

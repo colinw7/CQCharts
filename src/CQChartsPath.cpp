@@ -3,6 +3,7 @@
 #include <CQChartsSVGUtil.h>
 
 #include <CQPropertyView.h>
+#include <CMathGeom2D.h>
 
 //---
 
@@ -26,7 +27,14 @@ toString() const
   if (! path_)
     return "";
 
-  return CQChartsSVGUtil::pathToString(*path_);
+  return pathToString(*path_);
+}
+
+QString
+CQChartsPath::
+pathToString(const QPainterPath &path)
+{
+  return CQChartsSVGUtil::pathToString(path);
 }
 
 CQChartsGeom::BBox
@@ -216,16 +224,40 @@ pathPoints(const QPainterPath &path)
     void lineTo(const Point &p) override {
       assert(i > 0);
 
-      auto pp1 = points_.back();
-      auto pp2 = p;
-
-      points_.push_back((pp1 + pp2)/2.0);
-      points_.push_back(pp2);
+      points_.push_back(p);
     }
 
-    void quadTo(const Point &, const Point &) override { assert(false); }
+    void quadTo(const Point &cp, const Point &p) override {
+      auto ps = points_.back();
 
-    void curveTo(const Point &, const Point &, const Point &) override { assert(false); }
+      C2Bezier2D bezier(ps.x, ps.y, cp.x, cp.y, p.x, p.y);
+
+      std::vector<CPoint2D> points;
+
+      CMathGeom2D::BezierToLines(bezier, points, 1E-3);
+
+      for (int i = 1; i < int(points.size()); ++i) {
+        const auto &bp = points[i];
+
+        points_.push_back(Point(bp.x, bp.y));
+      }
+    }
+
+    void curveTo(const Point &cp1, const Point &cp2, const Point &p) override {
+      auto ps = points_.back();
+
+      C3Bezier2D bezier(ps.x, ps.y, cp1.x, cp1.y, cp2.x, cp2.y, p.x, p.y);
+
+      std::vector<CPoint2D> points;
+
+      CMathGeom2D::BezierToLines(bezier, points, 1E-3);
+
+      for (int i = 1; i < int(points.size()); ++i) {
+        const auto &bp = points[i];
+
+        points_.push_back(Point(bp.x, bp.y));
+      }
+    }
 
     const Points &points() const { return points_; }
 

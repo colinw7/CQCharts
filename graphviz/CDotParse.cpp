@@ -249,6 +249,8 @@ parseStatement()
   }
   // edge
   else if (parse_->isString("->") || parse_->isString("--")) {
+    bool directed = parse_->isString("->");
+
     parse_->skipChar(2);
 
     skipSpace();
@@ -277,8 +279,11 @@ parseStatement()
 
           nodes2.push_back(node2);
 
-          for (const auto &n1 : nodes1)
+          for (const auto &n1 : nodes1) {
             currentEdge_ = n1->addNodeEdge(node2).get();
+
+            currentEdge_->setDirected(directed);
+          }
 
           skipSpace();
 
@@ -311,8 +316,11 @@ parseStatement()
 
         nodes2.push_back(node2);
 
-        for (const auto &n1 : nodes1)
+        for (const auto &n1 : nodes1) {
           currentEdge_ = n1->addNodeEdge(node2).get();
+
+          currentEdge_->setDirected(directed);
+        }
 
         skipSpace();
 
@@ -624,7 +632,7 @@ skipSpace()
     }
 
     // skip comments
-    if      (parse_->isString("//")) {
+    if      (parse_->isString("//")) { // single line
       while (! parse_->eof() && parse_->isString("//")) {
         parse_->skipChar(2);
 
@@ -637,7 +645,7 @@ skipSpace()
         parse_->skipSpace();
       }
     }
-    else if (parse_->isString("/*")) {
+    else if (parse_->isString("/*")) { // multi line
       parse_->skipChar(2);
 
       while (! parse_->eof() && ! parse_->isString("*/")) {

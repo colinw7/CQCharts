@@ -22,6 +22,7 @@ CQChartsLengthEdit(QWidget *parent) :
 
   edit_ = CQUtil::makeWidget<CQRealSpin>("real");
 
+  edit_->setDecimals(3);
   edit_->setToolTip("Length value");
 
   layout->addWidget(edit_);

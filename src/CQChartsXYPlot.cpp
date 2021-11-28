@@ -1569,9 +1569,10 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
           bool above2 = (pa2.y > pb2.y);
 
           if (k > 0 && above1 != above2) {
-            Point pi;
+            Point  pi;
+            double mu1, mu2;
 
-            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
+            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi, mu1, mu2);
 
             poly3.addPoint(pi);
             poly4.addPoint(pi);
@@ -1605,9 +1606,10 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
           bool below2 = (pa2.y < pb2.y);
 
           if (k > 0 && below1 != below2) {
-            Point pi;
+            Point  pi;
+            double mu1, mu2;
 
-            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
+            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi, mu1, mu2);
 
             poly3.addPoint(pi);
             poly4.addPoint(pi);

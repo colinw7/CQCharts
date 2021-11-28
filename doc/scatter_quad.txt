@@ -1,0 +1,8 @@
+https://blog.scottlogic.com/2021/10/15/efficiently-loading-massive-d3-datasets-using-apache-arrow.html
+https://blog.scottlogic.com/2020/05/01/rendering-one-million-points-with-d3.html
+http://creatingdata.us/datasets/hathi-features/
+https://github.com/chrisprice/d3fc-webgl-hathi-explorer
+
+Build quad tree for scatter points
+ + split > N (1000) points
+ + render max n points using sample of each quad (factor) from visible points ?

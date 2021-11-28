@@ -2969,8 +2969,11 @@ drawFg(PaintDevice *device) const
   auto srcRect  = srcObj ->node()->destEdgeRect(edge());
   auto destRect = destObj->node()->srcEdgeRect (edge());
 
-  if (! srcRect.isSet() || ! destRect.isSet())
-    return;
+  if (! srcRect.isSet())
+    srcRect = edge()->srcNode()->rect();
+
+  if (! destRect.isSet())
+    destRect = edge()->destNode()->rect();
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 

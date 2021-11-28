@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + common font scale
+ + file changed callback ?
  + graphs
    + node set for nodes with single source and no dests or single dest and no nodes
    + better fixed node handling

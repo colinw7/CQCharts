@@ -87,6 +87,9 @@ class CQChartsDotPlotNode {
   int id() const { return id_; }
   void setId(int id) { id_ = id; }
 
+  int dotId() const { return dotId_; }
+  void setDotId(int i) { dotId_ = i; }
+
   //! get/set name
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
@@ -146,6 +149,11 @@ class CQChartsDotPlotNode {
 
   //---
 
+  Edge *findSrcEdge (Node *node) const;
+  Edge *findDestEdge(Node *node) const;
+
+  //---
+
   const ModelInds &modelInds() const { return modelInds_; }
 
   void addModelInd(const ModelIndex &i) { modelInds_.push_back(i); }
@@ -197,62 +205,6 @@ class CQChartsDotPlotNode {
 
   //---
 
-  void clearSrcEdgeRects() { srcEdgeRect_.clear(); }
-
-  void setSrcEdgeRect(Edge *edge, const BBox &bbox);
-
-  bool hasSrcEdgeRect(Edge *edge) const {
-    auto p = srcEdgeRect_.find(edge);
-
-    return (p != srcEdgeRect_.end());
-  }
-
-  const BBox &srcEdgeRect(Edge *edge) const {
-    auto p = srcEdgeRect_.find(edge);
-    assert(p != srcEdgeRect_.end());
-
-    return (*p).second;
-  }
-
-  const EdgeRect &srcEdgeRects() const { return srcEdgeRect_; }
-
-  void moveSrcEdgeRectsBy(const Point &delta) {
-    for (auto &edgeRect : srcEdgeRect_) {
-      if (! edgeRect.second.isSet()) continue;
-
-      edgeRect.second.moveBy(delta);
-    }
-  }
-
-  //---
-
-  void clearDestEdgeRects() { destEdgeRect_.clear(); }
-
-  void setDestEdgeRect(Edge *edge, const BBox &bbox);
-
-  bool hasDestEdgeRect(Edge *edge) const {
-    auto p = destEdgeRect_.find(edge);
-
-    return (p != destEdgeRect_.end());
-  }
-
-  const BBox &destEdgeRect(Edge *edge) const {
-    auto p = destEdgeRect_.find(edge);
-    assert(p != destEdgeRect_.end());
-
-    return (*p).second;
-  }
-
-  const EdgeRect &destEdgeRects() const { return destEdgeRect_; }
-
-  void moveDestEdgeRectsBy(const Point &delta) {
-    for (auto &edgeRect : destEdgeRect_) {
-      if (! edgeRect.second.isSet()) continue;
-
-      edgeRect.second.moveBy(delta);
-    }
-  }
-
  private:
   struct FillData {
     Color       color;   //!< fill color
@@ -273,6 +225,7 @@ class CQChartsDotPlotNode {
   Node*   parent_        { nullptr }; //!< parent node
   QString str_;                       //!< string
   int     id_            { -1 };      //!< id
+  int     dotId_         { -1 };      //!< dot id
   QString name_;                      //!< name
   QString label_;                     //!< label
   OptReal value_;                     //!< value
@@ -287,10 +240,10 @@ class CQChartsDotPlotNode {
   BBox rect_; //!< placed rectangle
 
   // appearance
-  ShapeType  shapeType_ { ShapeType::NONE }; //!< shape type
-  int        numSides_  { 4 };               //!< number of polygon sides
-  FillData   fillData_;                      //!< fill data
-  StrokeData strokeData_;                    //!< stroke data
+  ShapeType  shapeType_ { ShapeType::BOX }; //!< shape type
+  int        numSides_  { 4 };              //!< number of polygon sides
+  FillData   fillData_;                     //!< fill data
+  StrokeData strokeData_;                   //!< stroke data
 
   // connections
   Edges     srcEdges_;         //!< source edges
@@ -299,8 +252,6 @@ class CQChartsDotPlotNode {
   int       srcDepth_  { -1 }; //!< source depth (calculated)
   int       destDepth_ { -1 }; //!< destination depth (calculated)
   ModelInds modelInds_;        //!< model inds
-  EdgeRect  srcEdgeRect_;      //!< edge to src
-  EdgeRect  destEdgeRect_;     //!< edge to dest
 };
 
 class CQChartsDotPlotEdge {
@@ -391,19 +342,28 @@ class CQChartsDotPlotEdge {
 
   //---
 
+  //! get/set edge path
+  const QPainterPath &path() const { return path_; }
+  void setPath(const QPainterPath &path) { path_ = path; }
+
+  bool isDirected() const { return directed_; }
+  void setDirected(bool b) { directed_ = b; }
+
  private:
   using NamedColumn = std::map<QString, Column>;
 
-  Obj*        obj_       { nullptr };         //!< edge plot object
-  int         id_        { -1 };              //!< unique id
-  OptReal     value_;                         //!< value
-  NamedColumn namedColumn_;                   //!< named columns
-  QString     label_;                         //!< label
-  ShapeType   shapeType_ { ShapeType::NONE }; //!< shape type
-  Color       color_;                         //!< color
-  ModelInds   modelInds_;                     //!< model inds
-  Node*       srcNode_   { nullptr };         //!< source node
-  Node*       destNode_  { nullptr };         //!< destination node
+  Obj*         obj_       { nullptr };        //!< edge plot object
+  int          id_        { -1 };             //!< unique id
+  OptReal      value_;                        //!< value
+  NamedColumn  namedColumn_;                  //!< named columns
+  QString      label_;                        //!< label
+  ShapeType    shapeType_ { ShapeType::ARC }; //!< shape type
+  Color        color_;                        //!< color
+  ModelInds    modelInds_;                    //!< model inds
+  Node*        srcNode_   { nullptr };        //!< source node
+  Node*        destNode_  { nullptr };        //!< destination node
+  QPainterPath path_;
+  bool         directed_  { false };
 };
 
 //---
@@ -435,7 +395,9 @@ class CQChartsDotNodeObj : public CQChartsPlotObj {
     BOX           = (int) CQChartsBoxObj::ShapeType::BOX,
     POLYGON       = (int) CQChartsBoxObj::ShapeType::POLYGON,
     CIRCLE        = (int) CQChartsBoxObj::ShapeType::CIRCLE,
-    DOUBLE_CIRCLE = (int) CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE
+    DOUBLE_CIRCLE = (int) CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE,
+    RECORD        = (int) CQChartsBoxObj::ShapeType::RECORD,
+    PLAIN_TEXT    = (int) CQChartsBoxObj::ShapeType::PLAIN_TEXT
   };
 
   using Plot  = CQChartsDotPlot;
@@ -659,10 +621,12 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(NodeShape       nodeShape   READ nodeShape     WRITE setNodeShape  )
-  Q_PROPERTY(EdgeShape       edgeShape   READ edgeShape     WRITE setEdgeShape  )
-  Q_PROPERTY(bool            edgeScaled  READ isEdgeScaled  WRITE setEdgeScaled )
-  Q_PROPERTY(Qt::Orientation orientation READ orientation   WRITE setOrientation)
+  Q_PROPERTY(NodeShape       nodeShape   READ nodeShape    WRITE setNodeShape  )
+  Q_PROPERTY(EdgeShape       edgeShape   READ edgeShape    WRITE setEdgeShape  )
+  Q_PROPERTY(bool            edgeScaled  READ isEdgeScaled WRITE setEdgeScaled )
+  Q_PROPERTY(CQChartsLength  edgeWidth   READ edgeWidth    WRITE setEdgeWidth  )
+  Q_PROPERTY(double          arrowWidth  READ arrowWidth   WRITE setArrowWidth )
+  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
 
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
@@ -731,6 +695,10 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   //! get/set edge width
   const Length &edgeWidth() const { return edgeWidth_; }
   void setEdgeWidth(const Length &l);
+
+  //! get/set arrow width
+  double arrowWidth() const { return arrowWidth_; }
+  void setArrowWidth(double r);
 
   //---
 
@@ -826,6 +794,12 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   void processEdgeNameValues(Edge *edge, const NameValues &valueValues) const;
 
+  static void stringToShapeType(const QString &str, Node::ShapeType &shapeType);
+  static QString shapeTypeToString(const Node::ShapeType &shapeType);
+
+  static void stringToShapeType(const QString &str, Edge::ShapeType &shapeType);
+  static QString shapeTypeToString(const Edge::ShapeType &shapeType);
+
   //---
 
   void filterObjs();
@@ -852,6 +826,8 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   void clearNodesAndEdges();
 
   Node *findNode(const QString &name) const;
+
+  Node *findDotNode(int dotId) const;
 
   //---
 
@@ -903,15 +879,16 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   bool blendEdgeColor_ { true }; //!< blend edge color
 
   // data
-  Nodes            nodes_;                   //!< all nodes
-  NameNodeMap      nameNodeMap_;             //!< name node map
-  IndNodeMap       indNodeMap_;              //!< ind node map
-  Edges            edges_;                   //!< all edges
-  BBox             bbox_;                    //!< bbox
-  CQChartsValueInd groupValueInd_;           //!< group value ind
-  int              maxNodeDepth_  { 0 };     //!< max node depth (all graphs)
-  double           edgeMargin_    { 0.01 };  //!< edge bounding box margin
-  int              numGroups_     { 1 };     //!< node number of groups
+  Nodes            nodes_;                  //!< all nodes
+  NameNodeMap      nameNodeMap_;            //!< name node map
+  IndNodeMap       indNodeMap_;             //!< ind node map
+  Edges            edges_;                  //!< all edges
+  BBox             bbox_;                   //!< bbox
+  CQChartsValueInd groupValueInd_;          //!< group value ind
+  int              maxNodeDepth_  { 0 };    //!< max node depth (all graphs)
+  double           edgeMargin_    { 0.01 }; //!< edge bounding box margin
+  int              numGroups_     { 1 };    //!< node number of groups
+  double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
 };
 
 //---

@@ -2274,6 +2274,18 @@ inline double pointAngle(const Point &p1, const Point &p2) {
 
 namespace CQChartsGeom {
 
+using Points = std::vector<Point>;
+
+bool lineIntersectCircle(const BBox &rect, const Point &p1, const Point &p2, Point &pi);
+bool lineIntersectRect(const BBox &rect, const Point &p1, const Point &p2, Point &pi);
+bool lineIntersectPolygon(const Points &points, const Point &p1, const Point &p2, Point &pi);
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
 /*!
  * \brief Point class
  * \ingroup Charts

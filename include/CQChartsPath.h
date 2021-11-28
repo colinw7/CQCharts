@@ -137,6 +137,8 @@ class CQChartsPath :
 
   //---
 
+  static QString pathToString(const QPainterPath &path);
+
   static QPainterPath movePath (const QPainterPath &path, double dx, double dy);
   static QPainterPath scalePath(const QPainterPath &path, double sx, double sy);
   static QPainterPath flipPath (const QPainterPath &path, bool flipX, bool flipY);

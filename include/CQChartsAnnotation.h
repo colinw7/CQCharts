@@ -30,6 +30,7 @@ class CQChartsKey;
 class CQChartsAxis;
 class CQChartsHtmlPaintDevice;
 class CQChartsSymbolSizeMapKey;
+class CQChartsResizeHandle;
 
 class CQPropertyViewItem;
 
@@ -379,6 +380,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
  protected:
   void init(int &lastInd);
+
+  CQChartsResizeHandle *createExtraHandle() const;
 
   Units parentUnits() const {
     if      (plot()) return Units::PLOT;
@@ -1416,8 +1419,13 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
+ private slots:
+  void moveExtraHandle(const QVariant &data, double dx, double dy);
+
  private:
   void init();
+
+  EditHandles *editHandles() const override;
 
  private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;

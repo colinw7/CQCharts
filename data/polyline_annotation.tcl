@@ -9,7 +9,6 @@ set plot [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Annotations
 connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
 
 set poly [create_charts_polyline_annotation -plot $plot \
- -points "-30 -30 -20 -20 -10 10 0 -10 10 -20 20 30 30 10" \
- -filled 1 -fill_color red -fill_alpha 0.5]
+ -points "-30 -30 -20 -20 -10 10 0 -10 10 -20 20 30 30 10"]
 
 set_charts_property -annotation $poly -name stroke.width -value "24px"

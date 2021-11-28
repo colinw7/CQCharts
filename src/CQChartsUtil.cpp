@@ -242,7 +242,7 @@ bool scanInteger(const QString &fmt, const QString &str, long &i) {
 namespace CQChartsUtil {
 
 bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const Point &l2e,
-                    Point &pi) {
+                    Point &pi, double &mu1, double &mu2) {
   double dx1 = l1e.x - l1s.x;
   double dy1 = l1e.y - l1s.y;
   double dx2 = l2e.x - l2s.x;
@@ -258,11 +258,11 @@ bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const 
   double dx = l2s.x - l1s.x;
   double dy = l2s.y - l1s.y;
 
-  double m1 = (dx*dy2 - dy*dx2)*idelta;
-//double m2 = (dx*dy1 - dy*dx1)*idelta;
+  mu1 = (dx*dy2 - dy*dx2)*idelta;
+  mu2 = (dx*dy1 - dy*dx1)*idelta;
 
-  double xi = l1s.x + m1*dx1;
-  double yi = l1s.y + m1*dy1;
+  double xi = l1s.x + mu1*dx1;
+  double yi = l1s.y + mu1*dy1;
 
   pi = Point(xi, yi);
 
@@ -271,11 +271,11 @@ bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const 
 
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
-                    double &xi, double &yi) {
+                    double &xi, double &yi, double &mu1, double &mu2) {
   Point pi;
 
   bool rc = intersectLines(Point(x11, y11), Point(x21, y21),
-                           Point(x12, y12), Point(x22, y22), pi);
+                           Point(x12, y12), Point(x22, y22), pi, mu1, mu2);
 
   xi = pi.x;
   yi = pi.y;
@@ -1558,41 +1558,50 @@ QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize)
 namespace CQChartsUtil {
 
 Point nearestRectPoint(const BBox &rect, const Point &pos) {
-  using PointList = std::vector<Point>;
-
   PointList pointList;
 
   pointList.resize(8);
 
   int np = 0;
 
-  pointList[np] = Point(rect.getXMin(), rect.getYMin()); ++np;
-  pointList[np] = Point(rect.getXMin(), rect.getYMid()); ++np;
-  pointList[np] = Point(rect.getXMin(), rect.getYMax()); ++np;
-  pointList[np] = Point(rect.getXMid(), rect.getYMin()); ++np;
-//pointList[np] = Point(rect.getXMid(), rect.getYMid()); ++np;
-  pointList[np] = Point(rect.getXMid(), rect.getYMax()); ++np;
-  pointList[np] = Point(rect.getXMax(), rect.getYMin()); ++np;
-  pointList[np] = Point(rect.getXMax(), rect.getYMid()); ++np;
-  pointList[np] = Point(rect.getXMax(), rect.getYMax()); ++np;
+  pointList[np++] = Point(rect.getXMin(), rect.getYMin());
+  pointList[np++] = Point(rect.getXMin(), rect.getYMid());
+  pointList[np++] = Point(rect.getXMin(), rect.getYMax());
+  pointList[np++] = Point(rect.getXMid(), rect.getYMin());
+//pointList[np++] = Point(rect.getXMid(), rect.getYMid());
+  pointList[np++] = Point(rect.getXMid(), rect.getYMax());
+  pointList[np++] = Point(rect.getXMax(), rect.getYMin());
+  pointList[np++] = Point(rect.getXMax(), rect.getYMid());
+  pointList[np++] = Point(rect.getXMax(), rect.getYMax());
 
+  int i;
+
+  return nearestPointListPoint(pointList, pos, i);
+}
+
+Point nearestPointListPoint(const PointList &points, const Point &pos, int &i) {
   auto pointPointDist = [](const Point &p1, const Point &p2) {
     return std::hypot(p1.x - p2.x, p1.y - p2.y);
   };
 
-  auto rp = pointList[0];
-  auto d  = pointPointDist(rp, pos);
+  int np = points.size();
+  assert(np > 0);
 
-  for (int ip = 1; ip < np; ++ip) {
-    auto d1 = pointPointDist(pointList[ip], pos);
+  int  i1 = -1;
+  auto d  = pointPointDist(points[0], pos);
 
-    if (d1 < d) {
-      rp = pointList[ip];
+  for (int ip = 0; ip < np; ++ip) {
+    auto d1 = pointPointDist(points[ip], pos);
+
+    if (i1 < 0 || d1 < d) {
+      i1 = ip;
       d  = d1;
     }
   }
 
-  return rp;
+  i = i1;
+
+  return points[i1];
 }
 
 }

@@ -9,6 +9,78 @@ CQUTIL_DEF_META_TYPE_ID(CQChartsGeom::Point3D, CQChartsGeomPoint3D, toString, fr
 
 namespace CQChartsGeom {
 
+bool lineIntersectCircle(const BBox &rect, const Point &p1, const Point &p2, Point &pi)
+{
+  auto a = pointAngle(p1, p2);
+
+  auto c = std::cos(a);
+  auto s = std::sin(a);
+
+  auto pi1 = Point(rect.getXMid() + rect.getWidth ()*c/2.0,
+                   rect.getYMid() + rect.getHeight()*s/2.0);
+  auto pi2 = Point(rect.getXMid() - rect.getWidth ()*c/2.0,
+                   rect.getYMid() - rect.getHeight()*s/2.0);
+
+  auto d1 = CQChartsUtil::PointPointDistance(p2, pi1);
+  auto d2 = CQChartsUtil::PointPointDistance(p2, pi2);
+
+  if (d1 < d2)
+    pi = pi1;
+  else
+    pi = pi2;
+
+  return true;
+}
+
+bool lineIntersectRect(const BBox &rect, const Point &p1, const Point &p2, Point &pi)
+{
+  Points points;
+
+  points.resize(4);
+
+  points[0] = rect.getLL();
+  points[1] = rect.getLR();
+  points[2] = rect.getUR();
+  points[3] = rect.getUL();
+
+  return lineIntersectPolygon(points, p1, p2, pi);
+}
+
+bool lineIntersectPolygon(const Points &points, const Point &p1, const Point &p2, Point &pi)
+{
+  int n = points.size();
+
+  if (n < 3) return false;
+
+  auto d = -1.0;
+
+  for (int i1 = n - 1, i2 = 0; i2 < n; i1 = i2++) {
+    Point  pi1;
+    double mu1, mu2;
+
+    if (! CQChartsUtil::intersectLines(points[i1], points[i2], p1, p2, pi1, mu1, mu2))
+      continue;
+
+    if (mu1 < 0.0 || mu1 > 1.0)
+      continue;
+
+    auto d1 = CQChartsUtil::PointPointDistance(p2, pi1);
+
+    if (d < 0.0 || d1 < d) {
+      pi = pi1;
+      d  = d1;
+    }
+  }
+
+  return (d >= 0);
+}
+
+}
+
+//---
+
+namespace CQChartsGeom {
+
 BBox::
 BBox(const Range &range) :
  pmin_(range.xmin(), range.ymin()), pmax_(range.xmax(), range.ymax()), set_(true) {

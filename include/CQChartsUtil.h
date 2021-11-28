@@ -124,10 +124,10 @@ using Point = CQChartsGeom::Point;
 
 // intersect lines
 bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const Point &l2e,
-                    Point &pi);
+                    Point &pi, double &mu1, double &mu2);
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
-                    double &xi, double &yi);
+                    double &xi, double &yi, double &mu1, double &mu2);
 
 // distance between two points
 double PointPointDistance(const Point &point1, const Point &point2);
@@ -520,7 +520,11 @@ QFont scaleFontSize(const QFont &font, double s, double minSize=4.0, double maxS
 
 namespace CQChartsUtil {
 
+using PointList = std::vector<Point>;
+
 Point nearestRectPoint(const BBox &bbox, const Point &p);
+
+Point nearestPointListPoint(const PointList &points, const Point &pos, int &i);
 
 }
 

@@ -3866,9 +3866,10 @@ overlaps(const Edge *edge) const
   auto p21 = edge->srcNode ()->rect().getCenter();
   auto p22 = edge->destNode()->rect().getCenter();
 
-  Point pi;
+  Point  pi;
+  double mu1, mu2;
 
-  if (! CQChartsUtil::intersectLines(p11, p12, p21, p22, pi))
+  if (! CQChartsUtil::intersectLines(p11, p12, p21, p22, pi, mu1, mu2))
     return false;
 
   return true;

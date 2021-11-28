@@ -803,10 +803,10 @@ drawContents(PaintDevice *device, const Point &from, const Point &to,
         points.addPoint(plr2);
 
 #if DEBUG_LABELS
-       if (drawData.debugLabels) {
-         addPointLabel(plr1, "plr1", /*above*/false);
-         addPointLabel(plr2, "plr2", /*above*/false);
-       }
+        if (drawData.debugLabels) {
+          addPointLabel(plr1, "plr1", /*above*/false);
+          addPointLabel(plr2, "plr2", /*above*/false);
+        }
 #endif
       }
     };
@@ -830,10 +830,10 @@ drawContents(PaintDevice *device, const Point &from, const Point &to,
         points.addPoint(pur2);
 
 #if DEBUG_LABELS
-       if (drawData.debugLabels) {
-         addPointLabel(pur1, "pur1", /*above*/true);
-         addPointLabel(pur2, "pur2", /*above*/true);
-       }
+        if (drawData.debugLabels) {
+          addPointLabel(pur1, "pur1", /*above*/true);
+          addPointLabel(pur2, "pur2", /*above*/true);
+        }
 #endif
       }
     };
@@ -1190,13 +1190,14 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
         addWidthToPoint(p2_  , a2, lw_, lp6, lp5); // above/below
         addWidthToPoint(nextP, a2, lw_, lp8, lp7); // above/below
 
-        Point pi1, pi2;
+        Point  pi1, pi2;
+        double mu1, mu2;
 
-        CQChartsUtil::intersectLines(lp1, lp3, lp5, lp7, pi1);
-        CQChartsUtil::intersectLines(lp2, lp4, lp6, lp8, pi2);
-
-        arrowPath1_.lineTo(pi1.qpoint());
-        arrowPath2_.lineTo(pi2.qpoint());
+        if (CQChartsUtil::intersectLines(lp1, lp3, lp5, lp7, pi1, mu1, mu2) &&
+            CQChartsUtil::intersectLines(lp2, lp4, lp6, lp8, pi2, mu1, mu2)) {
+          arrowPath1_.lineTo(pi1.qpoint());
+          arrowPath2_.lineTo(pi2.qpoint());
+        }
       }
       else {
         //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
@@ -1318,32 +1319,29 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           addWidthToPoint(p1_, a, lw_, ap2, ap1); // above/below
           addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
 
-          Point pi1, pi2;
+          Point  pi1, pi2;
+          double mu1, mu2;
 
-          CQChartsUtil::intersectLines(p1_, pf1, pf, ap3, pi1);
-          CQChartsUtil::intersectLines(p1_, pf2, pf, ap4, pi2);
+          if (CQChartsUtil::intersectLines(p1_, pf1, pf, ap3, pi1, mu1, mu2) &&
+              CQChartsUtil::intersectLines(p1_, pf2, pf, ap4, pi2, mu1, mu2)) {
+            // get back angle intersection with line border
+            auto a3 = ArrowAngle(a.angle - arrowData_.calcFrontBackAngle().radians());
+            auto a4 = ArrowAngle(a.angle + arrowData_.calcFrontBackAngle().radians());
 
-          //---
+            auto pf3 = movePointOnLine(pi1, a3, lw_);
+            auto pf4 = movePointOnLine(pi2, a4, lw_);
 
-          // get back angle intersection with line border
-          auto a3 = ArrowAngle(a.angle - arrowData_.calcFrontBackAngle().radians());
-          auto a4 = ArrowAngle(a.angle + arrowData_.calcFrontBackAngle().radians());
+            Point pi3, pi4;
 
-          auto pf3 = movePointOnLine(pi1, a3, lw_);
-          auto pf4 = movePointOnLine(pi2, a4, lw_);
+            if (CQChartsUtil::intersectLines(pi1, pf3, ap1, ap3, pi3, mu1, mu2) &&
+                CQChartsUtil::intersectLines(pi2, pf4, ap2, ap4, pi4, mu1, mu2)) {
+              arrowPath1_.lineTo(pi1.qpoint());
+              arrowPath2_.lineTo(pi2.qpoint());
 
-          Point pi3, pi4;
-
-          CQChartsUtil::intersectLines(pi1, pf3, ap1, ap3, pi3);
-          CQChartsUtil::intersectLines(pi2, pf4, ap2, ap4, pi4);
-
-          //---
-
-          arrowPath1_.lineTo(pi1.qpoint());
-          arrowPath2_.lineTo(pi2.qpoint());
-
-          arrowPath1_.lineTo(pi3.qpoint());
-          arrowPath2_.lineTo(pi4.qpoint());
+              arrowPath1_.lineTo(pi3.qpoint());
+              arrowPath2_.lineTo(pi4.qpoint());
+            }
+          }
         }
         else {
           arrowPath1_.moveTo(p1_.qpoint());
@@ -1387,50 +1385,47 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           addWidthToPoint(p2_, a, lw_, ap2, ap1); // above/below
           addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
 
-          Point pi1, pi2;
+          Point  pi1, pi2;
+          double mu1, mu2;
 
-          CQChartsUtil::intersectLines(p2_, pf1, pf, ap3, pi1);
-          CQChartsUtil::intersectLines(p2_, pf2, pf, ap4, pi2);
+          if (CQChartsUtil::intersectLines(p2_, pf1, pf, ap3, pi1, mu1, mu2) &&
+              CQChartsUtil::intersectLines(p2_, pf2, pf, ap4, pi2, mu1, mu2)) {
+            // get back angle intersection with line border
+            auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailBackAngle().radians());
+            auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailBackAngle().radians());
 
-          //---
+            auto pf3 = movePointOnLine(pi1, a3, lw_);
+            auto pf4 = movePointOnLine(pi2, a4, lw_);
 
-          // get back angle intersection with line border
-          auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailBackAngle().radians());
-          auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailBackAngle().radians());
+            Point pi3, pi4;
 
-          auto pf3 = movePointOnLine(pi1, a3, lw_);
-          auto pf4 = movePointOnLine(pi2, a4, lw_);
+            if (CQChartsUtil::intersectLines(pi1, pf3, ap3, ap1, pi3, mu1, mu2) &&
+                CQChartsUtil::intersectLines(pi2, pf4, ap4, ap2, pi4, mu1, mu2)) {
+              assert(skipN_ >= 1 && skipN_ <= 3);
 
-          Point pi3, pi4;
+              if      (skipN_ == 1) {
+                arrowPath1_.lineTo(pi3.qpoint());
+                arrowPath2_.lineTo(pi4.qpoint());
+              }
+              else if (skipN_ == 2) {
+                arrowPath1_.quadTo(skipLP1_.qpoint(), pi3.qpoint());
+                arrowPath2_.quadTo(skipUP1_.qpoint(), pi4.qpoint());
+              }
+              else if (skipN_ == 3) {
+                arrowPath1_.cubicTo(skipLP1_.qpoint(), skipLP2_.qpoint(), pi3.qpoint());
+                arrowPath2_.cubicTo(skipUP1_.qpoint(), skipUP2_.qpoint(), pi4.qpoint());
+              }
 
-          CQChartsUtil::intersectLines(pi1, pf3, ap3, ap1, pi3);
-          CQChartsUtil::intersectLines(pi2, pf4, ap4, ap2, pi4);
+              arrowPath1_.lineTo(pi1.qpoint());
+              arrowPath2_.lineTo(pi2.qpoint());
 
-          //---
+              //---
 
-          assert(skipN_ >= 1 && skipN_ <= 3);
-
-          if      (skipN_ == 1) {
-            arrowPath1_.lineTo(pi3.qpoint());
-            arrowPath2_.lineTo(pi4.qpoint());
+              // tail point bottom/top
+              arrowPath1_.lineTo(p2_.qpoint());
+              arrowPath2_.lineTo(p2_.qpoint());
+            }
           }
-          else if (skipN_ == 2) {
-            arrowPath1_.quadTo(skipLP1_.qpoint(), pi3.qpoint());
-            arrowPath2_.quadTo(skipUP1_.qpoint(), pi4.qpoint());
-          }
-          else if (skipN_ == 3) {
-            arrowPath1_.cubicTo(skipLP1_.qpoint(), skipLP2_.qpoint(), pi3.qpoint());
-            arrowPath2_.cubicTo(skipUP1_.qpoint(), skipUP2_.qpoint(), pi4.qpoint());
-          }
-
-          arrowPath1_.lineTo(pi1.qpoint());
-          arrowPath2_.lineTo(pi2.qpoint());
-
-          //---
-
-          // tail point bottom/top
-          arrowPath1_.lineTo(p2_.qpoint());
-          arrowPath2_.lineTo(p2_.qpoint());
         }
       }
 
@@ -1506,10 +1501,10 @@ CQChartsArrow::
 intersectLine(const Point &l1s, const Point &l1e,
               const Point &l2s, const Point &l2e, Point &pi, bool &inside)
 {
-  double xi, yi;
+  double xi, yi, mu1, mu2;
 
   inside = CQChartsUtil::intersectLines(l1s.x, l1s.y, l1e.x, l1e.y,
-                                        l2s.x, l2s.y, l2e.x, l2e.y, xi, yi);
+                                        l2s.x, l2s.y, l2e.x, l2e.y, xi, yi, mu1, mu2);
 
   pi = Point(xi, yi);
 

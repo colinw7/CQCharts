@@ -797,6 +797,18 @@ editMoveBy(const Point &f)
 
 //---
 
+CQChartsResizeHandle *
+CQChartsAnnotation::
+createExtraHandle() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  return (handles->view() ? new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
+                            new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+}
+
+//---
+
 void
 CQChartsAnnotation::
 moveTo(const Point &p)
@@ -1958,15 +1970,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
   auto rect = this->rect();
 
   if (shapeType() == ShapeType::CIRCLE || shapeType() == ShapeType::DOUBLE_CIRCLE) {
-    auto a = pointAngle(p1, p2);
-
-    double c = std::cos(a);
-    double s = std::sin(a);
-
-    pi = Point(rect.getXMid() + rect.getWidth ()*c/2.0,
-               rect.getYMid() + rect.getHeight()*s/2.0);
-
-    return true;
+    return CQChartsGeom::lineIntersectCircle(rect, p1, p2, pi);
   }
   else if (shapeType() == ShapeType::POLYGON) {
     // get polygon path
@@ -1976,26 +1980,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
 
     auto points = CQChartsPath::pathPoints(path);
 
-    //---
-
-    // find closest point
-    int n = points.size();
-
-    int    ind = -1;
-    double d   = 0.0;
-
-    for (int i = 0; i < n; ++i) {
-      double d1 = CQChartsUtil::PointPointDistance(p2, points[i]);
-
-      if (ind < 0 || d1 < d) {
-        ind = i;
-        d   = d1;
-      }
-    }
-
-    pi = points[ind];
-
-    return true;
+    return CQChartsGeom::lineIntersectPolygon(points, p1, p2, pi);
   }
 
   return false;
@@ -2577,9 +2562,7 @@ editHandles() const
   int np = polygon_.numPoints();
 
   while (int(extraHandles.size()) < np) {
-    auto *extraHandle = (handles->view() ?
-      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
-      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+    auto *extraHandle = createExtraHandle();
 
     handles->addExtraHandle(extraHandle);
   }
@@ -2853,9 +2836,7 @@ editHandles() const
   int np = polygon_.numPoints();
 
   while (int(extraHandles.size()) < np) {
-    auto *extraHandle = (handles->view() ?
-      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
-      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+    auto *extraHandle = createExtraHandle();
 
     handles->addExtraHandle(extraHandle);
   }
@@ -3901,13 +3882,33 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsPathAnnotation::
-setEditBBox(const BBox &bbox, const ResizeSide &)
+setEditBBox(const BBox &bbox, const ResizeSide &dragSide)
 {
-  // get position
-  double dx = bbox.getXMid() - annotationBBox_.getXMid();
-  double dy = bbox.getYMid() - annotationBBox_.getYMid();
+  if (dragSide == CQChartsResizeSide::MOVE) {
+    // get position
+    double dx = bbox.getXMid() - annotationBBox_.getXMid();
+    double dy = bbox.getYMid() - annotationBBox_.getYMid();
 
-  path_.move(dx, dy);
+    path_.move(dx, dy);
+  }
+  else {
+    auto c1 = annotationBBox_.getCenter();
+    auto c2 = bbox.getCenter();
+
+    auto w1 = annotationBBox_.getWidth();
+    auto w2 = bbox.getWidth();
+
+    auto h1 = annotationBBox_.getHeight();
+    auto h2 = bbox.getHeight();
+
+    double dx = c2.x - c1.x;
+    double dy = c2.y - c1.y;
+
+    double sx = (w1 > 0 ? w2/w1 : 1.0);
+    double sy = (h1 > 0 ? h2/h1 : 1.0);
+
+    path_.moveScale(dx, dy, sx, sy);
+  }
 
   setAnnotationBBox(bbox);
 }
@@ -3996,9 +3997,7 @@ editHandles() const
   int np = path_.numPoints();
 
   while (int(extraHandles.size()) < np) {
-    auto *extraHandle = (handles->view() ?
-      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
-      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+    auto *extraHandle = createExtraHandle();
 
     handles->addExtraHandle(extraHandle);
   }
@@ -4093,6 +4092,11 @@ init()
     arrow_ = std::make_unique<CQChartsArrow>(view());
 
   connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+
+  editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
+          this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
 
 //---
@@ -4440,6 +4444,96 @@ draw(PaintDevice *device)
   drawTerm(device);
 }
 
+//--
+
+CQChartsEditHandles *
+CQChartsArrowAnnotation::
+editHandles() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  if (path_.isValid()) {
+    int np = path_.numPoints();
+
+    while (int(extraHandles.size()) < np) {
+      auto *extraHandle = createExtraHandle();
+
+      handles->addExtraHandle(extraHandle);
+    }
+
+    double pw = pixelToWindowWidth (4);
+    double ph = pixelToWindowHeight(4);
+
+    int i = 0;
+
+    for (auto &extraHandle : handles->extraHandles()) {
+      extraHandle->setData(QVariant(i));
+
+      auto p = path_.pointAt(i);
+
+      extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
+
+      ++i;
+    }
+  }
+  else {
+    auto *extraHandle1 = createExtraHandle();
+    auto *extraHandle2 = createExtraHandle();
+
+    handles->addExtraHandle(extraHandle1);
+    handles->addExtraHandle(extraHandle2);
+
+    double pw = pixelToWindowWidth (4);
+    double ph = pixelToWindowHeight(4);
+
+    extraHandle1->setData(QVariant(0));
+    extraHandle2->setData(QVariant(1));
+
+    auto start = positionToParent(startObjRef(), this->start());
+    auto end   = positionToParent(endObjRef  (), this->end  ());
+
+    extraHandle1->setBBox(BBox(start.x - pw, start.y - ph, start.x + pw, start.y + ph));
+    extraHandle2->setBBox(BBox(end  .x - pw, end  .y - ph, end  .x + pw, end  .y + ph));
+  }
+
+  return handles;
+}
+
+void
+CQChartsArrowAnnotation::
+moveExtraHandle(const QVariant &data, double dx, double dy)
+{
+  bool ok;
+  int i = data.toInt(&ok);
+
+  if (path_.isValid()) {
+    int np = path_.numPoints();
+
+    if (! ok || i < 0 || i >= np)
+      return;
+
+    auto p = path_.pointAt(i);
+
+    path_.setPointAt(i, Point(p.x + dx, p.y + dy));
+  }
+  else {
+    if (i == 0) {
+      auto start = positionToParent(startObjRef(), this->start());
+
+      start_ = Position(Point(start.x + dx, start.y + dy), start_.units());
+    }
+    else {
+      auto end = positionToParent(endObjRef(), this->end());
+
+      end_ = Position(Point(end.x + dx, end.y + dy), end_.units());
+    }
+  }
+}
+
+//--
+
 void
 CQChartsArrowAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
@@ -4699,25 +4793,31 @@ void
 CQChartsArcAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
+  double x11 = bbox_.getXMin(), y11 = bbox_.getYMin();
+  double x21 = bbox_.getXMax(), y21 = bbox_.getYMax();
+
+  double x12 = bbox.getXMin(), y12 = bbox.getYMin();
+  double x22 = bbox.getXMax(), y22 = bbox.getYMax();
+
+  double dx1 = x12 - x11;
+  double dy1 = y12 - y11;
+  double dx2 = x22 - x21;
+  double dy2 = y22 - y21;
+
   auto start = positionToParent(startObjRef(), this->start());
   auto end   = positionToParent(endObjRef  (), this->end  ());
 
-  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
-  double x2 = bbox.getXMax(), y2 = bbox.getYMax();
+  if (start.x > end.x)
+    std::swap(dx1, dx2);
 
-  double dx1 = x1 - start.x;
-  double dy1 = y1 - start.y;
-  double dx2 = x2 - end  .x;
-  double dy2 = y2 - end  .y;
+  if (start.y > end.y)
+    std::swap(dy1, dy2);
 
-  auto spos = this->start().p();
-  auto epos = this->end  ().p();
+  start += Point(dx1, dy1);
+  end   += Point(dx2, dy2);
 
-  spos += Point(dx1, dy1);
-  epos += Point(dx2, dy2);
-
-  start_ = Position(spos, start_.units());
-  end_   = Position(epos, end_  .units());
+  start_ = Position(start, start_.units());
+  end_   = Position(end  , end_  .units());
 
   setAnnotationBBox(bbox);
 }
@@ -4768,6 +4868,8 @@ draw(PaintDevice *device)
   //---
 
   drawTerm(device);
+
+  setAnnotationBBox(BBox(path.boundingRect()));
 }
 
 void

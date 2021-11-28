@@ -188,6 +188,13 @@ setEdgeWidth(const Length &l)
   CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsDotPlot::
+setArrowWidth(double w)
+{
+  CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 const Qt::Orientation &
@@ -244,8 +251,10 @@ addProperties()
   //---
 
   // edge
-  addProp("edge", "edgeShape" , "shapeType", "Edge shape type");
-  addProp("edge", "edgeScaled", "scaled"   , "Edge is scaled");
+  addProp("edge", "edgeShape" , "shapeType" , "Edge shape type");
+  addProp("edge", "edgeScaled", "scaled"    , "Edge is scaled");
+  addProp("edge", "edgeWidth" , "width"     , "Edge width");
+  addProp("edge", "arrowWidth", "arrowWidth", "Arrow width");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -284,7 +293,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDotPlot::calcRange");
 
-//auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsDotPlot *>(this);
 
 //th->nodeYSet_ = false;
 
@@ -296,6 +305,8 @@ calcRange() const
     return dataRange;
 
   //---
+
+  th->bbox_ = targetBBox_;
 
   dataRange.updateRange(bbox_.getLL());
   dataRange.updateRange(bbox_.getUR());
@@ -401,6 +412,9 @@ void
 CQChartsDotPlot::
 addObjects(PlotObjs &objs) const
 {
+  if (! bbox_.isValid())
+    return;
+
   for (const auto &node : nodes()) {
     auto *nodeObj = createObjFromNode(node);
 
@@ -427,12 +441,63 @@ writeGraph() const
 
   os << "digraph g {\n";
 
+  using NodeSet = std::set<Node *>;
+
+  NodeSet nodeSet;
+
+  auto printAttr = [&](const QString &name, const QString &value, int &attrCount) {
+    if (attrCount == 0)
+      os << " [";
+    else
+      os << ",";
+
+    os << name.toStdString() << "=\"" << value.toStdString() << "\"";
+
+    ++attrCount;
+  };
+
+  auto endPrintAttr = [&](int attrCount) {
+    if (attrCount > 0)
+      os << "]";
+
+    os << ";\n";
+  };
+
+  auto printNode = [&](Node *node) {
+    auto p = nodeSet.find(node);
+    if (p != nodeSet.end()) return;
+
+    os << "\"" << node->name().toStdString() << "\"";
+
+    int nodeAttrCount = 0;
+
+    auto shapeStr = shapeTypeToString(node->shapeType());
+
+    printAttr("shape", shapeStr, nodeAttrCount);
+
+    if (node->label().length())
+      printAttr("label", node->label(), nodeAttrCount);
+
+    endPrintAttr(nodeAttrCount);
+
+    nodeSet.insert(node);
+  };
+
   for (const auto &edge : edges_) {
     auto *node1 = edge->srcNode ();
     auto *node2 = edge->destNode();
 
-    os << node1->name().toStdString() << " -> " << node2->name().toStdString() <<
-          " [ label = \"" << edge->label().toStdString() << "\" ];\n";
+    printNode(node1);
+    printNode(node2);
+
+    os << "\"" << node1->name().toStdString() << "\" -> \"" << node2->name().toStdString() << "\"";
+
+    int edgeAttrCount = 0;
+
+    if (edge->label().length())
+      printAttr("label", edge->label(), edgeAttrCount);
+
+    endPrintAttr(edgeAttrCount);
   }
 
   os << "}\n";
@@ -460,13 +525,147 @@ writeGraph() const
   for (auto &object : dot.objects()) {
     auto *node = findNode(object->name());
 
-    if (! node) { std::cerr << object->name().toStdString() << "Not Found\n"; continue; }
+    if (! node) {
+      std::cerr << object->name().toStdString() << "Not Found\n";
+      continue;
+    }
+
+    node->setDotId(object->id());
 
     BBox bbox1(object->rect());
+
+    if (! bbox1.isValid()) {
+      std::cerr << "No bbox for object " << object->name().toStdString() << "\n";
+      continue;
+    }
 
     node->setRect(bbox1);
 
     bbox += bbox1;
+  }
+
+  auto addPathPoint = [](QPainterPath &path, const Point &p) {
+    if (path.elementCount() == 0)
+      path.moveTo(p.qpoint());
+    else
+      path.lineTo(p.qpoint());
+  };
+
+  for (auto &dotEdge : dot.edges()) {
+    int tailId = dotEdge->tailId(); // from
+    int headId = dotEdge->headId(); // to
+
+    auto *tailNode = findDotNode(tailId);
+    auto *headNode = findDotNode(headId);
+    if (! tailNode || ! headNode) {
+      std::cerr << "Missing tail/head node for edge " << dotEdge->id() << "\n";
+      continue;
+    }
+
+    auto *edge = tailNode->findDestEdge(headNode);
+    if (! edge) edge = tailNode->findSrcEdge(headNode);
+    if (! edge) {
+      std::cerr << "Edge " << dotEdge->id() << " not Found\n";
+      continue;
+    }
+
+    int nl = dotEdge->lines().size();
+
+    if (nl == 1) {
+      auto path = dotEdge->lines()[0].path;
+
+      auto len = path.length();
+      //std::cerr << "len=" << len << "\n";
+      auto delta = len/100.0;
+      //std::cerr << "delta=" << delta << "\n";
+
+      auto points = CQChartsPath::pathPoints(path);
+
+      int   it = -1, ih = -1;
+      Point pit, pih;
+      bool  pitValid = true, pihValid = true;
+
+      if (tailNode->rect().isValid()) { // from
+        (void) CQChartsUtil::nearestPointListPoint(points, tailNode->rect().getCenter(), it);
+
+        if (tailNode->shapeType() == Node::ShapeType::CIRCLE ||
+            tailNode->shapeType() == Node::ShapeType::OVAL)
+          CQChartsGeom::lineIntersectCircle(tailNode->rect(),
+            tailNode->rect().getCenter(), points[it], pit);
+        else
+          CQChartsGeom::lineIntersectRect(tailNode->rect(),
+            tailNode->rect().getCenter(), points[it], pit);
+
+        auto d = CQChartsUtil::PointPointDistance(points[it], pit);
+        //std::cerr << "d=" << d << "\n";
+        pitValid = (d > delta);
+      }
+
+      if (headNode->rect().isValid()) { // to
+        (void) CQChartsUtil::nearestPointListPoint(points, headNode->rect().getCenter(), ih);
+
+        if (headNode->shapeType() == Node::ShapeType::CIRCLE ||
+            headNode->shapeType() == Node::ShapeType::OVAL)
+          CQChartsGeom::lineIntersectCircle(headNode->rect(),
+            headNode->rect().getCenter(), points[ih], pih);
+        else
+          CQChartsGeom::lineIntersectRect(headNode->rect(),
+            headNode->rect().getCenter(), points[ih], pih);
+
+        auto d = CQChartsUtil::PointPointDistance(points[ih], pih);
+        //std::cerr << "d=" << d << "\n";
+        pihValid = (d > delta);
+      }
+
+      QPainterPath path1;
+
+      if (it >= 0 && ih >= 0) {
+        if (it < ih) {
+          //addPathPoint(path1, tailNode->rect().getCenter());
+
+          if (pitValid)
+            addPathPoint(path1, pit);
+
+          for (int i = it; i <= ih; ++i)
+            addPathPoint(path1, points[i]);
+
+          if (pihValid)
+            addPathPoint(path1, pih);
+
+          //addPathPoint(path1, headNode->rect().getCenter());
+        }
+        else {
+          //addPathPoint(path1, headNode->rect().getCenter());
+
+          if (pihValid)
+            addPathPoint(path1, pih);
+
+          for (int i = ih; i <= it; ++i)
+            addPathPoint(path1, points[i]);
+
+          if (pitValid)
+            addPathPoint(path1, pit);
+
+          //addPathPoint(path1, tailNode->rect().getCenter());
+        }
+      }
+      else
+        path1 = path;
+
+      auto str = CQChartsPath::pathToString(path1);
+
+      //std::cerr << "Edge " << tailNode->name().toStdString() << "->" <<
+      //                        headNode->name().toStdString() << " = " <<
+      //                        str.toStdString() << "\n";
+
+      edge->setPath(path1);
+    }
+    else {
+      //std::cerr << "edge " << dotEdge->id() << " has " << nl << " lines\n";
+    }
+
+    if (dot.isDirected())
+      edge->setDirected(true);
   }
 
   auto *th = const_cast<CQChartsDotPlot *>(this);
@@ -480,7 +679,8 @@ void
 CQChartsDotPlot::
 fitToBBox(const BBox &bbox)
 {
-  // TODO: center at 0, 0 after fit
+  if (! bbox_.isValid() || ! bbox.isValid())
+    return;
 
   // current
   double x1 = bbox_.getXMin  ();
@@ -499,17 +699,104 @@ fitToBBox(const BBox &bbox)
 
   double f = std::min(xf, yf);
 
+  BBox bboxNew;
+
+  //----
+
+  using EdgeDelta = std::map<Edge *, QPointF>;
+
+  EdgeDelta edgeDelta;
+
+  for (auto *edge : edges_) {
+    auto path = edge->path();
+
+    if (path.isEmpty())
+      continue;
+
+    auto prect = path.boundingRect();
+
+    auto *srcNode = edge->srcNode();
+    auto  srcRect = srcNode->rect();
+
+    if (! srcRect.isValid())
+      continue;
+
+    double ex = (prect.center().x() - srcRect.getXMid())*f;
+    double ey = (prect.center().y() - srcRect.getYMid())*f;
+
+    edgeDelta[edge] = QPointF(ex, ey);
+
+    auto scaledPath = CQChartsPath::scalePath(path, f, f);
+
+    edge->setPath(scaledPath);
+  }
+
+  //---
+
+  // move scale nodes to match target bbox
   for (auto *node : nodes_) {
     if (! node->isVisible()) continue;
 
-    double nx1 = x2 + (node->rect().getXMin() - x1)*f;
-    double ny1 = y2 + (node->rect().getYMin() - y1)*f;
-  //double nx2 = x2 + (node->rect().getXMax() - x1)*f;
-  //double ny2 = y2 + (node->rect().getYMax() - y1)*f;
+    if (! node->rect().isValid())
+      continue;
+
+    auto nodeRect = node->rect();
+
+    double nx1 = x2 + (nodeRect.getXMin() - x1)*f;
+    double ny1 = y2 + (nodeRect.getYMin() - y1)*f;
 
     node->scale(f, f);
 
-    node->moveBy(Point(nx1 - node->rect().getXMin(), ny1 - node->rect().getYMin()));
+    nodeRect = node->rect();
+
+    double dx = nx1 - nodeRect.getXMin();
+    double dy = ny1 - nodeRect.getYMin();
+
+    node->moveBy(Point(dx, dy));
+
+    bboxNew += node->rect();
+  }
+
+  //----
+
+  // center at 0, 0 after fit
+  double dx = bbox.getXMid() - bboxNew.getXMid();
+  double dy = bbox.getYMid() - bboxNew.getYMid();
+
+  for (auto *node : nodes_) {
+    if (! node->isVisible()) continue;
+
+    if (! node->rect().isValid())
+      continue;
+
+    node->moveBy(Point(dx, dy));
+  }
+
+  //---
+
+  for (auto *edge : edges_) {
+    if (edge->path().isEmpty())
+      continue;
+
+    auto path = edge->path();
+
+    auto rect = path.boundingRect();
+
+    auto d = edgeDelta[edge];
+
+    auto *srcNode = edge->srcNode();
+
+    if (! srcNode->rect().isValid())
+      continue;
+
+    auto srcRect = srcNode->rect();
+
+    double ex = srcRect.getXMid() + d.x();
+    double ey = srcRect.getYMid() + d.y();
+
+    auto movedPath = CQChartsPath::movePath(path, ex - rect.center().x(), ey - rect.center().y());
+
+    edge->setPath(movedPath);
   }
 }
 
@@ -1114,22 +1401,11 @@ processNodeNameValue(Node *node, const QString &name, const QString &value) cons
 {
   // shape
   if      (name == "shape") {
-    if      (value == "diamond")
-      node->setShapeType(Node::ShapeType::DIAMOND);
-    else if (value == "box")
-      node->setShapeType(Node::ShapeType::BOX);
-    else if (value == "polygon")
-      node->setShapeType(Node::ShapeType::POLYGON);
-    else if (value == "circle")
-      node->setShapeType(Node::ShapeType::CIRCLE);
-    else if (value == "doublecircle")
-      node->setShapeType(Node::ShapeType::DOUBLE_CIRCLE);
-    else if (value == "record")
-      node->setShapeType(Node::ShapeType::BOX);
-    else if (value == "plaintext")
-      node->setShapeType(Node::ShapeType::BOX);
-    else
-      node->setShapeType(Node::ShapeType::BOX);
+    Node::ShapeType shapeType;
+
+    stringToShapeType(value, shapeType);
+
+    node->setShapeType(shapeType);
   }
   // num sides
   else if (name == "num_sides") {
@@ -1178,8 +1454,11 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
     auto        value = nv.second.toString();
 
     if      (name == "shape") {
-      if (value == "arrow")
-        edge->setShapeType(Edge::ShapeType::ARROW);
+      Edge::ShapeType shapeType;
+
+      stringToShapeType(value, shapeType);
+
+      edge->setShapeType(shapeType);
     }
     else if (name == "label") {
       edge->setLabel(value);
@@ -1193,6 +1472,113 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
     else if (name.left(5) == "dest_") {
       processNodeNameValue(destNode, name.mid(5), value);
     }
+  }
+}
+
+void
+CQChartsDotPlot::
+stringToShapeType(const QString &str, Node::ShapeType &shapeType)
+{
+  if      (str == "box"            ) shapeType = Node::ShapeType::BOX;
+  else if (str == "polygon"        ) shapeType = Node::ShapeType::POLYGON;
+  else if (str == "ellipse"        ) shapeType = Node::ShapeType::CIRCLE;
+  else if (str == "oval"           ) shapeType = Node::ShapeType::CIRCLE;
+  else if (str == "circle"         ) shapeType = Node::ShapeType::CIRCLE;
+  else if (str == "diamond"        ) shapeType = Node::ShapeType::DIAMOND;
+//else if (str == "point"          ) shapeType = Node::ShapeType::POINT;
+//else if (str == "egg"            ) shapeType = Node::ShapeType::EGG;
+  else if (str == "triangle"       ) shapeType = Node::ShapeType::TRIANGLE;
+  else if (str == "plaintext"      ) shapeType = Node::ShapeType::PLAIN_TEXT;
+//else if (str == "plain"          ) shapeType = Node::ShapeType::PLAIN;
+  else if (str == "diamond"        ) shapeType = Node::ShapeType::DIAMOND;
+//else if (str == "trapezium"      ) shapeType = Node::ShapeType::TRAPEZIUM;
+//else if (str == "parallelogram"  ) shapeType = Node::ShapeType::PARALLELGRAM;
+//else if (str == "house"          ) shapeType = Node::ShapeType::HOUSE;
+//else if (str == "pentagon"       ) shapeType = Node::ShapeType::PENTAGON;
+//else if (str == "hexagon"        ) shapeType = Node::ShapeType::HEXAGON;
+//else if (str == "septagon"       ) shapeType = Node::ShapeType::SEPTAGON;
+//else if (str == "octagon"        ) shapeType = Node::ShapeType::OCTAGON;
+  else if (str == "doublecircle"   ) shapeType = Node::ShapeType::DOUBLE_CIRCLE;
+//else if (str == "doubleoctagon"  ) shapeType = Node::ShapeType::DOUBLE_OCTAGON;
+//else if (str == "tripleoctagon"  ) shapeType = Node::ShapeType::TRIPLE_OCTAGON;
+//else if (str == "invtriangle"    ) shapeType = Node::ShapeType::INV_TRIANGLE;
+//else if (str == "invtrapezium"   ) shapeType = Node::ShapeType::INV_TRAPEZIUM;
+//else if (str == "invhouse"       ) shapeType = Node::ShapeType::INV_HOUSE;
+//else if (str == "Mdiamond"       ) shapeType = Node::ShapeType::MDIAMOND;
+//else if (str == "Msquare"        ) shapeType = Node::ShapeType::MSQUARE;
+//else if (str == "Mcircle"        ) shapeType = Node::ShapeType::MCIRCLE;
+  else if (str == "rect"           ) shapeType = Node::ShapeType::BOX;
+  else if (str == "rectangle"      ) shapeType = Node::ShapeType::BOX;
+  else if (str == "square"         ) shapeType = Node::ShapeType::BOX;
+//else if (str == "star"           ) shapeType = Node::ShapeType::STAR;
+//else if (str == "underline"      ) shapeType = Node::ShapeType::UNDERLINE;
+//else if (str == "cylinder"       ) shapeType = Node::ShapeType::CYLINDER;
+//else if (str == "note"           ) shapeType = Node::ShapeType::NOTE;
+//else if (str == "tab"            ) shapeType = Node::ShapeType::TAB;
+//else if (str == "folder"         ) shapeType = Node::ShapeType::FOLDER;
+//else if (str == "box3d"          ) shapeType = Node::ShapeType::BOX3D;
+//else if (str == "component"      ) shapeType = Node::ShapeType::COMPONENT;
+//else if (str == "promoter"       ) shapeType = Node::ShapeType::PROMOTER;
+//else if (str == "cds"            ) shapeType = Node::ShapeType::CDS;
+//else if (str == "terminator"     ) shapeType = Node::ShapeType::TERMINATOR;
+//else if (str == "utr"            ) shapeType = Node::ShapeType::UTR;
+//else if (str == "primersite"     ) shapeType = Node::ShapeType::PRIMERSITE;
+//else if (str == "restrictionsite") shapeType = Node::ShapeType::RESTRICTIONSITE;
+//else if (str == "fivepoverhang"  ) shapeType = Node::ShapeType::FIVEPOVERHANG;
+//else if (str == "threepoverhang" ) shapeType = Node::ShapeType::THREEPOVERHANG;
+//else if (str == "noverhang"      ) shapeType = Node::ShapeType::NOVERHANG;
+//else if (str == "assembly"       ) shapeType = Node::ShapeType::ASSEMBLY;
+//else if (str == "signature"      ) shapeType = Node::ShapeType::SIGNATURE;
+//else if (str == "insulator"      ) shapeType = Node::ShapeType::INSULATOR;
+//else if (str == "ribosite"       ) shapeType = Node::ShapeType::RIBOSITE;
+//else if (str == "rnastab"        ) shapeType = Node::ShapeType::RNASTAB;
+//else if (str == "proteasesite"   ) shapeType = Node::ShapeType::PROTEASESITE;
+//else if (str == "proteinstab"    ) shapeType = Node::ShapeType::PROTEINSTAB;
+  else if (str == "record"         ) shapeType = Node::ShapeType::RECORD;
+  else if (str == "rpromoter"      ) shapeType = Node::ShapeType::RPROMOTER;
+  else if (str == "rarrow"         ) shapeType = Node::ShapeType::RARROW;
+//else if (str == "larrow"         ) shapeType = Node::ShapeType::LARROW;
+//else if (str == "lpromoter"      ) shapeType = Node::ShapeType::LPROMOTER;
+  else if (str == "none"           ) shapeType = Node::ShapeType::NONE;
+  else {
+    std::cerr << "Unhandled shape type " << str.toStdString() << "\n";
+    shapeType = Node::ShapeType::NONE;
+  }
+}
+
+QString
+CQChartsDotPlot::
+shapeTypeToString(const Node::ShapeType &shapeType)
+{
+  switch (shapeType) {
+    case Node::ShapeType::DIAMOND      : return "diamond";
+    case Node::ShapeType::BOX          : return "box";
+    case Node::ShapeType::POLYGON      : return "polygon";
+    case Node::ShapeType::CIRCLE       : return "circle";
+    case Node::ShapeType::DOUBLE_CIRCLE: return "doublecircle";
+    case Node::ShapeType::RECORD       : return "record";
+    case Node::ShapeType::PLAIN_TEXT   : return "plaintext";
+    case Node::ShapeType::RARROW       : return "rarrow";
+    case Node::ShapeType::RPROMOTER    : return "rpromoter";
+    default                            : return "none";
+  }
+}
+
+void
+CQChartsDotPlot::
+stringToShapeType(const QString &str, Edge::ShapeType &shapeType)
+{
+  if (str == "arrow" ) shapeType = Edge::ShapeType::ARROW;
+  else                 shapeType = Edge::ShapeType::NONE;
+}
+
+QString
+CQChartsDotPlot::
+shapeTypeToString(const Edge::ShapeType &shapeType)
+{
+  switch (shapeType) {
+    case Edge::ShapeType::ARROW: return "arrow";
+    default                    : return "none";
   }
 }
 
@@ -1273,6 +1659,8 @@ CQChartsDotEdgeObj *
 CQChartsDotPlot::
 addEdgeObj(Edge *edge) const
 {
+  assert(bbox_.isValid());
+
   double xm = bbox_.getHeight()*edgeMargin_;
   double ym = bbox_.getWidth ()*edgeMargin_;
 
@@ -1316,6 +1704,17 @@ findNode(const QString &name) const
     return (*p).second;
 
   return createNode(name);
+}
+
+CQChartsDotPlotNode *
+CQChartsDotPlot::
+findDotNode(int dotId) const
+{
+  for (const auto &node : nodes())
+    if (node->dotId() == dotId)
+     return node;
+
+  return nullptr;
 }
 
 CQChartsDotPlotNode *
@@ -1754,19 +2153,11 @@ getConnected() const
 {
   PlotObjs plotObjs;
 
-  for (auto &edgeRect : node()->srcEdgeRects()) {
-    auto *pedge = dynamic_cast<CQChartsDotPlotEdge *>(edgeRect.first);
-    assert(pedge);
-
+  for (auto &pedge : node()->srcEdges())
     plotObjs.push_back(pedge->obj());
-  }
 
-  for (auto &edgeRect : node()->destEdgeRects()) {
-    auto *pedge = dynamic_cast<CQChartsDotPlotEdge *>(edgeRect.first);
-    assert(pedge);
-
+  for (auto &pedge : node()->destEdges())
     plotObjs.push_back(pedge->obj());
-  }
 
   return plotObjs;
 }
@@ -2143,16 +2534,8 @@ draw(PaintDevice *device) const
 
   bool isSelf = (srcObj == destObj);
 
-  auto srcRect  = (srcObj ->node()->hasDestEdgeRect(edge()) ?
-                   srcObj ->node()->destEdgeRect(edge()) : BBox());
-  auto destRect = (destObj->node()->hasSrcEdgeRect (edge()) ?
-                   destObj->node()->srcEdgeRect (edge()) : BBox());
-
-  if (! srcRect.isSet())
-    srcRect = edge()->srcNode()->rect();
-
-  if (! destRect.isSet())
-    destRect = edge()->destNode()->rect();
+  auto srcRect  = edge()->srcNode ()->rect();
+  auto destRect = edge()->destNode()->rect();
 
   if (shapeType() == ShapeType::ARROW || ! plot_->isEdgeScaled()) {
     if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
@@ -2203,70 +2586,92 @@ draw(PaintDevice *device) const
   //---
 
   // draw edge
-  path_ = QPainterPath();
+  double lw = plot_->lengthPlotHeight(plot()->edgeWidth());
 
-  if (shapeType() == ShapeType::ARROW) {
-    const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(false);
+  auto epath = edge()->path();
 
-    double lw = plot_->lengthPlotHeight(plot()->edgeWidth());
-
-    if (! isSelf) {
-      QPainterPath lpath;
-
-      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, /*rectilinear*/true);
-
+  if (! epath.isEmpty()) {
+    if (edge()->isDirected()) {
       CQChartsArrowData arrowData;
 
-      arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
       arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-      CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 1.0, path_);
+      QPainterPath path1;
 
-      device->drawPath(path_);
+      CQChartsArrow::pathAddArrows(epath, arrowData, lw, plot_->arrowWidth(), path_);
+
+      //path_ = epath;
     }
     else {
-      CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
+      path_ = epath;
 
-      device->drawPath(path_);
-    }
-
-    const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(true);
-  }
-  else {
-    if (plot_->isEdgeScaled()) {
-      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, /*isLine*/false, plot_->orientation());
-    }
-    else {
-      double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
-
-      if (! isSelf) {
-        if (plot_->isHorizontal()) {
-          // start y range from source node, and end y range from dest node
-          y1 = srcRect .getYMid();
-          y2 = destRect.getYMid();
-
-          if (swapped)
-            std::swap(y1, y2);
-
-          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw, plot_->orientation());
-        }
-        else {
-          // start x range from source node, and end x range from dest node
-          x1 = srcRect .getXMid();
-          x2 = destRect.getXMid();
-
-          if (swapped)
-            std::swap(x1, x2);
-
-          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw, plot_->orientation());
-        }
-      }
-      else {
-        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
-      }
+      device->setBrush(Qt::NoBrush);
     }
 
     device->drawPath(path_);
+  }
+  else {
+    if (shapeType() == ShapeType::ARROW) {
+      const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(false);
+
+      if (! isSelf) {
+        QPainterPath lpath;
+
+        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, /*rectilinear*/true);
+
+        CQChartsArrowData arrowData;
+
+        arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+        arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, plot_->arrowWidth(), path_);
+      }
+      else
+        CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
+
+      device->drawPath(path_);
+
+      const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(true);
+    }
+    else {
+      if (plot_->isEdgeScaled()) {
+        CQChartsDrawUtil::edgePath(path_, srcRect, destRect,
+                                   /*isLine*/false, plot_->orientation());
+      }
+      else {
+        double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
+
+        if (! isSelf) {
+          if (plot_->isHorizontal()) {
+            // start y range from source node, and end y range from dest node
+            y1 = srcRect .getYMid();
+            y2 = destRect.getYMid();
+
+            if (swapped)
+              std::swap(y1, y2);
+
+            CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2),
+                                       lw, plot_->orientation());
+          }
+          else {
+            // start x range from source node, and end x range from dest node
+            x1 = srcRect .getXMid();
+            x2 = destRect.getXMid();
+
+            if (swapped)
+              std::swap(x1, x2);
+
+            CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2),
+                                       lw, plot_->orientation());
+          }
+        }
+        else {
+          CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
+        }
+      }
+
+      device->drawPath(path_);
+    }
   }
 
   device->resetColorNames();
@@ -2291,13 +2696,8 @@ drawFg(PaintDevice *device) const
 
   bool isSelf = (srcObj == destObj);
 
-  auto srcRect  = (srcObj ->node()->hasDestEdgeRect(edge()) ?
-                   srcObj ->node()->destEdgeRect(edge()) : BBox());
-  auto destRect = (destObj->node()->hasSrcEdgeRect (edge()) ?
-                   destObj->node()->srcEdgeRect (edge()) : BBox());
-
-  if (! srcRect.isSet() || ! destRect.isSet())
-    return;
+  auto srcRect  = edge()->srcNode ()->rect();
+  auto destRect = edge()->destNode()->rect();
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 
@@ -2581,6 +2981,32 @@ hasDestNode(Node *destNode) const
 
   return false;
 }
+
+CQChartsDotPlotEdge *
+CQChartsDotPlotNode::
+findSrcEdge(Node *node) const
+{
+  for (auto &srcEdge : srcEdges()) {
+    if (srcEdge->srcNode() == node)
+      return srcEdge;
+  }
+
+  return nullptr;
+}
+
+CQChartsDotPlotEdge *
+CQChartsDotPlotNode::
+findDestEdge(Node *node) const
+{
+  for (auto &destEdge : destEdges()) {
+    if (destEdge->destNode() == node)
+      return destEdge;
+  }
+
+  return nullptr;
+}
+
+//---
 
 void
 CQChartsDotPlotNode::

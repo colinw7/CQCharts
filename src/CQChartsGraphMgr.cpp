@@ -538,17 +538,17 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   double parallelMargin = calcNodeSpacing();
 
   // get delta to next node for each position (node size plus margin)
-  double posDelta;
+  //double posDelta;
 
   int maxNodeDepth = this->maxNodeDepth(); // max depth (one less the depth count)
 
   // get parallel size
   double parallelSize = (mgr_->isHorizontal() ? bbox_.getWidth() : bbox_.getHeight());
 
-  if (mgr_->isNodeScaled())
-    posDelta = parallelSize/(maxNodeDepth + 1);
-  else
-    posDelta = (maxNodeDepth > 0 ? parallelSize/maxNodeDepth : 0.0);
+  //if (mgr_->isNodeScaled())
+  //  posDelta = parallelSize/(maxNodeDepth + 1);
+  //else
+  //  posDelta = (maxNodeDepth > 0 ? parallelSize/maxNodeDepth : 0.0);
 
   // get node size in parallel and perp directions
   double nodePosSize, nodePerpSize;
