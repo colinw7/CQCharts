@@ -1484,7 +1484,6 @@ stringToShapeType(const QString &str, Node::ShapeType &shapeType)
   else if (str == "ellipse"        ) shapeType = Node::ShapeType::CIRCLE;
   else if (str == "oval"           ) shapeType = Node::ShapeType::CIRCLE;
   else if (str == "circle"         ) shapeType = Node::ShapeType::CIRCLE;
-  else if (str == "diamond"        ) shapeType = Node::ShapeType::DIAMOND;
 //else if (str == "point"          ) shapeType = Node::ShapeType::POINT;
 //else if (str == "egg"            ) shapeType = Node::ShapeType::EGG;
   else if (str == "triangle"       ) shapeType = Node::ShapeType::TRIANGLE;
@@ -2598,7 +2597,8 @@ draw(PaintDevice *device) const
 
       QPainterPath path1;
 
-      CQChartsArrow::pathAddArrows(epath, arrowData, lw, plot_->arrowWidth(), path_);
+      CQChartsArrow::pathAddArrows(epath, arrowData, lw,
+                                   plot_->arrowWidth(), plot_->arrowWidth(), path_);
 
       //path_ = epath;
     }
@@ -2624,7 +2624,8 @@ draw(PaintDevice *device) const
         arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, plot_->arrowWidth(), path_);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw,
+                                     plot_->arrowWidth(), plot_->arrowWidth(), path_);
       }
       else
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);

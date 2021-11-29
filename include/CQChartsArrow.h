@@ -256,7 +256,7 @@ class CQChartsArrow : public QObject,
 
   //! alen is multiple of line width
   static void pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
-                            double lw, double alen, QPainterPath &arrowPath);
+                            double lw, double fronLen, double tailLen, QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,
                               Point &p1, Point &p2);

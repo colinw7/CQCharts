@@ -4328,9 +4328,14 @@ bool
 CQChartsArrowAnnotation::
 inside(const Point &p) const
 {
-  auto p1 = windowToPixel(p);
+  if (path_.isValid()) {
+    return drawPath_.contains(p.qpoint());
+  }
+  else {
+    auto p1 = windowToPixel(p);
 
-  return arrow()->contains(p1);
+    return arrow()->contains(p1);
+  }
 }
 
 void
@@ -4415,19 +4420,23 @@ draw(PaintDevice *device)
     if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
       lw = device->lengthWindowWidth(arrow()->lineWidth());
 
-    double alen = device->pixelToWindowWidth(4);
+    double frontLen = device->pixelToWindowWidth(4);
+    double tailLen  = frontLen;
 
-    if      (arrow()->frontLength().isSet() && arrow()->tailLength().isSet())
-      alen = device->lengthWindowWidth(arrow()->frontLength());
-    else if (arrow()->frontLength().isSet())
-      alen = device->lengthWindowWidth(arrow()->frontLength());
-    else if (arrow()->tailLength().isSet())
-      alen = device->lengthWindowWidth(arrow()->tailLength());
+    if (arrow()->frontLength().isSet())
+      frontLen = device->lengthWindowWidth(arrow()->frontLength());
+    if (arrow()->tailLength().isSet())
+      tailLen  = device->lengthWindowWidth(arrow()->tailLength());
 
     CQChartsArrow::pathAddArrows(path_.path(), arrowData, lw,
-                                 (lw > 0.0 ? alen/lw : 1.0), arrowPath);
+                                 (lw > 0.0 ? frontLen/lw : 1.0),
+                                 (lw > 0.0 ? tailLen /lw : 1.0), arrowPath);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     device->drawPath(arrowPath);
+
+    drawPath_ = arrowPath;
   }
   else {
     CQChartsWidgetUtil::AutoDisconnect
@@ -4454,18 +4463,21 @@ editHandles() const
 
   const auto &extraHandles = handles->extraHandles();
 
+  int np = 2;
+
+  if (path_.isValid())
+    np = path_.numPoints();
+
+  while (int(extraHandles.size()) < np) {
+    auto *extraHandle = createExtraHandle();
+
+    handles->addExtraHandle(extraHandle);
+  }
+
+  double pw = pixelToWindowWidth (4);
+  double ph = pixelToWindowHeight(4);
+
   if (path_.isValid()) {
-    int np = path_.numPoints();
-
-    while (int(extraHandles.size()) < np) {
-      auto *extraHandle = createExtraHandle();
-
-      handles->addExtraHandle(extraHandle);
-    }
-
-    double pw = pixelToWindowWidth (4);
-    double ph = pixelToWindowHeight(4);
-
     int i = 0;
 
     for (auto &extraHandle : handles->extraHandles()) {
@@ -4479,17 +4491,8 @@ editHandles() const
     }
   }
   else {
-    auto *extraHandle1 = createExtraHandle();
-    auto *extraHandle2 = createExtraHandle();
-
-    handles->addExtraHandle(extraHandle1);
-    handles->addExtraHandle(extraHandle2);
-
-    double pw = pixelToWindowWidth (4);
-    double ph = pixelToWindowHeight(4);
-
-    extraHandle1->setData(QVariant(0));
-    extraHandle2->setData(QVariant(1));
+    auto *extraHandle1 = handles->extraHandles()[0];
+    auto *extraHandle2 = handles->extraHandles()[1];
 
     auto start = positionToParent(startObjRef(), this->start());
     auto end   = positionToParent(endObjRef  (), this->end  ());
@@ -4793,16 +4796,10 @@ void
 CQChartsArcAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  double x11 = bbox_.getXMin(), y11 = bbox_.getYMin();
-  double x21 = bbox_.getXMax(), y21 = bbox_.getYMax();
-
-  double x12 = bbox.getXMin(), y12 = bbox.getYMin();
-  double x22 = bbox.getXMax(), y22 = bbox.getYMax();
-
-  double dx1 = x12 - x11;
-  double dy1 = y12 - y11;
-  double dx2 = x22 - x21;
-  double dy2 = y22 - y21;
+  double dx1 = bbox.getXMin() - bbox_.getXMin();
+  double dy1 = bbox.getYMin() - bbox_.getYMin();
+  double dx2 = bbox.getXMax() - bbox_.getXMax();
+  double dy2 = bbox.getYMax() - bbox_.getYMax();
 
   auto start = positionToParent(startObjRef(), this->start());
   auto end   = positionToParent(endObjRef  (), this->end  ());
@@ -4904,11 +4901,11 @@ calcPath(QPainterPath &path) const
   if (! arrowData.calcIsFHead() && ! arrowData.calcIsTHead() && ! isRectilinear()) {
     if (! isSelf) {
       if (startObj || endObj)
-        CQChartsDrawUtil::edgePath(path, ibbox, obbox, isLine());
+        CQChartsDrawUtil::edgePath(path, ibbox, obbox, isRectilinear());
       else {
-        CQChartsDrawUtil::curvePath(lpath, start, end, isLine());
+        CQChartsDrawUtil::curvePath(lpath, start, end, isRectilinear());
 
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, path);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, 2.0, path);
       }
     }
     else {
@@ -4926,9 +4923,44 @@ calcPath(QPainterPath &path) const
       CQChartsDrawUtil::selfCurvePath(lpath, ibbox, isRectilinear());
     }
 
-    CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, path);
+    CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, 2.0, path);
   }
 }
+
+//--
+
+CQChartsEditHandles *
+CQChartsArcAnnotation::
+editHandles() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  int np = 2;
+
+  while (int(extraHandles.size()) < np) {
+    auto *extraHandle = createExtraHandle();
+
+    handles->addExtraHandle(extraHandle);
+  }
+
+  double pw = pixelToWindowWidth (4);
+  double ph = pixelToWindowHeight(4);
+
+  auto *extraHandle1 = handles->extraHandles()[0];
+  auto *extraHandle2 = handles->extraHandles()[1];
+
+  auto start = positionToParent(startObjRef(), this->start());
+  auto end   = positionToParent(endObjRef  (), this->end  ());
+
+  extraHandle1->setBBox(BBox(start.x - pw, start.y - ph, start.x + pw, start.y + ph));
+  extraHandle2->setBBox(BBox(end  .x - pw, end  .y - ph, end  .x + pw, end  .y + ph));
+
+  return handles;
+}
+
+//--
 
 void
 CQChartsArcAnnotation::
@@ -5700,6 +5732,24 @@ void
 CQChartsAxisAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
+  double dx1 = bbox.getXMin() - bbox_.getXMin();
+  double dy1 = bbox.getYMin() - bbox_.getYMin();
+  double dx2 = bbox.getXMax() - bbox_.getXMax();
+  double dy2 = bbox.getYMax() - bbox_.getYMax();
+
+  if (direction_ == Qt::Horizontal) {
+    start_    += dx1;
+    end_      += dx2;
+    position_ += dy1;
+  }
+  else {
+    start_    += dy1;
+    end_      += dy2;
+    position_ += dx1;
+  }
+
+  updateAxis();
+
   setAnnotationBBox(bbox);
 }
 
@@ -5719,45 +5769,8 @@ draw(PaintDevice *device)
   if (! isVisible())
     return;
 
-  if (objRef_.isValid()) {
-    Point p1, p2;
-
-    if (direction_ == Qt::Horizontal) {
-      p1 = Point(start_, position_);
-      p2 = Point(end_  , position_);
-    }
-    else {
-      p1 = Point(position_, start_);
-      p2 = Point(position_, end_  );
-    }
-
-    auto ll = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::LL);
-    auto ur = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::UR);
-
-    auto start = positionToParent(ll, Position(p1, parentUnits()));
-    auto end   = positionToParent(ur, Position(p2, parentUnits()));
-
-    connectAxis(false);
-
-    axis_->setUpdatesEnabled(false);
-
-    if (direction_ == Qt::Horizontal) {
-      axis_->setStart   (start.x);
-      axis_->setEnd     (end  .x);
-      axis_->setPosition(OptReal(start.y));
-    }
-    else {
-      axis_->setStart   (start.y);
-      axis_->setEnd     (end  .y);
-      axis_->setPosition(OptReal(start.x));
-    }
-
-    axis_->updateCalc();
-
-    axis_->setUpdatesEnabled(true);
-
-    connectAxis(true);
-  }
+  if (objRef_.isValid())
+    updateAxis();
 
   //---
 
@@ -5792,6 +5805,49 @@ draw(PaintDevice *device)
   //--
 
   setAnnotationBBox(axis_->bbox());
+}
+
+void
+CQChartsAxisAnnotation::
+updateAxis()
+{
+  Point p1, p2;
+
+  if (direction_ == Qt::Horizontal) {
+    p1 = Point(start_, position_);
+    p2 = Point(end_  , position_);
+  }
+  else {
+    p1 = Point(position_, start_);
+    p2 = Point(position_, end_  );
+  }
+
+  auto ll = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::LL);
+  auto ur = CQChartsObjRef(objRef().name(), CQChartsObjRef::Location::UR);
+
+  auto start = positionToParent(ll, Position(p1, parentUnits()));
+  auto end   = positionToParent(ur, Position(p2, parentUnits()));
+
+  connectAxis(false);
+
+  axis_->setUpdatesEnabled(false);
+
+  if (direction_ == Qt::Horizontal) {
+    axis_->setStart   (start.x);
+    axis_->setEnd     (end  .x);
+    axis_->setPosition(OptReal(start.y));
+  }
+  else {
+    axis_->setStart   (start.y);
+    axis_->setEnd     (end  .y);
+    axis_->setPosition(OptReal(start.x));
+  }
+
+  axis_->updateCalc();
+
+  axis_->setUpdatesEnabled(true);
+
+  connectAxis(true);
 }
 
 void

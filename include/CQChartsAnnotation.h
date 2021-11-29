@@ -1430,10 +1430,11 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotation {
  private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
-  Position start_ { Position::plot(Point(0, 0)) }; //!< arrow start
-  Position end_   { Position::plot(Point(1, 1)) }; //!< arrow end
-  ArrowP   arrow_;                                 //!< arrow data
-  Path     path_;                                  //!< path
+  Position     start_ { Position::plot(Point(0, 0)) }; //!< arrow start
+  Position     end_   { Position::plot(Point(1, 1)) }; //!< arrow end
+  ArrowP       arrow_;                                 //!< arrow data
+  Path         path_;                                  //!< path
+  QPainterPath drawPath_;                              //!< draw path
 };
 
 //---
@@ -1544,6 +1545,8 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
   void init();
 
   void calcPath(QPainterPath &path) const;
+
+  EditHandles *editHandles() const override;
 
  private:
   Position start_       { CQChartsPosition::plot(Point(0, 0)) }; //!< arc start
@@ -1933,6 +1936,8 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
  private:
   void init();
+
+  void updateAxis();
 
  private:
   using AxisP = std::unique_ptr<Axis>;
