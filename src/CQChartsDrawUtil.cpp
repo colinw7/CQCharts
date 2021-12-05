@@ -38,20 +38,23 @@ setBrush(QBrush &brush, const BrushData &data)
 
 void
 drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-            const Length &lineWidth, bool horizontal,
-            const Symbol &symbolType, const Length &symbolSize)
+            const Length &lineWidth, bool horizontal, const Symbol &symbolType,
+            const Length &symbolSize, const Angle &angle)
 {
   // draw solid line
   double lw = (! horizontal ? device->lengthPixelWidth (lineWidth) :
                               device->lengthPixelHeight(lineWidth));
 
+  auto c = bbox.getCenter();
+
   if (! horizontal) {
-    if (lw < 3) {
+    if (lw < 3 && angle.isZero()) {
       setPenBrush(device, penBrush);
 
-      double xc = bbox.getXMid();
+      auto p1 = Point(c.x, bbox.getYMin());
+      auto p2 = Point(c.x, bbox.getYMax());
 
-      device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
+      device->drawLine(p1, p2);
     }
     else {
       auto pbbox = device->windowToPixel(bbox);
@@ -60,16 +63,18 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       BBox pbbox1(xc - lw/2.0, pbbox.getYMin(), xc + lw/2.0, pbbox.getYMax());
 
-      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1));
+      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1),
+                      Length(), Sides(Sides::Side::ALL), angle);
     }
   }
   else {
-    if (lw < 3) {
+    if (lw < 3 && angle.isZero()) {
       setPenBrush(device, penBrush);
 
-      double yc = bbox.getYMid();
+      auto p1 = Point(bbox.getXMin(), c.y);
+      auto p2 = Point(bbox.getXMax(), c.y);
 
-      device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
+      device->drawLine(p1, p2);
     }
     else {
       auto pbbox = device->windowToPixel(bbox);
@@ -78,7 +83,8 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       BBox pbbox1(pbbox.getXMid(), yc - lw/2.0, pbbox.getXMax(), yc + lw/2.0);
 
-      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1));
+      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1),
+                      Length(), Sides(Sides::Side::ALL), angle);
     }
   }
 
@@ -92,6 +98,9 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
   else
     p = Point(bbox.getXMax(), bbox.getYMid());
 
+  if (! angle.isZero())
+    p = p.rotate(c, angle.radians());
+
   drawSymbol(device, penBrush, symbolType, p, symbolSize);
 }
 
@@ -99,23 +108,23 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
 void
 drawRoundedRect(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-                const Length &cornerSize, const Sides &sides)
+                const Length &cornerSize, const Sides &sides, const Angle &angle)
 {
   setPenBrush(device, penBrush);
 
-  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides);
+  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides, angle);
 }
 
 void
 drawRoundedRect(PaintDevice *device, const BBox &bbox,
-                const Length &cornerSize, const Sides &sides)
+                const Length &cornerSize, const Sides &sides, const Angle &angle)
 {
-  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides);
+  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides, angle);
 }
 
 void
 drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xCornerSize,
-                const Length &yCornerSize, const Sides &sides)
+                const Length &yCornerSize, const Sides &sides, const Angle &angle)
 {
   static double minSize1 = 2.5; // pixels
   static double minSize2 = 1.5; // pixels
@@ -128,7 +137,7 @@ drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xCornerSize
   double ysize = device->lengthWindowHeight(yCornerSize);
 
   if      (minSize >= minSize1) {
-    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides, angle);
   }
   else if (minSize >= minSize2) {
     auto pen = device->pen();
@@ -142,7 +151,7 @@ drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xCornerSize
 
     device->setPen(pen);
 
-    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides, angle);
   }
   else {
     auto bc = device->brush().color();
@@ -161,7 +170,7 @@ drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xCornerSize
 
 void
 drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
-                        const CQChartsSides &sides)
+                        const CQChartsSides &sides, const Angle &angle)
 {
   // draw rounded rect if corners
   if (xsize > 0 || ysize > 0) {
@@ -170,14 +179,47 @@ drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, dou
 
     path.addRoundedRect(bbox.qrect(), xsize, ysize);
 
-    device->drawPath(path);
+    if (! angle.isZero())
+      device->drawPath(rotatePath(path, angle.degrees()));
+    else
+      device->drawPath(path);
   }
   // draw rect if no corners
   else {
     QPainterPath path;
 
     if (sides.isAll()) {
-      device->drawRect(bbox);
+      if (! angle.isZero()) {
+        QPainterPath path;
+
+#if 0
+        auto s = std::sqrt(2);
+
+        auto w = bbox.getWidth ()*s;
+        auto h = bbox.getHeight()*s;
+
+        BBox bbox1(bbox.getXMid() - w/2.0, bbox.getYMid() - h/2.0,
+                   bbox.getXMid() + w/2.0, bbox.getYMid() + h/2.0);
+
+        polygonSidesPath(path, bbox1, 4);
+
+        device->drawPath(rotatePath(path, angle.degrees() + 45));
+#else
+        auto x1 = bbox.getXMin(), y1 = bbox.getYMin();
+        auto x2 = bbox.getXMax(), y2 = bbox.getYMax();
+
+        path.moveTo(x1, y1);
+        path.lineTo(x2, y1);
+        path.lineTo(x2, y2);
+        path.lineTo(x1, y2);
+
+        path.closeSubpath();
+
+        device->drawPath(rotatePath(path, angle.degrees()));
+#endif
+      }
+      else
+        device->drawRect(bbox);
     }
     else {
       device->fillRect(bbox);
@@ -199,22 +241,23 @@ drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, dou
 
 void
 drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const Polygon &poly,
-                   const Length &cornerSize)
+                   const Length &cornerSize, const Angle &angle)
 {
   setPenBrush(device, penBrush);
 
-  drawRoundedPolygon(device, poly, cornerSize, cornerSize);
+  drawRoundedPolygon(device, poly, cornerSize, cornerSize, angle);
 }
 
 void
-drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &cornerSize)
+drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &cornerSize,
+                   const Angle &angle)
 {
-  drawRoundedPolygon(device, poly, cornerSize, cornerSize);
+  drawRoundedPolygon(device, poly, cornerSize, cornerSize, angle);
 }
 
 void
-drawRoundedPolygon(PaintDevice *device, const Polygon &poly,
-                   const Length &xCornerSize, const Length &yCornerSize)
+drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xCornerSize,
+                   const Length &yCornerSize, const Angle &)
 {
   static double minSize = 2.5; // pixels
 

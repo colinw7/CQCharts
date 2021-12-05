@@ -29,6 +29,9 @@ class CQChartsAngle :
   using Point = CQChartsGeom::Point;
 
  public:
+  static CQChartsAngle degrees(double value) { return CQChartsAngle(Type::DEGREES, value); }
+  static CQChartsAngle radians(double value) { return CQChartsAngle(Type::RADIANS, value); }
+
   //! default constructor
   CQChartsAngle() = default;
 

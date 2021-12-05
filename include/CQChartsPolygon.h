@@ -15,6 +15,7 @@ class CQChartsPolygon :
   public CQChartsToStringBase<CQChartsPolygon> {
  public:
   using Polygon = CQChartsGeom::Polygon;
+  using BBox    = CQChartsGeom::BBox;
   using Point   = CQChartsGeom::Point;
   using Units   = CQChartsUnits::Type;
 
@@ -73,6 +74,20 @@ class CQChartsPolygon :
   void addPoint(const Point &p) { polygon_.addPoint(p); }
 
   void removePoint() { polygon_.removePoint(); }
+
+  //---
+
+  Point getCenter() const { return polygon_.getCenter(); }
+
+  BBox boundingBox() const { return polygon_.boundingBox(); }
+
+  Polygon rotated(const CQChartsAngle &a) const {
+    return polygon_.rotated(a.radians());
+  }
+
+  Polygon rotated(const Point &p, const CQChartsAngle &a) const {
+    return polygon_.rotated(p, a.radians());
+  }
 
   //---
 

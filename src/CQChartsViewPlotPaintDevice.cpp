@@ -480,32 +480,37 @@ drawEllipse(const BBox &bbox, const Angle &a)
   auto prect = pbbox.qrect();
   if (! prect.isValid()) return;
 
-  if (handDrawn_) {
-    // TODO: rotated ellipsse
-    //assert(false);
-
-    QPainterPath path;
-
-    path.addEllipse(prect);
-
-    hdPainter_->drawPath(path);
+  if (! handDrawn_ && a.isZero()) {
+    painter_->drawEllipse(prect);
   }
   else {
-    if (a.value() != 0.0) {
-      painter_->save();
+    QPainterPath path, path1;
+
+    auto rect = bbox.qrect();
+
+    path.addEllipse(rect);
+
+    if (! a.isZero()) {
+      auto c = rect.center();
+
+      QTransform t;
 
       // Note: reverse order (move to zero, rotate, move back)
-      painter_->translate(prect.center());
-      painter_->rotate   (-a.value());
-      painter_->translate(-prect.center());
+      t.translate(c.x(), c.y());
+      t.rotate(a.degrees());
+      t.translate(-c.x(), -c.y());
 
-      painter_->drawEllipse(prect);
+      path1 = t.map(path);
+    }
+    else
+      path1 = path;
 
-      painter_->restore();
-    }
-    else {
-      painter_->drawEllipse(prect);
-    }
+    path = windowToPixel(path1);
+
+    if (handDrawn_)
+      hdPainter_->drawPath(path);
+    else
+      painter_->drawPath(path);
   }
 }
 
@@ -600,7 +605,7 @@ drawTransformedText(const Point &p, const QString &text)
 
 void
 CQChartsViewPlotPaintDevice::
-drawImageInRect(const BBox &bbox, const Image &image, bool stretch)
+drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle &angle)
 {
   if (! bbox.isSet()) return;
 
@@ -643,10 +648,36 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch)
 
   auto qimage = image.sizedImage(int(w), int(h));
 
-  if (handDrawn_)
-    hdPainter_->drawImage(pbbox1.qrect(), qimage);
-  else
-    painter_->drawImage(pbbox1.qrect(), qimage);
+  auto qrect = pbbox1.qrect();
+
+  auto qc = qrect.center();
+
+  auto *ipainter = (handDrawn_ ? const_cast<QPainter *>(hdPainter_->painter()) : painter_);
+
+  if (! angle.isZero()) {
+    ipainter->save();
+
+    QTransform t;
+
+    t.translate(qc.x(), qc.y());
+    t.rotate(-angle.degrees());
+    t.translate(-qc.x(), -qc.y());
+
+    ipainter->setTransform(t);
+
+    if (handDrawn_)
+      hdPainter_->drawImage(qrect, qimage);
+    else
+      ipainter->drawImage(qrect, qimage);
+
+    ipainter->restore();
+  }
+  else {
+    if (handDrawn_)
+      hdPainter_->drawImage(qrect, qimage);
+    else
+      ipainter->drawImage(qrect, qimage);
+  }
 }
 
 void

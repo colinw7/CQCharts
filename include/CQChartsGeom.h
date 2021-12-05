@@ -1275,6 +1275,28 @@ class Polygon :
 
   BBox boundingBox() const { return BBox(qpoly_.boundingRect()); }
 
+  Point getCenter() const { return boundingBox().getCenter(); }
+
+  //---
+
+  Polygon rotated(double a) const {
+    auto c = boundingBox().getCenter();
+
+    return rotated(c, a);
+  }
+
+  Polygon rotated(const Point &c, double a) const {
+    QPolygonF qpoly;
+
+    for (int i = 0; i < qpoly_.count(); ++i) {
+      auto p = Point(qpoly_[i]).rotate(c, a);
+
+      qpoly << p.qpoint();
+    }
+
+    return Polygon(qpoly);
+  }
+
   //---
 
   friend bool operator==(const Polygon &lhs, const Polygon &rhs) {

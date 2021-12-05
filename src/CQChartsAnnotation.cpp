@@ -1728,6 +1728,13 @@ CQChartsShapeAnnotation::
 
 void
 CQChartsShapeAnnotation::
+setAngle(const Angle &a)
+{
+  CQChartsUtil::testAndSet(angle_, a, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsShapeAnnotation::
 setTextInd(const QString &ind)
 {
   if (ind != textInd_) {
@@ -1755,7 +1762,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
-  addProp(model, path1, "textInd", "", "text annotation ind");
+  addProp(model, path1, "textInd", "", "Text annotation ind");
+  addProp(model, path1, "angle"  , "", "Shape angle");
 
   CQChartsAnnotation::addProperties(model, path, desc);
 }
@@ -1790,11 +1798,53 @@ CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon) :
 {
 }
 
+CQChartsPolyShapeAnnotation::
+~CQChartsPolyShapeAnnotation()
+{
+}
+
 void
 CQChartsPolyShapeAnnotation::
 setPolygon(const Polygon &polygon)
 {
   CQChartsUtil::testAndSet(polygon_, polygon, [&]() { emitDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsPolyShapeAnnotation::
+setRoundedLines(bool b)
+{
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
+}
+
+
+void
+CQChartsPolyShapeAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
+
+  CQChartsShapeAnnotation::addProperties(model, path, desc);
+}
+
+//--
+
+void
+CQChartsPolyShapeAnnotation::
+initSmooth() const
+{
+  // init smooth if needed
+  if (! smooth_) {
+    auto *th = const_cast<CQChartsPolyShapeAnnotation *>(this);
+
+    const auto &polygon = polygon_.polygon();
+
+    th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
+  }
 }
 
 //------
@@ -1924,13 +1974,6 @@ setNumSides(int n)
 
 void
 CQChartsRectangleAnnotation::
-setAngle(const Angle &a)
-{
-  CQChartsUtil::testAndSet(angle_, a, [&]() { emitDataChanged(); } );
-}
-
-void
-CQChartsRectangleAnnotation::
 setLineWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(lineWidth_, l, [&]() { emitDataChanged(); } );
@@ -1969,7 +2012,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
 {
   auto rect = this->rect();
 
-  if (shapeType() == ShapeType::CIRCLE || shapeType() == ShapeType::DOUBLE_CIRCLE) {
+  if      (shapeType() == ShapeType::CIRCLE || shapeType() == ShapeType::DOUBLE_CIRCLE) {
     return CQChartsGeom::lineIntersectCircle(rect, p1, p2, pi);
   }
   else if (shapeType() == ShapeType::POLYGON) {
@@ -1994,19 +2037,21 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto path1 = path + "/" + propertyId();
 
+  auto dotPath1 = path1 + "/dotLine";
+
   CQChartsShapeAnnotation::addProperties(model, path, desc);
 
-  addProp(model, path1, "rectangle" , "", "Rectangle bounding box");
-  addProp(model, path1, "start"     , "", "Rectangle bottom left", true);
-  addProp(model, path1, "end"       , "", "Rectangle top right", true);
-  addProp(model, path1, "margin"    , "", "Rectangle inner margin", true);
-  addProp(model, path1, "objRef"    , "", "Object reference");
-  addProp(model, path1, "shapeType" , "", "Node shape type");
-  addProp(model, path1, "numSides"  , "", "Number of Shape Sides");
-  addProp(model, path1, "angle"     , "", "Shape angle");
-  addProp(model, path1, "lineWidth" , "", "Dot line width");
-  addProp(model, path1, "symbol"    , "", "Dot line symbol");
-  addProp(model, path1, "symbolSize", "", "Dot line symbol size");
+  addProp(model, path1, "rectangle", "", "Rectangle bounding box");
+  addProp(model, path1, "start"    , "", "Rectangle bottom left", true);
+  addProp(model, path1, "end"      , "", "Rectangle top right", true);
+  addProp(model, path1, "margin"   , "", "Rectangle inner margin", true);
+  addProp(model, path1, "objRef"   , "", "Object reference");
+  addProp(model, path1, "shapeType", "", "Node shape type");
+  addProp(model, path1, "numSides" , "", "Number of Shape Sides");
+
+  addProp(model, dotPath1, "lineWidth" , "", "Dot line width");
+  addProp(model, dotPath1, "symbol"    , "", "Dot line symbol");
+  addProp(model, dotPath1, "symbolSize", "", "Dot line symbol size");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2040,6 +2085,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   setAnnotationBBox(bbox);
 }
+
+//---
 
 void
 CQChartsRectangleAnnotation::
@@ -2088,31 +2135,39 @@ draw(PaintDevice *device)
 
   if      (shapeType() == ShapeType::TRIANGLE)
     device->drawPolygonSides(rect, 3, angle());
-  else if (shapeType() == ShapeType::DIAMOND)
-    device->drawDiamond(rect);
-  else if (shapeType() == ShapeType::BOX)
-    device->drawRect(rect);
+  else if (shapeType() == ShapeType::DIAMOND) {
+    if (! angle().isZero())
+      device->drawPolygonSides(rect, 4, angle());
+    else
+      device->drawDiamond(rect);
+  }
+  else if (shapeType() == ShapeType::BOX) {
+    if (! angle().isZero())
+      device->drawPolygonSides(rect, 4, angle() + Angle::degrees(45));
+    else
+      device->drawRect(rect);
+  }
   else if (shapeType() == ShapeType::POLYGON)
     device->drawPolygonSides(rect, numSides() > 2 ? numSides() : 4, angle());
   else if (shapeType() == ShapeType::CIRCLE)
-    device->drawEllipse(rect);
+    device->drawEllipse(rect, angle());
   else if (shapeType() == ShapeType::DOUBLE_CIRCLE) {
     double dx = rect.getWidth ()/10.0;
     double dy = rect.getHeight()/10.0;
 
     auto rect1 = rect.expanded(dx, dy, -dx, -dy);
 
-    device->drawEllipse(rect );
-    device->drawEllipse(rect1);
+    device->drawEllipse(rect , angle());
+    device->drawEllipse(rect1, angle());
   }
   else if (shapeType() == ShapeType::DOT_LINE) {
-    bool horizontal = CMathUtil::realEq(std::abs(angle().degrees()), 90.0);
+    //bool horizontal = CMathUtil::realEq(std::abs(angle().degrees()), 90.0);
 
-    CQChartsDrawUtil::drawDotLine(device, penBrush, rect, lineWidth(), horizontal,
-                                  symbol(), symbolSize());
+    CQChartsDrawUtil::drawDotLine(device, penBrush, rect, lineWidth(), false,
+                                  symbol(), symbolSize(), angle());
   }
   else {
-    CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides(), angle());
   }
 
   //---
@@ -2319,6 +2374,9 @@ draw(PaintDevice *device)
 
   path.addEllipse(rect_.qrect());
 
+  if (! angle().isZero())
+    path = CQChartsDrawUtil::rotatePath(path, angle().degrees());
+
   //---
 
   // draw path
@@ -2404,23 +2462,13 @@ init()
 
 void
 CQChartsPolygonAnnotation::
-setRoundedLines(bool b)
-{
-  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
-}
-
-//---
-
-void
-CQChartsPolygonAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto path1 = path + "/" + propertyId();
-
   CQChartsPolyShapeAnnotation::addProperties(model, path, desc);
 
-  addProp(model, path1, "polygon"     , ""       , "Polygon points");
-  addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "polygon", "", "Polygon points");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2463,14 +2511,23 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   bool ok;
   int i = data.toInt(&ok);
 
-  int np = polygon_.numPoints();
+  int np = apoly_.numPoints();
 
   if (! ok || i < 0 || i >= np)
     return;
 
-  auto p = polygon_.point(i);
+  //---
 
-  polygon_.setPoint(i, Point(p.x + dx, p.y + dy));
+  auto p = apoly_.point(i);
+
+  apoly_.setPoint(i, Point(p.x + dx, p.y + dy));
+
+  //---
+
+  if (! angle().isZero())
+    polygon_ = apoly_.rotated(polygon_.getCenter(), -angle());
+  else
+    polygon_ = apoly_;
 }
 
 //---
@@ -2479,7 +2536,7 @@ bool
 CQChartsPolygonAnnotation::
 inside(const Point &p) const
 {
-  const auto &polygon = polygon_.polygon();
+  const auto &polygon = apoly_.polygon();
 
   return (polygon.containsPoint(p, Qt::OddEvenFill));
 }
@@ -2496,23 +2553,6 @@ draw(PaintDevice *device)
   //---
 
   drawInit(device);
-
-  //---
-
-  // calc bbox
-  double x1 = polygon.point(0).x;
-  double y1 = polygon.point(0).y;
-  double x2 = x1;
-  double y2 = y1;
-
-  for (int i = 1; i < polygon.size(); ++i) {
-    x1 = std::min(x1, polygon.point(i).x);
-    y1 = std::min(y1, polygon.point(i).y);
-    x2 = std::max(x2, polygon.point(i).x);
-    y2 = std::max(y2, polygon.point(i).y);
-  }
-
-  setAnnotationBBox(BBox(x1, y1, x2, y2));
 
   //---
 
@@ -2540,9 +2580,30 @@ draw(PaintDevice *device)
 
   //---
 
+  // calc rotated path
+  auto apath = path;
+
+  if (! angle().isZero())
+    apath = CQChartsDrawUtil::rotatePath(path, angle().degrees());
+
+  //---
+
   // draw filled path
-  device->fillPath  (path, penBrush.brush);
-  device->strokePath(path, penBrush.pen  );
+  device->fillPath  (apath, penBrush.brush);
+  device->strokePath(apath, penBrush.pen  );
+
+  //---
+
+  setAnnotationBBox(BBox(apath.boundingRect()));
+
+  //---
+
+  CQChartsPolygon apoly;
+
+  if (! angle().isZero())
+    apoly_ = polygon_.rotated(polygon_.getCenter(), angle());
+  else
+    apoly_ = polygon_;
 
   //---
 
@@ -2559,13 +2620,15 @@ editHandles() const
 
   const auto &extraHandles = handles->extraHandles();
 
-  int np = polygon_.numPoints();
+  int np = apoly_.numPoints();
 
   while (int(extraHandles.size()) < np) {
     auto *extraHandle = createExtraHandle();
 
     handles->addExtraHandle(extraHandle);
   }
+
+  //---
 
   double pw = pixelToWindowWidth (4);
   double ph = pixelToWindowHeight(4);
@@ -2575,7 +2638,7 @@ editHandles() const
   for (auto &extraHandle : handles->extraHandles()) {
     extraHandle->setData(QVariant(i));
 
-    auto p = polygon_.point(i);
+    auto p = apoly_.point(i);
 
     extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
 
@@ -2583,22 +2646,6 @@ editHandles() const
   }
 
   return handles;
-}
-
-//--
-
-void
-CQChartsPolygonAnnotation::
-initSmooth() const
-{
-  // init smooth if needed
-  if (! smooth_) {
-    auto *th = const_cast<CQChartsPolygonAnnotation *>(this);
-
-    const auto &polygon = polygon_.polygon();
-
-    th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
-  }
 }
 
 //---
@@ -2646,6 +2693,7 @@ init()
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
+  setFilled (false);
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -2657,23 +2705,13 @@ init()
 
 void
 CQChartsPolylineAnnotation::
-setRoundedLines(bool b)
-{
-  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
-}
-
-//---
-
-void
-CQChartsPolylineAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto path1 = path + "/" + propertyId();
-
   CQChartsPolyShapeAnnotation::addProperties(model, path, desc);
 
-  addProp(model, path1, "polygon"     , ""       , "Polyline points");
-  addProp(model, path1, "roundedLines", "rounded", "Smooth lines");
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "polygon", "", "Polyline points");
 
   addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 }
@@ -2716,14 +2754,23 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   bool ok;
   int i = data.toInt(&ok);
 
-  int np = polygon_.numPoints();
+  int np = apoly_.numPoints();
 
   if (! ok || i < 0 || i >= np)
     return;
 
-  auto p = polygon_.point(i);
+  //---
 
-  polygon_.setPoint(i, Point(p.x + dx, p.y + dy));
+  auto p = apoly_.point(i);
+
+  apoly_.setPoint(i, Point(p.x + dx, p.y + dy));
+
+  //---
+
+  if (! angle().isZero())
+    polygon_ = apoly_.rotated(polygon_.getCenter(), -angle());
+  else
+    polygon_ = apoly_;
 }
 
 //---
@@ -2732,7 +2779,7 @@ bool
 CQChartsPolylineAnnotation::
 inside(const Point &p) const
 {
-  const auto &polygon = polygon_.polygon();
+  const auto &polygon = apoly_.polygon();
 
   if (! polygon.size())
     return false;
@@ -2770,31 +2817,14 @@ draw(PaintDevice *device)
 
   //---
 
-  // calc bbox
-  double x1 = polygon.point(0).x;
-  double y1 = polygon.point(0).y;
-  double x2 = x1;
-  double y2 = y1;
-
-  for (int i = 1; i < polygon.size(); ++i) {
-    x1 = std::min(x1, polygon.point(i).x);
-    y1 = std::min(y1, polygon.point(i).y);
-    x2 = std::max(x2, polygon.point(i).x);
-    y2 = std::max(y2, polygon.point(i).y);
-  }
-
-  setAnnotationBBox(BBox(x1, y1, x2, y2));
-
-  //---
-
   // set pen
   PenBrush penBrush;
 
   auto strokeColor = interpStrokeColor(ColorInd());
 
   setPen(penBrush,
-    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
-            strokeCap(), strokeJoin()));
+    PenData(true, strokeColor, strokeAlpha(), strokeWidth(),
+            strokeDash(), strokeCap(), strokeJoin()));
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
@@ -2815,8 +2845,29 @@ draw(PaintDevice *device)
 
   //---
 
+  // calc rotated path
+  auto apath = path;
+
+  if (! angle().isZero())
+    apath = CQChartsDrawUtil::rotatePath(path, angle().degrees());
+
+  //---
+
   // draw path
-  device->strokePath(path, penBrush.pen);
+  device->strokePath(apath, penBrush.pen);
+
+  //---
+
+  setAnnotationBBox(BBox(apath.boundingRect()));
+
+  //---
+
+  CQChartsPolygon apoly;
+
+  if (! angle().isZero())
+    apoly_ = polygon_.rotated(polygon_.getCenter(), angle());
+  else
+    apoly_ = polygon_;
 
   //---
 
@@ -2833,13 +2884,15 @@ editHandles() const
 
   const auto &extraHandles = handles->extraHandles();
 
-  int np = polygon_.numPoints();
+  int np = apoly_.numPoints();
 
   while (int(extraHandles.size()) < np) {
     auto *extraHandle = createExtraHandle();
 
     handles->addExtraHandle(extraHandle);
   }
+
+  //---
 
   double pw = pixelToWindowWidth (4);
   double ph = pixelToWindowHeight(4);
@@ -2849,7 +2902,7 @@ editHandles() const
   for (auto &extraHandle : handles->extraHandles()) {
     extraHandle->setData(QVariant(i));
 
-    auto p = polygon_.point(i);
+    auto p = apoly_.point(i);
 
     extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
 
@@ -2857,22 +2910,6 @@ editHandles() const
   }
 
   return handles;
-}
-
-//--
-
-void
-CQChartsPolylineAnnotation::
-initSmooth() const
-{
-  // init smooth if needed
-  if (! smooth_) {
-    auto *th = const_cast<CQChartsPolylineAnnotation *>(this);
-
-    const auto &polygon = polygon_.polygon();
-
-    th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
-  }
 }
 
 //---
@@ -3699,16 +3736,16 @@ draw(PaintDevice *device)
   if (! isEnabled()) {
     updateDisabledImage(DisabledImageType::DISABLED);
 
-    device->drawImageInRect(tbbox, disabledImage_);
+    device->drawImageInRect(tbbox, disabledImage_, /*stretch*/true, angle());
   }
   else {
     if (isCheckable() && ! isChecked()) {
       updateDisabledImage(DisabledImageType::UNCHECKED);
 
-      device->drawImageInRect(tbbox, disabledImage_);
+      device->drawImageInRect(tbbox, disabledImage_, /*stretch*/true, angle());
     }
     else {
-      device->drawImageInRect(tbbox, image_);
+      device->drawImageInRect(tbbox, image_, /*stretch*/true, angle());
     }
   }
 
@@ -3971,7 +4008,12 @@ draw(PaintDevice *device)
   // draw path
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawPath(path_.path());
+  auto path = path_.path();
+
+  if (! angle().isZero())
+    path = CQChartsDrawUtil::rotatePath(path, angle().degrees());
+
+  device->drawPath(path);
 
   //---
 

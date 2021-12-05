@@ -291,7 +291,7 @@ drawTransformedText(const Point &p, const QString &text)
 
 void
 CQChartsScriptPaintDevice::
-drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
+drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/, const Angle &)
 {
   double x = (! isInvertX() ? bbox.getXMin() : bbox.getXMax());
   double y = (! isInvertY() ? bbox.getYMax() : bbox.getYMin());

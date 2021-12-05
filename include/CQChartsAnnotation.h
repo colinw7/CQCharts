@@ -547,7 +547,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
   void layoutHV();
@@ -557,7 +557,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   void layoutTreemap();
   void layoutGraph();
 
- private:
+ protected:
   using Annotations = std::vector<CQChartsAnnotation *>;
 
   struct LayoutData {
@@ -580,7 +580,8 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 class CQChartsShapeAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QString textInd READ textInd WRITE setTextInd)
+  Q_PROPERTY(CQChartsAngle angle   READ angle   WRITE setAngle  )
+  Q_PROPERTY(QString       textInd READ textInd WRITE setTextInd)
 
  public:
   CQChartsShapeAnnotation(View *view, Type type);
@@ -593,6 +594,10 @@ class CQChartsShapeAnnotation : public CQChartsAnnotation {
   SubType subType() const override { return SubType::SHAPE; }
 
   //---
+
+  //! get/set angle
+  const Angle &angle() const { return angle_; }
+  void setAngle(const Angle &a);
 
   //! get/set text ind
   const QString &textInd() const { return textInd_; }
@@ -608,7 +613,8 @@ class CQChartsShapeAnnotation : public CQChartsAnnotation {
   // draw text
   void drawText(PaintDevice *device, const BBox &rect);
 
- private:
+ protected:
+  Angle   angle_;   //!< rotation angle
   QString textInd_; //!< text ind
 };
 
@@ -621,7 +627,9 @@ class CQChartsShapeAnnotation : public CQChartsAnnotation {
 class CQChartsPolyShapeAnnotation : public CQChartsShapeAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+  Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
+  Q_PROPERTY(CQChartsObjRef  objRef       READ objRef         WRITE setObjRef      )
+  Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
 
  public:
   using Polygon = CQChartsPolygon;
@@ -630,15 +638,37 @@ class CQChartsPolyShapeAnnotation : public CQChartsShapeAnnotation {
   CQChartsPolyShapeAnnotation(View *view, Type type, const Polygon &polygon=Polygon());
   CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon=Polygon());
 
+  virtual ~CQChartsPolyShapeAnnotation();
+
+  //! get/set polygon
   const Polygon &polygon() const { return polygon_; }
   void setPolygon(const Polygon &polygon);
 
+  //! get/set object reference
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
+  //! get/set is rounded lines
+  bool isRoundedLines() const { return roundedLines_; }
+  void setRoundedLines(bool b);
+
+  //---
+
+  //! add properties
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
  protected:
-  Polygon polygon_; //!< polygon points
-  ObjRef  objRef_;  //!< object ref
+  void initSmooth() const;
+
+ protected:
+  using Smooth  = CQChartsSmooth;
+  using SmoothP = std::unique_ptr<Smooth>;
+
+  Polygon polygon_;                //!< polygon points
+  ObjRef  objRef_;                 //!< object ref
+  Polygon apoly_;                  //!< rotated polygon
+  bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
+  SmoothP smooth_;                 //!< smooth object
 };
 
 //---
@@ -658,7 +688,6 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotation {
   Q_PROPERTY(CQChartsObjRef     objRef     READ objRef      WRITE setObjRef    )
   Q_PROPERTY(ShapeType          shapeType  READ shapeType   WRITE setShapeType )
   Q_PROPERTY(int                numSides   READ numSides    WRITE setNumSides  )
-  Q_PROPERTY(CQChartsAngle      angle      READ angle       WRITE setAngle     )
   Q_PROPERTY(CQChartsLength     lineWidth  READ lineWidth   WRITE setLineWidth )
   Q_PROPERTY(CQChartsSymbol     symbol     READ symbol      WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength     symbolSize READ symbolSize  WRITE setSymbolSize)
@@ -729,10 +758,6 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotation {
   int numSides() const { return numSides_; }
   void setNumSides(int n);
 
-  //! get/set angle
-  const Angle &angle() const { return angle_; }
-  void setAngle(const Angle &a);
-
   //---
 
   //! get/set line width (for dot line)
@@ -770,15 +795,14 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   Rect      rectangle_;                      //!< rectangle
   ObjRef    objRef_;                         //!< object ref
   ShapeType shapeType_ { ShapeType::NONE };  //!< shape type
   int       numSides_  { -1 };               //!< number of sides
-  Angle     angle_;                          //!< rotation angle
 
   Length lineWidth_  { Length::plot(1.0) }; //!< dot line width
   Symbol symbol_     { Symbol::circle() };  //!< dot symbol
@@ -866,10 +890,10 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   Position center_;                        //!< ellipse center
   Length   xRadius_ { Length::plot(1.0) }; //!< ellipse x radius
   Length   yRadius_ { Length::plot(1.0) }; //!< ellipse y radius
@@ -887,9 +911,6 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotation {
 class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
-  Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
-
  public:
   CQChartsPolygonAnnotation(View *view, const Polygon &polygon);
   CQChartsPolygonAnnotation(Plot *plot, const Polygon &polygon);
@@ -903,11 +924,6 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   const char *propertyName() const override { return "polygonAnnotation"; }
 
   const char *cmdName() const override { return "create_charts_polygon_annotation"; }
-
-  //---
-
-  bool isRoundedLines() const { return roundedLines_; }
-  void setRoundedLines(bool b);
 
   //---
 
@@ -926,22 +942,13 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private slots:
+ protected slots:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
- private:
+ protected:
   void init();
 
   EditHandles *editHandles() const override;
-
-  void initSmooth() const;
-
- private:
-  using Smooth  = CQChartsSmooth;
-  using SmoothP = std::unique_ptr<Smooth>;
-
-  bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
-  SmoothP smooth_;                 //!< smooth object
 };
 
 //---
@@ -956,9 +963,6 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
  */
 class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   Q_OBJECT
-
-  Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
-  Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
 
  public:
   CQChartsPolylineAnnotation(View *view, const Polygon &polygon);
@@ -976,11 +980,6 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
   //---
 
-  bool isRoundedLines() const { return roundedLines_; }
-  void setRoundedLines(bool b);
-
-  //---
-
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
@@ -996,22 +995,13 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private slots:
+ protected slots:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
- private:
+ protected:
   void init();
 
   EditHandles *editHandles() const override;
-
-  void initSmooth() const;
-
- private:
-  using Smooth  = CQChartsSmooth;
-  using SmoothP = std::unique_ptr<Smooth>;
-
-  bool    roundedLines_ { false }; //!< draw rounded (smooth) lines
-  SmoothP smooth_;                 //!< smooth object
 };
 
 //---
@@ -1097,7 +1087,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void initRectangle() override;
 
- private:
+ protected:
   void init(const QString &text);
 
   void calcTextSize(Size &psize, Size &wsize) const;
@@ -1108,7 +1098,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void positionToBBox();
 
- private:
+ protected:
   OptPosition position_;  //!< text position
   OptRect     rectangle_; //!< text bounding rect
   ObjRef      objRef_;    //!< reference object
@@ -1204,7 +1194,7 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotation {
 
   void initRectangle() override;
 
- private:
+ protected:
   enum class DisabledImageType {
     NONE,
     DISABLED,
@@ -1224,7 +1214,7 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotation {
 
   void positionToBBox();
 
- private:
+ protected:
   OptPosition       position_;                                      //!< image position
   OptRect           rectangle_;                                     //!< image bounding rectangle
   ObjRef            objRef_;                                        //!< object ref
@@ -1295,15 +1285,15 @@ class CQChartsPathAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private slots:
+ protected slots:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
- private:
+ protected:
   void init();
 
   EditHandles *editHandles() const override;
 
- private:
+ protected:
   ObjRef objRef_; //!< object ref
   Path   path_;   //!< path
 };
@@ -1419,15 +1409,15 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private slots:
+ protected slots:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
- private:
+ protected:
   void init();
 
   EditHandles *editHandles() const override;
 
- private:
+ protected:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
   Position     start_ { Position::plot(Point(0, 0)) }; //!< arrow start
@@ -1541,14 +1531,14 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
   void calcPath(QPainterPath &path) const;
 
   EditHandles *editHandles() const override;
 
- private:
+ protected:
   Position start_       { CQChartsPosition::plot(Point(0, 0)) }; //!< arc start
   Position end_         { CQChartsPosition::plot(Point(1, 1)) }; //!< arc end
   bool     isLine_      { false };                               //!< is line
@@ -1654,12 +1644,12 @@ class CQChartsArcConnectorAnnotation : public CQChartsConnectorAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
   void calcPath(QPainterPath &path) const;
 
- private:
+ protected:
   Position center_;                   //!< arc center
   Length   radius_;                   //!< arc radius
   Angle    srcStartAngle_;            //!< source start angle
@@ -1741,10 +1731,10 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init(const Symbol &symbol);
 
- private:
+ protected:
   Position position_; //!< point position
   ObjRef   objRef_;   //!< reference object
 };
@@ -1841,10 +1831,10 @@ class CQChartsPieSliceAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   Position position_;              //!< point position
   ObjRef   objRef_;                //!< object ref
   Length   innerRadius_;           //!< inner radius
@@ -1934,12 +1924,12 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
   void updateAxis();
 
- private:
+ protected:
   using AxisP = std::unique_ptr<Axis>;
 
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
@@ -2012,13 +2002,13 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
- private slots:
+ protected slots:
   void updateLocationSlot();
 
- private:
+ protected:
   ObjRef objRef_;              //!< object ref
   Key*   key_     { nullptr }; //!< key
 };
@@ -2095,15 +2085,15 @@ class CQChartsPoint3DSetAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void updateValues();
 
   void initContour() const;
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   using ContourP = std::unique_ptr<CQChartsContour>;
 
   ObjRef          objRef_;                         //!< object ref
@@ -2204,7 +2194,7 @@ class CQChartsPointSetAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void updateValues();
 
   void calcValues();
@@ -2216,10 +2206,10 @@ class CQChartsPointSetAnnotation : public CQChartsShapeAnnotation {
   void drawGrid    (PaintDevice *device);
   void drawDelaunay(PaintDevice *device);
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   using Hull      = CQChartsGrahamHull;
   using HullP     = std::unique_ptr<Hull>;
   using GridCell  = CQChartsGridCell;
@@ -2327,7 +2317,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void updateValues();
 
   void calcReals();
@@ -2339,10 +2329,10 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotation {
   void drawRadar   (PaintDevice *device);
   void drawTreeMap (PaintDevice *device, const QPen &pen);
 
- private:
+ protected:
   void init();
 
- private:
+ protected:
   using Density     = CQChartsDensity;
   using DensityP    = std::unique_ptr<Density>;
   using CirclePack  = CQChartsCirclePack<CQChartsCircleNode>;
@@ -2426,12 +2416,12 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   //---
 
- private:
+ protected:
   void init(const QString &text);
 
   QRect calcPixelRect() const;
 
- private:
+ protected:
   Position position_;          //!< button position
   ObjRef   objRef_;            //!< object ref
   QRect    prect_;             //!< pixel rect
@@ -2539,7 +2529,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void initRectangle() override;
 
- private:
+ protected:
   void init();
 
   void calcWidgetSize(Size &psize, Size &wsize) const;
@@ -2550,10 +2540,10 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void positionToBBox();
 
- private slots:
+ protected slots:
   void updateWinGeometry();
 
- private:
+ protected:
   OptPosition   position_;                                     //!< widget position
   OptRect       rectangle_;                                    //!< widget bounding rectangle
   ObjRef        objRef_;                                       //!< object ref
@@ -2618,13 +2608,13 @@ class CQChartsSymbolSizeMapKeyAnnotation : public CQChartsAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
- private:
+ protected:
   void init();
 
- private slots:
+ protected slots:
   void updateLocationSlot();
 
- private:
+ protected:
   Key*     key_ { nullptr }; //!< key
   Position position_;
 };

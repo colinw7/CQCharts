@@ -189,6 +189,20 @@ inline QPainterPath polygonToPath(const Polygon &polygon, bool closed=false) {
   return path;
 }
 
+inline QPainterPath rotatePath(const QPainterPath &path, const QPointF &c, double angle) {
+  QTransform t;
+
+  t.translate(c.x(), c.y());
+  t.rotate(angle);
+  t.translate(-c.x(), -c.y());
+
+  return t.map(path);
+}
+
+inline QPainterPath rotatePath(const QPainterPath &path, double angle) {
+  return rotatePath(path, path.boundingRect().center(), angle);
+}
+
 }
 
 //---
@@ -240,23 +254,28 @@ using Point       = CQChartsGeom::Point;
 
 void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
                  const Length &lineWidth, bool horizontal,
-                 const Symbol &symbolType, const Length &symbolSize);
+                 const Symbol &symbolType, const Length &symbolSize,
+                 const Angle &angle=Angle());
 
 void drawRoundedRect(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-                     const Length &size=Length(), const Sides &sides=Sides(Sides::Side::ALL));
+                     const Length &size=Length(), const Sides &sides=Sides(Sides::Side::ALL),
+                     const Angle &angle=Angle());
 void drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &size=Length(),
-                     const Sides &sides=Sides(Sides::Side::ALL));
+                     const Sides &sides=Sides(Sides::Side::ALL),
+                     const Angle &angle=Angle());
 void drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xsize,
-                     const Length &ysize, const Sides &sides=Sides(Sides::Side::ALL));
+                     const Length &ysize, const Sides &sides=Sides(Sides::Side::ALL),
+                     const Angle &angle=Angle());
 
 void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const Polygon &poly,
-                        const Length &size=Length());
-void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &size=Length());
+                        const Length &size=Length(), const Angle &angle=Angle());
+void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &size=Length(),
+                        const Angle &angle=Angle());
 void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xsize,
-                        const Length &ysize);
+                        const Length &ysize, const Angle &angle=Angle());
 
 void drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
-                             const CQChartsSides &sides);
+                             const CQChartsSides &sides, const Angle &angle=Angle());
 
 void drawTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                    const TextOptions &options);
@@ -309,7 +328,7 @@ void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox);
 
 //---
 
-bool polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle);
+bool polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle=Angle());
 
 void diamondPath(QPainterPath &path, const BBox &bbox);
 

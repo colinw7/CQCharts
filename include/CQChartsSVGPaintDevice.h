@@ -51,7 +51,8 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void drawTransformedText(const Point &p, const QString &text) override;
 
   void drawImage(const Point &, const QImage &) override;
-  void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true) override;
+  void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true,
+                       const Angle &angle=Angle()) override;
 
   void setFont(const QFont &f) override;
 

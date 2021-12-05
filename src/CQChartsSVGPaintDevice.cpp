@@ -332,7 +332,7 @@ drawTransformedText(const Point &p, const QString &text)
 
 void
 CQChartsSVGPaintDevice::
-drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
+drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/, const Angle &)
 {
   auto pbbox = windowToPixel(bbox);
 

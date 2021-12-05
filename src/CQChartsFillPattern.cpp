@@ -104,9 +104,9 @@ setValue(const QString &s)
 
       if      (name == "name") {
         if      (type_ == Type::PALETTE)
-          palette_ = CQChartsPaletteName(name);
+          palette_ = CQChartsPaletteName(value);
         else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
-          image_ = CQChartsImage(name); // TODO
+          image_ = CQChartsImage(value); // TODO
 
           if      (type_ == Type::TEXTURE)
             image_.setImageType("texture");
