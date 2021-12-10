@@ -1301,7 +1301,7 @@ calcDataTotal() const
     groupData.numValues = 0.0;
 
     for (auto &nv : groupData.nameValueData) {
-      const auto &name      = nv.first;
+    //const auto &name      = nv.first;
       auto       &valueData = nv.second;
 
       double value = 0.0;
@@ -1316,10 +1316,10 @@ calcDataTotal() const
 
       ++groupData.numValues;
 
-      std::cerr << name.toStdString() << " : " << valueData.dataTotal << "\n";
+      //std::cerr << name.toStdString() << " : " << valueData.dataTotal << "\n";
     }
 
-    std::cerr << groupData.dataTotal << "\n";
+    //std::cerr << groupData.dataTotal << "\n";
   }
 }
 
