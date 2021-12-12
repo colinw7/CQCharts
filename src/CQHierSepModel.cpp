@@ -13,7 +13,7 @@ CQHierSepModel(QAbstractItemModel *model, const CQHierSepData &data)
 
   data_ = data;
 
-  setSourceModel(model);
+  CQHierSepModel::setSourceModel(model);
 }
 
 CQHierSepModel::
@@ -26,7 +26,7 @@ QAbstractItemModel *
 CQHierSepModel::
 sourceModel() const
 {
-  QAbstractItemModel *sourceModel = QAbstractProxyModel::sourceModel();
+  auto *sourceModel = QAbstractProxyModel::sourceModel();
 
   return sourceModel;
 }
@@ -100,7 +100,7 @@ void
 CQHierSepModel::
 doResetModel()
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   beginResetModel();
@@ -114,7 +114,7 @@ void
 CQHierSepModel::
 connectSlots(bool b)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
@@ -153,7 +153,7 @@ fold()
   //---
 
   // check column valid
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return;
 
   numColumns_ = model->columnCount();
@@ -172,7 +172,7 @@ void
 CQHierSepModel::
 foldNode()
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   assert(model);
 
   // fold rows at column
@@ -180,11 +180,11 @@ foldNode()
 
   for (int r = 0; r < nr; ++r) {
     // get value for fold column
-    QModelIndex ind = model->index(r, foldColumn());
+    auto ind = model->index(r, foldColumn());
 
-    QString str = model->data(ind, Qt::DisplayRole).toString();
+    auto str = model->data(ind, Qt::DisplayRole).toString();
 
-    QStringList strs = str.split(separator(), QString::KeepEmptyParts);
+    auto strs = str.split(separator(), QString::KeepEmptyParts);
 
     Node *node = nullptr;
 
@@ -199,7 +199,8 @@ foldNode()
       parent = node;
     }
 
-    node->addInd(ind); // should only be one
+    if (node)
+      node->addInd(ind); // should only be one
   }
 
   folded_ = true;
@@ -222,7 +223,7 @@ CQHierSepModel::
 columnCount(const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return 0;
 
     return model->columnCount(parent);
@@ -237,7 +238,7 @@ CQHierSepModel::
 rowCount(const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return 0;
 
     return model->rowCount(parent);
@@ -250,10 +251,8 @@ rowCount(const QModelIndex &parent) const
     return 0;
 
   // get node data
-  Node *pnode = static_cast<Node *>(parent.internalPointer());
-
-  if (! pnode)
-    pnode = root_;
+  auto *pnode = static_cast<Node *>(parent.internalPointer());
+  if (! pnode) pnode = root_;
 
   return pnode->numChildren();
 }
@@ -264,7 +263,7 @@ CQHierSepModel::
 index(int row, int column, const QModelIndex &parent) const
 {
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return QModelIndex();
 
     return model->index(row, column, parent);
@@ -273,18 +272,14 @@ index(int row, int column, const QModelIndex &parent) const
   //---
 
   // get node data
-  Node *pnode = static_cast<Node *>(parent.internalPointer());
-
-  if (! pnode)
-    pnode = root_;
+  auto *pnode = static_cast<Node *>(parent.internalPointer());
+  if (! pnode) pnode = root_;
 
   if (row < 0 || row >= pnode->numChildren())
     return QModelIndex();
 
   Node *node = pnode->child(row);
-
-  if (! node)
-    return QModelIndex();
+  if (! node) return QModelIndex();
 
   // model index is row, column and node
   return createIndex(row, column, node);
@@ -301,7 +296,7 @@ parent(const QModelIndex &child) const
   //---
 
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return QModelIndex();
 
     return model->parent(child);
@@ -310,19 +305,14 @@ parent(const QModelIndex &child) const
   //---
 
   // get node data
-  Node *cnode = static_cast<Node *>(child.internalPointer());
-
-  if (! cnode)
-    cnode = root_;
+  auto *cnode = static_cast<Node *>(child.internalPointer());
+  if (! cnode) cnode = root_;
 
   Node *node = cnode->parent();
   if (! node) return QModelIndex();
 
   Node *pnode = node->parent();
-
-  // no parent so return root index
-  if (! pnode)
-    return createIndex(0, 0, root_);
+  if (! pnode) return QModelIndex();
 
   // get row number for parent's child
   int row = -1;
@@ -351,7 +341,7 @@ hasChildren(const QModelIndex &parent) const
   //---
 
   if (! folded_) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     if (! model) return false;
 
     return model->hasChildren(parent);
@@ -361,13 +351,11 @@ hasChildren(const QModelIndex &parent) const
 
   // children only at column 0
   if (parent.column() > 0)
-    return 0;
+    return false;
 
   // get node data
-  Node *pnode = static_cast<Node *>(parent.internalPointer());
-
-  if (! pnode)
-    pnode = root_;
+  auto *pnode = static_cast<Node *>(parent.internalPointer());
+  if (! pnode) pnode = root_;
 
   return pnode->hasChildren();
 }
@@ -376,7 +364,7 @@ QVariant
 CQHierSepModel::
 data(const QModelIndex &index, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   //---
@@ -387,10 +375,8 @@ data(const QModelIndex &index, int role) const
   //---
 
   // get node data
-  Node *node = static_cast<Node *>(index.internalPointer());
-
-  if (! node)
-    node = root_;
+  auto *node = static_cast<Node *>(index.internalPointer());
+  if (! node) node = root_;
 
   int c = index.column();
 
@@ -417,7 +403,7 @@ data(const QModelIndex &index, int role) const
       if      (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
         if (baseModel_ && propagateValue_ != PropagateValue::NONE) {
           if (! node->hasPropagateValue(c)) {
-            QVariant value = calcPropagateValue(node, c);
+            auto value = calcPropagateValue(node, c);
 
             node->setPropagateValue(c, value);
           }
@@ -440,9 +426,9 @@ data(const QModelIndex &index, int role) const
     }
   }
   else {
-    const QModelIndex &ind = node->ind();
+    const auto &ind = node->ind();
 
-    QModelIndex ind1 = model->index(ind.row(), index.column());
+    auto ind1 = model->index(ind.row(), index.column());
 
     return model->data(ind1, role);
   }
@@ -452,22 +438,22 @@ QVariant
 CQHierSepModel::
 calcPropagateValue(Node *node, int c) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
-  CQBaseModelType type = baseModel_->columnType(c);
+  auto type = baseModel_->columnType(c);
 
   double sum = 0.0;
 
   for (int i = 0; i < node->numChildren(); ++i) {
     Node *cnode = node->child(i);
 
-    const QModelIndex &cind = cnode->ind();
+    const auto &cind = cnode->ind();
 
     QVariant cvalue;
 
     if (cind.isValid()) {
-      QModelIndex cind1 = model->index(cind.row(), c);
+      auto cind1 = model->index(cind.row(), c);
 
       cvalue = model->data(cind1, Qt::DisplayRole);
     }
@@ -512,7 +498,7 @@ bool
 CQHierSepModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   //---
@@ -524,10 +510,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   //---
 
   // get node data
-  Node *node = static_cast<Node *>(index.internalPointer());
-
-  if (! node)
-    node = root_;
+  auto *node = static_cast<Node *>(index.internalPointer());
+  if (! node) node = root_;
 
   int c = index.column();
 
@@ -554,7 +538,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
     }
   }
   else {
-    const QModelIndex &ind = node->ind();
+    const auto &ind = node->ind();
 
     return model->setData(ind, value, role);
   }
@@ -564,7 +548,7 @@ QVariant
 CQHierSepModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return QVariant();
 
   //---
@@ -592,7 +576,7 @@ bool
 CQHierSepModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  QAbstractItemModel *model = this->sourceModel();
+  auto *model = this->sourceModel();
   if (! model) return false;
 
   //---
@@ -620,8 +604,8 @@ Qt::ItemFlags
 CQHierSepModel::
 flags(const QModelIndex &index) const
 {
-  QAbstractItemModel *model = this->sourceModel();
-  if (! model) return 0;
+  auto *model = this->sourceModel();
+  if (! model) return Qt::ItemFlags();
 
   //---
 
@@ -631,10 +615,8 @@ flags(const QModelIndex &index) const
   //---
 
   // get node data
-  Node *node = static_cast<Node *>(index.internalPointer());
-
-  if (! node)
-    node = root_;
+  auto *node = static_cast<Node *>(index.internalPointer());
+  if (! node) node = root_;
 
   int c = index.column();
 
@@ -650,7 +632,7 @@ flags(const QModelIndex &index) const
     }
   }
   else {
-    const QModelIndex &ind = node->ind();
+    const auto &ind = node->ind();
 
     return model->flags(ind);
   }
@@ -730,10 +712,8 @@ mapToSource(const QModelIndex &proxyIndex) const
   //---
 
   // get node data
-  Node *node = static_cast<Node *>(proxyIndex.internalPointer());
-
-  if (! node)
-    node = root_;
+  auto *node = static_cast<Node *>(proxyIndex.internalPointer());
+  if (! node) node = root_;
 
   return node->ind();
 }

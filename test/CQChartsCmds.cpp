@@ -3396,7 +3396,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto proxyModel = new QSortFilterProxyModel;
+  auto *proxyModel = new QSortFilterProxyModel;
 
   proxyModel->setObjectName("foldProxyModel");
 
@@ -3408,7 +3408,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (argv.hasParseArg("keep"))
       foldData.setKeepColumn(true);
 
-    auto foldedModel = new CQFoldedModel(model.data(), foldData);
+    auto *foldedModel = new CQFoldedModel(model.data(), foldData);
 
     //modelData->copyHeaderRoles(foldedModel);
 
@@ -3417,7 +3417,7 @@ execCmd(CQChartsCmdArgs &argv)
   else {
     CQHierSepData data(icolumn, separator[0]);
 
-    auto hierSepModel = new CQHierSepModel(model.data(), data);
+    auto *hierSepModel = new CQHierSepModel(model.data(), data);
 
     //modelData->copyHeaderRoles(hierSepModel);
 
@@ -4544,11 +4544,11 @@ execCmd(CQChartsCmdArgs &argv)
     }
   }
 
-  auto foldedModel = new CQFoldedModel(model.data(), foldData);
+  auto *foldedModel = new CQFoldedModel(model.data(), foldData);
 
   //---
 
-  auto foldProxyModel = new QSortFilterProxyModel;
+  auto *foldProxyModel = new QSortFilterProxyModel;
 
   foldProxyModel->setObjectName("foldProxyModel");
 
@@ -4627,7 +4627,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto bucketModel = new CQBucketModel(model.data());
+  auto *bucketModel = new CQBucketModel(model.data());
 
   if (argv.getParseBool("multi"))
     bucketModel->setMultiColumn(true);
@@ -4753,7 +4753,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto subsetModel = new CQSubSetModel(model);
+  auto *subsetModel = new CQSubSetModel(model);
 
   auto tlIndex = model->index(top   , left .column());
   auto brIndex = model->index(bottom, right.column());
@@ -4819,7 +4819,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto transposeModel = new CQTransposeModel(model);
+  auto *transposeModel = new CQTransposeModel(model);
 
   CQChartsCmds::ModelP transposeModelP(transposeModel);
 
@@ -4892,7 +4892,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto summaryModel = new CQSummaryModel(model);
+  auto *summaryModel = new CQSummaryModel(model);
 
   //---
 
@@ -5031,7 +5031,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto collapseModel = new CQCollapseModel(model.data());
+  auto *collapseModel = new CQCollapseModel(model.data());
 
   //------
 
@@ -5069,7 +5069,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto collapseProxyModel = new QSortFilterProxyModel;
+  auto *collapseProxyModel = new QSortFilterProxyModel;
 
   collapseProxyModel->setObjectName("collapseProxyModel");
 
@@ -5180,7 +5180,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto pivotModel = new CQPivotModel(model.data());
+  auto *pivotModel = new CQPivotModel(model.data());
 
   pivotModel->setHColumns(hColumns);
   pivotModel->setVColumns(vColumns);
@@ -5210,7 +5210,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto pivotProxyModel = new QSortFilterProxyModel;
+  auto *pivotProxyModel = new QSortFilterProxyModel;
 
   pivotProxyModel->setObjectName("pivotProxyModel");
 
@@ -5396,7 +5396,7 @@ execCmd(CQChartsCmdArgs &argv)
   int nc1 = columnNames.size();
   int nr1 = columnDatas.size();
 
-  auto statsModel = new CQDataModel(nc1, nr1);
+  auto *statsModel = new CQDataModel(nc1, nr1);
 
   for (int c = 0; c < nc1; ++c) {
     CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
@@ -5421,7 +5421,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto statsProxyModel = new QSortFilterProxyModel;
+  auto *statsProxyModel = new QSortFilterProxyModel;
 
   statsProxyModel->setObjectName("statsProxyModel");
 
@@ -5476,11 +5476,11 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto model = new CQDataModel(nc, nr);
+  auto *model = new CQDataModel(nc, nr);
 
   //------
 
-  auto proxyModel = new QSortFilterProxyModel;
+  auto *proxyModel = new QSortFilterProxyModel;
 
   proxyModel->setObjectName("proxyModel");
 
@@ -10949,7 +10949,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto dlg = new CQChartsLoadModelDlg(charts());
+  auto *dlg = new CQChartsLoadModelDlg(charts());
 
   if (modal)
     dlg->exec();
@@ -10992,7 +10992,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto dlg = new CQChartsManageModelsDlg(charts());
+  auto *dlg = new CQChartsManageModelsDlg(charts());
 
   if (modal)
     dlg->exec();
@@ -11055,7 +11055,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto dlg = new CQChartsCreatePlotDlg(charts(), modelData);
+  auto *dlg = new CQChartsCreatePlotDlg(charts(), modelData);
 
   auto viewName = argv.getParseStr("view");
 
@@ -11238,9 +11238,9 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   // create parent dialog
-  auto dialog = new QDialog;
+  auto *dialog = new QDialog;
 
-  auto layout = new QGridLayout(dialog);
+  auto *layout = new QGridLayout(dialog);
 
   //---
 
