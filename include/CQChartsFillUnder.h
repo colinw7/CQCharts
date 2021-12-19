@@ -84,7 +84,7 @@ class CQChartsFillUnderSide :
  * \ingroup Charts
  */
 class CQChartsFillUnderPos :
-  public CQChartsEqBase<CQChartsFillUnderSide>,
+  public CQChartsEqBase<CQChartsFillUnderPos>,
   public CQChartsToStringBase<CQChartsFillUnderPos> {
  public:
   enum Type {

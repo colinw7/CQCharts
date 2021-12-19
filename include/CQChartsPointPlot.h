@@ -229,6 +229,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using PenData    = CQChartsPenData;
   using BrushData  = CQChartsBrushData;
   using Symbol     = CQChartsSymbol;
+  using LineDash   = CQChartsLineDash;
+  using SymbolType = CQChartsSymbolType;
 
  public:
   CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);

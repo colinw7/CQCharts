@@ -827,7 +827,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
     CQChartsModelUtil::setModelHeaderValue(correlationModel, ic, Qt::Vertical  ,
                                            columnName, Qt::DisplayRole);
 
-    CQChartsModelUtil::setModelValue(correlationModel, ic, c, 1.0);
+    CQChartsModelUtil::setModelValue(correlationModel, ic, c, QModelIndex(), 1.0);
   }
 
   //---
@@ -850,8 +850,8 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
         double corr = columnsCorr[ic1s][ic2s];
 
-        CQChartsModelUtil::setModelValue(correlationModel, ic1, c2, corr);
-        CQChartsModelUtil::setModelValue(correlationModel, ic2, c1, corr);
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c2, QModelIndex(), corr);
+        CQChartsModelUtil::setModelValue(correlationModel, ic2, c1, QModelIndex(), corr);
 
         correlationModel->setPoints(ic1, ic2, columnsPoints[ic1s][ic2s]);
         correlationModel->setPoints(ic2, ic1, columnsPoints[ic2s][ic1s]);
@@ -862,8 +862,8 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
           columnsDevData[ic2s][ic1s].first, columnsDevData[ic2s][ic1s].second);
       }
       else {
-        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0);
-        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0); // Dup OK
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, QModelIndex(), 1.0);
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, QModelIndex(), 1.0); // Dup OK
 
         correlationModel->setDensity(ic1, columnDensity[ic1s]);
 

@@ -202,9 +202,9 @@ bool setModelHeaderValue(QAbstractItemModel *model, const Column &column,
 //--
 
 bool setModelValue(QAbstractItemModel *model, int row, const Column &column,
-                   const QVariant &var, int role);
+                   const QModelIndex &parent, const QVariant &var, int role);
 bool setModelValue(QAbstractItemModel *model, int row, const Column &column,
-                   const QVariant &var);
+                   const QModelIndex &parent, const QVariant &var);
 
 //---
 
@@ -312,7 +312,7 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 #endif
 
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
-                      int &row, Column &column);
+                      int &row, Column &column, std::vector<int> &prows);
 
 }
 

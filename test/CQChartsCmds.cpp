@@ -5403,7 +5403,8 @@ execCmd(CQChartsCmdArgs &argv)
   }
 
   auto setStatsModeValue = [&](int row, int col, const QVariant &value) {
-    CQChartsModelUtil::setModelValue(statsModel, row, CQChartsColumn(col), value, Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, row, CQChartsColumn(col),
+                                     QModelIndex(), value, Qt::DisplayRole);
   };
 
   for (int r = 0; r < nr1; ++r) {
@@ -5798,6 +5799,8 @@ execCmd(CQChartsCmdArgs &argv)
 
     //---
 
+    std::vector<int> prows;
+
     auto column = argv.getParseColumn("column", model.data());
     auto row    = argv.getParseRow("row");
 
@@ -5805,7 +5808,7 @@ execCmd(CQChartsCmdArgs &argv)
       int irow { 0 };
 
       if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"),
-                                                irow, column))
+                                                irow, column, prows))
         return errorMsg("Invalid model index");
 
       row = CQChartsRow(irow);
@@ -5833,14 +5836,19 @@ execCmd(CQChartsCmdArgs &argv)
         }
       }
       else {
+        QModelIndex parent;
+
+        int np = prows.size();
+
+        for (int i = np - 1; i >= 0; --i)
+          parent = model.data()->index(prows[i], 0, parent);
+
 #if 0
-        auto ind = model.data()->index(row, column.column());
+        auto ind = model.data()->index(row, column.column(), parent);
 
         if (! ind.isValid())
           return errorMsg("Invalid data row/column specified");
 #endif
-
-        QModelIndex parent;
 
         bool ok;
 
@@ -6866,6 +6874,8 @@ execCmd(CQChartsCmdArgs &argv)
 
     //---
 
+    std::vector<int> prows;
+
     auto column = argv.getParseColumn("column", model.data());
     auto row    = argv.getParseRow("row");
 
@@ -6873,7 +6883,7 @@ execCmd(CQChartsCmdArgs &argv)
       int irow { 0 };
 
       if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"),
-                                                irow, column))
+                                                irow, column, prows))
         return errorMsg("Invalid model index");
 
       row = CQChartsRow(irow);
@@ -6891,13 +6901,21 @@ execCmd(CQChartsCmdArgs &argv)
           return errorMsg("Failed to set header value");
       }
       else {
-        auto ind = model.data()->index(row.row(), column.column());
+        QModelIndex parent;
+
+        int np = prows.size();
+
+        for (int i = np - 1; i >= 0; --i)
+          parent = model.data()->index(prows[i], 0, parent);
+
+        auto ind = model.data()->index(row.row(), column.column(), parent);
 
         if (! ind.isValid())
           return errorMsg(QString("Invalid data row/column specified '%1,%2'").
                            arg(row.row()).arg(column.column()));
 
-        if (! CQChartsModelUtil::setModelValue(model.data(), row.row(), column, value, role))
+        if (! CQChartsModelUtil::setModelValue(model.data(), row.row(), column, parent,
+                                               value, role))
           return errorMsg("Failed to set row value");
       }
     }

@@ -83,6 +83,29 @@ inline bool stringToModelIndex(const QString &str, int &row, int &col) {
 
 //---
 
+inline bool isSupportedVariant(const QVariant &var) {
+  if (var.type() == QVariant::Double || var.type() == QVariant::Int ||
+      var.type() == QVariant::Bool || var.type() == QVariant::String ||
+      var.type() == QVariant::PointF || var.type() == QVariant::RectF ||
+      var.type() == QVariant::PolygonF || var.type() == QVariant::ModelIndex ||
+      var.type() == QVariant::StringList)
+    return true;
+
+  if (var.type() == QVariant::List) {
+    QVariantList vars = var.value<QVariantList>();
+
+    int nv = vars.length();
+
+    for (int i = 0; i < nv; ++i)
+      if (! isSupportedVariant(vars[i]))
+        return false;
+
+    return true;
+  }
+
+  return var.canConvert(QVariant::String);
+}
+
 inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   if      (var.type() == QVariant::Double) {
     return Tcl_NewDoubleObj(var.value<double>());
@@ -624,6 +647,10 @@ class CQTcl : public QObject, public CTcl {
     if (flags & TCL_TRACE_WRITES) std::cerr << " write";
   //if (flags & TCL_TRACE_UNSETS) std::cerr << " unset";
     std::cerr << ") " << name << "\n";
+  }
+
+  bool isSupportedVariant(const QVariant &var) {
+    return CQTclUtil::isSupportedVariant(var);
   }
 
   void setResult(const QVariant &rc) {

@@ -164,7 +164,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->fillUnderSide());
+  return QVariant::fromValue<CQChartsFillUnderSide>(edit->fillUnderSide());
 }
 
 void
@@ -379,7 +379,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->fillUnderPos());
+  return QVariant::fromValue<CQChartsFillUnderPos>(edit->fillUnderPos());
 }
 
 void

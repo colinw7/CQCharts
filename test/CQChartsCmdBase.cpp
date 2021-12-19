@@ -1189,7 +1189,15 @@ bool
 CQChartsCmdBase::
 setCmdRc(const QVariant &rc)
 {
-  qtcl()->setResult(rc);
+  if (qtcl()->isSupportedVariant(rc))
+    qtcl()->setResult(rc);
+  else {
+    QString str;
+
+    CQUtil::userVariantToString(rc, str);
+
+    qtcl()->setResult(str);
+  }
 
   return true;
 }

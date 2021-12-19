@@ -95,8 +95,8 @@ init()
 
   // set mapped range
   setSymbolTypeMapped(true);
-  setSymbolTypeMapMin(CQChartsSymbolType::minFillValue());
-  setSymbolTypeMapMax(CQChartsSymbolType::maxFillValue());
+  setSymbolTypeMapMin(SymbolType::minFillValue());
+  setSymbolTypeMapMax(SymbolType::maxFillValue());
 
   setSymbolSizeMapped(true);
   setSymbolSizeMapMin(CQChartsSymbolSize::minValue());
@@ -110,7 +110,9 @@ init()
 
   // best fit
   setBestFit(false);
-  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFitStrokeDash(LineDash(LineDash::Lengths({2, 2}), 0));
+  setBestFitStrokeWidth(Length::pixel(4));
+  setBestFitStrokeColor(Color(Color::Type::PALETTE));
   setBestFitFillColor(Color(Color::Type::PALETTE));
   setBestFitFillAlpha(Alpha(0.5));
 
@@ -120,7 +122,7 @@ init()
 
   // stats
   setStatsLines(false);
-  setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 }
 
 void
@@ -346,8 +348,8 @@ setSymbolTypeSetName(const QString &name)
       setSymbolTypeMapMax(symbolSet->numSymbols() - 1);
     }
     else {
-      setSymbolTypeMapMin(CQChartsSymbolType::minFillValue());
-      setSymbolTypeMapMax(CQChartsSymbolType::maxFillValue());
+      setSymbolTypeMapMin(SymbolType::minFillValue());
+      setSymbolTypeMapMax(SymbolType::maxFillValue());
     }
 
     updateObjs();

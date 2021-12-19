@@ -264,6 +264,12 @@ init()
 
   //---
 
+  // moving average
+  setMovingAverageLinesWidth(Length::pixel(4));
+  setMovingAverageLinesColor(Color(Color::Type::PALETTE));
+
+  //---
+
   addAxes();
 
   addKey();
@@ -836,12 +842,14 @@ calcRange() const
 
       //---
 
-      if     (plot_->isStacked()) {
+      if      (plot_->isStacked()) {
         // TODO: support stacked and cumulative
         double sum1 = 0.0;
 
-        for (int i = 0; i < ny; ++i)
-          sum1 += y[i];
+        for (int i = 0; i < ny; ++i) {
+          if (! CMathUtil::isNaN(y[i]))
+            sum1 += y[i];
+        }
 
         range_.updateRange(x, 0.0);
         range_.updateRange(x, sum1);
@@ -849,22 +857,28 @@ calcRange() const
       else if (plot_->isCumulative()) {
         if (! plot_->isColumnSeries()) {
           for (int i = 0; i < ny; ++i) {
-            double y1 = y[i] + lastSum_[i];
+            if (! CMathUtil::isNaN(y[i])) {
+              double y1 = y[i] + lastSum_[i];
 
-            sum_[i] += y[i];
+              sum_[i] += y[i];
 
-            range_.updateRange(x, y1);
+              range_.updateRange(x, y1);
+            }
           }
         }
       }
       else {
         if (! plot_->isColumnSeries()) {
-          for (int i = 0; i < ny; ++i)
-            range_.updateRange(x, y[i]);
+          for (int i = 0; i < ny; ++i) {
+            if (! CMathUtil::isNaN(y[i]))
+              range_.updateRange(x, y[i]);
+          }
         }
         else {
-          for (int i = 0; i < ny; ++i)
-            range_.updateRange(sx_[i], y[i]);
+          for (int i = 0; i < ny; ++i) {
+            if (! CMathUtil::isNaN(y[i]))
+              range_.updateRange(sx_[i], y[i]);
+          }
         }
       }
 
@@ -1744,6 +1758,32 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     //---
 
+    // find first and last valid point
+    int ip1 = 0;
+    int ip2 = np - 1;
+
+    while (ip1 < np) {
+      auto p = poly.point(ip1);
+
+      if (! CMathUtil::isNaN(p.x) && ! CMathUtil::isInf(p.x) &&
+          ! CMathUtil::isNaN(p.y) && ! CMathUtil::isInf(p.y))
+        break;
+
+      ++ip1;
+    }
+
+    while (ip2 >= 0) {
+      auto p = poly.point(ip2);
+
+      if (! CMathUtil::isNaN(p.x) && ! CMathUtil::isInf(p.x) &&
+          ! CMathUtil::isNaN(p.y) && ! CMathUtil::isInf(p.y))
+        break;
+
+      --ip2;
+    }
+
+    //---
+
     // add points to fill under polygon, poly line, and create point objects
     for (int ip = 0; ip < np; ++ip) {
       if (isInterrupt())
@@ -1754,13 +1794,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       // get polygon point
       auto p = poly.point(ip);
 
-      double x = p.x, y = p.y;
-
       //---
 
       // if point is invalid start new poly line if needed and skip
-      if (CMathUtil::isNaN(x) || CMathUtil::isInf(x) ||
-          CMathUtil::isNaN(y) || CMathUtil::isInf(y)) {
+      if (CMathUtil::isNaN(p.x) || CMathUtil::isInf(p.x) ||
+          CMathUtil::isNaN(p.y) || CMathUtil::isInf(p.y)) {
         if (polyLine.size()) {
           ColorInd is1(is, ns);
 
@@ -1870,9 +1908,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         }
 
         if (pointNameColumn.isValid() && pointName.length()) {
-          BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+          BBox bbox(p.x - sw/2, p.y - sh/2, p.x + sw/2, p.y + sh/2);
 
-          auto *labelObj = th->createLabelObj(groupInd, bbox, x, y, pointName, xind1, is1, iv1);
+          auto *labelObj = th->createLabelObj(groupInd, bbox, p.x, p.y, pointName, xind1, is1, iv1);
 
           labelObj->setLabelColumn(pointNameColumn);
 
@@ -1949,12 +1987,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
               y1 = dataRange.ymin();
           }
 
-          double ys = std::min(y, y1);
-          double ye = std::max(y, y1);
+          double ys = std::min(p.y, y1);
+          double ye = std::max(p.y, y1);
 
-          BBox bbox(x - w/2, ys, x + w/2, ye);
+          BBox bbox(p.x - w/2, ys, p.x + w/2, ye);
 
-          auto *impulseObj = th->createImpulseLineObj(groupInd, bbox, x, ys, ye, xind1, is1, iv1);
+          auto *impulseObj = th->createImpulseLineObj(groupInd, bbox, p.x, ys, ye, xind1, is1, iv1);
 
           impulseLineObjs.push_back(impulseObj);
         }
@@ -1970,34 +2008,34 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       // add point to polygon
 
       // if first point then add first point of previous polygon
-      if (ip == 0 && dataRange.isSet()) {
+      if (ip == ip1 && dataRange.isSet()) {
         if (isStacked()) {
           double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
 
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
             y1 = dataRange.ymin();
 
-          polyShape.addPoint(Point(x, y1));
+          polyShape.addPoint(Point(p.x, y1));
         }
         else {
-          polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
+          polyShape.addPoint(calcFillUnderPos(p.x, dataRange.ymin()));
         }
       }
 
       polyShape.addPoint(p);
 
       // if last point then add last point of previous polygon
-      if (ip == np - 1 && dataRange.isSet()) {
+      if (ip == ip2 && dataRange.isSet()) {
         if (isStacked()) {
           double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
 
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
             y1 = dataRange.ymin();
 
-          polyShape.addPoint(Point(x, y1));
+          polyShape.addPoint(Point(p.x, y1));
         }
         else {
-          polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
+          polyShape.addPoint(calcFillUnderPos(p.x, dataRange.ymin()));
         }
       }
     }

@@ -1266,12 +1266,12 @@ bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column
 //--
 
 bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                   const QVariant &var, int role) {
+                   const QModelIndex &parent, const QVariant &var, int role) {
   if (column.type() != Column::Type::DATA &&
       column.type() != Column::Type::DATA_INDEX)
     return false;
 
-  auto ind = model->index(row, column.column(), QModelIndex());
+  auto ind = model->index(row, column.column(), parent);
 
   if (role >= 0)
     return model->setData(ind, var, role);
@@ -1280,8 +1280,8 @@ bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col
 }
 
 bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                   const QVariant &var) {
-  return setModelValue(model, row, column, var, column.role(Qt::EditRole));
+                   const QModelIndex &parent, const QVariant &var) {
+  return setModelValue(model, row, column, parent, var, column.role(Qt::EditRole));
 }
 
 //--
@@ -1909,10 +1909,11 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
 #if 0
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
                       CQChartsModelIndex &ind) {
-  int            row { 0 };
-  CQChartsColumn column;
+  int              row { 0 };
+  CQChartsColumn   column;
+  std::vector<int> prows
 
-  if (! stringToModelInd(model, str, row, column))
+  if (! stringToModelInd(model, str, row, column, prows))
     return false;
 
   ind = CQChartsModelIndex(nullptr, row, column);
@@ -1922,32 +1923,37 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 #endif
 
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
-                      int &row, CQChartsColumn &column)
+                      int &row, CQChartsColumn &column, std::vector<int> &prows)
 {
   QStringList strs;
 
   if (! CQTcl::splitList(str, strs))
     return false;
 
-  if (strs.length() < 2)
-    return false;
+  int n = strs.length();
+  if (n < 2) return false;
 
   bool ok;
 
   row = strs[0].toInt(&ok);
-
-  if (! ok)
-    return false;
+  if (! ok) return false;
 
   if (! stringToColumn(model, strs[1], column)) {
     bool ok;
 
     int icol = strs[1].toInt(&ok);
-
-    if (! ok)
-      return false;
+    if (! ok) return false;
 
     column = CQChartsColumn(icol);
+  }
+
+  for (int i = 2; i < n; ++i) {
+    bool ok;
+
+    int prow = strs[i].toInt(&ok);
+    if (! ok) return false;
+
+    prows.push_back(prow);
   }
 
   return true;
@@ -2574,7 +2580,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
       if (flattenVisitor.isHierarchical()) {
         auto var = flattenVisitor.groupValue(r);
 
-        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), QModelIndex(), var);
       }
 
       for (int c = 0; c < nc; ++c) {
@@ -2600,7 +2606,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
           v = flattenVisitor.groupValue(r);
         }
 
-        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), QModelIndex(), v);
       }
     }
   }
@@ -2610,7 +2616,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
       auto v = flattenVisitor.groupValue(r);
 
-      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), v);
+      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), QModelIndex(), v);
 
       //---
 
@@ -2620,7 +2626,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
         auto v = calcOpValue(flattenOp, r, srcColumn.column());
 
-        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), v);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), QModelIndex(), v);
       }
     }
   }
