@@ -873,7 +873,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("expr"))
       return errorMsg("Missing expression");
 
-    CQChartsExprModel::Function function = CQChartsExprModel::Function::EVAL;
+    auto function = CQChartsExprModel::Function::EVAL;
 
     if (expr.trimmed().length())
       processExpression(model.data(), expr);
@@ -1001,6 +1001,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get parent plot or view
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
@@ -3519,7 +3520,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsModelUtil::FlattenOp defOp = CQChartsModelUtil::FlattenOp::NONE;
+  auto defOp = CQChartsModelUtil::FlattenOp::NONE;
 
   if (argv.hasParseArg("default_op"))
     defOp = CQChartsModelUtil::flattenStringToOp(argv.getParseStr("default_op"));
@@ -7289,13 +7290,14 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsArrowData arrowData;
-
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
   auto start = argv.getParsePosition(view, plot, "start");
   auto end   = argv.getParsePosition(view, plot, "end"  );
+
+  CQChartsArrowData arrowData;
 
   arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
 
@@ -7569,6 +7571,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -7687,6 +7690,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -7801,6 +7805,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -7950,6 +7955,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -8089,6 +8095,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -8482,6 +8489,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -8608,6 +8616,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -8751,6 +8760,7 @@ execCmd(CQChartsCmdArgs &argv)
   auto &fill   = symbolData.fill();
   auto &stroke = symbolData.stroke();
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -8893,6 +8903,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9023,6 +9034,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9169,6 +9181,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9317,6 +9330,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9475,6 +9489,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9675,6 +9690,7 @@ execCmd(CQChartsCmdArgs &argv)
   fill  .setVisible(false);
   stroke.setVisible(false);
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9837,6 +9853,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -9958,12 +9975,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsTextData textData;
-
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
   auto text = argv.getParseStr("text", "Annotation");
+
+  CQChartsTextData textData;
 
   textData.setFont (argv.getParseFont ("font" , textData.font      ()));
   textData.setColor(argv.getParseColor("color", textData.color     ()));
@@ -10230,6 +10248,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get id and tip
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
@@ -10324,6 +10343,7 @@ execCmd(CQChartsCmdArgs &argv)
       view->removeAnnotation(annotation);
   }
   else {
+    // get parent plot or view
     CQChartsView *view = nullptr;
     CQChartsPlot *plot = nullptr;
 
@@ -10787,6 +10807,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get parent plot or view
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
@@ -10865,6 +10886,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get parent plot or view
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
@@ -11238,7 +11260,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  // get view or plot
+  // get parent plot or view
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 

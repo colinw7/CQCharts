@@ -302,6 +302,13 @@ QString
 CQBucketer::
 bucketName(int bucket, NameFormat format) const
 {
+  return bucketName(bucket, Formatter(), format);
+}
+
+QString
+CQBucketer::
+bucketName(int bucket, const Formatter &formatter, NameFormat format) const
+{
   if      (type() == Type::STRING) {
     return bucketString(bucket);
   }
@@ -324,10 +331,10 @@ bucketName(int bucket, NameFormat format) const
       if (imax > imin)
         return bucketName(imin, imax, format);
       else
-        return QString("%1").arg(imin);
+        return formatter.formatInt(imin);
     }
 
-    return bucketName(rmin, rmax, format);
+    return bucketName(rmin, rmax, formatter, format);
   }
   else if (type() == Type::REAL_AUTO) {
     double rstart = this->calcMin();
@@ -350,7 +357,7 @@ bucketName(int bucket, NameFormat format) const
       if (imax > imin)
         return bucketName(imin, imax, format);
       else
-        return QString("%1").arg(imin);
+        return formatter.formatInt(imin);
     }
 
     return bucketName(rmin, rmax, format);
@@ -371,22 +378,32 @@ QString
 CQBucketer::
 bucketName(int imin, int imax, NameFormat format)
 {
+  return bucketName(imin, imax, Formatter(), format);
+}
+
+QString
+CQBucketer::
+bucketName(int imin, int imax, const Formatter &formatter, NameFormat format)
+{
   static QChar arrowChar(0x2192);
+
+  auto lhs = formatter.formatInt(imin);
+  auto rhs = formatter.formatInt(imax);
 
   if      (format == NameFormat::DASH) {
     if (imax > imin + 1)
-      return QString("%1-%2").arg(imin).arg(imax);
+      return QString("%1-%2").arg(lhs).arg(rhs);
     else
-      return QString("%1").arg(imin);
+      return QString("%1").arg(lhs);
   }
   else if (format == NameFormat::ARROW) {
     if (imax > imin + 1)
-      return QString("%1%2%3").arg(imin).arg(arrowChar).arg(imax);
+      return QString("%1%2%3").arg(lhs).arg(arrowChar).arg(rhs);
     else
-      return QString("%1").arg(imin);
+      return QString("%1").arg(lhs);
   }
   else if (format == NameFormat::BRACKETED)
-    return QString("[%1,%2)").arg(imin).arg(imax);
+    return QString("[%1,%2)").arg(lhs).arg(rhs);
   else
     assert(false);
 }
@@ -395,10 +412,17 @@ QString
 CQBucketer::
 bucketName(double rmin, double rmax, NameFormat format)
 {
+  return bucketName(rmin, rmax, Formatter(), format);
+}
+
+QString
+CQBucketer::
+bucketName(double rmin, double rmax, const Formatter &formatter, NameFormat format)
+{
   static QChar arrowChar(0x2192);
 
-  auto lhs = (CMathUtil::isNaN(rmin) ? "-Inf" : QString("%1").arg(rmin));
-  auto rhs = (CMathUtil::isNaN(rmax) ?  "Inf" : QString("%1").arg(rmax));
+  auto lhs = (CMathUtil::isNaN(rmin) ? "-Inf" : formatter.formatReal(rmin));
+  auto rhs = (CMathUtil::isNaN(rmax) ?  "Inf" : formatter.formatReal(rmax));
 
   if      (format == NameFormat::DASH)
     return QString("%1-%2").arg(lhs).arg(rhs);

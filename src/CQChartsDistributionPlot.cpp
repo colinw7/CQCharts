@@ -1001,7 +1001,10 @@ calcRange() const
   const auto &values   = th->getGroupValues(groupInd);
 
   // if numeric values then ensure we are using a real bucketer
-  if (values->valueSet->isNumeric()) {
+  bool isNumeric = (values->valueSet->isNumeric() ||
+                    (values->valueSet->type() == CQChartsValueSet::Type::TIME));
+
+  if (isNumeric) {
     auto type = bucketer.type();
 
     if (type == CQBucketer::Type::STRING)
@@ -1073,7 +1076,8 @@ bucketGroupValues() const
       if      (type1 == CQChartsValueSet::Type::STRING) {
         type = type1;
       }
-      else if (type1 == CQChartsValueSet::Type::REAL) {
+      else if (type1 == CQChartsValueSet::Type::REAL ||
+               type1 == CQChartsValueSet::Type::TIME) {
         if (type == CQChartsValueSet::Type::INTEGER)
           type = type1;
       }
@@ -1107,7 +1111,8 @@ bucketGroupValues() const
           bucketer.setIMax(std::max(bucketer.imax(), imax));
         }
       }
-      else if (type == CQChartsValueSet::Type::REAL) {
+      else if (type == CQChartsValueSet::Type::REAL ||
+               type == CQChartsValueSet::Type::TIME) {
         bucketer.setType(bucketRealType());
 
         double rmin = values->valueSet->rmin();
@@ -1161,7 +1166,8 @@ bucketGroupValues() const
         bucketer.setIMin(imin);
         bucketer.setIMax(imax);
       }
-      else if (type == CQChartsValueSet::Type::REAL) {
+      else if (type == CQChartsValueSet::Type::REAL ||
+               type == CQChartsValueSet::Type::TIME) {
         bucketer.setType(bucketRealType());
         bucketer.setIntegral(false);
 
@@ -1201,7 +1207,8 @@ bucketGroupValues() const
       if (isBucketed()) {
         auto type = values->valueSet->type();
 
-        if      (type == CQChartsValueSet::Type::REAL) {
+        if      (type == CQChartsValueSet::Type::REAL ||
+                 type == CQChartsValueSet::Type::TIME) {
           double r = modelReal(ind, ok);
           if (! ok || CMathUtil::isNaN(r)) continue;
 
@@ -1211,7 +1218,11 @@ bucketGroupValues() const
           }
 
           bucket = calcBucket(groupInd, r);
-          value  = QVariant(r);
+
+          if (type == CQChartsValueSet::Type::REAL)
+            value = QVariant(r);
+          else
+            value = modelValue(ind, ok);
         }
         else if (type == CQChartsValueSet::Type::INTEGER) {
           int i = (int) modelInteger(ind, ok);
@@ -2299,7 +2310,8 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      bool isNumeric = values->valueSet->isNumeric();
+      bool isNumeric = (values->valueSet->isNumeric() ||
+                        (values->valueSet->type() == CQChartsValueSet::Type::TIME));
 
       //---
 
@@ -3005,7 +3017,9 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
 
   const auto &bucketer = groupBucketer(groupInd);
 
-  bool isNumeric = (values ? values->valueSet->isNumeric() : false);
+  bool isNumeric = (values &&
+                    (values->valueSet->isNumeric() ||
+                     (values->valueSet->type() == CQChartsValueSet::Type::TIME)));
 
   if (isNumeric) {
     double value1, value2;
@@ -3025,7 +3039,28 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
           return QString::number(ivalue1);
       }
       else {
-        return CQBucketer::bucketName(value1, value2, CQBucketer::NameFormat::BRACKETED);
+        if (values->valueSet->type() == CQChartsValueSet::Type::TIME) {
+          auto *columnDetails = this->columnDetails(valueColumns().column());
+
+          class Formatter : public CQBucketer::Formatter {
+           public:
+            Formatter(CQChartsModelColumnDetails *details) :
+             details_(details) {
+            }
+
+            QString formatReal(double r) const override {
+              return details_->dataName(r).toString();
+            }
+
+           private:
+            CQChartsModelColumnDetails *details_ { nullptr };
+          };
+
+          return CQBucketer::bucketName(value1, value2, Formatter(columnDetails),
+                                        CQBucketer::NameFormat::BRACKETED);
+        }
+        else
+          return CQBucketer::bucketName(value1, value2, CQBucketer::NameFormat::BRACKETED);
       }
     }
     else if (type == BucketValueType::START)
@@ -4042,8 +4077,9 @@ getBarColoredRects(ColorData &colorData) const
   //---
 
   const auto *columnDetails = plot_->columnDetails(plot_->colorColumn());
+
   bool isNumeric = (columnDetails ? columnDetails->isNumeric() : false);
-  bool isColor = (columnDetails ? columnDetails->type() == CQBaseModelType::COLOR : false);
+  bool isColor   = (columnDetails ? columnDetails->type() == CQBaseModelType::COLOR : false);
 
   int nv = (columnDetails ? columnDetails->numUnique () : 1);
   int nb = (isNumeric     ? columnDetails->numBuckets() : 1);

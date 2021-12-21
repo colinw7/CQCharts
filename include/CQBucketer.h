@@ -40,6 +40,16 @@ class CQBucketer {
   using IStops = std::set<int>;
   using RStops = std::set<double>;
 
+  class Formatter {
+   public:
+    Formatter() { }
+
+    virtual ~Formatter() { }
+
+    virtual QString formatInt(int i) const { return QString::number(i); }
+    virtual QString formatReal(double r) const { return QString::number(r); }
+  };
+
  public:
   CQBucketer();
 
@@ -162,9 +172,16 @@ class CQBucketer {
 
   // get bucket value range as string
   QString bucketName(int bucket, NameFormat format=NameFormat::DASH) const;
+  QString bucketName(int bucket, const Formatter &formatter,
+                     NameFormat format=NameFormat::DASH) const;
 
-  static QString bucketName(int    imin, int    imax, NameFormat format=NameFormat::DASH);
+  static QString bucketName(int imin, int imax, NameFormat format=NameFormat::DASH);
+  static QString bucketName(int imin, int imax, const Formatter &formatter,
+                            NameFormat format=NameFormat::DASH);
+
   static QString bucketName(double rmin, double rmax, NameFormat format=NameFormat::DASH);
+  static QString bucketName(double rmin, double rmax, const Formatter &formatter,
+                            NameFormat format=NameFormat::DASH);
 
   //----
 
