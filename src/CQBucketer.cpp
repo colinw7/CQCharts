@@ -317,7 +317,7 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
 
     bucketIValues(bucket, imin, imax);
 
-    return bucketName(imin, imax, format);
+    return bucketName(imin, imax, formatter, format);
   }
   else if (type() == Type::REAL_RANGE) {
     double rmin = 0.0, rmax = 0.0;
@@ -329,7 +329,7 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
       int imax = CMathRound::RoundNearest(rmax);
 
       if (imax > imin)
-        return bucketName(imin, imax, format);
+        return bucketName(imin, imax, formatter, format);
       else
         return formatter.formatInt(imin);
     }
@@ -341,10 +341,10 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
     double rend   = this->calcMax();
 
     if (bucket < 0 && isUnderflow())
-      return bucketName(CMathUtil::getNaN(), rstart, format);
+      return bucketName(CMathUtil::getNaN(), rstart, formatter, format);
 
     if (bucket == INT_MAX && isOverflow())
-      return bucketName(rend, CMathUtil::getNaN(), format);
+      return bucketName(rend, CMathUtil::getNaN(), formatter, format);
 
     double rmin = 0.0, rmax = 0.0;
 
@@ -355,12 +355,12 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
       int imax = CMathRound::RoundNearest(rmax);
 
       if (imax > imin)
-        return bucketName(imin, imax, format);
+        return bucketName(imin, imax, formatter, format);
       else
         return formatter.formatInt(imin);
     }
 
-    return bucketName(rmin, rmax, format);
+    return bucketName(rmin, rmax, formatter, format);
   }
   else if (type() == Type::FIXED_STOPS) {
     double rmin = 0.0, rmax = 0.0;
@@ -368,7 +368,7 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
     if (! bucketValues(bucket, rmin, rmax))
       return QString("%1").arg(bucket);
 
-    return bucketName(rmin, rmax, format);
+    return bucketName(rmin, rmax, formatter, format);
   }
   else
     return QString("%1").arg(bucket);
@@ -404,8 +404,10 @@ bucketName(int imin, int imax, const Formatter &formatter, NameFormat format)
   }
   else if (format == NameFormat::BRACKETED)
     return QString("[%1,%2)").arg(lhs).arg(rhs);
-  else
+  else {
     assert(false);
+    return "";
+  }
 }
 
 QString
@@ -430,8 +432,10 @@ bucketName(double rmin, double rmax, const Formatter &formatter, NameFormat form
     return QString("%1%2%3").arg(lhs).arg(arrowChar).arg(rhs);
   else if (format == NameFormat::BRACKETED)
     return QString("[%1,%2)").arg(lhs).arg(rhs);
-  else
+  else {
     assert(false);
+    return "";
+  }
 }
 
 //----

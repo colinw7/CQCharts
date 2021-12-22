@@ -913,6 +913,22 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
     valueData.setValueName(valueName);
   }
   else {
+    auto setColumnNameValue = [&](const Column &column, const QString &header,
+                                  const QString &value) {
+      if (! value.length()) return;
+
+      auto headerStr = header;
+
+      if (column.isValid()) {
+        headerStr = columnHeaderName(column, /*tip*/true);
+
+        if (headerStr == "")
+          headerStr = header;
+      }
+
+      valueData.setNameColumnValue(headerStr, column, value);
+    };
+
     int ng = numGroups();
 
     if (ng > 1) {
@@ -922,30 +938,17 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
           valueData.setGroupName(groupName);
       }
 
-      auto setColumnNameValue = [&](const Column &column, const QString &header,
-                                    const QString &value) {
-        if (! value.length()) return;
-
-        auto headerStr = header;
-
-        if (column.isValid()) {
-          headerStr = columnHeaderName(column, /*tip*/true);
-
-          if (headerStr == "")
-            headerStr = header;
-        }
-
-        valueData.setNameColumnValue(headerStr, column, value);
-      };
-
       // save other name values for tip
       setColumnNameValue(groupColumn(), "Group", group   );
       setColumnNameValue(nameColumn (), "Name" , name    );
-      setColumnNameValue(labelColumn(), "Label", labelStr);
       setColumnNameValue(colorColumn(), "Color", colorStr);
+      setColumnNameValue(labelColumn(), "Label", labelStr);
     }
     else {
       valueData.setValueName(name);
+
+      if (labelColumn().isValid())
+        valueData.setNameColumnValue("Label", labelColumn(), labelStr);
     }
   }
 

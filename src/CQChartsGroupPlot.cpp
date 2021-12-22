@@ -96,7 +96,7 @@ CQChartsGroupPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    resetSetHidden(); emit groupCustomDataChanged();
+    resetSetHidden(); updateRangeAndObjs(); emit groupCustomDataChanged();
   } );
 }
 

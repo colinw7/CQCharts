@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + assert in scatter_diamonds_3d.tcl
+ + bar chart rotated label text drawn wrong
+ + need show label checkbox in custom controls
  + common font scale
  + file changed callback ?
  + graphs
