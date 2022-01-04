@@ -1337,3 +1337,5 @@
  + Add cap and join to add stroke properties
  + Cleanup init of pen/brush from stroke/fill properties
  + Fix fill gradient to/from string conversion
+# 1/3/2022
+ + Add support for opengl 3d scatter plot

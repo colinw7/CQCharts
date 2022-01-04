@@ -1,0 +1,32 @@
+/* XPM */
+
+static const char *
+smooth_data[] = {
+  /* width height num_colors chars_per_pixel x_hot y_hot */
+  "16 16 5 1 0 0",
+
+  /* colors */
+  ". s symbol1 c #444444 m black",
+  "# s symbol2 c #888888 m white",
+  "a s symbol3 c #aaaaaa m white",
+  "b s symbol4 c #cccccc m white",
+  "  s mask c none",
+
+  /* pixels */
+  "                ",
+  " .............. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .bbaa####aabb. ",
+  " .............. ",
+  "                ",
+};

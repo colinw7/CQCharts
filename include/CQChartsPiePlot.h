@@ -484,19 +484,24 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn  keyLabelColumn READ keyLabelColumn WRITE setKeyLabelColumn)
 
   // options
-  // . separated, donut, treemap, summary, count
-  Q_PROPERTY(DrawType drawType   READ drawType     WRITE setDrawType  )
-  Q_PROPERTY(bool     separated  READ isSeparated  WRITE setSeparated )
-  Q_PROPERTY(bool     donut      READ isDonut      WRITE setDonut     )
-  Q_PROPERTY(bool     summary    READ isSummary    WRITE setSummary   )
-  Q_PROPERTY(bool     dumbbell   READ isDumbbell   WRITE setDumbbell  )
-  Q_PROPERTY(bool     count      READ isCount      WRITE setCount     )
-  Q_PROPERTY(bool     donutTitle READ isDonutTitle WRITE setDonutTitle)
+  // . separated, summary, count
+  Q_PROPERTY(DrawType drawType  READ drawType    WRITE setDrawType )
+  Q_PROPERTY(bool     separated READ isSeparated WRITE setSeparated)
+  Q_PROPERTY(bool     summary   READ isSummary   WRITE setSummary  )
+  Q_PROPERTY(bool     count     READ isCount     WRITE setCount    )
+  // . donut
+  Q_PROPERTY(bool donut      READ isDonut      WRITE setDonut     )
+  Q_PROPERTY(bool donutTitle READ isDonutTitle WRITE setDonutTitle)
+  // . dumbbell
+  Q_PROPERTY(bool dumbbell    READ isDumbbell    WRITE setDumbbell   )
+  Q_PROPERTY(bool dumbbellPie READ isDumbbellPie WRITE setDumbbellPie)
+
   // value
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
   // . min/max value
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
+
   // . inner radius, outer radius, label radius, start angle, end angle
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
@@ -504,6 +509,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAngle startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent WRITE setAngleExtent)
   Q_PROPERTY(CQChartsAngle gapAngle    READ gapAngle    WRITE setGapAngle   )
+
   // . text placement
   Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
 
@@ -546,7 +552,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
  public:
   enum class DrawType {
-    NONE,
     PIE,
     TREEMAP,
     WAFFLE
@@ -625,6 +630,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool isDumbbell() const { return dumbbell_; }
   bool calcDumbbell() const;
+
+  bool isDumbbellPie() const { return dumbbellPie_; }
+  void setDumbbellPie(bool b);
 
   bool isCount() const { return count_; }
 
@@ -858,6 +866,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool      donut_       { false };          //!< show donut
   bool      summary_     { false };          //!< show summary
   bool      dumbbell_    { false };          //!< show dumbbell
+  bool      dumbbellPie_ { true };           //!< show dumbbell pie
   bool      count_       { false };          //!< show value counts
   bool      donutTitle_  { false };          //!< show title in donut center
   ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)

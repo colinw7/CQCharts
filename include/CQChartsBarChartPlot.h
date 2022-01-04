@@ -410,6 +410,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
   Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
   Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
+  Q_PROPERTY(bool sortSets   READ isSortSets   WRITE setSortSets  )
 
   // dot line
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
@@ -467,6 +468,13 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  bool isLabelsVisible() const;
+  void setLabelsVisible(bool b);
+
+  CQChartsLabelPosition labelPosition() const;
+
+  //---
+
   PlotType plotType() const { return plotType_; }
 
   bool isNormal () const { return (plotType() == PlotType::NORMAL ); }
@@ -489,6 +497,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // when multiple columns and grouped then color by value in value set (group)
   bool isColorBySet() const { return colorBySet_; }
   void setColorBySet(bool b);
+
+  bool isSortSets() const { return sortSets_; }
+  void setSortSets(bool b);
 
   //---
 
@@ -645,6 +656,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool      percent_    { false };            //!< percent values
   bool      skipEmpty_  { false };            //!< skip empty groups
   bool      colorBySet_ { false };            //!< color bars by set or value
+  bool      sortSets_   { true };             //!< sort sets by value
 
   DotLineData    dotLineData_;          //!< dot line data
   mutable double barWidth_     { 1.0 }; //!< minimum bar width
@@ -678,6 +690,9 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void setColorValue(const CQChartsColor &c) override;
 
  protected slots:
+  void labelColumnSlot();
+  void labelVisibleSlot(int);
+
   void orientationSlot();
   void plotTypeSlot();
   void valueTypeSlot();
@@ -688,7 +703,11 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void colorBySetSlot();
 
  private:
-  CQChartsBarChartPlot*      plot_             { nullptr };
+  CQChartsBarChartPlot* plot_ { nullptr };
+
+  FrameData                  labelFrame_;
+  QCheckBox*                 labelCheck_       { nullptr };
+  CQChartsColumnCombo*       labelColumnCombo_ { nullptr };
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
   CQChartsEnumParameterEdit* valueTypeCombo_   { nullptr };

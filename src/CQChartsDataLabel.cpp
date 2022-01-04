@@ -150,46 +150,29 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
     double tw = fm.width(ystr);
     double th = fm.descent() + fm.ascent();
+    double tm = (fm.ascent() - fm.descent())/2.0;
 
     // calc text pixel position
-    double px = 0.0, py = 0.0;
+    Point ppos;
 
-    if      (position1 == Position::TOP_INSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() + fm.ascent () + ym + pytp;
-    }
-    else if (position1 == Position::TOP_OUTSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() - fm.descent() - ym - pytp;
-    }
-    else if (position1 == Position::BOTTOM_INSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() - fm.descent() - ym - pybp;
-    }
-    else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() + fm.ascent () + ym + pybp;
-    }
-    else if (position1 == Position::LEFT_INSIDE) {
-      px = pbbox.getXMin() + xm + pxlp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pbbox.getXMin() - tw - xm - pxlp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::RIGHT_INSIDE) {
-      px = pbbox.getXMax() - tw - xm - pxrp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pbbox.getXMax() + xm + pxrp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::CENTER) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
+    if      (position1 == Position::TOP_INSIDE)
+      ppos = Point(pbbox.getXMid() - tw/2, pbbox.getYMin() + fm.ascent () + ym + pytp);
+    else if (position1 == Position::TOP_OUTSIDE)
+      ppos = Point(pbbox.getXMid() - tw/2, pbbox.getYMin() - fm.descent() - ym - pytp);
+    else if (position1 == Position::BOTTOM_INSIDE)
+      ppos = Point(pbbox.getXMid() - tw/2, pbbox.getYMax() - fm.descent() - ym - pybp);
+    else if (position1 == Position::BOTTOM_OUTSIDE)
+      ppos = Point(pbbox.getXMid() - tw/2, pbbox.getYMax() + fm.ascent () + ym + pybp);
+    else if (position1 == Position::LEFT_INSIDE)
+      ppos = Point(pbbox.getXMin() + xm + pxlp, pbbox.getYMid() + tm);
+    else if (position1 == Position::LEFT_OUTSIDE)
+      ppos = Point(pbbox.getXMin() - tw - xm - pxlp, pbbox.getYMid() + tm);
+    else if (position1 == Position::RIGHT_INSIDE)
+      ppos = Point(pbbox.getXMax() - tw - xm - pxrp, pbbox.getYMid() + tm);
+    else if (position1 == Position::RIGHT_OUTSIDE)
+      ppos = Point(pbbox.getXMax() + xm + pxrp, pbbox.getYMid() + tm);
+    else if (position1 == Position::CENTER)
+      ppos = Point(pbbox.getXMid() - tw/2, pbbox.getYMid() + tm);
 
     // clip if needed
     bool hclipped = false;
@@ -209,16 +192,16 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
       if      (position1 == Position::LEFT_INSIDE) {
         position1 = Position::LEFT_OUTSIDE;
 
-        px = pbbox.getXMin() - tw - xm - pxlp;
-        py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
+        ppos.x = pbbox.getXMin() - tw - xm - pxlp;
+        ppos.y = pbbox.getYMid() + tm;
 
         hclipped = false;
       }
       else if (position1 == Position::RIGHT_INSIDE) {
         position1 = Position::RIGHT_OUTSIDE;
 
-        px = pbbox.getXMax() + xm + pxrp;
-        py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
+        ppos.x = pbbox.getXMax() + xm + pxrp;
+        ppos.y = pbbox.getYMid() + tm;
 
         hclipped = false;
       }
@@ -228,24 +211,24 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
       if      (position1 == Position::TOP_INSIDE) {
         position1 = Position::TOP_OUTSIDE;
 
-        px = pbbox.getXMid() - tw/2;
-        py = pbbox.getYMin() - fm.descent() - ym - pytp;
+        ppos.x = pbbox.getXMid() - tw/2;
+        ppos.y = pbbox.getYMin() - fm.descent() - ym - pytp;
 
         vclipped = false;
       }
       else if (position1 == Position::BOTTOM_INSIDE) {
         position1 = Position::BOTTOM_OUTSIDE;
 
-        px = pbbox.getXMid() - tw/2;
-        py = pbbox.getYMax() + fm.ascent () + ym + pybp;
+        ppos.x = pbbox.getXMid() - tw/2;
+        ppos.y = pbbox.getYMax() + fm.ascent () + ym + pybp;
 
         vclipped = false;
       }
     }
 
     // draw box
-    BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
-                px + tw + pxrm, py + fm.descent() + pytm);
+    BBox tpbbox(ppos.x      - pxlm, ppos.y - fm.ascent () - pybm,
+                ppos.x + tw + pxrm, ppos.y + fm.descent() + pytm);
 
     BoxObj::draw(device, plot()->pixelToWindow(tpbbox));
 
@@ -270,14 +253,14 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
       if (! textClipped || drawClipped()) {
         device->setPen(penBrush.pen);
 
-        auto p1 = plot()->pixelToWindow(Point(px, py));
+        auto pos = plot()->pixelToWindow(ppos);
 
         auto textOptions = this->textOptions();
 
         textOptions.angle = Angle();
         textOptions.align = Qt::AlignLeft;
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, textOptions);
+        CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions);
       }
     }
   }
@@ -290,47 +273,29 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
     // TODO: handle horizontal and angle
 
-    // calc pixel position
-    double px = 0.0, py = 0.0;
+    // calc position
+    Point pos;
 
     auto align = textAlignment();
 
-    if      (position1 == Position::TOP_INSIDE) {
-      px = bbox.getXMid();
-      py = bbox.getYMax() + ybm + ytm;
-    }
-    else if (position1 == Position::TOP_OUTSIDE) {
-      px = bbox.getXMid();
-      py = bbox.getYMax() - ybm - ytm;
-    }
-    else if (position1 == Position::BOTTOM_INSIDE) {
-      px = bbox.getXMid();
-      py = bbox.getYMin() - ybm - ytm;
-    }
-    else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = bbox.getXMid();
-      py = bbox.getYMin() + ybm + ytm;
-    }
-    else if (position1 == Position::LEFT_INSIDE) {
-      px = bbox.getXMin() + xlm + xrm;
-      py = bbox.getYMid();
-    }
-    else if (position1 == Position::LEFT_OUTSIDE) {
-      px = bbox.getXMin() - xlm - xrm;
-      py = bbox.getYMid();
-    }
-    else if (position1 == Position::RIGHT_INSIDE) {
-      px = bbox.getXMax() - xlm - xrm;
-      py = bbox.getYMid();
-    }
-    else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = bbox.getXMax() + xlm + xrm;
-      py = bbox.getYMid();
-    }
-    else if (position1 == Position::CENTER) {
-      px = bbox.getXMid();
-      py = bbox.getYMid();
-    }
+    if      (position1 == Position::TOP_INSIDE)
+      pos = Point(bbox.getXMid(), bbox.getYMax() + ybm + ytm);
+    else if (position1 == Position::TOP_OUTSIDE)
+      pos = Point(bbox.getXMid(), bbox.getYMax() - ybm - ytm);
+    else if (position1 == Position::BOTTOM_INSIDE)
+      pos = Point(bbox.getXMid(), bbox.getYMin() - ybm - ytm);
+    else if (position1 == Position::BOTTOM_OUTSIDE)
+      pos = Point(bbox.getXMid(), bbox.getYMin() + ybm + ytm);
+    else if (position1 == Position::LEFT_INSIDE)
+      pos = Point(bbox.getXMin() + xlm + xrm, bbox.getYMid());
+    else if (position1 == Position::LEFT_OUTSIDE)
+      pos = Point(bbox.getXMin() - xlm - xrm, bbox.getYMid());
+    else if (position1 == Position::RIGHT_INSIDE)
+      pos = Point(bbox.getXMax() - xlm - xrm, bbox.getYMid());
+    else if (position1 == Position::RIGHT_OUTSIDE)
+      pos = Point(bbox.getXMax() + xlm + xrm, bbox.getYMid());
+    else if (position1 == Position::CENTER)
+      pos = Point(bbox.getXMid(), bbox.getYMid());
 
     using RotatedTextPoints = CQChartsRotatedText::Points;
 
@@ -344,9 +309,9 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
     textOptions.angle = textAngle();
     textOptions.align = align;
 
-    auto pt = device->windowToPixel(Point(px, py));
+    auto ppos = device->windowToPixel(pos);
 
-    CQChartsRotatedText::calcBBoxData(pt.x, pt.y, ystr, device->font(), textOptions, border,
+    CQChartsRotatedText::calcBBoxData(ppos.x, ppos.y, ystr, device->font(), textOptions, border,
                                       pbbox, ppoints, /*alignBBox*/ true);
 
     // draw polygon
@@ -361,16 +326,13 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
     // draw text
     if (ystr.length()) {
-      auto p1 = plot()->pixelToWindow(Point(px, py));
-
       auto textOptions = this->textOptions();
 
       textOptions.align = align;
 
-//    CQChartsRotatedText::draw(device, plot()->pixelToWindow(p1), ystr, textOptions,
-//                              /*alignBBox*/ true);
+//    CQChartsRotatedText::draw(device, pos, ystr, textOptions, /*alignBBox*/ true);
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, textOptions, /*centered*/true);
+      CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions, /*centered*/true);
     }
   }
 
@@ -492,93 +454,59 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position,
     QFontMetricsF fm(pfont);
 
     double tw = fm.width(ystr);
+    double tm = (fm.ascent() - fm.descent())/2.0;
 
-    // calc text pixel position
-    double px = 0.0, py = 0.0;
+    // calc text position
+    Point pos;
 
-    if      (position1 == Position::TOP_INSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() + fm.ascent () + ym + ytp;
-    }
-    else if (position1 == Position::TOP_OUTSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() - fm.descent() - ym - ytp;
-    }
-    else if (position1 == Position::BOTTOM_INSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() - fm.descent() - ym - ybp;
-    }
-    else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() + fm.ascent () + ym + ybp;
-    }
-    else if (position1 == Position::LEFT_INSIDE) {
-      px = pbbox.getXMin() + xm + xlp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pbbox.getXMin() - tw - xm - xlp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::RIGHT_INSIDE) {
-      px = pbbox.getXMax() - tw - xm - xrp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pbbox.getXMax() + xm + xrp;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
-    else if (position1 == Position::CENTER) {
-      px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
-    }
+    if      (position1 == Position::TOP_INSIDE)
+      pos = Point(pbbox.getXMid() - tw/2, pbbox.getYMin() + fm.ascent () + ym + ytp);
+    else if (position1 == Position::TOP_OUTSIDE)
+      pos = Point(pbbox.getXMid() - tw/2, pbbox.getYMin() - fm.descent() - ym - ytp);
+    else if (position1 == Position::BOTTOM_INSIDE)
+      pos = Point(pbbox.getXMid() - tw/2, pbbox.getYMax() - fm.descent() - ym - ybp);
+    else if (position1 == Position::BOTTOM_OUTSIDE)
+      pos = Point(pbbox.getXMid() - tw/2, pbbox.getYMax() + fm.ascent () + ym + ybp);
+    else if (position1 == Position::LEFT_INSIDE)
+      pos = Point(pbbox.getXMin() + xm + xlp, pbbox.getYMid() + tm);
+    else if (position1 == Position::LEFT_OUTSIDE)
+      pos = Point(pbbox.getXMin() - tw - xm - xlp, pbbox.getYMid() + tm);
+    else if (position1 == Position::RIGHT_INSIDE)
+      pos = Point(pbbox.getXMax() - tw - xm - xrp, pbbox.getYMid() + tm);
+    else if (position1 == Position::RIGHT_OUTSIDE)
+      pos = Point(pbbox.getXMax() + xm + xrp, pbbox.getYMid() + tm);
+    else if (position1 == Position::CENTER)
+      pos = Point(pbbox.getXMid() - tw/2, pbbox.getYMid() + tm);
 
-    BBox pbbox1(px - xlm, py - fm.ascent () - ybm, px + tw + xrm, py + fm.descent() + ytm);
+    BBox pbbox1(pos.x      - xlm, pos.y - fm.ascent () - ybm,
+                pos.x + tw + xrm, pos.y + fm.descent() + ytm);
 
     wbbox = plot()->pixelToWindow(pbbox1);
   }
   else {
-    // calc pixel position
-    double px = 0.0, py = 0.0;
+    // calc position
+    Point pos;
 
     auto align = textAlignment();
 
-    if      (position1 == Position::TOP_INSIDE) {
-      px = pbbox.getXMid();
-      py = pbbox.getYMax() + ybm + ytm;
-    }
-    else if (position1 == Position::TOP_OUTSIDE) {
-      px = pbbox.getXMid();
-      py = pbbox.getYMax() - ybm - ytm;
-    }
-    else if (position1 == Position::BOTTOM_INSIDE) {
-      px = pbbox.getXMid();
-      py = pbbox.getYMin() - ybm - ytm;
-    }
-    else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = pbbox.getXMid();
-      py = pbbox.getYMin() + ybm + ytm;
-    }
-    else if (position1 == Position::LEFT_INSIDE) {
-      px = pbbox.getXMin() + xlm + xrm;
-      py = pbbox.getYMid();
-    }
-    else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pbbox.getXMin() - xlm - xrm;
-      py = pbbox.getYMid();
-    }
-    else if (position1 == Position::RIGHT_INSIDE) {
-      px = pbbox.getXMax() - xlm - xrm;
-      py = pbbox.getYMid();
-    }
-    else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pbbox.getXMax() + xlm + xrm;
-      py = pbbox.getYMid();
-    }
-    else if (position1 == Position::CENTER) {
-      px = pbbox.getXMid();
-      py = pbbox.getYMid();
-    }
+    if      (position1 == Position::TOP_INSIDE)
+      pos = Point(pbbox.getXMid(), pbbox.getYMax() + ybm + ytm);
+    else if (position1 == Position::TOP_OUTSIDE)
+      pos = Point(pbbox.getXMid(), pbbox.getYMax() - ybm - ytm);
+    else if (position1 == Position::BOTTOM_INSIDE)
+      pos = Point(pbbox.getXMid(), pbbox.getYMin() - ybm - ytm);
+    else if (position1 == Position::BOTTOM_OUTSIDE)
+      pos = Point(pbbox.getXMid(), pbbox.getYMin() + ybm + ytm);
+    else if (position1 == Position::LEFT_INSIDE)
+      pos = Point(pbbox.getXMin() + xlm + xrm, pbbox.getYMid());
+    else if (position1 == Position::LEFT_OUTSIDE)
+      pos = Point(pbbox.getXMin() - xlm - xrm, pbbox.getYMid());
+    else if (position1 == Position::RIGHT_INSIDE)
+      pos = Point(pbbox.getXMax() - xlm - xrm, pbbox.getYMid());
+    else if (position1 == Position::RIGHT_OUTSIDE)
+      pos = Point(pbbox.getXMax() + xlm + xrm, pbbox.getYMid());
+    else if (position1 == Position::CENTER)
+      pos = Point(pbbox.getXMid(), pbbox.getYMid());
 
     using RotatedTextPoints = CQChartsRotatedText::Points;
 
@@ -592,7 +520,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position,
     textOptions.angle = textAngle();
     textOptions.align = align;
 
-    CQChartsRotatedText::calcBBoxData(px, py, ystr, pfont, textOptions, border,
+    CQChartsRotatedText::calcBBoxData(pos.x, pos.y, ystr, pfont, textOptions, border,
                                       pbbox1, ppoints, /*alignBBox*/ true);
 
     wbbox = plot()->pixelToWindow(pbbox1);

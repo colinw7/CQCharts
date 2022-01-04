@@ -2,7 +2,7 @@ TEMPLATE = app
 
 TARGET = CQChartsTest
 
-QT += widgets svg xml
+QT += widgets svg xml opengl
 
 DEPENDPATH += .
 
@@ -26,6 +26,16 @@ CQChartsReadLine.cpp \
 CQChartsTest.cpp \
 \
 CQTclCmd.cpp \
+\
+CQDragon3DModel.cpp \
+CQLeaf3DModel.cpp \
+CQLorenzModel.cpp \
+CQPickoverModel.cpp \
+\
+CDragon3DCalc.cpp \
+CLeaf3DCalc.cpp \
+CLorenzCalc.cpp \
+CPickoverCalc.cpp \
 
 HEADERS += \
 CQAppWindow.h \
@@ -43,6 +53,16 @@ CQChartsReadLine.h \
 CQChartsTest.h \
 \
 CQTclCmd.h \
+\
+CQDragon3DModel.h \
+CQLeaf3DModel.h \
+CQLorenzModel.h \
+CQPickoverModel.h \
+\
+CDragon3DCalc.h \
+CLeaf3DCalc.h \
+CLorenzCalc.h \
+CPickoverCalc.h \
 
 DESTDIR     = ../bin
 OBJECTS_DIR = ../obj
@@ -101,4 +121,5 @@ unix:LIBS += \
 -lCXML -lCCommand -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
 -lCUtil -lCStrUtil -lCOS \
--lreadline -lpng -ljpeg -ltre -ltcl -lcurses
+-lreadline -lpng -ljpeg -ltre -ltcl -lcurses \
+-lGLU -lglut

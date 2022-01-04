@@ -28,12 +28,12 @@ addParameters()
   startParameterGroup("Hier Scatter");
 
   addColumnParameter("x", "X", "xColumn").
-    setPropPath("columns.x").setTip("X Value").setRequired().setNumeric();
+    setPropPath("columns.x").setTip("X Value").setRequired().setNumericColumn();
   addColumnParameter("y", "Y", "yColumn").
-    setPropPath("columns.y").setTip("Y Value").setRequired().setNumeric();
+    setPropPath("columns.y").setTip("Y Value").setRequired().setNumericColumn();
 
   addColumnParameter("name", "Name", "nameColumn").
-    setPropPath("columns.name").setTip("Value Name").setString();
+    setPropPath("columns.name").setTip("Value Name").setStringColumn();
 
   addColumnsParameter("group", "Group", "groupColumns").
     setPropPath("columns.group").setTip("Group Name(s)");

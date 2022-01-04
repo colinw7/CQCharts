@@ -31,7 +31,6 @@
 #include <CQColorsPalette.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
-#include <CQTabSplit.h>
 #include <CQGroupBox.h>
 //#include <CQCheckBox.h>
 #include <CQEnumCombo.h>
@@ -54,14 +53,14 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setNumeric().setPropPath("columns.x").setTip("X Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.x").setTip("X Value Column");
   addColumnParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.y").setTip("Y Value Column");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setPropPath("columns.name").setTip("Group Name Column").setString();
+    setStringColumn().setPropPath("columns.name").setTip("Group Name Column");
   addColumnParameter("label", "Label", "labelColumn").
-    setPropPath("columns.label").setTip("Point Label Column").setString();
+    setStringColumn().setPropPath("columns.label").setTip("Point Label Column");
 
   //--
 
@@ -3693,8 +3692,7 @@ draw(PaintDevice *device) const
     auto ps1 = plot_->pixelToWindow(ps);
 
     if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps1,
-                                   Length::pixel(sx), Length::pixel(sy));
+      plot()->drawSymbol(device, ps1, symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
   }
   else {
     double aspect = (1.0*image.width())/image.height();

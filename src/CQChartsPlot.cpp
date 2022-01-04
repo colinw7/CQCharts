@@ -26,6 +26,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsSymbolSet.h>
+#include <CQChartsSymbolBuffer.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQChartsJS.h>
@@ -45,7 +46,6 @@
 #include <CQColorsPalette.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
-#include <CQTabSplit.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
 
@@ -250,6 +250,9 @@ void
 CQChartsPlot::
 startThreadTimer()
 {
+  if (view()->is3D())
+    return;
+
   if (isSequential())
     return;
 
@@ -257,6 +260,9 @@ startThreadTimer()
     return;
 
   if (parentPlot())
+    return;
+
+  if (view()->is3D())
     return;
 
   //---
@@ -751,6 +757,9 @@ updateRangeAndObjs1()
 
   //---
 
+  if (view()->is3D())
+    init3D();
+
   if (isQueueUpdate()) {
     startUpdateRangeAndObjs();
   }
@@ -975,6 +984,13 @@ void
 CQChartsPlot::
 drawObjs()
 {
+  if (view()->is3D()) {
+    view()->update();
+    return;
+  }
+
+  //---
+
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->drawObjs1();
 
@@ -14781,27 +14797,36 @@ getFirstPlotKey() const
 
 //------
 
-#if 0
 void
 CQChartsPlot::
-drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size) const
+drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
+           const Length &xsize, const Length &ysize, const PenBrush &penBrush) const
+{
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  drawSymbol(device, p, symbol, xsize, ysize);
+}
+
+void
+CQChartsPlot::
+drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
+           const Length &xsize, const Length &ysize) const
 {
   if (bufferSymbols_) {
     auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
     if (viewPlotDevice) {
-      double sx, sy;
-
-      plotSymbolSize(size, sx, sy);
+      double sx = lengthPixelWidth (xsize);
+      double sy = lengthPixelHeight(ysize);
 
       drawBufferedSymbol(viewPlotDevice->painter(), p, symbol, std::min(sx, sy));
     }
     else {
-      CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+      CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize);
     }
   }
   else {
-    CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+    CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize);
   }
 }
 
@@ -14809,63 +14834,14 @@ void
 CQChartsPlot::
 drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, double size) const
 {
-  auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
-    if (pen1.style () != pen2.style ()) return false;
-    if (pen1.color () != pen2.color ()) return false;
-    if (pen1.widthF() != pen2.widthF()) return false;
-    return true;
-  };
+  auto image = CQChartsSymbolBufferInst->getImage(symbol, size, painter->pen(), painter->brush());
 
-  auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
-    if (brush1.style () != brush2.style ()) return false;
-    if (brush1.color () != brush2.color ()) return false;
-    return true;
-  };
+  auto pp = windowToPixel(p);
 
-  struct ImageBuffer {
-    Symbol symbol;
-    double size { 0.0 };
-    int    isize { 0 };
-    QPen   pen;
-    QBrush brush;
-    QImage image;
-  };
+  double is = image.width()/2.0;
 
-  static ImageBuffer imageBuffer;
-
-  if (symbol != imageBuffer.symbol ||
-      size   != imageBuffer.size   ||
-      ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
-      ! cmpBrush(painter->brush(), imageBuffer.brush)) {
-    imageBuffer.symbol = symbol;
-    imageBuffer.size   = size;
-    imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
-    imageBuffer.pen    = painter->pen  ();
-    imageBuffer.brush  = painter->brush();
-    imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
-
-    imageBuffer.image.fill(Qt::transparent);
-
-    QPainter ipainter(&imageBuffer.image);
-
-    ipainter.setRenderHints(QPainter::Antialiasing);
-
-    ipainter.setPen  (imageBuffer.pen  );
-    ipainter.setBrush(imageBuffer.brush);
-
-    CQChartsPixelPaintDevice device(&ipainter);
-
-    auto spos  = Point(size, size);
-    auto ssize = Length::pixe(size);
-
-    CQChartsDrawUtil::drawSymbol(&device, symbol, spos, ssize);
-  }
-
-  double is = imageBuffer.isize/2.0;
-
-  painter->drawImage(int(p.x - is), int(p.y - is), imageBuffer.image);
+  painter->drawImage(int(pp.x - is), int(pp.y - is), image);
 }
-#endif
 
 //------
 

@@ -32,13 +32,13 @@ addParameters()
 
   // value, name columns
   addColumnParameter("value", "Value", "valueColumn").
-    setNumeric().setRequired().setPropPath("columns.value").setTip("Value column");
+    setNumericColumn().setRequired().setPropPath("columns.value").setTip("Value column");
 
   addColumnParameter("name", "Name", "nameColumn").
     setBasic().setPropPath("columns.name").setTip("Name column");
 
   addColumnParameter("position", "Position", "positionColumn").
-    setNumeric().setPropPath("columns.position").setTip("Position column");
+    setNumericColumn().setPropPath("columns.position").setTip("Position column");
 
   endParameterGroup();
 

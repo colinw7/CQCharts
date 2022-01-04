@@ -29,11 +29,11 @@ class CQChartsBivariateDensity {
 
   //! grid input data
   struct Data {
-    int     gridSize { 16 };  // grid size
-    double  delta    { 0.0 }; // if defined (> 0.0) then defined interval for alpha
-    Values  values;           // scatter x, y values
-    RMinMax xrange;           // x range
-    RMinMax yrange;           // y range
+    int     gridSize { 16 };  //!< grid size
+    double  delta    { 0.0 }; //!< if defined (> 0.0) then defined interval for alpha
+    Values  values;           //!< scatter x, y values
+    RMinMax xrange;           //!< x range
+    RMinMax yrange;           //!< y range
   };
 
   struct Cell {

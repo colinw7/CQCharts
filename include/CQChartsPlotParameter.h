@@ -57,7 +57,7 @@ class CQChartsPlotParameterAttributes {
 
   //---
 
-  // value types
+  // value types (for column parameters)
   bool isNumeric() const { return (flags_ & NUMERIC); }
   CQChartsPlotParameterAttributes &setNumeric() { flags_ |= NUMERIC; return *this; }
 
@@ -148,10 +148,10 @@ class CQChartsPlotParameter : public QObject {
   Q_PROPERTY(bool     isDiscriminator READ isDiscriminator                  )
   Q_PROPERTY(bool     isMonotonic     READ isMonotonic                      )
   Q_PROPERTY(bool     isBasic         READ isBasic                          )
-  Q_PROPERTY(bool     isNumeric       READ isNumeric                        )
-  Q_PROPERTY(bool     isString        READ isString                         )
-  Q_PROPERTY(bool     isBool          READ isBool                           )
-  Q_PROPERTY(bool     isColor         READ isColor                          )
+  Q_PROPERTY(bool     isNumericColumn READ isNumericColumn                  )
+  Q_PROPERTY(bool     isStringColumn  READ isStringColumn                   )
+  Q_PROPERTY(bool     isBoolColumn    READ isBoolColumn                     )
+  Q_PROPERTY(bool     isColorColumn   READ isColorColumn                    )
   Q_PROPERTY(bool     hasTypeDetail   READ hasTypeDetail                    )
   Q_PROPERTY(QString  typeDetail      READ typeDetail                       )
   Q_PROPERTY(bool     isUnique        READ isUnique                         )
@@ -244,26 +244,30 @@ class CQChartsPlotParameter : public QObject {
   bool isBasic() const { return attributes_.isBasic(); }
   CQChartsPlotParameter &setBasic() { attributes_.setBasic(); return *this; }
 
+  //---
+
+  // value types (for column parameters)
+
   //! get/set is numeric (real or integer)
-  bool isNumeric() const { return attributes_.isNumeric(); }
-  CQChartsPlotParameter &setNumeric() { attributes_.setNumeric(); return *this; }
+  bool isNumericColumn() const { return attributes_.isNumeric(); }
+  CQChartsPlotParameter &setNumericColumn() { attributes_.setNumeric(); return *this; }
 
   //! get/set is string
-  bool isString() const { return attributes_.isString(); }
-  CQChartsPlotParameter &setString() { attributes_.setString(); return *this; }
+  bool isStringColumn() const { return attributes_.isString(); }
+  CQChartsPlotParameter &setStringColumn() { attributes_.setString(); return *this; }
 
   //! get/set is boolean
-  bool isBool() const { return attributes_.isBool(); }
-  CQChartsPlotParameter &setBool() { attributes_.setBool(); return *this; }
+  bool isBoolColumn() const { return attributes_.isBool(); }
+  CQChartsPlotParameter &setBoolColumn() { attributes_.setBool(); return *this; }
 
   //! get/set is color
-  bool isColor() const { return attributes_.isColor(); }
-  CQChartsPlotParameter &setColor() { attributes_.setColor(); return *this; }
+  bool isColorColumn() const { return attributes_.isColor(); }
+  CQChartsPlotParameter &setColorColumn() { attributes_.setColor(); return *this; }
 
-  //! has type detail
+  //---
+
+  //! get/set has type detail
   bool hasTypeDetail() const { return attributes_.hasTypeDetail(); }
-
-  //! type detail string
   QString typeDetail() const { return attributes_.typeDetail(); }
 
   //! get/set is unique

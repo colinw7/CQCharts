@@ -37,7 +37,7 @@ addParameters()
   addColumnsParameter("y", "Y", "yColumns").
     setRequired().setUnique().setPropPath("columns.y").setTip("Y Key Column(s)");
   addColumnParameter("value", "Value", "valueColumn").
-    setRequired().setNumeric().setPropPath("columns.value").setTip("Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.value").setTip("Value Column");
 
   // options
   addBoolParameter("orientation", "Orientation", "orientation").setTip("Pivot orientation");

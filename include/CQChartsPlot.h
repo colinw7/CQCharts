@@ -562,6 +562,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawObjs();
 
+  virtual void init3D() { }
+  virtual void draw3D() { }
+
   //---
 
   void writeScript(ScriptPaintDevice *device) const;
@@ -2734,15 +2737,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-#if 0
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-                  const Length &size, const PenBrush &penBrush) const;
-  void drawSymbol(PaintDevice *device, const Point &p,
-                  const Symbol &symbol, const Length &size) const;
+                  const Length &xsize, const Length &ysize, const PenBrush &penBrush) const;
+  void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
+                  const Length &xsize, const Length &ysize) const;
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const Symbol &symbol, double size) const;
-#endif
 
   //---
 
@@ -3261,30 +3262,30 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief color column data
   struct ColorColumnData {
-    Column      column;                         //! color column
-    ColorType   colorType { ColorType::AUTO };  //! color type
-    bool        valid     { false };            //! color valid
-    bool        mapped    { true };             //! color values mapped
-    double      map_min   { 0.0 };              //! map value min
-    double      map_max   { 1.0 };              //! map value max
-    double      data_min  { 0.0 };              //! model data min
-    double      data_max  { 1.0 };              //! model data max
-    ColumnType  modelType { ColumnType::NONE }; //! color model type
-    PaletteName palette;                        //! color palette
-    ColorStops  xStops;                         //! color x stops
-    ColorStops  yStops;                         //! color y stops
+    Column      column;                         //<! color column
+    ColorType   colorType { ColorType::AUTO };  //<! color type
+    bool        valid     { false };            //<! color valid
+    bool        mapped    { true };             //<! color values mapped
+    double      map_min   { 0.0 };              //<! map value min
+    double      map_max   { 1.0 };              //<! map value max
+    double      data_min  { 0.0 };              //<! model data min
+    double      data_max  { 1.0 };              //<! model data max
+    ColumnType  modelType { ColumnType::NONE }; //<! color model type
+    PaletteName palette;                        //<! color palette
+    ColorStops  xStops;                         //<! color x stops
+    ColorStops  yStops;                         //<! color y stops
   };
 
   //! \brief alpha column data
   struct AlphaColumnData {
-    Column     column;                         //! alpha column
-    bool       valid     { false };            //! alpha valid
-    bool       mapped    { true };             //! alpha values mapped
-    double     map_min   { 0.0 };              //! map value min
-    double     map_max   { 1.0 };              //! map value max
-    double     data_min  { 0.0 };              //! model data min
-    double     data_max  { 1.0 };              //! model data max
-    ColumnType modelType { ColumnType::NONE }; //! alpha model type
+    Column     column;                         //<! alpha column
+    bool       valid     { false };            //<! alpha valid
+    bool       mapped    { true };             //<! alpha values mapped
+    double     map_min   { 0.0 };              //<! map value min
+    double     map_max   { 1.0 };              //<! map value max
+    double     data_min  { 0.0 };              //<! model data min
+    double     data_max  { 1.0 };              //<! model data max
+    ColumnType modelType { ColumnType::NONE }; //<! alpha model type
   };
 
   //---

@@ -31,14 +31,14 @@ addParameters()
   startParameterGroup("Delaunay");
 
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setNumeric().setPropPath("columns.x").setTip("X Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.x").setTip("X Value Column");
   addColumnParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.y").setTip("Y Value Column");
 
   addColumnParameter("name" , "Name" , "nameColumn").
-    setString().setPropPath("columns.name").setTip("Optional Name Column");
+    setStringColumn().setPropPath("columns.name").setTip("Optional Name Column");
   addColumnParameter("value", "Value", "valueColumn").
-    setString().setPropPath("columns.value").setTip("Optional Value Column");
+    setStringColumn().setPropPath("columns.value").setTip("Optional Value Column");
 
   addBoolParameter("delaunay", "Delaunay", "delaunay").setTip("Draw Delaunay");
   addBoolParameter("voronoi" , "Voronoi" , "voronoi" ).setTip("Draw Voronoi" );

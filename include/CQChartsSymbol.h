@@ -22,7 +22,8 @@ class CQChartsFile;
  *  + SVG
  */
 class CQChartsSymbol :
-  public CQChartsEqBase<CQChartsSymbol> {
+  public CQChartsComparatorBase<CQChartsSymbol>,
+  public CQChartsToStringBase<CQChartsSymbol> {
  public:
   using SymbolType = CQChartsSymbolType;
 
@@ -92,6 +93,7 @@ class CQChartsSymbol :
   static CQChartsSymbol fromSVGFile(const CQChartsFile &file, const QString &name, bool styled);
 
   static CQChartsSymbol circle() { return CQChartsSymbol(SymbolType::Type::CIRCLE); }
+  static CQChartsSymbol triangle() { return CQChartsSymbol(SymbolType::Type::TRIANGLE); }
 
   static CQChartsSymbol vline() { return CQChartsSymbol(SymbolType::Type::VLINE); }
   static CQChartsSymbol hline() { return CQChartsSymbol(SymbolType::Type::HLINE); }
@@ -189,13 +191,21 @@ class CQChartsSymbol :
 
   //---
 
-  friend bool operator==(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
-    return (lhs.type_       == rhs.type_       &&
-            lhs.symbolType_ == rhs.symbolType_ &&
-            lhs.c_          == rhs.c_          &&
-            lhs.name_       == rhs.name_       &&
-            lhs.filled_     == rhs.filled_     &&
-            lhs.stroked_    == rhs.stroked_);
+  //! compare for (==, !=, <, >, <=, >=)
+  friend int cmp(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
+    if (lhs.type_       > rhs.type_      ) return  1;
+    if (lhs.type_       < rhs.type_      ) return -1;
+    if (lhs.symbolType_ > rhs.symbolType_) return  1;
+    if (lhs.symbolType_ < rhs.symbolType_) return -1;
+    if (lhs.c_          > rhs.c_         ) return  1;
+    if (lhs.c_          < rhs.c_         ) return -1;
+    if (lhs.name_       > rhs.name_      ) return  1;
+    if (lhs.name_       < rhs.name_      ) return -1;
+    if (lhs.filled_     > rhs.filled_    ) return  1;
+    if (lhs.filled_     < rhs.filled_    ) return -1;
+    if (lhs.stroked_    > rhs.stroked_   ) return  1;
+    if (lhs.stroked_    < rhs.stroked_   ) return -1;
+    return 0;
   }
 
  private:

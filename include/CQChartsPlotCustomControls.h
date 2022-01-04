@@ -140,6 +140,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   CQChartsBoolParameterEdit *createBoolEdit(const QString &name, bool choice=true);
   CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
 
+  QCheckBox *makeOptionCheck(const QString &param);
+
   void addKeyList();
 
   virtual void connectSlots(bool b);
@@ -150,37 +152,37 @@ class CQChartsPlotCustomControls : public QScrollArea {
   using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
 
-  CQCharts* charts_ { nullptr };
+  CQCharts* charts_ { nullptr }; //!< charts
 
-  QFrame*      frame_  { nullptr };
-  QVBoxLayout* layout_ { nullptr };
+  QFrame*      frame_  { nullptr }; //!< frame
+  QVBoxLayout* layout_ { nullptr }; //!< frame layout
 
-  QString       plotType_;
-  CQChartsPlot* plot_ { nullptr };
+  QString       plotType_;         //!< plot type
+  CQChartsPlot* plot_ { nullptr }; //!< plot
 
-  bool numericOnly_ { false };
-  bool showTitle_   { true };
+  bool numericOnly_ { false }; //!< support numeric only columns
+  bool showTitle_   { true };  //!< show title
 
-  QFrame* titleFrame_ { nullptr };
-  QLabel* titleLabel_ { nullptr };
+  QFrame* titleFrame_ { nullptr }; //!< title frame
+  QLabel* titleLabel_ { nullptr }; //!< title label
 
-  ColumnEdits   columnEdits_;
-  ColumnsEdits  columnsEdits_;
-  CQIconButton* numericIcon_ { nullptr };
+  ColumnEdits   columnEdits_;             //!< column edits
+  ColumnsEdits  columnsEdits_;            //!< columns edits
+  CQIconButton* numericIcon_ { nullptr }; //!< is numeric icon button
 
-  CQChartsColumnControlGroup* colorControlGroup_ { nullptr };
-  CQChartsColorLineEdit*      colorEdit_         { nullptr };
-  CQChartsColumnCombo*        colorColumnCombo_  { nullptr };
-  CQChartsColorRangeSlider*   colorRange_        { nullptr };
-  CQChartsPaletteNameEdit*    colorPaletteEdit_  { nullptr };
-  CQChartsMapKeyWidget*       colorMapKeyWidget_ { nullptr };
+  CQChartsColumnControlGroup* colorControlGroup_ { nullptr }; //!< color control group
+  CQChartsColorLineEdit*      colorEdit_         { nullptr }; //!< color line edit
+  CQChartsColumnCombo*        colorColumnCombo_  { nullptr }; //!< color column combo
+  CQChartsColorRangeSlider*   colorRange_        { nullptr }; //!< color range slider
+  CQChartsPaletteNameEdit*    colorPaletteEdit_  { nullptr }; //!< color palette edit
+  CQChartsMapKeyWidget*       colorMapKeyWidget_ { nullptr }; //!< color map key widget
 
-  bool connected_ { false };
+  bool connected_ { false }; //!< is connected
 
-  CQChartsColor color_; // dummy color for getColorValue/setColorValue virtual
+  CQChartsColor color_; //!< dummy color for getColorValue/setColorValue virtual
 
-  CQGroupBox*            keyGroup_ { nullptr };
-  CQChartsPlotCustomKey *keyList_  { nullptr };
+  CQGroupBox*            keyGroup_ { nullptr }; //!< key group
+  CQChartsPlotCustomKey *keyList_  { nullptr }; //!< key list
 };
 
 //---
@@ -230,9 +232,9 @@ class CQChartsPlotCustomKey : public QFrame {
     bool     clickable { false };
   };
 
-  CQChartsPlot*  plot_  { nullptr };
-  CQTableWidget* table_ { nullptr };
-  RowColItemData itemData_;
+  CQChartsPlot*  plot_  { nullptr }; //!< plot
+  CQTableWidget* table_ { nullptr }; //!< table
+  RowColItemData itemData_;          //!< item data
 };
 
 //---
@@ -261,8 +263,8 @@ class CQChartsPlotColumnChooser : public QFrame {
   void columnClickSlot(int row, int column, bool b);
 
  private:
-  CQChartsPlot*  plot_       { nullptr };
-  CQTableWidget* columnList_ { nullptr };
+  CQChartsPlot*  plot_       { nullptr }; //!< plot
+  CQTableWidget* columnList_ { nullptr }; //!< column list
 };
 
 #endif

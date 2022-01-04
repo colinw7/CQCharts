@@ -244,8 +244,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // data label
-  const DataLabel *dataLabel() const { return dataLabel_; }
-  DataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_.get(); }
+  DataLabel *dataLabel() { return dataLabel_.get(); }
 
   //---
 
@@ -617,13 +617,14 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
+  using DataLabelP    = std::shared_ptr<DataLabel>;
   using GroupPoints   = std::map<int, Points>;
   using GroupStatData = std::map<int, StatData>;
   using GroupFitData  = std::map<int, BestFit *>;
   using GroupHull     = std::map<int, Hull *>;
   using RugP          = std::unique_ptr<CQChartsAxisRug>;
 
-  DataLabel* dataLabel_ { nullptr }; //!< data label style
+  DataLabelP dataLabel_; //!< data label style
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data

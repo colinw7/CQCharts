@@ -25,7 +25,7 @@ objIdPressed(const QString &id)
     disconnect(view_, SIGNAL(objIdPressed(const QString &)),
                this, SLOT(objIdPressed(const QString &)));
 
-  QString cmd = getTclIdCmd(id);
+  auto cmd = getTclIdCmd(id);
 
   evalCmd(cmd);
 
@@ -53,7 +53,7 @@ annotationIdPressed(const QString &id)
     disconnect(annotation_, SIGNAL(pressed(const QString &)),
                this, SLOT(annotationIdPressed(const QString &)));
 
-  QString cmd = getTclIdCmd(id);
+  auto cmd = getTclIdCmd(id);
 
   evalCmd(cmd);
 
@@ -77,7 +77,7 @@ plotObjsAdded()
   if (plot_)
     disconnect(plot_, SIGNAL(plotObjsAdded()), this, SLOT(plotObjsAdded()));
 
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   evalCmd(cmd);
 
@@ -95,7 +95,7 @@ selectionChanged()
   if (plot_)
     disconnect(plot_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
 
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   evalCmd(cmd);
 
@@ -110,7 +110,7 @@ void
 CQChartsCmdsSlot::
 selectPress(const CQChartsGeom::Point &p)
 {
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   cmd += QString(" %1 %2").arg(p.x).arg(p.y);
 
@@ -123,7 +123,7 @@ themeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));
 
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   evalCmd(cmd);
 
@@ -136,7 +136,7 @@ interfaceThemeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(interfaceThemeChanged()), this, SLOT(interfaceThemeChanged()));
 
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   evalCmd(cmd);
 
@@ -152,7 +152,7 @@ keyEventPress(const QString &text)
   disconnect(view_, SIGNAL(keyEventPress(const QString &)),
              this, SLOT(keyEventPress(const QString &)));
 
-  QString cmd = getTclCmd();
+  auto cmd = getTclCmd();
 
   cmd += QString(" {%1}").arg(text);
 
@@ -173,7 +173,7 @@ QString
 CQChartsCmdsSlot::
 getTclCmd() const
 {
-  QString cmd = procName_;
+  auto cmd = procName_;
 
   if (view_)
     cmd += " \"" + view_->id() + "\"";
@@ -191,7 +191,7 @@ QString
 CQChartsCmdsSlot::
 getTclIdCmd(const QString &id) const
 {
-  QString cmd = procName_;
+  auto cmd = procName_;
 
   if (view_)
     cmd += " \"" + view_->id() + "\"";

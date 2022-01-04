@@ -379,10 +379,10 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   double mapMin_ { 5.0 };  //!< mapped symbol size min (pixels)
   double mapMax_ { 17.0 }; //!< mapped symbol size max (pixels)
 
-  double scale_ { 1.0 }; //! scale symbol sizes
+  double scale_ { 1.0 }; //!< scale symbol sizes
 
-  bool stacked_ { false }; //! draw stacked
-  int  rows_    { 3 };     //! number of symbol rows
+  bool stacked_ { false }; //!< draw stacked
+  int  rows_    { 3 };     //!< number of symbol rows
 
   Alpha         alpha_     { 0.6 };                               //!< background alpha
   Qt::Alignment textAlign_ { Qt::AlignRight | Qt::AlignVCenter }; //!< text align

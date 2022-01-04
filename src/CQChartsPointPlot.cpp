@@ -14,7 +14,6 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
-#include <CQTabSplit.h>
 
 CQChartsPointPlotType::
 CQChartsPointPlotType() :
@@ -74,14 +73,14 @@ init()
   NoUpdate noUpdate(this);
 
   // create a data label (shared state for all data labels)
-  dataLabel_ = new CQChartsDataLabel(this);
+  dataLabel_ = std::make_shared<CQChartsDataLabel>(this);
 
   dataLabel_->setClip(false);
   dataLabel_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
   dataLabel_->setMoveClipped(false);
   dataLabel_->setSendSignal(true);
 
-  connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  connect(dataLabel_.get(), SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
   //---
 
@@ -131,8 +130,6 @@ term()
 {
   clearFitData ();
   clearHullData();
-
-  delete dataLabel_;
 }
 
 //---
@@ -633,6 +630,8 @@ dataLabelChanged()
 {
   // TODO: not enough info to optimize behavior so reload all objects
   updateObjs();
+
+  customDataChanged();
 }
 
 //---

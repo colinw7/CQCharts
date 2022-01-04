@@ -20,8 +20,8 @@ struct CQChartsWheelPointData {
 };
 
 struct CQChartsPolar {
-  double a { 0.0 }; // angle in degrees
-  double r { 0.0 }; // radius
+  double a { 0.0 }; //!< angle in degrees
+  double r { 0.0 }; //!< radius
 
   CQChartsPolar() = default;
 

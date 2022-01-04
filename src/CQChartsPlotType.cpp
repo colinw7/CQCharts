@@ -110,16 +110,16 @@ addParameters()
   startParameterGroup("Common");
 
   addColumnParameter("id", "Id", "idColumn").
-    setString().setTip("Row Unique Id Column");
+   setStringColumn().setTip("Row Unique Id Column");
 
   addColumnsParameter("tips", "Tips", "tipColumns").
-    setString().setBasic().setTip("Row Tip Columns");
+   setStringColumn().setBasic().setTip("Row Tip Columns");
 
   addColumnsParameter("notips", "No Tips", "noTipColumns").
-    setString().setBasic().setTip("Row No Tip Columns");
+   setStringColumn().setBasic().setTip("Row No Tip Columns");
 
   addColumnParameter("visible", "Visible", "visibleColumn").
-    setBool().setTip("Row Visible Column");
+   setBoolColumn().setTip("Row Visible Column");
 
   addColumnParameter("color", "Color", "colorColumn").
    setTip("Row Color Column").setMapped();
@@ -134,7 +134,7 @@ addParameters()
    setTip("Row Image Column").setMapped();
 
   addColumnsParameter("controls", "Controls", "controlColumns").
-    setString().setBasic().setTip("Control Columns");
+    setStringColumn().setBasic().setTip("Control Columns");
 
   if (hasKey()) {
     addBoolParameter("key", "Key", "keyVisible", true).setTip("Show Key");

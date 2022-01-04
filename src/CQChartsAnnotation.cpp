@@ -7471,7 +7471,10 @@ init()
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
-  widget_.setParent(view());
+  if (view()->is3D())
+    widget_.setParent(view()->glWidget());
+  else
+    widget_.setParent(view());
 
   widget_.initSize();
 }
@@ -7666,12 +7669,19 @@ setInteractive(bool b)
 
       winWidget_->setChild(widget_.widget());
 
-      winWidget_->setParent(view());
+      if (view()->is3D())
+        winWidget_->setParent(view()->glWidget());
+      else
+        winWidget_->setParent(view());
+
       winWidget_->setVisible(true);
       winWidget_->setClosable(false);
     }
     else {
-      widget_.setParent(view());
+      if (view()->is3D())
+        widget_.setParent(view()->glWidget());
+      else
+        widget_.setParent(view());
 
       delete winWidget_;
 

@@ -12,7 +12,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CQEnumCombo.h>
-#include <CQTabSplit.h>
 
 #include <QLabel>
 #include <QGridLayout>
@@ -30,7 +29,7 @@ addParameters()
   startParameterGroup("Connection List");
 
   addColumnParameter("node", "Node", "nodeColumn").setBasic().
-    setNumeric().setPropPath("columns.node").setTip("Node Id Column");
+    setNumericColumn().setPropPath("columns.node").setTip("Node Id Column");
   addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
     setPropPath("columns.connections").
     setTip("List of Connection Pairs (Ids from id column and connection value)").setDiscriminator();
@@ -52,7 +51,7 @@ addParameters()
     setPropPath("columns.to").setTip("To connection node").setDiscriminator();
 
   addColumnParameter("value", "Value", "valueColumn").setBasic().
-    setNumeric().setPropPath("columns.value").setTip("Connection value");
+    setNumericColumn().setPropPath("columns.value").setTip("Connection value");
 
   endParameterGroup();
 
@@ -61,18 +60,18 @@ addParameters()
   startParameterGroup("General");
 
   addColumnParameter("depth", "Depth", "depthColumn").setBasic().
-    setNumeric().setPropPath("columns.depth").setTip("Connection depth");
+    setNumericColumn().setPropPath("columns.depth").setTip("Connection depth");
 #ifdef CQCHARTS_GRAPH_PATH_ID
   addColumnParameter("pathId", "PathId", "pathIdColumn").
-    setString().setPropPath("columns.pathId").setTip("Path Id");
+    setStringColumn().setPropPath("columns.pathId").setTip("Path Id");
 #endif
   addColumnParameter("attributes", "Attributes", "attributesColumn").
-    setString().setPropPath("columns.attributes").setTip("Node/Edge attributes");
+    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
 
   addColumnParameter("group", "Group", "groupColumn").
-    setNumeric().setPropPath("columns.group").setTip("Group column");
+    setNumericColumn().setPropPath("columns.group").setTip("Group column");
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setPropPath("columns.name").setTip("Optional node name");
+    setStringColumn().setPropPath("columns.name").setTip("Optional node name");
 
   endParameterGroup();
 

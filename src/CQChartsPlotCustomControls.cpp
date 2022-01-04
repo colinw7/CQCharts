@@ -81,7 +81,7 @@ addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
     const auto *parameter = plotType->getParameter(name);
     assert(parameter);
 
-    if (parameter->isNumeric())
+    if (parameter->isNumericColumn())
       isNumeric = true;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
@@ -592,6 +592,23 @@ createEnumEdit(const QString &name)
   return new CQChartsEnumParameterEdit(eparameter);
 }
 
+QCheckBox *
+CQChartsPlotCustomControls::
+makeOptionCheck(const QString &param)
+{
+  auto *plotType = this->plotType();
+  assert(plotType);
+
+  const auto *parameter = plotType->getParameter(param);
+  assert(parameter && parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
+
+  auto *check = CQUtil::makeLabelWidget<QCheckBox>(parameter->desc(), param + "Check");
+
+  check->setToolTip(parameter->tip());
+
+  return check;
+}
+
 void
 CQChartsPlotCustomControls::
 updateWidgets()
@@ -641,7 +658,7 @@ updateWidgets()
     columnEdit->setModelData(plot()->getModelData());
     columnEdit->setColumn   (plot()->getNamedColumn(parameter->name()));
 
-    if (parameter->isNumeric())
+    if (parameter->isNumericColumn())
       columnEdit->setNumericOnly(isNumericOnly());
   }
 
@@ -651,7 +668,7 @@ updateWidgets()
     columnsEdit->setModelData(plot()->getModelData());
     columnsEdit->setColumns  (plot()->getNamedColumns(parameter->name()));
 
-    if (parameter->isNumeric())
+    if (parameter->isNumericColumn())
       columnsEdit->setNumericOnly(isNumericOnly());
   }
 
@@ -689,14 +706,14 @@ updateNumericOnly()
   for (auto *columnEdit : columnEdits_) {
     auto *parameter = columnEdit->parameter();
 
-    if (parameter->isNumeric())
+    if (parameter->isNumericColumn())
       columnEdit->setNumericOnly(isNumericOnly());
   }
 
   for (auto *columnsEdit : columnsEdits_) {
     auto *parameter = columnsEdit->parameter();
 
-    if (parameter->isNumeric())
+    if (parameter->isNumericColumn())
       columnsEdit->setNumericOnly(isNumericOnly());
   }
 }

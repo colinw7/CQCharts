@@ -14,7 +14,8 @@
  * \ingroup Charts
  */
 class CQChartsSymbolType :
-  public CQChartsEqBase<CQChartsSymbolType> {
+  public CQChartsComparatorBase<CQChartsSymbolType>,
+  public CQChartsToStringBase<CQChartsSymbolType> {
  public:
   enum class Type {
     NONE,
@@ -83,8 +84,11 @@ class CQChartsSymbolType :
 
   //---
 
-  friend bool operator==(const CQChartsSymbolType &lhs, const CQChartsSymbolType &rhs) {
-    return (lhs.type_ == rhs.type_);
+  //! compare for (==, !=, <, >, <=, >=)
+  friend int cmp(const CQChartsSymbolType &lhs, const CQChartsSymbolType &rhs) {
+    if (lhs.type_ > rhs.type_) return  1;
+    if (lhs.type_ < rhs.type_) return -1;
+    return 0;
   }
 
  private:

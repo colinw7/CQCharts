@@ -277,7 +277,7 @@ getParsePoly(const QString &name, const Polygon &def) const
   auto p = parseStr_.find(name);
   if (p == parseStr_.end()) return def;
 
-  QString value = (*p).second[0];
+  auto value = (*p).second[0];
 
   Polygon poly;
 
@@ -409,7 +409,7 @@ parsePoly(CQStrParse &parse, Polygon &poly) const
 
       int pos2 = parse.getPos();
 
-      QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
+      auto str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
 
       return parsePoly(str, poly);
     }
@@ -454,7 +454,7 @@ parsePoint(CQStrParse &parse, Point &pos) const
 
     int pos2 = parse.getPos();
 
-    QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
+    auto str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
 
     return parsePoint(str, pos);
   }
@@ -575,7 +575,7 @@ getParseRow(const QString &name, CQChartsPlot *plot) const
   auto p = parseStr_.find(name);
   if (p == parseStr_.end()) return -1;
 
-  QString rowName = (*p).second[0];
+  auto rowName = (*p).second[0];
 
   bool ok;
 

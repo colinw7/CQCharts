@@ -24,10 +24,10 @@ CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type
   addProperty("required"     , "isRequired"     , "");
   addProperty("discriminator", "isDiscriminator", "");
   addProperty("monotonic"    , "isMonotonic"    , "");
-  addProperty("numeric"      , "isNumeric"      , "");
-  addProperty("string"       , "isString"       , "");
-  addProperty("bool"         , "isBool"         , "");
-  addProperty("color"        , "isColor"        , "");
+  addProperty("numeric"      , "isNumericColumn", "");
+  addProperty("string"       , "isStringColumn" , "");
+  addProperty("bool"         , "isBoolColumn"   , "");
+  addProperty("color"        , "isColorColumn"  , "");
   addProperty("type_detail"  , "typeDetail"     , "");
   addProperty("groupable"    , "isGroupable"    , "");
   addProperty("mapped"       , "isMapped"       , "");

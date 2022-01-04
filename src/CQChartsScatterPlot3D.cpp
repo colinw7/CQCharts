@@ -14,11 +14,15 @@
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 #include <CQChartsCamera.h>
+#include <CQChartsSymbolBuffer.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQColorsPalette.h>
 #include <CQPerfMonitor.h>
+
+#include <CQGLControl.h>
+//#include <GL/glut.h>
 
 #include <QMenu>
 
@@ -35,16 +39,16 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setRequired().setNumeric().setPropPath("columns.x").setTip("X Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.x").setTip("X Value Column");
   addColumnParameter("y", "Y", "yColumn").
-    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.y").setTip("Y Value Column");
   addColumnParameter("z", "Z", "zColumn").
-    setRequired().setNumeric().setPropPath("columns.z").setTip("Z Value Column");
+    setRequired().setNumericColumn().setPropPath("columns.z").setTip("Z Value Column");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setPropPath("columns.name").setTip("Optional Name Column").setString();
+    setStringColumn().setPropPath("columns.name").setTip("Optional Name Column");
   addColumnParameter("label", "Label", "labelColumn").
-    setPropPath("columns.label").setTip("Custom Label").setString();
+    setStringColumn().setPropPath("columns.label").setTip("Custom Label");
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
     setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
@@ -148,6 +152,8 @@ init()
 
   connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
+  connect(this, SIGNAL(colorDetailsChanged()), this, SLOT(colorChanged()));
+
   //---
 
   setSymbol(Symbol::circle());
@@ -162,6 +168,10 @@ init()
   addKey();
 
   addTitle();
+
+  //---
+
+  addColorMapKey();
 }
 
 void
@@ -282,6 +292,7 @@ getNamedColumn(const QString &name) const
   else if (name == "z"         ) c = this->zColumn();
   else if (name == "name"      ) c = this->nameColumn();
   else if (name == "label"     ) c = this->labelColumn();
+  else if (name == "color"     ) c = this->colorColumn();
   else if (name == "symbolType") c = this->symbolTypeColumn();
   else if (name == "symbolSize") c = this->symbolSizeColumn();
   else if (name == "fontSize"  ) c = this->fontSizeColumn();
@@ -299,6 +310,7 @@ setNamedColumn(const QString &name, const Column &c)
   else if (name == "z"         ) this->setZColumn(c);
   else if (name == "name"      ) this->setNameColumn(c);
   else if (name == "label"     ) this->setLabelColumn(c);
+  else if (name == "color"     ) this->setColorColumn(c);
   else if (name == "symbolType") this->setSymbolTypeColumn(c);
   else if (name == "symbolSize") this->setSymbolSizeColumn(c);
   else if (name == "fontSize"  ) this->setFontSizeColumn(c);
@@ -350,6 +362,14 @@ dataLabelChanged()
 {
   // TODO: not enough info to optimize behavior so reload all objects
   updateRangeAndObjs();
+}
+
+void
+CQChartsScatterPlot3D::
+colorChanged()
+{
+  if (view()->is3D())
+    updateRangeAndObjs();
 }
 
 //---
@@ -785,10 +805,13 @@ addPointObjects() const
 
         auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
-        pointObj->setModelInd(valuePoint.ind);
+        if (valuePoint.ind.isValid())
+          pointObj->setModelInd(valuePoint.ind);
 
-        if (symbolSize.isValid())
+        if (symbolSize.isValid()) {
           pointObj->setSymbolSize(symbolSize);
+//        pointObj->setSymbolDir (symbolSizeDir);
+        }
 
       //objs.push_back(pointObj);
 
@@ -801,8 +824,13 @@ addPointObjects() const
 
         //---
 
-        // set optional symbol type
-        CQChartsSymbol symbol;
+        // set optional symbol
+        Symbol symbol;
+
+        if (symbolTypeColumn().isValid()) {
+          if (! columnSymbolType(valuePoint.row, valuePoint.ind.parent(), symbolTypeData_, symbol))
+            symbol = Symbol();
+        }
 
         if (symbol.isValid())
           pointObj->setSymbol(symbol);
@@ -810,7 +838,19 @@ addPointObjects() const
         //---
 
         // set optional font size
-        Length fontSize;
+        Length          fontSize;
+        Qt::Orientation fontSizeDir { Qt::Horizontal };
+
+        if (fontSizeColumn().isValid()) {
+          if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSizeData_,
+                               fontSize, fontSizeDir))
+            fontSize = Length();
+        }
+
+        if (fontSize.isValid()) {
+          pointObj->setFontSize(fontSize);
+//        pointObj->setLabelDir(fontSizeDir);
+        }
 
         if (fontSize.isValid())
           pointObj->setFontSize(fontSize);
@@ -1056,7 +1096,7 @@ addNameValues() const
 
    private:
     const CQChartsScatterPlot3D* plot_    { nullptr };
-    CQChartsModelDetails*      details_ { nullptr };
+    CQChartsModelDetails*        details_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1434,6 +1474,379 @@ postDrawObjs(PaintDevice *device) const
 {
   drawPointObjs(device);
 }
+
+//---
+
+void
+CQChartsScatterPlot3D::
+init3D()
+{
+  init3D_ = false;
+}
+
+void
+CQChartsScatterPlot3D::
+draw3D()
+{
+  auto *glWidget = qobject_cast<QGLWidget *>(view()->glWidget());
+
+  //auto *glControl = view()->glControl();
+
+  if (! init3D_) {
+    values3D_ = ValuesData();
+
+    class RowVisitor : public ModelVisitor {
+     public:
+      RowVisitor(const CQChartsScatterPlot3D *plot, ValuesData *values) :
+       plot_(plot), values_(values) {
+      }
+
+      State visit(const QAbstractItemModel *, const VisitData &data) override {
+        ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+        ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+        ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
+
+        //---
+
+        double x   { 0.0  }, y   { 0.0  }, z   { 0.0  };
+        bool   okx { true }, oky { true }, okz { true };
+
+        //---
+
+        auto modelValue = [&](const ModelIndex &modelInd, double &value, bool &ok, bool isLog) {
+          ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
+        };
+
+        modelValue(xModelInd, x, okx, plot_->isLogX());
+        modelValue(yModelInd, y, oky, plot_->isLogY());
+        modelValue(zModelInd, z, okz, /*log*/false   );
+
+        //---
+
+        if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
+          return State::SKIP;
+
+        if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y) || CMathUtil::isNaN(z))
+          return State::SKIP;
+
+        Point3D p(x, y, z);
+
+        values_->xrange.add(p.x);
+        values_->yrange.add(p.y);
+        values_->zrange.add(p.z);
+
+        ValueData v(p);
+
+        if (plot_->colorColumn().isValid()) {
+          Color color;
+
+          if (plot_->colorColumnColor(data.row, data.parent, color))
+            v.color = color;
+        }
+
+        values_->values.push_back(v);
+
+        return State::OK;
+      }
+
+     private:
+      const CQChartsScatterPlot3D* plot_    { nullptr };
+      ValuesData*                  values_;
+    };
+
+    RowVisitor visitor(this, &values3D_);
+
+    visitModel(visitor);
+
+    if (values3D_.xrange.isSet() && values3D_.yrange.isSet() && values3D_.zrange.isSet())
+      range3D_ = Range3D(values3D_.xrange.min(), values3D_.yrange.min(), values3D_.zrange.min(),
+                         values3D_.xrange.max(), values3D_.yrange.max(), values3D_.zrange.max());
+    else
+      range3D_ = Range3D(-1, -1, -1, 1, 1, 1);
+
+    camera_->init();
+
+    setWindowRange(BBox(-1, -1, 1, 1));
+
+    init3D_ = true;
+  }
+
+  //---
+
+  drawAxes3D();
+
+  //---
+
+  double sx, sy, psx, psy;
+
+  plotSymbolSize (symbolSize(), sx, sy);
+  pixelSymbolSize(symbolSize(), psx, psy);
+
+  double ss  = std::min(sx , sy );
+  double pss = std::min(psx, psy);
+
+  //---
+
+  CQChartsPenBrush penBrush;
+
+  setSymbolPenBrush(penBrush, ColorInd());
+
+  //---
+
+  int textureId = -1;
+
+  if (symbol().isValid()) {
+    auto image = CQChartsSymbolBufferInst->getImage(symbol(), pss, penBrush.pen, penBrush.brush);
+
+    glEnable(GL_TEXTURE_2D);
+
+    textureId = glWidget->bindTexture(image);
+
+    glBindTexture(GL_TEXTURE_2D, textureId);
+
+  //glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+  //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+  //glEnable(GL_POINT_SPRITE);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  }
+
+  glPointSize(pss);
+
+  glColor4f(1.0, 1.0, 1.0, 1.0);
+
+  if (! symbol().isValid())
+    glBegin(GL_POINTS);
+
+  //---
+
+  // get the current modelview matrix
+  float modelview[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+
+  CVector3D right(modelview[0], modelview[4], modelview[8]);
+  CVector3D up(modelview[1], modelview[5], modelview[9]);
+
+  auto billboardTransform = [&](double x, double y, double z, double dx, double dy,
+                                double &x1, double &y1, double &z1) {
+    x1 = x + right[0]*dx*ss + up[0]*dy*ss;
+    y1 = y + right[1]*dx*ss + up[1]*dy*ss;
+    z1 = z + right[2]*dx*ss + up[2]*dy*ss;
+  };
+
+  //---
+
+  for (const auto &v : values3D_.values) {
+    if (v.color.isValid()) {
+      auto c = interpColor(v.color, ColorInd());
+
+      glColor4f(c.redF(), c.greenF(), c.blueF(), 1.0);
+    }
+
+    auto x = CMathUtil::map(v.p.x, range3D_.xmin(), range3D_.xmax(), -1, 1);
+    auto y = CMathUtil::map(v.p.y, range3D_.ymin(), range3D_.ymax(), -1, 1);
+    auto z = CMathUtil::map(v.p.z, range3D_.zmin(), range3D_.zmax(), -1, 1);
+
+    if (symbol().isValid()) {
+      glBegin(GL_QUADS);
+
+      double tx1 = 0.0, tx2 = 1.0;
+      double ty1 = 0.0, ty2 = 1.0;
+
+      double x1, y1, z1;
+      double x2, y2, z2;
+      double x3, y3, z3;
+      double x4, y4, z4;
+
+      billboardTransform(x, y, z, -1, -1, x1, y1, z1);
+      billboardTransform(x, y, z,  1, -1, x2, y2, z2);
+      billboardTransform(x, y, z,  1,  1, x3, y3, z3);
+      billboardTransform(x, y, z, -1,  1, x4, y4, z4);
+
+      glTexCoord2d(tx1, ty1); glVertex3d(x1, y1, z1);
+      glTexCoord2d(tx1, ty2); glVertex3d(x2, y2, z2);
+      glTexCoord2d(tx2, ty2); glVertex3d(x3, y3, z3);
+      glTexCoord2d(tx2, ty1); glVertex3d(x4, y4, z4);
+
+      glEnd();
+    }
+    else
+      glVertex3d(x, y, z);
+  }
+
+  if (! symbol().isValid())
+    glEnd();
+
+  if (symbol().isValid()) {
+    glWidget->deleteTexture(textureId);
+
+  //glDisable(GL_POINT_SPRITE);
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+  }
+}
+
+void
+CQChartsScatterPlot3D::
+drawAxes3D()
+{
+  auto *glWidget = qobject_cast<QGLWidget *>(view()->glWidget());
+
+#if 0
+  //double r = bbox_.getRadius();
+
+  double sphere_radius = /*0.7*/0.035;
+  double cone_base     = /*0.6*/0.03;
+  double cone_height   = /*4.0*/0.20;
+
+  /* Name-stack manipulation for the purpose of selection hit
+     processing when mouse button is pressed. Names are ignored
+     in normal OpenGL rendering mode. */
+
+  glPushMatrix();
+    /* No name for grey sphere */
+
+    glColor3f(0.3, 0.3, 0.3);
+    glutSolidSphere(sphere_radius, 20, 20);
+
+    glPushMatrix();
+    glPushName(1);        /* Red cone is 1 */
+      glColor3f(1, 0, 0);
+      glRotatef(90, 0, 1, 0);
+      glutSolidCone(cone_base, cone_height, 20, 20);
+    glPopName();
+    glPopMatrix();
+
+    glPushMatrix ();
+    glPushName(2);        /* Green cone is 2 */
+      glColor3f(0, 1, 0);
+      glRotatef(-90, 1, 0, 0);
+      glutSolidCone(cone_base, cone_height, 20, 20);
+    glPopName();
+    glPopMatrix();
+
+    glPushName(3);
+      glColor3f(0, 0, 1); /* Blue cone is 3 */
+      glutSolidCone(cone_base, cone_height, 20, 20);
+    glPopName();
+
+  glPopMatrix();
+#endif
+
+  //---
+
+  auto drawLine = [&](double x1, double y1, double z1, double x2, double y2, double z2) {
+    glBegin(GL_LINE_STRIP);
+    glVertex3d(x1, y1, z1);
+    glVertex3d(x2, y2, z2);
+    glEnd();
+  };
+
+  auto drawPlane = [&](double x1, double y1, double z1, double x2, double y2, double z2,
+                       double x3, double y3, double z3, double x4, double y4, double z4) {
+    glBegin(GL_QUADS);
+    glVertex3d(x1, y1, z1);
+    glVertex3d(x2, y2, z2);
+    glVertex3d(x3, y3, z3);
+    glVertex3d(x4, y4, z4);
+    glEnd();
+  };
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+  glColor4f(1.0, 1.0, 1.0, 0.5);
+
+  drawLine(-1.0, -1.0, -1.0,  1.0, -1.0, -1.0);
+  drawLine(-1.0, -1.0, -1.0, -1.0,  1.0, -1.0);
+  drawLine(-1.0, -1.0, -1.0, -1.0, -1.0,  1.0);
+
+  //---
+
+  CInterval xinterval, yinterval, zinterval;
+
+  xinterval.setStart(range3D_.xmin()); xinterval.setEnd(range3D_.xmax()); xinterval.setNumMajor(10);
+  yinterval.setStart(range3D_.ymin()); yinterval.setEnd(range3D_.ymax()); yinterval.setNumMajor(10);
+  zinterval.setStart(range3D_.zmin()); zinterval.setEnd(range3D_.zmax()); zinterval.setNumMajor(10);
+
+  glColor4f(0.5, 0.5, 0.5, 0.5);
+
+  drawPlane(-1, -1, -1,  1, -1, -1,  1,  1, -1, -1,  1, -1);
+  drawPlane(-1, -1, -1, -1,  1, -1, -1,  1,  1, -1, -1,  1);
+  drawPlane(-1, -1, -1,  1, -1, -1,  1, -1,  1, -1, -1,  1);
+
+  //---
+
+  for (double i = 0; i <= xinterval.calcNumMajor(); ++i) {
+    auto x = xinterval.calcStart() + i*xinterval.calcIncrement();
+    if (x < range3D_.xmin() || x > range3D_.xmax()) continue;
+
+    double x1 = CMathUtil::map(x, range3D_.xmin(), range3D_.xmax(), -1.0, 1.0);
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    glWidget->renderText(x1, -1.1, -1.1, QString::number(x));
+
+    glColor4f(1.0, 1.0, 1.0, 0.5);
+
+    drawLine(x1, -1, -1, x1,  1, -1);
+    drawLine(x1, -1, -1, x1, -1,  1);
+  }
+
+  glColor4f(1.0, 1.0, 1.0, 1.0);
+
+  glWidget->renderText(0, -1.2, -1.2, "X");
+
+  for (double i = 0; i <= yinterval.calcNumMajor(); ++i) {
+    auto y = yinterval.calcStart() + i*yinterval.calcIncrement();
+    if (y < range3D_.ymin() || y > range3D_.ymax()) continue;
+
+    double y1 = CMathUtil::map(y, range3D_.ymin(), range3D_.ymax(), -1.0, 1.0);
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    glWidget->renderText(-1.1, y1, -1.1, QString::number(y));
+
+    glColor4f(1.0, 1.0, 1.0, 0.5);
+
+    drawLine(-1, y1, -1, -1, y1,  1);
+    drawLine(-1, y1, -1,  1, y1, -1);
+  }
+
+  glColor4f(1.0, 1.0, 1.0, 1.0);
+
+  glWidget->renderText(-1.2, 0, -1.2, "Y");
+
+  for (double i = 0; i <= zinterval.calcNumMajor(); ++i) {
+    auto z = zinterval.calcStart() + i*zinterval.calcIncrement();
+    if (z < range3D_.zmin() || z > range3D_.zmax()) continue;
+
+    double z1 = CMathUtil::map(z, range3D_.zmin(), range3D_.zmax(), -1.0, 1.0);
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    glWidget->renderText(-1.1, -1.1, z1, QString::number(z));
+
+    glColor4f(1.0, 1.0, 1.0, 0.5);
+
+    drawLine(-1, -1, z1,  1, -1, z1);
+    drawLine(-1, -1, z1, -1,  1, z1);
+  }
+
+  glColor4f(1.0, 1.0, 1.0, 1.0);
+
+  glWidget->renderText(-1.2, -1.2, 0, "Z");
+
+  //---
+
+  glDisable(GL_BLEND);
+}
+
+//---
 
 CQChartsScatterPlot3D::GroupData &
 CQChartsScatterPlot3D::
@@ -1833,7 +2246,7 @@ addWidgets()
   //---
 
   addColumnWidgets(QStringList() <<
-    "x" << "y" << "z" << "name" << "label" <<
+    "x" << "y" << "z" << "name" << "label" << "color" <<
     "symbolType" << "symbolSize" << "fontSize", columnsFrame);
 
   //---

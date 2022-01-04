@@ -107,6 +107,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     }
   }
 
+  static CQChartsLabelPosition flipPosition(const CQChartsLabelPosition &position) {
+    return (CQChartsLabelPosition) flipPosition((Position) position);
+  }
+
   //--
 
   void addPathProperties (const QString &path, const QString &desc);

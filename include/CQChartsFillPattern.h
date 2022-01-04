@@ -166,13 +166,13 @@ class CQChartsFillPattern :
   bool setValue(const QString &str);
 
  private:
-  Type        type_     { Type::NONE }; //! pattern type
-  double      scale_    { 1.0 };        //! scale for pattern (ldiag, ...)
-  PaletteName palette_;                 //! palette name for gradients
-  Image       image_;                   //! image
-  Angle       angle_;                   //! angle for gradient
-  Color       altColor_;                //! alt color for gradient/image background
-  Alpha       altAlpha_;                //! alt alpha for gradient/image background
+  Type        type_     { Type::NONE }; //!< pattern type
+  double      scale_    { 1.0 };        //!< scale for pattern (ldiag, ...)
+  PaletteName palette_;                 //!< palette name for gradients
+  Image       image_;                   //!< image
+  Angle       angle_;                   //!< angle for gradient
+  Color       altColor_;                //!< alt color for gradient/image background
+  Alpha       altAlpha_;                //!< alt alpha for gradient/image background
 };
 
 //---

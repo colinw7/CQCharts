@@ -2124,7 +2124,7 @@ validate(QStringList &msgs)
           }
         }
 
-        if      (parameter->isNumeric()) {
+        if      (parameter->isNumericColumn()) {
           if (columnDetails->type() != CQBaseModelType::INTEGER &&
               columnDetails->type() != CQBaseModelType::REAL &&
               columnDetails->type() != CQBaseModelType::TIME) {
@@ -2132,7 +2132,7 @@ validate(QStringList &msgs)
             rc1 = false;
           }
         }
-        else if (parameter->isString()) {
+        else if (parameter->isStringColumn()) {
 #if 0
           if (columnDetails->type() != CQBaseModelType::STRING) {
             msgs << QString("non-string column (%1)").arg(parameter->name());
@@ -2140,13 +2140,13 @@ validate(QStringList &msgs)
           }
 #endif
         }
-        else if (parameter->isBool()) {
+        else if (parameter->isBoolColumn()) {
           if (columnDetails->type() != CQBaseModelType::BOOLEAN) {
             msgs << QString("non-bool column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
-        else if (parameter->isColor()) {
+        else if (parameter->isColorColumn()) {
           if (columnDetails->type() != CQBaseModelType::COLOR) {
             msgs << QString("non-color column (%1)").arg(parameter->name());
             rc1 = false;

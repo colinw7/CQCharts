@@ -40,9 +40,9 @@ addParameters()
   auto *primaryGroup = startParameterGroup("Raw Values");
 
   addColumnsParameter("values", "Values", "valueColumns").
-    setNumeric().setRequired().setPropPath("columns.raw.values").setTip("Value column(s)");
+    setNumericColumn().setRequired().setPropPath("columns.raw.values").setTip("Value column(s)");
   addColumnParameter ("name", "Name", "nameColumn").
-    setString().setPropPath("columns.raw.name").setTip("Name column");
+    setStringColumn().setPropPath("columns.raw.name").setTip("Name column");
   addColumnParameter ("set", "Set", "setColumn").
     setPropPath("columns.raw.set").setTip("Set Values");
 
@@ -53,17 +53,17 @@ addParameters()
   auto *secondaryGroup = startParameterGroup("Calculated Values");
 
   addColumnParameter("x"          , "X"           , "xColumn"          ).
-    setNumeric().setPropPath("columns.calculated.x").setTip("X Value");
+    setNumericColumn().setPropPath("columns.calculated.x").setTip("X Value");
   addColumnParameter("min"        , "Min"         , "minColumn"        ).
-    setNumeric().setPropPath("columns.calculated.min").setTip("Min Value");
+    setNumericColumn().setPropPath("columns.calculated.min").setTip("Min Value");
   addColumnParameter("lowerMedian", "Lower Median", "lowerMedianColumn").
-    setNumeric().setPropPath("columns.calculated.lowerMedian").setTip("Lower Median Value");
+    setNumericColumn().setPropPath("columns.calculated.lowerMedian").setTip("Lower Median Value");
   addColumnParameter("median"     , "Median"      , "medianColumn"     ).
-    setNumeric().setPropPath("columns.calculated.median").setTip("Median Value");
+    setNumericColumn().setPropPath("columns.calculated.median").setTip("Median Value");
   addColumnParameter("upperMedian", "Upper Median", "upperMedianColumn").
-    setNumeric().setPropPath("columns.calculated.upperMedian").setTip("Upper Median Value");
+    setNumericColumn().setPropPath("columns.calculated.upperMedian").setTip("Upper Median Value");
   addColumnParameter("max"        , "Max"         , "maxColumn"        ).
-    setNumeric().setPropPath("columns.calculated.max").setTip("Max Value");
+    setNumericColumn().setPropPath("columns.calculated.max").setTip("Max Value");
   addColumnParameter("outliers"   , "Outliers"    , "outliersColumn"   ).
     setPropPath("columns.calculated.outlier").setTip("Outlier Values");
 

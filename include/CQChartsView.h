@@ -14,7 +14,9 @@
 #include <CQChartsImage.h>
 #include <CQChartsWidget.h>
 #include <CQChartsTypes.h>
+
 #include <QFrame>
+#include <QGLWidget>
 #include <QTimer>
 
 #include <set>
@@ -58,6 +60,7 @@ class CQChartsPoints;
 class CQChartsReals;
 class CQChartsDocument;
 class CQChartsSplitter;
+class CQChartsViewGLWidget;
 
 class CQChartsRegionMgr;
 
@@ -67,6 +70,8 @@ class CQPropertyViewModel;
 class CQPropertyViewItem;
 class CQColorsPalette;
 
+class CQGLControl;
+
 class QPainter;
 class QToolButton;
 class QRubberBand;
@@ -74,8 +79,12 @@ class QScrollBar;
 class QLabel;
 class QMenu;
 
+//----
+
 CQCHARTS_NAMED_SHAPE_DATA(Selected, selected)
 CQCHARTS_NAMED_SHAPE_DATA(Inside, inside)
+
+//----
 
 /*!
  * \brief View widget in which plots are positioned and displayed
@@ -95,6 +104,7 @@ class CQChartsView : public QFrame,
 
   Q_PROPERTY(QString id             READ id             WRITE setId            )
   Q_PROPERTY(QString title          READ title          WRITE setTitle         )
+  Q_PROPERTY(bool    is3D           READ is3D           WRITE set3D            )
   Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
   Q_PROPERTY(QSize   viewSizeHint   READ viewSizeHint   WRITE setViewSizeHint  )
 
@@ -299,6 +309,15 @@ class CQChartsView : public QFrame,
   //! get/set title
   const QString &title() const { return title_; }
   void setTitle(const QString &s);
+
+  //---
+
+  bool is3D() const { return is3D_; }
+  void set3D(bool b);
+
+  QWidget *glWidget() const;
+
+  CQGLControl *glControl() const;
 
   //---
 
@@ -1260,6 +1279,10 @@ class CQChartsView : public QFrame,
 
   void currentPlotSlot();
 
+  //---
+
+  void update() { QFrame::update(); }
+
  private slots:
   void hbarScrollSlot(int pos);
   void vbarScrollSlot(int pos);
@@ -1307,8 +1330,6 @@ class CQChartsView : public QFrame,
   void searchAt(const Point &w);
 
   void annotationsAtPoint(const Point &w, Annotations &annotations) const;
-
-  void update() { QFrame::update(); }
 
   void windowToPixelI(double wx, double wy, double &px, double &py) const;
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
@@ -1493,6 +1514,9 @@ class CQChartsView : public QFrame,
 
   QString id_; //!< view id
 
+  bool                  is3D_     { false }; //!< is 3D
+  CQChartsViewGLWidget *glWidget_ { nullptr };
+
   // child objects
   QString     title_;                 //!< view title (TODO: object)
   ViewKeyP    keyObj_;                //!< key object
@@ -1644,6 +1668,36 @@ class CQChartsSplitter : public QFrame {
   QPoint          movePos_;
   QPoint          initPos_;
   bool            hover_       { false };
+};
+
+//---
+
+class CQGLControl;
+class CQGLControlToolBar;
+
+class CQChartsViewGLWidget : public QGLWidget {
+ public:
+  CQChartsViewGLWidget(CQChartsView *view);
+
+  CQGLControl *control() const { return control_; }
+
+  void initializeGL() override;
+
+  void resizeGL(int width, int height) override;
+
+  void paintGL() override;
+
+  void mousePressEvent  (QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+  void mouseMoveEvent   (QMouseEvent *event) override;
+
+  void keyPressEvent  (QKeyEvent *event) override;
+  void keyReleaseEvent(QKeyEvent *event) override;
+
+ private:
+  CQChartsView*       view_           { nullptr };
+  CQGLControl*        control_        { nullptr };
+  CQGLControlToolBar* controlToolbar_ { nullptr };
 };
 
 #endif

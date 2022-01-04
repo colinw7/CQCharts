@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 TARGET = CQCharts
 
-QT += widgets svg xml
+QT += widgets svg xml opengl
 
 DEPENDPATH += .
 
@@ -228,6 +228,8 @@ CQChartsUnits.cpp \
 CQChartsSymbol.cpp \
 CQChartsSymbolType.cpp \
 CQChartsSymbolSet.cpp \
+CQChartsSymbolBuffer.cpp \
+\
 CQChartsImage.cpp \
 CQChartsWidget.cpp \
 CQChartsPath.cpp \
@@ -381,6 +383,10 @@ CLeastSquaresFit.cpp \
 \
 CQTclUtil.cpp \
 CTclParse.cpp \
+\
+CQGLControl.cpp \
+CGLUtil.cpp \
+CGLTexture.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -505,9 +511,12 @@ HEADERS += \
 ../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
+\
 ../include/CQChartsSymbol.h \
 ../include/CQChartsSymbolType.h \
 ../include/CQChartsSymbolSet.h \
+../include/CQChartsSymbolBuffer.cpp \
+\
 ../include/CQChartsImage.h \
 ../include/CQChartsWidget.h \
 ../include/CQChartsPath.h \
@@ -749,6 +758,10 @@ HEADERS += \
 \
 ../include/CQTclUtil.h \
 ../include/CTclParse.h \
+\
+CQGLControl.h \
+CGLUtil.h \
+CGLTexture.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

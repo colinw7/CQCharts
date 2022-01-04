@@ -245,6 +245,7 @@ CQCHARTS_DEF_CMD(CreateChartsCollapseModel)
 CQCHARTS_DEF_CMD(CreateChartsPivotModel)
 CQCHARTS_DEF_CMD(CreateChartsStatsModel)
 CQCHARTS_DEF_CMD(CreateChartsDataModel)
+CQCHARTS_DEF_CMD(CreateChartsFractalModel)
 
 //---
 

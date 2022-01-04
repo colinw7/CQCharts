@@ -166,7 +166,7 @@ getArgValues(const QString &option, const NameValueMap &nameValueMap)
   if (option == "file") {
     auto p = nameValueMap.find("file");
 
-    QString file = (p != nameValueMap.end() ? (*p).second : "");
+    auto file = (p != nameValueMap.end() ? (*p).second : QString());
 
     return Frame::s_completeFile(file);
   }
@@ -1138,7 +1138,7 @@ getArgValues(const QString &option, const NameValueMap &nameValueMap)
   if (option == "file") {
     auto p = nameValueMap.find("file");
 
-    QString file = (p != nameValueMap.end() ? (*p).second : "");
+    auto file = (p != nameValueMap.end() ? (*p).second : QString());
 
     return Frame::s_completeFile(file);
   }

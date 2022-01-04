@@ -794,7 +794,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &pargs = argv.getParseArgs();
 
-  QString expr = (! pargs.empty() ? pargs[0].toString() : "");
+  auto expr = (! pargs.empty() ? pargs[0].toString() : QString());
 
   QVariant res;
 
@@ -836,7 +836,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &pargs = argv.getParseArgs();
 
-  QString cmd = (! pargs.empty() ? pargs[0].toString() : "");
+  auto cmd = (! pargs.empty() ? pargs[0].toString() : QString());
 
   //---
 
@@ -907,7 +907,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &pargs = argv.getParseArgs();
 
-  QString pattern = (! pargs.empty() ? pargs[0].toString() : "");
+  auto pattern = (! pargs.empty() ? pargs[0].toString() : QString());
 
   //---
 

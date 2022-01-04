@@ -37,11 +37,15 @@ init()
 
   //---
 
+  // create a data label (shared state for all data labels)
   dataLabel_ = std::make_shared<CQChartsDataLabel>(this);
 
   dataLabel_->setDrawClipped(false);
+  dataLabel_->setSendSignal(true);
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
+
+  connect(dataLabel_.get(), SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
   //---
 
@@ -91,6 +95,18 @@ CQChartsBarPlot::
 setHorizontal(bool b)
 {
   setOrientation(b ? Qt::Horizontal : Qt::Vertical);
+}
+
+//---
+
+void
+CQChartsBarPlot::
+dataLabelChanged()
+{
+  // TODO: not enough info to optimize behavior so reload all objects
+  updateObjs();
+
+  customDataChanged();
 }
 
 //---

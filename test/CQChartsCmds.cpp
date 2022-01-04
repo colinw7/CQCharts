@@ -53,6 +53,10 @@
 #include <CQSubSetModel.h>
 #include <CQSummaryModel.h>
 #include <CQTransposeModel.h>
+#include <CQLorenzModel.h>
+#include <CQPickoverModel.h>
+#include <CQDragon3DModel.h>
+#include <CQLeaf3DModel.h>
 
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -139,6 +143,8 @@ addCommands()
                new CQChartsCreateChartsStatsModelCmd      (this));
     addCommand("create_charts_data_model"       ,
                new CQChartsCreateChartsDataModelCmd       (this));
+    addCommand("create_charts_fractal_model"    ,
+               new CQChartsCreateChartsFractalModelCmd    (this));
 
     // add/remove view
     addCommand("create_charts_view", new CQChartsCreateChartsViewCmd(this));
@@ -423,7 +429,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &filenameArgs = argv.getParseArgs();
 
-  QString filename = (! filenameArgs.empty() ? filenameArgs[0].toString() : "");
+  auto filename = (! filenameArgs.empty() ? filenameArgs[0].toString() : QString());
 
   //---
 
@@ -1216,8 +1222,9 @@ execCmd(CQChartsCmdArgs &argv)
 
 void
 CQChartsCreateChartsViewCmd::
-addCmdArgs(CQChartsCmdArgs &)
+addCmdArgs(CQChartsCmdArgs &argv)
 {
+  addArg(argv, "-3d", ArgType::Boolean, "3d view");
 }
 
 QStringList
@@ -1242,7 +1249,11 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  bool is3D = argv.getParseBool("3d");
+
   auto *view = cmds()->addView();
+
+  view->set3D(is3D);
 
   //---
 
@@ -4838,7 +4849,7 @@ CQChartsCreateChartsSummaryModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
   addArg(argv, "-model"      , ArgType::String , "model_id");
-  addArg(argv, "-max_rows"   , ArgType::Integer, "maxumum rows");
+  addArg(argv, "-max_rows"   , ArgType::Integer, "maximum rows");
   addArg(argv, "-random"     , ArgType::Boolean, "random rows");
   addArg(argv, "-sorted"     , ArgType::Boolean, "sorted rows");
   addArg(argv, "-sort_column", ArgType::Integer, "sort column");
@@ -5490,9 +5501,98 @@ execCmd(CQChartsCmdArgs &argv)
 
   proxyModel->setSourceModel(model);
 
-  CQChartsCmds::ModelP modelP(proxyModel);
+  CQChartsCmds::ModelP proxyModelP(proxyModel);
 
-  auto *modelData = charts()->initModelData(modelP);
+  auto *modelData = charts()->initModelData(proxyModelP);
+
+  //---
+
+  return cmdBase_->setCmdRc(modelData->id());
+}
+
+//------
+
+void
+CQChartsCreateChartsFractalModelCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-type" , ArgType::String , "fractal type").setRequired();
+  addArg(argv, "-start", ArgType::Integer, "start index");
+  addArg(argv, "-end"  , ArgType::Integer, "end index");
+}
+
+QStringList
+CQChartsCreateChartsFractalModelCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsFractalModelCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsFractalModelCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto type = argv.getParseStr("type");
+
+  int start = 0;
+  int end   = 80000;
+
+  if (argv.hasParseArg("start"))
+    start = argv.getParseInt("int", start);
+
+  if (argv.hasParseArg("end"))
+    end = argv.getParseInt("int", end);
+
+  if (start > end)
+    return errorMsg("Invalid start/end");
+
+  //---
+
+  QAbstractItemModel *model = nullptr;
+
+  if      (type == "lorenz")
+    model = new CQLorenzModel(start, end);
+  else if (type == "pickover")
+    model = new CQPickoverModel(start, end);
+  else if (type == "dragon3d")
+    model = new CQDragon3DModel(start, end);
+  else if (type == "leaf3d")
+    model = new CQLeaf3DModel(start, end);
+
+  if (! model)
+    return errorMsg("Invalid model type");
+
+  //------
+
+  auto *proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("proxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  proxyModel->setSourceModel(model);
+
+  CQChartsCmds::ModelP proxyModelP(proxyModel);
+
+  auto *modelData = charts()->initModelData(proxyModelP);
 
   //---
 
@@ -6139,6 +6239,30 @@ execCmd(CQChartsCmdArgs &argv)
         title = dataModel->title();
 
       return cmdBase_->setCmdRc(title);
+    }
+    // get data model
+    else if (name == "data_model") {
+      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      return cmdBase_->setCmdRc(dataModel ? CQUtil::addObjectAlias(dataModel) : "");
+    }
+    // get expr model
+    else if (name == "expr_model") {
+      auto *exprModel = CQChartsModelUtil::getExprModel(model.data());
+
+      return cmdBase_->setCmdRc(exprModel ? CQUtil::addObjectAlias(exprModel) : "");
+    }
+    // get data model
+    else if (name == "data_model") {
+      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      return cmdBase_->setCmdRc(dataModel ? CQUtil::addObjectAlias(dataModel) : "");
+    }
+    // get base model
+    else if (name == "base_model") {
+      auto *baseModel = CQChartsModelUtil::getBaseModel(model.data());
+
+      return cmdBase_->setCmdRc(baseModel ? CQUtil::addObjectAlias(baseModel) : "");
     }
 #if 0
     // model property
@@ -10186,7 +10310,7 @@ void
 CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  addArg(argv, "-plot", ArgType::String, "plot name").setRequired();;
+  addArg(argv, "-plot", ArgType::String, "plot name").setRequired();
 
   addArg(argv, "-group", ArgType::String, "annotation group");
 
@@ -11462,7 +11586,7 @@ getArgValues(const QString &option, const NameValueMap &nameValueMap)
   if (option == "file") {
     auto p = nameValueMap.find("file");
 
-    QString file = (p != nameValueMap.end() ? (*p).second : "");
+    auto file = (p != nameValueMap.end() ? (*p).second : QString());
 
     return CQDataFrame::completeFile(file);
   }

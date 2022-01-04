@@ -41,7 +41,7 @@ addParameters()
   addColumnParameter("x", "X", "xColumn").
     setUnique().setPropPath("columns.x").setTip("X value column");
   addColumnsParameter("y", "Y", "yColumns").
-    setNumeric().setRequired().setPropPath("columns.y").setTip("Y value columns");
+    setNumericColumn().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
   addEnumParameter("orientation", "Orientation", "orientation").
     addNameValue("HORIZONTAL", int(Qt::Horizontal)).

@@ -1473,7 +1473,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool           mouseNodeColoring_ { false };                   //!< mouse over color nodes
 
   // text
-  bool textInternal_ { true }; //! text internal to plot
+  bool textInternal_ { true }; //!< text internal to plot
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map

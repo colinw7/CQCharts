@@ -50,10 +50,10 @@ addParameters()
 
   // values (auto bucketed)
   addColumnsParameter("values", "Values", "valueColumns").
-    setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
+    setRequired().setNumericColumn().setPropPath("columns.values").setTip("Value column(s)");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setPropPath("columns.name").setTip("Custom group name");
+    setStringColumn().setPropPath("columns.name").setTip("Custom group name");
 
   addColumnParameter("data", "Data", "dataColumn").
     setPropPath("columns.data").setTip("Alternate data column for bucket values");

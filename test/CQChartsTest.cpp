@@ -328,7 +328,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
 
   for ( ; ! args.eof(); args.next()) {
     if (args.isOpt()) {
-      QString arg = args.opt();
+      auto arg = args.opt();
 
       if      (arg == "dark") {
         mainData.dark = true;
@@ -410,7 +410,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString columnsStr;
 
         if (args.parseOpt(columnsStr)) {
-          QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
+          auto strs = columnsStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -453,7 +453,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString boolStr;
 
         if (args.parseOpt(boolStr)) {
-          QStringList strs = boolStr.split(",", QString::SkipEmptyParts);
+          auto strs = boolStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -488,7 +488,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString stringStr;
 
         if (args.parseOpt(stringStr)) {
-          QStringList strs = stringStr.split(",", QString::SkipEmptyParts);
+          auto strs = stringStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -515,7 +515,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString realStr;
 
         if (args.parseOpt(realStr)) {
-          QStringList strs = realStr.split(",", QString::SkipEmptyParts);
+          auto strs = realStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -852,7 +852,7 @@ initPlot(const CQChartsInitData &initData)
   if (initData.process.length()) {
     ModelP model = modelData->currentModel();
 
-    QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
+    auto strs = initData.process.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
       CQChartsModelUtil::processExpression(model.data(), strs[i]);
@@ -861,7 +861,7 @@ initPlot(const CQChartsInitData &initData)
   if (initData.processAdd.length()) {
     ModelP model = modelData->currentModel();
 
-    QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
+    auto strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
       CQChartsModelUtil::processAddExpression(model.data(), strs[i]);
@@ -951,7 +951,7 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
   //---
 
-  QString typeName = CQChartsCmds::fixTypeName(initData.typeName);
+  auto typeName = CQChartsCmds::fixTypeName(initData.typeName);
 
   if (typeName == "")
     return nullptr;
@@ -1071,7 +1071,7 @@ void
 CQChartsTest::
 plotObjPressedSlot(CQChartsPlotObj *obj)
 {
-  QString id = obj->id();
+  auto id = obj->id();
 
   if (id.length())
     errorMsg(id);

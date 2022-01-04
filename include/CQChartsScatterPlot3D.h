@@ -372,6 +372,13 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   void execDrawForeground(PaintDevice *device) const override;
 
+  //---
+
+  void init3D() override;
+  void draw3D() override;
+
+  void drawAxes3D();
+
  private:
   void addObjs() const;
 
@@ -411,6 +418,8 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
  protected slots:
   void dataLabelChanged();
 
+  void colorChanged();
+
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
@@ -419,16 +428,6 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   using GroupPoints = std::map<int, Points>;
 
  protected:
-  struct SymbolTypeData {
-    Column column;             //!< symbol type column
-    bool   valid    { false }; //!< symbol type valid
-    bool   mapped   { false }; //!< symbol type values mapped
-    int    data_min { 0 };     //!< model data min
-    int    data_max { 1 };     //!< model data max
-    int    map_min  { 0 };     //!< mapped size min
-    int    map_max  { 1 };     //!< mapped size max
-  };
-
   struct SymbolSizeData {
     Column  column;              //!< symbol size column
     bool    valid     { false }; //!< symbol size valid
@@ -475,6 +474,10 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   using GroupObj = std::map<int, GroupData>;
 
   mutable GroupObj groupObj_;
+
+  bool init3D_ { false };
+
+  ValuesData values3D_;
 };
 
 //---

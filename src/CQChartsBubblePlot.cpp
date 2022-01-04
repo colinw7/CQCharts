@@ -27,10 +27,10 @@ addParameters()
   startParameterGroup("Bubble");
 
   addColumnParameter("name", "Name", "nameColumn").
-   setString().setPropPath("columns.name").setTip("Name Column");
+   setStringColumn().setPropPath("columns.name").setTip("Name Column");
 
   addColumnParameter("value", "Value", "valueColumn").
-   setNumeric().setRequired().setPropPath("columns.value").setTip("Value Column");
+   setNumericColumn().setRequired().setPropPath("columns.value").setTip("Value Column");
 
   endParameterGroup();
 

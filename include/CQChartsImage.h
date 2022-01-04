@@ -97,12 +97,12 @@ class CQChartsImage :
   static QImage svgToImage(const QString &filename, int w, int h);
 
  private:
-  QImage           image_;                   //! qimage
-  QIcon            icon_;                    //! qicon
-  Type             type_     { Type::NONE }; //! file type
-  QString          filename_;                //! filename
-  bool             resolved_ { false };      //! resolved
-  mutable QPixmap* pixmap_   { nullptr };    //! cached svg pixmap
+  QImage           image_;                   //!< qimage
+  QIcon            icon_;                    //!< qicon
+  Type             type_     { Type::NONE }; //!< file type
+  QString          filename_;                //!< filename
+  bool             resolved_ { false };      //!< resolved
+  mutable QPixmap* pixmap_   { nullptr };    //!< cached svg pixmap
 };
 
 //---

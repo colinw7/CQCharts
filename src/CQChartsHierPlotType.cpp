@@ -15,11 +15,11 @@ addParameters()
   startParameterGroup("Hierarchy");
 
   addColumnsParameter("name", "Name", "nameColumns").
-   setRequired().setString().setPropPath("columns.name").
+   setRequired().setStringColumn().setPropPath("columns.name").
    setTip("Hierarchical path columns for data");
 
   addColumnParameter("value", "Value", "valueColumn").setBasic().
-   setNumeric().setPropPath("columns.value").setTip("Data value column");
+   setNumericColumn().setPropPath("columns.value").setTip("Data value column");
 
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
    setTip("Separator for hierarchical path in name column");

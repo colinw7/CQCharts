@@ -66,7 +66,7 @@ class CQChartsModelColumn :
   bool fromString(const QString &s);
 
  private:
-  CQCharts* charts_   { nullptr }; //! charts
+  CQCharts* charts_   { nullptr }; //!< charts
   int       modelInd_ { -1 };      //!< model index
   Column    column_;               //!< column
 };

@@ -5,7 +5,6 @@
 #include <CQChartsModelDetails.h>
 
 #include <CQPropertyViewItem.h>
-#include <CQTabSplit.h>
 #include <CQPerfMonitor.h>
 
 CQChartsGroupPlotType::
@@ -63,7 +62,7 @@ addParameters()
 //---
 
 CQChartsGroupPlot::
-CQChartsGroupPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
+CQChartsGroupPlot(View *view, PlotType *plotType, const ModelP &model) :
  CQChartsPlot(view, plotType, model)
 {
 }
@@ -280,7 +279,7 @@ addGroupingProperties()
 
 void
 CQChartsGroupPlot::
-setGroupBucket(CQChartsColumnBucket *groupBucket)
+setGroupBucket(Bucket *groupBucket)
 {
   delete groupBucket_;
 
@@ -358,14 +357,14 @@ CQChartsColumnBucket *
 CQChartsGroupPlot::
 initGroup(CQChartsGroupData &data) const
 {
-  auto *columnBucket = new CQChartsColumnBucket;
+  auto *columnBucket = new Bucket;
 
   //---
 
   // when not row grouping we use the column header as the grouping id so all row
   // values in the column are added to the group
   if (data.columns.count() > 1 && ! data.rowGrouping) {
-    columnBucket->setDataType   (CQChartsColumnBucket::DataType::HEADER);
+    columnBucket->setDataType   (Bucket::DataType::HEADER);
     columnBucket->setColumnType (ColumnType::INTEGER);
     columnBucket->setRowGrouping(false);
 
@@ -409,9 +408,9 @@ initGroup(CQChartsGroupData &data) const
       columnType = columnValueType(column);
 
     if (isHierarchical())
-      columnBucket->setDataType(CQChartsColumnBucket::DataType::COLUMN_ROOT);
+      columnBucket->setDataType(Bucket::DataType::COLUMN_ROOT);
     else
-      columnBucket->setDataType(CQChartsColumnBucket::DataType::COLUMN);
+      columnBucket->setDataType(Bucket::DataType::COLUMN);
 
     columnBucket->setColumnType(columnType);
     columnBucket->setColumn    (column);
@@ -442,9 +441,9 @@ initGroup(CQChartsGroupData &data) const
     }
 
     if (isHierarchical())
-      columnBucket->setDataType(CQChartsColumnBucket::DataType::COLUMN_ROOT);
+      columnBucket->setDataType(Bucket::DataType::COLUMN_ROOT);
     else
-      columnBucket->setDataType(CQChartsColumnBucket::DataType::COLUMN);
+      columnBucket->setDataType(Bucket::DataType::COLUMN);
 
     columnBucket->setColumnType(columnType);
     columnBucket->setColumn    (data.column);
@@ -453,11 +452,11 @@ initGroup(CQChartsGroupData &data) const
   else if (data.usePath) {
     assert(isHierarchical());
 
-    columnBucket->setDataType  (CQChartsColumnBucket::DataType::PATH);
+    columnBucket->setDataType  (Bucket::DataType::PATH);
     columnBucket->setColumnType(ColumnType::STRING);
   }
   else {
-    columnBucket->setDataType  (CQChartsColumnBucket::DataType::NONE);
+    columnBucket->setDataType  (Bucket::DataType::NONE);
     columnBucket->setColumnType(data.useRow ? ColumnType::INTEGER : ColumnType::STRING);
   }
 
@@ -470,21 +469,21 @@ initGroup(CQChartsGroupData &data) const
   // process model data
   class GroupVisitor : public ModelVisitor {
    public:
-    GroupVisitor(const CQChartsGroupPlot *plot, CQChartsColumnBucket *bucket, bool hier) :
+    GroupVisitor(const CQChartsGroupPlot *plot, Bucket *bucket, bool hier) :
      plot_(plot), bucket_(bucket), hier_(hier) {
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
       // add column value
-      if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
-               bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+      if      (bucket_->dataType() == Bucket::DataType::COLUMN ||
+               bucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
         ModelIndex rootInd(plot_, data.row, bucket_->column(), data.parent);
 
         bool ok;
 
         QVariant value;
 
-        if (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+        if (bucket_->dataType() == Bucket::DataType::COLUMN_ROOT)
           value = plot_->modelRootValue(rootInd, ok);
         else
           value = plot_->modelHierValue(rootInd, ok);
@@ -500,7 +499,7 @@ initGroup(CQChartsGroupData &data) const
         }
       }
       // add parent path (hierarchical)
-      else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
+      else if (bucket_->dataType() == Bucket::DataType::PATH) {
         auto path = CQChartsModelUtil::parentPath(model, data.parent);
 
         bucket_->addString(path);
@@ -518,7 +517,7 @@ initGroup(CQChartsGroupData &data) const
 
    private:
     const CQChartsGroupPlot* plot_   { nullptr };
-    CQChartsColumnBucket*    bucket_ { nullptr };
+    Bucket*                  bucket_ { nullptr };
     bool                     hier_   { false };
   };
 
@@ -616,21 +615,21 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
     return false;
 
   // header has multiple groups (one per column)
-  if      (groupBucket_->dataType() == CQChartsColumnBucket::DataType::HEADER) {
+  if      (groupBucket_->dataType() == Bucket::DataType::HEADER) {
     int ind1 = groupBucket_->ind(ind.column().column());
 
     inds.push_back(ind1);
   }
   // get group id from value in group column
-  else if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
-           groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+  else if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
+           groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
     ModelIndex rootInd(this, ind.row(), groupBucket_->column(), ind.parent());
 
     bool ok;
 
     QVariant value;
 
-    if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+    if (groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT)
       value = modelRootValue(rootInd, ok);
     else
       value = modelHierValue(rootInd, ok);
@@ -662,7 +661,7 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
     }
   }
   // get group id from parent path name
-  else if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
+  else if (groupBucket_->dataType() == Bucket::DataType::PATH) {
     auto path = CQChartsModelUtil::parentPath(model, ind.parent());
 
     if (hier) {
@@ -749,14 +748,14 @@ bool
 CQChartsGroupPlot::
 isGroupHeaders() const
 {
-  return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::HEADER);
+  return (groupBucket()->dataType() == Bucket::DataType::HEADER);
 }
 
 bool
 CQChartsGroupPlot::
 isGroupPathType() const
 {
-  return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::PATH);
+  return (groupBucket()->dataType() == Bucket::DataType::PATH);
 }
 
 int
@@ -820,8 +819,8 @@ groupIndName(int ind, bool hier) const
   if (! groupBucket_)
     return "";
 
-  if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
-      groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+  if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
+      groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
     if      (groupBucket_->isExactValue()) {
       return groupBucket_->indName(ind);
     }
@@ -848,8 +847,8 @@ groupType() const
   if (! groupBucket_)
     return ColumnType::STRING;
 
-  if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
-      groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+  if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
+      groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT)
     return groupBucket_->columnType();
 
   return ColumnType::STRING;
@@ -862,8 +861,8 @@ groupIndValue(int ind) const
   if (! groupBucket_)
     return QVariant();
 
-  if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
-      groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
+  if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
+      groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
     return groupBucket_->bucketValue(ind);
   }
 

@@ -103,6 +103,9 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   // set horizontal
   virtual void setHorizontal(bool b);
 
+ protected slots:
+  void dataLabelChanged();
+
  protected:
   using DataLabelP = std::shared_ptr<DataLabel>;
 

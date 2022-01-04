@@ -41,12 +41,13 @@ addParameters()
 
   // columns
   addColumnParameter ("x", "X", "xColumn").
-    setRequired().setMonotonic().setNumeric().setPropPath("columns.x").setTip("X Value Column");
+    setRequired().setMonotonic().setNumericColumn().
+    setPropPath("columns.x").setTip("X Value Column");
   addColumnsParameter("y", "Y", "yColumns").
-    setRequired().setNumeric().setPropPath("columns.y").setTip("Y Value Column(s)");
+    setRequired().setNumericColumn().setPropPath("columns.y").setTip("Y Value Column(s)");
 
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setPropPath("columns.label").setTip("Optional Label Column");
+    setStringColumn().setPropPath("columns.label").setTip("Optional Label Column");
 
   //---
 
@@ -73,8 +74,8 @@ addParameters()
   // vector columns
   startParameterGroup("Vectors");
 
-  addColumnParameter("vectorX", "Vector X", "vectorXColumn").setNumeric();
-  addColumnParameter("vectorY", "Vector Y", "vectorYColumn").setNumeric();
+  addColumnParameter("vectorX", "Vector X", "vectorXColumn").setNumericColumn();
+  addColumnParameter("vectorY", "Vector Y", "vectorYColumn").setNumericColumn();
 
   addBoolParameter("vectors", "Vectors", "vectors");
 
@@ -4875,24 +4876,25 @@ addWidgets()
   // options group
   auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
 
-  pointsCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Points"    , "pointsCheck");
-  linesCheck_     = CQUtil::makeLabelWidget<QCheckBox>("Lines"     , "linesCheck");
-  fillUnderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Fill Under", "fillUnderCheck");
-
-  stackedCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Stacked"       , "stackedCheck");
-  impulseCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Impulse"       , "impulseCheck");
-  bestFitCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"      , "bestFitCheck");
-  hullCheck_          = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull"   , "hullCheck");
-  movingAverageCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Moving Average", "movingAverageCheck");
+  pointsCheck_ = makeOptionCheck("points");
+  linesCheck_  = makeOptionCheck("lines");
 
   addFrameColWidget(optionsFrame, pointsCheck_);
   addFrameColWidget(optionsFrame, linesCheck_ );
   addFrameSpacer   (optionsFrame);
 
+  fillUnderCheck_ = makeOptionCheck("fillUnder");
+  stackedCheck_   = makeOptionCheck("stacked");
+  impulseCheck_   = makeOptionCheck("impulse");
+
   addFrameColWidget(optionsFrame, fillUnderCheck_);
   addFrameColWidget(optionsFrame, stackedCheck_  );
   addFrameColWidget(optionsFrame, impulseCheck_  );
   addFrameSpacer   (optionsFrame);
+
+  bestFitCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"      , "bestFitCheck");
+  hullCheck_          = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull"   , "hullCheck");
+  movingAverageCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Moving Average", "movingAverageCheck");
 
   addFrameColWidget(optionsFrame, bestFitCheck_      );
   addFrameColWidget(optionsFrame, hullCheck_         );

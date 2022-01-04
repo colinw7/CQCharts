@@ -40,13 +40,13 @@ addParameters()
 
   // args: name, desc, propName, attributes, default
   addColumnsParameter("values", "Value", "valueColumns").
-    setRequired().setNumeric().setPropPath("columns.values").setTip("Value column(s)");
+    setRequired().setNumericColumn().setPropPath("columns.values").setTip("Value column(s)");
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setBasic().setPropPath("columns.label").setTip("Custom label column");
+    setStringColumn().setBasic().setPropPath("columns.label").setTip("Custom label column");
   addColumnParameter("radius", "Radius", "radiusColumn").
-    setNumeric().setPropPath("columns.radius").setTip("Custom radius column");
+    setNumericColumn().setPropPath("columns.radius").setTip("Custom radius column");
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
-    setString().setPropPath("columns.keyLabel").setTip("Custom key label column");
+    setStringColumn().setPropPath("columns.keyLabel").setTip("Custom key label column");
 
   addEnumParameter("drawType", "Draw Type", "drawType").
     addNameValue("PIE"    , int(CQChartsPiePlot::DrawType::PIE)).
@@ -54,12 +54,18 @@ addParameters()
     addNameValue("WAFFLE" , int(CQChartsPiePlot::DrawType::WAFFLE)).
     setTip("Draw type");
 
-  addBoolParameter("separated" , "Separated"  , "separated" ).setTip("Draw separated");
-  addBoolParameter("donut"     , "Donut"      , "donut"     ).setTip("Draw donut");
-  addBoolParameter("summary"   , "Summary"    , "summary"   ).setTip("Draw summary");
-  addBoolParameter("dumbbell"  , "Dumbbell"   , "dumbbell"  ).setTip("Draw dumbbell");
-  addBoolParameter("count"     , "Count"      , "count"     ).setTip("Display value counts");
-  addBoolParameter("donutTitle", "Donut Title", "donutTitle").setTip("Display title in donut");
+  addBoolParameter("separated", "Separated", "separated" ).
+    setTip("Draw grouped pie charts separately");
+
+  addBoolParameter("donut"     , "Donut"      , "donut"     ).
+    setTip("Display pie as donut using inner radius");
+  addBoolParameter("donutTitle", "Donut Title", "donutTitle").setTip("how title in donut center");
+
+  addBoolParameter("summary", "Summary", "summary").setTip("Draw summary group");
+  addBoolParameter("count"  , "Count"  , "count"  ).setTip("Show count of groups");
+
+  addBoolParameter("dumbbell"   , "Dumbbell"    , "dumbbell"   ).setTip("Draw group dumbbell");
+  addBoolParameter("dumbbellPie", "Dumbbell Pie", "dumbbellPie").setTip("Draw group dumbbell");
 
   endParameterGroup();
 
@@ -81,17 +87,20 @@ description() const
     h3("Summary").
      p("Draw circle segments with diameter from a set of values.").
      p("The segments can be restricted to an inner radius and a label "
-       "can be displated at the center of the circle.").
+       "can be displayed at the center of the circle.").
     h3("Columns").
      p("The values come from the " + B("Values") + " column.").
-     p("Optional labels crom from the " + B("Labels") + " column.").
+     p("Optional labels come from the " + B("Labels") + " column.").
      p("A custom pie slice radius can be specified in the " + B("Radius") + " column.").
     h3("Options").
      p("All pie slices can start at a specified inner radius by enabling the " +
        B("Donut") + " option.").
      p("The label can include the value using the " + B("Count") + " option.").
+     p("Grouped data can be displayed as separate circular regions or as separated "
+       "pie charts using the " + B("Separated") + " option.").
+     p("The pie can be displayed alternatively as a treemap or waffle plot.").
     h3("Limitations").
-     p("This plot does not support a user specified range, axes, lograithmic scales, "
+     p("This plot does not support a user specified range, axes, logarithmic scales, "
        "or probing.").
      p("The plot does not support a X/Y axes.").
     h3("Example").
@@ -382,6 +391,14 @@ calcDumbbell() const
   return (isSeparated() && ! isSummary());
 }
 
+void
+CQChartsPiePlot::
+setDumbbellPie(bool b)
+{
+  CQChartsUtil::testAndSet(dumbbellPie_, b, [&]() {
+   updateRangeAndObjs(); emit customDataChanged(); } );
+}
+
 //---
 
 void
@@ -569,13 +586,14 @@ addProperties()
   addGroupingProperties();
 
   // options
-  addProp("options", "drawType"  , "", "Draw type");
-  addProp("options", "separated" , "", "Draw grouped pie charts separately");
-  addProp("options", "donut"     , "", "Display as donut using inner radius");
-  addProp("options", "summary"   , "", "Draw summary group");
-  addProp("options", "dumbbell"  , "", "Draw dumbbell");
-  addProp("options", "count"     , "", "Show count of groups");
-  addProp("options", "donutTitle", "", "Show title in donut center");
+  addProp("options", "drawType"   , "", "Draw type");
+  addProp("options", "separated"  , "", "Draw grouped pie charts separately");
+  addProp("options", "donut"      , "", "Display as donut using inner radius");
+  addProp("options", "donutTitle" , "", "Show title in donut center");
+  addProp("options", "dumbbell"   , "", "Draw group dumbbell");
+  addProp("options", "dumbbellPie", "", "Draw group dumbbell pie");
+  addProp("options", "summary"    , "", "Draw summary group");
+  addProp("options", "count"      , "", "Show count of groups");
 
   addProp("options", "valueType", "", "Value type (when multiple values per name)");
   addProp("options", "minValue" , "", "Custom min value");
@@ -3288,8 +3306,9 @@ drawDumbbell(PaintDevice *device) const
   //---
 
   // draw range line
-  double x1 = (plot_->drawType() != CQChartsPiePlot::DrawType::NONE ?
-                 c.x + ro + 24*dxt : -1.0 + 8*dxt);
+  bool showPie = plot_->isDumbbellPie();
+
+  double x1 = (showPie ?  c.x + ro + 24*dxt : -1.0 + 8*dxt);
   double x2 = 1.0 - 8*dxt;
 
   PenBrush groupPenBrush;
@@ -3421,7 +3440,7 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  // draw text at center if donut or summary
+  // draw text at center of donut or summary
   bool drawText = (plot()->calcDonut() || plot()->isSummary());
 
   if (drawText)
@@ -3542,6 +3561,9 @@ CQChartsPieGroupObj::
 getRadii(double &ri, double &ro) const
 {
   bool separated = plot_->calcSeparated();
+  bool dumbbell  = plot_->calcDumbbell();
+  bool donut     = plot_->calcDonut();
+  bool treemap   = plot_->calcTreeMap();
 
   // empty group
   //  . not separated is whole circle
@@ -3565,8 +3587,8 @@ getRadii(double &ri, double &ro) const
   else {
     // if donut
     //   . not separated then group is from 0.0 to plot inner radius (already set)
-    //   . separeted then group is from 0.0 to scaled plot inner radius
-    if      (plot()->calcDonut()) {
+    //   . separated then group is from 0.0 to scaled plot inner radius
+    if      (donut && ! dumbbell) {
       if (! separated) {
         if (! plot()->isSummary()) {
           ri = innerRadius();
@@ -3582,7 +3604,7 @@ getRadii(double &ri, double &ro) const
         ro = plot()->innerRadius()*outerRadius();
       }
     }
-    else if (plot()->calcTreeMap() && separated) {
+    else if (treemap && separated) {
       ri = 0.0;
       ro = outerRadius()*plot_->outerRadius();
     }
@@ -3594,7 +3616,7 @@ getRadii(double &ri, double &ro) const
         ro = outerRadius()*plot_->outerRadius();
       else
         ro = plot()->outerRadius();
-    //ri = std::min(std::max(plot()->calcDonut() ? plot()->innerRadius()*ro : 0.0, 0.0), 1.0);
+    //ri = std::min(std::max(donut ? plot()->innerRadius()*ro : 0.0, 0.0), 1.0);
     }
   }
 }
@@ -3771,6 +3793,9 @@ void
 CQChartsPiePlotCustomControls::
 addWidgets()
 {
+  auto *plotType = this->plotType();
+  assert(plotType);
+
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -3789,21 +3814,21 @@ addWidgets()
   drawTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("drawTypeCombo");
 
   drawTypeCombo_->setPropName("drawType");
-
-  separatedCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Separated", "separatedCheck");
+  drawTypeCombo_->setToolTip("Draw Type");
 
   addFrameColWidget(optionsFrame, drawTypeCombo_ );
+
+  separatedCheck_ = makeOptionCheck("separated");
+  donutCheck_     = makeOptionCheck("donut");
+  summaryCheck_   = makeOptionCheck("summary");
+  dumbbellCheck_  = makeOptionCheck("dumbbell");
+  countCheck_     = makeOptionCheck("count");
+
   addFrameColWidget(optionsFrame, separatedCheck_);
-
-  donutCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Donut"   , "donutCheck"   );
-  summaryCheck_  = CQUtil::makeLabelWidget<QCheckBox>("Summary" , "summaryCheck" );
-  dumbbellCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Dumbbell", "dumbbellCheck");
-  countCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Count"   , "countCheck"   );
-
-  addFrameColWidget(optionsFrame, donutCheck_   );
-  addFrameColWidget(optionsFrame, summaryCheck_ );
+  addFrameColWidget(optionsFrame, donutCheck_);
+  addFrameColWidget(optionsFrame, summaryCheck_);
   addFrameColWidget(optionsFrame, dumbbellCheck_);
-  addFrameColWidget(optionsFrame, countCheck_   );
+  addFrameColWidget(optionsFrame, countCheck_);
 
   addFrameColWidget(optionsFrame, CQChartsWidgetUtil::createHStretch());
 
