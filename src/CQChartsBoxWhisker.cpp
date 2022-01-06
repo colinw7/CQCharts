@@ -83,15 +83,35 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
     Polygon poly;
 
     poly.addPoint(Point(p2.x, p2.y));
-    poly.addPoint(Point(p4.x, p2.y));
-    poly.addPoint(Point(p4.x, p6.y));
-    poly.addPoint(Point(p7.x, p3.y));
-    poly.addPoint(Point(p4.x, p7.y));
+
+    if (orientation != Qt::Horizontal) {
+      poly.addPoint(Point(p4.x, p2.y));
+      poly.addPoint(Point(p4.x, p6.y));
+      poly.addPoint(Point(p7.x, p3.y));
+      poly.addPoint(Point(p4.x, p7.y));
+    }
+    else {
+      poly.addPoint(Point(p2.x, p4.y));
+      poly.addPoint(Point(p6.x, p4.y));
+      poly.addPoint(Point(p3.x, p7.y));
+      poly.addPoint(Point(p7.x, p4.y));
+    }
+
     poly.addPoint(Point(p4.x, p4.y));
-    poly.addPoint(Point(p2.x, p4.y));
-    poly.addPoint(Point(p2.x, p7.y));
-    poly.addPoint(Point(p6.x, p3.y));
-    poly.addPoint(Point(p2.x, p6.y));
+
+    if (orientation != Qt::Horizontal) {
+      poly.addPoint(Point(p2.x, p4.y));
+      poly.addPoint(Point(p2.x, p7.y));
+      poly.addPoint(Point(p6.x, p3.y));
+      poly.addPoint(Point(p2.x, p6.y));
+    }
+    else {
+      poly.addPoint(Point(p4.x, p2.y));
+      poly.addPoint(Point(p7.x, p2.y));
+      poly.addPoint(Point(p3.x, p6.y));
+      poly.addPoint(Point(p6.x, p2.y));
+    }
+
     poly.addPoint(Point(p2.x, p2.y));
 
     device->drawPolygon(poly);

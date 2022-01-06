@@ -515,7 +515,7 @@ HEADERS += \
 ../include/CQChartsSymbol.h \
 ../include/CQChartsSymbolType.h \
 ../include/CQChartsSymbolSet.h \
-../include/CQChartsSymbolBuffer.cpp \
+../include/CQChartsSymbolBuffer.h \
 \
 ../include/CQChartsImage.h \
 ../include/CQChartsWidget.h \

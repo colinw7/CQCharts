@@ -142,6 +142,8 @@ description() const
      p("The box can be drawn as an error bar.").
     h3("Data Points").
      p("The individual points can be displayed (if supplied) using jitter or stacked points.").
+     p("Jitter points are placed randomly in the distribution range. Stacked points are "
+       "stacked outwards from the center line on alternate sides.").
      p("The " + B("color") + " column can be used to customize the point color by the "
        "associated data value.").
     h3("Customization").
@@ -516,7 +518,7 @@ addProperties()
     setMinValue(0.0).setMaxValue(0.5);
 
   // jitter
-  addProp("points", "pointsType", "type", "Draw jitter or scatter points");
+  addProp("points", "pointsType", "type", "Draw jitter or stacked points");
 
   addSymbolProperties("points/symbol", "jitter", "Points");
 
@@ -1573,6 +1575,8 @@ initRawObjs(PlotObjs &objs) const
   double bw2 = lengthPlotSize(boxWidth   (), isVertical())/2.0;
   double vw2 = lengthPlotSize(violinWidth(), isVertical())/2.0;
 
+  double ymargin = this->ymargin();
+
   //---
 
   int ig = 0;
@@ -1625,7 +1629,7 @@ initRawObjs(PlotObjs &objs) const
                    pos - sbw, whisker->lowerMedian(), pos + sbw, whisker->upperMedian());
         else
           rect = CQChartsGeom::makeDirBBox(/*flipped*/ isHorizontal(),
-                   pos - sbw, 0.0, pos + sbw, 1.0);
+                   pos - sbw, ymargin, pos + sbw, 1.0 - ymargin);
 
         auto *boxObj = createWhiskerObj(rect, setId, groupInd, whisker,
                                         ColorInd(is, ns), ColorInd(ig, ng));
@@ -1635,8 +1639,6 @@ initRawObjs(PlotObjs &objs) const
         //---
 
         if (isShowOutliers()) {
-          double ymargin = this->ymargin();
-
           double osx, osy;
 
           plotSymbolSize(outlierSymbolSize(), osx, osy);
@@ -1722,6 +1724,8 @@ CQChartsBoxPlot::
 addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                 const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
+  double ymargin = this->ymargin();
+
   double vw2 = lengthPlotSize(violinWidth(), isVertical())/2.0;
 
   const auto &density = whisker->density();
@@ -1730,6 +1734,14 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
   double ymax = density.ymax();
 
   CQChartsRand::RealInRange rand(-vw2, vw2);
+
+  //---
+
+  double sx, sy;
+
+  plotSymbolSize(jitterSymbolSize(), sx, sy);
+
+  //---
 
   int nv = whisker->numValues();
 
@@ -1743,27 +1755,17 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     double x = pos + yv*d;
     double y = value.value;
 
-    double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers()) : y);
+    double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers(), ymargin) : y);
 
     Point pos1;
     BBox  rect;
 
-    if (isVertical()) {
+    if (isVertical())
       pos1 = Point(x, y1);
-
-      if (! isNormalized())
-        rect = BBox(x - 0.1, y1 - 0.1, x + 0.1, y1 + 0.1);
-      else
-        rect = BBox(x - 0.01, y1 - 0.01, x + 0.01, y1 + 0.01);
-    }
-    else {
+    else
       pos1 = Point(y1, x);
 
-      if (! isNormalized())
-        rect = BBox(y1 - 0.1, x - 0.1, y1 + 0.1, x + 0.1);
-      else
-        rect = BBox(y1 - 0.01, x - 0.01, y1 + 0.01, x + 0.01);
-    }
+    rect = BBox(pos1.x - sx, pos1.y - sy, pos1.x + sx, pos1.y + sy);
 
     auto *pointObj = createPointObj(rect, setId, groupInd, pos1, value.ind,
                                     is, ig, ColorInd(iv, nv));
@@ -1787,6 +1789,8 @@ CQChartsBoxPlot::
 addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
+  double ymargin = this->ymargin();
+
   using Rects    = std::vector<BBox>;
   using PosRects = std::map<int, Rects>;
 
@@ -1886,7 +1890,7 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     double x = pos;
     double y = value.value;
 
-    double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers()) : y);
+    double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers(), ymargin) : y);
 
     Point pos;
     BBox  rect;
@@ -1910,13 +1914,12 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
       else
         ppos.setY(prect.getYMid());
 
-      pointObj = createPointObj(prect, setId, groupInd, ppos, value.ind,
-                                is, ig, ColorInd(iv, nv));
+      rect = prect;
+      pos  = ppos;
     }
-    else {
-      pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
-                                is, ig, ColorInd(iv, nv));
-    }
+
+    pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
+                              is, ig, ColorInd(iv, nv));
 
     Color pointColor;
 
@@ -1936,6 +1939,8 @@ bool
 CQChartsBoxPlot::
 initCalcObjs(PlotObjs &objs) const
 {
+  double ymargin = this->ymargin();
+
   int is = 0;
   int ns = whiskerDataList_.size();
 
@@ -1954,7 +1959,7 @@ initCalcObjs(PlotObjs &objs) const
                pos + bw, whiskerData.statData.upperMedian);
     else
       rect = CQChartsGeom::makeDirBBox(/*flipped*/isHorizontal(),
-               pos - bw, 0.0, pos + bw, 1.0);
+               pos - bw, ymargin, pos + bw, 1.0 - ymargin);
 
     auto *boxObj = createDataObj(rect, whiskerData, ColorInd(is, ns));
 
@@ -1965,8 +1970,6 @@ initCalcObjs(PlotObjs &objs) const
     //---
 
     if (isShowOutliers()) {
-      double ymargin = this->ymargin();
-
       double osx, osy;
 
       plotSymbolSize(outlierSymbolSize(), osx, osy);
@@ -2996,8 +2999,16 @@ void
 CQChartsBoxPlotOutlierObj::
 draw(PaintDevice *device) const
 {
-  auto symbol     = plot_->outlierSymbol();
-  auto symbolSize = plot_->outlierSymbolSize();
+  auto symbol = plot_->outlierSymbol();
+
+  if (! symbol.isValid())
+    return;
+
+  //auto symbolSize = plot_->outlierSymbolSize();
+  auto prect = device->windowToPixel(rect());
+
+  auto xs = Length::pixel(prect.getWidth ()/2.0);
+  auto ys = Length::pixel(prect.getHeight()/2.0);
 
   //---
 
@@ -3022,13 +3033,9 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  double ox = rect_.getXYMid(plot_->isVertical());
-  double oy = rect_.getXYMid(plot_->isHorizontal());
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  Point pos(ox, oy);
-
-  if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pos, symbolSize);
+  CQChartsDrawUtil::drawSymbol(device, symbol, rect_.getCenter(), xs, ys);
 }
 
 double
@@ -3753,9 +3760,16 @@ bool
 CQChartsBoxPlotPointObj::
 inside(const Point &p) const
 {
-  auto p1 = plot_->windowToPixel(Point(p_.x, p_.y));
+  auto prect = plot_->windowToPixel(rect());
 
-  BBox pbbox(p1.x - 4, p1.y - 4, p1.x + 4, p1.y + 4);
+  auto xs = std::max(prect.getWidth ()/2.0, 4.0);
+  auto ys = std::max(prect.getHeight()/2.0, 4.0);
+
+  //---
+
+  auto p1 = plot_->windowToPixel(p_);
+
+  BBox pbbox(p1.x - xs, p1.y - ys, p1.x + xs, p1.y + ys);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -3773,8 +3787,16 @@ void
 CQChartsBoxPlotPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol     = plot_->jitterSymbol();
-  auto symbolSize = plot_->jitterSymbolSize();
+  auto symbol = plot_->jitterSymbol();
+
+  if (! symbol.isValid())
+    return;
+
+  //auto symbolSize = plot_->jitterSymbolSize();
+  auto prect = device->windowToPixel(rect());
+
+  auto xs = Length::pixel(prect.getWidth ()/2.0);
+  auto ys = Length::pixel(prect.getHeight()/2.0);
 
   //---
 
@@ -3799,8 +3821,9 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawSymbol(device, symbol, p_, xs, ys);
 }
 
 //------

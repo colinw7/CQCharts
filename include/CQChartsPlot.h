@@ -282,6 +282,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // default symbol set name
   Q_PROPERTY(QString defaultSymbolSetName READ defaultSymbolSetName WRITE setDefaultSymbolSetName)
 
+  // scale symbol size
+  Q_PROPERTY(bool scaleSymbolSize READ isScaleSymbolSize WRITE setScaleSymbolSize)
+
   // scaled fonts
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
@@ -580,6 +583,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const DisplayRange &displayRange() const;
   void setDisplayRange(const DisplayRange &r);
 
+  const DisplayRange &rawDisplayRange() const;
+
   virtual const Range &dataRange() const;
   virtual void setDataRange(const Range &r, bool update=true);
 
@@ -597,6 +602,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
+
+  void pushZoom();
+  void popZoom();
 
   virtual double dataScaleX() const;
   virtual void setDataScaleX(double r);
@@ -737,6 +745,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setDefaultSymbolSetName(const QString &name) { defaultSymbolSetName_ = name; }
 
   CQChartsSymbolSet *defaultSymbolSet() const;
+
+  //! get/set scale symbol size
+  bool isScaleSymbolSize() const { return scaleSymbolSize_; }
+  void setScaleSymbolSize(bool b);
 
   //---
 
@@ -1796,7 +1808,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setPixelRange(const BBox &bbox);
 
   void resetWindowRange();
-  void setWindowRange(const BBox &bbox);
+  void setWindowRange(const BBox &rawBBox, const BBox &bbox);
 
   virtual bool isApplyDataRange() const;
   virtual void applyDataRangeAndDraw();
@@ -2283,6 +2295,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   BBox displayRangeBBox() const;
+  BBox rawDisplayRangeBBox() const;
 
   BBox calcDataPixelRect() const;
 
@@ -3389,10 +3402,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   PlotMargin    innerMargin_;                   //!< inner margin
   PlotMargin    outerMargin_;                   //!< outer margin
   DisplayRangeP displayRange_;                  //!< value range mapping
+  DisplayRangeP rawDisplayRange_;               //!< value range mapping (non zoom)
+  mutable bool  useRawRange_    { false };      //!< use raw display range
   Range         calcDataRange_;                 //!< calc data range
   Range         dataRange_;                     //!< data range
   Range         outerDataRange_;                //!< outer data range
   ZoomData      zoomData_;                      //!< zoom data
+  ZoomData      saveZoomData_;                  //!< saved zoom data
 
   // override range
   OptReal xmin_; //!< xmin override
@@ -3470,8 +3486,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // palette
   PaletteName defaultPalette_; //!< default palette
 
-  // symbol set
+  // symbol data
   QString defaultSymbolSetName_ { "filled" }; //!< default symbol set name
+  bool    scaleSymbolSize_      { true };     //!< scale pixel/percent symbol size
 
   // scaling
   bool equalScale_ { false }; //!< equal scaled

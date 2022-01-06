@@ -1566,7 +1566,7 @@ draw3D()
 
     camera_->init();
 
-    setWindowRange(BBox(-1, -1, 1, 1));
+    setWindowRange(BBox(-1, -1, 1, 1), BBox(-1, -1, 1, 1));
 
     init3D_ = true;
   }

@@ -103,9 +103,11 @@ init()
   queueUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_PLOT_QUEUE"    , queueUpdate_);
   bufferSymbols_ = CQChartsEnv::getInt ("CQ_CHARTS_BUFFER_SYMBOLS", bufferSymbols_);
 
-  displayRange_ = std::make_unique<DisplayRange>();
+  displayRange_    = std::make_unique<DisplayRange>();
+  rawDisplayRange_ = std::make_unique<DisplayRange>();
 
-  displayRange_->setPixelAdjust(0.0);
+  displayRange_   ->setPixelAdjust(0.0);
+  rawDisplayRange_->setPixelAdjust(0.0);
 
   //---
 
@@ -143,8 +145,6 @@ init()
   innerMargin_ = PlotMargin(Length("0P" ), Length("0P" ), Length("0P" ), Length("0P" ));
   outerMargin_ = PlotMargin(Length("10%"), Length("10%"), Length("10%"), Length("10%"));
   fitMargin_   = PlotMargin(Length("1%" ), Length("1%" ), Length("1%" ), Length("1%" ));
-
-  displayRange_->setPixelAdjust(0.0);
 
   setPixelRange(BBox(0.0, 0.0,  vr,  vr));
 
@@ -1607,6 +1607,15 @@ setDisplayRange(const DisplayRange &r)
   *displayRange_ = r;
 }
 
+const CQChartsDisplayRange &
+CQChartsPlot::
+rawDisplayRange() const
+{
+  assert(! isComposite());
+
+  return *rawDisplayRange_;
+}
+
 //---
 
 const CQChartsGeom::Range &
@@ -1664,6 +1673,24 @@ CQChartsPlot::
 objTreeRange() const
 {
   return dataRange();
+}
+
+//---
+
+void
+CQChartsPlot::
+pushZoom()
+{
+  saveZoomData_ = ZoomData();
+
+  std::swap(saveZoomData_, zoomData_);
+}
+
+void
+CQChartsPlot::
+popZoom()
+{
+  std::swap(saveZoomData_, zoomData_);
 }
 
 //---
@@ -2306,6 +2333,15 @@ CQChartsPlot::
 setDefaultPalette(const PaletteName &name)
 {
   CQChartsUtil::testAndSet(defaultPalette_, name, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
+setScaleSymbolSize(bool b)
+{
+  CQChartsUtil::testAndSet(scaleSymbolSize_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -3607,6 +3643,9 @@ addBaseProperties()
   // scaled font
   addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size", /*hidden*/true);
   addProp("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size", /*hidden*/true);
+
+  // scaled symbol
+  addProp("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom", /*hidden*/true);
 }
 
 void
@@ -5551,23 +5590,23 @@ applyDataRange(bool propagate)
   if (isOverlay()) {
     if (! propagate) {
       if      (isX1X2()) {
-        setWindowRange(adjustedRange);
+        setWindowRange(rawRange, adjustedRange);
       }
       else if (isY1Y2()) {
-        setWindowRange(adjustedRange);
+        setWindowRange(rawRange, adjustedRange);
       }
     }
     else {
       // This breaks X1X2 and Y1Y2 plots (wrong range)
       if (! isX1X2() && ! isY1Y2()) {
         processOverlayPlots([&](Plot *plot) {
-          plot->setWindowRange(adjustedRange);
+          plot->setWindowRange(rawRange, adjustedRange);
         });
       }
     }
   }
   else {
-    setWindowRange(adjustedRange);
+    setWindowRange(rawRange, adjustedRange);
   }
 
   if (propagate) {
@@ -5748,7 +5787,8 @@ setPixelRange(const BBox &bbox)
 {
   assert(! isComposite());
 
-  displayRange_->setPixelRange(bbox.getXMin(), bbox.getYMax(), bbox.getXMax(), bbox.getYMin());
+  displayRange_   ->setPixelRange(bbox.getXMin(), bbox.getYMax(), bbox.getXMax(), bbox.getYMin());
+  rawDisplayRange_->setPixelRange(bbox.getXMin(), bbox.getYMax(), bbox.getXMax(), bbox.getYMin());
 }
 
 void
@@ -5757,14 +5797,18 @@ resetWindowRange()
 {
   assert(! isComposite());
 
-  displayRange_->setWindowRange(0.0, 0.0, 1.0, 1.0);
+  displayRange_   ->setWindowRange(0.0, 0.0, 1.0, 1.0);
+  rawDisplayRange_->setWindowRange(0.0, 0.0, 1.0, 1.0);
 }
 
 void
 CQChartsPlot::
-setWindowRange(const BBox &bbox)
+setWindowRange(const BBox &rawBBox, const BBox &bbox)
 {
   assert(! isComposite());
+
+  rawDisplayRange_->setWindowRange(rawBBox.getXMin(), rawBBox.getYMin(),
+                                   rawBBox.getXMax(), rawBBox.getYMax());
 
   displayRange_->setWindowRange(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 }
@@ -13636,6 +13680,20 @@ displayRangeBBox() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
+rawDisplayRangeBBox() const
+{
+  // calc current (zoomed/panned) data range
+  double xmin, ymin, xmax, ymax;
+
+  rawDisplayRange().getWindowRange(&xmin, &ymin, &xmax, &ymax);
+
+  BBox bbox(xmin, ymin, xmax, ymax);
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
 calcDataPixelRect() const
 {
   // calc current (zoomed/panned) pixel range
@@ -16779,7 +16837,7 @@ positionToPlot(const Position &pos) const
   else if (pos.units() == Units::VIEW)
     p1 = pixelToWindow(view()->windowToPixel(p));
   else if (pos.units() == Units::PERCENT) {
-    auto pbbox = displayRangeBBox();
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
 
     p1.setX(pbbox.getXMin() + p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(pbbox.getYMin() + p.getY()*pbbox.getHeight()/100.0);
@@ -16851,7 +16909,7 @@ rectToPlot(const Rect &rect) const
   else if (rect.units() == Units::VIEW)
     r1 = pixelToWindow(view()->windowToPixel(r));
   else if (rect.units() == Units::PERCENT) {
-    auto pbbox = displayRangeBBox();
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
 
     r1.setXMin(pbbox.getXMin() + r.getXMin()*pbbox.getWidth ()/100.0);
     r1.setYMin(pbbox.getYMin() + r.getYMin()*pbbox.getHeight()/100.0);
@@ -16940,8 +16998,11 @@ lengthPlotWidth(const Length &len) const
     return len.value();
   else if (len.units() == Units::VIEW)
     return pixelToWindowWidth(view()->windowToPixelWidth(len.value()));
-  else if (len.units() == Units::PERCENT)
-    return len.value()*displayRangeBBox().getWidth()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    return len.value()*pbbox.getWidth()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToWindowWidth(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
@@ -16962,8 +17023,11 @@ lengthPlotHeight(const Length &len) const
     return len.value();
   else if (len.units() == Units::VIEW)
     return pixelToWindowHeight(view()->windowToPixelHeight(len.value()));
-  else if (len.units() == Units::PERCENT)
-    return len.value()*displayRangeBBox().getHeight()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    return len.value()*pbbox.getHeight()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToWindowHeight(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
@@ -16984,8 +17048,11 @@ lengthPlotSignedWidth(const Length &len) const
     return len.value();
   else if (len.units() == Units::VIEW)
     return pixelToSignedWindowWidth(view()->windowToPixelWidth(len.value()));
-  else if (len.units() == Units::PERCENT)
-    return len.value()*displayRangeBBox().getWidth()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    return len.value()*pbbox.getWidth()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowWidth(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
@@ -17006,8 +17073,11 @@ lengthPlotSignedHeight(const Length &len) const
     return len.value();
   else if (len.units() == Units::VIEW)
     return pixelToSignedWindowHeight(view()->windowToPixelHeight(len.value()));
-  else if (len.units() == Units::PERCENT)
-    return len.value()*displayRangeBBox().getHeight()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    return len.value()*pbbox.getHeight()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowHeight(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
@@ -17097,7 +17167,10 @@ void
 CQChartsPlot::
 windowToViewI(double wx, double wy, double &vx, double &vy) const
 {
-  displayRange().windowToPixel(wx, wy, &vx, &vy);
+  if (useRawRange_)
+    rawDisplayRange().windowToPixel(wx, wy, &vx, &vy);
+  else
+    displayRange().windowToPixel(wx, wy, &vx, &vy);
 
   if (isInvertX() || isInvertY()) {
     double ivx, ivy;
@@ -17172,7 +17245,10 @@ viewToWindowI(double vx, double vy, double &wx, double &wy) const
     if (isInvertY()) vy = ivy;
   }
 
-  displayRange().pixelToWindow(vx, vy, &wx, &wy);
+  if (useRawRange_)
+    rawDisplayRange().pixelToWindow(vx, vy, &wx, &wy);
+  else
+    displayRange().pixelToWindow(vx, vy, &wx, &wy);
 }
 
 double
@@ -17464,6 +17540,8 @@ void
 CQChartsPlot::
 plotSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
 {
+  useRawRange_ = isScaleSymbolSize();
+
   if (dir == Qt::Horizontal) {
     sx = lengthPlotWidth(s);
     sy = pixelToWindowHeight(windowToPixelWidth(sx));
@@ -17472,12 +17550,28 @@ plotSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &d
     sy = lengthPlotHeight(s);
     sx = pixelToWindowHeight(windowToPixelWidth(sy));
   }
+
+  useRawRange_ = false;
 }
 
 void
 CQChartsPlot::
 pixelSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
 {
+  double sx1, sy1;
+
+  plotSymbolSize(s, sx1, sy1, dir);
+
+  if (dir == Qt::Horizontal) {
+    sx = limitSymbolSize(lengthPixelWidth (Length::plot(sx1)));
+    sy = sx;
+  }
+  else {
+    sx = limitSymbolSize(lengthPixelHeight(Length::plot(sx1)));
+    sy = sx;
+  }
+
+#if 0
   if (dir == Qt::Horizontal) {
     sx = limitSymbolSize(lengthPixelWidth(s));
     sy = sx;
@@ -17486,6 +17580,7 @@ pixelSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &
     sy = limitSymbolSize(lengthPixelHeight(s));
     sx = sy;
   }
+#endif
 }
 
 //------

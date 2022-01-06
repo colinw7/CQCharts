@@ -998,11 +998,11 @@ calcRange() const
     groupInd = (*p).first;
 
   const auto &bucketer = th->groupBucketer(groupInd);
-  const auto &values   = th->getGroupValues(groupInd);
+  const auto *values   = th->getGroupValues(groupInd);
 
   // if numeric values then ensure we are using a real bucketer
-  bool isNumeric = (values->valueSet->isNumeric() ||
-                    (values->valueSet->type() == CQChartsValueSet::Type::TIME));
+  bool isNumeric = (values && (values->valueSet->isNumeric() ||
+                               (values->valueSet->type() == CQChartsValueSet::Type::TIME)));
 
   if (isNumeric) {
     auto type = bucketer.type();
@@ -1033,7 +1033,7 @@ calcRange() const
     th->bucketer_.setType(CQBucketer::Type::STRING);
   }
 
-  th->numUnique_ = values->valueSet->numUnique();
+  th->numUnique_ = (values ? values->valueSet->numUnique() : 0);
 
   th->bucketer_.setType(bucketer.type());
 
@@ -1854,17 +1854,19 @@ calcBucket(int groupInd, double value) const
   int num = -1;
 
   const auto &bucketer = groupBucketer (groupInd);
-  const auto &values   = getGroupValues(groupInd);
+  const auto *values   = getGroupValues(groupInd);
 
   if (filterStack_.empty()) {
     if (! isBucketed())
       return Bucket(-1);
 
     if      (exactValue) {
-      if (values->valueSet->type() == CQBaseModelType::INTEGER)
-        num = values->valueSet->iid(value);
-      else
-        num = values->valueSet->rid(value);
+      if (values) {
+        if (values->valueSet->type() == CQBaseModelType::INTEGER)
+          num = values->valueSet->iid(value);
+        else
+          num = values->valueSet->rid(value);
+      }
     }
     else if (bucketType() == CQBucketer::Type::REAL_AUTO)
       num = bucketer.autoRealBucket(value);
@@ -2993,9 +2995,7 @@ CQChartsDistributionPlot::
 bucketValuesStr(int groupInd, const Bucket &bucket, BucketValueType type) const
 {
   const auto *values = getGroupValues(groupInd);
-
-  if (! values)
-    return "";
+  if (! values) return "";
 
   return bucketValuesStr(groupInd, bucket, values, type);
 }
@@ -3095,16 +3095,18 @@ bucketValues(int groupInd, const Bucket &bucket, double &value1, double &value2)
 
   if      (bucket.hasValue()) {
     const auto &bucketer = groupBucketer(groupInd);
-    const auto &values   = getGroupValues(groupInd);
+    const auto *values   = getGroupValues(groupInd);
 
     if (filterStack_.empty()) {
       bool exactValue = isExactBucketValue();
 
       if      (exactValue) {
-        if (values->valueSet->type() == CQBaseModelType::INTEGER)
-          value1 = values->valueSet->idi(bucket.value());
-        else
-          value1 = values->valueSet->idr(bucket.value());
+        if (values) {
+          if (values->valueSet->type() == CQBaseModelType::INTEGER)
+            value1 = values->valueSet->idi(bucket.value());
+          else
+            value1 = values->valueSet->idr(bucket.value());
+        }
 
         value2 = value1;
       }

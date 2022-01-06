@@ -256,6 +256,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
  public:
   using Plot    = CQChartsBoxPlot;
   using Whisker = CQChartsBoxPlotWhisker;
+  using Length  = CQChartsLength;
 
  public:
   CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,

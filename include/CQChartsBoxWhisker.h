@@ -106,11 +106,11 @@ class CQChartsBoxWhiskerT {
 
   const Density &density() const { initDensity(); return density_; }
 
-  double normalize(double x, bool includeOutliers) const {
+  double normalize(double x, bool includeOutliers, double ymargin) const {
     if (includeOutliers)
-      return CMathUtil::map(x, vmin(), vmax(), 0.0, 1.0);
+      return CMathUtil::map(x, vmin(), vmax(), ymargin, 1.0 - ymargin);
     else
-      return CMathUtil::map(x, min(), max(), 0.0, 1.0);
+      return CMathUtil::map(x, min(), max(), ymargin, 1.0 - ymargin);
   }
 
  private:

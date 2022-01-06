@@ -3621,9 +3621,15 @@ bool
 CQChartsScatterPointObj::
 inside(const Point &p) const
 {
-  double sx, sy;
+  //double sx, sy;
+  //plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
 
-  plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
+  auto prect = plot_->windowToPixel(rect());
+
+  auto sx = std::max(prect.getWidth ()/2.0, 4.0);
+  auto sy = std::max(prect.getHeight()/2.0, 4.0);
+
+  //---
 
   auto p1 = plot_->windowToPixel(pos_);
 
