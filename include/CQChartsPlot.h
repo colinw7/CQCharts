@@ -603,8 +603,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
+#if 0
   void pushZoom();
   void popZoom();
+#endif
 
   virtual double dataScaleX() const;
   virtual void setDataScaleX(double r);
@@ -3408,7 +3410,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Range         dataRange_;                     //!< data range
   Range         outerDataRange_;                //!< outer data range
   ZoomData      zoomData_;                      //!< zoom data
+#if 0
   ZoomData      saveZoomData_;                  //!< saved zoom data
+#endif
 
   // override range
   OptReal xmin_; //!< xmin override

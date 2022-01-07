@@ -1339,3 +1339,6 @@
  + Fix fill gradient to/from string conversion
 # 1/3/2022
  + Add support for opengl 3d scatter plot
+# 1/6/2022
+ + Scale point symbols by default on zoom for pixel/percent sized symbols. Add option to disable
+ + fix bad horizontal box plot notch and point placement for normalized

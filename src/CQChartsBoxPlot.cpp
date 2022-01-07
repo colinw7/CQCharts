@@ -492,19 +492,19 @@ addProperties()
   addProp("columns/raw", "setColumn"   , "set"   , "Set column");
 
   addProp("columns/calculated", "xColumn"          , "x"          ,
-      "Precalculated x column");
+          "Precalculated x column");
   addProp("columns/calculated", "minColumn"        , "min"        ,
-      "Precalculated min column");
+          "Precalculated min column");
   addProp("columns/calculated", "lowerMedianColumn", "lowerMedian",
-      "Precalculated lower median column");
+          "Precalculated lower median column");
   addProp("columns/calculated", "medianColumn"     , "median"     ,
-      "Precalculated median column");
+          "Precalculated median column");
   addProp("columns/calculated", "upperMedianColumn", "upperMedian",
-      "Precalculated upper median column");
+          "Precalculated upper median column");
   addProp("columns/calculated", "maxColumn"        , "max"        ,
-      "Precalculated max column");
+          "Precalculated max column");
   addProp("columns/calculated", "outliersColumn"   , "outlier"    ,
-      "Precalculated outliers column");
+          "Precalculated outliers column");
 
   addGroupingProperties();
 

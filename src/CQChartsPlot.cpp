@@ -1677,6 +1677,7 @@ objTreeRange() const
 
 //---
 
+#if 0
 void
 CQChartsPlot::
 pushZoom()
@@ -1692,6 +1693,7 @@ popZoom()
 {
   std::swap(saveZoomData_, zoomData_);
 }
+#endif
 
 //---
 
@@ -16192,8 +16194,13 @@ modelValue(const ModelIndex &ind, bool &ok) const
 
     return modelValue(model().data(), ind.row(), c, ind.parent(), ok);
   }
-  else
-    return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), ok);
+  else {
+    if (ind.column().hasRole())
+      return modelValue(model().data(), ind.row(), ind.column(), ind.parent(),
+                        ind.column().role(), ok);
+    else
+      return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), ok);
+  }
 }
 
 QVariant

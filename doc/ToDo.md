@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + check zoom on all symbol plots
+ + check column role
  + open gl 3d plot
    + 3d axes, cube
    + labels, colors, symbols, ...
