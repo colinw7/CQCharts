@@ -22,8 +22,6 @@ set_charts_data -model $model -column 2 -name column_type -value {{color}}
 for {set i 0} {$i < 100} {incr i} {
   set ci [lindex $c $i]
 
-  echo $ci
-
   set_charts_data -model $model -column 1 -row $i -name value -value $ci -role 256
 }
 

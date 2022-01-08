@@ -178,12 +178,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
  * \brief XY Plot Point object
  * \ingroup Charts
  */
-class CQChartsXYPointObj : public CQChartsPlotObj {
+class CQChartsXYPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
-
-  Q_PROPERTY(CQChartsGeom::Point point READ point WRITE setPoint)
-//Q_PROPERTY(double              x     READ x     WRITE setX)
-//Q_PROPERTY(double              y     READ y     WRITE setY)
 
   Q_PROPERTY(CQChartsSymbol symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
@@ -206,35 +202,13 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
                      const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
                      const ColorInd &iv);
 
- ~CQChartsXYPointObj();
-
-  //---
-
-  QString typeName() const override { return "point"; }
-
-  //---
-
-  bool isPoint() const override { return true; }
-
-  //---
-
-  void setSelected(bool b) override;
-
   //---
 
   const Plot *plot() const { return plot_; }
 
   //---
 
-  // position
-  const Point &point() const { return pos_; }
-  void setPoint(const Point &p) { pos_ = p; }
-
-//double x() const { return pos_.x; }
-//void setX(double x) { pos_.setX(x); }
-
-//double y() const { return pos_.y; }
-//void setY(double y) { pos_.setY(y); }
+  void setSelected(bool b) override;
 
   //---
 
@@ -259,26 +233,31 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   // symbol type
   const Symbol &symbol() const { return extraData()->symbol; }
   void setSymbol(const Symbol &s) { extraData()->symbol = s; }
+
   Symbol calcSymbol() const;
 
   // symbol size
   const Length &symbolSize() const { return extraData()->symbolSize; }
   void setSymbolSize(const Length &s) { extraData()->symbolSize = s; }
-  Length calcSymbolSize() const;
+
+  Length calcSymbolSize() const override;
 
   // font size
   const Length &fontSize() const { return extraData()->fontSize; }
   void setFontSize(const Length &s) { extraData()->fontSize = s; }
+
   Length calcFontSize() const;
 
   // color
   Color color() const { return extraData()->color; }
   void setColor(const Color &c) { extraData()->color = c; }
+
   Color calcColor() const;
 
   // Image
   Image image() const { return extraData()->image; }
   void setImage(const Image &i) { extraData()->image = i; }
+
   Image calcImage() const;
 
   // vector
@@ -289,8 +268,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   //---
 
   bool isVisible() const override;
-
-  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -306,10 +283,10 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   struct ExtraData {
     Symbol   symbol;     //!< symbol
     Length   symbolSize; //!< symbol size
-    Length   fontSize;   //!< font size
     Color    color;      //!< symbol fill color
+    Length   fontSize;   //!< font size
+    Image    image;      //!< image data
     OptPoint vector;     //!< optional vector
-    Image    image;      //!< image
   };
 
   using ExtraDataP = std::unique_ptr<ExtraData>;
@@ -321,7 +298,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
  private:
   const Plot*        plot_     { nullptr }; //!< parent plot
   int                groupInd_ { -1 };      //!< group ind
-  Point              pos_;                  //!< position
   ExtraDataP         edata_;                //!< extra data
   const LabelObj*    labelObj_ { nullptr }; //!< label obj
   const PolylineObj* lineObj_  { nullptr }; //!< line obj

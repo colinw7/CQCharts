@@ -47,12 +47,11 @@ class CQChartsScatterPlotType : public CQChartsPointPlotType {
  * \brief Scatter Plot Point object
  * \ingroup Charts
  */
-class CQChartsScatterPointObj : public CQChartsPlotObj {
+class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
-  Q_PROPERTY(int                 groupInd READ groupInd)
-  Q_PROPERTY(CQChartsGeom::Point point    READ point   )
-  Q_PROPERTY(QString             name     READ name    )
+  Q_PROPERTY(int     groupInd READ groupInd)
+  Q_PROPERTY(QString name     READ name    )
 
   Q_PROPERTY(CQChartsSymbol symbol     READ symbol     WRITE setSymbol    )
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
@@ -77,22 +76,11 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           const Point &p, const ColorInd &is, const ColorInd &ig,
                           const ColorInd &iv);
 
+  //---
+
   const Plot *plot() const { return plot_; }
 
   int groupInd() const { return groupInd_; }
-
-  //---
-
-  QString typeName() const override { return "point"; }
-
-  //---
-
-  bool isPoint() const override { return true; }
-
-  //---
-
-  // position
-  const Point &point() const { return pos_; }
 
   //---
 
@@ -105,12 +93,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  // image
-  const Image &image() const { return image_; }
-  void setImage(const Image &i) { image_ = i; }
-
-  //---
-
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -120,43 +102,60 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   // symbol type
   bool hasSymbol() const;
 
-  const Symbol &symbol() const { return extraData().symbol; }
-  void setSymbol(const Symbol &s) { extraData().symbol = s; }
+  const Symbol &symbol() const { return extraData()->symbol; }
+  void setSymbol(const Symbol &s) { extraData()->symbol = s; }
+
   Symbol calcSymbol() const;
 
   // symbol size
-  const Length &symbolSize() const { return extraData().symbolSize; }
-  void setSymbolSize(const Length &s) { extraData().symbolSize = s; }
-  Length calcSymbolSize() const;
+  const Length &symbolSize() const { return extraData()->symbolSize; }
+  void setSymbolSize(const Length &s) { extraData()->symbolSize = s; }
+
+  Length calcSymbolSize() const override;
 
   // symbol dir
-  const Qt::Orientation &symbolDir() const { return extraData().symbolDir; }
-  void setSymbolDir(const Qt::Orientation &o) { extraData().symbolDir = o; }
+  const Qt::Orientation &symbolDir() const { return extraData()->symbolDir; }
+  void setSymbolDir(const Qt::Orientation &o) { extraData()->symbolDir = o; }
+
+  Qt::Orientation calcSymbolDir() const override { return symbolDir(); }
 
   // font size
-  const Length &fontSize() const { return extraData().fontSize; }
-  void setFontSize(const Length &s) { extraData().fontSize = s; }
+  const Length &fontSize() const { return extraData()->fontSize; }
+  void setFontSize(const Length &s) { extraData()->fontSize = s; }
+
   Length calcFontSize() const;
 
   // color
-  Color color() const { return extraData().color; }
-  void setColor(const Color &c) { extraData().color = c; }
+  Color color() const { return extraData()->color; }
+  void setColor(const Color &c) { extraData()->color = c; }
+
+  Color calcColor() const;
 
   // alpha
-  Alpha alpha() const { return extraData().alpha; }
-  void setAlpha(const Alpha &a) { extraData().alpha = a; }
+  Alpha alpha() const { return extraData()->alpha; }
+  void setAlpha(const Alpha &a) { extraData()->alpha = a; }
+
+  Alpha calcAlpha() const;
 
   // font
-  Font font() const { return extraData().font; }
-  void setFont(const Font &f) { extraData().font = f; }
+  Font font() const { return extraData()->font; }
+  void setFont(const Font &f) { extraData()->font = f; }
+
+  Font calcFont() const;
 
   // label dir
-  const Qt::Orientation &labelDir() const { return extraData().labelDir; }
-  void setLabelDir(const Qt::Orientation &o) { extraData().labelDir = o; }
+  const Qt::Orientation &labelDir() const { return extraData()->labelDir; }
+  void setLabelDir(const Qt::Orientation &o) { extraData()->labelDir = o; }
+
+  Qt::Orientation calcLabelDir() const;
+
+  // Image
+  Image image() const { return extraData()->image; }
+  void setImage(const Image &i) { extraData()->image = i; }
+
+  Image calcImage() const;
 
   //---
-
-  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -176,7 +175,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  Font calcFont() const;
+  Font calcLabelFont() const;
 
   //---
 
@@ -193,20 +192,21 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
     Length          fontSize;                     //!< label font size
     Font            font;                         //!< label text font
     Qt::Orientation labelDir { Qt::Horizontal };  //!< label dir
+    Image           image;                        //!< image data
   };
 
+  using ExtraDataP = std::unique_ptr<ExtraData>;
+
  private:
-  const ExtraData &extraData() const { return edata_; };
-  ExtraData &extraData() { return edata_; };
+  const ExtraData *extraData() const;
+  ExtraData *extraData();
 
  private:
   const Plot* plot_       { nullptr }; //!< scatter plot
   int         groupInd_   { -1 };      //!< plot group index
-  Point       pos_;                    //!< point position
-  ExtraData   edata_;                  //!< extra data
+  ExtraDataP  edata_;                  //!< extra data
   QString     name_;                   //!< label name
   Column      nameColumn_;             //!< label name column
-  Image       image_;                  //!< image data
 };
 
 //---

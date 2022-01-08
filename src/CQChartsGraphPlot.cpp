@@ -149,7 +149,8 @@ init()
 
   bbox_ = targetBBox_;
 
-  setFitMargin(PlotMargin(Length("5%"), Length("5%"), Length("5%"), Length("5%")));
+  setFitMargin(PlotMargin(Length::percent(5), Length::percent(5),
+                          Length::percent(5), Length::percent(5)));
 }
 
 void

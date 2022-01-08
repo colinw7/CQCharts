@@ -263,6 +263,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using PieObj  = CQChartsPieObj;
   using PieObjs = std::vector<PieObj *>;
   using Angle   = CQChartsAngle;
+  using Length  = CQChartsLength;
 
  public:
   CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, const ColorInd &groupInd,

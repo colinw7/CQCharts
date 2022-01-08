@@ -10,6 +10,8 @@
 
 #include <map>
 
+class CQChartsStripPlot;
+
 //---
 
 /*!
@@ -48,28 +50,25 @@ class CQChartsStripPlotType : public CQChartsGroupPlotType {
 
 //---
 
-class CQChartsStripPlot;
-
 /*!
  * \brief Strip Plot Point object
  * \ingroup Charts
  */
-class CQChartsStripPointObj : public CQChartsPlotObj {
+class CQChartsStripPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsStripPlot;
+  using Plot   = CQChartsStripPlot;
+  using Length = CQChartsLength;
 
  public:
   CQChartsStripPointObj(const Plot *plot, const BBox &rect, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &ig,
                         const ColorInd &iv);
 
-  QString typeName() const override { return "point"; }
-
   //---
 
-  bool isPoint() const override { return true; }
+  const Plot *plot() const { return plot_; }
 
   //---
 
@@ -77,16 +76,17 @@ class CQChartsStripPointObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const Point &p) const override;
+  //---
 
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  protected:
   const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { 0 };
-  Point       p_;
+  int         groupInd_ { 0 };       //!< group index
 };
 
 //---

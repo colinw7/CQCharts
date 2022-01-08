@@ -501,3 +501,51 @@ CQChartsGroupObj(CQChartsPlot *plot, const BBox &bbox, const ColorInd &ig) :
  CQChartsPlotObj(plot, bbox, ColorInd(), ig, ColorInd())
 {
 }
+
+//------
+
+CQChartsPlotPointObj::
+CQChartsPlotPointObj(Plot *plot, const BBox &rect, const Point &p,
+                     const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(plot, rect, is, ig, iv), p_(p)
+{
+}
+
+bool
+CQChartsPlotPointObj::
+inside(const Point &p) const
+{
+  if (! isVisible())
+    return false;
+
+  //---
+
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
+
+  //---
+
+  auto p1 = plot_->windowToPixel(point());
+
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+
+  auto pp = plot_->windowToPixel(p);
+
+  return pbbox.inside(pp);
+}
+
+void
+CQChartsPlotPointObj::
+calcSymbolPixelSize(double &sx, double &sy) const
+{
+  if (plot_->isScaleSymbolSize()) {
+    auto prect = plot_->windowToPixel(rect());
+
+    sx = std::max(prect.getWidth ()/2.0, 4.0);
+    sy = std::max(prect.getHeight()/2.0, 4.0);
+  }
+  else {
+    plot_->pixelSymbolSize(calcSymbolSize(), sx, sy, calcSymbolDir());
+  }
+}

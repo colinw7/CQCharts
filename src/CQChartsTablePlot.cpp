@@ -151,7 +151,7 @@ init()
 
   //---
 
-  setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
+  setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
 
   addTitle();
 

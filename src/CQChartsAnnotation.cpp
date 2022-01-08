@@ -5391,7 +5391,7 @@ draw(PaintDevice *device)
 
   Point ps(rect_.getXMid(), rect_.getYMid());
 
-  CQChartsDrawUtil::drawSymbol(device, symbol, ps, symbolData.size());
+  CQChartsDrawUtil::drawSymbol(device, symbol, ps, symbolData.size(), /*scale*/true);
 
   //---
 
@@ -6346,7 +6346,7 @@ drawSymbols(PaintDevice *device)
     auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
     auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, Point(x1, y1), symbolData.size());
+    CQChartsDrawUtil::drawSymbol(device, symbol, Point(x1, y1), symbolData.size(), /*scale*/true);
   }
 }
 
@@ -6716,7 +6716,7 @@ draw(PaintDevice *device)
     for (const auto &p : points()) {
       auto p1 = CQChartsGeom::Point(p.x, p.y);
 
-      CQChartsDrawUtil::drawSymbol(device, symbol, Point(p1), symbolData.size());
+      CQChartsDrawUtil::drawSymbol(device, symbol, Point(p1), symbolData.size(), /*scale*/true);
     }
   }
   else if (drawType() == DrawType::CONTOUR) {

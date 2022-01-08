@@ -250,7 +250,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
  * \brief box plot whisker outlier object
  * \ingroup Charts
  */
-class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
+class CQChartsBoxPlotOutlierObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
@@ -264,11 +264,9 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
   //---
 
+  const Plot *plot() const { return plot_; }
+
   QString typeName() const override { return "outlier"; }
-
-  //---
-
-  bool isPoint() const override { return true; }
 
   //---
 
@@ -280,16 +278,21 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   QString calcId   () const override;
   QString calcTipId() const override;
 
+  //---
+
   void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  private:
   double remapPos(double pos) const;
 
  private:
+  const Plot*    plot_     { nullptr }; //!< plot
   int            setId_    { 0 };       //!< set id
   int            groupInd_ { 0 };       //!< group ind
   const Whisker* whisker_  { nullptr }; //!< whisker data
@@ -384,7 +387,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
  *
  * TODO: custom color, symbol type, ...
  */
-class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
+class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
@@ -400,11 +403,9 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
                           int groupInd, const Point &p, const QModelIndex &ind,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
-  QString typeName() const override { return "point"; }
-
   //---
 
-  bool isPoint() const override { return true; }
+  const Plot *plot() const { return plot_; }
 
   //---
 
@@ -416,19 +417,18 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  bool inside(const Point &p) const override;
-
   void getObjSelectIndices(Indices &) const override;
 
   //---
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
   int         setId_    { -1 };      //!< set id
   int         groupInd_ { -1 };      //!< group id
-  Point       p_;                    //!< point
   Color       color_;                //!< custom color
 };
 

@@ -3414,10 +3414,9 @@ createCustomControls()
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv), plot_(plot),
- groupInd_(groupInd), pos_(pos)
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, pos, is, ig, iv), plot_(plot),
+ groupInd_(groupInd)
 {
-//setDetailHint(DetailHint::MAJOR);
 }
 
 //---
@@ -3426,14 +3425,13 @@ CQChartsSymbol
 CQChartsScatterPointObj::
 calcSymbol() const
 {
-  auto symbol = this->symbol();
+  CQChartsSymbol symbol;
 
-  if (! symbol.isValid()) {
+  if (extraData())
+    symbol = this->symbol();
+
+  if (! symbol.isValid())
     symbol = plot_->symbol();
-
-    //if (! symbol.isValid())
-    //  symbol = Symbol::circle();
-  }
 
   return symbol;
 }
@@ -3442,7 +3440,10 @@ CQChartsLength
 CQChartsScatterPointObj::
 calcSymbolSize() const
 {
-  auto symbolSize = this->symbolSize();
+  Length symbolSize;
+
+  if (extraData())
+    symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
     symbolSize = plot()->symbolSize();
@@ -3454,12 +3455,100 @@ CQChartsLength
 CQChartsScatterPointObj::
 calcFontSize() const
 {
-  auto fontSize = this->fontSize();
+  Length fontSize;
+
+  if (extraData())
+    fontSize = this->fontSize();
 
   if (! fontSize.isValid())
     fontSize = plot()->dataLabelFontSize();
 
   return fontSize;
+}
+
+CQChartsColor
+CQChartsScatterPointObj::
+calcColor() const
+{
+  Color color;
+
+  if (extraData())
+    color = this->color();
+
+  return color;
+}
+
+CQChartsAlpha
+CQChartsScatterPointObj::
+calcAlpha() const
+{
+  Alpha alpha;
+
+  if (extraData())
+    alpha = this->alpha();
+
+  return alpha;
+}
+
+CQChartsFont
+CQChartsScatterPointObj::
+calcFont() const
+{
+  Font font;
+
+  if (extraData())
+    font = this->font();
+
+  if (! font.isValid())
+    font = plot()->dataLabelFont();
+
+  return font;
+}
+
+Qt::Orientation
+CQChartsScatterPointObj::
+calcLabelDir() const
+{
+  Qt::Orientation dir { Qt::Horizontal };
+
+  if (extraData())
+    dir = this->labelDir();
+
+  return dir;
+}
+
+CQChartsImage
+CQChartsScatterPointObj::
+calcImage() const
+{
+  CQChartsImage image;
+
+  if (extraData())
+    image = this->image();
+
+  return image;
+}
+
+//---
+
+CQChartsScatterPointObj::ExtraData *
+CQChartsScatterPointObj::
+extraData()
+{
+  if (! edata_)
+    edata_ = std::make_unique<ExtraData>();
+
+  return edata_.get();
+}
+
+const CQChartsScatterPointObj::ExtraData *
+CQChartsScatterPointObj::
+extraData() const
+{
+  if (! edata_)
+    const_cast<CQChartsScatterPointObj *>(this)->edata_ = std::make_unique<ExtraData>();
+
+  return edata_.get();
 }
 
 //---
@@ -3514,16 +3603,17 @@ calcTipId() const
 
   // add x, y columns
   if (! tableTip.hasColumn(plot()->xColumn())) {
+    double x = point().x;
+
     QString xstr;
 
     if (plot()->isUniqueX()) {
       auto *columnDetails = plot()->columnDetails(plot()->xColumn());
 
-      xstr = (columnDetails ? columnDetails->uniqueValue(int(pos_.x)).toString() :
-                              plot()->xStr(pos_.x));
+      xstr = (columnDetails ? columnDetails->uniqueValue(int(x)).toString() : plot()->xStr(x));
     }
     else
-      xstr = plot()->xStr(pos_.x);
+      xstr = plot()->xStr(x);
 
     tableTip.addTableRow(plot_->xHeaderName(/*tip*/true), xstr);
 
@@ -3531,16 +3621,17 @@ calcTipId() const
   }
 
   if (! tableTip.hasColumn(plot()->yColumn())) {
+    double y = point().y;
+
     QString ystr;
 
     if (plot()->isUniqueY()) {
       auto *columnDetails = plot()->columnDetails(plot()->yColumn());
 
-      ystr = (columnDetails ? columnDetails->uniqueValue(int(pos_.y)).toString() :
-                              plot()->yStr(pos_.y));
+      ystr = (columnDetails ? columnDetails->uniqueValue(int(y)).toString() : plot()->yStr(y));
     }
     else
-      ystr = plot()->yStr(pos_.y);
+      ystr = plot()->yStr(y);
 
     tableTip.addTableRow(plot_->yHeaderName(/*tip*/true), ystr);
 
@@ -3617,29 +3708,6 @@ calcTipId() const
 
 //---
 
-bool
-CQChartsScatterPointObj::
-inside(const Point &p) const
-{
-  //double sx, sy;
-  //plot_->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
-
-  auto prect = plot_->windowToPixel(rect());
-
-  auto sx = std::max(prect.getWidth ()/2.0, 4.0);
-  auto sy = std::max(prect.getHeight()/2.0, 4.0);
-
-  //---
-
-  auto p1 = plot_->windowToPixel(pos_);
-
-  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
-
 void
 CQChartsScatterPointObj::
 getObjSelectIndices(Indices &inds) const
@@ -3663,6 +3731,8 @@ draw(PaintDevice *device) const
   if (this->isMinSymbolSize())
     return;
 
+  //---
+
   // calc pen and brush
   PenBrush penBrush;
 
@@ -3674,8 +3744,6 @@ draw(PaintDevice *device) const
 
   device->setColorNames();
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // get symbol and size
@@ -3683,22 +3751,16 @@ draw(PaintDevice *device) const
 
   double sx, sy;
 
-  plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
-
-  //---
-
-  // get point and image
-  auto ps    = plot_->windowToPixel(pos_);
-  auto image = this->image();
+  calcSymbolPixelSize(sx, sy);
 
   //---
 
   // draw symbol or image (image only for point)
-  if (! image.isValid()) {
-    auto ps1 = plot_->pixelToWindow(ps);
+  auto image = this->calcImage();
 
+  if (! image.isValid()) {
     if (symbol.isValid())
-      plot()->drawSymbol(device, ps1, symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
+      plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
   }
   else {
     double aspect = (1.0*image.width())/image.height();
@@ -3711,9 +3773,11 @@ draw(PaintDevice *device) const
       sy = sx*(1.0/aspect);
     }
 
-    BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+    auto ps = plot_->windowToPixel(point());
 
-    device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
+    BBox pbbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+
+    device->drawImageInRect(plot()->pixelToWindow(pbbox), image);
   }
 
   device->resetColorNames();
@@ -3774,16 +3838,16 @@ drawDataLabel(PaintDevice *) const
   //---
 
   // get label font
-  auto font = calcFont();
+  auto font = calcLabelFont();
 
   //---
 
   // draw text
-  auto ps = plot_->windowToPixel(pos_);
+  auto ps = plot_->windowToPixel(point());
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(calcSymbolSize(), sx, sy, symbolDir());
+  calcSymbolPixelSize(sx, sy);
 
   BBox tbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
@@ -3802,7 +3866,7 @@ isMinLabelSize() const
     return false;
 
   // get label font
-  auto font = calcFont();
+  auto font = calcLabelFont();
 
   // get text size (pixels)
   const auto *dataLabel = plot_->dataLabel();
@@ -3852,14 +3916,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto sc = plot_->interpSymbolStrokeColor(ic);
   auto sa = plot_->symbolStrokeAlpha();
 
-  // override symbol fill color for custom color (TODO: calc)
-  auto color = this->color();
+  // override symbol fill color for custom color
+  auto color = this->calcColor();
 
   if (color.isValid())
     fc = plot_->interpColor(color, ic);
 
-  // override symbol fill alpha for custom alpha (TODO: calc)
-  auto alpha = this->alpha();
+  // override symbol fill alpha for custom alpha
+  auto alpha = this->calcAlpha();
 
   if (alpha.isSet())
     fa = alpha;
@@ -3869,7 +3933,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   bool filled  = plot_->isSymbolFilled();
   bool stroked = plot_->isSymbolStroked();
 
-  if      (! this->symbol().isFilled()) {
+  auto symbol = this->calcSymbol();
+
+  if      (! symbol.isFilled()) {
     filled  = false;
     stroked = true;
 
@@ -3877,7 +3943,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     sc = fc;
     sa = fa;
   }
-  else if (! this->symbol().isStroked()) {
+  else if (! symbol.isStroked()) {
     filled  = false;
     stroked = true;
   }
@@ -3894,7 +3960,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 CQChartsFont
 CQChartsScatterPointObj::
-calcFont() const
+calcLabelFont() const
 {
   // get custom font size (from font column)
   auto fontSize = this->calcFontSize();
@@ -3902,7 +3968,7 @@ calcFont() const
   //---
 
   // get label font
-  auto font  = plot_->dataLabelFont();
+  auto font  = this->calcFont();
   auto font1 = font;
 
   if (fontSize.isValid()) {
@@ -3929,9 +3995,9 @@ xColorValue(bool relative) const
   const auto &dataRange = plot_->dataRange();
 
   if (relative)
-    return CMathUtil::map(pos_.x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+    return CMathUtil::map(point().x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
   else
-    return pos_.x;
+    return point().x;
 }
 
 double
@@ -3941,9 +4007,9 @@ yColorValue(bool relative) const
   const auto &dataRange = plot_->dataRange();
 
   if (relative)
-    return CMathUtil::map(pos_.y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+    return CMathUtil::map(point().y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
   else
-    return pos_.y;
+    return point().y;
 }
 
 //------

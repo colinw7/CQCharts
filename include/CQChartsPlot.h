@@ -744,7 +744,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set default symbol set name
   const QString &defaultSymbolSetName() const { return defaultSymbolSetName_; }
-  void setDefaultSymbolSetName(const QString &name) { defaultSymbolSetName_ = name; }
+  void setDefaultSymbolSetName(const QString &name);
 
   CQChartsSymbolSet *defaultSymbolSet() const;
 
@@ -1506,6 +1506,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
  public:
+  void plotSymbolSize (const Length &xs, const Length &ys, double &sx, double &sy) const;
   void plotSymbolSize (const Length &s, double &sx, double &sy,
                        const Qt::Orientation &dir=Qt::Horizontal) const;
   void pixelSymbolSize(const Length &s, double &sx, double &sy,

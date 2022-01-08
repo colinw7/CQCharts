@@ -1,5 +1,6 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 #include <CQChartsSymbolSet.h>
@@ -980,8 +981,20 @@ void
 CQChartsPlotSymbolRenderer::
 mapXY(double x, double y, double &x1, double &y1) const
 {
-  x1 = x*device_->lengthWindowWidth (xsize_);
-  y1 = y*device_->lengthWindowHeight(ysize_);
+  auto *plot = device_->plot();
+
+  double sx, sy;
+
+  if (plot && isScale()) {
+    plot->plotSymbolSize(xsize_, ysize_, sx, sy);
+  }
+  else {
+    sx = device_->lengthWindowWidth (xsize_);
+    sy = device_->lengthWindowHeight(ysize_);
+  }
+
+  x1 = x*sx;
+  y1 = y*sy;
 
   if (device_->invertY())
     y1 = -y1;

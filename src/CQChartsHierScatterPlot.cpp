@@ -105,7 +105,7 @@ init()
 
   //---
 
-  setSymbolSize(Length("4px"));
+  setSymbolSize(Length::pixel(4));
   setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
@@ -887,12 +887,23 @@ createCustomControls()
 //------
 
 CQChartsHierScatterPointObj::
-CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const BBox &rect,
-                            const Point &p, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsHierScatterPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), p_(p)
+CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
+                            const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ColorInd(), iv),
+ plot_(plot)
 {
 }
+
+//---
+
+CQChartsLength
+CQChartsHierScatterPointObj::
+calcSymbolSize() const
+{
+  return plot()->symbolSize();
+}
+
+//---
 
 QString
 CQChartsHierScatterPointObj::
@@ -919,22 +930,7 @@ calcTipId() const
   return tableTip.str();
 }
 
-bool
-CQChartsHierScatterPointObj::
-inside(const Point &p) const
-{
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
-
-  auto p1 = plot_->windowToPixel(p_);
-
-  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
+//---
 
 void
 CQChartsHierScatterPointObj::
@@ -943,6 +939,8 @@ getObjSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());
 }
+
+//---
 
 void
 CQChartsHierScatterPointObj::
@@ -965,13 +963,18 @@ draw(PaintDevice *device) const
 
   //---
 
-  // get symbol type and size
-  auto symbol     = plot_->symbol();
-  auto symbolSize = plot_->symbolSize();
+  // get symbol and size
+  auto symbol = plot_->symbol();
+
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
+
+  //---
 
   // draw symbol
   if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
+    plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 
   //---
 
@@ -979,11 +982,7 @@ draw(PaintDevice *device) const
   if (plot_->isTextLabels()) {
     const auto *dataLabel = plot_->dataLabel();
 
-    auto ps = plot_->windowToPixel(p_);
-
-    double sx, sy;
-
-    plot_->pixelSymbolSize(symbolSize, sx, sy);
+    auto ps = plot_->windowToPixel(point());
 
     BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 

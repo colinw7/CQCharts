@@ -151,12 +151,12 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   setSelectedFillColor  (Color(Color::Type::CONTRAST));
   setSelectedFillAlpha  (Alpha(0.3));
   setSelectedStrokeColor(Color(Color::Type::CONTRAST));
-  setSelectedStrokeWidth(Length("2px"));
+  setSelectedStrokeWidth(Length::pixel(2));
 
   setInsideFillColor  (Color(Color::Type::CONTRAST));
   setInsideFillAlpha  (Alpha(0.3));
   setInsideStrokeColor(Color(Color::Type::CONTRAST));
-  setInsideStrokeWidth(Length("2px"));
+  setInsideStrokeWidth(Length::pixel(2));
 
   //---
 
@@ -6460,7 +6460,7 @@ updateTheme()
   setInsideFillColor  (theme()->insideColor());
 #endif
 
-  setInsideStrokeWidth(Length("2px"));
+  setInsideStrokeWidth(Length::pixel(2));
 
   updateAll();
 

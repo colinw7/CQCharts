@@ -349,4 +349,62 @@ class CQChartsGroupObj : public CQChartsPlotObj {
   CQChartsGroupObj(Plot *plot, const BBox &bbox=BBox(), const ColorInd &ig=ColorInd());
 };
 
+//------
+
+/*!
+ * \brief Plot Point object
+ * \ingroup Charts
+ */
+class CQChartsPlotPointObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsGeom::Point point READ point)
+
+ public:
+  using Plot     = CQChartsPlot;
+  using Length   = CQChartsLength;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using Point    = CQChartsGeom::Point;
+  using BBox     = CQChartsGeom::BBox;
+
+ public:
+  CQChartsPlotPointObj(Plot *plot, const BBox &rect, const Point &p,
+                       const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
+                       const ColorInd &iv=ColorInd());
+
+  virtual ~CQChartsPlotPointObj() { }
+
+  //---
+
+  QString typeName() const override { return "point"; }
+
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
+  // position
+  const Point &point() const { return p_; }
+  void setPoint(const Point &p) { p_ = p; }
+
+  double x() const { return p_.x; }
+  double y() const { return p_.y; }
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  virtual Length calcSymbolSize() const = 0;
+
+  virtual Qt::Orientation calcSymbolDir() const { return Qt::Horizontal; }
+
+  virtual void calcSymbolPixelSize(double &sx, double &sy) const;
+
+ protected:
+  Point p_; //!< point
+};
+
 #endif

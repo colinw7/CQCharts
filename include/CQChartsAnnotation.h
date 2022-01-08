@@ -2101,7 +2101,7 @@ class CQChartsPoint3DSetAnnotation : public CQChartsShapeAnnotation {
   CQChartsRValues xvals_;                          //!< x vals
   CQChartsRValues yvals_;                          //!< y vals
   CQChartsRValues zvals_;                          //!< z vals
-  DrawType        drawType_ { DrawType::SYMBOLS }; //!< draw type
+  DrawType        drawType_ { DrawType::CONTOUR }; //!< draw type
   ContourP        contour_;                        //!< contour
 };
 

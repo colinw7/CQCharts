@@ -171,11 +171,12 @@ class CQChartsHierScatterPointGroup {
  * \brief Hierarchical Scatter Plot Point object
  * \ingroup Charts
  */
-class CQChartsHierScatterPointObj : public CQChartsPlotObj {
+class CQChartsHierScatterPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
   using Plot       = CQChartsHierScatterPlot;
+  using PointGroup = CQChartsHierScatterPointGroup;
   using Length     = CQChartsLength;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
@@ -184,35 +185,34 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
                               const ColorInd &iv);
 
-  QString typeName() const override { return "point"; }
-
   //---
 
-  bool isPoint() const override { return true; }
+  const Plot *plot() const { return plot_; }
 
   //---
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  CQChartsHierScatterPointGroup *group() const { return group_; }
-  void setGroup(CQChartsHierScatterPointGroup *p) { group_ = p; }
+  PointGroup *group() const { return group_; }
+  void setGroup(PointGroup *p) { group_ = p; }
+
+  //---
 
   QString calcId() const override;
 
   QString calcTipId() const override;
 
-  bool inside(const Point &p) const override;
-
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  private:
-  const Plot*                    plot_ { nullptr };
-  Point                          p_;
-  QString                        name_;
-  CQChartsHierScatterPointGroup* group_ { nullptr };
+  const Plot* plot_ { nullptr };
+  QString     name_;
+  PointGroup* group_ { nullptr };
 };
 
 //---

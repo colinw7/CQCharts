@@ -1342,3 +1342,5 @@
 # 1/6/2022
  + Scale point symbols by default on zoom for pixel/percent sized symbols. Add option to disable
  + fix bad horizontal box plot notch and point placement for normalized
+# 1/8/2022
+ + Update all plots to support scaled/non-scaled pixel size symbols

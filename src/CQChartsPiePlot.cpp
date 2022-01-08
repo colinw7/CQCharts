@@ -3326,7 +3326,7 @@ drawDumbbell(PaintDevice *device) const
   // draw symbol for each object on line
   auto symbol = CQChartsSymbol::circle();
 
-  CQChartsLength symbolSize("7px");
+  auto symbolSize = Length::pixel(7);
 
   double vmin = plot_->calcMinValue();
   double vmax = plot_->calcMaxValue();
@@ -3351,7 +3351,7 @@ drawDumbbell(PaintDevice *device) const
 
     auto p = Point(r, c.y);
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize, /*scale*/true);
 
     //---
 

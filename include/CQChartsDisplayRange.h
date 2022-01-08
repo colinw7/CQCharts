@@ -197,11 +197,11 @@ class CQChartsDisplayRange {
     factor_x_ = (window_width1_  != 0 ?  getPixelWidth ()/window_width1_  : 1.0);
     factor_y_ = (window_height1_ != 0 ? -getPixelHeight()/window_height1_ : 1.0);
 
-    if (equal_scale_) {
+    if (getEqualScale()) {
       factor_x1_ = factor_x_;
       factor_y1_ = factor_y_;
 
-      if (scale_min_) {
+      if (getScaleMin()) {
         if (fabs(factor_x1_) > fabs(factor_y1_)) {
           if (factor_x1_ < 0)
             factor_x1_ = -fabs(factor_y1_);
@@ -230,24 +230,24 @@ class CQChartsDisplayRange {
         }
       }
 
-      double px, py;
-
       pdx_ = 0;
       pdy_ = 0;
+
+      double px, py;
 
       windowToPixel(window1_.xmax, window1_.ymin, &px, &py);
 
       if      (halign_ == HAlign::LEFT)
         pdx_ = 0;
       else if (halign_ == HAlign::CENTER)
-        pdx_ = (pixel_.xmax - px)/2;
+        pdx_ = (pixel_.xmax - px)/2.0;
       else if (halign_ == HAlign::RIGHT)
         pdx_ = pixel_.xmax - px;
 
       if      (valign_ == VAlign::TOP)
         pdy_ = 0;
       else if (valign_ == VAlign::CENTER)
-        pdy_ = (pixel_.ymax - py)/2;
+        pdy_ = (pixel_.ymax - py)/2.0;
       else if (valign_ == VAlign::BOTTOM)
         pdy_ = pixel_.ymax - py;
     }

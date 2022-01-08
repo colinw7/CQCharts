@@ -363,7 +363,7 @@ class CQChartsObjPointData {
   const Length &symbolSize() const { return pointData_.size(); }
   void setSymbolSize(const Length &l) {
     if (l != pointData_.size()) {
-      pointData_.setSize(l); pointDataInvalidate(); }
+      pointData_.setSize(l); pointDataInvalidate(isReloadObj()); }
   }
 
   bool isSymbolStroked() const { return pointData_.stroke().isVisible(); }
@@ -569,7 +569,7 @@ class CQChartsObj##UNAME##PointData { \
   const Length &LNAME##SymbolSize() const { return LNAME##PointData_.size(); } \
   void set##UNAME##SymbolSize(const Length &s) { \
     if (s != LNAME##PointData_.size()) { \
-      LNAME##PointData_.setSize(s); LNAME##PointDataInvalidate(); } \
+      LNAME##PointData_.setSize(s); LNAME##PointDataInvalidate(is##UNAME##ReloadObj()); } \
   } \
 \
   bool is##UNAME##SymbolStroked() const { return LNAME##PointData_.stroke().isVisible(); } \

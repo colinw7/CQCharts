@@ -201,11 +201,11 @@ init()
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 
   setDotSymbol         (Symbol::circle());
-  setDotSymbolSize     (Length("7px"));
+  setDotSymbolSize     (Length::pixel(7));
   setDotSymbolFilled   (true);
   setDotSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setRugSymbolSize       (Length("5px"));
+  setRugSymbolSize       (Length::pixel(5));
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
 
@@ -4036,7 +4036,9 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(ps), symbolSize);
+    auto p1 = plot_->pixelToWindow(ps);
+
+    CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
   }
 }
 
@@ -4243,7 +4245,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     }
   }
   else {
-    auto pbbox = plot_->pixelToWindow(bbox);
+    auto pbbox = plot_->windowToPixel(bbox);
 
     // draw line
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), plot_->isVertical());
@@ -4307,7 +4309,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
       p = Point(bbox.getXMax(), bbox.getYMid());
 
     if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbol, p, symbolSize);
+      CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbol, p, symbolSize, /*scale*/true);
   }
 
   device->resetColorNames();
@@ -4324,7 +4326,7 @@ calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool up
   auto bw = plot_->barStrokeWidth();
 
   if (useLine) {
-    bw = Length("0px");
+    bw = Length::pixel(0);
 
     if (plot_->isBarFilled())
       bc = fc;
@@ -4704,7 +4706,9 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(ps), symbolSize);
+    auto p2 = plot_->pixelToWindow(ps);
+
+    CQChartsDrawUtil::drawSymbol(device, symbol, p2, symbolSize, /*scale*/true);
   }
 }
 
@@ -4782,6 +4786,8 @@ CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
     points_[i] = Point(rand.gen(), rand.gen());
 }
 
+//---
+
 QString
 CQChartsDistributionScatterObj::
 calcId() const
@@ -4814,6 +4820,8 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 void
 CQChartsDistributionScatterObj::
 draw(PaintDevice *device) const
@@ -4833,8 +4841,6 @@ draw(PaintDevice *device) const
   //---
 
   auto prect = plot_->windowToPixel(rect());
-
-  //device->drawRect(rect());
 
   //---
 
@@ -4858,7 +4864,9 @@ draw(PaintDevice *device) const
 
     Point p(pll.x + px, pll.y + py);
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, plot_->pixelToWindow(p), symbolSize);
+    auto p1 = plot_->pixelToWindow(p);
+
+    CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
   }
 }
 

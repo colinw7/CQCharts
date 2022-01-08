@@ -86,7 +86,8 @@ init()
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
-  setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
+  setOuterMargin(PlotMargin(Length::pixel(4), Length::pixel(4),
+                            Length::pixel(4), Length::pixel(4)));
 
   //---
 

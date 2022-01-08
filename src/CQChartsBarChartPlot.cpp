@@ -164,7 +164,7 @@ init()
   //---
 
   setDotSymbol(Symbol::circle());
-  setDotSymbolSize(Length("7px"));
+  setDotSymbolSize(Length::pixel(7));
 
   //---
 

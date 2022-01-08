@@ -49,7 +49,7 @@ class CQChartsDelaunay;
  * \brief Delaunay Plot Point object
  * \ingroup Charts
  */
-class CQChartsDelaunayPointObj : public CQChartsPlotObj {
+class CQChartsDelaunayPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
@@ -58,41 +58,35 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   using Symbol = CQChartsSymbol;
 
  public:
-  CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, double x, double y, double value,
+  CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, const Point &p, double value,
                            const QModelIndex &ind, const ColorInd &iv);
-
-  const Plot *plot() const { return plot_; }
-
-  double x() const { return x_; }
-  double y() const { return y_; }
-
-  double value() const { return value_; }
-
-  QString typeName() const override { return "point"; }
-
-  bool isPoint() const override { return true; }
 
   //---
 
-  QString calcId() const override;
+  const Plot *plot() const { return plot_; }
 
+  double value() const { return value_; }
+
+  //---
+
+  QString calcId   () const override;
   QString calcTipId() const override;
 
   //---
 
   bool isVisible() const override;
 
-  bool inside(const Point &p) const override;
-
   void getObjSelectIndices(Indices &inds) const override;
+
+  //---
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  private:
-  const Plot* plot_  { nullptr };
-  double      x_     { 0.0 };
-  double      y_     { 0.0 };
-  double      value_ { 0.0 };
+  const Plot* plot_  { nullptr }; //!< plot
+  double      value_ { 0.0 };     //!< value
 };
 
 //---
@@ -142,6 +136,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   using PenBrush  = CQChartsPenBrush;
   using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
+  using Symbol    = CQChartsSymbol;
   using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
@@ -200,7 +195,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void addPointObj(double x, double y, double value, const QModelIndex &xind,
+  void addPointObj(const Point &p, double value, const QModelIndex &xind,
                    int r, int nr, PlotObjs &objs) const;
 
   //---
@@ -227,7 +222,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   using PointObj = CQChartsDelaunayPointObj;
 
-  virtual PointObj *createPointObj(const BBox &rect, double x, double y, double value,
+  virtual PointObj *createPointObj(const BBox &rect, const Point &p, double value,
                                    const QModelIndex &ind, const ColorInd &iv) const;
 
  protected:

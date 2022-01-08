@@ -101,7 +101,7 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
   if (! angle.isZero())
     p = p.rotate(c, angle.radians());
 
-  drawSymbol(device, penBrush, symbolType, p, symbolSize);
+  drawSymbol(device, penBrush, symbolType, p, symbolSize, /*scale*/true);
 }
 
 //---
@@ -791,22 +791,22 @@ drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 
 void
 drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
-           const Point &c, const Length &size)
+           const Point &c, const Length &size, bool scale)
 {
-  drawSymbol(device, penBrush, symbol, c, size, size);
+  drawSymbol(device, penBrush, symbol, c, size, size, scale);
 }
 
 void
 drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
-           const Point &c, const Length &xsize, const Length &ysize)
+           const Point &c, const Length &xsize, const Length &ysize, bool scale)
 {
   setPenBrush(device, penBrush);
 
-  drawSymbol(device, symbol, c, xsize, ysize);
+  drawSymbol(device, symbol, c, xsize, ysize, scale);
 }
 
 void
-drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
+drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox, bool scale)
 {
   assert(bbox.isValid());
 
@@ -820,23 +820,26 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
   auto xsize = Length::pixel(sx/2.0);
   auto ysize = Length::pixel(sy/2.0);
 
-  drawSymbol(device, symbol, Point(cx, cy), xsize, ysize);
-}
-
-void
-drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size)
-{
-  drawSymbol(device, symbol, c, size, size);
+  drawSymbol(device, symbol, Point(cx, cy), xsize, ysize, scale);
 }
 
 void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
-           const Length &xsize, const Length &ysize)
+           const Length &size, bool scale)
+{
+  drawSymbol(device, symbol, c, size, size, scale);
+}
+
+void
+drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
+           const Length &xsize, const Length &ysize, bool scale)
 {
   if (! xsize.isValid() || ! ysize.isValid())
     return;
 
   CQChartsPlotSymbolRenderer srenderer(device, Point(c), xsize, ysize);
+
+  srenderer.setScale(scale);
 
   if      (symbol.isFilled() && ! symbol.isStroked())
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer); // filled

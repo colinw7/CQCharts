@@ -111,6 +111,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
  public:
   using PivotPlot = CQChartsPivotPlot;
   using Symbol    = CQChartsSymbol;
+  using Length    = CQChartsLength;
 
  public:
   CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
@@ -144,7 +145,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
  * \brief Pivot Plot Point Object
  * \ingroup Charts
  */
-class CQChartsPivotPointObj : public CQChartsPlotObj {
+class CQChartsPivotPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
@@ -159,9 +160,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "pivot_point"; }
 
-  //---
-
-  bool isPoint() const override { return true; }
+  double value() const { return value_; }
 
   //---
 
@@ -171,19 +170,14 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   //---
 
-  double value() const { return value_; }
-
-  //---
-
-  bool inside(const Point &p) const override;
-
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  protected:
   const PivotPlot* plot_  { nullptr }; //!< parent plot
-  Point            p_;                 //!< position
   double           value_ { 0.0 };     //!< value
 };
 

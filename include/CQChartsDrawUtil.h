@@ -315,16 +315,16 @@ void drawSimpleText(PaintDevice *device, const Point &pos, const QString &text);
 //---
 
 void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
-                const Point &c, const Length &size);
+                const Point &c, const Length &size, bool scale=false);
 void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
-                const Point &c, const Length &xsize, const Length &ysize);
+                const Point &c, const Length &xsize, const Length &ysize, bool scale=false);
 
 void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
-                const Length &size);
+                const Length &size, bool scale=false);
 void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
-                const Length &xsize, const Length &ysize);
+                const Length &xsize, const Length &ysize, bool scale=false);
 
-void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox);
+void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox, bool scale=false);
 
 //---
 

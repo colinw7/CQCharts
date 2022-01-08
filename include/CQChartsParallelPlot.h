@@ -115,7 +115,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  * \brief Parallel Plot Point object
  * \ingroup Charts
  */
-class CQChartsParallelPointObj : public CQChartsPlotObj {
+class CQChartsParallelPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
@@ -125,14 +125,14 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   using Symbol = CQChartsSymbol;
 
  public:
-  CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, double x, double y,
+  CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, const Point &p,
                            const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
-
-  QString typeName() const override { return "point"; }
 
   //---
 
-  bool isPoint() const override { return true; }
+  const Plot *plot() const { return plot_; }
+
+  double yval() const { return yval_; }
 
   //---
 
@@ -140,22 +140,22 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool isVisible() const override;
+  //---
 
-  bool inside(const Point &p) const override;
+  bool isVisible() const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
 
+  Length calcSymbolSize() const override;
+
  private:
   QString xName() const;
 
  private:
-  const Plot* plot_  { nullptr };
-  double      yval_  { 0.0 };
-  double      x_     { 0.0 };
-  double      y_     { 0.0 };
+  const Plot* plot_ { nullptr }; //!< plot
+  double      yval_ { 0.0 };     //!< y value
 };
 
 //---
@@ -322,7 +322,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   virtual LineObj *createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
                                  const ColorInd &is) const;
 
-  virtual PointObj *createPointObj(const BBox &rect, double yval, double x, double y,
+  virtual PointObj *createPointObj(const BBox &rect, double yval, const Point &p,
                                    const QModelIndex &ind, const ColorInd &is,
                                    const ColorInd &iv) const;
 

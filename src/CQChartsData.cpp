@@ -488,7 +488,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (alpha() != Alpha())
     nameValues.setNameValue("strokeAlpha", alpha().value());
 
-  if (width() != Length("0px"))
+  if (width() != Length::pixel(0))
     nameValues.setNameValueType<Length>("strokeWidth", width());
 
   if (dash() != LineDash())
@@ -500,7 +500,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (lineJoin() != LineJoin())
     nameValues.setNameValueType<LineJoin>("join", lineJoin());
 
-  if (cornerSize() != Length("0px"))
+  if (cornerSize() != Length::pixel(0))
     nameValues.setNameValueType<Length>("strokeCornerSize", cornerSize());
 }
 

@@ -755,19 +755,24 @@ createObjs(PlotObjs &objs) const
   const auto &polys = visitor.polys();
   const auto &xinds = visitor.xinds();
 
-  //---
-
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
-  // TODO: use actual symbol size
+  //---
+
+  double sx, sy;
+
+  plotSymbolSize(symbolSize(), sx, sy);
+
+#if 0
   const auto &dataRange = this->dataRange();
 
-  double sw = 0.01, sh = 0.01;
+  double sx = 0.01, sy = 0.01;
 
   if (dataRange.isSet()) {
-    sw = (dataRange.xmax() - dataRange.xmin())/100.0;
-    sh = (dataRange.ymax() - dataRange.ymin())/100.0;
+    sx = (dataRange.xmax() - dataRange.xmin())/100.0;
+    sy = (dataRange.ymax() - dataRange.ymin())/100.0;
   }
+#endif
 
   int n = polys.size();
 
@@ -848,12 +853,12 @@ createObjs(PlotObjs &objs) const
         y = j;
       }
 
-      BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+      BBox bbox(x - sx/2, y - sy/2, x + sx/2, y + sy/2);
 
       ColorInd is(i, n);
       ColorInd iv(j, nl);
 
-      auto *pointObj = createPointObj(bbox, p.y, x, y, yind1, is, iv);
+      auto *pointObj = createPointObj(bbox, p.y, Point(x, y), yind1, is, iv);
 
       objs.push_back(pointObj);
     }
@@ -1293,10 +1298,10 @@ createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
 
 CQChartsParallelPointObj *
 CQChartsParallelPlot::
-createPointObj(const BBox &rect, double yval, double x, double y, const QModelIndex &ind,
+createPointObj(const BBox &rect, double yval, const Point &p, const QModelIndex &ind,
                const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsParallelPointObj(this, rect, yval, x, y, ind, is, iv);
+  return new CQChartsParallelPointObj(this, rect, yval, p, ind, is, iv);
 }
 
 //---
@@ -1551,9 +1556,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
-
-  plot->setNormalizedRange(device);
+  const_cast<CQChartsParallelPlot *>(plot_)->setNormalizedRange(device);
 
   //---
 
@@ -1641,15 +1644,25 @@ writeScriptData(ScriptPaintDevice *device) const
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval,
-                         double x, double y, const QModelIndex &ind, const ColorInd &is,
-                         const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv),
- plot_(plot), yval_(yval), x_(x), y_(y)
+CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, const Point &p,
+                         const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, is, ColorInd(), iv),
+ plot_(plot), yval_(yval)
 {
   if (ind.isValid())
     setModelInd(ind);
 }
+
+//---
+
+CQChartsLength
+CQChartsParallelPointObj::
+calcSymbolSize() const
+{
+  return plot()->symbolSize();
+}
+
+//---
 
 QString
 CQChartsParallelPointObj::
@@ -1693,6 +1706,8 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 QString
 CQChartsParallelPointObj::
 xName() const
@@ -1713,6 +1728,8 @@ xName() const
   return xname;
 }
 
+//---
+
 bool
 CQChartsParallelPointObj::
 isVisible() const
@@ -1720,28 +1737,10 @@ isVisible() const
   if (! plot_->isPoints())
     return false;
 
-  return CQChartsPlotObj::isVisible();
+  return CQChartsPlotPointObj::isVisible();
 }
 
-bool
-CQChartsParallelPointObj::
-inside(const Point &p) const
-{
-  if (! isVisible())
-    return false;
-
-  auto p1 = plot_->windowToPixel(Point(x_, y_));
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
-
-  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
+//---
 
 void
 CQChartsParallelPointObj::
@@ -1749,6 +1748,8 @@ getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, Column(modelInd().column()));
 }
+
+//---
 
 void
 CQChartsParallelPointObj::
@@ -1759,49 +1760,41 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
+  auto symbol = plot()->symbol();
 
-  plot->setObjRange(device);
+  if (! symbol.isValid())
+    return;
 
   //---
 
-  // set pen and brush
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
+
+  //---
+
+  const_cast<CQChartsParallelPlot *>(plot())->setObjRange(device);
+
+  //---
+
+  // calc pen and brush
   auto colorInd = calcColorInd();
 
   PenBrush penBrush;
 
-  plot_->setSymbolPenBrush(penBrush, colorInd);
+  plot()->setSymbolPenBrush(penBrush, colorInd);
 
-  plot_->updateObjPenBrushState(this, penBrush, drawType());
-
-  //---
-
-  // get symbol type and size
-  auto symbol     = plot_->symbol();
-  auto symbolSize = plot_->symbolSize();
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(symbolSize, sx, sy);
-
-  if (isInside() || isSelected()) {
-    sx *= 2;
-    sy *= 2;
-  }
-
-  auto symbolSize1 = Length::pixel(CMathUtil::avg(sx, sy));
+  plot()->updateObjPenBrushState(this, penBrush, drawType());
 
   //---
 
   // draw symbol
-  Point p(x_, y_);
-
-  if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize1);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 
   //---
 
-  //plot->setNormalizedRange(device);
+  //const_cast<CQChartsParallelPlot *>(plot())->setNormalizedRange(device);
 }
 
 //------

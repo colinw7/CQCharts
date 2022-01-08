@@ -246,7 +246,7 @@ init()
   setLines (true);
   setPoints(false);
 
-  setLinesWidth(Length("3px"));
+  setLinesWidth(Length::pixel(3));
 
   //---
 
@@ -3071,8 +3071,8 @@ draw(PaintDevice *device) const
   if (! isVisible())
     return;
 
-  auto p1 = plot()->windowToPixel(Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(Point(x(), y2()));
+  auto p1 = Point(x(), y1());
+  auto p2 = Point(x(), y2());
 
   if (plot()->isLines())
     drawLines(device, p1, p2);
@@ -3097,7 +3097,7 @@ drawLines(PaintDevice *device, const Point &p1, const Point &p2) const
   //--
 
   // draw line
-  device->drawLine(plot_->pixelToWindow(p1), plot_->pixelToWindow(p2));
+  device->drawLine(p1, p2);
 }
 
 void
@@ -3123,9 +3123,10 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
   //---
 
   // draw symbols
-  auto ss = CQChartsLength::plot(CMathUtil::avg(sx, sy));
+  auto ss = CQChartsLength::pixel(CMathUtil::avg(sx, sy));
 
   if (symbol.isValid()) {
+    // already scaled
     CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
     CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss);
   }
@@ -3264,16 +3265,19 @@ draw(PaintDevice *device) const
   //---
 
   // draw impulse
-  auto p1 = plot()->windowToPixel(Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(Point(x(), y2()));
+  auto p1 = Point(x(), y1());
+  auto p2 = Point(x(), y2());
 
   if (isThinLine) {
-    device->drawLine(plot_->pixelToWindow(p1), plot_->pixelToWindow(p2));
+    device->drawLine(p1, p2);
   }
   else {
-    BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
+    auto pp1 = plot()->windowToPixel(p1);
+    auto pp2 = plot()->windowToPixel(p2);
 
-    CQChartsDrawUtil::drawRoundedRect(device, plot_->pixelToWindow(bbox));
+    BBox pbbox(pp1.x - lw/2.0, pp1.y, pp1.x + lw/2.0, pp2.y);
+
+    CQChartsDrawUtil::drawRoundedRect(device, plot_->pixelToWindow(pbbox));
   }
 }
 
@@ -3283,17 +3287,11 @@ CQChartsXYPointObj::
 CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
                    const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
                    const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv),
- plot_(plot), groupInd_(groupInd), pos_(pos)
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, pos, is, ig, iv), plot_(plot),
+ groupInd_(groupInd)
 {
   if (ind.isValid())
     setModelInd(ind);
-
-}
-
-CQChartsXYPointObj::
-~CQChartsXYPointObj()
-{
 }
 
 //---
@@ -3414,6 +3412,8 @@ extraData() const
 
   return edata_.get();
 }
+
+//---
 
 bool
 CQChartsXYPointObj::
@@ -3577,26 +3577,6 @@ calcTipId() const
 
 //---
 
-bool
-CQChartsXYPointObj::
-inside(const Point &p) const
-{
-  if (! isVisible())
-    return false;
-
-  double sx, sy;
-
-  plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy);
-
-  auto p1 = plot()->windowToPixel(point());
-
-  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
-
-  auto pp = plot()->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
-
 void
 CQChartsXYPointObj::
 getObjSelectIndices(Indices &inds) const
@@ -3643,23 +3623,33 @@ draw(PaintDevice *device) const
     device->setColorNames();
 
     // override symbol for custom symbol
-    auto symbol     = this->calcSymbol();
-    auto symbolSize = this->calcSymbolSize();
+    auto symbol = this->calcSymbol();
+
+    double sx, sy;
+
+    calcSymbolPixelSize(sx, sy);
+
+    //---
 
     // draw symbol or image
     auto image = this->calcImage();
 
     if (! image.isValid()) {
       if (symbol.isValid())
-        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pos_, symbolSize);
+        plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
     }
     else {
-      // get point
-      auto ps = plot()->windowToPixel(pos_);
+      double aspect = (1.0*image.width())/image.height();
 
-      double sx, sy;
+      if (aspect > 1.0) {
+        sy = sx;
+        sx = sy*aspect;
+      }
+      else {
+        sy = sx*(1.0/aspect);
+      }
 
-      plot()->pixelSymbolSize(symbolSize, sx, sy);
+      auto ps = plot()->windowToPixel(point());
 
       BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
@@ -3674,7 +3664,7 @@ draw(PaintDevice *device) const
   // draw optional vector
   // TODO: custom color for this sets what ?
   if (isVector) {
-    auto p1 = pos_;
+    auto p1 = point();
     auto p2 = p1 + this->vector();
 
     plot()->drawArrow(device, p1, p2);
@@ -4752,14 +4742,17 @@ drawLine(PaintDevice *device, const BBox &rect) const
 
     //---
 
-    auto symbol     = plot()->symbol();
-    auto symbolSize = plot()->symbolSize();
+    auto symbol = plot()->symbol();
 
-    Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
+    if (symbol.isValid()) {
+      auto symbolSize = plot()->symbolSize();
 
-    if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol,
-                                   plot()->pixelToWindow(ps), symbolSize);
+      Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
+
+      auto ps1 = plot()->pixelToWindow(ps);
+
+      CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps1, symbolSize);
+    }
   }
 
   device->restore();

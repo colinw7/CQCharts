@@ -120,7 +120,7 @@ init()
   //---
 
   setSymbol(Symbol::circle());
-  setSymbolSize(Length("4px"));
+  setSymbolSize(Length::pixel(4));
   setSymbolFilled(true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
 
@@ -675,11 +675,23 @@ createCustomControls()
 CQChartsStripPointObj::
 CQChartsStripPointObj(const Plot *plot, const BBox &rect, int groupInd, const Point &p,
                       const QModelIndex &ind, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ig, iv), plot_(plot),
- groupInd_(groupInd), p_(p)
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ig, iv),
+ plot_(plot), groupInd_(groupInd)
 {
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
+
+//---
+
+CQChartsLength
+CQChartsStripPointObj::
+calcSymbolSize() const
+{
+  return plot()->symbolSize();
+}
+
+//---
 
 QString
 CQChartsStripPointObj::
@@ -708,18 +720,7 @@ calcTipId() const
   return tableTip.str();
 }
 
-bool
-CQChartsStripPointObj::
-inside(const Point &p) const
-{
-  auto p1 = plot_->windowToPixel(Point(p_.x, p_.y));
-
-  BBox pbbox(p1.x - 4, p1.y - 4, p1.x + 4, p1.y + 4);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
+//---
 
 void
 CQChartsStripPointObj::
@@ -732,17 +733,23 @@ void
 CQChartsStripPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol     = plot_->symbol();
-  auto symbolSize = plot_->symbolSize();
+  auto symbol = plot_->symbol();
+
+  if (! symbol.isValid())
+    return;
 
   //---
 
-  // get color index
-  auto colorInd = this->calcColorInd();
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
 
   //---
 
   // calc stroke and brush
+  auto colorInd = this->calcColorInd();
+
   PenBrush penBrush;
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
@@ -766,8 +773,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, symbolSize);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 }
 
 //------

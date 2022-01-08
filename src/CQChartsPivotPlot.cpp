@@ -1507,10 +1507,10 @@ draw(PaintDevice *device) const
 
     auto symbol = Symbol::circle();
 
-    CQChartsLength ss("5px");
+    auto ss = Length::pixel(5);
 
     for (int i = 0; i < np; ++i)
-      CQChartsDrawUtil::drawSymbol(device, symbol, polygon_.point(i), ss);
+      CQChartsDrawUtil::drawSymbol(device, symbol, polygon_.point(i), ss, /*scale*/false);
   }
 
   // draw line
@@ -1537,11 +1537,22 @@ draw(PaintDevice *device) const
 CQChartsPivotPointObj::
 CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
                       const ColorInd &ir, const ColorInd &ic, const Point &p, double value) :
- CQChartsPlotObj(const_cast<PivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), p_(p), value_(value)
+ CQChartsPlotPointObj(const_cast<PivotPlot *>(plot), rect, p, ColorInd(), ic, ir),
+ plot_(plot), value_(value)
 {
   setModelInds(inds);
 }
+
+//---
+
+CQChartsLength
+CQChartsPivotPointObj::
+calcSymbolSize() const
+{
+  return Length::pixel(5);
+}
+
+//---
 
 QString
 CQChartsPivotPointObj::
@@ -1577,15 +1588,7 @@ calcTipId() const
   return tableTip.str();
 }
 
-bool
-CQChartsPivotPointObj::
-inside(const Point &p) const
-{
-  auto p1 = plot()->windowToPixel(p);
-  auto p2 = plot()->windowToPixel(Point(p_));
-
-  return (CQChartsUtil::PointPointDistance(p1, p2) < 4);
-}
+//---
 
 void
 CQChartsPivotPointObj::
@@ -1602,25 +1605,26 @@ void
 CQChartsPivotPointObj::
 draw(PaintDevice *device) const
 {
-  // calc bar color
-  auto colorInd = calcColorInd();
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
 
   //---
 
-  // draw points (symbols)
-
   // calc pen and brush
+  auto colorInd = calcColorInd();
+
   PenBrush penBrush;
 
   plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
 
   plot_->updateObjPenBrushState(this, penBrush);
 
+  // draw points (symbols)
   auto symbol = Symbol::circle();
 
-  CQChartsLength ss("5px");
-
-  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, ss);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 }
 
 //------

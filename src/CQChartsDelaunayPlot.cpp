@@ -139,9 +139,14 @@ init()
   CQChartsObjVoronoiShapeData::setVoronoiReloadObj (false);
 
   setDelaunay(true);
-  setVoronoi (false);
 
-  setPoints(true);
+  setVoronoi      (false);
+  setVoronoiPoints(false);
+  setVoronoiSymbol(Symbol::circle());
+
+  setPoints(false);
+
+  setSymbol(Symbol::circle());
 
   setSymbolStrokeColor(Color(Color::Type::PALETTE));
   setVoronoiFillColor (Color(Color::Type::PALETTE));
@@ -487,7 +492,7 @@ createObjs(PlotObjs &objs) const
 
       auto xInd1 = plot_->modelIndex(xInd);
 
-      plot_->addPointObj(x, y, value, xInd1, ModelVisitor::row(), nr_, objs_);
+      plot_->addPointObj(Point(x, y), value, xInd1, ModelVisitor::row(), nr_, objs_);
 
       return State::OK;
     }
@@ -521,38 +526,35 @@ createObjs(PlotObjs &objs) const
 
 void
 CQChartsDelaunayPlot::
-addPointObj(double x, double y, double value, const QModelIndex &xind,
+addPointObj(const Point &p, double value, const QModelIndex &xind,
             int r, int nr, PlotObjs &objs) const
 {
   assert(delaunayData_);
 
   auto *th = const_cast<CQChartsDelaunayPlot *>(this);
 
-  auto v = th->delaunayData_->addVertex(x, y);
+  auto v = th->delaunayData_->addVertex(p.x, p.y);
 
   v->setValue(value);
 
   //---
 
-  const auto &dataRange = this->dataRange();
+  double sx, sy;
 
-  double sw = 0.01, sh = 0.01;
+  plotSymbolSize(symbolSize(), sx, sy);
 
-  if (dataRange.isValid()) {
-    sw = (dataRange.xmax() - dataRange.xmin())/100.0;
-    sh = (dataRange.ymax() - dataRange.ymin())/100.0;
-  }
+  //---
 
   auto xind1 = normalizeIndex(xind);
 
-  BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
+  BBox bbox(p.x - sx/2.0, p.y - sy/2.0, p.x + sx/2.0, p.y + sy/2.0);
 
   ColorInd iv;
 
   if (nr > 0)
     iv = ColorInd(r, nr);
 
-  auto *pointObj = createPointObj(bbox, x, y, value, xind1, iv);
+  auto *pointObj = createPointObj(bbox, p, value, xind1, iv);
 
   objs.push_back(pointObj);
 }
@@ -716,7 +718,7 @@ drawVoronoi(PaintDevice *device) const
       Point p(v->x(), v->y());
 
       if (symbol.isValid())
-        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize);
+        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize, /*scale*/true);
     }
   }
 
@@ -759,10 +761,10 @@ drawVoronoi(PaintDevice *device) const
 
 CQChartsDelaunayPointObj *
 CQChartsDelaunayPlot::
-createPointObj(const BBox &rect, double x, double y, double value, const QModelIndex &ind,
+createPointObj(const BBox &rect, const Point &p, double value, const QModelIndex &ind,
                const ColorInd &iv) const
 {
-  return new CQChartsDelaunayPointObj(this, rect, x, y, value, ind, iv);
+  return new CQChartsDelaunayPointObj(this, rect, p, value, ind, iv);
 }
 
 //---
@@ -785,14 +787,25 @@ createCustomControls()
 //------
 
 CQChartsDelaunayPointObj::
-CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const BBox &rect,
-                         double x, double y, double value, const QModelIndex &ind,
-                         const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), x_(x), y_(y), value_(value)
+CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, const Point &p,
+                         double value, const QModelIndex &ind, const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ColorInd(), iv),
+ plot_(plot), value_(value)
 {
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
+
+//---
+
+CQChartsLength
+CQChartsDelaunayPointObj::
+calcSymbolSize() const
+{
+  return plot()->symbolSize();
+}
+
+//---
 
 QString
 CQChartsDelaunayPointObj::
@@ -810,9 +823,9 @@ calcId() const
     name1 = plot_->yname();
 
   if (name1.length())
-    return QString("%1:%2:%3:%4").arg(typeName()).arg(name1).arg(x_).arg(y_);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(name1).arg(x()).arg(y());
   else
-    return QString("%1:%2:%3:%4").arg(typeName()).arg(iv_.i).arg(x_).arg(y_);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(iv_.i).arg(x()).arg(y());
 }
 
 QString
@@ -852,6 +865,8 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 bool
 CQChartsDelaunayPointObj::
 isVisible() const
@@ -859,28 +874,10 @@ isVisible() const
   if (! plot_->isPoints())
     return false;
 
-  return CQChartsPlotObj::isVisible();
+  return CQChartsPlotPointObj::isVisible();
 }
 
-bool
-CQChartsDelaunayPointObj::
-inside(const Point &p) const
-{
-  if (! isVisible())
-    return false;
-
-  auto p1 = plot_->windowToPixel(Point(x_, y_));
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
-
-  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
+//---
 
 void
 CQChartsDelaunayPointObj::
@@ -890,12 +887,28 @@ getObjSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->yColumn());
 }
 
+//---
+
 void
 CQChartsDelaunayPointObj::
 draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
+
+  auto symbol = plot()->symbol();
+
+  if (! symbol.isValid())
+    return;
+
+  //---
+
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
+
+  //---
 
   // calc pen and brush
   auto colorInd = calcColorInd();
@@ -908,17 +921,8 @@ draw(PaintDevice *device) const
 
   //---
 
-  // get symbol type and size
-  auto symbol     = plot_->symbol();
-  auto symbolSize = plot_->symbolSize();
-
-  //---
-
   // draw symbol
-  Point p(x_, y_);
-
-  if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p, symbolSize);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 }
 
 //------

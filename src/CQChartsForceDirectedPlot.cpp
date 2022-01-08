@@ -116,7 +116,7 @@ init()
 
   forceDirected_ = new CQChartsForceDirected;
 
-  setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
+  setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
 
   setNodeFillColor  (Color());
   setNodeStrokeAlpha(Alpha(0.5));

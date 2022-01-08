@@ -5,6 +5,7 @@ Abstract Painter/Javascript
 
 TODO:
  + check zoom on all symbol plots
+ + parallel plot redraw issues
  + check column role
  + open gl 3d plot
    + 3d axes, cube

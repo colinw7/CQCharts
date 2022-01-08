@@ -222,12 +222,12 @@ init()
   setBoxFilled (true);
 
   setOutlierSymbol(Symbol::circle());
-  setOutlierSymbolSize(Length("4px"));
+  setOutlierSymbolSize(Length::pixel(4));
   setOutlierSymbolFilled(true);
   setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
   setJitterSymbol(Symbol::circle());
-  setJitterSymbolSize(Length("4px"));
+  setJitterSymbolSize(Length::pixel(4));
   setJitterSymbolFilled(true);
   setJitterSymbolFillColor(Color(Color::Type::PALETTE));
 
@@ -2916,8 +2916,8 @@ remapPos(double y) const
 CQChartsBoxPlotOutlierObj::
 CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                           const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io) :
- CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
- whisker_(whisker), io_(io)
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, rect.getCenter(), is, ig, ColorInd()),
+ plot_(plot), setId_(setId), groupInd_(groupInd), whisker_(whisker), io_(io)
 {
   if (whisker_) {
     const auto &ovalue = whisker_->value(io_);
@@ -2925,6 +2925,17 @@ CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int gro
     setModelInd(ovalue.ind);
   }
 }
+
+//---
+
+CQChartsLength
+CQChartsBoxPlotOutlierObj::
+calcSymbolSize() const
+{
+  return plot()->outlierSymbolSize();
+}
+
+//---
 
 QString
 CQChartsBoxPlotOutlierObj::
@@ -2978,6 +2989,8 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 void
 CQChartsBoxPlotOutlierObj::
 getObjSelectIndices(Indices &inds) const
@@ -2995,6 +3008,8 @@ getObjSelectIndices(Indices &inds) const
   }
 }
 
+//---
+
 void
 CQChartsBoxPlotOutlierObj::
 draw(PaintDevice *device) const
@@ -3004,23 +3019,21 @@ draw(PaintDevice *device) const
   if (! symbol.isValid())
     return;
 
-  //auto symbolSize = plot_->outlierSymbolSize();
-  auto prect = device->windowToPixel(rect());
+  //---
 
-  auto xs = Length::pixel(prect.getWidth ()/2.0);
-  auto ys = Length::pixel(prect.getHeight()/2.0);
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
 
   //---
 
-  // get color index
+  // calc pen and brush
   auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
 
-  //---
-
-  // set fill and stroke
   PenBrush penBrush;
 
   plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
@@ -3033,9 +3046,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  CQChartsDrawUtil::drawSymbol(device, symbol, rect_.getCenter(), xs, ys);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 }
 
 double
@@ -3685,11 +3696,23 @@ CQChartsBoxPlotPointObj::
 CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &is,
                         const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot),
- setId_(setId), groupInd_(groupInd), p_(p)
+ CQChartsPlotPointObj(const_cast<CQChartsBoxPlot *>(plot), rect, p, is, ig, iv),
+ plot_(plot), setId_(setId), groupInd_(groupInd)
 {
-  setModelInd(ind);
+  if (ind.isValid())
+    setModelInd(ind);
 }
+
+//---
+
+CQChartsLength
+CQChartsBoxPlotPointObj::
+calcSymbolSize() const
+{
+  return plot()->jitterSymbolSize();
+}
+
+//---
 
 QString
 CQChartsBoxPlotPointObj::
@@ -3756,25 +3779,7 @@ calcTipId() const
   return tableTip.str();
 }
 
-bool
-CQChartsBoxPlotPointObj::
-inside(const Point &p) const
-{
-  auto prect = plot_->windowToPixel(rect());
-
-  auto xs = std::max(prect.getWidth ()/2.0, 4.0);
-  auto ys = std::max(prect.getHeight()/2.0, 4.0);
-
-  //---
-
-  auto p1 = plot_->windowToPixel(p_);
-
-  BBox pbbox(p1.x - xs, p1.y - ys, p1.x + xs, p1.y + ys);
-
-  auto pp = plot_->windowToPixel(p);
-
-  return pbbox.inside(pp);
-}
+//---
 
 void
 CQChartsBoxPlotPointObj::
@@ -3782,6 +3787,8 @@ getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
+
+//---
 
 void
 CQChartsBoxPlotPointObj::
@@ -3792,23 +3799,21 @@ draw(PaintDevice *device) const
   if (! symbol.isValid())
     return;
 
-  //auto symbolSize = plot_->jitterSymbolSize();
-  auto prect = device->windowToPixel(rect());
+  //---
 
-  auto xs = Length::pixel(prect.getWidth ()/2.0);
-  auto ys = Length::pixel(prect.getHeight()/2.0);
+  // get symbol size
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
 
   //---
 
-  // get color index
+  // calc pen and brush
   auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
 
-  //---
-
-  // calc stroke and brush
   PenBrush penBrush;
 
   plot_->setJitterSymbolPenBrush(penBrush, colorInd);
@@ -3821,9 +3826,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  CQChartsDrawUtil::drawSymbol(device, symbol, p_, xs, ys);
+  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
 }
 
 //------

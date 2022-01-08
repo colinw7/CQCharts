@@ -107,6 +107,9 @@ class CQChartsPlotSymbolRenderer {
   CQChartsPlotSymbolRenderer(PaintDevice *device, const Point &p,
                              const Length &xsize, const Length &ysize);
 
+  bool isScale() const { return scale_; }
+  void setScale(bool b) { scale_ = b; }
+
   void drawSymbol  (Symbol symbol);
   void strokeSymbol(Symbol symbol);
   void fillSymbol  (Symbol symbol);
@@ -161,6 +164,7 @@ class CQChartsPlotSymbolRenderer {
 
  private:
   PaintDevice*   device_  { nullptr };  //!< device
+  bool           scale_   { false };    //!< scale size
   Point          p_       { 0.0, 0.0 }; //!< symbol center
   Length         xsize_;                //!< x size as length
   Length         ysize_;                //!< y size as length

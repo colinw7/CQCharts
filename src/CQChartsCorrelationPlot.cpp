@@ -1173,7 +1173,7 @@ draw(PaintDevice *device) const
 
         auto symbol = Symbol::circle();
 
-        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps, ss);
+        CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, ps, ss, /*scale*/true);
       }
 
       skipLabel = true;

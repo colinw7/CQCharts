@@ -196,7 +196,8 @@ init()
   //---
 
   // left, top, right, bottom
-  setOuterMargin(PlotMargin(Length("0.1P"), Length("0.1P"), Length("0.1P"), Length("0.1P")));
+  setOuterMargin(PlotMargin(Length::plot(0.1), Length::plot(0.1),
+                            Length::plot(0.1), Length::plot(0.1)));
 }
 
 void
@@ -1294,7 +1295,8 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, plot_->symbolSize());
+    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps,
+                                 plot_->symbolSize(), /*scale*/true);
 
     //---
 

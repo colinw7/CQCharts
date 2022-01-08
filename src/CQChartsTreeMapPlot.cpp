@@ -113,7 +113,8 @@ init()
   setTextScaled(true);
   setTextFormatted(true);
 
-  setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
+  setOuterMargin(PlotMargin(Length::pixel(4), Length::pixel(4),
+                            Length::pixel(4), Length::pixel(4)));
 
   //---
 

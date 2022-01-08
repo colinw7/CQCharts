@@ -142,9 +142,11 @@ init()
   viewBBox_      = BBox(0, 0, vr, vr);
   innerViewBBox_ = viewBBox_;
 
-  innerMargin_ = PlotMargin(Length("0P" ), Length("0P" ), Length("0P" ), Length("0P" ));
-  outerMargin_ = PlotMargin(Length("10%"), Length("10%"), Length("10%"), Length("10%"));
-  fitMargin_   = PlotMargin(Length("1%" ), Length("1%" ), Length("1%" ), Length("1%" ));
+  innerMargin_ = PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0));
+  outerMargin_ = PlotMargin(Length::percent(10), Length::percent(10),
+                            Length::percent(10), Length::percent(10));
+  fitMargin_   = PlotMargin(Length::percent(1), Length::percent(1),
+                            Length::percent(1), Length::percent(1));
 
   setPixelRange(BBox(0.0, 0.0,  vr,  vr));
 
@@ -2341,6 +2343,15 @@ setDefaultPalette(const PaletteName &name)
 
 void
 CQChartsPlot::
+setDefaultSymbolSetName(const QString &name)
+{
+  CQChartsUtil::testAndSet(defaultSymbolSetName_, name, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
 setScaleSymbolSize(bool b)
 {
   CQChartsUtil::testAndSet(scaleSymbolSize_, b, [&]() { updateRangeAndObjs(); } );
@@ -3648,6 +3659,8 @@ addBaseProperties()
 
   // scaled symbol
   addProp("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom", /*hidden*/true);
+  addProp("points", "defaultSymbolSetName", "defaultSymbolSet",
+          "Default symbol set", /*hidden*/true);
 }
 
 void
@@ -13871,7 +13884,7 @@ autoFitOne()
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 #else
-  auto outerMargin = PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P"));
+  auto outerMargin = PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0));
 
   setOuterMargin(outerMargin);
 
@@ -16194,13 +16207,8 @@ modelValue(const ModelIndex &ind, bool &ok) const
 
     return modelValue(model().data(), ind.row(), c, ind.parent(), ok);
   }
-  else {
-    if (ind.column().hasRole())
-      return modelValue(model().data(), ind.row(), ind.column(), ind.parent(),
-                        ind.column().role(), ok);
-    else
-      return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), ok);
-  }
+  else
+    return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), ok);
 }
 
 QVariant
@@ -16216,6 +16224,9 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, bool &ok) const
 {
+  if (column.hasRole())
+    return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, column.role(), ok);
+
   return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, ok);
 }
 
@@ -16282,6 +16293,9 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const Column &column,
             const QModelIndex &parent, bool &ok) const
 {
+  if (column.hasRole())
+    return CQChartsModelUtil::modelString(charts(), model, row, column, parent, column.role(), ok);
+
   return CQChartsModelUtil::modelString(charts(), model, row, column, parent, ok);
 }
 
@@ -16354,6 +16368,9 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const Column &column,
           const QModelIndex &parent, bool &ok) const
 {
+  if (column.hasRole())
+    return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, column.role(), ok);
+
   return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, ok);
 }
 
@@ -16426,42 +16443,11 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const Column &column,
              const QModelIndex &parent, bool &ok) const
 {
+  if (column.hasRole())
+    return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, column.role(), ok);
+
   return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, ok);
 }
-
-//--
-
-#if 0
-CQChartsColor
-CQChartsPlot::
-modelColor(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
-{
-  return modelColor(model().data(), row, column, parent, role, ok);
-}
-
-CQChartsColor
-CQChartsPlot::
-modelColor(int row, const Column &column, const QModelIndex &parent, bool &ok) const
-{
-  return modelColor(model().data(), row, column, parent, ok);
-}
-
-CQChartsColor
-CQChartsPlot::
-modelColor(QAbstractItemModel *model, int row, const Column &column,
-           const QModelIndex &parent, int role, bool &ok) const
-{
-  return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, role, ok);
-}
-
-CQChartsColor
-CQChartsPlot::
-modelColor(QAbstractItemModel *model, int row, const Column &column,
-           const QModelIndex &parent, bool &ok) const
-{
-  return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, ok);
-}
-#endif
 
 //---
 
@@ -17542,6 +17528,18 @@ windowToPixel(const QPainterPath &path) const
 }
 
 //------
+
+void
+CQChartsPlot::
+plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy) const
+{
+  useRawRange_ = isScaleSymbolSize();
+
+  sx = lengthPlotWidth (xs);
+  sy = lengthPlotHeight(ys);
+
+  useRawRange_ = false;
+}
 
 void
 CQChartsPlot::

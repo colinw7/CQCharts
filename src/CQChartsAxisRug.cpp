@@ -9,7 +9,7 @@ CQChartsAxisRug(CQChartsPlot *plot, const Qt::Orientation &direction) :
 {
   setSymbol(direction == Qt::Horizontal ? Symbol::vline() : Symbol::hline());
 
-  setSymbolSize(CQChartsLength("5px"));
+  setSymbolSize(Length::pixel(5));
 }
 
 void
@@ -142,7 +142,7 @@ draw(CQChartsPaintDevice *device, double delta)
     plot()->setPenBrush(penBrush,
       CQChartsPenData(true, p.c, symbolAlpha), CQChartsBrushData(false));
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize, /*scale*/true);
   }
 
   if (plot()->showBoxes())
