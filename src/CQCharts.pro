@@ -788,10 +788,14 @@ INCLUDEPATH += \
 ../../CCommand/include \
 ../../CImageLib/include \
 ../../CFont/include \
+../../CConfig/include \
 ../../CReadLine/include \
 ../../CFile/include \
+../../CFileUtil/include \
 ../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \
+../../CRegExp/include \
+../../CGlob/include \
 ../../COS/include \
 /usr/include/tcl \
