@@ -100,6 +100,8 @@ description() const
        "point symbol type, symbol size and symbol color.").
      p("The points can have individual labels in which case the label font size can "
        "also be customized.").
+     p("Scatter plots are usually used for non-monotonic/non-sequential data. If the x values "
+       "are monotonic/sequential then consider using an xy plot instead.").
     h3("Grouping").
      p("The points can be grouped by specifying a " + B("Name") + " column, all values "
        "with the same name are placed in that group and will be default colored by the "
@@ -1351,7 +1353,7 @@ addPointObjects(PlotObjs &objs) const
             symbolAlpha = Alpha();
         }
 
-        if (symbolAlpha.isValid())
+        if (symbolAlpha.isSet())
           pointObj->setAlpha(symbolAlpha);
 
         //---
@@ -3427,7 +3429,7 @@ calcSymbol() const
 {
   CQChartsSymbol symbol;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     symbol = this->symbol();
 
   if (! symbol.isValid())
@@ -3442,7 +3444,7 @@ calcSymbolSize() const
 {
   Length symbolSize;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
@@ -3457,7 +3459,7 @@ calcFontSize() const
 {
   Length fontSize;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     fontSize = this->fontSize();
 
   if (! fontSize.isValid())
@@ -3472,7 +3474,7 @@ calcColor() const
 {
   Color color;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     color = this->color();
 
   return color;
@@ -3484,7 +3486,7 @@ calcAlpha() const
 {
   Alpha alpha;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     alpha = this->alpha();
 
   return alpha;
@@ -3496,7 +3498,7 @@ calcFont() const
 {
   Font font;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     font = this->font();
 
   if (! font.isValid())
@@ -3511,7 +3513,7 @@ calcLabelDir() const
 {
   Qt::Orientation dir { Qt::Horizontal };
 
-  if (extraData())
+  if (extraData(/*create*/false))
     dir = this->labelDir();
 
   return dir;
@@ -3523,7 +3525,7 @@ calcImage() const
 {
   CQChartsImage image;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     image = this->image();
 
   return image;
@@ -3543,10 +3545,14 @@ extraData()
 
 const CQChartsScatterPointObj::ExtraData *
 CQChartsScatterPointObj::
-extraData() const
+extraData(bool create) const
 {
-  if (! edata_)
+  if (! edata_) {
+    if (! create)
+      return nullptr;
+
     const_cast<CQChartsScatterPointObj *>(this)->edata_ = std::make_unique<ExtraData>();
+  }
 
   return edata_.get();
 }
@@ -3877,7 +3883,7 @@ isMinLabelSize() const
                  (CQChartsDataLabel::Position) plot_->dataLabelPosition(), font).size();
 
   if      (minLabelSize.units() == Units::PLOT) {
-    if (labelDir() == Qt::Horizontal)
+    if (calcLabelDir() == Qt::Horizontal)
       return (minLabelSize.value() > wsize.width());
     else
       return (minLabelSize.value() > wsize.height());
@@ -3974,7 +3980,7 @@ calcLabelFont() const
   if (fontSize.isValid()) {
     double fontPixelSize;
 
-    if (labelDir() == Qt::Horizontal)
+    if (calcLabelDir() == Qt::Horizontal)
       fontPixelSize = plot_->lengthPixelWidth(fontSize);
     else
       fontPixelSize = plot_->lengthPixelHeight(fontSize);

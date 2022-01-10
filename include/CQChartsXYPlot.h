@@ -292,7 +292,7 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
   using ExtraDataP = std::unique_ptr<ExtraData>;
 
  private:
-  const ExtraData *extraData() const;
+  const ExtraData *extraData(bool create=true) const;
   ExtraData *extraData();
 
  private:
@@ -434,7 +434,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  bool rectIntersect(const BBox &r, bool inside) const override;
+//bool rectIntersect(const BBox &r, bool inside) const override;
 
   bool isSelectable() const override;
 
@@ -542,7 +542,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  bool rectIntersect(const BBox &r, bool inside) const override;
+//bool rectIntersect(const BBox &r, bool inside) const override;
 
   bool isSelectable() const override;
 

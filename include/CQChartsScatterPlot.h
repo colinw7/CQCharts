@@ -198,7 +198,7 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   using ExtraDataP = std::unique_ptr<ExtraData>;
 
  private:
-  const ExtraData *extraData() const;
+  const ExtraData *extraData(bool create=true) const;
   ExtraData *extraData();
 
  private:

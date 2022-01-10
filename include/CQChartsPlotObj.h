@@ -395,6 +395,8 @@ class CQChartsPlotPointObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
+  bool rectIntersect(const BBox &r, bool inside) const override;
+
   //---
 
   virtual Length calcSymbolSize() const = 0;

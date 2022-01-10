@@ -3314,7 +3314,7 @@ calcSymbol() const
 {
   CQChartsSymbol symbol;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     symbol = this->symbol();
 
   if (! symbol.isValid())
@@ -3329,7 +3329,7 @@ calcSymbolSize() const
 {
   Length symbolSize;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
@@ -3344,7 +3344,7 @@ calcFontSize() const
 {
   Length fontSize;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     fontSize = this->fontSize();
 
   if (! fontSize.isValid())
@@ -3359,7 +3359,7 @@ calcColor() const
 {
   Color color;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     color = this->color();
 
   return color;
@@ -3371,7 +3371,7 @@ calcImage() const
 {
   CQChartsImage image;
 
-  if (extraData())
+  if (extraData(/*create*/false))
     image = this->image();
 
   return image;
@@ -3381,14 +3381,14 @@ bool
 CQChartsXYPointObj::
 isVector() const
 {
-  return (extraData() ? bool(extraData()->vector) : false);
+  return (extraData(/*create*/false) ? bool(extraData()->vector) : false);
 }
 
 CQChartsGeom::Point
 CQChartsXYPointObj::
 vector() const
 {
-  return (extraData() ? *extraData()->vector : Point());
+  return (extraData(/*create*/false) ? *extraData()->vector : Point());
 }
 
 //---
@@ -3405,10 +3405,14 @@ extraData()
 
 const CQChartsXYPointObj::ExtraData *
 CQChartsXYPointObj::
-extraData() const
+extraData(bool create) const
 {
-  if (! edata_)
+  if (! edata_) {
+    if (! create)
+      return nullptr;
+
     const_cast<CQChartsXYPointObj *>(this)->edata_ = std::make_unique<ExtraData>();
+  }
 
   return edata_.get();
 }
@@ -3929,12 +3933,14 @@ inside(const Point &p) const
   return false;
 }
 
+#if 0
 bool
 CQChartsXYPolylineObj::
 rectIntersect(const BBox &r, bool inside) const
 {
   return CQChartsPlotObj::rectIntersect(r, inside);
 }
+#endif
 
 bool
 CQChartsXYPolylineObj::
@@ -4407,12 +4413,14 @@ inside(const Point &p) const
   return poly_.containsPoint(p, Qt::OddEvenFill);
 }
 
+#if 0
 bool
 CQChartsXYPolygonObj::
 rectIntersect(const BBox &r, bool inside) const
 {
   return CQChartsPlotObj::rectIntersect(r, inside);
 }
+#endif
 
 bool
 CQChartsXYPolygonObj::

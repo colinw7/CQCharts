@@ -806,6 +806,13 @@ drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
 }
 
 void
+drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
+           const Length &size, bool scale)
+{
+  drawSymbol(device, symbol, c, size, size, scale);
+}
+
+void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox, bool scale)
 {
   assert(bbox.isValid());
@@ -825,19 +832,12 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox, bool sca
 
 void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
-           const Length &size, bool scale)
-{
-  drawSymbol(device, symbol, c, size, size, scale);
-}
-
-void
-drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
            const Length &xsize, const Length &ysize, bool scale)
 {
   if (! xsize.isValid() || ! ysize.isValid())
     return;
 
-  CQChartsPlotSymbolRenderer srenderer(device, Point(c), xsize, ysize);
+  CQChartsPlotSymbolRenderer srenderer(device, c, xsize, ysize);
 
   srenderer.setScale(scale);
 

@@ -1346,3 +1346,4 @@
  + Update all plots to support scaled/non-scaled pixel size symbols
 # 1/9/2022
  + add buchheim placement to dendogram plot
+ + ensure extra data only created when needed for xy/scatter plots

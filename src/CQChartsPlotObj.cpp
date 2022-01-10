@@ -515,8 +515,7 @@ bool
 CQChartsPlotPointObj::
 inside(const Point &p) const
 {
-  if (! isVisible())
-    return false;
+  if (! isVisible()) return false;
 
   //---
 
@@ -533,6 +532,32 @@ inside(const Point &p) const
   auto pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
+}
+
+bool
+CQChartsPlotPointObj::
+rectIntersect(const BBox &r, bool inside) const
+{
+  if (! isVisible()) return false;
+
+  //---
+
+  double sx, sy;
+
+  calcSymbolPixelSize(sx, sy);
+
+  //---
+
+  auto p1 = plot_->windowToPixel(point());
+
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+
+  auto pr = plot_->windowToPixel(r);
+
+  if (inside)
+    return pr.inside(pbbox);
+  else
+    return pr.overlaps(pbbox);
 }
 
 void

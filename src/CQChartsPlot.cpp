@@ -10845,7 +10845,20 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
   // get all objects intersecting rect from quad tree
   PlotObjs plotObjs1;
 
-  objTreeData_.tree->objectsIntersectRect(r, plotObjs1, inside);
+  if (inside && ! isScaleSymbolSize()) {
+    PlotObjs plotObjs2;
+
+    objTreeData_.tree->objectsIntersectRect(r, plotObjs1, false);
+
+    for (const auto &plotObj : plotObjs1) {
+      if (plotObj->rectIntersect(r, true))
+        plotObjs2.push_back(plotObj);
+    }
+
+    plotObjs1 = plotObjs2;
+  }
+  else
+    objTreeData_.tree->objectsIntersectRect(r, plotObjs1, inside);
 
   //---
 
@@ -12630,7 +12643,7 @@ bool
 CQChartsPlot::
 objInsideBox(PlotObj *plotObj, const BBox &bbox) const
 {
-  return plotObj->rectIntersect(bbox, /*inside*/ false);
+  return plotObj->rectIntersect(bbox, /*inside*/false);
 }
 
 //---
