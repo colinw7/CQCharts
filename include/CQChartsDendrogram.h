@@ -1,6 +1,7 @@
 #ifndef CQChartsDendrogram_H
 #define CQChartsDendrogram_H
 
+#include <CQChartsGeom.h>
 #include <QString>
 #include <vector>
 #include <algorithm>
@@ -11,6 +12,8 @@
  */
 class CQChartsDendrogram {
  public:
+  using BBox = CQChartsGeom::BBox;
+
   class RootNode;
   class HierNode;
   class Node;
@@ -53,19 +56,40 @@ class CQChartsDendrogram {
     bool isPlaced() const { return placed_; }
     void setPlaced(bool placed) { placed_ = placed; }
 
-    virtual void resetPlaced() { placed_ = false; }
+    virtual void resetPlaced() { bbox_ = BBox(); placed_ = false; }
 
     bool isOpen() const { return open_; }
     void setOpen(bool open) { open_ = open; }
 
-    double x() const { return depth()*root()->dx(); }
-    double y() const { return row  ()*root()->dy(); }
+    double x() const {
+      if (bbox_.isValid()) return bbox_.getXMin();
 
-    double w() const { return root()->dx(); }
-    double h() const { return numRows()*root()->dy(); }
+      return depth()*root()->dx();
+    }
+
+    double y() const {
+      if (bbox_.isValid()) return bbox_.getYMin();
+
+      return row()*root()->dy();
+    }
+
+    double w() const {
+      if (bbox_.isValid()) return bbox_.getWidth();
+
+      return root()->dx();
+    }
+
+    double h() const {
+      if (bbox_.isValid()) return bbox_.getHeight();
+
+      return numRows()*root()->dy();
+    }
 
     double xc() const { return x() + w()/2.0; }
     double yc() const { return y() + h()/2.0; }
+
+    const BBox &bbox() const { return bbox_; }
+    void setBBox(const BBox &b) { bbox_ = b; }
 
     virtual int maxNodes() { return 1; }
 
@@ -91,6 +115,7 @@ class CQChartsDendrogram {
     double    gap_    { 0.0 };
     bool      open_   { false };
     bool      placed_ { false };
+    BBox      bbox_;
   };
 
   //---

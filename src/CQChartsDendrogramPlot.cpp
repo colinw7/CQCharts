@@ -9,6 +9,29 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
+#include <CBuchHeim.h>
+
+namespace {
+
+class Tree : public CBuchHeim::Tree {
+ public:
+  using Node = CQChartsDendrogram::Node;
+
+ public:
+  Tree(Node *node) :
+   CBuchHeim::Tree(node->name().toStdString()), node_(node) {
+  }
+
+  Node *node() const { return node_; }
+
+ private:
+  Node *node_ { nullptr };
+};
+
+}
+
+//---
+
 CQChartsDendrogramPlotType::
 CQChartsDendrogramPlotType()
 {
@@ -26,6 +49,14 @@ addParameters()
    setNumericColumn().setRequired().setPropPath("columns.value").setTip("Value column");
 
   endParameterGroup();
+
+  //---
+
+  // options
+  addEnumParameter("orientation", "Orientation", "orientation").
+    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    setTip("Draw orientation");
 
   //---
 
@@ -125,6 +156,9 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("label", "textMargin", "margin", "Text margin in pixels")->setMinValue(1.0);
+
+  addProp("options", "placeType"  , "placeType"  , "Place type");
+  addProp("options", "orientation", "orientation", "Draw orientation");
 }
 
 //---
@@ -184,6 +218,20 @@ CQChartsDendrogramPlot::
 setTextMargin(double r)
 {
   CQChartsUtil::testAndSet(textMargin_, r, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setOrientation(const Qt::Orientation &orient)
+{
+  CQChartsUtil::testAndSet(orientation_, orient, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setPlaceType(const PlaceType &t)
+{
+  CQChartsUtil::testAndSet(placeType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -288,7 +336,7 @@ calcRange() const
   if (root)
     root->setOpen(true);
 
-  dendrogram_->placeNodes();
+  place();
 
   //---
 
@@ -298,6 +346,81 @@ calcRange() const
   //---
 
   return dataRange;
+}
+
+void
+CQChartsDendrogramPlot::
+place() const
+{
+  if (placeType() == PlaceType::BUCHHEIM) {
+    delete buchheimTree_;
+    delete buchheimDrawTree_;
+
+    buchheimTree_ = new Tree(dendrogram_->root());
+
+    addBuchheimHierNode(buchheimTree_, dendrogram_->root());
+
+    buchheimDrawTree_ = new CBuchHeim::DrawTree(buchheimTree_);
+
+    buchheimDrawTree_->place();
+
+    buchheimDrawTree_->normalize(/*equalScale*/false);
+
+    //---
+
+    dendrogram_->root()->resetPlaced();
+
+    moveBuchheimHierNode(buchheimDrawTree_);
+  }
+  else {
+    dendrogram_->placeNodes();
+  }
+}
+
+void
+CQChartsDendrogramPlot::
+addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const
+{
+  if (! hierNode->isOpen())
+    return;
+
+  for (auto &hierNode : hierNode->getChildren()) {
+    auto *childTree = new Tree(hierNode);
+
+    tree->addChild(CBuchHeim::TreeP(childTree));
+
+    addBuchheimHierNode(childTree, hierNode);
+  }
+
+  for (auto &node : hierNode->getNodes()) {
+    auto *childTree = new Tree(node);
+
+    tree->addChild(CBuchHeim::TreeP(childTree));
+  }
+}
+
+void
+CQChartsDendrogramPlot::
+moveBuchheimHierNode(CBuchHeim::DrawTree *drawTree) const
+{
+  auto *tree = static_cast<Tree *>(drawTree->tree());
+
+  auto *node1 = tree->node();
+
+  double x1 = drawTree->x1();
+  double y1 = drawTree->y1();
+  double x2 = drawTree->x2();
+  double y2 = drawTree->y2();
+
+  if (orientation() == Qt::Horizontal)
+    node1->setBBox(BBox(y1, x1, y2, x2));
+  else
+    node1->setBBox(BBox(x1, 1.0 - y1, x2, 1.0 - y2));
+
+  node1->setPlaced(true);
+
+  for (const auto &node : drawTree->children())
+    moveBuchheimHierNode(node.get());
 }
 
 void
@@ -329,7 +452,7 @@ addNameValue(const QString &name, double value) const
   //---
 
   // create nodes
-  CQChartsDendrogram::HierNode *hierNode = nullptr;
+  HierNode *hierNode = nullptr;
 
   for (const auto &n : names) {
     if (! hierNode) {
@@ -377,7 +500,7 @@ calcExtraFitBBox() const
   BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto *nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
+    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
 
     if (nodeObj)
       bbox += nodeObj->textRect();
@@ -411,11 +534,9 @@ createObjs(PlotObjs &objs) const
 
 void
 CQChartsDendrogramPlot::
-addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const
+addNodeObjs(HierNode *hier, int depth, PlotObjs &objs) const
 {
-  const auto &children = hier->getChildren();
-
-  for (auto &hierNode : children) {
+  for (auto &hierNode : hier->getChildren()) {
     addNodeObj(hierNode, objs);
 
     addNodeObjs(hierNode, depth + 1, objs);
@@ -423,17 +544,29 @@ addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const
 
   //------
 
-  const auto &nodes = hier->getNodes();
-
-  for (auto &node : nodes)
+  for (auto &node : hier->getNodes())
     addNodeObj(node, objs);
 }
 
 void
 CQChartsDendrogramPlot::
-addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
+addNodeObj(Node *node, PlotObjs &objs) const
 {
   if (! node->isPlaced()) return;
+
+  BBox rect = getBBox(node);
+
+  auto *obj = createNodeObj(node, rect);
+
+  objs.push_back(obj);
+}
+
+CQChartsGeom::BBox
+CQChartsDendrogramPlot::
+getBBox(Node *node) const
+{
+  if (placeType() == PlaceType::BUCHHEIM)
+    return node->bbox();
 
   double cs = std::max(circleSize(), 1.0);
 //double tm = std::max(textMargin(), 1.0);
@@ -447,11 +580,7 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
   double xc = node->x();
   double yc = node->yc();
 
-  BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
-
-  auto *obj = createNodeObj(node, rect);
-
-  objs.push_back(obj);
+  return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
 }
 
 //------
@@ -481,11 +610,9 @@ execDrawForeground(PaintDevice *device) const
 
 void
 CQChartsDendrogramPlot::
-drawNodes(PaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const
+drawNodes(PaintDevice *device, HierNode *hier, int depth) const
 {
-  const auto &children = hier->getChildren();
-
-  for (auto &hierNode : children) {
+  for (auto &hierNode : hier->getChildren()) {
     drawNode(device, hier, hierNode);
 
     drawNodes(device, hierNode, depth + 1);
@@ -493,72 +620,69 @@ drawNodes(PaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) co
 
   //------
 
-  const auto &nodes = hier->getNodes();
-
-  for (auto &node : nodes)
+  for (auto &node : hier->getNodes())
     drawNode(device, hier, node);
 }
 
 void
 CQChartsDendrogramPlot::
-drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
-         CQChartsDendrogram::Node *node) const
+drawNode(PaintDevice *device, HierNode *hier, Node *node) const
 {
   if (! node->isPlaced()) return;
 
-  auto pn = windowToPixel(Point(node->x(), node->yc()));
+  if (! hier) return;
 
-  double cs = std::max(circleSize(), 1.0);
-//double tm = std::max(textMargin(), 1.0);
+  auto pbbox1 = windowToPixel(getBBox(node));
+  auto pbbox2 = windowToPixel(getBBox(hier));
+
+  //---
+
+  PenBrush lPenBrush;
+
+  setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
+
+  setBrush(lPenBrush, BrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, lPenBrush);
 
   //---
 
   // draw edge
-  if (hier) {
-    auto ph = windowToPixel(Point(hier->x(), hier->yc()));
+  QPainterPath path;
 
-    double x1 = ph.x + cs/2.0; double y1 = ph.y;
-    double x4 = pn.x - cs/2.0; double y4 = pn.y;
+  double x1, y1, x4, y4;
 
-    //---
-
-    PenBrush lPenBrush;
-
-    setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
-
-    setBrush(lPenBrush, BrushData(false));
-
-    CQChartsDrawUtil::setPenBrush(device, lPenBrush);
-
-    //---
-
-    QPainterPath path;
-
-    auto p1 = pixelToWindow(Point(x1, y1));
-    auto p4 = pixelToWindow(Point(x4, y4));
-
-    CQChartsDrawUtil::curvePath(path, p1, p4);
-
-    device->drawPath(path);
+  if (orientation() == Qt::Horizontal) {
+    x1 = pbbox2.getXMax(); y1 = pbbox2.getYMid();
+    x4 = pbbox1.getXMin(); y4 = pbbox1.getYMid();
   }
+  else {
+    x1 = pbbox2.getXMid(); y1 = pbbox2.getYMax();
+    x4 = pbbox1.getXMid(); y4 = pbbox1.getYMin();
+  }
+
+  auto p1 = pixelToWindow(Point(x1, y1));
+  auto p4 = pixelToWindow(Point(x4, y4));
+
+  CQChartsDrawUtil::curvePath(path, p1, p4);
+
+  device->drawPath(path);
 }
 
 bool
 CQChartsDendrogramPlot::
 handleSelectPress(const Point &p, SelMod /*selMod*/)
 {
-  double cs = circleSize();
+  auto bbox = getBBox(dendrogram_->root());
 
-  double ps = pixelToWindowWidth(cs);
+  double r = bbox.getWidth()/2.0;
 
-  auto *node = dendrogram_->getNodeAtPoint(p.x, p.y, ps);
-
-  if (! node)
-    return false;
+  auto *node = dendrogram_->getNodeAtPoint(p.x, p.y, r);
+  if (! node) return false;
 
   node->setOpen(! node->isOpen());
 
-  dendrogram_->placeNodes();
+  place();
 
   updateObjs();
 
@@ -567,7 +691,7 @@ handleSelectPress(const Point &p, SelMod /*selMod*/)
 
 CQChartsDendrogramNodeObj *
 CQChartsDendrogramPlot::
-createNodeObj(CQChartsDendrogram::Node *node, const BBox &rect) const
+createNodeObj(Node *node, const BBox &rect) const
 {
   return new CQChartsDendrogramNodeObj(this, node, rect);
 }
@@ -592,9 +716,8 @@ createCustomControls()
 //------
 
 CQChartsDendrogramNodeObj::
-CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
-                          const BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsDendrogramPlot *>(plot), rect), plot_(plot), node_(node)
+CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, Node *node, const BBox &rect) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), node_(node)
 {
 }
 
@@ -609,9 +732,10 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
-  auto pn = plot_->windowToPixel(Point(node_->x(), node_->yc()));
+  auto pbbox = plot_->windowToPixel(rect());
 
-  double cs = plot_->circleSize();
+  auto pc = pbbox.getCenter();
+  auto pr = pbbox.getWidth()/2.0;
 
   //---
 
@@ -621,25 +745,25 @@ textRect() const
 
   const auto &name = node_->name();
 
-  bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
+  bool is_hier = dynamic_cast<HierNode *>(node_);
 
   double dy = (fm.ascent() - fm.descent())/2;
 
   Point p;
 
   if (is_hier)
-    p = Point(pn.x - cs - fm.width(name), pn.y + dy);
+    p = Point(pc.x - pr - fm.width(name), pc.y + dy);
   else
-    p = Point(pn.x + cs, pn.y + dy);
+    p = Point(pc.x + pr, pc.y + dy);
 
   Point p1(p.x                 , p.y - fm.ascent());
   Point p2(p.x + fm.width(name), p.y + fm.ascent());
 
-  BBox pbbox(p1, p2);
+  BBox ptbbox(p1, p2);
 
-  auto wbbox = plot_->pixelToWindow(pbbox);
+  auto tbbox = plot_->pixelToWindow(ptbbox);
 
-  return wbbox;
+  return tbbox;
 }
 
 void
@@ -648,14 +772,9 @@ draw(PaintDevice *device) const
 {
   if (! node_->isPlaced()) return;
 
-  auto p1 = plot_->windowToPixel(Point(node_->x(), node_->yc()));
-
-  double cs = std::max(plot_->circleSize(), 1.0);
   double tm = std::max(plot_->textMargin(), 1.0);
 
-//p1.x += tm;
-
-  BBox bbox(p1.x - cs/2.0, p1.y - cs/2.0, p1.x + cs/2.0, p1.y + cs/2.0);
+  BBox pbbox = plot_->windowToPixel(rect());
 
   //---
 
@@ -677,7 +796,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw node
-  device->drawEllipse(plot_->pixelToWindow(bbox));
+  device->drawEllipse(rect());
 
   //---
 
@@ -698,7 +817,7 @@ draw(PaintDevice *device) const
 
   const auto &name = node_->name();
 
-  bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
+  bool is_hier = dynamic_cast<HierNode *>(node_);
 
   QFontMetricsF fm(device->font());
 
@@ -707,9 +826,11 @@ draw(PaintDevice *device) const
   Point p;
 
   if (is_hier)
-    p = Point(p1.x - cs - fm.width(name) - tm, p1.y + dy); // align right
+    p = Point(pbbox.getXMid() - pbbox.getWidth()/2.0 - fm.width(name) - tm,
+              pbbox.getYMid() + dy); // align right
   else
-    p = Point(p1.x + cs + tm, p1.y + dy); // align left
+    p = Point(pbbox.getXMid() + pbbox.getWidth()/2.0 + tm,
+              pbbox.getYMid() + dy); // align left
 
   // only support contrast
   auto textOptions = plot_->textOptions(device);

@@ -95,7 +95,12 @@ bool
 CQChartsDendrogram::Node::
 isNodeAtPoint(double x, double y, double tol) const
 {
-  double d = std::hypot(this->x() - x, this->yc() - y);
+  double d;
+
+  if (this->bbox().isValid())
+    d = std::hypot(this->xc() - x, this->yc() - y);
+  else
+    d = std::hypot(this->x() - x, this->yc() - y);
 
   return (d <= tol);
 }

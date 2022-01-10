@@ -8,6 +8,11 @@
 
 class CQChartsDendrogramPlot;
 
+namespace CBuchHeim {
+class Tree;
+class DrawTree;
+}
+
 //---
 
 /*!
@@ -49,9 +54,10 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot  = CQChartsDendrogramPlot;
-  using Node  = CQChartsDendrogram::Node;
-  using Angle = CQChartsAngle;
+  using Plot     = CQChartsDendrogramPlot;
+  using HierNode = CQChartsDendrogram::HierNode;
+  using Node     = CQChartsDendrogram::Node;
+  using Angle    = CQChartsAngle;
 
  public:
   CQChartsDendrogramNodeObj(const Plot *plot, Node *node, const BBox &rect);
@@ -85,9 +91,16 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
+  // node
+  Q_PROPERTY(double circleSize READ circleSize WRITE setCircleSize)
+
+  // label
+  Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin)
+
   // options
-  Q_PROPERTY(double circleSize READ circleSize WRITE setCircleSize )
-  Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin )
+  Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
+
+  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation )
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -98,6 +111,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   // labels
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  Q_ENUMS(PlaceType)
+
  public:
   using HierNode  = CQChartsDendrogram::HierNode;
   using Node      = CQChartsDendrogram::Node;
@@ -105,6 +120,11 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   using PenBrush  = CQChartsPenBrush;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
+
+  enum class PlaceType {
+    DENDROGRAM,
+    BUCHHEIM
+  };
 
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);
@@ -117,24 +137,37 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set name column
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
+  //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
 
   //---
 
+  //! get/set named column
   Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
   //---
 
+  //! get/set circle size
   double circleSize() const { return circleSize_; }
   void setCircleSize(double r);
 
+  //! get/set text margin
   double textMargin() const { return textMargin_; }
   void setTextMargin(double r);
+
+  //! get/set place type
+  const PlaceType &placeType() const { return placeType_; }
+  void setPlaceType(const PlaceType &t);
+
+  //! get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o);
 
   //---
 
@@ -153,7 +186,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   //---
 
   void addNodeObjs(HierNode *hier, int depth, PlotObjs &objs) const;
-  void addNodeObj (Node *node, PlotObjs &objs) const;
+
+  void addNodeObj(Node *node, PlotObjs &objs) const;
+
+  BBox getBBox(Node *node) const;
 
   //---
 
@@ -177,16 +213,26 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
  protected:
+  void place() const;
+
+  void addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const;
+  void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
+
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
   using Dendrogram = CQChartsDendrogram;
 
-  Column      nameColumn_;              //!< name column
-  Column      valueColumn_;             //!< value column
-  Dendrogram* dendrogram_  { nullptr }; //!< dendrogram class
-  double      circleSize_  { 8.0 };     //!< circle size
-  double      textMargin_  { 4.0 };     //!< text margin
+  Column          nameColumn_;                            //!< name column
+  Column          valueColumn_;                           //!< value column
+  Dendrogram*     dendrogram_  { nullptr };               //!< dendrogram class
+  double          circleSize_  { 8.0 };                   //!< circle size
+  double          textMargin_  { 4.0 };                   //!< text margin
+  PlaceType       placeType_   { PlaceType::DENDROGRAM }; //!< place type
+  Qt::Orientation orientation_ { Qt::Horizontal };        //!< draw direction
+
+  mutable CBuchHeim::Tree*     buchheimTree_     { nullptr };
+  mutable CBuchHeim::DrawTree* buchheimDrawTree_ { nullptr };
 };
 
 //---

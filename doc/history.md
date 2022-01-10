@@ -1344,3 +1344,5 @@
  + fix bad horizontal box plot notch and point placement for normalized
 # 1/8/2022
  + Update all plots to support scaled/non-scaled pixel size symbols
+# 1/9/2022
+ + add buchheim placement to dendogram plot

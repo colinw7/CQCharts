@@ -380,6 +380,7 @@ CQCommand.cpp \
 CQFloatTip.cpp \
 CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
+CBuchHeim.cpp \
 \
 CQTclUtil.cpp \
 CTclParse.cpp \
@@ -755,6 +756,7 @@ HEADERS += \
 ../include/CQFloatTip.h \
 ../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
+../include/CBuchHeim.h \
 \
 ../include/CQTclUtil.h \
 ../include/CTclParse.h \
