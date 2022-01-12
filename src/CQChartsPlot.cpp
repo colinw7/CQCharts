@@ -17553,9 +17553,23 @@ windowToPixel(const QPainterPath &path) const
 
 void
 CQChartsPlot::
+plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy, bool scale) const
+{
+  plotSymbolSize1(xs, ys, sx, sy, scale);
+}
+
+void
+CQChartsPlot::
 plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy) const
 {
-  useRawRange_ = isScaleSymbolSize();
+  plotSymbolSize1(xs, ys, sx, sy, isScaleSymbolSize());
+}
+
+void
+CQChartsPlot::
+plotSymbolSize1(const Length &xs, const Length &ys, double &sx, double &sy, bool scale) const
+{
+  useRawRange_ = scale;
 
   sx = lengthPlotWidth (xs);
   sy = lengthPlotHeight(ys);
@@ -17565,9 +17579,25 @@ plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy) const
 
 void
 CQChartsPlot::
+plotSymbolSize(const Length &s, double &sx, double &sy, bool scale,
+               const Qt::Orientation &dir) const
+{
+  plotSymbolSize1(s, sx, sy, scale, dir);
+}
+
+void
+CQChartsPlot::
 plotSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
 {
-  useRawRange_ = isScaleSymbolSize();
+  plotSymbolSize1(s, sx, sy, isScaleSymbolSize(), dir);
+}
+
+void
+CQChartsPlot::
+plotSymbolSize1(const Length &s, double &sx, double &sy, bool scale,
+                const Qt::Orientation &dir) const
+{
+  useRawRange_ = scale;
 
   if (dir == Qt::Horizontal) {
     sx = lengthPlotWidth(s);
@@ -17583,11 +17613,27 @@ plotSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &d
 
 void
 CQChartsPlot::
+pixelSymbolSize(const Length &s, double &sx, double &sy, bool scale,
+                const Qt::Orientation &dir) const
+{
+  pixelSymbolSize1(s, sx, sy, scale, dir);
+}
+
+void
+CQChartsPlot::
 pixelSymbolSize(const Length &s, double &sx, double &sy, const Qt::Orientation &dir) const
+{
+  pixelSymbolSize1(s, sx, sy, isScaleSymbolSize(), dir);
+}
+
+void
+CQChartsPlot::
+pixelSymbolSize1(const Length &s, double &sx, double &sy, bool scale,
+                 const Qt::Orientation &dir) const
 {
   double sx1, sy1;
 
-  plotSymbolSize(s, sx1, sy1, dir);
+  plotSymbolSize1(s, sx1, sy1, scale, dir);
 
   if (dir == Qt::Horizontal) {
     sx = limitSymbolSize(lengthPixelWidth (Length::plot(sx1)));

@@ -1787,7 +1787,7 @@ calcExtraFitBBox() const
   if (isRug()) {
     double sx, sy;
 
-    plotSymbolSize(rugSymbolSize(), sx, sy);
+    plotSymbolSize(rugSymbolSize(), sx, sy, /*scale*/false);
 
     const auto &dataRange = this->dataRange();
 
@@ -3997,7 +3997,7 @@ drawRug(PaintDevice *device) const
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(symbolSize, sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
 
   //---
 
@@ -4038,7 +4038,7 @@ drawRug(PaintDevice *device) const
 
     auto p1 = plot_->pixelToWindow(ps);
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
+    CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/false);
   }
 }
 
@@ -4667,7 +4667,7 @@ drawRug(PaintDevice *device) const
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(symbolSize, sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
 
   //---
 
@@ -4708,7 +4708,7 @@ drawRug(PaintDevice *device) const
 
     auto p2 = plot_->pixelToWindow(ps);
 
-    CQChartsDrawUtil::drawSymbol(device, symbol, p2, symbolSize, /*scale*/true);
+    CQChartsDrawUtil::drawSymbol(device, symbol, p2, symbolSize, /*scale*/false);
   }
 }
 

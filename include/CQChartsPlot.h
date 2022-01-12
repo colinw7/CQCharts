@@ -1509,9 +1509,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
  public:
-  void plotSymbolSize (const Length &xs, const Length &ys, double &sx, double &sy) const;
-  void plotSymbolSize (const Length &s, double &sx, double &sy,
-                       const Qt::Orientation &dir=Qt::Horizontal) const;
+  void plotSymbolSize(const Length &xs, const Length &ys,
+                      double &sx, double &sy, bool scale) const;
+  void plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy) const;
+  void plotSymbolSize(const Length &s, double &sx, double &sy,
+                      bool scale, const Qt::Orientation &dir=Qt::Horizontal) const;
+  void plotSymbolSize(const Length &s, double &sx, double &sy,
+                      const Qt::Orientation &dir=Qt::Horizontal) const;
+
+  void pixelSymbolSize(const Length &s, double &sx, double &sy,
+                       bool scale, const Qt::Orientation &dir=Qt::Horizontal) const;
   void pixelSymbolSize(const Length &s, double &sx, double &sy,
                        const Qt::Orientation &dir=Qt::Horizontal) const;
 
@@ -1519,8 +1526,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double limitFontSize(double s) const;
   double limitLineWidth(double w) const;
 
+ private:
+  void plotSymbolSize1(const Length &xs, const Length &ys,
+                       double &sx, double &sy, bool scale) const;
+  void plotSymbolSize1(const Length &s, double &sx, double &sy,
+                       bool scale, const Qt::Orientation &dir) const;
+
+  void pixelSymbolSize1(const Length &s, double &sx, double &sy,
+                        bool scale, const Qt::Orientation &dir) const;
+
   //---
 
+ public:
   virtual void addAxes();
 
   virtual void addXAxis();

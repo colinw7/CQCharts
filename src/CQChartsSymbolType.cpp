@@ -28,6 +28,7 @@ typeToName(Type type)
     case Type::PENTAGON:  return "pentagon";
     case Type::IPENTAGON: return "ipentagon";
     case Type::HEXAGON:   return "hexagon";
+    case Type::OCTAGON:   return "octagon";
     case Type::HLINE:     return "hline";
     case Type::VLINE:     return "vline";
     case Type::PAW:       return "paw";
@@ -59,6 +60,7 @@ nameToType(const QString &str)
   if (lstr == "pentagon" ) return Type::PENTAGON;
   if (lstr == "ipentagon") return Type::IPENTAGON;
   if (lstr == "hexagon"  ) return Type::HEXAGON;
+  if (lstr == "octagon"  ) return Type::OCTAGON;
   if (lstr == "hline"    ) return Type::HLINE;
   if (lstr == "vline"    ) return Type::VLINE;
   if (lstr == "paw"      ) return Type::PAW;

@@ -59,7 +59,7 @@ calcBBox() const
   // rug axis
   double sx, sy;
 
-  plot()->plotSymbolSize(symbolSize(), sx, sy, direction());
+  plot()->plotSymbolSize(symbolSize(), sx, sy, /*scale*/false, direction());
 
   Point p1, p2;
 
@@ -117,7 +117,7 @@ draw(CQChartsPaintDevice *device, double delta)
 
   double sx, sy;
 
-  plot()->plotSymbolSize(symbolSize, sx, sy, direction());
+  plot()->plotSymbolSize(symbolSize, sx, sy, /*scale*/false, direction());
 
   auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
 
@@ -142,7 +142,7 @@ draw(CQChartsPaintDevice *device, double delta)
     plot()->setPenBrush(penBrush,
       CQChartsPenData(true, p.c, symbolAlpha), CQChartsBrushData(false));
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize, /*scale*/true);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize, /*scale*/false);
   }
 
   if (plot()->showBoxes())

@@ -2134,9 +2134,6 @@ postDraw(PaintDevice *device)
   auto symbol     = this->symbol();
   auto symbolSize = this->symbolSize();
 
-//double sx, sy;
-//plot_->pixelSymbolSize(symbolSize, sx, sy);
-
   //---
 
   auto *camera = plot3D()->camera();

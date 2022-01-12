@@ -2796,7 +2796,7 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
-  // drawn axis annotatons in inside->outside order
+  // draw axis annotatons in inside->outside order
   xAxisSideHeight_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
     xAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
   xAxisSideHeight_[CQChartsAxisSide::Type::TOP_RIGHT] =
@@ -2889,7 +2889,7 @@ drawYRug(PaintDevice *device) const
 
   drawXYRug(device, yRug_, delta);
 
-  yAxisSideWidth_ [yRug_->side().type()] += yRug_->calcBBox().getWidth();
+  yAxisSideWidth_[yRug_->side().type()] += yRug_->calcBBox().getWidth();
 }
 
 void
