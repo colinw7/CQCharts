@@ -27,6 +27,7 @@ typeToName(Type type)
     case Type::CIRCLE:    return "circle";
     case Type::PENTAGON:  return "pentagon";
     case Type::IPENTAGON: return "ipentagon";
+    case Type::HEXAGON:   return "hexagon";
     case Type::HLINE:     return "hline";
     case Type::VLINE:     return "vline";
     case Type::PAW:       return "paw";
@@ -57,6 +58,7 @@ nameToType(const QString &str)
   if (lstr == "circle"   ) return Type::CIRCLE;
   if (lstr == "pentagon" ) return Type::PENTAGON;
   if (lstr == "ipentagon") return Type::IPENTAGON;
+  if (lstr == "hexagon"  ) return Type::HEXAGON;
   if (lstr == "hline"    ) return Type::HLINE;
   if (lstr == "vline"    ) return Type::VLINE;
   if (lstr == "paw"      ) return Type::PAW;
@@ -70,10 +72,10 @@ CQChartsSymbolType::
 typeNames()
 {
   static auto typeNames = QStringList() <<
-    "dot"      << "cross"    << "plus"     << "y"        << "z"     <<
-    "triangle" << "itriangle"<< "box"      << "diamond"  << "star5" <<
-    "star6"    << "circle"   << "pentagon" << "ipentagon"<< "hline" <<
-    "vline"    << "paw"      << "hash";
+    "dot"      << "cross"    << "plus"     << "y"        << "z"       <<
+    "triangle" << "itriangle"<< "box"      << "diamond"  << "star5"   <<
+    "star6"    << "circle"   << "pentagon" << "ipentagon"<< "hexagon" <<
+    "hline"    << "vline"    << "paw"      << "hash";
 
   return typeNames;
 }

@@ -712,6 +712,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b);
 
+  bool isDataRawRange() const { return dataRawRange_; }
+  void setDataRawRange(bool b) { dataRawRange_ = b; }
+
   //---
 
   // fit area
@@ -1491,11 +1494,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  protected:
   // windowToViewI : view::windowToPixel
   void windowToPixelI(const Point &w, Point &p) const;
-  void windowToPixelI(const BBox &wrect, BBox &prect) const;
+//void windowToPixelI(const BBox &wrect, BBox &prect) const;
 
   // view:pixelToWindow : viewToWindowI
   void pixelToWindowI(const Point &p, Point &w) const;
-  void pixelToWindowI(const BBox &prect, BBox &wrect) const;
+//void pixelToWindowI(const BBox &prect, BBox &wrect) const;
 
   virtual void pixelToWindowI(double px, double py, double &wx, double &wy) const;
   virtual void viewToWindowI (double vx, double vy, double &wx, double &wy) const;
@@ -3432,6 +3435,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool  plotClip_         { true };   //!< is clipped at plot limits
   Sides dataBorderSides_  { "tlbr" }; //!< data border sides
   bool  dataClip_         { false };  //!< is clipped at data limits
+  bool  dataRawRange_     { true };   //!< use raw range for data box draw
   Sides fitBorderSides_   { "tlbr" }; //!< fit border sides
   bool  fitClip_          { false };  //!< is clipped at fit limits
 

@@ -264,7 +264,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
     return Range();
   }
 
-  Axis *axis(int i) { return axes_[i]; }
+  Axis *axis(int i) const { return axes_[i].get(); }
 
   //---
 
@@ -296,11 +296,6 @@ class CQChartsParallelPlot : public CQChartsPlot,
   bool hasFgAxes() const override;
 
   void drawFgAxes(PaintDevice *device) const override;
-
-  void postDraw() override;
-
-  void setObjRange       (PaintDevice *device);
-  void setNormalizedRange(PaintDevice *device);
 
   //---
 
@@ -336,15 +331,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  enum class RangeType {
-    NONE,
-    OBJ,
-    NORMALIZED
-  };
-
   using Ranges        = std::vector<Range>;
-  using YAxes         = std::vector<CQChartsAxis*>;
   using AxisP         = std::unique_ptr<CQChartsAxis>;
+  using YAxes         = std::vector<AxisP>;
   using ColumnVisible = std::map<int, bool>;
 
   Column  xColumn_;  //!< x value column
@@ -366,8 +355,6 @@ class CQChartsParallelPlot : public CQChartsPlot,
   BBox               axesBBox_;                                //!< axes bbox
 
   double max_tw_ { 0.0 };             //!< max text width
-
-  RangeType rangeType_ { RangeType::NONE }; //!< current range type
 
   AxisLabelPos axisLabelPos_ { AxisLabelPos::TOP };
 };

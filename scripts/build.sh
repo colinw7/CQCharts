@@ -39,7 +39,17 @@ foreach dir ($dirs)
   if (-e $cdir/$dir/src) then
     cd $cdir/$dir/src
 
-    if (-e "*.pro") then
+    if (! -e ../obj) then
+      mkdir ../obj
+    endif
+
+    if (! -e ../lib) then
+      mkdir ../lib
+    endif
+
+    set n = `find . -maxdepth 1 -name "*.pro" | wc -l`
+
+    if ($n == 1) then
       qmake
     endif
 

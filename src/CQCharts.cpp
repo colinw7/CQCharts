@@ -785,6 +785,7 @@ init()
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::CIRCLE   , false);
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::PENTAGON , false);
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::IPENTAGON, false);
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HEXAGON  , false);
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::HLINE    , false);
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::VLINE    , false);
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::PAW      , false);
@@ -803,6 +804,7 @@ init()
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::CIRCLE   , true );
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::PENTAGON , true );
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::IPENTAGON, true );
+  addSymbol(allSymbolSet, CQChartsSymbolType::Type::HEXAGON  , true );
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::HLINE    , true );
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::VLINE    , true );
   addSymbol(allSymbolSet, CQChartsSymbolType::Type::PAW      , true );
@@ -824,6 +826,7 @@ init()
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, false);
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::STAR6    , false);
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::IPENTAGON, false);
+  addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::HEXAGON  , false);
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::DOT      , false);
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::PAW      , false);
   addSymbol(outlineSymbolSet, CQChartsSymbolType::Type::HLINE    , false);
@@ -840,6 +843,7 @@ init()
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::ITRIANGLE, true);
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::STAR6    , true);
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::IPENTAGON, true);
+  addSymbol(filledSymbolSet, CQChartsSymbolType::Type::HEXAGON  , true);
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::PLUS     , true);
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::CROSS    , true);
   addSymbol(filledSymbolSet, CQChartsSymbolType::Type::Y        , true);

@@ -773,7 +773,7 @@ drawPointRange(PaintDevice *device, const BBox &rect, double mean,
     pm = Point(mean, rect.getYMid());
 
   if (symbol.symbol().isValid())
-    CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), Point(pm.x, pm.y),
+    CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), pm,
                                  symbol.size(), /*scale*/true);
 }
 
@@ -839,7 +839,7 @@ drawErrorBar(PaintDevice *device, const BBox &rect, double mean,
     pm = Point(mean, rect.getYMid());
 
   if (symbol.symbol().isValid())
-    CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), Point(pm.x, pm.y),
+    CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), pm,
                                  symbol.size(), /*scale*/true);
 }
 

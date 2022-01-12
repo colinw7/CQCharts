@@ -32,6 +32,7 @@ class CQChartsSymbolType :
     CIRCLE,
     PENTAGON,
     IPENTAGON,
+    HEXAGON,
     HLINE,
     VLINE,
     PAW,

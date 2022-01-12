@@ -417,6 +417,8 @@ setRange(double start, double end)
   calcAndRedraw();
 }
 
+//---
+
 void
 CQChartsAxis::
 setValueStart(const OptReal &v)
@@ -431,6 +433,16 @@ CQChartsAxis::
 setValueEnd(const OptReal &v)
 {
   valueEnd_ = v;
+
+  calcAndRedraw();
+}
+
+void
+CQChartsAxis::
+setValueRange(double start, double end)
+{
+  valueStart_ = OptReal(start);
+  valueEnd_   = OptReal(end);
 
   calcAndRedraw();
 }

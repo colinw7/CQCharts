@@ -174,8 +174,6 @@ void
 CQChartsParallelPlot::
 term()
 {
-  for (auto &axis : axes_)
-    delete axis;
 }
 
 //---
@@ -211,6 +209,7 @@ CQChartsParallelPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
+
   if (name == "x") c = this->xColumn();
   else             c = CQChartsPlot::getNamedColumn(name);
 
@@ -230,6 +229,7 @@ CQChartsParallelPlot::
 getNamedColumns(const QString &name) const
 {
   Columns c;
+
   if (name == "y") c = this->yColumns();
   else             c = CQChartsPlot::getNamedColumns(name);
 
@@ -258,7 +258,6 @@ CQChartsParallelPlot::
 setOrientation(const Qt::Orientation &orientation)
 {
   CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
-    //CQChartsAxis::swap(xAxis(), yAxis());
     updateRangeAndObjs(); emit customDataChanged();
   } );
 }
@@ -543,6 +542,7 @@ calcRange() const
 
   //---
 
+  // set plot range
   Range dataRange;
 
   auto updateRange = [&](double x, double y) {
@@ -552,9 +552,6 @@ calcRange() const
       dataRange.updateRange(y, x);
   };
 
-  //---
-
-  // set plot range
   updateRange(   - 0.5, 0);
   updateRange(ns - 0.5, 1);
 
@@ -564,7 +561,7 @@ calcRange() const
 
   // set axes range and name
   for (int j = 0; j < ns; ++j) {
-    auto *axis = axes_[j];
+    auto *axis = this->axis(j);
 
     const auto &range = setRange(j);
     if (! range.isValid()) continue;
@@ -575,15 +572,19 @@ calcRange() const
 
     auto name = modelHHeaderString(yColumn, ok);
 
-    const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
+    //const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
     if (range.isSet()) {
       if (isVertical()) {
-        axis->setRange(range.ymin(), range.ymax());
+        axis->setRange(0.0, 1.0);
+        axis->setValueRange(range.ymin(), range.ymax());
+
         axis->setDefLabel(name);
       }
       else {
-        axis->setRange(range.xmin(), range.xmax());
+        axis->setRange(0.0, 1.0);
+        axis->setValueRange(range.xmin(), range.xmax());
+
         axis->setDefLabel(name);
       }
     }
@@ -591,14 +592,7 @@ calcRange() const
 
   //---
 
-  displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                                normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
-
-  dataRange = normalizedDataRange_;
-
-  //---
-
-  return dataRange;
+  return normalizedDataRange_;
 }
 
 void
@@ -613,9 +607,6 @@ updateAxes()
   if (int(axes_.size()) != ns || adir_ != adir) {
     adir_ = adir;
 
-    for (auto &axis : axes_)
-      delete axis;
-
     axes_.clear();
 
     for (int j = 0; j < ns; ++j) {
@@ -628,7 +619,7 @@ updateAxes()
 
       axis->setUpdatesEnabled(false);
 
-      axes_.push_back(axis);
+      axes_.push_back(AxisP(axis));
     }
   }
 
@@ -636,7 +627,7 @@ updateAxes()
 
   // update axis style
   for (int j = 0; j < ns; ++j) {
-    auto *axis = axes_[j];
+    auto *axis = this->axis(j);
 
     const auto &yColumn = visibleYColumns().getColumn(j);
 
@@ -762,17 +753,6 @@ createObjs(PlotObjs &objs) const
   double sx, sy;
 
   plotSymbolSize(symbolSize(), sx, sy);
-
-#if 0
-  const auto &dataRange = this->dataRange();
-
-  double sx = 0.01, sy = 0.01;
-
-  if (dataRange.isSet()) {
-    sx = (dataRange.xmax() - dataRange.xmin())/100.0;
-    sy = (dataRange.ymax() - dataRange.ymin())/100.0;
-  }
-#endif
 
   int n = polys.size();
 
@@ -957,8 +937,7 @@ probe(ProbeData &probeData) const
   else {
     int y = CMathRound::RoundNearest(probeData.p.y);
 
-    y = std::max(y, 0    );
-    y = std::min(y, n - 1);
+    y = std::min(std::max(y, 0), n - 1);
 
     auto range = setRange(y);
     if (! range.isValid()) return false;
@@ -1056,8 +1035,6 @@ drawFgAxes(PaintDevice *device) const
 
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
-  //th->setObjRange(device);
-
   //---
 
   th->axesBBox_ = BBox();
@@ -1072,7 +1049,7 @@ drawFgAxes(PaintDevice *device) const
   for (int j = 0; j < ns; ++j) {
     assert(j < int(axes_.size()));
 
-    auto *axis = axes_[j];
+    auto *axis = this->axis(j);
 
     axis->setAxesLineData         (masterAxis_->axesLineData());
     axis->setAxesLabelTextData    (masterAxis_->axesLabelTextData());
@@ -1090,32 +1067,6 @@ drawFgAxes(PaintDevice *device) const
     if (! range.isValid()) continue;
 
     auto *th = const_cast<CQChartsParallelPlot *>(this);
-
-    th->dataRange_ = range;
-  //setDataRange(range); // will clear objects
-
-    // set display range to set range
-    if (dataRange_.isSet()) {
-      Range range;
-
-      if (isVertical())
-        range = Range(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
-      else
-        range = Range(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
-
-      auto adjustedRange = adjustDataRangeBBox(range.bbox());
-
-      th->displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
-                                        adjustedRange.getXMax(), adjustedRange.getYMax());
-
-      //---
-
-      if (! device->isInteractive()) {
-        auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
-
-        writeScriptRange(painter);
-      }
-    }
 
     //---
 
@@ -1140,18 +1091,21 @@ drawFgAxes(PaintDevice *device) const
 
       Point p;
 
-      if (dataRange_.isSet()) {
+      //auto textRange = dataRange_;
+      auto textRange = normalizedDataRange_;
+
+      if (textRange.isSet()) {
         if (axisLabelPos == AxisLabelPos::TOP) {
           if (isVertical())
-            p = windowToPixel(Point(j, dataRange_.ymax()));
+            p = windowToPixel(Point(j, textRange.ymax()));
           else
-            p = windowToPixel(Point(dataRange_.xmax(), j));
+            p = windowToPixel(Point(textRange.xmax(), j));
         }
         else {
           if (isVertical())
-            p = windowToPixel(Point(j, dataRange_.ymin()));
+            p = windowToPixel(Point(j, textRange.ymin()));
           else
-            p = windowToPixel(Point(dataRange_.xmin(), j));
+            p = windowToPixel(Point(textRange.xmin(), j));
         }
       }
 
@@ -1203,87 +1157,7 @@ drawFgAxes(PaintDevice *device) const
 
   //---
 
-  th->setNormalizedRange(device);
-
   th->axesBBox_ = pixelToWindow(axesBBox_);
-}
-
-void
-CQChartsParallelPlot::
-postDraw()
-{
-  //auto *th = const_cast<CQChartsParallelPlot *>(this);
-
-  //th->setNormalizedRange(device);
-
-  rangeType_ = RangeType::NONE;
-}
-
-//---
-
-void
-CQChartsParallelPlot::
-setObjRange(PaintDevice *device)
-{
-  if (rangeType_ == RangeType::OBJ)
-    return;
-
-  rangeType_ = RangeType::OBJ;
-
-  //---
-
-  // set display range to data range
-  const auto &dataRange = this->dataRange();
-
-  if (dataRange.isSet()) {
-    Range range;
-
-    if (isVertical())
-      range = Range(dataRange.xmin(), 0, dataRange.xmax(), 1);
-    else
-      range = Range(0, dataRange.ymin(), 1, dataRange.ymax());
-
-    auto adjustedRange = adjustDataRangeBBox(range.bbox());
-
-    displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
-                                  adjustedRange.getXMax(), adjustedRange.getYMax());
-  }
-
-  //---
-
-  if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
-
-    writeScriptRange(painter);
-  }
-}
-
-void
-CQChartsParallelPlot::
-setNormalizedRange(PaintDevice *device)
-{
-  if (rangeType_ == RangeType::NORMALIZED)
-    return;
-
-  rangeType_ = RangeType::NORMALIZED;
-
-  //---
-
-  auto adjustedRange = adjustDataRangeBBox(normalizedDataRange_.bbox());
-
-  // set display range to normalized range
-  displayRange_->setWindowRange(adjustedRange.getXMin(), adjustedRange.getYMin(),
-                                adjustedRange.getXMax(), adjustedRange.getYMax());
-
-  dataRange_ = normalizedDataRange_;
-
-  //---
-
-  if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
-
-    writeScriptRange(painter);
-  }
 }
 
 //---
@@ -1556,10 +1430,6 @@ draw(PaintDevice *device) const
 
   //---
 
-  const_cast<CQChartsParallelPlot *>(plot_)->setNormalizedRange(device);
-
-  //---
-
   // set pen and brush
   PenBrush penBrush;
 
@@ -1774,10 +1644,6 @@ draw(PaintDevice *device) const
 
   //---
 
-  const_cast<CQChartsParallelPlot *>(plot())->setObjRange(device);
-
-  //---
-
   // calc pen and brush
   auto colorInd = calcColorInd();
 
@@ -1791,10 +1657,6 @@ draw(PaintDevice *device) const
 
   // draw symbol
   plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
-
-  //---
-
-  //const_cast<CQChartsParallelPlot *>(plot())->setNormalizedRange(device);
 }
 
 //------

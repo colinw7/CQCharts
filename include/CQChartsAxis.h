@@ -196,16 +196,18 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! get/set plot
   Plot *plot() { return const_cast<Plot *>(plot_); }
   const Plot *plot() const { return plot_; }
   void setPlot(const Plot *plot) { plot_ = plot; }
 
+  //! get/set view
   View *view();
   const View *view() const;
 
   //---
 
-  // get/set direction (TODO: allow set direction)
+  //! get/set direction (TODO: allow set direction)
   Qt::Orientation direction() const { return direction_; }
   void setDirection(Qt::Orientation dir) { direction_ = dir; updatePlotPosition(); }
 
@@ -213,16 +215,16 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // get/set visible
+  //! get/set visible
   void setVisible(bool b) override;
 
   //---
 
-  // get/set updates enabled
+  //! get/set updates enabled
   bool isUpdatesEnabled() const { return updatesEnabled_; }
   void setUpdatesEnabled(bool b) { updatesEnabled_ = b; }
 
-  // get/set update draws all plot data
+  //! get/set update draws all plot data
   bool isDrawAll() const { return drawAll_; }
   void setDrawAll(bool b) { drawAll_ = b; }
 
@@ -232,49 +234,61 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! get/set side (horizontal: top/bottom, vertical bottom/top)
   AxisSide side() const { return side_; }
   void setSide(AxisSide side) { side_ = side; updatePlotPosition(); }
 
   //---
 
+  //! get/set position (x for vertical, y for horzontal)
   const OptReal &position() const { return position_; }
   void setPosition(const OptReal &r);
 
   //---
 
+  //! get/set start position
   double start() const { return start_; }
   void setStart(double start) { setRange(start, end_); }
 
+  //! get/set end psotion
   double end() const { return end_; }
   void setEnd(double end) { setRange(start_, end); }
 
+  //! get/set start and end position
+  void setRange(double start, double end);
+
   //---
 
+  //! get/set custom value start
   const OptReal &valueStart() const { return valueStart_; }
   void setValueStart(const OptReal &v);
 
+  //! get/set custom value end
   const OptReal &valueEnd() const { return valueEnd_; }
   void setValueEnd(const OptReal &v);
 
+  //! get/set custom start and end value
+  void setValueRange(double start, double end);
+
   //---
 
+  //! get/set include zero
   bool isIncludeZero() const { return includeZero_; }
   void setIncludeZero(bool b);
 
   //---
 
+  //! get/set is annotation
   bool isAnnotation() const { return annotation_; }
   void setAnnotation(bool b);
 
+  //! get/set allow html labels
   bool isAllowHtmlLabels() const { return allowHtmlLabels_; }
   void setAllowHtmlLabels(bool b);
 
   //---
 
-  void setRange(double start, double end);
-
-  //---
-
+  //! get/set value type
   const AxisValueType &valueType() const { return valueType_; }
   void setValueType(const AxisValueType &v, bool notify=true);
 
@@ -284,56 +298,62 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! get/set associated column
   const Column &column() const { return column_; }
   void setColumn(const Column &c);
 
+  //! get/set if labels are from column
   bool isDataLabels() const { return dataLabels_; }
   void setDataLabels(bool b);
 
+  //! get/set value format
   QString format() const;
   bool setFormat(const QString &s);
 
+  //! get/set maximum fit extent (outside axis line length)
   double maxFitExtent() const { return maxFitExtent_; }
   void setMaxFitExtent(double r);
 
   //---
 
-  // get/set label
+  //! get/set label
   const OptString &label() const { return label_; }
   void setLabel(const OptString &str);
 
+  //! get/set label string
   QString labelStr() const { return label_.stringOr(); }
   void setLabelStr(const QString &s);
 
-  // set default label
+  //! set default label
   const QString &defLabel() const { return label_.defValue(); }
   void setDefLabel(const QString &str, bool notify=true);
 
-  // get/set user label
+  //! get/set user label
   const QString &userLabel() const { return userLabel_; }
   void setUserLabel(const QString &str);
 
-  // get/set scale label font
+  //! get/set scale label font
   bool isScaleLabelFont() const { return scaleLabelFont_; }
   void setScaleLabelFont(bool b);
 
-  // get/set scale label extent
+  //! get/set scale label extent
   const Length &scaleLabelExtent() const { return scaleLabelExtent_; }
   void setScaleLabelExtent(const Length &l);
 
   //---
 
-  // grid lines displayed
+  //! get/set grid lines displayed
   const GridLinesDisplayed &gridLinesDisplayed() const { return gridLinesDisplayed_; }
   void setGridLinesDisplayed(const GridLinesDisplayed &d);
 
+  //! get/set major grid lines displayed
   bool isMajorGridLinesDisplayed() const {
     return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR ||
            gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
   bool isMinorGridLinesDisplayed() const {
     return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
 
-  // grid fill displayed
+  //! get/set grid fill displayed
   const GridFillDisplayed &gridFillDisplayed() const { return gridFillDisplayed_; }
   void setGridFillDisplayed(const GridFillDisplayed &d);
 
@@ -341,19 +361,21 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // grid
+  //! get/set grid mid line
   bool isGridMid() const { return gridMid_; }
   void setGridMid(bool b);
 
+  //! get/set grid above
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b);
 
   //---
 
-  // ticks displayed
+  //! get/set ticks displayed
   const TicksDisplayed &ticksDisplayed() const { return ticksDisplayed_; }
   void setTicksDisplayed(const TicksDisplayed &d);
 
+  //! get/set major ticks displayed
   bool isMajorTicksDisplayed() const {
     return ticksDisplayed_ == TicksDisplayed::MAJOR ||
            ticksDisplayed_ == TicksDisplayed::MAJOR_AND_MINOR; }
@@ -362,25 +384,29 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // major/minor ticks
+  //! get/set major tick (pixel) length
   int majorTickLen() const { return majorTickLen_; }
   void setMajorTickLen(int i);
 
+  //! get/set minor tick (pixel) length
   int minorTickLen() const { return minorTickLen_; }
   void setMinorTickLen(int i);
 
+  //! get/set tick on inside
   bool isTickInside() const { return tickInside_; }
   void setTickInside(bool b);
 
+  //! get/set mirror ticks
   bool isMirrorTicks() const { return mirrorTicks_; }
   void setMirrorTicks(bool b);
 
   //---
 
-  // ticks label
+  //! get/set ticks auto hide
   bool isTickLabelAutoHide() const { return tickLabelAutoHide_; }
   void setTickLabelAutoHide(bool b);
 
+  //! get/set ticks label placement
   const AxisTickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
   void setTickLabelPlacement(const AxisTickLabelPlacement &p);
 
@@ -392,7 +418,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // user specified tick increment
+  //! get/set user specified tick increment
   const OptInt &tickIncrement() const { return tickIncrement_; }
   void setTickIncrement(const OptInt &tickIncrement);
 
@@ -400,7 +426,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // user specified major increment
+  //! get/set user specified major increment
   const OptInt &majorIncrement() const { return majorIncrement_; }
   void setMajorIncrement(const OptInt &i);
 

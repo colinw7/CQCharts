@@ -12156,9 +12156,14 @@ drawBackgroundRects(PaintDevice *device) const
     drawBackgroundRect(fitBBox(), fitBrushData(ColorInd()), fitPenData(ColorInd()),
                        fitBorderSides());
 
-  if (isDataFilled() || isDataStroked())
-    drawBackgroundRect(displayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
-                       dataBorderSides());
+  if (isDataFilled() || isDataStroked()) {
+    if (isDataRawRange())
+      drawBackgroundRect(rawDisplayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
+                         dataBorderSides());
+    else
+      drawBackgroundRect(displayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
+                         dataBorderSides());
+  }
 }
 
 void
@@ -17201,12 +17206,14 @@ pixelToWindow(const Point &w) const
   return p;
 }
 
+#if 0
 void
 CQChartsPlot::
 pixelToWindowI(const BBox &prect, BBox &wrect) const
 {
   wrect = pixelToWindow(prect);
 }
+#endif
 
 void
 CQChartsPlot::
@@ -17292,12 +17299,14 @@ windowToPixel(const Point &w) const
   return p;
 }
 
+#if 0
 void
 CQChartsPlot::
 windowToPixelI(const BBox &wrect, BBox &prect) const
 {
   prect = windowToPixel(wrect);
 }
+#endif
 
 CQChartsGeom::BBox
 CQChartsPlot::

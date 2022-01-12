@@ -3003,8 +3003,7 @@ getObjSelectIndices(Indices &inds) const
   if (whisker_) {
     const auto &ovalue = whisker_->value(io_);
 
-    addSelectIndex(inds, ovalue.ind.row(), CQChartsColumn(ovalue.ind.column()),
-                   ovalue.ind.parent());
+    addSelectIndex(inds, ovalue.ind.row(), Column(ovalue.ind.column()), ovalue.ind.parent());
   }
 }
 
@@ -3696,7 +3695,7 @@ CQChartsBoxPlotPointObj::
 CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &is,
                         const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<CQChartsBoxPlot *>(plot), rect, p, is, ig, iv),
+ CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, is, ig, iv),
  plot_(plot), setId_(setId), groupInd_(groupInd)
 {
   if (ind.isValid())
@@ -3785,7 +3784,7 @@ void
 CQChartsBoxPlotPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
+  addColumnSelectIndex(inds, Column(modelInd().column()));
 }
 
 //---
