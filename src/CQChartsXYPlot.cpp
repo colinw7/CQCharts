@@ -2915,6 +2915,25 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
         rug->addPoint(CQChartsAxisRug::RugPoint(pointObj->point().x, penBrush.pen.color()));
       else
         rug->addPoint(CQChartsAxisRug::RugPoint(pointObj->point().y, penBrush.pen.color()));
+
+      continue;
+    }
+
+    auto *biLineObj = dynamic_cast<CQChartsXYBiLineObj *>(plotObj);
+
+    if (biLineObj) {
+      PenBrush penBrush;
+
+      biLineObj->calcPointPenBrush(penBrush);
+
+      if (rug->direction() == Qt::Horizontal)
+        rug->addPoint(CQChartsAxisRug::RugPoint(biLineObj->x(), penBrush.pen.color()));
+      else {
+        rug->addPoint(CQChartsAxisRug::RugPoint(biLineObj->y1(), penBrush.pen.color()));
+        rug->addPoint(CQChartsAxisRug::RugPoint(biLineObj->y2(), penBrush.pen.color()));
+      }
+
+      continue;
     }
   }
 
@@ -3116,9 +3135,7 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
   // calc pen and brush
   PenBrush penBrush;
 
-  plot_->setSymbolPenBrush(penBrush, is_);
-
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  calcPointPenBrush(penBrush);
 
   //---
 
@@ -3127,9 +3144,18 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
 
   if (symbol.isValid()) {
     // already scaled
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss, /*scale*/false);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss, /*scale*/false);
   }
+}
+
+void
+CQChartsXYBiLineObj::
+calcPointPenBrush(PenBrush &penBrush) const
+{
+  plot_->setSymbolPenBrush(penBrush, is_);
+
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------

@@ -100,6 +100,8 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPointPenBrush(PenBrush &penBrush) const;
+
  private:
   void drawLines (PaintDevice *device, const Point &p1, const Point &p2) const;
   void drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const;

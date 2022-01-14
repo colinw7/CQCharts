@@ -2618,7 +2618,8 @@ draw(PaintDevice *device) const
       if (! isSelf) {
         QPainterPath lpath;
 
-        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, /*rectilinear*/true);
+        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
+                                    plot_->orientation(), /*rectilinear*/true);
 
         CQChartsArrowData arrowData;
 

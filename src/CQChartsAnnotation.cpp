@@ -4945,7 +4945,7 @@ calcPath(QPainterPath &path) const
       if (startObj || endObj)
         CQChartsDrawUtil::edgePath(path, ibbox, obbox, isRectilinear());
       else {
-        CQChartsDrawUtil::curvePath(lpath, start, end, isRectilinear());
+        CQChartsDrawUtil::curvePath(lpath, start, end, Qt::Horizontal, isRectilinear());
 
         CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, 2.0, path);
       }
@@ -4957,9 +4957,9 @@ calcPath(QPainterPath &path) const
   else {
     if (! isSelf) {
       if (startObj || endObj)
-        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, isRectilinear());
+        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, Qt::Horizontal, isRectilinear());
       else
-        CQChartsDrawUtil::curvePath(lpath, start, end, isRectilinear());
+        CQChartsDrawUtil::curvePath(lpath, start, end, Qt::Horizontal, isRectilinear());
     }
     else {
       CQChartsDrawUtil::selfCurvePath(lpath, ibbox, isRectilinear());

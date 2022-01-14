@@ -39,6 +39,8 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   Plot *create(View *view, const ModelP &model) const override;
@@ -55,24 +57,88 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
  public:
   using Plot     = CQChartsDendrogramPlot;
+  using NodeObj  = CQChartsDendrogramNodeObj;
   using HierNode = CQChartsDendrogram::HierNode;
   using Node     = CQChartsDendrogram::Node;
+  using Length   = CQChartsLength;
   using Angle    = CQChartsAngle;
+  using Sides    = CQChartsSides;
+  using OptReal  = CQChartsOptReal;
 
  public:
   CQChartsDendrogramNodeObj(const Plot *plot, Node *node, const BBox &rect);
 
   QString typeName() const override { return "node"; }
 
+  const Plot *plot() const { return plot_; }
+
+  const NodeObj *parent() const { return parent_; }
+  void setParent(NodeObj *p) { parent_ = p; }
+
+  void addChild(NodeObj *child) { children_.push_back(child); }
+
+  const Node *node() const { return node_; }
+  void resetNode() { node_ = nullptr; }
+
+  const QString &name() const { return name_; }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  bool isHier() const { return isHier_; }
+  void setHier(bool b) { isHier_ = b; }
+
+  bool isOpen() const { return open_; }
+  void setOpen(bool b) { open_ = b; }
+
+  ModelIndex modelIndex() const { return modelIndex_; }
+  void setModelIndex(const ModelIndex &modelIndex) { modelIndex_ = modelIndex; }
+
+  const OptReal &color() const { return color_; }
+  void setColor(const OptReal &v) { color_ = v; }
+
+  const OptReal &size() const { return size_; }
+  void setSize(const OptReal &v) { size_ = v; }
+
+  //---
+
+  double hierColor() const { return hierColor_; }
+  void setHierColor(double r) { hierColor_ = r; }
+
+  double hierSize() const { return hierSize_; }
+  void setHierSize(double r) { hierSize_ = r; }
+
+  //---
+
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   BBox textRect() const;
 
   void draw(PaintDevice *device) const override;
 
  private:
-  const Plot* plot_ { nullptr };
-  Node*       node_ { nullptr };
+  void drawEdge(PaintDevice *device, const NodeObj *child) const;
+
+  BBox displayRect() const;
+
+ private:
+  using Children = std::vector<NodeObj *>;
+
+  const Plot*     plot_      { nullptr };
+  NodeObj*        parent_    { nullptr };
+  Children        children_;
+  Node*           node_      { nullptr };
+  QString         name_;
+  double          value_     { 0.0 };
+  bool            isHier_    { false };
+  bool            open_      { false };
+  ModelIndex      modelIndex_;
+  OptReal         color_;
+  OptReal         size_;
+  mutable double  hierColor_ { 0.0 };
+  mutable double  hierSize_  { 0.0 };
 };
 
 //---
@@ -90,6 +156,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   // columns
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
 
   // node
   Q_PROPERTY(double circleSize READ circleSize WRITE setCircleSize)
@@ -114,6 +181,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Q_ENUMS(PlaceType)
 
  public:
+  using NodeObj   = CQChartsDendrogramNodeObj;
   using HierNode  = CQChartsDendrogram::HierNode;
   using Node      = CQChartsDendrogram::Node;
   using Color     = CQChartsColor;
@@ -144,6 +212,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
+
+  //! get/set value column
+  const Column &sizeColumn() const { return sizeColumn_; }
+  void setSizeColumn(const Column &c);
 
   //---
 
@@ -179,15 +251,16 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
-  void addNameValue(const QString &name, double value) const;
+  void addNameValue(const QString &name, double value, const ModelIndex &modelInd,
+                    const OptReal &colorValue, OptReal &sizeValue) const;
 
   bool createObjs(PlotObjs &objs) const override;
 
   //---
 
-  void addNodeObjs(HierNode *hier, int depth, PlotObjs &objs) const;
+  void addNodeObjs(HierNode *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const;
 
-  void addNodeObj(Node *node, PlotObjs &objs) const;
+  NodeObj *addNodeObj(Node *node, PlotObjs &objs, bool isHier) const;
 
   BBox getBBox(Node *node) const;
 
@@ -198,25 +271,20 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  bool hasForeground() const override;
-
-  void execDrawForeground(PaintDevice *) const override;
-
-  void drawNodes(PaintDevice *device, HierNode *hier, int depth) const;
-
-  void drawNode(PaintDevice *device, HierNode *hier, Node *node) const;
-
-  //---
-
-  using NodeObj = CQChartsDendrogramNodeObj;
+  NodeObj *rootNodeObj() const { return rootNodeObj_; }
 
   virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
  protected:
+  void placeModel() const;
+
   void place() const;
 
   void addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const;
   void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
+
+  double calcHierColor(const HierNode *hierNode) const;
+  double calcHierSize (const HierNode *hierNode) const;
 
   CQChartsPlotCustomControls *createCustomControls() override;
 
@@ -225,11 +293,17 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   Column          nameColumn_;                            //!< name column
   Column          valueColumn_;                           //!< value column
+  Column          sizeColumn_;                            //!< size column
   Dendrogram*     dendrogram_  { nullptr };               //!< dendrogram class
   double          circleSize_  { 8.0 };                   //!< circle size
   double          textMargin_  { 4.0 };                   //!< text margin
   PlaceType       placeType_   { PlaceType::DENDROGRAM }; //!< place type
   Qt::Orientation orientation_ { Qt::Horizontal };        //!< draw direction
+
+  NodeObj *rootNodeObj_ { nullptr };
+
+  mutable bool needsReload_ { true };
+  mutable bool needsPlace_  { true };
 
   mutable CBuchHeim::Tree*     buchheimTree_     { nullptr };
   mutable CBuchHeim::DrawTree* buchheimDrawTree_ { nullptr };

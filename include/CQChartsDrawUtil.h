@@ -391,9 +391,11 @@ void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
 
 //---
 
-void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear=false);
+void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+               Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
 
-void curvePath(QPainterPath &path, const Point &p1, const Point &p4, bool rectilinear=false);
+void curvePath(QPainterPath &path, const Point &p1, const Point &p4,
+               Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
 
 void selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear=false);
 

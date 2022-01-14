@@ -1503,49 +1503,86 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation or
 //---
 
 void
-curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear)
+curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+          Qt::Orientation orient, bool rectilinear)
 {
   // x from right of source rect to left of dest rect
   bool swapped = false;
 
-  double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
+  double x1, y1, x2, y2;
 
-  if (x1 > x2) {
-    x1 = obbox.getXMax(), x2 = ibbox.getXMin();
-    swapped = true;
+  if (orient == Qt::Horizontal) {
+    x1 = ibbox.getXMax(); x2 = obbox.getXMin();
+
+    if (x1 > x2) {
+      x1 = obbox.getXMax(), x2 = ibbox.getXMin();
+      swapped = true;
+    }
+
+    y1 = ibbox.getYMid(); y2 = obbox.getYMid();
+
+    if (swapped)
+      std::swap(y1, y2);
+  }
+  else {
+    y1 = ibbox.getYMax(); y2 = obbox.getYMin();
+
+    if (y1 > y2) {
+      y1 = obbox.getYMax(), y2 = ibbox.getYMin();
+      swapped = true;
+    }
+
+    x1 = ibbox.getXMid(); x2 = obbox.getXMid();
+
+    if (swapped)
+      std::swap(x1, x2);
   }
 
-  double y1 = ibbox.getYMid();
-  double y2 = obbox.getYMid();
-
-  if (swapped)
-    std::swap(y1, y2);
-
-  curvePath(path, Point(x1, y1), Point(x2, y2), rectilinear);
+  curvePath(path, Point(x1, y1), Point(x2, y2), orient, rectilinear);
 }
 
 void
-curvePath(QPainterPath &path, const Point &p1, const Point &p4, bool rectilinear)
+curvePath(QPainterPath &path, const Point &p1, const Point &p4,
+          Qt::Orientation orient, bool rectilinear)
 {
   path = QPainterPath();
 
   //---
 
-  if (! rectilinear) {
-    double x2 = CMathUtil::lerp(1.0/3.0, p1.x, p4.x);
-    double x3 = CMathUtil::lerp(2.0/3.0, p1.x, p4.x);
+  Point p2, p3;
 
-    auto p2 = Point(x2, p1.y);
-    auto p3 = Point(x3, p4.y);
+  if (! rectilinear) {
+    if (orient == Qt::Horizontal) {
+      double x2 = CMathUtil::lerp(1.0/3.0, p1.x, p4.x);
+      double x3 = CMathUtil::lerp(2.0/3.0, p1.x, p4.x);
+
+      p2 = Point(x2, p1.y);
+      p3 = Point(x3, p4.y);
+    }
+    else {
+      double y2 = CMathUtil::lerp(1.0/3.0, p1.y, p4.y);
+      double y3 = CMathUtil::lerp(2.0/3.0, p1.y, p4.y);
+
+      p2 = Point(p1.x, y2);
+      p3 = Point(p4.x, y3);
+    }
 
     path.moveTo (p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
   }
   else {
-    double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
+    if (orient == Qt::Horizontal) {
+      double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
 
-    auto p2 = Point(x2, p1.y);
-    auto p3 = Point(x2, p4.y);
+      p2 = Point(x2, p1.y);
+      p3 = Point(x2, p4.y);
+    }
+    else {
+      double y2 = CMathUtil::lerp(0.5, p1.y, p4.y);
+
+      p2 = Point(p1.x, y2);
+      p3 = Point(p4.x, y2);
+    }
 
     path.moveTo(p1.qpoint());
     path.lineTo(p2.qpoint());

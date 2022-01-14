@@ -791,6 +791,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool isEqualScale() const;
   virtual void setEqualScale(bool b);
 
+  void applyEqualScale(Range &dataRange) const;
+
+  //---
+
   virtual bool isFollowMouse() const { return followMouse_; }
   virtual void setFollowMouse(bool b) { followMouse_ = b; }
 

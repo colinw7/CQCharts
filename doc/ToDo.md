@@ -4,6 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + check equal scale on bad aspect plot
+ + dendrogram plot
+   + handle missing values
+   + size column
+   + color column
+   + lines not connected on resize ?
  + check zoom on all symbol plots
  + parallel plot redraw issues
  + check column role

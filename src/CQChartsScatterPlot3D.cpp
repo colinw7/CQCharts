@@ -2143,7 +2143,7 @@ postDraw(PaintDevice *device)
   auto pt2 = pt.point2D();
 
   if (symbol.isValid())
-    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pt2, symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, pt2, symbolSize, /*scale*/false);
 
   //---
 

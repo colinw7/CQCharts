@@ -860,6 +860,8 @@ calcRange() const
 
   //---
 
+  applyEqualScale(dataRange);
+
   dataRange = adjustDataRange(dataRange);
 
   //---

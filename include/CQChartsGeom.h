@@ -946,6 +946,27 @@ class BBox :
     pmax_ = rect.getUR();
   }
 
+  BBox centerScaled(double xf, double yf) const {
+    BBox bbox(*this);
+
+    bbox.centerScale(xf, yf);
+
+    return bbox;
+  }
+
+  void centerScale(double xf, double yf) {
+    auto xc = getXMid();
+    auto yc = getYMid();
+
+    auto xr = xf*getWidth ()/2.0;
+    auto yr = yf*getHeight()/2.0;
+
+    BBox rect(xc - xr, yc - yr, xc + xr, yc + yr);
+
+    pmin_ = rect.getLL();
+    pmax_ = rect.getUR();
+  }
+
   //---
 
   // true if ok, false if changed (swapped)

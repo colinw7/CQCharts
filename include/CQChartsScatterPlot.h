@@ -32,6 +32,8 @@ class CQChartsScatterPlotType : public CQChartsPointPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool canEqualScale() const override { return true; }
+
   bool supportsAlphaColumn() const override { return true; }
   bool supportsFontColumn () const override { return true; }
   bool supportsImageColumn() const override { return true; }

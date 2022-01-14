@@ -111,8 +111,6 @@ CQChartsDendrogram::HierNode::
 HierNode(HierNode *parent, const QString &name) :
  Node(parent, name)
 {
-  if (parent_)
-    parent_->children_.push_back(this);
 }
 
 CQChartsDendrogram::HierNode::
@@ -248,6 +246,13 @@ placeSubNodes(RootNode *root, int depth, double row)
     // move row by max rows
     row1 += maxNodes;
   }
+}
+
+void
+CQChartsDendrogram::HierNode::
+addChild(HierNode *child)
+{
+  children_.push_back(child);
 }
 
 void
@@ -801,33 +806,58 @@ setSingleStep(bool b)
 
 CQChartsDendrogram::HierNode *
 CQChartsDendrogram::
-createRootNode(const QString &name)
+addRootNode(const QString &name)
 {
   assert(! root_);
 
-  root_ = new RootNode(name);
+  root_ = createRootNode(name);
 
   return root_;
 }
 
 CQChartsDendrogram::HierNode *
 CQChartsDendrogram::
-createHierNode(HierNode *hier, const QString &name)
+addHierNode(HierNode *parentHier, const QString &name)
 {
-  assert(hier);
+  assert(parentHier);
 
+  auto *hier = createHierNode(parentHier, name);
+
+  parentHier->addChild(hier);
+
+  return hier;
+}
+
+CQChartsDendrogram::Node *
+CQChartsDendrogram::
+addNode(HierNode *hier, const QString &name, double size)
+{
+  auto *node = createNode(hier, name, size);
+
+  hier->addNode(node);
+
+  return node;
+}
+
+CQChartsDendrogram::RootNode *
+CQChartsDendrogram::
+createRootNode(const QString &name) const
+{
+  return new RootNode(name);
+}
+
+CQChartsDendrogram::HierNode *
+CQChartsDendrogram::
+createHierNode(HierNode *hier, const QString &name) const
+{
   return new HierNode(hier, name);
 }
 
 CQChartsDendrogram::Node *
 CQChartsDendrogram::
-createNode(HierNode *hier, const QString &name, double size)
+createNode(HierNode *hier, const QString &name, double size) const
 {
-  auto *node = new Node(hier, name, size);
-
-  hier->addNode(node);
-
-  return node;
+  return new Node(hier, name, size);
 }
 
 void

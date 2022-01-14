@@ -619,11 +619,7 @@ calcRange() const
   //---
 
 #if 0
-  if (isEqualScale()) {
-    double aspect = this->aspect();
-
-    dataRange.equalScale(aspect);
-  }
+  applyEqualScale(dataRange);
 #endif
 
   //---
@@ -2888,7 +2884,8 @@ draw(PaintDevice *device) const
 #else
       QPainterPath lpath;
 
-      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, /*rectilinear*/true);
+      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
+                                  plot_->orientation(), /*rectilinear*/true);
 
       CQChartsArrowData arrowData;
 

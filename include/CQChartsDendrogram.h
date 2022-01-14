@@ -153,6 +153,8 @@ class CQChartsDendrogram {
 
     void placeSubNodes(RootNode *root, int depth, double row);
 
+    void addChild(HierNode *child);
+
     void addNode(Node *node);
 
     void compressNode(double d) override;
@@ -171,6 +173,8 @@ class CQChartsDendrogram {
   class RootNode : public HierNode {
    public:
     explicit RootNode(const QString &name="");
+
+    virtual ~RootNode() { }
 
     void setDebug(bool debug) { debug_ = debug; }
     bool debug() const { return debug_; }
@@ -234,7 +238,8 @@ class CQChartsDendrogram {
 
  public:
   CQChartsDendrogram();
- ~CQChartsDendrogram();
+
+  virtual ~CQChartsDendrogram();
 
   bool debug() const;
   void setDebug(bool b);
@@ -244,11 +249,14 @@ class CQChartsDendrogram {
 
   HierNode *root() const { return root_; }
 
-  HierNode *createRootNode(const QString &name);
+  HierNode *addRootNode(const QString &name);
 
-  HierNode *createHierNode(HierNode *hier, const QString &name);
+  HierNode *addHierNode(HierNode *hier, const QString &name);
+  Node *addNode(HierNode *hier, const QString &name, double size);
 
-  Node *createNode(HierNode *hier, const QString &name, double size);
+  virtual RootNode *createRootNode(const QString &name) const;
+  virtual HierNode *createHierNode(HierNode *hier, const QString &name) const;
+  virtual Node *createNode(HierNode *hier, const QString &name, double size) const;
 
   void placeNodes();
 

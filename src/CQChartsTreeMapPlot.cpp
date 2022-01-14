@@ -438,11 +438,7 @@ calcRange() const
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
 
-  if (isEqualScale()) {
-    double aspect = this->aspect();
-
-    dataRange.equalScale(aspect);
-  }
+  applyEqualScale(dataRange);
 
   return dataRange;
 }

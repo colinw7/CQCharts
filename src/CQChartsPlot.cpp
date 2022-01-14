@@ -2447,6 +2447,17 @@ setEqualScale(bool b)
   CQChartsUtil::testAndSet(equalScale_, b, [&]() { updateRange(); });
 }
 
+void
+CQChartsPlot::
+applyEqualScale(Range &dataRange) const
+{
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    dataRange.equalScale(aspect);
+  }
+}
+
 //---
 
 bool
@@ -14888,6 +14899,7 @@ getFirstPlotKey() const
 
 //------
 
+// Note: symbol size already scaled
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
@@ -14898,6 +14910,7 @@ drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
   drawSymbol(device, p, symbol, xsize, ysize);
 }
 
+// Note: symbol size already scaled
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
@@ -14913,11 +14926,11 @@ drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
       drawBufferedSymbol(viewPlotDevice->painter(), p, symbol, std::min(sx, sy));
     }
     else {
-      CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize);
+      CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize, /*scale*/false);
     }
   }
   else {
-    CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize);
+    CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize, /*scale*/false);
   }
 }
 
