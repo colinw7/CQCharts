@@ -190,6 +190,15 @@ addColumnWidget(QWidget *w)
   layout->addWidget(w);
 }
 
+void
+CQChartsColumnControlGroup::
+addColumnStretch()
+{
+  auto *layout = qobject_cast<QVBoxLayout *>(columnWidget_->layout());
+
+  layout->addStretch(1);
+}
+
 bool
 CQChartsColumnControlGroup::
 isFixed() const

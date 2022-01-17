@@ -674,6 +674,10 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
 //---
 
+/*!
+ * \brief Hier Bubble Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsHierBubblePlotCustomControls : public CQChartsHierPlotCustomControls {
   Q_OBJECT
 

@@ -603,6 +603,10 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Wheel Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsWheelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

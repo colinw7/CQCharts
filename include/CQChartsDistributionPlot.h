@@ -1134,6 +1134,10 @@ class CQLabel;
 class QLineEdit;
 class QButtonGroup;
 
+/*!
+ * \brief Distribution Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

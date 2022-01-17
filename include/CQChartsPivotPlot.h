@@ -259,6 +259,8 @@ class CQChartsPivotKeyColor : public CQChartsColorBoxKeyItem {
   CQChartsPivotKeyColor(PivotPlot *plot, const ColorInd &ic);
 
   QBrush fillBrush() const override;
+
+  bool calcHidden() const override;
 };
 
 /*!
@@ -501,6 +503,10 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Pivot Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsPivotPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

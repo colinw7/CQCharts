@@ -120,6 +120,7 @@ class CQCharts : public QObject {
   using Procs      = std::map<QString, ProcData>;
   using TypeProcs  = std::map<ProcType, Procs>;
 
+  using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:

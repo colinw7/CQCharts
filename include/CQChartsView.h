@@ -143,7 +143,9 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool          overlayFade      READ isOverlayFade    WRITE setOverlayFade)
   Q_PROPERTY(CQChartsAlpha overlayFadeAlpha READ overlayFadeAlpha WRITE setOverlayFadeAlpha)
 
-  //---
+  Q_PROPERTY(CQChartsColor insideColor   READ insideColor   WRITE setInsideColor  )
+  Q_PROPERTY(CQChartsColor selectedColor READ selectedColor WRITE setSelectedColor)
+
 
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
@@ -207,7 +209,8 @@ class CQChartsView : public QFrame,
     PROBE,
     QUERY,
     EDIT,
-    REGION
+    REGION,
+    RULER
   };
 
   //! select mode
@@ -760,6 +763,8 @@ class CQChartsView : public QFrame,
 
   void drawPlots(QPainter *painter);
 
+  void drawOverlay(QPainter *painter);
+
   void showNoData(bool show);
 
   void drawNoData(PaintDevice *device);
@@ -822,8 +827,17 @@ class CQChartsView : public QFrame,
   void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
                                       DrawType drawType) const;
 
-  QColor insideColor  (const QColor &c) const;
-  QColor selectedColor(const QColor &c) const;
+  //---
+
+  QColor calcInsideColor(const QColor &c) const;
+
+  Color insideColor() const { return insideColor_; }
+  void setInsideColor(const Color &c) { insideColor_ = c; }
+
+  QColor calcSelectedColor(const QColor &c) const;
+
+  Color selectedColor() const { return selectedColor_; }
+  void setSelectedColor(const Color &c) { selectedColor_ = c; }
 
   //---
 
@@ -1170,6 +1184,7 @@ class CQChartsView : public QFrame,
   void queryModeSlot();
   void editModeSlot();
   void regionModeSlot();
+  void rulerModeSlot();
 
   void plotModelChanged();
   void plotConnectDataChangedSlot();
@@ -1311,6 +1326,11 @@ class CQChartsView : public QFrame,
   void regionMouseMove();
   void regionMouseRelease();
 
+  void rulerMousePress();
+  void rulerMouseMotion();
+  void rulerMouseMove();
+  void rulerMouseRelease();
+
   void zoomMousePress();
   void zoomMouseMove();
   void zoomMouseRelease();
@@ -1411,6 +1431,13 @@ class CQChartsView : public QFrame,
   struct RegionData {
     RegionMode mode { RegionMode::RECT }; //!< region sub mode
     Size       size { 1, 1 };             //!< point region size
+  };
+
+  //! structure containing the ruler data
+  struct RulerData {
+    bool  set { false };
+    Point start;
+    Point end;
   };
 
   //! structure containing the auto/fixed size data and associated scroll bars
@@ -1536,6 +1563,7 @@ class CQChartsView : public QFrame,
   Alpha overlayFadeAlpha_ { 0.5 };   //!< overlay fade alpha
 
   RegionData regionData_;                //!< region sub mode
+  RulerData  rulerData_;                 //!< ruler sub mode
   QString    defaultPalette_;            //!< default palette
   ScrollData scrollData_;                //!< scroll data
   bool       antiAlias_       { true };  //!< anti alias
@@ -1590,11 +1618,13 @@ class CQChartsView : public QFrame,
   QSize viewSizeHint_; //!< view size hint
 
   // draw layer buffers
-  BufferP            bgBuffer_;                          //!< buffer for view bg
-  BufferP            fgBuffer_;                          //!< buffer for view fg
-  BufferP            overlayBuffer_ ;                    //!< buffer for view overlays
-  LayerType          drawLayerType_ { LayerType::NONE }; //!< current draw layer type
-  mutable std::mutex painterMutex_;                      //!< painter mutex
+  BufferP   bgBuffer_;                          //!< buffer for view bg
+  BufferP   fgBuffer_;                          //!< buffer for view fg
+  BufferP   overlayBuffer_ ;                    //!< buffer for view overlays
+  LayerType drawLayerType_ { LayerType::NONE }; //!< current draw layer type
+
+  mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
+  mutable std::mutex        painterMutex_;           //!< painter mutex
 
   // dialogs
   EditAnnotationDlg* editAnnotationDlg_ { nullptr }; //!< edit annotation dialog
@@ -1614,6 +1644,9 @@ class CQChartsView : public QFrame,
   bool       plotsVertical_     { false }; //!< plots are vertical
 
   RegionMgrP regionMgr_; //!< region widget manager
+
+  Color insideColor_;
+  Color selectedColor_;
 };
 
 //------

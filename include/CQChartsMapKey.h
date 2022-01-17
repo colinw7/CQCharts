@@ -15,6 +15,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_PROPERTY(bool                numeric   READ isNumeric  WRITE setNumeric  )
   Q_PROPERTY(bool                integral  READ isIntegral WRITE setIntegral )
   Q_PROPERTY(bool                native    READ isNative   WRITE setNative   )
+  Q_PROPERTY(bool                mapped    READ isMapped   WRITE setMapped   )
   Q_PROPERTY(int                 numUnique READ numUnique  WRITE setNumUnique)
 
  public:
@@ -28,6 +29,12 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   using Alpha         = CQChartsAlpha;
   using BBox          = CQChartsGeom::BBox;
   using Point         = CQChartsGeom::Point;
+
+  enum DrawType {
+    NONE,
+    VIEW,
+    WIDGET
+  };
 
  public:
   CQChartsMapKey(Plot *plot);
@@ -81,6 +88,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   bool isNative() const { return native_; }
   void setNative(bool b) { native_ = b; }
 
+  //! get/set is mapped
+  bool isMapped() const { return mapped_; }
+  void setMapped(bool b) { mapped_ = b; }
+
   //! get/set num unique
   int numUnique() const { return numUnique_; }
   void setNumUnique(int i) { numUnique_ = i; }
@@ -107,6 +118,12 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
 
   //---
 
+  virtual bool selectPressType(const Point &w, SelMod selMod, DrawType) {
+    return selectPress(w, selMod);
+  }
+
+  //---
+
   // Implement edit interface
   bool editPress (const Point &) override;
   bool editMove  (const Point &) override;
@@ -123,9 +140,11 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
     QFont font;
   };
 
-  virtual void draw(PaintDevice *device, const DrawData &drawData) = 0;
+  virtual void draw(PaintDevice *device, const DrawData &drawData, DrawType drawType) = 0;
 
   virtual QSize calcSize(const DrawData &drawData) const = 0;
+
+  QColor bgColor(PaintDevice *device) const;
 
  protected:
   virtual void invalidate() = 0;
@@ -148,6 +167,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   bool          numeric_   { false };                               //!< is numeric
   bool          integral_  { false };                               //!< is integral
   bool          native_    { false };                               //!< is native
+  bool          mapped_    { false };                               //!< is mapped
   int           numUnique_ { -1 };                                  //!< num unique
   QVariantList  uniqueValues_;                                      //!< unique values
 
@@ -155,6 +175,9 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   mutable double        kh_     { 0.0 };
   mutable double        xm_     { 0.0 };
   mutable double        ym_     { 0.0 };
+  mutable int           ndp_    { 0 };
+  mutable double        twl_    { 0.0 };
+  mutable double        twr_    { 0.0 };
   mutable Qt::Alignment talign_ { Qt::AlignHCenter | Qt::AlignVCenter }; //!< calculated align
   mutable BBox          pbbox_;
   mutable DrawData      drawData_;
@@ -219,15 +242,22 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
+            DrawType drawType=DrawType::VIEW) override;
 
   QSize calcSize(const DrawData &drawData) const override;
+
+  //---
+
+  bool selectPress(const Point &w, SelMod selMod) override;
+
+  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
 
  private:
   void invalidate() override;
 
   void drawContiguous(PaintDevice *device);
-  void drawDiscreet  (PaintDevice *device);
+  void drawDiscreet  (PaintDevice *device, DrawType drawType);
 
   QSize calcContiguousSize() const;
   QSize calcDiscreetSize() const;
@@ -235,10 +265,24 @@ class CQChartsColorMapKey : public CQChartsMapKey {
  signals:
   void dataChanged();
 
+  void itemSelected(const QColor &color, bool visible);
+
  private:
   QString valueText(double value) const;
 
  private:
+  struct ItemBox {
+    QColor color;
+    BBox   rect;
+
+    ItemBox(const QColor &color, const BBox &rect) :
+     color(color), rect(rect) {
+    }
+  };
+
+  using ItemBoxes     = std::vector<ItemBox>;
+  using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
+
   double dataMin_ { 0.0 }; //!< model data min
   double dataMax_ { 1.0 }; //!< model data max
 
@@ -248,6 +292,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   PaletteName paletteName_; //!< custom palette
 
   BBox tbbox_;
+
+  TypeItemBoxes itemBoxes_;
 };
 
 //-----
@@ -278,6 +324,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
   using PaletteName = CQChartsPaletteName;
+  using Length      = CQChartsLength;
   using ColorInd    = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;
@@ -339,7 +386,8 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
+            DrawType drawType=DrawType::VIEW) override;
 
   QSize calcSize(const DrawData &drawData) const override;
 
@@ -347,21 +395,31 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   void initDraw(PaintDevice *device);
 
-  void drawParts(PaintDevice *device);
-
-  void drawBorder(PaintDevice *device, bool usePenBrush=false);
-
-  void drawCircles(PaintDevice *device, bool usePenBrush=false);
+  void drawCircles(PaintDevice *device, DrawType drawType, bool usePenBrush=false);
 
   void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePenBrush);
 
+  void drawBorder(PaintDevice *device, bool usePenBrush=false);
+
   //---
+
+  bool selectPress(const Point &w, SelMod selMod) override;
+
+  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
 
  private:
   void invalidate() override;
 
+  void drawContiguous(PaintDevice *device, DrawType drawType);
+  void drawDiscreet(PaintDevice *device, DrawType drawType);
+
+  QSize calcContiguousSize() const;
+  QSize calcDiscreetSize() const;
+
  signals:
   void dataChanged();
+
+  void itemSelected(const CQChartsLength &size, bool visible);
 
  private:
   void calcSymbolBoxes() const;
@@ -371,7 +429,18 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   QString valueText(double value) const;
 
  private:
-  using BBoxes = std::vector<BBox>;
+  struct ItemBox {
+    Length size;
+    BBox   rect;
+
+    ItemBox(const Length &size, const BBox &rect) :
+     size(size), rect(rect) {
+    }
+  };
+
+  using BBoxes        = std::vector<BBox>;
+  using ItemBoxes     = std::vector<ItemBox>;
+  using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
   double dataMin_ { 0.0 }; //!< model data min
   double dataMax_ { 1.0 }; //!< model data max
@@ -398,6 +467,8 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   mutable BBoxes symbolBoxes_;
   mutable Point  pcenter_;
   mutable Point  center_;
+
+  TypeItemBoxes itemBoxes_;
 };
 
 //-----
@@ -415,6 +486,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   using PenBrush  = CQChartsPenBrush;
   using BrushData = CQChartsBrushData;
   using PenData   = CQChartsPenData;
+  using Symbol    = CQChartsSymbol;
   using ColorInd  = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;
@@ -456,9 +528,17 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   //---
 
-  void draw(PaintDevice *device, const DrawData &drawData=DrawData()) override;
+  void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
+            DrawType drawType=DrawType::VIEW) override;
 
   QSize calcSize(const DrawData &drawData) const override;
+
+  //---
+
+  // implement select interface
+  bool selectPress(const Point &w, SelMod selMod) override;
+
+  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
 
  private:
   void invalidate() override;
@@ -466,10 +546,24 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
  signals:
   void dataChanged();
 
+  void itemSelected(const CQChartsSymbol &symbol, bool visible);
+
  private:
   QString valueText(double value) const;
 
  private:
+  struct ItemBox {
+    Symbol symbol;
+    BBox   rect;
+
+    ItemBox(const Symbol &symbol, const BBox &rect) :
+     symbol(symbol), rect(rect) {
+    }
+  };
+
+  using ItemBoxes     = std::vector<ItemBox>;
+  using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
+
   int dataMin_ { 0 }; //!< model data min
   int dataMax_ { 1 }; //!< model data max
 
@@ -477,6 +571,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   int mapMax_ { 1 }; //!< mapped symbol type max
 
   QString symbolSet_;
+
+  TypeItemBoxes itemBoxes_;
 };
 
 //---
@@ -512,6 +608,8 @@ class CQChartsMapKeyFrame : public QFrame {
   bool updateSize();
 
   void paintEvent(QPaintEvent *) override;
+
+  void mousePressEvent(QMouseEvent *) override;
 
  private:
   CQChartsMapKeyWidget* w_ { nullptr };

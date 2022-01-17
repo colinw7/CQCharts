@@ -3649,7 +3649,7 @@ CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj) :
 #if 0
 bool
 CQChartsPieColorKeyItem::
-selectPress(const Point &, CQChartsSelMod)
+selectPress(const Point &, SelMod)
 {
   auto *plot = qobject_cast<PiePlot *>(plot_);
 
@@ -3685,8 +3685,6 @@ QBrush
 CQChartsPieColorKeyItem::
 fillBrush() const
 {
-  auto *plot = qobject_cast<PiePlot *>(plot_);
-
   auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
@@ -3697,12 +3695,20 @@ fillBrush() const
   else if (obj)
     c = obj->fillColor();
 
-  auto is = setIndex();
-
-  if (plot->isSetHidden(is.i))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
+}
+
+bool
+CQChartsPieColorKeyItem::
+calcHidden() const
+{
+  auto *plot = qobject_cast<PiePlot *>(plot_);
+
+  auto is = setIndex();
+
+  return plot->isSetHidden(is.i);
 }
 
 CQChartsUtil::ColorInd
@@ -3739,16 +3745,22 @@ QColor
 CQChartsPieTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
-  auto *plot = qobject_cast<PiePlot *>(plot_);
-
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
+
+  adjustFillColor(c);
+
+  return c;
+}
+
+bool
+CQChartsPieTextKeyItem::
+calcHidden() const
+{
+  auto *plot = qobject_cast<PiePlot *>(plot_);
 
   auto is = setIndex();
 
-  if (plot && plot->isSetHidden(is.i))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
-
-  return c;
+  return (plot && plot->isSetHidden(is.i));
 }
 
 CQChartsUtil::ColorInd

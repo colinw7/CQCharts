@@ -4564,17 +4564,17 @@ CQChartsXYKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig) :
 
 void
 CQChartsXYKeyColor::
-doSelect(CQChartsSelMod selMod)
+doSelect(SelMod selMod)
 {
   auto *obj = plotObj();
   if (! obj) return;
 
   CQChartsPlot::PlotObjs objs;
 
-  if      (selMod == CQChartsSelMod::REPLACE) {
+  if      (selMod == SelMod::REPLACE) {
     objs.push_back(obj);
   }
-  else if (selMod == CQChartsSelMod::ADD) {
+  else if (selMod == SelMod::ADD) {
     for (int ig = 0; ig < ig_.n; ++ig) {
       auto *obj1 = plot()->getGroupObj(ig);
       if (! obj1) continue;
@@ -4583,7 +4583,7 @@ doSelect(CQChartsSelMod selMod)
         objs.push_back(obj1);
     }
   }
-  else if (selMod == CQChartsSelMod::REMOVE) {
+  else if (selMod == SelMod::REMOVE) {
     for (int ig = 0; ig < ig_.n; ++ig) {
       auto *obj1 = plot()->getGroupObj(ig);
       if (! obj1) continue;
@@ -4592,7 +4592,7 @@ doSelect(CQChartsSelMod selMod)
         objs.push_back(obj1);
     }
   }
-  else if (selMod == CQChartsSelMod::TOGGLE) {
+  else if (selMod == SelMod::TOGGLE) {
     bool selected = obj->isSelected();
 
     for (int ig = 0; ig < ig_.n; ++ig) {
@@ -4819,6 +4819,17 @@ fillBrush() const
   else
     c = CQChartsColorBoxKeyItem::fillBrush().color();
 
+  adjustFillColor(c);
+
+  plot()->setBrush(penBrush, BrushData(true, c, alpha, pattern));
+
+  return penBrush.brush;
+}
+
+bool
+CQChartsXYKeyColor::
+calcHidden() const
+{
   bool hidden = false;
 
   if      (is_.n > 1 && plot_->isSetHidden(is_.i))
@@ -4826,12 +4837,7 @@ fillBrush() const
   else if (ig_.n > 1 && plot_->isSetHidden(ig_.i))
     hidden = true;
 
-  if (hidden)
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
-
-  plot()->setBrush(penBrush, BrushData(true, c, alpha, pattern));
-
-  return penBrush.brush;
+  return hidden;
 }
 
 CQChartsPlotObj *
@@ -4860,10 +4866,16 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  if (plot()->isSetHidden(ic_.i))
-    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
+}
+
+bool
+CQChartsXYKeyText::
+calcHidden() const
+{
+  return plot()->isSetHidden(ic_.i);
 }
 
 //------

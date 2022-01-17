@@ -97,6 +97,10 @@ class CQChartsHierPlot : public CQChartsPlot {
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Hier Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

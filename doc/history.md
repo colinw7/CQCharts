@@ -1347,3 +1347,6 @@
 # 1/9/2022
  + add buchheim placement to dendogram plot
  + ensure extra data only created when needed for xy/scatter plots
+# 1/17/2022
+ + Add filtering by color, symbol type, symbol size from map keys
+ + Improve dendrogram symbol sizes and coloring

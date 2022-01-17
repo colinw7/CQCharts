@@ -1495,6 +1495,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Sankey Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsSankeyPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

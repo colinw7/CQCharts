@@ -72,6 +72,8 @@ class CQChartsPaintDevice {
   CQCharts *charts() const { return charts_; }
   void setCharts(CQCharts *charts) { charts_ = charts; }
 
+  virtual QPainter *painter() const { return nullptr; }
+
   //---
 
   CQCharts *calcCharts() const;

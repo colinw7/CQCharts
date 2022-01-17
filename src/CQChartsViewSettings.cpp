@@ -1242,7 +1242,7 @@ initModelsFrame(QFrame *modelsFrame)
   //----
 
   // Model Buttons
-  auto *modelControlLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *modelControlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   modelsModelsFrameLayout->addLayout(modelControlLayout);
 
@@ -1370,7 +1370,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //----
 
-  auto *groupPlotsCheckLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *groupPlotsCheckLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   groupPlotsGroupLayout->addLayout(groupPlotsCheckLayout);
 
@@ -1396,7 +1396,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //----
 
-  auto *groupPlotsButtonsLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *groupPlotsButtonsLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   groupPlotsGroupLayout->addLayout(groupPlotsButtonsLayout);
 
@@ -1423,7 +1423,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //--
 
-  auto *placePlotsCheckLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *placePlotsCheckLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   placePlotsGroupLayout->addLayout(placePlotsCheckLayout);
 
@@ -1448,7 +1448,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //--
 
-  auto *placePlotsGridLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *placePlotsGridLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   placePlotsGroupLayout->addLayout(placePlotsGridLayout);
 
@@ -1471,7 +1471,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //--
 
-  auto *placePlotsButtonsLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  auto *placePlotsButtonsLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   placePlotsGroupLayout->addLayout(placePlotsButtonsLayout);
 

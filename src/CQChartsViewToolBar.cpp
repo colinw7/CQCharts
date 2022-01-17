@@ -79,6 +79,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("QUERY"   ), "Query"   );
   modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("EDIT"    ), "Edit"    );
   modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("REGION"  ), "Region"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getLightDarkIcon("RULER"   ), "Ruler"   );
 
   modeCombo_->setFocusPolicy(Qt::NoFocus);
 
@@ -102,6 +103,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   auto *queryControls   = CQUtil::makeWidget<QFrame>("query");
   auto *editControls    = CQUtil::makeWidget<QFrame>("edit");
   auto *regionControls  = CQUtil::makeWidget<QFrame>("region");
+  auto *rulerControls   = CQUtil::makeWidget<QFrame>("ruler");
 
   controlsStack_->addWidget(selectControls);
   controlsStack_->addWidget(zoomInControls);
@@ -111,6 +113,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   controlsStack_->addWidget(queryControls);
   controlsStack_->addWidget(editControls);
   controlsStack_->addWidget(regionControls);
+  controlsStack_->addWidget(rulerControls);
 
   layout->addStretch(1);
 
@@ -266,6 +269,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
+#if 0
+  auto *rulerControlsLayout = CQUtil::makeLayout<QHBoxLayout>(rulerControls, 0, 2);
+#endif
+
+  //-----
+
   appOptionssButton_ = createIconButton("options", "SETTINGS", "Show/Hide App Options",
                                         SLOT(appOptionsSlot()));
 
@@ -376,6 +385,7 @@ modeSlot(int ind)
   else if (ind == 5) view()->setMode(CQChartsView::Mode::QUERY);
   else if (ind == 6) view()->setMode(CQChartsView::Mode::EDIT);
   else if (ind == 7) view()->setMode(CQChartsView::Mode::REGION);
+  else if (ind == 8) view()->setMode(CQChartsView::Mode::RULER);
 
   updateMode();
 }
@@ -505,6 +515,10 @@ updateMode()
   else if (view()->mode() == CQChartsView::Mode::REGION) {
     modeCombo_    ->setCurrentIndex(7);
     controlsStack_->setCurrentIndex(7);
+  }
+  else if (view()->mode() == CQChartsView::Mode::RULER) {
+    modeCombo_    ->setCurrentIndex(8);
+    controlsStack_->setCurrentIndex(8);
   }
 }
 

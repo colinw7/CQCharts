@@ -2444,7 +2444,16 @@ setEqualScale(bool b)
 {
   assert(! isComposite());
 
-  CQChartsUtil::testAndSet(equalScale_, b, [&]() { updateRange(); });
+  CQChartsUtil::testAndSet(equalScale_, b, [&]() {
+     updateRange();
+
+     if (allowZoomX() && allowZoomY() && isEqualScale()) {
+       auto scale = std::min(dataScaleX(), dataScaleY());
+
+       setDataScaleX(scale);
+       setDataScaleY(scale);
+     }
+  });
 }
 
 void
@@ -4319,6 +4328,8 @@ addColorMapKey()
   colorMapKey_->setAlign(Qt::AlignLeft | Qt::AlignBottom);
 
   connect(colorMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(colorMapKey_.get(), SIGNAL(itemSelected(const QColor &, bool)),
+          this, SLOT(colorSelected(const QColor &, bool)));
 
   mapKeys_.push_back(colorMapKey_.get());
 }
@@ -4392,6 +4403,7 @@ updateColorMapKey() const
   bool         isNumeric  = false;
   bool         isIntegral = false;
   bool         isColor    = false;
+  bool         isMapped   = false;
   int          numUnique  = 0;
   QVariantList uniqueValues;
 
@@ -4399,12 +4411,14 @@ updateColorMapKey() const
 
   if (columnDetails) {
     if      (columnDetails->type() == CQBaseModelType::REAL ||
-        columnDetails->type() == CQBaseModelType::INTEGER) {
+             columnDetails->type() == CQBaseModelType::INTEGER) {
       isNumeric  = true;
       isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
     }
     else if (columnDetails->type() == CQBaseModelType::COLOR)
       isColor = true;
+    else if (columnDetails->type() == CQBaseModelType::STRING)
+      isMapped = colorColumnData_.mapped;
 
     if (! isNumeric && ! isColor) {
       numUnique    = columnDetails->numUnique();
@@ -4430,6 +4444,7 @@ updateColorMapKey() const
   colorMapKey_->setNumeric     (isNumeric);
   colorMapKey_->setIntegral    (isIntegral);
   colorMapKey_->setNative      (isColor);
+  colorMapKey_->setMapped      (isMapped);
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
 }
@@ -4506,6 +4521,27 @@ colorMapKeyInsideYSlot(bool b)
 {
   if (b != colorMapKey_->isInsideY())
     colorMapKey_->setInsideY(b);
+}
+
+void
+CQChartsPlot::
+colorSelected(const QColor &color, bool visible)
+{
+  if (! visible)
+    colorFilter_.insert(Color(color));
+  else
+    colorFilter_.erase(Color(color));
+
+  updateRangeAndObjs();
+}
+
+bool
+CQChartsPlot::
+colorVisible(const QColor &color) const
+{
+  auto p = colorFilter_.find(Color(color));
+
+  return (p == colorFilter_.end());
 }
 
 //------
@@ -6893,6 +6929,9 @@ handleSelectPress(const Point &w, SelMod selMod)
   if (titleSelectPress(title(), w, selMod))
     return true;
 
+  if (mapKeySelectPress(w, selMod))
+    return true;
+
   //---
 
 #if 0
@@ -6972,6 +7011,45 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       emit keyIdPressed(key->id());
 
       return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+mapKeySelectPress(const Point &w, SelMod selMod)
+{
+  // select map key
+  for (const auto &mapKey : mapKeys_) {
+    if (! mapKey->isVisible())
+      continue;
+
+    if (mapKey->contains(w)) {
+#if 0
+      auto *item = mapKey->getItemAt(w);
+
+      if (item) {
+        bool handled = item->selectPress(w, selMod);
+
+        if (handled) {
+          emit mapKeyItemPressed  (item);
+          emit mapKeyItemIdPressed(item->id());
+
+          return true;
+        }
+      }
+#endif
+
+      bool handled = mapKey->selectPress(w, selMod);
+
+      if (handled) {
+        emit mapKeyPressed  (mapKey);
+        //emit mapKeyIdPressed(mapKey->id());
+
+        return true;
+      }
     }
   }
 
@@ -10404,8 +10482,10 @@ zoomTo(const BBox &bbox)
   double xscale = w1/w;
   double yscale = h1/h;
 
-  //setDataScaleX(std::min(xscale, yscale));
-  //setDataScaleY(std::min(xscale, yscale));
+  if (allowZoomX() && allowZoomY() && isEqualScale()) {
+    xscale = std::min(xscale, yscale);
+    yscale = xscale;
+  }
 
   if (allowZoomX())
     setDataScaleX(xscale);
@@ -10454,6 +10534,11 @@ unzoomTo(const BBox &bbox)
 
   double xscale = w*dataScaleX()/w1;
   double yscale = h*dataScaleY()/h1;
+
+  if (allowZoomX() && allowZoomY() && isEqualScale()) {
+    xscale = std::min(xscale, yscale);
+    yscale = xscale;
+  }
 
   if (allowZoomX())
     setDataScaleX(xscale*dataScaleX());
@@ -15161,14 +15246,14 @@ QColor
 CQChartsPlot::
 insideColor(const QColor &c) const
 {
-  return view()->insideColor(c);
+  return view()->calcInsideColor(c);
 }
 
 QColor
 CQChartsPlot::
 selectedColor(const QColor &c) const
 {
-  return view()->selectedColor(c);
+  return view()->calcSelectedColor(c);
 }
 
 //------

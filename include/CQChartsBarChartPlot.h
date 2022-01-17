@@ -667,6 +667,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
 #include <CQChartsGroupPlotCustomControls.h>
 
+/*!
+ * \brief Bar Chart plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

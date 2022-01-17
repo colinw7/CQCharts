@@ -10,6 +10,8 @@
 
 #include <QScrollArea>
 #include <QVBoxLayout>
+#include <QMouseEvent>
+#include <QPaintDevice>
 
 CQChartsMapKey::
 CQChartsMapKey(Plot *plot) :
@@ -255,11 +257,16 @@ editMove(const Point &p)
   double x = editHandles()->bbox().getXMid();
   double y = editHandles()->bbox().getYMid();
 
-  if      (talign_ & Qt::AlignLeft ) x = editHandles()->bbox().getXMin();
-  else if (talign_ & Qt::AlignRight) x = editHandles()->bbox().getXMax();
+  if (location().type() == Location::Type::ABSOLUTE_POSITION) {
+    if      (talign_ & Qt::AlignLeft ) x = editHandles()->bbox().getXMin();
+    else if (talign_ & Qt::AlignRight) x = editHandles()->bbox().getXMax();
 
-  if      (talign_ & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
-  else if (talign_ & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
+    if      (talign_ & Qt::AlignBottom) y = editHandles()->bbox().getYMin();
+    else if (talign_ & Qt::AlignTop   ) y = editHandles()->bbox().getYMax();
+  }
+  else {
+    setAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+  }
 
   setLocation(Location(Location::Type::ABSOLUTE_POSITION));
   setPosition(CQChartsPosition::plot(Point(x, y)));
@@ -276,6 +283,16 @@ CQChartsMapKey::
 editMotion(const Point &p)
 {
   return editHandles()->selectInside(p);
+}
+
+QColor
+CQChartsMapKey::
+bgColor(PaintDevice *device) const
+{
+  auto *w = dynamic_cast<QWidget *>(device->painter()->device());
+  if (! w) return Qt::white;
+
+  return w->palette().window().color();
 }
 
 //---
@@ -306,19 +323,27 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   addProp("paletteName", "Palette Name");
 
+  //---
+
   CQChartsMapKey::addProperties(model, path, desc);
 }
 
 void
 CQChartsColorMapKey::
-draw(PaintDevice *device, const DrawData &drawData)
+draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 {
+  auto &itemBoxes = itemBoxes_[drawType];
+
+  itemBoxes.clear();
+
+  //---
+
   drawData_ = drawData;
 
   if (isNumeric())
     drawContiguous(device);
   else
-    drawDiscreet(device);
+    drawDiscreet(device, drawType);
 }
 
 void
@@ -427,7 +452,7 @@ drawContiguous(PaintDevice *device)
 
 void
 CQChartsColorMapKey::
-drawDiscreet(PaintDevice *device)
+drawDiscreet(PaintDevice *device, DrawType drawType)
 {
   (void) calcDiscreetSize();
 
@@ -457,7 +482,6 @@ drawDiscreet(PaintDevice *device)
 
   //---
 
-  // draw boxes
   CQColorsPalette *colorsPalette = nullptr;
 
   if (paletteName().isValid())
@@ -473,6 +497,13 @@ drawDiscreet(PaintDevice *device)
 
   int n = numUnique();
 
+  //---
+
+  auto bg = bgColor(device);
+
+  // draw boxes
+  auto &itemBoxes = itemBoxes_[drawType];
+
   double min = this->mapMin();
   double max = this->mapMax();
 
@@ -481,32 +512,35 @@ drawDiscreet(PaintDevice *device)
 
     auto c = colorsPalette->getColor(r);
 
+    //---
+
+    auto hidden = ! plot()->colorVisible(c);
+
+    auto c1 = c;
+
+    if (hidden)
+      c1 = CQChartsUtil::blendColors(c1, bg, 0.5);
+
+    //---
+
     double bxi = bx + bmi;
     double byi = by + i*bs + bmi;
 
-    BBox bbox(bxi, byi, bxi + bsi, byi + bsi);
+    BBox pbbox(bxi, byi, bxi + bsi, byi + bsi);
 
     device->setPen  (QColor(Qt::black));
-    device->setBrush(c);
+    device->setBrush(c1);
 
-    device->drawRect(device->pixelToWindow(bbox));
+    auto bbox = device->pixelToWindow(pbbox);
+
+    device->drawRect(bbox);
+
+    //---
+
+    BBox ipbbox(pbbox_.getXMin(), byi - bmi, pbbox_.getXMax(), byi - bmi + bs);
+
+    itemBoxes.push_back(ItemBox(c, device->pixelToWindow(ipbbox)));
   }
-
-  //---
-
-  // set text pen
-  CQChartsPenBrush tpenBrush;
-
-  auto tc = interpTextColor(ColorInd());
-
-  setPenBrush(tpenBrush, PenData(true, tc, textAlpha()), BrushData(false));
-
-  CQChartsDrawUtil::setPenBrush(device, tpenBrush);
-
-  //---
-
-  // set font
-  setDrawPainterFont(device, textFont());
 
   //---
 
@@ -522,12 +556,43 @@ drawDiscreet(PaintDevice *device)
     CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
   };
 
+  //---
+
+  // set font
+  setDrawPainterFont(device, textFont());
+
+  auto tc = interpTextColor(ColorInd());
+
+  //---
+
   double tx = pbbox_.getXMin() + bs + 2*bm;
   double ty = pbbox_.getYMin() + bm;
 
   double df = (fm.ascent() - fm.descent())/2.0;
 
   for (int i = 0; i < n; ++i) {
+    double r = CMathUtil::map(i, 0, n - 1, min, max);
+
+    auto c = colorsPalette->getColor(r);
+
+    //---
+
+    // set text pen
+    auto hidden = ! plot()->colorVisible(c);
+
+    auto tc1 = tc;
+
+    if (hidden)
+      tc1 = CQChartsUtil::blendColors(tc, bg, 0.5);
+
+    CQChartsPenBrush tpenBrush;
+
+    setPenBrush(tpenBrush, PenData(true, tc1, textAlpha()), BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+    //---
+
     auto name = uniqueValues()[i].toString();
 
     drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), name);
@@ -640,6 +705,54 @@ valueText(double value) const
   return text;
 }
 
+bool
+CQChartsColorMapKey::
+selectPress(const Point &p, SelMod selMod)
+{
+  return selectPressType(p, selMod, DrawType::VIEW);
+}
+
+bool
+CQChartsColorMapKey::
+selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+{
+  const auto &itemBoxes = itemBoxes_[drawType];
+
+  int ni = itemBoxes.size();
+
+  std::vector<int> oldItemVisible;
+
+  oldItemVisible.resize(ni);
+
+  for (int i = 0; i < ni; ++i)
+    oldItemVisible[i] = plot()->colorVisible(itemBoxes[i].color);
+
+  auto newItemVisible = oldItemVisible;
+
+  for (int i = 0; i < ni; ++i) {
+    bool inside = itemBoxes[i].rect.inside(p);
+
+    if      (selMod == CQChartsSelMod::ADD) {
+      if (inside)
+        newItemVisible[i] = true;
+    }
+    else if (selMod == CQChartsSelMod::REPLACE)
+      newItemVisible[i] = inside;
+    else if (selMod == CQChartsSelMod::REMOVE)
+      newItemVisible[i] = ! inside;
+    else if (selMod == CQChartsSelMod::TOGGLE) {
+      if (inside)
+        newItemVisible[i] = ! newItemVisible[i];
+    }
+  }
+
+  for (int i = 0; i < ni; ++i)
+    if (oldItemVisible[i] != newItemVisible[i])
+      emit itemSelected(itemBoxes[i].color, newItemVisible[i]);
+
+  return false;
+}
+
 //------
 
 CQChartsSymbolSizeMapKey::
@@ -688,27 +801,22 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsSymbolSizeMapKey::
-draw(PaintDevice *device, const DrawData &drawData)
+draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 {
+  auto &itemBoxes = itemBoxes_[drawType];
+
+  itemBoxes.clear();
+
+  //---
+
   drawData_ = drawData;
 
   initDraw(device);
 
-  drawParts(device);
-}
-
-QSize
-CQChartsSymbolSizeMapKey::
-calcSize(const DrawData &drawData) const
-{
-  drawData_ = drawData;
-
-  calcSymbolBoxes();
-  calcTextBBox   ();
-
-  pbbox_ = psbbox_ + ptbbox_;
-
-  return QSize(pbbox_.getWidth(), pbbox_.getHeight());
+  if (isNumeric())
+    drawContiguous(device, drawType);
+  else
+    drawDiscreet(device, drawType);
 }
 
 void
@@ -722,18 +830,19 @@ initDraw(PaintDevice *device)
 
   (void) calcSize(drawData_);
 
-  alignBoxes(device);
+  if (isNumeric())
+    alignBoxes(device);
 }
 
 void
 CQChartsSymbolSizeMapKey::
-drawParts(PaintDevice *device)
+drawContiguous(PaintDevice *device, DrawType drawType)
 {
   drawBorder(device, drawData_.usePenBrush);
 
   //---
 
-  drawCircles(device, drawData_.usePenBrush);
+  drawCircles(device, drawType, drawData_.usePenBrush);
 
   //---
 
@@ -763,6 +872,110 @@ drawParts(PaintDevice *device)
 
 void
 CQChartsSymbolSizeMapKey::
+drawDiscreet(PaintDevice *device, DrawType drawType)
+{
+  (void) calcDiscreetSize();
+
+  //---
+
+  // draw labels
+  auto drawTextLabel = [&](const Point &p, const QString &label) {
+    auto p1 = device->pixelToWindow(p);
+
+    auto textOptions = this->textOptions();
+
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
+  };
+
+  //---
+
+  auto font = calcDrawFont(textFont());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+  double bh = fm.height() + 1; // row height
+
+  //---
+
+  auto bg = bgColor(device);
+
+  double min = this->mapMin();
+  double max = this->mapMax();
+
+  //---
+
+  // draw labels
+  auto &itemBoxes = itemBoxes_[drawType];
+
+  //---
+
+  // set font
+  setDrawPainterFont(device, textFont());
+
+  auto tc = interpTextColor(ColorInd());
+
+  //---
+
+  double tx1 = pbbox_.getXMin() + bm;
+  double tx2 = tx1 + twl_ + bm;
+  double ty  = pbbox_.getYMin() + bm;
+
+  double df = (fm.ascent() - fm.descent())/2.0;
+
+  int n = numUnique();
+
+  for (int i = 0; i < n; ++i) {
+    double r = CMathUtil::map(i, 0, n - 1, min, max);
+
+    auto rstr = QString("%1").arg(r, 0, 'f', ndp_);
+    auto name = uniqueValues()[i].toString();
+
+    auto l = Length::pixel(r);
+
+    //---
+
+    // set text pen
+    auto hidden = ! plot()->symbolSizeVisible(l);
+
+    auto tc1 = tc;
+
+    if (hidden)
+      tc1 = CQChartsUtil::blendColors(tc, bg, 0.5);
+
+    CQChartsPenBrush tpenBrush;
+
+    setPenBrush(tpenBrush, PenData(true, tc1, textAlpha()), BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+    //---
+
+    auto dxl = twl_ - fm.width(rstr);
+
+    auto ty1 = ty + (i + 0.5)*bh;
+
+    drawTextLabel(Point(tx1 + dxl, ty1 + df), rstr);
+    drawTextLabel(Point(tx2      , ty1 + df), name);
+
+    //---
+
+    //device->drawLine(Point(tx1, pbbox_.getXMin()), Point(tx1, pbbox_.getXMax()));
+    //device->drawLine(Point(tx2, pbbox_.getXMin()), Point(tx2, pbbox_.getXMax()));
+
+    //---
+
+    BBox ipbbox(pbbox_.getXMin(), ty1 - bh/2.0, pbbox_.getXMax(), ty1 + bh/2.0);
+
+    itemBoxes.push_back(ItemBox(l, device->pixelToWindow(ipbbox)));
+  }
+}
+
+void
+CQChartsSymbolSizeMapKey::
 drawBorder(PaintDevice *device, bool /*usePenBrush*/)
 {
   // draw box border and background
@@ -771,7 +984,7 @@ drawBorder(PaintDevice *device, bool /*usePenBrush*/)
 
 void
 CQChartsSymbolSizeMapKey::
-drawCircles(PaintDevice *device, bool usePenBrush)
+drawCircles(PaintDevice *device, DrawType drawType, bool usePenBrush)
 {
   auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
     PenBrush penBrush;
@@ -812,6 +1025,8 @@ drawCircles(PaintDevice *device, bool usePenBrush)
   double y  = ymax;
   double dy = (symbolBoxes_.size() > 1 ? (ymax - ymin)/(symbolBoxes_.size() - 1) : 0.0);
 
+  auto &itemBoxes = itemBoxes_[drawType];
+
   for (const auto &pbbox : symbolBoxes_) {
     auto fillColor = (palette ?
       palette->getColor(y, /*scale*/false, /*invert*/false) :
@@ -820,6 +1035,8 @@ drawCircles(PaintDevice *device, bool usePenBrush)
     drawEllipse(fillColor, pbbox);
 
     y -= dy;
+
+    itemBoxes.push_back(ItemBox(Length(), device->pixelToWindow(pbbox)));
   }
 }
 
@@ -908,11 +1125,88 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
   }
 }
 
-void
+QSize
 CQChartsSymbolSizeMapKey::
-invalidate()
+calcSize(const DrawData &drawData) const
 {
-  emit dataChanged();
+  drawData_ = drawData;
+
+  if (isNumeric())
+    return calcContiguousSize();
+  else
+    return calcDiscreetSize();
+}
+
+QSize
+CQChartsSymbolSizeMapKey::
+calcContiguousSize() const
+{
+  calcSymbolBoxes();
+  calcTextBBox   ();
+
+  pbbox_ = psbbox_ + ptbbox_;
+
+  return QSize(pbbox_.getWidth(), pbbox_.getHeight());
+}
+
+QSize
+CQChartsSymbolSizeMapKey::
+calcDiscreetSize() const
+{
+  auto font = calcDrawFont(textFont());
+
+  QFontMetricsF fm(font);
+
+  double bm = this->margin();
+  double bh = fm.height() + 1; // row height
+
+  //---
+
+  auto calcNdp = [](const QString &s) {
+    auto i = s.indexOf('.');
+    if (i == -1) return 0;
+    auto ndp = s.size() - i - 1;
+    while (s[ndp + i] == '0')
+      --ndp;
+    return ndp;
+  };
+
+  int n = numUnique();
+
+  double min = this->mapMin();
+  double max = this->mapMax();
+
+  ndp_ = 0;
+
+  for (int i = 0; i < n; ++i) {
+    double r = CMathUtil::map(i, 0, n - 1, min, max);
+
+    auto rstr = QString("%1").arg(r, 0, 'f', 6);
+
+    ndp_ = std::max(ndp_, calcNdp(rstr));
+  }
+
+  twl_ = 0.0;
+  twr_ = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    double r = CMathUtil::map(i, 0, n - 1, min, max);
+
+    auto rstr = QString("%1").arg(r, 0, 'f', ndp_);
+    auto name = uniqueValues()[i].toString();
+
+    twl_ = std::max(twl_, fm.width(rstr));
+    twr_ = std::max(twr_, fm.width(name));
+  }
+
+  //---
+
+  kw_ = twl_ + twr_ + 3*bm;
+  kh_ = n*bh + 2*bm;
+
+  pbbox_ = BBox(0, 0, kw_, kh_);
+
+  return QSize(kw_, kh_);
 }
 
 void
@@ -1108,6 +1402,13 @@ alignBoxes(PaintDevice *device) const
   th->setBBox(bbox_);
 }
 
+void
+CQChartsSymbolSizeMapKey::
+invalidate()
+{
+  emit dataChanged();
+}
+
 QString
 CQChartsSymbolSizeMapKey::
 valueText(double value) const
@@ -1122,6 +1423,54 @@ valueText(double value) const
     text.setNum(value);
 
   return text;
+}
+
+bool
+CQChartsSymbolSizeMapKey::
+selectPress(const Point &p, SelMod selMod)
+{
+  return selectPressType(p, selMod, DrawType::VIEW);
+}
+
+bool
+CQChartsSymbolSizeMapKey::
+selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+{
+  const auto &itemBoxes = itemBoxes_[drawType];
+
+  int ni = itemBoxes.size();
+
+  std::vector<int> oldItemVisible;
+
+  oldItemVisible.resize(ni);
+
+  for (int i = 0; i < ni; ++i)
+    oldItemVisible[i] = plot()->symbolSizeVisible(itemBoxes[i].size);
+
+  auto newItemVisible = oldItemVisible;
+
+  for (int i = 0; i < ni; ++i) {
+    bool inside = itemBoxes[i].rect.inside(p);
+
+    if      (selMod == CQChartsSelMod::ADD) {
+      if (inside)
+        newItemVisible[i] = true;
+    }
+    else if (selMod == CQChartsSelMod::REPLACE)
+      newItemVisible[i] = inside;
+    else if (selMod == CQChartsSelMod::REMOVE)
+      newItemVisible[i] = ! inside;
+    else if (selMod == CQChartsSelMod::TOGGLE) {
+      if (inside)
+        newItemVisible[i] = ! newItemVisible[i];
+    }
+  }
+
+  for (int i = 0; i < ni; ++i)
+    if (oldItemVisible[i] != newItemVisible[i])
+      emit itemSelected(itemBoxes[i].size, newItemVisible[i]);
+
+  return false;
 }
 
 //------
@@ -1157,8 +1506,14 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 void
 CQChartsSymbolTypeMapKey::
-draw(PaintDevice *device, const DrawData &drawData)
+draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 {
+  auto &itemBoxes = itemBoxes_[drawType];
+
+  itemBoxes.clear();
+
+  //---
+
   drawData_ = drawData;
 
   calcSize(drawData_);
@@ -1189,18 +1544,25 @@ draw(PaintDevice *device, const DrawData &drawData)
 
   //---
 
+  auto bg = bgColor(device);
+
   const auto *symbolSetMgr = charts()->symbolSetMgr();
 
   auto *symbolSet = symbolSetMgr->symbolSet(symbolSet_);
 
   // draw symbols and labels
-  auto drawTextLabel = [&](const Point &p, const QString &label) {
+  auto drawTextLabel = [&](const Point &p, const QString &label, bool hidden=false) {
     // set text pen
-    CQChartsPenBrush tpenBrush;
-
     auto tc = interpTextColor(ColorInd());
 
-    setPenBrush(tpenBrush, PenData(true, tc, textAlpha()), BrushData(false));
+    auto tc1 = tc;
+
+    if (hidden)
+      tc1 = CQChartsUtil::blendColors(tc1, bg, 0.5);
+
+    CQChartsPenBrush tpenBrush;
+
+    setPenBrush(tpenBrush, PenData(true, tc1, textAlpha()), BrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, tpenBrush);
 
@@ -1221,6 +1583,7 @@ draw(PaintDevice *device, const DrawData &drawData)
     CQChartsDrawUtil::drawTextAtPoint(device, p1, label, textOptions);
   };
 
+  double fh = fm.height();
   double df = (fm.ascent() - fm.descent())/2.0;
 
   auto symbolFillColor   = plot()->interpPaletteColor(ColorInd());
@@ -1234,84 +1597,113 @@ draw(PaintDevice *device, const DrawData &drawData)
       if (symbolSet)
         symbolData = symbolSet->symbolData(i);
       else
-        symbolData.symbol = CQChartsSymbol(CQChartsSymbolType((CQChartsSymbolType::Type) i));
+        symbolData.symbol = Symbol(CQChartsSymbolType((CQChartsSymbolType::Type) i));
 
       //---
 
       // set pen brush
       PenBrush symbolPenBrush;
 
+      auto c = symbolStrokeColor;
+
       if (symbolData.symbol.isFilled())
-        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                    BrushData(true, symbolFillColor));
+        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(true, symbolFillColor));
       else
-        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                    BrushData(false));
+        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
       //---
 
       // draw symbol
-      double ss = std::max(fm.height()/2.0 - 4.0, 3.0);
+      double ss = std::max(fh/2.0 - 4.0, 3.0);
 
-      auto y = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fm.height()/2.0 - 1,
-                              pbbox_.getYMin() + fm.height()/2.0 + 1);
+      auto py = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fh/2.0 - 1,
+                               pbbox_.getYMin() + fh/2.0 + 1);
 
-      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
-        device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
-        CQChartsLength::pixel(ss));
+      auto p1 = device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, py));
+
+      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
+                                   CQChartsLength::pixel(ss));
 
       //---
 
       // draw value
       auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
-      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
+      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, py + df), dataStr);
+
+      //---
+
+      BBox pbbox1(pbbox_.getXMin(), py - fh/2.0, pbbox_.getXMax(), py + fh/2.0);
+
+      itemBoxes.push_back(ItemBox(symbolData.symbol, device->pixelToWindow(pbbox1)));
     }
   }
   else {
-    for (int i = 0; i < numUnique(); ++i) {
+    int n = numUnique();
+
+    for (int i = 0; i < n; ++i) {
+      auto name = uniqueValues()[i].toString();
+
+      //---
+
       // get symbol
       CQChartsSymbolSet::SymbolData symbolData;
 
-      if (symbolSet)
-        symbolData = symbolSet->interpI(i + mapMin(), mapMin(), mapMax());
+      if (isMapped()) {
+        if (symbolSet)
+          symbolData = symbolSet->interpI(i + mapMin(), mapMin(), mapMax());
+        else
+          symbolData.symbol = Symbol::interpOutlineWrap(i + mapMin(), mapMin(), mapMax());
+      }
       else
-        symbolData.symbol = CQChartsSymbol::interpOutlineWrap(i + mapMin(), mapMin(), mapMax());
+        symbolData.symbol = Symbol(name);
+
+      //---
+
+      auto hidden = ! plot()->symbolTypeVisible(symbolData.symbol);
 
       //---
 
       // set pen brush
       PenBrush symbolPenBrush;
 
+      auto c = symbolStrokeColor;
+
+      if (hidden)
+        c = CQChartsUtil::blendColors(c, bg, 0.5);
+
       if (symbolData.symbol.isFilled())
-        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                    BrushData(true, symbolFillColor));
+        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(true, symbolFillColor));
       else
-        setPenBrush(symbolPenBrush, PenData(true, symbolStrokeColor),
-                    BrushData(false));
+        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
       //---
 
       // draw symbol
-      double ss = std::max(fm.height()/2.0 - 4.0, 3.0);
+      double ss = std::max(fh/2.0 - 4.0, 3.0);
 
-      auto y = CMathUtil::map(i, 0, numUnique() - 1, pbbox_.getYMax() - fm.height()/2.0 - 1,
-                              pbbox_.getYMin() + fm.height()/2.0 + 1);
+      auto py = CMathUtil::map(i, 0, n - 1, pbbox_.getYMax() - fh/2.0 - 1,
+                               pbbox_.getYMin() + fh/2.0 + 1);
 
-      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol,
-        device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, y)),
-        CQChartsLength::pixel(ss));
+      auto p1 = device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, py));
+
+      CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
+                                   CQChartsLength::pixel(ss));
 
       //---
 
       // draw unique name
-      auto dataStr = uniqueValues()[i].toString();
+      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, py + df), name, hidden);
 
-      drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, y + df), dataStr);
+      //---
+
+      BBox pbbox1(pbbox_.getXMin(), py - fh/2.0, pbbox_.getXMax(), py + fh/2.0);
+
+      itemBoxes.push_back(ItemBox(symbolData.symbol, device->pixelToWindow(pbbox1)));
     }
   }
 }
@@ -1333,22 +1725,29 @@ calcSize(const DrawData &drawData) const
 
   kh_ = 0.0;
 
-  if (isNumeric()) {
+  if      (isNumeric()) {
     kh_ = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
 
     for (int i = mapMin(); i <= mapMax(); ++i) {
-      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+      auto name = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
-      tw = std::max(tw, fm.width(dataStr));
+      tw = std::max(tw, fm.width(name));
     }
   }
   else {
-    kh_ = (fm.height() + 2)*numUnique() + 2*bm;
+    int n = numUnique();
 
-    for (int i = 0; i < numUnique(); ++i) {
-      auto dataStr = uniqueValues()[i].toString();
+    if (n) {
+      kh_ = (fm.height() + 2)*n + 2*bm;
 
-      tw = std::max(tw, fm.width(dataStr));
+      for (int i = 0; i < n; ++i) {
+        auto name = uniqueValues()[i].toString();
+
+        tw = std::max(tw, fm.width(name));
+      }
+    }
+    else {
+      return QSize(1, 1);
     }
   }
 
@@ -1385,6 +1784,54 @@ valueText(double value) const
   }
 
   return text;
+}
+
+bool
+CQChartsSymbolTypeMapKey::
+selectPress(const Point &p, SelMod selMod)
+{
+  return selectPressType(p, selMod, DrawType::VIEW);
+}
+
+bool
+CQChartsSymbolTypeMapKey::
+selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+{
+  const auto &itemBoxes = itemBoxes_[drawType];
+
+  int ni = itemBoxes.size();
+
+  std::vector<int> oldItemVisible;
+
+  oldItemVisible.resize(ni);
+
+  for (int i = 0; i < ni; ++i)
+    oldItemVisible[i] = plot()->symbolTypeVisible(itemBoxes[i].symbol);
+
+  auto newItemVisible = oldItemVisible;
+
+  for (int i = 0; i < ni; ++i) {
+    bool inside = itemBoxes[i].rect.inside(p);
+
+    if      (selMod == CQChartsSelMod::ADD) {
+      if (inside)
+        newItemVisible[i] = true;
+    }
+    else if (selMod == CQChartsSelMod::REPLACE)
+      newItemVisible[i] = inside;
+    else if (selMod == CQChartsSelMod::REMOVE)
+      newItemVisible[i] = ! inside;
+    else if (selMod == CQChartsSelMod::TOGGLE) {
+      if (inside)
+        newItemVisible[i] = ! newItemVisible[i];
+    }
+  }
+
+  for (int i = 0; i < ni; ++i)
+    if (oldItemVisible[i] != newItemVisible[i])
+      emit itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
+
+  return false;
 }
 
 //-----
@@ -1489,5 +1936,21 @@ paintEvent(QPaintEvent *)
   drawData.isWidget = true;
   drawData.font     = font();
 
-  key->draw(&device, drawData);
+  key->draw(&device, drawData, CQChartsMapKey::DrawType::WIDGET);
+}
+
+void
+CQChartsMapKeyFrame::
+mousePressEvent(QMouseEvent *e)
+{
+  auto *key = w_->key();
+  if (! key) return;
+
+  //---
+
+  auto p = e->pos();
+
+  auto selMod = CQChartsUtil::modifiersToClickMod(e->modifiers());
+
+  key->selectPressType(CQChartsGeom::Point(p), selMod, CQChartsMapKey::DrawType::WIDGET);
 }

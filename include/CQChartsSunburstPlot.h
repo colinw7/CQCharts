@@ -537,6 +537,10 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
 //---
 
+/*!
+ * \brief Sunburst Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls {
   Q_OBJECT
 

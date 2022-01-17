@@ -3838,7 +3838,7 @@ CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &i
 
 bool
 CQChartsBoxKeyColor::
-selectPress(const Point &, CQChartsSelMod)
+selectPress(const Point &, SelMod)
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
@@ -3855,14 +3855,20 @@ fillBrush() const
 {
   auto c = CQChartsColorBoxKeyItem::fillBrush().color();
 
+  adjustFillColor(c);
+
+  return c;
+}
+
+bool
+CQChartsBoxKeyColor::
+calcHidden() const
+{
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   auto ic = (is_.n > 1 ? is_ : ig_);
 
-  if (plot->isSetHidden(ic.i))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
-
-  return c;
+  return plot->isSetHidden(ic.i);
 }
 
 double
@@ -3911,14 +3917,20 @@ QColor
 CQChartsBoxKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
-
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  if (plot->isSetHidden(ic_.i))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
+}
+
+bool
+CQChartsBoxKeyText::
+calcHidden() const
+{
+  auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+
+  return plot->isSetHidden(ic_.i);
 }
 
 //------

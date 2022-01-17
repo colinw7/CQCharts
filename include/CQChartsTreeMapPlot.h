@@ -738,6 +738,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
 //---
 
+/*!
+ * \brief Treemap Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls {
   Q_OBJECT
 

@@ -185,6 +185,10 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Word Cloud Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

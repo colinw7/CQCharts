@@ -2546,9 +2546,9 @@ CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
 #if 0
 bool
 CQChartsBarColorKeyItem::
-selectPress(const Point &, CQChartsSelMod selMod)
+selectPress(const Point &, SelMod selMod)
 {
-  if (selMod == CQChartsSelMod::ADD) {
+  if (selMod == SelMod::ADD) {
     for (int i = 0; i < iv_.n; ++i) {
       plot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
     }

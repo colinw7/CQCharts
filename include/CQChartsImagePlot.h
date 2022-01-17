@@ -281,6 +281,10 @@ class CQChartsImagePlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Image Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

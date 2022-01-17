@@ -605,6 +605,8 @@ class CQChartsXYKeyColor : public CQChartsColorBoxKeyItem {
 
   QBrush fillBrush() const override;
 
+  bool calcHidden() const override;
+
   Obj *plotObj() const;
 
  protected:
@@ -631,6 +633,8 @@ class CQChartsXYKeyText : public CQChartsTextKeyItem {
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
+  bool calcHidden() const override;
+
  protected:
   Plot*    plot_ { nullptr }; //!< parent plot
   ColorInd is_   { 0 };       //!< set color index
@@ -639,6 +643,10 @@ class CQChartsXYKeyText : public CQChartsTextKeyItem {
 
 //---
 
+/*!
+ * \brief Custom invalidator for XY plot
+ * \ingroup Charts
+ */
 class CQChartsXYInvalidator : public CQChartsInvalidator {
  public:
   CQChartsXYInvalidator(QObject *obj) :
@@ -1162,6 +1170,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
 #include <CQChartsPointPlotCustomControls.h>
 
+/*!
+ * \brief XY Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
 

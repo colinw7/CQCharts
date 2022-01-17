@@ -164,6 +164,8 @@ class CQChartsScatterKeyColor3D : public CQChartsColorBoxKeyItem {
 
   QBrush fillBrush() const override;
 
+  bool calcHidden() const override;
+
  private:
   int hideIndex() const;
 

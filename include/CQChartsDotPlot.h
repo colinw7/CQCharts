@@ -46,6 +46,10 @@ class CQChartsDotNodeObj;
 class CQChartsDotEdgeObj;
 class CQChartsDotPlotEdge;
 
+/*!
+ * \brief Dot Plot Node
+ * \ingroup Charts
+ */
 class CQChartsDotPlotNode {
  public:
   using Obj         = CQChartsDotNodeObj;
@@ -254,6 +258,10 @@ class CQChartsDotPlotNode {
   ModelInds modelInds_;        //!< model inds
 };
 
+/*!
+ * \brief Dot Plot Edge
+ * \ingroup Charts
+ */
 class CQChartsDotPlotEdge {
  public:
   enum class ShapeType {
@@ -893,6 +901,10 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Dot Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsDotPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

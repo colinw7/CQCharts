@@ -53,30 +53,6 @@
 
 #include <fstream>
 
-namespace {
-  CQChartsSelMod modifiersToSelMod(Qt::KeyboardModifiers modifiers) {
-    if      ((modifiers & Qt::ControlModifier) && (modifiers & Qt::ShiftModifier))
-      return CQChartsSelMod::TOGGLE;
-    else if (modifiers & Qt::ControlModifier)
-      return CQChartsSelMod::ADD;
-    else if (modifiers & Qt::ShiftModifier)
-      return CQChartsSelMod::REMOVE;
-    else
-      return CQChartsSelMod::REPLACE;
-  }
-
-  CQChartsSelMod modifiersToClickMod(Qt::KeyboardModifiers modifiers) {
-    if      ((modifiers & Qt::ControlModifier) && (modifiers & Qt::ShiftModifier))
-      return CQChartsSelMod::ADD;
-    else if (modifiers & Qt::ControlModifier)
-      return CQChartsSelMod::REPLACE;
-    else if (modifiers & Qt::ShiftModifier)
-      return CQChartsSelMod::REMOVE;
-    else
-      return CQChartsSelMod::TOGGLE;
-  }
-}
-
 //---
 
 QString
@@ -385,49 +361,53 @@ addProperties()
   addProp("select", "selectInside", "inside", "Select when fully inside select rectangle");
 
   // select highlight
-  addStyleProp("select/highlight"       , "selectedMode"       , "mode"   ,
-               "Highlight draw mode");
-  addStyleProp("select/highlight"       , "selectedBlend"      , "blend"  ,
-               "Blend existing color with select color");
-  addStyleProp("select/highlight"       , "selectedShapeData"  , "style"  ,
-               "Highlight shape data");
-  addStyleProp("select/highlight/fill"  , "selectedFilled"     , "visible",
-               "Highlight fill visible");
-  addStyleProp("select/highlight/fill"  , "selectedFillColor"  , "color"  ,
-               "Highlight fill color");
-  addStyleProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  ,
-               "Highlight fill alpha");
-  addStyleProp("select/highlight/fill"  , "selectedFillPattern", "pattern",
-               "Highlight fill pattern");
-  addStyleProp("select/highlight/stroke", "selectedStroked"    , "visible",
-               "Highlight stroke visible");
-  addStyleProp("select/highlight/stroke", "selectedStrokeColor", "color"  ,
-               "Highlight stroke color");
-  addStyleProp("select/highlight/stroke", "selectedStrokeAlpha", "alpha"  ,
-               "Highlight stroke color");
-  addStyleProp("select/highlight/stroke", "selectedStrokeWidth", "width"  ,
-               "Highlight stroke width");
-  addStyleProp("select/highlight/stroke", "selectedStrokeDash" , "dash"   ,
-               "Highlight stroke dash");
+  auto addSelectProp = [&](const QString &path, const QString &prop, const QString &name,
+                           const QString &tip) {
+    addStyleProp("select/" + path, "selected" + prop, name, "Highlight " + tip);
+  };
+
+  addSelectProp("highlight"       , "Mode"       , "mode"   , "draw mode");
+  addSelectProp("highlight"       , "Blend"      , "blend"  ,
+                "blend existing color with select color");
+  addSelectProp("highlight"       , "ShapeData"  , "style"  , "shape data");
+  addSelectProp("highlight/fill"  , "Filled"     , "visible", "fill visible");
+  addSelectProp("highlight/fill"  , "FillColor"  , "color"  , "fill color");
+  addSelectProp("highlight/fill"  , "FillAlpha"  , "alpha"  , "fill alpha");
+  addSelectProp("highlight/fill"  , "FillPattern", "pattern", "fill pattern");
+  addSelectProp("highlight/stroke", "Stroked"    , "visible", "stroke visible");
+  addSelectProp("highlight/stroke", "StrokeColor", "color"  , "stroke color");
+  addSelectProp("highlight/stroke", "StrokeAlpha", "alpha"  , "stroke color");
+  addSelectProp("highlight/stroke", "StrokeWidth", "width"  , "stroke width");
+  addSelectProp("highlight/stroke", "StrokeDash" , "dash"   , "stroke dash");
+
+  addStyleProp("select", "selectedColor", "selectedColor", "Selected Color");
 
   // region mode
   addProp("region", "regionMode", "mode", "Region mode", true);
 
   // inside highlight
-  addStyleProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
-  addStyleProp("inside/highlight"       , "insideBlend"      , "blend"  ,
-               "Blend existing color with inside color");
-  addStyleProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
-  addStyleProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
-  addStyleProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
-  addStyleProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
-  addStyleProp("inside/highlight/fill"  , "insideFillPattern", "pattern", "Inside fill pattern");
-  addStyleProp("inside/highlight/stroke", "insideStroked"    , "visible", "Inside stroke visible");
-  addStyleProp("inside/highlight/stroke", "insideStrokeColor", "color"  , "Inside stroke color");
-  addStyleProp("inside/highlight/stroke", "insideStrokeAlpha", "alpha"  , "Inside stroke alpha");
-  addStyleProp("inside/highlight/stroke", "insideStrokeWidth", "width"  , "Inside stroke width");
-  addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
+  auto addInsideProp = [&](const QString &path, const QString &prop, const QString &name,
+                           const QString &tip) {
+    addStyleProp("inside/" + path, "inside" + prop, name, "Inside " + tip);
+  };
 
+  addInsideProp("highlight"       , "Mode"       , "mode"   , "draw mode");
+  addInsideProp("highlight"       , "Blend"      , "blend"  ,
+                "blend existing color with inside color");
+  addInsideProp("highlight"       , "ShapeData"  , "style"  , "shape data");
+  addInsideProp("highlight/fill"  , "Filled"     , "visible", "fill visible");
+  addInsideProp("highlight/fill"  , "FillColor"  , "color"  , "fill color");
+  addInsideProp("highlight/fill"  , "FillAlpha"  , "alpha"  , "fill alpha");
+  addInsideProp("highlight/fill"  , "FillPattern", "pattern", "fill pattern");
+  addInsideProp("highlight/stroke", "Stroked"    , "visible", "stroke visible");
+  addInsideProp("highlight/stroke", "StrokeColor", "color"  , "stroke color");
+  addInsideProp("highlight/stroke", "StrokeAlpha", "alpha"  , "stroke alpha");
+  addInsideProp("highlight/stroke", "StrokeWidth", "width"  , "stroke width");
+  addInsideProp("highlight/stroke", "StrokeDash" , "dash"   , "stroke dash");
+
+  addStyleProp("inside", "insideColor", "insideColor", "Inside Color");
+
+  // fade
   addStyleProp("fade", "overlayFade"     , "enabled", "Fade non-overlay");
   addStyleProp("fade", "overlayFadeAlpha", "alpha"  , "Fade alpha");
 
@@ -1044,6 +1024,15 @@ CQChartsView::
 regionModeSlot()
 {
   setMode(Mode::REGION);
+}
+
+void
+CQChartsView::
+rulerModeSlot()
+{
+  setMode(Mode::RULER);
+
+  rulerData_.set = false;
 }
 
 void
@@ -2555,8 +2544,8 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.button     = me->button();
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
-  mouseData_.selMod     = modifiersToSelMod(me->modifiers());
-  mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
+  mouseData_.selMod     = CQChartsUtil::modifiersToSelMod(me->modifiers());
+  mouseData_.clickMod   = CQChartsUtil::modifiersToClickMod(me->modifiers());
 
   auto w = pixelToWindow(mousePressPoint());
 
@@ -2586,6 +2575,9 @@ mousePressEvent(QMouseEvent *me)
     }
     else if (mode() == Mode::REGION) {
       regionMousePress();
+    }
+    else if (mode() == Mode::RULER) {
+      rulerMousePress();
     }
   }
   else if (mouseButton() == Qt::MiddleButton) {
@@ -2620,6 +2612,10 @@ mouseMoveEvent(QMouseEvent *me)
     }
     else if (mode() == Mode::REGION) {
       regionMouseMotion();
+      return;
+    }
+    else if (mode() == Mode::RULER) {
+      rulerMouseMotion();
       return;
     }
   }
@@ -2688,6 +2684,11 @@ mouseMoveEvent(QMouseEvent *me)
 
       regionMouseMove();
     }
+    else if (mode() == Mode::RULER) {
+      updateMousePosText();
+
+      rulerMouseMove();
+    }
   }
   else if (mouseButton() == Qt::MiddleButton) {
     if (! mousePressed())
@@ -2738,6 +2739,10 @@ mouseReleaseEvent(QMouseEvent *me)
       if (mousePressed())
         regionMouseRelease();
     }
+    else if (mode() == Mode::RULER) {
+      if (mousePressed())
+        rulerMouseRelease();
+    }
   }
   else if (mouseButton() == Qt::MiddleButton) {
   }
@@ -2763,8 +2768,8 @@ mouseDoubleClickEvent(QMouseEvent *me)
   mouseData_.button     = me->button();
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
-  mouseData_.selMod     = modifiersToSelMod(me->modifiers());
-  mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
+  mouseData_.selMod     = CQChartsUtil::modifiersToSelMod(me->modifiers());
+  mouseData_.clickMod   = CQChartsUtil::modifiersToClickMod(me->modifiers());
 
   auto w = pixelToWindow(mousePressPoint());
 
@@ -3535,10 +3540,10 @@ selectPointPress()
 
   // select plot objects
   struct SelData {
-    Point          pos;
-    CQChartsSelMod selMod;
+    Point  pos;
+    SelMod selMod;
 
-    SelData(const Point &pos, CQChartsSelMod selMod) :
+    SelData(const Point &pos, SelMod selMod) :
      pos(pos), selMod(selMod) {
     }
   };
@@ -3627,7 +3632,7 @@ selectMouseRelease()
         mouseData_.plot->selectMouseRelease(mouseMovePoint());
     }
     else {
-      processMouseDataPlots([&](Plot *plot, const CQChartsSelMod &selMod) {
+      processMouseDataPlots([&](Plot *plot, const SelMod &selMod) {
         auto w1 = plot->pixelToWindow(mousePressPoint());
         auto w2 = plot->pixelToWindow(mouseMovePoint());
 
@@ -3676,10 +3681,10 @@ selectMouseDoubleClick()
 
   // select plot objects
   struct SelData {
-    Point          pos;
-    CQChartsSelMod selMod;
+    Point  pos;
+    SelMod selMod;
 
-    SelData(const Point &pos, CQChartsSelMod selMod) :
+    SelData(const Point &pos, SelMod selMod) :
      pos(pos), selMod(selMod) {
     }
   };
@@ -3792,6 +3797,56 @@ regionMouseRelease()
     emit regionPointRelease(r.getCenter());
     emit regionRectRelease (r);
   }
+}
+
+//------
+
+void
+CQChartsView::
+rulerMousePress()
+{
+  auto w = pixelToWindow(mousePressPoint());
+
+  rulerData_.start = w;
+  rulerData_.end   = rulerData_.end;
+
+  invalidateOverlay();
+
+  updatePlots();
+}
+
+void
+CQChartsView::
+rulerMouseMotion()
+{
+}
+
+void
+CQChartsView::
+rulerMouseMove()
+{
+  auto w = pixelToWindow(mouseMovePoint());
+
+  rulerData_.set = true;
+  rulerData_.end = w;
+
+  invalidateOverlay();
+
+  updatePlots();
+}
+
+void
+CQChartsView::
+rulerMouseRelease()
+{
+  auto w = pixelToWindow(mouseMovePoint());
+
+  rulerData_.set = true;
+  rulerData_.end = w;
+
+  invalidateOverlay();
+
+  updatePlots();
 }
 
 //------
@@ -4658,29 +4713,80 @@ drawPlots(QPainter *painter)
   //---
 
   // draw overlay (annotations and key)
-  if (hasPlots || hasBgAnnotations || hasFgAnnotations) {
-    auto *painter1 = overlayBuffer_->beginPaint(painter, rect());
+  if (hasPlots || hasBgAnnotations || hasFgAnnotations || mode() == Mode::RULER)
+    drawOverlay(painter);
+}
 
-    if (painter1) {
-      auto *th = const_cast<CQChartsView *>(this);
+void
+CQChartsView::
+drawOverlay(QPainter *painter)
+{
+  auto *painter1 = overlayBuffer_->beginPaint(painter, rect());
 
-      CQChartsViewPaintDevice device(th, painter1);
+  if (painter1) {
+    bool hasBgAnnotations = this->hasAnnotations(Layer::Type::BG_ANNOTATION);
+    bool hasFgAnnotations = this->hasAnnotations(Layer::Type::FG_ANNOTATION);
 
-      if (hasBgAnnotations || hasFgAnnotations) {
-        // draw selected/mouse over annotations
-        drawAnnotations(&device, CQChartsLayer::Type::SELECTION);
-        drawAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
-      }
+    auto *th = const_cast<CQChartsView *>(this);
 
-      //---
+    CQChartsViewPaintDevice device(th, painter1);
 
-      // draw selected/mouse over view key
-      drawKey(&device, CQChartsLayer::Type::SELECTION);
-      drawKey(&device, CQChartsLayer::Type::MOUSE_OVER);
+    if (hasBgAnnotations || hasFgAnnotations) {
+      // draw selected/mouse over annotations
+      drawAnnotations(&device, CQChartsLayer::Type::SELECTION);
+      drawAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
     }
 
-    overlayBuffer_->endPaint();
+    //---
+
+    // draw selected/mouse over view key
+    drawKey(&device, CQChartsLayer::Type::SELECTION);
+    drawKey(&device, CQChartsLayer::Type::MOUSE_OVER);
+
+    //---
+
+    if (mode() == Mode::RULER) {
+
+      if (rulerData_.set) {
+        device.setPen(QColor(Qt::red));
+
+        auto *currentPlot = this->currentPlot(/*remap*/true);
+
+        if (currentPlot) {
+          auto p1 = currentPlot->viewToWindow(rulerData_.start);
+          auto p2 = currentPlot->viewToWindow(rulerData_.end);
+
+          bool usePen     = true;
+          bool forceColor = false;
+
+          CQChartsAxis xaxis(currentPlot, Qt::Horizontal);
+          CQChartsAxis yaxis(currentPlot, Qt::Vertical  );
+
+          auto x1 = std::min(p1.x, p2.x);
+          auto y1 = std::min(p1.y, p2.y);
+
+          xaxis.setPlot    (currentPlot);
+          xaxis.setPosition(CQChartsOptReal(y1));
+          xaxis.setStart   (p1.x);
+          xaxis.setEnd     (p2.x);
+
+          yaxis.setPlot    (currentPlot);
+          yaxis.setPosition(CQChartsOptReal(x1));
+          yaxis.setStart   (p1.y);
+          yaxis.setEnd     (p2.y);
+
+          CQChartsPlotPaintDevice pdevice(currentPlot, painter);
+
+          xaxis.draw(currentPlot, &pdevice, usePen, forceColor);
+          yaxis.draw(currentPlot, &pdevice, usePen, forceColor);
+        }
+        else
+          device.drawLine(rulerData_.start, rulerData_.end);
+      }
+    }
   }
+
+  overlayBuffer_->endPaint();
 }
 
 //---
@@ -4928,6 +5034,8 @@ lockPainter(bool lock)
     painterMutex_.lock();
   else
     painterMutex_.unlock();
+
+  painterLocked_ = lock;
 }
 
 //-----
@@ -5080,7 +5188,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         ibc = interpInsideFillColor(ic1);
       }
       else
-        ibc = insideColor(bc);
+        ibc = calcInsideColor(bc);
 
       Alpha alpha;
 
@@ -5142,7 +5250,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
         else
-          opc = selectedColor(pc);
+          opc = calcSelectedColor(pc);
 
         alpha = Alpha(pc.alphaF());
       }
@@ -5175,7 +5283,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       if (isSelectedFilled())
         ibc = interpSelectedFillColor(ic);
       else
-        ibc = selectedColor(bc);
+        ibc = calcSelectedColor(bc);
 
       Alpha alpha;
 
@@ -5220,16 +5328,40 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
 
 QColor
 CQChartsView::
-insideColor(const QColor &c) const
+calcInsideColor(const QColor &c) const
 {
-  return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
+  QColor c1;
+
+  if (insideColor().isValid()) {
+    charts()->setContrastColor(c);
+
+    c1 = interpColor(insideColor(), ColorInd());
+
+    charts()->resetContrastColor();
+  }
+  else
+    c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
+
+  return c1;
 }
 
 QColor
 CQChartsView::
-selectedColor(const QColor &c) const
+calcSelectedColor(const QColor &c) const
 {
-  return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
+  QColor c1;
+
+  if (selectedColor().isValid()) {
+    charts()->setContrastColor(c);
+
+    c1 = interpColor(selectedColor(), ColorInd());;
+
+    charts()->resetContrastColor();
+  }
+  else
+    c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
+
+  return c1;
 }
 
 //------
@@ -5468,6 +5600,7 @@ showMenu(const Point &p)
     addGroupCheckAction(modeActionGroup, "Query" , mode() == Mode::QUERY , SLOT(queryModeSlot()));
     addGroupCheckAction(modeActionGroup, "Edit"  , mode() == Mode::EDIT  , SLOT(editModeSlot()));
     addGroupCheckAction(modeActionGroup, "Region", mode() == Mode::REGION, SLOT(regionModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Ruler" , mode() == Mode::RULER , SLOT(rulerModeSlot()));
 
     modeActionGroup->setExclusive(true);
 

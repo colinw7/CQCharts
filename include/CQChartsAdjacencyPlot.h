@@ -549,6 +549,10 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Adjacency plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsAdjacencyPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

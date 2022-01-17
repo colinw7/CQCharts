@@ -354,6 +354,10 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Geometry Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

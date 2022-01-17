@@ -159,6 +159,11 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 
   //---
 
+  bool isFiltered() const { return filtered_; }
+  void setFiltered(bool b) { filtered_ = b; }
+
+  //---
+
   void getObjSelectIndices(Indices &inds) const override;
 
   //---
@@ -209,6 +214,7 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   ExtraDataP  edata_;                  //!< extra data
   QString     name_;                   //!< label name
   Column      nameColumn_;             //!< label name column
+  bool        filtered_   { false };   //!< is filtered
 };
 
 //---
@@ -391,6 +397,8 @@ class CQChartsScatterColorKeyItem : public CQChartsColorBoxKeyItem {
 #endif
 
   QBrush fillBrush() const override;
+
+  bool calcHidden() const override;
 
   Obj *plotObj() const;
 
@@ -937,6 +945,10 @@ class CQChartsFontSizeRangeSlider;
 class CQEnumCombo;
 class QCheckBox;
 
+/*!
+ * \brief Scatter Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls {
   Q_OBJECT
 

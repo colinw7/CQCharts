@@ -250,7 +250,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   double start() const { return start_; }
   void setStart(double start) { setRange(start, end_); }
 
-  //! get/set end psotion
+  //! get/set end position
   double end() const { return end_; }
   void setEnd(double end) { setRange(start_, end); }
 

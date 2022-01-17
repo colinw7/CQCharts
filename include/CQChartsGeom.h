@@ -19,6 +19,33 @@
 
 namespace CQChartsGeom {
 
+class Real : public CQChartsComparatorBase<Real> {
+ public:
+  Real() = default;
+
+  explicit Real(double r) :
+   r_(r) {
+  }
+
+  double value() const { return r_; }
+
+  bool equal(const Real &rhs, double tol=1E-6) const {
+    double d = std::abs(value() - rhs.value());
+
+    return (d < tol);
+  }
+
+  //-----
+
+  friend int cmp(const Real &lhs, const Real &rhs) {
+    if (lhs.equal(rhs, 1E-6)) return 0;
+    return (lhs.value() > rhs.value() ? 1 : -1);
+  }
+
+ private:
+  double r_ { 0.0 };
+};
+
 /*!
  * \brief Point class
  * \ingroup Charts

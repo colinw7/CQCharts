@@ -248,6 +248,10 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Delaunay Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

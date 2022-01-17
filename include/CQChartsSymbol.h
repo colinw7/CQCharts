@@ -94,6 +94,7 @@ class CQChartsSymbol :
 
   static CQChartsSymbol circle() { return CQChartsSymbol(SymbolType::Type::CIRCLE); }
   static CQChartsSymbol triangle() { return CQChartsSymbol(SymbolType::Type::TRIANGLE); }
+  static CQChartsSymbol diamond() { return CQChartsSymbol(SymbolType::Type::DIAMOND); }
 
   static CQChartsSymbol vline() { return CQChartsSymbol(SymbolType::Type::VLINE); }
   static CQChartsSymbol hline() { return CQChartsSymbol(SymbolType::Type::HLINE); }

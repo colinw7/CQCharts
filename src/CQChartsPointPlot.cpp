@@ -1069,6 +1069,8 @@ addSymbolSizeMapKey()
   symbolSizeMapKey_->setAlign(Qt::AlignHCenter | Qt::AlignBottom);
 
   connect(symbolSizeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(symbolSizeMapKey_.get(), SIGNAL(itemSelected(const CQChartsLength &, bool)),
+          this, SLOT(symbolSizeSelected(const CQChartsLength &, bool)));
 
   mapKeys_.push_back(symbolSizeMapKey_.get());
 }
@@ -1170,16 +1172,30 @@ void
 CQChartsPointPlot::
 updateSymbolSizeMapKey() const
 {
-  bool isIntegral   = false;
-  bool isSymbolSize = false;
+  bool         isNumeric    = false;
+  bool         isIntegral   = false;
+  bool         isSymbolSize = false;
+  bool         isMapped     = false;
+  int          numUnique    = 0;
+  QVariantList uniqueValues;
 
   auto *columnDetails = this->columnDetails(symbolSizeColumn());
 
   if (columnDetails) {
-    if      (columnDetails->type() == CQBaseModelType::INTEGER)
-      isIntegral = true;
+    if      (columnDetails->type() == CQBaseModelType::REAL ||
+             columnDetails->type() == CQBaseModelType::INTEGER) {
+      isNumeric  = true;
+      isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
+    }
     else if (columnDetails->type() == CQBaseModelType::SYMBOL_SIZE)
       isSymbolSize = true;
+    else if (columnDetails->type() == CQBaseModelType::STRING)
+      isMapped = symbolTypeData_.mapped;
+
+    if (! isNumeric && ! isSymbolSize) {
+      numUnique    = columnDetails->numUnique();
+      uniqueValues = columnDetails->uniqueValues();
+    }
   }
 
   //---
@@ -1198,8 +1214,37 @@ updateSymbolSizeMapKey() const
   symbolSizeMapKey_->setPaletteName  (colorMapPalette());
   symbolSizeMapKey_->setPaletteMinMax(RMinMax(colorMapMin(), colorMapMax()));
 
-  symbolSizeMapKey_->setIntegral(isIntegral);
-  symbolSizeMapKey_->setNative  (isSymbolSize);
+  symbolSizeMapKey_->setNumeric     (isNumeric);
+  symbolSizeMapKey_->setIntegral    (isIntegral);
+  symbolSizeMapKey_->setNative      (isSymbolSize);
+  symbolTypeMapKey_->setMapped      (isMapped);
+  symbolSizeMapKey_->setNumUnique   (numUnique);
+  symbolSizeMapKey_->setUniqueValues(uniqueValues);
+}
+
+void
+CQChartsPointPlot::
+symbolSizeSelected(const Length &size, bool visible)
+{
+  auto psize = lengthPixelWidth(size);
+
+  if (! visible)
+    symbolSizeFilter_.insert(CQChartsGeom::Real(psize));
+  else
+    symbolSizeFilter_.erase(CQChartsGeom::Real(psize));
+
+  updateRangeAndObjs();
+}
+
+bool
+CQChartsPointPlot::
+symbolSizeVisible(const Length &size) const
+{
+  auto psize = lengthPixelWidth(size);
+
+  auto p = symbolSizeFilter_.find(Real(psize));
+
+  return (p == symbolSizeFilter_.end());
 }
 
 //---
@@ -1216,6 +1261,8 @@ addSymbolTypeMapKey()
   symbolTypeMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
 
   connect(symbolTypeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(symbolTypeMapKey_.get(), SIGNAL(itemSelected(const CQChartsSymbol &, bool)),
+          this, SLOT(symbolTypeSelected(const CQChartsSymbol &, bool)));
 
   mapKeys_.push_back(symbolTypeMapKey_.get());
 }
@@ -1224,6 +1271,8 @@ bool
 CQChartsPointPlot::
 isSymbolTypeMapKey() const
 {
+  assert(symbolTypeMapKey_);
+
   return symbolTypeMapKey_->isVisible();
 }
 
@@ -1231,6 +1280,8 @@ void
 CQChartsPointPlot::
 setSymbolTypeMapKey(bool b)
 {
+  assert(symbolTypeMapKey_);
+
   if (b != symbolTypeMapKey_->isVisible()) {
     symbolTypeMapKey_->setVisible(b);
 
@@ -1277,19 +1328,22 @@ updateSymbolTypeMapKey() const
   bool         isNumeric    = false;
   bool         isIntegral   = false;
   bool         isSymbolType = false;
+  bool         isMapped     = false;
   int          numUnique    = 0;
   QVariantList uniqueValues;
 
   auto *columnDetails = this->columnDetails(symbolTypeColumn());
 
   if (columnDetails) {
-    if       (columnDetails->type() == CQBaseModelType::REAL ||
-              columnDetails->type() == CQBaseModelType::INTEGER) {
+    if      (columnDetails->type() == CQBaseModelType::REAL ||
+             columnDetails->type() == CQBaseModelType::INTEGER) {
       isNumeric  = true;
       isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
     }
-    else  if (columnDetails->type() == CQBaseModelType::SYMBOL)
+    else if (columnDetails->type() == CQBaseModelType::SYMBOL)
       isSymbolType = true;
+    else if (columnDetails->type() == CQBaseModelType::STRING)
+      isMapped = symbolTypeData_.mapped;
 
     if (! isNumeric && ! isSymbolType) {
       numUnique    = columnDetails->numUnique();
@@ -1315,8 +1369,30 @@ updateSymbolTypeMapKey() const
   symbolTypeMapKey_->setNumeric     (isNumeric);
   symbolTypeMapKey_->setIntegral    (isIntegral);
   symbolTypeMapKey_->setNative      (isSymbolType);
+  symbolTypeMapKey_->setMapped      (isMapped);
   symbolTypeMapKey_->setNumUnique   (numUnique);
   symbolTypeMapKey_->setUniqueValues(uniqueValues);
+}
+
+void
+CQChartsPointPlot::
+symbolTypeSelected(const Symbol &symbol, bool visible)
+{
+  if (! visible)
+    symbolTypeFilter_.insert(symbol);
+  else
+    symbolTypeFilter_.erase(symbol);
+
+  updateRangeAndObjs();
+}
+
+bool
+CQChartsPointPlot::
+symbolTypeVisible(const Symbol &symbol) const
+{
+  auto p = symbolTypeFilter_.find(symbol);
+
+  return (p == symbolTypeFilter_.end());
 }
 
 //---

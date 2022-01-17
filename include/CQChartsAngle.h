@@ -26,11 +26,12 @@ class CQChartsAngle :
     RADIANS
   };
 
+  using Angle = CQChartsAngle;
   using Point = CQChartsGeom::Point;
 
  public:
-  static CQChartsAngle degrees(double value) { return CQChartsAngle(Type::DEGREES, value); }
-  static CQChartsAngle radians(double value) { return CQChartsAngle(Type::RADIANS, value); }
+  static Angle degrees(double value) { return Angle(Type::DEGREES, value); }
+  static Angle radians(double value) { return Angle(Type::RADIANS, value); }
 
   //! default constructor
   CQChartsAngle() = default;
@@ -61,15 +62,15 @@ class CQChartsAngle :
   //---
 
   // get angle mid point
-  static CQChartsAngle avg(const CQChartsAngle &angle1, const CQChartsAngle &angle2) {
+  static Angle avg(const Angle &angle1, const Angle &angle2) {
     double a1 = angle1.value();
     double a2 = angle2.value();
 
-    return CQChartsAngle(CMathUtil::avg(a1, a2));
+    return Angle(CMathUtil::avg(a1, a2));
   }
 
   // do angles produce a circle
-  static bool isCircle(const CQChartsAngle &angle1, const CQChartsAngle &angle2) {
+  static bool isCircle(const Angle &angle1, const Angle &angle2) {
     double a1 = angle1.value();
     double a2 = angle2.value();
 
@@ -79,7 +80,7 @@ class CQChartsAngle :
   }
 
   // point at angle on circle
-  static Point circlePoint(const Point &c, double r, const CQChartsAngle &angle) {
+  static Point circlePoint(const Point &c, double r, const Angle &angle) {
     return CQChartsGeom::circlePoint(c, r, angle.radians());
   }
 
@@ -100,28 +101,28 @@ class CQChartsAngle :
   //---
 
   // operator +, +=
-  friend CQChartsAngle operator+(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
-    return CQChartsAngle(lhs.a_ + rhs.a_);
+  friend Angle operator+(const Angle &lhs, const Angle &rhs) {
+    return Angle(lhs.a_ + rhs.a_);
   }
 
-  CQChartsAngle &operator+=(const CQChartsAngle &rhs) { a_ += rhs.a_; return *this; }
+  Angle &operator+=(const Angle &rhs) { a_ += rhs.a_; return *this; }
 
   // operator -, -=
-  friend CQChartsAngle operator-(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
-    return CQChartsAngle(lhs.a_ - rhs.a_);
+  friend Angle operator-(const Angle &lhs, const Angle &rhs) {
+    return Angle(lhs.a_ - rhs.a_);
   }
 
-  CQChartsAngle &operator-=(const CQChartsAngle &rhs) { a_ -= rhs.a_; return *this; }
+  Angle &operator-=(const Angle &rhs) { a_ -= rhs.a_; return *this; }
 
   //---
 
   // operator -
-  CQChartsAngle operator-() const { return CQChartsAngle(-a_); }
+  Angle operator-() const { return Angle(-a_); }
 
   //---
 
   //! compare for (==, !=, <, >, <=, >=)
-  friend int cmp(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
+  friend int cmp(const Angle &lhs, const Angle &rhs) {
     if (lhs.a_ >  rhs.a_) return  1;
     if (lhs.a_ <  rhs.a_) return -1;
     return 0;

@@ -792,7 +792,7 @@ execDrawBackground(PaintDevice *device) const
 
       auto textOptions = xLabelTextOptions(device);
 
-    //textOptions.angle      = Angle(0.0);
+    //textOptions.angle      = Angle();
       textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
       textOptions.clipped    = false;
 

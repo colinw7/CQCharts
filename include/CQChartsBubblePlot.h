@@ -682,6 +682,10 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
 #include <CQChartsGroupPlotCustomControls.h>
 
+/*!
+ * \brief Bubble Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

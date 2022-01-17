@@ -148,12 +148,42 @@ setHeaderStr(const QString &s)
   CQChartsUtil::testAndSet(header_, s, [&]() { updateLayout(); } );
 }
 
+//---
+
+void
+CQChartsKey::
+setHiddenColor(const Color &c)
+{
+  CQChartsUtil::testAndSet(hiddenColor_, c, [&]() { redraw(); } );
+}
+
 void
 CQChartsKey::
 setHiddenAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(hiddenAlpha_, a, [&]() { redraw(); } );
 }
+
+QColor
+CQChartsKey::
+calcHiddenColor(const QColor &c) const
+{
+  QColor c1;
+
+  if (hiddenColor().isValid()) {
+    charts()->setContrastColor(c);
+
+    c1 = view()->interpColor(hiddenColor(), ColorInd());
+
+    charts()->resetContrastColor();
+  }
+  else
+    c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), hiddenAlpha().value());
+
+  return c1;
+}
+
+//---
 
 void
 CQChartsKey::
@@ -363,6 +393,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp("interactive"  , "Key supports click", true);
   addProp("pressBehavior", "Key click behavior", true);
 
+  addStyleProp("hiddenColor", "Color for hidden items");
   addStyleProp("hiddenAlpha", "Alpha for hidden items");
 
   addProp("columns", "Number of item columns");
@@ -1058,6 +1089,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp("interactive"  , "Key supports click");
   addProp("pressBehavior", "Key click behavior");
 
+  addStyleProp("hiddenColor", "Color for hidden items");
   addStyleProp("hiddenAlpha", "Alpha for hidden items");
 
   addProp("columns", "Number of item columns");
@@ -1529,9 +1561,19 @@ getItemAt(const Point &p) const
   if (! isOverlayVisible())
     return nullptr;
 
-  for (auto &item : items_) {
-    if (item->bbox().inside(p))
-      return item;
+  for (auto *item : items_) {
+    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item);
+
+    if (group) {
+      auto *item1 = group->getItemAt(p);
+
+      if (item1)
+        return item1;
+    }
+    else {
+      if (item->bbox().inside(p))
+        return item;
+    }
   }
 
   return nullptr;
@@ -1694,18 +1736,28 @@ setInsideItem(CQChartsKeyItem *item)
   for (auto &item1 : items_) {
     if (! item1) continue;
 
-    if (item1 == item) {
-      if (! item1->isInside()) {
-        item1->setInside(true);
+    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
 
+    if (group) {
+      if (group->setInsideItem(item))
         changed = true;
-      }
+
+      group->updateInside();
     }
     else {
-      if (item1->isInside()) {
-        item1->setInside(false);
+      if (item1 == item) {
+        if (! item1->isInside()) {
+          item1->setInside(true);
 
-        changed = true;
+          changed = true;
+        }
+      }
+      else {
+        if (item1->isInside()) {
+          item1->setInside(false);
+
+          changed = true;
+        }
       }
     }
   }
@@ -2131,6 +2183,25 @@ isEditResize() const
 
 QColor
 CQChartsPlotKey::
+calcHiddenColor(const QColor &c) const
+{
+  QColor c1;
+
+  if (hiddenColor().isValid()) {
+    charts()->setContrastColor(c);
+
+    c1 = view()->interpColor(hiddenColor(), ColorInd());
+
+    charts()->resetContrastColor();
+  }
+  else
+    c1 = CQChartsUtil::blendColors(c, interpBgColor(), hiddenAlpha().value());
+
+  return c1;
+}
+
+QColor
+CQChartsPlotKey::
 interpBgColor() const
 {
   if (isFilled())
@@ -2334,10 +2405,15 @@ void
 CQChartsKeyItem::
 adjustFillColor(QColor &c) const
 {
-  if (! isSetHidden())
-    return;
+  if (calcHidden())
+    c = key_->calcHiddenColor(c);
+}
 
-  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha().value());
+bool
+CQChartsKeyItem::
+calcHidden() const
+{
+  return isSetHidden();
 }
 
 bool
@@ -2491,6 +2567,91 @@ tipText(const Point &p, QString &tip) const
   return false;
 }
 
+//---
+
+CQChartsKeyItem *
+CQChartsKeyItemGroup::
+getItemAt(const Point &p) const
+{
+  for (auto *item : items_) {
+    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item);
+
+    if (group) {
+      auto *item1 = group->getItemAt(p);
+
+      if (item1)
+        return item1;
+    }
+    else {
+      if (item->bbox().inside(p))
+        return item;
+    }
+  }
+
+  return nullptr;
+}
+
+bool
+CQChartsKeyItemGroup::
+setInsideItem(CQChartsKeyItem *item)
+{
+  bool changed = false;
+
+  for (auto &item1 : items_) {
+    if (! item1) continue;
+
+    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
+
+    if (group) {
+      if (group->setInsideItem(item))
+        changed = true;
+
+      group->updateInside();
+    }
+    else {
+      if (item1 == item) {
+        if (! item1->isInside()) {
+          item1->setInside(true);
+
+          changed = true;
+        }
+      }
+      else {
+        if (item1->isInside()) {
+          item1->setInside(false);
+
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return changed;
+}
+
+void
+CQChartsKeyItemGroup::
+updateInside()
+{
+  bool inside = false;
+
+  for (auto &item1 : items_) {
+    if (! item1) continue;
+
+    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
+
+    if (group)
+      updateInside();
+
+    if (item1->isInside())
+      inside = true;
+  }
+
+  setInside(inside);
+}
+
+//---
+
 bool
 CQChartsKeyItemGroup::
 selectPress(const Point &p, SelMod selMod)
@@ -2551,6 +2712,8 @@ draw(PaintDevice *device, const BBox &rect) const
     BBox rect1(x, y + dy, x + s.width(), y + s.height() + dy);
 
     item->draw(device, rect1);
+
+    item->setBBox(rect1);
 
     x += s.width();
   }
@@ -2615,6 +2778,9 @@ draw(PaintDevice *device, const BBox &rect) const
 
   auto tc = interpTextColor(ColorInd());
 
+  if (isInside() || (group_ && group_->isInside()))
+    tc = plot->insideColor(tc);
+
   device->setPen(tc);
 
   auto textOptions = key_->textOptions();
@@ -2622,6 +2788,7 @@ draw(PaintDevice *device, const BBox &rect) const
   textOptions = plot->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawTextInBox(device, rect, text_, textOptions);
+
 }
 
 //------
@@ -2753,17 +2920,26 @@ fillBrush() const
   else
     c = plot->interpPaletteColor(ic);
 
+  adjustFillColor(c);
+
+  return c;
+}
+
+bool
+CQChartsColorBoxKeyItem::
+calcHidden() const
+{
   bool hidden = false;
 
   if (value_.isValid())
-    hidden = (CQChartsVariant::cmp(value_, plot->hideValue()) == 0);
-  else
-    hidden = plot->isSetHidden(ic.i);
+    hidden = (CQChartsVariant::cmp(value_, plot_->hideValue()) == 0);
+  else {
+    auto ic = calcColorInd();
 
-  if (hidden)
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+    hidden = plot_->isSetHidden(ic.i);
+  }
 
-  return c;
+  return hidden;
 }
 
 QPen
@@ -2883,6 +3059,9 @@ draw(PaintDevice *device, const BBox &rect) const
   CQChartsPenBrush penBrush;
 
   plot->setPenBrush(penBrush, PenData(true, lc), BrushData(true, fc));
+
+  if (isInside() || (group_ && group_->isInside()))
+    penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

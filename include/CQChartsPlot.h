@@ -1970,7 +1970,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setImageColumn(const Column &column);
 
   const Column &colorColumn() const { return colorColumnData_.column; };
-  void setColorColumn(const Column &c);
+  virtual void setColorColumn(const Column &c);
 
   const Column &alphaColumn() const { return alphaColumnData_.column; };
   void setAlphaColumn(const Column &c);
@@ -2103,8 +2103,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   Plot *tabbedPressPlot(const Point &w, Plots &plots) const;
 
-  bool keySelectPress  (PlotKey *key  , const Point &w, SelMod selMod);
-  bool titleSelectPress(Title   *title, const Point &w, SelMod selMod);
+  bool keySelectPress   (PlotKey *key, const Point &w, SelMod selMod);
+  bool mapKeySelectPress(const Point &w, SelMod selMod);
+  bool titleSelectPress (Title *title, const Point &w, SelMod selMod);
 
 //bool annotationsSelectPress(const Point &w, SelMod selMod);
 
@@ -2755,6 +2756,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  virtual bool colorVisible(const QColor &color) const;
+
+  virtual bool symbolTypeVisible(const Symbol &) const { return true; }
+  virtual bool symbolSizeVisible(const Length &) const { return true; }
+
+  //---
+
   virtual void updateMapKey(CQChartsMapKey *key) const;
 
   //---
@@ -2998,6 +3006,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void collapseRoot();
 
+ public slots:
+  void colorSelected(const QColor &c, bool visible);
+
  protected slots:
   void animateSlot();
 
@@ -3057,6 +3068,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void keyPressed(CQChartsPlotKey *);
   void keyIdPressed(const QString &);
+
+  void mapKeyPressed(CQChartsMapKey *);
 
   // title signals (title changed)
   void titleChanged();
@@ -3411,6 +3424,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using AxisP          = std::unique_ptr<Axis>;
   using PlotKeyP       = std::unique_ptr<PlotKey>;
   using PropertyModelP = std::unique_ptr<PropertyModel>;
+  using ColorFilter    = std::set<Color>;
 
   View*     view_ { nullptr }; //!< parent view
   PlotType* type_ { nullptr }; //!< plot type data
@@ -3484,7 +3498,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using MapKeys      = std::vector<CQChartsMapKey *>;
 
   ColorMapKeyP colorMapKey_; //!< color map key
-  MapKeys      mapKeys_;
+
+  ColorFilter colorFilter_; //!< color map filter
+
+  MapKeys mapKeys_; //!< all map keys
 
   // columns
   Column  xValueColumn_;   //!< x axis value column

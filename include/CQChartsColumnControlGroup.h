@@ -21,8 +21,10 @@ class CQChartsColumnControlGroup : public QFrame {
   const QString &title() const;
   void setTitle(const QString &s);
 
-  void addFixedWidget (QWidget *w);
-  void addColumnWidget(QWidget *w);
+  void addFixedWidget(QWidget *w);
+
+  void addColumnWidget (QWidget *w);
+  void addColumnStretch();
 
   bool hasKey() const { return hasKey_; }
   void setHasKey(bool b) { hasKey_ = b; }

@@ -419,6 +419,10 @@ class CQChartsSummaryPlotColumnChooser;
 class QCheckBox;
 class QPushButton;
 
+/*!
+ * \brief Summary Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 
@@ -468,6 +472,10 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
 //---
 
+/*!
+ * \brief Summary Plot Stats Widget
+ * \ingroup Charts
+ */
 class CQChartsSummaryPlotGroupStats : public QFrame {
   Q_OBJECT
 
@@ -488,6 +496,10 @@ class CQChartsSummaryPlotGroupStats : public QFrame {
 
 //---
 
+/*!
+ * \brief Summary Plot Column Chooser Widget
+ * \ingroup Charts
+ */
 class CQChartsSummaryPlotColumnChooser : public CQChartsPlotColumnChooser {
   Q_OBJECT
 

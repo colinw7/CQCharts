@@ -215,6 +215,10 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
 
 #include <CQChartsGroupPlotCustomControls.h>
 
+/*!
+ * \brief Strip Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsStripPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

@@ -279,6 +279,10 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Radar Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsRadarPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

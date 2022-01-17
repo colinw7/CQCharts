@@ -207,6 +207,9 @@
 #include <svg/region_light_svg.h>
 #include <svg/region_dark_svg.h>
 
+#include <svg/ruler_light_svg.h>
+#include <svg/ruler_dark_svg.h>
+
 #include <svg/left_light_svg.h>
 #include <svg/left_dark_svg.h>
 
@@ -928,26 +931,26 @@ getPlotTypeNames(QStringList &names, QStringList &descs) const
 
 QColor
 CQCharts::
-interpColor(const CQChartsColor &c, const ColorInd &ind) const
+interpColor(const Color &c, const ColorInd &ind) const
 {
   return interpColorValueI(c, /*ig*/0, /*ng*/1, ind.value(), ind.c);
 }
 
 QColor
 CQCharts::
-interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QColor &ic) const
+interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic) const
 {
   if (! c.isValid())
     return QColor();
 
-  if      (c.type() == CQChartsColor::Type::COLOR)
+  if      (c.type() == Color::Type::COLOR)
     return c.color();
-  else if (c.type() == CQChartsColor::Type::PALETTE ||
-           c.type() == CQChartsColor::Type::PALETTE_VALUE) {
+  else if (c.type() == Color::Type::PALETTE ||
+           c.type() == Color::Type::PALETTE_VALUE) {
     if      (c.hasPaletteIndex()) {
       int ind = c.getPaletteIndex();
 
-      if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+      if (c.type() == Color::Type::PALETTE_VALUE)
         return interpIndPaletteColor(ind, c.value(), c.isScale(), c.isInvert());
       else
         return interpIndPaletteColorValue(ind, ig, ng, value, c.isScale(), c.isInvert());
@@ -956,31 +959,31 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
       QString name;
 
       if (c.getPaletteName(name)) {
-        if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+        if (c.type() == Color::Type::PALETTE_VALUE)
           return interpNamePaletteColor(name, c.value(), c.isScale(), c.isInvert());
         else
           return interpNamePaletteColorValue(name, ig, ng, value, c.isScale(), c.isInvert());
       }
       else {
-        if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+        if (c.type() == Color::Type::PALETTE_VALUE)
           return interpPaletteColor(ColorInd(c.value()), c.isScale(), c.isInvert());
         else
           return interpPaletteColorValue(ig, ng, value, c.isScale(), c.isInvert());
       }
     }
     else {
-      if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+      if (c.type() == Color::Type::PALETTE_VALUE)
         return interpPaletteColor(ColorInd(c.value()), c.isScale(), c.isInvert());
       else
         return interpPaletteColorValue(ig, ng, value, c.isScale(), c.isInvert());
     }
   }
-  else if (c.type() == CQChartsColor::Type::INDEXED ||
-           c.type() == CQChartsColor::Type::INDEXED_VALUE) {
+  else if (c.type() == Color::Type::INDEXED ||
+           c.type() == Color::Type::INDEXED_VALUE) {
     if      (c.hasPaletteIndex()) {
       int ind = c.getPaletteIndex();
 
-      if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+      if (c.type() == Color::Type::INDEXED_VALUE)
         return indexIndPaletteColor(ind, int(c.value()), ng);
       else
         return indexIndPaletteColor(ind, ig, ng);
@@ -989,40 +992,40 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
       QString name;
 
       if (c.getPaletteName(name)) {
-        if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+        if (c.type() == Color::Type::INDEXED_VALUE)
           return indexNamePaletteColor(name, int(c.value()), ng);
         else
           return indexNamePaletteColor(name, ig, ng);
       }
       else {
-        if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+        if (c.type() == Color::Type::INDEXED_VALUE)
           return indexPaletteColor(int(c.value()), ng);
         else
           return indexPaletteColor(ig, ng);
       }
     }
     else {
-      if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+      if (c.type() == Color::Type::INDEXED_VALUE)
         return indexPaletteColor(int(c.value()), ng);
       else
         return indexPaletteColor(ig, ng);
     }
   }
-  else if (c.type() == CQChartsColor::Type::INTERFACE ||
-           c.type() == CQChartsColor::Type::INTERFACE_VALUE) {
-    if (c.type() == CQChartsColor::Type::INTERFACE_VALUE)
+  else if (c.type() == Color::Type::INTERFACE ||
+           c.type() == Color::Type::INTERFACE_VALUE) {
+    if (c.type() == Color::Type::INTERFACE_VALUE)
       return interpThemeColor(ColorInd(c.value()));
     else
       return interpThemeColor(ColorInd(value));
   }
-  else if (c.type() == CQChartsColor::Type::CONTRAST ||
-           c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
+  else if (c.type() == Color::Type::CONTRAST ||
+           c.type() == Color::Type::CONTRAST_VALUE) {
     value = 1.0; // no interp ?
 
     auto cc = contrastColor();
 
     if (! cc.isValid()) {
-      if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
+      if (c.type() == Color::Type::CONTRAST_VALUE)
         return interpThemeColor(ColorInd(1.0 - c.value()));
       else
         return interpThemeColor(ColorInd(1.0 - value));
@@ -1031,30 +1034,30 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
     auto c1 = CQChartsUtil::bwColor(cc);
     auto c2 = CQChartsUtil::bwColor(c1);
 
-    if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
+    if (c.type() == Color::Type::CONTRAST_VALUE)
       c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(c.value(), 0.0, 1.0));
     else
       c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(value, 0.0, 1.0));
 
     return c1;
   }
-  else if (c.type() == CQChartsColor::Type::MODEL ||
-           c.type() == CQChartsColor::Type::MODEL_VALUE) {
-    if (c.type() == CQChartsColor::Type::MODEL_VALUE)
+  else if (c.type() == Color::Type::MODEL ||
+           c.type() == Color::Type::MODEL_VALUE) {
+    if (c.type() == Color::Type::MODEL_VALUE)
       return interpModelColor(c, c.value());
     else
       return interpModelColor(c, value);
   }
-  else if (c.type() == CQChartsColor::Type::LIGHTER ||
-           c.type() == CQChartsColor::Type::LIGHTER_VALUE) {
-    if (c.type() == CQChartsColor::Type::LIGHTER_VALUE)
+  else if (c.type() == Color::Type::LIGHTER ||
+           c.type() == Color::Type::LIGHTER_VALUE) {
+    if (c.type() == Color::Type::LIGHTER_VALUE)
       return ic.lighter(150 + c.value());
     else
       return ic.lighter();
   }
-  else if (c.type() == CQChartsColor::Type::DARKER ||
-           c.type() == CQChartsColor::Type::DARKER_VALUE) {
-    if (c.type() == CQChartsColor::Type::DARKER_VALUE)
+  else if (c.type() == Color::Type::DARKER ||
+           c.type() == Color::Type::DARKER_VALUE) {
+    if (c.type() == Color::Type::DARKER_VALUE)
       return ic.darker(150 + c.value());
     else
       return ic.darker();
@@ -1262,12 +1265,12 @@ theme()
 
 CQChartsColor
 CQCharts::
-adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const
+adjustDefaultPalette(const Color &c, const QString &defaultPalette) const
 {
   assert(defaultPalette.length());
 
-  if ((c.type() == CQChartsColor::Type::PALETTE ||
-       c.type() == CQChartsColor::Type::PALETTE_VALUE) &&
+  if ((c.type() == Color::Type::PALETTE ||
+       c.type() == Color::Type::PALETTE_VALUE) &&
       ! c.hasPaletteIndex() && ! c.hasPaletteName()) {
     auto c1 = c;
 
@@ -1283,7 +1286,7 @@ adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) cons
 
 QColor
 CQCharts::
-interpModelColor(const CQChartsColor &c, double value) const
+interpModelColor(const Color &c, double value) const
 {
   int ir, ig, ib;
 

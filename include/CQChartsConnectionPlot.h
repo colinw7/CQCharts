@@ -591,6 +591,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
 class CQEnumCombo;
 
+/*!
+ * \brief Connection Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

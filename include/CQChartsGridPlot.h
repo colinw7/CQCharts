@@ -210,6 +210,10 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Grid Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

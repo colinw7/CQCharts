@@ -1265,10 +1265,14 @@ addPointObjects(PlotObjs &objs) const
             symbolSize = Length();
         }
 
+        auto symbolSize1 = symbolSize;
+
+        if (! symbolSize1.isValid())
+          symbolSize1 = this->symbolSize();
+
         double sx, sy;
 
-        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(),
-                       sx, sy, symbolSizeDir);
+        plotSymbolSize(symbolSize1, sx, sy, symbolSizeDir);
 
         //---
 
@@ -1295,6 +1299,11 @@ addPointObjects(PlotObjs &objs) const
 
         //---
 
+        if (! symbolSizeVisible(symbolSize))
+          pointObj->setFiltered(true);
+
+        //---
+
         // set optional symbol
         Symbol symbol;
 
@@ -1303,8 +1312,12 @@ addPointObjects(PlotObjs &objs) const
             symbol = Symbol();
         }
 
-        if (symbol.isValid())
+        if (symbol.isValid()) {
           pointObj->setSymbol(symbol);
+
+          if (! symbolTypeVisible(symbol))
+            pointObj->setFiltered(true);
+        }
 
         //---
 
@@ -1342,8 +1355,14 @@ addPointObjects(PlotObjs &objs) const
             symbolColor = Color();
         }
 
-        if (symbolColor.isValid())
+        if (symbolColor.isValid()) {
+          auto c = interpColor(symbolColor, ColorInd());
+
+          if (! colorVisible(c))
+            pointObj->setFiltered(true);
+
           pointObj->setColor(symbolColor);
+        }
 
         //---
 
@@ -3736,6 +3755,9 @@ void
 CQChartsScatterPointObj::
 draw(PaintDevice *device) const
 {
+  if (isFiltered())
+    return;
+
   if (this->isMinSymbolSize())
     return;
 
@@ -4372,12 +4394,18 @@ fillBrush() const
 
   CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
 
-  auto ih = setIndex();
-
-  if (plot_->isSetHidden(ih.i))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
+}
+
+bool
+CQChartsScatterColorKeyItem::
+calcHidden() const
+{
+  auto ih = setIndex();
+
+  return plot_->isSetHidden(ih.i);
 }
 
 bool

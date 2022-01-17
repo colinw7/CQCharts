@@ -132,9 +132,10 @@ create(View *view, const ModelP &model) const
 CQChartsDendrogramPlot::
 CQChartsDendrogramPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("dendrogram"), model),
- CQChartsObjNodeShapeData<CQChartsDendrogramPlot>(this),
- CQChartsObjEdgeLineData <CQChartsDendrogramPlot>(this),
- CQChartsObjTextData     <CQChartsDendrogramPlot>(this)
+ CQChartsObjNodeShapeData    <CQChartsDendrogramPlot>(this),
+ CQChartsObjEdgeLineData     <CQChartsDendrogramPlot>(this),
+ CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>(this),
+ CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot>(this)
 {
 }
 
@@ -161,6 +162,11 @@ init()
   //---
 
   addTitle();
+
+  //---
+
+  setHierLabelTextAlign(Qt::AlignRight | Qt::AlignVCenter);
+  setLeafLabelTextAlign(Qt::AlignLeft  | Qt::AlignVCenter);
 }
 
 void
@@ -184,21 +190,30 @@ addProperties()
   addProp("columns", "sizeColumn" , "size" , "Size column" );
 
   // node
-  addProp("node", "circleSize", "circleSize", "Circle size in pixels")->setMinValue(1.0);
+  addProp("node", "circleSize", "circleSize", "Circle size in pixels");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeStroke", "Node");
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
-  // label
-//addProp("label/text", "textVisible", "visible", "Labels visible");
+  // hier label
+  addProp("label/hier", "hierLabelTextVisible", "visible", "Hier Labels visible");
 
-  addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+  addTextProperties("label/hier", "hierLabelText", "Hier Label",
+                    CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  addProp("label/leaf", "leafLabelTextVisible", "visible", "Leaf Labels visible");
+
+  addTextProperties("label/leaf", "leafLabelText", "Leaf Label",
+                    CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("label", "textMargin", "margin", "Text margin in pixels")->setMinValue(1.0);
 
+  // options
   addProp("options", "placeType"  , "placeType"  , "Place type");
   addProp("options", "orientation", "orientation", "Draw orientation");
 }
@@ -219,6 +234,15 @@ CQChartsDendrogramPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    needsReload_ = true; updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setColorColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
     needsReload_ = true; updateRangeAndObjs(); emit customDataChanged();
   } );
 }
@@ -261,12 +285,33 @@ setNamedColumn(const QString &name, const Column &c)
 
 void
 CQChartsDendrogramPlot::
-setCircleSize(double r)
+setCircleSize(const Length &s)
 {
-  CQChartsUtil::testAndSet(circleSize_, r, [&]() {
+  CQChartsUtil::testAndSet(circleSize_, s, [&]() {
     needsPlace_ = true; updateRangeAndObjs();
   } );
 }
+
+double
+CQChartsDendrogramPlot::
+calcCircleSize() const
+{
+  auto ss = lengthPixelWidth(circleSize_);
+
+  if (ss <= 0) {
+    auto hfont = view()->plotFont(this, hierLabelTextFont());
+    auto lfont = view()->plotFont(this, leafLabelTextFont());
+
+    QFontMetricsF hfm(hfont);
+    QFontMetricsF lfm(lfont);
+
+    ss = std::max(hfm.height(), lfm.height()) + 2.0;
+  }
+
+  return ss;
+}
+
+//---
 
 void
 CQChartsDendrogramPlot::
@@ -489,6 +534,8 @@ place() const
 
     buchheimDrawTree_->place();
 
+    buchheimDrawTree_->fixOverlaps();
+
     buchheimDrawTree_->normalize(/*equalScale*/false);
 
     //---
@@ -638,8 +685,13 @@ calcExtraFitBBox() const
 
   for (const auto &plotObj : plotObjs_) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+    if (! nodeObj) continue;
 
-    if (nodeObj)
+    bool is_hier = nodeObj->isHier();
+
+    bool textVisible = (is_hier ? isHierLabelTextVisible() : isLeafLabelTextVisible());
+
+    if (textVisible)
       bbox += nodeObj->textRect();
   }
 
@@ -793,7 +845,7 @@ getBBox(Node *node) const
   if (placeType() == PlaceType::BUCHHEIM)
     return node->bbox();
 
-  double cs = std::max(circleSize(), 1.0);
+  double cs = std::max(calcCircleSize(), 1.0);
 //double tm = std::max(textMargin(), 1.0);
 
   double cw = pixelToWindowWidth (cs);
@@ -805,7 +857,10 @@ getBBox(Node *node) const
   double xc = node->x();
   double yc = node->yc();
 
-  return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
+  if (orientation() == Qt::Horizontal)
+    return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
+  else
+    return BBox(yc - cw/2.0, 1.0 - (xc - ch/2.0), yc + cw/2.0, 1.0 - (xc + ch/2.0));
 }
 
 //------
@@ -921,6 +976,17 @@ calcTipId() const
 
 //---
 
+bool
+CQChartsDendrogramNodeObj::
+inside(const Point &p) const
+{
+  auto rect = displayRect();
+
+  return rect.inside(p);
+}
+
+//---
+
 CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
@@ -932,13 +998,15 @@ textRect() const
 
   //---
 
-  auto font = plot()->view()->plotFont(plot(), plot()->textFont());
+  bool is_hier = this->isHier();
+
+  auto font = (is_hier ?
+    plot()->view()->plotFont(plot(), plot()->hierLabelTextFont()) :
+    plot()->view()->plotFont(plot(), plot()->leafLabelTextFont()));
 
   QFontMetricsF fm(font);
 
   const auto &name = this->name();
-
-  bool is_hier = this->isHier();
 
   double dy = (fm.ascent() - fm.descent())/2;
 
@@ -988,10 +1056,10 @@ draw(PaintDevice *device) const
 
     double color = 0.0;
 
-    if (isHier())
+    if (is_hier)
       color = hierColor();
     else
-      color = this->color().real();
+      color = this->color().realOr(0.0);
 
     auto c = plot()->colorFromColorMapPaletteValue(color/maxColor);
 
@@ -1009,72 +1077,86 @@ draw(PaintDevice *device) const
   //---
 
   // draw node
+  auto ss = plot()->windowToPixelWidth(rect1.getWidth()/2.0);
+
   if (colored) {
-    if (isHier()) {
-      auto f = 1.0/std::sqrt(2.0);
-
-      auto rect2 = rect1.centerScaled(f, f);
-
-      CQChartsDrawUtil::drawRoundedRect(device, rect2, Length(),
-                                        Sides(Sides::Side::ALL), Angle::degrees(45));
-    }
+    if (is_hier)
+      CQChartsDrawUtil::drawSymbol(device, CQChartsSymbol::diamond(), rect1.getCenter(),
+                                   Length::pixel(ss), /*scale*/false);
     else
-      device->drawEllipse(rect1);
+      CQChartsDrawUtil::drawSymbol(device, CQChartsSymbol::circle(), rect1.getCenter(),
+                                   Length::pixel(ss), /*scale*/false);
   }
-  else
-    device->drawEllipse(rect1);
+  else {
+    if (is_hier)
+      CQChartsDrawUtil::drawSymbol(device, CQChartsSymbol::diamond(), rect1.getCenter(),
+                                   Length::pixel(ss), /*scale*/false);
+    else
+      CQChartsDrawUtil::drawSymbol(device, CQChartsSymbol::circle(), rect1.getCenter(),
+                                   Length::pixel(ss), /*scale*/false);
+  }
 
   //---
 
   // draw node text
-  PenBrush tpenBrush;
+  bool textVisible = (is_hier ? plot_->isHierLabelTextVisible() : plot_->isLeafLabelTextVisible());
 
-  auto tc = plot()->interpTextColor(colorInd);
+  if (textVisible) {
+    PenBrush tpenBrush;
 
-  plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, plot()->textAlpha()));
+    auto tc = (is_hier ? plot()->interpHierLabelTextColor(colorInd) :
+                         plot()->interpLeafLabelTextColor(colorInd));
 
-  device->setPen(tpenBrush.pen);
+    auto ta = (is_hier ? plot()->hierLabelTextAlpha() : plot()->leafLabelTextAlpha());
 
-  //---
+    plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
 
-  plot()->setPainterFont(device, plot()->textFont());
+    device->setPen(tpenBrush.pen);
 
-  //---
+    //---
 
-  const auto &name = this->name();
+    auto font = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
 
-  QFontMetricsF fm(device->font());
+    plot()->setPainterFont(device, font);
 
-  double dy = (fm.ascent() - fm.descent())/2.0;
-  double dx = fm.width(name);
+    //---
 
-  BBox pbbox = plot()->windowToPixel(rect1);
+    const auto &name = this->name();
 
-  Point p;
+    QFontMetricsF fm(device->font());
 
-  if (plot()->orientation() == Qt::Horizontal) {
-    if (is_hier)
-      p = Point(pbbox.getXMin() - dx - tm, pbbox.getYMid() + dy); // align right
-    else
-      p = Point(pbbox.getXMax()      + tm, pbbox.getYMid() + dy); // align left
+    double dy = (fm.ascent() - fm.descent())/2.0;
+    double dx = fm.width(name);
+
+    BBox pbbox = plot()->windowToPixel(rect1);
+
+    Point p;
+
+    if (plot()->orientation() == Qt::Horizontal) {
+      if (is_hier)
+        p = Point(pbbox.getXMin() - dx - tm, pbbox.getYMid() + dy); // align right
+      else
+        p = Point(pbbox.getXMax()      + tm, pbbox.getYMid() + dy); // align left
+    }
+    else {
+      if (is_hier)
+        p = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMin() - tm + dy); // align top
+      else
+        p = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMax() + tm + dy); // align bottom
+    }
+
+    // only support contrast and clip
+    auto textOptions = (is_hier ?
+      plot()->hierLabelTextOptions(device) : plot()->leafLabelTextOptions(device));
+
+    textOptions.angle     = Angle();
+    textOptions.align     = Qt::AlignLeft;
+    textOptions.formatted = false;
+    textOptions.scaled    = false;
+    textOptions.html      = false;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, plot()->pixelToWindow(p), name, textOptions);
   }
-  else {
-    if (is_hier)
-      p = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMin() - tm + dy); // align top
-    else
-      p = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMax() + tm + dy); // align bottom
-  }
-
-  // only support contrast
-  auto textOptions = plot()->textOptions(device);
-
-  textOptions.angle     = Angle();
-  textOptions.align     = Qt::AlignLeft;
-  textOptions.formatted = false;
-  textOptions.scaled    = false;
-  textOptions.html      = false;
-
-  CQChartsDrawUtil::drawTextAtPoint(device, plot()->pixelToWindow(p), name, textOptions);
 
   //---
 
@@ -1138,12 +1220,14 @@ displayRect() const
 
     double size = 0.0;
 
-    if (isHier())
+    bool is_hier = this->isHier();
+
+    if (is_hier)
       size = hierSize();
     else
       size = this->size().real();
 
-    auto symbolSize = CMathUtil::map(size, 0.0, maxSize, 0.0, rect1.getWidth());
+    auto symbolSize = CMathUtil::mapSqr(size, 0.0, maxSize, 0.0, rect1.getWidth());
 
     auto f = std::min(symbolSize/rect1.getWidth(), symbolSize/rect1.getHeight());
 

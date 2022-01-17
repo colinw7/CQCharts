@@ -50,7 +50,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
   //---
 
-  QPainter *painter() const { return painter_; }
+  QPainter *painter() const override { return painter_; }
 
   void save   () override;
   void restore() override;

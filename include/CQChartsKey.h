@@ -36,6 +36,7 @@ class CQChartsKey : public CQChartsBoxObj,
   Q_PROPERTY(bool                     above         READ isAbove       WRITE setAbove        )
   Q_PROPERTY(CQChartsKeyLocation      location      READ location      WRITE setLocation     )
   Q_PROPERTY(QString                  header        READ headerStr     WRITE setHeaderStr    )
+  Q_PROPERTY(CQChartsColor            hiddenColor   READ hiddenColor   WRITE setHiddenColor  )
   Q_PROPERTY(CQChartsAlpha            hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
   Q_PROPERTY(int                      columns       READ columns       WRITE setColumns      )
   Q_PROPERTY(int                      maxRows       READ maxRows       WRITE setMaxRows      )
@@ -53,6 +54,7 @@ class CQChartsKey : public CQChartsBoxObj,
   using KeyBehavior   = CQChartsKeyPressBehavior;
   using OptLength     = CQChartsOptLength;
   using Font          = CQChartsFont;
+  using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
   using ColorInd      = CQChartsUtil::ColorInd;
 
@@ -112,9 +114,16 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
+  //! get/set color when associated object hidden
+  const Color &hiddenColor() const { return hiddenColor_; }
+  void setHiddenColor(const Color &c);
+
   //! get/set alpha when associated object hidden
   const Alpha &hiddenAlpha() const { return hiddenAlpha_; }
   void setHiddenAlpha(const Alpha &a);
+
+  //! calc color if hidden
+  virtual QColor calcHiddenColor(const QColor &c) const;
 
   //---
 
@@ -180,6 +189,7 @@ class CQChartsKey : public CQChartsBoxObj,
   bool               autoHide_       { true };         //!< auto hide if too big
   bool               clipped_        { true };         //!< clipped to parent
   bool               interactive_    { true };         //!< is interactive
+  Color              hiddenColor_;                     //!< color for hidden item
   Alpha              hiddenAlpha_    { 0.3 };          //!< alpha for hidden item
   int                columns_        { 1 };            //!< columns
   int                maxRows_        { 100 };          //!< max rows
@@ -465,7 +475,11 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
+  QColor calcHiddenColor(const QColor &c) const override;
+
   QColor interpBgColor() const;
+
+  //---
 
  private slots:
   void hscrollSlot(int);
@@ -696,6 +710,8 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   virtual bool isSetHidden() const;
   virtual void setSetHidden(bool b);
 
+  virtual bool calcHidden() const;
+
   //---
 
   virtual QVariant drawValue() const { return QVariant(); }
@@ -761,6 +777,14 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   //---
 
   bool tipText(const Point &p, QString &tip) const override;
+
+  //---
+
+  KeyItem *getItemAt(const Point &p) const;
+
+  bool setInsideItem(KeyItem *item);
+
+  void updateInside();
 
   //---
 
@@ -863,6 +887,8 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
 
   const Color &color() const { return color_; }
   void setColor(const Color &color) { color_ = color; }
+
+  bool calcHidden() const override;
 
   //---
 

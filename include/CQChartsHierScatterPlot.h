@@ -411,6 +411,10 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Hier Scatter Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

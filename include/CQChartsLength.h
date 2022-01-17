@@ -14,7 +14,7 @@
  * \ingroup Charts
  */
 class CQChartsLength :
-  public CQChartsEqBase<CQChartsLength>,
+  public CQChartsComparatorBase<CQChartsLength>,
   public CQChartsToStringBase<CQChartsLength> {
  public:
   static void registerMetaType();
@@ -84,11 +84,14 @@ class CQChartsLength :
 
   //---
 
-  friend bool operator==(const Length &lhs, const Length &rhs) {
-    if (lhs.units_ != rhs.units_) return false;
-    if (lhs.value_ != rhs.value_) return false;
+  //! compare for (==, !=, <, >, <=, >=)
+  friend int cmp(const Length &lhs, const Length &rhs) {
+    if (lhs.units_ > rhs.units_) return  1;
+    if (lhs.units_ < rhs.units_) return -1;
+    if (lhs.value_ > rhs.value_) return  1;
+    if (lhs.value_ < rhs.value_) return -1;
 
-    return true;
+    return 0;
   }
 
   //---

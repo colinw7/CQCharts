@@ -12,6 +12,10 @@ class CQChartsView;
 
 class QCheckBox;
 
+/*!
+ * \brief Preview Plot Widget
+ * \ingroup Charts
+ */
 class CQChartsPreviewPlot : public QFrame {
   Q_OBJECT
 

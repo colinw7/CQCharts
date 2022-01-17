@@ -324,6 +324,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Force Directed Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

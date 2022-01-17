@@ -284,6 +284,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   CQChartsSymbolTypeMapKey *symbolTypeMapKey() const { return symbolTypeMapKey_.get(); }
 
+  bool symbolTypeVisible(const Symbol &symbol) const override;
+
   //---
 
   // symbol size column and map
@@ -316,6 +318,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   virtual const Symbol &fixedSymbol() const = 0;
 
   CQChartsSymbolSizeMapKey *symbolSizeMapKey() const { return symbolSizeMapKey_.get(); }
+
+  bool symbolSizeVisible(const Length &size) const override;
 
   //---
 
@@ -562,6 +566,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void setSymbolSizeMapKey(bool b);
   void setSymbolTypeMapKey(bool b);
 
+  void symbolSizeSelected(const CQChartsLength &size, bool visible);
+  void symbolTypeSelected(const CQChartsSymbol &symbol, bool visible);
+
   // overlays
   void setBestFit       (bool b);
   void setHull          (bool b);
@@ -617,12 +624,15 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
-  using DataLabelP    = std::shared_ptr<DataLabel>;
-  using GroupPoints   = std::map<int, Points>;
-  using GroupStatData = std::map<int, StatData>;
-  using GroupFitData  = std::map<int, BestFit *>;
-  using GroupHull     = std::map<int, Hull *>;
-  using RugP          = std::unique_ptr<CQChartsAxisRug>;
+  using DataLabelP       = std::shared_ptr<DataLabel>;
+  using GroupPoints      = std::map<int, Points>;
+  using GroupStatData    = std::map<int, StatData>;
+  using GroupFitData     = std::map<int, BestFit *>;
+  using GroupHull        = std::map<int, Hull *>;
+  using RugP             = std::unique_ptr<CQChartsAxisRug>;
+  using Real             = CQChartsGeom::Real;
+  using SymbolSizeFilter = std::set<Real>;
+  using SymbolTypeFilter = std::set<Symbol>;
 
   DataLabelP dataLabel_; //!< data label style
 
@@ -637,6 +647,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   SymbolTypeMapKeyP symbolTypeMapKey_; //!< symbol type map key
   SymbolSizeMapKeyP symbolSizeMapKey_; //!< symbol size map key
+
+  SymbolSizeFilter symbolSizeFilter_; //!< symbol size map filter
+  SymbolTypeFilter symbolTypeFilter_; //!< symbol type map filter
 
   // plot overlay data
   BestFitData bestFitData_; //!< best fit data

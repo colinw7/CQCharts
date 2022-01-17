@@ -419,6 +419,8 @@ class CQChartsPieColorKeyItem : public CQChartsColorBoxKeyItem {
 
   QBrush fillBrush() const override;
 
+  bool calcHidden() const override;
+
   ColorInd setIndex() const override;
 
  private:
@@ -442,6 +444,8 @@ class CQChartsPieTextKeyItem : public CQChartsTextKeyItem {
   QColor interpTextColor(const ColorInd &ind) const override;
 
   ColorInd setIndex() const override;
+
+  bool calcHidden() const override;
 
  private:
   PlotObj* obj_ { nullptr };
@@ -901,6 +905,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
 class CQEnumCombo;
 
+/*!
+ * \brief Pie Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 

@@ -594,6 +594,10 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Table Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

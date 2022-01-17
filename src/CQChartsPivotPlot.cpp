@@ -1946,14 +1946,20 @@ fillBrush() const
 
   auto fc = plot->interpBarFillColor(ig_);
 
-  if (plot_->isSetHidden(ig_.i))
-    fc = CQChartsUtil::blendColors(fc, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(fc);
 
   PenBrush penBrush;
 
   plot->setBrush(penBrush, plot->barBrushData(fc));
 
   return penBrush.brush;
+}
+
+bool
+CQChartsPivotKeyColor::
+calcHidden() const
+{
+  return plot_->isSetHidden(ig_.i);
 }
 
 //------

@@ -111,6 +111,10 @@ class CQChartsContourPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Contour Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

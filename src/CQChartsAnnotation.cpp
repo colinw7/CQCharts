@@ -8053,7 +8053,7 @@ draw(PaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   // draw circles
-  key_->drawCircles(device, /*usePenBrush*/true);
+  key_->drawCircles(device, CQChartsMapKey::DrawType::NONE, /*usePenBrush*/true);
 
   //---
 

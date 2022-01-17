@@ -2163,13 +2163,13 @@ CQChartsScatterKeyColor3D(CQChartsScatterPlot3D *plot, int groupInd, const Color
 
 bool
 CQChartsScatterKeyColor3D::
-selectPress(const Point &, CQChartsSelMod selMod)
+selectPress(const Point &, SelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
 
   int ih = hideIndex();
 
-  if (selMod == CQChartsSelMod::ADD) {
+  if (selMod == SelMod::ADD) {
     for (int i = 0; i < ic_.n; ++i) {
       plot_->CQChartsPlot::setSetHidden(i, i != ih);
     }
@@ -2199,12 +2199,20 @@ fillBrush() const
 
   CQChartsDrawUtil::setColorAlpha(c, plot->symbolFillAlpha());
 
-  int ih = hideIndex();
-
-  if (plot->isSetHidden(ih))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  adjustFillColor(c);
 
   return c;
+}
+
+bool
+CQChartsScatterKeyColor3D::
+calcHidden() const
+{
+  auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
+
+  int ih = hideIndex();
+
+  return plot->isSetHidden(ih);
 }
 
 int

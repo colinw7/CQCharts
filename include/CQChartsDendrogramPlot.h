@@ -114,6 +114,12 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
   BBox textRect() const;
 
   void draw(PaintDevice *device) const override;
@@ -143,14 +149,18 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 //---
 
+CQCHARTS_NAMED_TEXT_DATA(HierLabel, hierLabel)
+CQCHARTS_NAMED_TEXT_DATA(LeafLabel, leafLabel)
+
 /*!
  * \brief Dendrogram Plot
  * \ingroup Charts
  */
 class CQChartsDendrogramPlot : public CQChartsPlot,
- public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,
- public CQChartsObjEdgeLineData <CQChartsDendrogramPlot>,
- public CQChartsObjTextData     <CQChartsDendrogramPlot> {
+ public CQChartsObjNodeShapeData    <CQChartsDendrogramPlot>,
+ public CQChartsObjEdgeLineData     <CQChartsDendrogramPlot>,
+ public CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>,
+ public CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot> {
   Q_OBJECT
 
   // columns
@@ -159,7 +169,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
 
   // node
-  Q_PROPERTY(double circleSize READ circleSize WRITE setCircleSize)
+  Q_PROPERTY(CQChartsLength circleSize READ circleSize WRITE setCircleSize)
 
   // label
   Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin)
@@ -175,8 +185,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   // edge line
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
 
-  // labels
-  CQCHARTS_TEXT_DATA_PROPERTIES
+  // hier, leaf labels
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(HierLabel, hierLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(LeafLabel, leafLabel)
 
   Q_ENUMS(PlaceType)
 
@@ -185,6 +196,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   using HierNode  = CQChartsDendrogram::HierNode;
   using Node      = CQChartsDendrogram::Node;
   using Color     = CQChartsColor;
+  using Length    = CQChartsLength;
   using PenBrush  = CQChartsPenBrush;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
@@ -213,6 +225,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
 
+  void setColorColumn(const Column &c) override;
+
   //! get/set value column
   const Column &sizeColumn() const { return sizeColumn_; }
   void setSizeColumn(const Column &c);
@@ -226,8 +240,12 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   //---
 
   //! get/set circle size
-  double circleSize() const { return circleSize_; }
-  void setCircleSize(double r);
+  const Length &circleSize() const { return circleSize_; }
+  void setCircleSize(const Length &s);
+
+  double calcCircleSize() const;
+
+  //---
 
   //! get/set text margin
   double textMargin() const { return textMargin_; }
@@ -295,7 +313,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Column          valueColumn_;                           //!< value column
   Column          sizeColumn_;                            //!< size column
   Dendrogram*     dendrogram_  { nullptr };               //!< dendrogram class
-  double          circleSize_  { 8.0 };                   //!< circle size
+  Length          circleSize_  { Length::pixel(32.0) };   //!< circle size
   double          textMargin_  { 4.0 };                   //!< text margin
   PlaceType       placeType_   { PlaceType::DENDROGRAM }; //!< place type
   Qt::Orientation orientation_ { Qt::Horizontal };        //!< draw direction
@@ -313,6 +331,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
 #include <CQChartsPlotCustomControls.h>
 
+/*!
+ * \brief Dendrogram Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

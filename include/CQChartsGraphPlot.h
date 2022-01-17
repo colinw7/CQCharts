@@ -54,6 +54,10 @@ class CQChartsGraphGraphObj;
 class CQChartsGraphNodeObj;
 class CQChartsGraphEdgeObj;
 
+/*!
+ * \brief Graph Plot Graph Manager
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotMgr : public CQChartsGraphMgr {
  public:
   CQChartsGraphPlotMgr(CQChartsGraphPlot *plot);
@@ -69,6 +73,10 @@ class CQChartsGraphPlotMgr : public CQChartsGraphMgr {
   CQChartsGraphPlot* plot_ { nullptr };
 };
 
+/*!
+ * \brief Graph Plot Graph
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotGraph : public CQChartsGraphGraph {
  public:
   using Obj = CQChartsGraphGraphObj;
@@ -90,6 +98,10 @@ class CQChartsGraphPlotGraph : public CQChartsGraphGraph {
   Obj* obj_ { nullptr }; //!< graph plot object
 };
 
+/*!
+ * \brief Graph Plot Node
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotNode : public CQChartsGraphNode {
  public:
   using Obj = CQChartsGraphNodeObj;
@@ -111,6 +123,10 @@ class CQChartsGraphPlotNode : public CQChartsGraphNode {
   Obj* obj_ { nullptr }; //!< node plot object
 };
 
+/*!
+ * \brief Graph Plot Edge
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotEdge : public CQChartsGraphEdge {
  public:
   using Obj = CQChartsGraphEdgeObj;
@@ -834,6 +850,10 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Graph Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

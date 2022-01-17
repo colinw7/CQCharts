@@ -365,6 +365,10 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
 class CQChartsParallelPlotColumnChooser;
 
+/*!
+ * \brief Parallel Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 
@@ -400,6 +404,10 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
 
 //---
 
+/*!
+ * \brief Parallel Plot Column Chooser Widget
+ * \ingroup Charts
+ */
 class CQChartsParallelPlotColumnChooser : public CQChartsPlotColumnChooser {
   Q_OBJECT
 

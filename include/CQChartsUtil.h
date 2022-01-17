@@ -546,4 +546,31 @@ QImage disabledImage(const QImage &image, const QColor &bg, double f=0.5);
 
 //------
 
+namespace CQChartsUtil {
+
+inline CQChartsSelMod modifiersToSelMod(Qt::KeyboardModifiers modifiers) {
+  if      ((modifiers & Qt::ControlModifier) && (modifiers & Qt::ShiftModifier))
+    return CQChartsSelMod::TOGGLE;
+  else if (modifiers & Qt::ControlModifier)
+    return CQChartsSelMod::ADD;
+  else if (modifiers & Qt::ShiftModifier)
+    return CQChartsSelMod::REMOVE;
+  else
+    return CQChartsSelMod::REPLACE;
+}
+
+inline CQChartsSelMod modifiersToClickMod(Qt::KeyboardModifiers modifiers) {
+  if      ((modifiers & Qt::ControlModifier) && (modifiers & Qt::ShiftModifier))
+    return CQChartsSelMod::ADD;
+  else if (modifiers & Qt::ControlModifier)
+    return CQChartsSelMod::REPLACE;
+  else if (modifiers & Qt::ShiftModifier)
+    return CQChartsSelMod::REMOVE;
+  else
+    return CQChartsSelMod::TOGGLE;
+}
+}
+
+//------
+
 #endif

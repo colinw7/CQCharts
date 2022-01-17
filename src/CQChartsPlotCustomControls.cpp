@@ -395,10 +395,14 @@ createColumnControlGroup(const QString &name, const QString &title)
   auto *columnControlsLayout =
     CQUtil::makeLayout<QHBoxLayout>(columnControlGroupData.columnControls, 0, 0);
 
-  columnControlsLayout->addWidget(columnControlGroupData.columnFrame.frame);
+  auto *columnLeftLayout = CQUtil::makeLayout<QVBoxLayout>(columnControlsLayout, 0, 0);
+
+  columnLeftLayout->addWidget(columnControlGroupData.columnFrame.frame);
 
   columnControlGroupData.group->addFixedWidget (columnControlGroupData.fixedFrame.frame);
   columnControlGroupData.group->addColumnWidget(columnControlGroupData.columnControls  );
+
+  columnLeftLayout->addStretch(1);
 
   return columnControlGroupData;
 }
@@ -434,6 +438,8 @@ createFrame(const QString &objName, bool stretch)
 
   if (stretch)
     frameData.layout->setColumnStretch(1, 1);
+
+  frameData.frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   return frameData;
 }

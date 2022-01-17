@@ -1001,7 +1001,7 @@ CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPo
 
 bool
 CQChartsHierScatterKeyColor::
-selectPress(const Point &, CQChartsSelMod)
+selectPress(const Point &, SelMod)
 {
   auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
@@ -1019,10 +1019,7 @@ fillBrush() const
 {
   auto c = CQChartsColorBoxKeyItem::fillBrush().color();
 
-  //auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
-
-  //if (plot->isSetHidden(ic_.i))
-  //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  //adjustFillColor(c);
 
   return c;
 }

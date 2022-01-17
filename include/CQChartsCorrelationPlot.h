@@ -285,6 +285,10 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
 class CQChartsEnumParameterEdit;
 
+/*!
+ * \brief Correlation Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 

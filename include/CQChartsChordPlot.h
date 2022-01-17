@@ -686,6 +686,10 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
 //---
 
+/*!
+ * \brief Chord Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsChordPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 

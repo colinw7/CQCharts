@@ -166,7 +166,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 //---
 
 /*!
- *  \brief box plot whisker object
+ * \brief box plot whisker object
  */
 class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_OBJECT
@@ -457,6 +457,8 @@ class CQChartsBoxKeyColor : public CQChartsColorBoxKeyItem {
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;
 
+  bool calcHidden() const override;
+
  private:
   using WhiskerObj = CQChartsBoxPlotWhiskerObj;
 
@@ -477,6 +479,8 @@ class CQChartsBoxKeyText : public CQChartsTextKeyItem {
   CQChartsBoxKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
 
   QColor interpTextColor(const ColorInd &ind) const override;
+
+  bool calcHidden() const override;
 };
 
 //---
@@ -988,6 +992,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 class CQChartsBoxPlotColumnChooser;
 class CQEnumCombo;
 
+/*!
+ * \brief Box Plot plot custom controls
+ * \ingroup Charts
+ */
 class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   Q_OBJECT
 
@@ -1040,6 +1048,10 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
 //---
 
+/*!
+ * \brief Column Chooser
+ * \ingroup Charts
+ */
 class CQChartsBoxPlotColumnChooser : public CQChartsPlotColumnChooser {
   Q_OBJECT
 
