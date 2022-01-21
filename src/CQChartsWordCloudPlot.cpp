@@ -517,7 +517,7 @@ draw(PaintDevice *device) const
 
   auto textOptions = plot_->textOptions();
 
-  textOptions.angle            = CQChartsAngle();
+  textOptions.angle            = Angle();
   textOptions.align            = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.scaled           = true;
   textOptions.minScaleFontSize = 4;

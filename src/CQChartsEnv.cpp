@@ -5,6 +5,13 @@
 
 namespace CQChartsEnv {
 
+QString getString(const char *name, const QString &def) {
+  auto *env = getenv(name);
+  if (! env) return def;
+
+  return QString(env);
+}
+
 bool getBool(const char *name, bool def) {
   auto *env = getenv(name);
   if (! env) return def;

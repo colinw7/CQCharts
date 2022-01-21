@@ -918,7 +918,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
 }
 
 //------

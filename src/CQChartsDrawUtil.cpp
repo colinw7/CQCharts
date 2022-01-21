@@ -12,7 +12,7 @@
 namespace CQChartsDrawUtil {
 
 void
-setPenBrush(CQChartsPaintDevice *device, const PenBrush &penBrush)
+setPenBrush(PaintDevice *device, const PenBrush &penBrush)
 {
   device->setPen      (penBrush.pen);
   device->setBrush    (penBrush.brush);

@@ -487,6 +487,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   using BrushData = CQChartsBrushData;
   using PenData   = CQChartsPenData;
   using Symbol    = CQChartsSymbol;
+  using Length    = CQChartsLength;
   using ColorInd  = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;

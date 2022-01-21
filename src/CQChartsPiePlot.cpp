@@ -720,11 +720,11 @@ calcRange() const
 
   auto   angle1 = startAngle();
   double alen   = CQChartsUtil::clampDegrees(angleExtent().value());
-  auto   angle2 = CQChartsAngle(angle1.value() + alen);
+  auto   angle2 = Angle(angle1.value() + alen);
 
   // add segment outside points
-  dataRange.updateRange(CQChartsAngle::circlePoint(c, r, angle1));
-  dataRange.updateRange(CQChartsAngle::circlePoint(c, r, angle2));
+  dataRange.updateRange(Angle::circlePoint(c, r, angle1));
+  dataRange.updateRange(Angle::circlePoint(c, r, angle2));
 
   // add intermediate points (every 90 degree point between outside points)
   double a1 = 90.0*CMathRound::RoundDownF(angle1.value()/90.0);
@@ -732,13 +732,13 @@ calcRange() const
   if (angle1 < angle2) {
     for (double a = a1; a < angle2.value(); a += 90.0) {
       if (a > angle1.value() && a < angle2.value())
-        dataRange.updateRange(CQChartsAngle::circlePoint(c, r, CQChartsAngle(a)));
+        dataRange.updateRange(Angle::circlePoint(c, r, Angle(a)));
     }
   }
   else {
     for (double a = a1; a > angle2.value(); a -= 90.0) {
       if (a > angle2.value() && a < angle1.value())
-        dataRange.updateRange(CQChartsAngle::circlePoint(c, r, CQChartsAngle(a)));
+        dataRange.updateRange(Angle::circlePoint(c, r, Angle(a)));
     }
   }
 
@@ -2176,7 +2176,7 @@ extraFitBBox() const
   auto textOptions = plot_->textLabelTextOptions();
 
   // if full circle always draw text at center
-  if (CQChartsAngle::isCircle(angle1(), angle2())) {
+  if (Angle::isCircle(angle1(), angle2())) {
     auto pc = plot_->windowToPixel(c);
 
     auto textOptions1 = textOptions;
@@ -2210,7 +2210,7 @@ extraFitBBox() const
     //---
 
     // text angle (mid angle)
-    auto ta = CQChartsAngle::avg(angle1(), angle2());
+    auto ta = Angle::avg(angle1(), angle2());
 
     //---
 
@@ -2226,7 +2226,7 @@ extraFitBBox() const
     }
     else {
       // calc text position
-      auto pt = CQChartsAngle::circlePoint(c, lr1, ta);
+      auto pt = Angle::circlePoint(c, lr1, ta);
 
       // calc text angle
       Angle angle = ta;
@@ -2237,7 +2237,7 @@ extraFitBBox() const
       // calc text box
       auto textOptions1 = textOptions;
 
-      textOptions1.angle = Angle(angle);
+      textOptions1.angle = angle;
       textOptions1.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
       bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_),
@@ -2354,7 +2354,7 @@ drawSegment(PaintDevice *device) const
     // set text options
     auto textOptions = plot_->radiusLabelTextOptions(device);
 
-    textOptions.angle = CQChartsAngle::avg(aa1, aa2);
+    textOptions.angle = Angle::avg(aa1, aa2);
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -2364,7 +2364,7 @@ drawSegment(PaintDevice *device) const
 
     auto str = CQChartsUtil::realToString(r);
 
-    auto pt = CQChartsAngle::circlePoint(Point(0, 0), (ri + rv)/2.0, textOptions.angle);
+    auto pt = Angle::circlePoint(Point(0, 0), (ri + rv)/2.0, textOptions.angle);
 
     bool labelRight = (pt.x >= 0.0);
 
@@ -2648,9 +2648,9 @@ drawSegmentLabel(PaintDevice *device) const
   };
 
   // if full circle draw text at center (non-donut) or top (donut)
-  if (CQChartsAngle::isCircle(angle1(), angle2())) {
+  if (Angle::isCircle(angle1(), angle2())) {
     if (plot_->calcDonut()) {
-      auto pt = CQChartsAngle::circlePoint(c, lr1, Angle(90));
+      auto pt = Angle::circlePoint(c, lr1, Angle(90));
 
       drawLabels(pt);
     }
@@ -2660,7 +2660,7 @@ drawSegmentLabel(PaintDevice *device) const
   // draw on arc center line
   else {
     // calc text angle
-    auto ta = CQChartsAngle::avg(angle1(), angle2());
+    auto ta = Angle::avg(angle1(), angle2());
 
     // get label
     QString label;
@@ -2694,7 +2694,7 @@ drawSegmentLabel(PaintDevice *device) const
     }
     else {
       // calc text position
-      auto pt = CQChartsAngle::circlePoint(c, lr1, ta);
+      auto pt = Angle::circlePoint(c, lr1, ta);
 
       // calc text angle
       auto angle = (plot_->isRotatedText() ? ta : Angle());
@@ -2931,11 +2931,11 @@ getAdjustedCenter() const
   //---
 
   // get adjusted center (exploded state)
-  auto ta = CQChartsAngle::avg(angle1(), angle2());
+  auto ta = Angle::avg(angle1(), angle2());
 
   double er = std::max(plot_->explodeRadius(), 0.0);
 
-  auto ec = CQChartsAngle::circlePoint(c, er*rv, ta);
+  auto ec = Angle::circlePoint(c, er*rv, ta);
 
   return ec;
 }
@@ -3079,7 +3079,7 @@ inside(const Point &p) const
   auto a1 = startAngle();
   auto a2 = endAngle  ();
 
-  if (CQChartsAngle::isCircle(a1, a2))
+  if (Angle::isCircle(a1, a2))
    return true;
 
   //---
@@ -3165,7 +3165,7 @@ drawDonut(PaintDevice *device) const
   Angle aa1, aa2;
 
   if (! separated) {
-    if (CQChartsAngle::isCircle(startAngle(), endAngle())) {
+    if (Angle::isCircle(startAngle(), endAngle())) {
       aa1 = Angle(0.0);
       aa2 = Angle(360.0);
     }
@@ -3485,13 +3485,13 @@ drawDonutText(PaintDevice *device) const
   Point pt;
 
   // if full circle always draw text at center
-  if (separated || CQChartsAngle::isCircle(startAngle(), endAngle())) {
+  if (separated || Angle::isCircle(startAngle(), endAngle())) {
     pt = c;
   }
   else {
-    auto ta = CQChartsAngle::avg(startAngle(), endAngle());
+    auto ta = Angle::avg(startAngle(), endAngle());
 
-    pt = CQChartsAngle::circlePoint(c, CMathUtil::avg(ri, ro), ta);
+    pt = Angle::circlePoint(c, CMathUtil::avg(ri, ro), ta);
   }
 
   //---
@@ -3817,7 +3817,7 @@ addWidgets()
   //---
 
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
   drawTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("drawTypeCombo");
 

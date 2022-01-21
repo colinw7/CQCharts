@@ -3666,7 +3666,7 @@ draw(PaintDevice *device) const
 
     if (! image.isValid()) {
       if (symbol.isValid())
-        plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
+        plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
     }
     else {
       double aspect = (1.0*image.width())/image.height();
@@ -4913,7 +4913,7 @@ addWidgets()
   //---
 
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
   pointsCheck_ = makeOptionCheck("points");
   linesCheck_  = makeOptionCheck("lines");

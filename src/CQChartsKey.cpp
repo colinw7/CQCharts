@@ -2347,12 +2347,13 @@ bool
 CQChartsKeyItem::
 selectPress(const Point &, SelMod selMod)
 {
-  if (isClickable()) {
-    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW)
-      doShow(selMod);
-    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT)
-      doSelect(selMod);
-  }
+  if (! isClickable())
+    return false;
+
+  if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW)
+    doShow(selMod);
+  else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT)
+    doSelect(selMod);
 
   return true;
 }
@@ -2405,7 +2406,10 @@ void
 CQChartsKeyItem::
 adjustFillColor(QColor &c) const
 {
-  if (calcHidden())
+  bool hidden      = calcHidden();
+  bool groupHidden = (group_ && group_->calcHidden());
+
+  if (hidden || groupHidden)
     c = key_->calcHiddenColor(c);
 }
 
@@ -2561,6 +2565,18 @@ tipText(const Point &p, QString &tip) const
 {
   for (auto &item : items_) {
     if (item->tipText(p, tip))
+      return true;
+  }
+
+  return false;
+}
+
+bool
+CQChartsKeyItemGroup::
+calcHidden() const
+{
+  for (const auto &item : items_) {
+    if (item->calcHidden())
       return true;
   }
 
@@ -2778,8 +2794,13 @@ draw(PaintDevice *device, const BBox &rect) const
 
   auto tc = interpTextColor(ColorInd());
 
-  if (isInside() || (group_ && group_->isInside()))
+  bool inside      = (! calcHidden() && isInside());
+  bool groupInside = (group_ && ! group_->calcHidden() && group_->isInside());
+
+  if (inside || groupInside)
     tc = plot->insideColor(tc);
+
+  adjustFillColor(tc);
 
   device->setPen(tc);
 
@@ -2788,7 +2809,6 @@ draw(PaintDevice *device, const BBox &rect) const
   textOptions = plot->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawTextInBox(device, rect, text_, textOptions);
-
 }
 
 //------
@@ -2850,19 +2870,20 @@ selectPress(const Point &w, SelMod selMod)
   if (! value_.isValid())
     return CQChartsKeyItem::selectPress(w, selMod);
 
-  if (isClickable()) {
-    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
-      auto *plot = key_->plot();
+  if (! isClickable())
+    return false;
 
-      if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
-        plot->setHideValue(value_);
-      else
-        plot->setHideValue(QVariant());
+  if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
+    auto *plot = key_->plot();
 
-      plot->updateRangeAndObjs();
-    }
-    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
-    }
+    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+      plot->setHideValue(value_);
+    else
+      plot->setHideValue(QVariant());
+
+    plot->updateRangeAndObjs();
+  }
+  else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
   }
 
   return true;
@@ -2897,7 +2918,9 @@ draw(PaintDevice *device, const BBox &rect) const
   penBrush.pen   = strokePen();
   penBrush.brush = fillBrush();
 
-  if (isInside())
+  bool inside = (! calcHidden() && isInside());
+
+  if (inside)
     penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
   auto bbox = drawPlot->pixelToWindow(prect1);
@@ -3015,19 +3038,20 @@ selectPress(const Point &w, SelMod selMod)
   if (! value_.isValid())
     return CQChartsKeyItem::selectPress(w, selMod);
 
-  if (isClickable()) {
-    if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
-      auto *plot = key_->plot();
+  if (! isClickable())
+    return false;
 
-      if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
-        plot->setHideValue(value_);
-      else
-        plot->setHideValue(QVariant());
+  if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
+    auto *plot = key_->plot();
 
-      plot->updateRangeAndObjs();
-    }
-    else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
-    }
+    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+      plot->setHideValue(value_);
+    else
+      plot->setHideValue(QVariant());
+
+    plot->updateRangeAndObjs();
+  }
+  else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
   }
 
   return true;
@@ -3060,7 +3084,10 @@ draw(PaintDevice *device, const BBox &rect) const
 
   plot->setPenBrush(penBrush, PenData(true, lc), BrushData(true, fc));
 
-  if (isInside() || (group_ && group_->isInside()))
+  bool inside      = (! calcHidden() && isInside());
+  bool groupInside = (group_ && ! group_->calcHidden() && group_->isInside());
+
+  if (inside || groupInside)
     penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);

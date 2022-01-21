@@ -1166,7 +1166,7 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
   auto da = node->da();
   auto a2 = a1 + da;
 
-  bool isCircle = CQChartsAngle::isCircle(Angle(), da);
+  bool isCircle = Angle::isCircle(Angle(), da);
 
   //---
 
@@ -1735,6 +1735,7 @@ setPosition(double r, const Angle &a, double dr, const Angle &da)
   placed_ = true;
 }
 
+#if 0
 bool
 CQChartsSunburstNode::
 pointInside(double x, double y)
@@ -1745,7 +1746,7 @@ pointInside(double x, double y)
 
   if (r < r_ || r > r_ + dr_) return false;
 
-  double a = CMathUtil::normalizeAngle(CMathUtil::Rad2Deg(atan2(y, x)));
+  double a = CMathUtil::normalizeAngle(CMathUtil::Rad2Deg(std::atan2(y, x)));
 
   double a1 = CMathUtil::normalizeAngle(a_.value());
   double a2 = a1 + da_.value();
@@ -1772,6 +1773,7 @@ pointInside(double x, double y)
 
   return true;
 }
+#endif
 
 QColor
 CQChartsSunburstNode::

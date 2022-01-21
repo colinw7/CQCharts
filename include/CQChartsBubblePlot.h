@@ -291,6 +291,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   using Plot    = CQChartsBubblePlot;
   using Node    = CQChartsBubbleNode;
   using HierObj = CQChartsBubbleHierObj;
+  using Angle   = CQChartsAngle;
   using Units   = CQChartsUnits::Type;
 
  public:

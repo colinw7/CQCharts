@@ -55,10 +55,10 @@ class CQChartsSymbolType :
   //---
 
   static int minOutlineValue() { return (int) Type::CROSS; }
-  static int maxOutlineValue() { return (int) Type::IPENTAGON; }
+  static int maxOutlineValue() { return (int) Type::OCTAGON; }
 
   static int minFillValue() { return (int) Type::TRIANGLE; }
-  static int maxFillValue() { return (int) Type::IPENTAGON; }
+  static int maxFillValue() { return (int) Type::OCTAGON; }
 
   //---
 

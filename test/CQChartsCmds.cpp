@@ -107,15 +107,16 @@ addCommands()
     addCommand("load_charts_model"   , new CQChartsLoadChartsModelCmd   (this));
     addCommand("process_charts_model", new CQChartsProcessChartsModelCmd(this));
 
-    addCommand("sort_charts_model"   , new CQChartsSortChartsModelCmd   (this));
-    addCommand("fold_charts_model"   , new CQChartsFoldChartsModelCmd   (this));
-    addCommand("filter_charts_model" , new CQChartsFilterChartsModelCmd (this));
-    addCommand("flatten_charts_model", new CQChartsFlattenChartsModelCmd(this));
-    addCommand("copy_charts_model"   , new CQChartsCopyChartsModelCmd   (this));
-    addCommand("join_charts_model"   , new CQChartsJoinChartsModelCmd   (this));
-    addCommand("group_charts_model"  , new CQChartsGroupChartsModelCmd  (this));
-    addCommand("export_charts_model" , new CQChartsExportChartsModelCmd (this));
-    addCommand("write_charts_model"  , new CQChartsWriteChartsModelCmd  (this));
+    addCommand("sort_charts_model"      , new CQChartsSortChartsModelCmd      (this));
+    addCommand("fold_charts_model"      , new CQChartsFoldChartsModelCmd      (this));
+    addCommand("connection_charts_model", new CQChartsConnectionChartsModelCmd(this));
+    addCommand("filter_charts_model"    , new CQChartsFilterChartsModelCmd    (this));
+    addCommand("flatten_charts_model"   , new CQChartsFlattenChartsModelCmd   (this));
+    addCommand("copy_charts_model"      , new CQChartsCopyChartsModelCmd      (this));
+    addCommand("join_charts_model"      , new CQChartsJoinChartsModelCmd      (this));
+    addCommand("group_charts_model"     , new CQChartsGroupChartsModelCmd     (this));
+    addCommand("export_charts_model"    , new CQChartsExportChartsModelCmd    (this));
+    addCommand("write_charts_model"     , new CQChartsWriteChartsModelCmd     (this));
 
     addCommand("remove_charts_model" , new CQChartsRemoveChartsModelCmd (this));
 
@@ -3435,6 +3436,93 @@ execCmd(CQChartsCmdArgs &argv)
 
     proxyModel->setSourceModel(hierSepModel);
   }
+
+  //---
+
+  CQChartsCmds::ModelP proxyModelP(proxyModel);
+
+  auto *proxyModelData = charts()->initModelData(proxyModelP);
+
+  return cmdBase_->setCmdRc(proxyModelData->id());
+}
+
+//------
+
+void
+CQChartsConnectionChartsModelCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-model" , ArgType::String , "model_id");
+  addArg(argv, "-column", ArgType::Column , "column with connections");
+}
+
+QStringList
+CQChartsConnectionChartsModelCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "model") return cmds()->modelArgValues();
+
+  return QStringList();
+}
+
+bool
+CQChartsConnectionChartsModelCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsConnectionChartsModelCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get model
+  auto modelId = argv.getParseStr("model");
+
+  auto *modelData = cmds()->getModelDataOrCurrent(modelId);
+  if (! modelData) return errorMsg("No model data for '" + modelId + "'");
+
+  auto model = modelData->model();
+
+  //---
+
+  // get connection column (default to first column)
+  int icolumn = 0;
+
+  if (argv.hasParseArg("column")) {
+    auto column = argv.getParseColumn("column", model.data());
+
+    icolumn = column.column();
+  }
+
+  //---
+
+  auto *proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("foldProxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  CQHierSepData data(icolumn);
+
+  data.connectionType = CQHierConnectionType::FROM_TO;
+
+  auto *hierSepModel = new CQHierSepModel(model.data(), data);
+
+  //modelData->copyHeaderRoles(hierSepModel);
+
+  proxyModel->setSourceModel(hierSepModel);
 
   //---
 

@@ -66,6 +66,7 @@ class CQChartsWordObj : public CQChartsPlotObj {
 
  public:
   using WordCloudPlot = CQChartsWordCloudPlot;
+  using Angle         = CQChartsAngle;
 
  public:
   CQChartsWordObj(const WordCloudPlot *plot, const BBox &rect, const QString &name,

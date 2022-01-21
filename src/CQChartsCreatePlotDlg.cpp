@@ -191,9 +191,7 @@ createDataFrame()
 
   //----
 
-  auto *typeLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
-
-  dataLayout->addLayout(typeLayout);
+  auto *typeLayout = CQUtil::makeLayout<QHBoxLayout>(dataLayout, 2, 2);
 
   // create type combo
   auto *typeComboFrame = createTypeCombo();
@@ -612,9 +610,7 @@ createGeneralDataFrame()
 
   connect(autoRangeEdit_, SIGNAL(stateChanged(int)), this, SLOT(autoPlaceSlot(int)));
 
-  auto *rangeEditLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
-
-  positionGroupLayout->addLayout(rangeEditLayout);
+  auto *rangeEditLayout = CQUtil::makeLayout<QHBoxLayout>(positionGroupLayout, 2, 2);
 
   posEdit_ = addStringEdit(rangeEditLayout, row, column, "Range", "range", "Plot Range");
 
@@ -1406,15 +1402,13 @@ void
 CQChartsCreatePlotDlg::
 addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
-  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(layout, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
   auto *edit  = new CQChartsStringParameterEdit(parameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);
-
-  layout->addLayout(editLayout);
 
   plotData.stringEdits[parameter->name()] = edit;
 
@@ -1427,15 +1421,13 @@ void
 CQChartsCreatePlotDlg::
 addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
-  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(layout, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
   auto *edit  = new CQChartsRealParameterEdit(parameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);
-
-  layout->addLayout(editLayout);
 
   plotData.realEdits[parameter->name()] = edit;
 
@@ -1448,15 +1440,13 @@ void
 CQChartsCreatePlotDlg::
 addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter)
 {
-  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(layout, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
   auto *edit  = new CQChartsIntParameterEdit(parameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(edit);
-
-  layout->addLayout(editLayout);
 
   plotData.intEdits[parameter->name()] = edit;
 
@@ -1474,15 +1464,13 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *par
 
   //---
 
-  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(layout, 0, 2);
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
   auto *combo = new CQChartsEnumParameterEdit(eparameter);
 
   editLayout->addWidget(label);
   editLayout->addWidget(combo);
-
-  layout->addLayout(editLayout);
 
   plotData.enumEdits[eparameter->name()] = combo;
 

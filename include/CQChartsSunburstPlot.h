@@ -159,7 +159,7 @@ class CQChartsSunburstNode {
 
   //---
 
-  bool pointInside(double x, double y);
+  //bool pointInside(double x, double y);
 
   virtual QColor interpColor(const Plot *plot, const Color &c,
                              const ColorInd &colorInd, int n) const;

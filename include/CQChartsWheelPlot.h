@@ -100,6 +100,7 @@ class CQChartsPointObj : public CQChartsPlotObj {
  public:
   using WheelPlot = CQChartsWheelPlot;
   using PointData = CQChartsWheelPointData;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsPointObj(const WheelPlot *plot, const BBox &rect, const PointData &pointData,

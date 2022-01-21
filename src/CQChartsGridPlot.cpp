@@ -743,7 +743,7 @@ addWidgets()
   //---
 
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
+  auto optionsFrame = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
   drawTypeCombo_ = createEnumEdit("drawType");
 

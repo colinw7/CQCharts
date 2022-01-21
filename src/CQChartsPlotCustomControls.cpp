@@ -192,7 +192,7 @@ addKeyList()
   assert(! keyList_);
 
   // key frame
-  auto keyFrame = createGroupFrame("Key", "keyFrame");
+  auto keyFrame = createGroupFrame("Key", "keyFrame", "keyGroup");
 
   keyGroup_ = keyFrame.groupBox;
 
@@ -409,11 +409,12 @@ createColumnControlGroup(const QString &name, const QString &title)
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createGroupFrame(const QString &name, const QString &objName, bool stretch)
+createGroupFrame(const QString &name, const QString &objName, const QString &groupName,
+                 bool stretch)
 {
   auto frameData = createFrame(objName, stretch);
 
-  frameData.groupBox = CQUtil::makeLabelWidget<CQGroupBox>(name, "groupBox");
+  frameData.groupBox = CQUtil::makeLabelWidget<CQGroupBox>(name, groupName);
 
   auto *groupLayout = CQUtil::makeLayout<QVBoxLayout>(frameData.groupBox, 0, 0);
 

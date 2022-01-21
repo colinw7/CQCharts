@@ -1,7 +1,10 @@
 #include <CQHierSepModel.h>
 #include <CQBaseModel.h>
 #include <CQModelUtil.h>
+
 #include <cassert>
+#include <map>
+#include <set>
 #include <iostream>
 
 //------
@@ -163,9 +166,86 @@ fold()
 
   //---
 
-  root_ = new Node;
+  root_ = new Node(nullptr, "root");
 
-  foldNode();
+  if (data_.connectionType != CQHierConnectionType::NONE)
+    createConnections();
+  else
+    foldNode();
+}
+
+void
+CQHierSepModel::
+createConnections()
+{
+  auto *model = this->sourceModel();
+  assert(model);
+
+  using Nodes = std::set<Node *>;
+  using Edges = std::map<Node *, Nodes>;
+
+  Edges nodeEdges;
+
+  Node *parentNode = new Node(nullptr);
+
+  // create connections for rows at column
+  int nr = model->rowCount();
+
+  for (int r = 0; r < nr; ++r) {
+    // get value for connection column
+    auto ind = model->index(r, foldColumn());
+
+    auto str = model->data(ind, Qt::DisplayRole).toString();
+
+    auto strs = str.split(separator(), QString::KeepEmptyParts);
+
+    if (strs.size() != 2)
+      continue;
+
+    Node *srcNode  = parentNode->findChild(strs[0], /*create*/true);
+    Node *destNode = parentNode->findChild(strs[1], /*create*/true);
+
+    nodeEdges[srcNode].insert(destNode);
+
+    if (srcNode)
+      srcNode->addInd(ind); // should only be one
+
+    if (destNode)
+      destNode->addInd(ind); // should only be one
+  }
+
+  for (const auto &pe : nodeEdges) {
+    auto *srcNode = pe.first;
+
+    for (auto *destNode : pe.second) {
+      if (destNode->parent() != parentNode)
+        continue;
+
+      srcNode->addChild(destNode);
+    }
+  }
+
+  bool added = false;
+
+  for (const auto &pe : nodeEdges) {
+    auto *srcNode = pe.first;
+
+    if (srcNode->parent() != parentNode)
+      continue;
+
+    root_->addChild(srcNode);
+
+    added = true;
+  }
+
+  if (! added && ! nodeEdges.empty())
+    root_->addChild(nodeEdges.begin()->first);
+
+  parentNode->resetChildren();
+
+  delete parentNode;
+
+  folded_ = true;
 }
 
 void

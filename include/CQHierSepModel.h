@@ -10,13 +10,19 @@ class CQBaseModel;
 
 //---
 
+enum CQHierConnectionType {
+  NONE,
+  FROM_TO
+};
+
 struct CQHierSepData {
-  int   column    { 0 };   //! fold column
-  QChar separator { '/' }; //! separator
+  int                  column         { 0 };   //! fold column
+  QChar                separator      { '/' }; //! separator
+  CQHierConnectionType connectionType { CQHierConnectionType::NONE };
 
   CQHierSepData() { }
 
-  CQHierSepData(int column, const QChar &separator) :
+  CQHierSepData(int column, const QChar &separator='/') :
    column(column), separator(separator) {
   }
 };
@@ -120,9 +126,10 @@ class CQHierSepModel : public QAbstractProxyModel {
 
     Node(Node *parent, const QString &str="") :
      parent_(parent), str_(str) {
-      assert(parent && parent_ != this);
+      assert(parent_ != this);
 
-      parent->children_.push_back(this);
+      if (parent)
+        parent->children_.push_back(this);
     }
 
    ~Node() {
@@ -156,13 +163,34 @@ class CQHierSepModel : public QAbstractProxyModel {
       return inds_[0];
     }
 
-    Node *findChild(const QString &str) const {
+    Node *findChild(const QString &str, bool create=false) const {
       for (const auto &child : children_)
         if (child->str() == str)
           return child;
 
+      if (create)
+        return new Node(const_cast<Node *>(this), str);
+
       return nullptr;
     }
+
+    bool hasChild(Node *child) const {
+      for (const auto &child1 : children_)
+        if (child1 == child)
+          return true;
+
+      return false;
+    }
+
+    void addChild(Node *node) {
+      node->parent_ = this;
+
+      children_.push_back(node);
+    }
+
+    void resetChildren() { children_.clear(); }
+
+    //---
 
     void reset() {
       propagateValues_.clear();
@@ -205,6 +233,8 @@ class CQHierSepModel : public QAbstractProxyModel {
 
   // clear model
   void clear();
+
+  void createConnections();
 
   // fold root node
   void foldNode();

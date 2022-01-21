@@ -1324,7 +1324,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
   // text is pre-scaled if needed (formatted and html not supported as changes scale calc)
   auto textOptions = plot_->textOptions();
 
-  textOptions.angle      = CQChartsAngle();
+  textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.clipLength = 0.0;
 

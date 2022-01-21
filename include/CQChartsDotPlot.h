@@ -142,10 +142,10 @@ class CQChartsDotPlotNode {
   const Edges &destEdges() const { return destEdges_; }
   void setDestEdges(const Edges &edges) { destEdges_ = edges; }
 
-  //! add source edge
+  //! add source edge (dest -> src)
   void addSrcEdge(Edge *edge, bool primary=true);
 
-  //! add destination edge
+  //! add destination edge (src -> dest)
   void addDestEdge(Edge *edge, bool primary=true);
 
   //! has destination edge
@@ -209,6 +209,9 @@ class CQChartsDotPlotNode {
 
   //---
 
+  void setEdgePoint(Edge *edge, const Point &p);
+  Point edgePoint(Edge *edge) const;
+
  private:
   struct FillData {
     Color       color;   //!< fill color
@@ -222,6 +225,8 @@ class CQChartsDotPlotNode {
     Length   width; //!< stroke width
     LineDash dash;  //!< stroke dash
   };
+
+  using EdgePoints = std::map<int, Point>;
 
   Obj* obj_     { nullptr }; //!< node plot object
   bool visible_ { true };    //!< is visible
@@ -256,6 +261,8 @@ class CQChartsDotPlotNode {
   int       srcDepth_  { -1 }; //!< source depth (calculated)
   int       destDepth_ { -1 }; //!< destination depth (calculated)
   ModelInds modelInds_;        //!< model inds
+
+  EdgePoints edgePoints_;
 };
 
 /*!

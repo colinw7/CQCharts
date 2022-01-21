@@ -519,7 +519,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
 
   // text
-//Q_PROPERTY(bool textVisible READ isTextVisible WRITE setTextVisible)
   Q_PROPERTY(bool rotatedText READ isRotatedText WRITE setRotatedText)
 
   // explode
@@ -694,11 +693,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  // text label visible
-//bool isTextVisible() const;
-//void setTextVisible(bool b);
-
-  // rotate text label
+  // get/set is rotated text label
   bool isRotatedText() const { return rotatedText_; }
   void setRotatedText(bool b);
 

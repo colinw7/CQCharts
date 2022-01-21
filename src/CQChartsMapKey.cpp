@@ -115,7 +115,7 @@ calcPosition(Position &pos, Qt::Alignment &align) const
     align = this->align   ();
   }
   else {
-    align = 0;
+    align = Qt::Alignment();
 
     if      (location().onLeft   ()) {
       x = bbox.getXMin(); align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight); }
@@ -359,7 +359,7 @@ drawContiguous(PaintDevice *device)
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-  double bw = fm.width("X") + 16; // color box width
+  double bw = fm.horizontalAdvance("X") + 16; // color box width
 
   //---
 
@@ -463,7 +463,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-  double bs = fm.width("X") + 16; // color box size
+  double bs = fm.horizontalAdvance("X") + 16; // color box size
 
   //---
 
@@ -621,8 +621,8 @@ calcContiguousSize() const
 
   double bm = this->margin();
 
-  double bw = fm.width("X") + 16; // color box width
-  double bh = fm.height()*5;      // color box height
+  double bw = fm.horizontalAdvance("X") + 16; // color box width
+  double bh = fm.height()*5;                  // color box height
 
   //---
 
@@ -633,7 +633,9 @@ calcContiguousSize() const
   auto dataMidStr = valueText(dataMid  );
   auto dataMaxStr = valueText(dataMax());
 
-  double tw = std::max(std::max(fm.width(dataMinStr), fm.width(dataMidStr)), fm.width(dataMaxStr));
+  double tw = std::max(std::max(fm.horizontalAdvance(dataMinStr),
+                                fm.horizontalAdvance(dataMidStr)),
+                       fm.horizontalAdvance(dataMaxStr));
 
   //---
 
@@ -653,7 +655,7 @@ calcDiscreetSize() const
 
   double bm = this->margin();
 
-  double bs = fm.width("X") + 16; // color box size
+  double bs = fm.horizontalAdvance("X") + 16; // color box size
 
   //---
 
@@ -664,7 +666,7 @@ calcDiscreetSize() const
   for (int i = 0; i < n; ++i) {
     auto name = uniqueValues()[i].toString();
 
-    tw = std::max(tw, fm.width(name));
+    tw = std::max(tw, fm.horizontalAdvance(name));
   }
 
   //---
@@ -954,7 +956,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
     //---
 
-    auto dxl = twl_ - fm.width(rstr);
+    auto dxl = twl_ - fm.horizontalAdvance(rstr);
 
     auto ty1 = ty + (i + 0.5)*bh;
 
@@ -1063,7 +1065,7 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
   auto drawText = [&](const Point &p, double value, Qt::Alignment align) {
     auto text = valueText(value);
 
-    double tw = fm.width(text);
+    double tw = fm.horizontalAdvance(text);
 
     auto textOptions1 = textOptions;
 
@@ -1195,8 +1197,8 @@ calcDiscreetSize() const
     auto rstr = QString("%1").arg(r, 0, 'f', ndp_);
     auto name = uniqueValues()[i].toString();
 
-    twl_ = std::max(twl_, fm.width(rstr));
-    twr_ = std::max(twr_, fm.width(name));
+    twl_ = std::max(twl_, fm.horizontalAdvance(rstr));
+    twr_ = std::max(twr_, fm.horizontalAdvance(name));
   }
 
   //---
@@ -1324,7 +1326,7 @@ calcTextBBox() const
 
     auto text = valueText(r);
 
-    double tw = fm.width(text);
+    double tw = fm.horizontalAdvance(text);
 
     if (! isStacked()) {
       pxt1 = std::min(pxt1, pbbox.getXMid() - tw/2.0 - pm);
@@ -1525,7 +1527,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-  double bw = fm.width("X") + 4;
+  double bw = fm.horizontalAdvance("X") + 4;
 
   //---
 
@@ -1599,6 +1601,9 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       else
         symbolData.symbol = Symbol(CQChartsSymbolType((CQChartsSymbolType::Type) i));
 
+      if (! symbolData.symbol.isValid())
+        symbolData.symbol = Symbol::circle();
+
       //---
 
       // set pen brush
@@ -1624,7 +1629,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       auto p1 = device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, py));
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
-                                   CQChartsLength::pixel(ss));
+                                   Length::pixel(ss));
 
       //---
 
@@ -1660,6 +1665,9 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       else
         symbolData.symbol = Symbol(name);
 
+      if (! symbolData.symbol.isValid())
+        symbolData.symbol = Symbol::circle();
+
       //---
 
       auto hidden = ! plot()->symbolTypeVisible(symbolData.symbol);
@@ -1692,7 +1700,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       auto p1 = device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, py));
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
-                                   CQChartsLength::pixel(ss));
+                                   Length::pixel(ss));
 
       //---
 
@@ -1719,7 +1727,7 @@ calcSize(const DrawData &drawData) const
   QFontMetricsF fm(font);
 
   double bm = this->margin();
-  double bw = fm.width("X") + 4;
+  double bw = fm.horizontalAdvance("X") + 4;
 
   double tw = 0.0;
 
@@ -1731,7 +1739,7 @@ calcSize(const DrawData &drawData) const
     for (int i = mapMin(); i <= mapMax(); ++i) {
       auto name = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
 
-      tw = std::max(tw, fm.width(name));
+      tw = std::max(tw, fm.horizontalAdvance(name));
     }
   }
   else {
@@ -1743,7 +1751,7 @@ calcSize(const DrawData &drawData) const
       for (int i = 0; i < n; ++i) {
         auto name = uniqueValues()[i].toString();
 
-        tw = std::max(tw, fm.width(name));
+        tw = std::max(tw, fm.horizontalAdvance(name));
       }
     }
     else {

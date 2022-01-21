@@ -1679,26 +1679,6 @@ objTreeRange() const
 
 //---
 
-#if 0
-void
-CQChartsPlot::
-pushZoom()
-{
-  saveZoomData_ = ZoomData();
-
-  std::swap(saveZoomData_, zoomData_);
-}
-
-void
-CQChartsPlot::
-popZoom()
-{
-  std::swap(saveZoomData_, zoomData_);
-}
-#endif
-
-//---
-
 double
 CQChartsPlot::
 dataScale() const
@@ -6999,6 +6979,19 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       if (handled) {
         emit keyItemPressed  (item);
         emit keyItemIdPressed(item->id());
+
+        return true;
+      }
+    }
+
+    auto *group = const_cast<CQChartsKeyItemGroup *>(item->group());
+
+    if (group) {
+      bool handled = group->selectPress(w, selMod);
+
+      if (handled) {
+        emit keyItemPressed  (group);
+        emit keyItemIdPressed(group->id());
 
         return true;
       }
@@ -14988,34 +14981,41 @@ getFirstPlotKey() const
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-           const Length &xsize, const Length &ysize, const PenBrush &penBrush) const
+           double pxs, double pys, const PenBrush &penBrush) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  drawSymbol(device, p, symbol, xsize, ysize);
+  drawSymbol(device, p, symbol, pxs, pys);
 }
 
 // Note: symbol size already scaled
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-           const Length &xsize, const Length &ysize) const
+           double pxs, double pys) const
 {
+  useRawRange_ = isScaleSymbolSize();
+
+  double xs = pixelToWindowWidth (pxs);
+  double ys = pixelToWindowHeight(pys);
+
+  useRawRange_ = false;
+
+  pxs = windowToPixelWidth (xs);
+  pys = windowToPixelHeight(ys);
+
   if (bufferSymbols_) {
     auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
-    if (viewPlotDevice) {
-      double sx = lengthPixelWidth (xsize);
-      double sy = lengthPixelHeight(ysize);
-
-      drawBufferedSymbol(viewPlotDevice->painter(), p, symbol, std::min(sx, sy));
-    }
-    else {
-      CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize, /*scale*/false);
-    }
+    if (viewPlotDevice)
+      drawBufferedSymbol(viewPlotDevice->painter(), p, symbol, std::min(pxs, pys));
+    else
+      CQChartsDrawUtil::drawSymbol(device, symbol, p, Length::pixel(pxs), Length::pixel(pys),
+                                   /*scale*/false);
   }
   else {
-    CQChartsDrawUtil::drawSymbol(device, symbol, p, xsize, ysize, /*scale*/false);
+    CQChartsDrawUtil::drawSymbol(device, symbol, p, Length::pixel(pxs), Length::pixel(pys),
+                                 /*scale*/false);
   }
 }
 

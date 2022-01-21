@@ -264,7 +264,7 @@ class CQChartsPlotSymbolList {
     if (x21 == 0.0 && y21 == 0.0)
       return;
 
-    double a = atan2(y21, x21);
+    double a = std::atan2(y21, x21);
 
     PlotSymbol::Point p[4];
 

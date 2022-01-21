@@ -103,6 +103,9 @@ moveScalePath(const QPainterPath &path, double dx, double dy, double sx, double 
 {
   BBox bbox(path.boundingRect());
 
+  if (! bbox.isValid())
+    return path;
+
   return moveScalePath(path, bbox, dx, dy, sx, sy);
 }
 

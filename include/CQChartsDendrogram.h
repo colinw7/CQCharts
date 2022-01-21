@@ -40,12 +40,15 @@ class CQChartsDendrogram {
 
     virtual double size() const { return size_; }
 
+    //! get/set depth
     int depth() const { return depth_; }
     void setDepth(int depth) { depth_ = depth; }
 
+    //! get/set row
     double row() const { return row_; }
     void setRow(double row) { row_ = row; }
 
+    //! get/set number of rows
     double numRows() const { return nr_; }
     void setNumRows(double nr) { nr_ = nr; }
 
@@ -53,13 +56,17 @@ class CQChartsDendrogram {
 
     void setGap(double gap);
 
+    //! get/set is placed
     bool isPlaced() const { return placed_; }
     void setPlaced(bool placed) { placed_ = placed; }
 
     virtual void resetPlaced() { bbox_ = BBox(); placed_ = false; }
 
+    //! get/set is open
     bool isOpen() const { return open_; }
     void setOpen(bool open) { open_ = open; }
+
+    //---
 
     double x() const {
       if (bbox_.isValid()) return bbox_.getXMin();
@@ -91,6 +98,8 @@ class CQChartsDendrogram {
     const BBox &bbox() const { return bbox_; }
     void setBBox(const BBox &b) { bbox_ = b; }
 
+    //---
+
     virtual int maxNodes() { return 1; }
 
     RootNode *root();
@@ -105,17 +114,17 @@ class CQChartsDendrogram {
     bool isNodeAtPoint(double x, double y, double tol) const;
 
    protected:
-    HierNode* parent_ { nullptr };
-    uint      id_;
-    QString   name_;
-    double    size_   { 0.0 };
-    int       depth_  { 0 };
-    double    row_    { 0.0 };
-    double    nr_     { 0.0 };
-    double    gap_    { 0.0 };
-    bool      open_   { false };
-    bool      placed_ { false };
-    BBox      bbox_;
+    HierNode* parent_ { nullptr }; //!< parent hier node
+    uint      id_;                 //!< id
+    QString   name_;               //!< name
+    double    size_   { 0.0 };     //!< size
+    int       depth_  { 0 };       //!< depth
+    double    row_    { 0.0 };     //!< row
+    double    nr_     { 0.0 };     //!< number of rows
+    double    gap_    { 0.0 };     //!< gap
+    bool      open_   { false };   //!< is open
+    bool      placed_ { false };   //!< is placed
+    BBox      bbox_;               //!< bbox
   };
 
   //---
@@ -163,8 +172,8 @@ class CQChartsDendrogram {
     const Node *getNodeAtPoint(double x, double y, double tol) const;
 
    protected:
-    Nodes    nodes_;
-    Children children_;
+    Nodes    nodes_;    //!< child leaf nodes
+    Children children_; //!< child hier nodes
   };
 
   //---
@@ -226,12 +235,12 @@ class CQChartsDendrogram {
    protected:
     using DepthNodes = std::vector<Nodes>;
 
-    double     dx_         { 0.0 };
-    double     dy_         { 0.0 };
-    double     max_rows_   { 0.0 };
-    bool       debug_      { false };
-    bool       singleStep_ { false };
-    DepthNodes depthNodes_;
+    double     dx_         { 0.0 };   //!< dx
+    double     dy_         { 0.0 };   //!< dy
+    double     max_rows_   { 0.0 };   //!< max rows
+    bool       debug_      { false }; //!< is debug
+    bool       singleStep_ { false }; //!< single step
+    DepthNodes depthNodes_;           //!< nodes by depth
   };
 
   //------
@@ -241,9 +250,11 @@ class CQChartsDendrogram {
 
   virtual ~CQChartsDendrogram();
 
+  //! get/set debug
   bool debug() const;
   void setDebug(bool b);
 
+  //! get/set single setp
   bool singleStep() const;
   void setSingleStep(bool b);
 
@@ -272,7 +283,7 @@ class CQChartsDendrogram {
   void printGaps();
 
  private:
-  RootNode* root_ { nullptr };
+  RootNode* root_ { nullptr }; //!< root node
 };
 
 #endif

@@ -1,3 +1,6 @@
+#ifndef CBuchHeim_H
+#define CBuchHeim_H
+
 #include <string>
 #include <vector>
 #include <map>
@@ -212,3 +215,5 @@ class DrawTree {
 };
 
 }
+
+#endif

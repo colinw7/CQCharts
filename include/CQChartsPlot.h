@@ -603,11 +603,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
-#if 0
-  void pushZoom();
-  void popZoom();
-#endif
-
   virtual double dataScaleX() const;
   virtual void setDataScaleX(double r);
 
@@ -2785,10 +2780,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // draw symbol (symbol size is pixels)
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-                  const Length &xsize, const Length &ysize, const PenBrush &penBrush) const;
+                  double xs, double ys, const PenBrush &penBrush) const;
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-                  const Length &xsize, const Length &ysize) const;
+                  double xs, double ys) const;
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const Symbol &symbol, double size) const;
@@ -3449,9 +3445,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Range         dataRange_;                     //!< data range
   Range         outerDataRange_;                //!< outer data range
   ZoomData      zoomData_;                      //!< zoom data
-#if 0
-  ZoomData      saveZoomData_;                  //!< saved zoom data
-#endif
 
   // override range
   OptReal xmin_; //!< xmin override

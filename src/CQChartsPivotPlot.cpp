@@ -1624,7 +1624,7 @@ draw(PaintDevice *device) const
   // draw points (symbols)
   auto symbol = Symbol::circle();
 
-  plot()->drawSymbol(device, point(), symbol, Length::pixel(sx), Length::pixel(sy), penBrush);
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
 }
 
 //------

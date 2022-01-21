@@ -788,6 +788,10 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   //---
 
+  bool calcHidden() const override;
+
+  //---
+
   // implement select interface
   bool selectPress(const Point &, SelMod) override;
   bool selectMove (const Point &) override;

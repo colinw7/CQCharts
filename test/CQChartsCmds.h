@@ -219,6 +219,7 @@ CQCHARTS_DEF_CMD(ProcessChartsModel)
 
 CQCHARTS_DEF_CMD(SortChartsModel)
 CQCHARTS_DEF_CMD(FoldChartsModel)
+CQCHARTS_DEF_CMD(ConnectionChartsModel)
 CQCHARTS_DEF_CMD(FilterChartsModel)
 CQCHARTS_DEF_CMD(FlattenChartsModel)
 CQCHARTS_DEF_CMD(CopyChartsModel)

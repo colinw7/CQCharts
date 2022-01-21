@@ -528,7 +528,7 @@ fromString(const QString &s)
 
     //---
 
-    QString srcStr;
+    //QString srcStr;
 
     auto &pathData = s_namedPaths.namedPathData(name_);
 
@@ -538,8 +538,21 @@ fromString(const QString &s)
       CQChartsGeom::BBox      bbox1;
 
       if (CQChartsSVGUtil::svgFileToPaths(name_, paths1, styles1, bbox1)) {
-        srcStr = name_;
-        name_  = QString("svg.%1").arg(s_namedPaths.numNamedPaths() + 1);
+      //srcStr = name_;
+      //name_  = QString("svg.%1").arg(s_namedPaths.numNamedPaths() + 1);
+
+        if (bbox1.isValid()) {
+          double sx = 2.0/bbox1.getWidth ();
+          double sy = -2.0/bbox1.getHeight();
+          double cx = bbox1.getXMid();
+          double cy = bbox1.getYMid();
+
+          for (auto &path : paths1) {
+            auto path1 = CQChartsPath::moveScalePath(path.path(), bbox1, -cx, -cy, sx, sy);
+
+            path.setPath(path1);
+          }
+        }
 
         CQChartsSymbolNamedPaths::PathsStylesData pathsStylesData;
 
@@ -547,7 +560,7 @@ fromString(const QString &s)
         pathsStylesData.paths  = paths1;
         pathsStylesData.styles = styles1;
         pathsStylesData.bbox   = bbox1;
-        pathsStylesData.srcStr = srcStr;
+        pathsStylesData.srcStr = name_ /*srcStr*/;
 
         s_namedPaths.setNamedPathData(name_, pathsStylesData);
       }

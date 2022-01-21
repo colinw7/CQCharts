@@ -74,7 +74,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   };
 
   FrameData createFrame(const QString &objName, bool stretch=true);
-  FrameData createGroupFrame(const QString &name, const QString &objName, bool stretch=true);
+  FrameData createGroupFrame(const QString &name, const QString &objName,
+                             const QString &groupName="groupBox", bool stretch=true);
 
   ColumnControlGroupData createColumnControlGroup(const QString &name, const QString &title);
 

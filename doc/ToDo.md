@@ -4,13 +4,23 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + support more connection types in hier model from data
+ + support connection plot model types in dendrogram
+ + dot plot edge/node coloring
+ + dot plot map point to relative position (on) node to allow move
+   + support editing of edge points (delete ?)
+ + Replace CJson with QJsonDocument (other dependencies ?)
+ + support different dot output formats
+ + colorSelected on all plots or allow select feature in key to be disabled ?
  + ruler tool
  + dendrogram plot
    + handle missing values
-   + size column
-   + color column
-   + lines not connected on resize ?
-   + size and color for non buchheim
+   + circular text layout
+   + symbol size on zoom
+   + sqrt map for radii
+   + default font, equal scaling
+   + circular fit text wrong
+   + menu expand all, collapse all, expand level
  + check zoom on all symbol plots
  + parallel plot redraw issues
  + check column role

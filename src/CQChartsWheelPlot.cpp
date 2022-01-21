@@ -948,7 +948,7 @@ execDrawForeground(PaintDevice *device) const
 
     CQChartsTextOptions textOptions;
 
-    textOptions.angle = CQChartsAngle(a - 90);
+    textOptions.angle = Angle(a - 90);
 
     CQChartsDrawUtil::drawTextAtPoint(device, pp2, monthNames[i], textOptions, /*centered*/true);
 
@@ -1274,7 +1274,7 @@ draw(PaintDevice *device) const
 
     //fillPattern.setAltColor(c2);
 
-    fillPattern.setAngle(CQChartsAngle(pp.polar.a));
+    fillPattern.setAngle(Angle(pp.polar.a));
 
     Polygon poly;
 

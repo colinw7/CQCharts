@@ -569,6 +569,7 @@ inline CQChartsSelMod modifiersToClickMod(Qt::KeyboardModifiers modifiers) {
   else
     return CQChartsSelMod::TOGGLE;
 }
+
 }
 
 //------
