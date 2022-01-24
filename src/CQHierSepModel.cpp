@@ -1,6 +1,7 @@
 #include <CQHierSepModel.h>
 #include <CQBaseModel.h>
 #include <CQModelUtil.h>
+#include <CQTclUtil.h>
 
 #include <cassert>
 #include <map>
@@ -66,6 +67,28 @@ setFoldColumn(int i)
 {
   if (i != data_.column) {
     data_.column = i;
+
+    doResetModel();
+  }
+}
+
+void
+CQHierSepModel::
+setConnectionsColumn(int i)
+{
+  if (i != data_.connectionColumn) {
+    data_.connectionColumn = i;
+
+    doResetModel();
+  }
+}
+
+void
+CQHierSepModel::
+setNodeColumn(int i)
+{
+  if (i != data_.nodeColumn) {
+    data_.nodeColumn = i;
 
     doResetModel();
   }
@@ -181,10 +204,35 @@ createConnections()
   auto *model = this->sourceModel();
   assert(model);
 
-  using Nodes = std::set<Node *>;
-  using Edges = std::map<Node *, Nodes>;
+  struct Connection {
+    int    nodeId { -1 };
+    double value  { 0.0 };
 
-  Edges nodeEdges;
+    Connection() { }
+
+    Connection(int nodeId, double value) :
+     nodeId(nodeId), value(value) {
+    }
+  };
+
+  using NodeSet     = std::set<Node *>;
+  using Connections = std::vector<Connection>;
+
+  struct NodeData {
+    Node*       node { nullptr };
+    NodeSet     destNodes;
+    Connections connections;
+
+    NodeData() { }
+
+    NodeData(Node *node) : node(node) { }
+  };
+
+  using NodeDataMap = std::map<Node *, NodeData>;
+  using NodeIdData  = std::map<int, NodeData>;
+
+  NodeDataMap nodeDataMap;
+  NodeIdData  nodeIdData;
 
   Node *parentNode = new Node(nullptr);
 
@@ -194,52 +242,165 @@ createConnections()
   for (int r = 0; r < nr; ++r) {
     // get value for connection column
     auto ind = model->index(r, foldColumn());
-
     auto str = model->data(ind, Qt::DisplayRole).toString();
 
-    auto strs = str.split(separator(), QString::KeepEmptyParts);
+    // hier path (nodes separated by /)
+    if      (data_.connectionType == CQHierConnectionType::HIER) {
+      auto strs = str.split(separator(), QString::KeepEmptyParts);
+      if (strs.size() != 2) continue;
 
-    if (strs.size() != 2)
-      continue;
+      Node *srcNode  = parentNode->findChild(strs[0], /*create*/true);
+      Node *destNode = parentNode->findChild(strs[1], /*create*/true);
 
-    Node *srcNode  = parentNode->findChild(strs[0], /*create*/true);
-    Node *destNode = parentNode->findChild(strs[1], /*create*/true);
+      auto p = nodeDataMap.find(srcNode);
 
-    nodeEdges[srcNode].insert(destNode);
+      if (p == nodeDataMap.end())
+        p = nodeDataMap.insert(p, NodeDataMap::value_type(srcNode, NodeData()));
 
-    if (srcNode)
-      srcNode->addInd(ind); // should only be one
+      (*p).second.destNodes.insert(destNode);
 
-    if (destNode)
-      destNode->addInd(ind); // should only be one
-  }
+      if (srcNode)
+        srcNode->addInd(ind); // should only be one
 
-  for (const auto &pe : nodeEdges) {
-    auto *srcNode = pe.first;
+      if (destNode)
+        destNode->addInd(ind); // should only be one
+    }
+    else if (data_.connectionType == CQHierConnectionType::CONNECTIONS) {
+      Node *node = parentNode->findChild(str, /*create*/true);
 
-    for (auto *destNode : pe.second) {
-      if (destNode->parent() != parentNode)
+      NodeData nodeData(node);
+
+      //---
+
+      auto connectionsInd = model->index(r, connectionsColumn());
+      auto connectionsStr = model->data(connectionsInd, Qt::DisplayRole).toString();
+
+      QStringList connectionsStrs;
+
+      if (! CQTclUtil::splitList(connectionsStr, connectionsStrs))
         continue;
 
-      srcNode->addChild(destNode);
+      if (connectionsStrs.size() == 1) {
+        QStringList connectionsStrs1;
+
+        if (! CQTclUtil::splitList(connectionsStrs[0], connectionsStrs1))
+          continue;
+
+        connectionsStrs = connectionsStrs1;
+      }
+
+      for (const auto &s : connectionsStrs) {
+        QStringList strs;
+
+        if (! CQTclUtil::splitList(s, strs))
+          continue;
+
+        if (strs.length() != 2)
+          continue;
+
+        bool ok1, ok2;
+        int    nodeId = strs[0].toInt(&ok1);
+        double value  = strs[1].toDouble(&ok2);
+        if (! ok1 || ! ok2) continue;
+
+        nodeData.connections.push_back(Connection(nodeId, value));
+      }
+
+      //---
+
+      int nodeId = r;
+
+      if (nodeColumn() >= 0) {
+        auto nodeInd = model->index(r, nodeColumn());
+        auto nodeStr = model->data(nodeInd, Qt::DisplayRole).toString();
+
+        bool ok1;
+        nodeId = nodeStr.toInt(&ok1);
+        if (! ok1) continue;
+      }
+
+      //---
+
+      nodeIdData[nodeId] = nodeData;
+
+      if (node)
+        node->addInd(ind);
     }
   }
 
-  bool added = false;
+  if      (data_.connectionType == CQHierConnectionType::HIER) {
+    for (const auto &pe : nodeDataMap) {
+      auto *srcNode   = pe.first;
+      auto &destNodes = pe.second.destNodes;
 
-  for (const auto &pe : nodeEdges) {
-    auto *srcNode = pe.first;
+      for (auto *destNode : destNodes ) {
+        if (destNode->parent() != parentNode)
+          continue;
 
-    if (srcNode->parent() != parentNode)
-      continue;
+        if (srcNode != destNode)
+          srcNode->addChild(destNode);
+      }
+    }
 
-    root_->addChild(srcNode);
+    bool added = false;
 
-    added = true;
+    for (const auto &pe : nodeDataMap) {
+      auto *srcNode = pe.first;
+
+      if (srcNode->parent() != parentNode)
+        continue;
+
+      root_->addChild(srcNode);
+
+      added = true;
+    }
+
+    if (! added && ! nodeDataMap.empty())
+      root_->addChild(nodeDataMap.begin()->first);
   }
+  else if (data_.connectionType == CQHierConnectionType::CONNECTIONS) {
+    int numNodes = nodeIdData.size();
 
-  if (! added && ! nodeEdges.empty())
-    root_->addChild(nodeEdges.begin()->first);
+    for (const auto &p : nodeIdData) {
+      auto &nodeData = p.second;
+
+      auto *srcNode = nodeData.node;
+
+      for (const auto &connection : nodeData.connections) {
+        if (connection.nodeId < 0 || connection.nodeId >= numNodes)
+          continue;
+
+        auto pn = nodeIdData.find(connection.nodeId);
+        if (pn == nodeIdData.end()) continue;
+
+        auto *destNode = (*pn).second.node;
+
+        if (destNode->parent() != parentNode)
+          continue;
+
+        if (srcNode != destNode)
+          srcNode->addChild(destNode);
+      }
+    }
+
+    bool added = false;
+
+    for (const auto &p : nodeIdData) {
+      auto &nodeData = p.second;
+
+      auto *srcNode = nodeData.node;
+
+      if (srcNode->parent() != parentNode)
+        continue;
+
+      root_->addChild(srcNode);
+
+      added = true;
+    }
+
+    if (! added && ! nodeIdData.empty())
+      root_->addChild(nodeIdData.begin()->second.node);
+  }
 
   parentNode->resetChildren();
 

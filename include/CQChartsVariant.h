@@ -12,14 +12,7 @@
 namespace CQChartsVariant {
 
 bool toString(const QVariant &var, QString &str);
-
-inline QString toString(const QVariant &var, bool &ok) {
-  QString str;
-
-  ok = toString(var, str);
-
-  return str;
-}
+QString toString(const QVariant &var, bool &ok);
 
 //---
 
@@ -31,17 +24,10 @@ inline bool isReal(const QVariant &var) {
   return (var.type() == QVariant::Double);
 }
 
+bool toReal(const QVariant &var, double &r);
 double toReal(const QVariant &var, bool &ok);
 
 double toConvertedReal(const QVariant &var, bool &ok, bool &converted);
-
-inline bool toReal(const QVariant &var, double &r) {
-  bool ok;
-
-  r = toReal(var, ok);
-
-  return ok;
-}
 
 //---
 
@@ -232,7 +218,7 @@ namespace CQChartsVariant {
 
 using BBox = CQChartsGeom::BBox;
 
-BBox toBBox  (const QVariant &var, bool &ok);
+BBox toBBox(const QVariant &var, bool &ok);
 
 QVariant fromBBox(const BBox &bbox);
 

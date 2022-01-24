@@ -274,6 +274,10 @@ CQCHARTS_DEF_CMD(SetChartsData)
 
 //---
 
+CQCHARTS_DEF_CMD(ExecuteChartsSlot)
+
+//---
+
 // annotation
 CQCHARTS_DEF_CMD(CreateChartsAnnotationGroup)
 CQCHARTS_DEF_CMD(CreateChartsArcAnnotation)

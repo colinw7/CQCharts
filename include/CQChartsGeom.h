@@ -276,6 +276,31 @@ inline Point makeDirPoint(bool flipped, double x, double y) {
 
 namespace CQChartsGeom {
 
+class Line {
+ public:
+  Line() = default;
+
+  Line(const Point &start, const Point &end) :
+   start_(start), end_(end) {
+  }
+
+  const Point &start() const { return start_; }
+  void setStart(const Point &v) { start_ = v; }
+
+  const Point &end() const { return end_; }
+  void setEnd(const Point &v) { end_ = v; }
+
+ private:
+  Point start_;
+  Point end_;
+};
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
 /*!
  * \brief Size class
  * \ingroup Charts
@@ -2342,6 +2367,14 @@ inline Point ellipsePoint(const Point &c, double xr, double yr, double a) {
 
 inline double pointAngle(const Point &p1, const Point &p2) {
   return std::atan2(p2.y - p1.y, p2.x - p1.x);
+}
+
+inline Point movePointOnLine(const Point &p, double a, double d) {
+  return Point(p.x + d*std::cos(a), p.y + d*std::sin(a));
+}
+
+inline Point movePointPerpLine(const Point &p, double a, double d) {
+  return Point(p.x + d*std::sin(a), p.y - d*std::cos(a));
 }
 
 }

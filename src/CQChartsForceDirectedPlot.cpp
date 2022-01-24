@@ -407,7 +407,8 @@ addIdConnections() const
     auto *pnode = dynamic_cast<CQChartsSpringyNode *>(node.get());
     assert(pnode);
 
-    forceDirected_->addNode(node);
+    if (! forceDirected_->getNode(node->id()))
+      forceDirected_->addNode(node);
 
     //auto id = QString("%1:%2").arg(name).arg(group);
 

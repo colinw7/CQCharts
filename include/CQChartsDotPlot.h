@@ -209,6 +209,7 @@ class CQChartsDotPlotNode {
 
   //---
 
+  bool hasEdgePoint(Edge *edge) const;
   void setEdgePoint(Edge *edge, const Point &p);
   Point edgePoint(Edge *edge) const;
 
@@ -273,7 +274,6 @@ class CQChartsDotPlotEdge {
  public:
   enum class ShapeType {
     NONE,
-    ARC,
     ARROW
   };
 
@@ -284,6 +284,7 @@ class CQChartsDotPlotEdge {
   using ModelInds  = std::vector<ModelIndex>;
   using Color      = CQChartsColor;
   using OptReal    = CQChartsOptReal;
+  using Line       = CQChartsGeom::Line;
 
  public:
   CQChartsDotPlotEdge(const OptReal &value, Node *srcNode, Node *destNode);
@@ -357,28 +358,38 @@ class CQChartsDotPlotEdge {
 
   //---
 
-  //! get/set edge path
+  //! get draw path
   const QPainterPath &path() const { return path_; }
-  void setPath(const QPainterPath &path) { path_ = path; }
 
+  //! get/set edge path
+  const QPainterPath &edgePath() const { return edgePath_; }
+  void setEdgePath(const QPainterPath &path) { edgePath_ = path; }
+
+  //! get/set edge line
+  const Line &line() const { return line_; }
+  void setLine(const Line &line) { line_ = line; }
+
+  //! get/set is directed
   bool isDirected() const { return directed_; }
   void setDirected(bool b) { directed_ = b; }
 
  private:
   using NamedColumn = std::map<QString, Column>;
 
-  Obj*         obj_       { nullptr };        //!< edge plot object
-  int          id_        { -1 };             //!< unique id
-  OptReal      value_;                        //!< value
-  NamedColumn  namedColumn_;                  //!< named columns
-  QString      label_;                        //!< label
-  ShapeType    shapeType_ { ShapeType::ARC }; //!< shape type
-  Color        color_;                        //!< color
-  ModelInds    modelInds_;                    //!< model inds
-  Node*        srcNode_   { nullptr };        //!< source node
-  Node*        destNode_  { nullptr };        //!< destination node
-  QPainterPath path_;
-  bool         directed_  { false };
+  Obj*         obj_       { nullptr };         //!< edge plot object
+  int          id_        { -1 };              //!< unique id
+  OptReal      value_;                         //!< value
+  NamedColumn  namedColumn_;                   //!< named columns
+  QString      label_;                         //!< label
+  ShapeType    shapeType_ { ShapeType::NONE }; //!< shape type
+  Color        color_;                         //!< color
+  ModelInds    modelInds_;                     //!< model inds
+  Node*        srcNode_   { nullptr };         //!< source node
+  Node*        destNode_  { nullptr };         //!< destination node
+  QPainterPath path_;                          //!< draw path
+  QPainterPath edgePath_;                      //!< edge path
+  Line         line_;                          //!< edge line
+  bool         directed_  { false };           //!< is directed
 };
 
 //---
@@ -546,7 +557,6 @@ class CQChartsDotEdgeObj : public CQChartsPlotObj {
  public:
   enum class ShapeType {
     NONE,
-    ARC,
     ARROW
   };
 
@@ -636,12 +646,15 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(NodeShape       nodeShape   READ nodeShape    WRITE setNodeShape  )
-  Q_PROPERTY(EdgeShape       edgeShape   READ edgeShape    WRITE setEdgeShape  )
-  Q_PROPERTY(bool            edgeScaled  READ isEdgeScaled WRITE setEdgeScaled )
-  Q_PROPERTY(CQChartsLength  edgeWidth   READ edgeWidth    WRITE setEdgeWidth  )
-  Q_PROPERTY(double          arrowWidth  READ arrowWidth   WRITE setArrowWidth )
-  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
+  Q_PROPERTY(NodeShape       nodeShape    READ nodeShape      WRITE setNodeShape   )
+  Q_PROPERTY(EdgeShape       edgeShape    READ edgeShape      WRITE setEdgeShape   )
+  Q_PROPERTY(bool            edgeArrow    READ isEdgeArrow    WRITE setEdgeArrow   )
+  Q_PROPERTY(bool            edgeScaled   READ isEdgeScaled   WRITE setEdgeScaled  )
+  Q_PROPERTY(CQChartsLength  edgeWidth    READ edgeWidth      WRITE setEdgeWidth   )
+  Q_PROPERTY(bool            edgeCentered READ isEdgeCentered WRITE setEdgeCentered)
+  Q_PROPERTY(bool            edgePath     READ isEdgePath     WRITE setEdgePath    )
+  Q_PROPERTY(double          arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
+  Q_PROPERTY(Qt::Orientation orientation  READ orientation    WRITE setOrientation )
 
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
@@ -668,21 +681,21 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   enum class EdgeShape {
     NONE,
-    ARC,
-    ARROW
+    LINE,
+    ARC
   };
 
-  using Node        = CQChartsDotPlotNode;
-  using Nodes       = std::vector<Node *>;
-  using NodeSet     = std::set<Node *>;
-  using Edge        = CQChartsDotPlotEdge;
-  using Edges       = std::vector<Edge *>;
-  using NodeObj     = CQChartsDotNodeObj;
-  using EdgeObj     = CQChartsDotEdgeObj;
-  using Length      = CQChartsLength;
-  using Color       = CQChartsColor;
-  using Alpha       = CQChartsAlpha;
-  using ColorInd    = CQChartsUtil::ColorInd;
+  using Node     = CQChartsDotPlotNode;
+  using Nodes    = std::vector<Node *>;
+  using NodeSet  = std::set<Node *>;
+  using Edge     = CQChartsDotPlotEdge;
+  using Edges    = std::vector<Edge *>;
+  using NodeObj  = CQChartsDotNodeObj;
+  using EdgeObj  = CQChartsDotEdgeObj;
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using Alpha    = CQChartsAlpha;
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsDotPlot(View *view, const ModelP &model);
@@ -703,6 +716,10 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   const EdgeShape &edgeShape() const { return edgeShape_; }
   void setEdgeShape(const EdgeShape &s);
 
+  //! get/set has arrow
+  bool isEdgeArrow() const { return edgeArrow_; }
+  void setEdgeArrow(bool b);
+
   //! get/set is edge scaled
   bool isEdgeScaled() const { return edgeScaled_; }
   void setEdgeScaled(bool b);
@@ -710,6 +727,14 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   //! get/set edge width
   const Length &edgeWidth() const { return edgeWidth_; }
   void setEdgeWidth(const Length &l);
+
+  //! get/set is edge scaled
+  bool isEdgeCentered() const { return edgeCentered_; }
+  void setEdgeCentered(bool b);
+
+  //! get/set use edge path
+  bool isEdgePath() const { return edgePath_; }
+  void setEdgePath(bool b);
 
   //! get/set arrow width
   double arrowWidth() const { return arrowWidth_; }
@@ -837,6 +862,10 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   void execDrawForeground(PaintDevice *) const override;
 
+  //---
+
+  const OptReal &maxEdgeValue() const { return maxEdgeValue_; }
+
  protected:
   void clearNodesAndEdges();
 
@@ -881,10 +910,13 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   using IndNodeMap  = std::map<int, Node *>;
 
   // placement
-  NodeShape       nodeShape_   { NodeShape::NONE }; //!< node shape
-  EdgeShape       edgeShape_   { EdgeShape::ARC };  //!< edge shape
-  bool            edgeScaled_  { false };           //!< is edge scaled
-  Qt::Orientation orientation_ { Qt::Vertical };    //!< orientation
+  NodeShape       nodeShape_    { NodeShape::NONE }; //!< node shape
+  EdgeShape       edgeShape_    { EdgeShape::ARC };  //!< edge shape
+  bool            edgeArrow_    { true };            //!< edge arrow
+  bool            edgeScaled_   { false };           //!< is edge scaled
+  bool            edgeCentered_ { false };           //!< is edge centered
+  bool            edgePath_     { true };            //!< use edge path
+  Qt::Orientation orientation_  { Qt::Vertical };    //!< orientation
 
   // bbox, margin, node width
   BBox   targetBBox_ { -1, -1, 1, 1 };     //!< target range bbox
@@ -904,6 +936,8 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   double           edgeMargin_    { 0.01 }; //!< edge bounding box margin
   int              numGroups_     { 1 };    //!< node number of groups
   double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
+
+  OptReal maxEdgeValue_;
 };
 
 //---

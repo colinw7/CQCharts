@@ -1032,7 +1032,18 @@ rulerModeSlot()
 {
   setMode(Mode::RULER);
 
+  clearRulerSlot();
+}
+
+void
+CQChartsView::
+clearRulerSlot()
+{
   rulerData_.set = false;
+
+  invalidateOverlay();
+
+  updatePlots();
 }
 
 void
@@ -3819,6 +3830,7 @@ void
 CQChartsView::
 rulerMouseMotion()
 {
+  updateMousePosText();
 }
 
 void
@@ -4746,10 +4758,7 @@ drawOverlay(QPainter *painter)
     //---
 
     if (mode() == Mode::RULER) {
-
       if (rulerData_.set) {
-        device.setPen(QColor(Qt::red));
-
         auto *currentPlot = this->currentPlot(/*remap*/true);
 
         if (currentPlot) {
@@ -4759,26 +4768,33 @@ drawOverlay(QPainter *painter)
           bool usePen     = true;
           bool forceColor = false;
 
-          CQChartsAxis xaxis(currentPlot, Qt::Horizontal);
-          CQChartsAxis yaxis(currentPlot, Qt::Vertical  );
+          CQChartsAxis xaxis(this, Qt::Horizontal);
+          CQChartsAxis yaxis(this, Qt::Vertical  );
 
-          auto x1 = std::min(p1.x, p2.x);
-          auto y1 = std::min(p1.y, p2.y);
+          auto rs = Point(std::min(rulerData_.start.x, rulerData_.end.x),
+                          std::min(rulerData_.start.y, rulerData_.end.y));
 
-          xaxis.setPlot    (currentPlot);
-          xaxis.setPosition(CQChartsOptReal(y1));
-          xaxis.setStart   (p1.x);
-          xaxis.setEnd     (p2.x);
+          //auto ps = currentPlot->viewToWindow(rs);
 
-          yaxis.setPlot    (currentPlot);
-          yaxis.setPosition(CQChartsOptReal(x1));
-          yaxis.setStart   (p1.y);
-          yaxis.setEnd     (p2.y);
+          xaxis.setPosition  (CQChartsOptReal(rs.y));
+          xaxis.setRange     (rulerData_.start.x, rulerData_.end.x);
+          xaxis.setValueRange(0.0, std::abs(p2.x - p1.x));
+          xaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.x - p1.x))));
 
-          CQChartsPlotPaintDevice pdevice(currentPlot, painter);
+          yaxis.setPosition  (CQChartsOptReal(rs.x));
+          yaxis.setRange     (rulerData_.start.y, rulerData_.end.y);
+          yaxis.setValueRange(0.0, std::abs(p2.y - p1.y));
+          yaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.y - p1.y))));
 
-          xaxis.draw(currentPlot, &pdevice, usePen, forceColor);
-          yaxis.draw(currentPlot, &pdevice, usePen, forceColor);
+          CQChartsViewPaintDevice pdevice(this, painter1);
+
+          xaxis.draw(this, &pdevice, usePen, forceColor);
+          yaxis.draw(this, &pdevice, usePen, forceColor);
+
+          auto d = std::hypot(p2.x - p1.x, p2.y - p1.y);
+
+          pdevice.drawLine(rulerData_.start, rulerData_.end);
+          pdevice.drawText((rulerData_.start + rulerData_.end)/2, QString::number(d));
         }
         else
           device.drawLine(rulerData_.start, rulerData_.end);

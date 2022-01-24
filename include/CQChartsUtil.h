@@ -532,6 +532,36 @@ Point nearestPointListPoint(const PointList &points, const Point &pos, int &i);
 
 namespace CQChartsUtil {
 
+inline int realStringNdp(const QString &s) {
+  auto i = s.indexOf('.');
+  if (i == -1) return 0;
+
+  auto ndp = s.size() - i - 1;
+
+  while (s[ndp + i] == '0')
+    --ndp;
+
+  return ndp;
+}
+
+inline int valuesNdp(const std::vector<double> &values) {
+  int ndp = 0;
+
+  for (const auto &r : values) {
+    auto rstr = QString("%1").arg(r, 0, 'f', 6);
+
+    ndp = std::max(ndp, realStringNdp(rstr));
+  }
+
+  return ndp;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
 bool encodeUtf(const QString &s, QString &res);
 
 }

@@ -607,13 +607,13 @@ drawXLabels(PaintDevice *device) const
     double px = 0.0;
     double py = 0.0;
 
-    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
-                                               textOptions, 0, /*alignBBox*/ true);
+    auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
+                                                textOptions, 0, /*alignBBox*/ true);
 
-    colRects[c] = trect;
+    colRects[c] = ptrect;
 
-    tw = std::max(tw, trect.getWidth ());
-    th = std::max(th, trect.getHeight());
+    tw = std::max(tw, ptrect.getWidth ());
+    th = std::max(th, ptrect.getHeight());
   }
 
   //---
@@ -695,13 +695,13 @@ drawYLabels(PaintDevice *device) const
     double px = 0.0;
     double py = 0.0;
 
-    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
-                                               textOptions, 0, /*alignBBox*/ true);
+    auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
+                                                textOptions, 0, /*alignBBox*/ true);
 
-    colRects[c] = trect;
+    colRects[c] = ptrect;
 
-    tw = std::max(tw, trect.getWidth ());
-    th = std::max(th, trect.getHeight());
+    tw = std::max(tw, ptrect.getWidth ());
+    th = std::max(th, ptrect.getHeight());
   }
 
   //---
@@ -776,10 +776,10 @@ calcExtraFitBBox() const
       double px = 0.0;
       double py = 0.0;
 
-      auto trect = CQChartsRotatedText::calcBBox(px, py, name, xfont,
-                                                 options, 0, /*alignBBox*/ true);
+      auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, xfont,
+                                                  options, 0, /*alignBBox*/ true);
 
-      th = std::max(th, trect.getHeight());
+      th = std::max(th, ptrect.getHeight());
     }
 
     double th1 = pixelToWindowHeight(th + tm);
@@ -811,10 +811,10 @@ calcExtraFitBBox() const
       double px = 0.0;
       double py = 0.0;
 
-      auto trect = CQChartsRotatedText::calcBBox(px, py, name, yfont,
-                                                 options, 0, /*alignBBox*/ true);
+      auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, yfont,
+                                                  options, 0, /*alignBBox*/ true);
 
-      tw = std::max(tw, trect.getWidth());
+      tw = std::max(tw, ptrect.getWidth());
     }
 
     double tw1 = pixelToWindowWidth(tw + tm);

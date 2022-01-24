@@ -1184,7 +1184,9 @@ class CQChartsView : public QFrame,
   void queryModeSlot();
   void editModeSlot();
   void regionModeSlot();
+
   void rulerModeSlot();
+  void clearRulerSlot();
 
   void plotModelChanged();
   void plotConnectDataChangedSlot();

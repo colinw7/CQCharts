@@ -328,6 +328,16 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   CQChartsMapKey::addProperties(model, path, desc);
 }
 
+bool
+CQChartsColorMapKey::
+isContiguous() const
+{
+  if (isIntegral() && numUnique() <= plot()->maxMappedValues())
+    return false;
+
+  return isNumeric();
+}
+
 void
 CQChartsColorMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -340,7 +350,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   drawData_ = drawData;
 
-  if (isNumeric())
+  if (isContiguous())
     drawContiguous(device);
   else
     drawDiscreet(device, drawType);
@@ -605,7 +615,7 @@ calcSize(const DrawData &drawData) const
 {
   drawData_ = drawData;
 
-  if (isNumeric())
+  if (isContiguous())
     return calcContiguousSize();
   else
     return calcDiscreetSize();
@@ -801,6 +811,16 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   CQChartsMapKey::addProperties(model, path, desc);
 }
 
+bool
+CQChartsSymbolSizeMapKey::
+isContiguous() const
+{
+  if (isIntegral() && numUnique() < 20)
+    return false;
+
+  return isNumeric();
+}
+
 void
 CQChartsSymbolSizeMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -815,7 +835,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   initDraw(device);
 
-  if (isNumeric())
+  if (isContiguous())
     drawContiguous(device, drawType);
   else
     drawDiscreet(device, drawType);
@@ -832,7 +852,7 @@ initDraw(PaintDevice *device)
 
   (void) calcSize(drawData_);
 
-  if (isNumeric())
+  if (isContiguous())
     alignBoxes(device);
 }
 
@@ -1133,7 +1153,7 @@ calcSize(const DrawData &drawData) const
 {
   drawData_ = drawData;
 
-  if (isNumeric())
+  if (isContiguous())
     return calcContiguousSize();
   else
     return calcDiscreetSize();
@@ -1164,35 +1184,26 @@ calcDiscreetSize() const
 
   //---
 
-  auto calcNdp = [](const QString &s) {
-    auto i = s.indexOf('.');
-    if (i == -1) return 0;
-    auto ndp = s.size() - i - 1;
-    while (s[ndp + i] == '0')
-      --ndp;
-    return ndp;
-  };
-
   int n = numUnique();
 
   double min = this->mapMin();
   double max = this->mapMax();
 
-  ndp_ = 0;
+  std::vector<double> mappedValues;
 
   for (int i = 0; i < n; ++i) {
     double r = CMathUtil::map(i, 0, n - 1, min, max);
 
-    auto rstr = QString("%1").arg(r, 0, 'f', 6);
-
-    ndp_ = std::max(ndp_, calcNdp(rstr));
+    mappedValues.push_back(r);
   }
+
+  ndp_ = CQChartsUtil::valuesNdp(mappedValues);
 
   twl_ = 0.0;
   twr_ = 0.0;
 
   for (int i = 0; i < n; ++i) {
-    double r = CMathUtil::map(i, 0, n - 1, min, max);
+    auto r = mappedValues[i];
 
     auto rstr = QString("%1").arg(r, 0, 'f', ndp_);
     auto name = uniqueValues()[i].toString();
@@ -1506,6 +1517,16 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   CQChartsMapKey::addProperties(model, path, desc);
 }
 
+bool
+CQChartsSymbolTypeMapKey::
+isContiguous() const
+{
+  if (isIntegral() && numUnique() < 20)
+    return false;
+
+  return isNumeric();
+}
+
 void
 CQChartsSymbolTypeMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -1591,7 +1612,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
   auto symbolFillColor   = plot()->interpPaletteColor(ColorInd());
   auto symbolStrokeColor = plot()->interpThemeColor(ColorInd(1.0));
 
-  if (isNumeric()) {
+  if (isContiguous()) {
     for (int i = mapMin(); i <= mapMax(); ++i) {
       // get symbol
       CQChartsSymbolSet::SymbolData symbolData;
@@ -1733,7 +1754,7 @@ calcSize(const DrawData &drawData) const
 
   kh_ = 0.0;
 
-  if      (isNumeric()) {
+  if (isContiguous()) {
     kh_ = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
 
     for (int i = mapMin(); i <= mapMax(); ++i) {

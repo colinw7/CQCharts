@@ -108,6 +108,8 @@ void
 CQChartsViewPlotPaintDevice::
 save()
 {
+  ++saveDepth_;
+
   painter_->save();
 }
 
@@ -115,16 +117,22 @@ void
 CQChartsViewPlotPaintDevice::
 restore()
 {
+  assert(saveDepth_ > 0);
+
   painter_->restore();
 
   clipPath_ = QPainterPath();
   clipRect_ = BBox();
+
+  --saveDepth_;
 }
 
 void
 CQChartsViewPlotPaintDevice::
 setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 {
+  assert(saveDepth_ > 0);
+
   clipPath_ = path;
   clipRect_ = BBox();
 
@@ -137,6 +145,8 @@ void
 CQChartsViewPlotPaintDevice::
 setClipRect(const BBox &bbox, Qt::ClipOperation operation)
 {
+  assert(saveDepth_ > 0);
+
   if (! bbox.isValid()) return;
 
   clipRect_ = bbox;
@@ -696,7 +706,10 @@ const QFont &
 CQChartsViewPlotPaintDevice::
 font() const
 {
-  return painter_->font();
+  if (painter_)
+    return painter_->font();
+  else
+    return font_;
 }
 
 void
@@ -710,10 +723,16 @@ setFont(const QFont &f)
 
     f1.setPointSizeF(ps);
 
-    painter_->setFont(f1);
+    if (painter_)
+      painter_->setFont(f1);
+
+    font_ = f1;
   }
   else {
-    painter_->setFont(f);
+    if (painter_)
+      painter_->setFont(f);
+
+    font_ = f;
   }
 }
 

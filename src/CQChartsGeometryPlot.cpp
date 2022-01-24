@@ -930,6 +930,9 @@ draw(PaintDevice *device) const
 
   calcPenBrush(penBrush, updateState);
 
+  if (isFiltered())
+    return;
+
   //---
 
   // draw polygon
@@ -973,7 +976,7 @@ drawFg(PaintDevice *device) const
     //---
 
     // TODO: customize color
-    auto colorInd = calcColorInd();
+  //auto colorInd = calcColorInd();
 
     auto pc = QColor(Qt::black);
     auto bc = QColor(Qt::red);
@@ -984,9 +987,12 @@ drawFg(PaintDevice *device) const
       Color indColor;
 
       if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-        bc = plot_->interpColor(indColor, colorInd);
+        bc = plot_->interpColor(indColor, ColorInd());
       else
         bc = QColor();
+
+      if (! plot_->colorVisible(bc))
+        return;
     }
 
     PenBrush penBrush;
@@ -1015,14 +1021,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // calc fill color
-  auto calcFillColor = [&]() {
+  auto calcFillColor = [&](bool &filtered) {
     if (plot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
       Color indColor;
 
+      QColor c;
+
       if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-        return plot_->interpColor(indColor, colorInd);
+        c = plot_->interpColor(indColor, ColorInd());
+
+      filtered = ! plot_->colorVisible(c);
+
+      return c;
     }
 
     //---
@@ -1047,7 +1059,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     return plot_->interpFillColor(colorInd);
   };
 
-  auto fc = calcFillColor();
+  bool filtered = false;
+
+  auto fc = calcFillColor(filtered);
+
+  auto *th = const_cast<CQChartsGeometryObj *>(this);
+
+  th->setFiltered(filtered);
 
   //---
 

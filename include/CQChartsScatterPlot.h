@@ -159,11 +159,6 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 
   //---
 
-  bool isFiltered() const { return filtered_; }
-  void setFiltered(bool b) { filtered_ = b; }
-
-  //---
-
   void getObjSelectIndices(Indices &inds) const override;
 
   //---
@@ -214,7 +209,6 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   ExtraDataP  edata_;                  //!< extra data
   QString     name_;                   //!< label name
   Column      nameColumn_;             //!< label name column
-  bool        filtered_   { false };   //!< is filtered
 };
 
 //---

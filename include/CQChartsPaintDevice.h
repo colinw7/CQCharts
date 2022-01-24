@@ -189,6 +189,9 @@ class CQChartsPaintDevice {
   double pixelToSignedWindowWidth (double pw) const;
   double pixelToSignedWindowHeight(double ph) const;
 
+  double windowToPixelWidth (double ww) const;
+  double windowToPixelHeight(double wh) const;
+
   double windowToSignedPixelWidth (double ww) const;
   double windowToSignedPixelHeight(double wh) const;
 

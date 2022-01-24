@@ -153,6 +153,22 @@ pixelToSignedWindowHeight(double ph) const
 
 double
 CQChartsPaintDevice::
+windowToPixelWidth(double ww) const
+{
+  return (! view_ ? (! plot_ ? ww :
+    plot_->windowToPixelWidth(ww)) : view_->windowToPixelWidth(ww));
+}
+
+double
+CQChartsPaintDevice::
+windowToPixelHeight(double wh) const
+{
+  return (! view_ ? (! plot_ ? wh :
+    plot_->windowToPixelHeight(wh)) : view_->windowToPixelHeight(wh));
+}
+
+double
+CQChartsPaintDevice::
 windowToSignedPixelWidth(double ww) const
 {
   return (! view_ ? (! plot_ ? ww :

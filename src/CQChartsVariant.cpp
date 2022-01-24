@@ -133,6 +133,14 @@ bool toString(const QVariant &var, QString &str) {
   return true;
 }
 
+QString toString(const QVariant &var, bool &ok) {
+  QString str;
+
+  ok = toString(var, str);
+
+  return str;
+}
+
 //---
 
 int cmp(const QVariant &var1, const QVariant &var2) {
@@ -255,10 +263,20 @@ double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
   return CQChartsUtil::toReal(str, ok);
 }
 
-double toReal(const QVariant &var, bool &ok) {
-  bool converted;
+bool toReal(const QVariant &var, double &r) {
+  bool ok, converted;
 
-  return toConvertedReal(var, ok, converted);
+  r = toConvertedReal(var, ok, converted);
+
+  return ok;
+}
+
+double toReal(const QVariant &var, bool &ok) {
+  double r;
+
+  ok = toReal(var, r);
+
+  return r;
 }
 
 //---

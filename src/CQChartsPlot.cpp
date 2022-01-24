@@ -44,6 +44,7 @@
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
+#include <CQBaseModel.h>
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
@@ -196,6 +197,11 @@ init()
   updateData_.objsThread ->setDebug(debugUpdate_);
   updateData_.drawThread ->setDebug(debugUpdate_);
   }
+
+  //---
+
+  registerSlot("zoom_full", QStringList());
+  registerSlot("fit"      , QStringList());
 
   //---
 
@@ -4380,7 +4386,7 @@ void
 CQChartsPlot::
 updateColorMapKey() const
 {
-  bool         isNumeric  = false;
+  bool         isReal     = false;
   bool         isIntegral = false;
   bool         isColor    = false;
   bool         isMapped   = false;
@@ -4390,17 +4396,16 @@ updateColorMapKey() const
   auto *columnDetails = this->columnDetails(colorColumn());
 
   if (columnDetails) {
-    if      (columnDetails->type() == CQBaseModelType::REAL ||
-             columnDetails->type() == CQBaseModelType::INTEGER) {
-      isNumeric  = true;
-      isIntegral = (columnDetails->type() == CQBaseModelType::INTEGER);
-    }
+    if      (columnDetails->type() == CQBaseModelType::REAL)
+      isReal = true;
+    else if (columnDetails->type() == CQBaseModelType::INTEGER)
+      isIntegral = true;
     else if (columnDetails->type() == CQBaseModelType::COLOR)
       isColor = true;
     else if (columnDetails->type() == CQBaseModelType::STRING)
       isMapped = colorColumnData_.mapped;
 
-    if (! isNumeric && ! isColor) {
+    if (! isReal && ! isColor) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
     }
@@ -4421,7 +4426,7 @@ updateColorMapKey() const
 
   colorMapKey_->setPaletteName(colorMapPalette());
 
-  colorMapKey_->setNumeric     (isNumeric);
+  colorMapKey_->setNumeric     (isReal || isIntegral);
   colorMapKey_->setIntegral    (isIntegral);
   colorMapKey_->setNative      (isColor);
   colorMapKey_->setMapped      (isMapped);
@@ -9169,13 +9174,51 @@ bool
 CQChartsPlot::
 columnValueColor(const QVariant &var, Color &color) const
 {
-  if      (CQChartsVariant::isNumeric(var)) {
+  CQChartsModelColumnDetails *columnDetails { nullptr };
+  int                         numUnique     { 0 };
+
+  //---
+
+  // populate details
+  auto getDetails = [&]() {
+    if (! columnDetails) {
+      columnDetails = this->columnDetails(colorColumn());
+      numUnique = (columnDetails ? columnDetails->numUnique() : 0);
+    }
+    return bool(columnDetails);
+  };
+
+  // use index of value in unique values to generate value in range
+  // use unique index/count of edit values (which may have been converted)
+  // not same as CQChartsColumnColorType::userData
+  auto mapVarToColor = [&](const QVariant &var) {
+    if (! getDetails()) return Color();
+
+    int    i = columnDetails->valueInd(var);
+    double r = CMathUtil::map(i, 0, numUnique - 1, colorMapMin(), colorMapMax());
+
+    return colorFromColorMapPaletteValue(r);
+  };
+
+  //---
+
+  if (CQChartsVariant::isInt(var) && isColorMapped()) {
+    if (! getDetails()) return false;
+
+    if (numUnique <= maxMappedValues()) {
+      color = mapVarToColor(var);
+
+      return color.isValid();
+    }
+  }
+
+  //---
+
+  if (CQChartsVariant::isNumeric(var)) {
     // get real value
     bool ok;
     double r = CQChartsVariant::toReal(var, ok);
     if (! ok) return false;
-
-    //--
 
     color = colorMapRealColor(r);
   }
@@ -9183,27 +9226,18 @@ columnValueColor(const QVariant &var, Color &color) const
     // use color value directly
     bool ok;
     color = CQChartsVariant::toColor(var, ok);
+    if (! ok) return false;
   }
   else {
-    if (isColorMapped()) {
-      // use index of value in unique values to generate value in range
-      auto *columnDetails = this->columnDetails(colorColumn());
-      if (! columnDetails) return false;
-
-      // use unique index/count of edit values (which may have been converted)
-      // not same as CQChartsColumnColorType::userData
-      int n = columnDetails->numUnique();
-      int i = columnDetails->valueInd(var);
-
-      double r = CMathUtil::map(i, 0, n - 1, colorMapMin(), colorMapMax());
-
-      color = colorFromColorMapPaletteValue(r);
-    }
+    if (isColorMapped())
+      color = mapVarToColor(var);
     else {
+      // assume value is color name
       bool ok;
       auto str = CQChartsVariant::toString(var, ok);
 
-      color = Color(str);
+      if (ok)
+        color = Color(str);
     }
   }
 
@@ -10109,6 +10143,90 @@ CQChartsPlot::
 getZoomFactor(bool is_shift) const
 {
   return (! is_shift ? 1.5 : 2.0);
+}
+
+//---
+
+bool
+CQChartsPlot::
+executeSlot(const QString &name, const QStringList &args, QVariant &res)
+{
+  res = QVariant();
+
+  //---
+
+  auto p = namedSlots_.find(name);
+  if (p == namedSlots_.end()) return false;
+
+  const auto &argTypes = (*p).second;
+
+  int numArgs = argTypes.length();
+
+  auto args1 = args;
+
+  while (args1.length() < numArgs)
+    args1.push_back(QString());
+
+  QVariantList values;
+
+  for (int i = 0; i < numArgs; ++i) {
+    auto argType = argTypes[i].toLower();
+
+    const auto &argValue = args1[i];
+
+    auto type = CQBaseModel::nameType(argType);
+
+    QVariant value;
+
+    bool ok;
+
+    if      (type == CQBaseModelType::INTEGER) {
+      value = QVariant(argValue.toInt(&ok));
+    }
+    else if (type == CQBaseModelType::REAL) {
+      value = QVariant(argValue.toDouble(&ok));
+    }
+    else if (type == CQBaseModelType::STRING) {
+      value = argValue;
+    }
+
+    values.push_back(value);
+  }
+
+  return executeSlotFn(name, values, res);
+}
+
+bool
+CQChartsPlot::
+executeSlotFn(const QString &name, const QVariantList &, QVariant &)
+{
+  if      (name == "zoom_full")
+    zoomFull();
+  else if (name == "fit")
+    autoFit();
+  else
+    return false;
+
+  return true;
+}
+
+void
+CQChartsPlot::
+registerSlot(const QString &name, const QStringList &argTypes)
+{
+  namedSlots_[name] = argTypes;
+}
+
+QStringList
+CQChartsPlot::
+getSlotNames() const
+{
+  QStringList names;
+
+  for (const auto &p : namedSlots_)
+    names.push_back(p.first);
+
+  return names;
 }
 
 //---

@@ -242,6 +242,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
+  bool isContiguous() const;
+
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;
 
@@ -386,6 +388,8 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   //---
 
+  bool isContiguous() const;
+
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;
 
@@ -528,6 +532,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
+
+  bool isContiguous() const;
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;

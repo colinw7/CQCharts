@@ -272,6 +272,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // color map key
   Q_PROPERTY(bool colorMapKey READ isColorMapKey WRITE setColorMapKey)
 
+  Q_PROPERTY(int maxMappedValues READ maxMappedValues WRITE setMaxMappedValues)
+
   // font
   Q_PROPERTY(CQChartsFont font       READ font       WRITE setFont)
   Q_PROPERTY(CQChartsFont tabbedFont READ tabbedFont WRITE setTabbedFont)
@@ -2229,6 +2231,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual double getZoomFactor(bool is_shift) const;
 
+  //---
+
+  bool executeSlot(const QString &name, const QStringList &args, QVariant &res);
+
+  virtual bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res);
+
+  void registerSlot(const QString &name, const QStringList &argTypes);
+
+  QStringList getSlotNames() const;
+
  public slots:
   // color map key
   void setColorMapKey(bool b);
@@ -2748,6 +2760,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void addColorMapKeyItems(QMenu *menu);
   void addColorMapKeySubItems(QMenu *keysMenu);
+
+  int maxMappedValues() const { return maxMappedValues_; }
+  void setMaxMappedValues(int i) { maxMappedValues_ = i; }
 
   //---
 
@@ -3492,6 +3507,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   ColorMapKeyP colorMapKey_; //!< color map key
 
+  int maxMappedValues_ { 20 }; // max number of unique values to treats as distinct
+
   ColorFilter colorFilter_; //!< color map filter
 
   MapKeys mapKeys_; //!< all map keys
@@ -3665,6 +3682,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   UpdatesData updatesData_;              //!< updates data
   bool        fromInvalidate_ { false }; //!< call from invalidate
+
+  //---
+
+  using NamedSlots = std::map<QString, QStringList>;
+
+  NamedSlots namedSlots_;
 
   //---
 

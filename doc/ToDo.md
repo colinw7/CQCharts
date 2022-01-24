@@ -5,15 +5,20 @@ Abstract Painter/Javascript
 
 TODO:
  + support more connection types in hier model from data
- + support connection plot model types in dendrogram
- + dot plot edge/node coloring
- + dot plot map point to relative position (on) node to allow move
-   + support editing of edge points (delete ?)
+   + from/to, hier path, connection list
+ + dot plot
+   + dot plot edge/node coloring
+   + dot plot map point to relative position (on) node to allow move
+     + support editing of edge points (delete ?)
+   + support different dot output formats (svg)
  + Replace CJson with QJsonDocument (other dependencies ?)
- + support different dot output formats
  + colorSelected on all plots or allow select feature in key to be disabled ?
  + ruler tool
+   + editable start/end points
+   + arc/angle
  + dendrogram plot
+   + support connection plot model types in dendrogram
+   + spread nodes to empty slots
    + handle missing values
    + circular text layout
    + symbol size on zoom

@@ -2918,7 +2918,8 @@ draw(PaintDevice *device, const BBox &rect) const
   penBrush.pen   = strokePen();
   penBrush.brush = fillBrush();
 
-  bool inside = (! calcHidden() && isInside());
+  //bool inside = (! calcHidden() && isInside());
+  bool inside = isInside();
 
   if (inside)
     penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));

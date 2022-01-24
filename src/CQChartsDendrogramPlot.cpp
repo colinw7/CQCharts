@@ -162,6 +162,12 @@ init()
   //---
 
   addTitle();
+
+  //---
+
+  registerSlot("expand"      , QStringList());
+  registerSlot("expand_all"  , QStringList());
+  registerSlot("collapse_all", QStringList());
 }
 
 void
@@ -523,7 +529,7 @@ placeModel() const
 
   //---
 
-  auto *root = dendrogram_->root();
+  auto *root = (dendrogram_ ? dendrogram_->root() : nullptr);
 
   if (root)
     root->setOpen(true);
@@ -537,6 +543,9 @@ void
 CQChartsDendrogramPlot::
 place() const
 {
+  if (! dendrogram_)
+    return;
+
   if      (placeType() == PlaceType::BUCHHEIM) {
     placeBuchheim();
   }
@@ -609,8 +618,8 @@ moveBuchheimHierNode(CBuchHeim::DrawTree *drawTree) const
   double x2 = drawTree->x2();
   double y2 = drawTree->y2();
 
-  double xc = (x1 + x2)/2.0;
-  double yc = (y1 + y2)/2.0;
+  double xc = CMathUtil::avg(x1,x2);
+  double yc = CMathUtil::avg(y1,y2);
   double r  = 0.4*std::min(x2 - x1, y2 - y1);
 
   if (orientation() == Qt::Horizontal)
@@ -775,8 +784,11 @@ addNameValue(const QString &name, double value, const ModelIndex &modelInd,
   HierNode *hierNode = nullptr;
 
   for (const auto &n : names) {
-    if (! hierNode)
+    if (! hierNode) {
       hierNode = dendrogram_->root();
+
+      hierNode->setName(n);
+    }
     else {
       auto *hierNode1 = hierNode->findChild(n);
 
@@ -1072,6 +1084,9 @@ void
 CQChartsDendrogramPlot::
 expandSlot()
 {
+  if (! dendrogram_)
+    return;
+
   auto *root = dendrogram_->root();
   if (! root) return;
 
@@ -1086,6 +1101,9 @@ void
 CQChartsDendrogramPlot::
 expandAllSlot()
 {
+  if (! dendrogram_)
+    return;
+
   auto *root = dendrogram_->root();
   if (! root) return;
 
@@ -1100,6 +1118,9 @@ void
 CQChartsDendrogramPlot::
 collapseAllSlot()
 {
+  if (! dendrogram_)
+    return;
+
   auto *root = dendrogram_->root();
   if (! root) return;
 
@@ -1237,38 +1258,67 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
+  // get font
+  bool is_hier = this->isHier();
+
+  auto font  = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
+  auto qfont = plot()->view()->plotFont(plot(), font);
+
+  //---
+
+  // calc position
+  Point         p;
+  Angle         angle;
+  Qt::Alignment align;
+  bool          centered;
+
+  calcTextPos(p, qfont, angle, align, centered);
+
+  //---
+
+  CQChartsPlotPaintDevice device(const_cast<CQChartsDendrogramPlot *>(plot()), nullptr);
+
+  device.setFont(qfont);
+
+  auto textOptions = (is_hier ?
+    plot()->hierLabelTextOptions(&device) : plot()->leafLabelTextOptions(&device));
+
+  textOptions.angle     = angle;
+  textOptions.align     = align;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
+
+  const auto &name = this->name();
+
+  auto tbbox = CQChartsDrawUtil::calcTextAtPointRect(&device, p, name, textOptions,
+                                                     centered, 0.0, 0.0);
+
+#if 0
+  QFontMetricsF fm(qfont);
+
+  double dy = (fm.ascent() - fm.descent())/2.0;
+  double dx = fm.width(name);
+
   auto pbbox = plot()->windowToPixel(rect());
 
   auto pc = pbbox.getCenter();
   auto pr = pbbox.getWidth()/2.0;
 
-  //---
-
-  bool is_hier = this->isHier();
-
-  auto font = (is_hier ?
-    plot()->view()->plotFont(plot(), plot()->hierLabelTextFont()) :
-    plot()->view()->plotFont(plot(), plot()->leafLabelTextFont()));
-
-  QFontMetricsF fm(font);
-
-  const auto &name = this->name();
-
-  double dy = (fm.ascent() - fm.descent())/2;
-
   Point p;
 
   if (is_hier)
-    p = Point(pc.x - pr - fm.width(name), pc.y + dy);
+    p = Point(pc.x - pr - dx, pc.y + dy);
   else
     p = Point(pc.x + pr, pc.y + dy);
 
-  Point p1(p.x                 , p.y - fm.ascent());
-  Point p2(p.x + fm.width(name), p.y + fm.ascent());
+  Point p1(p.x     , p.y - fm.ascent());
+  Point p2(p.x + dx, p.y + fm.ascent());
 
   BBox ptbbox(p1, p2);
 
   auto tbbox = plot()->pixelToWindow(ptbbox);
+#endif
 
   return tbbox;
 }
@@ -1277,8 +1327,6 @@ void
 CQChartsDendrogramNodeObj::
 draw(PaintDevice *device) const
 {
-  double tm = std::max(plot()->textMargin(), 1.0);
-
   auto rect1 = displayRect();
 
   //---
@@ -1333,127 +1381,171 @@ draw(PaintDevice *device) const
 
   //---
 
-  // draw node text
+  drawText(device);
+
+  //---
+
+  if (plot()->showBoxes()) {
+    auto bbox = textRect();
+
+    drawDebugRect(device, bbox);
+  }
+}
+
+void
+CQChartsDendrogramNodeObj::
+drawText(PaintDevice *device) const
+{
+  bool is_hier = this->isHier();
+
   bool textVisible = (is_hier ? plot_->isHierLabelTextVisible() : plot_->isLeafLabelTextVisible());
+  if (! textVisible) return;
 
-  if (textVisible) {
-    PenBrush tpenBrush;
+  //---
 
-    auto tc = (is_hier ? plot()->interpHierLabelTextColor(colorInd) :
-                         plot()->interpLeafLabelTextColor(colorInd));
+  // set pen
+  ColorInd colorInd;
+  PenBrush tpenBrush;
 
-    auto ta = (is_hier ? plot()->hierLabelTextAlpha() : plot()->leafLabelTextAlpha());
+  auto tc = (is_hier ? plot()->interpHierLabelTextColor(colorInd) :
+                       plot()->interpLeafLabelTextColor(colorInd));
 
-    plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
+  auto ta = (is_hier ? plot()->hierLabelTextAlpha() : plot()->leafLabelTextAlpha());
 
-    device->setPen(tpenBrush.pen);
+  plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
 
-    //---
+  device->setPen(tpenBrush.pen);
 
-    auto font = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
+  //---
 
-    plot()->setPainterFont(device, font);
+  // set font
+  auto font = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
 
-    //---
+  plot()->setPainterFont(device, font);
 
-    const auto &name = this->name();
+  //---
 
-    QFontMetricsF fm(device->font());
+  // calc position
+  Point         p;
+  Angle         angle;
+  Qt::Alignment align;
+  bool          centered;
 
-    double dy = (fm.ascent() - fm.descent())/2.0;
-    double dx = fm.width(name);
+  calcTextPos(p, device->font(), angle, align, centered);
 
-    BBox pbbox = plot()->windowToPixel(rect1);
+  //---
 
-    Point         pp;
-    Angle         angle;
-    Qt::Alignment align = Qt::AlignLeft | Qt::AlignVCenter;
-    bool          centered = false;
+  // draw node text
+  // only support contrast and clip
+  const auto &name = this->name();
 
-    if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
-      if (isRoot()) {
-        pp = pbbox.getCenter();
+  auto textOptions = (is_hier ?
+    plot()->hierLabelTextOptions(device) : plot()->leafLabelTextOptions(device));
 
-        align = Qt::AlignCenter;
-      }
-      else {
-        if (plot()->orientation() == Qt::Horizontal) {
-          if (is_hier)
-            pp = Point(pbbox.getXMin() - dx - tm, pbbox.getYMid() + dy); // align right
-          else
-            pp = Point(pbbox.getXMax()      + tm, pbbox.getYMid() + dy); // align left
-        }
-        else {
-          if (is_hier)
-            pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMin() - tm + dy); // align top
-          else
-            pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMax() + tm + dy); // align bottom
-        }
-      }
-    }
-    else {
+  textOptions.angle     = angle;
+  textOptions.align     = align;
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
+
+  CQChartsDrawUtil::drawTextAtPoint(device, p, name, textOptions, centered);
+}
+
+void
+CQChartsDendrogramNodeObj::
+calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, bool &centered) const
+{
+  auto rect1 = displayRect();
+
+  const auto &name = this->name();
+
+  QFontMetricsF fm(font);
+
+  double dy = (fm.ascent() - fm.descent())/2.0;
+  double dx = fm.width(name);
+
+  BBox pbbox = plot()->windowToPixel(rect1);
+
+  double tm = std::max(plot()->textMargin(), 1.0);
+
+  align    = Qt::AlignLeft | Qt::AlignVCenter;
+  centered = false;
+
+  Point pp;
+
+  if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
+    if (isRoot()) {
       pp = pbbox.getCenter();
 
       align = Qt::AlignCenter;
+    }
+    else {
+      bool is_hier = this->isHier();
 
-      if (! isRoot()) {
-        auto p = plot()->pixelToWindow(pp);
-
-        auto angle1 = Angle::radians(std::atan2(p.y, p.x));
-
-        //---
-
-        double dx1 = 0.0;
-
-        if (plot()->isRotatedText()) {
-          dx1 = plot()->pixelToWindowWidth (dx/2.0);
-        //dy1 = plot()->pixelToWindowHeight(dy);
-        }
-        else {
-          dx1 = plot()->pixelToWindowWidth(tm);
-        }
-
-        auto x1 = p.x + dx1*angle1.cos();
-        auto y1 = p.y + dx1*angle1.sin();
-
-        pp = plot()->windowToPixel(Point(x1, y1));
-
-        //---
-
-        if (plot()->isRotatedText()) {
-          if (angle1.cos() < 0.0)
-            angle1.flipX();
-
-          angle = angle1;
-
-          centered = true;
-        }
-        else {
-          align = Qt::Alignment();
-
-          if      (pp.x < 0.0) align |= Qt::AlignRight;
-          else if (pp.x > 0.0) align |= Qt::AlignLeft;
-
-          if      (pp.y < 0.0) align |= Qt::AlignTop;
-          else if (pp.y < 0.0) align |= Qt::AlignBottom;
-        }
+      if (plot()->orientation() == Qt::Horizontal) {
+        if (is_hier)
+          pp = Point(pbbox.getXMin() - dx - tm, pbbox.getYMid() + dy); // align right
+        else
+          pp = Point(pbbox.getXMax()      + tm, pbbox.getYMid() + dy); // align left
+      }
+      else {
+        if (is_hier)
+          pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMin() - tm + dy); // align top
+        else
+          pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMax() + tm + dy); // align bottom
       }
     }
-
-    auto p = plot()->pixelToWindow(pp);
-
-    // only support contrast and clip
-    auto textOptions = (is_hier ?
-      plot()->hierLabelTextOptions(device) : plot()->leafLabelTextOptions(device));
-
-    textOptions.angle     = angle;
-    textOptions.align     = align;
-    textOptions.formatted = false;
-    textOptions.scaled    = false;
-    textOptions.html      = false;
-
-    CQChartsDrawUtil::drawTextAtPoint(device, p, name, textOptions, centered);
   }
+  else {
+    pp = pbbox.getCenter();
+
+    align = Qt::AlignCenter;
+
+    if (! isRoot()) {
+      auto p = plot()->pixelToWindow(pp);
+
+      auto angle1 = Angle::radians(std::atan2(p.y, p.x));
+
+      //---
+
+      double dx1 = 0.0;
+
+      if (plot()->isRotatedText()) {
+        dx1 = plot()->pixelToWindowWidth (dx/2.0);
+      //dy1 = plot()->pixelToWindowHeight(dy);
+      }
+      else {
+        dx1 = plot()->pixelToWindowWidth(tm);
+      }
+
+      auto x1 = p.x + dx1*angle1.cos();
+      auto y1 = p.y + dx1*angle1.sin();
+
+      pp = plot()->windowToPixel(Point(x1, y1));
+
+      //---
+
+      if (plot()->isRotatedText()) {
+        if (angle1.cos() < 0.0)
+          angle1.flipX();
+
+        angle = angle1;
+
+        centered = true;
+      }
+      else {
+        align = Qt::Alignment();
+
+        if      (pp.x < 0.0) align |= Qt::AlignRight;
+        else if (pp.x > 0.0) align |= Qt::AlignLeft;
+
+        if      (pp.y < 0.0) align |= Qt::AlignTop;
+        else if (pp.y < 0.0) align |= Qt::AlignBottom;
+      }
+    }
+  }
+
+  p = plot()->pixelToWindow(pp);
 }
 
 void
@@ -1569,6 +1661,24 @@ calcSymbolSize() const
   }
 
   return symbolSize;
+}
+
+//---
+
+bool
+CQChartsDendrogramPlot::
+executeSlotFn(const QString &name, const QVariantList &args, QVariant &res)
+{
+  if      (name == "expand")
+    expandSlot();
+  else if (name == "expand_all")
+    expandAllSlot();
+  else if (name == "collapse_all")
+    collapseAllSlot();
+  else
+    return CQChartsPlot::executeSlotFn(name, args, res);
+
+  return true;
 }
 
 //------

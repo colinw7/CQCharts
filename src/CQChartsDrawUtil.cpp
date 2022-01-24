@@ -524,10 +524,12 @@ calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text
 
     auto pp = device->windowToPixel(tp);
 
-    BBox prect(pp.x, pp.y - ta, pp.x + tw, point.y + td);
+    //BBox prect(pp.x, pp.y - ta, pp.x + tw, point.y + td);
 
-    return CQChartsRotatedText::calcBBox(tp.x, tp.y, text1, device->font(),
-                                         options, 0, /*alignBox*/true);
+    auto prect = CQChartsRotatedText::calcBBox(pp.x, pp.y, text1, device->font(),
+                                               options, 0, /*alignBox*/true);
+
+    return device->pixelToWindow(prect);
   }
 }
 
@@ -1408,33 +1410,111 @@ void
 edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
          Qt::Orientation orientation)
 {
+  //auto len = std::hypot(p2.x - p1.x, p2.y - p1.y);
+  //auto flw = (len > 0 ? lw/len : lw);
+
+  auto f1 = 1.0/3.0;
+  auto f2 = 2.0/3.0;
+  //auto f1 = std::min(      flw, 1.0/6.0);
+  //auto f2 = std::max(1.0 - flw, 5.0/6.0);
+
   if (orientation == Qt::Horizontal) {
+    if (p1.x > p2.x)
+      return edgePath(path, p2, p1, lw, orientation);
+
+    //---
+
     double y11 = p1.y + lw/2.0, y12 = p1.y - lw/2.0;
     double y21 = p2.y + lw/2.0, y22 = p2.y - lw/2.0;
 
-    // curve control point x at 1/3 and 2/3
-    double x3 = CMathUtil::lerp(1.0/3.0, p1.x, p2.x);
-    double x4 = CMathUtil::lerp(2.0/3.0, p1.x, p2.x);
+    double xm = CMathUtil::avg(p1.x, p2.x);
+    double ym = CMathUtil::avg(p1.y, p2.y);
 
-    path.moveTo (QPointF(p1.x, y11));
-    path.cubicTo(QPointF(x3  , y11), QPointF(x4, y21), QPointF(p2.x, y21));
-    path.lineTo (QPointF(p2.x, y22));
-    path.cubicTo(QPointF(x4  , y22), QPointF(x3, y12), QPointF(p1.x, y12));
+    auto pm = Point(xm, ym);
+
+    double a = pointAngle(p1, p2);
+
+    auto pm1 = CQChartsGeom::movePointPerpLine(pm, a, -lw/2.0);
+    auto pm2 = CQChartsGeom::movePointPerpLine(pm, a,  lw/2.0);
+
+    auto lp1 = CQChartsGeom::movePointOnLine(Point(xm, ym), a, -lw/2.0);
+    auto lp2 = CQChartsGeom::movePointOnLine(Point(xm, ym), a,  lw/2.0);
+
+    auto pp11 = CQChartsGeom::movePointPerpLine(lp1, a, -lw/2.0);
+    auto pp12 = CQChartsGeom::movePointPerpLine(lp1, a,  lw/2.0);
+    auto pp21 = CQChartsGeom::movePointPerpLine(lp2, a, -lw/2.0);
+    auto pp22 = CQChartsGeom::movePointPerpLine(lp2, a,  lw/2.0);
+
+    // curve control point x at f1 and f2
+    double x3 = CMathUtil::lerp(f1, p1.x, p2.x);
+    double x4 = CMathUtil::lerp(f2, p1.x, p2.x);
+
+    auto py11 = Point(p1.x, y11);
+    auto py12 = Point(p1.x, y12);
+    auto py21 = Point(p2.x, y21);
+    auto py22 = Point(p2.x, y22);
+
+    auto p113 = Point(x3, y11);
+    auto p123 = Point(x3, y12);
+    auto p214 = Point(x4, y21);
+    auto p224 = Point(x4, y22);
+
+    path.moveTo (py11.qpoint());
+    path.cubicTo(p113.qpoint(), pp11.qpoint(), pm1 .qpoint());
+    path.cubicTo(pp21.qpoint(), p214.qpoint(), py21.qpoint());
+    path.lineTo (py22.qpoint());
+    path.cubicTo(p224.qpoint(), pp22.qpoint(), pm2 .qpoint());
+    path.cubicTo(pp12.qpoint(), p123.qpoint(), py12.qpoint());
 
     path.closeSubpath();
   }
   else {
-    double x11 = p1.x + lw/2.0, x12 = p1.x - lw/2.0;
-    double x21 = p2.x + lw/2.0, x22 = p2.x - lw/2.0;
+    if (p1.y > p2.y)
+      return edgePath(path, p2, p1, lw, orientation);
 
-    // curve control point y at 1/3 and 2/3
-    double y3 = CMathUtil::lerp(1.0/3.0, p1.y, p2.y);
-    double y4 = CMathUtil::lerp(2.0/3.0, p1.y, p2.y);
+    //---
 
-    path.moveTo (QPointF(x11, p1.y));
-    path.cubicTo(QPointF(x11, y3  ), QPointF(x21, y4), QPointF(x21, p2.y));
-    path.lineTo (QPointF(x22, p2.y));
-    path.cubicTo(QPointF(x22, y4  ), QPointF(x12, y3), QPointF(x12, p1.y));
+    double x11 = p1.x - lw/2.0, x12 = p1.x + lw/2.0;
+    double x21 = p2.x - lw/2.0, x22 = p2.x + lw/2.0;
+
+    double xm = CMathUtil::avg(p1.x, p2.x);
+    double ym = CMathUtil::avg(p1.y, p2.y);
+
+    auto pm = Point(xm, ym);
+
+    double a = pointAngle(p1, p2);
+
+    auto pm1 = CQChartsGeom::movePointPerpLine(pm, a, -lw/2.0);
+    auto pm2 = CQChartsGeom::movePointPerpLine(pm, a,  lw/2.0);
+
+    auto lp1 = CQChartsGeom::movePointOnLine(Point(xm, ym), a, -lw/2.0);
+    auto lp2 = CQChartsGeom::movePointOnLine(Point(xm, ym), a,  lw/2.0);
+
+    auto pp11 = CQChartsGeom::movePointPerpLine(lp1, a, -lw/2.0);
+    auto pp12 = CQChartsGeom::movePointPerpLine(lp1, a,  lw/2.0);
+    auto pp21 = CQChartsGeom::movePointPerpLine(lp2, a, -lw/2.0);
+    auto pp22 = CQChartsGeom::movePointPerpLine(lp2, a,  lw/2.0);
+
+    // curve control point y at f1 and f2
+    double y3 = CMathUtil::lerp(f1, p1.y, p2.y);
+    double y4 = CMathUtil::lerp(f2, p1.y, p2.y);
+
+    auto px11 = Point(x11, p1.y);
+    auto px12 = Point(x12, p1.y);
+    auto px21 = Point(x21, p2.y);
+    auto px22 = Point(x22, p2.y);
+
+    auto p113 = Point(x11, y3);
+    auto p123 = Point(x12, y3);
+    auto p214 = Point(x21, y4);
+    auto p224 = Point(x22, y4);
+
+    path.moveTo (px11.qpoint());
+    path.cubicTo(p113.qpoint(), pp11.qpoint(), pm1 .qpoint());
+    path.cubicTo(pp21.qpoint(), p214.qpoint(), px21.qpoint());
+    path.lineTo (px22.qpoint());
+    path.cubicTo(p224.qpoint(), pp22.qpoint(), pm2 .qpoint());
+    path.cubicTo(pp12.qpoint(), p123.qpoint(), px12.qpoint());
 
     path.closeSubpath();
   }

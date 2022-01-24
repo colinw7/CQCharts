@@ -58,6 +58,8 @@ class CQChartsViewToolBar : public QFrame {
 
   void regionButtonClicked(int);
 
+  void clearRulerSlot();
+
   void autoFitSlot();
 
   void leftSlot();

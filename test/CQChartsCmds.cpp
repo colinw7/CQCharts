@@ -163,9 +163,12 @@ addCommands()
     addCommand("get_charts_property", new CQChartsGetChartsPropertyCmd(this));
     addCommand("set_charts_property", new CQChartsSetChartsPropertyCmd(this));
 
-    // get/set charts model data
+    // get/set charts data
     addCommand("get_charts_data", new CQChartsGetChartsDataCmd(this));
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
+
+    // execute charts slot
+    addCommand("execute_charts_slot", new CQChartsExecuteChartsSlotCmd(this));
 
     // annotations
     addCommand("create_charts_annotation_group",
@@ -3452,8 +3455,10 @@ void
 CQChartsConnectionChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  addArg(argv, "-model" , ArgType::String , "model_id");
-  addArg(argv, "-column", ArgType::Column , "column with connections");
+  addArg(argv, "-model"      , ArgType::String , "model_id");
+  addArg(argv, "-column"     , ArgType::Column , "column with node data");
+  addArg(argv, "-node"       , ArgType::Column , "column with node id");
+  addArg(argv, "-connections", ArgType::Column , "column with connections");
 }
 
 QStringList
@@ -3503,7 +3508,31 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("column")) {
     auto column = argv.getParseColumn("column", model.data());
 
+    if (column.column() < 0)
+      return errorMsg("Invalid connections column");
+
     icolumn = column.column();
+  }
+
+  int iconnections = -1;
+  int inode        = -1;
+
+  if (argv.hasParseArg("connections")) {
+    auto column = argv.getParseColumn("connections", model.data());
+
+    if (column.column() < 0)
+      return errorMsg("Invalid connections column");
+
+    iconnections = column.column();
+  }
+
+  if (argv.hasParseArg("node")) {
+    auto column = argv.getParseColumn("node", model.data());
+
+    if (column.column() < 0)
+      return errorMsg("Invalid node column");
+
+    inode = column.column();
   }
 
   //---
@@ -3516,7 +3545,14 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQHierSepData data(icolumn);
 
-  data.connectionType = CQHierConnectionType::FROM_TO;
+  if (iconnections >= 0) {
+    data.connectionType   = CQHierConnectionType::CONNECTIONS;
+    data.connectionColumn = iconnections;
+    data.nodeColumn       = inode;
+  }
+  else {
+    data.connectionType = CQHierConnectionType::HIER;
+  }
 
   auto *hierSepModel = new CQHierSepModel(model.data(), data);
 
@@ -7406,6 +7442,94 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else
       return errorMsg("Invalid global name '" + name + "' specified");
+  }
+
+  return true;
+}
+
+//------
+
+void
+CQChartsExecuteChartsSlotCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-name", ArgType::String, "slot name");
+  addArg(argv, "-args", ArgType::String, "args");
+}
+
+QStringList
+CQChartsExecuteChartsSlotCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  // TODO: name
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+// set charts data
+bool
+CQChartsExecuteChartsSlotCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsExecuteChartsSlotCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto name = argv.getParseStr ("name");
+  auto args = argv.getParseStrs("args");
+
+  //---
+
+  // view slot
+  if      (argv.hasParseArg("view")) {
+    auto viewName = argv.getParseStr("view");
+
+    auto *view = cmds()->getViewByName(viewName);
+    if (! view) return false;
+
+    return errorMsg("No view slots");
+  }
+  // plot data
+  else if (argv.hasParseArg("plot")) {
+    auto plotName = argv.getParseStr("plot");
+
+    CQChartsView *view = nullptr;
+
+    auto *plot = cmds()->getPlotByName(view, plotName);
+    if (! plot) return false;
+
+    if (name == "?") {
+      auto names = plot->getSlotNames();
+      return cmdBase_->setCmdRc(names);
+    }
+
+    QVariant res;
+
+    if (! plot->executeSlot(name, args, res))
+      return errorMsg("Failed to execute slot '" + name + "'");
+
+    return cmdBase_->setCmdRc(res);
   }
 
   return true;

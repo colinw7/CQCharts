@@ -12,13 +12,16 @@ class CQBaseModel;
 
 enum CQHierConnectionType {
   NONE,
-  FROM_TO
+  HIER,
+  CONNECTIONS,
 };
 
 struct CQHierSepData {
-  int                  column         { 0 };   //! fold column
-  QChar                separator      { '/' }; //! separator
-  CQHierConnectionType connectionType { CQHierConnectionType::NONE };
+  int                  column           { 0 };                          //!< fold column
+  int                  connectionColumn { -1 };                         //!< connection column
+  int                  nodeColumn       { -1 };                         //!< node column
+  QChar                separator        { '/' };                        //!< separator
+  CQHierConnectionType connectionType   { CQHierConnectionType::NONE }; //!< connection type
 
   CQHierSepData() { }
 
@@ -35,9 +38,10 @@ struct CQHierSepData {
 class CQHierSepModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(QChar          separator      READ separator      WRITE setSeparator     )
-  Q_PROPERTY(int            foldColumn     READ foldColumn     WRITE setFoldColumn    )
-  Q_PROPERTY(PropagateValue propagateValue READ propagateValue WRITE setPropagateValue)
+  Q_PROPERTY(QChar          separator         READ separator         WRITE setSeparator        )
+  Q_PROPERTY(int            foldColumn        READ foldColumn        WRITE setFoldColumn       )
+  Q_PROPERTY(int            connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(PropagateValue propagateValue    READ propagateValue    WRITE setPropagateValue   )
 
   Q_ENUMS(PropagateValue)
 
@@ -67,6 +71,14 @@ class CQHierSepModel : public QAbstractProxyModel {
   // get/set fold column
   int foldColumn() const { return data_.column; }
   void setFoldColumn(int i);
+
+  // get/set connections column
+  int connectionsColumn() const { return data_.connectionColumn; }
+  void setConnectionsColumn(int i);
+
+  // get/set node column
+  int nodeColumn() const { return data_.nodeColumn; }
+  void setNodeColumn(int i);
 
   // get/set propagate value
   const PropagateValue &propagateValue() const { return propagateValue_; }

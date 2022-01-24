@@ -350,9 +350,16 @@ setEditHandlesBBox() const
 
 void
 CQChartsPlotObj::
-drawDebugRect(PaintDevice *device)
+drawDebugRect(PaintDevice *device) const
 {
-  plot()->drawWindowColorBox(device, rect());
+  drawDebugRect(device, rect());
+}
+
+void
+CQChartsPlotObj::
+drawDebugRect(PaintDevice *device, const BBox &rect) const
+{
+  plot()->drawWindowColorBox(device, rect);
 }
 
 //---

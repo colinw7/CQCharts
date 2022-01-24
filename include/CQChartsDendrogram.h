@@ -37,6 +37,7 @@ class CQChartsDendrogram {
     uint id() const { return id_; }
 
     const QString &name() const { return name_; }
+    void setName(const QString &name) { name_ = name; }
 
     virtual double size() const { return size_; }
 

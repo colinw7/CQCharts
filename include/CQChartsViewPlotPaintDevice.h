@@ -121,8 +121,10 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   QPainterPath        clipPath_;
   QColor              altColor_;
   double              altAlpha_      { 1.0 };
+  QFont               font_;
   bool                zoomFont_      { false };
   bool                handDrawn_     { false };
+  int                 saveDepth_     { 0 };
   double              handRoughness_ { 1.0 };
   double              handFillDelta_ { 16.0 };
   CQHandDrawnPainter* hdPainter_     { nullptr };

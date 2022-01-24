@@ -215,6 +215,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   zoomInControlsLayout->addWidget(zoomResetButton);
 
+  zoomInControlsLayout->addStretch(1);
+
   //-----
 
   auto *panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
@@ -269,9 +271,13 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-#if 0
   auto *rulerControlsLayout = CQUtil::makeLayout<QHBoxLayout>(rulerControls, 0, 2);
-#endif
+
+  auto *rulerClearButton = makePushButton("Clear", "clear", "Clear Ruler", SLOT(clearRulerSlot()));
+
+  rulerControlsLayout->addWidget(rulerClearButton);
+
+  rulerControlsLayout->addStretch(1);
 
   //-----
 
@@ -471,6 +477,13 @@ regionButtonClicked(int ind)
     view()->setRegionMode(CQChartsView::RegionMode::POINT);
   else
     view()->setRegionMode(CQChartsView::RegionMode::RECT);
+}
+
+void
+CQChartsViewToolBar::
+clearRulerSlot()
+{
+  view()->clearRulerSlot();
 }
 
 //---

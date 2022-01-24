@@ -127,7 +127,14 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawText(PaintDevice *device) const;
+
   void drawEdges(PaintDevice *device) const;
+
+  void calcTextPos(Point &p, const QFont &font, Angle &angle,
+                   Qt::Alignment &align, bool &centered) const;
+
+  //---
 
  private:
   void drawEdge(PaintDevice *device, const NodeObj *child) const;
@@ -348,6 +355,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   double calcHierSize (const HierNode *hierNode) const;
 
   bool addMenuItems(QMenu *menu) override;
+
+  bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res) override;
 
   CQChartsPlotCustomControls *createCustomControls() override;
 

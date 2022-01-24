@@ -836,14 +836,21 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &pargs = argv.getParseArgs();
 
-  auto cmd = (! pargs.empty() ? pargs[0].toString() : QString());
+  int nargs = pargs.size();
+
+  auto cmd = (nargs > 0 ? pargs[0].toString() : QString());
 
   //---
 
   if (cmd == "")
     return errorMsg("No command");
 
-  int rc = system(cmd.toLatin1().constData());
+  auto cmd1 = cmd;
+
+  for (int i = 1; i < nargs; ++i)
+    cmd1 += " " + pargs[i].toString();
+
+  int rc = system(cmd1.toLatin1().constData());
 
   return cmdBase_->setCmdRc(rc);
 }

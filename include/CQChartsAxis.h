@@ -179,6 +179,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   using Point                  = CQChartsGeom::Point;
 
  public:
+  CQChartsAxis(const View *view, Qt::Orientation direction=Qt::Horizontal,
+               double start=0.0, double end=1.0);
   CQChartsAxis(const Plot *plot, Qt::Orientation direction=Qt::Horizontal,
                double start=0.0, double end=1.0);
 
@@ -204,6 +206,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //! get/set view
   View *view();
   const View *view() const;
+  void setView(const View *view) { view_ = view; }
 
   //---
 
@@ -523,6 +526,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
   bool isDrawGrid() const;
 
   void drawGrid(const Plot *plot, PaintDevice *device) const;
@@ -531,10 +535,16 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawAt(double pos, const Plot *plot, PaintDevice *device) const;
 
+  void draw(const View *view, PaintDevice *device, bool usePen=false, bool forceColor=false) const;
   void draw(const Plot *plot, PaintDevice *device, bool usePen=false, bool forceColor=false) const;
+
+ private:
+  void drawI(const View *view, const Plot *plot, PaintDevice *device,
+             bool usePen=false, bool forceColor=false) const;
 
   //---
 
+ public:
   //! get edit handles
   EditHandles *editHandles() const override;
 
@@ -620,7 +630,24 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void emitSelectionChanged();
 
-  Point windowToPixel(const Plot *plot, double x, double y) const;
+  //---
+
+  Point windowToPixel(const Plot *plot, PaintDevice *device, double x, double y) const;
+
+  BBox windowToPixel(const Plot *plot, PaintDevice *device, const BBox &p) const;
+  Point windowToPixel(const Plot *plot, PaintDevice *device, const Point &p) const;
+
+  double windowToPixelWidth(const Plot *plot, PaintDevice *device, double p) const;
+  double windowToPixelHeight(const Plot *plot, PaintDevice *device, double p) const;
+
+  BBox pixelToWindow(const Plot *plot, PaintDevice *device, const BBox &p) const;
+  Point pixelToWindow(const Plot *plot, PaintDevice *device, const Point &p) const;
+
+  double pixelToWindowWidth(const Plot *plot, PaintDevice *device, double p) const;
+  double pixelToWindowHeight(const Plot *plot, PaintDevice *device, double p) const;
+
+  double lengthPixelWidth(const Plot *plot, PaintDevice *device, const Length &len) const;
+  double lengthPixelHeight(const Plot *plot, PaintDevice *device, const Length &len) const;
 
  private:
   using TickSpaces  = std::vector<double>;
@@ -632,6 +659,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   using TextPlacer = CQChartsAxisTextPlacer;
 
   // basic state
+  const View*     view_      { nullptr };        //!< parent view
   const Plot*     plot_      { nullptr };        //!< parent plot
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
 

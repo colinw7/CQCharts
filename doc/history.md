@@ -1350,3 +1350,9 @@
 # 1/17/2022
  + Add filtering by color, symbol type, symbol size from map keys
  + Improve dendrogram symbol sizes and coloring
+# 1/23/2022
+ + Improve arc drawing in dot plot
+ + support color filter in barchart and geometry plot
+ + improve ruler drawing
+ + add support for direct call or plot slots
+ + improve fit for text in dendrogram plot

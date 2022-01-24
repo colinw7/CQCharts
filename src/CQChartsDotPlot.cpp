@@ -186,9 +186,30 @@ setEdgeScaled(bool b)
 
 void
 CQChartsDotPlot::
+setEdgeArrow(bool b)
+{
+  CQChartsUtil::testAndSet(edgeArrow_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDotPlot::
 setEdgeWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDotPlot::
+setEdgeCentered(bool b)
+{
+  CQChartsUtil::testAndSet(edgeCentered_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDotPlot::
+setEdgePath(bool b)
+{
+  CQChartsUtil::testAndSet(edgePath_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -254,10 +275,13 @@ addProperties()
   //---
 
   // edge
-  addProp("edge", "edgeShape" , "shapeType" , "Edge shape type");
-  addProp("edge", "edgeScaled", "scaled"    , "Edge is scaled");
-  addProp("edge", "edgeWidth" , "width"     , "Edge width");
-  addProp("edge", "arrowWidth", "arrowWidth", "Arrow width");
+  addProp("edge", "edgeShape"   , "shapeType" , "Edge shape type");
+  addProp("edge", "edgeArrow"   , "arrow"     , "Edge arrow");
+  addProp("edge", "edgeScaled"  , "scaled"    , "Edge is scaled");
+  addProp("edge", "edgeWidth"   , "width"     , "Edge width");
+  addProp("edge", "edgeCentered", "centered"  , "Edge is cenetered");
+  addProp("edge", "edgePath"    , "usePath"   , "Use Edge path");
+  addProp("edge", "arrowWidth"  , "arrowWidth", "Arrow width factor");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -418,17 +442,28 @@ addObjects(PlotObjs &objs) const
   if (! bbox_.isValid())
     return;
 
+  auto *th = const_cast<CQChartsDotPlot *>(this);
+
+  //---
+
   for (const auto &node : nodes()) {
     auto *nodeObj = createObjFromNode(node);
 
     objs.push_back(nodeObj);
   }
 
+  //---
+
+  th->maxEdgeValue_ = OptReal();
+
   for (const auto &edge : edges()) {
     auto *edgeObj = addEdgeObj(edge);
+    if (! edgeObj) continue;
 
-    if (edgeObj)
-      objs.push_back(edgeObj);
+    objs.push_back(edgeObj);
+
+    if (edge->hasValue())
+      th->maxEdgeValue_ = OptReal(std::max(maxEdgeValue_.realOr(0.0), edge->value().real()));
   }
 }
 
@@ -506,6 +541,9 @@ writeGraph() const
   os << "}\n";
   }
 
+  //---
+
+  // run to on graph file
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin/dot");
 
 #if 0
@@ -531,9 +569,16 @@ writeGraph() const
   process.waitForFinished();
 #endif
 
+  //---
+
+  // parse output json file
   CQDot::App dot;
 
   dot.processFile(jsonFilename);
+
+  //---
+
+  // process placement
 
   BBox bbox;
 
@@ -590,11 +635,19 @@ writeGraph() const
 
     auto spanRect = tailNode->rect() + headNode->rect();
 
-    auto addPathPoint = [&](QPainterPath &path, const Point &p) {
-      auto x = CMathUtil::map(p.x, spanRect.getXMin(), spanRect.getXMax(), 0, 1);
-      auto y = CMathUtil::map(p.y, spanRect.getYMin(), spanRect.getYMax(), 0, 1);
+    auto normalizeRectPoint = [&](const BBox &rect, const Point &p) {
+      auto x = CMathUtil::map(p.x, rect.getXMin(), spanRect.getXMax(), 0, 1);
+      auto y = CMathUtil::map(p.y, rect.getYMin(), spanRect.getYMax(), 0, 1);
 
-      auto p1 = QPointF(x, y);
+      return Point(x, y);
+    };
+
+    auto normalizePathPoint = [&](const Point &p) {
+      return normalizeRectPoint(spanRect, p);
+    };
+
+    auto addPathPoint = [&](QPainterPath &path, const Point &p) {
+      auto p1 = normalizePathPoint(p).qpoint();
 
       if (path.elementCount() == 0)
         path.moveTo(p1);
@@ -608,6 +661,7 @@ writeGraph() const
 
     auto len = path.length();
     //charts()->errorMsg("len=" + len);
+
     auto delta = len/100.0;
     //charts()->errorMsg("delta=" + delta);
 
@@ -658,6 +712,9 @@ writeGraph() const
       //charts()->errorMsg("d=" + d);
       //pihValid = (d > delta);
     }
+
+    edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[it]),
+                                     normalizeRectPoint(headNode->rect(), points[ih])));
 
     QPainterPath path1;
 
@@ -712,11 +769,10 @@ writeGraph() const
     else
       path1 = path;
 
-    auto str = CQChartsPath::pathToString(path1);
-
+    //auto str = CQChartsPath::pathToString(path1);
     //charts()->errorMsg("Edge " + tailNode->name() + "->" + headNode->name() + " = " + str);
 
-    edge->setPath(path1);
+    edge->setEdgePath(path1);
 
     //---
 
@@ -2532,10 +2588,14 @@ draw(PaintDevice *device) const
 
   bool isSelf = (srcObj == destObj);
 
-  auto srcRect  = edge()->srcNode ()->rect();
-  auto destRect = edge()->destNode()->rect();
+  auto srcRect  = srcNode ->rect();
+  auto destRect = destNode->rect();
 
-  if (shapeType() == ShapeType::ARROW || ! plot_->isEdgeScaled()) {
+  bool isArrow  = plot()->isEdgeArrow();
+  bool isScaled = (plot_->isEdgeScaled() && edge()->hasValue());
+
+#if 0
+  if (isArrow || ! isScaled) {
     if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
         edge()->srcNode()->shapeType() == Node::ShapeType::POLYGON ||
         edge()->srcNode()->shapeType() == Node::ShapeType::CIRCLE ||
@@ -2550,109 +2610,189 @@ draw(PaintDevice *device) const
       destRect = destObj->rect();
     }
   }
+#endif
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return;
 
   //---
 
+  bool isCentered = plot()->isEdgeCentered();
+  bool usePath    = plot()->isEdgePath();
+
+  // get default connection line (no path)
   double x1, y1, x2, y2;
 
-  bool swapped = false;
+  auto orient = plot_->orientation();
 
-  if (plot_->isHorizontal()) {
+  auto horizontalPoints = [&]() {
+    y1 = srcRect .getYMid();
+    y2 = destRect.getYMid();
+
     // x from right of source rect to left of dest rect
     x1 = srcRect .getXMax();
     x2 = destRect.getXMin();
 
     if (x1 > x2) {
       x1 = destRect.getXMax(), x2 = srcRect.getXMin();
-      swapped = true;
+
+      std::swap(y1, y2);
     }
-  }
-  else {
+  };
+
+  auto verticalPoints = [&]() {
+    x1 = srcRect .getXMid();
+    x2 = destRect.getXMid();
+
     // y from top of source rect to bottom of dest rect
     y1 = srcRect .getYMax();
     y2 = destRect.getYMin();
 
     if (y1 > y2) {
       y1 = destRect.getYMax(), y2 = srcRect.getYMin();
-      swapped = true;
+
+      std::swap(x1, x2);
+    }
+  };
+
+  if (orient == Qt::Horizontal)
+    horizontalPoints();
+  else
+    verticalPoints();
+
+  if (isCentered) {
+    double da = 22.5;
+
+    double a = CMathUtil::Rad2Deg(pointAngle(Point(x1, y1), Point(x2, y2)));
+
+    if (orient == Qt::Horizontal) {
+      if (a > 90 - da && a < 90 + da) {
+        orient = Qt::Vertical;
+
+        verticalPoints();
+      }
+    }
+    else {
+      if (a < da || a > 180 - da) {
+        orient = Qt::Horizontal;
+
+        horizontalPoints();
+      }
     }
   }
 
   //---
 
-  // add start and end node points to path
-  auto epath = edge()->path();
+  Point srcPoint, destPoint;
 
-  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
-   public:
-    PathVisitor(QPainterPath &path, const BBox &srcRect, const BBox &destRect) :
-     path_(path) {
-      rect_ = srcRect + destRect;
-    }
+  if (! isCentered && srcNode->hasEdgePoint(edge()))
+    srcPoint = srcNode->edgePoint(edge());
+  else
+    srcPoint = Point(x1, y1);
 
-    void moveTo(const Point &p) override { path_.lineTo(mapPoint(p)); }
-    void lineTo(const Point &p) override { path_.lineTo(mapPoint(p)); }
+  if (! isCentered && destNode->hasEdgePoint(edge()))
+    destPoint = destNode->edgePoint(edge());
+  else
+    destPoint = Point(x2, y2);
 
-    void quadTo(const Point &p1, const Point &p2) override {
-      path_.quadTo(mapPoint(p1), mapPoint(p2)); }
+  //---
 
-    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
-      path_.cubicTo(mapPoint(p1), mapPoint(p2), mapPoint(p3)); }
+  bool isLine = (plot()->edgeShape() == Plot::EdgeShape::LINE);
 
-    const QPainterPath &path() const { return path_; }
-
-   private:
-    QPointF mapPoint(const Point &p) {
-      auto x = CMathUtil::map(p.x, 0, 1, rect_.getXMin(), rect_.getXMax());
-      auto y = CMathUtil::map(p.y, 0, 1, rect_.getYMin(), rect_.getYMax());
-
-      return QPointF(x, y);
-    }
-
-   private:
-    QPainterPath &path_;
-    BBox          rect_;
-  };
-
+  // calc edge path
   QPainterPath epath1;
 
-  epath1.moveTo(srcNode->edgePoint(edge()).qpoint());
+  if (! isLine) {
+    // add start and end node points to edge path
+    auto epath = edge()->edgePath();
 
-  PathVisitor visitor(epath1, srcRect, destRect);
+    class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+     public:
+      PathVisitor(QPainterPath &path, const BBox &srcRect, const BBox &destRect) :
+       path_(path) {
+        rect_ = srcRect + destRect;
+      }
 
-  CQChartsDrawUtil::visitPath(epath, visitor);
+      void moveTo(const Point &p) override { path_.lineTo(mapPoint(p)); }
+      void lineTo(const Point &p) override { path_.lineTo(mapPoint(p)); }
 
-  epath1.lineTo(destNode->edgePoint(edge()).qpoint());
+      void quadTo(const Point &p1, const Point &p2) override {
+        path_.quadTo(mapPoint(p1), mapPoint(p2)); }
+
+      void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+        path_.cubicTo(mapPoint(p1), mapPoint(p2), mapPoint(p3)); }
+
+      const QPainterPath &path() const { return path_; }
+
+     private:
+      QPointF mapPoint(const Point &p) {
+        auto x = CMathUtil::map(p.x, 0, 1, rect_.getXMin(), rect_.getXMax());
+        auto y = CMathUtil::map(p.y, 0, 1, rect_.getYMin(), rect_.getYMax());
+
+        return QPointF(x, y);
+      }
+
+     private:
+      QPainterPath &path_;
+      BBox          rect_;
+    };
+
+    epath1.moveTo(srcPoint.qpoint());
+
+    PathVisitor visitor(epath1, srcRect, destRect);
+
+    CQChartsDrawUtil::visitPath(epath, visitor);
+
+    epath1.lineTo(destPoint.qpoint());
+  }
+  else {
+    if (srcNode->hasEdgePoint(edge()))
+      epath1.moveTo(srcPoint.qpoint());
+
+    if (destNode->hasEdgePoint(edge()))
+      epath1.lineTo(destPoint.qpoint());
+  }
+
+  //---
+
+  // calc edge width
+  double edgeScale { 1.0 };
+
+  if (isScaled) {
+    auto maxValue = plot_->maxEdgeValue().real();
+
+    edgeScale = edge()->value().real()/maxValue;
+  }
+
+  double lw;
+
+  if (orient == Qt::Horizontal)
+    lw = plot_->lengthPlotHeight(plot()->edgeWidth());
+  else
+    lw = plot_->lengthPlotWidth(plot()->edgeWidth());
+
+  lw *= edgeScale;
 
   //---
 
   // draw edge
-  double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
+  path_ = QPainterPath();
 
-  if (! epath1.isEmpty()) {
-    if (edge()->isDirected()) {
-      CQChartsArrowData arrowData;
+  if (! epath1.isEmpty() && usePath) {
+    CQChartsArrowData arrowData;
 
+    if (isArrow && edge()->isDirected())
       arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-      QPainterPath path1;
+    QPainterPath path1;
 
-      CQChartsArrow::pathAddArrows(epath1, arrowData, lw,
-                                   plot_->arrowWidth(), plot_->arrowWidth(), path_);
-    }
-    else {
-      path_ = epath1;
-
-      device->setBrush(Qt::NoBrush);
-    }
+    CQChartsArrow::pathAddArrows(epath1, arrowData, lw,
+                                 plot_->arrowWidth(), plot_->arrowWidth(), path_);
 
     device->drawPath(path_);
   }
   else {
-    if (shapeType() == ShapeType::ARROW) {
+    if (isArrow) {
       const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(false);
 
       if (! isSelf) {
@@ -2669,46 +2809,20 @@ draw(PaintDevice *device) const
         CQChartsArrow::pathAddArrows(lpath, arrowData, lw,
                                      plot_->arrowWidth(), plot_->arrowWidth(), path_);
       }
-      else
+      else {
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
+      }
 
       device->drawPath(path_);
 
       const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(true);
     }
     else {
-      if (plot_->isEdgeScaled()) {
-        CQChartsDrawUtil::edgePath(path_, srcRect, destRect,
-                                   /*isLine*/false, plot_->orientation());
+      if (! isSelf) {
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, orient);
       }
       else {
-        if (! isSelf) {
-          if (plot_->isHorizontal()) {
-            // start y range from source node, and end y range from dest node
-            y1 = srcRect .getYMid();
-            y2 = destRect.getYMid();
-
-            if (swapped)
-              std::swap(y1, y2);
-
-            CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2),
-                                       lw, plot_->orientation());
-          }
-          else {
-            // start x range from source node, and end x range from dest node
-            x1 = srcRect .getXMid();
-            x2 = destRect.getXMid();
-
-            if (swapped)
-              std::swap(x1, x2);
-
-            CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2),
-                                       lw, plot_->orientation());
-          }
-        }
-        else {
-          CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
-        }
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
       }
 
       device->drawPath(path_);
@@ -3070,6 +3184,15 @@ scale(double fx, double fy)
 }
 
 //---
+
+bool
+CQChartsDotPlotNode::
+hasEdgePoint(Edge *edge) const
+{
+  auto p = edgePoints_.find(edge->id());
+
+  return (p != edgePoints_.end());
+}
 
 void
 CQChartsDotPlotNode::

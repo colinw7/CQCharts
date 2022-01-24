@@ -995,6 +995,9 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
       setColumnNameValue(nameColumn (), "Name" , name    );
       setColumnNameValue(labelColumn(), "Label", labelStr);
       setColumnNameValue(colorColumn(), "Color", colorStr);
+
+      if (labelColumn().isValid())
+        valueData.setNameColumnValue("Label", labelColumn(), labelStr);
     }
     else {
       valueData.setValueName(name);
@@ -1314,9 +1317,14 @@ createObjs(PlotObjs &objs) const
 
         QModelIndex parent; // TODO
 
-        Color color;
+        Color  color;
+        QColor c;
 
-        (void) colorColumnColor(minInd.vrow, parent, color);
+        if (colorColumnColor(minInd.vrow, parent, color))
+          c = interpColor(color, ColorInd());
+
+        if (! colorVisible(c))
+          continue;
 
         //---
 
@@ -1695,6 +1703,9 @@ addKeyItems(PlotKey *key)
 
             if (colorColumnColor(ind0.vrow, parent, color))
               c = interpColor(color, ColorInd());
+
+            if (! colorVisible(c))
+              continue;
           }
 
           auto name = valueSet.name();
@@ -1724,6 +1735,9 @@ addKeyItems(PlotKey *key)
         if (colorColumnColor(ind0.vrow, parent, color))
           c = interpColor(color, ColorInd());
 
+        if (! colorVisible(c))
+          continue;
+
         auto iname = ivalue.valueName();
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), iname, c);
@@ -1750,6 +1764,9 @@ addKeyItems(PlotKey *key)
 
           if (colorColumnColor(ind0.vrow, parent, color))
             c = interpColor(color, ColorInd());
+
+          if (! colorVisible(c))
+            continue;
         }
 
         auto name = valueSet.name();

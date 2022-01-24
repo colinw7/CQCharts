@@ -23,6 +23,21 @@ int boolFactor(bool b) { return (b ? 1 : -1); }
 //------
 
 CQChartsAxis::
+CQChartsAxis(const View *view, Qt::Orientation direction, double start, double end) :
+ CQChartsObj(view->charts()),
+ CQChartsObjAxesLineData         <CQChartsAxis>(this),
+ CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
+ CQChartsObjAxesLabelTextData    <CQChartsAxis>(this),
+ CQChartsObjAxesMajorGridLineData<CQChartsAxis>(this),
+ CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
+ CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
+ view_(view), direction_(direction),
+ start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
+{
+  init();
+}
+
+CQChartsAxis::
 CQChartsAxis(const Plot *plot, Qt::Orientation direction, double start, double end) :
  CQChartsObj(plot->charts()),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
@@ -154,24 +169,26 @@ QString
 CQChartsAxis::
 calcId() const
 {
+  auto id = (plot() ? plot()->id() : view()->id());
+
   if (isHorizontal())
-    return plot()->id() + "/xaxis";
+    return id + "/xaxis";
   else
-    return plot()->id() + "/yaxis";
+    return id + "/yaxis";
 }
 
 CQChartsView *
 CQChartsAxis::
 view()
 {
-  return plot()->view();
+  return const_cast<View *>(plot() ? plot()->view() : view_);
 }
 
 const CQChartsView *
 CQChartsAxis::
 view() const
 {
-  return plot()->view();
+  return (plot() ? plot()->view() : view_);
 }
 
 //---
@@ -673,7 +690,7 @@ setFormat(const QString &formatStr)
   CQChartsUtil::testAndSet(formatStr_, formatStr, [&]() {
 #if 0
     if (column().isValid()) {
-      auto *plot = const_cast<Plot *>(plot_);
+      auto *plot = const_cast<Plot *>(this->plot());
 
       if (! plot->setColumnTypeStr(column(), typeStr))
         return false;
@@ -1035,7 +1052,7 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  auto *plot = const_cast<Plot *>(plot_);
+  auto *plot = const_cast<Plot *>(this->plot());
 
   plot->updateMargins();
 }
@@ -1054,7 +1071,7 @@ void
 CQChartsAxis::
 redraw(bool wait)
 {
-  auto *plot = const_cast<Plot *>(plot_);
+  auto *plot = const_cast<Plot *>(this->plot());
 
   if (plot) {
     if (wait) {
@@ -1084,7 +1101,7 @@ void
 CQChartsAxis::
 updatePlotRange()
 {
-  auto *plot = const_cast<Plot *>(plot_);
+  auto *plot = const_cast<Plot *>(this->plot());
 
   plot->updateRange();
 }
@@ -1093,7 +1110,7 @@ void
 CQChartsAxis::
 updatePlotRangeAndObjs()
 {
-  auto *plot = const_cast<Plot *>(plot_);
+  auto *plot = const_cast<Plot *>(this->plot());
 
   plot->updateRangeAndObjs();
 }
@@ -1105,7 +1122,7 @@ editHandles() const
   if (! editHandles_) {
     auto *th = const_cast<CQChartsAxis *>(this);
 
-    th->editHandles_ = std::make_unique<EditHandles>(plot_, EditHandles::Mode::MOVE);
+    th->editHandles_ = std::make_unique<EditHandles>(plot(), EditHandles::Mode::MOVE);
   }
 
   return editHandles_.get();
@@ -1186,7 +1203,8 @@ void
 CQChartsAxis::
 setPen(PenBrush &penBrush, const CQChartsPenData &penData) const
 {
-  plot()->setPen(penBrush, penData);
+  if (plot())
+    plot()->setPen(penBrush, penData);
 }
 
 bool
@@ -1221,8 +1239,8 @@ drawGrid(const Plot *plot, PaintDevice *device) const
     dmax = dataRange.getXMax();
   }
 
-  auto a1 = windowToPixel(plot, amin, dmin);
-  auto a2 = windowToPixel(plot, amax, dmax);
+  auto a1 = windowToPixel(plot, device, amin, dmin);
+  auto a2 = windowToPixel(plot, device, amax, dmax);
 
   //---
 
@@ -1277,8 +1295,8 @@ drawGrid(const Plot *plot, PaintDevice *device) const
             double pos3 = std::max(pos1, amin);
             double pos4 = std::min(pos2, amax);
 
-            auto pp1 = plot->windowToPixel(Point(pos3, pos1));
-            auto pp2 = plot->windowToPixel(Point(pos4, pos2));
+            auto pp1 = windowToPixel(plot, device, Point(pos3, pos1));
+            auto pp2 = windowToPixel(plot, device, Point(pos4, pos2));
 
             BBox bbox;
 
@@ -1382,8 +1400,24 @@ drawAt(double pos, const Plot *plot, PaintDevice *device) const
 
 void
 CQChartsAxis::
+draw(const View *view, PaintDevice *device, bool usePen, bool forceColor) const
+{
+  drawI(view, nullptr, device, usePen, forceColor);
+}
+
+void
+CQChartsAxis::
 draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 {
+  drawI(nullptr, plot, device, usePen, forceColor);
+}
+
+void
+CQChartsAxis::
+drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
+{
+  assert(view || plot);
+
   usePen_     = usePen;
   forceColor_ = forceColor;
   savePen_    = device->pen();
@@ -1433,11 +1467,6 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 
   //---
 
-  double inc  = calcIncrement();
-  double inc1 = (isLog() ? plot->expValue(inc) : inc)/numMinorTicks();
-
-  //---
-
   auto mapPos = [&](double pos) {
     if (! valueStart_.isSet() && ! valueEnd_.isSet())
       return pos;
@@ -1445,6 +1474,24 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
     return CMathUtil::map(pos, valueStart_.realOr(start()), valueEnd_.realOr(end()),
                           start(), end());
   };
+
+  auto mapLen = [&](double len) {
+    return std::abs(mapPos(len) - mapPos(0.0));
+  };
+
+  //---
+
+  double inc  = calcIncrement();
+  double inc1 = (isLog() ? plot->expValue(inc) : inc)/numMinorTicks();
+
+  double pinc1;
+
+  if (isHorizontal())
+    pinc1 = windowToPixelWidth(plot, device, mapLen(inc1));
+  else
+    pinc1 = windowToPixelHeight(plot, device, mapLen(inc1));
+
+  bool hideMinorTicks = (pinc1 < 3);
 
   //---
 
@@ -1541,7 +1588,7 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
         }
 
         // draw minor tick lines (grid and tick)
-        if (isMinorTicksDisplayed() && i < numMajorTicks()) {
+        if (isMinorTicksDisplayed() && i < numMajorTicks() && ! hideMinorTicks) {
           for (uint j = 1; j < numMinorTicks(); j++) {
             double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 
@@ -1587,13 +1634,15 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 
   // fix range if not set
   if (! lbbox_.isSet()) {
-    auto a1 = windowToPixel(plot, amin, apos1);
-    auto a2 = windowToPixel(plot, amax, apos1);
+    auto a1 = windowToPixel(plot, device, amin, apos1);
+    auto a2 = windowToPixel(plot, device, amax, apos1);
 
     if (isHorizontal()) {
+      bool invertY = (plot ? plot->isInvertY() : false);
+
       bool isPixelBottom =
-        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertY) ||
+        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertY);
 
       double dys = (isPixelBottom ? 1 : -1);
 
@@ -1603,9 +1652,11 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
       lbbox_ += Point(a2.x, a2.y);
     }
     else {
+      bool invertX = (plot ? plot->isInvertX() : false);
+
       bool isPixelLeft =
-        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+        (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertX) ||
+        (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertX);
 
       double dxs = (isPixelLeft ? 1 : -1);
 
@@ -1635,7 +1686,7 @@ draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 
   //---
 
-  if (plot->showBoxes()) {
+  if (plot && plot->showBoxes()) {
     plot->drawWindowColorBox(device, bbox(), Qt::blue);
 
     plot->drawColorBox(device, lbbox_, Qt::green);
@@ -1753,6 +1804,12 @@ calcPos(const Plot *plot, double &apos1, double &apos2) const
   }
 
   //---
+
+  if (! plot) {
+    apos1 = 0.0;
+    apos2 = 1.0;
+    return;
+  }
 
   auto dataRange = plot->calcDataRange();
 
@@ -1898,15 +1955,17 @@ drawTickLine(const Plot *plot, PaintDevice *device,
   //---
 
   if (isHorizontal()) {
+    bool invertY = (plot ? plot->isInvertY() : false);
+
     bool isWindowBottom = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
     bool isPixelBottom  =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertY) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertY);
 
     int pys = (isPixelBottom ? 1 : -1);
     int dt1 = pys*tlen;
 
-    double adt1 = plot->pixelToWindowHeight(dt1);
+    double adt1 = pixelToWindowHeight(plot, device, dt1);
 
     if (inside)
       device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y + adt1));
@@ -1925,15 +1984,17 @@ drawTickLine(const Plot *plot, PaintDevice *device,
     }
   }
   else {
+    bool invertX = (plot ? plot->isInvertX() : false);
+
     bool isWindowLeft = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
     bool isPixelLeft  =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertX) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertX);
 
     int pxs = (isPixelLeft ? -1 : 1);
     int dt1 = pxs*tlen;
 
-    double adt1 = plot->pixelToWindowWidth(dt1);
+    double adt1 = pixelToWindowWidth(plot, device, dt1);
 
     if (inside)
       device->drawLine(Point(pp.x, pp.y), Point(pp.x + adt1, pp.y));
@@ -1967,14 +2028,17 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
   int tlen1 = majorTickLen();
   int tlen2 = minorTickLen();
 
-  auto pp = windowToPixel(plot, tpos, apos);
+  auto pp = windowToPixel(plot, device, tpos, apos);
 
   //---
 
-  plot->setPainterFont(device, axesTickLabelTextFont());
+  if (plot)
+    plot->setPainterFont(device, axesTickLabelTextFont());
+  else
+    device->setFont(axesTickLabelTextFont().font());
 
   auto angle      = axesTickLabelTextAngle();
-  auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
+  auto clipLength = lengthPixelWidth(plot, device, axesTickLabelTextClipLength());
   auto clipElide  = axesTickLabelTextClipElide();
 
   QFontMetricsF fm(device->font());
@@ -1987,9 +2051,11 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
   double tw = fm.width(text1); // TODO: support HTML
 
   if (isHorizontal()) {
+    bool invertY = (plot ? plot->isInvertY() : false);
+
     bool isPixelBottom =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertY) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertY);
 
     double tyo = 0.0;
 
@@ -2016,7 +2082,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Qt::Alignment align = Qt::AlignHCenter;
 
 /*
-      if (! plot->isInvertY())
+      if (! invertY)
         align |= Qt::AlignTop;
       else
         align |= Qt::AlignBottom;
@@ -2026,31 +2092,33 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Point pt(pp.x, pp.y + tyo);
 
       if (angle.isZero()) {
-        double atw = plot->pixelToWindowWidth (tw);
-        double wta = plot->pixelToWindowHeight(ta);
-        double wtd = plot->pixelToWindowHeight(td);
+        double atw = pixelToWindowWidth (plot, device, tw);
+        double wta = pixelToWindowHeight(plot, device, ta);
+        double wtd = pixelToWindowHeight(plot, device, td);
         double wth = wta + wtd;
 
         double atm;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
-            atm = plot->pixelToWindowHeight(tgap);
+            atm = pixelToWindowHeight(plot, device, tgap);
           else
-            atm = plot->pixelToWindowHeight(tlen1 + tgap);
+            atm = pixelToWindowHeight(plot, device, tlen1 + tgap);
         }
         else {
           if (inside)
-            atm = plot->pixelToWindowHeight(tgap);
+            atm = pixelToWindowHeight(plot, device, tgap);
           else
-            atm = plot->pixelToWindowHeight(tlen2 + tgap);
+            atm = pixelToWindowHeight(plot, device, tlen2 + tgap);
         }
 
         lbbox_ += Point(pt.x, pt.y            );
         lbbox_ += Point(pt.x, pt.y + (ta + td));
 
+        bool invertY = (plot ? plot->isInvertY() : false);
+
         double xpos = 0.0;
-        double ypos = apos - boolFactor(! plot_->isInvertY())*(wth + atm);
+        double ypos = apos - boolFactor(! invertY)*(wth + atm);
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           xpos = tpos - atw/2;
@@ -2061,7 +2129,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           xpos = tpos - 0.5;
 
-        if (! plot_->isInvertY())
+        if (! invertY)
           tbbox = BBox(xpos, ypos, xpos + atw, ypos + wth);
         else
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
@@ -2074,12 +2142,12 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
-                                                   options, 0, /*alignBox*/true);
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                    options, 0, /*alignBox*/true);
 
-        lbbox_ += rrect;
+        lbbox_ += ptbbox;
 
-        tbbox = plot->pixelToWindow(rrect);
+        tbbox = pixelToWindow(plot, device, ptbbox);
       }
 
 #if 0
@@ -2101,7 +2169,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(pt.x                                , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
+          p = Point(pt.x - windowToPixelWidth(plot, device, 0.5), ty);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2110,7 +2178,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot->showBoxes()) {
+      if (plot && plot->showBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2125,7 +2193,9 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Qt::Alignment align = Qt::AlignHCenter;
 
 /*
-      if (! plot->isInvertY())
+      bool invertY = (plot ? plot->isInvertY() : false);
+
+      if (! invertY)
         align |= Qt::AlignBottom;
       else
         align |= Qt::AlignTop;
@@ -2135,31 +2205,33 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Point pt(pp.x, pp.y - tyo);
 
       if (angle.isZero()) {
-        double atw = plot->pixelToWindowWidth (tw);
-        double wta = plot->pixelToWindowHeight(ta);
-        double wtd = plot->pixelToWindowHeight(td);
+        double atw = pixelToWindowWidth (plot, device, tw);
+        double wta = pixelToWindowHeight(plot, device, ta);
+        double wtd = pixelToWindowHeight(plot, device, td);
         double wth = wta + wtd;
 
         double atm;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
-            atm = plot->pixelToWindowHeight(tgap);
+            atm = pixelToWindowHeight(plot, device, tgap);
           else
-            atm = plot->pixelToWindowHeight(tlen1 + tgap);
+            atm = pixelToWindowHeight(plot, device, tlen1 + tgap);
         }
         else {
           if (inside)
-            atm = plot->pixelToWindowHeight(tgap);
+            atm = pixelToWindowHeight(plot, device, tgap);
           else
-            atm = plot->pixelToWindowHeight(tlen2 + tgap);
+            atm = pixelToWindowHeight(plot, device, tlen2 + tgap);
         }
 
         lbbox_ += Point(pt.x, pt.y            );
         lbbox_ += Point(pt.x, pt.y - (ta + td));
 
+        bool invertY = (plot ? plot->isInvertY() : false);
+
         double xpos = 0.0;
-        double ypos = apos + boolFactor(! plot_->isInvertY())*atm;
+        double ypos = apos + boolFactor(! invertY)*atm;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
           xpos = tpos - atw/2;
@@ -2170,7 +2242,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           xpos = tpos - 0.5;
 
-        if (! plot_->isInvertY())
+        if (! invertY)
           tbbox = BBox(xpos, ypos, xpos + atw, ypos + wth);
         else
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
@@ -2183,12 +2255,12 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
-                                                   options, 0, /*alignBox*/true);
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                    options, 0, /*alignBox*/true);
 
-        lbbox_ += rrect;
+        lbbox_ += ptbbox;
 
-        tbbox = plot->pixelToWindow(rrect);
+        tbbox = pixelToWindow(plot, device, ptbbox);
       }
 
 #if 0
@@ -2210,7 +2282,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(pt.x                                , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(pt.x - plot->windowToPixelWidth(0.5), ty);
+          p = Point(pt.x - windowToPixelWidth(plot, device, 0.5), ty);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2219,7 +2291,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot->showBoxes()) {
+      if (plot && plot->showBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2235,9 +2307,11 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
     fitTLBBox_ += tbbox;
   }
   else {
+    bool invertX = (plot ? plot->isInvertX() : false);
+
     bool isPixelLeft =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertX) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertX);
 
     double txo = 0.0;
 
@@ -2264,7 +2338,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Qt::Alignment align = Qt::AlignVCenter;
 
 /*
-      if (! plot->isInvertX())
+      if (! invertX)
         align |= Qt::AlignRight;
       else
         align |= Qt::AlignLeft;
@@ -2274,30 +2348,32 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Point pt(pp.x - txo, pp.y);
 
       if (angle.isZero()) {
-        double atw = plot->pixelToWindowWidth (tw);
-        double wta = plot->pixelToWindowHeight(ta);
-        double wtd = plot->pixelToWindowHeight(td);
+        double atw = pixelToWindowWidth (plot, device, tw);
+        double wta = pixelToWindowHeight(plot, device, ta);
+        double wtd = pixelToWindowHeight(plot, device, td);
         double wth = wta + wtd;
 
         double atm;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
-            atm = plot->pixelToWindowWidth(tgap);
+            atm = pixelToWindowWidth(plot, device, tgap);
           else
-            atm = plot->pixelToWindowWidth(tlen1 + tgap);
+            atm = pixelToWindowWidth(plot, device, tlen1 + tgap);
         }
         else {
           if (inside)
-            atm = plot->pixelToWindowWidth(tgap);
+            atm = pixelToWindowWidth(plot, device, tgap);
           else
-            atm = plot->pixelToWindowWidth(tlen2 + tgap);
+            atm = pixelToWindowWidth(plot, device, tlen2 + tgap);
         }
 
         lbbox_ += Point(pt.x     , pt.y);
         lbbox_ += Point(pt.x - tw, pt.y);
 
-        double xpos = apos - boolFactor(! plot_->isInvertX())*(atw + atm);
+        bool invertX = (plot ? plot->isInvertX() : false);
+
+        double xpos = apos - boolFactor(! invertX)*(atw + atm);
         double ypos = 0.0;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
@@ -2309,7 +2385,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
-        if (! plot_->isInvertX())
+        if (! invertX)
           tbbox = BBox(xpos, ypos, xpos + atw, ypos + wth);
         else
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
@@ -2322,12 +2398,12 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
-                                                   options, 0, /*alignBox*/true);
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                    options, 0, /*alignBox*/true);
 
-        lbbox_ += rrect;
+        lbbox_ += ptbbox;
 
-        tbbox = plot->pixelToWindow(rrect);
+        tbbox = pixelToWindow(plot, device, ptbbox);
       }
 
 #if 0
@@ -2349,7 +2425,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(tx, pt.y - td  );
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
+          p = Point(tx, pt.y - windowToPixelHeight(plot, device, 0.5) + ta);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2358,7 +2434,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot->showBoxes()) {
+      if (plot && plot->showBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2383,30 +2459,32 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       Point pt(pp.x + txo, pp.y);
 
       if (angle.isZero()) {
-        double atw = plot->pixelToWindowWidth (tw);
-        double wta = plot->pixelToWindowHeight(ta);
-        double wtd = plot->pixelToWindowHeight(td);
+        double atw = pixelToWindowWidth (plot, device, tw);
+        double wta = pixelToWindowHeight(plot, device, ta);
+        double wtd = pixelToWindowHeight(plot, device, td);
         double wth = wta + wtd;
 
         double atm;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
           if (inside)
-            atm = plot->pixelToWindowWidth(tgap);
+            atm = pixelToWindowWidth(plot, device, tgap);
           else
-            atm = plot->pixelToWindowWidth(tlen1 + tgap);
+            atm = pixelToWindowWidth(plot, device, tlen1 + tgap);
         }
         else {
           if (inside)
-            atm = plot->pixelToWindowWidth(tgap);
+            atm = pixelToWindowWidth(plot, device, tgap);
           else
-            atm = plot->pixelToWindowWidth(tlen2 + tgap);
+            atm = pixelToWindowWidth(plot, device, tlen2 + tgap);
         }
 
         lbbox_ += Point(pt.x     , pt.y);
         lbbox_ += Point(pt.x + tw, pt.y);
 
-        double xpos = apos + boolFactor(! plot_->isInvertX())*atm;
+        bool invertX = (plot ? plot->isInvertX() : false);
+
+        double xpos = apos + boolFactor(! invertX)*atm;
         double ypos = 0.0;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
@@ -2418,7 +2496,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
-        if (! plot_->isInvertX())
+        if (! invertX)
           tbbox = BBox(xpos, ypos, xpos + atw, ypos + wth);
         else
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
@@ -2431,12 +2509,12 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
-                                                   options, 0, /*alignBox*/true);
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                    options, 0, /*alignBox*/true);
 
-        lbbox_ += rrect;
+        lbbox_ += ptbbox;
 
-        tbbox = plot->pixelToWindow(rrect);
+        tbbox = pixelToWindow(plot, device, ptbbox);
       }
 
 #if 0
@@ -2458,7 +2536,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
           p = Point(tx, pt.y - td  );
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
+          p = Point(tx, pt.y - windowToPixelHeight(plot, device, 0.5) + ta);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2467,7 +2545,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot->showBoxes()) {
+      if (plot && plot->showBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2501,7 +2579,10 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 
   auto tc = interpAxesTickLabelTextColor(ColorInd());
 
-  plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
+  if (plot)
+    plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
+  else
+    CQChartsUtil::setPen(tpenBrush.pen, true, tc, axesTickLabelTextAlpha());
 
   if (forceColor_)
     tpenBrush.pen.setColor(savePen_.color());
@@ -2517,7 +2598,7 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
   textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.html  = false;
 
-  textPlacer_.draw(device, textOptions, plot->showBoxes());
+  textPlacer_.draw(device, textOptions, (plot && plot->showBoxes()));
 }
 
 void
@@ -2532,9 +2613,9 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   int tgap = 2;
 
-  auto a1 = windowToPixel(plot, amin, apos);
-  auto a2 = windowToPixel(plot, amax, apos);
-  auto a3 = windowToPixel(plot, amin, apos);
+  auto a1 = windowToPixel(plot, device, amin, apos);
+  auto a2 = windowToPixel(plot, device, amax, apos);
+  auto a3 = windowToPixel(plot, device, amin, apos);
 
   //---
 
@@ -2542,14 +2623,20 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   auto tc = interpAxesLabelTextColor(ColorInd());
 
-  plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
+  if (plot)
+    plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
+  else
+    CQChartsUtil::setPen(tpenBrush.pen, true, tc, axesLabelTextAlpha());
 
   if (forceColor_)
     tpenBrush.pen.setColor(savePen_.color());
 
   device->setPen(tpenBrush.pen);
 
-  plot->setPainterFont(device, axesLabelTextFont());
+  if (plot)
+    plot->setPainterFont(device, axesLabelTextFont());
+  else
+    device->setFont(axesLabelTextFont().font());
 
   //---
 
@@ -2567,9 +2654,11 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     double plen = 0.0;
 
     if (isHorizontal())
-      plen = plot_->lengthPixelWidth (len) + plot_->lengthPixelWidth (scaleLabelExtent());
+      plen = lengthPixelWidth (plot, device, len) +
+             lengthPixelWidth (plot, device, scaleLabelExtent());
     else
-      plen = plot_->lengthPixelHeight(len) + plot_->lengthPixelHeight(scaleLabelExtent());
+      plen = lengthPixelHeight(plot, device, len) +
+             lengthPixelHeight(plot, device, scaleLabelExtent());
 
     double fontScale = (psize.width() > 0.0 ? plen/psize.width() : 1.0);
 
@@ -2579,7 +2668,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   //---
 
-  auto clipLength = plot_->lengthPixelWidth(axesLabelTextClipLength());
+  auto clipLength = lengthPixelWidth(plot, device, axesLabelTextClipLength());
   auto clipElide  = axesLabelTextClipElide();
 
   QFontMetricsF fm(device->font());
@@ -2606,21 +2695,23 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   // draw label
   if (isHorizontal()) {
-    double wfh = plot->pixelToWindowHeight(ta + td);
+    double wfh = pixelToWindowHeight(plot, device, ta + td);
 
     double axm = (a1.x + a2.x)/2 - tw/2;
 
+    bool invertY = (plot ? plot->isInvertY() : false);
+
     bool isPixelBottom =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertY) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertY);
 
     //int pys = (isPixelBottom ? 1 : -1);
 
     double ath;
-    double atw = plot->pixelToWindowWidth(tw/2);
+    double atw = pixelToWindowWidth(plot, device, tw/2);
 
     if (isPixelBottom) {
-      ath = plot->pixelToWindowHeight((lbbox_.getYMax() - a3.y) + tgap) + wfh;
+      ath = pixelToWindowHeight(plot, device, (lbbox_.getYMax() - a3.y) + tgap) + wfh;
 
       Point pt(axm, lbbox_.getYMax() + ta + tgap);
 
@@ -2638,17 +2729,18 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (textOptions.html) {
         textOptions.align = Qt::AlignCenter;
 
-        auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMax() + (ta + td)/2.0 + tgap));
+        auto p1 = pixelToWindow(plot, device,
+                    Point(axm + tw/2, lbbox_.getYMax() + (ta + td)/2.0 + tgap));
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
-        auto p1 = plot->pixelToWindow(pt);
+        auto p1 = pixelToWindow(plot, device, pt);
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/false);
       }
 
-      if (! plot_->isInvertY()) {
+      if (! invertY) {
         bbox += Point((amin + amax)/2 - atw, apos - (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos - (ath - wfh));
       }
@@ -2661,7 +2753,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       fitLBBox_ += Point((amin + amax)/2, apos - (ath - wfh));
     }
     else {
-      ath = plot->pixelToWindowHeight((a3.y - lbbox_.getYMin()) + tgap) + wfh;
+      ath = pixelToWindowHeight(plot, device, (a3.y - lbbox_.getYMin()) + tgap) + wfh;
 
       Point pt(axm, lbbox_.getYMin() - td - tgap);
 
@@ -2679,17 +2771,18 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (textOptions.html) {
         textOptions.align = Qt::AlignCenter;
 
-        auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMin() - (ta + td)/2.0 - tgap));
+        auto p1 = pixelToWindow(plot, device,
+                    Point(axm + tw/2, lbbox_.getYMin() - (ta + td)/2.0 - tgap));
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
-        auto p1 = plot->pixelToWindow(pt);
+        auto p1 = pixelToWindow(plot, device, pt);
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/false);
       }
 
-      if (! plot_->isInvertY()) {
+      if (! invertY) {
         bbox += Point((amin + amax)/2 - atw, apos + (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos + (ath - wfh));
       }
@@ -2703,23 +2796,25 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     }
   }
   else {
-    double wfa = plot->pixelToWindowWidth(ta);
-    double wfd = plot->pixelToWindowWidth(td);
+    double wfa = pixelToWindowWidth(plot, device, ta);
+    double wfd = pixelToWindowWidth(plot, device, td);
     double wfh = wfa + wfd;
 
+    bool invertX = (plot ? plot->isInvertX() : false);
+
     bool isPixelLeft =
-      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
+      (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! invertX) ||
+      (side().type() == CQChartsAxisSide::Type::TOP_RIGHT   &&   invertX);
 
     //int pxs = (isPixelLeft ? 1 : -1);
 
     double atw;
-    double ath = plot->pixelToWindowHeight(tw/2.0);
+    double ath = pixelToWindowHeight(plot, device, tw/2.0);
 
     if (isPixelLeft) {
       double aym = (a2.y + a1.y)/2.0 + tw/2.0;
 
-      atw = plot->pixelToWindowWidth((a3.x - lbbox_.getXMin()) + tgap) + wfh;
+      atw = pixelToWindowWidth(plot, device, (a3.x - lbbox_.getXMin()) + tgap) + wfh;
 
     //double tx = lbbox_.getXMin() - tgap - td;
       double tx = lbbox_.getXMin() - tgap;
@@ -2735,18 +2830,18 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (textOptions.html) {
         textOptions.align = Qt::AlignCenter;
 
-        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMin() - tgap - (ta + td)/2.0,
-                                            (a2.y + a1.y)/2));
+        auto p1 = pixelToWindow(plot, device,
+                    Point(lbbox_.getXMin() - tgap - (ta + td)/2.0, (a2.y + a1.y)/2));
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
-        auto p1 = plot->pixelToWindow(Point(tx, aym));
+        auto p1 = pixelToWindow(plot, device, Point(tx, aym));
 
         CQChartsRotatedText::draw(device, p1, text, textOptions, /*alignBBox*/false);
       }
 
-      if (! plot_->isInvertX()) {
+      if (! invertX) {
         bbox += Point(apos - (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos - (atw - wfh), (amin + amax)/2 + ath);
       }
@@ -2759,7 +2854,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       fitLBBox_ += Point(apos - (atw - wfh), (amin + amax)/2);
     }
     else {
-      atw = plot->pixelToWindowWidth((lbbox_.getXMax() - a3.x) + tgap) + wfh;
+      atw = pixelToWindowWidth(plot, device, (lbbox_.getXMax() - a3.x) + tgap) + wfh;
 
 #if 0
       double aym = (a2.y + a1.y)/2 - tw/2;
@@ -2782,18 +2877,18 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (textOptions.html) {
         textOptions.align = Qt::AlignCenter;
 
-        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMax() + tgap + (ta + td)/2.0,
-                                            (a2.y + a1.y)/2));
+        auto p1 = pixelToWindow(plot, device,
+                    Point(lbbox_.getXMax() + tgap + (ta + td)/2.0, (a2.y + a1.y)/2));
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, text, textOptions, /*centered*/true);
       }
       else {
-        auto p1 = plot->pixelToWindow(Point(tx, aym));
+        auto p1 = pixelToWindow(plot, device, Point(tx, aym));
 
         CQChartsRotatedText::draw(device, p1, text, textOptions, /*alignBBox*/false);
       }
 
-      if (! plot_->isInvertX()) {
+      if (! invertX) {
         bbox += Point(apos + (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos + (atw - wfh), (amin + amax)/2 + ath);
       }
@@ -2807,21 +2902,95 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     }
   }
 
-  if (plot->showBoxes()) {
+  if (plot && plot->showBoxes()) {
     plot->drawWindowColorBox(device, bbox);
   }
 
   bbox_ += bbox;
 }
 
+//---
+
 CQChartsGeom::Point
 CQChartsAxis::
-windowToPixel(const Plot *plot, double x, double y) const
+windowToPixel(const Plot *plot, PaintDevice *device, double x, double y) const
 {
   if (isHorizontal())
-    return plot->windowToPixel(Point(x, y));
+    return windowToPixel(plot, device, Point(x, y));
   else
-    return plot->windowToPixel(Point(y, x));
+    return windowToPixel(plot, device, Point(y, x));
+}
+
+//---
+
+CQChartsGeom::BBox
+CQChartsAxis::
+windowToPixel(const Plot *plot, PaintDevice *device, const BBox &p) const
+{
+  return (plot ? plot->windowToPixel(p) : device->windowToPixel(p));
+}
+
+CQChartsGeom::Point
+CQChartsAxis::
+windowToPixel(const Plot *plot, PaintDevice *device, const Point &p) const
+{
+  return (plot ? plot->windowToPixel(p) : device->windowToPixel(p));
+}
+
+double
+CQChartsAxis::
+windowToPixelWidth(const Plot *plot, PaintDevice *device, double p) const
+{
+  return (plot ? plot->windowToPixelWidth(p) : device->windowToPixelWidth(p));
+}
+
+double
+CQChartsAxis::
+windowToPixelHeight(const Plot *plot, PaintDevice *device, double p) const
+{
+  return (plot ? plot->windowToPixelHeight(p) : device->windowToPixelHeight(p));
+}
+
+CQChartsGeom::BBox
+CQChartsAxis::
+pixelToWindow(const Plot *plot, PaintDevice *device, const BBox &p) const
+{
+  return (plot ? plot->pixelToWindow(p) : device->pixelToWindow(p));
+}
+
+CQChartsGeom::Point
+CQChartsAxis::
+pixelToWindow(const Plot *plot, PaintDevice *device, const Point &p) const
+{
+  return (plot ? plot->pixelToWindow(p) : device->pixelToWindow(p));
+}
+
+double
+CQChartsAxis::
+pixelToWindowWidth(const Plot *plot, PaintDevice *device, double p) const
+{
+  return (plot ? plot->pixelToWindowWidth(p) : device->pixelToWindowWidth(p));
+}
+
+double
+CQChartsAxis::
+pixelToWindowHeight(const Plot *plot, PaintDevice *device, double p) const
+{
+  return (plot ? plot->pixelToWindowHeight(p) : device->pixelToWindowHeight(p));
+}
+
+double
+CQChartsAxis::
+lengthPixelWidth(const Plot *plot, PaintDevice *device, const Length &len) const
+{
+  return (plot ? plot->lengthPixelWidth(len) : device->lengthPixelWidth(len));
+}
+
+double
+CQChartsAxis::
+lengthPixelHeight(const Plot *plot, PaintDevice *device, const Length &len) const
+{
+  return (plot ? plot->lengthPixelHeight(len) : device->lengthPixelHeight(len));
 }
 
 //---

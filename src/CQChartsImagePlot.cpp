@@ -589,13 +589,13 @@ drawXLabels(PaintDevice *device) const
     double px = 0.0;
     double py = 0.0;
 
-    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
-                                               textOptions, 0, /*alignBBox*/ true);
+    auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
+                                                textOptions, 0, /*alignBBox*/ true);
 
-    colRects[c] = trect;
+    colRects[c] = ptrect;
 
-    tw = std::max(tw, trect.getWidth ());
-    th = std::max(th, trect.getHeight());
+    tw = std::max(tw, ptrect.getWidth ());
+    th = std::max(th, ptrect.getHeight());
   }
 
   //---
@@ -673,13 +673,13 @@ drawYLabels(PaintDevice *device) const
     double px = 0.0;
     double py = 0.0;
 
-    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
-                                               textOptions, 0, /*alignBBox*/ true);
+    auto ptrect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
+                                                textOptions, 0, /*alignBBox*/ true);
 
-    rowRects[row] = trect;
+    rowRects[row] = ptrect;
 
-    tw = std::max(tw, trect.getWidth ());
-    th = std::max(th, trect.getHeight());
+    tw = std::max(tw, ptrect.getWidth ());
+    th = std::max(th, ptrect.getHeight());
   }
 
   //---

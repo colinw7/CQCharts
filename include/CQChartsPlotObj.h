@@ -118,6 +118,12 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
+  //! get/set filtered
+  bool isFiltered() const { return filtered_; }
+  void setFiltered(bool b) { filtered_ = b; }
+
+  //---
+
   //! get/set zoom text
   bool isZoomText() const { return zoomText_; }
   void setZoomText(bool b) { zoomText_ = b; }
@@ -304,7 +310,8 @@ class CQChartsPlotObj : public CQChartsObj,
 
   virtual void postDraw(PaintDevice *) { }
 
-  void drawDebugRect(PaintDevice *device);
+  void drawDebugRect(PaintDevice *device) const;
+  void drawDebugRect(PaintDevice *device, const BBox &bbox) const;
 
   virtual bool drawMouseOver() const { return true; }
 
@@ -327,6 +334,7 @@ class CQChartsPlotObj : public CQChartsObj,
   Plot*            plot_        { nullptr };           //!< parent plot
   DetailHint       detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
   DrawLayer        drawLayer_   { DrawLayer::NONE };   //!< draw layer
+  bool             filtered_    { false };             //!< is filtered
   bool             zoomText_    { false };             //!< zoom object text
   ColorInd         is_;                                //!< set index
   ColorInd         ig_;                                //!< group index
