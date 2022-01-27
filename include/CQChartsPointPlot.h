@@ -147,8 +147,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // symbol type map
   Q_PROPERTY(bool    symbolTypeMapped  READ isSymbolTypeMapped WRITE setSymbolTypeMapped )
-  Q_PROPERTY(int     symbolTypeMapMin  READ symbolTypeMapMin   WRITE setSymbolTypeMapMin )
-  Q_PROPERTY(int     symbolTypeMapMax  READ symbolTypeMapMax   WRITE setSymbolTypeMapMax )
+  Q_PROPERTY(long    symbolTypeMapMin  READ symbolTypeMapMin   WRITE setSymbolTypeMapMin )
+  Q_PROPERTY(long    symbolTypeMapMax  READ symbolTypeMapMax   WRITE setSymbolTypeMapMax )
   Q_PROPERTY(QString symbolTypeSetName READ symbolTypeSetName  WRITE setSymbolTypeSetName)
 
   // symbol size map
@@ -256,14 +256,14 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool isSymbolTypeMapped() const { return symbolTypeData_.mapped; }
   void setSymbolTypeMapped(bool b);
 
-  int symbolTypeDataMin() const { return symbolTypeData_.data_min; }
-  int symbolTypeDataMax() const { return symbolTypeData_.data_max; }
+  long symbolTypeDataMin() const { return symbolTypeData_.data_min; }
+  long symbolTypeDataMax() const { return symbolTypeData_.data_max; }
 
-  int symbolTypeMapMin() const { return symbolTypeData_.map_min; }
-  void setSymbolTypeMapMin(int i);
+  long symbolTypeMapMin() const { return symbolTypeData_.map_min; }
+  void setSymbolTypeMapMin(long i);
 
-  int symbolTypeMapMax() const { return symbolTypeData_.map_max; }
-  void setSymbolTypeMapMax(int i);
+  long symbolTypeMapMax() const { return symbolTypeData_.map_max; }
+  void setSymbolTypeMapMax(long i);
 
   const QString &symbolTypeSetName() const { return symbolTypeData_.setName; }
   void setSymbolTypeSetName(const QString &s);

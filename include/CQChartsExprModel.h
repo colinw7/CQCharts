@@ -144,7 +144,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   int columnStringBucket(int column, const QString &value) const;
 
   bool columnRange(int column, double &minVal, double &maxVal) const;
-  bool columnRange(int column, int &minVal, int &maxVal) const;
+  bool columnRange(int column, long &minVal, long &maxVal) const;
 
   int numExtraColumns() const { return extraColumns_.size(); }
 
@@ -190,7 +190,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  private:
   bool calcColumnRange(int column, double &minVal, double &maxVal);
-  bool calcColumnRange(int column, int &minVal, int &maxVal);
+  bool calcColumnRange(int column, long &minVal, long &maxVal);
 
  private:
   using ModelTypeData = CQChartsModelTypeData;

@@ -16,7 +16,7 @@ class CQChartsNameValues : public CQModelNameValues {
 
   explicit CQChartsNameValues(const QString &str);
 
-  bool nameValueInteger(const QString &name, int &value, bool &ok) const override;
+  bool nameValueInteger(const QString &name, long &value, bool &ok) const override;
   bool nameValueReal   (const QString &name, double &value, bool &ok) const override;
   bool nameValueBool   (const QString &name, bool &value, bool &ok) const override;
 

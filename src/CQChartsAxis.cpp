@@ -11,6 +11,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQModelUtil.h>
 #include <CQTclUtil.h>
 
 #include <cstring>
@@ -1003,7 +1004,7 @@ valueStr(const Plot *plot, double pos) const
     if (isRequireTickLabel())
       return "";
 
-    valuePos = QVariant(int(ipos));
+    valuePos = CQModelUtil::intVariant(ipos);
   }
 
   if (formatStr_.length()) {

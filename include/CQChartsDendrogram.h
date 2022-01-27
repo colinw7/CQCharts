@@ -5,6 +5,7 @@
 #include <QString>
 #include <vector>
 #include <algorithm>
+#include <boost/optional.hpp>
 
 /*!
  * \brief Dendrogram plot data
@@ -115,6 +116,11 @@ class CQChartsDendrogram {
     bool isNodeAtPoint(double x, double y, double tol) const;
 
    protected:
+    friend class HierNode;
+
+    void setParent(HierNode *parent) { parent_ = parent; }
+
+   protected:
     HierNode* parent_ { nullptr }; //!< parent hier node
     uint      id_;                 //!< id
     QString   name_;               //!< name
@@ -130,26 +136,51 @@ class CQChartsDendrogram {
 
   //---
 
-  using Nodes = std::vector<Node *>;
+  using OptReal = boost::optional<double>;
+
+  struct Child {
+    Node*   node { nullptr };
+    OptReal value;
+
+    Child() { }
+
+    Child(Node *node, const OptReal &value=OptReal()) :
+     node(node), value(value) {
+    }
+  };
+
+  using Nodes    = std::vector<Node *>;
+  using Children = std::vector<Child>;
 
   //---
 
   //! Hierarchical Node
   class HierNode : public Node {
    public:
-    using Children = std::vector<HierNode *>;
+    struct HierChild {
+      HierNode *node { nullptr };
+      OptReal   value;
+
+      HierChild() { }
+
+      HierChild(HierNode *node, const OptReal &value=OptReal()) :
+       node(node), value(value) {
+      }
+    };
+
+    using HierChildren = std::vector<HierChild>;
 
    public:
-    HierNode(HierNode *parent=0, const QString &name="");
+    HierNode(HierNode *parent=nullptr, const QString &name="");
 
    ~HierNode();
 
     double size() const override;
 
-    const Nodes    &getNodes   () const { return nodes_; }
-    const Children &getChildren() const { return children_; }
+    const Children     &getNodes   () const { return nodes_; }
+    const HierChildren &getChildren() const { return children_; }
 
-    int depth() const;
+    int calcDepth() const;
 
     int numNodes() const;
 
@@ -163,18 +194,22 @@ class CQChartsDendrogram {
 
     void placeSubNodes(RootNode *root, int depth, double row);
 
-    void addChild(HierNode *child);
+    void addChild(HierNode *child, const OptReal &value=OptReal());
 
-    void addNode(Node *node);
+    void setChildValue(Node *child, double value);
+
+    void addNode(Node *node, const OptReal &value=OptReal());
 
     void compressNode(double d) override;
 
     Node *getNodeAtPoint(double x, double y, double tol);
     const Node *getNodeAtPoint(double x, double y, double tol) const;
 
+    void clear();
+
    protected:
-    Nodes    nodes_;    //!< child leaf nodes
-    Children children_; //!< child hier nodes
+    Children     nodes_;    //!< child leaf nodes
+    HierChildren children_; //!< child hier nodes
   };
 
   //---
@@ -263,7 +298,8 @@ class CQChartsDendrogram {
 
   HierNode *addRootNode(const QString &name);
 
-  HierNode *addHierNode(HierNode *hier, const QString &name);
+  HierNode *addHierNode(HierNode *hier, const QString &name, const OptReal &value=OptReal());
+
   Node *addNode(HierNode *hier, const QString &name, double size);
 
   virtual RootNode *createRootNode(const QString &name) const;

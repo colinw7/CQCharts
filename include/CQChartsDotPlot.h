@@ -284,7 +284,7 @@ class CQChartsDotPlotEdge {
   using ModelInds  = std::vector<ModelIndex>;
   using Color      = CQChartsColor;
   using OptReal    = CQChartsOptReal;
-  using Line       = CQChartsGeom::Line;
+//using Line       = CQChartsGeom::Line;
 
  public:
   CQChartsDotPlotEdge(const OptReal &value, Node *srcNode, Node *destNode);
@@ -365,9 +365,11 @@ class CQChartsDotPlotEdge {
   const QPainterPath &edgePath() const { return edgePath_; }
   void setEdgePath(const QPainterPath &path) { edgePath_ = path; }
 
+#if 0
   //! get/set edge line
   const Line &line() const { return line_; }
   void setLine(const Line &line) { line_ = line; }
+#endif
 
   //! get/set is directed
   bool isDirected() const { return directed_; }
@@ -388,7 +390,7 @@ class CQChartsDotPlotEdge {
   Node*        destNode_  { nullptr };         //!< destination node
   QPainterPath path_;                          //!< draw path
   QPainterPath edgePath_;                      //!< edge path
-  Line         line_;                          //!< edge line
+//Line         line_;                          //!< edge line
   bool         directed_  { false };           //!< is directed
 };
 
@@ -645,15 +647,19 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeShapeData<CQChartsDotPlot> {
   Q_OBJECT
 
+  // node data
+  Q_PROPERTY(NodeShape nodeShape READ nodeShape WRITE setNodeShape)
+
+  // edge data
+  Q_PROPERTY(EdgeShape      edgeShape    READ edgeShape      WRITE setEdgeShape   )
+  Q_PROPERTY(bool           edgeArrow    READ isEdgeArrow    WRITE setEdgeArrow   )
+  Q_PROPERTY(bool           edgeScaled   READ isEdgeScaled   WRITE setEdgeScaled  )
+  Q_PROPERTY(CQChartsLength edgeWidth    READ edgeWidth      WRITE setEdgeWidth   )
+  Q_PROPERTY(bool           edgeCentered READ isEdgeCentered WRITE setEdgeCentered)
+  Q_PROPERTY(bool           edgePath     READ isEdgePath     WRITE setEdgePath    )
+  Q_PROPERTY(double         arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
+
   // options
-  Q_PROPERTY(NodeShape       nodeShape    READ nodeShape      WRITE setNodeShape   )
-  Q_PROPERTY(EdgeShape       edgeShape    READ edgeShape      WRITE setEdgeShape   )
-  Q_PROPERTY(bool            edgeArrow    READ isEdgeArrow    WRITE setEdgeArrow   )
-  Q_PROPERTY(bool            edgeScaled   READ isEdgeScaled   WRITE setEdgeScaled  )
-  Q_PROPERTY(CQChartsLength  edgeWidth    READ edgeWidth      WRITE setEdgeWidth   )
-  Q_PROPERTY(bool            edgeCentered READ isEdgeCentered WRITE setEdgeCentered)
-  Q_PROPERTY(bool            edgePath     READ isEdgePath     WRITE setEdgePath    )
-  Q_PROPERTY(double          arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
   Q_PROPERTY(Qt::Orientation orientation  READ orientation    WRITE setOrientation )
 
   // coloring
@@ -712,6 +718,8 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   NodeShape nodeShape() const { return nodeShape_; }
   void setNodeShape(const NodeShape &s);
 
+  //---
+
   //! get/set edge shape
   const EdgeShape &edgeShape() const { return edgeShape_; }
   void setEdgeShape(const EdgeShape &s);
@@ -728,7 +736,7 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   const Length &edgeWidth() const { return edgeWidth_; }
   void setEdgeWidth(const Length &l);
 
-  //! get/set is edge scaled
+  //! get/set is edge centered
   bool isEdgeCentered() const { return edgeCentered_; }
   void setEdgeCentered(bool b);
 
@@ -909,18 +917,22 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
 
-  // placement
-  NodeShape       nodeShape_    { NodeShape::NONE }; //!< node shape
-  EdgeShape       edgeShape_    { EdgeShape::ARC };  //!< edge shape
-  bool            edgeArrow_    { true };            //!< edge arrow
-  bool            edgeScaled_   { false };           //!< is edge scaled
-  bool            edgeCentered_ { false };           //!< is edge centered
-  bool            edgePath_     { true };            //!< use edge path
-  Qt::Orientation orientation_  { Qt::Vertical };    //!< orientation
+  // node data
+  NodeShape nodeShape_ { NodeShape::NONE }; //!< node shape
+
+  // edge data
+  EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
+  bool      edgeArrow_    { true };             //!< edge arrow
+  bool      edgeScaled_   { false };            //!< is edge scaled
+  Length    edgeWidth_    { Length::pixel(8) }; //!< edge width
+  bool      edgeCentered_ { false };            //!< is edge centered
+  bool      edgePath_     { true };             //!< use edge path
+
+  // plot data
+  Qt::Orientation orientation_ { Qt::Vertical }; //!< orientation
 
   // bbox, margin, node width
-  BBox   targetBBox_ { -1, -1, 1, 1 };     //!< target range bbox
-  Length edgeWidth_  { Length::pixel(8) }; //!< edge width
+  BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
 
   // coloring
   bool blendEdgeColor_ { true }; //!< blend edge color

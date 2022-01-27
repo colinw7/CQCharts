@@ -311,8 +311,12 @@ rowCmd(const Values &values) const
   if (! cmdValues.hasValues())
     return row;
 
-  if (! cmdValues.getInt(row))
+  long row1;
+
+  if (! cmdValues.getInt(row1))
     return QVariant();
+
+  row = int(row1);
 
   //---
 
@@ -347,8 +351,12 @@ cellCmd(const Values &values) const
     return QVariant();
   }
 
-  if (! cmdValues.getInt(row))
+  long row1;
+
+  if (! cmdValues.getInt(row1))
     return QVariant();
+
+  row = int(row1);
 
   if (! getColumn(cmdValues, col))
     return QVariant();
@@ -495,8 +503,12 @@ bool
 CQChartsModelExprMatch::
 getColumn(CQChartsExprCmdValues &cmdValues, int &col) const
 {
-  if (cmdValues.getInt(col))
+  long col1;
+
+  if (cmdValues.getInt(col1))
     return true;
+
+  col = int(col1);
 
   QString name;
 

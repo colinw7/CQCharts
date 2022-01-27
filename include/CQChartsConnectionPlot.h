@@ -36,7 +36,6 @@ class CQChartsConnectionPlotType : public CQChartsPlotType {
 //---
 
 CQCHARTS_NAMED_SHAPE_DATA(Graph, graph)
-CQCHARTS_NAMED_SHAPE_DATA(Edge, edge)
 
 /*!
  * \brief Connection Plot Base Class

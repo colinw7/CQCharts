@@ -2,8 +2,11 @@
 #define CQChartsValueSet_H
 
 #include <CQChartsUtil.h>
-#include <CQStatData.h>
 #include <CQChartsModelTypes.h>
+
+#include <CQStatData.h>
+#include <CQModelUtil.h>
+
 #include <vector>
 #include <set>
 #include <map>
@@ -208,10 +211,10 @@ class CQChartsRValues {
  */
 class CQChartsIValues {
  public:
-  using OptInt      = boost::optional<int>;
-  using Values      = std::vector<int>;
+  using OptInt      = boost::optional<long>;
+  using Values      = std::vector<long>;
   using Counts      = std::vector<int>;
-  using ValueCount  = std::pair<int, int>;
+  using ValueCount  = std::pair<long, int>;
   using ValueCounts = std::vector<ValueCount>;
   using Indices     = std::vector<int>;
 
@@ -242,7 +245,7 @@ class CQChartsIValues {
   int numNull() const { return numNull_; }
 
   // integer to id
-  int id(int i) const {
+  int id(long i) const {
     // get integer set index
     auto p = valset_.find(i);
 
@@ -253,7 +256,7 @@ class CQChartsIValues {
   }
 
   // id to integer
-  int ivalue(int i) const {
+  long ivalue(int i) const {
     // get integer for index
     auto p = setvals_.find(i);
 
@@ -276,8 +279,8 @@ class CQChartsIValues {
   }
 
   // min/max value
-  int min(int def=0) const { return (valset_.empty() ? def : valset_. begin()->first); }
-  int max(int def=0) const { return (valset_.empty() ? def : valset_.rbegin()->first); }
+  long min(int def=0) const { return (valset_.empty() ? def : valset_. begin()->first); }
+  long max(int def=0) const { return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
   int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
@@ -289,7 +292,7 @@ class CQChartsIValues {
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
 
-    return QVariant(valset_.begin()->first);
+    return CQModelUtil::intVariant(valset_.begin()->first);
   }
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
@@ -344,8 +347,8 @@ class CQChartsIValues {
  private:
   using OptValues = std::vector<OptInt>;
   using KeyCount  = std::pair<int, int>;
-  using ValueSet  = std::map<int, KeyCount>;
-  using SetValues = std::map<int, int>;
+  using ValueSet  = std::map<long, KeyCount>;
+  using SetValues = std::map<int, long>;
 
   OptValues                 values_;               //!< all integer values
   Values                    svalues_;              //!< sorted integer values
@@ -633,7 +636,7 @@ class CQChartsValueSet : public QObject {
  public:
   using Plot      = CQChartsPlot;
   using Type      = CQBaseModelType;
-  using OptInt    = boost::optional<int>;
+  using OptInt    = boost::optional<long>;
   using OptReal   = boost::optional<double>;
   using OptString = boost::optional<QString>;
 
@@ -807,9 +810,9 @@ class CQChartsValueSet : public QObject {
   //---
 
   // get integer index
-  int iid(int i) const;
+  int iid(long i) const;
   // get indexed integer
-  int idi(int i) const;
+  long idi(int i) const;
 
   //---
 

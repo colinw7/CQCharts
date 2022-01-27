@@ -224,8 +224,8 @@ writeModelCmds()
       else if (param->type() == CQBaseModelType::REAL) {
         bool ok1, ok2;
 
-        double r1 = CQChartsVariant::toReal(var         , ok1);
-        double r2 = CQChartsVariant::toReal(param->def(), ok2);
+        auto r1 = CQChartsVariant::toReal(var         , ok1);
+        auto r2 = CQChartsVariant::toReal(param->def(), ok2);
 
         if (ok1 && ok2 && r1 == r2)
           continue;
@@ -233,8 +233,8 @@ writeModelCmds()
       else if (param->type() == CQBaseModelType::INTEGER) {
         bool ok1, ok2;
 
-        int i1 = CQChartsVariant::toInt(var         , ok1);
-        int i2 = CQChartsVariant::toInt(param->def(), ok2);
+        auto i1 = CQChartsVariant::toInt(var         , ok1);
+        auto i2 = CQChartsVariant::toInt(param->def(), ok2);
 
         if (ok1 && ok2 && i1 == i2)
           continue;

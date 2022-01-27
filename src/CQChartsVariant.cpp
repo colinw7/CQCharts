@@ -22,6 +22,9 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::Int) {
     str = CQChartsUtil::formatInteger((long) var.toInt());
   }
+  else if (var.type() == QVariant::LongLong) {
+    str = CQChartsUtil::formatInteger(var.toLongLong());
+  }
   else if (var.type() == QVariant::Point) {
     auto point = var.value<QPoint>();
 
@@ -145,8 +148,10 @@ QString toString(const QVariant &var, bool &ok) {
 
 int cmp(const QVariant &var1, const QVariant &var2) {
   auto cmpInt = [&]() {
-    int i1 = var1.value<int>();
-    int i2 = var2.value<int>();
+    bool ok1, ok2;
+
+    long i1 = toInt(var1, ok1); assert(ok1);
+    long i2 = toInt(var2, ok2); assert(ok2);
 
     if (i1 < i2) return -1;
     if (i1 > i2) return  1;
@@ -164,14 +169,14 @@ int cmp(const QVariant &var1, const QVariant &var2) {
     return 0;
   };
 
-  bool isNumber1 = (var1.type() == QVariant::Int || var1.type() == QVariant::Double);
-  bool isNumber2 = (var2.type() == QVariant::Int || var2.type() == QVariant::Double);
+  bool isNumber1 = isNumeric(var1);
+  bool isNumber2 = isNumeric(var2);
 
   if (isNumber1 && isNumber2) {
     if (var1.type() == var2.type()) {
-      if      (var1.type() == QVariant::Int)
+      if      (isInt(var1))
         return cmpInt();
-      else if (var1.type() == QVariant::Double)
+      else if (isReal(var1))
         return cmpReal();
     }
 
@@ -208,10 +213,10 @@ int cmp(const QVariant &var1, const QVariant &var2) {
 
   //---
 
-  if      (var1.type() == QVariant::Int) {
+  if      (isInt(var1)) {
     return cmpInt();
   }
-  else if (var1.type() == QVariant::Double) {
+  else if (isReal(var1)) {
     return cmpReal();
   }
   else if (var1.type() == QVariant::UserType) {
@@ -253,6 +258,9 @@ double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
   if (var.type() == QVariant::Int)
     return var.value<int>();
 
+  if (var.type() == QVariant::LongLong)
+    return var.value<qlonglong>();
+
   converted = true;
 
   auto str = toString(var, ok);
@@ -284,8 +292,16 @@ double toReal(const QVariant &var, bool &ok) {
 long toInt(const QVariant &var, bool &ok) {
   ok = true;
 
+  if (var.type() == QVariant::Invalid) {
+    ok = false;
+    return 0;
+  }
+
   if (var.type() == QVariant::Int)
     return var.value<int>();
+
+  if (var.type() == QVariant::LongLong)
+    return var.value<qlonglong>();
 
   if (var.type() == QVariant::Double) {
     double r = var.value<double>();
@@ -312,6 +328,9 @@ bool toBool(const QVariant &var, bool &ok) {
 
   if (var.type() == QVariant::Int)
     return var.toInt();
+
+  if (var.type() == QVariant::LongLong)
+    return var.toLongLong();
 
   if (var.type() == QVariant::String) {
     auto str = var.toString();

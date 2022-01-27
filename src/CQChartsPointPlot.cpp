@@ -316,7 +316,7 @@ setSymbolTypeMapped(bool b)
 
 void
 CQChartsPointPlot::
-setSymbolTypeMapMin(int i)
+setSymbolTypeMapMin(long i)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() {
     updateRangeAndObjs(); emit symbolTypeDetailsChanged();
@@ -325,7 +325,7 @@ setSymbolTypeMapMin(int i)
 
 void
 CQChartsPointPlot::
-setSymbolTypeMapMax(int i)
+setSymbolTypeMapMax(long i)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() {
     updateRangeAndObjs(); emit symbolTypeDetailsChanged();

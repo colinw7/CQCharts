@@ -338,6 +338,7 @@ void editHandlePath(PaintDevice *device, QPainterPath &path, const BBox &bbox);
 
 //---
 
+void drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w);
 void roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w);
 
 bool roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, double ysize);
@@ -346,27 +347,23 @@ bool roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, d
 
 void drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro, const Angle &a1,
                   const Angle &a2, bool isInvertX=false, bool isInvertY=false);
-
 void pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Angle &a1,
                   const Angle &a2, bool isInvertX, bool isInvertY);
 
 //---
 
 void drawEllipse(PaintDevice *device, const BBox &bbox);
-
 void ellipsePath(QPainterPath &path, const BBox &bbox);
 
 //---
 
 void drawArc(PaintDevice *device, const BBox &bbox, const Angle &angle, const Angle &dangle);
-
 void arcPath(QPainterPath &path, const BBox &bbox, const Angle &angle, const Angle &dangle);
 
 //---
 
 void drawArcSegment(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                     const Angle &angle, const Angle &dangle);
-
 void arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
                     const Angle &angle, const Angle &dangle);
 
@@ -374,15 +371,18 @@ void arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
 
 void drawArcsConnector(PaintDevice *device, const BBox &ibbox, const Angle &a1, const Angle &da1,
                        const Angle &a2, const Angle &da2, bool isSelf);
-
 void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, const Angle &da1,
                        const Angle &a2, const Angle &da2, bool isSelf);
 
 //---
 
+void drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
+                  bool isLine=false, Qt::Orientation orientation=Qt::Horizontal);
 void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
               bool isLine=false, Qt::Orientation orientation=Qt::Horizontal);
 
+void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
+                  Qt::Orientation orient=Qt::Horizontal);
 void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
               Qt::Orientation orientation=Qt::Horizontal);
 
@@ -394,7 +394,9 @@ void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
 void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
                Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
 
-void curvePath(QPainterPath &path, const Point &p1, const Point &p4,
+void drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
+                   Qt::Orientation orient, bool rectilinear=false);
+void curvePath(QPainterPath &path, const Point &p1, const Point &p2,
                Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
 
 void selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear=false);

@@ -7348,10 +7348,10 @@ currentPlotSlot()
   auto *action = qobject_cast<QAction *>(sender());
 
   bool ok;
-  int plotInd = (int) CQChartsVariant::toInt(action->data(), ok);
+  auto plotInd = CQChartsVariant::toInt(action->data(), ok);
   assert(ok);
 
-  setCurrentPlotInd(plotInd);
+  setCurrentPlotInd(int(plotInd));
 }
 
 //------

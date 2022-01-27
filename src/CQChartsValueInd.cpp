@@ -8,13 +8,13 @@ calcId(const QVariant &val, CQBaseModelType type)
   bool ok;
 
   if      (type == CQBaseModelType::INTEGER) {
-    int i = (int) CQChartsVariant::toInt(val, ok);
+    auto i = CQChartsVariant::toInt(val, ok);
     if (! ok) return -1;
 
-    return calcId(i);
+    return calcId(int(i));
   }
   else if (type == CQBaseModelType::REAL) {
-    double r = CQChartsVariant::toReal(val, ok);
+    auto r = CQChartsVariant::toReal(val, ok);
     if (! ok) return -1;
 
     if (CMathUtil::isNaN(r))

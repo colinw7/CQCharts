@@ -23,6 +23,7 @@
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
+#include <CQModelUtil.h>
 #include <CQTabSplit.h>
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
@@ -2488,9 +2489,9 @@ applyPlot(Plot *plot, bool preview)
     else if (parameter->type() == PlotParameter::Type::INTEGER) {
       bool ok;
 
-      int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
+      auto defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
-      int i = defValue;
+      int i = int(defValue);
 
       if (parseParameterIntEdit(parameter, plotData, i)) {
         if (! plot->setParameter(parameter, QVariant(i)))
@@ -2499,16 +2500,16 @@ applyPlot(Plot *plot, bool preview)
       else {
         if (parameter->isRequired()) {
           if (ok)
-            plot->setParameter(parameter, QVariant(defValue));
+            plot->setParameter(parameter, CQModelUtil::intVariant(defValue));
         }
       }
     }
     else if (parameter->type() == PlotParameter::Type::ENUM) {
       bool ok;
 
-      int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
+      auto defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
-      int i = defValue;
+      int i = int(defValue);
 
       if (parseParameterEnumEdit(parameter, plotData, i)) {
         if (! plot->setParameter(parameter, QVariant(i)))
@@ -2516,7 +2517,7 @@ applyPlot(Plot *plot, bool preview)
       }
       else {
         if (preview)
-          plot->setParameter(parameter, QVariant(defValue));
+          plot->setParameter(parameter, CQModelUtil::intVariant(defValue));
       }
     }
     else if (parameter->type() == PlotParameter::Type::BOOLEAN) {

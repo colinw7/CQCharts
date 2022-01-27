@@ -117,10 +117,18 @@ CQChartsDendrogram::HierNode::
 ~HierNode()
 {
   for (auto &c : children_)
-    delete c;
+    delete c.node;
 
   for (auto &n : nodes_)
-    delete n;
+    delete n.node;
+}
+
+void
+CQChartsDendrogram::HierNode::
+clear()
+{
+  children_.clear();
+  nodes_   .clear();
 }
 
 double
@@ -130,17 +138,17 @@ size() const
   double s = 0.0;
 
   for (const auto &c : children_)
-    s += c->size();
+    s += c.node->size();
 
   for (const auto &n : nodes_)
-    s += n->size();
+    s += n.node->size();
 
   return s;
 }
 
 int
 CQChartsDendrogram::HierNode::
-depth() const
+calcDepth() const
 {
   int max_depth = 0;
 
@@ -149,7 +157,7 @@ depth() const
       max_depth = 1;
 
     for (const auto &c : children_)
-      max_depth = std::max(max_depth, c->depth());
+      max_depth = std::max(max_depth, c.node->calcDepth());
   }
 
   return max_depth + 1;
@@ -172,7 +180,7 @@ maxNodes()
     maxNum = nodes_.size();
 
     for (const auto &c : children_)
-      maxNum += c->maxNodes();
+      maxNum += c.node->maxNodes();
   }
 
   return std::max(maxNum, 1);
@@ -190,8 +198,8 @@ CQChartsDendrogram::HierNode::
 findChild(const QString &name) const
 {
   for (const auto &c : children_)
-    if (c->name() == name)
-      return c;
+    if (c.node->name() == name)
+      return c.node;
 
   return nullptr;
 }
@@ -203,10 +211,10 @@ resetPlaced()
   Node::resetPlaced();
 
   for (const auto &c : children_)
-    c->resetPlaced();
+    c.node->resetPlaced();
 
   for (const auto &n : nodes_)
-    n->resetPlaced();
+    n.node->resetPlaced();
 }
 
 void
@@ -217,10 +225,10 @@ placeSubNodes(RootNode *root, int depth, double row)
   Nodes nodes;
 
   for (const auto &c : children_)
-    nodes.push_back(c);
+    nodes.push_back(c.node);
 
   for (const auto &n : nodes_)
-    nodes.push_back(n);
+    nodes.push_back(n.node);
 
   // sort nodes by name
   std::sort(nodes.begin(), nodes.end(), NodeCmp());
@@ -250,16 +258,39 @@ placeSubNodes(RootNode *root, int depth, double row)
 
 void
 CQChartsDendrogram::HierNode::
-addChild(HierNode *child)
+addChild(HierNode *child, const OptReal &value)
 {
-  children_.push_back(child);
+  child->setParent(this);
+
+  children_.push_back(HierChild(child, value));
 }
 
 void
 CQChartsDendrogram::HierNode::
-addNode(Node *node)
+setChildValue(Node *child, double value)
 {
-  nodes_.push_back(node);
+  for (auto &c : children_) {
+    if (c.node == child) {
+      c.value = value;
+      return;
+    }
+  }
+
+  for (auto &n : nodes_) {
+    if (n.node == child) {
+      n.value = value;
+      return;
+    }
+  }
+}
+
+void
+CQChartsDendrogram::HierNode::
+addNode(Node *node, const OptReal &value)
+{
+  node->setParent(this);
+
+  nodes_.push_back(Child(node, value));
 }
 
 void
@@ -304,15 +335,15 @@ getNodeAtPoint(double x, double y, double tol)
 
   // make single list of nodes to place
   for (const auto &c : children_) {
-    auto *node = c->getNodeAtPoint(x, y, tol);
+    auto *node = c.node->getNodeAtPoint(x, y, tol);
 
     if (node)
       return node;
   }
 
   for (const auto &n : nodes_) {
-    if (n->isNodeAtPoint(x, y, tol))
-      return n;
+    if (n.node->isNodeAtPoint(x, y, tol))
+      return n.node;
   }
 
   return nullptr;
@@ -335,7 +366,7 @@ placeNodes()
   resetPlaced();
 
   // get depth and init array of nodes at each depth
-  int d = depth();
+  int d = calcDepth();
 
   depthNodes_.clear();
 
@@ -593,15 +624,15 @@ getLowestChild(HierNode *hierNode)
   const auto &children = hierNode->getChildren();
 
   for (const auto &c : children) {
-    if (! lowestNode || c->row() < lowestNode->row())
-      lowestNode = c;
+    if (! lowestNode || c.node->row() < lowestNode->row())
+      lowestNode = c.node;
   }
 
   const auto &nodes = hierNode->getNodes();
 
   for (const auto &n : nodes) {
-    if (! lowestNode || n->row() < lowestNode->row())
-      lowestNode = n;
+    if (! lowestNode || n.node->row() < lowestNode->row())
+      lowestNode = n.node;
   }
 
   return lowestNode;
@@ -692,7 +723,7 @@ moveChildNodes(HierNode *hierNode, double d)
   const auto &children = hierNode->getChildren();
 
   for (const auto &c : children_) {
-    c->moveNode(d);
+    c.node->moveNode(d);
 
     moveChildNodes(c, d);
   }
@@ -700,7 +731,7 @@ moveChildNodes(HierNode *hierNode, double d)
   const auto &nodes = hierNode->getNodes();
 
   for (const auto &n : nodes) {
-    n->moveNode(d);
+    n.node->moveNode(d);
   }
 }
 #endif
@@ -817,13 +848,13 @@ addRootNode(const QString &name)
 
 CQChartsDendrogram::HierNode *
 CQChartsDendrogram::
-addHierNode(HierNode *parentHier, const QString &name)
+addHierNode(HierNode *parentHier, const QString &name, const OptReal &value)
 {
   assert(parentHier);
 
   auto *hier = createHierNode(parentHier, name);
 
-  parentHier->addChild(hier);
+  parentHier->addChild(hier, value);
 
   return hier;
 }

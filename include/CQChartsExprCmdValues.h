@@ -36,7 +36,7 @@ class CQChartsExprCmdValues {
     return value;
   }
 
-  bool getInt(int &i) {
+  bool getInt(long &i) {
     if (ind_ > eind_) return false;
 
     bool ok;

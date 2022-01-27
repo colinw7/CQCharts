@@ -92,7 +92,7 @@ iset(const QVariant &value) const
   bool ok;
 
   if      (type() == Type::INTEGER) {
-    int i = (int) CQChartsVariant::toInt(value, ok);
+    auto i = CQChartsVariant::toInt(value, ok);
 
     if (ok)
       return ivals_.id(i);
@@ -347,15 +347,15 @@ CQChartsValueSet::
 min(const QVariant &def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.min();
+    return CQModelUtil::intVariant(ivals_.min());
   else if (type() == Type::REAL)
-    return rvals_.min();
+    return QVariant(rvals_.min());
   else if (type() == Type::STRING)
-    return svals_.min();
+    return QVariant(svals_.min());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.min());
   else if (type() == Type::TIME)
-    return tvals_.min();
+    return QVariant(tvals_.min());
   else
     return def;
 }
@@ -365,15 +365,15 @@ CQChartsValueSet::
 max(const QVariant &def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.max();
+    return CQModelUtil::intVariant(ivals_.max());
   else if (type() == Type::REAL)
-    return rvals_.max();
+    return QVariant(rvals_.max());
   else if (type() == Type::STRING)
-    return svals_.max();
+    return QVariant(svals_.max());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.max());
   else if (type() == Type::TIME)
-    return tvals_.max();
+    return QVariant(tvals_.max());
   else
     return def;
 }
@@ -551,7 +551,7 @@ idr(int i) const
 
 int
 CQChartsValueSet::
-iid(int i) const
+iid(long i) const
 {
   if      (type() == Type::INTEGER)
     return ivals_.id(i);
@@ -567,7 +567,7 @@ iid(int i) const
     return -1;
 }
 
-int
+long
 CQChartsValueSet::
 idi(int i) const
 {
@@ -671,7 +671,7 @@ init()
 
   for (const auto &value : values_) {
     if      (type() == Type::INTEGER) {
-      int i = (int) CQChartsVariant::toInt(value, ok);
+      auto i = CQChartsVariant::toInt(value, ok);
 
       ivals_.addValue(ok ? OptInt(i) : OptInt());
     }
@@ -721,9 +721,9 @@ calcType() const
   int ni = 0, nr = 0;
 
   for (const auto &value : values_) {
-    if      (value.type() == QVariant::Int)
+    if      (CQChartsVariant::isInt(value))
       ++ni;
-    else if (value.type() == QVariant::Double) {
+    else if (CQChartsVariant::isReal(value)) {
       ++nr;
 
       bool ok;

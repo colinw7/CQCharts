@@ -15,6 +15,7 @@
 
 #include <CQTclUtil.h>
 #include <CQBaseModel.h>
+#include <CQModelUtil.h>
 #include <CQColors.h>
 #include <CQColorsPalette.h>
 
@@ -46,7 +47,7 @@ bool nameValueString(const CQChartsNameValues &nameValues, const QString &name, 
   return nameValues.nameValueString(name, value, ok) && ok;
 }
 
-bool nameValueInteger(const CQChartsNameValues &nameValues, const QString &name, int &value) {
+bool nameValueInteger(const CQChartsNameValues &nameValues, const QString &name, long &value) {
   bool ok;
   return nameValues.nameValueInteger(name, value, ok) && ok;
 }
@@ -1166,7 +1167,7 @@ CQChartsColumnRealType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Double)
+  if (! var.isValid() || CQChartsVariant::isReal(var))
     return var;
 
   double r = 0.0;
@@ -1336,7 +1337,7 @@ CQChartsColumnIntegerType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Int)
+  if (! var.isValid() || CQChartsVariant::isInt(var))
     return var;
 
   long l = 0;
@@ -1358,7 +1359,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  return QVariant::fromValue<int>(l);
+  return CQModelUtil::intVariant(l);
 }
 
 // data variant to output variant (string) for display
@@ -1373,21 +1374,12 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get integer value
-  long l = 0;
+  bool ok;
 
-  if (var.type() == QVariant::Int) {
-    l = var.value<int>();
-  }
-  else {
-    bool ok;
+  auto l = CQChartsVariant::toInt(var, ok);
 
-    l = CQChartsVariant::toInt(var, ok);
-
-    if (! ok)
-      return CQChartsVariant::toString(var, ok);
-
-    converted = true;
-  }
+  if (! ok)
+    return CQChartsVariant::toString(var, ok);
 
   converted = true;
 
@@ -1409,29 +1401,29 @@ QVariant
 CQChartsColumnIntegerType::
 minValue(const CQChartsNameValues &nameValues) const
 {
-  int i;
+  long i;
 
   if (! imin(nameValues, i))
     return QVariant();
 
-  return QVariant(i);
+  return CQModelUtil::intVariant(i);
 }
 
 QVariant
 CQChartsColumnIntegerType::
 maxValue(const CQChartsNameValues &nameValues) const
 {
-  int i;
+  long i;
 
   if (! imax(nameValues, i))
     return QVariant();
 
-  return QVariant(i);
+  return CQModelUtil::intVariant(i);
 }
 
 bool
 CQChartsColumnIntegerType::
-imin(const CQChartsNameValues &nameValues, int &i) const
+imin(const CQChartsNameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", i))
     return false;
@@ -1441,7 +1433,7 @@ imin(const CQChartsNameValues &nameValues, int &i) const
 
 bool
 CQChartsColumnIntegerType::
-imax(const CQChartsNameValues &nameValues, int &i) const
+imax(const CQChartsNameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", i))
     return false;
@@ -1507,7 +1499,7 @@ CQChartsColumnTimeType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Double)
+  if (! var.isValid() || CQChartsVariant::isReal(var))
     return var;
 
   // use format string to convert model (input) string to time (double)
@@ -2447,9 +2439,9 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   converted = true;
 
   bool mapped   = false;
-  int  min      = 0, max = 1;
-  int  size_min = CQChartsSymbolType::minFillValue();
-  int  size_max = CQChartsSymbolType::maxFillValue();
+  long min      = 0, max = 1;
+  long size_min = CQChartsSymbolType::minFillValue();
+  long size_max = CQChartsSymbolType::maxFillValue();
 
   getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
 
@@ -2503,8 +2495,8 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnSymbolTypeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-           const CQChartsNameValues &nameValues, bool &mapped, int &map_min, int &map_max,
-           int &data_min, int &data_max) const
+           const CQChartsNameValues &nameValues, bool &mapped, long &map_min, long &map_max,
+           long &data_min, long &data_max) const
 {
   mapped   = false;
   map_min  = 0;
@@ -2573,7 +2565,7 @@ CQChartsColumnSymbolSizeType::
 userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
          const QVariant &var, const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Double)
+  if (! var.isValid() || CQChartsVariant::isReal(var))
     return var;
 
   bool ok;
@@ -2620,7 +2612,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   // get real value
   double r = 0.0;
 
-  if (var.type() == QVariant::Double) {
+  if (CQChartsVariant::isReal(var)) {
     r = var.value<double>();
   }
   else {
@@ -2712,7 +2704,7 @@ CQChartsColumnFontSizeType::
 userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
          const QVariant &var, const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Double)
+  if (! var.isValid() || CQChartsVariant::isReal(var))
     return var;
 
   bool ok;
@@ -2759,7 +2751,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   // get real value
   double r = 0.0;
 
-  if (var.type() == QVariant::Double) {
+  if (CQChartsVariant::isReal(var)) {
     r = var.value<double>();
   }
   else {

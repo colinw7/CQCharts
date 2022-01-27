@@ -7,6 +7,7 @@
 #include <CQChartsDendrogram.h>
 
 class CQChartsDendrogramPlot;
+class CQChartsNamePair;
 
 namespace CBuchHeim {
 class Tree;
@@ -70,20 +71,28 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "node"; }
 
+  //---
+
   const Plot *plot() const { return plot_; }
 
   const NodeObj *parent() const { return parent_; }
   void setParent(NodeObj *p) { parent_ = p; }
 
-  void addChild(NodeObj *child) { children_.push_back(child); }
+  void addChild(NodeObj *node, const OptReal &value=OptReal());
 
   const Node *node() const { return node_; }
   void resetNode() { node_ = nullptr; }
+
+  //---
 
   const QString &name() const { return name_; }
 
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
+
+  double childTotal() const { return childTotal_; }
+
+  //---
 
   bool isRoot() const { return isRoot_; }
   void setRoot(bool b) { isRoot_ = b; }
@@ -96,6 +105,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   ModelIndex modelIndex() const { return modelIndex_; }
   void setModelIndex(const ModelIndex &modelIndex) { modelIndex_ = modelIndex; }
+
+  //---
 
   const OptReal &color() const { return color_; }
   void setColor(const OptReal &v) { color_ = v; }
@@ -137,29 +148,41 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   //---
 
  private:
-  void drawEdge(PaintDevice *device, const NodeObj *child) const;
+  void drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const;
 
   BBox displayRect() const;
 
   double calcSymbolSize() const;
 
  private:
-  using Children = std::vector<NodeObj *>;
+  struct Child {
+    Child() { }
 
-  const Plot*     plot_      { nullptr }; //!< plot
-  NodeObj*        parent_    { nullptr }; //!< parent
-  Children        children_;              //!< children
-  Node*           node_      { nullptr }; //!< node
-  QString         name_;                  //!< name
-  double          value_     { 0.0 };     //!< value
-  bool            isRoot_    { false };   //!< is root
-  bool            isHier_    { false };   //!< is hierarchical
-  bool            open_      { false };   //!< is open
-  ModelIndex      modelIndex_;            //!< model index
-  OptReal         color_;                 //!< optional color
-  OptReal         size_;                  //!< optional size
-  mutable double  hierColor_ { 0.0 };     //!< hier color
-  mutable double  hierSize_  { 0.0 };     //!< hier size
+    Child(NodeObj *node, const OptReal &value) :
+     node(node), value(value) {
+    }
+
+    NodeObj *node { nullptr };
+    OptReal  value;
+  };
+
+  using Children = std::vector<Child>;
+
+  const Plot*     plot_       { nullptr }; //!< plot
+  NodeObj*        parent_     { nullptr }; //!< parent
+  Children        children_;               //!< children
+  Node*           node_       { nullptr }; //!< associated node
+  QString         name_;                   //!< name
+  double          value_      { 0.0 };     //!< value
+  double          childTotal_ { 0.0 };     //!< value
+  bool            isRoot_     { false };   //!< is root
+  bool            isHier_     { false };   //!< is hierarchical
+  bool            open_       { false };   //!< is open
+  ModelIndex      modelIndex_;             //!< model index
+  OptReal         color_;                  //!< optional color
+  OptReal         size_;                   //!< optional size
+  mutable double  hierColor_  { 0.0 };     //!< hier color
+  mutable double  hierSize_   { 0.0 };     //!< hier size
 };
 
 //---
@@ -173,18 +196,25 @@ CQCHARTS_NAMED_TEXT_DATA(LeafLabel, leafLabel)
  */
 class CQChartsDendrogramPlot : public CQChartsPlot,
  public CQChartsObjNodeShapeData    <CQChartsDendrogramPlot>,
- public CQChartsObjEdgeLineData     <CQChartsDendrogramPlot>,
+ public CQChartsObjEdgeShapeData    <CQChartsDendrogramPlot>,
  public CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>,
  public CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot> {
   Q_OBJECT
 
   // columns
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
 
-  // node
+  // node data
   Q_PROPERTY(CQChartsLength circleSize READ circleSize WRITE setCircleSize)
+
+  // edge data
+//Q_PROPERTY(bool           edgeArrow   READ isEdgeArrow  WRITE setEdgeArrow )
+  Q_PROPERTY(bool           edgeScaled  READ isEdgeScaled WRITE setEdgeScaled)
+  Q_PROPERTY(CQChartsLength edgeWidth   READ edgeWidth    WRITE setEdgeWidth )
+//Q_PROPERTY(double         arrowWidth  READ arrowWidth   WRITE setArrowWidth)
 
   // label
   Q_PROPERTY(double textMargin  READ textMargin    WRITE setTextMargin )
@@ -199,7 +229,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
 
   // edge line
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
   // hier, leaf labels
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(HierLabel, hierLabel)
@@ -223,6 +253,20 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
     CIRCULAR
   };
 
+  struct Edge {
+    HierNode* from { nullptr };
+    HierNode* to   { nullptr };
+    OptReal   value;
+
+    Edge() { }
+
+    Edge(HierNode *from, HierNode *to, const OptReal &value) :
+     from(from), to(to), value(value) {
+    }
+  };
+
+  using Edges = std::vector<Edge>;
+
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);
  ~CQChartsDendrogramPlot();
@@ -237,6 +281,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   //! get/set name column
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
+
+  //! get/set link column
+  const Column &linkColumn() const { return linkColumn_; }
+  void setLinkColumn(const Column &c);
 
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
@@ -261,6 +309,16 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void setCircleSize(const Length &s);
 
   double calcCircleSize() const;
+
+  //---
+
+  //! get/set is edge scaled
+  bool isEdgeScaled() const { return edgeScaled_; }
+  void setEdgeScaled(bool b);
+
+  //! get/set edge width
+  const Length &edgeWidth() const { return edgeWidth_; }
+  void setEdgeWidth(const Length &l);
 
   //---
 
@@ -292,8 +350,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
-  void addNameValue(const QString &name, double value, const ModelIndex &modelInd,
-                    const OptReal &colorValue, OptReal &sizeValue) const;
+  void addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const OptReal &value,
+                    const ModelIndex &modelInd, const OptReal &colorValue,
+                    OptReal &sizeValue, Edges &edges) const;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -372,13 +431,27 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
  private:
   using Dendrogram = CQChartsDendrogram;
 
-  Column          nameColumn_;                            //!< name column
-  Column          valueColumn_;                           //!< value column
-  Column          sizeColumn_;                            //!< size column
-  Dendrogram*     dendrogram_  { nullptr };               //!< dendrogram class
-  Length          circleSize_  { Length::pixel(32.0) };   //!< circle size
-  double          textMargin_  { 4.0 };                   //!< text margin
-  bool            rotatedText_ { false };                 //!< is label rotated
+  // columns
+  Column          nameColumn_;  //!< name column
+  Column          linkColumn_;  //!< link column
+  Column          valueColumn_; //!< value column
+  Column          sizeColumn_;  //!< size column
+
+  Dendrogram* dendrogram_ { nullptr }; //!< dendrogram class
+  HierNode*   tempRoot_   { nullptr };
+
+  // node data
+  Length circleSize_ { Length::pixel(32.0) }; //!< circle size
+
+  // edge data
+  bool   edgeScaled_ { false };            //!< is edge scaled
+  Length edgeWidth_  { Length::pixel(8) }; //!< edge width
+
+  // test data
+  double textMargin_  { 4.0 };   //!< text margin
+  bool   rotatedText_ { false }; //!< is label rotated
+
+  // plot data
   PlaceType       placeType_   { PlaceType::DENDROGRAM }; //!< place type
   Qt::Orientation orientation_ { Qt::Horizontal };        //!< draw direction
 

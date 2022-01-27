@@ -238,13 +238,13 @@ CQChartsColumnBucket::
 bucketValue(int ind) const
 {
   if      (columnType() == ColumnType::REAL) {
-    return valueSet_->rvals().ivalue(ind);
+    return QVariant(valueSet_->rvals().ivalue(ind));
   }
   else if (columnType() == ColumnType::INTEGER) {
-    return valueSet_->ivals().ivalue(ind);
+    return CQModelUtil::intVariant(valueSet_->ivals().ivalue(ind));
   }
   else if (columnType() == ColumnType::STRING) {
-    return valueSet_->svals().ivalue(ind);
+    return QVariant(valueSet_->svals().ivalue(ind));
   }
   else
     return "";

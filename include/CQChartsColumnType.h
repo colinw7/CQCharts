@@ -334,8 +334,8 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   QVariant minValue(const NameValues &nameValues) const override;
   QVariant maxValue(const NameValues &nameValues) const override;
 
-  bool imin(const NameValues &nameValues, int &i) const;
-  bool imax(const NameValues &nameValues, int &i) const;
+  bool imin(const NameValues &nameValues, long &i) const;
+  bool imax(const NameValues &nameValues, long &i) const;
 
   QString getIFormat(const NameValues &nameValues) const;
   QString getOFormat(const NameValues &nameValues) const;
@@ -688,7 +688,7 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  int &map_min, int &map_max, int &data_min, int &data_max) const;
+                  long &map_min, long &map_max, long &data_min, long &data_max) const;
 };
 
 //---

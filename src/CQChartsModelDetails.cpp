@@ -9,6 +9,7 @@
 #include <CQCharts.h>
 
 #include <CQPerfMonitor.h>
+#include <CQModelUtil.h>
 #include <CMathCorrelation.h>
 
 #include <QAbstractItemModel>
@@ -776,7 +777,7 @@ uniqueValues() const
     valueSet->ivals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(v);
+      vars.push_back(CQModelUtil::intVariant(v));
   }
   else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::Values values;
@@ -784,7 +785,7 @@ uniqueValues() const
     valueSet->rvals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(v);
+      vars.push_back(QVariant(v));
   }
   else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::Values values;
@@ -792,7 +793,7 @@ uniqueValues() const
     valueSet->svals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(v);
+      vars.push_back(QVariant(v));
   }
   else if (type() == CQBaseModelType::TIME) {
     CQChartsRValues::Values values;
@@ -800,7 +801,7 @@ uniqueValues() const
     valueSet->tvals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(v);
+      vars.push_back(QVariant(v));
   }
   else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::Values values;
@@ -868,7 +869,7 @@ uniqueValueCounts() const
     valueSet->ivals().uniqueValueCounts(ivalueCounts);
 
     for (const auto &v : ivalueCounts)
-      valueCounts.emplace_back(v.first, v.second);
+      valueCounts.emplace_back(CQModelUtil::intVariant(v.first), v.second);
   }
   else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::ValueCounts rvalueCounts;
@@ -876,7 +877,7 @@ uniqueValueCounts() const
     valueSet->rvals().uniqueValueCounts(rvalueCounts);
 
     for (const auto &v : rvalueCounts)
-      valueCounts.emplace_back(v.first, v.second);
+      valueCounts.emplace_back(QVariant(v.first), v.second);
   }
   else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::ValueCounts svalueCounts;
@@ -884,7 +885,7 @@ uniqueValueCounts() const
     valueSet->svals().uniqueValueCounts(svalueCounts);
 
     for (const auto &v : svalueCounts)
-      valueCounts.emplace_back(v.first, v.second);
+      valueCounts.emplace_back(QVariant(v.first), v.second);
   }
   else if (type() == CQBaseModelType::TIME) {
     CQChartsRValues::ValueCounts tvalueCounts;
@@ -892,7 +893,7 @@ uniqueValueCounts() const
     valueSet->tvals().uniqueValueCounts(tvalueCounts);
 
     for (const auto &v : tvalueCounts)
-      valueCounts.emplace_back(v.first, v.second);
+      valueCounts.emplace_back(QVariant(v.first), v.second);
   }
   else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::ValueCounts cvalueCounts;
@@ -1273,22 +1274,22 @@ value(int i) const
   if      (type() == CQBaseModelType::INTEGER) {
     const auto &value = valueSet_->ivals().value(i);
 
-    return (value ? value.value() : QVariant());
+    return (value ? CQModelUtil::intVariant(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::REAL) {
     const auto &value = valueSet_->rvals().value(i);
 
-    return (value ? value.value() : QVariant());
+    return (value ? QVariant(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::STRING) {
     const auto &value = valueSet_->svals().value(i);
 
-    return (value ? value.value() : QVariant());
+    return (value ? QVariant(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     const auto &value = valueSet_->tvals().value(i);
 
-    return (value ? value.value() : QVariant());
+    return (value ? QVariant(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::COLOR) {
     const auto &value = valueSet_->cvals().value(i);
@@ -1554,7 +1555,7 @@ calcCache()
 
         imin = (! ok1 ? i : std::min(imin, i));
 
-        min_ = QVariant(int(imin));
+        min_ = CQModelUtil::intVariant(imin);
       }
 
       // if no type defined max, update max value
@@ -1565,7 +1566,7 @@ calcCache()
 
         imax = (! ok1 ? i : std::max(imax, i));
 
-        max_ = QVariant(int(imax));
+        max_ = CQModelUtil::intVariant(imax);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {

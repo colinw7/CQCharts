@@ -943,6 +943,16 @@ editHandlePath(PaintDevice *, QPainterPath &path, const BBox &bbox)
 //---
 
 void
+drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w)
+{
+  QPainterPath path;
+
+  roundedLinePath(path, p1, p2, w);
+
+  device->drawPath(path);
+}
+
+void
 roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w)
 {
   path = QPainterPath();
@@ -1318,6 +1328,7 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
 
 //---
 
+// draw connecting edge, of line width, between two rectangles
 // TODO: support path angle, offset control points by line width
 void
 edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine,
@@ -1406,6 +1417,18 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine,
   }
 }
 
+void
+drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
+             Qt::Orientation orientation)
+{
+  QPainterPath path;
+
+  edgePath(path, p1, p2, lw, orientation);
+
+  device->drawPath(path);
+}
+
+// draw connecting edge, of line width, between two points
 void
 edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
          Qt::Orientation orientation)
@@ -1520,6 +1543,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
   }
 }
 
+// draw connecting edge, of line width, from rect to itself
 void
 selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation orientation)
 {
@@ -1540,7 +1564,7 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation or
     double yt1 = yt - lw/2.0;
     double yt2 = yt + lw/2.0;
 
-    double x1 = xm - xr*c, y1 = ym + xr*s;
+    double x1 = xm - xr*c, y1 = ym + yr*s;
     double x2 = xm + xr*c, y2 = y1;
 
     double lw1 = std::sqrt(2)*lw/2.0;
@@ -1583,6 +1607,18 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation or
 //---
 
 void
+drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
+              Qt::Orientation orient, bool rectilinear)
+{
+  QPainterPath path;
+
+  curvePath(path, ibbox, obbox, orient, rectilinear);
+
+  device->drawPath(path);
+}
+
+// calculate path connecting line between two bounding boxes
+void
 curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
           Qt::Orientation orient, bool rectilinear)
 {
@@ -1621,6 +1657,19 @@ curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
   curvePath(path, Point(x1, y1), Point(x2, y2), orient, rectilinear);
 }
 
+// draw connecting line between two bounding boxes
+void
+drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
+              Qt::Orientation orient, bool rectilinear)
+{
+  QPainterPath path;
+
+  curvePath(path, p1, p2, orient, rectilinear);
+
+  device->drawPath(path);
+}
+
+// calculate path connecting line between two points
 void
 curvePath(QPainterPath &path, const Point &p1, const Point &p4,
           Qt::Orientation orient, bool rectilinear)
@@ -1671,6 +1720,7 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
   }
 }
 
+// draw connecting line from rect to itself
 void
 selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear)
 {
@@ -1692,7 +1742,7 @@ selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear)
 
   double yt = bbox.getYMax() + yr/2.0;
 
-  double x1 = xm - xr*c, y1 = ym + xr*s;
+  double x1 = xm - xr*c, y1 = ym + yr*s;
   double x2 = xm + xr*c, y2 = y1;
 
   if (! rectilinear) {

@@ -9601,7 +9601,7 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   // interpolate symbol from number in column range to symbol range
   if      (CQChartsVariant::isNumeric(var)) {
     // get integer value
-    int i = (int) CQChartsVariant::toInt(var, ok);
+    auto i = CQChartsVariant::toInt(var, ok);
 
     if (! ok) {
       double r = CQChartsVariant::toReal(var, ok);

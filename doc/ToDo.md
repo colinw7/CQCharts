@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + more testing or arc path with arc annotation
+ + simplify dendrogram to single node structure
  + support more connection types in hier model from data
    + from/to, hier path, connection list
  + dot plot

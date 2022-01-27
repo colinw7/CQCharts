@@ -170,6 +170,8 @@ setNodeShape(const NodeShape &s)
   CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateObjs(); } );
 }
 
+//---
+
 void
 CQChartsDotPlot::
 setEdgeShape(const EdgeShape &s)
@@ -543,7 +545,7 @@ writeGraph() const
 
   //---
 
-  // run to on graph file
+  // run dot on graph file
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin/dot");
 
 #if 0
@@ -713,8 +715,10 @@ writeGraph() const
       //pihValid = (d > delta);
     }
 
+#if 0
     edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[it]),
                                      normalizeRectPoint(headNode->rect(), points[ih])));
+#endif
 
     QPainterPath path1;
 
@@ -2239,10 +2243,10 @@ draw(PaintDevice *device) const
 
   // draw node
   if (rect().isSet()) {
-    if      (shapeType() == ShapeType::DIAMOND)
-      device->drawDiamond(rect());
-    else if (shapeType() == ShapeType::BOX)
+    if      (shapeType() == ShapeType::BOX)
       device->drawRect(rect());
+    else if (shapeType() == ShapeType::DIAMOND)
+      device->drawDiamond(rect());
     else if (shapeType() == ShapeType::POLYGON)
       device->drawPolygonSides(rect(), numSides());
     else if (shapeType() == ShapeType::CIRCLE)

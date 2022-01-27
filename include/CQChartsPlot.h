@@ -129,7 +129,7 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 CQCHARTS_NAMED_SHAPE_DATA(Plot, plot) // plot area
 CQCHARTS_NAMED_SHAPE_DATA(Data, data) // data area
-CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)   // fit area
+CQCHARTS_NAMED_SHAPE_DATA(Fit , fit ) // fit area
 
 /*!
  * \brief Base class for Plot
@@ -1714,10 +1714,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Column  column;             //!< symbol type column
     bool    valid    { false }; //!< symbol type valid
     bool    mapped   { false }; //!< symbol type values mapped
-    int     data_min { 0 };     //!< model data min
-    int     data_max { 1 };     //!< model data max
-    int     map_min  { 0 };     //!< mapped size min
-    int     map_max  { 1 };     //!< mapped size max
+    long    data_min { 0 };     //!< model data min
+    long    data_max { 1 };     //!< model data max
+    long    map_min  { 0 };     //!< mapped size min
+    long    map_max  { 1 };     //!< mapped size max
     QString setName;            //!< symbol set name
   };
 
@@ -3736,10 +3736,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
 //------
 
-CQCHARTS_NAMED_LINE_DATA(Grid, grid)
+// common named data
+CQCHARTS_NAMED_LINE_DATA (Grid, grid)
 CQCHARTS_NAMED_SHAPE_DATA(Node, node)
-CQCHARTS_NAMED_LINE_DATA(Edge, edge)
-CQCHARTS_NAMED_POINT_DATA(Dot, dot)
-CQCHARTS_NAMED_POINT_DATA(Rug, rug)
+CQCHARTS_NAMED_SHAPE_DATA(Edge, edge)
+CQCHARTS_NAMED_LINE_DATA (Edge, edge)
+CQCHARTS_NAMED_POINT_DATA(Dot , dot )
+CQCHARTS_NAMED_POINT_DATA(Rug , rug )
 
 #endif
