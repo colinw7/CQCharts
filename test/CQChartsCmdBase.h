@@ -123,11 +123,11 @@ class CQChartsCmdProc : public CQTclCmd::CmdProc {
   //--
 
   bool exec(CQTclCmd::CmdArgs &args) override {
-    return execCmd((CQChartsCmdArgs &) args);
+    return execCmd(static_cast<CQChartsCmdArgs &>(args));
   }
 
   void addArgs(CQTclCmd::CmdArgs &args) override {
-    addCmdArgs((CQChartsCmdArgs &) args);
+    addCmdArgs(static_cast<CQChartsCmdArgs &>(args));
   }
 
   //---

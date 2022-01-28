@@ -473,7 +473,7 @@ replaceRoots() const
     currentRoot()->setPosition(0.0, a, ri, da);
 
     currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da,
-                             (CQChartsSunburstNode::SortType) sortType());
+                             static_cast<CQChartsSunburstNode::SortType>(sortType()));
   }
   else {
     Angle da(! roots_.empty() ? 360.0/roots_.size() : 0.0);
@@ -481,7 +481,8 @@ replaceRoots() const
     for (auto &root : roots_) {
       root->setPosition(0.0, a, ri, da);
 
-      root->packNodes(ri, ro, 0.0, a, da, (CQChartsSunburstNode::SortType) sortType());
+      root->packNodes(ri, ro, 0.0, a, da,
+                      static_cast<CQChartsSunburstNode::SortType>(sortType()));
 
       a += da;
     }

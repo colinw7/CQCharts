@@ -704,10 +704,10 @@ loadModel() const
           else
             nameModelInd = ModelIndex(plot_, ind.row(), plot_->idColumn(), ind.parent());
 
-          auto nameInd  = plot_->modelIndex(nameModelInd);
-          auto nameInd1 = plot_->normalizeIndex(nameInd);
+          auto modelNameInd  = plot_->modelIndex(nameModelInd);
+          auto modelNameInd1 = plot_->normalizeIndex(modelNameInd);
 
-          node->addInd(nameInd1);
+          node->addInd(modelNameInd1);
         }
       }
     }

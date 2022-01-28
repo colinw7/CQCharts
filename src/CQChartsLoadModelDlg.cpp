@@ -285,12 +285,12 @@ numRows() const
 {
   bool ok;
 
-  int n = (int) CQChartsUtil::toInt(numberEdit_->text(), ok);
+  long n = CQChartsUtil::toInt(numberEdit_->text(), ok);
 
   if (! ok)
     n = expressionRows();
 
-  return n;
+  return static_cast<int>(n);
 }
 
 QString

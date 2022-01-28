@@ -198,7 +198,6 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
       return;
 
     int nr = details->numRows();
-    int nc = details->numColumns();
 
     if (nr != nc - 1 && nr != nc - 2)
       return;
@@ -744,8 +743,10 @@ initLinkObjs() const
           ModelIndex(plot_, data.row, plot_->depthColumn(), data.parent);
 
         bool ok2;
-        linkConnectionData.depth = (int) plot_->modelInteger(linkConnectionData.depthModelInd, ok2);
+        long depth = plot_->modelInteger(linkConnectionData.depthModelInd, ok2);
         if (! ok2) return addDataError(linkConnectionData.depthModelInd, "Non-integer depth value");
+
+        linkConnectionData.depth = static_cast<int>(depth);
       }
 
       //---
@@ -834,8 +835,10 @@ initConnectionObjs() const
           ModelIndex(plot_, data.row, plot_->nodeColumn(), data.parent);
 
         bool ok2;
-        connectionsData.node = (int) plot_->modelInteger(connectionsData.nodeModelInd, ok2);
+        long inode = plot_->modelInteger(connectionsData.nodeModelInd, ok2);
         if (! ok2) return addDataError(connectionsData.nodeModelInd, "Non-integer node value");
+
+        connectionsData.node = static_cast<int>(inode);
       }
 
       //---
@@ -1225,9 +1228,11 @@ initFromToObjs() const
         fromToData.depthModelInd =
           ModelIndex(plot_, data.row, plot_->depthColumn(), data.parent);
 
-        bool ok2;
-        fromToData.depth = (int) plot_->modelInteger(fromToData.depthModelInd, ok2);
-        if (! ok2) return addDataError(fromToData.depthModelInd, "Non-integer depth value");
+        bool ok3;
+        long depth = plot_->modelInteger(fromToData.depthModelInd, ok3);
+        if (! ok3) return addDataError(fromToData.depthModelInd, "Non-integer depth value");
+
+        fromToData.depth = static_cast<int>(depth);
       }
 
       //---

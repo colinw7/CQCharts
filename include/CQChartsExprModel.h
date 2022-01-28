@@ -120,7 +120,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   //---
 
   bool decodeExpressionFn(const QString &exprStr, Function &function,
-                          int &column, QString &expr) const;
+                          long &column, QString &expr) const;
 
   bool addExtraColumnExpr(const QString &expr, int &column);
   bool addExtraColumnExpr(const QString &header, const QString &expr, int &column);

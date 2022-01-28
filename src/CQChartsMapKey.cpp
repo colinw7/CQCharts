@@ -1620,7 +1620,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       if (symbolSet)
         symbolData = symbolSet->symbolData(i);
       else
-        symbolData.symbol = Symbol(CQChartsSymbolType((CQChartsSymbolType::Type) i));
+        symbolData.symbol = Symbol(CQChartsSymbolType(static_cast<CQChartsSymbolType::Type>(i)));
 
       if (! symbolData.symbol.isValid())
         symbolData.symbol = Symbol::circle();

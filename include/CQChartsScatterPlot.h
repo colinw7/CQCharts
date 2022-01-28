@@ -511,13 +511,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //--
 
   enum XSide {
-    LEFT  = (int) CQChartsAxisSide::Type::BOTTOM_LEFT,
-    RIGHT = (int) CQChartsAxisSide::Type::TOP_RIGHT
+    LEFT  = static_cast<int>(CQChartsAxisSide::Type::BOTTOM_LEFT),
+    RIGHT = static_cast<int>(CQChartsAxisSide::Type::TOP_RIGHT)
   };
 
   enum YSide {
-    BOTTOM = (int) CQChartsAxisSide::Type::BOTTOM_LEFT,
-    TOP    = (int) CQChartsAxisSide::Type::TOP_RIGHT
+    BOTTOM = static_cast<int>(CQChartsAxisSide::Type::BOTTOM_LEFT),
+    TOP    = static_cast<int>(CQChartsAxisSide::Type::TOP_RIGHT)
   };
 
 //using WhiskerSide = CQChartsAxisBoxWhisker::Side;

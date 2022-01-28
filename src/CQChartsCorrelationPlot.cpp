@@ -30,28 +30,30 @@ void
 CQChartsCorrelationPlotType::
 addParameters()
 {
+  using CorrelationPlot = CQChartsCorrelationPlot;
+
   // options
   addEnumParameter("diagonalType", "Diagonal Cell Type", "diagonalType").
-    addNameValue("NONE"   , int(CQChartsCorrelationPlot::DiagonalType::NONE   )).
-    addNameValue("NAME"   , int(CQChartsCorrelationPlot::DiagonalType::NAME   )).
-    addNameValue("MIN_MAX", int(CQChartsCorrelationPlot::DiagonalType::MIN_MAX)).
-    addNameValue("DENSITY", int(CQChartsCorrelationPlot::DiagonalType::DENSITY)).
+    addNameValue("NONE"   , static_cast<int>(CorrelationPlot::DiagonalType::NONE   )).
+    addNameValue("NAME"   , static_cast<int>(CorrelationPlot::DiagonalType::NAME   )).
+    addNameValue("MIN_MAX", static_cast<int>(CorrelationPlot::DiagonalType::MIN_MAX)).
+    addNameValue("DENSITY", static_cast<int>(CorrelationPlot::DiagonalType::DENSITY)).
     setTip("Diagonal Cell Type");
   addEnumParameter("upperDiagonalType", "Upper Diagonal Cell Type", "upperDiagonalType").
-    addNameValue("NONE"      , int(CQChartsCorrelationPlot::OffDiagonalType::NONE      )).
-    addNameValue("PIE"       , int(CQChartsCorrelationPlot::OffDiagonalType::PIE       )).
-    addNameValue("SHADE"     , int(CQChartsCorrelationPlot::OffDiagonalType::SHADE     )).
-    addNameValue("ELLIPSE"   , int(CQChartsCorrelationPlot::OffDiagonalType::ELLIPSE   )).
-    addNameValue("POINTS"    , int(CQChartsCorrelationPlot::OffDiagonalType::POINTS    )).
-    addNameValue("CONFIDENCE", int(CQChartsCorrelationPlot::OffDiagonalType::CONFIDENCE)).
+    addNameValue("NONE"      , static_cast<int>(CorrelationPlot::OffDiagonalType::NONE      )).
+    addNameValue("PIE"       , static_cast<int>(CorrelationPlot::OffDiagonalType::PIE       )).
+    addNameValue("SHADE"     , static_cast<int>(CorrelationPlot::OffDiagonalType::SHADE     )).
+    addNameValue("ELLIPSE"   , static_cast<int>(CorrelationPlot::OffDiagonalType::ELLIPSE   )).
+    addNameValue("POINTS"    , static_cast<int>(CorrelationPlot::OffDiagonalType::POINTS    )).
+    addNameValue("CONFIDENCE", static_cast<int>(CorrelationPlot::OffDiagonalType::CONFIDENCE)).
     setTip("Upper Diagonal Cell Type");
   addEnumParameter("lowerDiagonalType", "Lower Diagonal Cell Type", "lowerDiagonalType").
-    addNameValue("NONE"      , int(CQChartsCorrelationPlot::OffDiagonalType::NONE      )).
-    addNameValue("PIE"       , int(CQChartsCorrelationPlot::OffDiagonalType::PIE       )).
-    addNameValue("SHADE"     , int(CQChartsCorrelationPlot::OffDiagonalType::SHADE     )).
-    addNameValue("ELLIPSE"   , int(CQChartsCorrelationPlot::OffDiagonalType::ELLIPSE   )).
-    addNameValue("POINTS"    , int(CQChartsCorrelationPlot::OffDiagonalType::POINTS    )).
-    addNameValue("CONFIDENCE", int(CQChartsCorrelationPlot::OffDiagonalType::CONFIDENCE)).
+    addNameValue("NONE"      , static_cast<int>(CorrelationPlot::OffDiagonalType::NONE      )).
+    addNameValue("PIE"       , static_cast<int>(CorrelationPlot::OffDiagonalType::PIE       )).
+    addNameValue("SHADE"     , static_cast<int>(CorrelationPlot::OffDiagonalType::SHADE     )).
+    addNameValue("ELLIPSE"   , static_cast<int>(CorrelationPlot::OffDiagonalType::ELLIPSE   )).
+    addNameValue("POINTS"    , static_cast<int>(CorrelationPlot::OffDiagonalType::POINTS    )).
+    addNameValue("CONFIDENCE", static_cast<int>(CorrelationPlot::OffDiagonalType::CONFIDENCE)).
     setTip("Lower Diagonal Cell Type");
 
   CQChartsPlotType::addParameters();
@@ -1370,9 +1372,9 @@ updateWidgets()
 
   //---
 
-  diagonalTypeCombo_     ->setCurrentValue((int) plot_->diagonalType());
-  upperDiagonalTypeCombo_->setCurrentValue((int) plot_->upperDiagonalType());
-  lowerDiagonalTypeCombo_->setCurrentValue((int) plot_->lowerDiagonalType());
+  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(plot_->diagonalType()));
+  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->upperDiagonalType()));
+  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->lowerDiagonalType()));
 
   CQChartsPlotCustomControls::updateWidgets();
 
@@ -1385,8 +1387,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 diagonalTypeSlot()
 {
-  plot_->setDiagonalType((CQChartsCorrelationPlot::DiagonalType)
-                         diagonalTypeCombo_->currentValue());
+  plot_->setDiagonalType(static_cast<CQChartsCorrelationPlot::DiagonalType>(
+                          diagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -1395,8 +1397,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 upperDiagonalTypeSlot()
 {
-  plot_->setUpperDiagonalType((CQChartsCorrelationPlot::OffDiagonalType)
-                              upperDiagonalTypeCombo_->currentValue());
+  plot_->setUpperDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
+                               upperDiagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -1405,8 +1407,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 lowerDiagonalTypeSlot()
 {
-  plot_->setLowerDiagonalType((CQChartsCorrelationPlot::OffDiagonalType)
-                              lowerDiagonalTypeCombo_->currentValue());
+  plot_->setLowerDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
+                              lowerDiagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }

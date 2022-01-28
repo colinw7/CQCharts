@@ -1380,10 +1380,10 @@ currentPlotSlot()
   auto *action = qobject_cast<QAction *>(sender());
 
   bool ok;
-  int ind = (int) action->data().toInt(&ok);
+  long ind = action->data().toInt(&ok);
   if (! ok) return;
 
-  setCurrentPlot(childPlot(ind));
+  setCurrentPlot(childPlot(static_cast<int>(ind)));
 }
 
 //------
@@ -1410,12 +1410,12 @@ resetPlotKeyItems(Plot *plot, bool add)
 
     key->clearItems();
 
-    for (auto &plot : plots_) {
-      if (! plot->isVisible())
+    for (auto &plot1 : plots_) {
+      if (! plot1->isVisible())
         continue;
 
       if (add)
-        plot->doAddKeyItems(key);
+        plot1->doAddKeyItems(key);
     }
   }
 }

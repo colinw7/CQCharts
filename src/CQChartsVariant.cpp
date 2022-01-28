@@ -20,7 +20,7 @@ bool toString(const QVariant &var, QString &str) {
     str = CQChartsUtil::formatReal(var.toDouble());
   }
   else if (var.type() == QVariant::Int) {
-    str = CQChartsUtil::formatInteger((long) var.toInt());
+    str = CQChartsUtil::formatInteger(static_cast<long>(var.toInt()));
   }
   else if (var.type() == QVariant::LongLong) {
     str = CQChartsUtil::formatInteger(var.toLongLong());
@@ -649,6 +649,8 @@ Polygon toPolygon(const QVariant &var, bool &ok) {
 
     return poly;
   }
+
+  poly = Polygon(qpoly);
 
   return poly;
 }

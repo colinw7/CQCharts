@@ -1130,7 +1130,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
           if (hierObj->name() == name)
             return hierObj;
 
-        return (CQChartsChordHierObj *) nullptr;
+        return static_cast<CQChartsChordHierObj *>(nullptr);
       };
 
       CQChartsChordHierObj *hierObj = nullptr;
@@ -1371,7 +1371,7 @@ calcTipId() const
       continue;
 
     bool ok1;
-    auto name = plot_->modelHHeaderString(c, ok1);
+    auto hname = plot_->modelHHeaderString(c, ok1);
     if (! ok1) continue;
 
     auto *columnDetails = plot_->columnDetails(c);
@@ -1410,19 +1410,19 @@ calcTipId() const
 
     if (columnDetails->isNumeric()) {
       if (! plot_->isSymmetric()) {
-        tableTip.addTableRow(QString("%1 (Out)").arg(name), rovals.sum());
-        tableTip.addTableRow(QString("%1 (In)").arg(name), rivals.sum());
+        tableTip.addTableRow(QString("%1 (Out)").arg(hname), rovals.sum());
+        tableTip.addTableRow(QString("%1 (In)").arg(hname), rivals.sum());
       }
       else
-        tableTip.addTableRow(name, rovals.sum());
+        tableTip.addTableRow(hname, rovals.sum());
     }
     else {
       if (! plot_->isSymmetric()) {
-        tableTip.addTableRow(QString("%1 (Out)").arg(name), sovals.numUnique());
-        tableTip.addTableRow(QString("%1 (In)").arg(name), sivals.numUnique());
+        tableTip.addTableRow(QString("%1 (Out)").arg(hname), sovals.numUnique());
+        tableTip.addTableRow(QString("%1 (In)").arg(hname), sivals.numUnique());
       }
       else
-        tableTip.addTableRow(name, sovals.numUnique());
+        tableTip.addTableRow(hname, sovals.numUnique());
     }
 
     tableTip.addColumn(c);

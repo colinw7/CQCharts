@@ -133,7 +133,7 @@ init()
   if (! CQChartsModelUtil::isHierarchical(model().data())) {
     summaryModel_ = new CQSummaryModel(model().data());
 
-    summaryModel_->setMode((CQSummaryModel::Mode) mode_);
+    summaryModel_->setMode(static_cast<CQSummaryModel::Mode>(mode_));
   }
 
   int pageSize = 1024;
@@ -198,7 +198,7 @@ setModel(const ModelP &model)
   if (! CQChartsModelUtil::isHierarchical(model.data())) {
     summaryModel_ = new CQSummaryModel(model.data());
 
-    summaryModel_->setMode((CQSummaryModel::Mode) mode_);
+    summaryModel_->setMode(static_cast<CQSummaryModel::Mode>(mode_));
   }
 
   CQChartsPlot::connectModel();
@@ -285,7 +285,7 @@ CQChartsTablePlot::Mode
 CQChartsTablePlot::
 mode() const
 {
-  return (summaryModel_ ? (CQChartsTablePlot::Mode) summaryModel_->mode() : mode_);
+  return (summaryModel_ ? static_cast<CQChartsTablePlot::Mode>(summaryModel_->mode()) : mode_);
 }
 
 void
@@ -296,7 +296,7 @@ setMode(const Mode &m)
     mode_ = m;
 
     if (summaryModel_)
-      summaryModel_->setMode((CQSummaryModel::Mode) mode_);
+      summaryModel_->setMode(static_cast<CQSummaryModel::Mode>(mode_));
 
     updateRangeAndObjs();
   }

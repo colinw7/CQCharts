@@ -238,7 +238,7 @@ CQChartsColumnBucket::
 bucketValue(int ind) const
 {
   if      (columnType() == ColumnType::REAL) {
-    return QVariant(valueSet_->rvals().ivalue(ind));
+    return CQModelUtil::realVariant(valueSet_->rvals().ivalue(ind));
   }
   else if (columnType() == ColumnType::INTEGER) {
     return CQModelUtil::intVariant(valueSet_->ivals().ivalue(ind));

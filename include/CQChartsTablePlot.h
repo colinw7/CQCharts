@@ -107,11 +107,11 @@ class CQChartsTablePlot : public CQChartsPlot {
 
  public:
   enum class Mode {
-    NORMAL = (int) CQSummaryModel::Mode::NORMAL,
-    RANDOM = (int) CQSummaryModel::Mode::RANDOM,
-    SORTED = (int) CQSummaryModel::Mode::SORTED,
-    PAGED  = (int) CQSummaryModel::Mode::PAGED,
-    ROWS   = (int) CQSummaryModel::Mode::ROWS
+    NORMAL = static_cast<int>(CQSummaryModel::Mode::NORMAL),
+    RANDOM = static_cast<int>(CQSummaryModel::Mode::RANDOM),
+    SORTED = static_cast<int>(CQSummaryModel::Mode::SORTED),
+    PAGED  = static_cast<int>(CQSummaryModel::Mode::PAGED),
+    ROWS   = static_cast<int>(CQSummaryModel::Mode::ROWS)
   };
 
   using RowNums = CQSummaryModel::RowNums;

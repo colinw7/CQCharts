@@ -19,6 +19,7 @@
 #ifdef CQCHARTS_EXCEL
 #include <CQExcelModel.h>
 #endif
+#include <CQModelUtil.h>
 
 #include <CQPerfMonitor.h>
 #include <CQTclUtil.h>
@@ -276,7 +277,7 @@ createExprModel(int n)
   for (int r = 0; r < n; ++r) {
     auto ind = dataModel->index(r, 0, parent);
 
-    dataModel->setData(ind, QVariant(r));
+    dataModel->setData(ind, CQModelUtil::intVariant(r));
   }
 
   auto *data = new CQChartsFilterModel(charts_, dataModel);

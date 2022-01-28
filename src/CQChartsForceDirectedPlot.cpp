@@ -798,17 +798,19 @@ initLinkConnectionObjs() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // Get group value
-      int group = data.row;
+      long group = data.row;
 
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
 
         bool ok1;
-        group = (int) plot_->modelInteger(groupModelInd, ok1);
+        group = plot_->modelInteger(groupModelInd, ok1);
 
         if (! ok1)
           return addDataError(groupModelInd, "Non-integer group value");
       }
+
+      int igroup = static_cast<int>(group);
 
       //---
 
@@ -818,14 +820,14 @@ initLinkConnectionObjs() const
         int    destId { -1 };
         double value  { 0.0 };
 
-        if (! plot_->getNameConnections(group, data, srcId, destId, value, separator_))
+        if (! plot_->getNameConnections(igroup, data, srcId, destId, value, separator_))
           return State::SKIP;
 
         addConnection(srcId, destId, value);
       }
       // connection objs
       else if (plot_->connectionsColumn().isValid()) {
-        if (! plot_->getRowConnections(group, data))
+        if (! plot_->getRowConnections(igroup, data))
           return State::SKIP;
       }
       else {
@@ -951,20 +953,22 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   // get optional node id (default to row)
   ModelIndex nodeModelInd;
 
-  int id = data.row;
+  long id = data.row;
 
   if (nodeColumn().isValid()) {
     nodeModelInd = ModelIndex(th, data.row, nodeColumn(), data.parent);
 
     bool ok2;
-    id = (int) modelInteger(nodeModelInd, ok2);
+    id = modelInteger(nodeModelInd, ok2);
     if (! ok2) return th->addDataError(nodeModelInd, "Non-integer node value");
   }
 
   //--
 
+  int iid = static_cast<int>(id);
+
   // get connections data for id
-  auto &connectionsData = const_cast<ConnectionsData &>(getConnections(id));
+  auto &connectionsData = const_cast<ConnectionsData &>(getConnections(iid));
 
   connectionsData.group = group;
 

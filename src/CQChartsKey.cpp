@@ -17,6 +17,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQColors.h>
+#include <CMathRound.h>
 
 #include <QScrollBar>
 #include <QStylePainter>
@@ -1961,8 +1962,8 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // update scroll bar
-    auto pageStep  = (int) drawPlot->windowToPixelWidth(sw - layoutData_.vbarWidth);
-    auto fullWidth = (int) drawPlot->windowToPixelWidth(layoutData_.fullSize.width());
+    auto pageStep  = CMathRound::Round(drawPlot->windowToPixelWidth(sw - layoutData_.vbarWidth));
+    auto fullWidth = CMathRound::Round(drawPlot->windowToPixelWidth(layoutData_.fullSize.width()));
 
     if (scrollData_.hbar->pageStep() != pageStep)
       scrollData_.hbar->setPageStep(pageStep);

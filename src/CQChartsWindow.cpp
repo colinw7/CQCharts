@@ -527,11 +527,11 @@ selectPropertyObjects()
   view_->getPlots(plots);
 
   for (auto &plot : plots) {
-    CQPropertyViewTree::Objs selectedObjs;
+    CQPropertyViewTree::Objs selectedObjs1;
 
-    settings_->plotPropertyTree(plot)->getSelectedObjects(selectedObjs);
+    settings_->plotPropertyTree(plot)->getSelectedObjects(selectedObjs1);
 
-    for (auto &obj : selectedObjs)
+    for (auto &obj : selectedObjs1)
       selectedObjSet.insert(obj);
   }
 

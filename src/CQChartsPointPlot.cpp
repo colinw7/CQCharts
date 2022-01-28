@@ -567,14 +567,14 @@ CQChartsLabelPosition
 CQChartsPointPlot::
 dataLabelPosition() const
 {
-  return (CQChartsLabelPosition) dataLabel()->position();
+  return static_cast<CQChartsLabelPosition>(dataLabel()->position());
 }
 
 void
 CQChartsPointPlot::
 setDataLabelPosition(CQChartsLabelPosition position)
 {
-  dataLabel()->setPosition((CQChartsDataLabel::Position) position);
+  dataLabel()->setPosition(static_cast<CQChartsDataLabel::Position>(position));
 }
 
 CQChartsFont
@@ -675,7 +675,7 @@ setBestFitLayer(const DrawLayer &l)
       auto *bestFitObj = dynamic_cast<CQChartsPointBestFitObj *>(plotObj);
 
       if (bestFitObj)
-        bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+        bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
     }
 
     drawObjs();
@@ -702,7 +702,7 @@ setHullLayer(const DrawLayer &l)
       auto *hullObj = dynamic_cast<CQChartsPointHullObj *>(plotObj);
 
       if (hullObj)
-        hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+        hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
     }
 
     drawObjs();

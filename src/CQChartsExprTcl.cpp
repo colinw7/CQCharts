@@ -1,4 +1,5 @@
 #include <CQChartsExprTcl.h>
+#include <CQModelUtil.h>
 
 CQChartsExprTcl::
 CQChartsExprTcl(QAbstractItemModel *model) :
@@ -92,7 +93,8 @@ void
 CQChartsExprTcl::
 initFunctions()
 {
-  createExprCommand("column", (CQTcl::ObjCmdProc) &CQChartsExprTcl::columnCmd, this);
+  createExprCommand("column",
+    reinterpret_cast<CQTcl::ObjCmdProc>(&CQChartsExprTcl::columnCmd), this);
 }
 
 void
@@ -114,7 +116,7 @@ evaluateExpression(const QString &expr, QVariant &value, bool showError) const
     if (isDomainError(rc)) {
       double x = CMathUtil::getNaN();
 
-      value = QVariant(x);
+      value = CQModelUtil::realVariant(x);
 
       th->setLastValue(value);
 
@@ -173,16 +175,16 @@ setVar(const QString &name, int row, int column)
     createVar(name, column);
   }
   else if (name == "PI") {
-    createVar(name, QVariant(M_PI));
+    createVar(name, CQModelUtil::realVariant(M_PI));
   }
   else if (name == "NaN") {
-    createVar(name, QVariant(CMathUtil::getNaN()));
+    createVar(name, CQModelUtil::realVariant(CMathUtil::getNaN()));
   }
   else if (name == "_") {
     if (hasLastValue())
-      createVar(name, QVariant(lastValue()));
+      createVar(name, lastValue());
     else
-      createVar(name, QVariant(0.0));
+      createVar(name, CQModelUtil::realVariant(0.0));
   }
 }
 

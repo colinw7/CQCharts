@@ -423,7 +423,7 @@ initLevels(ContourLevels &levels) const
     levels.resize(numLevels);
 
     for (int i = 0; i < numLevels; i++)
-      levels[i] = zmin + ((double) i)*(zmax - zmin)/(numLevels - 1);
+      levels[i] = zmin + (1.0*i)*(zmax - zmin)/(numLevels - 1);
   }
 }
 

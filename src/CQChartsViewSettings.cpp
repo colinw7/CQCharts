@@ -709,7 +709,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     long l = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
     if (! ok) return nullptr;
 
-    auto *layer = plot->getLayer((CQChartsLayer::Type) l);
+    auto *layer = plot->getLayer(static_cast<CQChartsLayer::Type>(l));
     if (! layer) return nullptr;
 
     auto *buffer = plot->getBuffer(layer->buffer());
@@ -724,8 +724,8 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     if (rowCount() != 0)
       return;
 
-    int l1 = (int) CQChartsLayer::firstLayer();
-    int l2 = (int) CQChartsLayer::lastLayer ();
+    int l1 = static_cast<int>(CQChartsLayer::firstLayer());
+    int l2 = static_cast<int>(CQChartsLayer::lastLayer ());
 
     clear();
 
@@ -768,8 +768,8 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
   }
 
   void updateLayers(CQChartsPlot *plot) {
-    int l1 = (int) CQChartsLayer::firstLayer();
-    int l2 = (int) CQChartsLayer::lastLayer ();
+    int l1 = static_cast<int>(CQChartsLayer::firstLayer());
+    int l2 = static_cast<int>(CQChartsLayer::lastLayer ());
 
     for (int l = l1; l <= l2; ++l) {
       int i = l - l1;

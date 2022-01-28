@@ -546,7 +546,8 @@ writeGraph() const
   //---
 
   // run dot on graph file
-  auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin/dot");
+  auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin");
+  auto dot_file = dot_path + "/dot";
 
 #if 0
   CCommand::Args args;
@@ -554,7 +555,7 @@ writeGraph() const
   args.push_back("-Tjson");
   args.push_back(dotFilename);
 
-  CCommand cmd("dot", dot_path, args);
+  CCommand cmd("dot", dot_file, args);
 
   cmd.addFileDest(jsonFilename);
 
@@ -566,7 +567,7 @@ writeGraph() const
 
   process.setStandardOutputFile(QString::fromStdString(jsonFilename));
 
-  process.start(dot_path, QStringList() << "-Tjson" << QString::fromStdString(dotFilename));
+  process.start(dot_file, QStringList() << "-Tjson" << QString::fromStdString(dotFilename));
 
   process.waitForFinished();
 #endif
@@ -1694,10 +1695,10 @@ createObjFromNode(Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, iv);
 
-  NodeObj::ShapeType shapeType = (NodeObj::ShapeType) node->shapeType();
+  NodeObj::ShapeType shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
 
   if (shapeType == NodeObj::ShapeType::NONE)
-    shapeType = (NodeObj::ShapeType) nodeShape();
+    shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
 
   nodeObj->setShapeType(shapeType);
   nodeObj->setHierName (node->str());
@@ -1735,10 +1736,10 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
-  EdgeObj::ShapeType shapeType = (EdgeObj::ShapeType) edge->shapeType();
+  EdgeObj::ShapeType shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
 
   if (shapeType == EdgeObj::ShapeType::NONE)
-    shapeType = (EdgeObj::ShapeType) edgeShape();
+    shapeType = static_cast<EdgeObj::ShapeType>(edgeShape());
 
   edgeObj->setShapeType(shapeType);
 
@@ -1987,14 +1988,14 @@ CQChartsDotNodeObj::ShapeType
 CQChartsDotNodeObj::
 shapeType() const
 {
-  return (CQChartsDotNodeObj::ShapeType) node()->shapeType();
+  return static_cast<CQChartsDotNodeObj::ShapeType>(node()->shapeType());
 }
 
 void
 CQChartsDotNodeObj::
 setShapeType(const ShapeType &s)
 {
-  node()->setShapeType((CQChartsDotPlotNode::ShapeType) s);
+  node()->setShapeType(static_cast<CQChartsDotPlotNode::ShapeType>(s));
 }
 
 int
@@ -2439,14 +2440,14 @@ CQChartsDotEdgeObj::ShapeType
 CQChartsDotEdgeObj::
 shapeType() const
 {
-  return (CQChartsDotEdgeObj::ShapeType) edge()->shapeType();
+  return static_cast<CQChartsDotEdgeObj::ShapeType>(edge()->shapeType());
 }
 
 void
 CQChartsDotEdgeObj::
 setShapeType(const ShapeType &s)
 {
-  edge()->setShapeType((CQChartsDotPlotEdge::ShapeType) s);
+  edge()->setShapeType(static_cast<CQChartsDotPlotEdge::ShapeType>(s));
 }
 
 //---

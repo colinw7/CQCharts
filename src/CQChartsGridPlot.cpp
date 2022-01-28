@@ -32,6 +32,8 @@ void
 CQChartsGridPlotType::
 addParameters()
 {
+  using GridPlot = CQChartsGridPlot;
+
   startParameterGroup("Data");
 
   addColumnParameter ("name"  , "Name"  , "nameColumn"  ).
@@ -49,8 +51,8 @@ addParameters()
 
   // options
   addEnumParameter("drawType", "Draw Type", "drawType").
-    addNameValue("PIE"    , int(CQChartsGridPlot::DrawType::PIE    )).
-    addNameValue("TREEMAP", int(CQChartsGridPlot::DrawType::TREEMAP)).
+    addNameValue("PIE"    , static_cast<int>(GridPlot::DrawType::PIE    )).
+    addNameValue("TREEMAP", static_cast<int>(GridPlot::DrawType::TREEMAP)).
     setTip("Draw type");
 
   //---
@@ -777,7 +779,7 @@ updateWidgets()
 
   //---
 
-  drawTypeCombo_->setCurrentValue((int) plot_->drawType());
+  drawTypeCombo_->setCurrentValue(static_cast<int>(plot_->drawType()));
 
   //---
 
@@ -794,5 +796,5 @@ void
 CQChartsGridPlotCustomControls::
 drawTypeSlot()
 {
-  plot_->setDrawType((CQChartsGridPlot::DrawType) drawTypeCombo_->currentValue());
+  plot_->setDrawType(static_cast<CQChartsGridPlot::DrawType>(drawTypeCombo_->currentValue()));
 }

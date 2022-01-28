@@ -652,7 +652,7 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
     auto shapeType = node->shapeType();
 
     if (shapeType == Node::ShapeType::NONE)
-      shapeType = (Node::ShapeType) mgr_->nodeShape();
+      shapeType = static_cast<Node::ShapeType>(mgr_->nodeShape());
 
     //---
 

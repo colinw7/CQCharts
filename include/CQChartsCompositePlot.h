@@ -48,7 +48,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   Q_PROPERTY(bool          commonYRange   READ isCommonYRange WRITE setCommonYRange  )
   Q_PROPERTY(bool          currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
 
-  Q_ENUMS(CompositeType);
+  Q_ENUMS(CompositeType)
 
  public:
   enum class CompositeType {

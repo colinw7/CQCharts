@@ -1212,9 +1212,9 @@ execCmd(CQChartsCmdArgs &argv)
 
     QVariantList vars1;
 
-    vars1.push_back(QVariant(rmin));
-    vars1.push_back(QVariant(rmax));
-    vars1.push_back(QVariant(bc.second));
+    vars1.push_back(CQModelUtil::realVariant(rmin));
+    vars1.push_back(CQModelUtil::realVariant(rmax));
+    vars1.push_back(CQModelUtil::intVariant(bc.second));
 
     vars.push_back(vars1);
   }
@@ -2530,7 +2530,7 @@ execCmd(CQChartsCmdArgs &argv)
 
       bool ok;
 
-      int i = (int) CQChartsUtil::toInt(dataStr, ok);
+      long i = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
       int n = palette->numDefinedColors();
@@ -2726,7 +2726,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(valueStr));
 
       bool ok;
-      int pos = CQChartsUtil::toInt(dataStr, ok);
+      long pos = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid position '%1'").arg(dataStr));
 
       theme->setNamedPalette(pos, valueStr);
@@ -2736,7 +2736,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(valueStr));
 
       bool ok;
-      int pos = CQChartsUtil::toInt(dataStr, ok);
+      long pos = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid position '%1'").arg(dataStr));
 
       theme->moveNamedPalette(valueStr, pos);
@@ -2770,7 +2770,7 @@ execCmd(CQChartsCmdArgs &argv)
     // model
     else if (nameStr == "red_model" || nameStr == "green_model" || nameStr == "blue_model") {
       bool ok;
-      int i = (int) CQChartsUtil::toInt(valueStr, ok);
+      long i = CQChartsUtil::toInt(valueStr, ok);
       if (! ok) return errorMsg(QString("Invalid model index '%1'").arg(valueStr));
 
       if      (nameStr == "red_model"  ) palette->setRedModel  (i);
@@ -5059,7 +5059,7 @@ execCmd(CQChartsCmdArgs &argv)
   }
 
   if (argv.hasParseArg("sort_order")) {
-    Qt::SortOrder order = (Qt::SortOrder) argv.getParseInt("sort_order");
+    Qt::SortOrder order = static_cast<Qt::SortOrder>(argv.getParseInt("sort_order"));
 
     summaryModel->setSortOrder(order);
   }
@@ -6760,7 +6760,7 @@ execCmd(CQChartsCmdArgs &argv)
           rows.insert(inds[i].row());
 
         for (const auto &r : rows)
-          vars.push_back(QVariant(r));
+          vars.push_back(CQModelUtil::intVariant(r));
       }
 
       return cmdBase_->setCmdRc(vars);
@@ -11972,12 +11972,12 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
           continue;
         }
 
-        var = QVariant(r);
+        var = CQModelUtil::realVariant(r);
       }
       else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
         bool ok;
 
-        int i = (int) CQChartsUtil::toInt(value.trimmed(), ok);
+        long i = CQChartsUtil::toInt(value.trimmed(), ok);
 
         if (! ok) {
           (void) errorMsg("Invalid integer value '" + value + "' for '" +
@@ -11985,7 +11985,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
           continue;
         }
 
-        var = QVariant(i);
+        var = CQModelUtil::intVariant(i);
       }
       else if (parameter->type() == CQChartsPlotParameter::Type::ENUM) {
         var = QVariant(value);
@@ -12507,7 +12507,7 @@ getModelData(const QString &id)
   if (! modelData) {
     bool ok;
 
-    int ind = (int) CQChartsUtil::toInt(id.trimmed(), ok);
+    long ind = CQChartsUtil::toInt(id.trimmed(), ok);
 
     modelData = charts_->getModelDataByInd(ind);
   }

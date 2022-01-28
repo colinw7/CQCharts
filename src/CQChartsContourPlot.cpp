@@ -188,10 +188,10 @@ calcRange() const
           xValueRange_.add(x);
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd1(plot_, data.row, Column(col), data.parent);
 
-          bool ok;
-          double z = plot_->modelReal(columnModelInd, ok);
+          bool ok1;
+          double z = plot_->modelReal(columnModelInd1, ok1);
 
           if (ok && ! CMathUtil::isNaN(z))
             zValueRange_.add(z);
@@ -307,10 +307,10 @@ createObjs(PlotObjs &) const
          x_[ix_++] = x;
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd1(plot_, data.row, Column(col), data.parent);
 
-          bool ok;
-          double z = plot_->modelReal(columnModelInd, ok);
+          bool ok1;
+          double z = plot_->modelReal(columnModelInd1, ok1);
 
           if (! ok || CMathUtil::isNaN(z))
             z = 0.0; // default bad value to zero

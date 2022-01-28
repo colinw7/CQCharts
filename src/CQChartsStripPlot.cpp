@@ -16,6 +16,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CMathRound.h>
 
 #include <QMenu>
 
@@ -307,7 +308,7 @@ calcRange() const
     auto &yvalues = (*pgyv).second;
 
     for (const auto &value : values) {
-      int iy = (int) CMathUtil::map(value, min, max, 0, 100);
+      int iy = CMathRound::Round(CMathUtil::map(value, min, max, 0, 100));
 
       auto pyv = yvalues.find(iy);
 
@@ -544,7 +545,7 @@ addRowObj(const ModelVisitor::VisitData &data, PlotObjs &objs) const
   auto min = *values.begin ();
   auto max = *values.rbegin();
 
-  int iy = (int) CMathUtil::map(value, min, max, 0, 100);
+  int iy = CMathRound::Round(CMathUtil::map(value, min, max, 0, 100));
 
   auto pgyv = th->posYValues_.find(pos);
   assert(pgyv != posYValues_.end());

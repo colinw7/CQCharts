@@ -22,8 +22,8 @@ class CQChartsModelExprMatchFn {
     qtcl_ = model->qtcl();
 
     cmdId_ = qtcl()->createExprCommand(name_,
-               (CQChartsExprTcl::ObjCmdProc) &CQChartsModelExprMatchFn::commandProc,
-               (CQChartsExprTcl::ObjCmdData) this);
+      reinterpret_cast<CQChartsExprTcl::ObjCmdProc>(&CQChartsModelExprMatchFn::commandProc),
+      static_cast<CQChartsExprTcl::ObjCmdData>(this));
   }
 
   virtual ~CQChartsModelExprMatchFn() { }
@@ -31,7 +31,7 @@ class CQChartsModelExprMatchFn {
   CQChartsExprTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    auto *command = (CQChartsModelExprMatchFn *) clientData;
+    auto *command = static_cast<CQChartsModelExprMatchFn *>(clientData);
 
     Values values;
 

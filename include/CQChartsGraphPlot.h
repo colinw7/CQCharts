@@ -166,13 +166,13 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
 
  public:
   enum class ShapeType {
-    NONE          = (int) CQChartsBoxObj::ShapeType::NONE,
-    TRIANGLE      = (int) CQChartsBoxObj::ShapeType::TRIANGLE,
-    DIAMOND       = (int) CQChartsBoxObj::ShapeType::DIAMOND,
-    BOX           = (int) CQChartsBoxObj::ShapeType::BOX,
-    POLYGON       = (int) CQChartsBoxObj::ShapeType::POLYGON,
-    CIRCLE        = (int) CQChartsBoxObj::ShapeType::CIRCLE,
-    DOUBLE_CIRCLE = (int) CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE
+    NONE          = static_cast<int>(CQChartsBoxObj::ShapeType::NONE),
+    TRIANGLE      = static_cast<int>(CQChartsBoxObj::ShapeType::TRIANGLE),
+    DIAMOND       = static_cast<int>(CQChartsBoxObj::ShapeType::DIAMOND),
+    BOX           = static_cast<int>(CQChartsBoxObj::ShapeType::BOX),
+    POLYGON       = static_cast<int>(CQChartsBoxObj::ShapeType::POLYGON),
+    CIRCLE        = static_cast<int>(CQChartsBoxObj::ShapeType::CIRCLE),
+    DOUBLE_CIRCLE = static_cast<int>(CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE)
   };
 
   using Plot  = CQChartsGraphPlot;

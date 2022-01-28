@@ -3875,7 +3875,8 @@ draw(PaintDevice *device) const
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
   dataLabel->draw(device, plot_->pixelToWindow(ptbbox), label_,
-                  (CQChartsDataLabel::Position) plot_->dataLabelPosition(), penBrush, font1);
+                  static_cast<CQChartsDataLabel::Position>(plot_->dataLabelPosition()),
+                  penBrush, font1);
 }
 
 //------

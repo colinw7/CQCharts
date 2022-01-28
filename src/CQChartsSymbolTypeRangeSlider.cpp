@@ -128,7 +128,7 @@ drawSliderLabels(QPainter *painter)
       if (symbolSet)
         symbol = symbolSet->symbol(i);
       else {
-        auto type = (CQChartsSymbolType::Type) i;
+        auto type = static_cast<CQChartsSymbolType::Type>(i);
 
         if (! CQChartsSymbolType::isValidType(type))
           continue;

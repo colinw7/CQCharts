@@ -261,17 +261,17 @@ int
 CQChartsIntParameterEdit::
 value() const
 {
-  int i { 0 };
+  long i { 0 };
 
   if      (spinEdit_)
     i = spinEdit_->value();
   else if (lineEdit_) {
     bool ok;
 
-    i = (int) CQChartsUtil::toInt(lineEdit_->text(), ok);
+    i = CQChartsUtil::toInt(lineEdit_->text(), ok);
   }
 
-  return i;
+  return static_cast<int>(i);
 }
 
 //---

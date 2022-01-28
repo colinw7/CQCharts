@@ -46,22 +46,22 @@ addParameters()
 
   // options
   addEnumParameter("orientation", "Orientation", "orientation").
-    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
-    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NORMAL" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
-    addNameValue("STACKED", int(CQChartsBarChartPlot::PlotType::STACKED)).
+    addNameValue("NORMAL" , static_cast<int>(CQChartsBarChartPlot::PlotType::NORMAL )).
+    addNameValue("STACKED", static_cast<int>(CQChartsBarChartPlot::PlotType::STACKED)).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("VALUE", int(CQChartsBarChartPlot::ValueType::VALUE)).
-   addNameValue("RANGE", int(CQChartsBarChartPlot::ValueType::RANGE)).
-   addNameValue("MIN"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
-   addNameValue("MAX"  , int(CQChartsBarChartPlot::ValueType::MAX  )).
-   addNameValue("MEAN" , int(CQChartsBarChartPlot::ValueType::MEAN )).
-   addNameValue("SUM"  , int(CQChartsBarChartPlot::ValueType::SUM  )).
+   addNameValue("VALUE", static_cast<int>(CQChartsBarChartPlot::ValueType::VALUE)).
+   addNameValue("RANGE", static_cast<int>(CQChartsBarChartPlot::ValueType::RANGE)).
+   addNameValue("MIN"  , static_cast<int>(CQChartsBarChartPlot::ValueType::MIN  )).
+   addNameValue("MAX"  , static_cast<int>(CQChartsBarChartPlot::ValueType::MAX  )).
+   addNameValue("MEAN" , static_cast<int>(CQChartsBarChartPlot::ValueType::MEAN )).
+   addNameValue("SUM"  , static_cast<int>(CQChartsBarChartPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
@@ -305,7 +305,7 @@ CQChartsLabelPosition
 CQChartsBarChartPlot::
 labelPosition() const
 {
-  return (CQChartsLabelPosition) dataLabel()->position();
+  return static_cast<CQChartsLabelPosition>(dataLabel()->position());
 }
 
 //---
@@ -879,10 +879,10 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   //---
 
-  using ValueInd  = CQChartsBarChartValue::ValueInd;
-  using ValueInds = CQChartsBarChartValue::ValueInds;
+  using VValueInd  = CQChartsBarChartValue::ValueInd;
+  using VValueInds = CQChartsBarChartValue::ValueInds;
 
-  ValueInds valueInds;
+  VValueInds valueInds;
 
   // add values for columns (1 column normally, all columns when grouped)
   for (const auto &valueColumn : valueColumns) {
@@ -911,7 +911,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
     auto valInd1 = normalizeIndex(valInd);
 
     // add value and index
-    ValueInd valueInd;
+    VValueInd valueInd;
 
     valueInd.value = r;
     valueInd.ind   = valInd1;
@@ -1811,8 +1811,8 @@ isSetHidden(int i) const
     // if not color by set then set also hidden if all values are hidden
     else {
       if (nv > 1) {
-        for (int i = 0; i < nv; ++i) {
-          if (! isValueHidden(i))
+        for (int ih = 0; ih < nv; ++ih) {
+          if (! isValueHidden(ih))
             return false;
         }
 
@@ -2065,11 +2065,11 @@ calcTipId() const
     if (column.isValid() && tableTip.hasColumn(column))
       continue;
 
-    const auto &name  = pcv.first;
-    const auto &value = pcv.second.value;
+    const auto &name   = pcv.first;
+    const auto &value1 = pcv.second.value;
 
-    if (value.length())
-      tableTip.addTableRow(name, value);
+    if (value1.length())
+      tableTip.addTableRow(name, value1);
 
     if (column.isValid())
       tableTip.addColumn(column);
@@ -2176,9 +2176,9 @@ dataLabelRect() const
     const auto &valueInds = value->valueInds();
     assert(! valueInds.empty());
 
-    double value = valueInds[0].value;
+    double value1 = valueInds[0].value;
 
-    label = plot_->valueStr(value);
+    label = plot_->valueStr(value1);
   }
 
   return plot_->dataLabel()->calcRect(rect(), label);
@@ -2406,7 +2406,8 @@ drawFg(PaintDevice *device) const
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
-      plot_->dataLabel()->draw(device, rect(), minLabel, (CQChartsDataLabel::Position) pos);
+      plot_->dataLabel()->draw(device, rect(), minLabel,
+                               static_cast<CQChartsDataLabel::Position>(pos));
   }
   else {
     if (plot_->dataLabel()->isPositionOutside()) {
@@ -2709,10 +2710,10 @@ tipText(const Point &, QString &tip) const
         const auto &valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
 
-        double value = valueInds[0].value;
+        double value1 = valueInds[0].value;
 
-        if (value >= 0) posSum += value;
-        else            negSum += value;
+        if (value >= 0) posSum += value1;
+        else            negSum += value1;
       }
     }
   }
@@ -2967,9 +2968,9 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue((int) plot_->orientation());
-  plotTypeCombo_   ->setCurrentValue((int) plot_->plotType());
-  valueTypeCombo_  ->setCurrentValue((int) plot_->valueType());
+  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
+  valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
 
   percentCheck_   ->setChecked(plot_->isPercent());
   skipEmptyCheck_ ->setChecked(plot_->isSkipEmpty());
@@ -3005,21 +3006,22 @@ void
 CQChartsBarChartPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType((CQChartsBarChartPlot::PlotType) plotTypeCombo_->currentValue());
+  plot_->setPlotType(static_cast<CQChartsBarChartPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 valueTypeSlot()
 {
-  plot_->setValueType((CQChartsBarChartPlot::ValueType) valueTypeCombo_->currentValue());
+  plot_->setValueType(
+    static_cast<CQChartsBarChartPlot::ValueType>(valueTypeCombo_->currentValue()));
 }
 
 void

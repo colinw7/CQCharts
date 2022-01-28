@@ -393,12 +393,12 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
       parse.skipChar();
     }
 
-    auto str = parse.getBefore(pos);
+    auto bstr = parse.getBefore(pos);
 
     if (parse.isChar(')'))
       parse.skipChar();
 
-    expr = str.trimmed();
+    expr = bstr.trimmed();
     type = Type::EXPR;
 
     //parse.skipSpace();

@@ -75,26 +75,26 @@ addParameters()
 
   // options
   addEnumParameter("orientation", "Orientation", "orientation").
-    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
-    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NORMAL"      , int(Plot::PlotType::NORMAL      )).
-    addNameValue("STACKED"     , int(Plot::PlotType::STACKED     )).
-    addNameValue("SIDE_BY_SIDE", int(Plot::PlotType::SIDE_BY_SIDE)).
-    addNameValue("OVERLAY"     , int(Plot::PlotType::OVERLAY     )).
-    addNameValue("SCATTER"     , int(Plot::PlotType::SCATTER     )).
-    addNameValue("DENSITY"     , int(Plot::PlotType::DENSITY     )).
+    addNameValue("NORMAL"      , static_cast<int>(Plot::PlotType::NORMAL      )).
+    addNameValue("STACKED"     , static_cast<int>(Plot::PlotType::STACKED     )).
+    addNameValue("SIDE_BY_SIDE", static_cast<int>(Plot::PlotType::SIDE_BY_SIDE)).
+    addNameValue("OVERLAY"     , static_cast<int>(Plot::PlotType::OVERLAY     )).
+    addNameValue("SCATTER"     , static_cast<int>(Plot::PlotType::SCATTER     )).
+    addNameValue("DENSITY"     , static_cast<int>(Plot::PlotType::DENSITY     )).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("COUNT", int(Plot::ValueType::COUNT)).
-   addNameValue("RANGE", int(Plot::ValueType::RANGE)).
-   addNameValue("MIN"  , int(Plot::ValueType::MIN  )).
-   addNameValue("MAX"  , int(Plot::ValueType::MAX  )).
-   addNameValue("MEAN" , int(Plot::ValueType::MEAN )).
-   addNameValue("SUM"  , int(Plot::ValueType::SUM  )).
+   addNameValue("COUNT", static_cast<int>(Plot::ValueType::COUNT)).
+   addNameValue("RANGE", static_cast<int>(Plot::ValueType::RANGE)).
+   addNameValue("MIN"  , static_cast<int>(Plot::ValueType::MIN  )).
+   addNameValue("MAX"  , static_cast<int>(Plot::ValueType::MAX  )).
+   addNameValue("MEAN" , static_cast<int>(Plot::ValueType::MEAN )).
+   addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value as percentage");
@@ -1220,12 +1220,12 @@ bucketGroupValues() const
           bucket = calcBucket(groupInd, r);
 
           if (type == CQChartsValueSet::Type::REAL)
-            value = QVariant(r);
+            value = CQModelUtil::realVariant(r);
           else
             value = modelValue(ind, ok);
         }
         else if (type == CQChartsValueSet::Type::INTEGER) {
-          int i = (int) modelInteger(ind, ok);
+          long i = modelInteger(ind, ok);
           if (! ok) continue;
 
           if (! isIncludeOutlier()) {
@@ -1234,7 +1234,7 @@ bucketGroupValues() const
           }
 
           bucket = calcBucket(groupInd, i);
-          value  = QVariant(i);
+          value  = CQModelUtil::intVariant(i);
         }
         else {
           bool hierValue = isHierarchical();
@@ -5136,9 +5136,9 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue((int) plot_->orientation());
-  plotTypeCombo_   ->setCurrentValue((int) plot_->plotType());
-  valueTypeCombo_  ->setCurrentValue((int) plot_->valueType());
+  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
+  valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
 
   //---
 
@@ -5219,21 +5219,23 @@ void
 CQChartsDistributionPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType((CQChartsDistributionPlot::PlotType) plotTypeCombo_->currentValue());
+  plot_->setPlotType(static_cast<CQChartsDistributionPlot::PlotType>(
+                      plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 valueTypeSlot()
 {
-  plot_->setValueType((CQChartsDistributionPlot::ValueType) valueTypeCombo_->currentValue());
+  plot_->setValueType(static_cast<CQChartsDistributionPlot::ValueType>(
+                       valueTypeCombo_->currentValue()));
 }
 
 void

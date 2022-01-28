@@ -4819,7 +4819,7 @@ setUpdateState(UpdateState state)
 {
   assert(! parentPlot());
 
-  updateData_.state.store((int) state);
+  updateData_.state.store(static_cast<int>(state));
 
   if (debugUpdate_) {
     std::cerr << "State: " << id().toStdString() << ": ";
@@ -9594,8 +9594,9 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   };
 
   // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
-  auto mapData = [&](int i, int imin, int imax) {
-    return (int) CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max);
+  auto mapData = [&](long i, long imin, long imax) {
+    return CMathRound::Round(
+             CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max));
   };
 
   // interpolate symbol from number in column range to symbol range
@@ -10181,10 +10182,10 @@ executeSlot(const QString &name, const QStringList &args, QVariant &res)
     bool ok;
 
     if      (type == CQBaseModelType::INTEGER) {
-      value = QVariant(argValue.toInt(&ok));
+      value = CQModelUtil::intVariant(argValue.toInt(&ok));
     }
     else if (type == CQBaseModelType::REAL) {
-      value = QVariant(argValue.toDouble(&ok));
+      value = CQModelUtil::realVariant(argValue.toDouble(&ok));
     }
     else if (type == CQBaseModelType::STRING) {
       value = argValue;
@@ -10942,13 +10943,13 @@ plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constrain
   //---
 
   // filter to constraints
-  int iconstraints = (int) constraints;
+  int iconstraints = static_cast<int>(constraints);
 
   for (const auto &plotObj : plotObjs1) {
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
+    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
       continue;
 
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
+    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
     plotObjs.push_back(plotObj);
@@ -10981,7 +10982,7 @@ void
 CQChartsPlot::
 annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &constraints) const
 {
-  int iconstraints = (int) constraints;
+  int iconstraints = static_cast<int>(constraints);
 
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
@@ -10990,10 +10991,10 @@ annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &
     if (! annotation->contains(p))
       continue;
 
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
+    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
       continue;
 
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
+    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
       continue;
 
     annotations.push_back(annotation);
@@ -11070,13 +11071,13 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
   //---
 
   // filter to constraints
-  int iconstraints = (int) constraints;
+  int iconstraints = static_cast<int>(constraints);
 
   for (const auto &plotObj : plotObjs1) {
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
+    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
       continue;
 
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
+    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
     plotObjs.push_back(plotObj);
@@ -11110,7 +11111,7 @@ CQChartsPlot::
 annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
                           const Constraints &constraints) const
 {
-  int iconstraints = (int) constraints;
+  int iconstraints = static_cast<int>(constraints);
 
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
@@ -11119,10 +11120,10 @@ annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
     if (! annotation->intersects(r, inside))
       continue;
 
-    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
+    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
       continue;
 
-    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
+    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
       continue;
 
     annotations.push_back(annotation);
@@ -15461,7 +15462,7 @@ calcColorInd(const PlotObj *obj, const CQChartsColorBoxKeyItem *keyBox,
   auto colorType = this->colorType();
 
   if (obj && colorType == ColorType::AUTO)
-    colorType = (CQChartsPlot::ColorType) obj->colorType();
+    colorType = static_cast<CQChartsPlot::ColorType>(obj->colorType());
 
   if      (colorType == ColorType::AUTO)
     colorInd = (is.n <= 1 ? (ig.n <= 1 ? iv : ig) : is);
@@ -16346,7 +16347,8 @@ QString
 CQChartsPlot::
 modelHHeaderTip(const Column &column, bool &ok) const
 {
-  auto str = modelHHeaderString(model().data(), column, (int) CQBaseModelRole::Tip, ok);
+  auto str = modelHHeaderString(model().data(), column,
+               CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
 
   if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);

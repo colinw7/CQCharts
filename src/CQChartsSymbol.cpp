@@ -17,8 +17,8 @@ static CQChartsSymbol
 CQChartsSymbol::
 interpOutline(double r)
 {
-  return CQChartsSymbol((CQChartsSymbol::Type)
-    int(CMathUtil::map(r, 0, 1, minOutlineValue(), maxOutlineValue())));
+  return CQChartsSymbol(static_cast<CQChartsSymbol::Type>(
+    CMathRound::Round(CMathUtil::map(r, 0, 1, minOutlineValue(), maxOutlineValue()))));
 }
 #endif
 
@@ -45,7 +45,7 @@ interpOutlineWrap(int i, int imin, int imax)
 #endif
   assert(i1 >= SymbolType::minOutlineValue() && i1 <= SymbolType::maxOutlineValue());
 
-  return CQChartsSymbol(SymbolType((SymbolType::Type) i1));
+  return CQChartsSymbol(SymbolType(static_cast<SymbolType::Type>(i1)));
 }
 
 #if 0
@@ -53,8 +53,8 @@ CQChartsSymbol
 CQChartsSymbol::
 interpFill(double r)
 {
-  return CQChartsSymbol((CQChartsSymbol::Type)
-    int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
+  return CQChartsSymbol(static_cast<CQChartsSymbol::Type>(
+    CMathRound::Round(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue()))));
 }
 #endif
 

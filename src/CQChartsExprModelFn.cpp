@@ -9,8 +9,8 @@ CQChartsExprModelFn(CQChartsExprModel *model, const QString &name) :
   qtcl_ = model->qtcl();
 
   cmdId_ = qtcl()->createExprCommand(name_,
-             (CQTcl::ObjCmdProc) &CQChartsExprModelFn::commandProc,
-             (CQTcl::ObjCmdData) this);
+             reinterpret_cast<CQTcl::ObjCmdProc>(&CQChartsExprModelFn::commandProc),
+             static_cast<CQTcl::ObjCmdData>(this));
 }
 
 int

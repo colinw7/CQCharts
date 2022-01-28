@@ -835,7 +835,7 @@ data(const QModelIndex &index, int role) const
 
 bool
 CQChartsExprModel::
-decodeExpressionFn(const QString &exprStr, Function &function, int &column, QString &expr) const
+decodeExpressionFn(const QString &exprStr, Function &function, long &column, QString &expr) const
 {
   function = Function::EVAL;
   column   = -1;
@@ -858,7 +858,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 
     bool ok;
 
-    column = (int) CQChartsUtil::toInt(columnStr, ok);
+    column = CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -874,11 +874,10 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
       return false;
 
     auto columnStr = columnExprStr.mid(0, pos).trimmed();
-    auto exprStr   = columnExprStr.mid(pos + 1).trimmed();
 
     bool ok;
 
-    column = (int) CQChartsUtil::toInt(columnStr, ok);
+    column = CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -1342,7 +1341,7 @@ columnCmd(const Values &values) const
     bool ok; double r = defStr.toDouble(&ok);
 
     if (ok)
-      return QVariant(r);
+      return CQModelUtil::realVariant(r);
 
     return QVariant(defStr);
   }
@@ -1385,7 +1384,7 @@ rowCmd(const Values &values) const
     bool ok; double r = defStr.toDouble(&ok);
 
     if (ok)
-      return QVariant(r);
+      return CQModelUtil::realVariant(r);
 
     return QVariant(defStr);
   }
@@ -1433,7 +1432,7 @@ cellCmd(const Values &values) const
     bool ok; double r = defStr.toDouble(&ok);
 
     if (ok)
-      return QVariant(r);
+      return CQModelUtil::realVariant(r);
 
     return QVariant(defStr);
   }
@@ -1617,7 +1616,7 @@ typeCmd(const Values &values) const
 
   bool ok;
 
-  auto type = (CQBaseModelType) CQChartsVariant::toInt(var, ok);
+  auto type = static_cast<CQBaseModelType>(CQChartsVariant::toInt(var, ok));
   if (! ok) return "";
 
   auto typeName = CQBaseModel::typeName(type);
@@ -1699,7 +1698,7 @@ mapCmd(const Values &values) const
   // map 0->1 -> min->max
   double x1 = x*(max - min) + min;
 
-  return QVariant(x1);
+  return CQModelUtil::realVariant(x1);
 }
 
 //---
@@ -1735,7 +1734,7 @@ remapCmd(const Values &values)
   //---
 
   if (! this->checkIndex(row, col))
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   auto ind = this->index(row, col, QModelIndex());
 
@@ -1750,11 +1749,11 @@ remapCmd(const Values &values)
   bool ok;
 
   double r = CQChartsModelUtil::modelReal(this, ind, ok);
-  if (! ok) return QVariant(0.0);
+  if (! ok) return CQModelUtil::realVariant(0.0);
 
   double rm = CMathUtil::map(r, rmin, rmax, r1, r2);
 
-  return QVariant(rm);
+  return CQModelUtil::realVariant(rm);
 }
 
 //---
@@ -1861,14 +1860,14 @@ normCmd(const Values &values) const
   CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() == 0)
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   //---
 
   int col; (void) getColumnValue(cmdValues, col);
 
   if (col < 0 || col >= columnCount())
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   double scale = 1.0;
 
@@ -1911,7 +1910,7 @@ normCmd(const Values &values) const
     if (d > 0.0)
       s = scale*(value - minVal)/d;
 
-    return QVariant(s);
+    return CQModelUtil::realVariant(s);
   }
   else if (CQChartsVariant::isInt(var)) {
     bool ok;
@@ -1935,10 +1934,10 @@ normCmd(const Values &values) const
     if (d > 0)
       s = scale*double(value - minVal)/d;
 
-    return QVariant(s);
+    return CQModelUtil::realVariant(s);
   }
   else {
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
   }
 }
 
@@ -1954,12 +1953,12 @@ scaleCmd(const Values &values) const
   CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() == 0)
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   int col; (void) getColumnValue(cmdValues, col);
 
   if (col < 0 || col >= columnCount())
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   bool center = true;
   bool scale  = true;
@@ -1973,12 +1972,12 @@ scaleCmd(const Values &values) const
   int row = currentRow();
 
   if (! checkIndex(row, col))
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   auto var = getCmdData(row, col);
 
   if (! var.isValid())
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   bool ok;
 
@@ -1991,7 +1990,7 @@ scaleCmd(const Values &values) const
   CQChartsColumn column(ind.column());
 
   auto *modelData = getModelData();
-  if (! modelData) return QVariant(0.0);
+  if (! modelData) return CQModelUtil::realVariant(0.0);
 
   auto *details = modelData->details();
   assert(details);
@@ -2003,7 +2002,7 @@ scaleCmd(const Values &values) const
   auto stddevVar = columnDetails->stdDevValue(/*useNaN*/false);
 
   if (! meanVar.isValid() || ! stddevVar.isValid())
-    return QVariant(0.0);
+    return CQModelUtil::realVariant(0.0);
 
   //---
 
@@ -2012,7 +2011,7 @@ scaleCmd(const Values &values) const
 
   double value1 = (stddev > 0.0 ? (value - mean)/stddev : 0.0);
 
-  return QVariant(value1);
+  return CQModelUtil::realVariant(value1);
 }
 
 //---
@@ -2035,7 +2034,7 @@ randCmd(const Values &values) const
 
   double r = rand.gen();
 
-  return QVariant(r);
+  return CQModelUtil::realVariant(r);
 }
 
 //---
@@ -2058,7 +2057,7 @@ rnormCmd(const Values &values) const
 
   double r = rand.gen();
 
-  return QVariant(r);
+  return CQModelUtil::realVariant(r);
 }
 
 //---

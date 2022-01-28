@@ -3261,7 +3261,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void setGroupedUpdateState(UpdateState state);
 
-  UpdateState updateState() { return (UpdateState) updateData_.state.load(); }
+  UpdateState updateState() { return static_cast<UpdateState>(updateData_.state.load()); }
   void setUpdateState(UpdateState state);
 
   UpdateState calcNextState() const;

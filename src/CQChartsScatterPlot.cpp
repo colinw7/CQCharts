@@ -66,10 +66,10 @@ addParameters()
 
   // options
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NONE"      , int(CQChartsScatterPlot::PlotType::NONE      )).
-    addNameValue("SYMBOLS"   , int(CQChartsScatterPlot::PlotType::SYMBOLS   )).
-    addNameValue("GRID_CELLS", int(CQChartsScatterPlot::PlotType::GRID_CELLS)).
-    addNameValue("HEX_CELLS" , int(CQChartsScatterPlot::PlotType::HEX_CELLS )).
+    addNameValue("NONE"      , static_cast<int>(CQChartsScatterPlot::PlotType::NONE      )).
+    addNameValue("SYMBOLS"   , static_cast<int>(CQChartsScatterPlot::PlotType::SYMBOLS   )).
+    addNameValue("GRID_CELLS", static_cast<int>(CQChartsScatterPlot::PlotType::GRID_CELLS)).
+    addNameValue("HEX_CELLS" , static_cast<int>(CQChartsScatterPlot::PlotType::HEX_CELLS )).
     setTip("Plot type");
 
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
@@ -470,7 +470,7 @@ setDensityMapLayer(const DrawLayer &l)
       auto *densityObj = dynamic_cast<CQChartsScatterDensityObj *>(plotObj);
 
       if (densityObj)
-        densityObj->setDrawLayer((CQChartsPlotObj::DrawLayer) densityMapLayer());
+        densityObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(densityMapLayer()));
     }
 
     drawObjs();
@@ -1643,7 +1643,7 @@ addBestFitObjects(PlotObjs &objs) const
 
       auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
-      bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+      bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
       objs.push_back(bestFitObj);
 
@@ -1659,7 +1659,7 @@ addBestFitObjects(PlotObjs &objs) const
     for (const auto &nameValue : nameValues) {
       auto *bestFitObj = createBestFitObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
 
-      bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+      bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
       objs.push_back(bestFitObj);
 
@@ -1688,7 +1688,7 @@ addHullObjects(PlotObjs &objs) const
 
       auto *hullObj = createHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
-      hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+      hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
 
       objs.push_back(hullObj);
 
@@ -1706,7 +1706,7 @@ addHullObjects(PlotObjs &objs) const
 
       auto *hullObj = createHullObj(-1, name, ColorInd(), ColorInd(is, ns), bbox);
 
-      hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+      hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
 
       objs.push_back(hullObj);
 
@@ -1738,7 +1738,7 @@ addDensityObjects(PlotObjs &objs) const
 
       auto *densityObj = createDensityObj(groupInd, name, bbox);
 
-      densityObj->setDrawLayer((CQChartsPlotObj::DrawLayer) densityMapLayer());
+      densityObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(densityMapLayer()));
 
       connect(densityObj, SIGNAL(layerChanged()), this, SLOT(updateSlot()));
 
@@ -3396,7 +3396,7 @@ drawDataLabelDatas(PaintDevice *device) const
 
   for (const auto &dataLabelData : dataLabelDatas_)
     dataLabel->draw(device, dataLabelData.bbox, dataLabelData.text,
-                    (CQChartsDataLabel::Position) dataLabelData.position,
+                    static_cast<CQChartsDataLabel::Position>(dataLabelData.position),
                     dataLabelData.penBrush, dataLabelData.font);
 }
 
@@ -3904,7 +3904,8 @@ isMinLabelSize() const
   BBox tbbox(-1, -1, 1, 1); // just need size do use dummy value
 
   auto wsize = dataLabel->calcRect(tbbox, name(),
-                 (CQChartsDataLabel::Position) plot_->dataLabelPosition(), font).size();
+                 static_cast<CQChartsDataLabel::Position>(plot_->dataLabelPosition()),
+                 font).size();
 
   if      (minLabelSize.units() == Units::PLOT) {
     if (calcLabelDir() == Qt::Horizontal)
@@ -4679,7 +4680,7 @@ updateWidgets()
   //---
 
   if (plotTypeCombo_)
-    plotTypeCombo_->setCurrentValue((int) plot_->plotType());
+    plotTypeCombo_->setCurrentValue(static_cast<int>(plot_->plotType()));
 
   //---
 
@@ -4738,7 +4739,7 @@ CQChartsScatterPlotCustomControls::
 plotTypeSlot()
 {
   if (plotTypeCombo_)
-    plot_->setPlotType((CQChartsScatterPlot::PlotType) plotTypeCombo_->currentValue());
+    plot_->setPlotType(static_cast<CQChartsScatterPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
@@ -4765,7 +4766,7 @@ void
 CQChartsScatterPlotCustomControls::
 positionSlot()
 {
-  plot_->setDataLabelPosition((CQChartsLabelPosition) positionEdit_->currentIndex());
+  plot_->setDataLabelPosition(static_cast<CQChartsLabelPosition>(positionEdit_->currentIndex()));
 
   // TODO: need plot signal (property signal ?)
   updateWidgets();

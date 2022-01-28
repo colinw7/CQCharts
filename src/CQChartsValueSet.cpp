@@ -349,13 +349,13 @@ min(const QVariant &def) const
   if      (type() == Type::INTEGER)
     return CQModelUtil::intVariant(ivals_.min());
   else if (type() == Type::REAL)
-    return QVariant(rvals_.min());
+    return CQModelUtil::realVariant(rvals_.min());
   else if (type() == Type::STRING)
     return QVariant(svals_.min());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.min());
   else if (type() == Type::TIME)
-    return QVariant(tvals_.min());
+    return CQModelUtil::realVariant(tvals_.min());
   else
     return def;
 }
@@ -367,13 +367,13 @@ max(const QVariant &def) const
   if      (type() == Type::INTEGER)
     return CQModelUtil::intVariant(ivals_.max());
   else if (type() == Type::REAL)
-    return QVariant(rvals_.max());
+    return CQModelUtil::realVariant(rvals_.max());
   else if (type() == Type::STRING)
     return QVariant(svals_.max());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.max());
   else if (type() == Type::TIME)
-    return QVariant(tvals_.max());
+    return CQModelUtil::realVariant(tvals_.max());
   else
     return def;
 }
@@ -428,7 +428,7 @@ CQChartsValueSet::
 rmin(double def) const
 {
   if      (type() == Type::INTEGER)
-    return (double) ivals_.min(int(def));
+    return ivals_.min(int(def))*1.0;
   else if (type() == Type::REAL)
     return rvals_.min(def);
   else if (type() == Type::STRING)
@@ -446,7 +446,7 @@ CQChartsValueSet::
 rmax(double def) const
 {
   if      (type() == Type::INTEGER)
-    return (double) ivals_.max(int(def));
+    return ivals_.max(int(def))*1.0;
   else if (type() == Type::REAL)
     return rvals_.max(def);
   else if (type() == Type::STRING)

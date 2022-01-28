@@ -42,6 +42,8 @@ void
 CQChartsSummaryPlotType::
 addParameters()
 {
+  using SummaryPlot = CQChartsSummaryPlot;
+
   addColumnsParameter("columns", "Columns", "columns").
     setRequired().setPropPath("columns.columns").setTip("Columns");
 
@@ -50,25 +52,25 @@ addParameters()
 
   // options
   addEnumParameter("plotType", "Plot Type", "plotTy[e").
-    addNameValue("MATRIX"  , int(CQChartsSummaryPlot::PlotType::MATRIX  )).
-    addNameValue("PARALLEL", int(CQChartsSummaryPlot::PlotType::PARALLEL)).
+    addNameValue("MATRIX"  , static_cast<int>(SummaryPlot::PlotType::MATRIX  )).
+    addNameValue("PARALLEL", static_cast<int>(SummaryPlot::PlotType::PARALLEL)).
     setTip("Plot Type");
 
   addEnumParameter("diagonalType", "Diagonal Cell Type", "diagonalType").
-    addNameValue("NONE"        , int(CQChartsSummaryPlot::DiagonalType::NONE        )).
-    addNameValue("BOXPLOT"     , int(CQChartsSummaryPlot::DiagonalType::BOXPLOT     )).
-    addNameValue("DISTRIBUTION", int(CQChartsSummaryPlot::DiagonalType::DISTRIBUTION)).
-    addNameValue("PIE"         , int(CQChartsSummaryPlot::DiagonalType::PIE         )).
+    addNameValue("NONE"        , static_cast<int>(SummaryPlot::DiagonalType::NONE        )).
+    addNameValue("BOXPLOT"     , static_cast<int>(SummaryPlot::DiagonalType::BOXPLOT     )).
+    addNameValue("DISTRIBUTION", static_cast<int>(SummaryPlot::DiagonalType::DISTRIBUTION)).
+    addNameValue("PIE"         , static_cast<int>(SummaryPlot::DiagonalType::PIE         )).
     setTip("Diagonal Cell Type");
   addEnumParameter("upperDiagonalType", "Upper Diagonal Cell Type", "upperDiagonalType").
-    addNameValue("NONE"       , int(CQChartsSummaryPlot::OffDiagonalType::NONE       )).
-    addNameValue("SCATTER"    , int(CQChartsSummaryPlot::OffDiagonalType::SCATTER    )).
-    addNameValue("CORRELATION", int(CQChartsSummaryPlot::OffDiagonalType::CORRELATION)).
+    addNameValue("NONE"       , static_cast<int>(SummaryPlot::OffDiagonalType::NONE       )).
+    addNameValue("SCATTER"    , static_cast<int>(SummaryPlot::OffDiagonalType::SCATTER    )).
+    addNameValue("CORRELATION", static_cast<int>(SummaryPlot::OffDiagonalType::CORRELATION)).
     setTip("Upper Diagonal Cell Type");
   addEnumParameter("lowerDiagonalType", "Lower Diagonal Cell Type", "lowerDiagonalType").
-    addNameValue("NONE"       , int(CQChartsSummaryPlot::OffDiagonalType::NONE       )).
-    addNameValue("SCATTER"    , int(CQChartsSummaryPlot::OffDiagonalType::SCATTER    )).
-    addNameValue("CORRELATION", int(CQChartsSummaryPlot::OffDiagonalType::CORRELATION)).
+    addNameValue("NONE"       , static_cast<int>(SummaryPlot::OffDiagonalType::NONE       )).
+    addNameValue("SCATTER"    , static_cast<int>(SummaryPlot::OffDiagonalType::SCATTER    )).
+    addNameValue("CORRELATION", static_cast<int>(SummaryPlot::OffDiagonalType::CORRELATION)).
     setTip("Lower Diagonal Cell Type");
 
   //---
@@ -2158,10 +2160,10 @@ updateWidgets()
 
   //---
 
-  plotTypeCombo_         ->setCurrentValue((int) plot_->plotType());
-  diagonalTypeCombo_     ->setCurrentValue((int) plot_->diagonalType());
-  upperDiagonalTypeCombo_->setCurrentValue((int) plot_->upperDiagonalType());
-  lowerDiagonalTypeCombo_->setCurrentValue((int) plot_->lowerDiagonalType());
+  plotTypeCombo_         ->setCurrentValue(static_cast<int>(plot_->plotType()));
+  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(plot_->diagonalType()));
+  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->upperDiagonalType()));
+  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->lowerDiagonalType()));
 
   bestFitCheck_->setChecked(plot_->isBestFit());
   densityCheck_->setChecked(plot_->isDensity());
@@ -2193,8 +2195,8 @@ void
 CQChartsSummaryPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType((CQChartsSummaryPlot::PlotType) plotTypeCombo_->currentValue(),
-                     /*update*/false);
+  plot_->setPlotType(
+    static_cast<CQChartsSummaryPlot::PlotType>(plotTypeCombo_->currentValue()), /*update*/false);
 
   QTimer::singleShot(10, plot_, SLOT(updatePlotsSlot()));
 }
@@ -2203,23 +2205,24 @@ void
 CQChartsSummaryPlotCustomControls::
 diagonalTypeSlot()
 {
-  plot_->setDiagonalType((CQChartsSummaryPlot::DiagonalType) diagonalTypeCombo_->currentValue());
+  plot_->setDiagonalType(
+    static_cast<CQChartsSummaryPlot::DiagonalType>(diagonalTypeCombo_->currentValue()));
 }
 
 void
 CQChartsSummaryPlotCustomControls::
 upperDiagonalTypeSlot()
 {
-  plot_->setUpperDiagonalType((CQChartsSummaryPlot::OffDiagonalType)
-                              upperDiagonalTypeCombo_->currentValue());
+  plot_->setUpperDiagonalType(
+    static_cast<CQChartsSummaryPlot::OffDiagonalType>(upperDiagonalTypeCombo_->currentValue()));
 }
 
 void
 CQChartsSummaryPlotCustomControls::
 lowerDiagonalTypeSlot()
 {
-  plot_->setLowerDiagonalType((CQChartsSummaryPlot::OffDiagonalType)
-                              lowerDiagonalTypeCombo_->currentValue());
+  plot_->setLowerDiagonalType(
+    static_cast<CQChartsSummaryPlot::OffDiagonalType>(lowerDiagonalTypeCombo_->currentValue()));
 }
 
 void

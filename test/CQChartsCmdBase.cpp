@@ -112,7 +112,7 @@ CQChartsCmdProc *
 CQChartsCmdBase::
 getCommand(const QString &name) const
 {
-  return (CQChartsCmdProc *) CQTclCmd::Mgr::getCommand(name);
+  return static_cast<CQChartsCmdProc *>(CQTclCmd::Mgr::getCommand(name));
 }
 
 CQTclCmd::Cmd *

@@ -700,7 +700,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
 
   // column series
-  Q_PROPERTY(bool columnSeries READ isColumnSeries WRITE setColumnSeries);
+  Q_PROPERTY(bool columnSeries READ isColumnSeries WRITE setColumnSeries)
 
   // vectors
   Q_PROPERTY(bool vectors READ isVectors WRITE setVectors)

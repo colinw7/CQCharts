@@ -41,6 +41,7 @@
 
 #include <CQPerfMonitor.h>
 #include <CQGLControl.h>
+#include <CMathRound.h>
 
 #include <GL/glut.h>
 
@@ -749,7 +750,7 @@ CQChartsView::
 updateProbes()
 {
   for (auto &probeBand : probeData_.bands)
-    probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+    probeBand->setLabelPos(static_cast<CQChartsProbeBand::LabelPos>(probeData_.pos));
 }
 
 //---
@@ -3233,7 +3234,7 @@ showProbeLines(const Point &p)
     while (ind >= int(probeData_.bands.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
-      probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+      probeBand->setLabelPos(static_cast<CQChartsProbeBand::LabelPos>(probeData_.pos));
 
       probeData_.bands.push_back(probeBand);
     }
@@ -3248,7 +3249,7 @@ showProbeLines(const Point &p)
     while (ind >= int(probeData_.bands.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
-      probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+      probeBand->setLabelPos(static_cast<CQChartsProbeBand::LabelPos>(probeData_.pos));
 
       probeData_.bands.push_back(probeBand);
     }
@@ -4431,8 +4432,8 @@ updateSeparators()
     for (const auto &plot : plots) {
       const auto &bbox = plot->viewBBox();
 
-      xPlots[(int) bbox.getXMin()] = plot;
-      yPlots[(int) bbox.getYMin()] = plot;
+      xPlots[CMathRound::Round(bbox.getXMin())] = plot;
+      yPlots[CMathRound::Round(bbox.getYMin())] = plot;
     }
 
     double vr = CQChartsView::viewportRange();

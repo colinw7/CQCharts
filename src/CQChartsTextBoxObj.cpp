@@ -78,20 +78,20 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
 
   auto desc1 = (desc.length() ? desc + " text" : "Text");
 
-  if (addTypes & int(PropertyType::VISIBLE))
+  if (addTypes & static_cast<int>(PropertyType::VISIBLE))
     addProp(path, "textVisible", "visible", desc1 + " visible");
 
   addStyleProp(path, "textColor", "color", desc1 + " color");
   addStyleProp(path, "textAlpha", "alpha", desc1 + " alpha");
   addStyleProp(path, "textFont" , "font" , desc1 + " font");
 
-  if (addTypes & int(PropertyType::ANGLE))
+  if (addTypes & static_cast<int>(PropertyType::ANGLE))
     addStyleProp(path, "textAngle", "angle", desc1 + " angle");
 
   addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
   addStyleProp(path, "textHtml"    , "html"    , desc1 + " is HTML");
 
-  if (addTypes & int(PropertyType::ALIGN))
+  if (addTypes & static_cast<int>(PropertyType::ALIGN))
     addStyleProp(path, "textAlign", "align", desc1 + " alignment");
 }
 

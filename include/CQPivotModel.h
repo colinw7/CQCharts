@@ -34,7 +34,7 @@ class CQPivotModel : public CQBaseModel {
     MEAN
   };
 
-  Q_ENUMS(ValueType);
+  Q_ENUMS(ValueType)
 
   using Column  = int;
   using Columns = std::vector<Column>;

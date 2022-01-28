@@ -29,8 +29,8 @@ addParameters()
 {
   // options
   addEnumParameter("cellStyle", "Cell Style", "cellStyle").
-    addNameValue("RECT"   , int(CQChartsImagePlot::CellStyle::RECT   )).
-    addNameValue("BALLOON", int(CQChartsImagePlot::CellStyle::BALLOON)).
+    addNameValue("RECT"   , static_cast<int>(CQChartsImagePlot::CellStyle::RECT   )).
+    addNameValue("BALLOON", static_cast<int>(CQChartsImagePlot::CellStyle::BALLOON)).
     setTip("Cell Style");
 
   CQChartsPlotType::addParameters();
@@ -1101,7 +1101,7 @@ updateWidgets()
 
   //---
 
-  cellStyleCombo_->setCurrentValue((int) plot_->cellStyle());
+  cellStyleCombo_->setCurrentValue(static_cast<int>(plot_->cellStyle()));
 
   CQChartsPlotCustomControls::updateWidgets();
 
@@ -1114,7 +1114,7 @@ void
 CQChartsImagePlotCustomControls::
 cellStyleSlot()
 {
-  plot_->setCellStyle((CQChartsImagePlot::CellStyle) cellStyleCombo_->currentValue());
+  plot_->setCellStyle(static_cast<CQChartsImagePlot::CellStyle>(cellStyleCombo_->currentValue()));
 
   updateWidgets();
 }

@@ -111,7 +111,7 @@ void
 CQChartsArrow::
 setFrontType(const HeadType &type)
 {
-  data_.setFHeadType((ArrowData::HeadType) type); emit dataChanged();
+  data_.setFHeadType(static_cast<ArrowData::HeadType>(type)); emit dataChanged();
 }
 
 void
@@ -168,7 +168,7 @@ void
 CQChartsArrow::
 setTailType(const HeadType &type)
 {
-  data_.setTHeadType((ArrowData::HeadType) type); emit dataChanged();
+  data_.setTHeadType(static_cast<ArrowData::HeadType>(type)); emit dataChanged();
 }
 
 void

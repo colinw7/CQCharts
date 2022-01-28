@@ -25,7 +25,7 @@ namespace {
 
 int valueTypeToInd(const CQChartsAxisValueType &valueType) {
   if (valueType.type() != CQChartsAxisValueType::Type::NONE)
-    return ((int) valueType.type()) - 1;
+    return static_cast<int>(valueType.type()) - 1;
   else
     return -1;
 }
@@ -34,7 +34,7 @@ CQChartsAxisValueType indToValueType(int ind) {
   if (ind <= 0)
     return CQChartsAxisValueType(CQChartsAxisValueType::Type::NONE);
   else
-    return CQChartsAxisValueType((CQChartsAxisValueType::Type) ind);
+    return CQChartsAxisValueType(static_cast<CQChartsAxisValueType::Type>(ind));
 }
 
 }

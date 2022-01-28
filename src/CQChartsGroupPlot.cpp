@@ -5,6 +5,7 @@
 #include <CQChartsModelDetails.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQModelUtil.h>
 #include <CQPerfMonitor.h>
 
 CQChartsGroupPlotType::
@@ -218,8 +219,8 @@ setBucketStops(const CQChartsReals &r)
 
     CQBucketer::RStops rstops;
 
-    for (const auto &r : groupData_.bucketStops.reals())
-      rstops.insert(r);
+    for (const auto &r1 : groupData_.bucketStops.reals())
+      rstops.insert(r1);
 
     groupData_.bucketer.setRStops(rstops); updateRangeAndObjs(); emit groupCustomDataChanged();
   }
@@ -668,9 +669,9 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
       inds = pathInds(path);
     }
     else {
-      int ind = groupBucket_->ind(path);
+      int ind1 = groupBucket_->ind(path);
 
-      inds.push_back(ind);
+      inds.push_back(ind1);
     }
   }
   else if (groupBucket_->isUseRow()) {
@@ -739,7 +740,7 @@ setModelGroupInd(const ModelIndex &ind, int groupInd)
 
   QVariant var(groupInd);
 
-  int role = (int) CQBaseModelRole::Group;
+  int role = CQModelUtil::roleCast(CQBaseModelRole::Group);
 
   model->setHeaderData(ind.row(), Qt::Vertical, var, role);
 }

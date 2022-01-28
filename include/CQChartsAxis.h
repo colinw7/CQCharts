@@ -93,9 +93,9 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesTickLabel, axesTickLabel)
 
-  Q_PROPERTY(QString tickLabels READ tickLabelsStr WRITE setTickLabelsStr);
+  Q_PROPERTY(QString tickLabels READ tickLabelsStr WRITE setTickLabelsStr)
 
-  Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr);
+  Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr)
 
   // label
   Q_PROPERTY(CQChartsOptString label            READ label            WRITE setLabel           )

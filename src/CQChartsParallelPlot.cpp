@@ -44,8 +44,8 @@ addParameters()
     setNumericColumn().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
   addEnumParameter("orientation", "Orientation", "orientation").
-    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
-    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Draw orientation");
 
   endParameterGroup();
@@ -1787,7 +1787,7 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue((int) plot_->orientation());
+  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
 
   chooser_->updateWidgets();
 
@@ -1804,7 +1804,7 @@ void
 CQChartsParallelPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 CQChartsColor

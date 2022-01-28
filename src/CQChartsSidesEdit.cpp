@@ -201,7 +201,7 @@ mousePressEvent(QMouseEvent *me)
       sides |= int(rect.first);
   }
 
-  edit_->setSides(CQChartsSides((CQChartsSides::Side) sides));
+  edit_->setSides(CQChartsSides(static_cast<CQChartsSides::Side>(sides)));
 
   update();
 }

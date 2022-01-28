@@ -98,7 +98,7 @@ class CListLink {
   }
 
   void addTo(T **head) {
-    T *th = (T *) this;
+    T *th = reinterpret_cast<T *>(this);
 
     if (*head) {
       th     ->next       = *head;
@@ -114,7 +114,7 @@ class CListLink {
   }
 
   void removeFrom(T **head) {
-    T *th = (T *) this;
+    T *th = reinterpret_cast<T *>(this);
 
     if (*head) {
       if      (*head == (*head)->next)
@@ -130,13 +130,13 @@ class CListLink {
   //! iterator state
   class IteratorState {
    public:
-    IteratorState(const ListLink *list=0) :
+    IteratorState(const ListLink *list=nullptr) :
      list_(list), p_(list), end_(false) {
-      end_ = (list_ == 0);
+      end_ = (list_ == nullptr);
     }
 
     void next() {
-      assert(p_ != 0);
+      assert(p_);
 
       p_ = p_->next;
 
@@ -144,9 +144,9 @@ class CListLink {
     }
 
     const T *contents() const {
-      assert(p_ != 0);
+      assert(p_);
 
-      return (const T *) p_;
+      return reinterpret_cast<const T *>(p_);
     }
 
     friend bool operator==(const IteratorState &lhs, const IteratorState &rhs) {

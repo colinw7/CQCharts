@@ -24,8 +24,8 @@ CQChartsColumnEval()
   qtcl_ = std::make_shared<CQChartsExprTcl>();
 
   // add column, color expressions
-  addFunc("column", (CQTcl::ObjCmdProc) &CQChartsColumnEval::columnCmd);
-  addFunc("color" , (CQTcl::ObjCmdProc) &CQChartsColumnEval::colorCmd );
+  addFunc("column", reinterpret_cast<CQTcl::ObjCmdProc>(&CQChartsColumnEval::columnCmd));
+  addFunc("color" , reinterpret_cast<CQTcl::ObjCmdProc>(&CQChartsColumnEval::colorCmd ));
 
   qtcl_->initVars();
 }
@@ -78,7 +78,7 @@ addFunc(const QString &name, CQTcl::ObjCmdProc proc)
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  qtcl_->createExprCommand(name, proc, (CQTcl::ObjCmdData) this);
+  qtcl_->createExprCommand(name, proc, static_cast<CQTcl::ObjCmdData>(this));
 }
 
 //---

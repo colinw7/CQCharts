@@ -61,6 +61,8 @@ class CQChartsPaintDevice {
 
   CQChartsPaintDevice(CQCharts *charts=nullptr) : charts_(charts) { }
 
+  virtual ~CQChartsPaintDevice() { }
+
   //---
 
   View *view() const { return view_; }

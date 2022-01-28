@@ -20,6 +20,7 @@
 #include <CQJsonModel.h>
 #include <CQGnuDataModel.h>
 #include <CQHierSepModel.h>
+#include <CQModelUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQTclUtil.h>
 #include <CQFileWatcher.h>
@@ -619,7 +620,7 @@ foldModel(const FoldData &foldData)
 
         foldProxyModel->setObjectName("foldProxyModel");
 
-        foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+        foldProxyModel->setSortRole(Qt::EditRole);
 
         foldProxyModel->setSourceModel(model);
 
@@ -659,7 +660,7 @@ foldModel(const FoldData &foldData)
 
     proxyModel->setObjectName("foldProxyModel");
 
-    proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+    proxyModel->setSortRole(Qt::EditRole);
 
     CQHierSepData data(column.column(), foldData.separator[0]);
 
@@ -2148,17 +2149,17 @@ CQChartsModelData::
 copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const
 {
   static std::vector<int> hroles = {{
-    static_cast<int>(Qt::DisplayRole),
-    static_cast<int>(CQBaseModelRole::Type),
-    static_cast<int>(CQBaseModelRole::BaseType),
-    static_cast<int>(CQBaseModelRole::TypeValues),
-    static_cast<int>(CQBaseModelRole::Min),
-    static_cast<int>(CQBaseModelRole::Max),
-    static_cast<int>(CQBaseModelRole::Key),
-    static_cast<int>(CQBaseModelRole::Sorted),
-    static_cast<int>(CQBaseModelRole::SortOrder),
-    static_cast<int>(CQBaseModelRole::HeaderType),
-    static_cast<int>(CQBaseModelRole::HeaderTypeValues)
+    Qt::DisplayRole,
+    CQModelUtil::roleCast(CQBaseModelRole::Type),
+    CQModelUtil::roleCast(CQBaseModelRole::BaseType),
+    CQModelUtil::roleCast(CQBaseModelRole::TypeValues),
+    CQModelUtil::roleCast(CQBaseModelRole::Min),
+    CQModelUtil::roleCast(CQBaseModelRole::Max),
+    CQModelUtil::roleCast(CQBaseModelRole::Key),
+    CQModelUtil::roleCast(CQBaseModelRole::Sorted),
+    CQModelUtil::roleCast(CQBaseModelRole::SortOrder),
+    CQModelUtil::roleCast(CQBaseModelRole::HeaderType),
+    CQModelUtil::roleCast(CQBaseModelRole::HeaderTypeValues)
   }};
 
   auto *model = this->model().data();

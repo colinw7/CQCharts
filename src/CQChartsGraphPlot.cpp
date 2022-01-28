@@ -299,7 +299,7 @@ CQChartsGraphPlot::NodeShape
 CQChartsGraphPlot::
 nodeShape() const
 {
-  return (NodeShape) graphMgr_->nodeShape();
+  return static_cast<NodeShape>(graphMgr_->nodeShape());
 }
 
 void
@@ -307,7 +307,7 @@ CQChartsGraphPlot::
 setNodeShape(const NodeShape &s)
 {
   if (s != nodeShape()) {
-    graphMgr_->setNodeShape((GraphMgr::NodeShape) s);
+    graphMgr_->setNodeShape(static_cast<GraphMgr::NodeShape>(s));
 
     updateRangeAndObjs();
   }
@@ -369,7 +369,7 @@ CQChartsGraphPlot::Align
 CQChartsGraphPlot::
 align() const
 {
-  return (CQChartsGraphPlot::Align) graphMgr_->align();
+  return static_cast<CQChartsGraphPlot::Align>(graphMgr_->align());
 }
 
 void
@@ -377,7 +377,7 @@ CQChartsGraphPlot::
 setAlign(const Align &a)
 {
   if (a != align()) {
-    graphMgr_->setAlign((CQChartsGraphMgr::Align) a);
+    graphMgr_->setAlign(static_cast<CQChartsGraphMgr::Align>(a));
 
     updateRangeAndObjs();
   }
@@ -1803,10 +1803,10 @@ createObjFromNode(Graph *, Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, iv);
 
-  NodeObj::ShapeType shapeType = (NodeObj::ShapeType) node->shapeType();
+  NodeObj::ShapeType shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
 
   if (shapeType == NodeObj::ShapeType::NONE)
-    shapeType = (NodeObj::ShapeType) nodeShape();
+    shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
 
   nodeObj->setShapeType(shapeType);
   nodeObj->setHierName (node->str());
@@ -1842,10 +1842,10 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
-  EdgeObj::ShapeType shapeType = (EdgeObj::ShapeType) edge->shapeType();
+  EdgeObj::ShapeType shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
 
   if (shapeType == EdgeObj::ShapeType::NONE)
-    shapeType = (EdgeObj::ShapeType) edgeShape();
+    shapeType = static_cast<EdgeObj::ShapeType>(edgeShape());
 
   edgeObj->setShapeType(shapeType);
 
@@ -2151,14 +2151,14 @@ CQChartsGraphNodeObj::ShapeType
 CQChartsGraphNodeObj::
 shapeType() const
 {
-  return (CQChartsGraphNodeObj::ShapeType) node()->shapeType();
+  return static_cast<CQChartsGraphNodeObj::ShapeType>(node()->shapeType());
 }
 
 void
 CQChartsGraphNodeObj::
 setShapeType(const ShapeType &s)
 {
-  node()->setShapeType((CQChartsGraphNode::ShapeType) s);
+  node()->setShapeType(static_cast<CQChartsGraphNode::ShapeType>(s));
 }
 
 int
@@ -2631,14 +2631,14 @@ CQChartsGraphEdgeObj::ShapeType
 CQChartsGraphEdgeObj::
 shapeType() const
 {
-  return (CQChartsGraphEdgeObj::ShapeType) edge()->shapeType();
+  return static_cast<CQChartsGraphEdgeObj::ShapeType>(edge()->shapeType());
 }
 
 void
 CQChartsGraphEdgeObj::
 setShapeType(const ShapeType &s)
 {
-  edge()->setShapeType((CQChartsGraphEdge::ShapeType) s);
+  edge()->setShapeType(static_cast<CQChartsGraphEdge::ShapeType>(s));
 }
 
 //---

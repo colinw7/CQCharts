@@ -2401,10 +2401,12 @@ applyPlot(Plot *plot, bool preview)
             if (! CQUtil::setProperty(plot, mappedPropName, QVariant(mapValueData.mapped)))
               charts()->errorMsg("Failed to set parameter '" + mappedPropName + "'");
 
-            if (! CQUtil::setProperty(plot, mapMinPropName, QVariant(mapValueData.min)))
+            if (! CQUtil::setProperty(plot, mapMinPropName,
+                                      CQModelUtil::realVariant(mapValueData.min)))
               charts()->errorMsg("Failed to set parameter '" + mapMinPropName + "'");
 
-            if (! CQUtil::setProperty(plot, mapMaxPropName, QVariant(mapValueData.max)))
+            if (! CQUtil::setProperty(plot, mapMaxPropName,
+                                      CQModelUtil::realVariant(mapValueData.max)))
               charts()->errorMsg("Failed to set parameter '" + mapMaxPropName + "'");
           }
           else {
@@ -2476,13 +2478,13 @@ applyPlot(Plot *plot, bool preview)
       double r = defValue;
 
       if (parseParameterRealEdit(parameter, plotData, r)) {
-        if (! plot->setParameter(parameter, QVariant(r)))
+        if (! plot->setParameter(parameter, CQModelUtil::realVariant(r)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (parameter->isRequired()) {
           if (ok)
-            plot->setParameter(parameter, QVariant(defValue));
+            plot->setParameter(parameter, CQModelUtil::realVariant(defValue));
         }
       }
     }
@@ -2494,7 +2496,7 @@ applyPlot(Plot *plot, bool preview)
       int i = int(defValue);
 
       if (parseParameterIntEdit(parameter, plotData, i)) {
-        if (! plot->setParameter(parameter, QVariant(i)))
+        if (! plot->setParameter(parameter, CQModelUtil::intVariant(i)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
@@ -2512,7 +2514,7 @@ applyPlot(Plot *plot, bool preview)
       int i = int(defValue);
 
       if (parseParameterEnumEdit(parameter, plotData, i)) {
-        if (! plot->setParameter(parameter, QVariant(i)))
+        if (! plot->setParameter(parameter, CQModelUtil::intVariant(i)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {

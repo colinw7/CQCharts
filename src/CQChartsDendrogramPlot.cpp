@@ -98,8 +98,8 @@ addParameters()
 
   // options
   addEnumParameter("orientation", "Orientation", "orientation").
-    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
-    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Draw orientation");
 
   //---
@@ -672,12 +672,12 @@ addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const
   if (! hierNode->isOpen())
     return;
 
-  for (auto &hierNode : hierNode->getChildren()) {
-    auto *childTree = new Tree(hierNode.node);
+  for (auto &hierNode1 : hierNode->getChildren()) {
+    auto *childTree = new Tree(hierNode1.node);
 
     tree->addChild(CBuchHeim::TreeP(childTree));
 
-    addBuchheimHierNode(childTree, hierNode.node);
+    addBuchheimHierNode(childTree, hierNode1.node);
   }
 
   for (auto &node : hierNode->getNodes()) {
@@ -1615,9 +1615,9 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
     align = Qt::AlignCenter;
 
     if (! isRoot()) {
-      auto p = plot()->pixelToWindow(pp);
+      auto p1 = plot()->pixelToWindow(pp);
 
-      auto angle1 = Angle::radians(std::atan2(p.y, p.x));
+      auto angle1 = Angle::radians(std::atan2(p1.y, p1.x));
 
       //---
 
@@ -1631,8 +1631,8 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
         dx1 = plot()->pixelToWindowWidth(tm);
       }
 
-      auto x1 = p.x + dx1*angle1.cos();
-      auto y1 = p.y + dx1*angle1.sin();
+      auto x1 = p1.x + dx1*angle1.cos();
+      auto y1 = p1.y + dx1*angle1.sin();
 
       pp = plot()->windowToPixel(Point(x1, y1));
 

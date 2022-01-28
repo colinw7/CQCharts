@@ -2636,7 +2636,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(QVariant(i));
+    extraHandle->setData(CQModelUtil::intVariant(i));
 
     auto p = apoly_.point(i);
 
@@ -2900,7 +2900,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(QVariant(i));
+    extraHandle->setData(CQModelUtil::intVariant(i));
 
     auto p = apoly_.point(i);
 
@@ -4050,7 +4050,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(QVariant(i));
+    extraHandle->setData(CQModelUtil::intVariant(i));
 
     auto p = path_.pointAt(i);
 
@@ -4454,8 +4454,8 @@ draw(PaintDevice *device)
     CQChartsArrowData arrowData;
     QPainterPath      arrowPath;
 
-    arrowData.setFHeadType((CQChartsArrowData::HeadType) arrow()->frontType());
-    arrowData.setTHeadType((CQChartsArrowData::HeadType) arrow()->tailType ());
+    arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->frontType()));
+    arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->tailType ()));
 
     auto lw = device->pixelToWindowWidth(4);
 
@@ -4523,7 +4523,7 @@ editHandles() const
     int i = 0;
 
     for (auto &extraHandle : handles->extraHandles()) {
-      extraHandle->setData(QVariant(i));
+      extraHandle->setData(CQModelUtil::intVariant(i));
 
       auto p = path_.pointAt(i);
 
@@ -4598,7 +4598,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   QString fName;
   bool    fcustom = false;
 
-  if (CQChartsArrowData::dataToName((CQChartsArrowData::HeadType) arrow()->frontType(),
+  if (CQChartsArrowData::dataToName(static_cast<CQChartsArrowData::HeadType>(arrow()->frontType()),
                                     arrow()->isFrontLineEnds(), arrow()->isFrontVisible(),
                                     arrow()->frontAngle(), arrow()->frontBackAngle(), fName)) {
     os << " -fhead " << fName.toStdString();
@@ -4613,7 +4613,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   QString tName;
   bool    tcustom = false;
 
-  if (CQChartsArrowData::dataToName((CQChartsArrowData::HeadType) arrow()->tailType(),
+  if (CQChartsArrowData::dataToName(static_cast<CQChartsArrowData::HeadType>(arrow()->tailType()),
                                     arrow()->isTailLineEnds(), arrow()->isTailVisible(),
                                     arrow()->tailAngle(), arrow()->tailBackAngle(), tName)) {
     os << " -thead " << tName.toStdString();
@@ -4933,8 +4933,8 @@ calcPath(QPainterPath &path) const
 
   CQChartsArrowData arrowData;
 
-  arrowData.setFHeadType((CQChartsArrowData::HeadType) frontType());
-  arrowData.setTHeadType((CQChartsArrowData::HeadType) tailType ());
+  arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(frontType()));
+  arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(tailType ()));
 
   arrowData.setLength(Length(lw, parentUnits()));
 

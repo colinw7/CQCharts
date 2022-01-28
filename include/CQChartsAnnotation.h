@@ -440,9 +440,9 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
  public:
   enum class ShapeType {
-    NONE   = (int) CQChartsAnnotation::ShapeType::NONE,
-    BOX    = (int) CQChartsAnnotation::ShapeType::BOX,
-    CIRCLE = (int) CQChartsAnnotation::ShapeType::CIRCLE
+    NONE   = static_cast<int>(CQChartsAnnotation::ShapeType::NONE),
+    BOX    = static_cast<int>(CQChartsAnnotation::ShapeType::BOX),
+    CIRCLE = static_cast<int>(CQChartsAnnotation::ShapeType::CIRCLE)
   };
 
   enum class LayoutType {
@@ -697,14 +697,14 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotation {
 
  public:
   enum class ShapeType {
-    NONE          = (int) CQChartsAnnotation::ShapeType::NONE,
-    TRIANGLE      = (int) CQChartsAnnotation::ShapeType::TRIANGLE,
-    DIAMOND       = (int) CQChartsAnnotation::ShapeType::DIAMOND,
-    BOX           = (int) CQChartsAnnotation::ShapeType::BOX,
-    POLYGON       = (int) CQChartsAnnotation::ShapeType::POLYGON,
-    CIRCLE        = (int) CQChartsAnnotation::ShapeType::CIRCLE,
-    DOUBLE_CIRCLE = (int) CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE,
-    DOT_LINE      = (int) CQChartsAnnotation::ShapeType::DOT_LINE
+    NONE          = static_cast<int>(CQChartsAnnotation::ShapeType::NONE),
+    TRIANGLE      = static_cast<int>(CQChartsAnnotation::ShapeType::TRIANGLE),
+    DIAMOND       = static_cast<int>(CQChartsAnnotation::ShapeType::DIAMOND),
+    BOX           = static_cast<int>(CQChartsAnnotation::ShapeType::BOX),
+    POLYGON       = static_cast<int>(CQChartsAnnotation::ShapeType::POLYGON),
+    CIRCLE        = static_cast<int>(CQChartsAnnotation::ShapeType::CIRCLE),
+    DOUBLE_CIRCLE = static_cast<int>(CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE),
+    DOT_LINE      = static_cast<int>(CQChartsAnnotation::ShapeType::DOT_LINE)
   };
 
  public:

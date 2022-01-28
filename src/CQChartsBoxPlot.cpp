@@ -84,8 +84,8 @@ addParameters()
     setBasic().setTip("Normalize data ranges");
 
   addEnumParameter("orientation", "Orientation", "orientation").
-    addNameValue("HORIZONTAL", int(Qt::Horizontal)).
-    addNameValue("VERTICAL"  , int(Qt::Vertical  )).
+    addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
+    addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Draw bar orientation");
 
   addBoolParameter("notched", "Notched", "notched").setTip("Draw notch on bar");
@@ -93,9 +93,9 @@ addParameters()
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
   addEnumParameter("pointsType", "Points Type", "pointsType").
-    addNameValue("NONE"   , int(CQChartsBoxPlot::PointsType::NONE   )).
-    addNameValue("JITTER" , int(CQChartsBoxPlot::PointsType::JITTER )).
-    addNameValue("STACKED", int(CQChartsBoxPlot::PointsType::STACKED)).
+    addNameValue("NONE"   , static_cast<int>(CQChartsBoxPlot::PointsType::NONE   )).
+    addNameValue("JITTER" , static_cast<int>(CQChartsBoxPlot::PointsType::JITTER )).
+    addNameValue("STACKED", static_cast<int>(CQChartsBoxPlot::PointsType::STACKED)).
     setTip("Show data points type");
 
   addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Draw distribution outline");
@@ -1648,25 +1648,25 @@ initRawObjs(PlotObjs &objs) const
 
             auto orvalue = double(ovalue);
 
-            BBox rect;
+            BBox orect;
 
             if (! isNormalized()) {
               if (isVertical())
-                rect = BBox(pos - osx, orvalue - osy, pos + osx, orvalue + osy);
+                orect = BBox(pos - osx, orvalue - osy, pos + osx, orvalue + osy);
               else
-                rect = BBox(orvalue - osx, pos - osy, orvalue + osx, pos + osy);
+                orect = BBox(orvalue - osx, pos - osy, orvalue + osx, pos + osy);
             }
             else {
               double orvalue1 =
                 CMathUtil::map(orvalue, whisker->vmin(), whisker->vmax(), ymargin, 1.0 - ymargin);
 
               if (isVertical())
-                rect = BBox(pos - osx, orvalue1 - osy, pos + osx, orvalue1 + osy);
+                orect = BBox(pos - osx, orvalue1 - osy, pos + osx, orvalue1 + osy);
               else
-                rect = BBox(orvalue1 - osx, pos - osy, orvalue1 + osx, pos + osy);
+                orect = BBox(orvalue1 - osx, pos - osy, orvalue1 + osx, pos + osy);
             }
 
-            auto *outlierObj = createOutlierObj(rect, setId, groupInd, whisker,
+            auto *outlierObj = createOutlierObj(orect, setId, groupInd, whisker,
                                                 ColorInd(is, ns), ColorInd(ig, ng), o);
 
             Color pointColor;
@@ -1892,22 +1892,22 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers(), ymargin) : y);
 
-    Point pos;
+    Point ipos;
     BBox  rect;
 
     if (isVertical())
-      pos = Point(x, y1);
+      ipos = Point(x, y1);
     else
-      pos = Point(y1, x);
+      ipos = Point(y1, x);
 
-    rect = BBox(pos.x - sx, pos.y - sy, pos.x + sx, pos.y + sy);
+    rect = BBox(ipos.x - sx, ipos.y - sy, ipos.x + sx, ipos.y + sy);
 
     CQChartsBoxPlotPointObj *pointObj = nullptr;
 
     BBox prect;
 
     if (placeRect(rect, prect)) {
-      auto ppos = pos;
+      auto ppos = ipos;
 
       if (isVertical())
         ppos.setX(prect.getXMid());
@@ -1915,10 +1915,10 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
         ppos.setY(prect.getYMid());
 
       rect = prect;
-      pos  = ppos;
+      ipos = ppos;
     }
 
-    pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
+    pointObj = createPointObj(rect, setId, groupInd, ipos, value.ind,
                               is, ig, ColorInd(iv, nv));
 
     Color pointColor;
@@ -4146,8 +4146,8 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue((int) plot_->orientation());
-  pointsTypeCombo_ ->setCurrentValue((int) plot_->pointsType());
+  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  pointsTypeCombo_ ->setCurrentValue(static_cast<int>(plot_->pointsType()));
 
   colorBySetCheck_->setChecked(plot_->isColorBySet());
 
@@ -4189,7 +4189,7 @@ void
 CQChartsBoxPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation((Qt::Orientation) orientationCombo_->currentValue());
+  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -4198,7 +4198,7 @@ void
 CQChartsBoxPlotCustomControls::
 pointsTypeSlot()
 {
-  plot_->setPointsType((CQChartsBoxPlot::PointsType) pointsTypeCombo_->currentValue());
+  plot_->setPointsType(static_cast<CQChartsBoxPlot::PointsType>(pointsTypeCombo_->currentValue()));
 
   updateWidgets();
 }

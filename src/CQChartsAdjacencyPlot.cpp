@@ -544,7 +544,7 @@ addFromToValue(const FromToData &fromToData) const
     srcNode->addEdge(destNode, value);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      auto value = nv.second.toString();
+      //auto value1 = nv.second.toString();
 
       if      (nv.first == "label") {
       }
@@ -603,12 +603,12 @@ CQChartsAdjacencyPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
   // Get group value
-  int group = linkConnectionData.valueModelInd.row();
+  long group = linkConnectionData.valueModelInd.row();
 
   if (groupColumn().isValid()) {
     bool ok1;
 
-    group = (int) modelInteger(linkConnectionData.groupModelInd, ok1);
+    group = modelInteger(linkConnectionData.groupModelInd, ok1);
 
     if (! ok1) {
       auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
@@ -642,7 +642,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
       destNode->addEdge(srcNode, OptReal(linkConnectionData.value));
   }
 
-  srcNode->setGroup(group);
+  srcNode->setGroup(static_cast<int>(group));
 
   if (modelInd.isValid()) {
     auto modelInd1 = normalizeIndex(modelInd);
@@ -860,14 +860,14 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // get optional group
-  int group = data.row;
+  long group = data.row;
 
   if (groupColumn().isValid()) {
     ModelIndex groupInd(th, data.row, groupColumn(), data.parent);
 
     bool ok1;
 
-    int group1 = (int) modelInteger(groupInd, ok1);
+    long group1 = modelInteger(groupInd, ok1);
 
     if (ok1)
       group = group1;
@@ -878,13 +878,13 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   // get optional node id (default to row)
   ModelIndex nodeModelInd;
 
-  int id = data.row;
+  long id = data.row;
 
   if (nodeColumn().isValid()) {
     nodeModelInd = ModelIndex(th, data.row, nodeColumn(), data.parent);
 
     bool ok2;
-    id = (int) modelInteger(nodeModelInd, ok2);
+    id = modelInteger(nodeModelInd, ok2);
     if (! ok2) return th->addDataError(nodeModelInd, "Non-integer node value");
   }
 
@@ -932,9 +932,9 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
     connectionsData.ind = nodeModelInd1;
   }
 
-  connectionsData.node  = id;
+  connectionsData.node  = static_cast<int>(id);
   connectionsData.name  = name;
-  connectionsData.group = group;
+  connectionsData.group = static_cast<int>(group);
 
   return true;
 }
@@ -1353,7 +1353,7 @@ execDrawBackground(PaintDevice *device) const
   py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
   for (auto &node1 : sortedNodes_) {
-    double px = po.x + lengthPixelWidth(bgMargin()) + xts_;
+    double px1 = po.x + lengthPixelWidth(bgMargin()) + xts_;
 
     for (auto &node2 : sortedNodes_) {
       double value = node1->edgeValue(node2, equalValue);
@@ -1367,20 +1367,18 @@ execDrawBackground(PaintDevice *device) const
         connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
-        auto cellBBox = pixelToWindow(BBox(px, py, px + pxs_, py + pys_));
+        auto cellBBox1 = pixelToWindow(BBox(px1, py, px1 + pxs_, py + pys_));
 
-        CQChartsDrawUtil::drawRoundedRect(device, emptyPenBrush, cellBBox, cornerSize);
+        CQChartsDrawUtil::drawRoundedRect(device, emptyPenBrush, cellBBox1, cornerSize);
       }
 
-      px += pxs_;
+      px1 += pxs_;
     }
 
     py += pys_;
   }
 
   if (insideObject()) {
-    auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
-
     th->setInsideObj(nullptr);
 
     th->drawForeground();

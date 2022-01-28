@@ -62,12 +62,12 @@ bool nameValueBool(const CQChartsNameValues &nameValues, const QString &name, bo
   return nameValues.nameValueBool(name, value, ok) && ok;
 }
 
-int varInteger(const QVariant &var, int def) {
+long varInteger(const QVariant &var, long def) {
   bool ok = false;
 
   long i = CQChartsVariant::toInt(var, ok);
 
-  return (ok ? int(i) : def);
+  return (ok ? i : def);
 }
 
 double varReal(const QVariant &var, double def) {
@@ -408,7 +408,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  int role = static_cast<int>(CQBaseModelRole::Type);
+  int role = CQModelUtil::roleCast(CQBaseModelRole::Type);
 
   bool ok1;
 
@@ -444,7 +444,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  int brole = static_cast<int>(CQBaseModelRole::BaseType);
+  int brole = CQModelUtil::roleCast(CQBaseModelRole::BaseType);
 
   bool ok2;
 
@@ -460,7 +460,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
+  int vrole = CQModelUtil::roleCast(CQBaseModelRole::TypeValues);
 
   bool ok3;
 
@@ -493,7 +493,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  int hrole = static_cast<int>(CQBaseModelRole::HeaderType);
+  int hrole = CQModelUtil::roleCast(CQBaseModelRole::HeaderType);
 
   bool ok4;
 
@@ -508,7 +508,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  int hvrole = static_cast<int>(CQBaseModelRole::HeaderTypeValues);
+  int hvrole = CQModelUtil::roleCast(CQBaseModelRole::HeaderTypeValues);
 
   bool ok5;
 
@@ -533,7 +533,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   bool changed = false;
 
   // store role in model or cache if not supported
-  int role = static_cast<int>(CQBaseModelRole::Type);
+  int role = CQModelUtil::roleCast(CQBaseModelRole::Type);
 
   bool rc1 = CQChartsModelUtil::setModelHeaderValue(model, column, static_cast<int>(type), role);
 
@@ -563,7 +563,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   //---
 
   // store parameter values in model (by parameter role)
-  int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
+  int vrole = CQModelUtil::roleCast(CQBaseModelRole::TypeValues);
 
   CQChartsNameValues nameValues1;
 
@@ -619,7 +619,7 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
   bool changed = false;
 
   // store role in model or cache if not supported
-  int role = static_cast<int>(CQBaseModelRole::HeaderType);
+  int role = CQModelUtil::roleCast(CQBaseModelRole::HeaderType);
 
   bool rc1 = CQChartsModelUtil::setModelHeaderValue(model, column, static_cast<int>(type), role);
 
@@ -649,8 +649,8 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
   //---
 
   // store parameter values in model (by parameter role)
-  int vrole  = static_cast<int>(CQBaseModelRole::TypeValues);
-  int hvrole = static_cast<int>(CQBaseModelRole::HeaderTypeValues);
+  int vrole  = CQModelUtil::roleCast(CQBaseModelRole::TypeValues);
+  int hvrole = CQModelUtil::roleCast(CQBaseModelRole::HeaderTypeValues);
 
   CQChartsNameValues nameValues1;
 
@@ -793,7 +793,7 @@ CQChartsColumnType::
 CQChartsColumnType(Type type) :
  type_(type)
 {
-  addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false)->
+  addParam("key", Type::BOOLEAN, CQModelUtil::roleCast(CQBaseModelRole::Key), "Is Key", false)->
     setDesc("Is Column a key for grouping");
 
   // preferred width
@@ -1147,9 +1147,9 @@ CQChartsColumnRealType() :
   addParam("format_scale", Type::REAL, "Format Scale Factor", 1.0)->
     setDesc("Scale factor; to apply to value before output");
 
-  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0)->
+  addParam("min", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Min), "Min Value", 0.0)->
     setDesc("Override min value for column");
-  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0)->
+  addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Max Value", 1.0)->
     setDesc("Override max value for column");
 }
 
@@ -1227,7 +1227,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // convert value using format
-  return CQChartsUtil::formatVar(QVariant(r), fmt);
+  return CQChartsUtil::formatVar(CQModelUtil::realVariant(r), fmt);
 }
 
 QVariant
@@ -1239,7 +1239,7 @@ minValue(const CQChartsNameValues &nameValues) const
   if (! rmin(nameValues, r))
     return QVariant();
 
-  return QVariant(r);
+  return CQModelUtil::realVariant(r);
 }
 
 QVariant
@@ -1251,7 +1251,7 @@ maxValue(const CQChartsNameValues &nameValues) const
   if (! rmax(nameValues, r))
     return QVariant();
 
-  return QVariant(r);
+  return CQModelUtil::realVariant(r);
 }
 
 bool
@@ -1317,9 +1317,9 @@ CQChartsColumnIntegerType() :
   addParam("oformat", Type::STRING, "Output Format", "")->
     setDesc("Format string for output value display");
 
-  addParam("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0)->
+  addParam("min", Type::INTEGER, CQModelUtil::roleCast(CQBaseModelRole::Min), "Min Value",   0)->
     setDesc("Override min value for column");
-  addParam("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100)->
+  addParam("max", Type::INTEGER, CQModelUtil::roleCast(CQBaseModelRole::Max), "Max Value", 100)->
     setDesc("Override max value for column");
 }
 
@@ -2113,9 +2113,9 @@ CQChartsColumnColorType() :
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
     setDesc("Does value need to be remapped to 0.0->1.0");
 
-  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
+  addParam("min", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Min), "Map Min", 0.0)->
     setDesc("Override min value for column");
-  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
+  addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Map Max", 1.0)->
     setDesc("Override max value for column");
 }
 
@@ -2410,9 +2410,9 @@ CQChartsColumnSymbolTypeType() :
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
     setDesc("Does value need to be remapped to 0.0->1.0");
 
-  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
+  addParam("min", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Min), "Map Min", 0.0)->
     setDesc("Override min value for column");
-  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
+  addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Map Max", 1.0)->
     setDesc("Override max value for column");
 }
 
@@ -2451,9 +2451,9 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
     long i = CQChartsVariant::toInt(var, ok);
     if (! ok) return QVariant();
 
-    int i1 = (int) CMathUtil::map(int(i), min, max, size_min, size_max);
+    long i1 = CMathUtil::map(i, min, max, size_min, size_max);
 
-    auto symbolTypeInd = (CQChartsSymbolType::Type) i1;
+    auto symbolTypeInd = static_cast<CQChartsSymbolType::Type>(i1);
 
     if (! CQChartsSymbolType::isValidType(symbolTypeInd))
       return QVariant();
@@ -2540,9 +2540,9 @@ CQChartsColumnSymbolSizeType() :
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
     setDesc("Does value need to be remapped to 0.0->1.0");
 
-  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
+  addParam("min", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Min), "Map Min", 0.0)->
     setDesc("Override min value for column");
-  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
+  addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Map Max", 1.0)->
     setDesc("Override max value for column");
 
   addParam("size_min", Type::REAL, "Symbol Size Min", 0.0)->
@@ -2571,9 +2571,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   bool ok;
 
   double r = CQChartsVariant::toReal(var, ok);
-
-  if (! ok)
-    return var;
+  if (! ok) return var;
 
   converted = true;
 
@@ -2585,11 +2583,6 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
 
   if (mapped) {
-    bool ok;
-
-    double r = CQChartsVariant::toReal(var, ok);
-    if (! ok) return QVariant();
-
     double r1 = CMathUtil::map(r, min, max, size_min, size_max);
 
     return QVariant::fromValue<double>(r1);
@@ -2679,9 +2672,9 @@ CQChartsColumnFontSizeType() :
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
     setDesc("Does value need to be remapped to 0.0->1.0");
 
-  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
+  addParam("min", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Min), "Map Min", 0.0)->
     setDesc("Override min value for column");
-  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
+  addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Map Max", 1.0)->
     setDesc("Override max value for column");
 
   addParam("size_min", Type::REAL, "Font Size Min", 0.0)->
@@ -2710,9 +2703,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   bool ok;
 
   double r = CQChartsVariant::toReal(var, ok);
-
-  if (! ok)
-    return var;
+  if (! ok) return var;
 
   converted = true;
 
@@ -2724,11 +2715,6 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
 
   if (mapped) {
-    bool ok;
-
-    double r = CQChartsVariant::toReal(var, ok);
-    if (! ok) return QVariant();
-
     double r1 = CMathUtil::map(r, min, max, size_min, size_max);
 
     return QVariant::fromValue<double>(r1);

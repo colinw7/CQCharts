@@ -101,7 +101,7 @@ namespace {
 
 template<typename T>
 void swapT(CQChartsAxis *lhs, CQChartsAxis *rhs) {
-  std::swap(*(T*)(lhs), *(T*)(rhs));
+  std::swap(*dynamic_cast<T *>(lhs), *dynamic_cast<T *>(rhs));
 }
 
 }
@@ -237,14 +237,14 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  if (int(propertyTypes) & int(PropertyType::STATE)) {
+  if (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::STATE)) {
     addProp(path, "visible"  , "", "Axis visible");
     addProp(path, "editable" , "", "Axis editable");
   }
 
   //---
 
-  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION)))
+  if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION)))
     addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
 
   addProp(path, "side"     , "", "Axis plot side");
@@ -254,7 +254,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addProp(path, "tickIncrement" , "", "Axis tick increment");
   addProp(path, "majorIncrement", "", "Axis tick major increment");
 
-  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION))) {
+  if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION))) {
     addProp(path, "start", "", "Axis start position");
     addProp(path, "end"  , "", "Axis end position");
   }
@@ -272,7 +272,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION))) {
+  if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION))) {
     auto posPath = path + "/position";
 
     addProp(posPath, "position", "value", "Axis position");
@@ -280,7 +280,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  if (int(propertyTypes) & int(PropertyType::STROKE)) {
+  if (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::STROKE)) {
     auto linePath = path + "/stroke";
 
     addStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);

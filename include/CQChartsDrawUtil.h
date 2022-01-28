@@ -456,7 +456,7 @@ class PathVisitor {
  public:
   PathVisitor() { }
 
- ~PathVisitor() { }
+  virtual ~PathVisitor() { }
 
   virtual void init() { }
   virtual void term() { }

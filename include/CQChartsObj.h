@@ -176,6 +176,8 @@ class CQChartsSelectableIFace {
  public:
   CQChartsSelectableIFace() { }
 
+  virtual ~CQChartsSelectableIFace() { }
+
   //! handle select press, move, release
   virtual bool selectPress  (const Point &, SelMod) { return false; }
   virtual bool selectMove   (const Point &) { return false; }
@@ -196,6 +198,8 @@ class CQChartsEditableIFace {
 
  public:
   CQChartsEditableIFace() { }
+
+  virtual ~CQChartsEditableIFace() { }
 
   virtual EditHandles *editHandles() const = 0;
 

@@ -49,9 +49,9 @@ addParameters()
     setStringColumn().setPropPath("columns.keyLabel").setTip("Custom key label column");
 
   addEnumParameter("drawType", "Draw Type", "drawType").
-    addNameValue("PIE"    , int(CQChartsPiePlot::DrawType::PIE)).
-    addNameValue("TREEMAP", int(CQChartsPiePlot::DrawType::TREEMAP)).
-    addNameValue("WAFFLE" , int(CQChartsPiePlot::DrawType::WAFFLE)).
+    addNameValue("PIE"    , static_cast<int>(CQChartsPiePlot::DrawType::PIE)).
+    addNameValue("TREEMAP", static_cast<int>(CQChartsPiePlot::DrawType::TREEMAP)).
+    addNameValue("WAFFLE" , static_cast<int>(CQChartsPiePlot::DrawType::WAFFLE)).
     setTip("Draw type");
 
   addBoolParameter("separated", "Separated", "separated" ).
@@ -1017,7 +1017,7 @@ createObjs(PlotObjs &objs) const
         dataTotal = maxValue(); // assume max is sum e.g. values are percent
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->calcValue((CQChartsPieObj::ValueType) valueType());
+        auto v = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType()));
 
         place.addValue(v);
 
@@ -1054,7 +1054,7 @@ createObjs(PlotObjs &objs) const
       double err  = 0.0;
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->calcValue((CQChartsPieObj::ValueType) valueType()) + err;
+        auto v = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType())) + err;
 
         auto r = CMathUtil::map(v, 0.0, dataTotal, 0.0, 100.0);
         int  n = CMathRound::RoundNearest(r);
@@ -1617,7 +1617,7 @@ adjustObjAngles() const
         //---
 
         // set angle based on value
-        double value = obj->calcValue((CQChartsPieObj::ValueType) valueType());
+        double value = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType()));
 
         double angle  = da1*value;
         double angle2 = angle1 + angle;
@@ -2041,7 +2041,7 @@ valueStr() const
   int valueColumn = modelInd().column();
 
   return plot_->columnStr(Column(valueColumn),
-           calcValue((CQChartsPieObj::ValueType) plot_->valueType()));
+           calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())));
 }
 
 CQChartsArcData
@@ -2881,7 +2881,8 @@ writeScriptData(ScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.value = " << calcValue((CQChartsPieObj::ValueType) plot_->valueType()) << ";\n";
+  os << "  this.value = " <<
+    calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())) << ";\n";
 }
 
 QColor
@@ -3342,8 +3343,9 @@ drawDumbbell(PaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     // draw symbol
-    double r = CMathUtil::map(obj->calcValue((CQChartsPieObj::ValueType) plot_->valueType()),
-                              vmin, vmax, x1, x2);
+    double r = CMathUtil::map(
+      obj->calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())),
+      vmin, vmax, x1, x2);
 
     auto p = Point(r, c.y);
 

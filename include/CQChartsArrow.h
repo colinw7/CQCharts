@@ -125,7 +125,7 @@ class CQChartsArrow : public QObject,
   bool isFrontVisible() const { return data_.isFHead(); }
   void setFrontVisible(bool b);
 
-  HeadType frontType() const { return (HeadType) data_.fheadType(); }
+  HeadType frontType() const { return static_cast<HeadType>(data_.fheadType()); }
   void setFrontType(const HeadType &type);
 
   const Angle &frontAngle() const { return data_.frontAngle(); }
@@ -146,7 +146,7 @@ class CQChartsArrow : public QObject,
   bool isTailVisible() const { return data_.isTHead(); }
   void setTailVisible(bool b);
 
-  HeadType tailType() const { return (HeadType) data_.theadType(); }
+  HeadType tailType() const { return static_cast<HeadType>(data_.theadType()); }
   void setTailType(const HeadType &type);
 
   const Angle &tailAngle() const { return data_.tailAngle(); }

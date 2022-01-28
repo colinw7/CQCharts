@@ -398,7 +398,7 @@ draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
   CQChartsGeom::Point from(rect.left () + 2, rect.center().y());
   CQChartsGeom::Point to  (rect.right() - 2, rect.center().y());
 
-  CQChartsArrow arrow((CQChartsView *) nullptr, from, to);
+  CQChartsArrow arrow(static_cast<CQChartsView *>(nullptr), from, to);
 
   arrow.setData(data);
 

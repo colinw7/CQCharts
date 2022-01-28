@@ -4254,7 +4254,7 @@ draw(PaintDevice *device) const
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, (int) plot_->mouseColoring());
+      drawConnectionMouseOver(device, static_cast<int>(plot_->mouseColoring()));
 
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
@@ -4269,7 +4269,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
 drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 #endif
 {
-  auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
+  auto mouseColoring = static_cast<CQChartsSankeyPlot::ConnectionType>(imouseColoring);
 
   //---
 
@@ -4969,7 +4969,7 @@ draw(PaintDevice *device) const
     if (plot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, (int) plot()->mouseColoring());
+      drawConnectionMouseOver(device, static_cast<int>(plot()->mouseColoring()));
 
       plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
@@ -4980,7 +4980,7 @@ void
 CQChartsSankeyEdgeObj::
 drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 {
-  auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
+  auto mouseColoring = static_cast<CQChartsSankeyPlot::ConnectionType>(imouseColoring);
 
   //---
 
@@ -5024,7 +5024,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (srcNodeObj)
       srcNodeObj->drawConnectionMouseOver(device,
-        (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), edge()->pathId());
 #endif
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
@@ -5035,7 +5035,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (destNodeObj)
       destNodeObj->drawConnectionMouseOver(device,
-        (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), edge()->pathId());
 #endif
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
@@ -5047,13 +5047,13 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (srcNodeObj)
       srcNodeObj->drawConnectionMouseOver(device,
-        (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), edge()->pathId());
 
     auto *destNodeObj = destNode->obj();
 
     if (destNodeObj)
       destNodeObj->drawConnectionMouseOver(device,
-        (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), edge()->pathId());
 #endif
   }
 }

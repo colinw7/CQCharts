@@ -60,6 +60,13 @@ enum class TriState {
 
 //---
 
+template<typename FLAGS, typename FLAG>
+bool isFlagSet(const FLAGS &flags, const FLAG &flag) {
+  return (static_cast<int>(flags) & static_cast<int>(flag));
+}
+
+//---
+
 using BBox  = CQChartsGeom::BBox;
 using Range = CQChartsGeom::Range;
 

@@ -114,7 +114,7 @@ inline bool splitList(const std::string &str, StringList &strs) {
   int    argc;
   char **argv;
 
-  int rc = Tcl_SplitList(0, str.c_str(), &argc, (const char ***) &argv);
+  int rc = Tcl_SplitList(0, str.c_str(), &argc, const_cast<const char ***>(&argv));
 
   if (rc != TCL_OK)
     return false;
@@ -122,7 +122,7 @@ inline bool splitList(const std::string &str, StringList &strs) {
   for (int i = 0; i < argc; ++i)
     strs.push_back(std::string(argv[i]));
 
-  Tcl_Free((char *) argv);
+  Tcl_Free(reinterpret_cast<char *>(argv));
 
   return true;
 }
@@ -144,7 +144,7 @@ inline std::string mergeList(const StringList &strs) {
   for (int i = 0; i < argc; ++i)
     free(argv[i]);
 
-  Tcl_Free((char *) res);
+  Tcl_Free(res);
 
   return str;
 }
@@ -314,7 +314,7 @@ class CTcl {
       Tcl_VarTraceInfo(interp(), name.c_str(), flags, &CTcl::traceProc, 0);
 
     if (! data) {
-      Tcl_TraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, (ClientData) this);
+      Tcl_TraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, static_cast<ClientData>(this));
 
       traces_.insert(name);
     }
@@ -323,7 +323,7 @@ class CTcl {
   void untraceVar(const std::string &name) {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
-    Tcl_UntraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, (ClientData) this);
+    Tcl_UntraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, static_cast<ClientData>(this));
 
     traces_.erase(name);
   }
@@ -399,7 +399,7 @@ class CTcl {
 
  private:
   Tcl_Command createObjCommandI(const std::string &name, ObjCmdProc proc, ObjCmdData data) {
-    return Tcl_CreateObjCommand(interp(), (char *) name.c_str(), proc, data, nullptr);
+    return Tcl_CreateObjCommand(interp(), const_cast<char *>(name.c_str()), proc, data, nullptr);
   }
 
  private:

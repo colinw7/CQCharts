@@ -64,12 +64,12 @@ class CQChartsOptInt :
     else {
       bool ok;
 
-      int i = CQChartsUtil::toInt(s, ok);
+      long i = CQChartsUtil::toInt(s, ok);
 
       if (! ok)
         return false;
 
-      value_ = i;
+      value_ = static_cast<int>(i);
     }
 
     return true;
