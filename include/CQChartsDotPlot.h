@@ -647,6 +647,9 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeShapeData<CQChartsDotPlot> {
   Q_OBJECT
 
+  // plot type
+  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
+
   // node data
   Q_PROPERTY(NodeShape nodeShape READ nodeShape WRITE setNodeShape)
 
@@ -674,6 +677,7 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
+  Q_ENUMS(PlotType)
 
  public:
   enum class NodeShape {
@@ -689,6 +693,17 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
     NONE,
     LINE,
     ARC
+  };
+
+  enum class PlotType {
+    DOT,
+    NEATO,
+    TWOPI,
+    CIRCO,
+    FDP,
+    OSAGE,
+    PATCHWORK,
+    SFDP
   };
 
   using Node     = CQChartsDotPlotNode;
@@ -762,6 +777,11 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   //! get/set blend node colors for edge
   bool isBlendEdgeColor() const { return blendEdgeColor_; }
   void setBlendEdgeColor(bool b);
+
+  //---
+
+  const PlotType &plotType() const { return plotType_; }
+  void setPlotType(const PlotType &t);
 
   //---
 
@@ -938,16 +958,17 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   bool blendEdgeColor_ { true }; //!< blend edge color
 
   // data
-  Nodes            nodes_;                  //!< all nodes
-  NameNodeMap      nameNodeMap_;            //!< name node map
-  IndNodeMap       indNodeMap_;             //!< ind node map
-  Edges            edges_;                  //!< all edges
-  BBox             bbox_;                   //!< bbox
-  CQChartsValueInd groupValueInd_;          //!< group value ind
-  int              maxNodeDepth_  { 0 };    //!< max node depth (all graphs)
-  double           edgeMargin_    { 0.01 }; //!< edge bounding box margin
-  int              numGroups_     { 1 };    //!< node number of groups
-  double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
+  Nodes            nodes_;                           //!< all nodes
+  NameNodeMap      nameNodeMap_;                     //!< name node map
+  IndNodeMap       indNodeMap_;                      //!< ind node map
+  Edges            edges_;                           //!< all edges
+  BBox             bbox_;                            //!< bbox
+  CQChartsValueInd groupValueInd_;                   //!< group value ind
+  int              maxNodeDepth_  { 0 };             //!< max node depth (all graphs)
+  double           edgeMargin_    { 0.01 };          //!< edge bounding box margin
+  int              numGroups_     { 1 };             //!< node number of groups
+  double           arrowWidth_    { 1.5 };           //!< edge bounding box margin
+  PlotType         plotType_      { PlotType::DOT }; //!< plot type
 
   OptReal maxEdgeValue_;
 };

@@ -250,6 +250,15 @@ setBlendEdgeColor(bool b)
 
 void
 CQChartsDotPlot::
+setPlotType(const PlotType &t)
+{
+  CQChartsUtil::testAndSet(plotType_, t, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsDotPlot::
 addProperties()
 {
   CQChartsConnectionPlot::addProperties();
@@ -258,6 +267,7 @@ addProperties()
 
   // options
   addProp("options", "orientation", "orientation", "Plot orientation");
+  addProp("options", "plotType"   , "plotType"   , "Plot type");
 
   // coloring
   addProp("coloring", "blendEdgeColor", "", "Blend Edge Node Colors");
@@ -545,9 +555,22 @@ writeGraph() const
 
   //---
 
+  QString cmd { "dot" };
+
+  switch (plotType()) {
+    case PlotType::DOT       : cmd = "dot"; break;
+    case PlotType::NEATO     : cmd = "neato"; break;
+    case PlotType::TWOPI     : cmd = "twopi"; break;
+    case PlotType::CIRCO     : cmd = "circo"; break;
+    case PlotType::FDP       : cmd = "fdp"; break;
+    case PlotType::OSAGE     : cmd = "osage"; break;
+    case PlotType::PATCHWORK : cmd = "pathwork"; break;
+    case PlotType::SFDP      : cmd = "sfdp"; break;
+  }
+
   // run dot on graph file
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin");
-  auto dot_file = dot_path + "/dot";
+  auto dot_file = dot_path + "/" + cmd;
 
 #if 0
   CCommand::Args args;
@@ -555,7 +578,7 @@ writeGraph() const
   args.push_back("-Tjson");
   args.push_back(dotFilename);
 
-  CCommand cmd("dot", dot_file, args);
+  CCommand cmd(cmd, dot_file, args);
 
   cmd.addFileDest(jsonFilename);
 
