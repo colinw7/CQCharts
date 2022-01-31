@@ -138,7 +138,7 @@ CQChartsStrokeDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  auto data = value.value<CQChartsStrokeData>();
+  auto data = CQChartsStrokeData::fromVariant(value);
 
   CQChartsStrokeDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -147,7 +147,7 @@ QString
 CQChartsStrokeDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsStrokeData>().toString();
+  auto str = CQChartsStrokeData::fromVariant(value).toString();
 
   return str;
 }
@@ -178,7 +178,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->strokeData());
+  return CQChartsStrokeData::toVariant(edit->strokeData());
 }
 
 void
@@ -188,7 +188,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
-  auto data = var.value<CQChartsStrokeData>();
+  auto data = CQChartsStrokeData::fromVariant(var);
 
   edit->setStrokeData(data);
 }

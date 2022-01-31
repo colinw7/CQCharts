@@ -54,14 +54,14 @@ QVariant
 CQChartsOptRealEdit::
 toVariant() const
 {
-  return QVariant::fromValue(value());
+  return CQChartsOptReal::toVariant(value());
 }
 
 void
 CQChartsOptRealEdit::
 fromVariant(const QVariant &var)
 {
-  auto value = var.value<CQChartsOptReal>();
+  auto value = CQChartsOptReal::fromVariant(var);
 
   setValue(value);
 }
@@ -79,7 +79,7 @@ QString
 CQChartsOptRealPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  auto optReal = value.value<CQChartsOptReal>();
+  auto optReal = CQChartsOptReal::fromVariant(value);
 
   QString str;
 

@@ -347,15 +347,15 @@ CQChartsValueSet::
 min(const QVariant &def) const
 {
   if      (type() == Type::INTEGER)
-    return CQModelUtil::intVariant(ivals_.min());
+    return CQChartsVariant::fromInt(ivals_.min());
   else if (type() == Type::REAL)
-    return CQModelUtil::realVariant(rvals_.min());
+    return CQChartsVariant::fromReal(rvals_.min());
   else if (type() == Type::STRING)
-    return QVariant(svals_.min());
+    return CQChartsVariant::fromString(svals_.min());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.min());
   else if (type() == Type::TIME)
-    return CQModelUtil::realVariant(tvals_.min());
+    return CQChartsVariant::fromReal(tvals_.min());
   else
     return def;
 }
@@ -365,15 +365,15 @@ CQChartsValueSet::
 max(const QVariant &def) const
 {
   if      (type() == Type::INTEGER)
-    return CQModelUtil::intVariant(ivals_.max());
+    return CQChartsVariant::fromInt(ivals_.max());
   else if (type() == Type::REAL)
-    return CQModelUtil::realVariant(rvals_.max());
+    return CQChartsVariant::fromReal(rvals_.max());
   else if (type() == Type::STRING)
-    return QVariant(svals_.max());
+    return CQChartsVariant::fromString(svals_.max());
   else if (type() == Type::COLOR)
     return CQChartsVariant::fromColor(cvals_.max());
   else if (type() == Type::TIME)
-    return CQModelUtil::realVariant(tvals_.max());
+    return CQChartsVariant::fromReal(tvals_.max());
   else
     return def;
 }
@@ -617,7 +617,7 @@ reals(std::vector<double> &reals) const
       if (! sval) continue;
 
       bool ok;
-      double r = (*sval).toDouble(&ok);
+      double r = CQChartsUtil::toReal(*sval, ok);
       if (! ok) continue;
 
       reals.push_back(r);
@@ -730,7 +730,7 @@ calcType() const
 
       double r = CQChartsVariant::toReal(value, ok);
 
-      if (CMathUtil::isInteger(r))
+      if (CQModelUtil::isInteger(r))
         ++ni;
       else
         ++nr;
@@ -741,7 +741,7 @@ calcType() const
       double r = CQChartsVariant::toReal(value, ok);
 
       if (ok) {
-        if (CMathUtil::isInteger(r))
+        if (CQModelUtil::isInteger(r))
           ++ni;
         else
           ++nr;

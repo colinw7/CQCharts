@@ -2,6 +2,7 @@
 #define CQChartsLineCap_H
 
 #include <CQChartsEnum.h>
+#include <CQUtilMeta.h>
 #include <QPen>
 
 /*!
@@ -13,6 +14,10 @@ class CQChartsLineCap : public CQChartsEnum<CQChartsLineCap> {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsLineCap, metaTypeId)
 
  public:
   CQChartsLineCap();
@@ -48,8 +53,6 @@ class CQChartsLineCap : public CQChartsEnum<CQChartsLineCap> {
 };
 
 //------
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsLineCap)
 

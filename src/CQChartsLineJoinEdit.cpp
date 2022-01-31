@@ -35,14 +35,14 @@ QVariant
 CQChartsLineJoinEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(lineJoin());
+  return CQChartsLineJoin::toVariant(lineJoin());
 }
 
 void
 CQChartsLineJoinEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  auto lineJoin = var.value<CQChartsLineJoin>();
+  auto lineJoin = CQChartsLineJoin::fromVariant(var);
 
   setLineJoin(lineJoin);
 }
@@ -51,7 +51,7 @@ QString
 CQChartsLineJoinEdit::
 variantToString(const QVariant &var) const
 {
-  auto lineJoin = var.value<CQChartsLineJoin>();
+  auto lineJoin = CQChartsLineJoin::fromVariant(var);
 
   return lineJoin.toString();
 }
@@ -76,7 +76,7 @@ QString
 CQChartsLineJoinPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  auto lineJoin = var.value<CQChartsLineJoin>();
+  auto lineJoin = CQChartsLineJoin::fromVariant(var);
 
   return lineJoin.toString();
 }

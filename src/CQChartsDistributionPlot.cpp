@@ -1220,7 +1220,7 @@ bucketGroupValues() const
           bucket = calcBucket(groupInd, r);
 
           if (type == CQChartsValueSet::Type::REAL)
-            value = CQModelUtil::realVariant(r);
+            value = CQChartsVariant::fromReal(r);
           else
             value = modelValue(ind, ok);
         }
@@ -1234,7 +1234,7 @@ bucketGroupValues() const
           }
 
           bucket = calcBucket(groupInd, i);
-          value  = CQModelUtil::intVariant(i);
+          value  = CQChartsVariant::fromInt(i);
         }
         else {
           bool hierValue = isHierarchical();

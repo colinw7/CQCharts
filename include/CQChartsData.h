@@ -32,6 +32,10 @@ class CQChartsTextData {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsTextData, metaTypeId)
+
  public:
   using Color  = CQChartsColor;
   using Alpha  = CQChartsAlpha;
@@ -164,6 +168,10 @@ class CQChartsLineData {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsLineData, metaTypeId)
+
  public:
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
@@ -252,6 +260,10 @@ class CQChartsFillData {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsFillData, metaTypeId)
+
  public:
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
@@ -318,6 +330,10 @@ class CQChartsStrokeData {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsStrokeData, metaTypeId)
 
  public:
   using Color    = CQChartsColor;
@@ -405,6 +421,10 @@ class CQChartsShapeData {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsShapeData, metaTypeId)
+
  public:
   using FillData   = CQChartsFillData;
   using StrokeData = CQChartsStrokeData;
@@ -456,6 +476,10 @@ class CQChartsBoxData {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsBoxData, metaTypeId)
 
  public:
   using Margin    = CQChartsMargin;
@@ -522,6 +546,10 @@ class CQChartsTextBoxData {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsTextBoxData, metaTypeId)
+
  public:
   using TextData = CQChartsTextData;
   using BoxData  = CQChartsBoxData;
@@ -571,6 +599,10 @@ class CQChartsSymbolData {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsSymbolData, metaTypeId)
 
  public:
   using Symbol     = CQChartsSymbol;
@@ -642,6 +674,10 @@ class CQChartsArrowData {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsArrowData, metaTypeId)
 
  public:
   enum class HeadType {

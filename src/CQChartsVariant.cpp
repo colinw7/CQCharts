@@ -1,4 +1,5 @@
 #include <CQChartsVariant.h>
+#include <CQModelUtil.h>
 
 namespace CQChartsVariant {
 
@@ -67,13 +68,13 @@ bool toString(const QVariant &var, QString &str) {
   }
   else if (var.type() == QVariant::UserType) {
 #if 0
-    if      (var.userType() == CQChartsPath::metaTypeId) {
-      auto path = var.value<CQChartsPath>();
+    if      (CQChartsPath::isVariantType(var)) {
+      auto path = CQChartsPath::fromVariant(var);
 
       str = path.toString();
     }
-    else if (var.userType() == CQChartsStyle::metaTypeId) {
-      auto style = var.value<CQChartsStyle>();
+    else if (CQChartsStyle::isVariantType(var)) {
+      auto style = CQChartsStyle::fromVariant(var);
 
       str = style.toString();
     }
@@ -227,9 +228,9 @@ int cmp(const QVariant &var1, const QVariant &var2) {
       assert(false);
     }
 
-    if (var1.userType() == CQChartsColor::metaTypeId) {
-      auto color1 = var1.value<CQChartsColor>();
-      auto color2 = var2.value<CQChartsColor>();
+    if (CQChartsColor::isVariantType(var1)) {
+      auto color1 = CQChartsColor::fromVariant(var1);
+      auto color2 = CQChartsColor::fromVariant(var2);
 
       return cmp(color1, color2);
     }
@@ -306,9 +307,12 @@ long toInt(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Double) {
     double r = var.value<double>();
 
-    if (CMathUtil::isInteger(r))
-      return int(r);
+    if (CQModelUtil::isInteger(r))
+      return static_cast<long>(r);
   }
+
+  if (var.type() == QVariant::Bool)
+    return var.toBool();
 
   auto str = toString(var, ok);
 
@@ -341,7 +345,7 @@ bool toBool(const QVariant &var, bool &ok) {
 
   ok = false;
 
-  return false;
+  return var.toBool();
 }
 
 //---
@@ -355,8 +359,8 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
     return CQChartsColor(color);
   }
 
-  if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId) {
-    auto color = var.value<CQChartsColor>();
+  if (CQChartsColor::isVariantType(var)) {
+    auto color = CQChartsColor::fromVariant(var);
     ok = color.isValid();
     return color;
   }
@@ -368,7 +372,7 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
 }
 
 QVariant fromColor(const CQChartsColor &c) {
-  return QVariant::fromValue<CQChartsColor>(c);
+  return CQChartsColor::toVariant(c);
 }
 
 //---
@@ -377,25 +381,25 @@ CQChartsFont toFont(const QVariant &var, bool &ok) {
   ok = true;
 
   if (var.type() == QVariant::Font) {
-    CQChartsFont font(var.value<QFont>());
+    auto font = var.value<QFont>();
+    //ok = font.isValid();
+    return CQChartsFont(font);
+  }
+
+  if (CQChartsFont::isVariantType(var)) {
+    auto font = CQChartsFont::fromVariant(var);
     ok = font.isValid();
     return font;
   }
 
-  if (var.type() == QVariant::UserType && var.userType() == CQChartsFont::metaTypeId) {
-    auto font = var.value<CQChartsFont>();
-    ok = font.isValid();
-    return font;
-  }
-
-  CQChartsFont font(var.toString());
+  auto font = CQChartsFont(var.toString());
   ok = font.isValid();
 
   return font;
 }
 
 QVariant fromFont(const CQChartsFont &f) {
-  return QVariant::fromValue<CQChartsFont>(f);
+  return CQChartsFont::toVariant(f);
 }
 
 //---
@@ -403,10 +407,8 @@ QVariant fromFont(const CQChartsFont &f) {
 CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
   ok = true;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsSymbol::metaTypeId)
-      return var.value<CQChartsSymbol>();
-  }
+  if (CQChartsSymbol::isVariantType(var))
+    return CQChartsSymbol::fromVariant(var);
 
   CQChartsSymbol symbol(var.toString());
 
@@ -419,7 +421,7 @@ CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
 }
 
 QVariant fromSymbol(const CQChartsSymbol &symbol) {
-  return QVariant::fromValue<CQChartsSymbol>(symbol);
+  return CQChartsSymbol::toVariant(symbol);
 }
 
 //---
@@ -433,10 +435,8 @@ CQChartsImage toImage(const QVariant &var, bool &ok) {
     return CQChartsImage(image);
   }
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsImage::metaTypeId)
-      return var.value<CQChartsImage>();
-  }
+  if (CQChartsImage::isVariantType(var))
+    return CQChartsImage::fromVariant(var);
 
   CQChartsImage image(var.toString());
 
@@ -449,7 +449,7 @@ CQChartsImage toImage(const QVariant &var, bool &ok) {
 }
 
 QVariant fromImage(const CQChartsImage &image) {
-  return QVariant::fromValue<CQChartsImage>(image);
+  return CQChartsImage::toVariant(image);
 }
 
 //---
@@ -457,10 +457,8 @@ QVariant fromImage(const CQChartsImage &image) {
 CQChartsUnits toUnits(const QVariant &var, bool &ok) {
   ok = true;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsUnits::metaTypeId)
-      return var.value<CQChartsUnits>();
-  }
+  if (CQChartsUnits::isVariantType(var))
+    return CQChartsUnits::fromVariant(var);
 
   CQChartsUnits units(var.toString());
 
@@ -473,7 +471,7 @@ CQChartsUnits toUnits(const QVariant &var, bool &ok) {
 }
 
 QVariant fromUnits(const CQChartsUnits &units) {
-  return QVariant::fromValue<CQChartsUnits>(units);
+  return CQChartsUnits::toVariant(units);
 }
 
 //---
@@ -481,10 +479,8 @@ QVariant fromUnits(const CQChartsUnits &units) {
 CQChartsLength toLength(const QVariant &var, bool &ok) {
   ok = true;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsLength::metaTypeId)
-      return var.value<CQChartsLength>();
-  }
+  if (CQChartsLength::isVariantType(var))
+    return CQChartsLength::fromVariant(var);
 
   CQChartsLength length(var.toString());
 
@@ -497,7 +493,7 @@ CQChartsLength toLength(const QVariant &var, bool &ok) {
 }
 
 QVariant fromLength(const CQChartsLength &length) {
-  return QVariant::fromValue<CQChartsLength>(length);
+  return CQChartsLength::toVariant(length);
 }
 
 //---
@@ -632,9 +628,7 @@ QVariant fromBBox(const BBox &bbox) {
 
 //---
 
-Polygon toPolygon(const QVariant &var, bool &ok) {
-  Polygon poly;
-
+QPolygonF toQPolygon(const QVariant &var, bool &ok) {
   ok = false;
 
   // TODO: handle QVariant::RectF ?
@@ -647,12 +641,22 @@ Polygon toPolygon(const QVariant &var, bool &ok) {
   else {
     ok = false;
 
-    return poly;
+    return qpoly;
   }
 
-  poly = Polygon(qpoly);
+  return qpoly;
+}
+
+Polygon toPolygon(const QVariant &var, bool &ok) {
+  auto qpoly = toQPolygon(var, ok);
+
+  auto poly = Polygon(qpoly);
 
   return poly;
+}
+
+QVariant fromQPolygon(const QPolygonF &poly) {
+  return QVariant::fromValue<QPolygonF>(poly);
 }
 
 //---
@@ -661,8 +665,8 @@ bool toPath(const QVariant &var, CQChartsPath &path) {
   bool ok = true;
 
   // TODO: other var formats
-  if (var.userType() == CQChartsPath::metaTypeId)
-    path = var.value<CQChartsPath>();
+  if (CQChartsPath::isVariantType(var))
+    path = CQChartsPath::fromVariant(var);
   else
     ok = false;
 
@@ -672,39 +676,50 @@ bool toPath(const QVariant &var, CQChartsPath &path) {
 }
 
 QVariant fromPath(const CQChartsPath &path) {
-  return QVariant::fromValue<CQChartsPath>(path);
+  return CQChartsPath::toVariant(path);
 }
 
 //---
 
 CQChartsPolygonList toPolygonList(const QVariant &var, bool &ok) {
-  ok = true; // TODO: validate
+  ok = true;
 
-  return var.value<CQChartsPolygonList>();
+  CQChartsPolygonList polys;
+
+  if (CQChartsPolygonList::isVariantType(var))
+    polys = CQChartsPolygonList::fromVariant(var);
+  else
+    ok = false;
+
+  // TODO: validate polygon list
+
+  return polys;
 }
 
 QVariant fromPolygonList(const CQChartsPolygonList &polyList) {
-  return QVariant::fromValue<CQChartsPolygonList>(polyList);
+  return CQChartsPolygonList::toVariant(polyList);
 }
 
 //---
 
 CQChartsAlpha toAlpha(const QVariant &var, bool &ok) {
-  ok = true; // TODO: validate
+  ok = true;
 
   CQChartsAlpha alpha;
 
   // TODO: other var formats
-  if (var.userType() == CQChartsAlpha::metaTypeId)
-    alpha = var.value<CQChartsAlpha>();
+  if (CQChartsAlpha::isVariantType(var))
+    alpha = CQChartsAlpha::fromVariant(var);
   else
     ok = false;
+
+  // TODO: validate alpha
 
   return alpha;
 }
 
 QVariant fromAlpha(const CQChartsAlpha &a) {
-  return QVariant::fromValue<CQChartsAlpha>(a);
+  return CQChartsAlpha::toVariant(a);
 }
 
 //---
@@ -715,16 +730,18 @@ CQChartsAngle toAngle(const QVariant &var, bool &ok) {
   CQChartsAngle angle;
 
   // TODO: other var formats
-  if (var.userType() == CQChartsAngle::metaTypeId)
-    angle = var.value<CQChartsAngle>();
+  if (CQChartsAngle::isVariantType(var))
+    angle = CQChartsAngle::fromVariant(var);
   else
     ok = false;
+
+  // TODO: validate angle
 
   return angle;
 }
 
 QVariant fromAngle(const CQChartsAngle &a) {
-  return QVariant::fromValue<CQChartsAngle>(a);
+  return CQChartsAngle::toVariant(a);
 }
 
 }

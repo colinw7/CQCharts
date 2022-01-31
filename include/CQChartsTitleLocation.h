@@ -23,6 +23,10 @@ class CQChartsTitleLocation : public CQChartsEnum<CQChartsTitleLocation> {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsTitleLocation, metaTypeId)
+
  public:
   explicit CQChartsTitleLocation(Type type=Type::TOP) :
    type_(type) {

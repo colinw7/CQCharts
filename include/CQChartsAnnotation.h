@@ -1438,17 +1438,25 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotation {
 class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPosition start       READ start         WRITE setStart      )
-  Q_PROPERTY(CQChartsPosition end         READ end           WRITE setEnd        )
-  Q_PROPERTY(bool             isLine      READ isLine        WRITE setLine       )
-  Q_PROPERTY(bool             rectilinear READ isRectilinear WRITE setRectilinear)
-  Q_PROPERTY(HeadType         frontType   READ frontType     WRITE setFrontType  )
-  Q_PROPERTY(HeadType         tailType    READ tailType      WRITE setTailType   )
-  Q_PROPERTY(CQChartsLength   lineWidth   READ lineWidth     WRITE setLineWidth  )
+  Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
+  Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
+  Q_PROPERTY(bool             isSolid   READ isSolid   WRITE setSolid    )
+  Q_PROPERTY(EdgeType         edgeType  READ edgeType  WRITE setEdgeType )
+  Q_PROPERTY(HeadType         frontType READ frontType WRITE setFrontType)
+  Q_PROPERTY(HeadType         tailType  READ tailType  WRITE setTailType )
+  Q_PROPERTY(CQChartsLength   lineWidth READ lineWidth WRITE setLineWidth)
+  Q_PROPERTY(double           arrowSize READ arrowSize WRITE setArrowSize)
 
+  Q_ENUMS(EdgeType)
   Q_ENUMS(HeadType)
 
  public:
+  enum class EdgeType {
+    ARC         = int(CQChartsDrawUtil::EdgeType::ARC),         // arc edge
+    RECTILINEAR = int(CQChartsDrawUtil::EdgeType::RECTILINEAR), // rectilinear edge
+    LINE        = int(CQChartsDrawUtil::EdgeType::LINE)         // line edge
+  };
+
   enum class HeadType {
     NONE     = int(CQChartsArrowData::HeadType::NONE),
     ARROW    = int(CQChartsArrowData::HeadType::ARROW),
@@ -1488,13 +1496,13 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
 
   //---
 
-  //! get/set edge line
-  bool isLine() const { return isLine_; }
-  void setLine(bool b);
+  //! get/set is solid line
+  bool isSolid() const { return isSolid_; }
+  void setSolid(bool b);
 
-  //! get/set edge rectilinear
-  bool isRectilinear() const { return rectilinear_; }
-  void setRectilinear(bool b);
+  //! get/set edge line type
+  const EdgeType &edgeType() const { return edgeType_; }
+  void setEdgeType(const EdgeType &type);
 
   //---
 
@@ -1509,6 +1517,10 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
   //! get/set line width
   const Length &lineWidth() const { return lineWidth_; }
   void setLineWidth(const Length &l);
+
+  //! get/set arrow size
+  double arrowSize() const { return arrowSize_; }
+  void setArrowSize(double r);
 
   //---
 
@@ -1536,16 +1548,19 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotation {
 
   void calcPath(QPainterPath &path) const;
 
+  void setArrowData(CQChartsArrowData &arrowData) const;
+
   EditHandles *editHandles() const override;
 
  protected:
-  Position start_       { CQChartsPosition::plot(Point(0, 0)) }; //!< arc start
-  Position end_         { CQChartsPosition::plot(Point(1, 1)) }; //!< arc end
-  bool     isLine_      { false };                               //!< is line
-  bool     rectilinear_ { false };                               //!< is rectilinear
-  HeadType frontType_   { HeadType::NONE };                      //!< front head type
-  HeadType tailType_    { HeadType::NONE };                      //!< tail head type
-  Length   lineWidth_   { Length::pixel(16) };                   //!< line width
+  Position start_     { CQChartsPosition::plot(Point(0, 0)) }; //!< arc start
+  Position end_       { CQChartsPosition::plot(Point(1, 1)) }; //!< arc end
+  bool     isSolid_   { true };                                //!< is solid line
+  EdgeType edgeType_  { EdgeType::ARC };                       //!< is rectilinear
+  HeadType frontType_ { HeadType::NONE };                      //!< front head type
+  HeadType tailType_  { HeadType::NONE };                      //!< tail head type
+  Length   lineWidth_ { Length::pixel(16) };                   //!< line width
+  double   arrowSize_ { 2.0 };                                 //!< arrow size
 };
 
 //---

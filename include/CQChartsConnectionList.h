@@ -2,6 +2,7 @@
 #define CQChartsConnectionList_H
 
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
 
 /*!
  * \brief connection list
@@ -27,6 +28,10 @@ class CQChartsConnectionList {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsConnectionList, metaTypeId)
 
  public:
   CQChartsConnectionList(const QString &s=QString()) {
@@ -62,8 +67,6 @@ class CQChartsConnectionList {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsConnectionList)
 

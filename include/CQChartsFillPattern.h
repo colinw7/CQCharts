@@ -50,6 +50,10 @@ class CQChartsFillPattern :
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsFillPattern, metaTypeId)
+
  public:
   using PaletteName = CQChartsPaletteName;
   using Image       = CQChartsImage;

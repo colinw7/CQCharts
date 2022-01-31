@@ -40,7 +40,7 @@ fromString(const QString &str)
 
   bool ok;
 
-  int column = str.toInt(&ok);
+  long column = CQChartsUtil::toInt(str, ok);
 
   if (! ok || column < -1)
     return false;

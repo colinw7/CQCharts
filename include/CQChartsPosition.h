@@ -4,6 +4,8 @@
 #include <CQChartsGeom.h>
 #include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
@@ -18,6 +20,10 @@ class CQChartsPosition :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPosition, metaTypeId)
 
  public:
   using Point = CQChartsGeom::Point;
@@ -102,8 +108,6 @@ class CQChartsPosition :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPosition)
 

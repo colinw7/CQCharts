@@ -16,8 +16,27 @@ class CQChartsDendrogram {
   using BBox = CQChartsGeom::BBox;
 
   class RootNode;
-  class HierNode;
   class Node;
+
+  //---
+
+  using OptReal = boost::optional<double>;
+
+  struct Child {
+    Node*   node { nullptr };
+    OptReal value;
+
+    Child() { }
+
+    Child(Node *node, const OptReal &value=OptReal()) :
+     node(node), value(value) {
+    }
+  };
+
+  using Nodes    = std::vector<Node *>;
+  using Children = std::vector<Child>;
+
+  //---
 
   //! Node
   class Node {
@@ -29,18 +48,18 @@ class CQChartsDendrogram {
     }
 
    public:
-    Node(HierNode *parent, const QString &name="", double size=1.0);
+    Node(Node *parent, const QString &name="", double size=1.0);
 
-    virtual ~Node() { }
+    virtual ~Node();
 
-    HierNode *parent() const { return parent_; }
+    Node *parent() const { return parent_; }
 
     uint id() const { return id_; }
 
     const QString &name() const { return name_; }
     void setName(const QString &name) { name_ = name; }
 
-    virtual double size() const { return size_; }
+    double size() const;
 
     //! get/set depth
     int depth() const { return depth_; }
@@ -62,11 +81,16 @@ class CQChartsDendrogram {
     bool isPlaced() const { return placed_; }
     void setPlaced(bool placed) { placed_ = placed; }
 
-    virtual void resetPlaced() { bbox_ = BBox(); placed_ = false; }
+    void resetPlaced();
 
     //! get/set is open
     bool isOpen() const { return open_; }
     void setOpen(bool open) { open_ = open; }
+
+    //---
+
+    const Children &getNodes   () const { return nodes_; }
+    const Children &getChildren() const { return children_; }
 
     //---
 
@@ -102,120 +126,74 @@ class CQChartsDendrogram {
 
     //---
 
-    virtual int maxNodes() { return 1; }
-
     RootNode *root();
     const RootNode *root() const;
 
-    virtual bool hasChildren() const { return false; }
+    bool hasChildren() const;
+
+    void clear();
+
+    void addChild(Node *child, const OptReal &value=OptReal());
+
+    void addNode(Node *node, const OptReal &value=OptReal());
+
+    int numNodes() const;
+
+    int maxNodes();
+
+    int calcDepth() const;
+
+    //---
+
+    Node *findChild(const QString &name) const;
+
+    //---
+
+    void setChildValue(Node *child, double value);
+
+    //---
 
     virtual void moveNode(double d);
 
     virtual void compressNode(double d);
 
+    //---
+
     bool isNodeAtPoint(double x, double y, double tol) const;
-
-   protected:
-    friend class HierNode;
-
-    void setParent(HierNode *parent) { parent_ = parent; }
-
-   protected:
-    HierNode* parent_ { nullptr }; //!< parent hier node
-    uint      id_;                 //!< id
-    QString   name_;               //!< name
-    double    size_   { 0.0 };     //!< size
-    int       depth_  { 0 };       //!< depth
-    double    row_    { 0.0 };     //!< row
-    double    nr_     { 0.0 };     //!< number of rows
-    double    gap_    { 0.0 };     //!< gap
-    bool      open_   { false };   //!< is open
-    bool      placed_ { false };   //!< is placed
-    BBox      bbox_;               //!< bbox
-  };
-
-  //---
-
-  using OptReal = boost::optional<double>;
-
-  struct Child {
-    Node*   node { nullptr };
-    OptReal value;
-
-    Child() { }
-
-    Child(Node *node, const OptReal &value=OptReal()) :
-     node(node), value(value) {
-    }
-  };
-
-  using Nodes    = std::vector<Node *>;
-  using Children = std::vector<Child>;
-
-  //---
-
-  //! Hierarchical Node
-  class HierNode : public Node {
-   public:
-    struct HierChild {
-      HierNode *node { nullptr };
-      OptReal   value;
-
-      HierChild() { }
-
-      HierChild(HierNode *node, const OptReal &value=OptReal()) :
-       node(node), value(value) {
-      }
-    };
-
-    using HierChildren = std::vector<HierChild>;
-
-   public:
-    HierNode(HierNode *parent=nullptr, const QString &name="");
-
-   ~HierNode();
-
-    double size() const override;
-
-    const Children     &getNodes   () const { return nodes_; }
-    const HierChildren &getChildren() const { return children_; }
-
-    int calcDepth() const;
-
-    int numNodes() const;
-
-    int maxNodes() override;
-
-    bool hasChildren() const override;
-
-    HierNode *findChild(const QString &name) const;
-
-    void resetPlaced() override;
-
-    void placeSubNodes(RootNode *root, int depth, double row);
-
-    void addChild(HierNode *child, const OptReal &value=OptReal());
-
-    void setChildValue(Node *child, double value);
-
-    void addNode(Node *node, const OptReal &value=OptReal());
-
-    void compressNode(double d) override;
 
     Node *getNodeAtPoint(double x, double y, double tol);
     const Node *getNodeAtPoint(double x, double y, double tol) const;
 
-    void clear();
+    //---
+
+    void placeSubNodes(RootNode *root, int depth, double row);
 
    protected:
-    Children     nodes_;    //!< child leaf nodes
-    HierChildren children_; //!< child hier nodes
+    void setParent(Node *parent) { parent_ = parent; }
+
+   protected:
+    Node*   parent_ { nullptr }; //!< parent hier node
+    uint    id_;                 //!< id
+    QString name_;               //!< name
+    double  size_   { 0.0 };     //!< size
+    int     depth_  { 0 };       //!< depth
+    double  row_    { 0.0 };     //!< row
+    double  nr_     { 0.0 };     //!< number of rows
+    double  gap_    { 0.0 };     //!< gap
+    bool    open_   { false };   //!< is open
+    bool    placed_ { false };   //!< is placed
+    BBox    bbox_;               //!< bbox
+
+    //---
+
+    Children nodes_;    //!< child leaf nodes
+    Children children_; //!< child hier nodes
   };
 
   //---
 
   //! Root Node
-  class RootNode : public HierNode {
+  class RootNode : public Node {
    public:
     explicit RootNode(const QString &name="");
 
@@ -246,7 +224,7 @@ class CQChartsDendrogram {
     bool canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren);
 
     // get the child of node with lowest row
-    Node *getLowestChild(HierNode *hierNode);
+    Node *getLowestChild(Node *hierNode);
 
     // open all nodes down to depth and close all node below depth
     void setOpenDepth(int depth);
@@ -257,7 +235,7 @@ class CQChartsDendrogram {
     // compress node and children
     void compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d);
 
-    //void moveChildNodes(HierNode *hierNode, double d);
+    //void moveChildNodes(Node *hierNode, double d);
 
     // recursively move node, higher nodes and parent
     void compressNodeUp(Node *node, double d);
@@ -294,17 +272,16 @@ class CQChartsDendrogram {
   bool singleStep() const;
   void setSingleStep(bool b);
 
-  HierNode *root() const { return root_; }
+  RootNode *root() const { return root_; }
 
-  HierNode *addRootNode(const QString &name);
+  RootNode *addRootNode(const QString &name);
 
-  HierNode *addHierNode(HierNode *hier, const QString &name, const OptReal &value=OptReal());
+  Node *addHierNode(Node *hier, const QString &name, const OptReal &value=OptReal());
 
-  Node *addNode(HierNode *hier, const QString &name, double size);
+  Node *addNode(Node *hier, const QString &name, double size);
 
   virtual RootNode *createRootNode(const QString &name) const;
-  virtual HierNode *createHierNode(HierNode *hier, const QString &name) const;
-  virtual Node *createNode(HierNode *hier, const QString &name, double size) const;
+  virtual Node *createNode(Node *hier, const QString &name, double size) const;
 
   void placeNodes();
 

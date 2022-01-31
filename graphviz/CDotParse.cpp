@@ -1,6 +1,7 @@
 #include <CDotParse.h>
 #include <CFileParse.h>
 #include <CAStarNode.h>
+#include <CStrUtil.h>
 
 #include <list>
 #include <cassert>
@@ -436,6 +437,8 @@ parseAList(const std::string &id)
         currentEdge_->setAttribute(id1, std::to_string(r));
       else if (currentNode_)
         currentNode_->setAttribute(id1, std::to_string(r));
+      else if (currentGraph_)
+        currentGraph_->setAttribute(id1, std::to_string(r));
     }
     else {
       std::string id2;
@@ -457,6 +460,8 @@ parseAList(const std::string &id)
           currentEdge_->setAttribute(id1, id2);
         else if (currentNode_)
           currentNode_->setAttribute(id1, id2);
+        else if (currentGraph_)
+          currentGraph_->setAttribute(id1, id2);
       }
     }
 
@@ -1399,6 +1404,36 @@ attributesCSVStr() const
   str += "\"";
 
   return str;
+}
+
+//---
+
+namespace Util {
+
+double stringToReal(const std::string &s, bool &ok) {
+  double r;
+  ok = CStrUtil::toReal(s, &r);
+  return r;
+}
+
+std::vector<double> stringToReals(const std::string &s, bool &ok)
+{
+  std::vector<double> reals;
+
+  std::vector<std::string> strs;
+  CStrUtil::addFields(s, strs, ",", /*skipEmpty*/true);
+
+  for (const auto &str : strs) {
+    bool ok1;
+    double r = stringToReal(str, ok1);
+    if (! ok1) ok = false;
+
+    reals.push_back(r);
+  }
+
+  return reals;
+}
+
 }
 
 }

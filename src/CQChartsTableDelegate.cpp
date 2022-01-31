@@ -7,7 +7,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsImage.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQCharts.h>
@@ -93,7 +92,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     if (isNullVar(var))
       return drawNullValue(painter, option, index);
 
-    bool b = var.toBool();
+    bool ok;
+    bool b = CQChartsVariant::toBool(var, ok);
 
     // draw checkbox
     drawCheckInside(painter, option, b, index);
@@ -174,7 +174,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     //---
 
     bool ok;
-    double r = var.toReal(&ok);
+    double r = CQChartsVariant::toReal(var, ok);
     if (! ok) return false;
 
     //---
@@ -232,8 +232,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       auto maxVar = columnType->maxValue(columnData.details->nameValues());
       if (! maxVar.isValid()) maxVar = columnData.details->maxValue();
 
-      min = minVar.toReal(&ok);
-      max = maxVar.toReal(&ok);
+      min = CQChartsVariant::toReal(minVar, ok);
+      max = CQChartsVariant::toReal(maxVar, ok);
 
       norm = (max > min ? (r - min)/(max - min) : 0.0);
     }
@@ -357,7 +357,8 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
 
     auto *check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
 
-    check->setChecked(var.toBool());
+    bool ok;
+    check->setChecked(CQChartsVariant::toBool(var, ok));
 
     check->setText(check->isChecked() ? "true" : "false");
 
@@ -388,7 +389,8 @@ click(const QModelIndex &index) const
   if (type == CQBaseModelType::BOOLEAN) {
     auto var = modelP()->data(index);
 
-    modelP()->setData(index, ! var.toBool());
+    bool ok;
+    modelP()->setData(index, ! CQChartsVariant::toBool(var, ok));
   }
 }
 

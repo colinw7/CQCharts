@@ -35,14 +35,14 @@ QVariant
 CQChartsKeyPressBehaviorEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(keyPressBehavior());
+  return CQChartsKeyPressBehavior::toVariant(keyPressBehavior());
 }
 
 void
 CQChartsKeyPressBehaviorEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  auto keyPressBehavior = var.value<CQChartsKeyPressBehavior>();
+  auto keyPressBehavior = CQChartsKeyPressBehavior::fromVariant(var);
 
   setKeyPressBehavior(keyPressBehavior);
 }
@@ -51,7 +51,7 @@ QString
 CQChartsKeyPressBehaviorEdit::
 variantToString(const QVariant &var) const
 {
-  auto keyPressBehavior = var.value<CQChartsKeyPressBehavior>();
+  auto keyPressBehavior = CQChartsKeyPressBehavior::fromVariant(var);
 
   return keyPressBehavior.toString();
 }
@@ -76,7 +76,7 @@ QString
 CQChartsKeyPressBehaviorPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  auto keyPressBehavior = var.value<CQChartsKeyPressBehavior>();
+  auto keyPressBehavior = CQChartsKeyPressBehavior::fromVariant(var);
 
   return keyPressBehavior.toString();
 }

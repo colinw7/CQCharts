@@ -136,7 +136,7 @@ CQChartsShapeDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  auto data = value.value<CQChartsShapeData>();
+  auto data = CQChartsShapeData::fromVariant(value);
 
   CQChartsShapeDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -145,7 +145,7 @@ QString
 CQChartsShapeDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsShapeData>().toString();
+  auto str = CQChartsShapeData::fromVariant(value).toString();
 
   return str;
 }
@@ -176,7 +176,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->shapeData());
+  return CQChartsShapeData::toVariant(edit->shapeData());
 }
 
 void
@@ -186,7 +186,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
-  auto data = var.value<CQChartsShapeData>();
+  auto data = CQChartsShapeData::fromVariant(var);
 
   edit->setShapeData(data);
 }

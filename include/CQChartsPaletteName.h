@@ -2,8 +2,12 @@
 #define CQChartsPaletteName_H
 
 #include <CQChartsTmpl.h>
-#include <cassert>
+#include <CQUtilMeta.h>
+
 #include <QColor>
+#include <QVariant>
+
+#include <cassert>
 #include <iostream>
 
 class CQColorsPalette;
@@ -20,6 +24,10 @@ class CQChartsPaletteName :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPaletteName, metaTypeId)
 
  public:
   //! default constructor
@@ -64,8 +72,6 @@ class CQChartsPaletteName :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPaletteName)
 

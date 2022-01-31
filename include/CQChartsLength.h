@@ -4,6 +4,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsUnits.h>
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <iostream>
@@ -20,6 +21,10 @@ class CQChartsLength :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsLength, metaTypeId)
 
  public:
   using Length = CQChartsLength;
@@ -106,8 +111,6 @@ class CQChartsLength :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsLength)
 

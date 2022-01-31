@@ -3,6 +3,8 @@
 
 #include <CQChartsPosition.h>
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
@@ -17,6 +19,10 @@ class CQChartsPoints :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPoints, metaTypeId)
 
  public:
   using Position = CQChartsPosition;
@@ -71,8 +77,6 @@ class CQChartsPoints :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPoints)
 

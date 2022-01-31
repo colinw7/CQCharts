@@ -4,7 +4,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
@@ -886,7 +885,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
     auto linkVar = modelValue(linkModelInd, ok);
     if (! ok) return th->addDataError(linkModelInd, "Invalid Link");
 
-    namePair = linkVar.value<CQChartsNamePair>();
+    namePair = CQChartsNamePair::fromVariant(linkVar);
   }
   else {
     bool ok;
@@ -992,7 +991,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
     bool ok3;
     auto connectionsVar = modelValue(connectionsModelInd, ok3);
 
-    connections = connectionsVar.value<CQChartsConnectionList>().connections();
+    connections = CQChartsConnectionList::fromVariant(connectionsVar).connections();
   }
   else {
     bool ok3;

@@ -2,6 +2,8 @@
 #define CQChartsOptLength_H
 
 #include <CQChartsLength.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -17,6 +19,10 @@ class CQChartsOptLength :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsOptLength, metaTypeId)
 
  public:
   using OptLength = boost::optional<CQChartsLength>;
@@ -98,8 +104,6 @@ class CQChartsOptLength :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsOptLength)
 

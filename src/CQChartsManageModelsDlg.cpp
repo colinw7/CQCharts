@@ -115,12 +115,15 @@ writeSlot()
         continue;
 
       if      (param->type() == CQBaseModelType::BOOLEAN) {
-        if (var.toBool() == param->def().toBool())
+        bool ok1, ok2;
+        auto b1 = CQChartsVariant::toBool(var         , ok1);
+        auto b2 = CQChartsVariant::toBool(param->def(), ok2);
+
+        if (ok1 && ok2 && b1 == b2)
           continue;
       }
       else if (param->type() == CQBaseModelType::REAL) {
         bool ok1, ok2;
-
         auto r1 = CQChartsVariant::toReal(var         , ok1);
         auto r2 = CQChartsVariant::toReal(param->def(), ok2);
 
@@ -129,7 +132,6 @@ writeSlot()
       }
       else if (param->type() == CQBaseModelType::INTEGER) {
         bool ok1, ok2;
-
         auto i1 = CQChartsVariant::toInt(var         , ok1);
         auto i2 = CQChartsVariant::toInt(param->def(), ok2);
 

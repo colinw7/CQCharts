@@ -38,7 +38,7 @@ class PlotDendrogram : public CQChartsDendrogram {
  public:
   class PlotNode : public CQChartsDendrogram::Node {
    public:
-    PlotNode(CQChartsDendrogram::HierNode *parent, const QString &name="", double size=1.0) :
+    PlotNode(CQChartsDendrogram::Node *parent, const QString &name="", double size=1.0) :
      CQChartsDendrogram::Node(parent, name, size) {
     }
 
@@ -62,7 +62,7 @@ class PlotDendrogram : public CQChartsDendrogram {
    CQChartsDendrogram() {
   }
 
-  Node *createNode(CQChartsDendrogram::HierNode *hier, const QString &name,
+  Node *createNode(CQChartsDendrogram::Node *hier, const QString &name,
                    double size) const override {
     return new PlotNode(hier, name, size);
   }
@@ -195,7 +195,7 @@ addProperties()
   addProp("columns", "sizeColumn" , "size" , "Size column" );
 
   // node
-  addProp("node", "circleSize", "circleSize", "Circle size");
+  addProp("node", "symbolSize", "symbolSize", "Node Symbol size");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeStroke", "Node");
@@ -308,18 +308,18 @@ setNamedColumn(const QString &name, const Column &c)
 
 void
 CQChartsDendrogramPlot::
-setCircleSize(const Length &s)
+setSymbolSize(const Length &s)
 {
-  CQChartsUtil::testAndSet(circleSize_, s, [&]() {
+  CQChartsUtil::testAndSet(symbolSize_, s, [&]() {
     needsPlace_ = true; updateRangeAndObjs();
   } );
 }
 
 double
 CQChartsDendrogramPlot::
-calcCircleSize() const
+calcSymbolSize() const
 {
-  auto ss = lengthPixelWidth(circleSize_);
+  auto ss = lengthPixelWidth(symbolSize_);
 
   if (ss <= 0) {
     auto hfont = view()->plotFont(this, hierLabelTextFont());
@@ -457,7 +457,7 @@ placeModel() const
   //---
 
   if (linkColumn().isValid()) {
-    th->tempRoot_ = th->dendrogram_->createHierNode(nullptr, "tempRoot");
+    th->tempRoot_ = th->dendrogram_->createNode(nullptr, "tempRoot", 0.0);
   }
 
   //---
@@ -667,7 +667,7 @@ placeBuchheim() const
 
 void
 CQChartsDendrogramPlot::
-addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const
+addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode) const
 {
   if (! hierNode->isOpen())
     return;
@@ -700,8 +700,8 @@ moveBuchheimHierNode(CBuchHeim::DrawTree *drawTree) const
   double x2 = drawTree->x2();
   double y2 = drawTree->y2();
 
-  double xc = CMathUtil::avg(x1,x2);
-  double yc = CMathUtil::avg(y1,y2);
+  double xc = CMathUtil::avg(x1, x2);
+  double yc = CMathUtil::avg(y1, y2);
   double r  = 0.4*std::min(x2 - x1, y2 - y1);
 
   if (orientation() == Qt::Horizontal)
@@ -733,7 +733,7 @@ placeCircular() const
   auto r  = 0.0;
   auto dr = (maxDepth > 0 ? 1.0/maxDepth : 0.0);
 
-  double cs = calcCircleSize();
+  double cs = calcSymbolSize();
 
   double cw = pixelToWindowWidth (cs);
   double ch = pixelToWindowHeight(cs);
@@ -743,7 +743,7 @@ placeCircular() const
 
     const auto &cnode = pc.second;
 
-    HierNode *pnode { nullptr };
+    Node *pnode { nullptr };
 
     int ind = 0;
 
@@ -806,8 +806,7 @@ placeCircular() const
 
 void
 CQChartsDendrogramPlot::
-initCircularDepth(HierNode *hierNode, CircularDepth &circularDepth,
-                  int depth, int &maxDepth) const
+initCircularDepth(Node *hierNode, CircularDepth &circularDepth, int depth, int &maxDepth) const
 {
   maxDepth = std::max(maxDepth, depth);
 
@@ -877,7 +876,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const Opt
     //---
 
     // create nodes for hierarchy
-    HierNode *hierNode = nullptr;
+    Node *hierNode = nullptr;
 
     for (const auto &n : names) {
       if (! hierNode) {
@@ -982,7 +981,7 @@ createObjs(PlotObjs &objs) const
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! nodeObj) continue;
 
-    auto *hierNode = dynamic_cast<const HierNode *>(nodeObj->node());
+    auto *hierNode = dynamic_cast<const Node *>(nodeObj->node());
 
     if (hierNode) {
       nodeObj->setHierColor(calcHierColor(hierNode));
@@ -995,7 +994,7 @@ createObjs(PlotObjs &objs) const
 
 double
 CQChartsDendrogramPlot::
-calcHierColor(const HierNode *hierNode) const
+calcHierColor(const Node *hierNode) const
 {
   double color = 0.0;
 
@@ -1013,7 +1012,7 @@ calcHierColor(const HierNode *hierNode) const
 
 double
 CQChartsDendrogramPlot::
-calcHierSize(const HierNode *hierNode) const
+calcHierSize(const Node *hierNode) const
 {
   double size = 0.0;
 
@@ -1031,7 +1030,7 @@ calcHierSize(const HierNode *hierNode) const
 
 void
 CQChartsDendrogramPlot::
-addNodeObjs(HierNode *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const
+addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const
 {
   for (auto &hierData : hier->getChildren()) {
     auto       *hierNode = hierData.node;
@@ -1112,7 +1111,7 @@ getBBox(Node *node) const
 
   //---
 
-  double cs = std::max(calcCircleSize(), 1.0);
+  double cs = std::max(calcSymbolSize(), 1.0);
 //double tm = std::max(textMargin(), 1.0);
 
   double cw = pixelToWindowWidth (cs);
@@ -1236,7 +1235,7 @@ collapseAllSlot()
 
 void
 CQChartsDendrogramPlot::
-expandNode(HierNode *hierNode, bool all)
+expandNode(Node *hierNode, bool all)
 {
   bool expandChildren = (all || hierNode->isOpen());
 
@@ -1250,7 +1249,7 @@ expandNode(HierNode *hierNode, bool all)
 
 void
 CQChartsDendrogramPlot::
-collapseNode(HierNode *hierNode, bool all)
+collapseNode(Node *hierNode, bool all)
 {
   bool collapseChildren = (all || ! hierNode->isOpen());
 
@@ -1574,7 +1573,8 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
 
   QFontMetricsF fm(font);
 
-  double dy = (fm.ascent() - fm.descent())/2.0;
+//double dy = (fm.ascent() - fm.descent())/2.0;
+  double dy = 0.0;
   double dx = fm.width(name);
 
   BBox pbbox = plot()->windowToPixel(rect1);
@@ -1738,9 +1738,11 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
 
   if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
     if (edgeFilled)
-      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, plot()->orientation());
+      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC,
+                                     plot()->orientation());
     else
-      CQChartsDrawUtil::drawCurvePath(device, p1, p4, plot()->orientation());
+      CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC,
+                                      plot()->orientation());
   }
   else {
     if (edgeFilled)
@@ -1756,24 +1758,11 @@ displayRect() const
 {
   auto rect1 = rect();
 
-  if (parent() && plot()->sizeColumn().isValid()) {
-    auto maxSize = parent()->hierSize();
+  auto symbolSize = plot_->pixelToWindowWidth(calcSymbolSize());
 
-    double size = 0.0;
+  auto f = std::min(symbolSize/rect1.getWidth(), symbolSize/rect1.getHeight());
 
-    bool is_hier = this->isHier();
-
-    if (is_hier)
-      size = hierSize();
-    else
-      size = this->size().real();
-
-    auto symbolSize = CMathUtil::mapSqr(size, 0.0, maxSize, 0.0, rect1.getWidth());
-
-    auto f = std::min(symbolSize/rect1.getWidth(), symbolSize/rect1.getHeight());
-
-    rect1 = rect1.centerScaled(f, f);
-  }
+  rect1 = rect1.centerScaled(f, f);
 
   return rect1;
 }
@@ -1782,7 +1771,7 @@ double
 CQChartsDendrogramNodeObj::
 calcSymbolSize() const
 {
-  double symbolSize = plot()->calcCircleSize();
+  double symbolSize = plot()->calcSymbolSize();
 
   if (parent() && plot()->sizeColumn().isValid()) {
     auto maxSize = parent()->hierSize();

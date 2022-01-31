@@ -701,7 +701,7 @@ initLinkObjs() const
         auto linkVar = plot_->modelValue(linkConnectionData.linkModelInd, ok);
         if (! ok) return addDataError(linkConnectionData.linkModelInd, "Invalid Link");
 
-        namePair = linkVar.value<CQChartsNamePair>();
+        namePair = CQChartsNamePair::fromVariant(linkVar);
       }
       else {
         bool ok;
@@ -851,7 +851,8 @@ initConnectionObjs() const
         bool ok3;
         auto connectionsVar = plot_->modelValue(connectionsData.connectionsModelInd, ok3);
 
-        connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+        connectionsData.connections =
+          CQChartsConnectionList::fromVariant(connectionsVar).connections();
       }
       else {
         bool ok3;

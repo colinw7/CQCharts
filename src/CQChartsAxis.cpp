@@ -539,7 +539,7 @@ setTickLabelsStr(const QString &str)
 
     bool ok;
 
-    int value = strs1[0].toInt(&ok);
+    long value = CQChartsUtil::toInt(strs1[0], ok);
     if (! ok) continue;
 
     if (strs1.length() > 1)
@@ -626,7 +626,7 @@ setCustomTickLabelsStr(const QString &str)
 
     bool ok;
 
-    double value = strs1[0].toDouble(&ok);
+    double value = CQChartsUtil::toReal(strs1[0], ok);
     if (! ok) continue;
 
     if (strs1.length() > 1)
@@ -1004,7 +1004,7 @@ valueStr(const Plot *plot, double pos) const
     if (isRequireTickLabel())
       return "";
 
-    valuePos = CQModelUtil::intVariant(ipos);
+    valuePos = CQChartsVariant::fromInt(ipos);
   }
 
   if (formatStr_.length()) {
@@ -1360,7 +1360,7 @@ drawGrid(const Plot *plot, PaintDevice *device) const
           for (uint j = 1; j < numMinorTicks(); j++) {
             double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 
-            if (isIntegral() && ! CMathUtil::isInteger(pos2))
+            if (isIntegral() && ! CQModelUtil::isInteger(pos2))
               continue;
 
             // draw minor grid line
@@ -1593,7 +1593,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
           for (uint j = 1; j < numMinorTicks(); j++) {
             double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 
-            if (isIntegral() && ! CMathUtil::isInteger(pos2))
+            if (isIntegral() && ! CQModelUtil::isInteger(pos2))
               continue;
 
             double mpos2 = mapPos(pos2);

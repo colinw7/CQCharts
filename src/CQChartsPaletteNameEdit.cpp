@@ -130,7 +130,7 @@ QString
 CQChartsPaletteNamePropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsPaletteName>().toString();
+  auto str = CQChartsPaletteName::fromVariant(value).toString();
 
   return str;
 }
@@ -181,7 +181,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->paletteName());
+  return CQChartsPaletteName::toVariant(edit->paletteName());
 }
 
 void
@@ -191,7 +191,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
-  auto name = var.value<CQChartsPaletteName>();
+  auto name = CQChartsPaletteName::fromVariant(var);
 
   edit->setPaletteName(name);
 }

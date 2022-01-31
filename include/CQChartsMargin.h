@@ -2,6 +2,8 @@
 #define CQChartsMargin_H
 
 #include <CQChartsLength.h>
+#include <CQUtilMeta.h>
+
 #include <QStringList>
 
 /*!
@@ -14,6 +16,10 @@ class CQChartsMargin :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsMargin, metaTypeId)
 
  public:
   using Length = CQChartsLength;
@@ -102,8 +108,6 @@ class CQChartsMargin :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsMargin)
 

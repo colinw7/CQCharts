@@ -908,7 +908,7 @@ preferredWidth(const CQChartsNameValues &nameValues) const
 
   bool ok;
 
-  int width = str.toInt(&ok);
+  long width = CQChartsUtil::toInt(str, ok);
 
   return (ok ? width : -1);
 }
@@ -1076,7 +1076,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   CQChartsVariant::toString(var, str);
 
-  return QVariant::fromValue<QString>(str);
+  return CQChartsVariant::fromString(str);
 }
 
 QVariant
@@ -1115,13 +1115,9 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   bool ok;
-
   bool b = CQChartsVariant::toBool(var, ok);
 
-  if (! ok)
-    b = var.toBool();
-
-  return QVariant::fromValue<bool>(b);
+  return CQChartsVariant::fromBool(b);
 }
 
 QVariant
@@ -1189,7 +1185,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  return QVariant::fromValue<double>(r);
+  return CQChartsVariant::fromReal(r);
 }
 
 // data variant to output variant (string) for display
@@ -1227,7 +1223,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // convert value using format
-  return CQChartsUtil::formatVar(CQModelUtil::realVariant(r), fmt);
+  return CQChartsUtil::formatVar(CQChartsVariant::fromReal(r), fmt);
 }
 
 QVariant
@@ -1239,7 +1235,7 @@ minValue(const CQChartsNameValues &nameValues) const
   if (! rmin(nameValues, r))
     return QVariant();
 
-  return CQModelUtil::realVariant(r);
+  return CQChartsVariant::fromReal(r);
 }
 
 QVariant
@@ -1251,7 +1247,7 @@ maxValue(const CQChartsNameValues &nameValues) const
   if (! rmax(nameValues, r))
     return QVariant();
 
-  return CQModelUtil::realVariant(r);
+  return CQChartsVariant::fromReal(r);
 }
 
 bool
@@ -1359,7 +1355,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  return CQModelUtil::intVariant(l);
+  return CQChartsVariant::fromInt(l);
 }
 
 // data variant to output variant (string) for display
@@ -1406,7 +1402,7 @@ minValue(const CQChartsNameValues &nameValues) const
   if (! imin(nameValues, i))
     return QVariant();
 
-  return CQModelUtil::intVariant(i);
+  return CQChartsVariant::fromInt(i);
 }
 
 QVariant
@@ -1418,7 +1414,7 @@ maxValue(const CQChartsNameValues &nameValues) const
   if (! imax(nameValues, i))
     return QVariant();
 
-  return CQModelUtil::intVariant(i);
+  return CQChartsVariant::fromInt(i);
 }
 
 bool
@@ -1516,7 +1512,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  return QVariant::fromValue<double>(t);
+  return CQChartsVariant::fromReal(t);
 }
 
 QVariant
@@ -1678,7 +1674,7 @@ CQChartsColumnLengthType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::RectF)
+  if (! var.isValid() || CQChartsVariant::isLength(var))
     return var;
 
   converted = true;
@@ -1733,10 +1729,11 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  if (var.type() == QVariant::Polygon) {
-    auto poly = var.value<QPolygon>();
+  if (CQChartsVariant::isPolygon(var)) {
+    bool ok;
+    auto poly = CQChartsVariant::toQPolygon(var, ok);
 
-    return QVariant::fromValue<QPolygonF>(poly);
+    return CQChartsVariant::fromQPolygon(poly);
   }
 
   auto str = var.toString();
@@ -1745,7 +1742,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   (void) CQChartsUtil::stringToPolygon(str, poly);
 
-  return QVariant::fromValue<QPolygonF>(poly.qpoly());
+  return CQChartsVariant::fromQPolygon(poly.qpoly());
 }
 
 QVariant
@@ -1760,11 +1757,10 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   QPolygonF poly;
 
-  // TODO: other var formats
-  if      (var.type() == QVariant::PolygonF)
-    poly = var.value<QPolygonF>();
-  else if (var.type() == QVariant::Polygon)
-    poly = var.value<QPolygon>();
+  if      (CQChartsVariant::isPolygon(var)) {
+    bool ok;
+    poly = CQChartsVariant::toQPolygon(var, ok);
+  }
   else
     return QVariant();
 
@@ -1793,10 +1789,7 @@ CQChartsColumnPolygonListType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
-  if (isPolygonListVariant(var))
+  if (! var.isValid() || isPolygonListVariant(var))
     return var;
 
   converted = true;
@@ -1819,7 +1812,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isPolygonListVariant(var)) {
-    auto polyList = var.value<CQChartsPolygonList>();
+    auto polyList = CQChartsPolygonList::fromVariant(var);
 
     return polyList.toString();
   }
@@ -1834,10 +1827,8 @@ isPolygonListVariant(const QVariant &var) const
   if (! var.isValid())
     return false;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsPolygonList::metaTypeId)
-      return true;
-  }
+  if (CQChartsPolygonList::isVariantType(var))
+    return true;
 
   return false;
 }
@@ -1864,10 +1855,7 @@ CQChartsColumnConnectionListType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
-  if (isVariantType(var))
+  if (! var.isValid() || CQChartsConnectionList::isVariantType(var))
     return var;
 
   converted = true;
@@ -1876,7 +1864,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   CQChartsConnectionList connectionList(str);
 
-  return QVariant::fromValue<CQChartsConnectionList>(connectionList);
+  return CQChartsConnectionList::toVariant(connectionList);
 }
 
 QVariant
@@ -1890,7 +1878,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isVariantType(var)) {
-    auto connectionList = var.value<CQChartsConnectionList>();
+    auto connectionList = CQChartsConnectionList::fromVariant(var);
 
     return connectionList.toString();
   }
@@ -1905,10 +1893,8 @@ isVariantType(const QVariant &var) const
   if (! var.isValid())
     return false;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsConnectionList::metaTypeId)
-      return true;
-  }
+  if (CQChartsConnectionList::isVariantType(var))
+    return true;
 
   return false;
 }
@@ -1935,10 +1921,7 @@ CQChartsColumnNamePairType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
-  if (isNamePairVariant(var))
+  if (! var.isValid() || isNamePairVariant(var))
     return var;
 
   converted = true;
@@ -1950,7 +1933,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (! namePair.isValid())
     return QVariant();
 
-  return QVariant::fromValue<CQChartsNamePair>(namePair);
+  return CQChartsNamePair::toVariant(namePair);
 }
 
 QVariant
@@ -1964,7 +1947,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isNamePairVariant(var)) {
-    auto namePair = var.value<CQChartsNamePair>();
+    auto namePair = CQChartsNamePair::fromVariant(var);
 
     if (! namePair.isValid())
       return "";
@@ -1982,10 +1965,8 @@ isNamePairVariant(const QVariant &var) const
   if (! var.isValid())
     return false;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsNamePair::metaTypeId)
-      return true;
-  }
+  if (CQChartsNamePair::isVariantType(var))
+    return true;
 
   return false;
 }
@@ -2012,7 +1993,7 @@ CQChartsColumnPathType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.userType() == CQChartsPath::metaTypeId)
+  if (! var.isValid() || CQChartsPath::isVariantType(var))
     return var;
 
   converted = true;
@@ -2066,7 +2047,7 @@ CQChartsColumnStyleType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.userType() == CQChartsStyle::metaTypeId)
+  if (! var.isValid() || CQChartsStyle::isVariantType(var))
     return var;
 
   converted = true;
@@ -2077,7 +2058,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   (void) CQChartsUtil::stringToStyle(str, style);
 
-  return QVariant::fromValue<CQChartsStyle>(style);
+  return CQChartsStyle::toVariant(style);
 }
 
 QVariant
@@ -2090,8 +2071,8 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  if (var.userType() == CQChartsStyle::metaTypeId) {
-    auto style = var.value<CQChartsStyle>();
+  if (CQChartsStyle::isVariantType(var)) {
+    auto style = CQChartsStyle::fromVariant(var);
 
     return CQChartsUtil::styleToString(style);
   }
@@ -2363,10 +2344,7 @@ CQChartsColumnImageType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
-  if (CQChartsVariant::isImage(var))
+  if (! var.isValid() || CQChartsVariant::isImage(var))
     return var;
 
   converted = true;
@@ -2430,10 +2408,7 @@ CQChartsColumnSymbolTypeType::
 userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
          const QVariant &var, const CQChartsModelTypeData &typeData, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
-  if (CQChartsVariant::isSymbol(var))
+  if (! var.isValid() || CQChartsVariant::isSymbol(var))
     return var;
 
   converted = true;
@@ -2585,10 +2560,10 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   if (mapped) {
     double r1 = CMathUtil::map(r, min, max, size_min, size_max);
 
-    return QVariant::fromValue<double>(r1);
+    return CQChartsVariant::fromReal(r1);
   }
   else {
-    return QVariant::fromValue<double>(r);
+    return CQChartsVariant::fromReal(r);
   }
 }
 
@@ -2603,14 +2578,13 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get real value
+  bool   ok;
   double r = 0.0;
 
   if (CQChartsVariant::isReal(var)) {
-    r = var.value<double>();
+    r = CQChartsVariant::toReal(var, ok);
   }
   else {
-    bool ok;
-
     r = CQChartsVariant::toReal(var, ok);
 
     if (! ok)
@@ -2717,10 +2691,10 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   if (mapped) {
     double r1 = CMathUtil::map(r, min, max, size_min, size_max);
 
-    return QVariant::fromValue<double>(r1);
+    return CQChartsVariant::fromReal(r1);
   }
   else {
-    return QVariant::fromValue<double>(r);
+    return CQChartsVariant::fromReal(r);
   }
 }
 
@@ -2735,14 +2709,13 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get real value
+  bool   ok;
   double r = 0.0;
 
   if (CQChartsVariant::isReal(var)) {
-    r = var.value<double>();
+    r = CQChartsVariant::toReal(var, ok);
   }
   else {
-    bool ok;
-
     r = CQChartsVariant::toReal(var, ok);
 
     if (! ok)

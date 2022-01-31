@@ -120,7 +120,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto margin = value.value<CQChartsMargin>();
+  auto margin = CQChartsMargin::fromVariant(value);
 
   auto str = margin.toString();
 
@@ -141,7 +141,7 @@ QString
 CQChartsMarginPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsMargin>().toString();
+  auto str = CQChartsMargin::fromVariant(value).toString();
 
   return str;
 }
@@ -174,7 +174,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->margin());
+  return CQChartsMargin::toVariant(edit->margin());
 }
 
 void
@@ -184,7 +184,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
-  auto margin = var.value<CQChartsMargin>();
+  auto margin = CQChartsMargin::fromVariant(var);
 
   edit->setMargin(margin);
 }

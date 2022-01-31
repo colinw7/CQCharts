@@ -2,6 +2,7 @@
 #include <CQChartsModelData.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <QComboBox>
 #include <QVBoxLayout>
@@ -52,8 +53,7 @@ CQChartsModelChooser::
 setCurrentModel(int ind)
 {
   bool ok;
-
-  int modelInd = combo_->itemData(ind).toInt(&ok);
+  long modelInd = CQChartsVariant::toInt(combo_->itemData(ind), ok);
   if (! ok) return;
 
   charts_->setCurrentModelInd(modelInd);

@@ -2,6 +2,7 @@
 #define CQChartsThemeName_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <QString>
 
 class CQColorsTheme;
@@ -17,6 +18,10 @@ class CQChartsThemeName :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsThemeName, metaTypeId)
 
  public:
   explicit CQChartsThemeName(const QString &name="") {
@@ -65,8 +70,6 @@ class CQChartsThemeName :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsThemeName)
 

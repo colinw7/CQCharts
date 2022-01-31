@@ -1,4 +1,5 @@
 #include <CQChartsAlpha.h>
+#include <CQChartsUtil.h>
 
 #include <CQPropertyView.h>
 #include <CMathUtil.h>
@@ -74,7 +75,7 @@ fromString(const QString &str)
 {
   bool ok;
 
-  double a = str.toDouble(&ok);
+  double a = CQChartsUtil::toReal(str, ok);
 
   if (! ok)
     return false;

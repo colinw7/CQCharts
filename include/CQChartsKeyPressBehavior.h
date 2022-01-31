@@ -20,6 +20,10 @@ class CQChartsKeyPressBehavior : public CQChartsEnum<CQChartsKeyPressBehavior> {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsKeyPressBehavior, metaTypeId)
+
  public:
   explicit CQChartsKeyPressBehavior(Type type=Type::SHOW) :
    type_(type) {

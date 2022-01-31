@@ -29,7 +29,7 @@ inline bool splitList(const QString &str, QStringList &strs) {
 
   std::string cstr = str.toStdString();
 
-  int rc = Tcl_SplitList(0, cstr.c_str(), &argc, (const char ***) &argv);
+  int rc = Tcl_SplitList(0, cstr.c_str(), &argc, const_cast<const char ***>(&argv));
 
   if (rc != TCL_OK)
     return false;
@@ -37,7 +37,7 @@ inline bool splitList(const QString &str, QStringList &strs) {
   for (int i = 0; i < argc; ++i)
     strs << QString(argv[i]);
 
-  Tcl_Free((char *) argv);
+  Tcl_Free(reinterpret_cast<char *>(argv));
 
   return true;
 }
@@ -59,7 +59,7 @@ inline QString mergeList(const QStringList &strs) {
   for (int i = 0; i < argc; ++i)
     free(argv[i]);
 
-  Tcl_Free((char *) res);
+  Tcl_Free(res);
 
   return str;
 }
@@ -482,7 +482,7 @@ class CQTcl : public QObject, public CTcl {
 
     for (const auto &name : traces_) {
       Tcl_UntraceVar(interp(), name.toLatin1().constData(), flags,
-        &CQTcl::traceProc, (ClientData) this);
+        &CQTcl::traceProc, static_cast<ClientData>(this));
     }
   }
 
@@ -623,7 +623,7 @@ class CQTcl : public QObject, public CTcl {
 
     if (! data) {
       Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
-        &CQTcl::traceProc, (ClientData) this);
+        &CQTcl::traceProc, static_cast<ClientData>(this));
 
       traces_.insert(name);
     }
@@ -633,7 +633,7 @@ class CQTcl : public QObject, public CTcl {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
     Tcl_UntraceVar(interp(), name.toLatin1().constData(), flags,
-      &CQTcl::traceProc, (ClientData) this);
+      &CQTcl::traceProc, static_cast<ClientData>(this));
 
     traces_.erase(name);
   }
@@ -679,7 +679,7 @@ class CQTcl : public QObject, public CTcl {
 
  private:
   Tcl_Command createObjCommandI(const QString &name, ObjCmdProc proc, ObjCmdData data) {
-    return Tcl_CreateObjCommand(interp(), (char *) name.toLatin1().constData(),
+    return Tcl_CreateObjCommand(interp(), const_cast<char *>(name.toLatin1().constData()),
                                 proc, data, nullptr);
   }
 

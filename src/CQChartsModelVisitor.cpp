@@ -1,6 +1,5 @@
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColumnType.h>
-#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 
 //----

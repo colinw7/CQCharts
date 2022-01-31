@@ -2,7 +2,10 @@
 #define CQChartsAlpha_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
+#include <QVariant>
 
 /*!
  * \brief class to contain charts alpha
@@ -17,6 +20,10 @@ class CQChartsAlpha :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsAlpha, metaTypeId)
 
  public:
   //! default constructor
@@ -64,8 +71,6 @@ class CQChartsAlpha :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsAlpha)
 

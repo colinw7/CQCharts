@@ -7,12 +7,17 @@
 #include <CQChartsImage.h>
 #include <CQChartsLength.h>
 #include <CQChartsUnits.h>
+#include <CQModelUtil.h>
 #include <CQUtil.h>
 
 namespace CQChartsVariant {
 
 bool toString(const QVariant &var, QString &str);
 QString toString(const QVariant &var, bool &ok);
+
+inline QVariant fromString(const QString &s) {
+  return CQModelUtil::stringVariant(s);
+}
 
 //---
 
@@ -29,6 +34,14 @@ double toReal(const QVariant &var, bool &ok);
 
 double toConvertedReal(const QVariant &var, bool &ok, bool &converted);
 
+inline QVariant fromReal(double r) {
+  return CQModelUtil::realVariant(r);
+}
+
+inline QVariant fromNaN() {
+  return CQModelUtil::nanVariant();
+}
+
 //---
 
 inline bool isInt(const QVariant &var) {
@@ -39,6 +52,10 @@ inline bool isInt(const QVariant &var) {
 
 long toInt(const QVariant &var, bool &ok);
 
+inline QVariant fromInt(long i) {
+  return CQModelUtil::intVariant(i);
+}
+
 //---
 
 inline bool isBool(const QVariant &var) {
@@ -46,6 +63,10 @@ inline bool isBool(const QVariant &var) {
 }
 
 bool toBool(const QVariant &var, bool &ok);
+
+inline QVariant fromBool(bool b) {
+  return CQModelUtil::boolVariant(b);
+}
 
 //---
 
@@ -66,15 +87,18 @@ inline bool isColor(const QVariant &var) {
   if (var.type() == QVariant::Color)
     return true;
 
-  if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId)
+  if (CQChartsColor::isVariantType(var))
     return true;
 
   return false;
 }
 
 CQChartsColor toColor(const QVariant &var, bool &ok);
-
 QVariant fromColor(const CQChartsColor &c);
+
+inline QVariant fromColor(const QColor &c) {
+  return CQModelUtil::colorVariant(c);
+}
 
 }
 
@@ -89,14 +113,13 @@ inline bool isFont(const QVariant &var) {
   if (var.type() == QVariant::Font)
     return true;
 
-  if (var.type() == QVariant::UserType && var.userType() == CQChartsFont::metaTypeId)
+  if (CQChartsFont::isVariantType(var))
     return true;
 
   return false;
 }
 
 CQChartsFont toFont(const QVariant &var, bool &ok);
-
 QVariant fromFont(const CQChartsFont &f);
 
 }
@@ -118,7 +141,6 @@ inline bool isSymbol(const QVariant &var) {
 }
 
 CQChartsSymbol toSymbol(const QVariant &var, bool &ok);
-
 QVariant fromSymbol(const CQChartsSymbol &symbol);
 
 }
@@ -143,7 +165,6 @@ inline bool isImage(const QVariant &var) {
 }
 
 CQChartsImage toImage(const QVariant &var, bool &ok);
-
 QVariant fromImage(const CQChartsImage &image);
 
 }
@@ -165,7 +186,6 @@ inline bool isUnits(const QVariant &var) {
 }
 
 CQChartsUnits toUnits(const QVariant &var, bool &ok);
-
 QVariant fromUnits(const CQChartsUnits &units);
 
 }
@@ -187,7 +207,6 @@ inline bool isLength(const QVariant &var) {
 }
 
 CQChartsLength toLength(const QVariant &var, bool &ok);
-
 QVariant fromLength(const CQChartsLength &length);
 
 }
@@ -207,7 +226,6 @@ namespace CQChartsVariant {
 using Point = CQChartsGeom::Point;
 
 Point toPoint(const QVariant &var, bool &ok);
-
 QVariant fromPoint(const Point &point);
 
 }
@@ -219,7 +237,6 @@ namespace CQChartsVariant {
 using BBox = CQChartsGeom::BBox;
 
 BBox toBBox(const QVariant &var, bool &ok);
-
 QVariant fromBBox(const BBox &bbox);
 
 }
@@ -230,7 +247,22 @@ namespace CQChartsVariant {
 
 using Polygon = CQChartsGeom::Polygon;
 
+inline bool isPolygon(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if      (var.type() == QVariant::Polygon)
+    return true;
+  else if (var.type() == QVariant::PolygonF)
+    return true;
+
+  return false;
+}
+
+QPolygonF toQPolygon(const QVariant &var, bool &ok);
 Polygon toPolygon(const QVariant &var, bool &ok);
+
+QVariant fromQPolygon(const QPolygonF &poly);
 
 }
 
@@ -241,7 +273,6 @@ class CQChartsPath;
 namespace CQChartsVariant {
 
 bool toPath(const QVariant &var, CQChartsPath &path);
-
 QVariant fromPath(const CQChartsPath &path);
 
 }
@@ -253,7 +284,6 @@ QVariant fromPath(const CQChartsPath &path);
 namespace CQChartsVariant {
 
 CQChartsPolygonList toPolygonList(const QVariant &var, bool &ok);
-
 QVariant fromPolygonList(const CQChartsPolygonList &polyList);
 
 }
@@ -265,7 +295,6 @@ QVariant fromPolygonList(const CQChartsPolygonList &polyList);
 namespace CQChartsVariant {
 
 CQChartsAlpha toAlpha(const QVariant &var, bool &ok);
-
 QVariant fromAlpha(const CQChartsAlpha &a);
 
 }
@@ -277,7 +306,6 @@ QVariant fromAlpha(const CQChartsAlpha &a);
 namespace CQChartsVariant {
 
 CQChartsAngle toAngle(const QVariant &var, bool &ok);
-
 QVariant fromAngle(const CQChartsAngle &a);
 
 }

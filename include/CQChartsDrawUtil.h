@@ -252,6 +252,12 @@ using BBox        = CQChartsGeom::BBox;
 using Size        = CQChartsGeom::Size;
 using Point       = CQChartsGeom::Point;
 
+enum EdgeType {
+  ARC,
+  RECTILINEAR,
+  LINE
+};
+
 void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
                  const Length &lineWidth, bool horizontal,
                  const Symbol &symbolType, const Length &symbolSize,
@@ -377,29 +383,39 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 //---
 
 void drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
-                  bool isLine=false, Qt::Orientation orientation=Qt::Horizontal);
+                  const EdgeType &edgeType=EdgeType::ARC,
+                  Qt::Orientation orientation=Qt::Horizontal);
 void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
-              bool isLine=false, Qt::Orientation orientation=Qt::Horizontal);
+              const EdgeType &edgeType=EdgeType::ARC,
+              Qt::Orientation orientation=Qt::Horizontal);
 
 void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
-                  Qt::Orientation orient=Qt::Horizontal);
+                  const EdgeType &edgeType=EdgeType::ARC,
+              Qt::Orientation orient=Qt::Horizontal);
 void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
+              const EdgeType &edgeType=EdgeType::ARC,
               Qt::Orientation orientation=Qt::Horizontal);
 
 void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
+                  const EdgeType &edgeType=EdgeType::ARC,
                   Qt::Orientation orientation=Qt::Horizontal);
 
 //---
 
 void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
-               Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
+               const EdgeType &edgeType=EdgeType::ARC,
+               Qt::Orientation orientation=Qt::Horizontal);
 
 void drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
-                   Qt::Orientation orient, bool rectilinear=false);
+                   const EdgeType &edgeType=EdgeType::ARC,
+                   Qt::Orientation orient=Qt::Horizontal);
 void curvePath(QPainterPath &path, const Point &p1, const Point &p2,
-               Qt::Orientation orientation=Qt::Horizontal, bool rectilinear=false);
+               const EdgeType &edgeType=EdgeType::ARC,
+               Qt::Orientation orientation=Qt::Horizontal);
 
-void selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear=false);
+void selfCurvePath(QPainterPath &path, const BBox &bbox,
+                   const EdgeType &edgeType=EdgeType::ARC,
+                   Qt::Orientation orientation=Qt::Horizontal);
 
 //---
 

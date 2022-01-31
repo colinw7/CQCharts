@@ -138,7 +138,7 @@ CQChartsFillDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  auto data = value.value<CQChartsFillData>();
+  auto data = CQChartsFillData::fromVariant(value);
 
   CQChartsFillDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -147,7 +147,7 @@ QString
 CQChartsFillDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsFillData>().toString();
+  auto str = CQChartsFillData::fromVariant(value).toString();
 
   return str;
 }
@@ -178,7 +178,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->fillData());
+  return CQChartsFillData::toVariant(edit->fillData());
 }
 
 void
@@ -188,7 +188,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
-  auto data = var.value<CQChartsFillData>();
+  auto data = CQChartsFillData::fromVariant(var);
 
   edit->setFillData(data);
 }

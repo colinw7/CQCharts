@@ -1153,8 +1153,9 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
 {
   class PathVisitor : public CQChartsDrawUtil::PathVisitor {
    public:
-    PathVisitor(double lw, double frontLen, double tailLen, const CQChartsArrowData &arrowData) :
-     lw_(lw), frontLen_(frontLen), tailLen_(tailLen), arrowData_(arrowData) {
+    PathVisitor(double lw, double aw, double frontLen, double tailLen,
+                const CQChartsArrowData &arrowData) :
+     lw_(lw), aw_(aw), frontLen_(frontLen), tailLen_(tailLen), arrowData_(arrowData) {
       bool isFHead = arrowData_.calcIsFHead();
       bool isTHead = arrowData_.calcIsTHead();
 
@@ -1303,7 +1304,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           //---
 
           // move in to arrow right edge
-          auto pf = movePointOnLine(p1_, a, frontLen_*lw_);
+          auto pf = movePointOnLine(p1_, a, frontLen_*aw_);
 
           //---
 
@@ -1311,8 +1312,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           auto a1 = ArrowAngle(a.angle - arrowData_.calcFrontAngle().radians());
           auto a2 = ArrowAngle(a.angle + arrowData_.calcFrontAngle().radians());
 
-          auto pf1 = movePointOnLine(p1_, a1, lw_);
-          auto pf2 = movePointOnLine(p1_, a2, lw_);
+          auto pf1 = movePointOnLine(p1_, a1, aw_);
+          auto pf2 = movePointOnLine(p1_, a2, aw_);
 
           Point ap1, ap2, ap3, ap4;
 
@@ -1328,8 +1329,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
             auto a3 = ArrowAngle(a.angle - arrowData_.calcFrontBackAngle().radians());
             auto a4 = ArrowAngle(a.angle + arrowData_.calcFrontBackAngle().radians());
 
-            auto pf3 = movePointOnLine(pi1, a3, lw_);
-            auto pf4 = movePointOnLine(pi2, a4, lw_);
+            auto pf3 = movePointOnLine(pi1, a3, aw_);
+            auto pf4 = movePointOnLine(pi2, a4, aw_);
 
             Point pi3, pi4;
 
@@ -1369,7 +1370,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           ArrowAngle a(p1_, p2_);
 
           // move in to arrow left edge
-          auto pf = movePointOnLine(p2_, a, -tailLen_*lw_);
+          auto pf = movePointOnLine(p2_, a, -tailLen_*aw_);
 
           //---
 
@@ -1377,8 +1378,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           auto a1 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailAngle().radians());
           auto a2 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailAngle().radians());
 
-          auto pf1 = movePointOnLine(p2_, a1, lw_);
-          auto pf2 = movePointOnLine(p2_, a2, lw_);
+          auto pf1 = movePointOnLine(p2_, a1, aw_);
+          auto pf2 = movePointOnLine(p2_, a2, aw_);
 
           Point ap1, ap2, ap3, ap4;
 
@@ -1394,8 +1395,8 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
             auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.calcTailBackAngle().radians());
             auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.calcTailBackAngle().radians());
 
-            auto pf3 = movePointOnLine(pi1, a3, lw_);
-            auto pf4 = movePointOnLine(pi2, a4, lw_);
+            auto pf3 = movePointOnLine(pi1, a3, aw_);
+            auto pf4 = movePointOnLine(pi2, a4, aw_);
 
             Point pi3, pi4;
 
@@ -1450,6 +1451,7 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
 
    private:
     double            lw_       { 1.0 };  // line width
+    double            aw_       { 1.0 };  // arrow width
     double            frontLen_ { 1.0 };  // arrow length
     double            tailLen_  { 1.0 };  // arrow length
     CQChartsArrowData arrowData_;         // arrow data
@@ -1466,7 +1468,16 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
 
   //---
 
-  PathVisitor visitor(lw, frontLen, tailLen, arrowData);
+  bool isLine = (lw <= 0.0);
+
+  auto aw = (! isLine ? lw : std::max(-lw, 0.01));
+
+  if (isLine)
+    lw = aw/1000.0;
+
+  //---
+
+  PathVisitor visitor(lw, aw, frontLen, tailLen, arrowData);
 
   CQChartsDrawUtil::visitPath(path, visitor);
 

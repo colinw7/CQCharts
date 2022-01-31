@@ -2,8 +2,12 @@
 #define CQChartsFont_H
 
 #include <CQChartsTmpl.h>
-#include <cassert>
+#include <CQUtilMeta.h>
+
 #include <QFont>
+#include <QVariant>
+
+#include <cassert>
 #include <iostream>
 
 class QObject;
@@ -56,6 +60,10 @@ class CQChartsFont :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsFont, metaTypeId)
 
  public:
   CQChartsFont() { }
@@ -202,8 +210,6 @@ class CQChartsFont :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsFont)
 

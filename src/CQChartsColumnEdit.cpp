@@ -241,7 +241,7 @@ QString
 CQChartsColumnPropertyViewType::
 valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
 {
-  auto column = value.value<Column>();
+  auto column = Column::fromVariant(value);
 
   QString str;
 
@@ -315,7 +315,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->column());
+  return CQChartsColumn::toVariant(edit->column());
 }
 
 void
@@ -325,7 +325,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
-  auto column = var.value<Column>();
+  auto column = Column::fromVariant(var);
 
   edit->setColumn(column);
 }

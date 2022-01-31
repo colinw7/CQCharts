@@ -2,6 +2,8 @@
 #define CQChartsOptPosition_H
 
 #include <CQChartsPosition.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -16,6 +18,10 @@ class CQChartsOptPosition :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsOptPosition, metaTypeId)
 
  public:
   using OptPosition = boost::optional<CQChartsPosition>;
@@ -88,8 +94,6 @@ class CQChartsOptPosition :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsOptPosition)
 

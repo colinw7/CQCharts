@@ -347,7 +347,6 @@ CQCHARTS_DEF_CMD(ShowChartsCreatePlotDlg)
 CQCHARTS_DEF_CMD(ShowChartsTextDlg)
 CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
-
 //---
 
 // test

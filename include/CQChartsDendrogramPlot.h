@@ -59,7 +59,6 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
  public:
   using Plot     = CQChartsDendrogramPlot;
   using NodeObj  = CQChartsDendrogramNodeObj;
-  using HierNode = CQChartsDendrogram::HierNode;
   using Node     = CQChartsDendrogram::Node;
   using Length   = CQChartsLength;
   using Angle    = CQChartsAngle;
@@ -208,7 +207,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
 
   // node data
-  Q_PROPERTY(CQChartsLength circleSize READ circleSize WRITE setCircleSize)
+  Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
 
   // edge data
 //Q_PROPERTY(bool           edgeArrow   READ isEdgeArrow  WRITE setEdgeArrow )
@@ -239,7 +238,6 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
  public:
   using NodeObj   = CQChartsDendrogramNodeObj;
-  using HierNode  = CQChartsDendrogram::HierNode;
   using Node      = CQChartsDendrogram::Node;
   using Color     = CQChartsColor;
   using Length    = CQChartsLength;
@@ -254,13 +252,13 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   };
 
   struct Edge {
-    HierNode* from { nullptr };
-    HierNode* to   { nullptr };
-    OptReal   value;
+    Node*   from { nullptr };
+    Node*   to   { nullptr };
+    OptReal value;
 
     Edge() { }
 
-    Edge(HierNode *from, HierNode *to, const OptReal &value) :
+    Edge(Node *from, Node *to, const OptReal &value) :
      from(from), to(to), value(value) {
     }
   };
@@ -305,10 +303,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   //---
 
   //! get/set circle size
-  const Length &circleSize() const { return circleSize_; }
-  void setCircleSize(const Length &s);
+  const Length &symbolSize() const { return symbolSize_; }
+  void setSymbolSize(const Length &s);
 
-  double calcCircleSize() const;
+  double calcSymbolSize() const;
 
   //---
 
@@ -358,7 +356,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  void addNodeObjs(HierNode *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const;
+  void addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const;
 
   NodeObj *addNodeObj(Node *node, PlotObjs &objs, bool isHier) const;
 
@@ -403,15 +401,15 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void place() const;
 
   void placeBuchheim() const;
-  void addBuchheimHierNode(CBuchHeim::Tree *tree, HierNode *hierNode) const;
+  void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode) const;
   void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
 
   void placeCircular() const;
-  void initCircularDepth(HierNode *hierNode, CircularDepth &circularDepth,
+  void initCircularDepth(Node *hierNode, CircularDepth &circularDepth,
                          int depth, int &maxDepth) const;
 
-  double calcHierColor(const HierNode *hierNode) const;
-  double calcHierSize (const HierNode *hierNode) const;
+  double calcHierColor(const Node *hierNode) const;
+  double calcHierSize (const Node *hierNode) const;
 
   bool addMenuItems(QMenu *menu) override;
 
@@ -420,8 +418,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  void expandNode(HierNode *hierNode, bool all);
-  void collapseNode(HierNode *hierNode, bool all);
+  void expandNode(Node *hierNode, bool all);
+  void collapseNode(Node *hierNode, bool all);
 
  private slots:
   void expandSlot();
@@ -438,10 +436,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Column          sizeColumn_;  //!< size column
 
   Dendrogram* dendrogram_ { nullptr }; //!< dendrogram class
-  HierNode*   tempRoot_   { nullptr };
+  Node*       tempRoot_   { nullptr };
 
   // node data
-  Length circleSize_ { Length::pixel(32.0) }; //!< circle size
+  Length symbolSize_ { Length::pixel(16.0) }; //!< circle size
 
   // edge data
   bool   edgeScaled_ { false };            //!< is edge scaled
@@ -452,8 +450,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   bool   rotatedText_ { false }; //!< is label rotated
 
   // plot data
-  PlaceType       placeType_   { PlaceType::DENDROGRAM }; //!< place type
-  Qt::Orientation orientation_ { Qt::Horizontal };        //!< draw direction
+  PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
+  Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
 
   NodeObj *rootNodeObj_ { nullptr }; //!< root node obj
 

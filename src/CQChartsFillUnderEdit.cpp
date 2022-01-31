@@ -105,7 +105,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto fillUnderSide = value.value<CQChartsFillUnderSide>();
+  auto fillUnderSide = CQChartsFillUnderSide::fromVariant(value);
 
   auto str = fillUnderSide.toString();
 
@@ -126,7 +126,7 @@ QString
 CQChartsFillUnderSidePropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsFillUnderSide>().toString();
+  auto str = CQChartsFillUnderSide::fromVariant(value).toString();
 
   return str;
 }
@@ -164,7 +164,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue<CQChartsFillUnderSide>(edit->fillUnderSide());
+  return CQChartsFillUnderSide::toVariant(edit->fillUnderSide());
 }
 
 void
@@ -174,7 +174,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
-  auto fillUnderSide = var.value<CQChartsFillUnderSide>();
+  auto fillUnderSide = CQChartsFillUnderSide::fromVariant(var);
 
   edit->setFillUnderSide(fillUnderSide);
 }
@@ -320,7 +320,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto fillUnderPos = value.value<CQChartsFillUnderPos>();
+  auto fillUnderPos = CQChartsFillUnderPos::fromVariant(value);
 
   auto str = fillUnderPos.toString();
 
@@ -341,7 +341,7 @@ QString
 CQChartsFillUnderPosPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsFillUnderPos>().toString();
+  auto str = CQChartsFillUnderPos::fromVariant(value).toString();
 
   return str;
 }
@@ -379,7 +379,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue<CQChartsFillUnderPos>(edit->fillUnderPos());
+  return CQChartsFillUnderPos::toVariant(edit->fillUnderPos());
 }
 
 void
@@ -389,7 +389,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
-  auto fillUnderPos = var.value<CQChartsFillUnderPos>();
+  auto fillUnderPos = CQChartsFillUnderPos::fromVariant(var);
 
   edit->setFillUnderPos(fillUnderPos);
 }

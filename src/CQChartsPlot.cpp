@@ -9962,7 +9962,7 @@ CQChartsPlot::
 xStr(const QVariant &var) const
 {
   bool ok;
-  auto r = var.toDouble(&ok);
+  auto r = CQChartsVariant::toReal(var, ok);
 
   if (ok)
     return xStr(r);
@@ -9990,7 +9990,7 @@ CQChartsPlot::
 yStr(const QVariant &var) const
 {
   bool ok;
-  auto r = var.toDouble(&ok);
+  auto r = CQChartsVariant::toReal(var, ok);
 
   if (ok)
     return yStr(r);
@@ -10161,38 +10161,9 @@ executeSlot(const QString &name, const QStringList &args, QVariant &res)
 
   const auto &argTypes = (*p).second;
 
-  int numArgs = argTypes.length();
-
-  auto args1 = args;
-
-  while (args1.length() < numArgs)
-    args1.push_back(QString());
-
   QVariantList values;
 
-  for (int i = 0; i < numArgs; ++i) {
-    auto argType = argTypes[i].toLower();
-
-    const auto &argValue = args1[i];
-
-    auto type = CQBaseModel::nameType(argType);
-
-    QVariant value;
-
-    bool ok;
-
-    if      (type == CQBaseModelType::INTEGER) {
-      value = CQModelUtil::intVariant(argValue.toInt(&ok));
-    }
-    else if (type == CQBaseModelType::REAL) {
-      value = CQModelUtil::realVariant(argValue.toDouble(&ok));
-    }
-    else if (type == CQBaseModelType::STRING) {
-      value = argValue;
-    }
-
-    values.push_back(value);
-  }
+  view()->processSlotArgs(args, argTypes, values);
 
   return executeSlotFn(name, values, res);
 }

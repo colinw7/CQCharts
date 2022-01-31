@@ -2,6 +2,7 @@
 #define CQChartsColorStops_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <QStringList>
 #include <vector>
 
@@ -15,6 +16,10 @@ class CQChartsColorStops :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColorStops, metaTypeId)
 
  public:
   enum class Units {
@@ -97,8 +102,6 @@ class CQChartsColorStops :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColorStops)
 

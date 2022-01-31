@@ -1,5 +1,5 @@
-#ifndef CQChartsDotPlot_H
-#define CQChartsDotPlot_H
+#ifndef CQChartsGraphVizPlot_H
+#define CQChartsGraphVizPlot_H
 
 #include <CQChartsConnectionPlot.h>
 #include <CQChartsValueInd.h>
@@ -14,15 +14,15 @@
  * \brief Dot plot type
  * \ingroup Charts
  */
-class CQChartsDotPlotType : public CQChartsConnectionPlotType {
+class CQChartsGraphVizPlotType : public CQChartsConnectionPlotType {
  public:
   using ColumnType = CQBaseModelType;
 
  public:
-  CQChartsDotPlotType();
+  CQChartsGraphVizPlotType();
 
-  QString name() const override { return "dot"; }
-  QString desc() const override { return "Dot"; }
+  QString name() const override { return "graphviz"; }
+  QString desc() const override { return "GraphViz"; }
 
   void addParameters() override;
 
@@ -41,21 +41,21 @@ class CQChartsDotPlotType : public CQChartsConnectionPlotType {
 
 //---
 
-class CQChartsDotPlot;
-class CQChartsDotNodeObj;
-class CQChartsDotEdgeObj;
-class CQChartsDotPlotEdge;
+class CQChartsGraphVizPlot;
+class CQChartsGraphVizNodeObj;
+class CQChartsGraphVizEdgeObj;
+class CQChartsGraphVizPlotEdge;
 
 /*!
- * \brief Dot Plot Node
+ * \brief Graphviz Plot Node
  * \ingroup Charts
  */
-class CQChartsDotPlotNode {
+class CQChartsGraphVizPlotNode {
  public:
-  using Obj         = CQChartsDotNodeObj;
-  using Edge        = CQChartsDotPlotEdge;
+  using Obj         = CQChartsGraphVizNodeObj;
+  using Edge        = CQChartsGraphVizPlotEdge;
   using Edges       = std::vector<Edge *>;
-  using Node        = CQChartsDotPlotNode;
+  using Node        = CQChartsGraphVizPlotNode;
   using OptReal     = CQChartsOptReal;
   using ModelIndex  = CQChartsModelIndex;
   using Color       = CQChartsColor;
@@ -69,8 +69,8 @@ class CQChartsDotPlotNode {
   using ShapeType   = CQChartsBoxObj::ShapeType;
   using EdgeRect    = std::map<Edge *, BBox>;
 
-  CQChartsDotPlotNode(const QString &str);
- ~CQChartsDotPlotNode();
+  CQChartsGraphVizPlotNode(const QString &str);
+ ~CQChartsGraphVizPlotNode();
 
   //! get/set object
   Obj *obj() const { return obj_; }
@@ -267,18 +267,18 @@ class CQChartsDotPlotNode {
 };
 
 /*!
- * \brief Dot Plot Edge
+ * \brief Graphviz Plot Edge
  * \ingroup Charts
  */
-class CQChartsDotPlotEdge {
+class CQChartsGraphVizPlotEdge {
  public:
   enum class ShapeType {
     NONE,
     ARROW
   };
 
-  using Obj        = CQChartsDotEdgeObj;
-  using Node       = CQChartsDotPlotNode;
+  using Obj        = CQChartsGraphVizEdgeObj;
+  using Node       = CQChartsGraphVizPlotNode;
   using Column     = CQChartsColumn;
   using ModelIndex = CQChartsModelIndex;
   using ModelInds  = std::vector<ModelIndex>;
@@ -287,8 +287,8 @@ class CQChartsDotPlotEdge {
 //using Line       = CQChartsGeom::Line;
 
  public:
-  CQChartsDotPlotEdge(const OptReal &value, Node *srcNode, Node *destNode);
- ~CQChartsDotPlotEdge();
+  CQChartsGraphVizPlotEdge(const OptReal &value, Node *srcNode, Node *destNode);
+ ~CQChartsGraphVizPlotEdge();
 
   //---
 
@@ -396,13 +396,13 @@ class CQChartsDotPlotEdge {
 
 //---
 
-class CQChartsDotPlot;
+class CQChartsGraphVizPlot;
 
 /*!
- * \brief Dot Plot Node object
+ * \brief Graphviz Plot Node object
  * \ingroup Charts
  */
-class CQChartsDotNodeObj : public CQChartsPlotObj {
+class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
   Q_PROPERTY(QString       hierName  READ hierName  WRITE setHierName )
@@ -428,16 +428,16 @@ class CQChartsDotNodeObj : public CQChartsPlotObj {
     PLAIN_TEXT    = static_cast<int>(CQChartsBoxObj::ShapeType::PLAIN_TEXT)
   };
 
-  using Plot  = CQChartsDotPlot;
-  using Node  = CQChartsDotPlotNode;
-  using Edge  = CQChartsDotPlotEdge;
+  using Plot  = CQChartsGraphVizPlot;
+  using Node  = CQChartsGraphVizPlotNode;
+  using Edge  = CQChartsGraphVizPlotEdge;
   using Color = CQChartsColor;
   using Angle = CQChartsAngle;
 
  public:
-  CQChartsDotNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
+  CQChartsGraphVizNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
 
-  virtual ~CQChartsDotNodeObj();
+  virtual ~CQChartsGraphVizNodeObj();
 
   //---
 
@@ -546,10 +546,10 @@ class CQChartsDotNodeObj : public CQChartsPlotObj {
 //---
 
 /*!
- * \brief Dot Plot Edge object
+ * \brief Graphviz Plot Edge object
  * \ingroup Charts
  */
-class CQChartsDotEdgeObj : public CQChartsPlotObj {
+class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
   Q_PROPERTY(ShapeType shapeType READ shapeType WRITE setShapeType)
@@ -562,16 +562,16 @@ class CQChartsDotEdgeObj : public CQChartsPlotObj {
     ARROW
   };
 
-  using Plot   = CQChartsDotPlot;
-  using Edge   = CQChartsDotPlotEdge;
-  using Node   = CQChartsDotPlotNode;
+  using Plot   = CQChartsGraphVizPlot;
+  using Edge   = CQChartsGraphVizPlotEdge;
+  using Node   = CQChartsGraphVizPlotNode;
   using Length = CQChartsLength;
   using Angle  = CQChartsAngle;
 
  public:
-  CQChartsDotEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
+  CQChartsGraphVizEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
 
-  virtual ~CQChartsDotEdgeObj();
+  virtual ~CQChartsGraphVizEdgeObj();
 
   //---
 
@@ -641,10 +641,10 @@ class CQChartsDotEdgeObj : public CQChartsPlotObj {
  * \brief Graph Plot
  * \ingroup Charts
  */
-class CQChartsDotPlot : public CQChartsConnectionPlot,
- public CQChartsObjTextData<CQChartsDotPlot>,
- public CQChartsObjNodeShapeData<CQChartsDotPlot>,
- public CQChartsObjEdgeShapeData<CQChartsDotPlot> {
+class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
+ public CQChartsObjTextData<CQChartsGraphVizPlot>,
+ public CQChartsObjNodeShapeData<CQChartsGraphVizPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsGraphVizPlot> {
   Q_OBJECT
 
   // plot type
@@ -661,9 +661,10 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           edgeCentered READ isEdgeCentered WRITE setEdgeCentered)
   Q_PROPERTY(bool           edgePath     READ isEdgePath     WRITE setEdgePath    )
   Q_PROPERTY(double         arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
+  Q_PROPERTY(bool           edgeWeighted READ isEdgeWeighted WRITE setEdgeWeighted)
 
   // options
-  Q_PROPERTY(Qt::Orientation orientation  READ orientation    WRITE setOrientation )
+  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
 
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
@@ -706,21 +707,21 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
     SFDP
   };
 
-  using Node     = CQChartsDotPlotNode;
+  using Node     = CQChartsGraphVizPlotNode;
   using Nodes    = std::vector<Node *>;
   using NodeSet  = std::set<Node *>;
-  using Edge     = CQChartsDotPlotEdge;
+  using Edge     = CQChartsGraphVizPlotEdge;
   using Edges    = std::vector<Edge *>;
-  using NodeObj  = CQChartsDotNodeObj;
-  using EdgeObj  = CQChartsDotEdgeObj;
+  using NodeObj  = CQChartsGraphVizNodeObj;
+  using EdgeObj  = CQChartsGraphVizEdgeObj;
   using Length   = CQChartsLength;
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsDotPlot(View *view, const ModelP &model);
- ~CQChartsDotPlot();
+  CQChartsGraphVizPlot(View *view, const ModelP &model);
+ ~CQChartsGraphVizPlot();
 
   //---
 
@@ -759,9 +760,13 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   bool isEdgePath() const { return edgePath_; }
   void setEdgePath(bool b);
 
-  //! get/set arrow width
+  //! get/set edge directed arrow width
   double arrowWidth() const { return arrowWidth_; }
   void setArrowWidth(double r);
+
+  //! get/set edge weighted
+  bool isEdgeWeighted() const { return edgeWeighted_; }
+  void setEdgeWeighted(bool b);
 
   //---
 
@@ -810,7 +815,7 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void writeGraph() const;
+  void writeGraph(bool weighted=true) const;
 
   void fitToBBox(const BBox &bbox);
 
@@ -899,7 +904,7 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 
   Node *findNode(const QString &name) const;
 
-  Node *findDotNode(int dotId) const;
+  Node *findIdNode(int dotId) const;
 
   //---
 
@@ -931,7 +936,7 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
-  friend class CQChartsDotPlotNode;
+  friend class CQChartsGraphVizPlotNode;
 
  protected:
   using NameNodeMap = std::map<QString, Node *>;
@@ -949,7 +954,8 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   bool      edgePath_     { true };             //!< use edge path
 
   // plot data
-  Qt::Orientation orientation_ { Qt::Vertical }; //!< orientation
+  Qt::Orientation orientation_ { Qt::Vertical };  //!< orientation
+  PlotType        plotType_    { PlotType::FDP }; //!< plot type
 
   // bbox, margin, node width
   BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
@@ -958,17 +964,17 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
   bool blendEdgeColor_ { true }; //!< blend edge color
 
   // data
-  Nodes            nodes_;                           //!< all nodes
-  NameNodeMap      nameNodeMap_;                     //!< name node map
-  IndNodeMap       indNodeMap_;                      //!< ind node map
-  Edges            edges_;                           //!< all edges
-  BBox             bbox_;                            //!< bbox
-  CQChartsValueInd groupValueInd_;                   //!< group value ind
-  int              maxNodeDepth_  { 0 };             //!< max node depth (all graphs)
-  double           edgeMargin_    { 0.01 };          //!< edge bounding box margin
-  int              numGroups_     { 1 };             //!< node number of groups
-  double           arrowWidth_    { 1.5 };           //!< edge bounding box margin
-  PlotType         plotType_      { PlotType::DOT }; //!< plot type
+  Nodes            nodes_;                  //!< all nodes
+  NameNodeMap      nameNodeMap_;            //!< name node map
+  IndNodeMap       indNodeMap_;             //!< ind node map
+  Edges            edges_;                  //!< all edges
+  BBox             bbox_;                   //!< bbox
+  CQChartsValueInd groupValueInd_;          //!< group value ind
+  int              maxNodeDepth_  { 0 };    //!< max node depth (all graphs)
+  double           edgeMargin_    { 0.01 }; //!< edge bounding box margin
+  int              numGroups_     { 1 };    //!< node number of groups
+  double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
+  bool             edgeWeighted_  { true }; //!< edge placement weighted by value
 
   OptReal maxEdgeValue_;
 };
@@ -976,14 +982,14 @@ class CQChartsDotPlot : public CQChartsConnectionPlot,
 //---
 
 /*!
- * \brief Dot Plot plot custom controls
+ * \brief Graphviz Plot plot custom controls
  * \ingroup Charts
  */
-class CQChartsDotPlotCustomControls : public CQChartsConnectionPlotCustomControls {
+class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsDotPlotCustomControls(CQCharts *charts);
+  CQChartsGraphVizPlotCustomControls(CQCharts *charts);
 
   void init() override;
 
@@ -1002,7 +1008,7 @@ class CQChartsDotPlotCustomControls : public CQChartsConnectionPlotCustomControl
   void setColorValue(const CQChartsColor &c) override;
 
  private:
-  CQChartsDotPlot* plot_ { nullptr };
+  CQChartsGraphVizPlot* plot_ { nullptr };
 };
 
 #endif

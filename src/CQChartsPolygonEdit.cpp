@@ -193,7 +193,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto polygon = value.value<CQChartsPolygon>();
+  auto polygon = CQChartsPolygon::fromVariant(value);
 
   auto str = polygon.toString();
 
@@ -214,7 +214,7 @@ QString
 CQChartsPolygonPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsPolygon>().toString();
+  auto str = CQChartsPolygon::fromVariant(value).toString();
 
   return str;
 }
@@ -252,7 +252,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->polygon());
+  return CQChartsPolygon::toVariant(edit->polygon());
 }
 
 void
@@ -262,7 +262,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
   assert(edit);
 
-  auto polygon = var.value<CQChartsPolygon>();
+  auto polygon = CQChartsPolygon::fromVariant(var);
 
   edit->setPolygon(polygon);
 }

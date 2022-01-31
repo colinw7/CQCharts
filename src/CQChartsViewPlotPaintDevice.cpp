@@ -368,7 +368,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
       if (altAlphaStr.length()) {
         bool ok;
 
-        auto alpha = altAlphaStr.toDouble(&ok);
+        auto alpha = CQChartsUtil::toReal(altAlphaStr, ok);
 
         if (ok && alpha < 1.0) {
           altColor.setAlphaF(alpha);

@@ -1,4 +1,5 @@
 #include <CQChartsAngle.h>
+#include <CQChartsUtil.h>
 
 #include <CQPropertyView.h>
 
@@ -34,7 +35,7 @@ fromString(const QString &str)
 {
   bool ok;
 
-  double a = str.toDouble(&ok);
+  double a = CQChartsUtil::toReal(str, ok);
 
   if (! ok)
     return false;

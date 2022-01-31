@@ -4,7 +4,6 @@
 
 #include <CQChartsModelData.h>
 #include <CQChartsLineEdit.h>
-#include <CQChartsModelUtil.h>
 //#include <CQChartsColumnCombo.h>
 #include <CQCharts.h>
 #include <CQUtil.h>

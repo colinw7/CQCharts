@@ -4,7 +4,6 @@
 #include <CQChartsAxis.h>
 #include <CQChartsMapKey.h>
 #include <CQChartsModelDetails.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsFitData.h>
 #include <CQChartsGrahamHull.h>
@@ -904,7 +903,8 @@ indPoints(const QVariant &var, int isGroup) const
   Points points;
 
   if (isGroup) {
-    int groupInd = var.toInt();
+    bool ok;
+    long groupInd = CQChartsVariant::toInt(var, ok);
 
     auto p = groupPoints_.find(groupInd);
     if (p == groupPoints_.end()) return points;

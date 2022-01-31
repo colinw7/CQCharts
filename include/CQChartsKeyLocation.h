@@ -30,6 +30,10 @@ class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsKeyLocation, metaTypeId)
+
  public:
   explicit CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
    type_(type) {

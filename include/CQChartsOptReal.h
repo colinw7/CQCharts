@@ -2,6 +2,8 @@
 #define CQChartsOptReal_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QVariant>
 #include <QString>
 
@@ -17,6 +19,10 @@ class CQChartsOptReal :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsOptReal, metaTypeId)
 
  public:
   using OptReal = boost::optional<double>;
@@ -87,8 +93,6 @@ class CQChartsOptReal :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsOptReal)
 

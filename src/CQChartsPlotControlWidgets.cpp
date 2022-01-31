@@ -319,8 +319,8 @@ init()
       auto *details = plot_->columnDetails(column_);
       assert(details);
 
-      slider_->setRangeMin(details->minValue().toDouble(&ok));
-      slider_->setRangeMax(details->maxValue().toDouble(&ok));
+      slider_->setRangeMin(CQChartsVariant::toReal(details->minValue(), ok));
+      slider_->setRangeMax(CQChartsVariant::toReal(details->maxValue(), ok));
 
       slider_->setSliderMin(slider_->rangeMin());
       slider_->setSliderMax(slider_->rangeMax());
@@ -437,8 +437,8 @@ init()
       auto *details = plot_->columnDetails(column_);
       assert(details);
 
-      slider_->setRangeMin(details->minValue().toInt(&ok));
-      slider_->setRangeMax(details->maxValue().toInt(&ok));
+      slider_->setRangeMin(CQChartsVariant::toInt(details->minValue(), ok));
+      slider_->setRangeMax(CQChartsVariant::toInt(details->maxValue(), ok));
 
       slider_->setSliderMin(slider_->rangeMin());
       slider_->setSliderMax(slider_->rangeMax());
@@ -555,8 +555,8 @@ init()
       auto *details = plot_->columnDetails(column_);
       assert(details);
 
-      slider_->setRangeMin(details->minValue().toDouble(&ok));
-      slider_->setRangeMax(details->maxValue().toDouble(&ok));
+      slider_->setRangeMin(CQChartsVariant::toReal(details->minValue(), ok));
+      slider_->setRangeMax(CQChartsVariant::toReal(details->maxValue(), ok));
 
       slider_->setSliderMin(slider_->rangeMin());
       slider_->setSliderMax(slider_->rangeMax());

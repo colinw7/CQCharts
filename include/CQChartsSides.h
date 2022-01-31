@@ -2,7 +2,11 @@
 #define CQChartsSide_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
+#include <QVariant>
+
 #include <iostream>
 
 /*!
@@ -28,6 +32,10 @@ class CQChartsSides :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsSides, metaTypeId)
 
  public:
   CQChartsSides() = default;
@@ -99,8 +107,6 @@ class CQChartsSides :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsSides)
 

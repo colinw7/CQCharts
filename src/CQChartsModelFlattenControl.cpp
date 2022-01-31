@@ -117,7 +117,8 @@ applySlot()
 
   CQChartsModelUtil::FlattenData flattenData;
 
-  auto c = columnEdit_->text().toInt();
+  bool ok;
+  long c = CQChartsUtil::toInt(columnEdit_->text(), ok);
 
   if (c >= 0 && c < nc)
     flattenData.groupColumn = CQChartsColumn(c);
@@ -132,8 +133,10 @@ applySlot()
     if (parts.size() != 2)
       continue;
 
+    bool ok1;
+
     auto opStr = parts[0].toLower();
-    int  c1    = parts[1].toInt();
+    long c1    = CQChartsUtil::toInt(parts[1], ok1);
 
     auto flattenOp = CQChartsModelUtil::flattenStringToOp(opStr);
 

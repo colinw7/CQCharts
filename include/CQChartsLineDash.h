@@ -2,8 +2,11 @@
 #define CQChartsLineDash_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <CLineDash.h>
+
 #include <QVector>
+#include <QVariant>
 
 #include <sys/types.h>
 
@@ -25,6 +28,10 @@ class CQChartsLineDash :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsLineDash, metaTypeId)
 
  public:
   CQChartsLineDash();
@@ -98,8 +105,6 @@ class CQChartsLineDash :
 };
 
 //------
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsLineDash)
 

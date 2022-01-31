@@ -1,5 +1,4 @@
 #include <CQChartsExprTcl.h>
-#include <CQModelUtil.h>
 
 CQChartsExprTcl::
 CQChartsExprTcl(QAbstractItemModel *model) :
@@ -116,7 +115,7 @@ evaluateExpression(const QString &expr, QVariant &value, bool showError) const
     if (isDomainError(rc)) {
       double x = CMathUtil::getNaN();
 
-      value = CQModelUtil::realVariant(x);
+      value = CQChartsVariant::fromReal(x);
 
       th->setLastValue(value);
 
@@ -175,16 +174,16 @@ setVar(const QString &name, int row, int column)
     createVar(name, column);
   }
   else if (name == "PI") {
-    createVar(name, CQModelUtil::realVariant(M_PI));
+    createVar(name, CQChartsVariant::fromReal(M_PI));
   }
   else if (name == "NaN") {
-    createVar(name, CQModelUtil::realVariant(CMathUtil::getNaN()));
+    createVar(name, CQChartsVariant::fromReal(CMathUtil::getNaN()));
   }
   else if (name == "_") {
     if (hasLastValue())
       createVar(name, lastValue());
     else
-      createVar(name, CQModelUtil::realVariant(0.0));
+      createVar(name, CQChartsVariant::fromReal(0.0));
   }
 }
 

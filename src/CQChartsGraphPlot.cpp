@@ -4,7 +4,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
@@ -1376,23 +1375,23 @@ processNodeNameValues(Node *node, const NameValues &nameValues) const
 
 void
 CQChartsGraphPlot::
-processNodeNameValue(Node *node, const QString &name, const QString &value) const
+processNodeNameValue(Node *node, const QString &name, const QString &valueStr) const
 {
   // shape
   if      (name == "shape") {
-    if      (value == "diamond")
+    if      (valueStr == "diamond")
       node->setShapeType(Node::ShapeType::DIAMOND);
-    else if (value == "box")
+    else if (valueStr == "box")
       node->setShapeType(Node::ShapeType::BOX);
-    else if (value == "polygon")
+    else if (valueStr == "polygon")
       node->setShapeType(Node::ShapeType::POLYGON);
-    else if (value == "circle")
+    else if (valueStr == "circle")
       node->setShapeType(Node::ShapeType::CIRCLE);
-    else if (value == "doublecircle")
+    else if (valueStr == "doublecircle")
       node->setShapeType(Node::ShapeType::DOUBLE_CIRCLE);
-    else if (value == "record")
+    else if (valueStr == "record")
       node->setShapeType(Node::ShapeType::BOX);
-    else if (value == "plaintext")
+    else if (valueStr == "plaintext")
       node->setShapeType(Node::ShapeType::BOX);
     else
       node->setShapeType(Node::ShapeType::BOX);
@@ -1401,34 +1400,34 @@ processNodeNameValue(Node *node, const QString &name, const QString &value) cons
   else if (name == "num_sides") {
     bool ok;
 
-    int n = value.toInt(&ok);
+    long n = CQChartsUtil::toInt(valueStr, ok);
 
     if (ok)
       node->setNumSides(n);
   }
   else if (name == "label") {
-    node->setLabel(value);
+    node->setLabel(valueStr);
   }
   else if (name == "fill_color" || name == "color") {
-    node->setFillColor(CQChartsColor(value));
+    node->setFillColor(CQChartsColor(valueStr));
   }
   else if (name == "fill_alpha" || name == "alpha") {
-    node->setFillAlpha(CQChartsAlpha(value));
+    node->setFillAlpha(CQChartsAlpha(valueStr));
   }
   else if (name == "fill_pattern" || name == "pattern") {
-    node->setFillPattern(CQChartsFillPattern(value));
+    node->setFillPattern(CQChartsFillPattern(valueStr));
   }
   else if (name == "stroke_color") {
-    node->setStrokeColor(CQChartsColor(value));
+    node->setStrokeColor(CQChartsColor(valueStr));
   }
   else if (name == "stroke_alpha") {
-    node->setStrokeAlpha(CQChartsAlpha(value));
+    node->setStrokeAlpha(CQChartsAlpha(valueStr));
   }
   else if (name == "stroke_width" || name == "width") {
-    node->setStrokeWidth(CQChartsLength(value));
+    node->setStrokeWidth(CQChartsLength(valueStr));
   }
   else if (name == "stroke_dash" || name == "dash") {
-    node->setStrokeDash(CQChartsLineDash(value));
+    node->setStrokeDash(CQChartsLineDash(valueStr));
   }
 }
 
@@ -1440,24 +1439,24 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
   auto *destNode = edge->destNode();
 
   for (const auto &nv : nameValues.nameValues()) {
-    const auto &name  = nv.first;
-    auto        value = nv.second.toString();
+    const auto &name     = nv.first;
+    auto        valueStr = nv.second.toString();
 
     if      (name == "shape") {
-      if (value == "arrow")
+      if (valueStr == "arrow")
         edge->setShapeType(Edge::ShapeType::ARROW);
     }
     else if (name == "label") {
-      edge->setLabel(value);
+      edge->setLabel(valueStr);
     }
     else if (name == "color") {
-      edge->setFillColor(CQChartsColor(value));
+      edge->setFillColor(CQChartsColor(valueStr));
     }
     else if (name.left(4) == "src_") {
-      processNodeNameValue(srcNode, name.mid(4), value);
+      processNodeNameValue(srcNode, name.mid(4), valueStr);
     }
     else if (name.left(5) == "dest_") {
-      processNodeNameValue(destNode, name.mid(5), value);
+      processNodeNameValue(destNode, name.mid(5), valueStr);
     }
   }
 }
@@ -2885,7 +2884,7 @@ draw(PaintDevice *device) const
       QPainterPath lpath;
 
       CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
-                                  plot_->orientation(), /*rectilinear*/true);
+                                  CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
 
       CQChartsArrowData arrowData;
 
@@ -2907,7 +2906,8 @@ draw(PaintDevice *device) const
   }
   else {
     if (plot_->isEdgeScaled()) {
-      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, /*isLine*/false, plot_->orientation());
+      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
+                                 plot_->orientation());
     }
     else {
       double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
@@ -2921,7 +2921,8 @@ draw(PaintDevice *device) const
           if (swapped)
             std::swap(y1, y2);
 
-          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw, plot_->orientation());
+          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
+                                     CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
         }
         else {
           // start x range from source node, and end x range from dest node
@@ -2931,7 +2932,8 @@ draw(PaintDevice *device) const
           if (swapped)
             std::swap(x1, x2);
 
-          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw, plot_->orientation());
+          CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
+                                     CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
         }
       }
       else {

@@ -231,8 +231,8 @@ fromString(const QString &s, Type type)
 
       bool ok;
 
-      w = wstr.toInt(&ok); if (! ok) w = -1;
-      h = wstr.toInt(&ok); if (! ok) h = -1;
+      w = CQChartsUtil::toInt(wstr, ok); if (! ok) w = -1;
+      h = CQChartsUtil::toInt(wstr, ok); if (! ok) h = -1;
     }
 
     s1 = s1.mid(0, pos);

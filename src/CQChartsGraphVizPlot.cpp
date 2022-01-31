@@ -1,10 +1,9 @@
-#include <CQChartsDotPlot.h>
+#include <CQChartsGraphVizPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
@@ -23,36 +22,38 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
-#include <CQDot.h>
+#include <CQGraphViz.h>
 #include <CQPerfMonitor.h>
 //#include <CCommand.h>
 
 #include <QMenu>
 #include <QAction>
 #include <QProcess>
+#include <QTemporaryFile>
+#include <QDir>
 
 #include <fstream>
 
-CQChartsDotPlotType::
-CQChartsDotPlotType()
+CQChartsGraphVizPlotType::
+CQChartsGraphVizPlotType()
 {
 }
 
 void
-CQChartsDotPlotType::
+CQChartsGraphVizPlotType::
 addParameters()
 {
   CQChartsConnectionPlotType::addParameters();
 }
 
 QString
-CQChartsDotPlotType::
+CQChartsGraphVizPlotType::
 description() const
 {
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Dot Plot").
+   h2("Graphviz Plot").
     h3("Summary").
      p("Draw connected objects as a connected graph.").
     h3("Limitations").
@@ -62,25 +63,25 @@ description() const
 }
 
 CQChartsPlot *
-CQChartsDotPlotType::
+CQChartsGraphVizPlotType::
 create(View *view, const ModelP &model) const
 {
-  return new CQChartsDotPlot(view, model);
+  return new CQChartsGraphVizPlot(view, model);
 }
 
 //------
 
-CQChartsDotPlot::
-CQChartsDotPlot(View *view, const ModelP &model) :
- CQChartsConnectionPlot(view, view->charts()->plotType("dot"), model),
- CQChartsObjTextData<CQChartsDotPlot>(this),
- CQChartsObjNodeShapeData<CQChartsDotPlot>(this),
- CQChartsObjEdgeShapeData<CQChartsDotPlot>(this)
+CQChartsGraphVizPlot::
+CQChartsGraphVizPlot(View *view, const ModelP &model) :
+ CQChartsConnectionPlot(view, view->charts()->plotType("graphviz"), model),
+ CQChartsObjTextData<CQChartsGraphVizPlot>(this),
+ CQChartsObjNodeShapeData<CQChartsGraphVizPlot>(this),
+ CQChartsObjEdgeShapeData<CQChartsGraphVizPlot>(this)
 {
 }
 
-CQChartsDotPlot::
-~CQChartsDotPlot()
+CQChartsGraphVizPlot::
+~CQChartsGraphVizPlot()
 {
   term();
 }
@@ -88,7 +89,7 @@ CQChartsDotPlot::
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 init()
 {
   CQChartsConnectionPlot::init();
@@ -135,7 +136,7 @@ init()
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 term()
 {
   // delete objects first to ensure link from edge/node to object reset
@@ -147,7 +148,7 @@ term()
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 clearNodesAndEdges()
 {
   nameNodeMap_.clear();
@@ -164,7 +165,7 @@ clearNodesAndEdges()
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setNodeShape(const NodeShape &s)
 {
   CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateObjs(); } );
@@ -173,65 +174,72 @@ setNodeShape(const NodeShape &s)
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgeShape(const EdgeShape &s)
 {
   CQChartsUtil::testAndSet(edgeShape_, s, [&]() { updateObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgeScaled(bool b)
 {
   CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgeArrow(bool b)
 {
   CQChartsUtil::testAndSet(edgeArrow_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgeWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgeCentered(bool b)
 {
   CQChartsUtil::testAndSet(edgeCentered_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setEdgePath(bool b)
 {
   CQChartsUtil::testAndSet(edgePath_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setArrowWidth(double w)
 {
   CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsGraphVizPlot::
+setEdgeWeighted(bool b)
+{
+  CQChartsUtil::testAndSet(edgeWeighted_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 const Qt::Orientation &
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 orientation() const
 {
   return orientation_;
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setOrientation(const Qt::Orientation &o)
 {
   CQChartsUtil::testAndSet(orientation_, o, [&]() { updateRangeAndObjs(); } );
@@ -240,7 +248,7 @@ setOrientation(const Qt::Orientation &o)
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setBlendEdgeColor(bool b)
 {
   CQChartsUtil::testAndSet(blendEdgeColor_, b, [&]() { drawObjs(); } );
@@ -249,7 +257,7 @@ setBlendEdgeColor(bool b)
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 setPlotType(const PlotType &t)
 {
   CQChartsUtil::testAndSet(plotType_, t, [&]() { updateRangeAndObjs(); } );
@@ -258,7 +266,7 @@ setPlotType(const PlotType &t)
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addProperties()
 {
   CQChartsConnectionPlot::addProperties();
@@ -293,7 +301,8 @@ addProperties()
   addProp("edge", "edgeWidth"   , "width"     , "Edge width");
   addProp("edge", "edgeCentered", "centered"  , "Edge is cenetered");
   addProp("edge", "edgePath"    , "usePath"   , "Use Edge path");
-  addProp("edge", "arrowWidth"  , "arrowWidth", "Arrow width factor");
+  addProp("edge", "arrowWidth"  , "arrowWidth", "Directed edge arrow width factor");
+  addProp("edge", "edgeWeighted", "weighted"  , "Edge is weighted bt value for placement");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -327,12 +336,12 @@ addProperties()
 //---
 
 CQChartsGeom::Range
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 calcRange() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::calcRange");
+  CQPerfTrace trace("CQChartsGraphVizPlot::calcRange");
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
 //th->nodeYSet_ = false;
 
@@ -356,7 +365,7 @@ calcRange() const
 }
 
 CQChartsGeom::Range
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 objTreeRange() const
 {
   auto bbox = nodesBBox();
@@ -368,7 +377,7 @@ objTreeRange() const
 }
 
 CQChartsGeom::BBox
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 nodesBBox() const
 {
   // calc bounding box of all nodes (all graphs)
@@ -386,14 +395,14 @@ nodesBBox() const
 //------
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 createObjs(PlotObjs &objs) const
 {
-  CQPerfTrace trace("CQChartsDotPlot::createObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::createObjs");
 
   NoUpdate noUpdate(this);
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   th->clearErrors();
 
@@ -440,7 +449,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  writeGraph();
+  writeGraph(isEdgeWeighted());
 
   addObjects(objs);
 
@@ -448,13 +457,13 @@ createObjs(PlotObjs &objs) const
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addObjects(PlotObjs &objs) const
 {
   if (! bbox_.isValid())
     return;
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   //---
 
@@ -480,16 +489,22 @@ addObjects(PlotObjs &objs) const
 }
 
 void
-CQChartsDotPlot::
-writeGraph() const
+CQChartsGraphVizPlot::
+writeGraph(bool weighted) const
 {
-  auto dotFilename  = std::string("/tmp/dot.gv");
-  auto jsonFilename = std::string("/tmp/dot.json");
+  // create graphviz input file from data
+  QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.csv");
 
-  {
-  auto os = std::ofstream(dotFilename, std::ofstream::out);
+  graphVizFile.open();
 
-  os << "digraph g {\n";
+  auto graphVizFilename = graphVizFile.fileName().toStdString();
+std::cerr << graphVizFilename << "\n";
+
+  auto writeGraphViz = [&](const QString &str) {
+    graphVizFile.write(str.toLatin1().constData());
+  };
+
+  writeGraphViz("digraph g {\n");
 
   using NodeSet = std::set<Node *>;
 
@@ -497,27 +512,27 @@ writeGraph() const
 
   auto printAttr = [&](const QString &name, const QString &value, int &attrCount) {
     if (attrCount == 0)
-      os << " [";
+      writeGraphViz(" [");
     else
-      os << ",";
+      writeGraphViz(",");
 
-    os << name.toStdString() << "=\"" << value.toStdString() << "\"";
+    writeGraphViz(name + "=\"" + value + "\"");
 
     ++attrCount;
   };
 
   auto endPrintAttr = [&](int attrCount) {
     if (attrCount > 0)
-      os << "]";
+      writeGraphViz("]");
 
-    os << ";\n";
+    writeGraphViz(";\n");
   };
 
   auto printNode = [&](Node *node) {
     auto p = nodeSet.find(node);
     if (p != nodeSet.end()) return;
 
-    os << "\"" << node->name().toStdString() << "\"";
+    writeGraphViz("\"" + node->name() + "\"");
 
     int nodeAttrCount = 0;
 
@@ -540,7 +555,12 @@ writeGraph() const
     printNode(node1);
     printNode(node2);
 
-    os << "\"" << node1->name().toStdString() << "\" -> \"" << node2->name().toStdString() << "\"";
+    writeGraphViz("\"" + node1->name() + "\" -> \"" + node2->name() + "\"");
+
+    if (weighted) {
+      if (edge->hasValue())
+        writeGraphViz(" [weight=" + QString::number(edge->value().real()) + "]");
+    }
 
     int edgeAttrCount = 0;
 
@@ -550,8 +570,9 @@ writeGraph() const
     endPrintAttr(edgeAttrCount);
   }
 
-  os << "}\n";
-  }
+  writeGraphViz("}\n");
+
+  graphVizFile.close();
 
   //---
 
@@ -564,7 +585,7 @@ writeGraph() const
     case PlotType::CIRCO     : cmd = "circo"; break;
     case PlotType::FDP       : cmd = "fdp"; break;
     case PlotType::OSAGE     : cmd = "osage"; break;
-    case PlotType::PATCHWORK : cmd = "pathwork"; break;
+    case PlotType::PATCHWORK : cmd = "patchwork"; break;
     case PlotType::SFDP      : cmd = "sfdp"; break;
   }
 
@@ -572,11 +593,19 @@ writeGraph() const
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin");
   auto dot_file = dot_path + "/" + cmd;
 
+  // get temporary file for json output
+  QTemporaryFile jsonFile(QDir::tempPath() + "/XXXXXX.json");
+
+  jsonFile.open();
+
+  auto jsonFilename = jsonFile.fileName().toStdString();
+std::cerr << jsonFilename << "\n";
+
 #if 0
   CCommand::Args args;
 
   args.push_back("-Tjson");
-  args.push_back(dotFilename);
+  args.push_back(graphVizFilename);
 
   CCommand cmd(cmd, dot_file, args);
 
@@ -590,17 +619,20 @@ writeGraph() const
 
   process.setStandardOutputFile(QString::fromStdString(jsonFilename));
 
-  process.start(dot_file, QStringList() << "-Tjson" << QString::fromStdString(dotFilename));
+  process.start(dot_file, QStringList() << "-Tjson" << QString::fromStdString(graphVizFilename));
 
-  process.waitForFinished();
+  if (! process.waitForFinished()) {
+    std::cerr << "Commannd failed : " << dot_file.toStdString() << " -Tjson " <<
+                 graphVizFilename << " > " << jsonFilename << "\n";
+  }
 #endif
 
   //---
 
   // parse output json file
-  CQDot::App dot;
+  CQGraphViz::App dot;
 
-  dot.processFile(jsonFilename);
+  dot.processJson(jsonFilename);
 
   //---
 
@@ -636,8 +668,8 @@ writeGraph() const
     int tailId = dotEdge->tailId(); // from
     int headId = dotEdge->headId(); // to
 
-    auto *tailNode = findDotNode(tailId);
-    auto *headNode = findDotNode(headId);
+    auto *tailNode = findIdNode(tailId);
+    auto *headNode = findIdNode(headId);
     if (! tailNode || ! headNode) {
       charts()->errorMsg("Missing tail/head node for edge " + QString::number(dotEdge->id()));
       continue;
@@ -808,7 +840,7 @@ writeGraph() const
       edge->setDirected(true);
   }
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   th->bbox_ = bbox; // current
 
@@ -816,7 +848,7 @@ writeGraph() const
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 fitToBBox(const BBox &bbox)
 {
   if (! bbox_.isValid() || ! bbox.isValid())
@@ -886,16 +918,16 @@ fitToBBox(const BBox &bbox)
 //------
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initHierObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initHierObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initHierObjs");
 
   return CQChartsConnectionPlot::initHierObjs();
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
@@ -919,7 +951,7 @@ initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
@@ -943,7 +975,7 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
                           double value, Node* &srcNode, Node* &destNode) const
 {
@@ -978,14 +1010,14 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initPathObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initPathObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initPathObjs");
 
   //---
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   th->maxNodeDepth_ = 0;
 
@@ -1003,13 +1035,13 @@ initPathObjs() const
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addPathValue(const PathData &pathData) const
 {
   int n = pathData.pathStrs.length();
   assert(n > 0);
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
@@ -1069,7 +1101,7 @@ addPathValue(const PathData &pathData) const
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 propagatePathValues()
 {
   // propagate node value up through edges and parent nodes
@@ -1125,16 +1157,16 @@ propagatePathValues()
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initFromToObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initFromToObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initFromToObjs");
 
   return CQChartsConnectionPlot::initFromToObjs();
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addFromToValue(const FromToData &fromToData) const
 {
   // get src node
@@ -1149,7 +1181,7 @@ addFromToValue(const FromToData &fromToData) const
   if (fromToData.groupData.ng > 1) {
     srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
 
-    auto *th = const_cast<CQChartsDotPlot *>(this);
+    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, fromToData.groupData.ng);
   }
@@ -1180,7 +1212,7 @@ addFromToValue(const FromToData &fromToData) const
     int ng = groupNames.length();
 
     if (ng > 0) {
-      auto *th = const_cast<CQChartsDotPlot *>(this);
+      auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
       graphId = th->groupValueInd_.calcId(groupNames[ng - 1]);
 
@@ -1247,16 +1279,16 @@ addFromToValue(const FromToData &fromToData) const
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initLinkObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initLinkObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initLinkObjs");
 
   return CQChartsConnectionPlot::initLinkObjs();
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
   // get src/dest nodes (TODO: allow single source node)
@@ -1306,7 +1338,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   if (linkConnectionData.groupData.isValid()) {
     srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
 
-    auto *th = const_cast<CQChartsDotPlot *>(this);
+    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, linkConnectionData.groupData.ng);
   }
@@ -1339,16 +1371,16 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initConnectionObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initConnectionObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initConnectionObjs");
 
   return CQChartsConnectionPlot::initConnectionObjs();
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex &) const
 {
   // get src node
@@ -1364,7 +1396,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex
   if (connectionsData.groupData.isValid()) {
     srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
 
-    auto *th = const_cast<CQChartsDotPlot *>(this);
+    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, connectionsData.groupData.ng);
   }
@@ -1416,10 +1448,10 @@ addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 initTableObjs() const
 {
-  CQPerfTrace trace("CQChartsDotPlot::initTableObjs");
+  CQPerfTrace trace("CQChartsGraphVizPlot::initTableObjs");
 
   //---
 
@@ -1467,7 +1499,7 @@ initTableObjs() const
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 processNodeNameValues(Node *node, const NameValues &nameValues) const
 {
   for (const auto &nv : nameValues.nameValues()) {
@@ -1479,14 +1511,14 @@ processNodeNameValues(Node *node, const NameValues &nameValues) const
 }
 
 void
-CQChartsDotPlot::
-processNodeNameValue(Node *node, const QString &name, const QString &value) const
+CQChartsGraphVizPlot::
+processNodeNameValue(Node *node, const QString &name, const QString &valueStr) const
 {
   // shape
   if      (name == "shape") {
     Node::ShapeType shapeType;
 
-    stringToShapeType(value, shapeType);
+    stringToShapeType(valueStr, shapeType);
 
     node->setShapeType(shapeType);
   }
@@ -1494,72 +1526,72 @@ processNodeNameValue(Node *node, const QString &name, const QString &value) cons
   else if (name == "num_sides") {
     bool ok;
 
-    int n = value.toInt(&ok);
+    long n = CQChartsUtil::toInt(valueStr, ok);
 
     if (ok)
       node->setNumSides(n);
   }
   else if (name == "label") {
-    node->setLabel(value);
+    node->setLabel(valueStr);
   }
   else if (name == "fill_color" || name == "color") {
-    node->setFillColor(CQChartsColor(value));
+    node->setFillColor(CQChartsColor(valueStr));
   }
   else if (name == "fill_alpha" || name == "alpha") {
-    node->setFillAlpha(CQChartsAlpha(value));
+    node->setFillAlpha(CQChartsAlpha(valueStr));
   }
   else if (name == "fill_pattern" || name == "pattern") {
-    node->setFillPattern(CQChartsFillPattern(value));
+    node->setFillPattern(CQChartsFillPattern(valueStr));
   }
   else if (name == "stroke_color") {
-    node->setStrokeColor(CQChartsColor(value));
+    node->setStrokeColor(CQChartsColor(valueStr));
   }
   else if (name == "stroke_alpha") {
-    node->setStrokeAlpha(CQChartsAlpha(value));
+    node->setStrokeAlpha(CQChartsAlpha(valueStr));
   }
   else if (name == "stroke_width" || name == "width") {
-    node->setStrokeWidth(CQChartsLength(value));
+    node->setStrokeWidth(CQChartsLength(valueStr));
   }
   else if (name == "stroke_dash" || name == "dash") {
-    node->setStrokeDash(CQChartsLineDash(value));
+    node->setStrokeDash(CQChartsLineDash(valueStr));
   }
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
 {
   auto *srcNode  = edge->srcNode ();
   auto *destNode = edge->destNode();
 
   for (const auto &nv : nameValues.nameValues()) {
-    const auto &name  = nv.first;
-    auto        value = nv.second.toString();
+    const auto &name     = nv.first;
+    auto        valueStr = nv.second.toString();
 
     if      (name == "shape") {
       Edge::ShapeType shapeType;
 
-      stringToShapeType(value, shapeType);
+      stringToShapeType(valueStr, shapeType);
 
       edge->setShapeType(shapeType);
     }
     else if (name == "label") {
-      edge->setLabel(value);
+      edge->setLabel(valueStr);
     }
     else if (name == "color") {
-      edge->setFillColor(CQChartsColor(value));
+      edge->setFillColor(CQChartsColor(valueStr));
     }
     else if (name.left(4) == "src_") {
-      processNodeNameValue(srcNode, name.mid(4), value);
+      processNodeNameValue(srcNode, name.mid(4), valueStr);
     }
     else if (name.left(5) == "dest_") {
-      processNodeNameValue(destNode, name.mid(5), value);
+      processNodeNameValue(destNode, name.mid(5), valueStr);
     }
   }
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 stringToShapeType(const QString &str, Node::ShapeType &shapeType)
 {
   if      (str == "box"            ) shapeType = Node::ShapeType::BOX;
@@ -1629,7 +1661,7 @@ stringToShapeType(const QString &str, Node::ShapeType &shapeType)
 }
 
 QString
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 shapeTypeToString(const Node::ShapeType &shapeType)
 {
   switch (shapeType) {
@@ -1647,7 +1679,7 @@ shapeTypeToString(const Node::ShapeType &shapeType)
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 stringToShapeType(const QString &str, Edge::ShapeType &shapeType)
 {
   if (str == "arrow" ) shapeType = Edge::ShapeType::ARROW;
@@ -1655,7 +1687,7 @@ stringToShapeType(const QString &str, Edge::ShapeType &shapeType)
 }
 
 QString
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 shapeTypeToString(const Edge::ShapeType &shapeType)
 {
   switch (shapeType) {
@@ -1667,7 +1699,7 @@ shapeTypeToString(const Edge::ShapeType &shapeType)
 //---
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 filterObjs()
 {
   // hide nodes below depth
@@ -1690,7 +1722,7 @@ filterObjs()
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 addMenuItems(QMenu *menu)
 {
   if (canDrawColorMapKey()) {
@@ -1704,8 +1736,8 @@ addMenuItems(QMenu *menu)
 
 //---
 
-CQChartsDotPlot::NodeObj *
-CQChartsDotPlot::
+CQChartsGraphVizPlot::NodeObj *
+CQChartsGraphVizPlot::
 createObjFromNode(Node *node) const
 {
 //int numNodes = graph->nodes().size(); // node id needs to be per graph
@@ -1729,7 +1761,7 @@ createObjFromNode(Node *node) const
   for (const auto &modelInd : node->modelInds())
     nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
-  auto *pnode = dynamic_cast<CQChartsDotPlotNode *>(node);
+  auto *pnode = dynamic_cast<CQChartsGraphVizPlotNode *>(node);
   assert(pnode);
 
   pnode->setObj(nodeObj);
@@ -1737,8 +1769,8 @@ createObjFromNode(Node *node) const
   return nodeObj;
 }
 
-CQChartsDotEdgeObj *
-CQChartsDotPlot::
+CQChartsGraphVizEdgeObj *
+CQChartsGraphVizPlot::
 addEdgeObj(Edge *edge) const
 {
   assert(bbox_.isValid());
@@ -1766,7 +1798,7 @@ addEdgeObj(Edge *edge) const
 
   edgeObj->setShapeType(shapeType);
 
-  auto *pedge = dynamic_cast<CQChartsDotPlotEdge *>(edge);
+  auto *pedge = dynamic_cast<CQChartsGraphVizPlotEdge *>(edge);
   assert(pedge);
 
   pedge->setObj(edgeObj);
@@ -1776,8 +1808,8 @@ addEdgeObj(Edge *edge) const
 
 //---
 
-CQChartsDotPlotNode *
-CQChartsDotPlot::
+CQChartsGraphVizPlotNode *
+CQChartsGraphVizPlot::
 findNode(const QString &name) const
 {
   auto p = nameNodeMap_.find(name);
@@ -1788,9 +1820,9 @@ findNode(const QString &name) const
   return createNode(name);
 }
 
-CQChartsDotPlotNode *
-CQChartsDotPlot::
-findDotNode(int dotId) const
+CQChartsGraphVizPlotNode *
+CQChartsGraphVizPlot::
+findIdNode(int dotId) const
 {
   for (const auto &node : nodes())
     if (node->dotId() == dotId)
@@ -1799,17 +1831,17 @@ findDotNode(int dotId) const
   return nullptr;
 }
 
-CQChartsDotPlotNode *
-CQChartsDotPlot::
+CQChartsGraphVizPlotNode *
+CQChartsGraphVizPlot::
 createNode(const QString &name) const
 {
-  auto *node = new CQChartsDotPlotNode(name);
+  auto *node = new CQChartsGraphVizPlotNode(name);
 
   node->setName(name);
 
   node->setId(nameNodeMap_.size());
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(),
               NameNodeMap::value_type(node->str(), node));
@@ -1824,15 +1856,15 @@ createNode(const QString &name) const
   return node;
 }
 
-CQChartsDotPlotEdge *
-CQChartsDotPlot::
+CQChartsGraphVizPlotEdge *
+CQChartsGraphVizPlot::
 createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
-  auto *edge = new CQChartsDotPlotEdge(value, srcNode, destNode);
+  auto *edge = new CQChartsGraphVizPlotEdge(value, srcNode, destNode);
 
   edge->setId(edges_.size());
 
-  auto *th = const_cast<CQChartsDotPlot *>(this);
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
   th->edges_.push_back(edge);
 
@@ -1842,7 +1874,7 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 keyPress(int key, int modifier)
 {
   if (key == Qt::Key_F) {
@@ -1863,7 +1895,7 @@ keyPress(int key, int modifier)
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 printStats()
 {
   using NameData = std::map<QString, QString>;
@@ -1893,15 +1925,15 @@ printStats()
 
 //---
 
-CQChartsDotNodeObj *
-CQChartsDotPlot::
+CQChartsGraphVizNodeObj *
+CQChartsGraphVizPlot::
 createNodeObj(const BBox &rect, Node *node, const ColorInd &ind) const
 {
   return new NodeObj(this, rect, node, ind);
 }
 
-CQChartsDotEdgeObj *
-CQChartsDotPlot::
+CQChartsGraphVizEdgeObj *
+CQChartsGraphVizPlot::
 createEdgeObj(const BBox &rect, Edge *edge) const
 {
   return new EdgeObj(this, rect, edge);
@@ -1910,7 +1942,7 @@ createEdgeObj(const BBox &rect, Edge *edge) const
 //---
 
 bool
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 hasForeground() const
 {
   if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
@@ -1920,7 +1952,7 @@ hasForeground() const
 }
 
 void
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 execDrawForeground(PaintDevice *device) const
 {
   if (isColorMapKey())
@@ -1930,10 +1962,10 @@ execDrawForeground(PaintDevice *device) const
 //---
 
 CQChartsPlotCustomControls *
-CQChartsDotPlot::
+CQChartsGraphVizPlot::
 createCustomControls()
 {
-  auto *controls = new CQChartsDotPlotCustomControls(charts());
+  auto *controls = new CQChartsGraphVizPlotCustomControls(charts());
 
   controls->init();
 
@@ -1946,8 +1978,8 @@ createCustomControls()
 
 //------
 
-CQChartsDotNodeObj::
-CQChartsDotNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
+CQChartsGraphVizNodeObj::
+CQChartsGraphVizNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), node_(node)
 {
@@ -1956,108 +1988,108 @@ CQChartsDotNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorIn
   setEditable(true);
 }
 
-CQChartsDotNodeObj::
-~CQChartsDotNodeObj()
+CQChartsGraphVizNodeObj::
+~CQChartsGraphVizNodeObj()
 {
-  auto *pnode = dynamic_cast<CQChartsDotPlotNode *>(node_);
+  auto *pnode = dynamic_cast<CQChartsGraphVizPlotNode *>(node_);
 
   if (pnode)
     pnode->setObj(nullptr);
 }
 
 QString
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 name() const
 {
   return node()->name();
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setName(const QString &s)
 {
   node()->setName(s);
 }
 
 double
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 value() const
 {
   return node()->value().realOr(0.0);
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setValue(double r)
 {
-  node()->setValue(CQChartsDotPlotNode::OptReal(r));
+  node()->setValue(CQChartsGraphVizPlotNode::OptReal(r));
 }
 
 int
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 depth() const
 {
   return node()->depth();
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setDepth(int depth)
 {
   node()->setDepth(depth);
 }
 
-CQChartsDotNodeObj::ShapeType
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::ShapeType
+CQChartsGraphVizNodeObj::
 shapeType() const
 {
-  return static_cast<CQChartsDotNodeObj::ShapeType>(node()->shapeType());
+  return static_cast<CQChartsGraphVizNodeObj::ShapeType>(node()->shapeType());
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setShapeType(const ShapeType &s)
 {
-  node()->setShapeType(static_cast<CQChartsDotPlotNode::ShapeType>(s));
+  node()->setShapeType(static_cast<CQChartsGraphVizPlotNode::ShapeType>(s));
 }
 
 int
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 numSides() const
 {
   return node()->numSides();
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setNumSides(int n)
 {
   node()->setNumSides(n);
 }
 
 CQChartsColor
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 fillColor() const
 {
   return node()->fillColor();
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setFillColor(const Color &c)
 {
   node()->setFillColor(c);
 }
 
 QString
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 calcId() const
 {
   return QString("%1:%2").arg(typeName()).arg(node()->id());
 }
 
 QString
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 calcTipId() const
 {
   Edge *edge = nullptr;
@@ -2118,7 +2150,7 @@ calcTipId() const
 //---
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   auto path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
@@ -2139,7 +2171,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 //---
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 moveBy(const Point &delta)
 {
   //charts()->errorMsg("  Move " + node()->str() + " by " + delta.y);
@@ -2148,7 +2180,7 @@ moveBy(const Point &delta)
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 scale(double fx, double fy)
 {
   rect_.scale(fx, fy);
@@ -2157,7 +2189,7 @@ scale(double fx, double fy)
 //---
 
 bool
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 editPress(const Point &p)
 {
   editChanged_ = false;
@@ -2168,7 +2200,7 @@ editPress(const Point &p)
 }
 
 bool
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 editMove(const Point &p)
 {
   const auto &dragPos  = editHandles()->dragPos();
@@ -2193,30 +2225,30 @@ editMove(const Point &p)
 
   editChanged_ = true;
 
-  const_cast<CQChartsDotPlot *>(plot())->drawObjs();
+  const_cast<CQChartsGraphVizPlot *>(plot())->drawObjs();
 
   return true;
 }
 
 bool
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 editMotion(const Point &p)
 {
   return editHandles()->selectInside(p);
 }
 
 bool
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    const_cast<CQChartsDotPlot *>(plot())->invalidateObjTree();
+    const_cast<CQChartsGraphVizPlot *>(plot())->invalidateObjTree();
 
   return true;
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 {
   assert(bbox.isSet());
@@ -2229,8 +2261,8 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
 //---
 
-CQChartsDotNodeObj::PlotObjs
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::PlotObjs
+CQChartsGraphVizNodeObj::
 getConnected() const
 {
   PlotObjs plotObjs;
@@ -2247,7 +2279,7 @@ getConnected() const
 //---
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 draw(PaintDevice *device) const
 {
   // calc pen and brush
@@ -2296,7 +2328,7 @@ draw(PaintDevice *device) const
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 drawFg(PaintDevice *device) const
 {
   if (! plot_->isTextVisible())
@@ -2379,7 +2411,7 @@ drawFg(PaintDevice *device) const
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
@@ -2415,7 +2447,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 }
 
 QColor
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 calcFillColor() const
 {
   QColor fc;
@@ -2431,7 +2463,7 @@ calcFillColor() const
 }
 
 void
-CQChartsDotNodeObj::
+CQChartsGraphVizNodeObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
@@ -2441,17 +2473,17 @@ writeScriptData(ScriptPaintDevice *device) const
 
 //------
 
-CQChartsDotEdgeObj::
-CQChartsDotEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
+CQChartsGraphVizEdgeObj::
+CQChartsGraphVizEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
 }
 
-CQChartsDotEdgeObj::
-~CQChartsDotEdgeObj()
+CQChartsGraphVizEdgeObj::
+~CQChartsGraphVizEdgeObj()
 {
-  auto *pedge = dynamic_cast<CQChartsDotPlotEdge *>(edge_);
+  auto *pedge = dynamic_cast<CQChartsGraphVizPlotEdge *>(edge_);
 
   if (pedge)
     pedge->setObj(nullptr);
@@ -2459,28 +2491,28 @@ CQChartsDotEdgeObj::
 
 //---
 
-CQChartsDotEdgeObj::ShapeType
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::ShapeType
+CQChartsGraphVizEdgeObj::
 shapeType() const
 {
-  return static_cast<CQChartsDotEdgeObj::ShapeType>(edge()->shapeType());
+  return static_cast<CQChartsGraphVizEdgeObj::ShapeType>(edge()->shapeType());
 }
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 setShapeType(const ShapeType &s)
 {
-  edge()->setShapeType(static_cast<CQChartsDotPlotEdge::ShapeType>(s));
+  edge()->setShapeType(static_cast<CQChartsGraphVizPlotEdge::ShapeType>(s));
 }
 
 //---
 
 QString
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 calcId() const
 {
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   auto *srcObj  = srcNode ->obj();
@@ -2494,7 +2526,7 @@ calcId() const
 }
 
 QString
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 calcTipId() const
 {
   auto namedColumn = [&](const QString &name, const QString &defName="") {
@@ -2510,8 +2542,8 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   auto *srcObj  = srcNode ->obj();
@@ -2543,7 +2575,7 @@ calcTipId() const
 //---
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   auto path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
@@ -2558,7 +2590,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 //---
 
 bool
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 inside(const Point &p) const
 {
   return path_.contains(p.qpoint());
@@ -2566,14 +2598,14 @@ inside(const Point &p) const
 
 //---
 
-CQChartsDotEdgeObj::PlotObjs
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::PlotObjs
+CQChartsGraphVizEdgeObj::
 getConnected() const
 {
   PlotObjs plotObjs;
 
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   auto *srcObj  = srcNode ->obj();
@@ -2588,7 +2620,7 @@ getConnected() const
 //---
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 draw(PaintDevice *device) const
 {
   // calc pen and brush
@@ -2607,8 +2639,8 @@ draw(PaintDevice *device) const
   //---
 
   // get connection rect of source and destination object
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   auto *srcObj  = srcNode ->obj();
@@ -2779,6 +2811,8 @@ draw(PaintDevice *device) const
 
     if (destNode->hasEdgePoint(edge()))
       epath1.lineTo(destPoint.qpoint());
+
+    usePath = true;
   }
 
   //---
@@ -2821,13 +2855,13 @@ draw(PaintDevice *device) const
   }
   else {
     if (isArrow) {
-      const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(false);
+      const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(false);
 
       if (! isSelf) {
         QPainterPath lpath;
 
         CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
-                                    plot_->orientation(), /*rectilinear*/true);
+                                    CQChartsDrawUtil::EdgeType::RECTILINEAR, orient);
 
         CQChartsArrowData arrowData;
 
@@ -2843,11 +2877,12 @@ draw(PaintDevice *device) const
 
       device->drawPath(path_);
 
-      const_cast<CQChartsDotPlot *>(plot())->setUpdatesEnabled(true);
+      const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(true);
     }
     else {
       if (! isSelf) {
-        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, orient);
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw,
+                                   CQChartsDrawUtil::EdgeType::ARC, orient);
       }
       else {
         CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
@@ -2861,7 +2896,7 @@ draw(PaintDevice *device) const
 }
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 drawFg(PaintDevice *device) const
 {
   if (! plot_->isTextVisible())
@@ -2870,8 +2905,8 @@ drawFg(PaintDevice *device) const
   //---
 
   // get connection rect of source and destination object
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   auto *srcObj  = srcNode ->obj();
@@ -2935,12 +2970,12 @@ drawFg(PaintDevice *device) const
 }
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
-  auto *srcNode  = dynamic_cast<CQChartsDotPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsDotPlotNode *>(edge()->destNode());
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
   assert(srcNode && destNode);
 
   //---
@@ -2995,7 +3030,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 }
 
 void
-CQChartsDotEdgeObj::
+CQChartsGraphVizEdgeObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
@@ -3012,14 +3047,14 @@ writeScriptData(ScriptPaintDevice *device) const
 
 //------
 
-CQChartsDotPlotCustomControls::
-CQChartsDotPlotCustomControls(CQCharts *charts) :
- CQChartsConnectionPlotCustomControls(charts, "dot")
+CQChartsGraphVizPlotCustomControls::
+CQChartsGraphVizPlotCustomControls(CQCharts *charts) :
+ CQChartsConnectionPlotCustomControls(charts, "graphviz")
 {
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 init()
 {
   addWidgets();
@@ -3030,7 +3065,7 @@ init()
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 addWidgets()
 {
   addConnectionColumnWidgets();
@@ -3039,23 +3074,23 @@ addWidgets()
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 connectSlots(bool b)
 {
   CQChartsConnectionPlotCustomControls::connectSlots(b);
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsDotPlot *>(plot);
+  plot_ = dynamic_cast<CQChartsGraphVizPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 updateWidgets()
 {
   connectSlots(false);
@@ -3070,14 +3105,14 @@ updateWidgets()
 }
 
 CQChartsColor
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 getColorValue()
 {
   return plot_->nodeFillColor();
 }
 
 void
-CQChartsDotPlotCustomControls::
+CQChartsGraphVizPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
   plot_->setNodeFillColor(c);
@@ -3085,34 +3120,34 @@ setColorValue(const CQChartsColor &c)
 
 //---
 
-CQChartsDotPlotNode::
-CQChartsDotPlotNode(const QString &str) :
+CQChartsGraphVizPlotNode::
+CQChartsGraphVizPlotNode(const QString &str) :
  str_(str)
 {
 }
 
-CQChartsDotPlotNode::
-~CQChartsDotPlotNode()
+CQChartsGraphVizPlotNode::
+~CQChartsGraphVizPlotNode()
 {
   assert(! obj_);
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 setObj(Obj *obj)
 {
   obj_ = obj;
 }
 
-const CQChartsDotPlotNode::BBox &
-CQChartsDotPlotNode::
+const CQChartsGraphVizPlotNode::BBox &
+CQChartsGraphVizPlotNode::
 rect() const
 {
   return rect_;
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 setRect(const BBox &rect)
 {
   rect_ = rect;
@@ -3122,7 +3157,7 @@ setRect(const BBox &rect)
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 addSrcEdge(Edge *edge, bool primary)
 {
   assert(edge->destNode());
@@ -3138,7 +3173,7 @@ addSrcEdge(Edge *edge, bool primary)
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 addDestEdge(Edge *edge, bool primary)
 {
   assert(edge->destNode());
@@ -3154,7 +3189,7 @@ addDestEdge(Edge *edge, bool primary)
 }
 
 bool
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 hasDestNode(Node *destNode) const
 {
   for (auto &destEdge : destEdges()) {
@@ -3165,8 +3200,8 @@ hasDestNode(Node *destNode) const
   return false;
 }
 
-CQChartsDotPlotEdge *
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotEdge *
+CQChartsGraphVizPlotNode::
 findSrcEdge(Node *node) const
 {
   for (auto &srcEdge : srcEdges()) {
@@ -3177,8 +3212,8 @@ findSrcEdge(Node *node) const
   return nullptr;
 }
 
-CQChartsDotPlotEdge *
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotEdge *
+CQChartsGraphVizPlotNode::
 findDestEdge(Node *node) const
 {
   for (auto &destEdge : destEdges()) {
@@ -3192,7 +3227,7 @@ findDestEdge(Node *node) const
 //---
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 moveBy(const Point &delta)
 {
   rect_.moveBy(delta);
@@ -3202,7 +3237,7 @@ moveBy(const Point &delta)
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 scale(double fx, double fy)
 {
   rect_.scale(fx, fy);
@@ -3214,7 +3249,7 @@ scale(double fx, double fy)
 //---
 
 bool
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 hasEdgePoint(Edge *edge) const
 {
   auto p = edgePoints_.find(edge->id());
@@ -3223,7 +3258,7 @@ hasEdgePoint(Edge *edge) const
 }
 
 void
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 setEdgePoint(Edge *edge, const Point &p)
 {
   auto x = CMathUtil::map(p.x, rect_.getXMin(), rect_.getXMax(), 0, 1);
@@ -3233,7 +3268,7 @@ setEdgePoint(Edge *edge, const Point &p)
 }
 
 CQChartsGeom::Point
-CQChartsDotPlotNode::
+CQChartsGraphVizPlotNode::
 edgePoint(Edge *edge) const
 {
   auto p = edgePoints_.find(edge->id());
@@ -3247,20 +3282,20 @@ edgePoint(Edge *edge) const
 
 //---
 
-CQChartsDotPlotEdge::
-CQChartsDotPlotEdge(const OptReal &value, Node *srcNode, Node *destNode) :
+CQChartsGraphVizPlotEdge::
+CQChartsGraphVizPlotEdge(const OptReal &value, Node *srcNode, Node *destNode) :
  value_(value), srcNode_(srcNode), destNode_(destNode)
 {
 }
 
-CQChartsDotPlotEdge::
-~CQChartsDotPlotEdge()
+CQChartsGraphVizPlotEdge::
+~CQChartsGraphVizPlotEdge()
 {
   assert(! obj_);
 }
 
 void
-CQChartsDotPlotEdge::
+CQChartsGraphVizPlotEdge::
 setObj(Obj *obj)
 {
   obj_ = obj;

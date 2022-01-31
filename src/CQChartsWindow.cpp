@@ -132,12 +132,12 @@ CQChartsWindow(View *view) :
 
   //----
 
-  auto *viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
+  viewSplitter_ = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
-  viewSplitter->setState(CQTabSplit::State::VSPLIT);
-//viewSplitter->setGrouped(true);
+  viewSplitter_->setState(CQTabSplit::State::VSPLIT);
+//viewSplitter_->setGrouped(true);
 
-  settingsSplitter->addWidget(viewSplitter);
+  settingsSplitter->addWidget(viewSplitter_);
 
   //---
 
@@ -156,7 +156,7 @@ CQChartsWindow(View *view) :
 
   auto *viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
 
-  viewSplitter->addWidget(viewFrame, "View");
+  viewSplitter_->addWidget(viewFrame, "View");
 
   viewLayout->addWidget(view, 0, 0);
 
@@ -209,9 +209,9 @@ CQChartsWindow(View *view) :
 
   tableLayout->addWidget(modelView_);
 
-  viewSplitter->addWidget(tableFrame_, "Table");
+  tableFrame_->setVisible(false);
 
-  tableFrame_->setVisible(dataTable_);
+  setDataTable(showDataTable_, /*force*/true);
 
   //---
 
@@ -298,12 +298,19 @@ updateRangeMap()
 
 void
 CQChartsWindow::
-setDataTable(bool b)
+setDataTable(bool b, bool force)
 {
-  if (b != dataTable_) {
-    dataTable_ = b;
+  if (force || b != showDataTable_) {
+    showDataTable_ = b;
 
-    tableFrame_->setVisible(dataTable_);
+    if (! showDataTable_) {
+      viewSplitter_->removeWidget(tableFrame_, /*destroy*/false);
+      //tableFrame_->setVisible(false);
+    }
+    else {
+      viewSplitter_->addWidget(tableFrame_, "Table");
+      //tableFrame_->setVisible(true);
+    }
 
     plotSlot();
   }

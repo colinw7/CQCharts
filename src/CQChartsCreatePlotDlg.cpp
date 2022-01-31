@@ -23,7 +23,6 @@
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
-#include <CQModelUtil.h>
 #include <CQTabSplit.h>
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
@@ -1707,7 +1706,7 @@ setXYMin(const QString &id)
       continue;
 
     if      (parameter->type() == PlotParameter::Type::COLUMN) {
-      auto column1 = parameter->defValue().value<Column>();
+      auto column1 = Column::fromVariant(parameter->defValue());
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -1718,7 +1717,7 @@ setXYMin(const QString &id)
       column = column1;
     }
     else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
-      auto columns = parameter->defValue().value<Columns>();
+      auto columns = Columns::fromVariant(parameter->defValue());
 
       QString columnTypeStr;
 
@@ -2079,7 +2078,7 @@ validate(QStringList &msgs)
     if      (parameter->type() == PlotParameter::Type::COLUMN) {
       ++num_cols;
 
-      auto column = parameter->defValue().value<Column>();
+      auto column = Column::fromVariant(parameter->defValue());
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2151,7 +2150,7 @@ validate(QStringList &msgs)
     else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
       ++num_cols;
 
-      auto columns = parameter->defValue().value<Columns>();
+      auto columns = Columns::fromVariant(parameter->defValue());
 
       QString columnTypeStr;
 
@@ -2382,7 +2381,7 @@ applyPlot(Plot *plot, bool preview)
       continue;
 
     if      (parameter->type() == PlotParameter::Type::COLUMN) {
-      auto column = parameter->defValue().value<Column>();
+      auto column = Column::fromVariant(parameter->defValue());
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2398,15 +2397,16 @@ applyPlot(Plot *plot, bool preview)
           QString mappedPropName, mapMinPropName, mapMaxPropName;
 
           if (parameter->mapPropNames(mappedPropName, mapMinPropName, mapMaxPropName)) {
-            if (! CQUtil::setProperty(plot, mappedPropName, QVariant(mapValueData.mapped)))
+            if (! CQUtil::setProperty(plot, mappedPropName,
+                                      CQChartsVariant::fromBool(mapValueData.mapped)))
               charts()->errorMsg("Failed to set parameter '" + mappedPropName + "'");
 
             if (! CQUtil::setProperty(plot, mapMinPropName,
-                                      CQModelUtil::realVariant(mapValueData.min)))
+                                      CQChartsVariant::fromReal(mapValueData.min)))
               charts()->errorMsg("Failed to set parameter '" + mapMinPropName + "'");
 
             if (! CQUtil::setProperty(plot, mapMaxPropName,
-                                      CQModelUtil::realVariant(mapValueData.max)))
+                                      CQChartsVariant::fromReal(mapValueData.max)))
               charts()->errorMsg("Failed to set parameter '" + mapMaxPropName + "'");
           }
           else {
@@ -2420,19 +2420,19 @@ applyPlot(Plot *plot, bool preview)
             plot->setParameter(parameter, column.toString());
         }
         else {
-          plot->setParameter(parameter, QVariant(-1));
+          plot->setParameter(parameter, CQChartsVariant::fromInt(-1));
         }
       }
     }
     else if (parameter->type() == PlotParameter::Type::COLUMN_LIST) {
-      auto columns = parameter->defValue().value<Columns>();
+      auto columns = Columns::fromVariant(parameter->defValue());
 
       QString columnTypeStr;
 
       if (parseParameterColumnsEdit(parameter, plotData, columns, columnTypeStr)) {
         auto s = columns.toString();
 
-        if (! plot->setParameter(parameter, QVariant(s)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromString(s)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
 
         if (columnTypeStr.length() && columns.isValid())
@@ -2451,19 +2451,18 @@ applyPlot(Plot *plot, bool preview)
     }
     else if (parameter->type() == PlotParameter::Type::STRING) {
       bool ok;
-
       auto defStr = CQChartsVariant::toString(parameter->defValue(), ok);
 
       auto str = defStr;
 
       if (parseParameterStringEdit(parameter, plotData, str)) {
-        if (! plot->setParameter(parameter, QVariant(str)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromString(str)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (parameter->isRequired()) {
           if (ok)
-            plot->setParameter(parameter, QVariant(defStr));
+            plot->setParameter(parameter, CQChartsVariant::fromString(defStr));
         }
         else {
           plot->setParameter(parameter, QString());
@@ -2472,68 +2471,66 @@ applyPlot(Plot *plot, bool preview)
     }
     else if (parameter->type() == PlotParameter::Type::REAL) {
       bool ok;
-
       double defValue = CQChartsVariant::toReal(parameter->defValue(), ok);
 
       double r = defValue;
 
       if (parseParameterRealEdit(parameter, plotData, r)) {
-        if (! plot->setParameter(parameter, CQModelUtil::realVariant(r)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromReal(r)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (parameter->isRequired()) {
           if (ok)
-            plot->setParameter(parameter, CQModelUtil::realVariant(defValue));
+            plot->setParameter(parameter, CQChartsVariant::fromReal(defValue));
         }
       }
     }
     else if (parameter->type() == PlotParameter::Type::INTEGER) {
       bool ok;
-
       auto defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = int(defValue);
 
       if (parseParameterIntEdit(parameter, plotData, i)) {
-        if (! plot->setParameter(parameter, CQModelUtil::intVariant(i)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromInt(i)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (parameter->isRequired()) {
           if (ok)
-            plot->setParameter(parameter, CQModelUtil::intVariant(defValue));
+            plot->setParameter(parameter, CQChartsVariant::fromInt(defValue));
         }
       }
     }
     else if (parameter->type() == PlotParameter::Type::ENUM) {
       bool ok;
-
       auto defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = int(defValue);
 
       if (parseParameterEnumEdit(parameter, plotData, i)) {
-        if (! plot->setParameter(parameter, CQModelUtil::intVariant(i)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromInt(i)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (preview)
-          plot->setParameter(parameter, CQModelUtil::intVariant(defValue));
+          plot->setParameter(parameter, CQChartsVariant::fromInt(defValue));
       }
     }
     else if (parameter->type() == PlotParameter::Type::BOOLEAN) {
-      bool defValue = parameter->defValue().toBool();
+      bool ok;
+      bool defValue = CQChartsVariant::toBool(parameter->defValue(), ok);
 
       bool b = defValue;
 
       if (parseParameterBoolEdit(parameter, plotData, b)) {
-        if (! plot->setParameter(parameter, QVariant(b)))
+        if (! plot->setParameter(parameter, CQChartsVariant::fromBool(b)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
         if (preview)
-          plot->setParameter(parameter, QVariant(defValue));
+          plot->setParameter(parameter, CQChartsVariant::fromBool(defValue));
       }
     }
     else
@@ -2659,7 +2656,7 @@ parseParameterColumnEdit(PlotParameter *parameter, const PlotData &plotData,
   //---
 
   // get column value
-  auto defColumn = parameter->defValue().value<Column>();
+  auto defColumn = Column::fromVariant(parameter->defValue());
 
   auto pe = plotData.columnEdits.find(parameter->name());
   assert(pe != plotData.columnEdits.end());
@@ -2712,7 +2709,7 @@ parseParameterColumnsEdit(PlotParameter *parameter, const PlotData &plotData,
   //---
 
   // get columns value
-  auto defColumns = parameter->defValue().value<Columns>();
+  auto defColumns = Columns::fromVariant(parameter->defValue());
 
   auto pe = plotData.columnsEdits.find(parameter->name());
   assert(pe != plotData.columnsEdits.end());

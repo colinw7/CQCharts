@@ -22,6 +22,10 @@ class CQChartsAxisTickLabelPlacement : public CQChartsEnum<CQChartsAxisTickLabel
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsAxisTickLabelPlacement, metaTypeId)
+
  public:
   explicit CQChartsAxisTickLabelPlacement(Type type=Type::MIDDLE) :
    type_(type) {

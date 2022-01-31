@@ -1819,7 +1819,6 @@ setRoundedLines(bool b)
   CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
 }
 
-
 void
 CQChartsPolyShapeAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
@@ -2509,7 +2508,7 @@ CQChartsPolygonAnnotation::
 moveExtraHandle(const QVariant &data, double dx, double dy)
 {
   bool ok;
-  int i = data.toInt(&ok);
+  long i = CQChartsVariant::toInt(data, ok);
 
   int np = apoly_.numPoints();
 
@@ -2636,7 +2635,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(CQModelUtil::intVariant(i));
+    extraHandle->setData(CQChartsVariant::fromInt(i));
 
     auto p = apoly_.point(i);
 
@@ -2752,7 +2751,7 @@ CQChartsPolylineAnnotation::
 moveExtraHandle(const QVariant &data, double dx, double dy)
 {
   bool ok;
-  int i = data.toInt(&ok);
+  long i = CQChartsVariant::toInt(data, ok);
 
   int np = apoly_.numPoints();
 
@@ -2900,7 +2899,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(CQModelUtil::intVariant(i));
+    extraHandle->setData(CQChartsVariant::fromInt(i));
 
     auto p = apoly_.point(i);
 
@@ -3967,7 +3966,7 @@ CQChartsPathAnnotation::
 moveExtraHandle(const QVariant &data, double dx, double dy)
 {
   bool ok;
-  int i = data.toInt(&ok);
+  long i = CQChartsVariant::toInt(data, ok);
 
   int np = path_.numPoints();
 
@@ -4050,7 +4049,7 @@ editHandles() const
   int i = 0;
 
   for (auto &extraHandle : handles->extraHandles()) {
-    extraHandle->setData(CQModelUtil::intVariant(i));
+    extraHandle->setData(CQChartsVariant::fromInt(i));
 
     auto p = path_.pointAt(i);
 
@@ -4523,7 +4522,7 @@ editHandles() const
     int i = 0;
 
     for (auto &extraHandle : handles->extraHandles()) {
-      extraHandle->setData(CQModelUtil::intVariant(i));
+      extraHandle->setData(CQChartsVariant::fromInt(i));
 
       auto p = path_.pointAt(i);
 
@@ -4551,7 +4550,7 @@ CQChartsArrowAnnotation::
 moveExtraHandle(const QVariant &data, double dx, double dy)
 {
   bool ok;
-  int i = data.toInt(&ok);
+  long i = CQChartsVariant::toInt(data, ok);
 
   if (path_.isValid()) {
     int np = path_.numPoints();
@@ -4767,17 +4766,19 @@ init()
 
 void
 CQChartsArcAnnotation::
-setLine(bool b)
+setSolid(bool b)
 {
-  CQChartsUtil::testAndSet(isLine_, b, [&]() { invalidate(); } );
+  CQChartsUtil::testAndSet(isSolid_, b, [&]() { invalidate(); } );
 }
 
 void
 CQChartsArcAnnotation::
-setRectilinear(bool b)
+setEdgeType(const EdgeType &type)
 {
-  CQChartsUtil::testAndSet(rectilinear_, b, [&]() { invalidate(); } );
+  CQChartsUtil::testAndSet(edgeType_, type, [&]() { invalidate(); } );
 }
+
+//---
 
 void
 CQChartsArcAnnotation::
@@ -4800,6 +4801,13 @@ setLineWidth(const Length &l)
   CQChartsUtil::testAndSet(lineWidth_, l, [&]() { invalidate(); } );
 }
 
+void
+CQChartsArcAnnotation::
+setArrowSize(double s)
+{
+  CQChartsUtil::testAndSet(arrowSize_, s, [&]() { invalidate(); } );
+}
+
 //---
 
 void
@@ -4814,11 +4822,12 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "startObjRef", "", "Arc start object reference");
   addProp(model, path1, "end"        , "", "Arc end point");
   addProp(model, path1, "endObjRef"  , "", "Arc end object reference");
-  addProp(model, path1, "isLine"     , "", "Arc is line");
-  addProp(model, path1, "rectilinear", "", "Arc is rectilinear");
-  addProp(model, path1, "frontType"  , "", "Arc front type");
-  addProp(model, path1, "tailType"   , "", "Arc tail type");
-  addProp(model, path1, "lineWidth"  , "", "Arc line width");
+  addProp(model, path1, "isSolid"    , "", "Edge is solid");
+  addProp(model, path1, "edgeType"   , "", "Edge type (arc, rectilinear or line)");
+  addProp(model, path1, "frontType"  , "", "Arc front arrow type");
+  addProp(model, path1, "tailType"   , "", "Arc tail arrow type");
+  addProp(model, path1, "lineWidth"  , "", "Edge line width");
+  addProp(model, path1, "arrowSize"  , "", "Arrow size factor");
 
   //---
 
@@ -4899,8 +4908,20 @@ draw(PaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if (isLine())
-    device->setBrush(Qt::NoBrush);
+  //---
+
+  if (! isSolid()) {
+    CQChartsArrowData arrowData;
+
+    setArrowData(arrowData);
+
+    bool hasArrows = (arrowData.calcIsFHead() || arrowData.calcIsTHead());
+
+    if (! hasArrows)
+      device->setBrush(Qt::NoBrush);
+  }
+
+  //---
 
   device->drawPath(path);
 
@@ -4931,42 +4952,94 @@ calcPath(QPainterPath &path) const
   if (! endObjRef  ().isValid() || ! objectRect(endObjRef  (), endObj  , obbox))
     obbox = BBox(Point(end  .x - lw2, end  .y - lw2), Point(end  .x + lw2, end  .y + lw2));
 
+  bool useBoxes = (startObj || endObj);
+
+  //---
+
   CQChartsArrowData arrowData;
 
-  arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(frontType()));
-  arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(tailType ()));
+  setArrowData(arrowData);
 
-  arrowData.setLength(Length(lw, parentUnits()));
+  bool hasArrows = (arrowData.calcIsFHead() || arrowData.calcIsTHead());
+
+  //---
+
+  Qt::Orientation orient = (useBoxes ? CQChartsUtil::lineOrient(ibbox, obbox) :
+                                       CQChartsUtil::lineOrient(start, end));
+
+  auto drawEdgeType = static_cast<CQChartsDrawUtil::EdgeType>(edgeType());
+
+  auto arrowSize = std::max(this->arrowSize(), 1.0);
 
   QPainterPath lpath;
 
-  if (! arrowData.calcIsFHead() && ! arrowData.calcIsTHead() && ! isRectilinear()) {
-    if (! isSelf) {
-      if (startObj || endObj)
-        CQChartsDrawUtil::edgePath(path, ibbox, obbox, isRectilinear());
-      else {
-        CQChartsDrawUtil::curvePath(lpath, start, end, Qt::Horizontal, isRectilinear());
+  if (! isSelf) {
+    if (isSolid()) {
+      if (hasArrows) {
+        // create line path
+        if (useBoxes)
+          CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
+        else
+          CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient);
 
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, 2.0, path);
+        // add arrows with line width
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, arrowSize, path);
+      }
+      else {
+        // create line width line (no arrows)
+        if (useBoxes)
+          CQChartsDrawUtil::edgePath(path, ibbox, obbox, drawEdgeType, orient);
+        else
+          CQChartsDrawUtil::edgePath(path, start, end, lw, drawEdgeType, orient);
       }
     }
     else {
-      CQChartsDrawUtil::selfEdgePath(path, ibbox, lw);
+      // create line path
+      if (useBoxes)
+        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
+      else
+        CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient);
+
+      // add arrows (no line width)
+      if (hasArrows)
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+      else
+        path = lpath;
     }
   }
   else {
-    if (! isSelf) {
-      if (startObj || endObj)
-        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, Qt::Horizontal, isRectilinear());
+    if (isSolid()) {
+      if (hasArrows) {
+        // create line path
+        CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
+
+        // add arrows with line width
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+      }
       else
-        CQChartsDrawUtil::curvePath(lpath, start, end, Qt::Horizontal, isRectilinear());
+        CQChartsDrawUtil::selfEdgePath(path, ibbox, lw, drawEdgeType);
     }
     else {
-      CQChartsDrawUtil::selfCurvePath(lpath, ibbox, isRectilinear());
-    }
+      CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
 
-    CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, 2.0, path);
+      if (hasArrows)
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+      else
+        path = lpath;
+    }
   }
+}
+
+void
+CQChartsArcAnnotation::
+setArrowData(CQChartsArrowData &arrowData) const
+{
+  arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(frontType()));
+  arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(tailType ()));
+
+  double lw = lengthParentHeight(lineWidth());
+
+  arrowData.setLength(Length(lw, parentUnits()));
 }
 
 //--

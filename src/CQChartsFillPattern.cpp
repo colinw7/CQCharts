@@ -1,4 +1,6 @@
 #include <CQChartsFillPattern.h>
+#include <CQChartsUtil.h>
+
 #include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsFillPattern, toString, fromString)
@@ -74,8 +76,8 @@ fromString(const QString &s)
 }
 
 // format:
-//   <typeStr>[,name=<dataStr>][,altColor=<altColor>][,altAlpha=<altAlpha>]
-//            [,scale=<scale>][,angle=<angle>]
+//   <typeStr>[, name=<dataStr>][, altColor=<altColor>][, altAlpha=<altAlpha>]
+//            [, scale=<scale>][, angle=<angle>]
 bool
 CQChartsFillPattern::
 setValue(const QString &s)
@@ -120,19 +122,15 @@ setValue(const QString &s)
         altColor_ = Color(value);
       }
       else if (name == "altAlpha") {
-        bool ok;
-        altAlpha_ = Alpha(value.toDouble(&ok));
-        if (! ok) altAlpha_ = Alpha();
+        altAlpha_ = Alpha(value);
       }
       else if (name == "scale") {
         bool ok;
-        scale_ = value.toDouble(&ok);
+        scale_ = CQChartsUtil::toReal(value, ok);
         if (! ok) scale_ = 1.0;
       }
       else if (name == "angle") {
-        bool ok;
-        angle_ = Angle(value.toDouble(&ok));
-        if (! ok) angle_ = Angle();
+        angle_ = Angle(value);
       }
     }
   }

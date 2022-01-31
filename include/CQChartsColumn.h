@@ -2,9 +2,13 @@
 #define CQChartsColumn_H
 
 #include <CQChartsTmpl.h>
-#include <cassert>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <QStringList>
+#include <QVariant>
+
+#include <cassert>
 #include <vector>
 #include <iostream>
 
@@ -41,6 +45,10 @@ class CQChartsColumn :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColumn, metaTypeId)
 
  public:
   static CQChartsColumn makeData(int column, int role=-1) {
@@ -209,6 +217,10 @@ class CQChartsColumns :
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColumns, metaTypeId)
+
  public:
   CQChartsColumns() { }
 
@@ -360,8 +372,6 @@ class CQChartsColumns :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColumn)
 CQUTIL_DCL_META_TYPE(CQChartsColumns)

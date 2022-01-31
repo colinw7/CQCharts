@@ -5,6 +5,8 @@
 #include <CQChartsLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
@@ -16,6 +18,10 @@ class CQChartsRect :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsRect, metaTypeId)
 
  public:
   using BBox     = CQChartsGeom::BBox;
@@ -99,8 +105,6 @@ class CQChartsRect :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsRect)
 

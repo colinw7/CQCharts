@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQChartsGeom.h>
+#include <CQUtilMeta.h>
 
 /*!
  * \brief polygon list
@@ -16,6 +17,10 @@ class CQChartsPolygonList {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPolygonList, metaTypeId)
 
  public:
   CQChartsPolygonList() = default;
@@ -64,8 +69,6 @@ class CQChartsPolygonList {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPolygonList)
 

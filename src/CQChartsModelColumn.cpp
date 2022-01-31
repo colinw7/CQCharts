@@ -1,4 +1,5 @@
 #include <CQChartsModelColumn.h>
+#include <CQChartsUtil.h>
 
 #include <CQPropertyView.h>
 
@@ -39,7 +40,7 @@ fromString(const QString &str)
   if (strs.size() != 2) return false;
 
   bool ok;
-  int modelInd = strs[0].toInt(&ok);
+  long modelInd = CQChartsUtil::toInt(strs[0], ok);
   if (! ok) return false;
 
   auto column = Column(strs[1]);

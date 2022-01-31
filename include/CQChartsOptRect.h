@@ -2,6 +2,8 @@
 #define CQChartsOptRect_H
 
 #include <CQChartsRect.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -16,6 +18,10 @@ class CQChartsOptRect :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsOptRect, metaTypeId)
 
  public:
   using OptRect = boost::optional<CQChartsRect>;
@@ -88,8 +94,6 @@ class CQChartsOptRect :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsOptRect)
 

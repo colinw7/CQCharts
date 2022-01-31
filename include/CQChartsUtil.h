@@ -128,6 +128,7 @@ bool scanInteger(const QString &fmt, const QString &str, long   &i);
 namespace CQChartsUtil {
 
 using Point = CQChartsGeom::Point;
+using BBox  = CQChartsGeom::BBox;
 
 // intersect lines
 bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const Point &l2e,
@@ -142,6 +143,17 @@ double PointPointDistance(const Point &point1, const Point &point2);
 // distance between point and line
 bool PointLineDistance(const Point &point, const Point &lineStart, const Point &lineEnd,
                        double *dist);
+
+inline Qt::Orientation lineOrient(const Point &p1, const Point &p2) {
+  double dx = std::abs(p1.x - p2.x);
+  double dy = std::abs(p1.y - p2.y);
+
+  return (dx > dy ? Qt::Horizontal : Qt::Vertical);
+}
+
+inline Qt::Orientation lineOrient(const BBox &bbox1, const BBox &bbox2) {
+  return lineOrient(bbox1.getCenter(), bbox2.getCenter());
+}
 
 }
 

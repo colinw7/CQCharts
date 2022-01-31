@@ -4,7 +4,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
@@ -946,8 +945,8 @@ calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
   if (! details) return;
 
   bool ok;
-  double min = details->minValue().toDouble(&ok);
-  double max = details->maxValue().toDouble(&ok);
+  double min = CQChartsVariant::toReal(details->minValue(), ok);
+  double max = CQChartsVariant::toReal(details->maxValue(), ok);
 
   int n = details->numRows();
 
@@ -972,8 +971,8 @@ calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
     details->bucketRange(pb.first, vmin, vmax);
 
     bool ok;
-    double rmin1 = vmin.toDouble(&ok);
-    double rmax1 = vmax.toDouble(&ok);
+    double rmin1 = CQChartsVariant::toReal(vmin, ok);
+    double rmax1 = CQChartsVariant::toReal(vmax, ok);
 
     rmin = std::min(rmin, rmin1);
     rmax = std::max(rmax, rmax1);
@@ -1212,8 +1211,8 @@ drawScatter(PaintDevice *device) const
 
   if (details1->isNumeric()) {
     bool ok;
-    xmin_ = details1->minValue().toDouble(&ok);
-    xmax_ = details1->maxValue().toDouble(&ok);
+    xmin_ = CQChartsVariant::toReal(details1->minValue(), ok);
+    xmax_ = CQChartsVariant::toReal(details1->maxValue(), ok);
   }
   else {
     xmin_ = 0.0;
@@ -1222,8 +1221,8 @@ drawScatter(PaintDevice *device) const
 
   if (details2->isNumeric()) {
     bool ok;
-    ymin_ = details2->minValue().toDouble(&ok);
-    ymax_ = details2->maxValue().toDouble(&ok);
+    ymin_ = CQChartsVariant::toReal(details2->minValue(), ok);
+    ymax_ = CQChartsVariant::toReal(details2->maxValue(), ok);
   }
   else {
     ymin_ = 0.0;
@@ -1249,7 +1248,7 @@ drawScatter(PaintDevice *device) const
 
     if (details1->isNumeric()) {
       bool ok;
-      x = details1->value(i).toDouble(&ok);
+      x = CQChartsVariant::toReal(details1->value(i), ok);
       if (! ok) continue;
     }
     else
@@ -1257,7 +1256,7 @@ drawScatter(PaintDevice *device) const
 
     if (details2->isNumeric()) {
       bool ok;
-      y = details2->value(i).toDouble(&ok);
+      y = CQChartsVariant::toReal(details2->value(i), ok);
       if (! ok) continue;
     }
     else
@@ -1492,8 +1491,8 @@ drawBoxPlot(PaintDevice *device) const
 
   if (details->isNumeric()) {
     bool ok;
-    double min = details->minValue().toDouble(&ok);
-    double max = details->maxValue().toDouble(&ok);
+    double min = CQChartsVariant::toReal(details->minValue(), ok);
+    double max = CQChartsVariant::toReal(details->maxValue(), ok);
 
     int n = details->numRows();
 
@@ -1507,7 +1506,7 @@ drawBoxPlot(PaintDevice *device) const
 
     for (int i = 0; i < n; ++i) {
       bool ok;
-      double r = details->value(i).toDouble(&ok);
+      double r = CQChartsVariant::toReal(details->value(i), ok);
       if (! ok) continue;
 
       double r1 = CMathUtil::map(r, min, max, pymin_, pymax_);
@@ -1593,8 +1592,8 @@ drawDistribution(PaintDevice *device) const
       details->bucketRange(pb.first, vmin, vmax);
 
       bool ok;
-      double rmin1 = vmin.toDouble(&ok);
-      double rmax1 = vmax.toDouble(&ok);
+      double rmin1 = CQChartsVariant::toReal(vmin, ok);
+      double rmax1 = CQChartsVariant::toReal(vmax, ok);
 
       int n = pb.second;
 
@@ -1692,7 +1691,7 @@ drawDensity(PaintDevice *device) const
     auto value = details->value(i);
 
     bool ok;
-    double r = value.toDouble(&ok);
+    double r = CQChartsVariant::toReal(value, ok);
     if (! ok) continue;
 
     double x = CMathUtil::map(r, bmin_, bmax_, pxmin_, pxmax_);
@@ -1811,14 +1810,14 @@ initGroupedValues()
 
       if (details1->isNumeric()) {
         bool ok;
-        x = value1.toDouble(&ok);
+        x = CQChartsVariant::toReal(value1, ok);
 
         indData.x.push_back(x);
       }
 
       if (details2->isNumeric()) {
         bool ok;
-        y = value2.toDouble(&ok);
+        y = CQChartsVariant::toReal(value2, ok);
 
         indData.y.push_back(y);
       }
@@ -1846,7 +1845,7 @@ initGroupedValues()
 
       if (details->isNumeric()) {
         bool ok;
-        double r = value.toDouble(&ok);
+        double r = CQChartsVariant::toReal(value, ok);
 
         indData.x.push_back(r);
         indData.y.push_back(r);
@@ -1938,8 +1937,8 @@ updateWidgets()
       groupDetails->bucketRange(bc.first, vmin, vmax);
 
       bool ok;
-      auto rmin = vmin.toDouble(&ok);
-      auto rmax = vmax.toDouble(&ok);
+      auto rmin = CQChartsVariant::toReal(vmin, ok);
+      auto rmax = CQChartsVariant::toReal(vmax, ok);
 
       auto c = plot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
 

@@ -7,8 +7,9 @@
 #include <CQChartsLineEdit.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
-#include <CQUtil.h>
+#include <CQChartsVariant.h>
 
+#include <CQUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
 #include <CQDataModel.h>
@@ -566,14 +567,14 @@ setColumnData(int icolumn)
       columnTypeData.nameValues.nameValue(param->name(), var);
 
       if      (param->type() == CQBaseModelType::BOOLEAN) {
-        bool b = var.toBool();
+        bool ok;
+        bool b = CQChartsVariant::toBool(var, ok);
 
         paramEdit.edit->setBool(b);
       }
       else if (param->type() == CQBaseModelType::INTEGER) {
         bool ok;
-
-        int i = var.toInt(&ok);
+        long i = CQChartsVariant::toInt(var, ok);
 
         if (ok)
           paramEdit.edit->setInteger(i);

@@ -38,6 +38,7 @@
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
+#include <CQBaseModel.h>
 
 #include <CQPerfMonitor.h>
 #include <CQGLControl.h>
@@ -79,6 +80,21 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
  CQChartsObjInsideShapeData   (this),
  charts_(charts),
  viewSizeHint_(defSizeHint_)
+{
+  init();
+}
+
+CQChartsView::
+~CQChartsView()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsView::
+init()
 {
   setObjectName("view");
 
@@ -190,10 +206,17 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   //---
 
   regionMgr_ = std::make_unique<CQChartsRegionMgr>(this);
+
+  //---
+
+  registerSlot("set_mode"     , QStringList() << "string");
+  registerSlot("show_table"   , QStringList() << "bool");
+  registerSlot("show_settings", QStringList() << "bool");
 }
 
+void
 CQChartsView::
-~CQChartsView()
+term()
 {
   if (charts_)
     charts_->removeView(this);
@@ -220,6 +243,8 @@ CQChartsView::
   delete toolTip_;
   delete floatTip_;
 }
+
+//---
 
 void
 CQChartsView::
@@ -5371,7 +5396,7 @@ calcSelectedColor(const QColor &c) const
   if (selectedColor().isValid()) {
     charts()->setContrastColor(c);
 
-    c1 = interpColor(selectedColor(), ColorInd());;
+    c1 = interpColor(selectedColor(), ColorInd());
 
     charts()->resetContrastColor();
   }
@@ -8714,3 +8739,143 @@ keyReleaseEvent(QKeyEvent *)
 {
   update();
 }
+
+//---
+
+bool
+CQChartsView::
+executeSlot(const QString &name, const QStringList &args, QVariant &res)
+{
+  res = QVariant();
+
+  //---
+
+  auto p = namedSlots_.find(name);
+  if (p == namedSlots_.end()) return false;
+
+  const auto &argTypes = (*p).second;
+
+  QVariantList values;
+
+  processSlotArgs(args, argTypes, values);
+
+  return executeSlotFn(name, values, res);
+}
+
+bool
+CQChartsView::
+processSlotArgs(const QStringList &args, const QStringList &argTypes, QVariantList &values) const
+{
+  bool rc = true;
+
+  int numArgs = argTypes.length();
+
+  auto args1 = args;
+
+  while (args1.length() < numArgs)
+    args1.push_back(QString());
+
+  for (int i = 0; i < numArgs; ++i) {
+    auto argType = argTypes[i].toLower();
+
+    const auto &argValue = args1[i];
+
+    auto type = CQBaseModel::nameType(argType);
+
+    QVariant value;
+
+    bool ok;
+
+    if      (type == CQBaseModelType::INTEGER) {
+      long i = CQChartsUtil::toInt(argValue, ok);
+
+      if (ok)
+        value = CQChartsVariant::fromInt(i);
+      else {
+        std::cerr << "Failed to convert '" << argValue.toStdString() << "' to integer\n";
+        rc = false;
+      }
+    }
+    else if (type == CQBaseModelType::REAL) {
+      double r = CQChartsUtil::toReal(argValue, ok);
+
+      if (ok)
+        value = CQChartsVariant::fromReal(r);
+      else {
+        std::cerr << "Failed to convert '" << argValue.toStdString() << "' to real\n";
+        rc = false;
+      }
+    }
+    else if (type == CQBaseModelType::STRING) {
+      value = argValue;
+    }
+    else if (type == CQBaseModelType::BOOLEAN) {
+      bool b = CQChartsUtil::stringToBool(argValue, &ok);
+
+      if (ok)
+        value = CQChartsVariant::fromBool(b);
+      else {
+        std::cerr << "Failed to convert '" << argValue.toStdString() << "' to boolean\n";
+        rc = false;
+      }
+    }
+    else {
+      std::cerr << "Unhandled type '" << argType.toStdString() << "'\n";
+      rc = false;
+    }
+
+    values.push_back(value);
+  }
+
+  return rc;
+}
+
+bool
+CQChartsView::
+executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
+{
+  bool ok;
+
+  if      (name == "set_mode") {
+    auto modeStr = CQChartsVariant::toString(args[0], ok);
+    if      (modeStr == "select"  ) setMode(Mode::SELECT);
+    else if (modeStr == "zoom_in" ) setMode(Mode::ZOOM_IN);
+    else if (modeStr == "zoom_out") setMode(Mode::ZOOM_OUT);
+    else if (modeStr == "pan"     ) setMode(Mode::PAN);
+    else if (modeStr == "probe"   ) setMode(Mode::PROBE);
+    else if (modeStr == "query"   ) setMode(Mode::QUERY);
+    else if (modeStr == "edit"    ) setMode(Mode::EDIT);
+    else if (modeStr == "region"  ) setMode(Mode::REGION);
+    else if (modeStr == "ruler"   ) setMode(Mode::RULER);
+    else { std::cerr << "Invalid mode '" << modeStr.toStdString() << "'\n"; return false; }
+  }
+  else if (name == "show_table")
+    setShowTable(CQChartsVariant::toBool(args[0], ok));
+  else if (name == "show_settings")
+    setShowSettings(CQChartsVariant::toBool(args[0], ok));
+  else
+    return false;
+
+  return true;
+}
+
+void
+CQChartsView::
+registerSlot(const QString &name, const QStringList &argTypes)
+{
+  namedSlots_[name] = argTypes;
+}
+
+QStringList
+CQChartsView::
+getSlotNames() const
+{
+  QStringList names;
+
+  for (const auto &p : namedSlots_)
+    names.push_back(p.first);
+
+  return names;
+}
+
+//---

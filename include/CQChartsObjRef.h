@@ -3,6 +3,8 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
@@ -32,6 +34,10 @@ class CQChartsObjRef :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsObjRef, metaTypeId)
 
  public:
   using Point = CQChartsGeom::Point;
@@ -79,8 +85,6 @@ class CQChartsObjRef :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsObjRef)
 

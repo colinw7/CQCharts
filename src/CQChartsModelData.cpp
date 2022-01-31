@@ -488,7 +488,7 @@ foldModel(const FoldData &foldData)
       if (! CQChartsModelUtil::stringToColumn(model().data(), columnStr, column)) {
         bool ok;
 
-        int icolumn = CQChartsUtil::toInt(columnStr, ok);
+        long icolumn = CQChartsUtil::toInt(columnStr, ok);
 
         if (! ok)
           continue;
@@ -648,7 +648,7 @@ foldModel(const FoldData &foldData)
     if (! CQChartsModelUtil::stringToColumn(model().data(), foldData.columnsStr, column)) {
       bool ok;
 
-      int icolumn = CQChartsUtil::toInt(foldData.columnsStr, ok);
+      long icolumn = CQChartsUtil::toInt(foldData.columnsStr, ok);
 
       if (! ok)
         return false;
@@ -1496,7 +1496,7 @@ writeCSV(std::ostream &fs) const
         if (var.isValid()) {
           bool ok;
 
-          double r = var.toDouble(&ok);
+          double r = CQChartsVariant::toReal(var, ok);
 
           if (ok) {
             const auto *timeType =
@@ -1705,8 +1705,10 @@ copy(const CopyData &copyData)
 
       QVariant value;
 
-      if (expr->evaluateExpression(copyData.filter, value, showError))
-        visible = value.toBool();
+      if (expr->evaluateExpression(copyData.filter, value, showError)) {
+        bool ok;
+        visible = CQChartsVariant::toBool(value, ok);
+      }
 
       rowVisible[r] = visible;
 

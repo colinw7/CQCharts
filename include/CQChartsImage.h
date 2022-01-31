@@ -2,9 +2,13 @@
 #define CQChartsImage_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <QImage>
 #include <QIcon>
+#include <QVariant>
+
 #include <cassert>
 
 class CQCharts;
@@ -23,6 +27,10 @@ class CQChartsImage :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsImage, metaTypeId)
 
  public:
   enum class Type {
@@ -106,8 +114,6 @@ class CQChartsImage :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsImage)
 

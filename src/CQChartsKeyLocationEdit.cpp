@@ -35,14 +35,14 @@ QVariant
 CQChartsKeyLocationEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(keyLocation());
+  return CQChartsKeyLocation::toVariant(keyLocation());
 }
 
 void
 CQChartsKeyLocationEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  auto keyLocation = var.value<CQChartsKeyLocation>();
+  auto keyLocation = CQChartsKeyLocation::fromVariant(var);
 
   setKeyLocation(keyLocation);
 }
@@ -51,7 +51,7 @@ QString
 CQChartsKeyLocationEdit::
 variantToString(const QVariant &var) const
 {
-  auto keyLocation = var.value<CQChartsKeyLocation>();
+  auto keyLocation = CQChartsKeyLocation::fromVariant(var);
 
   return keyLocation.toString();
 }
@@ -76,7 +76,7 @@ QString
 CQChartsKeyLocationPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  auto keyLocation = var.value<CQChartsKeyLocation>();
+  auto keyLocation = CQChartsKeyLocation::fromVariant(var);
 
   return keyLocation.toString();
 }

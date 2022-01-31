@@ -15,6 +15,7 @@ class CQChartsModelViewHolder;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
 class CQChartsWindowRangeScroll;
+class CQTabSplit;
 class QStackedWidget;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
@@ -78,8 +79,8 @@ class CQChartsWindow : public QFrame {
 
   //---
 
-  bool isDataTable() const { return dataTable_; }
-  void setDataTable(bool b);
+  bool isDataTable() const { return showDataTable_; }
+  void setDataTable(bool b, bool force=false);
 
   //---
 
@@ -159,20 +160,21 @@ class CQChartsWindow : public QFrame {
   using ToolBar         = CQChartsViewToolBar;
   using Status          = CQChartsViewStatus;
 
-  View*            view_         { nullptr }; //!< parent view
-  bool             xRangeMap_    { false };   //!< xrange map
-  bool             yRangeMap_    { false };   //!< xrange map
-  bool             dataTable_    { false };   //!< data table
-  bool             viewSettings_ { true };    //!< view settings
-  RangeScroll*     xrangeScroll_ { nullptr }; //!< xrange scroll
-  RangeScroll*     yrangeScroll_ { nullptr }; //!< yrange scroll
-  ViewSettings*    settings_     { nullptr }; //!< settings widget
-  QFrame*          tableFrame_   { nullptr }; //!< table frame
-  QStackedWidget*  viewStack_    { nullptr }; //!< view stack
-  FilterEdit*      filterEdit_   { nullptr }; //!< filter edit
-  ModelViewHolder* modelView_    { nullptr }; //!< model view
-  ToolBar*         toolbar_      { nullptr }; //!< toolbar
-  Status*          status_       { nullptr }; //!< status
+  View*            view_          { nullptr }; //!< parent view
+  bool             xRangeMap_     { false };   //!< xrange map
+  bool             yRangeMap_     { false };   //!< xrange map
+  bool             showDataTable_ { false };   //!< data table
+  bool             viewSettings_  { true };    //!< view settings
+  RangeScroll*     xrangeScroll_  { nullptr }; //!< xrange scroll
+  RangeScroll*     yrangeScroll_  { nullptr }; //!< yrange scroll
+  ViewSettings*    settings_      { nullptr }; //!< settings widget
+  CQTabSplit*      viewSplitter_  { nullptr }; //!< view splitter
+  QFrame*          tableFrame_    { nullptr }; //!< table frame
+  QStackedWidget*  viewStack_     { nullptr }; //!< view stack
+  FilterEdit*      filterEdit_    { nullptr }; //!< filter edit
+  ModelViewHolder* modelView_     { nullptr }; //!< model view
+  ToolBar*         toolbar_       { nullptr }; //!< toolbar
+  Status*          status_        { nullptr }; //!< status
 };
 
 //-----

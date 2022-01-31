@@ -146,7 +146,6 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsColor insideColor   READ insideColor   WRITE setInsideColor  )
   Q_PROPERTY(CQChartsColor selectedColor READ selectedColor WRITE setSelectedColor)
 
-
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
   Q_PROPERTY(double      scrollDelta    READ scrollDelta    WRITE setScrollDelta   )
@@ -291,6 +290,13 @@ class CQChartsView : public QFrame,
   CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
 
   virtual ~CQChartsView();
+
+  //---
+
+  void init();
+  void term();
+
+  //---
 
   CQCharts *charts() const { return charts_; }
 
@@ -1300,6 +1306,19 @@ class CQChartsView : public QFrame,
 
   void update() { QFrame::update(); }
 
+  //---
+
+  bool executeSlot(const QString &name, const QStringList &args, QVariant &res);
+
+  bool processSlotArgs(const QStringList &args, const QStringList &argTypes,
+                       QVariantList &values) const;
+
+  virtual bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res);
+
+  void registerSlot(const QString &name, const QStringList &argTypes);
+
+  QStringList getSlotNames() const;
+
  private slots:
   void hbarScrollSlot(int pos);
   void vbarScrollSlot(int pos);
@@ -1649,6 +1668,13 @@ class CQChartsView : public QFrame,
 
   Color insideColor_;
   Color selectedColor_;
+
+  //---
+
+  // named slots
+  using NamedSlots = std::map<QString, QStringList>;
+
+  NamedSlots namedSlots_;
 };
 
 //------

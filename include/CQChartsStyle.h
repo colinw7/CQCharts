@@ -2,8 +2,12 @@
 #define CQChartsStyle_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QBrush>
 #include <QPen>
+#include <QVariant>
+
 #include <iostream>
 
 class CQChartsPlot;
@@ -19,6 +23,10 @@ class CQChartsStyle :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsStyle, metaTypeId)
 
  public:
   CQChartsStyle() = default;
@@ -115,8 +123,6 @@ class CQChartsStyle :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsStyle)
 

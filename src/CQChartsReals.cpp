@@ -41,7 +41,7 @@ fromString(const QString &str)
   for (int i = 0; i < strs.length(); ++i) {
     bool ok;
 
-    double r = strs[i].toDouble(&ok);
+    double r = CQChartsUtil::toReal(strs[i], ok);
 
     if (ok)
       reals_.push_back(r);

@@ -7,7 +7,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsVariant.h>

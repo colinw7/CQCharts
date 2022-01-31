@@ -142,7 +142,7 @@ CQChartsArrowDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  auto data = value.value<CQChartsArrowData>();
+  auto data = CQChartsArrowData::fromVariant(value);
 
   CQChartsArrowDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -151,7 +151,7 @@ QString
 CQChartsArrowDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsArrowData>().toString();
+  auto str = CQChartsArrowData::fromVariant(value).toString();
 
   return str;
 }
@@ -182,7 +182,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsArrowDataLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->arrowData());
+  return CQChartsArrowData::toVariant(edit->arrowData());
 }
 
 void
@@ -192,7 +192,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsArrowDataLineEdit *>(w);
   assert(edit);
 
-  auto data = var.value<CQChartsArrowData>();
+  auto data = CQChartsArrowData::fromVariant(var);
 
   edit->setArrowData(data);
 }

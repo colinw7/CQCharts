@@ -13,11 +13,11 @@
 #include <CQChartsDelaunayPlot.h>
 #include <CQChartsDendrogramPlot.h>
 #include <CQChartsDistributionPlot.h>
-#include <CQChartsDotPlot.h>
 #include <CQChartsEmptyPlot.h>
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsGraphPlot.h>
+#include <CQChartsGraphVizPlot.h>
 #include <CQChartsGridPlot.h>
 #include <CQChartsHierBubblePlot.h>
 #include <CQChartsHierScatterPlot.h>
@@ -581,7 +581,7 @@ init()
   plotTypeMgr()->addTypeT<CQChartsDelaunayPlotType     >("delaunay"     );
   plotTypeMgr()->addTypeT<CQChartsDendrogramPlotType   >("dendrogram"   );
   plotTypeMgr()->addTypeT<CQChartsDistributionPlotType >("distribution" );
-  plotTypeMgr()->addTypeT<CQChartsDotPlotType          >("dot"          );
+  plotTypeMgr()->addTypeT<CQChartsGraphVizPlotType     >("graphviz"     );
   plotTypeMgr()->addTypeT<CQChartsEmptyPlotType        >("empty"        );
   plotTypeMgr()->addTypeT<CQChartsForceDirectedPlotType>("forcedirected");
   plotTypeMgr()->addTypeT<CQChartsGeometryPlotType     >("geometry"     );

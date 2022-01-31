@@ -3,6 +3,8 @@
 
 #include <CQChartsTmpl.h>
 #include <CQChartsColumn.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 
 class CQCharts;
@@ -20,6 +22,10 @@ class CQChartsModelColumn :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsModelColumn, metaTypeId)
 
  public:
   using Column = CQChartsColumn;
@@ -72,8 +78,6 @@ class CQChartsModelColumn :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsModelColumn)
 

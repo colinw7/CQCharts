@@ -1,6 +1,7 @@
 #ifndef CQChartsEnum_H
 #define CQChartsEnum_H
 
+#include <CQUtilMeta.h>
 #include <QString>
 #include <QStringList>
 #include <iostream>
@@ -52,7 +53,5 @@ class CQChartsEnum {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 #endif

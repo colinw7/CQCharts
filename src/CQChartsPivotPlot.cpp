@@ -10,6 +10,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQCharts.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -433,7 +434,7 @@ calcRange() const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         sum += value;
@@ -464,7 +465,7 @@ calcRange() const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         if      (plotType() == PlotType::GRID) {
@@ -643,7 +644,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         rowColHeights[iv][ih] = value;
@@ -678,7 +679,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         //---
@@ -761,7 +762,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         minValue = (! inds.empty() ? std::min(minValue, value) : value);
@@ -838,7 +839,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
         Point p;
@@ -884,7 +885,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = var.toDouble(&ok);
+        double value = CQChartsVariant::toReal(var, ok);
         if (! ok) value = 0.0;
 
         //---

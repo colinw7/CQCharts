@@ -3,11 +3,13 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
 /*!
- * \brief Polygon class
+ * \brief Polygon with units class
  * \ingroup Charts
  */
 class CQChartsPolygon :
@@ -23,6 +25,10 @@ class CQChartsPolygon :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPolygon, metaTypeId)
 
  public:
   CQChartsPolygon(const Units &units, const Polygon &polygon) :
@@ -157,8 +163,6 @@ class CQChartsPolygon :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPolygon)
 

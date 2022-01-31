@@ -197,7 +197,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto fillPattern = value.value<CQChartsFillPattern>();
+  auto fillPattern = CQChartsFillPattern::fromVariant(value);
 
   int x = option.rect.left();
 
@@ -256,7 +256,7 @@ QString
 CQChartsFillPatternPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto fillPattern = value.value<CQChartsFillPattern>();
+  auto fillPattern = CQChartsFillPattern::fromVariant(value);
 
   return fillPattern.toString();
 }
@@ -308,7 +308,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFillPatternLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue<CQChartsFillPattern>(edit->fillPattern());
+  return CQChartsFillPattern::toVariant(edit->fillPattern());
 }
 
 void
@@ -318,7 +318,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillPatternLineEdit *>(w);
   assert(edit);
 
-  auto fillPattern = var.value<CQChartsFillPattern>();
+  auto fillPattern = CQChartsFillPattern::fromVariant(var);
 
   edit->setFillPattern(fillPattern);
 }

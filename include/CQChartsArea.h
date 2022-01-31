@@ -4,6 +4,7 @@
 #include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <iostream>
@@ -20,6 +21,10 @@ class CQChartsArea :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsArea, metaTypeId)
 
  public:
   using Units = CQChartsUnits::Type;
@@ -102,8 +107,6 @@ class CQChartsArea :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsArea)
 

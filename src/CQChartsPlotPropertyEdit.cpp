@@ -1,6 +1,7 @@
 #include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsLineEditBase.h>
 #include <CQChartsPlot.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQPropertyViewEditor.h>
@@ -208,7 +209,8 @@ createEditor()
     var = QVariant();
 
   if (propInfo.isEnumType()) {
-    int value = var.toInt();
+    bool ok;
+    long value = CQChartsVariant::toInt(var, ok);
 
     QString str;
 
@@ -249,7 +251,8 @@ createEditor()
   else if (typeName == "bool") {
     auto *check = CQUtil::makeWidget<QCheckBox>(this, "check");
 
-    check->setChecked(var.toBool());
+    bool ok;
+    check->setChecked(CQChartsVariant::toBool(var, ok));
 
     check->setText(check->isChecked() ? "true" : "false");
 

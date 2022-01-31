@@ -5,7 +5,9 @@
 #include <CQChartsTmpl.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
+#include <CQUtilMeta.h>
 #include <CMathUtil.h>
+
 #include <QString>
 #include <QStringList>
 #include <cassert>
@@ -81,6 +83,10 @@ class CQChartsSymbol :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsSymbol, metaTypeId)
 
  public:
   static QStringList pathNames();
@@ -230,8 +236,6 @@ class CQChartsSymbol :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsSymbol)
 

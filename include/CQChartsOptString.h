@@ -2,6 +2,8 @@
 #define CQChartsOptString_H
 
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -16,6 +18,10 @@ class CQChartsOptString :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsOptString, metaTypeId)
 
  public:
   using OptString = boost::optional<QString>;
@@ -83,8 +89,6 @@ class CQChartsOptString :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsOptString)
 

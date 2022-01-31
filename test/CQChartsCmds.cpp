@@ -1181,7 +1181,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   for (const auto &str : strs) {
     bool ok;
-    double r = str.toDouble(&ok);
+    double r = CQChartsUtil::toReal(str, ok);
 
     rvals.addValue(r);
   }
@@ -7213,8 +7213,8 @@ execCmd(CQChartsCmdArgs &argv)
 
       bool ok1, ok2;
 
-      int r = strs[0].toInt(&ok1);
-      int c = strs[1].toInt(&ok2);
+      int r = CQChartsUtil::toInt(strs[0], ok1);
+      int c = CQChartsUtil::toInt(strs[1], ok2);
 
       if (! ok1 || ! ok2 || r < 0 || c < 0)
         return errorMsg(QString("Invalid size values '%1' and '%2'").arg(strs[0]).arg(strs[1]));
@@ -7342,7 +7342,7 @@ execCmd(CQChartsCmdArgs &argv)
           return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
         bool ok;
-        int i = strs[0].toInt(&ok);
+        int i = CQChartsUtil::toInt(strs[0], ok);
         if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
 
         auto *xaxis = plot->xAxis();
@@ -7382,7 +7382,7 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
       bool ok;
-      int i = strs[0].toInt(&ok);
+      int i = CQChartsUtil::toInt(strs[0], ok);
       if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
 
       axisAnnotation->axis()->setTickLabel(i, strs[1]);
@@ -7508,9 +7508,19 @@ execCmd(CQChartsCmdArgs &argv)
     auto *view = cmds()->getViewByName(viewName);
     if (! view) return false;
 
-    return errorMsg("No view slots");
+    if (name == "?") {
+      auto names = view->getSlotNames();
+      return cmdBase_->setCmdRc(names);
+    }
+
+    QVariant res;
+
+    if (! view->executeSlot(name, args, res))
+      return errorMsg("Failed to execute slot '" + name + "'");
+
+    return cmdBase_->setCmdRc(res);
   }
-  // plot data
+  // plot slot
   else if (argv.hasParseArg("plot")) {
     auto plotName = argv.getParseStr("plot");
 

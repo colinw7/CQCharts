@@ -132,9 +132,9 @@ class CQChartsRValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return QVariant();
+    if (valset_.size() != 1) return CQModelUtil::nullVariant();
 
-    return QVariant(valset_.begin()->first);
+    return CQModelUtil::realVariant(valset_.begin()->first);
   }
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
@@ -290,7 +290,7 @@ class CQChartsIValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return QVariant();
+    if (valset_.size() != 1) return CQModelUtil::nullVariant();
 
     return CQModelUtil::intVariant(valset_.begin()->first);
   }
@@ -433,9 +433,9 @@ class CQChartsSValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return QVariant();
+    if (valset_.size() != 1) return CQModelUtil::nullVariant();
 
-    return QVariant(valset_.begin()->first);
+    return CQModelUtil::stringVariant(valset_.begin()->first);
   }
 
   void uniqueValueCounts(ValueCounts &valueCounts) {
@@ -571,7 +571,7 @@ class CQChartsCValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return QVariant();
+    if (valset_.size() != 1) return CQModelUtil::nullVariant();
 
     return QVariant::fromValue<Color>(valset_.begin()->first);
   }

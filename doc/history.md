@@ -1356,3 +1356,10 @@
  + improve ruler drawing
  + add support for direct call or plot slots
  + improve fit for text in dendrogram plot
+# 1/30/2022
+ + move all variant get/set code to associated meta class for EkChartsVariant
+ + ensure all integer values support long (64 bit) precision with precision loss
+ + Improve arc drawing options
+ + Add view slots
+ + Fix hide data table when tabbed
+ + Rename dot plot to graphviz. Add support for all placement types

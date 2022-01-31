@@ -78,12 +78,12 @@ CQChartsContourPlot.cpp \
 CQChartsCorrelationPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
-CQChartsDotPlot.cpp \
 CQChartsDistributionPlot.cpp \
 CQChartsEmptyPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsGraphPlot.cpp \
+CQChartsGraphVizPlot.cpp \
 CQChartsGridPlot.cpp \
 CQChartsHierBubblePlot.cpp \
 CQChartsHierScatterPlot.cpp \
@@ -194,7 +194,6 @@ CQChartsLineDash.cpp \
 CQChartsLineJoin.cpp \
 \
 CQChartsRotatedText.cpp \
-CQChartsRoundedPolygon.cpp \
 \
 CQChartsOptInt.cpp \
 CQChartsOptLength.cpp \
@@ -452,11 +451,11 @@ HEADERS += \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \
 ../include/CQChartsDistributionPlot.h \
-../include/CQChartsDotPlot.h \
 ../include/CQChartsEmptyPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsGraphPlot.h \
+../include/CQChartsGraphVizPlot.h \
 ../include/CQChartsGridPlot.h \
 ../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsHierScatterPlot.h \
@@ -616,7 +615,6 @@ HEADERS += \
 ../include/CQChartsLineJoin.h \
 \
 ../include/CQChartsRotatedText.h \
-../include/CQChartsRoundedPolygon.h \
 \
 ../include/CQChartsAlpha.h \
 ../include/CQChartsAngle.h \

@@ -23,6 +23,10 @@ class CQChartsAxisValueType : public CQChartsEnum<CQChartsAxisValueType> {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsAxisValueType, metaTypeId)
+
  public:
   explicit CQChartsAxisValueType(Type type=Type::REAL) :
    type_(type) {

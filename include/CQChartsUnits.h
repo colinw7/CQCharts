@@ -2,7 +2,11 @@
 #define CQChartsUnits_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
+#include <QVariant>
+
 #include <iostream>
 
 /*!
@@ -27,6 +31,10 @@ class CQChartsUnits :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsUnits, metaTypeId)
 
  public:
   CQChartsUnits() = default;
@@ -88,8 +96,6 @@ class CQChartsUnits :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsUnits)
 

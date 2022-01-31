@@ -35,14 +35,14 @@ QVariant
 CQChartsLineCapEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(lineCap());
+  return CQChartsLineCap::toVariant(lineCap());
 }
 
 void
 CQChartsLineCapEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  auto lineCap = var.value<CQChartsLineCap>();
+  auto lineCap = CQChartsLineCap::fromVariant(var);
 
   setLineCap(lineCap);
 }
@@ -51,7 +51,7 @@ QString
 CQChartsLineCapEdit::
 variantToString(const QVariant &var) const
 {
-  auto lineCap = var.value<CQChartsLineCap>();
+  auto lineCap = CQChartsLineCap::fromVariant(var);
 
   return lineCap.toString();
 }
@@ -76,7 +76,7 @@ QString
 CQChartsLineCapPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  auto lineCap = var.value<CQChartsLineCap>();
+  auto lineCap = CQChartsLineCap::fromVariant(var);
 
   return lineCap.toString();
 }

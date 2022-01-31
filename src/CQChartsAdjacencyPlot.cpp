@@ -3,7 +3,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -898,7 +897,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
     auto connectionsVar = modelValue(connectionsInd, ok3);
     if (! ok3) return false;
 
-    connectionsData.connections = connectionsVar.value<ConnectionList>().connections();
+    connectionsData.connections = ConnectionList::fromVariant(connectionsVar).connections();
   }
   else {
     bool ok3;

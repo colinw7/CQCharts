@@ -1,5 +1,7 @@
 #include <CQChartsSVGUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsUtil.h>
+
 #include <CSVGUtil.h>
 #include <CQStrParse.h>
 
@@ -417,7 +419,7 @@ stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
     }
     else if (name == "fill-opacity") {
       bool ok;
-      double a = value.toDouble(&ok);
+      double a = CQChartsUtil::toReal(value, ok);
       if (! ok) continue;
 
       auto c = brush.color();
@@ -431,7 +433,7 @@ stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
     }
     else if (name == "stroke-width") {
       bool ok;
-      double w = value.toDouble(&ok);
+      double w = CQChartsUtil::toReal(value, ok);
       if (! ok) continue;
 
       pen.setWidthF(w);

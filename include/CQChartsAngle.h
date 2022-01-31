@@ -3,6 +3,7 @@
 
 #include <CQChartsTmpl.h>
 #include <CQChartsGeom.h>
+#include <CQUtilMeta.h>
 #include <CMathUtil.h>
 #include <QString>
 
@@ -19,6 +20,10 @@ class CQChartsAngle :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsAngle, metaTypeId)
 
  public:
   enum class Type {
@@ -139,8 +144,6 @@ class CQChartsAngle :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsAngle)
 

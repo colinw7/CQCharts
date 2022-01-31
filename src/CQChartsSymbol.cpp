@@ -443,7 +443,7 @@ fromString(const QString &s)
     auto indStr = s1.mid(pos + 1);
 
     bool ok;
-    ind_ = indStr .toInt(&ok);
+    ind_ = CQChartsUtil::toInt(indStr, ok);
     if (! ok) return false;
   }
   else if (s.left(5) == "char:") {

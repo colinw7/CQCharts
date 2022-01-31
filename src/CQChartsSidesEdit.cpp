@@ -288,7 +288,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto sides = value.value<CQChartsSides>();
+  auto sides = CQChartsSides::fromVariant(value);
 
   auto str = sides.toString();
 
@@ -309,7 +309,7 @@ QString
 CQChartsSidesPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsSides>().toString();
+  auto str = CQChartsSides::fromVariant(value).toString();
 
   return str;
 }
@@ -347,7 +347,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->sides());
+  return CQChartsSides::toVariant(edit->sides());
 }
 
 void
@@ -357,7 +357,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
-  auto sides = var.value<CQChartsSides>();
+  auto sides = CQChartsSides::fromVariant(var);
 
   edit->setSides(sides);
 }

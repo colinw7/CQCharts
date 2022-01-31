@@ -2,8 +2,12 @@
 #define CQChartsColor_H
 
 #include <CQChartsTmpl.h>
-#include <cassert>
+#include <CQUtilMeta.h>
+
 #include <QColor>
+#include <QVariant>
+
+#include <cassert>
 #include <iostream>
 
 class QObject;
@@ -59,6 +63,10 @@ class CQChartsColor :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColor, metaTypeId)
 
  public:
   //! default constructor
@@ -282,8 +290,6 @@ class CQChartsColor :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColor)
 

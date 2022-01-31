@@ -2,6 +2,8 @@
 #define CQChartsWidget_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <QWidget>
 #include <QPointer>
@@ -17,6 +19,10 @@ class CQChartsWidget :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsWidget, metaTypeId)
 
  public:
   CQChartsWidget() = default;
@@ -87,8 +93,6 @@ class CQChartsWidget :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsWidget)
 

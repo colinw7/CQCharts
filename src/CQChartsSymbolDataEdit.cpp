@@ -157,7 +157,7 @@ CQChartsSymbolDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  auto data = value.value<CQChartsSymbolData>();
+  auto data = CQChartsSymbolData::fromVariant(value);
 
   CQChartsSymbolDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -166,7 +166,7 @@ QString
 CQChartsSymbolDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsSymbolData>().toString();
+  auto str = CQChartsSymbolData::fromVariant(value).toString();
 
   return str;
 }
@@ -197,7 +197,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->symbolData());
+  return CQChartsSymbolData::toVariant(edit->symbolData());
 }
 
 void
@@ -207,7 +207,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
-  auto data = var.value<CQChartsSymbolData>();
+  auto data = CQChartsSymbolData::fromVariant(var);
 
   edit->setSymbolData(data);
 }

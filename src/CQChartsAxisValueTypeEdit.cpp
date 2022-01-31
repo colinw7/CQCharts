@@ -33,14 +33,14 @@ QVariant
 CQChartsAxisValueTypeEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(axisValueType());
+  return CQChartsAxisValueType::toVariant(axisValueType());
 }
 
 void
 CQChartsAxisValueTypeEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  auto value = var.value<CQChartsAxisValueType>();
+  auto value = CQChartsAxisValueType::fromVariant(var);
 
   setAxisValueType(value);
 }
@@ -49,7 +49,7 @@ QString
 CQChartsAxisValueTypeEdit::
 variantToString(const QVariant &var) const
 {
-  auto value = var.value<CQChartsAxisValueType>();
+  auto value = CQChartsAxisValueType::fromVariant(var);
 
   return value.toString();
 }
@@ -74,7 +74,7 @@ QString
 CQChartsAxisValueTypePropertyViewType::
 variantToString(const QVariant &var) const
 {
-  auto value = var.value<CQChartsAxisValueType>();
+  auto value = CQChartsAxisValueType::fromVariant(var);
 
   return value.toString();
 }

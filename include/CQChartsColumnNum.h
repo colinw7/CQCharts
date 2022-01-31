@@ -2,7 +2,10 @@
 #define CQChartsColumnNum_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
+#include <QVariant>
 
 /*!
  * \brief Class to store column number
@@ -14,6 +17,10 @@ class CQChartsColumnNum :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColumnNum, metaTypeId)
 
  public:
   CQChartsColumnNum() = default;
@@ -55,8 +62,6 @@ class CQChartsColumnNum :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColumnNum)
 

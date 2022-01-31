@@ -2,6 +2,8 @@
 #define CQChartsPath_H
 
 #include <CQChartsGeom.h>
+#include <CQUtilMeta.h>
+
 #include <QPainterPath>
 #include <iostream>
 
@@ -18,6 +20,10 @@ class CQChartsPath :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsPath, metaTypeId)
 
  public:
   using Point  = CQChartsGeom::Point;
@@ -177,8 +183,6 @@ class CQChartsPath :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsPath)
 

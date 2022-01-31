@@ -4,12 +4,17 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + different dot placement types
+ + more slots (show table)
+ + quick filter object (select and filter)
+ + remove all QVariant( and int QVariant for int
+   .toInt(), value<int>, int(), fromValue<int>, ...
+ + cleanup all QVariant converstion to/from data
+   .toDouble(), toBool(), ...
  + more testing or arc path with arc annotation
- + simplify dendrogram to single node structure
  + support more connection types in hier model from data
    + from/to, hier path, connection list
  + dot plot
+   + more attributes in input file
    + dot plot edge/node coloring
    + dot plot map point to relative position (on) node to allow move
      + support editing of edge points (delete ?)
@@ -20,6 +25,7 @@ TODO:
    + editable start/end points
    + arc/angle
  + dendrogram plot
+   + simplify dendrogram to single node structure (root node and node)
    + support connection plot model types in dendrogram
    + spread nodes to empty slots
    + handle missing values

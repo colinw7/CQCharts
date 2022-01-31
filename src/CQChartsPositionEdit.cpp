@@ -242,7 +242,7 @@ QString
 CQChartsPositionPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  auto position = value.value<CQChartsPosition>();
+  auto position = CQChartsPosition::fromVariant(value);
 
   QString str;
 
@@ -291,7 +291,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->position());
+  return CQChartsPosition::toVariant(edit->position());
 }
 
 void
@@ -301,7 +301,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
-  auto position = var.value<CQChartsPosition>();
+  auto position = CQChartsPosition::fromVariant(var);
 
   edit->setPosition(position);
 }

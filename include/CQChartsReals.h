@@ -2,6 +2,8 @@
 #define CQChartsReals_H
 
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
+
 #include <QString>
 #include <iostream>
 
@@ -18,6 +20,10 @@ class CQChartsReals :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsReals, metaTypeId)
 
  public:
   using Reals = std::vector<double>;
@@ -71,8 +77,6 @@ class CQChartsReals :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsReals)
 

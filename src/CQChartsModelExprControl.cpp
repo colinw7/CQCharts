@@ -223,7 +223,7 @@ applySlot()
   if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
     bool ok;
 
-    int icolumn = (int) CQChartsUtil::toInt(columnStr, ok);
+    long icolumn = CQChartsUtil::toInt(columnStr, ok);
 
     if (ok)
       column = CQChartsColumn(icolumn);

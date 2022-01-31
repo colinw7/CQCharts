@@ -3,7 +3,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>

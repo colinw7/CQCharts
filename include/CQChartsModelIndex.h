@@ -2,6 +2,7 @@
 #define CQChartsModelIndex_H
 
 #include <CQChartsColumn.h>
+#include <CQUtilMeta.h>
 
 #include <QModelIndex>
 
@@ -18,6 +19,10 @@ class CQChartsModelIndex :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsModelIndex, metaTypeId)
 
  public:
   using Plot   = CQChartsPlot;
@@ -116,8 +121,6 @@ class CQChartsModelIndex :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsModelIndex)
 

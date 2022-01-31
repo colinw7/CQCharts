@@ -555,10 +555,12 @@ initGroupBucketer()
     auto minValue = details->minValue();
     auto maxValue = details->maxValue();
 
+    bool ok;
+
     setExactBucketValue(false);
     setBucketType      (CQBucketer::Type::REAL_AUTO);
-    setMinBucketValue  (minValue.toDouble());
-    setMaxBucketValue  (maxValue.toDouble());
+    setMinBucketValue  (CQChartsVariant::toReal(minValue, ok));
+    setMaxBucketValue  (CQChartsVariant::toReal(maxValue, ok));
 
     setBucketUnderflow(true);
     setBucketOverflow (true);

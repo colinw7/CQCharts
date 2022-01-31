@@ -27,10 +27,43 @@ struct NodeCmp {
 //---
 
 CQChartsDendrogram::Node::
-Node(HierNode *parent, const QString &name, double size) :
+Node(Node *parent, const QString &name, double size) :
  parent_(parent), id_(nextId()), name_(name), size_(size), open_(true)
 {
 }
+
+CQChartsDendrogram::Node::
+~Node()
+{
+  for (auto &c : children_)
+    delete c.node;
+
+  for (auto &n : nodes_)
+    delete n.node;
+}
+
+//---
+
+double
+CQChartsDendrogram::Node::
+size() const
+{
+  double s = 0.0;
+
+  if (! children_.empty() || ! nodes_.empty()) {
+    for (const auto &c : children_)
+      s += c.node->size();
+
+    for (const auto &n : nodes_)
+      s += n.node->size();
+  }
+  else
+    s = size_;
+
+  return s;
+}
+
+//---
 
 void
 CQChartsDendrogram::Node::
@@ -56,7 +89,7 @@ CQChartsDendrogram::RootNode *
 CQChartsDendrogram::Node::
 root()
 {
-  HierNode *hier;
+  Node *hier;
 
   if (parent_) {
     hier = parent_;
@@ -65,89 +98,51 @@ root()
       hier = hier->parent();
   }
   else
-    hier = dynamic_cast<HierNode *>(this);
+    hier = this;
 
   return dynamic_cast<RootNode *>(hier);
 }
 
 void
 CQChartsDendrogram::Node::
-moveNode(double d)
-{
-  if (root()->debug())
-    std::cerr << "Move " << name().toStdString() << " by " << d << std::endl;
-
-  setRow(row() - d);
-}
-
-void
-CQChartsDendrogram::Node::
-compressNode(double d)
-{
-  if (root()->debug())
-    std::cerr << "Compress " << name().toStdString() << " by " << d << std::endl;
-
-  setRow(row() - d);
-  setGap(gap() - d);
-}
-
-bool
-CQChartsDendrogram::Node::
-isNodeAtPoint(double x, double y, double tol) const
-{
-  double d;
-
-  if (this->bbox().isValid())
-    d = std::hypot(this->xc() - x, this->yc() - y);
-  else
-    d = std::hypot(this->x() - x, this->yc() - y);
-
-  return (d <= tol);
-}
-
-//---
-
-CQChartsDendrogram::HierNode::
-HierNode(HierNode *parent, const QString &name) :
- Node(parent, name)
-{
-}
-
-CQChartsDendrogram::HierNode::
-~HierNode()
-{
-  for (auto &c : children_)
-    delete c.node;
-
-  for (auto &n : nodes_)
-    delete n.node;
-}
-
-void
-CQChartsDendrogram::HierNode::
 clear()
 {
   children_.clear();
   nodes_   .clear();
 }
 
-double
-CQChartsDendrogram::HierNode::
-size() const
+bool
+CQChartsDendrogram::Node::
+hasChildren() const
 {
-  double s = 0.0;
-
-  for (const auto &c : children_)
-    s += c.node->size();
-
-  for (const auto &n : nodes_)
-    s += n.node->size();
-
-  return s;
+  return numNodes() > 0;
 }
 
 int
-CQChartsDendrogram::HierNode::
+CQChartsDendrogram::Node::
+numNodes() const
+{
+  return int(nodes_.size() + children_.size());
+}
+
+int
+CQChartsDendrogram::Node::
+maxNodes()
+{
+  int maxNum = 0;
+
+  if (isOpen()) {
+    maxNum = nodes_.size();
+
+    for (const auto &c : children_)
+      maxNum += c.node->maxNodes();
+  }
+
+  return std::max(maxNum, 1);
+}
+
+int
+CQChartsDendrogram::Node::
 calcDepth() const
 {
   int max_depth = 0;
@@ -163,38 +158,10 @@ calcDepth() const
   return max_depth + 1;
 }
 
-int
-CQChartsDendrogram::HierNode::
-numNodes() const
-{
-  return int(nodes_.size() + children_.size());
-}
+//---
 
-int
-CQChartsDendrogram::HierNode::
-maxNodes()
-{
-  int maxNum = 0;
-
-  if (isOpen()) {
-    maxNum = nodes_.size();
-
-    for (const auto &c : children_)
-      maxNum += c.node->maxNodes();
-  }
-
-  return std::max(maxNum, 1);
-}
-
-bool
-CQChartsDendrogram::HierNode::
-hasChildren() const
-{
-  return numNodes() > 0;
-}
-
-CQChartsDendrogram::HierNode *
-CQChartsDendrogram::HierNode::
+CQChartsDendrogram::Node *
+CQChartsDendrogram::Node::
 findChild(const QString &name) const
 {
   for (const auto &c : children_)
@@ -204,11 +171,55 @@ findChild(const QString &name) const
   return nullptr;
 }
 
+//---
+
 void
-CQChartsDendrogram::HierNode::
+CQChartsDendrogram::Node::
+addChild(Node *child, const OptReal &value)
+{
+  child->setParent(this);
+
+  children_.push_back(Child(child, value));
+}
+
+void
+CQChartsDendrogram::Node::
+addNode(Node *node, const OptReal &value)
+{
+  node->setParent(this);
+
+  nodes_.push_back(Child(node, value));
+}
+
+//---
+
+void
+CQChartsDendrogram::Node::
+setChildValue(Node *child, double value)
+{
+  for (auto &c : children_) {
+    if (c.node == child) {
+      c.value = value;
+      return;
+    }
+  }
+
+  for (auto &n : nodes_) {
+    if (n.node == child) {
+      n.value = value;
+      return;
+    }
+  }
+}
+
+//---
+
+void
+CQChartsDendrogram::Node::
 resetPlaced()
 {
-  Node::resetPlaced();
+  bbox_   = BBox();
+  placed_ = false;
 
   for (const auto &c : children_)
     c.node->resetPlaced();
@@ -217,8 +228,102 @@ resetPlaced()
     n.node->resetPlaced();
 }
 
+//---
+
 void
-CQChartsDendrogram::HierNode::
+CQChartsDendrogram::Node::
+moveNode(double d)
+{
+  if (root()->debug())
+    std::cerr << "Move " << name().toStdString() << " by " << d << std::endl;
+
+  setRow(row() - d);
+}
+
+void
+CQChartsDendrogram::Node::
+compressNode(double d)
+{
+  if (children_.empty() && nodes_.empty()) {
+    if (root()->debug())
+      std::cerr << "Compress " << name().toStdString() << " by " << d << std::endl;
+
+    setRow(row() - d);
+    setGap(gap() - d);
+  }
+  else {
+    // reduce number of rows if multi-row item
+    if (numRows() > 1) {
+      if (root()->debug())
+        std::cerr << "Compress " << name().toStdString() << " by " << d << std::endl;
+
+      setNumRows(numRows() - 2*d);
+
+      // if run out of rows then move node (TODO: possible ?)
+      if (numRows() < 1) {
+        double d1 = 1 - numRows();
+
+        setRow(row() - d1);
+      }
+    }
+    // if single row item just move
+    else
+      moveNode(d);
+
+    // update gap
+    setGap(gap() - d);
+  }
+}
+
+//---
+
+bool
+CQChartsDendrogram::Node::
+isNodeAtPoint(double x, double y, double tol) const
+{
+  double d;
+
+  if (this->bbox().isValid())
+    d = std::hypot(this->xc() - x, this->yc() - y);
+  else
+    d = std::hypot(this->x() - x, this->yc() - y);
+
+  return (d <= tol);
+}
+
+const CQChartsDendrogram::Node *
+CQChartsDendrogram::Node::
+getNodeAtPoint(double x, double y, double tol) const
+{
+  return const_cast<CQChartsDendrogram::Node *>(this)->getNodeAtPoint(x, y, tol);
+}
+
+CQChartsDendrogram::Node *
+CQChartsDendrogram::Node::
+getNodeAtPoint(double x, double y, double tol)
+{
+  if (isNodeAtPoint(x, y, tol))
+    return this;
+
+  for (const auto &c : children_) {
+    auto *node = c.node->getNodeAtPoint(x, y, tol);
+
+    if (node)
+      return node;
+  }
+
+  for (const auto &n : nodes_) {
+    if (n.node->isNodeAtPoint(x, y, tol))
+      return n.node;
+  }
+
+  return nullptr;
+}
+
+//---
+
+void
+CQChartsDendrogram::Node::
 placeSubNodes(RootNode *root, int depth, double row)
 {
   // make single list of nodes to place
@@ -246,7 +351,7 @@ placeSubNodes(RootNode *root, int depth, double row)
     root->placeNode(n, depth, row1, maxNodes);
 
     // place child nodes
-    auto *hierNode = dynamic_cast<HierNode *>(n);
+    auto *hierNode = n;
 
     if (hierNode && hierNode->isOpen())
       hierNode->placeSubNodes(root, depth + 1, row1);
@@ -256,104 +361,11 @@ placeSubNodes(RootNode *root, int depth, double row)
   }
 }
 
-void
-CQChartsDendrogram::HierNode::
-addChild(HierNode *child, const OptReal &value)
-{
-  child->setParent(this);
-
-  children_.push_back(HierChild(child, value));
-}
-
-void
-CQChartsDendrogram::HierNode::
-setChildValue(Node *child, double value)
-{
-  for (auto &c : children_) {
-    if (c.node == child) {
-      c.value = value;
-      return;
-    }
-  }
-
-  for (auto &n : nodes_) {
-    if (n.node == child) {
-      n.value = value;
-      return;
-    }
-  }
-}
-
-void
-CQChartsDendrogram::HierNode::
-addNode(Node *node, const OptReal &value)
-{
-  node->setParent(this);
-
-  nodes_.push_back(Child(node, value));
-}
-
-void
-CQChartsDendrogram::HierNode::
-compressNode(double d)
-{
-  // reduce number of rows if multi-row item
-  if (numRows() > 1) {
-    if (root()->debug())
-      std::cerr << "Compress " << name().toStdString() << " by " << d << std::endl;
-
-    setNumRows(numRows() - 2*d);
-
-    // if run out of rows then move node (TODO: possible ?)
-    if (numRows() < 1) {
-      double d1 = 1 - numRows();
-
-      setRow(row() - d1);
-    }
-  }
-  // if single row item just move
-  else
-    moveNode(d);
-
-  // update gap
-  setGap(gap() - d);
-}
-
-const CQChartsDendrogram::Node *
-CQChartsDendrogram::HierNode::
-getNodeAtPoint(double x, double y, double tol) const
-{
-  return const_cast<CQChartsDendrogram::HierNode *>(this)->getNodeAtPoint(x, y, tol);
-}
-
-CQChartsDendrogram::Node *
-CQChartsDendrogram::HierNode::
-getNodeAtPoint(double x, double y, double tol)
-{
-  if (isNodeAtPoint(x, y, tol))
-    return this;
-
-  // make single list of nodes to place
-  for (const auto &c : children_) {
-    auto *node = c.node->getNodeAtPoint(x, y, tol);
-
-    if (node)
-      return node;
-  }
-
-  for (const auto &n : nodes_) {
-    if (n.node->isNodeAtPoint(x, y, tol))
-      return n.node;
-  }
-
-  return nullptr;
-}
-
 //---
 
 CQChartsDendrogram::RootNode::
 RootNode(const QString &name) :
- HierNode(0, name)
+ Node(nullptr, name)
 {
 }
 
@@ -590,7 +602,7 @@ canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
     auto *node1 = dnodes[i];
 
     if (node1->isOpen() && node1->hasChildren()) {
-      auto *hierNode = dynamic_cast<HierNode *>(node1);
+      auto *hierNode = node1;
 
       auto *child = getLowestChild(hierNode);
 
@@ -617,7 +629,7 @@ canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
 // get the child of node with lowest row
 CQChartsDendrogram::Node *
 CQChartsDendrogram::RootNode::
-getLowestChild(HierNode *hierNode)
+getLowestChild(Node *hierNode)
 {
   Node *lowestNode = nullptr;
 
@@ -709,13 +721,13 @@ compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d)
   }
 
   //if (node->hasChildren())
-  //  moveChildNodes(dynamic_cast<HierNode *>(node), d);
+  //  moveChildNodes(node, d);
 }
 
 #if 0
 void
 CQChartsDendrogram::RootNode::
-moveChildNodes(HierNode *hierNode, double d)
+moveChildNodes(Node *hierNode, double d)
 {
   if (! hierNode->isOpen())
     return;
@@ -767,7 +779,7 @@ moveHigherNodes(Node *node, double d)
     if (dnode == node) break;
 
     //if (dnode->hasChildren())
-    //  moveChildNodes(dynamic_cast<HierNode *>(dnode), d);
+    //  moveChildNodes(dnode, d);
     //else
     dnode->moveNode(d);
   }
@@ -835,7 +847,7 @@ setSingleStep(bool b)
     root_->setSingleStep(b);
 }
 
-CQChartsDendrogram::HierNode *
+CQChartsDendrogram::RootNode *
 CQChartsDendrogram::
 addRootNode(const QString &name)
 {
@@ -846,13 +858,11 @@ addRootNode(const QString &name)
   return root_;
 }
 
-CQChartsDendrogram::HierNode *
+CQChartsDendrogram::Node *
 CQChartsDendrogram::
-addHierNode(HierNode *parentHier, const QString &name, const OptReal &value)
+addHierNode(Node *parentHier, const QString &name, const OptReal &value)
 {
-  assert(parentHier);
-
-  auto *hier = createHierNode(parentHier, name);
+  auto *hier = createNode(parentHier, name, 0.0);
 
   parentHier->addChild(hier, value);
 
@@ -861,7 +871,7 @@ addHierNode(HierNode *parentHier, const QString &name, const OptReal &value)
 
 CQChartsDendrogram::Node *
 CQChartsDendrogram::
-addNode(HierNode *hier, const QString &name, double size)
+addNode(Node *hier, const QString &name, double size)
 {
   auto *node = createNode(hier, name, size);
 
@@ -877,16 +887,9 @@ createRootNode(const QString &name) const
   return new RootNode(name);
 }
 
-CQChartsDendrogram::HierNode *
-CQChartsDendrogram::
-createHierNode(HierNode *hier, const QString &name) const
-{
-  return new HierNode(hier, name);
-}
-
 CQChartsDendrogram::Node *
 CQChartsDendrogram::
-createNode(HierNode *hier, const QString &name, double size) const
+createNode(Node *hier, const QString &name, double size) const
 {
   return new Node(hier, name, size);
 }

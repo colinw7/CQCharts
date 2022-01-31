@@ -1,4 +1,6 @@
 #include <CQChartsPaletteName.h>
+#include <CQChartsUtil.h>
+
 #include <CQPropertyView.h>
 #include <CQColors.h>
 
@@ -89,8 +91,8 @@ fromString(const QString &name)
       auto maxStr = rhs.mid(0, pos2);
 
       bool ok;
-      min = minStr.toDouble(&ok); if (! ok) return false;
-      max = maxStr.toDouble(&ok); if (! ok) return false;
+      min = CQChartsUtil::toReal(minStr, ok); if (! ok) return false;
+      max = CQChartsUtil::toReal(maxStr, ok); if (! ok) return false;
     }
 
     if (! setName(lhs))

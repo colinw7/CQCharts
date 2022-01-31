@@ -1935,13 +1935,13 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 
   bool ok;
 
-  row = strs[0].toInt(&ok);
+  row = CQChartsUtil::toInt(strs[0], ok);
   if (! ok) return false;
 
   if (! stringToColumn(model, strs[1], column)) {
     bool ok;
 
-    int icol = strs[1].toInt(&ok);
+    long icol = CQChartsUtil::toInt(strs[1], ok);
     if (! ok) return false;
 
     column = Column(icol);
@@ -1950,7 +1950,7 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
   for (int i = 2; i < n; ++i) {
     bool ok;
 
-    int prow = strs[i].toInt(&ok);
+    long prow = CQChartsUtil::toInt(strs[i], ok);
     if (! ok) return false;
 
     prows.push_back(prow);

@@ -296,14 +296,14 @@ addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
   inds.insert(ind);
 }
 
-/*
+#if 0
 void
 CQChartsPlotObj::
 addSelectIndex(Indices &inds, const QModelIndex &ind) const
 {
   inds.insert(ind);
 }
-*/
+#endif
 
 //---
 

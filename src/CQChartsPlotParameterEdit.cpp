@@ -21,7 +21,7 @@ CQChartsColumnParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic
 
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
-  auto column = parameter->defValue().value<CQChartsColumn>();
+  auto column = CQChartsColumn::fromVariant(parameter->defValue());
 
   auto tip = parameter->tip();
 
@@ -121,7 +121,7 @@ CQChartsColumnsParameterEdit(const CQChartsPlotParameter *parameter, bool isBasi
 
   setPlaceholderText("Column Names or Numbers");
 
-  auto columns = parameter->defValue().value<CQChartsColumns>();
+  auto columns = CQChartsColumns::fromVariant(parameter->defValue());
 
   if (columns.isValid())
     setColumns(columns);
@@ -318,7 +318,8 @@ CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter, bool choice) :
 {
   setObjectName(parameter_->name() + "Bool");
 
-  bool b = parameter->defValue().toBool();
+  bool ok;
+  bool b = CQChartsVariant::toBool(parameter->defValue(), ok);
 
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 

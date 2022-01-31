@@ -3,6 +3,7 @@
 
 #include <CQChartsObjRef.h>
 #include <CQChartsPosition.h>
+#include <CQUtilMeta.h>
 
 /*!
  * \brief ObjRef Position class
@@ -15,6 +16,10 @@ class CQChartsObjRefPos :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsObjRefPos, metaTypeId)
 
  public:
   using ObjRef   = CQChartsObjRef;
@@ -56,8 +61,6 @@ class CQChartsObjRefPos :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsObjRefPos)
 

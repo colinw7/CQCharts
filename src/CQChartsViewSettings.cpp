@@ -3867,9 +3867,10 @@ moveCurrentUp()
   auto *symbolSet = this->symbolSet();
   if (! symbolSet) return;
 
-  int i = item->data(Qt::UserRole).toInt();
+  bool ok;
+  long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-  if (! symbolSet->moveUp(i))
+  if (! ok || ! symbolSet->moveUp(i))
     return;
 
   updateItems();
@@ -3887,9 +3888,10 @@ moveCurrentDown()
   auto *symbolSet = this->symbolSet();
   if (! symbolSet) return;
 
-  int i = item->data(Qt::UserRole).toInt();
+  bool ok;
+  long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-  if (! symbolSet->moveDown(i))
+  if (! ok || ! symbolSet->moveDown(i))
     return;
 
   updateItems();
@@ -3919,7 +3921,9 @@ selectedSymbol(CQChartsSymbol &symbol) const
   auto *symbolSet = this->symbolSet();
   if (! symbolSet) return false;
 
-  int i = item->data(Qt::UserRole).toInt();
+  bool ok;
+  long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+  if (! ok) return false;
 
   symbol = symbolSet->symbol(i);
 

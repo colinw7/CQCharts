@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewModel.h>
@@ -1380,7 +1381,7 @@ currentPlotSlot()
   auto *action = qobject_cast<QAction *>(sender());
 
   bool ok;
-  long ind = action->data().toInt(&ok);
+  long ind = CQChartsVariant::toInt(action->data(), ok);
   if (! ok) return;
 
   setCurrentPlot(childPlot(static_cast<int>(ind)));

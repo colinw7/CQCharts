@@ -1,4 +1,6 @@
 #include <CQChartsColorStops.h>
+#include <CQChartsUtil.h>
+
 #include <CQPropertyView.h>
 #include <CQTclUtil.h>
 
@@ -52,7 +54,7 @@ fromString(const QString &str)
 
     bool ok1;
 
-    double v = s.toDouble(&ok1);
+    double v = CQChartsUtil::toReal(s, ok1);
 
     if (ok1)
       values.push_back(v);

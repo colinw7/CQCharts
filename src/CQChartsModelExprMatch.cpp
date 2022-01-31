@@ -206,7 +206,7 @@ match(const QString &expr, const QModelIndex &ind, bool &ok)
     return true;
   }
 
-  bool rc = value.toBool();
+  bool rc = CQChartsVariant::toBool(value, ok);
 
   return rc;
 }
@@ -224,7 +224,7 @@ match(const QModelIndex &ind, bool &ok)
     return true;
   }
 
-  bool rc = value.toBool();
+  bool rc = CQChartsVariant::toBool(value, ok);
 
   return rc;
 }
@@ -259,7 +259,7 @@ processCmd(const QString &name, const Values &values)
   else if (name == "lower_median") return detailsCmd(name, values);
   else if (name == "upper_median") return detailsCmd(name, values);
 
-  else return QVariant(false);
+  else return CQChartsVariant::fromBool(false);
 }
 
 //------
@@ -288,7 +288,7 @@ columnCmd(const Values &values) const
     if (! cmdValues.getStr(defStr))
       return QVariant();
 
-    return QVariant(defStr);
+    return CQChartsVariant::fromString(defStr);
   }
 
   //---
@@ -326,7 +326,7 @@ rowCmd(const Values &values) const
     if (! cmdValues.getStr(defStr))
       return QVariant();
 
-    return QVariant(defStr);
+    return CQChartsVariant::fromString(defStr);
   }
 
   //---
@@ -369,7 +369,7 @@ cellCmd(const Values &values) const
     if (! cmdValues.getStr(defStr))
       return QVariant();
 
-    return QVariant(defStr);
+    return CQChartsVariant::fromString(defStr);
   }
 
   //---
@@ -446,13 +446,13 @@ definedCmd(const Values &values) const
   //---
 
   if (! checkIndex(row, col))
-    return QVariant(false);
+    return CQChartsVariant::fromBool(false);
 
   //---
 
   auto var = getCmdData(row, col);
 
-  return QVariant(var.isValid());
+  return CQChartsVariant::fromBool(var.isValid());
 }
 
 //---

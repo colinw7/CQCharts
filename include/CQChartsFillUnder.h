@@ -2,9 +2,11 @@
 #define CQChartsFillUnder_H
 
 #include <CQChartsTmpl.h>
+#include <CQUtilMeta.h>
 #include <CMathUtil.h>
 #include <QString>
 #include <QStringList>
+#include <QVariant>
 #include <iostream>
 
 /*!
@@ -25,6 +27,12 @@ class CQChartsFillUnderSide :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsFillUnderSide, metaTypeId)
+
+  //---
 
   static QStringList sideNames();
 
@@ -98,6 +106,10 @@ class CQChartsFillUnderPos :
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsFillUnderPos, metaTypeId)
 
  public:
   CQChartsFillUnderPos() { }
@@ -173,8 +185,6 @@ class CQChartsFillUnderPos :
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsFillUnderSide)
 CQUTIL_DCL_META_TYPE(CQChartsFillUnderPos)

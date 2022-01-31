@@ -20,6 +20,10 @@ class CQChartsAxisSide : public CQChartsEnum<CQChartsAxisSide> {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsAxisSide, metaTypeId)
+
  public:
   explicit CQChartsAxisSide(Type type=Type::BOTTOM_LEFT) :
    type_(type) {

@@ -3685,6 +3685,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // named slots
   using NamedSlots = std::map<QString, QStringList>;
 
   NamedSlots namedSlots_;

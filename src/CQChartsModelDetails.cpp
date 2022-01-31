@@ -476,7 +476,7 @@ isKey() const
   auto value = CQChartsModelUtil::modelHeaderValue(model, column_,
                  CQModelUtil::roleCast(CQBaseModelRole::Key), ok);
 
-  return (ok && value.toBool());
+  return (ok && CQChartsVariant::toBool(value, ok));
 }
 
 QString
@@ -566,13 +566,13 @@ meanValue(bool useNaN) const
     return valueSet->rvals().mean();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().mean();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -591,13 +591,13 @@ sumValue(bool useNaN) const
     return valueSet->rvals().sum();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().sum();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -616,13 +616,13 @@ stdDevValue(bool useNaN) const
     return valueSet->rvals().stddev();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().stddev();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -682,7 +682,7 @@ isMonotonic() const
     auto var = CQChartsModelUtil::modelHeaderValue(
       model, column_, CQModelUtil::roleCast(CQBaseModelRole::Sorted), ok);
 
-    if (ok && var.isValid() && var.toBool())
+    if (ok && var.isValid() && CQChartsVariant::toBool(var, ok))
       return true;
   }
 
@@ -706,7 +706,7 @@ isIncreasing() const
     auto var = CQChartsModelUtil::modelHeaderValue(
       model, column_, CQModelUtil::roleCast(CQBaseModelRole::Sorted), ok);
 
-    if (ok && var.isValid() && var.toBool()) {
+    if (ok && var.isValid() && CQChartsVariant::toBool(var, ok)) {
       auto var = CQChartsModelUtil::modelHeaderValue(
         model, column_, CQModelUtil::roleCast(CQBaseModelRole::SortOrder), ok);
 
@@ -777,7 +777,7 @@ uniqueValues() const
     valueSet->ivals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(CQModelUtil::intVariant(v));
+      vars.push_back(CQChartsVariant::fromInt(v));
   }
   else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::Values values;
@@ -785,7 +785,7 @@ uniqueValues() const
     valueSet->rvals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(CQModelUtil::realVariant(v));
+      vars.push_back(CQChartsVariant::fromReal(v));
   }
   else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::Values values;
@@ -793,7 +793,7 @@ uniqueValues() const
     valueSet->svals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(QVariant(v));
+      vars.push_back(CQChartsVariant::fromString(v));
   }
   else if (type() == CQBaseModelType::TIME) {
     CQChartsRValues::Values values;
@@ -801,7 +801,7 @@ uniqueValues() const
     valueSet->tvals().uniqueValues(values);
 
     for (const auto &v : values)
-      vars.push_back(CQModelUtil::realVariant(v));
+      vars.push_back(CQChartsVariant::fromReal(v));
   }
   else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::Values values;
@@ -869,7 +869,7 @@ uniqueValueCounts() const
     valueSet->ivals().uniqueValueCounts(ivalueCounts);
 
     for (const auto &v : ivalueCounts)
-      valueCounts.emplace_back(CQModelUtil::intVariant(v.first), v.second);
+      valueCounts.emplace_back(CQChartsVariant::fromInt(v.first), v.second);
   }
   else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::ValueCounts rvalueCounts;
@@ -877,7 +877,7 @@ uniqueValueCounts() const
     valueSet->rvals().uniqueValueCounts(rvalueCounts);
 
     for (const auto &v : rvalueCounts)
-      valueCounts.emplace_back(CQModelUtil::realVariant(v.first), v.second);
+      valueCounts.emplace_back(CQChartsVariant::fromReal(v.first), v.second);
   }
   else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::ValueCounts svalueCounts;
@@ -885,7 +885,7 @@ uniqueValueCounts() const
     valueSet->svals().uniqueValueCounts(svalueCounts);
 
     for (const auto &v : svalueCounts)
-      valueCounts.emplace_back(QVariant(v.first), v.second);
+      valueCounts.emplace_back(CQChartsVariant::fromString(v.first), v.second);
   }
   else if (type() == CQBaseModelType::TIME) {
     CQChartsRValues::ValueCounts tvalueCounts;
@@ -893,7 +893,7 @@ uniqueValueCounts() const
     valueSet->tvals().uniqueValueCounts(tvalueCounts);
 
     for (const auto &v : tvalueCounts)
-      valueCounts.emplace_back(CQModelUtil::realVariant(v.first), v.second);
+      valueCounts.emplace_back(CQChartsVariant::fromReal(v.first), v.second);
   }
   else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::ValueCounts cvalueCounts;
@@ -920,7 +920,7 @@ uniqueId(const QVariant &var) const
   if (column_.type() == Column::Type::ROW) {
     long i = CQChartsVariant::toInt(var, ok);
 
-    return (ok ? int(i) : -1);
+    return (ok ? static_cast<int>(i) : -1);
   }
 
   //--
@@ -929,7 +929,7 @@ uniqueId(const QVariant &var) const
     long i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet->ivals().id(int(i));
+      return valueSet->ivals().id(static_cast<int>(i));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -963,7 +963,7 @@ CQChartsModelColumnDetails::
 uniqueValue(int i) const
 {
   if (column_.type() == Column::Type::ROW) {
-    return CQModelUtil::intVariant(i);
+    return CQChartsVariant::fromInt(i);
   }
 
   auto uniqueValues = this->uniqueValues();
@@ -1077,13 +1077,13 @@ medianValue(bool useNaN) const
     return valueSet->rvals().median();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().median();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -1102,13 +1102,13 @@ lowerMedianValue(bool useNaN) const
     return valueSet->rvals().lowerMedian();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().lowerMedian();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -1127,13 +1127,13 @@ upperMedianValue(bool useNaN) const
     return valueSet->rvals().upperMedian();
   }
   else if (type() == CQBaseModelType::STRING) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet->tvals().upperMedian();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return (useNaN ? CQModelUtil::realVariant(CMathUtil::getNaN()) : QVariant());
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
   }
 
   return QVariant();
@@ -1186,7 +1186,7 @@ isOutlier(const QVariant &value) const
   if      (type() == CQBaseModelType::INTEGER) {
     long i = CQChartsVariant::toInt(value, ok);
 
-    return (ok && valueSet->ivals().isOutlier(int(i)));
+    return (ok && valueSet->ivals().isOutlier(static_cast<int>(i)));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(value, ok);
@@ -1220,7 +1220,7 @@ map(const QVariant &var) const
     long i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet->ivals().map(int(i));
+      return valueSet->ivals().map(static_cast<int>(i));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -1274,22 +1274,22 @@ value(int i) const
   if      (type() == CQBaseModelType::INTEGER) {
     const auto &value = valueSet_->ivals().value(i);
 
-    return (value ? CQModelUtil::intVariant(value.value()) : QVariant());
+    return (value ? CQChartsVariant::fromInt(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::REAL) {
     const auto &value = valueSet_->rvals().value(i);
 
-    return (value ? CQModelUtil::realVariant(value.value()) : QVariant());
+    return (value ? CQChartsVariant::fromReal(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::STRING) {
     const auto &value = valueSet_->svals().value(i);
 
-    return (value ? QVariant(value.value()) : QVariant());
+    return (value ? CQChartsVariant::fromString(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     const auto &value = valueSet_->tvals().value(i);
 
-    return (value ? CQModelUtil::realVariant(value.value()) : QVariant());
+    return (value ? CQChartsVariant::fromReal(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::COLOR) {
     const auto &value = valueSet_->cvals().value(i);
@@ -1450,7 +1450,7 @@ calcCache()
       if      (details_->type() == CQBaseModelType::INTEGER) {
         long i = (ok ? CQChartsVariant::toInt(var, ok) : 0);
 
-        if (ok && ! details_->checkRow(int(i)))
+        if (ok && ! details_->checkRow(static_cast<int>(i)))
           return State::SKIP;
 
         details_->addInt(i, ok);
@@ -1555,7 +1555,7 @@ calcCache()
 
         imin = (! ok1 ? i : std::min(imin, i));
 
-        min_ = CQModelUtil::intVariant(imin);
+        min_ = CQChartsVariant::fromInt(imin);
       }
 
       // if no type defined max, update max value
@@ -1566,7 +1566,7 @@ calcCache()
 
         imax = (! ok1 ? i : std::max(imax, i));
 
-        max_ = CQModelUtil::intVariant(imax);
+        max_ = CQChartsVariant::fromInt(imax);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
@@ -1596,7 +1596,7 @@ calcCache()
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = int(i);
+      lastValue2_ = static_cast<int>(i);
     }
 
     void addReal(double r) {
@@ -1608,7 +1608,7 @@ calcCache()
 
         rmin = (! ok1 ? r : std::min(rmin, r));
 
-        min_ = CQModelUtil::realVariant(rmin);
+        min_ = CQChartsVariant::fromReal(rmin);
       }
 
       // if no type defined max, update max value
@@ -1619,7 +1619,7 @@ calcCache()
 
         rmax = (! ok1 ? r : std::max(rmax, r));
 
-        max_ = CQModelUtil::realVariant(rmax);
+        max_ = CQChartsVariant::fromReal(rmax);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
@@ -1661,7 +1661,7 @@ calcCache()
 
         smin = (! ok1 ? s : std::min(smin, s));
 
-        min_ = QVariant(smin);
+        min_ = CQChartsVariant::fromString(smin);
       }
 
       // if no type defined max, update max value
@@ -1672,7 +1672,7 @@ calcCache()
 
         smax = (! ok1 ? s : std::max(smax, s));
 
-        max_ = QVariant(smax);
+        max_ = CQChartsVariant::fromString(smax);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
@@ -1951,8 +1951,9 @@ calcBucketer()
   if      (type() == CQBaseModelType::INTEGER) {
     bucketer_->setType(CQBucketer::Type::INTEGER_RANGE);
 
-    int i1 = minValue().toInt();
-    int i2 = maxValue().toInt();
+    bool ok;
+    long i1 = CQChartsVariant::toInt(minValue(), ok);
+    long i2 = CQChartsVariant::toInt(maxValue(), ok);
 
     int n = i2 - i1 + 1;
     int d = n/num;
@@ -1966,8 +1967,9 @@ calcBucketer()
   else if (type() == CQBaseModelType::REAL) {
     bucketer_->setType(CQBucketer::Type::REAL_AUTO);
 
-    double r1 = minValue().toDouble();
-    double r2 = maxValue().toDouble();
+    bool ok;
+    double r1 = CQChartsVariant::toReal(minValue(), ok);
+    double r2 = CQChartsVariant::toReal(maxValue(), ok);
 
     bucketer_->setRMin(r1);
     bucketer_->setRMax(r2);

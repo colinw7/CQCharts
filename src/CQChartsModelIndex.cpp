@@ -68,7 +68,7 @@ fromString(const QString &str)
 
   bool ok;
 
-  row_ = strs[1].toInt(&ok);
+  row_ = CQChartsUtil::toInt(strs[1], ok);
   if (! ok) return false;
 
   CQChartsColumn c(strs[2]);

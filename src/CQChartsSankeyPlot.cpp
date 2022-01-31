@@ -4,7 +4,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -1395,28 +1394,28 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
   auto *destNode = edge->destNode();
 
   for (const auto &nv : nameValues.nameValues()) {
-    const auto &name  = nv.first;
-    auto        value = nv.second.toString();
+    const auto &name     = nv.first;
+    auto        valueStr = nv.second.toString();
 
     if      (name == "color") {
-      edge->setFillColor(CQChartsColor(value));
+      edge->setFillColor(CQChartsColor(valueStr));
     }
     else if (name.left(4) == "src_") {
-      processNodeNameValue(srcNode, name.mid(4), value);
+      processNodeNameValue(srcNode, name.mid(4), valueStr);
     }
     else if (name.left(5) == "dest_") {
-      processNodeNameValue(destNode, name.mid(5), value);
+      processNodeNameValue(destNode, name.mid(5), valueStr);
     }
 #if 0
     else if (name == "label") {
-      edge->setLabel(value);
+      edge->setLabel(valueStr);
     }
 #endif
 #ifdef CQCHARTS_GRAPH_PATH_ID
     // TODO: remove path_id and color (use columns)
     else if (name == "path_id") {
       bool ok;
-      int pathId = value.toInt(&ok);
+      long pathId = CQChartsUtil::toInt(valueStr, ok);
       if (! ok || pathId < 0) continue;
 
       edge->setPathId(pathId);
@@ -3913,7 +3912,12 @@ edgePath(QPainterPath &path, bool isLine) const
 
   //---
 
-  CQChartsDrawUtil::edgePath(path, srcRect, destRect, isLine, plot_->orientation());
+  if (! isLine)
+    CQChartsDrawUtil::edgePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
+                               plot_->orientation());
+  else
+    CQChartsDrawUtil::curvePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
+                                plot_->orientation());
 
   return true;
 }

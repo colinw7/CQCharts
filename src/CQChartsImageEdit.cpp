@@ -131,7 +131,7 @@ QString
 CQChartsImagePropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsImage>().toString();
+  auto str = CQChartsImage::fromVariant(value).toString();
 
   return str;
 }
@@ -182,7 +182,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsImageEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->image());
+  return CQChartsImage::toVariant(edit->image());
 }
 
 void
@@ -192,7 +192,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsImageEdit *>(w);
   assert(edit);
 
-  auto image = var.value<CQChartsImage>();
+  auto image = CQChartsImage::fromVariant(var);
 
   edit->setImage(image);
 }

@@ -2,6 +2,8 @@
 #define CQChartsLineJoin_H
 
 #include <CQChartsEnum.h>
+#include <CQUtilMeta.h>
+
 #include <QPen>
 
 /*!
@@ -13,6 +15,10 @@ class CQChartsLineJoin : public CQChartsEnum<CQChartsLineJoin> {
   static void registerMetaType();
 
   static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsLineJoin, metaTypeId)
 
  public:
   CQChartsLineJoin();
@@ -48,8 +54,6 @@ class CQChartsLineJoin : public CQChartsEnum<CQChartsLineJoin> {
 };
 
 //------
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsLineJoin)
 

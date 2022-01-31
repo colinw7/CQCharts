@@ -129,7 +129,8 @@ QString
 CQChartsSymbolSetPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<QString>();
+  bool ok;
+  auto str = CQChartsVariant::toString(value, ok);
 
   return str;
 }
@@ -182,7 +183,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsSymbolSetEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->symbolSetName());
+  return CQChartsSymbolSet::toVariant(edit->symbolSetName());
 }
 
 void
@@ -192,7 +193,8 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSymbolSetEdit *>(w);
   assert(edit);
 
-  auto name = var.value<QString>();
+  bool ok;
+  auto name = CQChartsVariant::toString(var, ok);
 
   edit->setSymbolSetName(name);
 }

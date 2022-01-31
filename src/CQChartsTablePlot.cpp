@@ -469,7 +469,7 @@ setRowNumsStr(const QString &str)
   for (const auto &s : strs) {
     bool ok;
 
-    const int i = s.toInt(&ok);
+    long i = CQChartsUtil::toInt(s, ok);
 
     if (ok)
       rowNums.push_back(i);
@@ -2269,7 +2269,7 @@ draw(PaintDevice *device) const
 
       if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER) {
         bool ok;
-        value = cellObjData_.str.toDouble(&ok);
+        value = CQChartsUtil::toReal(cellObjData_.str, ok);
 
         // get min/max
         auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -2282,8 +2282,8 @@ draw(PaintDevice *device) const
         auto maxVar = columnType->maxValue(columnDetails->nameValues());
         if (! maxVar.isValid()) maxVar = columnDetails->maxValue();
 
-        min = minVar.toReal(&ok);
-        max = maxVar.toReal(&ok);
+        min = CQChartsVariant::toReal(minVar, ok);
+        max = CQChartsVariant::toReal(maxVar, ok);
 
         norm = (max > min ? (value - min)/(max - min) : 0.0);
 

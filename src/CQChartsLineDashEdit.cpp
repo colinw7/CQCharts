@@ -210,7 +210,7 @@ updateState()
   for (int i = 0; i < combo_->count(); ++i) {
     auto var = combo_->itemData(i);
 
-    auto dash = var.value<CQChartsLineDash>();
+    auto dash = CQChartsLineDash::fromVariant(var);
 
     if (dash_ == dash) {
       if (i != combo_->currentIndex())
@@ -256,7 +256,7 @@ comboItemChanged()
 
   auto var = combo_->itemData(ind);
 
-  dash_ = var.value<CQChartsLineDash>();
+  dash_ = CQChartsLineDash::fromVariant(var);
 
   emit valueChanged(dash_);
 }
@@ -276,7 +276,7 @@ addDashOption(const std::string &id, const CQChartsLineDash &dash)
 
   menu_->addAction(action);
 
-  auto var = QVariant::fromValue(dash);
+  auto var = CQChartsLineDash::toVariant(dash);
 
   combo_->addItem(icon, action->text(), var);
 }
@@ -397,7 +397,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  auto dash = value.value<CQChartsLineDash>();
+  auto dash = CQChartsLineDash::fromVariant(value);
 
   auto icon = CQChartsLineDashEdit::dashIcon(dash, /*bg*/false);
 
@@ -428,7 +428,7 @@ QString
 CQChartsLineDashPropertyViewType::
 tip(const QVariant &value) const
 {
-  auto str = value.value<CQChartsLineDash>().toString();
+  auto str = CQChartsLineDash::fromVariant(value).toString();
 
   return str;
 }
@@ -466,7 +466,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->getLineDash());
+  return CQChartsLineDash::toVariant(edit->getLineDash());
 }
 
 void
@@ -476,7 +476,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
-  auto dash = var.value<CQChartsLineDash>();
+  auto dash = CQChartsLineDash::fromVariant(var);
 
   edit->setLineDash(dash);
 }

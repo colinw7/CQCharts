@@ -2,6 +2,7 @@
 #define CQChartsNamePair_H
 
 #include <CQChartsUtil.h>
+#include <CQUtilMeta.h>
 
 /*!
  * \brief Name Pair class
@@ -13,6 +14,11 @@ class CQChartsNamePair {
 
   static int metaTypeId;
 
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsNamePair, metaTypeId)
+
+ public:
   //! name pair
   struct Names {
     bool    valid { false };
@@ -70,8 +76,6 @@ class CQChartsNamePair {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsNamePair)
 

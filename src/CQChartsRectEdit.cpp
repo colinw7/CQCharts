@@ -243,7 +243,7 @@ QString
 CQChartsRectPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  auto rect = value.value<CQChartsRect>();
+  auto rect = CQChartsRect::fromVariant(value);
 
   QString str;
 
@@ -292,7 +292,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->rect());
+  return CQChartsRect::toVariant(edit->rect());
 }
 
 void
@@ -302,7 +302,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
-  auto rect = var.value<CQChartsRect>();
+  auto rect = CQChartsRect::fromVariant(var);
 
   edit->setRect(rect);
 }
