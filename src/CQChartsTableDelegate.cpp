@@ -328,7 +328,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     if (isNullVar(var))
       return drawNullValue(painter, option, index);
 
-    if (var.type() == QVariant::List) {
+    if (CQChartsVariant::isList(var)) {
       QString str;
 
       CQChartsVariant::toString(var, str);

@@ -482,6 +482,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
+  //---
+
+  bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res) override;
+
  protected:
   virtual void resetBestFit() { }
 

@@ -995,7 +995,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
       if (extraColumn.typeData.type == CQBaseModelType::NONE)
         extraColumn.typeData.type = CQBaseModelType::INTEGER;
     }
-    else if (var.type() == QVariant::Bool) {
+    else if (CQChartsVariant::isBool(var)) {
       if (extraColumn.typeData.type == CQBaseModelType::NONE)
         extraColumn.typeData.type = CQBaseModelType::INTEGER;
     }

@@ -132,7 +132,7 @@ class CQChartsRValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return CQModelUtil::nullVariant();
+    if (valset_.size() != 1) return QVariant();
 
     return CQModelUtil::realVariant(valset_.begin()->first);
   }
@@ -267,7 +267,7 @@ class CQChartsIValues {
   }
 
   // map value into real in range
-  double map(int i, double mapMin=0.0, double mapMax=1.0) const {
+  double map(long i, double mapMin=0.0, double mapMax=1.0) const {
     // map value using real value range
     double imin = this->min();
     double imax = this->max();
@@ -279,8 +279,8 @@ class CQChartsIValues {
   }
 
   // min/max value
-  long min(int def=0) const { return (valset_.empty() ? def : valset_. begin()->first); }
-  long max(int def=0) const { return (valset_.empty() ? def : valset_.rbegin()->first); }
+  long min(long def=0) const { return (valset_.empty() ? def : valset_. begin()->first); }
+  long max(long def=0) const { return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
   int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
@@ -290,7 +290,7 @@ class CQChartsIValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return CQModelUtil::nullVariant();
+    if (valset_.size() != 1) return QVariant();
 
     return CQModelUtil::intVariant(valset_.begin()->first);
   }
@@ -433,7 +433,7 @@ class CQChartsSValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return CQModelUtil::nullVariant();
+    if (valset_.size() != 1) return QVariant();
 
     return CQModelUtil::stringVariant(valset_.begin()->first);
   }
@@ -571,7 +571,7 @@ class CQChartsCValues {
   int numUnique() const { return valset_.size(); }
 
   QVariant uniqueValue() const {
-    if (valset_.size() != 1) return CQModelUtil::nullVariant();
+    if (valset_.size() != 1) return QVariant();
 
     return QVariant::fromValue<Color>(valset_.begin()->first);
   }

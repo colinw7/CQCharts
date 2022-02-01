@@ -165,7 +165,7 @@ class CQBucketer {
   //----
 
   // variant to int/real
-  static int    varInt (const QVariant &var, bool &ok);
+  static long   varInt (const QVariant &var, bool &ok);
   static double varReal(const QVariant &var, bool &ok);
 
   //---

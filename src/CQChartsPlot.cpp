@@ -4318,6 +4318,10 @@ addColorMapKey()
           this, SLOT(colorSelected(const QColor &, bool)));
 
   mapKeys_.push_back(colorMapKey_.get());
+
+  //---
+
+  registerSlot("show_color_key", QStringList() << "bool");
 }
 
 bool
@@ -10170,12 +10174,16 @@ executeSlot(const QString &name, const QStringList &args, QVariant &res)
 
 bool
 CQChartsPlot::
-executeSlotFn(const QString &name, const QVariantList &, QVariant &)
+executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
 {
+  bool ok;
+
   if      (name == "zoom_full")
     zoomFull();
   else if (name == "fit")
     autoFit();
+  else if (name == "show_color_key")
+    setColorMapKey(CQChartsVariant::toBool(args[0], ok));
   else
     return false;
 

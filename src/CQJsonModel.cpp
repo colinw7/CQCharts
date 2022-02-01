@@ -79,6 +79,8 @@ save(QAbstractItemModel *model, std::ostream &os)
 
       if      (var.type() == QVariant::Int)
         os << var.toInt();
+      else if (var.type() == QVariant::LongLong)
+        os << var.toLongLong();
       else if (var.type() == QVariant::Double)
         os << var.toDouble();
       else

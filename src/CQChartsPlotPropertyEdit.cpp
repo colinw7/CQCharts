@@ -263,7 +263,7 @@ createEditor()
 
     widget = check;
   }
-  else if (var.type() == QVariant::UserType) {
+  else if (CQChartsVariant::isUserType(var)) {
     QString valueStr;
 
     if (! CQUtil::userVariantToString(var, valueStr)) {

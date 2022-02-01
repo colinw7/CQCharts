@@ -12,6 +12,15 @@
 
 namespace CQChartsVariant {
 
+int cmp(const QVariant &var1, const QVariant &var2);
+
+//---
+
+// string
+inline bool isString(const QVariant &var) {
+  return (var.type() == QVariant::String);
+}
+
 bool toString(const QVariant &var, QString &str);
 QString toString(const QVariant &var, bool &ok);
 
@@ -21,10 +30,7 @@ inline QVariant fromString(const QString &s) {
 
 //---
 
-int cmp(const QVariant &var1, const QVariant &var2);
-
-//---
-
+// real
 inline bool isReal(const QVariant &var) {
   return (var.type() == QVariant::Double);
 }
@@ -44,6 +50,7 @@ inline QVariant fromNaN() {
 
 //---
 
+// int
 inline bool isInt(const QVariant &var) {
   return (var.type() == QVariant::Bool || var.type() == QVariant::Char ||
           var.type() == QVariant::Int  || var.type() == QVariant::LongLong ||
@@ -58,6 +65,7 @@ inline QVariant fromInt(long i) {
 
 //---
 
+// bool
 inline bool isBool(const QVariant &var) {
   return (var.type() == QVariant::Bool);
 }
@@ -70,14 +78,28 @@ inline QVariant fromBool(bool b) {
 
 //---
 
+// numeric
 inline bool isNumeric(const QVariant &var) {
   return isReal(var) || isInt(var) || isBool(var);
+}
+
+//---
+
+// list
+inline bool isList(const QVariant &var) {
+  return (var.type() == QVariant::List);
+}
+
+// user type
+inline bool isUserType(const QVariant &var) {
+  return (var.type() == QVariant::UserType);
 }
 
 }
 
 //---
 
+// color
 namespace CQChartsVariant {
 
 inline bool isColor(const QVariant &var) {
@@ -104,6 +126,7 @@ inline QVariant fromColor(const QColor &c) {
 
 //---
 
+// font
 namespace CQChartsVariant {
 
 inline bool isFont(const QVariant &var) {
@@ -126,6 +149,7 @@ QVariant fromFont(const CQChartsFont &f);
 
 //---
 
+// symbol
 namespace CQChartsVariant {
 
 inline bool isSymbol(const QVariant &var) {
@@ -147,6 +171,7 @@ QVariant fromSymbol(const CQChartsSymbol &symbol);
 
 //---
 
+// image
 namespace CQChartsVariant {
 
 inline bool isImage(const QVariant &var) {
@@ -171,6 +196,7 @@ QVariant fromImage(const CQChartsImage &image);
 
 //---
 
+// units
 namespace CQChartsVariant {
 
 inline bool isUnits(const QVariant &var) {
@@ -192,6 +218,7 @@ QVariant fromUnits(const CQChartsUnits &units);
 
 //---
 
+// length
 namespace CQChartsVariant {
 
 inline bool isLength(const QVariant &var) {
@@ -213,6 +240,7 @@ QVariant fromLength(const CQChartsLength &length);
 
 //---
 
+// reals
 namespace CQChartsVariant {
 
 std::vector<double> toReals(const QVariant &var, bool &ok);
@@ -221,6 +249,7 @@ std::vector<double> toReals(const QVariant &var, bool &ok);
 
 //---
 
+// point
 namespace CQChartsVariant {
 
 using Point = CQChartsGeom::Point;
@@ -232,7 +261,12 @@ QVariant fromPoint(const Point &point);
 
 //---
 
+// rect/bbox
 namespace CQChartsVariant {
+
+inline bool isRectF(const QVariant &var) {
+  return (var.type() == QVariant::RectF);
+}
 
 using BBox = CQChartsGeom::BBox;
 
@@ -243,9 +277,14 @@ QVariant fromBBox(const BBox &bbox);
 
 //---
 
+// polygon
 namespace CQChartsVariant {
 
 using Polygon = CQChartsGeom::Polygon;
+
+inline bool isPolygonF(const QVariant &var) {
+  return (var.type() == QVariant::PolygonF);
+}
 
 inline bool isPolygon(const QVariant &var) {
   if (! var.isValid())
@@ -268,6 +307,7 @@ QVariant fromQPolygon(const QPolygonF &poly);
 
 //---
 
+// path
 class CQChartsPath;
 
 namespace CQChartsVariant {
@@ -281,6 +321,7 @@ QVariant fromPath(const CQChartsPath &path);
 
 #include <CQChartsPolygonList.h>
 
+// polygon list
 namespace CQChartsVariant {
 
 CQChartsPolygonList toPolygonList(const QVariant &var, bool &ok);
@@ -292,6 +333,7 @@ QVariant fromPolygonList(const CQChartsPolygonList &polyList);
 
 #include <CQChartsAlpha.h>
 
+// alpha
 namespace CQChartsVariant {
 
 CQChartsAlpha toAlpha(const QVariant &var, bool &ok);
@@ -303,6 +345,7 @@ QVariant fromAlpha(const CQChartsAlpha &a);
 
 #include <CQChartsAngle.h>
 
+// angle
 namespace CQChartsVariant {
 
 CQChartsAngle toAngle(const QVariant &var, bool &ok);

@@ -1,6 +1,7 @@
 #include <CQChartsCmdLine.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQCommand.h>
 #include <CQTclUtil.h>
@@ -420,7 +421,7 @@ resultToStrings(const QVariant &var) const
 {
   QStringList strs;
 
-  if (var.type() == QVariant::List) {
+  if (CQChartsVariant::isList(var)) {
     auto vars = var.toList();
 
     for (int i = 0; i < vars.length(); ++i) {

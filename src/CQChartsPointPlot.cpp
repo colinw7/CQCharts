@@ -1073,6 +1073,10 @@ addSymbolSizeMapKey()
           this, SLOT(symbolSizeSelected(const CQChartsLength &, bool)));
 
   mapKeys_.push_back(symbolSizeMapKey_.get());
+
+  //---
+
+  registerSlot("show_symbol_size_key", QStringList() << "bool");
 }
 
 bool
@@ -1265,6 +1269,10 @@ addSymbolTypeMapKey()
           this, SLOT(symbolTypeSelected(const CQChartsSymbol &, bool)));
 
   mapKeys_.push_back(symbolTypeMapKey_.get());
+
+  //---
+
+  registerSlot("show_symbol_type_key", QStringList() << "bool");
 }
 
 bool
@@ -1435,6 +1443,24 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//---
+
+bool
+CQChartsPointPlot::
+executeSlotFn(const QString &name, const QVariantList &args, QVariant &res)
+{
+  bool ok;
+
+  if      (name == "show_symbol_type_key")
+    setSymbolTypeMapKey(CQChartsVariant::toBool(args[0], ok));
+  else if (name == "show_symbol_size_key")
+    setSymbolSizeMapKey(CQChartsVariant::toBool(args[0], ok));
+  else
+    return CQChartsPlot::executeSlotFn(name, args, res);
+
+  return true;
 }
 
 //------

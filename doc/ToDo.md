@@ -4,7 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + more slots (show table)
+ + more plot/view slots (remove hacks in get_charts_data)
  + quick filter object (select and filter)
  + remove all QVariant( and int QVariant for int
    .toInt(), value<int>, int(), fromValue<int>, ...
@@ -18,8 +18,7 @@ TODO:
    + dot plot edge/node coloring
    + dot plot map point to relative position (on) node to allow move
      + support editing of edge points (delete ?)
-   + support different dot output formats (svg)
- + Replace CJson with QJsonDocument (other dependencies ?)
+   + Replace CJson with QJsonDocument (other dependencies ?)
  + colorSelected on all plots or allow select feature in key to be disabled ?
  + ruler tool
    + editable start/end points
@@ -33,8 +32,6 @@ TODO:
    + symbol size on zoom
    + sqrt map for radii
    + default font, equal scaling
-   + circular fit text wrong
-   + menu expand all, collapse all, expand level
  + check zoom on all symbol plots
  + parallel plot redraw issues
  + check column role
@@ -358,11 +355,6 @@ TODO:
 
 High
   Variant
-   + remove QVariant::fromValue calls outside CQChartsVariant and add all types to BaseModule/ColumnType
-   + all variant cast goes through CQChartsVariant and is consistent
-     + handle all possible types
-     + converted flag ?
-     + string fallback ?
    + Check plots handle all possible data types from model
  + pie fan plot (R In Action pg 124)
  + hex grid for scatter density

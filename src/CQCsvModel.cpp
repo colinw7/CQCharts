@@ -521,21 +521,14 @@ encodeVariant(const QVariant &var, const QChar &separator)
 {
   std::string str;
 
-  if      (var.type() == QVariant::Double) {
-    double r = var.value<double>();
-
-    str = std::to_string(r);
-  }
-  else if (var.type() == QVariant::Int) {
-    int i = var.value<int>();
-
-    str = std::to_string(i);
-  }
-  else {
-    auto qstr = var.toString();
-
-    str = encodeString(qstr, separator).toStdString();
-  }
+  if      (var.type() == QVariant::Double)
+    str = std::to_string(var.toDouble());
+  else if (var.type() == QVariant::Int)
+    str = std::to_string(var.toInt());
+  else if (var.type() == QVariant::LongLong)
+    str = std::to_string(var.toLongLong());
+  else
+    str = encodeString(var.toString(), separator).toStdString();
 
   return str;
 }

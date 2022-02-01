@@ -262,7 +262,7 @@ imap(int i, double mapMin, double mapMax) const
     return cvals_.map(cval, mapMin, mapMax);
   }
   else if (type() == Type::TIME) {
-    // get nth tile
+    // get nth time
     auto tval = tvals_.value(i);
 
     if (! tval)

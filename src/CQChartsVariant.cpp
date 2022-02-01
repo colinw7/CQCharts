@@ -188,7 +188,7 @@ int cmp(const QVariant &var1, const QVariant &var2) {
 
     if      (! ok1 && ! ok2) return  0;
     else if (! ok1 &&   ok2) return -1;
-    else if (  ok1 && ! ok1) return  1;
+    else if (  ok1 && ! ok2) return  1;
 
     if (r1 < r2) return -1;
     if (r1 > r2) return  1;
@@ -339,8 +339,8 @@ bool toBool(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::String) {
     auto str = var.toString();
 
-    if (str == "yes" || str == "true"  || str == "1") { ok = true ; return true; }
-    if (str == "no"  || str == "false" || str == "0") { ok = false; return true; }
+    if (str == "yes" || str == "true"  || str == "1") return true;
+    if (str == "no"  || str == "false" || str == "0") return false;
   }
 
   ok = false;

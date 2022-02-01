@@ -103,7 +103,7 @@ class CUnixFile {
         return false;
     }
 
-    memcpy((void *) &data, (void *) &buffer[0], n);
+    memcpy(&data, &buffer[0], n);
 
     return true;
   }

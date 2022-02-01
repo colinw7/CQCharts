@@ -263,6 +263,13 @@ setPlotType(const PlotType &t)
   CQChartsUtil::testAndSet(plotType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsGraphVizPlot::
+setOutputFormat(const OutputFormat &f)
+{
+  CQChartsUtil::testAndSet(outputFormat_, f, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -274,8 +281,9 @@ addProperties()
   //---
 
   // options
-  addProp("options", "orientation", "orientation", "Plot orientation");
-  addProp("options", "plotType"   , "plotType"   , "Plot type");
+  addProp("options", "orientation" , "orientation" , "Plot orientation");
+  addProp("options", "plotType"    , "plotType"    , "Plot type");
+  addProp("options", "outputFormat", "outputFormat", "Output format");
 
   // coloring
   addProp("coloring", "blendEdgeColor", "", "Blend Edge Node Colors");
@@ -497,8 +505,7 @@ writeGraph(bool weighted) const
 
   graphVizFile.open();
 
-  auto graphVizFilename = graphVizFile.fileName().toStdString();
-std::cerr << graphVizFilename << "\n";
+  auto graphVizFilename = graphVizFile.fileName();
 
   auto writeGraphViz = [&](const QString &str) {
     graphVizFile.write(str.toLatin1().constData());
@@ -589,27 +596,35 @@ std::cerr << graphVizFilename << "\n";
     case PlotType::SFDP      : cmd = "sfdp"; break;
   }
 
+  QString typeName;
+
+  if      (outputFormat() == OutputFormat::JSON)
+    typeName = QString("json");
+  else if (outputFormat() == OutputFormat::XDOT)
+    typeName = QString("xdot");
+  else if (outputFormat() == OutputFormat::DOT)
+    typeName = QString("dot");
+
   // run dot on graph file
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin");
   auto dot_file = dot_path + "/" + cmd;
 
-  // get temporary file for json output
-  QTemporaryFile jsonFile(QDir::tempPath() + "/XXXXXX.json");
+  // get temporary file for output
+  QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
 
-  jsonFile.open();
+  outFile.open();
 
-  auto jsonFilename = jsonFile.fileName().toStdString();
-std::cerr << jsonFilename << "\n";
+  auto outFilename = outFile.fileName();
 
 #if 0
   CCommand::Args args;
 
-  args.push_back("-Tjson");
-  args.push_back(graphVizFilename);
+  args.push_back(QString("-T" + typeName).toStdString());
+  args.push_back(graphVizFilename.toStdString());
 
   CCommand cmd(cmd, dot_file, args);
 
-  cmd.addFileDest(jsonFilename);
+  cmd.addFileDest(outFilename.toStdString());
 
   cmd.start();
 
@@ -617,22 +632,28 @@ std::cerr << jsonFilename << "\n";
 #else
   QProcess process;
 
-  process.setStandardOutputFile(QString::fromStdString(jsonFilename));
+  process.setStandardOutputFile(outFilename);
 
-  process.start(dot_file, QStringList() << "-Tjson" << QString::fromStdString(graphVizFilename));
+  auto typeArg = "-T" + typeName;
+  auto cmdArgs = QStringList() << typeArg << graphVizFilename;
+
+  process.start(dot_file, cmdArgs);
 
   if (! process.waitForFinished()) {
-    std::cerr << "Commannd failed : " << dot_file.toStdString() << " -Tjson " <<
-                 graphVizFilename << " > " << jsonFilename << "\n";
+    std::cerr << "Command failed : " << dot_file.toStdString() << " " <<
+                 cmdArgs.join(" ").toStdString() << " > " << outFilename.toStdString() << "\n";
   }
 #endif
 
   //---
 
-  // parse output json file
+  // parse output file
   CQGraphViz::App dot;
 
-  dot.processJson(jsonFilename);
+  if      (outputFormat() == OutputFormat::JSON)
+    dot.processJson(outFilename.toStdString());
+  else if (outputFormat() == OutputFormat::XDOT || outputFormat() == OutputFormat::DOT)
+    dot.processDot(outFilename.toStdString());
 
   //---
 
@@ -682,13 +703,6 @@ std::cerr << jsonFilename << "\n";
       continue;
     }
 
-    int nl = dotEdge->lines().size();
-
-    if (nl != 1) {
-      //charts()->errorMsg("edge " + dotEdge->id() + " has " + nl + " lines");
-      continue;
-    }
-
     //---
 
     auto spanRect = tailNode->rect() + headNode->rect();
@@ -715,124 +729,136 @@ std::cerr << jsonFilename << "\n";
 
     //---
 
-    auto path = dotEdge->lines()[0].path;
+    int nl = dotEdge->lines().size();
 
-    auto len = path.length();
-    //charts()->errorMsg("len=" + len);
+    if (nl > 0) {
+      if (nl != 1) {
+        charts()->errorMsg("Error: edge " + QString::number(dotEdge->id()) +
+                           " has " + nl + " lines");
+        continue;
+      }
 
-    auto delta = len/100.0;
-    //charts()->errorMsg("delta=" + delta);
+      auto path = dotEdge->lines()[0].path;
 
-    auto points = CQChartsPath::pathPoints(path);
+      auto len = path.length();
+      //charts()->errorMsg("len=" + len);
 
-    int   it = -1, ih = -1;
-    Point pit, pih;
-  //bool  pitValid = true, pihValid = true;
+      auto delta = len/100.0;
+      //charts()->errorMsg("delta=" + delta);
 
-    // get edge point on tail node
-    if (tailNode->rect().isValid()) { // from
-      // get nearest points to center of node
-      (void) CQChartsUtil::nearestPointListPoint(points, tailNode->rect().getCenter(), it);
+      auto points = CQChartsPath::pathPoints(path);
 
-      // intersect line from center to node
-      if (tailNode->shapeType() == Node::ShapeType::CIRCLE ||
-          tailNode->shapeType() == Node::ShapeType::OVAL)
-        CQChartsGeom::lineIntersectCircle(tailNode->rect(),
-          tailNode->rect().getCenter(), points[it], pit);
-      else
-        CQChartsGeom::lineIntersectRect(tailNode->rect(),
-          tailNode->rect().getCenter(), points[it], pit);
+      int   it = -1, ih = -1;
+      Point pit, pih;
+    //bool  pitValid = true, pihValid = true;
 
-      tailNode->setEdgePoint(edge, pit);
+      // get edge point on tail node
+      if (tailNode->rect().isValid()) { // from
+        // get nearest points to center of node
+        (void) CQChartsUtil::nearestPointListPoint(points, tailNode->rect().getCenter(), it);
 
-      //auto d = CQChartsUtil::PointPointDistance(points[it], pit);
-      //charts()->errorMsg("d=" + d);
-      //pitValid = (d > delta);
-    }
+        // intersect line from center to node
+        if (tailNode->shapeType() == Node::ShapeType::CIRCLE ||
+            tailNode->shapeType() == Node::ShapeType::OVAL)
+          CQChartsGeom::lineIntersectCircle(tailNode->rect(),
+            tailNode->rect().getCenter(), points[it], pit);
+        else
+          CQChartsGeom::lineIntersectRect(tailNode->rect(),
+            tailNode->rect().getCenter(), points[it], pit);
 
-    // get edge point on head node
-    if (headNode->rect().isValid()) { // to
-      // get nearest points to center of node
-      (void) CQChartsUtil::nearestPointListPoint(points, headNode->rect().getCenter(), ih);
+        tailNode->setEdgePoint(edge, pit);
 
-      // intersect line from center to node
-      if (headNode->shapeType() == Node::ShapeType::CIRCLE ||
-          headNode->shapeType() == Node::ShapeType::OVAL)
-        CQChartsGeom::lineIntersectCircle(headNode->rect(),
-          headNode->rect().getCenter(), points[ih], pih);
-      else
-        CQChartsGeom::lineIntersectRect(headNode->rect(),
-          headNode->rect().getCenter(), points[ih], pih);
+        //auto d = CQChartsUtil::PointPointDistance(points[it], pit);
+        //charts()->errorMsg("d=" + d);
+        //pitValid = (d > delta);
+      }
 
-      headNode->setEdgePoint(edge, pih);
+      // get edge point on head node
+      if (headNode->rect().isValid()) { // to
+        // get nearest points to center of node
+        (void) CQChartsUtil::nearestPointListPoint(points, headNode->rect().getCenter(), ih);
 
-      //auto d = CQChartsUtil::PointPointDistance(points[ih], pih);
-      //charts()->errorMsg("d=" + d);
-      //pihValid = (d > delta);
-    }
+        // intersect line from center to node
+        if (headNode->shapeType() == Node::ShapeType::CIRCLE ||
+            headNode->shapeType() == Node::ShapeType::OVAL)
+          CQChartsGeom::lineIntersectCircle(headNode->rect(),
+            headNode->rect().getCenter(), points[ih], pih);
+        else
+          CQChartsGeom::lineIntersectRect(headNode->rect(),
+            headNode->rect().getCenter(), points[ih], pih);
+
+        headNode->setEdgePoint(edge, pih);
+
+        //auto d = CQChartsUtil::PointPointDistance(points[ih], pih);
+        //charts()->errorMsg("d=" + d);
+        //pihValid = (d > delta);
+      }
 
 #if 0
-    edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[it]),
-                                     normalizeRectPoint(headNode->rect(), points[ih])));
+      edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[it]),
+                                       normalizeRectPoint(headNode->rect(), points[ih])));
 #endif
 
-    QPainterPath path1;
+      QPainterPath path1;
 
-    if (it >= 0 && ih >= 0) {
-      // points from tail to head
-      if (it < ih) {
-        //addPathPoint(path1, tailNode->rect().getCenter());
+      if (it >= 0 && ih >= 0) {
+        // points from tail to head
+        if (it < ih) {
+          //addPathPoint(path1, tailNode->rect().getCenter());
 
-        //if (pitValid)
-        // addPathPoint(path1, pit);
+          //if (pitValid)
+          // addPathPoint(path1, pit);
 
-        for (int i = it; i <= ih; ++i) {
-          if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
-            continue;
+          for (int i = it; i <= ih; ++i) {
+            if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
+              continue;
 
-          if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
-              CQChartsUtil::PointPointDistance(points[i], pit) < delta)
-            continue;
+            if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
+                CQChartsUtil::PointPointDistance(points[i], pit) < delta)
+              continue;
 
-          addPathPoint(path1, points[i]);
+            addPathPoint(path1, points[i]);
+          }
+
+          //if (pihValid)
+          //  addPathPoint(path1, pih);
+
+          //addPathPoint(path1, headNode->rect().getCenter());
         }
+        // points from head to tail
+        else {
+          //addPathPoint(path1, headNode->rect().getCenter());
 
-        //if (pihValid)
-        //  addPathPoint(path1, pih);
+          //if (pihValid)
+          //  addPathPoint(path1, pih);
 
-        //addPathPoint(path1, headNode->rect().getCenter());
-      }
-      // points from head to tail
-      else {
-        //addPathPoint(path1, headNode->rect().getCenter());
+          for (int i = ih; i <= it; ++i) {
+            if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
+              continue;
 
-        //if (pihValid)
-        //  addPathPoint(path1, pih);
+            if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
+                CQChartsUtil::PointPointDistance(points[i], pit) < delta)
+              continue;
 
-        for (int i = ih; i <= it; ++i) {
-          if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
-            continue;
+            addPathPoint(path1, points[i]);
+          }
 
-          if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
-              CQChartsUtil::PointPointDistance(points[i], pit) < delta)
-            continue;
+          //if (pitValid)
+          //  addPathPoint(path1, pit);
 
-          addPathPoint(path1, points[i]);
+          //addPathPoint(path1, tailNode->rect().getCenter());
         }
-
-        //if (pitValid)
-        //  addPathPoint(path1, pit);
-
-        //addPathPoint(path1, tailNode->rect().getCenter());
       }
+      else
+        path1 = path;
+
+      //auto str = CQChartsPath::pathToString(path1);
+      //charts()->errorMsg("Edge " + tailNode->name() + "->" + headNode->name() + " = " + str);
+
+      edge->setEdgePath(path1);
     }
-    else
-      path1 = path;
-
-    //auto str = CQChartsPath::pathToString(path1);
-    //charts()->errorMsg("Edge " + tailNode->name() + "->" + headNode->name() + " = " + str);
-
-    edge->setEdgePath(path1);
+    else {
+    }
 
     //---
 
@@ -2812,7 +2838,7 @@ draw(PaintDevice *device) const
     if (destNode->hasEdgePoint(edge()))
       epath1.lineTo(destPoint.qpoint());
 
-    usePath = true;
+    usePath = (epath1.elementCount() > 1);
   }
 
   //---
@@ -2858,10 +2884,11 @@ draw(PaintDevice *device) const
       const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(false);
 
       if (! isSelf) {
+        auto edgeType = CQChartsDrawUtil::EdgeType::RECTILINEAR;
+
         QPainterPath lpath;
 
-        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
-                                    CQChartsDrawUtil::EdgeType::RECTILINEAR, orient);
+        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, edgeType, orient);
 
         CQChartsArrowData arrowData;
 
@@ -2880,12 +2907,14 @@ draw(PaintDevice *device) const
       const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(true);
     }
     else {
+      auto edgeType = (! isLine ? CQChartsDrawUtil::EdgeType::ARC :
+                                  CQChartsDrawUtil::EdgeType::LINE);
+
       if (! isSelf) {
-        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw,
-                                   CQChartsDrawUtil::EdgeType::ARC, orient);
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, orient);
       }
       else {
-        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, orient);
       }
 
       device->drawPath(path_);

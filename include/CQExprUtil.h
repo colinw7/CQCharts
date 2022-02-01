@@ -15,7 +15,9 @@ inline bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &valu
   if      (var.type() == QVariant::Double)
     value = expr->createRealValue(var.toDouble());
   else if (var.type() == QVariant::Int)
-    value = expr->createIntegerValue((long) var.toInt());
+    value = expr->createIntegerValue(static_cast<long>(var.toInt()));
+  else if (var.type() == QVariant::LongLong)
+    value = expr->createIntegerValue(var.toLongLong());
   else if (var.type() == QVariant::Bool)
     value = expr->createBooleanValue(var.toBool());
   else
@@ -36,7 +38,7 @@ inline QVariant valueToVariant(CExpr *, const CExprValuePtr &value) {
   else if (value->isIntegerValue()) {
     long i = 0;
     value->getIntegerValue(i);
-    return QVariant((int) i);
+    return QVariant(static_cast<qlonglong>(i));
   }
   else {
     std::string s;

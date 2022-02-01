@@ -12235,7 +12235,7 @@ getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots) const
   bool rc = true;
 
   for (const auto &plotName : plotNames) {
-    if (plotName.type() == QVariant::List) {
+    if (CQChartsVariant::isList(plotName)) {
       auto listVars = plotName.toList();
 
       Vars plotNames1;

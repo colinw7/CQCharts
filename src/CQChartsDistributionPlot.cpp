@@ -4132,7 +4132,7 @@ getBarColoredRects(ColorData &colorData) const
     double colorValue = 0.0;
 
     if (ok && var.isValid()) {
-      if (isColor || var.type() == QVariant::Color) {
+      if (isColor || CQChartsVariant::isColor(var)) {
         bool ok;
         color = CQChartsVariant::toColor(var, ok);
         colorSet = ok;

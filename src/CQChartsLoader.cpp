@@ -328,7 +328,7 @@ createVarsModel(const InputData &inputData)
       for (int c = 0; c < nc; ++c) {
         ColumnValues columnValues1;
 
-        if (columnValues[c].type() == QVariant::List) {
+        if (CQChartsVariant::isList(columnValues[c])) {
           auto rowVars = columnValues[c].toList();
 
           for (int i = 0; i < rowVars.length(); ++i)
@@ -356,7 +356,7 @@ createVarsModel(const InputData &inputData)
       nr = columnValues.size();
 
       for (int r = 0; r < nr; ++r) {
-        if (columnValues[r].type() == QVariant::List) {
+        if (CQChartsVariant::isList(columnValues[r])) {
           auto columnVars = columnValues[r].toList();
 
           for (int c = 0; c < columnVars.length(); ++c)

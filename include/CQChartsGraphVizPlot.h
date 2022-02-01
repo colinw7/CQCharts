@@ -648,7 +648,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // plot type
-  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
+  Q_PROPERTY(PlotType     plotType     READ plotType     WRITE setPlotType)
+  Q_PROPERTY(OutputFormat outputFormat READ outputFormat WRITE setOutputFormat)
 
   // node data
   Q_PROPERTY(NodeShape nodeShape READ nodeShape WRITE setNodeShape)
@@ -676,9 +677,11 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  Q_ENUMS(PlotType)
+  Q_ENUMS(OutputFormat)
+
   Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
-  Q_ENUMS(PlotType)
 
  public:
   enum class NodeShape {
@@ -705,6 +708,12 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
     OSAGE,
     PATCHWORK,
     SFDP
+  };
+
+  enum class OutputFormat {
+    JSON,
+    XDOT,
+    DOT
   };
 
   using Node     = CQChartsGraphVizPlotNode;
@@ -787,6 +796,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   const PlotType &plotType() const { return plotType_; }
   void setPlotType(const PlotType &t);
+
+  const OutputFormat &outputFormat() const { return outputFormat_; }
+  void setOutputFormat(const OutputFormat &f);
 
   //---
 
@@ -954,8 +966,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool      edgePath_     { true };             //!< use edge path
 
   // plot data
-  Qt::Orientation orientation_ { Qt::Vertical };  //!< orientation
-  PlotType        plotType_    { PlotType::FDP }; //!< plot type
+  Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation
+  PlotType        plotType_     { PlotType::FDP };      //!< plot type
+  OutputFormat    outputFormat_ { OutputFormat::JSON }; //!< output format
 
   // bbox, margin, node width
   BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox

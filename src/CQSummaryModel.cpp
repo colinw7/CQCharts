@@ -22,8 +22,9 @@ class RandInRange {
 };
 
 inline bool variantReal(const QVariant &var, double &r) {
-  if (var.type() == QVariant::Int   ) { r = var.toInt   (); return true; }
-  if (var.type() == QVariant::Double) { r = var.toDouble(); return true; }
+  if (var.type() == QVariant::Int     ) { r = var.toInt     (); return true; }
+  if (var.type() == QVariant::LongLong) { r = var.toLongLong(); return true; }
+  if (var.type() == QVariant::Double  ) { r = var.toDouble  (); return true; }
   return false;
 }
 

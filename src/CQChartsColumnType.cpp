@@ -1067,7 +1067,7 @@ CQChartsColumnStringType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::String)
+  if (! var.isValid() || CQChartsVariant::isString(var))
     return var;
 
   converted = true;
@@ -1109,7 +1109,7 @@ CQChartsColumnBooleanType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Bool)
+  if (! var.isValid() || CQChartsVariant::isBool(var))
     return var;
 
   converted = true;
@@ -1370,14 +1370,19 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get integer value
+  long l = 0;
   bool ok;
 
-  auto l = CQChartsVariant::toInt(var, ok);
+  if (CQChartsVariant::isInt(var))
+    l = CQChartsVariant::toInt(var, ok);
+  else {
+    l = CQChartsVariant::toInt(var, ok);
 
-  if (! ok)
-    return CQChartsVariant::toString(var, ok);
+    if (! ok)
+      return CQChartsVariant::toString(var, ok);
 
-  converted = true;
+    converted = true;
+  }
 
   //---
 
@@ -1624,7 +1629,7 @@ CQChartsColumnRectType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::RectF)
+  if (! var.isValid() || CQChartsVariant::isRectF(var))
     return var;
 
   converted = true;
@@ -1724,7 +1729,7 @@ CQChartsColumnPolygonType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::PolygonF)
+  if (! var.isValid() || CQChartsVariant::isPolygonF(var))
     return var;
 
   converted = true;

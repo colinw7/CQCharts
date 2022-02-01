@@ -214,14 +214,16 @@ istopsBucketValues(int bucket, double &min, double &max) const
 
 //----
 
-int
+long
 CQBucketer::
 varInt(const QVariant &var, bool &ok)
 {
   ok = true;
 
-  if (var.type() == QVariant::Int)
+  if      (var.type() == QVariant::Int)
     return var.toInt();
+  else if (var.type() == QVariant::LongLong)
+    return var.toLongLong();
 
   return var.toString().toInt(&ok);
 }

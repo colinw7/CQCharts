@@ -1220,7 +1220,7 @@ map(const QVariant &var) const
     long i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet->ivals().map(static_cast<int>(i));
+      return valueSet->ivals().map(i);
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -1596,7 +1596,7 @@ calcCache()
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = static_cast<int>(i);
+      lastValue2_ = CQChartsVariant::fromInt(i);
     }
 
     void addReal(double r) {
@@ -1649,7 +1649,7 @@ calcCache()
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = r;
+      lastValue2_ = CQChartsVariant::fromReal(r);
     }
 
     void addString(const QString &s) {
@@ -1702,7 +1702,7 @@ calcCache()
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = s;
+      lastValue2_ = CQChartsVariant::fromString(s);
     }
 
     void addColor(const CQChartsColor &c) {

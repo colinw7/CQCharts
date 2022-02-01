@@ -651,7 +651,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     if (section == foldColumn()) {
       if (role == static_cast<int>(CQBaseModelRole::Type) ||
           role == static_cast<int>(CQBaseModelRole::BaseType)) {
-        return QVariant((int) CQBaseModelType::STRING);
+        return QVariant(static_cast<int>(CQBaseModelType::STRING));
       }
     }
 
