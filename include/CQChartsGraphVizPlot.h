@@ -670,6 +670,13 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
 
+  // placement data
+  //  . fdp
+  Q_PROPERTY(double fdpK       READ fdpK       WRITE setFdpK      )
+  Q_PROPERTY(int    fdpMaxIter READ fdpMaxIter WRITE setFdpMaxIter)
+  Q_PROPERTY(int    fdpStart   READ fdpStart   WRITE setFdpStart  )
+  Q_PROPERTY(double fdpEdgeLen READ fdpEdgeLen WRITE setFdpEdgeLen)
+
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
@@ -791,6 +798,20 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //! get/set blend node colors for edge
   bool isBlendEdgeColor() const { return blendEdgeColor_; }
   void setBlendEdgeColor(bool b);
+
+  //---
+
+  double fdpK() const { return fdpK_; }
+  void setFdpK(double r);
+
+  int fdpMaxIter() const { return fdpMaxIter_; }
+  void setFdpMaxIter(int i);
+
+  int fdpStart() const { return fdpStart_; }
+  void setFdpStart(int i);
+
+  double fdpEdgeLen() const { return fdpEdgeLen_; }
+  void setFdpEdgeLen(double r);
 
   //---
 
@@ -968,13 +989,19 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation
   PlotType        plotType_     { PlotType::FDP };      //!< plot type
-  OutputFormat    outputFormat_ { OutputFormat::JSON }; //!< output format
+  OutputFormat    outputFormat_ { OutputFormat::XDOT }; //!< output format
 
   // bbox, margin, node width
   BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
 
   // coloring
   bool blendEdgeColor_ { true }; //!< blend edge color
+
+  // placement data
+  double fdpK_       { -1.0 };
+  int    fdpMaxIter_ { -1 };
+  int    fdpStart_   { -1 };
+  double fdpEdgeLen_ { -1.0 };
 
   // data
   Nodes            nodes_;                  //!< all nodes

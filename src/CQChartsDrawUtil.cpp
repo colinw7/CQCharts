@@ -1797,7 +1797,7 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
 // draw connecting line from rect to itself
 void
 selfCurvePath(QPainterPath &path, const BBox &bbox,
-              const EdgeType & /*edgeType*/, Qt::Orientation  /*orient*/)
+              const EdgeType &edgeType, Qt::Orientation /*orient*/)
 {
   path = QPainterPath();
 
@@ -1820,7 +1820,7 @@ selfCurvePath(QPainterPath &path, const BBox &bbox,
   double x1 = xm - xr*c, y1 = ym + yr*s;
   double x2 = xm + xr*c, y2 = y1;
 
-  if (EdgeType::ARC) {
+  if (edgeType == EdgeType::ARC) {
     path.moveTo (QPointF(x1, y1));
     path.cubicTo(QPointF(x1, yt), QPointF(x2, yt), QPointF(x2, y2));
   }

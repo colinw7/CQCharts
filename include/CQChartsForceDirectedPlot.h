@@ -228,6 +228,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void drawDeviceParts(PaintDevice *device) const override;
 
+  //---
+
+  QString calcNodeLabel(CQChartsSpringyNode *nodes) const;
+
  private:
   // connection between nodes (edge)
   struct Connection {
@@ -280,6 +284,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //! get unique index for string
   int getStringId(const QString &str) const;
+  //! get string for unique index
+  QString getIdString(int id) const;
 
   QColor calcPointFillColor(Node *node) const;
 
@@ -292,6 +298,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
   using StringIndMap    = std::map<QString, int>;
+  using IndStringMap    = std::map<int, QString>;
 
   // options
   bool         running_             { true };  //!< is running
@@ -306,7 +313,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // data
   IdConnectionsData idConnections_;              //!< id connections
-  StringIndMap      nameNodeMap_;                //!< node name index map
+  StringIndMap      nameIdMap_;                  //!< node name index map
+  IndStringMap      idNameMap_;                  //!< node name index map
   NodeMap           nodes_;                      //!< force directed nodes
   ConnectionNodes   connectionNodes_;            //!< ids of force directed nodes
   int               maxGroup_       { 0 };       //!< max group

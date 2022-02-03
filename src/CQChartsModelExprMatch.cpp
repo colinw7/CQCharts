@@ -505,10 +505,10 @@ getColumn(CQChartsExprCmdValues &cmdValues, int &col) const
 {
   long col1;
 
-  if (cmdValues.getInt(col1))
+  if (cmdValues.getInt(col1)) {
+    col = int(col1);
     return true;
-
-  col = int(col1);
+  }
 
   QString name;
 

@@ -338,8 +338,8 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
   //---
 
-  QBitmap  maskBitmap;
-  bool     masked = false;
+  QBitmap maskBitmap;
+  bool    masked = false;
 
   if      (imageType == "texture") {
     double ir = brush1.color().red  ();

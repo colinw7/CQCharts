@@ -258,6 +258,36 @@ setBlendEdgeColor(bool b)
 
 void
 CQChartsGraphVizPlot::
+setFdpK(double r)
+{
+  CQChartsUtil::testAndSet(fdpK_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGraphVizPlot::
+setFdpMaxIter(int i)
+{
+  CQChartsUtil::testAndSet(fdpMaxIter_, i, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGraphVizPlot::
+setFdpStart(int i)
+{
+  CQChartsUtil::testAndSet(fdpStart_, i, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGraphVizPlot::
+setFdpEdgeLen(double r)
+{
+  CQChartsUtil::testAndSet(fdpEdgeLen_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsGraphVizPlot::
 setPlotType(const PlotType &t)
 {
   CQChartsUtil::testAndSet(plotType_, t, [&]() { updateRangeAndObjs(); } );
@@ -331,6 +361,14 @@ addProperties()
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // placement
+  addProp("placement/fdp", "fdpK"      , "k"      , "Ideal node separation");
+  addProp("placement/fdp", "fdpMaxIter", "maxIter", "Max iterations");
+  addProp("placement/fdp", "fdpStart"  , "start"  , "Start iteration");
+  addProp("placement/fdp", "fdpEdgeLen", "edgeLen", "Optimal edge len");
 
   //---
 
@@ -501,7 +539,7 @@ CQChartsGraphVizPlot::
 writeGraph(bool weighted) const
 {
   // create graphviz input file from data
-  QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.csv");
+  QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.gv");
 
   graphVizFile.open();
 
@@ -555,6 +593,17 @@ writeGraph(bool weighted) const
     nodeSet.insert(node);
   };
 
+  if (plotType() == PlotType::FDP) {
+    if (fdpK() > 0.0)
+      writeGraphViz(" K=" + QString::number(fdpK()) + ";\n");
+
+    if (fdpMaxIter() > 0.0)
+      writeGraphViz(" maxiter=" + QString::number(fdpMaxIter()) + ";\n");
+
+    if (fdpStart() > 0.0)
+      writeGraphViz(" start=" + QString::number(fdpStart()) + ";\n");
+  }
+
   for (const auto &edge : edges_) {
     auto *node1 = edge->srcNode ();
     auto *node2 = edge->destNode();
@@ -568,6 +617,9 @@ writeGraph(bool weighted) const
       if (edge->hasValue())
         writeGraphViz(" [weight=" + QString::number(edge->value().real()) + "]");
     }
+
+    if (fdpEdgeLen() > 0.0)
+      writeGraphViz(" [len=" + QString::number(fdpEdgeLen()) + "]\n");
 
     int edgeAttrCount = 0;
 

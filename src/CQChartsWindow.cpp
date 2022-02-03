@@ -301,16 +301,16 @@ CQChartsWindow::
 setDataTable(bool b, bool force)
 {
   if (force || b != showDataTable_) {
-    showDataTable_ = b;
-
-    if (! showDataTable_) {
+    if      (showDataTable_ && ! b) {
       viewSplitter_->removeWidget(tableFrame_, /*destroy*/false);
       //tableFrame_->setVisible(false);
     }
-    else {
+    else if (! showDataTable_ && b) {
       viewSplitter_->addWidget(tableFrame_, "Table");
       //tableFrame_->setVisible(true);
     }
+
+    showDataTable_ = b;
 
     plotSlot();
   }

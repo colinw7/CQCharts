@@ -1746,9 +1746,9 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
   }
   else {
     if (edgeFilled)
-      device->drawLine(p1, p4);
-    else
       CQChartsDrawUtil::drawRoundedLine(device, p1, p4, lw);
+    else
+      device->drawLine(p1, p4);
   }
 }
 

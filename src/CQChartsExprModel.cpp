@@ -499,9 +499,6 @@ getExtraColumnDetails(int column, QString &header, QString &expr) const
   if (! isExtraColumn(column, ecolumn))
     return false;
 
-  if (ecolumn < 0 || ecolumn >= numExtraColumns())
-    return false;
-
   const auto *extraColumn = extraColumns_[ecolumn];
 
   header = extraColumn->header;
@@ -2200,6 +2197,8 @@ bool
 CQChartsExprModel::
 getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const
 {
+  col = 0;
+
   long col1 = currentCol();
 
   if (! cmdValues.getInt(col1)) {
@@ -2223,6 +2222,8 @@ bool
 CQChartsExprModel::
 getRowValue(CQChartsExprCmdValues &cmdValues, int &row) const
 {
+  row = 0;
+
   long row1 = currentRow();
 
   if (! cmdValues.getInt(row1))

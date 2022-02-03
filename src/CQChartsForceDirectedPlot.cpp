@@ -292,7 +292,8 @@ createObjs(PlotObjs &) const
   //th->forceDirected_->reset();
 
   th->idConnections_  .clear();
-  th->nameNodeMap_    .clear();
+  th->nameIdMap_      .clear();
+  th->idNameMap_      .clear();
   th->nodes_          .clear();
   th->connectionNodes_.clear();
 
@@ -1178,20 +1179,30 @@ getStringId(const QString &str) const
 {
   //assert(str.length());
 
-  auto p = nameNodeMap_.find(str);
+  auto p = nameIdMap_.find(str);
 
-  if (p != nameNodeMap_.end())
+  if (p != nameIdMap_.end())
     return (*p).second;
 
   //---
 
-  int id = nameNodeMap_.size();
+  int id = nameIdMap_.size();
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), StringIndMap::value_type(str, id));
+  th->nameIdMap_[str] = id;
+  th->idNameMap_[id ] = str;
 
-  return (*p1).second;
+  return id;
+}
+
+QString
+CQChartsForceDirectedPlot::
+getIdString(int id) const
+{
+  auto p = idNameMap_.find(id);
+
+  return (p != idNameMap_.end() ? (*p).second : "");
 }
 
 //---
@@ -1340,7 +1351,7 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
       tableTip.addTableRow("Connections", connectionsData.connections.size());
     }
     else
-      tableTip.addTableRow("Label", QString::fromStdString(node->label()));
+      tableTip.addTableRow("Label", calcNodeLabel(node));
 
     if (node->nodeValue().isSet())
       tableTip.addTableRow("Value", node->nodeValue().real());
@@ -1353,6 +1364,18 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
   }
 
   return false;
+}
+
+QString
+CQChartsForceDirectedPlot::
+calcNodeLabel(CQChartsSpringyNode *node) const
+{
+  auto label = QString::fromStdString(node->label());
+
+  if (label == "")
+    label = getIdString(node->id());
+
+  return label;
 }
 
 #if 0
@@ -1499,8 +1522,7 @@ drawDeviceParts(PaintDevice *device) const
       textOptions.scaled    = true;
       textOptions.formatted = true;
 
-      CQChartsDrawUtil::drawTextInBox(device, ebbox, QString::fromStdString(node->label()),
-                                      textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
     }
   }
 

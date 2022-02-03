@@ -1860,7 +1860,7 @@ CQChartsColumnConnectionListType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || CQChartsConnectionList::isVariantType(var))
+  if (! var.isValid() || isVariantType(var))
     return var;
 
   converted = true;

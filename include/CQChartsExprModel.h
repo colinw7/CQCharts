@@ -301,7 +301,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax);
 
   bool getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const;
-  bool getRowValue   (CQChartsExprCmdValues &cmdValues, int &col) const;
+  bool getRowValue   (CQChartsExprCmdValues &cmdValues, int &row) const;
 
   QVariant getCmdData(int row, int col) const;
   bool     setCmdData(int row, int col, const QVariant &var);

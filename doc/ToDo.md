@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + multiple y values in scatter to match xy (from/to ?)
  + more plot/view slots (remove hacks in get_charts_data)
  + quick filter object (select and filter)
  + remove all QVariant( and int QVariant for int
@@ -13,10 +14,11 @@ TODO:
  + more testing or arc path with arc annotation
  + support more connection types in hier model from data
    + from/to, hier path, connection list
- + dot plot
+ + graphviz plot
+   + support subgraph (group nodes and replace) or subgraph id in csv
    + more attributes in input file
-   + dot plot edge/node coloring
-   + dot plot map point to relative position (on) node to allow move
+   + plot edge/node coloring
+   + plot map point to relative position (on) node to allow move
      + support editing of edge points (delete ?)
    + Replace CJson with QJsonDocument (other dependencies ?)
  + colorSelected on all plots or allow select feature in key to be disabled ?
@@ -879,7 +881,6 @@ Sankey
  + sankey remove edge overlaps (limit move up/down)
    + edit constraints
  + sankey_node.tcl bad placement (single x) -> rand ?
- + Move dot/graphviz plot to separate plot type (out of sankey)
  + Sankey editing
    + Better feedback for selected/over object
  + Dot language (Sankey)
