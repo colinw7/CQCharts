@@ -652,7 +652,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(OutputFormat outputFormat READ outputFormat WRITE setOutputFormat)
 
   // node data
-  Q_PROPERTY(NodeShape nodeShape READ nodeShape WRITE setNodeShape)
+  Q_PROPERTY(NodeShape      nodeShape  READ nodeShape    WRITE setNodeShape )
+  Q_PROPERTY(bool           nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(CQChartsLength nodeSize   READ nodeSize     WRITE setNodeSize  )
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape    READ edgeShape      WRITE setEdgeShape   )
@@ -749,6 +751,13 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //! get/set node shape
   NodeShape nodeShape() const { return nodeShape_; }
   void setNodeShape(const NodeShape &s);
+
+  //! get/set is node scaled
+  bool isNodeScaled() const { return nodeScaled_; }
+  void setNodeScaled(bool b);
+
+  const Length &nodeSize() const { return nodeSize_; }
+  void setNodeSize(const Length &s);
 
   //---
 
@@ -930,6 +939,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   //---
 
+  const OptReal &maxNodeValue() const { return maxNodeValue_; }
   const OptReal &maxEdgeValue() const { return maxEdgeValue_; }
 
  protected:
@@ -976,7 +986,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   using IndNodeMap  = std::map<int, Node *>;
 
   // node data
-  NodeShape nodeShape_ { NodeShape::NONE }; //!< node shape
+  NodeShape nodeShape_  { NodeShape::NONE };    //!< node shape
+  bool      nodeScaled_ { false };              //!< is node scaled
+  Length    nodeSize_   { Length::pixel(128) }; //!< node size
 
   // edge data
   EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
@@ -1016,6 +1028,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
   bool             edgeWeighted_  { true }; //!< edge placement weighted by value
 
+  OptReal maxNodeValue_;
   OptReal maxEdgeValue_;
 };
 

@@ -171,6 +171,20 @@ setNodeShape(const NodeShape &s)
   CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateObjs(); } );
 }
 
+void
+CQChartsGraphVizPlot::
+setNodeScaled(bool b)
+{
+  CQChartsUtil::testAndSet(nodeScaled_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGraphVizPlot::
+setNodeSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(nodeSize_, s, [&]() { updateObjs(); } );
+}
+
 //---
 
 void
@@ -319,7 +333,9 @@ addProperties()
   addProp("coloring", "blendEdgeColor", "", "Blend Edge Node Colors");
 
   // node
-  addProp("node", "nodeShape", "shapeType", "Node shape type");
+  addProp("node", "nodeShape" , "shapeType", "Node shape type");
+  addProp("node", "nodeScaled", "scaled"   , "Node is scaled");
+  addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -513,10 +529,15 @@ addObjects(PlotObjs &objs) const
 
   //---
 
+  th->maxNodeValue_ = OptReal();
+
   for (const auto &node : nodes()) {
     auto *nodeObj = createObjFromNode(node);
 
     objs.push_back(nodeObj);
+
+    if (node->hasValue())
+      th->maxNodeValue_ = OptReal(std::max(maxNodeValue_.realOr(0.0), node->value().real()));
   }
 
   //---
@@ -555,6 +576,8 @@ writeGraph(bool weighted) const
 
   NodeSet nodeSet;
 
+  //---
+
   auto printAttr = [&](const QString &name, const QString &value, int &attrCount) {
     if (attrCount == 0)
       writeGraphViz(" [");
@@ -573,6 +596,9 @@ writeGraph(bool weighted) const
     writeGraphViz(";\n");
   };
 
+  //---
+
+  // print node (if not already output)
   auto printNode = [&](Node *node) {
     auto p = nodeSet.find(node);
     if (p != nodeSet.end()) return;
@@ -588,23 +614,27 @@ writeGraph(bool weighted) const
     if (node->label().length())
       printAttr("label", node->label(), nodeAttrCount);
 
+    bool isNodeScaled = (this->isNodeScaled() && node->hasValue());
+
+    if (isNodeScaled) {
+      auto maxValue = maxNodeValue().real();
+
+      auto nodeScale = (maxValue > 0 ? node->value().real()/maxValue : 1.0);
+
+      auto size = nodeScale*lengthPlotWidth(nodeSize());
+
+      printAttr("width" , QString::number(size), nodeAttrCount);
+      printAttr("height", QString::number(size), nodeAttrCount);
+
+      printAttr("fixedsize", "true", nodeAttrCount);
+    }
+
     endPrintAttr(nodeAttrCount);
 
     nodeSet.insert(node);
   };
 
-  if (plotType() == PlotType::FDP) {
-    if (fdpK() > 0.0)
-      writeGraphViz(" K=" + QString::number(fdpK()) + ";\n");
-
-    if (fdpMaxIter() > 0.0)
-      writeGraphViz(" maxiter=" + QString::number(fdpMaxIter()) + ";\n");
-
-    if (fdpStart() > 0.0)
-      writeGraphViz(" start=" + QString::number(fdpStart()) + ";\n");
-  }
-
-  for (const auto &edge : edges_) {
+  auto printEdge = [&](Edge *edge) {
     auto *node1 = edge->srcNode ();
     auto *node2 = edge->destNode();
 
@@ -627,7 +657,21 @@ writeGraph(bool weighted) const
       printAttr("label", edge->label(), edgeAttrCount);
 
     endPrintAttr(edgeAttrCount);
+  };
+
+  if (plotType() == PlotType::FDP) {
+    if (fdpK() > 0.0)
+      writeGraphViz(" K=" + QString::number(fdpK()) + ";\n");
+
+    if (fdpMaxIter() > 0.0)
+      writeGraphViz(" maxiter=" + QString::number(fdpMaxIter()) + ";\n");
+
+    if (fdpStart() > 0.0)
+      writeGraphViz(" start=" + QString::number(fdpStart()) + ";\n");
   }
+
+  for (const auto &edge : edges_)
+    printEdge(edge);
 
   writeGraphViz("}\n");
 
@@ -1305,6 +1349,7 @@ addFromToValue(const FromToData &fromToData) const
       srcNode->setParentGraphId(parentGraphId);
   }
   else {
+    // ignore self connection (TODO: allow)
     if (fromToData.fromStr == fromToData.toStr)
       return;
 
@@ -1342,6 +1387,7 @@ addFromToValue(const FromToData &fromToData) const
     //---
 
     // set edge color (if color column specified)
+    // Note: from and to are same row so we can use either
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
@@ -1611,6 +1657,14 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
   }
   else if (name == "label") {
     node->setLabel(valueStr);
+  }
+  else if (name == "value") {
+    bool ok;
+
+    auto r = CQChartsUtil::toReal(valueStr, ok);
+
+    if (ok)
+      node->setValue(OptReal(r));
   }
   else if (name == "fill_color" || name == "color") {
     node->setFillColor(CQChartsColor(valueStr));
@@ -2729,11 +2783,11 @@ draw(PaintDevice *device) const
   auto srcRect  = srcNode ->rect();
   auto destRect = destNode->rect();
 
-  bool isArrow  = plot()->isEdgeArrow();
-  bool isScaled = (plot_->isEdgeScaled() && edge()->hasValue());
+  bool isArrow      = plot()->isEdgeArrow();
+  bool isEdgeScaled = (plot_->isEdgeScaled() && edge()->hasValue());
 
 #if 0
-  if (isArrow || ! isScaled) {
+  if (isArrow || ! isEdgeScaled) {
     if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
         edge()->srcNode()->shapeType() == Node::ShapeType::POLYGON ||
         edge()->srcNode()->shapeType() == Node::ShapeType::CIRCLE ||
@@ -2898,10 +2952,10 @@ draw(PaintDevice *device) const
   // calc edge width
   double edgeScale { 1.0 };
 
-  if (isScaled) {
+  if (isEdgeScaled) {
     auto maxValue = plot_->maxEdgeValue().real();
 
-    edgeScale = edge()->value().real()/maxValue;
+    edgeScale = (maxValue > 0 ? edge()->value().real()/maxValue : 0.0);
   }
 
   double lw;

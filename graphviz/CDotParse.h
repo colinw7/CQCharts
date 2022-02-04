@@ -140,7 +140,7 @@ class Attributes {
     auto s = getString(name, ok);
     if (! ok) return std::vector<double>();
 
-    return Util::stringToReals(strinpQuotes(s), ok);
+    return Util::stringToReals(stripQuotes(s), ok);
   }
 
   std::string getString(const std::string &name, bool &ok) const {
@@ -150,7 +150,7 @@ class Attributes {
     return (*p).second;
   }
 
-  std::string strinpQuotes(const std::string &s) const {
+  std::string stripQuotes(const std::string &s) const {
     int len = s.size();
     if (len > 1 && s[0] == '"' && s[len - 1] == '"')
       return s.substr(1, len - 2);

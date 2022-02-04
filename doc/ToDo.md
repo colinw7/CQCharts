@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + update documentation (more desc, missing images)
  + multiple y values in scatter to match xy (from/to ?)
  + more plot/view slots (remove hacks in get_charts_data)
  + quick filter object (select and filter)

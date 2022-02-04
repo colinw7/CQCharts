@@ -490,31 +490,31 @@ parseID(std::string &id)
 
   // TODO: single quote not allowed ?
   if      (parse_->isChar('\'')) {
-    id += '\'';
+    //id += '\'';
 
     parse_->skipChar();
 
     while (! parse_->eof()) {
       char c = parse_->readChar();
-
-      id += c;
 
       if (c == '\'')
         break;
+
+      id += c;
     }
   }
   else if (parse_->isChar('\"')) {
-    id += '\"';
+    //id += '\"';
 
     parse_->skipChar();
 
     while (! parse_->eof()) {
       char c = parse_->readChar();
 
-      id += c;
-
       if (c == '\"')
         break;
+
+      id += c;
     }
   }
   else if (parse_->isChar('<')) {

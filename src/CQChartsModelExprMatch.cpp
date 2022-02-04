@@ -346,20 +346,22 @@ cellCmd(const Values &values) const
   int row = currentRow();
   int col = currentCol();
 
-  if (cmdValues.numValues() < 2) {
-    // TODO: row and column string value ?
-    return QVariant();
+  if (cmdValues.hasValues()) {
+    if (cmdValues.numValues() < 2) {
+      // TODO: row and column string value ?
+      return QVariant();
+    }
+
+    long row1;
+
+    if (! cmdValues.getInt(row1))
+      return QVariant();
+
+    row = int(row1);
+
+    if (! getColumn(cmdValues, col))
+      return QVariant();
   }
-
-  long row1;
-
-  if (! cmdValues.getInt(row1))
-    return QVariant();
-
-  row = int(row1);
-
-  if (! getColumn(cmdValues, col))
-    return QVariant();
 
   //---
 
