@@ -3304,6 +3304,13 @@ setTabbedFont(const Font &f)
     CQChartsUtil::testAndSet(tabbedFont_, f, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsPlot::
+setZoomText(bool b)
+{
+  CQChartsUtil::testAndSet(zoomText_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //------
 
 void
@@ -3445,6 +3452,7 @@ addBaseProperties()
   // font
   addStyleProp("font", "font"      , "font"      , "Base font");
   addStyleProp("font", "tabbedFont", "tabbedFont", "Font for tabs");
+  addStyleProp("font", "zoomText"  , "zoomText"  , "Scale text when zoom");
 
   // columns
   if (type()->supportsIdColumn())
@@ -12762,9 +12770,11 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
     //---
 
+    bool isZoomText = plotObj->isZoomText().boolOr(this->isZoomText());
+
     auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
-    if (plotObj->isZoomText() && viewPlotDevice)
+    if (isZoomText && viewPlotDevice)
       viewPlotDevice->setZoomFont(true);
 
     // draw object on layer
@@ -12802,7 +12812,7 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
     //---
 
-    if (plotObj->isZoomText() && viewPlotDevice)
+    if (isZoomText && viewPlotDevice)
       viewPlotDevice->setZoomFont(false);
 
     //---
@@ -15254,7 +15264,7 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
   if (brushData.pattern().altColor().isValid())
     penBrush.altColor = brushData.pattern().altColor().color();
   else
-    penBrush.altColor = QColor();
+    penBrush.altColor = QColor(Qt::transparent);
 
   if (brushData.pattern().altAlpha().isSet())
     penBrush.altAlpha = brushData.pattern().altAlpha().value();
@@ -15262,6 +15272,7 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
     penBrush.altAlpha = 1.0;
 
   penBrush.fillAngle = brushData.pattern().angle().degrees();
+  penBrush.fillType  = brushData.pattern().type();
 }
 
 //------

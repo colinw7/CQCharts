@@ -1,6 +1,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsUtil.h>
 
 #include <cmath>

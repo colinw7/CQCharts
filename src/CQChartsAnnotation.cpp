@@ -6377,9 +6377,9 @@ draw(PaintDevice *device)
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if      (drawType() == DrawType::SYMBOLS)
     drawSymbols(device);
@@ -7066,9 +7066,9 @@ draw(PaintDevice *device)
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if      (drawType() == DrawType::BARCHART)
     drawBarChart(device);
@@ -8122,6 +8122,8 @@ draw(PaintDevice *device)
   calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+
+  //---
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

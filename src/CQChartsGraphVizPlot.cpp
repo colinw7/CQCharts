@@ -59,7 +59,7 @@ description() const
     h3("Limitations").
      p("None.").
     h3("Example").
-     p(IMG("images/dot.png"));
+     p(IMG("images/graphviz.png"));
 }
 
 CQChartsPlot *
@@ -183,6 +183,13 @@ CQChartsGraphVizPlot::
 setNodeSize(const Length &s)
 {
   CQChartsUtil::testAndSet(nodeSize_, s, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsGraphVizPlot::
+setNodeTextSingleScale(bool b)
+{
+  CQChartsUtil::testAndSet(nodeTextSingleScale_, b, [&]() { updateObjs(); } );
 }
 
 //---
@@ -336,6 +343,8 @@ addProperties()
   addProp("node", "nodeShape" , "shapeType", "Node shape type");
   addProp("node", "nodeScaled", "scaled"   , "Node is scaled");
   addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
+
+  addProp("node", "nodeTextSingleScale", "textSingleScale", "Text single scale (when scaled)");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -559,18 +568,59 @@ void
 CQChartsGraphVizPlot::
 writeGraph(bool weighted) const
 {
-  // create graphviz input file from data
-  QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.gv");
+  auto graphVizFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_INPUT_FILE");
 
-  graphVizFile.open();
+  if (graphVizFilename == "") {
+    // create graphviz input file from data
+    QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.gv");
 
-  auto graphVizFilename = graphVizFile.fileName();
+    graphVizFile.open();
 
+    graphVizFilename = graphVizFile.fileName();
+
+    writeGraph(graphVizFile, graphVizFilename, weighted);
+  }
+  else {
+    QFile graphVizFile(graphVizFilename);
+
+    graphVizFile.open(QIODevice::WriteOnly);
+
+    writeGraph(graphVizFile, graphVizFilename, weighted);
+  }
+}
+
+void
+CQChartsGraphVizPlot::
+writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const
+{
   auto writeGraphViz = [&](const QString &str) {
     graphVizFile.write(str.toLatin1().constData());
   };
 
   writeGraphViz("digraph g {\n");
+
+  //---
+
+  using EdgeSet    = std::set<Edge *>;
+  using GroupEdges = std::map<int, EdgeSet>;
+  using EdgeGroup  = std::map<Edge *, int>;
+
+  GroupEdges groupEdges;
+  EdgeGroup  edgeGroup;
+
+  for (const auto &edge : edges_) {
+    auto *node1 = edge->srcNode ();
+  //auto *node2 = edge->destNode();
+
+    if (node1->group() < 0)
+      continue;
+
+    groupEdges[node1->group()].insert(edge);
+
+    edgeGroup[edge] = node1->group();
+  }
+
+  //---
 
   using NodeSet = std::set<Node *>;
 
@@ -670,8 +720,22 @@ writeGraph(bool weighted) const
       writeGraphViz(" start=" + QString::number(fdpStart()) + ";\n");
   }
 
-  for (const auto &edge : edges_)
-    printEdge(edge);
+  for (const auto &ge : groupEdges) {
+    writeGraphViz("subgraph " + QString::number(ge.first) + " {\n");
+
+    for (const auto &edge : ge.second) {
+      printEdge(edge);
+    }
+
+    writeGraphViz("}\n");
+  }
+
+  for (const auto &edge : edges_) {
+    auto p = edgeGroup.find(edge);
+
+    if (p == edgeGroup.end())
+      printEdge(edge);
+  }
 
   writeGraphViz("}\n");
 
@@ -679,6 +743,41 @@ writeGraph(bool weighted) const
 
   //---
 
+  QString typeName;
+
+  if      (outputFormat() == OutputFormat::XDOT)
+    typeName = QString("xdot");
+  else if (outputFormat() == OutputFormat::DOT)
+    typeName = QString("dot");
+  else if (outputFormat() == OutputFormat::JSON)
+    typeName = QString("json");
+
+  // get temporary file for output
+  auto outFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_OUTPUT_FILE");
+
+  if (outFilename == "") {
+    QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
+
+    outFile.open();
+
+    outFilename = outFile.fileName();
+
+    processGraph(graphVizFilename, outFile, outFilename, typeName);
+  }
+  else {
+    QFile outFile(outFilename);
+
+    outFile.open(QIODevice::WriteOnly);
+
+    processGraph(graphVizFilename, outFile, outFilename, typeName);
+  }
+}
+
+void
+CQChartsGraphVizPlot::
+processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
+             const QString &outFilename, const QString &typeName) const
+{
   QString cmd { "dot" };
 
   switch (plotType()) {
@@ -692,25 +791,9 @@ writeGraph(bool weighted) const
     case PlotType::SFDP      : cmd = "sfdp"; break;
   }
 
-  QString typeName;
-
-  if      (outputFormat() == OutputFormat::JSON)
-    typeName = QString("json");
-  else if (outputFormat() == OutputFormat::XDOT)
-    typeName = QString("xdot");
-  else if (outputFormat() == OutputFormat::DOT)
-    typeName = QString("dot");
-
   // run dot on graph file
   auto dot_path = CQChartsEnv::getString("CQCHARTS_DOT_PATH", "/usr/bin");
   auto dot_file = dot_path + "/" + cmd;
-
-  // get temporary file for output
-  QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
-
-  outFile.open();
-
-  auto outFilename = outFile.fileName();
 
 #if 0
   CCommand::Args args;
@@ -746,10 +829,10 @@ writeGraph(bool weighted) const
   // parse output file
   CQGraphViz::App dot;
 
-  if      (outputFormat() == OutputFormat::JSON)
-    dot.processJson(outFilename.toStdString());
-  else if (outputFormat() == OutputFormat::XDOT || outputFormat() == OutputFormat::DOT)
+  if      (outputFormat() == OutputFormat::XDOT || outputFormat() == OutputFormat::DOT)
     dot.processDot(outFilename.toStdString());
+  else if (outputFormat() == OutputFormat::JSON)
+    dot.processJson(outFilename.toStdString());
 
   //---
 
@@ -968,6 +1051,41 @@ writeGraph(bool weighted) const
 
   th->fitToBBox(targetBBox_);
 }
+
+//---
+
+void
+CQChartsGraphVizPlot::
+preDrawFgObjs(PaintDevice *) const
+{
+  CQChartsDrawUtil::resetScaledFontSize();
+
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
+  th->drawTextDatas_.clear();
+}
+
+void
+CQChartsGraphVizPlot::
+postDrawFgObjs(PaintDevice *device) const
+{
+  if (isNodeTextSingleScale()) {
+    auto s = CQChartsDrawUtil::scaledFontSize();
+
+    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
+    for (auto &data : th->drawTextDatas_) {
+      data.textOptions.scale = s;
+
+      if (data.isRect)
+        CQChartsDrawUtil::drawTextInBox(device, data.rect, data.str, data.textOptions);
+      else
+        CQChartsDrawUtil::drawTextAtPoint(device, data.p, data.str, data.textOptions);
+    }
+  }
+}
+
+//---
 
 void
 CQChartsGraphVizPlot::
@@ -1300,7 +1418,7 @@ addFromToValue(const FromToData &fromToData) const
   //---
 
   // set group
-  if (fromToData.groupData.ng > 1) {
+  if (fromToData.groupData.isValid() && ! fromToData.groupData.isNull()) {
     srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
 
     auto *th = const_cast<CQChartsGraphVizPlot *>(this);
@@ -1373,6 +1491,11 @@ addFromToValue(const FromToData &fromToData) const
       if (modelInd.isValid())
         edge->addModelInd(modelInd);
     };
+
+    auto fromModelIndex  = modelIndex(fromToData.fromModelInd);
+    auto fromModelIndex1 = normalizeIndex(fromModelIndex);
+
+    edge->setModelInd(fromModelIndex1);
 
     addModelInd(fromToData.fromModelInd  );
     addModelInd(fromToData.toModelInd    );
@@ -1459,7 +1582,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   //---
 
   // set group
-  if (linkConnectionData.groupData.isValid()) {
+  if (linkConnectionData.groupData.isValid() && ! linkConnectionData.groupData.isNull()) {
     srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
 
     auto *th = const_cast<CQChartsGraphVizPlot *>(this);
@@ -1517,7 +1640,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex
   //---
 
   // set group
-  if (connectionsData.groupData.isValid()) {
+  if (connectionsData.groupData.isValid() && ! connectionsData.groupData.isNull()) {
     srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
 
     auto *th = const_cast<CQChartsGraphVizPlot *>(this);
@@ -1599,8 +1722,12 @@ initTableObjs() const
 
     auto *srcNode = findNode(srcStr);
 
-    srcNode->setName (tableConnectionData.name());
-    srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
+    srcNode->setName(tableConnectionData.name());
+
+    if (tableConnectionData.group().isValid() && ! tableConnectionData.group().isNull())
+      srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
+    else
+      srcNode->setGroup(-1);
 
     for (const auto &value : tableConnectionData.values()) {
       auto destStr = QString::number(value.to);
@@ -1882,16 +2009,27 @@ createObjFromNode(Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, iv);
 
+  //--
+
+  // set shape type
   NodeObj::ShapeType shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
 
   if (shapeType == NodeObj::ShapeType::NONE)
     shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
 
   nodeObj->setShapeType(shapeType);
-  nodeObj->setHierName (node->str());
 
+  //---
+
+  nodeObj->setHierName(node->str());
+
+  //---
+
+  // add model indices
   for (const auto &modelInd : node->modelInds())
     nodeObj->addModelInd(normalizedModelIndex(modelInd));
+
+  //---
 
   auto *pnode = dynamic_cast<CQChartsGraphVizPlotNode *>(node);
   assert(pnode);
@@ -1923,12 +2061,23 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
+  //---
+
+  // set shape type
   EdgeObj::ShapeType shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
 
   if (shapeType == EdgeObj::ShapeType::NONE)
     shapeType = static_cast<EdgeObj::ShapeType>(edgeShape());
 
   edgeObj->setShapeType(shapeType);
+
+  //---
+
+  // add model indices
+  for (const auto &modelInd : edge->modelInds())
+    edgeObj->addModelInd(normalizedModelIndex(modelInd));
+
+  //---
 
   auto *pedge = dynamic_cast<CQChartsGraphVizPlotEdge *>(edge);
   assert(pedge);
@@ -2393,6 +2542,14 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
 //---
 
+void
+CQChartsGraphVizNodeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : plot_->modelColumns())
+    addColumnSelectIndex(inds, c);
+}
+
 CQChartsGraphVizNodeObj::PlotObjs
 CQChartsGraphVizNodeObj::
 getConnected() const
@@ -2520,6 +2677,11 @@ drawFg(PaintDevice *device) const
 
   auto pt = plot_->pixelToWindow(Point(tx, ty));
 
+  auto *plot = const_cast<CQChartsGraphVizPlot *>(plot_);
+
+  if (plot->isNodeTextSingleScale())
+    device->setNull(true);
+
   // only support contrast
   auto textOptions = plot_->textOptions(device);
 
@@ -2530,16 +2692,24 @@ drawFg(PaintDevice *device) const
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
       shapeType() == ShapeType::DOUBLE_CIRCLE) {
-    textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
+    if (rect().isValid()) {
+      textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-    if (rect().isValid())
       CQChartsDrawUtil::drawTextInBox(device, rect(), str, textOptions);
+
+      plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, textOptions));
+    }
   }
   else {
     textOptions.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
+
+    plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, textOptions));
   }
+
+  if (plot->isNodeTextSingleScale())
+    device->setNull(false);
 }
 
 void
@@ -2610,6 +2780,9 @@ CQChartsGraphVizEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
+
+  if (edge->modelInd().isValid())
+    setModelInd(edge->modelInd());
 }
 
 CQChartsGraphVizEdgeObj::
@@ -2729,6 +2902,14 @@ inside(const Point &p) const
 }
 
 //---
+
+void
+CQChartsGraphVizEdgeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : plot()->modelColumns())
+    addColumnSelectIndex(inds, c);
+}
 
 CQChartsGraphVizEdgeObj::PlotObjs
 CQChartsGraphVizEdgeObj::
@@ -3037,6 +3218,9 @@ drawFg(PaintDevice *device) const
   if (! plot_->isTextVisible())
     return;
 
+  auto str = edge()->label();
+  if (! str.length()) return;
+
   //---
 
   // get connection rect of source and destination object
@@ -3079,11 +3263,6 @@ drawFg(PaintDevice *device) const
   //---
 
   double textMargin = 4; // pixels
-
-  auto str = edge()->label();
-
-  if (! str.length())
-    return;
 
   double ptw = fm.width(str);
 

@@ -4,6 +4,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsAngle.h>
 #include <CQChartsLength.h>
+#include <CQChartsFillPattern.h>
 #include <QPainter>
 
 class CQChartsView;
@@ -95,6 +96,13 @@ class CQChartsPaintDevice {
 
   virtual bool isInteractive() const { return false; }
 
+  //---
+
+  bool isZoomFont() const { return zoomFont_; }
+  void setZoomFont(bool b) { zoomFont_ = b; }
+
+  //---
+
   virtual void save() { }
   virtual void restore() { }
 
@@ -114,6 +122,7 @@ class CQChartsPaintDevice {
   virtual void setAltAlpha(double) { }
 
   virtual void setFillAngle(double) { }
+  virtual void setFillType(CQChartsFillPattern::Type) { }
 
   virtual void fillPath  (const QPainterPath &, const QBrush &) { assert(false); }
   virtual void strokePath(const QPainterPath &, const QPen &) { assert(false); }
@@ -206,10 +215,17 @@ class CQChartsPaintDevice {
 
   virtual void setPainterFont(const Font &) { assert(false); }
 
+  //---
+
+  bool isNull() const { return isNull_; }
+  void setNull(bool b) { isNull_ = b; }
+
  protected:
-  CQCharts* charts_ { nullptr };
-  View*     view_   { nullptr };
-  Plot*     plot_   { nullptr };
+  CQCharts* charts_   { nullptr };
+  View*     view_     { nullptr };
+  Plot*     plot_     { nullptr };
+  bool      zoomFont_ { false };
+  bool      isNull_   { false };
 };
 
 #endif

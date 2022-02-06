@@ -8,6 +8,8 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsData.h>
 
+class QFile;
+
 //---
 
 /*!
@@ -288,7 +290,8 @@ class CQChartsGraphVizPlotEdge {
 
  public:
   CQChartsGraphVizPlotEdge(const OptReal &value, Node *srcNode, Node *destNode);
- ~CQChartsGraphVizPlotEdge();
+
+  virtual ~CQChartsGraphVizPlotEdge();
 
   //---
 
@@ -329,7 +332,7 @@ class CQChartsGraphVizPlotEdge {
 
   //---
 
-  //--- custom appearance
+  // -- custom appearance --
 
   //! get/set shape
   const ShapeType &shapeType() const { return shapeType_; }
@@ -341,8 +344,10 @@ class CQChartsGraphVizPlotEdge {
 
   //---
 
-  const ModelInds &modelInds() const { return modelInds_; }
+  const QModelIndex &modelInd() const { return modelInd_; }
+  void setModelInd(const QModelIndex &v) { modelInd_ = v; }
 
+  const ModelInds &modelInds() const { return modelInds_; }
   void addModelInd(const ModelIndex &i) { modelInds_.push_back(i); }
 
   //---
@@ -385,6 +390,7 @@ class CQChartsGraphVizPlotEdge {
   QString      label_;                         //!< label
   ShapeType    shapeType_ { ShapeType::NONE }; //!< shape type
   Color        color_;                         //!< color
+  QModelIndex  modelInd_;                      //!< original row model index
   ModelInds    modelInds_;                     //!< model inds
   Node*        srcNode_   { nullptr };         //!< source node
   Node*        destNode_  { nullptr };         //!< destination node
@@ -518,6 +524,10 @@ class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
 
   //---
 
+  //! get select indices
+  void getObjSelectIndices(Indices &inds) const override;
+
+  //! get connected objects
   PlotObjs getConnected() const override;
 
   //---
@@ -612,6 +622,9 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
 
   //---
 
+  //! get select indices
+  void getObjSelectIndices(Indices &inds) const override;
+
   //! get connected objects
   PlotObjs getConnected() const override;
 
@@ -655,6 +668,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(NodeShape      nodeShape  READ nodeShape    WRITE setNodeShape )
   Q_PROPERTY(bool           nodeScaled READ isNodeScaled WRITE setNodeScaled)
   Q_PROPERTY(CQChartsLength nodeSize   READ nodeSize     WRITE setNodeSize  )
+
+  Q_PROPERTY(bool nodeTextSingleScale READ isNodeTextSingleScale WRITE setNodeTextSingleScale)
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape    READ edgeShape      WRITE setEdgeShape   )
@@ -759,6 +774,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   const Length &nodeSize() const { return nodeSize_; }
   void setNodeSize(const Length &s);
 
+  bool isNodeTextSingleScale() const { return nodeTextSingleScale_; }
+  void setNodeTextSingleScale(bool b);
+
   //---
 
   //! get/set edge shape
@@ -858,6 +876,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool createObjs(PlotObjs &objs) const override;
 
   void writeGraph(bool weighted=true) const;
+  void writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const;
+  void processGraph(const QString &graphVizFilename, QFile &outFile,
+                    const QString &outFilename, const QString &typeName) const;
 
   void fitToBBox(const BBox &bbox);
 
@@ -918,6 +939,33 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //---
 
   void filterObjs();
+
+  //---
+
+  void preDrawFgObjs (PaintDevice *) const override;
+  void postDrawFgObjs(PaintDevice *) const override;
+
+  //---
+
+  struct DrawTextData {
+    Point               p;
+    BBox                rect;
+    QString             str;
+    CQChartsTextOptions textOptions;
+    bool                isRect { false };
+
+    DrawTextData(const Point &p, const QString &str, const CQChartsTextOptions &textOptions) :
+     p(p), str(str), textOptions(textOptions) {
+    }
+
+    DrawTextData(const BBox &rect, const QString &str, const CQChartsTextOptions &textOptions) :
+     rect(rect), str(str), textOptions(textOptions), isRect(true) {
+    }
+  };
+
+  using DrawTextDatas = std::vector<DrawTextData>;
+
+  void addDrawTextData(const DrawTextData &data) { drawTextDatas_.push_back(data); }
 
   //---
 
@@ -990,6 +1038,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool      nodeScaled_ { false };              //!< is node scaled
   Length    nodeSize_   { Length::pixel(128) }; //!< node size
 
+  bool nodeTextSingleScale_ { true }; //!< node text single scale factor
+
   // edge data
   EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
   bool      edgeArrow_    { true };             //!< edge arrow
@@ -1030,6 +1080,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   OptReal maxNodeValue_;
   OptReal maxEdgeValue_;
+
+  DrawTextDatas drawTextDatas_;
 };
 
 //---

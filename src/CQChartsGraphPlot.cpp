@@ -2684,11 +2684,11 @@ calcTipId() const
   auto *srcObj  = srcNode ->obj();
   auto *destObj = destNode->obj();
 
-  auto srcName  = srcObj ->hierName();
-  auto destName = destObj->hierName();
+  auto srcName  = (srcObj  ? srcObj ->hierName() : "");
+  auto destName = (destObj ? destObj->hierName() : "");
 
-  if (srcName  == "") srcName  = srcObj ->id();
-  if (destName == "") destName = destObj->id();
+  if (srcName  == "") srcName  = (srcObj  ? srcObj ->id() : "");
+  if (destName == "") destName = (destObj ? destObj->id() : "");
 
   //---
 
@@ -2746,8 +2746,8 @@ getConnected() const
   auto *srcObj  = srcNode ->obj();
   auto *destObj = destNode->obj();
 
-  plotObjs.push_back(srcObj);
-  plotObjs.push_back(destObj);
+  if (srcObj ) plotObjs.push_back(srcObj);
+  if (destObj) plotObjs.push_back(destObj);
 
   return plotObjs;
 }
@@ -2780,6 +2780,7 @@ draw(PaintDevice *device) const
 
   auto *srcObj  = srcNode ->obj();
   auto *destObj = destNode->obj();
+  if (! srcObj || ! destObj) return;
 
   bool isSelf = (srcObj == destObj);
 
@@ -2963,6 +2964,7 @@ drawFg(PaintDevice *device) const
 
   auto *srcObj  = srcNode ->obj();
   auto *destObj = destNode->obj();
+  if (! srcObj || ! destObj) return;
 
   bool isSelf = (srcObj == destObj);
 
@@ -3047,10 +3049,17 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (! edge()->fillColor().isValid()) {
     if (plot()->isBlendEdgeColor()) {
-      auto fc1 = srcNode ->obj()->calcFillColor();
-      auto fc2 = destNode->obj()->calcFillColor();
+      auto *srcObj  = srcNode ->obj();
+      auto *destObj = destNode->obj();
 
-      fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+      if (srcObj && destObj) {
+        auto fc1 = srcObj ->calcFillColor();
+        auto fc2 = destObj->calcFillColor();
+
+        fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+      }
+      else
+        fc = plot()->interpEdgeFillColor(colorInd);
     }
     else
       fc = plot()->interpEdgeFillColor(colorInd);

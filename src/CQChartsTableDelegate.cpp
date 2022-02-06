@@ -360,7 +360,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
     bool ok;
     check->setChecked(CQChartsVariant::toBool(var, ok));
 
-    check->setText(check->isChecked() ? "true" : "false");
+    check->setText(CQChartsUtil::boolToString(check->isChecked()));
 
     check->setAutoFillBackground(true);
     //check->setLayoutDirection(Qt::RightToLeft);
@@ -455,8 +455,8 @@ drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
 
   rect1.setCoords(x, option.rect.top(), option.rect.right(), option.rect.bottom());
 
-  //painter->drawText(x, y, (checked ? "true" : "false"));
-  QItemDelegate::drawDisplay(painter, option, rect1, checked ? "true" : "false");
+  //painter->drawText(x, y, CQChartsUtil::boolToString(checked));
+  QItemDelegate::drawDisplay(painter, option, rect1, CQChartsUtil::boolToString(checked));
 }
 
 void
@@ -589,7 +589,7 @@ updateBoolean()
   auto *check = qobject_cast<QCheckBox *>(sender());
   assert(check);
 
-  check->setText(check->isChecked() ? "true" : "false");
+  check->setText(CQChartsUtil::boolToString(check->isChecked()));
 
   modelP()->setData(currentIndex_, check->isChecked());
 }

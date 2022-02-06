@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <future>
 
+struct CQChartsPenBrush;
+
 /*!
  * \brief box whisker
  * \ingroup Charts

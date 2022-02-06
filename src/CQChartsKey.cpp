@@ -812,10 +812,12 @@ CQChartsPlot *
 CQChartsPlotKey::
 drawPlot() const
 {
-  if (plot()->isComposite())
-    return dynamic_cast<CQChartsCompositePlot *>(plot())->currentPlot();
+  auto *drawPlot = plot();
 
-  return plot();
+  while (drawPlot && drawPlot->isComposite())
+    drawPlot = dynamic_cast<CQChartsCompositePlot *>(plot())->currentPlot();
+
+  return drawPlot;
 }
 
 bool

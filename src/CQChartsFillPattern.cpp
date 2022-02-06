@@ -43,13 +43,13 @@ toString() const
     auto name = palette().toString();
 
     if (name != "")
-      str += ",name=" + name;
+      str += ",palette=" + name;
   }
   else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
     auto name = image().toString();
 
     if (name != "")
-      str += ",name=" + name;
+      str += ",image=" + name;
   }
 
   if (altColor().isValid()) {
@@ -76,7 +76,7 @@ fromString(const QString &s)
 }
 
 // format:
-//   <typeStr>[, name=<dataStr>][, altColor=<altColor>][, altAlpha=<altAlpha>]
+//   <typeStr>[, palette=<palette>][, image=<image>][, altColor=<altColor>][, altAlpha=<altAlpha>]
 //            [, scale=<scale>][, angle=<angle>]
 bool
 CQChartsFillPattern::
@@ -104,10 +104,12 @@ setValue(const QString &s)
       auto name  = strs[i].mid(0, pos).trimmed();
       auto value = strs[i].mid(pos + 1).trimmed();
 
-      if      (name == "name") {
-        if      (type_ == Type::PALETTE)
+      if      (name == "palette") {
+        if (type_ == Type::PALETTE)
           palette_ = CQChartsPaletteName(value);
-        else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
+      }
+      else if (name == "image") {
+        if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
           image_ = CQChartsImage(value); // TODO
 
           if      (type_ == Type::TEXTURE)
@@ -144,21 +146,32 @@ stringToType(const QString &str)
 {
   auto ustr = str.toUpper();
 
-  if (ustr == "SOLID"     ) return Type::SOLID;
-  if (ustr == "HATCH"     ) return Type::HATCH;
-  if (ustr == "DENSE"     ) return Type::DENSE;
-  if (ustr == "HORIZ"     ) return Type::HORIZ;
-  if (ustr == "HORIZONTAL") return Type::HORIZ;
-  if (ustr == "VERT"      ) return Type::VERT;
-  if (ustr == "VERTICAL"  ) return Type::VERT;
-  if (ustr == "FDIAG"     ) return Type::FDIAG;
-  if (ustr == "BDIAG"     ) return Type::BDIAG;
-  if (ustr == "LGRADIENT" ) return Type::LGRADIENT;
-  if (ustr == "RGRADIENT" ) return Type::RGRADIENT;
-  if (ustr == "PALETTE"   ) return Type::PALETTE;
-  if (ustr == "IMAGE"     ) return Type::IMAGE;
-  if (ustr == "TEXTURE"   ) return Type::TEXTURE;
-  if (ustr == "MASK"      ) return Type::MASK;
+  if (ustr == "SOLID"      ) return Type::SOLID;
+  if (ustr == "HATCH"      ) return Type::HATCH;
+  if (ustr == "DENSE"      ) return Type::DENSE;
+  if (ustr == "HORIZ"      ) return Type::HORIZ;
+  if (ustr == "HORIZONTAL" ) return Type::HORIZ;
+  if (ustr == "VERT"       ) return Type::VERT;
+  if (ustr == "VERTICAL"   ) return Type::VERT;
+  if (ustr == "FDIAG"      ) return Type::FDIAG;
+  if (ustr == "BDIAG"      ) return Type::BDIAG;
+  if (ustr == "LGRADIENT"  ) return Type::LGRADIENT;
+  if (ustr == "RGRADIENT"  ) return Type::RGRADIENT;
+  if (ustr == "PALETTE"    ) return Type::PALETTE;
+  if (ustr == "IMAGE"      ) return Type::IMAGE;
+  if (ustr == "TEXTURE"    ) return Type::TEXTURE;
+  if (ustr == "MASK"       ) return Type::MASK;
+  if (ustr == "PHATCH"     ) return Type::PATTERN_HATCH;
+  if (ustr == "CROSS_HATCH") return Type::PATTERN_CROSS_HATCH;
+  if (ustr == "ZIG_ZAG"    ) return Type::PATTERN_ZIG_ZAG;
+  if (ustr == "DOTS"       ) return Type::PATTERN_DOTS;
+  if (ustr == "HEXAGONS"   ) return Type::PATTERN_HEXAGONS;
+  if (ustr == "CROSSES"    ) return Type::PATTERN_CROSSES;
+  if (ustr == "CAPS"       ) return Type::PATTERN_CAPS;
+  if (ustr == "WOVEN"      ) return Type::PATTERN_WOVEN;
+  if (ustr == "WAVES"      ) return Type::PATTERN_WAVES;
+  if (ustr == "NYLON"      ) return Type::PATTERN_NYLON;
+  if (ustr == "SQUARES"    ) return Type::PATTERN_SQUARES;
 
   return Type::NONE;
 }
@@ -168,20 +181,31 @@ CQChartsFillPattern::
 typeToString(const Type &type)
 {
   switch (type) {
-    case Type::SOLID:     return "SOLID";
-    case Type::HATCH:     return "HATCH";
-    case Type::DENSE:     return "DENSE";
-    case Type::HORIZ:     return "HORIZONTAL";
-    case Type::VERT :     return "VERTICAL";
-    case Type::FDIAG:     return "FDIAG";
-    case Type::BDIAG:     return "BDIAG";
-    case Type::LGRADIENT: return "LGRADIENT";
-    case Type::RGRADIENT: return "RGRADIENT";
-    case Type::PALETTE:   return "PALETTE";
-    case Type::IMAGE:     return "IMAGE";
-    case Type::TEXTURE:   return "TEXTURE";
-    case Type::MASK:      return "MASK";
-    default:              return "NONE";
+    case Type::SOLID:               return "SOLID";
+    case Type::HATCH:               return "HATCH";
+    case Type::DENSE:               return "DENSE";
+    case Type::HORIZ:               return "HORIZONTAL";
+    case Type::VERT :               return "VERTICAL";
+    case Type::FDIAG:               return "FDIAG";
+    case Type::BDIAG:               return "BDIAG";
+    case Type::LGRADIENT:           return "LGRADIENT";
+    case Type::RGRADIENT:           return "RGRADIENT";
+    case Type::PALETTE:             return "PALETTE";
+    case Type::IMAGE:               return "IMAGE";
+    case Type::TEXTURE:             return "TEXTURE";
+    case Type::MASK:                return "MASK";
+    case Type::PATTERN_HATCH:       return "PHATCH";
+    case Type::PATTERN_CROSS_HATCH: return "CROSS_HATCH";
+    case Type::PATTERN_ZIG_ZAG:     return "ZIG_ZAG";
+    case Type::PATTERN_DOTS:        return "DOTS";
+    case Type::PATTERN_HEXAGONS:    return "HEXAGONS";
+    case Type::PATTERN_CROSSES:     return "CROSSES";
+    case Type::PATTERN_CAPS:        return "CAPS";
+    case Type::PATTERN_WOVEN:       return "WOVEN";
+    case Type::PATTERN_WAVES:       return "WAVES";
+    case Type::PATTERN_NYLON:       return "NYLON";
+    case Type::PATTERN_SQUARES:     return "SQUARES";
+    default:                        return "NONE";
   }
 }
 
@@ -232,7 +256,9 @@ enumNames() const
 {
   static auto names = QStringList() <<
     "SOLID" << "HATCH" << "DENSE" << "HORIZONTAL" << "VERTICAL" << "FDIAG" << "BDIAG" <<
-    "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE" << "TEXTURE" << "MASK";
+    "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE" << "TEXTURE" << "MASK" <<
+    "PHATCH" << "CROSS_HATCH" << "ZIG_ZAG" << "DOTS" << "HEXAGONS" << "CROSSES" <<
+    "CAPS" << "WOVEN" << "WAVES" << "NYLON" << "SQUARES";
 
   return names;
 }

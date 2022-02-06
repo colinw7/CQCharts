@@ -3,13 +3,13 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsData.h>
-#include <CQChartsDrawUtil.h>
 #include <CQStatData.h>
 
 #include <QObject>
 #include <vector>
 
 class CQChartsPlot;
+class CQChartsPaintDevice;
 
 //! whisker options
 struct CQChartsWhiskerOpts {

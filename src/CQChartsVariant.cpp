@@ -339,8 +339,8 @@ bool toBool(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::String) {
     auto str = var.toString();
 
-    if (str == "yes" || str == "true"  || str == "1") return true;
-    if (str == "no"  || str == "false" || str == "0") return false;
+    bool b = CQChartsUtil::stringToBool(str, &ok);
+    if (ok) return b;
   }
 
   ok = false;

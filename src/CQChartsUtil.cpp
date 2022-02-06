@@ -3,6 +3,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 
 #include <CQColors.h>
@@ -1510,6 +1511,11 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       image.setText("altAlpha", pattern.altAlpha().toString());
 
       brush.setTextureImage(image);
+    }
+    // Custom Patterns
+    else if (int(pattern.type()) >= int(FillPattern::Type::PATTERN_HATCH) &&
+             int(pattern.type()) <= int(FillPattern::Type::PATTERN_SQUARES)) {
+      brush.setColor(color);
     }
     // SOLID, HATCH, DENSE, HORIZ, VERT, FDIAG, BDIAG
     else {

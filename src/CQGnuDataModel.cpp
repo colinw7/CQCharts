@@ -92,7 +92,7 @@ load(const QString &filename)
       if (cpos >= 0) {
         cpos += comment.length();
 
-        line1 = line1.mid(cpos).simplified();
+        line1 = line1.mid(cpos).trimmed();
 
         setHeader = commentHeader;
       }
@@ -185,9 +185,9 @@ load(const QString &filename)
         }
         else {
           if (pline.isString(comment)) {
-            line1 = pline.getAt(0, pline.getPos()).simplified();
+            line1 = pline.getAt(0, pline.getPos()).trimmed();
 
-            auto cstr = pline.getAt(pline.getPos() + comment.length()).simplified();
+            auto cstr = pline.getAt(pline.getPos() + comment.length()).trimmed();
 
             commentStrs_[setNum][subSetNum][lineNum] = cstr;
 

@@ -32,11 +32,6 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
   //---
 
-  bool isZoomFont() const { return zoomFont_; }
-  void setZoomFont(bool b) { zoomFont_ = b; }
-
-  //---
-
   // hand draw
 
   bool isHandDrawn() const { return handDrawn_; }
@@ -70,6 +65,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setAltAlpha(double alpha) override;
 
   void setFillAngle(double a) override;
+  void setFillType(CQChartsFillPattern::Type t) override;
 
   void fillPath  (const QPainterPath &path, const QBrush &brush) override;
   void strokePath(const QPainterPath &path, const QPen &pen) override;
@@ -116,18 +112,18 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   bool adjustFillBrush(const QBrush &brush, const BBox &bbox, QBrush &brush1) const;
 
  private:
-  QPainter*           painter_       { nullptr };
-  BBox                clipRect_;
-  QPainterPath        clipPath_;
-  QColor              altColor_;
-  double              altAlpha_      { 1.0 };
-  QFont               font_;
-  bool                zoomFont_      { false };
-  bool                handDrawn_     { false };
-  int                 saveDepth_     { 0 };
-  double              handRoughness_ { 1.0 };
-  double              handFillDelta_ { 16.0 };
-  CQHandDrawnPainter* hdPainter_     { nullptr };
+  QPainter*                 painter_       { nullptr };
+  BBox                      clipRect_;
+  QPainterPath              clipPath_;
+  QColor                    altColor_;
+  double                    altAlpha_      { 1.0 };
+  QFont                     font_;
+  bool                      handDrawn_     { false };
+  int                       saveDepth_     { 0 };
+  double                    handRoughness_ { 1.0 };
+  double                    handFillDelta_ { 16.0 };
+  CQHandDrawnPainter*       hdPainter_     { nullptr };
+  CQChartsFillPattern::Type fillType_      { CQChartsFillPattern::Type::NONE };
 };
 
 //---

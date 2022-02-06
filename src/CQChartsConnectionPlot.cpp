@@ -685,7 +685,7 @@ initLinkObjs() const
         }
       }
       else {
-        linkConnectionData.groupData = GroupData("", data.row, numRows());
+        linkConnectionData.groupData = GroupData(QVariant(), data.row, numRows());
       }
 
       //---
@@ -820,7 +820,7 @@ initConnectionObjs() const
           return addDataError(connectionsData.groupModelInd, "Invalid group value");
       }
       else {
-        groupData = GroupData("", data.row, numRows());
+        groupData = GroupData(QVariant(), data.row, numRows());
       }
 
       connectionsData.groupData = groupData;
@@ -1219,7 +1219,7 @@ initFromToObjs() const
           return addDataError(groupModelInd, "Invalid group value");
       }
       else {
-        fromToData.groupData = GroupData("", data.row, numRows());
+        fromToData.groupData = GroupData(QVariant(), data.row, numRows());
       }
 
       //---

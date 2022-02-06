@@ -53,11 +53,15 @@ QString
 CQChartsStripPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Strip Plot").
     h3("Summary").
      p("A strip plot is a scatter plot of value in the value column and position column "
-       "grouped by unique values in the name column.");
+       "grouped by unique values in the name column.").
+    h3("Example").
+     p(IMG("images/strip_plot.png"));
 }
 
 void

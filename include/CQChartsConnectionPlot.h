@@ -264,6 +264,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     bool isValid() const { return (ng > 0 && ig >= 0 && ig < ng); }
 
     double ivalue() const { return (isValid() ? double(ig)/ng : 0.0); }
+
+    bool isNull() const { return value.isNull(); }
   };
 
   //---

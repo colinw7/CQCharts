@@ -210,6 +210,8 @@ init()
   //---
 
   registerSlot("set_mode"     , QStringList() << "string");
+  registerSlot("fit"          , QStringList());
+  registerSlot("zoom_full"    , QStringList());
   registerSlot("show_table"   , QStringList() << "bool");
   registerSlot("show_settings", QStringList() << "bool");
 }
@@ -1057,8 +1059,6 @@ CQChartsView::
 rulerModeSlot()
 {
   setMode(Mode::RULER);
-
-  clearRulerSlot();
 }
 
 void
@@ -1091,6 +1091,8 @@ setMode(const Mode &mode)
     }
     else
       deselectAll();
+
+    clearRulerSlot();
 
     emit modeChanged();
   } );
@@ -4369,7 +4371,8 @@ void
 CQChartsView::
 doResize(int w, int h)
 {
-  lockPainter(true);
+  if (! lockPainter(true))
+    return;
 
   //---
 
@@ -4600,7 +4603,8 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  lockPainter(true);
+  if (! lockPainter(true))
+    return;
 
   paint(ipainter_);
 
@@ -5068,16 +5072,22 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
   }
 }
 
-void
+bool
 CQChartsView::
 lockPainter(bool lock)
 {
-  if (lock)
+  if (lock) {
+    //if (painterLocked_)
+    //  return false;
+
     painterMutex_.lock();
+  }
   else
     painterMutex_.unlock();
 
-  painterLocked_ = lock;
+  //painterLocked_ = lock;
+
+  return true;
 }
 
 //-----
@@ -5115,6 +5125,19 @@ CQChartsView::
 setBrush(PenBrush &penBrush, const BrushData &brushData) const
 {
   CQChartsDrawUtil::setBrush(penBrush.brush, brushData);
+
+  if (brushData.pattern().altColor().isValid())
+    penBrush.altColor = brushData.pattern().altColor().color();
+  else
+    penBrush.altColor = QColor(Qt::transparent);
+
+  if (brushData.pattern().altAlpha().isSet())
+    penBrush.altAlpha = brushData.pattern().altAlpha().value();
+  else
+    penBrush.altAlpha = 1.0;
+
+  penBrush.fillAngle = brushData.pattern().angle().degrees();
+  penBrush.fillType  = brushData.pattern().type();
 }
 
 //------
@@ -8849,6 +8872,10 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
     else if (modeStr == "ruler"   ) setMode(Mode::RULER);
     else { std::cerr << "Invalid mode '" << modeStr.toStdString() << "'\n"; return false; }
   }
+  else if (name == "fit")
+    fitSlot();
+  else if (name == "zoom_full")
+    zoomFullSlot();
   else if (name == "show_table")
     setShowTable(CQChartsVariant::toBool(args[0], ok));
   else if (name == "show_settings")

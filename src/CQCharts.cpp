@@ -89,6 +89,7 @@
 #include <CQChartsTitleLocationEdit.h>
 #include <CQChartsUnitsEdit.h>
 
+#include <CQChartsOptBoolEdit.h>
 #include <CQChartsOptIntEdit.h>
 #include <CQChartsOptRealEdit.h>
 #include <CQChartsOptStringEdit.h>
@@ -109,6 +110,7 @@
 #include <CQChartsObjRef.h>
 #include <CQChartsObjRefPos.h>
 
+#include <CQChartsOptBool.h>
 #include <CQChartsOptInt.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsOptString.h>
@@ -321,7 +323,7 @@ description()
      LI("Delaunay : Delaunay/Voronoi geometric connectivity chart" +
         IMG("images/delaunay.png")),
      LI("Dendrogram : Dendrogram plot" +
-        IMG("images/dendogram.png")),
+        IMG("images/dendrogram.png")),
      LI("Distribution : Distribution count of range based column values" +
         IMG("images/distribution.png")),
      LI("ForceDirected : Force directed connectivity chart" +
@@ -338,7 +340,7 @@ description()
         IMG("images/parallelplot.png")),
      LI("Pie : Pie chart" +
         IMG("images/piechart.png")),
-     LI("Pie : Pivot chart" +
+     LI("Pivot : Pivot chart" +
         IMG("images/pivot.png")),
      LI("Radar : Radar (polygon pie chart)" +
         IMG("images/radar.png")),
@@ -504,6 +506,7 @@ CQCharts()
   CQChartsUnits                 ::registerMetaType();
   CQChartsWidget                ::registerMetaType();
 
+  CQChartsOptBool    ::registerMetaType();
   CQChartsOptInt     ::registerMetaType();
   CQChartsOptLength  ::registerMetaType();
   CQChartsOptPosition::registerMetaType();
@@ -690,6 +693,7 @@ init()
     viewMgr->addTypeT<CQChartsTextDataPropertyViewType        >("CQChartsTextData"        );
     viewMgr->addTypeT<CQChartsUnitsPropertyViewType           >("CQChartsUnits"           );
 
+    viewMgr->addTypeT<CQChartsOptBoolPropertyViewType    >("CQChartsOptBool"    );
     viewMgr->addTypeT<CQChartsOptIntPropertyViewType     >("CQChartsOptInt"     );
     viewMgr->addTypeT<CQChartsOptRealPropertyViewType    >("CQChartsOptReal"    );
     viewMgr->addTypeT<CQChartsOptStringPropertyViewType  >("CQChartsOptString"  );

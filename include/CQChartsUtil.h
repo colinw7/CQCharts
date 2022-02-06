@@ -7,7 +7,8 @@
 #include <CQChartsTypes.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsNameValues.h>
-#include <CQChartsDrawUtil.h>
+#include <CQChartsLineCap.h>
+#include <CQChartsLineJoin.h>
 #include <CMathUtil.h>
 
 #include <QVariant>
@@ -231,6 +232,10 @@ inline bool stringToBool(const QString &str, bool *ok) {
   *ok = false;
 
   return false;
+}
+
+inline QString boolToString(bool b) {
+  return (b ? "true" : "false");
 }
 
 //---

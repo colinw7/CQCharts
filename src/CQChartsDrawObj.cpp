@@ -1,5 +1,6 @@
 #include <CQChartsDrawObj.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsUtil.h>
 
 CQChartsDrawObj::

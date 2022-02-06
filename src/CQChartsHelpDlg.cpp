@@ -4,6 +4,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsView.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsAnnotation.h>
 #include <CQChartsDocument.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -199,6 +200,18 @@ addItems()
 
   auto *annotationsItem = addTopItem("Annotations", "annotation_types");
   assert(annotationsItem);
+
+  auto atypes = CQChartsAnnotation::typeNames();
+
+  auto *viewAnnotations = addItem(annotationsItem, "View", "view_annotations");
+
+  for (const auto &type : atypes)
+    addItem(viewAnnotations, type, type + "annotation");
+
+  auto *plotAnnotations = addItem(annotationsItem, "Plot", "plot_annotations");
+
+  for (const auto &type : atypes)
+    addItem(plotAnnotations, type, type + "annotation");
 
   //---
 

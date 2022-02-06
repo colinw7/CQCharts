@@ -8,6 +8,8 @@
 #include <CQChartsAlpha.h>
 #include <CQChartsAngle.h>
 
+#include <CQFillTexture.h>
+
 /*!
  * \brief fill pattern
  * \ingroup Charts
@@ -28,6 +30,8 @@ class CQChartsFillPattern :
   public CQChartsEqBase<CQChartsFillPattern>,
   public CQChartsToStringBase<CQChartsFillPattern> {
  public:
+  enum PatternOffset { VALUE = 100 };
+
   enum class Type {
     NONE,
     SOLID,
@@ -42,7 +46,18 @@ class CQChartsFillPattern :
     PALETTE,
     IMAGE,
     TEXTURE,
-    MASK
+    MASK,
+    PATTERN_HATCH       = int(CQFillTexture::FillType::HATCH      ) + int(PatternOffset::VALUE),
+    PATTERN_CROSS_HATCH = int(CQFillTexture::FillType::CROSS_HATCH) + int(PatternOffset::VALUE),
+    PATTERN_ZIG_ZAG     = int(CQFillTexture::FillType::ZIG_ZAG    ) + int(PatternOffset::VALUE),
+    PATTERN_DOTS        = int(CQFillTexture::FillType::DOTS       ) + int(PatternOffset::VALUE),
+    PATTERN_HEXAGONS    = int(CQFillTexture::FillType::HEXAGONS   ) + int(PatternOffset::VALUE),
+    PATTERN_CROSSES     = int(CQFillTexture::FillType::CROSSES    ) + int(PatternOffset::VALUE),
+    PATTERN_CAPS        = int(CQFillTexture::FillType::CAPS       ) + int(PatternOffset::VALUE),
+    PATTERN_WOVEN       = int(CQFillTexture::FillType::WOVEN      ) + int(PatternOffset::VALUE),
+    PATTERN_WAVES       = int(CQFillTexture::FillType::WAVES      ) + int(PatternOffset::VALUE),
+    PATTERN_NYLON       = int(CQFillTexture::FillType::NYLON      ) + int(PatternOffset::VALUE),
+    PATTERN_SQUARES     = int(CQFillTexture::FillType::SQUARES    ) + int(PatternOffset::VALUE)
   };
 
  public:

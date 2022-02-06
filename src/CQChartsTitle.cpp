@@ -139,6 +139,9 @@ void
 CQChartsTitle::
 updateLocation()
 {
+  if (plot_->isComposite())
+    return;
+
   setBBox(BBox());
 
   // all overlay plots and annotation boxes

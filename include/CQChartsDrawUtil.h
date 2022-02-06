@@ -16,141 +16,32 @@
 #include <QFont>
 #include <QString>
 
-class CQChartsPaintDevice;
-
-/*!
- * \brief Pen/Brush Data
- * \ingroup Charts
- */
-struct CQChartsPenBrush {
-  QPen   pen;
-  QBrush brush;
-  QColor altColor;
-  double altAlpha  { 1.0 };
-  double fillAngle { 45 };
-
-  CQChartsPenBrush() = default;
-
-  CQChartsPenBrush(const QPen &pen, const QBrush &brush) :
-   pen(pen), brush(brush) {
-  }
-};
+class  CQChartsPaintDevice;
+struct CQChartsPenBrush;
+class  CQChartsBrushData;
 
 //---
 
-/*!
- * \brief Pen Data
- *
- * visible, color, alpha, width, dash
- */
-class CQChartsPenData {
- public:
-  using Alpha    = CQChartsAlpha;
-  using Length   = CQChartsLength;
-  using LineDash = CQChartsLineDash;
-  using LineCap  = CQChartsLineCap;
-  using LineJoin = CQChartsLineJoin;
+namespace CQChartsDrawUtil {
 
- public:
-  CQChartsPenData() = default;
+inline double *scaledFontSizeP() {
+  static double scaledFontSize { -1 };
 
-  explicit CQChartsPenData(bool visible, const QColor &color=QColor(), const Alpha &alpha=Alpha(),
-                           const Length &width=Length(), const LineDash &dash=LineDash(),
-                           const LineCap &lineCap=LineCap(), const LineJoin &lineJoin=LineJoin()) :
-   visible_(visible), color_(color), alpha_(alpha), width_(width),
-   dash_(dash), lineCap_(lineCap), lineJoin_(lineJoin) {
-  }
+  return &scaledFontSize;
+}
 
-  CQChartsPenData(bool visible, const QColor &color, const CQChartsStrokeData &strokeData) :
-   visible_(visible), color_(color), alpha_(strokeData.alpha()), width_(strokeData.width()),
-   dash_(strokeData.dash()) {
-  }
+inline void resetScaledFontSize() { *scaledFontSizeP() = -1; }
 
-  //---
+inline double scaledFontSize() { return *scaledFontSizeP(); }
 
-  //! get/set visible
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; }
+inline void updateScaledFontSize(double s) {
+  if (*scaledFontSizeP() < 0)
+    *scaledFontSizeP() = s;
+  else
+    *scaledFontSizeP() = std::min(*scaledFontSizeP(), s);
+}
 
-  //! get/set color
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
-
-  //! get/set alpha
-  const Alpha &alpha() const { return alpha_; }
-  void setAlpha(const Alpha &a) { alpha_ = a; }
-
-  //! get/set width
-  const Length &width() const { return width_; }
-  void setWidth(const Length &v) { width_ = v; }
-
-  //! get/set line dash
-  const LineDash &dash() const { return dash_; }
-  void setDash(const LineDash &v) { dash_ = v; }
-
-  //! get/set line cap
-  const LineCap &lineCap() const { return lineCap_; }
-  void setLineCap(const LineCap &c) { lineCap_ = c; }
-
-  //! get/set line join
-  const LineJoin &lineJoin() const { return lineJoin_; }
-  void setLineJoin(const LineJoin &j) { lineJoin_ = j; }
-
- private:
-  bool     visible_  { true };  //!< visible
-  QColor   color_;              //!< pen color
-  Alpha    alpha_;              //!< pen alpha
-  Length   width_    { "0px" }; //!< pen width
-  LineDash dash_;               //!< pen line dash
-  LineCap  lineCap_;            //!< pen line cap
-  LineJoin lineJoin_;           //!< pen line join
-};
-
-//---
-
-/*!
- * \brief Brush Data
- *
- * visible, color, alpha, pattern
- */
-class CQChartsBrushData {
- public:
-  using Alpha       = CQChartsAlpha;
-  using FillPattern = CQChartsFillPattern;
-
- public:
-  CQChartsBrushData() = default;
-
-  explicit CQChartsBrushData(bool visible, const QColor &color=QColor(),
-                             const Alpha &alpha=Alpha(),
-                             const FillPattern &pattern=FillPattern::makeSolid()) :
-   visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
-  }
-
-  CQChartsBrushData(bool visible, const QColor &color, const CQChartsFillData &fillData) :
-   visible_(visible), color_(color), alpha_(fillData.alpha()), pattern_(fillData.pattern()) {
-  }
-
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; }
-
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
-
-  const Alpha &alpha() const { return alpha_; }
-  void setAlpha(const Alpha &a) { alpha_ = a; }
-
-  const FillPattern &pattern() const { return pattern_; }
-  void setPattern(const FillPattern &v) { pattern_ = v; }
-
-  //---
-
- private:
-  bool        visible_ { true };                     //!< visible
-  QColor      color_;                                //!< fill color
-  Alpha       alpha_;                                //!< fill alpha
-  FillPattern pattern_ { FillPattern::Type::SOLID }; //!< fill pattern
-};
+}
 
 //---
 
@@ -251,12 +142,7 @@ using Angle       = CQChartsAngle;
 using BBox        = CQChartsGeom::BBox;
 using Size        = CQChartsGeom::Size;
 using Point       = CQChartsGeom::Point;
-
-enum EdgeType {
-  ARC,
-  RECTILINEAR,
-  LINE
-};
+using EdgeType    = CQChartsEdgeType;
 
 void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
                  const Length &lineWidth, bool horizontal,

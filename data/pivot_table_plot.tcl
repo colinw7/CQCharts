@@ -1,5 +1,5 @@
 proc objPressed { view plot id } {
-  #echo "$view $plot $id"
+  echo "$view $plot $id"
 
   set rows [get_charts_data -plot $plot -object $id -name rows]
 
@@ -8,7 +8,9 @@ proc objPressed { view plot id } {
   set_charts_property -plot $::plot2 -name options.mode    -value ROWS
   set_charts_property -plot $::plot2 -name options.rowNums -value $rows
 
-  set_charts_data -plot $::plot2 -name zoom_full -value 1
+  #execute_charts_slot -view $view -name zoom_full
+  execute_charts_slot -plot $plot -name zoom_full
+  #set_charts_data -plot $::plot2 -name zoom_full -value 1
 }
 
 # Name,Party,Province,Age,Gender

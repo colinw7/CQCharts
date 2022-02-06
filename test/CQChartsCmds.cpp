@@ -5955,7 +5955,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
        "models" << "views" << "plot_types" << "plots" << "annotations" << "current_model" <<
        "column_types" << "column_type.names" << "column_type.descs" << "annotation_types" <<
        "symbols" << "procs" << "proc_data" << "role_names" << "path_list" << "view_key" <<
-       "max_symbol_size" << "max_font_size" << "max_line_width";
+       "max_symbol_size" << "max_font_size" << "max_line_width" << "pattern_names";
       return names;
     }
   }
@@ -7006,6 +7006,9 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "max_line_width") {
       return cmdBase_->setCmdRc(charts->maxLineWidth());
     }
+    else if (name == "pattern_names") {
+      return cmdBase_->setCmdRc(CQChartsFillPattern().enumNames());
+    }
     else if (name == "?") {
       NameValueMap nameValues;
 
@@ -7269,7 +7272,7 @@ execCmd(CQChartsCmdArgs &argv)
       view->setScriptSelectProc(value);
     }
     else if (name == "?") {
-      static auto names = QStringList() << "fit";
+      static auto names = QStringList() << "fit" << "zoom_full" << "script_select_proc";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -7358,7 +7361,8 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // plot object property
     else if (name == "?") {
-      static auto names = QStringList() << "updates_enabled" << "set_hidden";
+      static auto names = QStringList() << "fit" << "zoom_full" << "updates_enabled" <<
+        "set_hidden" << "select" << "model" << "tick_label";
       return cmdBase_->setCmdRc(names);
     }
     else

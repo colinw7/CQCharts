@@ -120,7 +120,7 @@ description() const
     h3("Limitations").
      p("None.").
     h3("Example").
-     p(IMG("images/dendogram.png"));
+     p(IMG("images/dendrogram.png"));
 }
 
 CQChartsPlot *

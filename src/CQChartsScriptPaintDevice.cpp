@@ -1,6 +1,7 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsUtil.h>
 #include <CQChartsImage.h>
+#include <CQChartsDrawUtil.h>
 #include <QBuffer>
 
 CQChartsScriptPaintDevice::

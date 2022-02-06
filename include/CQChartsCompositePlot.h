@@ -46,7 +46,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   Q_PROPERTY(CompositeType compositeType  READ compositeType  WRITE setCompositeType )
   Q_PROPERTY(bool          commonXRange   READ isCommonXRange WRITE setCommonXRange  )
   Q_PROPERTY(bool          commonYRange   READ isCommonYRange WRITE setCommonYRange  )
-  Q_PROPERTY(bool          currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(int           currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
 
   Q_ENUMS(CompositeType)
 
@@ -290,7 +290,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool isComposite() const override;
 
-  Plot *currentPlot() const;
+  Plot *currentPlot() const override;
+
   void setCurrentPlot(Plot *plot);
 
   //---
@@ -315,6 +316,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   int numChildPlots() const override;
   Plot *childPlot(int i) const override;
 
+  //! get/set current plot ind
   int currentPlotInd() const;
   void setCurrentPlotInd(int i);
 

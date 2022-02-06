@@ -815,7 +815,7 @@ updateWidgets()
   auto createBoolTableItem = [&](bool b) {
     auto *item = new CQTableWidgetBoolItem(table_, b);
 
-    item->setToolTip(b ? "true" : "false");
+    item->setToolTip(CQChartsUtil::boolToString(b));
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
     return item;
@@ -1001,7 +1001,7 @@ updateWidgets()
   auto createBoolTableItem = [&](bool b) {
     auto *item = new CQTableWidgetBoolItem(columnList_, b);
 
-    item->setToolTip(b ? "true" : "false");
+    item->setToolTip(CQChartsUtil::boolToString(b));
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
     return item;

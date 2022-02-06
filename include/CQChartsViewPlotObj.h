@@ -8,13 +8,15 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsTextOptions.h>
-#include <CQChartsDrawUtil.h>
 
-class CQChartsView;
-class CQChartsPlot;
-class CQChartsEditHandles;
-class CQChartsPaintDevice;
-class CQChartsObjRef;
+class  CQChartsView;
+class  CQChartsPlot;
+class  CQChartsEditHandles;
+class  CQChartsPaintDevice;
+class  CQChartsObjRef;
+struct CQChartsPenBrush;
+class  CQChartsPenData;
+class  CQChartsBrushData;
 
 /*!
  * \brief Object which could be on a view or a plot

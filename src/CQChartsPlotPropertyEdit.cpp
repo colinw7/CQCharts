@@ -254,7 +254,7 @@ createEditor()
     bool ok;
     check->setChecked(CQChartsVariant::toBool(var, ok));
 
-    check->setText(check->isChecked() ? "true" : "false");
+    check->setText(CQChartsUtil::boolToString(check->isChecked()));
 
     check->setAutoFillBackground(true);
   //check->setLayoutDirection(Qt::RightToLeft);
@@ -333,7 +333,7 @@ updateValue()
     auto *check = qobject_cast<QCheckBox *>(widget_);
     assert(check);
 
-    check->setText(check->isChecked() ? "true" : "false");
+    check->setText(CQChartsUtil::boolToString(check->isChecked()));
 
     var = (check->isChecked() ? "1" : "0");
   }

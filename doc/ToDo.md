@@ -4,8 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + composite plot broken ? (xy_nested_composite_tabs.tcl)
  + update documentation (more desc, missing images)
  + multiple y values in scatter to match xy (from/to ?)
+   + columns supports both single column and multiple column interface
  + more plot/view slots (remove hacks in get_charts_data)
  + quick filter object (select and filter)
  + remove all QVariant( and int QVariant for int

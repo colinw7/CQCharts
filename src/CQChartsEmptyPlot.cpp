@@ -24,16 +24,12 @@ QString
 CQChartsEmptyPlotType::
 description() const
 {
-  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
-
   return CQChartsHtml().
    h2("Empty Plot").
     h3("Summary").
-     p("Empty plot.").
+     p("Empty plot which can used to display custom data using annotations.").
     h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/empty_plot.png"));
+     p("None.");
 }
 
 CQChartsPlot *

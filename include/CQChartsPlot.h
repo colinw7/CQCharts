@@ -16,7 +16,6 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsColorStops.h>
 #include <CQChartsPaletteName.h>
-#include <CQChartsDrawUtil.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
 #include <CQChartsPlotModelVisitor.h>
@@ -277,6 +276,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // font
   Q_PROPERTY(CQChartsFont font       READ font       WRITE setFont)
   Q_PROPERTY(CQChartsFont tabbedFont READ tabbedFont WRITE setTabbedFont)
+  Q_PROPERTY(bool         zoomText   READ isZoomText WRITE setZoomText)
 
   // default palette
   Q_PROPERTY(CQChartsPaletteName defaultPalette READ defaultPalette WRITE setDefaultPalette)
@@ -723,16 +723,21 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // font
+  //! get/set font
   const Font &font() const { return font_; }
   virtual void setFont(const Font &f);
 
+  //! get Qt font
   QFont qfont() const;
   QFont qfont(const Font &font) const;
 
   //! get/set tabbed bar font
   void setTabbedFont(const Font &f);
   const Font &tabbedFont() const;
+
+  //! get/set zoom text
+  bool isZoomText() const { return zoomText_; }
+  void setZoomText(bool b);
 
   //---
 
@@ -960,6 +965,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual Plot *childPlot(int) const { return nullptr; }
 
   int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
+
+  virtual Plot *currentPlot() const { return const_cast<Plot *>(this); }
 
   //---
 
@@ -3539,6 +3546,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double maxScaleFontSize_ { 48.0 }; //!< max scaled font size
 
   Font tabbedFont_; //!< font for tab text
+
+  bool zoomText_ { true }; //!< zoom text
 
   // palette
   PaletteName defaultPalette_; //!< default palette

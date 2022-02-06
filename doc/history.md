@@ -1363,3 +1363,8 @@
  + Add view slots
  + Fix hide data table when tabbed
  + Rename dot plot to graphviz. Add support for all placement types
+# 2/6/2022
+ + Add group support for graphviz plot
+ + Add missing plot images for docs
+ + Add support for custom fill patterns
+ + Support zoom text on all plots

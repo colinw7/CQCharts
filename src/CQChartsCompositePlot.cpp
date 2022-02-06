@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
@@ -1279,6 +1280,9 @@ void
 CQChartsCompositePlot::
 drawTitle(PaintDevice *device) const
 {
+  if (! title()->isVisible())
+    return;
+
   auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
 
   // for tabbed draw title for current plot
@@ -1294,7 +1298,7 @@ drawTitle(PaintDevice *device) const
   // otherwise draw on first visible plot
   else {
     for (auto &plot : plots_) {
-      if (! plot->isVisible())
+      if (! plot->isVisible() || ! plot->title()->isVisible())
         continue;
 
       CQChartsPlotPaintDevice device1(plot, painter);

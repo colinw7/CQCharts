@@ -4,7 +4,12 @@
 #include <CQChartsData.h>
 #include <CQChartsInvalidator.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPenBrush.h>
+#include <CQChartsBrushData.h>
+#include <CQChartsPenData.h>
 #include <CQChartsUtil.h>
+
+class CQChartsPenData;
 
 #define CQCHARTS_LINE_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsLineData lineData READ lineData WRITE setLineData) \

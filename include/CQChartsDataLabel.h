@@ -23,16 +23,18 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_ENUMS(Position)
 
  public:
+  using LabelPosition = CQChartsLabelPosition;
+
   enum class Position {
-    TOP_INSIDE     = int(CQChartsLabelPosition::TOP_INSIDE),
-    TOP_OUTSIDE    = int(CQChartsLabelPosition::TOP_OUTSIDE),
-    CENTER         = int(CQChartsLabelPosition::CENTER),
-    BOTTOM_INSIDE  = int(CQChartsLabelPosition::BOTTOM_INSIDE),
-    BOTTOM_OUTSIDE = int(CQChartsLabelPosition::BOTTOM_OUTSIDE),
-    LEFT_INSIDE    = int(CQChartsLabelPosition::LEFT_INSIDE),
-    LEFT_OUTSIDE   = int(CQChartsLabelPosition::LEFT_OUTSIDE),
-    RIGHT_INSIDE   = int(CQChartsLabelPosition::RIGHT_INSIDE),
-    RIGHT_OUTSIDE  = int(CQChartsLabelPosition::RIGHT_OUTSIDE)
+    TOP_INSIDE     = int(LabelPosition::TOP_INSIDE),
+    TOP_OUTSIDE    = int(LabelPosition::TOP_OUTSIDE),
+    CENTER         = int(LabelPosition::CENTER),
+    BOTTOM_INSIDE  = int(LabelPosition::BOTTOM_INSIDE),
+    BOTTOM_OUTSIDE = int(LabelPosition::BOTTOM_OUTSIDE),
+    LEFT_INSIDE    = int(LabelPosition::LEFT_INSIDE),
+    LEFT_OUTSIDE   = int(LabelPosition::LEFT_OUTSIDE),
+    RIGHT_INSIDE   = int(LabelPosition::RIGHT_INSIDE),
+    RIGHT_OUTSIDE  = int(LabelPosition::RIGHT_OUTSIDE)
   };
 
   using Plot        = CQChartsPlot;
@@ -107,8 +109,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     }
   }
 
-  static CQChartsLabelPosition flipPosition(const CQChartsLabelPosition &position) {
-    return static_cast<CQChartsLabelPosition>(flipPosition(static_cast<Position>(position)));
+  static LabelPosition flipPosition(const LabelPosition &position) {
+    return static_cast<LabelPosition>(flipPosition(static_cast<Position>(position)));
   }
 
   //--

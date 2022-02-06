@@ -780,7 +780,7 @@ class CQChartsView : public QFrame,
 
   void drawKey(PaintDevice *device, const Layer::Type &layerType);
 
-  void lockPainter(bool lock);
+  bool lockPainter(bool lock);
 
   //---
 

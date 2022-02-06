@@ -1,4 +1,6 @@
 #include <CQChartsTextPlacer.h>
+#include <CQChartsDrawUtil.h>
+#include <CQChartsPenBrush.h>
 
 CQChartsTextPlacer::
 CQChartsTextPlacer()

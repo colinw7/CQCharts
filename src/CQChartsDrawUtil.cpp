@@ -19,6 +19,7 @@ setPenBrush(PaintDevice *device, const PenBrush &penBrush)
   device->setAltColor (penBrush.altColor);
   device->setAltAlpha (penBrush.altAlpha);
   device->setFillAngle(penBrush.fillAngle);
+  device->setFillType (penBrush.fillType);
 }
 
 void
@@ -389,8 +390,15 @@ drawStringsInBox(PaintDevice *device, const BBox &rect,
     }
 
     // scale font
+    updateScaledFontSize(s);
+
+    bool zoomFont = device->isZoomFont();
+    device->setZoomFont(false);
+
     device->setFont(CQChartsUtil::scaleFontSize(
       device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
+
+    device->setZoomFont(zoomFont);
 
     fm = QFontMetricsF(device->font());
 
@@ -786,6 +794,9 @@ drawCenteredText(PaintDevice *device, const Point &pos, const QString &text)
 void
 drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 {
+  if (device->isNull())
+    return;
+
   device->drawText(pos, text);
 }
 
@@ -2032,7 +2043,14 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
   //---
 
   // scale font
+  CQChartsDrawUtil::updateScaledFontSize(s);
+
+  bool zoomFont = device->isZoomFont();
+  device->setZoomFont(false);
+
   device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
+
+  device->setZoomFont(zoomFont);
 
   //---
 

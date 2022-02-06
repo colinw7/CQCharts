@@ -4,17 +4,19 @@
 #include <CQChartsObj.h>
 #include <CQChartsGeom.h>
 #include <CQChartsArcData.h>
-#include <CQChartsDrawUtil.h>
 #include <CQChartsModelIndex.h>
+#include <CQChartsPenBrush.h>
+#include <CQChartsOptBool.h>
 #include <set>
 
-class  CQChartsPlot;
-struct CQChartsPenBrush;
-class  CQChartsLength;
-class  CQChartsPaintDevice;
-class  CQChartsScriptPaintDevice;
-class  CQPropertyViewModel;
-class  CQChartsEditHandles;
+class CQChartsPlot;
+class CQChartsLength;
+class CQChartsPaintDevice;
+class CQChartsScriptPaintDevice;
+class CQPropertyViewModel;
+class CQChartsEditHandles;
+class CQChartsBrushData;
+class CQChartsPenData;
 
 /*!
  * \brief Plot Object base class
@@ -34,10 +36,10 @@ class CQChartsPlotObj : public CQChartsObj,
  public CQChartsSelectableIFace, public CQChartsEditableIFace {
   Q_OBJECT
 
-  Q_PROPERTY(QString    typeName   READ typeName  )
-  Q_PROPERTY(DetailHint detailHint READ detailHint)
-  Q_PROPERTY(DrawLayer  drawLayer  READ drawLayer )
-  Q_PROPERTY(bool       zoomText   READ isZoomText WRITE setZoomText)
+  Q_PROPERTY(QString         typeName   READ typeName  )
+  Q_PROPERTY(DetailHint      detailHint READ detailHint)
+  Q_PROPERTY(DrawLayer       drawLayer  READ drawLayer )
+  Q_PROPERTY(CQChartsOptBool zoomText   READ isZoomText WRITE setZoomText)
 
   Q_ENUMS(DetailHint)
   Q_ENUMS(DrawLayer)
@@ -68,6 +70,7 @@ class CQChartsPlotObj : public CQChartsObj,
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
   using EditHandles   = CQChartsEditHandles;
+  using OptBool       = CQChartsOptBool;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -125,8 +128,8 @@ class CQChartsPlotObj : public CQChartsObj,
   //---
 
   //! get/set zoom text
-  bool isZoomText() const { return zoomText_; }
-  void setZoomText(bool b) { zoomText_ = b; }
+  const OptBool &isZoomText() const { return zoomText_; }
+  void setZoomText(const OptBool &b) { zoomText_ = b; }
 
   //---
 
@@ -335,7 +338,7 @@ class CQChartsPlotObj : public CQChartsObj,
   DetailHint       detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
   DrawLayer        drawLayer_   { DrawLayer::NONE };   //!< draw layer
   bool             filtered_    { false };             //!< is filtered
-  bool             zoomText_    { false };             //!< zoom object text
+  OptBool          zoomText_;                          //!< zoom object text
   ColorInd         is_;                                //!< set index
   ColorInd         ig_;                                //!< group index
   ColorInd         iv_;                                //!< value index

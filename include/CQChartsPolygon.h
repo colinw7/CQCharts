@@ -3,6 +3,7 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CQChartsUnits.h>
 #include <CQUtilMeta.h>
 
 #include <QString>

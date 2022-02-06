@@ -246,13 +246,6 @@ setEdgeLine(bool b)
 
 void
 CQChartsSankeyPlot::
-setZoomText(bool b)
-{
-  CQChartsUtil::testAndSet(zoomText_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsSankeyPlot::
 setOrientation(const Qt::Orientation &o)
 {
   CQChartsUtil::testAndSet(orientation_, o, [&]() { updateRangeAndObjs(); } );
@@ -428,7 +421,6 @@ addProperties()
 
   // options
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
-  addProp("options", "zoomText"    , "zoomText"    , "Scale text when zoom");
   addProp("options", "orientation" , "orientation" , "Plot orientation");
   addProp("options", "valueLabel"  , "valueLabel"  , "Draw node value as label");
 
@@ -1025,6 +1017,7 @@ addFromToValue(const FromToData &fromToData) const
 
   //---
 
+  // get node image
   auto *fromDetails = columnDetails(fromColumn());
 
   CQChartsImage fromImage;
@@ -1059,6 +1052,7 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
+    // get node image
     auto *toDetails = columnDetails(toColumn());
 
     CQChartsImage toImage;
@@ -1911,6 +1905,7 @@ createObjFromNode(Node *node) const
 
   nodeObj->setHierName(node->str());
 
+  // add model indices
   for (const auto &modelInd : node->modelInds())
     nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
@@ -2021,6 +2016,7 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
+  // add model indices
   for (const auto &modelInd : edge->modelInds())
     edgeObj->addModelInd(normalizedModelIndex(modelInd));
 
@@ -3933,7 +3929,6 @@ CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
   setDetailHint(DetailHint::MAJOR);
 
   setEditable(true);
-  setZoomText(plot->isZoomText());
 
   //---
 
@@ -4813,8 +4808,6 @@ CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
-
-  setZoomText(plot->isZoomText());
 
   if (edge->modelInd().isValid())
     setModelInd(edge->modelInd());

@@ -408,6 +408,8 @@ class CQChartsSankeyPlotEdge {
   //! get plot
   const Plot *plot() const { return plot_; }
 
+  //---
+
   //! get/set unique id
   int id() const { return id_; }
   void setId(int id) { id_ = id; }
@@ -441,7 +443,7 @@ class CQChartsSankeyPlotEdge {
 
   //---
 
-  //--- custom appearance
+  // -- custom appearance --
 
   //! get/set fill color
   const Color &fillColor() const { return color_; }
@@ -899,7 +901,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double          minNodeMargin READ minNodeMargin WRITE setMinNodeMargin)
   Q_PROPERTY(CQChartsLength  nodeWidth     READ nodeWidth     WRITE setNodeWidth    )
   Q_PROPERTY(bool            edgeLine      READ isEdgeLine    WRITE setEdgeLine     )
-  Q_PROPERTY(bool            zoomText      READ isZoomText    WRITE setZoomText     )
   Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
   Q_PROPERTY(bool            valueLabel    READ isValueLabel  WRITE setValueLabel   )
 
@@ -1078,10 +1079,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set edge line
   bool isEdgeLine() const { return edgeLine_; }
   void setEdgeLine(bool b);
-
-  //! get/set zoom text
-  bool isZoomText() const { return zoomText_; }
-  void setZoomText(bool b);
 
   //---
 
@@ -1452,7 +1449,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // options
   bool            edgeLine_    { false };          //!< draw line for edge
-  bool            zoomText_    { true };           //!< zoom text
   Qt::Orientation orientation_ { Qt::Horizontal }; //!< orientation
   bool            valueLabel_  { false };          //!< value label
 

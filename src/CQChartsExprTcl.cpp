@@ -168,10 +168,10 @@ setVar(const QString &name, int row, int column)
     createVar(name, var);
   }
   else if (name == "row" || name == "x") {
-    createVar(name, row);
+    createVar(name, row + 1); // rows are 1->N
   }
   else if (name == "column" || name == "col") {
-    createVar(name, column);
+    createVar(name, column + 1); // columns are 1->N
   }
   else if (name == "PI") {
     createVar(name, CQChartsVariant::fromReal(M_PI));

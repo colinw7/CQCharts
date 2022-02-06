@@ -203,7 +203,7 @@ setAltColor(const QColor &c)
 {
   altColor_ = c;
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->setAltColor(c);
 
   updateBackground();
@@ -215,7 +215,7 @@ setAltAlpha(double a)
 {
   altAlpha_ = a;
 
-  //if (handDrawn_)
+  //if (isHandDrawn())
   //  hdPainter_->setAltAlpha(a);
 
   updateBackground();
@@ -243,12 +243,19 @@ void
 CQChartsViewPlotPaintDevice::
 setFillAngle(double a)
 {
-  if (handDrawn_) {
+  if (isHandDrawn()) {
     if (a > 0.0)
       hdPainter_->setFillAngle(a);
     else
       hdPainter_->setFillAngle(45.0);
   }
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setFillType(CQChartsFillPattern::Type type)
+{
+  fillType_ = type;
 }
 
 void
@@ -262,7 +269,7 @@ fillPath(const QPainterPath &path, const QBrush &brush)
   if (adjustFillBrush(brush, BBox(ppath.boundingRect()), brush1))
     painter_->setBrushOrigin(ppath.boundingRect().topLeft());
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->fillPath(ppath, brush1);
   else
     painter_->fillPath(ppath, brush1);
@@ -274,7 +281,7 @@ strokePath(const QPainterPath &path, const QPen &pen)
 {
   auto ppath = windowToPixel(path);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->strokePath(ppath, pen);
   else
     painter_->strokePath(ppath, pen);
@@ -286,7 +293,7 @@ drawPath(const QPainterPath &path)
 {
   auto ppath = windowToPixel(path);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawPath(ppath);
   else
     painter_->drawPath(ppath);
@@ -305,7 +312,7 @@ fillRect(const BBox &bbox)
   if (adjustFillBrush(this->brush(), pbbox, brush1))
     painter_->setBrushOrigin(pbbox.qrect().topLeft());
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->fillRect(pbbox.qrect(), brush1);
   else
     painter_->fillRect(pbbox.qrect(), brush1);
@@ -340,6 +347,11 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
   QBitmap maskBitmap;
   bool    masked = false;
+
+  int depth = image1.depth();
+
+  if (depth < 24)
+    image1 = image1.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
   if      (imageType == "texture") {
     double ir = brush1.color().red  ();
@@ -475,8 +487,26 @@ drawRect(const BBox &bbox)
     painter_->setBrushOrigin(pbbox.qrect().topLeft());
   }
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawRect(pbbox.qrect());
+  else if (int(fillType_) >= int(CQChartsFillPattern::Type::PATTERN_HATCH) &&
+           int(fillType_) <= int(CQChartsFillPattern::Type::PATTERN_SQUARES)) {
+    int fillType1 = int(fillType_) - int(CQChartsFillPattern::PatternOffset::VALUE);
+
+    CQFillTexture texture;
+
+    texture.setFillType(static_cast<CQFillTexture::FillType>(fillType1));
+
+    texture.setBgColor (painter_->brush().color());
+    texture.setFgColor (painter_->pen().color());
+    texture.setAltColor(altColor_);
+
+    texture.setRadius(8);
+    texture.setDelta(4);
+    texture.setWidth(2);
+
+    texture.fillRect(painter_, pbbox.qrect());
+  }
   else
     painter_->drawRect(pbbox.qrect());
 }
@@ -490,7 +520,7 @@ drawEllipse(const BBox &bbox, const Angle &a)
   auto prect = pbbox.qrect();
   if (! prect.isValid()) return;
 
-  if (! handDrawn_ && a.isZero()) {
+  if (! isHandDrawn() && a.isZero()) {
     painter_->drawEllipse(prect);
   }
   else {
@@ -517,7 +547,7 @@ drawEllipse(const BBox &bbox, const Angle &a)
 
     path = windowToPixel(path1);
 
-    if (handDrawn_)
+    if (isHandDrawn())
       hdPainter_->drawPath(path);
     else
       painter_->drawPath(path);
@@ -534,7 +564,7 @@ drawArc(const BBox &rect, const Angle &a1, const Angle &a2)
   auto prect = pbbox.qrect();
   if (! prect.isValid()) return;
 
-  if (handDrawn_)
+  if (isHandDrawn())
     assert(false);
   else
     painter_->drawArc(prect, a1.value()*16, a2.value()*16);
@@ -547,7 +577,7 @@ drawPolygon(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawPolygon(ppoly.qpoly());
   else
     painter_->drawPolygon(ppoly.qpoly());
@@ -559,7 +589,7 @@ drawPolyline(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawPolyline(ppoly.qpoly());
   else
     painter_->drawPolyline(ppoly.qpoly());
@@ -572,7 +602,7 @@ drawLine(const Point &p1, const Point &p2)
   auto pp1 = windowToPixel(p1);
   auto pp2 = windowToPixel(p2);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawLine(pp1.qpoint(), pp2.qpoint());
   else
     painter_->drawLine(pp1.qpoint(), pp2.qpoint());
@@ -584,7 +614,7 @@ drawPoint(const Point &p)
 {
   auto pp = windowToPixel(p);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawPoint(pp.qpoint());
   else
     painter_->drawPoint(pp.qpoint());
@@ -596,7 +626,7 @@ drawText(const Point &p, const QString &text)
 {
   auto pp = windowToPixel(p);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawText(pp.qpoint(), text);
   else
     painter_->drawText(pp.qpoint(), text);
@@ -607,7 +637,7 @@ CQChartsViewPlotPaintDevice::
 drawTransformedText(const Point &p, const QString &text)
 {
   // NOTE: p is in pixels
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawText(p.qpoint(), text);
   else
     painter_->drawText(p.qpoint(), text);
@@ -662,7 +692,7 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle 
 
   auto qc = qrect.center();
 
-  auto *ipainter = (handDrawn_ ? const_cast<QPainter *>(hdPainter_->painter()) : painter_);
+  auto *ipainter = (isHandDrawn() ? const_cast<QPainter *>(hdPainter_->painter()) : painter_);
 
   if (! angle.isZero()) {
     ipainter->save();
@@ -675,7 +705,7 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle 
 
     ipainter->setTransform(t);
 
-    if (handDrawn_)
+    if (isHandDrawn())
       hdPainter_->drawImage(qrect, qimage);
     else
       ipainter->drawImage(qrect, qimage);
@@ -683,7 +713,7 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle 
     ipainter->restore();
   }
   else {
-    if (handDrawn_)
+    if (isHandDrawn())
       hdPainter_->drawImage(qrect, qimage);
     else
       ipainter->drawImage(qrect, qimage);
@@ -696,7 +726,7 @@ drawImage(const Point &p, const QImage &image)
 {
   auto pp = windowToPixel(p);
 
-  if (handDrawn_)
+  if (isHandDrawn())
     hdPainter_->drawImage(pp.qpoint(), image);
   else
     painter_->drawImage(pp.qpoint(), image);
@@ -717,11 +747,7 @@ CQChartsViewPlotPaintDevice::
 setFont(const QFont &f)
 {
   if (isZoomFont() && plot_) {
-    auto f1 = f;
-
-    auto ps = std::max(f.pointSizeF()*plot_->dataScale(), 1.0/72.0);
-
-    f1.setPointSizeF(ps);
+    auto f1 = CQChartsUtil::scaleFontSize(f, plot_->dataScale(), 1.0/72.0);
 
     if (painter_)
       painter_->setFont(f1);

@@ -8,6 +8,7 @@
 #include <boost/optional.hpp>
 
 class CQCharts;
+class CQChartsPaintDevice;
 
 /*!
  * \brief Charts object base class

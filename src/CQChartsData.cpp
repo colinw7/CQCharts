@@ -1,5 +1,6 @@
 #include <CQChartsData.h>
 #include <CQChartsNameValues.h>
+#include <CQChartsUtil.h>
 #include <CQPropertyView.h>
 #include <CQUtil.h>
 
@@ -852,8 +853,9 @@ nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible)
 
   auto lstr = name.toLower();
 
-  if (lstr == "yes" || lstr == "true"  || lstr == "1") { visible = true ; return true; }
-  if (lstr == "no"  || lstr == "false" || lstr == "0") { visible = false; return true; }
+  bool ok;
+  bool b = CQChartsUtil::stringToBool(lstr, &ok);
+  if (ok) { visible = b; return true; }
 
   if      (lstr == "triangle") type = CQChartsArrowData::HeadType::TRIANGLE;
   else if (lstr == "stealth" ) type = CQChartsArrowData::HeadType::STEALTH;

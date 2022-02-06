@@ -69,4 +69,10 @@ enum class CQChartsLabelPosition {
   RIGHT_OUTSIDE
 };
 
+enum class CQChartsEdgeType {
+  ARC,
+  RECTILINEAR,
+  LINE
+};
+
 #endif

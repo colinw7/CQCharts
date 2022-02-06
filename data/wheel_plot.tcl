@@ -61,14 +61,14 @@ foreach city $cities {
              {{Snow, Partially cloudy} {#FFFFFF}}
              {{Clear} {#DDDD80}}
             }} {named_images {
-             {{Partially cloudy} {svg:data/weather_cloudy.svg}}
-             {{Rain, Overcast} {svg:data/weather_rain.svg}}
-             {{Overcast} {svg:data/weather_overcast.svg}}
-             {{Rain, Partially cloudy} {svg:data/weather_rain.svg}}
-             {{Rain} {svg:data/weather_rain.svg}}
-             {{Snow, Overcast} {svg:data/weather_snow.svg}}
-             {{Snow, Partially cloudy} {svg:data/weather_snow.svg}}
-             {{Clear} {svg:data/weather_clear.svg}}
+             {{Partially cloudy} {svg:pics/weather_cloudy.svg}}
+             {{Rain, Overcast} {svg:pics/weather_rain.svg}}
+             {{Overcast} {svg:pics/weather_overcast.svg}}
+             {{Rain, Partially cloudy} {svg:pics/weather_rain.svg}}
+             {{Rain} {svg:pics/weather_rain.svg}}
+             {{Snow, Overcast} {svg:pics/weather_snow.svg}}
+             {{Snow, Partially cloudy} {svg:pics/weather_snow.svg}}
+             {{Clear} {svg:pics/weather_clear.svg}}
             }}}
 
   # rename columns for shorter tip strings

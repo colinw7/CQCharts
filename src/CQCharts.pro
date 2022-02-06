@@ -195,6 +195,7 @@ CQChartsLineJoin.cpp \
 \
 CQChartsRotatedText.cpp \
 \
+CQChartsOptBool.cpp \
 CQChartsOptInt.cpp \
 CQChartsOptLength.cpp \
 CQChartsOptPosition.cpp \
@@ -314,6 +315,8 @@ CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
 CQChartsLineJoinEdit.cpp \
 CQChartsMarginEdit.cpp \
+\
+CQChartsOptBoolEdit.cpp \
 CQChartsOptIntEdit.cpp \
 CQChartsOptRealEdit.cpp \
 CQChartsOptPositionEdit.cpp \
@@ -321,6 +324,7 @@ CQChartsOptLengthEdit.cpp \
 CQChartsOptRectEdit.cpp \
 CQChartsOptStringEdit.cpp \
 CQChartsOptEdit.cpp \
+\
 CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
 CQChartsPositionEdit.cpp \
@@ -377,6 +381,7 @@ CQIntRangeSlider.cpp \
 CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
+CQFillTexture.cpp \
 CQCommand.cpp \
 CQFloatTip.cpp \
 CQWidgetTest.cpp \
@@ -640,6 +645,7 @@ HEADERS += \
 ../include/CQChartsArea.h \
 ../include/CQChartsUnits.h \
 \
+../include/CQChartsOptBool.h \
 ../include/CQChartsOptInt.h \
 ../include/CQChartsOptLength.h \
 ../include/CQChartsOptPosition.h \
@@ -690,6 +696,8 @@ HEADERS += \
 ../include/CQChartsLineEditBase.h \
 ../include/CQChartsLineJoinEdit.h \
 ../include/CQChartsMarginEdit.h \
+\
+../include/CQChartsOptBoolEdit.h \
 ../include/CQChartsOptIntEdit.h \
 ../include/CQChartsOptRealEdit.h \
 ../include/CQChartsOptPositionEdit.h \
@@ -697,6 +705,7 @@ HEADERS += \
 ../include/CQChartsOptRectEdit.h \
 ../include/CQChartsOptStringEdit.h \
 ../include/CQChartsOptEdit.h \
+\
 ../include/CQChartsPaletteNameEdit.h \
 ../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPositionEdit.h \
@@ -754,6 +763,7 @@ HEADERS += \
 \
 ../include/CUnixFile.h \
 \
+../include/CQFillTexture.h \
 ../include/CQCommand.h \
 ../include/CQFloatTip.h \
 ../include/CQWidgetTest.h \

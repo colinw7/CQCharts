@@ -1,8 +1,8 @@
 #ifndef CQChartsDrawObj_H
 #define CQChartsDrawObj_H
 
-#include <CQChartsDrawUtil.h>
 #include <CQChartsGeom.h>
+#include <CQChartsPenBrush.h>
 
 class CQChartsPaintDevice;
 

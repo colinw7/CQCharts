@@ -64,7 +64,7 @@ description() const
     h3("Limitations").
      p("Logaritmic axes are not supported.").
     h3("Example").
-     p(IMG("images/pivot_charts.png"));
+     p(IMG("images/pivot_plot.png"));
 }
 
 CQChartsPlot *
