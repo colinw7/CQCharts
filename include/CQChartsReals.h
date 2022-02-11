@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQUtilMeta.h>
+#include <CSafeIndex.h>
 
 #include <QString>
 #include <iostream>
@@ -37,10 +38,10 @@ class CQChartsReals :
     fromString(s);
   }
 
-  int numReals() const { return reals_.size(); }
+  int numReals() const { return int(reals_.size()); }
 
   const Reals &reals() const { return reals_; }
-  double real(int i) const { assert(i >= 0 && i < numReals()); return reals_[i]; }
+  double real(int i) const { return CUtil::safeIndex(reals_, i); }
 
   bool isValid() const { return true; }
 
@@ -57,12 +58,12 @@ class CQChartsReals :
   //---
 
   friend bool operator==(const CQChartsReals &lhs, const CQChartsReals &rhs) {
-    int nl = lhs.reals_.size();
-    int nr = rhs.reals_.size();
+    auto nl = lhs.reals_.size();
+    auto nr = rhs.reals_.size();
 
     if (nl != nr) return false;
 
-    for (int i = 0; i < nl; ++i) {
+    for (size_t i = 0; i < nl; ++i) {
       if (lhs.reals_[i] != rhs.reals_[i])
         return false;
     }

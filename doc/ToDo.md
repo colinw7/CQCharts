@@ -4,6 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + symbol keys -> point keys ?
+   + move broken, margin does not work (multiple margin properties of same name)
+ + follow model open/close for dendrogram hier model
+ + no axis plots default no data clip/no fill. Use plot as background
  + composite plot broken ? (xy_nested_composite_tabs.tcl)
  + update documentation (more desc, missing images)
  + multiple y values in scatter to match xy (from/to ?)

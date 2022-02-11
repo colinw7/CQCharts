@@ -65,11 +65,11 @@ CQChartsContour::
 setData(double *x, double *y, double *z, int numX, int numY)
 {
   // populate x and calc min/max
-  x_.resize(numX);
+  x_.resize(size_t(numX));
 
   xmin_ = x[0]; xmax_ = xmin_;
 
-  for (int i = 0; i < numX; i++) {
+  for (uint i = 0; i < uint(numX); i++) {
     x_[i] = x[i];
 
     xmin_ = std::min(xmin_, x[i]);
@@ -77,11 +77,11 @@ setData(double *x, double *y, double *z, int numX, int numY)
   }
 
   // populate y and calc min/max
-  y_.resize(numY);
+  y_.resize(size_t(numY));
 
   ymin_ = y[0]; ymax_ = ymin_;
 
-  for (int i = 0; i < numY; i++) {
+  for (uint i = 0; i < uint(numY); i++) {
     y_[i] = y[i];
 
     ymin_ = std::min(ymin_, y[i]);
@@ -91,11 +91,11 @@ setData(double *x, double *y, double *z, int numX, int numY)
   // populate z and calc min/max
   int numZ = numX*numY;
 
-  z_.resize(numZ);
+  z_.resize(size_t(numZ));
 
   zmin_ = z[0]; zmax_ = zmin_;
 
-  for (int i = 0; i < numZ; i++) {
+  for (uint i = 0; i < uint(numZ); i++) {
     z_[i] = z[i];
 
     zmin_ = std::min(zmin_, z[i]);
@@ -122,7 +122,7 @@ CQChartsContour::
 setContourLevels(const ContourLevels &levels)
 {
   levels_    = levels;
-  numLevels_ = levels_.size();
+  numLevels_ = int(levels_.size());
 }
 
 #if 0
@@ -181,7 +181,7 @@ drawContourLines(CQChartsPaintDevice *device)
   for (uint l = 0; l < levels.size(); l++) {
     double level = levels[l];
 
-    auto c = getLevelColor(l);
+    auto c = getLevelColor(int(l));
 
     if (c.isValid()) {
       device->setPen  (c);
@@ -194,8 +194,8 @@ drawContourLines(CQChartsPaintDevice *device)
 
       double xm = (xi1 + xi2)/2.0;
 
-      int i1 =  i     *y_.size();
-      int i2 = (i + 1)*y_.size();
+      uint i1 =  i     *uint(y_.size());
+      uint i2 = (i + 1)*uint(y_.size());
 
       for (uint j = 0; j < y_.size() - 1; j++) {
         double yj1 = y_[j + 0];
@@ -366,8 +366,8 @@ drawContourSolid(CQChartsPaintDevice *device)
     double x1 = x_[i + 0];
     double x2 = x_[i + 1];
 
-    int i1 =  i     *y_.size();
-    int i2 = (i + 1)*y_.size();
+    uint i1 =  i     *uint(y_.size());
+    uint i2 = (i + 1)*uint(y_.size());
 
     for (uint j = 0; j < y_.size() - 1; j++) {
       double y1 = y_[j + 0];
@@ -420,9 +420,9 @@ initLevels(ContourLevels &levels) const
       }
     }
 
-    levels.resize(numLevels);
+    levels.resize(size_t(numLevels));
 
-    for (int i = 0; i < numLevels; i++)
+    for (uint i = 0; i < uint(numLevels); i++)
       levels[i] = zmin + (1.0*i)*(zmax - zmin)/(numLevels - 1);
   }
 }
@@ -469,9 +469,9 @@ fillContourBox(CQChartsPaintDevice *device, double x1, double y1, double x2, dou
     l = 0;
   else if (z1 > levels[levels.size() - 1] && z2 > levels[levels.size() - 1] &&
            z3 > levels[levels.size() - 1] && z4 > levels[levels.size() - 1])
-    l = levels.size();
+    l = int(levels.size());
   else {
-    for (l = 1; l < int(levels.size()); l++) {
+    for (uint l = 1; l < uint(levels.size()); l++) {
       if (z1 >= levels[l - 1] && z2 >= levels[l - 1] &&
           z3 >= levels[l - 1] && z4 >= levels[l - 1] &&
           z1 <= levels[l    ] && z2 <= levels[l    ] &&

@@ -63,7 +63,7 @@ class CQChartsTreeMapPlace {
       if      (splitPos == 0)
         splitPos = 1;
       else if (splitPos >= int(iareas_.size()))
-        splitPos = iareas_.size() - 1;
+        splitPos = int(iareas_.size() - 1);
 
       for (auto &iarea : iareas_) {
         if (splitPos > 0)
@@ -158,7 +158,7 @@ class CQChartsTreeMapPlace {
   }
 
   void placeValues() {
-    int nv = values_.size();
+    int nv = int(values_.size());
     if (! nv) return;
 
     if (sum_ <= 0.0) return;
@@ -167,8 +167,8 @@ class CQChartsTreeMapPlace {
     double da = a/sum_;
 
     for (int i = 0; i < nv; ++i) {
-      double a1   = da*values_[i].value;
-      void*  data = values_[i].data;
+      double a1   = da*values_[size_t(i)].value;
+      void*  data =    values_[size_t(i)].data;
 
       iareas_.emplace_back(i, a1, data);
     }

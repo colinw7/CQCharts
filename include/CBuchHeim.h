@@ -1,6 +1,8 @@
 #ifndef CBuchHeim_H
 #define CBuchHeim_H
 
+#include <CSafeIndex.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -28,9 +30,9 @@ class Tree {
 
   const Children &children() const { return children_; }
 
-  int numChildren() const { return children_.size(); }
+  int numChildren() const { return int(children_.size()); }
 
-  Tree *child(int i) const { return children_[i].get(); }
+  Tree *child(int i) const { return CUtil::safeIndex(children_, i).get(); }
 
   Tree *addChild(TreeP tree);
 
@@ -79,9 +81,9 @@ class DrawTree {
 
   const Children &children() const { return children_; }
 
-  int numChildren() const { return children_.size(); }
+  int numChildren() const { return int(children_.size()); }
 
-  DrawTree *child(int i) const { return children_[i].get(); }
+  DrawTree *child(int i) const { return CUtil::safeIndex(children_, i).get(); }
 
   DrawTree *addChild(DrawTreeP tree);
 

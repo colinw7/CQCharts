@@ -405,11 +405,11 @@ void
 CQChartsModelData::
 removeSelectionModel(QItemSelectionModel *model)
 {
-  int i   = 0;
-  int len = selectionModels_.size();
+  size_t i   = 0;
+  auto   len = selectionModels_.size();
 
   for ( ; i < len; ++i) {
-    if (selectionModels_[i] == model)
+    if (selectionModels_[size_t(i)] == model)
       break;
   }
 
@@ -493,7 +493,7 @@ foldModel(const FoldData &foldData)
         if (! ok)
           continue;
 
-        column = CQChartsColumn(icolumn);
+        column = CQChartsColumn(int(icolumn));
       }
 
       //---
@@ -653,7 +653,7 @@ foldModel(const FoldData &foldData)
       if (! ok)
         return false;
 
-      column = CQChartsColumn(icolumn);
+      column = CQChartsColumn(int(icolumn));
     }
 
     auto *proxyModel = new QSortFilterProxyModel;
@@ -1924,7 +1924,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
 
   //---
 
-  auto *dataModel = new CQDataModel(nc + joinNc - joinColumns.size(), nr);
+  auto *dataModel = new CQDataModel(int(size_t(nc + joinNc) - joinColumns.size()), nr);
 
   //---
 
@@ -2055,7 +2055,7 @@ groupColumns(const Columns &groupColumns)
   //---
 
   // create new model
-  int ng = groupColumnSet.size();
+  int ng = int(groupColumnSet.size());
 
   auto *dataModel = new CQDataModel(nc - ng + 2, nr*ng);
 

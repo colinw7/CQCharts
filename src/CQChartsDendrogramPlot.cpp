@@ -767,11 +767,11 @@ placeCircular() const
           da = (*pa).second.da;
         }
 
-        int n = pnode->getChildren().size() + pnode->getNodes().size();
+        auto n = pnode->getChildren().size() + pnode->getNodes().size();
 
         if (n > 1) {
           a1  = a;
-          da1 = da/n;
+          da1 = da/double(n);
         }
         else {
           a1  = a + da/2.0;

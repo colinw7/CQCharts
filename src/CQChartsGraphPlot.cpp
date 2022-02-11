@@ -794,7 +794,7 @@ CQChartsGraphPlot::
 initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
+  int srcDepth = int(srcHierData.linkStrs.size());
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -818,7 +818,7 @@ CQChartsGraphPlot::
 initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
+  int srcDepth = int(srcHierData.linkStrs.size());
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -996,7 +996,7 @@ propagatePathValues()
       // propagate set node value up to source nodes
       if (node->hasValue()) {
         if (! node->srcEdges().empty()) {
-          //int ns = node->srcEdges().size();
+          //int ns = int(node->srcEdges().size());
 
           double value = node->value().realOr(1.0);
 
@@ -1326,9 +1326,9 @@ initTableObjs() const
 
   //---
 
-  int nv = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
     if (tableConnectionData.values().empty())
@@ -1403,7 +1403,7 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
     long n = CQChartsUtil::toInt(valueStr, ok);
 
     if (ok)
-      node->setNumSides(n);
+      node->setNumSides(int(n));
   }
   else if (name == "label") {
     node->setLabel(valueStr);
@@ -1743,7 +1743,7 @@ autoCreateGraphs() const
   LengthNodeNodeSets lengthNodeNodeSets;
 
   for (const auto &pn : nodeNodeSet) {
-    int len = pn.second.size();
+    int len = int(pn.second.size());
 
     lengthNodeNodeSets[len].push_back(pn.second);
   }
@@ -1795,7 +1795,7 @@ CQChartsGraphPlot::NodeObj *
 CQChartsGraphPlot::
 createObjFromNode(Graph *, Node *node) const
 {
-//int numNodes = graph->nodes().size(); // node id needs to be per graph
+//int numNodes = int(graph->nodes().size()); // node id needs to be per graph
   int numNodes = this->numNodes();
 
   ColorInd iv(node->id(), numNodes);
@@ -2244,8 +2244,8 @@ calcTipId() const
   if (depth() >= 0)
     tableTip.addTableRow(namedColumn("Depth"), depth());
 
-  int ns = node()->srcEdges ().size();
-  int nd = node()->destEdges().size();
+  int ns = int(node()->srcEdges ().size());
+  int nd = int(node()->destEdges().size());
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 

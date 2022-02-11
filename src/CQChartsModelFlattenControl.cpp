@@ -121,7 +121,7 @@ applySlot()
   long c = CQChartsUtil::toInt(columnEdit_->text(), ok);
 
   if (c >= 0 && c < nc)
-    flattenData.groupColumn = CQChartsColumn(c);
+    flattenData.groupColumn = CQChartsColumn(int(c));
 
   //---
 
@@ -144,7 +144,7 @@ applySlot()
       continue;
 
     if (c1 >= 0 && c1 < nc)
-      flattenData.columnOps.emplace_back(CQChartsColumn(c1), flattenOp);
+      flattenData.columnOps.emplace_back(CQChartsColumn(int(c1)), flattenOp);
   }
 
   //---

@@ -198,7 +198,7 @@ class CQFoldedModel : public QAbstractProxyModel {
         Node *node = new Node(this, sourceInd);
 
         node->depth   = depth;
-        node->foldRow = bucketNodeMap.size(); // folded row index
+        node->foldRow = int(bucketNodeMap.size()); // folded row index
 
         p = bucketNodeMap.insert(p, BucketNodeMap::value_type(bucket, node));
 
@@ -216,10 +216,10 @@ class CQFoldedModel : public QAbstractProxyModel {
     int numRows() const {
       // if folded then return num folded rows
       if (isFolded())
-        return sourceRows.size();
+        return int(sourceRows.size());
 
       // if not folded, return child count
-      return children.size();
+      return int(children.size());
     }
 
     bool hasSourceRow(int r) const {

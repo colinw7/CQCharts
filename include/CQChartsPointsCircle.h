@@ -91,14 +91,14 @@ PointArray slice(const PointArray &points, int i1, int i2) {
   PointArray points1;
 
   for (int i = i1; i <= i2; ++i)
-    points1.push_back(points[i]);
+    points1.push_back(points[size_t(i)]);
 
   return points1;
 }
 
 // TODO: seed rand ?
 void shufflePoints(PointArray &points) {
-  int n = points.size();
+  int n = int(points.size());
 
   for (int i = 0; i < n; ++i) {
     CQChartsRand::IntInRange irand(0, n - 1);
@@ -107,7 +107,7 @@ void shufflePoints(PointArray &points) {
     int i2 = irand.gen();
 
     if (i1 != i2)
-      std::swap(points[i1], points[i2]);
+      std::swap(points[size_t(i1)], points[size_t(i2)]);
   }
 }
 
@@ -175,7 +175,7 @@ Circle makeCircleOnePoint(const PointArray &points, const Point &p) {
       if (c.r == 0)
         c = makeDiameter(p, q);
       else
-        c = makeCircleTwoPoints(slice(points, 0, i), p, q);
+        c = makeCircleTwoPoints(slice(points, 0, int(i)), p, q);
     }
   }
 
@@ -198,7 +198,7 @@ bool makeCircle(const PointArray &points, Circle &circle) {
     const Point &p = points1[i];
 
     if (! c.valid || ! c.contains(p))
-      c = makeCircleOnePoint(slice(points1, 0, i), p);
+      c = makeCircleOnePoint(slice(points1, 0, int(i)), p);
   }
 
   if (! c.valid)

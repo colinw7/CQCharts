@@ -253,7 +253,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void drawEditHandles(PaintDevice *device) const override;
 
-  void setEditHandlesBBox() const;
+  void setEditHandlesBBox() const override;
 
   //---
 
@@ -466,7 +466,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void drawEditHandles(PaintDevice *device) const override;
 
-  void setEditHandlesBBox() const;
+  void setEditHandlesBBox() const override;
 
   //---
 

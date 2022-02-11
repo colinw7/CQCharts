@@ -665,7 +665,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   const Nodes &nodes() const { return nodes_; }
 
-  int numNodes() const { return nodes_.size(); }
+  int numNodes() const { return int(nodes_.size()); }
 
   const Edges &edges() const { return edges_; }
 

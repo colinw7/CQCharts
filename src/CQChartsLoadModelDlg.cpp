@@ -659,7 +659,7 @@ parseCSVColumns()
       columns_.push_back(QString::fromStdString(c));
   }
   else {
-    int nc = columns.size();
+    int nc = int(columns.size());
 
     for (int ic = 1; ic <= nc; ++ic)
       columns_.push_back(QString::number(ic));
@@ -742,7 +742,7 @@ parseTSVColumns()
       columns_.push_back(QString::fromStdString(c));
   }
   else {
-    int nc = columns.size();
+    int nc = int(columns.size());
 
     for (int ic = 1; ic <= nc; ++ic)
       columns_.push_back(QString::number(ic));

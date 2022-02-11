@@ -214,7 +214,7 @@ createEditor()
 
     QString str;
 
-    if (CQUtil::getPropInfoEnumValueName(propInfo, value, str))
+    if (CQUtil::getPropInfoEnumValueName(propInfo, int(value), str))
       var = str;
   }
 

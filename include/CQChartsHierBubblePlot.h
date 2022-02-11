@@ -58,7 +58,7 @@ class CQChartsHierBubbleHierNode;
 class CQChartsHierBubbleNode : public CQChartsCircleNode {
  protected:
   static uint nextId() {
-    static int lastId = 0;
+    static uint lastId = 0;
 
     return ++lastId;
   }

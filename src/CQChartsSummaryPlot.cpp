@@ -655,7 +655,7 @@ addMenuItems(QMenu *menu)
 
   if (! menuObj_) {
     auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+    auto pos  = view()->mapFromGlobal(QPointF(gpos.x, gpos.y).toPoint());
 
     auto w = pixelToWindow(Point(pos));
 
@@ -1415,14 +1415,14 @@ drawCorrelation(PaintDevice *device) const
     else {
       const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
 
-      int ng = groupValues_.groupIndData.size();
+      int ng = int(groupValues_.groupIndData.size());
 
       QFontMetricsF fm(device->font());
 
       double dx = plot_->pixelToWindowWidth (fm.height());
       double dy = plot_->pixelToWindowHeight(fm.height());
 
-      y += (groupValues_.groupIndData.size() - 1)*(dy + by);
+      y += double(groupValues_.groupIndData.size() - 1)*(dy + by);
 
       for (const auto &pg : groupValues_.groupIndData) {
         int         ig      = pg.first;
@@ -1571,7 +1571,7 @@ drawDistribution(PaintDevice *device) const
     plot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
 
     int ig = 0;
-    int ng = bucketCount.size();
+    int ng = int(bucketCount.size());
 
     for (const auto &pb : bucketCount) {
       PenBrush penBrush1;
@@ -1625,7 +1625,7 @@ drawDistribution(PaintDevice *device) const
 
     plot_->calcValueCounts(row_, valueCounts, maxCount);
 
-    int nc = valueCounts.size();
+    int nc = int(valueCounts.size());
 
     double dx = (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0);
 
@@ -1927,7 +1927,7 @@ updateWidgets()
     plot_->calcBucketCounts(plot_->groupColumn(), bucketCount, maxCount, bmin, bmax);
 
     int ig = 0;
-    int ng = bucketCount.size();
+    int ng = int(bucketCount.size());
 
     valueList_->setRowCount(ng);
 

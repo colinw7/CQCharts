@@ -223,7 +223,7 @@ getEmptyRects(RectData *rectData, const Rects &dirRects, Rects &emptyRects, Rect
       hitRects2.push_back(hitData1);
     }
 
-    int nh = hitRects2.size();
+    int nh = int(hitRects2.size());
 
     if (nh == 0) {
       if (isDebug())
@@ -330,9 +330,9 @@ calcHitRectRange(const RectDatas &hitRects, HitRect &hitRect, bool min, double t
   hitRect.xmax = hitRects[0]->rect().xmax();
   hitRect.ymax = hitRects[0]->rect().ymax();
 
-  int nh = hitRects.size();
+  auto nh = hitRects.size();
 
-  for (int ih = 1; ih < nh; ++ih) {
+  for (size_t ih = 1; ih < nh; ++ih) {
     if (min) {
       hitRect.xmin = std::max(hitRect.xmin, hitRects[ih]->rect().xmin());
       hitRect.ymin = std::max(hitRect.ymin, hitRects[ih]->rect().ymin());
@@ -391,7 +391,7 @@ moveOut(RectData *rectData)
 
       getTouchingRects(rectData1, dirRect1, hitRects);
 
-      int numMove1 = hitRects.size();
+      int numMove1 = int(hitRects.size());
 
       if (! numMove1)
         continue;

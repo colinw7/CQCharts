@@ -181,7 +181,7 @@ void
 CQChartsBuffer::
 draw(QPainter *painter)
 {
-  draw(painter, rect_.x(), rect_.y());
+  draw(painter, int(rect_.x()), int(rect_.y()));
 }
 
 void

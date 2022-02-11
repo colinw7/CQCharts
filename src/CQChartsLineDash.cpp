@@ -167,11 +167,11 @@ setDashes(ushort pattern)
   while (i < 16) {
     qlengths.push_back(0);
 
-    qlengths  [num_lengths] = 0;
-    dash_value[num_lengths] = bits[i];
+    qlengths  [int(num_lengths)] = 0;
+    dash_value[num_lengths     ] = bits[i];
 
     while (i < 16 && bits[i] == dash_value[num_lengths]) {
-      ++qlengths[num_lengths];
+      ++qlengths[int(num_lengths)];
 
       ++i;
     }
@@ -218,11 +218,11 @@ lineDash() const
 
   auto qlengths = getLengths();
 
-  uint num_lengths = qlengths.size();
+  auto num_lengths = qlengths.size();
 
   Lengths lengths;
 
-  for (uint i = 0; i < num_lengths; ++i)
+  for (int i = 0; i < num_lengths; ++i)
     lengths.push_back(qlengths[i]);
 
   return CLineDash(lengths, getOffset());
@@ -242,9 +242,9 @@ toString() const
 
   auto qlengths = getLengths();
 
-  uint num_lengths = qlengths.size();
+  auto num_lengths = qlengths.size();
 
-  for (uint i = 0; i < num_lengths; ++i) {
+  for (int i = 0; i < num_lengths; ++i) {
     if (i > 0) ss << ", ";
 
     ss << qlengths[i];
@@ -325,9 +325,9 @@ init(const Lengths &lengths, double offset)
 
   QLengths qlengths;
 
-  int num_lengths = lengths.size();
+  auto num_lengths = lengths.size();
 
-  for (int i = 0; i < num_lengths; ++i) {
+  for (size_t i = 0; i < num_lengths; ++i) {
     if (lengths[i] > 1E-5)
       qlengths.push_back(lengths[i]);
   }

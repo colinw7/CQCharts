@@ -447,6 +447,13 @@ setVectors(bool b)
   }
 }
 
+void
+CQChartsXYPlot::
+setLayers(int i)
+{
+  CQChartsUtil::testAndSet(layers_, i, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -598,6 +605,9 @@ addProperties()
 
   // column series
   addProp("options", "columnSeries", "timeSeries", "Are y column values a series");
+
+  // horizon
+  addProp("horizon", "layers", "layers", "Horizon layers");
 
   // points
   addProp("points", "points"         , "visible", "Point symbol visible");
@@ -815,7 +825,7 @@ calcRange() const
      plot_(plot) {
       int ns = plot_->numSets();
 
-      sum_.resize(ns);
+      sum_.resize(size_t(ns));
 
       if (plot_->isColumnSeries())
         plot_->headerSeriesData(sx_);
@@ -839,7 +849,7 @@ calcRange() const
       if (! plot_->rowData(data, x, y, rowInd, plot_->isSkipBad()))
         return State::SKIP;
 
-      int ny = y.size();
+      auto ny = y.size();
 
       //---
 
@@ -847,7 +857,7 @@ calcRange() const
         // TODO: support stacked and cumulative
         double sum1 = 0.0;
 
-        for (int i = 0; i < ny; ++i) {
+        for (size_t i = 0; i < ny; ++i) {
           if (! CMathUtil::isNaN(y[i]))
             sum1 += y[i];
         }
@@ -857,7 +867,7 @@ calcRange() const
       }
       else if (plot_->isCumulative()) {
         if (! plot_->isColumnSeries()) {
-          for (int i = 0; i < ny; ++i) {
+          for (size_t i = 0; i < ny; ++i) {
             if (! CMathUtil::isNaN(y[i])) {
               double y1 = y[i] + lastSum_[i];
 
@@ -870,13 +880,13 @@ calcRange() const
       }
       else {
         if (! plot_->isColumnSeries()) {
-          for (int i = 0; i < ny; ++i) {
+          for (size_t i = 0; i < ny; ++i) {
             if (! CMathUtil::isNaN(y[i]))
               range_.updateRange(x, y[i]);
           }
         }
         else {
-          for (int i = 0; i < ny; ++i) {
+          for (size_t i = 0; i < ny; ++i) {
             if (! CMathUtil::isNaN(y[i]))
               range_.updateRange(sx_[i], y[i]);
           }
@@ -904,13 +914,23 @@ calcRange() const
 
   auto dataRange = visitor.range();
 
-  if (isInterrupt())
-    return dataRange;
-
   //---
 
   // ensure range non-zero
   dataRange.makeNonZero();
+
+  //---
+
+  int nl = this->layers();
+
+  if (nl > 1) {
+    th->layerMin_ = dataRange.bottom();
+    th->layerMax_ = dataRange.top   ();
+
+    th->layerDelta_ = (layerMax_ - layerMin_)/nl;
+
+    dataRange.setTop(layerMin_ + layerDelta_);
+  }
 
   //---
 
@@ -1222,6 +1242,11 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
 
       if (plot_->isColumnSeries())
         plot_->headerSeriesData(sx_);
+
+      int nl = plot_->layers();
+
+      if (nl > 1 && ns_ == 1)
+        ns_ = nl;
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1233,7 +1258,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
       auto &setPoly = groupSetPoly_[groupInd];
 
       if (setPoly.empty())
-        setPoly.resize(ns_);
+        setPoly.resize(size_t(ns_));
 
       //---
 
@@ -1243,26 +1268,51 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
       if (! plot_->rowData(data, x, y, rowInd, plot_->isSkipBad()))
         return State::SKIP;
 
-      int ny = y.size();
+      int ny = int(y.size());
 
       //---
 
-      if (! plot_->isColumnSeries()) {
-        assert(ny == ns_);
-      }
+      size_t nl = size_t(plot_->layers());
+      size_t li = 0;
 
-      if (! plot_->isColumnSeries()) {
-        for (int i = 0; i < ny; ++i) {
+      if (nl > 1 && ny == 1) {
+        while (li < nl - 1 && y[0] > plot_->layerMin() + plot_->layerDelta()) {
+          y[0] -= plot_->layerDelta();
+
+          ++li;
+        }
+
+        for (size_t i = 0; i < size_t(nl); ++i) {
+          double y1 = y[0];
+
+          if      (i < li)
+            y1 = plot_->layerMin() + plot_->layerDelta();
+          else if (i > li)
+            y1 = plot_->layerMin();
+
           setPoly[i].inds.push_back(rowInd);
 
-          setPoly[i].poly.addPoint(Point(x, y[i]));
+          setPoly[i].poly.addPoint(Point(x, y1));
         }
       }
       else {
-        for (int i = 0; i < ny; ++i) {
-          setPoly[data.row].inds.push_back(rowInd);
+        if (! plot_->isColumnSeries()) {
+          assert(ny == ns_);
+        }
 
-          setPoly[data.row].poly.addPoint(Point(sx_[i], y[i]));
+        if (! plot_->isColumnSeries()) {
+          for (size_t i = 0; i < size_t(ny); ++i) {
+            setPoly[i].inds.push_back(rowInd);
+
+            setPoly[i].poly.addPoint(Point(x, y[i]));
+          }
+        }
+        else {
+          for (size_t i = 0; i < size_t(ny); ++i) {
+            setPoly[size_t(data.row)].inds.push_back(rowInd);
+
+            setPoly[size_t(data.row)].poly.addPoint(Point(sx_[i], y[i]));
+          }
         }
       }
 
@@ -1274,7 +1324,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
       for (auto &p : groupSetPoly_) {
         auto &setPoly = p.second;
 
-        for (int i = 1; i < ns_; ++i) {
+        for (size_t i = 1; i < size_t(ns_); ++i) {
           auto &poly1 = setPoly[i - 1].poly;
           auto &poly2 = setPoly[i    ].poly;
 
@@ -1304,7 +1354,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
       for (auto &p : groupSetPoly_) {
         auto &setPoly = p.second;
 
-        for (int i = 0; i < ns_; ++i) {
+        for (size_t i = 0; i < size_t(ns_); ++i) {
           auto &poly = setPoly[i].poly;
 
           int np = poly.size();
@@ -1359,7 +1409,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
   int ns = numSets();
 
   int ig = 0;
-  int ng = groupSetIndPoly.size();
+  int ng = int(groupSetIndPoly.size());
 
   if (ng <= 1 && parentPlot()) {
     ig = parentPlot()->childPlotIndex(this);
@@ -1413,10 +1463,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
   //---
 
   // convert lines bivariate lines (line connected each point pair)
-  int ns = setPoly.size();
-
-  if (ns < 1)
-    return false;
+  auto ns = setPoly.size();
+  if (ns < 1) return false;
 
   SetIndPoly polygons1, polygons2;
 
@@ -1436,15 +1484,15 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
     // sorted y vals
     std::set<double> sortedYVals;
 
-    for (int j = 0; j < ns; ++j) {
-      bool hidden = isSetHidden(j);
+    for (size_t j = 0; j < ns; ++j) {
+      bool hidden = isSetHidden(int(j));
 
       if (hidden)
         continue;
 
       //---
 
-      const auto &poly = setPoly[j].poly;
+      const auto &poly = setPoly[size_t(j)].poly;
 
       auto p = poly.point(ip);
 
@@ -1481,9 +1529,9 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
     // connect each y value to next y value
     double y1  = yVals[0];
-    int    ny1 = yVals.size();
+    auto   ny1 = yVals.size();
 
-    for (int j = 1; j < ny1; ++j) {
+    for (size_t j = 1; j < ny1; ++j) {
       if (isInterrupt())
         return false;
 
@@ -1493,7 +1541,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       if (! isFillUnderFilled()) {
         // use vertical line object for each point pair if not fill under
-        ColorInd is(j - 1, ny1 - 1);
+        ColorInd is(int(j - 1), int(ny1 - 1));
         ColorInd iv(ip, np);
 
         auto *lineObj = th->createBiLineObj(groupInd, bbox, x, y1, y2, xind1, is, iv);
@@ -1554,8 +1602,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       //---
 
-      auto &poly1 = polygons1[j - 1].poly;
-      auto &poly2 = polygons2[j - 1].poly;
+      auto &poly1 = polygons1[size_t(j - 1)].poly;
+      auto &poly2 = polygons2[size_t(j - 1)].poly;
 
       ColorInd is1(j - 1, ns - 1);
 
@@ -1681,6 +1729,19 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
   // convert lines into set polygon and set poly lines (more than one if NaNs)
   int ns = numSets();
 
+  //---
+
+  bool isHorizon = false;
+
+  int nl = layers();
+
+  if (nl > 1 && ns == 1) {
+    isHorizon = true;
+    ns        = nl;
+  }
+
+  //---
+
   for (int is = 0; is < ns; ++is) {
     if (isInterrupt())
       return false;
@@ -1696,7 +1757,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     QString name;
 
     if (! isColumnSeries()) {
-      auto yColumn = yColumns().getColumn(is);
+      auto yColumn = (! isHorizon ? yColumns().getColumn(is) : yColumns().getColumn(0));
 
       bool ok;
 
@@ -1708,12 +1769,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     //---
 
-    const auto &setPoly1 = setPoly[is];
+    const auto &setPoly1 = setPoly[size_t(is)];
 
     const auto &poly = setPoly1.poly;
     const auto &inds = setPoly1.inds;
 
-    const auto &prevPoly = (is > 0 ? setPoly[is - 1].poly : poly);
+    const auto &prevPoly = (is > 0 ? setPoly[size_t(is - 1)].poly : poly);
 
     //---
 
@@ -1818,7 +1879,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       bool valid = validPointIndex(ip, np);
 
       if (valid) {
-        const auto &xind = inds[ip];
+        const auto &xind = inds[size_t(ip)];
 
         auto xind1 = normalizeIndex(xind);
 
@@ -2415,6 +2476,19 @@ addKeyItems(PlotKey *key)
   int ns = numSets();
   int ng = numGroups();
 
+  //---
+
+  bool isHorizon = false;
+
+  int nl = layers();
+
+  if (nl > 1 && ns == 1) {
+    isHorizon = true;
+    ns        = nl;
+  }
+
+  //---
+
   if      (canBivariateLines()) {
     auto name = titleStr();
 
@@ -2443,7 +2517,7 @@ addKeyItems(PlotKey *key)
       QString name;
 
       if (! isColumnSeries()) {
-        auto yColumn = yColumns().getColumn(i);
+        auto yColumn = (! isHorizon ? yColumns().getColumn(i) : yColumns().getColumn(0));
 
         bool ok;
 
@@ -2478,7 +2552,7 @@ addKeyItems(PlotKey *key)
           QString name;
 
           if (! isColumnSeries()) {
-            auto yColumn = yColumns().getColumn(i);
+            auto yColumn = (! isHorizon ? yColumns().getColumn(i) : yColumns().getColumn(0));
 
             bool ok;
 
@@ -2501,6 +2575,13 @@ addKeyItems(PlotKey *key)
               name = filename();
           }
   #endif
+
+          if (isHorizon) {
+            double y1 = layerMin() + i*layerDelta();
+            double y2 = y1 + layerDelta();
+
+            name += QString(" [%1,%2)").arg(y1).arg(y2);
+          }
 
           ColorInd is(i, ns), ig;
 

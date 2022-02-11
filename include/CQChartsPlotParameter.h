@@ -13,18 +13,18 @@
  */
 class CQChartsPlotParameterAttributes {
  public:
-  enum Flags {
-    REQUIRED      = (1<<0),
-    MONOTONIC     = (1<<1),
-    NUMERIC       = (1<<2),
-    STRING        = (1<<3),
-    BOOL          = (1<<4),
-    COLOR         = (1<<5),
-    GROUPABLE     = (1<<6),
-    UNIQUE        = (1<<7),
-    MAPPED        = (1<<8),
-    DISCRIMINATOR = (1<<9),
-    BASIC         = (1<<10)
+  enum Flags : unsigned int {
+    REQUIRED      = (1U<<0),
+    MONOTONIC     = (1U<<1),
+    NUMERIC       = (1U<<2),
+    STRING        = (1U<<3),
+    BOOL          = (1U<<4),
+    COLOR         = (1U<<5),
+    GROUPABLE     = (1U<<6),
+    UNIQUE        = (1U<<7),
+    MAPPED        = (1U<<8),
+    DISCRIMINATOR = (1U<<9),
+    BASIC         = (1U<<10)
   };
 
  public:

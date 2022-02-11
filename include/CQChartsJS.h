@@ -587,9 +587,9 @@ namespace CQChartsJS {
   inline std::string encodeId(const std::string &id) {
     auto id1 = id;
 
-    int n = id1.size();
+    auto n = id1.size();
 
-    for (int i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
       if (isspace(id1[i]) || id1[i] == ':')
         id1[i] = '_';
     }

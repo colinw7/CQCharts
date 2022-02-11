@@ -295,15 +295,15 @@ edgeOrderOnFaces()
   auto f = faces_;
 
   do {
-    for (int i = 0; i < 3; i++) {
-      int i1 = (i + 1) % 3;
+    for (uint i = 0; i < 3; i++) {
+      uint i1 = (i + 1) % 3;
 
       if (! (((f->edge(i)->start() == f->vertex(i )) &&
               (f->edge(i)->end  () == f->vertex(i1))) ||
              ((f->edge(i)->end  () == f->vertex(i )) &&
               (f->edge(i)->start() == f->vertex(i1))))) {
         /* Change the order of the edges on the face: */
-        for (int j = 0; j < 3; j++) {
+        for (uint j = 0; j < 3; j++) {
           /* find the edge that should be there */
           if (((f->edge(j)->start() == f->vertex(i )) &&
                (f->edge(j)->end  () == f->vertex(i1))) ||
@@ -422,7 +422,7 @@ makeConeFace(PEdge e, PVertex p)
   PEdge new_edge[2];
 
   /* Make two new edges (if don't already exist). */
-  for (int i = 0; i < 2; ++i) {
+  for (uint i = 0; i < 2; ++i) {
     /* If the edge exists, copy it into new_edge. */
     new_edge[i] = e->endPoint(i)->duplicateEdge();
 
@@ -446,8 +446,8 @@ makeConeFace(PEdge e, PVertex p)
   makeCcw(new_face, e, p);
 
   /* Set the adjacent face pointers. */
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 2; ++j) {
+  for (uint i = 0; i < 2; ++i) {
+    for (uint j = 0; j < 2; ++j) {
       /* Only one NULL link should be set to new_face. */
       if (! new_edge[i]->face(j)) {
         new_edge[i]->setFace(j, new_face);
@@ -486,13 +486,13 @@ makeCcw(PFace f, PEdge e, PVertex p)
 
   /* Set vertex(0) and vertex(1) of f to have the same orientation
      as do the corresponding vertices of fv. */
-  int i = 0;
+  uint i = 0;
 
   while (fv->vertex(i) != e->start())
     ++i;
 
   /* Orient f the same as fv. */
-  int i1 = (i + 1) % 3;
+  uint i1 = (i + 1) % 3;
 
   if (fv->vertex(i1) != e->end()) {
     f->setVertex(0, e->end  ());
@@ -1067,7 +1067,7 @@ consistency()
     /* find index of endpoint[0] in adjacent face[0] */
     auto lf = e->leftFace();
 
-    int i = 0;
+    uint i = 0;
 
     while (lf && lf->vertex(i) != e->start())
       ++i;
@@ -1232,12 +1232,12 @@ printEdges()
       fprintf(stderr, "  addr: %6p\t", (void *) edges_);
       fprintf(stderr, "adj: ");
 
-      for (int i = 0; i < 2; ++i)
+      for (uint i = 0; i < 2; ++i)
         fprintf(stderr, "%6p", (void *) edges_->face(i));
 
       fprintf(stderr, "  endpts:");
 
-      for (int i = 0; i < 2; ++i)
+      for (uint i = 0; i < 2; ++i)
         fprintf(stderr, "%4d", edges_->endPoint(i)->num());
 
       fprintf(stderr, "  del: %3d\n", edges_->isRemoved());
@@ -1265,12 +1265,12 @@ printFaces()
       fprintf(stderr, "  addr: %10p ", (void *) faces_);
       fprintf(stderr, "  edges:");
 
-      for (int i = 0; i < 3; ++i)
+      for (uint i = 0; i < 3; ++i)
         fprintf(stderr, "%10p ", (void *) faces_->edge(i));
 
       fprintf(stderr, "  vert:");
 
-      for (int i = 0; i < 3; ++i)
+      for (uint i = 0; i < 3; ++i)
         fprintf(stderr, "%4d", faces_->vertex(i)->num());
 
       fprintf(stderr, "  vis: %d\n", faces_->isVisible());
@@ -1297,7 +1297,7 @@ checkEndpts()
     bool error = false;
 
     do {
-      for (int i = 0; i < 3; ++i) {
+      for (uint i = 0; i < 3; ++i) {
         auto v = faces_->vertex(i);
         auto e = faces_->edge(i);
 

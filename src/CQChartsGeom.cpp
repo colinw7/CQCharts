@@ -48,13 +48,12 @@ bool lineIntersectRect(const BBox &rect, const Point &p1, const Point &p2, Point
 
 bool lineIntersectPolygon(const Points &points, const Point &p1, const Point &p2, Point &pi)
 {
-  int n = points.size();
-
+  auto n = points.size();
   if (n < 3) return false;
 
   auto d = -1.0;
 
-  for (int i1 = n - 1, i2 = 0; i2 < n; i1 = i2++) {
+  for (size_t i1 = n - 1, i2 = 0; i2 < n; i1 = i2++) {
     Point  pi1;
     double mu1, mu2;
 

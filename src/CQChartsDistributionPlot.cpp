@@ -1229,11 +1229,11 @@ bucketGroupValues() const
           if (! ok) continue;
 
           if (! isIncludeOutlier()) {
-            bool outlier = values->valueSet->ivals().isOutlier(i);
+            bool outlier = values->valueSet->ivals().isOutlier(int(i));
             if (outlier) continue;
           }
 
-          bucket = calcBucket(groupInd, i);
+          bucket = calcBucket(groupInd, int(i));
           value  = CQChartsVariant::fromInt(i);
         }
         else {
@@ -1320,7 +1320,7 @@ calcBucketRanges() const
   double doffset = 0.0;
 
   int ig = 0;
-  int ng = groupData_.groupValues.size();
+  int ng = int(groupData_.groupValues.size());
 
   int maxValues = 0;
 
@@ -1389,7 +1389,7 @@ calcBucketRanges() const
 
         //---
 
-        int n = varsData.inds.size();
+        int n = int(varsData.inds.size());
 
         if (isSkipEmpty()) {
           if (isEmptyValue(n))
@@ -1579,7 +1579,7 @@ calcBucketRanges() const
         updateRange2(bucket1 - 1.0, 0, bucket2 + 1.0, maxValue);
       }
       else {
-        int nv = valueSetRunningTotal.size();
+        int nv = int(valueSetRunningTotal.size());
 
         updateRange2(-0.5, 0, nv - 0.5, maxValue);
       }
@@ -1595,7 +1595,7 @@ calcBucketRanges() const
           updateRange2(bucket1 - 1.0, n1, bucket2 + 1.0, n2);
       }
       else {
-        int nv = valueSetRunningTotal.size();
+        int nv = int(valueSetRunningTotal.size());
 
         if (isPercent())
           updateRange2(-0.5, 0, nv - 0.5, 1);
@@ -1614,7 +1614,7 @@ calcBucketRanges() const
           updateRange2(bucket1 - 1.0, n1, bucket2 + 1.0, n2);
       }
       else {
-        int nv = valueSetRunningTotal.size();
+        int nv = int(valueSetRunningTotal.size());
 
         if (isPercent())
           updateRange2(-0.5, 0, nv - 0.5, 1);
@@ -1863,7 +1863,7 @@ calcBucket(int groupInd, double value) const
     if      (exactValue) {
       if (values) {
         if (values->valueSet->type() == CQBaseModelType::INTEGER)
-          num = values->valueSet->iid(value);
+          num = values->valueSet->iid(int(value));
         else
           num = values->valueSet->rid(value);
       }
@@ -2002,7 +2002,7 @@ createObjs(PlotObjs &objs) const
   int gpos = 0;
   int vpos = 0;
 
-  int ng = groupData_.groupValues.size();
+  int ng = int(groupData_.groupValues.size());
 
   int offset = 0;
   int count  = 0;
@@ -2091,7 +2091,7 @@ createObjs(PlotObjs &objs) const
       const auto &bucket   = bucketValues.first;
       const auto &varsData = bucketValues.second;
 
-      int n = varsData.inds.size();
+      int n = int(varsData.inds.size());
 
       if (isSkipEmpty()) {
         if (isEmptyValue(n))
@@ -2216,7 +2216,7 @@ createObjs(PlotObjs &objs) const
         const auto &bucket   = bucketValues.first;
         const auto &varsData = bucketValues.second;
 
-        int n = varsData.inds.size();
+        int n = int(varsData.inds.size());
 
         data.buckets.emplace_back(bucket, n);
       }
@@ -2244,7 +2244,7 @@ createObjs(PlotObjs &objs) const
     }
     else if (isScatter()) {
       int iv = 0;
-      int nv = values->bucketValues.size();
+      int nv = int(values->bucketValues.size());
 
       for (auto &bucketValues : values->bucketValues) {
         const auto &bucket   = bucketValues.first;
@@ -2263,7 +2263,7 @@ createObjs(PlotObjs &objs) const
           else {
             const auto &sortedBuckets = getSortedBuckets(groupInd);
 
-            sbucket = sortedBuckets[iv];
+            sbucket = sortedBuckets[size_t(iv)];
 
             auto p = values->bucketValues.find(sbucket);
             assert(p != values->bucketValues.end());
@@ -2276,7 +2276,7 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        int n = pVarsData->inds.size();
+        int n = int(pVarsData->inds.size());
 
         auto bbox = makeBBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
@@ -2318,7 +2318,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       int iv = 0;
-      int nv = values->bucketValues.size();
+      int nv = int(values->bucketValues.size());
 
       for (auto &bucketValues : values->bucketValues) {
         if (! colorColumn().isValid()) {
@@ -2349,7 +2349,7 @@ createObjs(PlotObjs &objs) const
           else {
             const auto &sortedBuckets = getSortedBuckets(groupInd);
 
-            sbucket = sortedBuckets[iv];
+            sbucket = sortedBuckets[size_t(iv)];
 
             auto p = values->bucketValues.find(sbucket);
             assert(p != values->bucketValues.end());
@@ -2393,9 +2393,9 @@ createObjs(PlotObjs &objs) const
               scale = 1.0/valueSetTotal;
           }
           else {
-            int max = groupMax[groupInd];
+            double max = groupMax[groupInd];
 
-            if (max > 0)
+            if (max > 0.0)
               scale = 1.0/max;
           }
         }
@@ -2684,10 +2684,10 @@ calcVarIndsData(VariantIndsData &varInds) const
 
   CQChartsRValues rvals;
 
-  int n = varInds.inds.size();
+  int n = int(varInds.inds.size());
 
   for (int i = 0; i < n; ++i) {
-    const auto &var = varInds.inds[i];
+    const auto &var = varInds.inds[size_t(i)];
 
     double r  = 0.0;
     bool   ok = false;
@@ -2717,12 +2717,12 @@ varIndsValue(const VariantIndsData &varInds) const
 {
   BarValue barValue;
 
-  if      (isValueCount()) { barValue.n1 = 0          ; barValue.n2 = varInds.inds.size()  ; }
-  else if (isValueRange()) { barValue.n1 = varInds.min; barValue.n2 = varInds.max          ; }
-  else if (isValueMin  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.min          ; }
-  else if (isValueMax  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.max          ; }
-  else if (isValueMean ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.mean; }
-  else if (isValueSum  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.sum ; }
+  if      (isValueCount()) { barValue.n1 = 0          ; barValue.n2 = int(varInds.inds.size()); }
+  else if (isValueRange()) { barValue.n1 = varInds.min; barValue.n2 = varInds.max             ; }
+  else if (isValueMin  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.min             ; }
+  else if (isValueMax  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.max             ; }
+  else if (isValueMean ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.mean   ; }
+  else if (isValueSum  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.sum    ; }
 
   return barValue;
 }
@@ -2779,7 +2779,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
     std::vector<double> xvals;
 
     for (int i = 0; i < ivals.size(); ++i)
-      vals.push_back(*ivals.value(i));
+      vals.push_back(double(*ivals.value(i)));
   }
   else if (values->valueSet->type() == ColumnType::REAL) {
     const auto &rvals = values->valueSet->rvals();
@@ -2860,7 +2860,7 @@ addKeyItems(PlotKey *key)
 
   //---
 
-  int ng = groupData_.groupValues.size();
+  int ng = int(groupData_.groupValues.size());
 
   // multiple group - key item per group
   if      (ng > 1) {
@@ -2957,7 +2957,7 @@ addKeyItems(PlotKey *key)
       int         groupInd = (*pg).first;
       const auto *values   = (*pg).second;
 
-      int nv = values->bucketValues.size();
+      int nv = int(values->bucketValues.size());
 
       int iv = 0;
 
@@ -3103,7 +3103,7 @@ bucketValues(int groupInd, const Bucket &bucket, double &value1, double &value2)
       if      (exactValue) {
         if (values) {
           if (values->valueSet->type() == CQBaseModelType::INTEGER)
-            value1 = values->valueSet->idi(bucket.value());
+            value1 = double(values->valueSet->idi(bucket.value()));
           else
             value1 = values->valueSet->idr(bucket.value());
         }
@@ -3358,7 +3358,7 @@ drawStatsLines(PaintDevice *device) const
   const auto &dataRange = this->dataRange();
 
   int ig = 0;
-  int ng = groupData_.groupValues.size();
+  int ng = int(groupData_.groupValues.size());
 
   for (const auto &groupValues : groupData_.groupValues) {
     if (ng > 1 && isSetHidden(ig)) { ++ig; continue; }
@@ -3432,7 +3432,7 @@ pushSlot()
 
   if (objs.empty()) {
     auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+    auto pos  = view()->mapFromGlobal(QPointF(gpos.x, gpos.y).toPoint());
 
     auto w = pixelToWindow(Point(pos));
 
@@ -4075,7 +4075,7 @@ getBarColoredRects(ColorData &colorData) const
 
   plot_->getInds(groupInd_, bucket_, vinds);
 
-  int nvi = vinds.size();
+  int nvi = int(vinds.size());
   if (nvi < 1) return false;
 
   //---
@@ -4178,7 +4178,7 @@ getBarColoredRects(ColorData &colorData) const
     if (p == colorData.colorSet.end()) {
       colorData.colorRows.insert(ind.row());
 
-      int ind = colorData.colorSet.size();
+      int ind = int(colorData.colorSet.size());
 
       p = colorData.colorSet.insert(p, IndColorSet::value_type(indColor, ind));
     }
@@ -4470,7 +4470,7 @@ CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd,
   //---
 
   // create density polygon
-  int np = data_.points.size();
+  int np = int(data_.points.size());
 
   if (np < 2) {
     poly_ = Polygon();
@@ -4481,26 +4481,26 @@ CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd,
 
   if (plot->isVertical()) {
     for (int i = 0; i < np; ++i)
-      poly_.addPoint(Point(data_.points[i].x, data_.points[i].y - y1 + doffset_));
+      poly_.addPoint(Point(data_.points[size_t(i)].x, data_.points[size_t(i)].y - y1 + doffset_));
   }
   else {
     for (int i = 0; i < np; ++i)
-      poly_.addPoint(Point(data_.points[i].y - y1 + doffset_, data_.points[i].x));
+      poly_.addPoint(Point(data_.points[size_t(i)].y - y1 + doffset_, data_.points[size_t(i)].x));
   }
 
   //----
 
   // calc scale factor for data bars
-  int nb = data_.buckets.size();
+  int nb = int(data_.buckets.size());
 
   double area = 0.0;
 
   for (int i = 0; i < nb; ++i) {
-    double dy = data_.buckets[i].n;
+    double dy = data_.buckets[size_t(i)].n;
 
     double value1, value2;
 
-    plot_->bucketValues(groupInd_, Bucket(data_.buckets[i].bucket), value1, value2);
+    plot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket), value1, value2);
 
     double dx = (value2 - value1)/(data_.xmax - data_.xmin);
 
@@ -4551,7 +4551,7 @@ int
 CQChartsDistributionDensityObj::
 numSamples() const
 {
-  return data_.points.size();
+  return int(data_.points.size());
 }
 
 bool
@@ -4585,14 +4585,14 @@ draw(PaintDevice *device) const
 
   // draw bars for buckets
   if (plot_->isDensityBars()) {
-    int nb = data_.buckets.size();
+    int nb = int(data_.buckets.size());
 
     for (int i = 0; i < nb; ++i) {
-      double y = data_.buckets[i].n*bucketScale_;
+      double y = data_.buckets[size_t(i)].n*bucketScale_;
 
       double value1, value2;
 
-      plot_->bucketValues(groupInd_, Bucket(data_.buckets[i].bucket), value1, value2);
+      plot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket), value1, value2);
 
       BBox bbox(value1, 0, value2, y);
 
@@ -4780,10 +4780,10 @@ CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
   // TODO: constant seed ?
   CQChartsRand::RealInRange rand(m, 1.0 - m);
 
-  points_.resize(nf);
+  points_.resize(size_t(nf));
 
   for (int i = 0; i < nf; ++i)
-    points_[i] = Point(rand.gen(), rand.gen());
+    points_[size_t(i)] = Point(rand.gen(), rand.gen());
 }
 
 //---

@@ -1295,7 +1295,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  int numNodes() const { return nameNodeMap_.size(); }
+  int numNodes() const { return int(nameNodeMap_.size()); }
 
   int maxNodeDepth() const { return maxNodeDepth_; }
 

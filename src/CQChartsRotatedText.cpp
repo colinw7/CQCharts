@@ -377,7 +377,7 @@ calcBBoxData(double px, double py, const QString &text, const QFont &font,
   double xmin = ppoints[0].x; double xmax = xmin;
   double ymin = ppoints[0].y; double ymax = ymin;
 
-  for (int i = 1; i < 4; ++i) {
+  for (uint i = 1; i < 4; ++i) {
     xmin = std::min(xmin, ppoints[i].x);
     ymin = std::min(ymin, ppoints[i].y);
     xmax = std::max(xmax, ppoints[i].x);

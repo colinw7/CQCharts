@@ -708,6 +708,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // impulse line data
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse, impulse)
 
+  // horizon
+  Q_PROPERTY(int layers READ layers WRITE setLayers)
+
   // point: (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
 
@@ -899,6 +902,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // vectors
   bool isVectors() const;
+
+  //---
+
+  int layers() const { return layers_; }
+  void setLayers(int i);
+
+  double layerMin() const { return layerMin_; }
+  double layerDelta() const { return layerDelta_; }
 
   //---
 
@@ -1151,6 +1162,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // vector data
   ArrowP arrowObj_; //!< vectors data
+
+  // horizon layers
+  int    layers_     { -1 };
+  double layerMin_   { 0.0 };
+  double layerMax_   { 0.0 };
+  double layerDelta_ { 0.0 };
 
   double symbolWidth_  { 1.0 }; //!< current symbol width
   double symbolHeight_ { 1.0 }; //!< current symbol height

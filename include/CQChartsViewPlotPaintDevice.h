@@ -66,6 +66,9 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
   void setFillAngle(double a) override;
   void setFillType(CQChartsFillPattern::Type t) override;
+  void setFillRadius(double r) override;
+  void setFillDelta(double d) override;
+  void setFillWidth(double w) override;
 
   void fillPath  (const QPainterPath &path, const QBrush &brush) override;
   void strokePath(const QPainterPath &path, const QPen &pen) override;
@@ -123,7 +126,11 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   double                    handRoughness_ { 1.0 };
   double                    handFillDelta_ { 16.0 };
   CQHandDrawnPainter*       hdPainter_     { nullptr };
+  double                    fillAngle_     { 0.0 }; // degrees
   CQChartsFillPattern::Type fillType_      { CQChartsFillPattern::Type::NONE };
+  double                    fillRadius_    { -1 };
+  double                    fillDelta_     { -1 };
+  double                    fillWidth_     { -1 };
 };
 
 //---

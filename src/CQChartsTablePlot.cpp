@@ -472,7 +472,7 @@ setRowNumsStr(const QString &str)
     long i = CQChartsUtil::toInt(s, ok);
 
     if (ok)
-      rowNums.push_back(i);
+      rowNums.push_back(int(i));
   }
 
   setRowNums(rowNums);
@@ -678,7 +678,7 @@ calcTableSize() const
   }
 
   th->tableData_.pmargin    = cellMargin();
-  th->tableData_.pSortWidth = hfm.width("X") + 4;
+  th->tableData_.pSortWidth = int(hfm.width("X") + 4);
 
   th->tableData_.phrh = hfm.height() + 2.0*tableData_.pmargin;
   th->tableData_.prh  = fm.height() + 2.0*tableData_.pmargin;
@@ -1265,21 +1265,23 @@ updateScrollBars() const
   }
 
   if (scrollData_.hbar->isVisible()) {
-    scrollData_.hbar->move  (pixelRect.getXMin(), pixelRect.getYMax() - scrollData_.pixelBarSize);
-    scrollData_.hbar->resize(pixelRect.getWidth(), scrollData_.pixelBarSize);
+    scrollData_.hbar->move  (int(pixelRect.getXMin()),
+                             int(pixelRect.getYMax() - scrollData_.pixelBarSize));
+    scrollData_.hbar->resize(int(pixelRect.getWidth()), int(scrollData_.pixelBarSize));
 
-    scrollData_.hbar->setRange(0, -pdx);
-    scrollData_.hbar->setPageStep(pixelRect.getWidth() - 2.0*tableData_.pmargin);
+    scrollData_.hbar->setRange(0, int(-pdx));
+    scrollData_.hbar->setPageStep(int(pixelRect.getWidth() - 2.0*tableData_.pmargin));
   }
   else
     th->scrollData_.hpos = 0;
 
   if (scrollData_.vbar->isVisible()) {
-    scrollData_.vbar->move(pixelRect.getXMax() - scrollData_.pixelBarSize, pixelRect.getYMin());
-    scrollData_.vbar->resize(scrollData_.pixelBarSize, pixelRect.getHeight());
+    scrollData_.vbar->move(int(pixelRect.getXMax() - scrollData_.pixelBarSize),
+                           int(pixelRect.getYMin()));
+    scrollData_.vbar->resize(int(scrollData_.pixelBarSize), int(pixelRect.getHeight()));
 
-    scrollData_.vbar->setRange(0, -pdy);
-    scrollData_.vbar->setPageStep(pixelRect.getHeight() - 2.0*tableData_.pmargin);
+    scrollData_.vbar->setRange(0, int(-pdy));
+    scrollData_.vbar->setPageStep(int(pixelRect.getHeight() - 2.0*tableData_.pmargin));
   }
   else
     th->scrollData_.vpos = 0;
@@ -1895,10 +1897,10 @@ calcTablePixelRect() const
   if (! isTabbed())
     return pixelRect;
 
-  int px1 = pixelRect.getXMin();
-  int px2 = pixelRect.getXMax();
-  int py1 = pixelRect.getYMin();
-  int py2 = pixelRect.getYMax();
+  int px1 = int(pixelRect.getXMin());
+  int px2 = int(pixelRect.getXMax());
+  int py1 = int(pixelRect.getYMin());
+  int py2 = int(pixelRect.getYMax());
 
   auto tabRect = this->calcTabPixelRect();
 
@@ -2046,12 +2048,12 @@ draw(PaintDevice *device) const
     PenBrush sortPenBrush;
 
     // 1 (top/bottom), 4 mid
-    int pSortHeight = (plot_->windowToPixelHeight(trect.getHeight()) - 6)/2;
+    int pSortHeight = int((plot_->windowToPixelHeight(trect.getHeight()) - 6.0)/2.0);
 
-    int px1 = plot_->windowToPixel(Point(trect.getXMax(), 0)).x + 2;
-    int py1 = plot_->windowToPixel(Point(0, trect.getYMax())).y + 1;
+    int px1 = int(plot_->windowToPixel(Point(trect.getXMax(), 0)).x + 2.0);
+    int py1 = int(plot_->windowToPixel(Point(0, trect.getYMax())).y + 1.0);
     int px2 = px1 + pSortWidth - 4;
-    int py2 = plot_->windowToPixel(Point(0, trect.getYMin())).y - 1;
+    int py2 = int(plot_->windowToPixel(Point(0, trect.getYMin())).y - 1.0);
 
     // ascending
     if (plot_->sortOrder() == Qt::AscendingOrder)

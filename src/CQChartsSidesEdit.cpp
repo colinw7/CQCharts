@@ -195,10 +195,10 @@ mousePressEvent(QMouseEvent *me)
     if (! rect.second.r.contains(me->pos()))
       continue;
 
-    if (sides & int(rect.first))
-      sides &= ~int(rect.first);
+    if (sides & uint(rect.first))
+      sides &= ~uint(rect.first);
     else
-      sides |= int(rect.first);
+      sides |= uint(rect.first);
   }
 
   edit_->setSides(CQChartsSides(static_cast<CQChartsSides::Side>(sides)));
@@ -229,7 +229,7 @@ drawSideRect(QPainter *p, CQChartsSides::Side rectSide, bool on)
   auto highlight = palette().color(QPalette::Highlight);
 
   if (! sideRect_[rectSide].inside) {
-    if (sides & int(rectSide)) {
+    if (sides & uint(rectSide)) {
       if (! on)
         return;
 

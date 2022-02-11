@@ -123,6 +123,9 @@ class CQChartsPaintDevice {
 
   virtual void setFillAngle(double) { }
   virtual void setFillType(CQChartsFillPattern::Type) { }
+  virtual void setFillRadius(double) { }
+  virtual void setFillDelta(double) { }
+  virtual void setFillWidth(double) { }
 
   virtual void fillPath  (const QPainterPath &, const QBrush &) { assert(false); }
   virtual void strokePath(const QPainterPath &, const QPen &) { assert(false); }

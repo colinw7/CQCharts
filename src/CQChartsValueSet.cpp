@@ -203,7 +203,7 @@ imap(int i, double mapMin, double mapMax) const
 
     // return actual value if mapping disabled
     if (! isMapped())
-      return *ival;
+      return double(*ival);
 
 #if 0
     // map value using integer value range
@@ -428,7 +428,7 @@ CQChartsValueSet::
 rmin(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.min(int(def))*1.0;
+    return double(ivals_.min(int(def)));
   else if (type() == Type::REAL)
     return rvals_.min(def);
   else if (type() == Type::STRING)
@@ -446,7 +446,7 @@ CQChartsValueSet::
 rmax(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.max(int(def))*1.0;
+    return double(ivals_.max(int(def)));
   else if (type() == Type::REAL)
     return rvals_.max(def);
   else if (type() == Type::STRING)
@@ -596,7 +596,7 @@ reals(std::vector<double> &reals) const
       auto ival = ivals_.value(i);
       if (! ival) continue;
 
-      reals.push_back(*ival);
+      reals.push_back(double(*ival));
     }
   }
   else if (rvals_.isValid()) {
@@ -800,7 +800,7 @@ addValue(const OptReal &r)
   auto p = valset_.find(*r);
 
   if (p == valset_.end()) {
-    int id = valset_.size();
+    int id = int(valset_.size());
 
     p = valset_.insert(p, ValueSet::value_type(*r, KeyCount(id, 1))); // id for value
 
@@ -905,7 +905,7 @@ addValue(const OptInt &i)
   auto p = valset_.find(*i);
 
   if (p == valset_.end()) {
-    int id = valset_.size();
+    int id = int(valset_.size());
 
     p = valset_.insert(p, ValueSet::value_type(*i, KeyCount(id, 1))); // id for value
 
@@ -948,7 +948,7 @@ calc()
   for (auto &v : values_) {
     if (! v) continue;
 
-    int i = *v;
+    int i = int(*v);
 
     svalues_.push_back(i);
   }
@@ -970,7 +970,7 @@ calc()
   int i = 0;
 
   for (auto v : svalues_) {
-    if (statData_.isOutlier(v))
+    if (statData_.isOutlier(double(v)))
       outliers_.push_back(i);
 
     ++i;
@@ -1042,7 +1042,7 @@ addValue(const OptString &s)
   auto p = valset_.find(*s);
 
   if (p == valset_.end()) {
-    int id = valset_.size();
+    int id = int(valset_.size());
 
     p = valset_.insert(p, ValueSet::value_type(*s, KeyCount(id, 1))); // id for value
 
@@ -1141,7 +1141,7 @@ addValue(const CQChartsColor &c)
   auto p = valset_.find(c);
 
   if (p == valset_.end()) {
-    int id = valset_.size();
+    int id = int(valset_.size());
 
     p = valset_.insert(p, ValueSet::value_type(c, KeyCount(id, 1))); // id for value
 

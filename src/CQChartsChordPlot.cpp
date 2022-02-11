@@ -715,7 +715,7 @@ initTableObjs(PlotObjs &objs) const
   if (! processTableModel(tableConnectionDatas, tableConnectionInfo))
     return false;
 
-  int nv  = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
   int nv1 = tableConnectionInfo.numNonZero;
 
   double total = tableConnectionInfo.total;
@@ -726,10 +726,11 @@ initTableObjs(PlotObjs &objs) const
 
   ChordDatas datas;
 
-  datas.resize(nv);
+  datas.resize(size_t(nv));
 
-  for (int row = 0; row < nv; ++row) {
-    auto &tableConnectionData = const_cast<TableConnectionData &>(tableConnectionDatas[row]);
+  for (size_t row = 0; row < nv; ++row) {
+    auto &tableConnectionData =
+      const_cast<TableConnectionData &>(tableConnectionDatas[row]);
 
     datas[row].setData(tableConnectionData);
   }
@@ -756,7 +757,7 @@ initTableObjs(PlotObjs &objs) const
 
   Angle angle1 = this->startAngle();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     auto &data = datas[row];
 
     // get total (skip if zero)
@@ -785,7 +786,7 @@ initTableObjs(PlotObjs &objs) const
   th->edgeObjs_   .clear();
   th->hierObjs_   .clear();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &data = datas[row];
 
     BBox rect(-1, -1, 1, 1);
@@ -795,7 +796,7 @@ initTableObjs(PlotObjs &objs) const
     if (data.group().isValid())
       ig = ColorInd(data.group().ig, data.group().ng);
 
-    ColorInd iv(row, nv);
+    auto iv = ColorInd(int(row), int(nv));
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
@@ -813,7 +814,7 @@ initTableObjs(PlotObjs &objs) const
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
-      edgeObj->setIv(ColorInd(ind, nv));
+      edgeObj->setIv(ColorInd(ind, int(nv)));
 
       objs.push_back(edgeObj);
 
@@ -849,7 +850,7 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
   if (p == nameDataMap.end()) {
     p = nameDataMap.insert(p, NameDataMap::value_type(name, ChordData()));
 
-    int ind = nameDataMap.size();
+    int ind = int(nameDataMap.size());
 
     (*p).second.setFrom(ind);
     (*p).second.setName(name);
@@ -980,7 +981,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     total += total1;
   }
 
-  int nv = datas.size();
+  auto nv = datas.size();
 
   //---
 
@@ -1041,12 +1042,12 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   // 360 degree circle, minus gap angle degrees per set
   double gap = std::max(this->gapAngle().value(), 0.0);
 
-  double drange = 360 - nv*gap;
+  double drange = 360.0 - double(nv)*gap;
 
-  while (drange <= 180) {
+  while (drange <= 180.0) {
     gap /= 2.0;
 
-    drange = 360 - nv*gap;
+    drange = 360.0 - double(nv)*gap;
   }
 
   // divide remaining degrees by total to get value->degrees factor
@@ -1058,7 +1059,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   auto angle1 = this->startAngle();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     auto &data = datas[row];
 
     double total1;
@@ -1084,7 +1085,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   th->edgeObjs_   .clear();
   th->hierObjs_   .clear();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &data = datas[row];
 
     BBox rect(-1, -1, 1, 1);
@@ -1094,7 +1095,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     if (data.group().isValid())
       ig = ColorInd(data.group().ig, data.group().ng);
 
-    ColorInd iv(row, nv);
+    auto iv = ColorInd(int(row), int(nv));
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
@@ -1112,7 +1113,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
-      edgeObj->setIv(ColorInd(ind, nv));
+      edgeObj->setIv(ColorInd(ind, int(nv)));
 
       objs.push_back(edgeObj);
 
@@ -1854,7 +1855,7 @@ int
 CQChartsChordSegmentObj::
 calcNumValues() const
 {
-  return data_.values().size();
+  return int(data_.values().size());
 }
 
 //------

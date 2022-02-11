@@ -173,7 +173,7 @@ void
 CQChartsPlotControlFrame::
 addIFaceTerm()
 {
-  controlLayout_->setRowStretch(ifaces_.size(), 1);
+  controlLayout_->setRowStretch(int(ifaces_.size()), 1);
   controlLayout_->setColumnStretch(2, 1);
 }
 
@@ -181,14 +181,14 @@ int
 CQChartsPlotControlFrame::
 numIFaces() const
 {
-  return ifaces_.size();
+  return int(ifaces_.size());
 }
 
 CQChartsPlotControlIFace *
 CQChartsPlotControlFrame::
 iface(int i) const
 {
-  return ifaces_[i];
+  return ifaces_[size_t(i)];
 }
 
 void
@@ -437,8 +437,8 @@ init()
       auto *details = plot_->columnDetails(column_);
       assert(details);
 
-      slider_->setRangeMin(CQChartsVariant::toInt(details->minValue(), ok));
-      slider_->setRangeMax(CQChartsVariant::toInt(details->maxValue(), ok));
+      slider_->setRangeMin(int(CQChartsVariant::toInt(details->minValue(), ok)));
+      slider_->setRangeMax(int(CQChartsVariant::toInt(details->maxValue(), ok)));
 
       slider_->setSliderMin(slider_->rangeMin());
       slider_->setSliderMax(slider_->rangeMax());

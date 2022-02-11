@@ -127,7 +127,7 @@ drawGrid(QPainter *painter)
     range_.windowToPixel(x, -1, &x1, &y1);
     range_.windowToPixel(x,  1, &x2, &y2);
 
-    painter->drawLine(x1, y1, x2, y2);
+    painter->drawLine(int(x1), int(y1), int(x2), int(y2));
   }
 
   for (int iy = 0; iy <= n; ++iy) {
@@ -142,7 +142,7 @@ drawGrid(QPainter *painter)
     range_.windowToPixel(-1, y, &x1, &y1);
     range_.windowToPixel( 1, y, &x2, &y2);
 
-    painter->drawLine(x1, y1, x2, y2);
+    painter->drawLine(int(x1), int(y1), int(x2), int(y2));
   }
 }
 
@@ -184,10 +184,10 @@ drawSymbol(QPainter *painter)
   //---
 
   if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
-    const auto &points = pointsArray_[mouseArrayInd_];
+    const auto &points = pointsArray_[size_t(mouseArrayInd_)];
 
     if (mouseInd_ >= 0 && mouseInd_ < int(points.size())) {
-      auto p = points[mouseInd_];
+      auto p = points[size_t(mouseInd_)];
 
       int r = 6;
 
@@ -286,10 +286,10 @@ mouseMoveEvent(QMouseEvent *me)
       }
 
       if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
-        auto &points = pointsArray_[mouseArrayInd_];
+        auto &points = pointsArray_[size_t(mouseArrayInd_)];
 
         if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
-          points[mouseInd_] = p;
+          points[size_t(mouseInd_)] = p;
       }
     }
   }
@@ -314,10 +314,10 @@ keyPressEvent(QKeyEvent *ke)
       escape_ = true;
 
       if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
-        auto &points = pointsArray_[mouseArrayInd_];
+        auto &points = pointsArray_[size_t(mouseArrayInd_)];
 
         if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
-          points[mouseInd_] = pointPos_;
+          points[size_t(mouseInd_)] = pointPos_;
       }
 
       update();
@@ -328,12 +328,12 @@ keyPressEvent(QKeyEvent *ke)
       if (symbol_.isFilled()) {
         auto *points = &pointsArray_[0];
 
-        int np = points->size();
+        auto np = points->size();
 
         CQChartsPlotSymbol::Lines lines;
 
-        for (int i = 0; i < np; ++i) {
-          int i1 = (i < np - 1 ? i + 1 : 0);
+        for (size_t i = 0; i < np; ++i) {
+          size_t i1 = (i < np - 1 ? i + 1 : 0);
 
           auto connectStr = (i < np - 1 ? "PlotSymbol::Connect::STROKE" :
                                           "PlotSymbol::Connect::FILL");
@@ -345,7 +345,7 @@ keyPressEvent(QKeyEvent *ke)
       }
       else {
         for (const auto &points : pointsArray_) {
-          int np = points.size();
+          auto np = points.size();
 
           if (np == 2) {
             std::cout << "{" << points[0].x() << ", " << points[0].y() << ", " <<
@@ -353,8 +353,8 @@ keyPressEvent(QKeyEvent *ke)
                                 "PlotSymbol::Connect::STROKE},\n";
           }
           else {
-            for (int i = 0; i < np; ++i) {
-              int i1 = (i < np - 1 ? i + 1 : 0);
+            for (size_t i = 0; i < np; ++i) {
+              size_t i1 = (i < np - 1 ? i + 1 : 0);
 
               auto connectStr = (i < np - 1 ? "PlotSymbol::Connect::LINE" :
                                               "PlotSymbol::Connect::CLOSE");
@@ -373,12 +373,12 @@ keyPressEvent(QKeyEvent *ke)
       if (symbol_.isFilled()) {
         auto *points = &pointsArray_[0];
 
-        int np = points->size();
+        auto np = points->size();
 
         CQChartsPlotSymbol::Lines lines;
 
-        for (int i = 0; i < np; ++i) {
-          int i1 = (i < np - 1 ? i + 1 : 0);
+        for (size_t i = 0; i < np; ++i) {
+          size_t i1 = (i < np - 1 ? i + 1 : 0);
 
           auto connect = (i < np - 1 ? CQChartsPlotSymbol::Connect::STROKE :
                                        CQChartsPlotSymbol::Connect::FILL);
@@ -393,7 +393,7 @@ keyPressEvent(QKeyEvent *ke)
         CQChartsPlotSymbol::Lines lines;
 
         for (const auto &points : pointsArray_) {
-          int np = points.size();
+          auto np = points.size();
 
           if (np == 2) {
             lines.emplace_back(points[0].x(), points[0].y(),
@@ -401,8 +401,8 @@ keyPressEvent(QKeyEvent *ke)
                                CQChartsPlotSymbol::Connect::STROKE);
           }
           else {
-            for (int i = 0; i < np; ++i) {
-              int i1 = (i < np - 1 ? i + 1 : 0);
+            for (size_t i = 0; i < np; ++i) {
+              size_t i1 = (i < np - 1 ? i + 1 : 0);
 
               auto connect = (i < np - 1 ? CQChartsPlotSymbol::Connect::LINE :
                                            CQChartsPlotSymbol::Connect::CLOSE);
@@ -454,10 +454,10 @@ updateMousePos(const QPoint &pos)
     pressPos_ = mousePos_;
 
     if (mouseArrayInd_ >= 0 && mouseArrayInd_ < int(pointsArray_.size())) {
-      const auto &points = pointsArray_[mouseArrayInd_];
+      const auto &points = pointsArray_[size_t(mouseArrayInd_)];
 
       if (mouseInd_ >= 0 && mouseInd_ < int(points.size()))
-        pointPos_ = points[mouseInd_].p;
+        pointPos_ = points[size_t(mouseInd_)].p;
     }
   }
 }

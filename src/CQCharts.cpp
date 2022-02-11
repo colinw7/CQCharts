@@ -882,7 +882,7 @@ addExitTimer(double secs)
 
   connect(exitTimer_, SIGNAL(timeout()), this, SLOT(exitSlot()));
 
-  exitTimer_->start(1000*secs);
+  exitTimer_->start(int(1000.0*secs));
 }
 
 void
@@ -1055,14 +1055,14 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
   else if (c.type() == Color::Type::LIGHTER ||
            c.type() == Color::Type::LIGHTER_VALUE) {
     if (c.type() == Color::Type::LIGHTER_VALUE)
-      return ic.lighter(150 + c.value());
+      return ic.lighter(int(150 + c.value()));
     else
       return ic.lighter();
   }
   else if (c.type() == Color::Type::DARKER ||
            c.type() == Color::Type::DARKER_VALUE) {
     if (c.type() == Color::Type::DARKER_VALUE)
-      return ic.darker(150 + c.value());
+      return ic.darker(int(150 + c.value()));
     else
       return ic.darker();
   }
@@ -1421,8 +1421,8 @@ removeModelData(CQChartsModelData *modelData)
 {
   int ind = modelData->ind();
 
-  int i = 0;
-  int n = modelDatas_.size();
+  size_t i = 0;
+  auto   n = modelDatas_.size();
 
   for ( ; i < n; ++i) {
     if (modelDatas_[i] == modelData)

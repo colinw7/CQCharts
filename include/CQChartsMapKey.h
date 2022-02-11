@@ -10,6 +10,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_PROPERTY(bool                insideX   READ isInsideX  WRITE setInsideX  )
   Q_PROPERTY(bool                insideY   READ isInsideY  WRITE setInsideY  )
   Q_PROPERTY(double              margin    READ margin     WRITE setMargin   )
+  Q_PROPERTY(double              padding   READ padding    WRITE setPadding  )
   Q_PROPERTY(CQChartsPosition    position  READ position   WRITE setPosition )
   Q_PROPERTY(Qt::Alignment       align     READ align      WRITE setAlign    )
   Q_PROPERTY(bool                numeric   READ isNumeric  WRITE setNumeric  )
@@ -68,6 +69,14 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   double margin() const { return margin_; }
   void setMargin(double r);
 
+  bool hasCustomMargin() const override { return true; }
+
+  //! get/set padding
+  double padding() const { return padding_; }
+  void setPadding(double r);
+
+  bool hasCustomPadding() const override { return true; }
+
   //! get/set position
   const Position &position() const { return position_; }
   void setPosition(const Position &p);
@@ -75,6 +84,8 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   //! get/set align
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &a);
+
+  //---
 
   //! get/set is numeric
   bool isNumeric() const { return numeric_; }
@@ -140,11 +151,15 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
     QFont font;
   };
 
+  virtual bool inside(const Point &p, DrawType drawType) const = 0;
+
   virtual void draw(PaintDevice *device, const DrawData &drawData, DrawType drawType) = 0;
 
   virtual QSize calcSize(const DrawData &drawData) const = 0;
 
   QColor bgColor(PaintDevice *device) const;
+
+  void setEditHandlesBBox() const override;
 
  protected:
   virtual void invalidate() = 0;
@@ -158,19 +173,26 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
  protected:
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
+  // position
   Location      location_;                                          //!< key location
   bool          insideX_   { true };                                //!< inside plot x
   bool          insideY_   { true };                                //!< inside plot y
-  double        margin_    { 4.0 };                                 //!< margin in pixels
+  double        margin_    { 4.0 };                                 //!< external margin in pixels
+  double        padding_   { 4.0 };                                 //!< internal padding in pixels
   Position      position_;                                          //!< key position
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
-  bool          numeric_   { false };                               //!< is numeric
-  bool          integral_  { false };                               //!< is integral
-  bool          native_    { false };                               //!< is native
-  bool          mapped_    { false };                               //!< is mapped
-  int           numUnique_ { -1 };                                  //!< num unique
-  QVariantList  uniqueValues_;                                      //!< unique values
 
+  // data
+  bool numeric_  { false }; //!< is numeric
+  bool integral_ { false }; //!< is integral
+  bool native_   { false }; //!< is native
+  bool mapped_   { false }; //!< is mapped
+
+  // unique data
+  int           numUnique_ { -1 }; //!< num unique
+  QVariantList  uniqueValues_;     //!< unique values
+
+  // draw data
   mutable double        kw_     { 0.0 };
   mutable double        kh_     { 0.0 };
   mutable double        xm_     { 0.0 };
@@ -181,6 +203,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   mutable Qt::Alignment talign_ { Qt::AlignHCenter | Qt::AlignVCenter }; //!< calculated align
   mutable BBox          pbbox_;
   mutable DrawData      drawData_;
+
+  using TypeBox = std::map<DrawType, BBox>;
+
+  TypeBox typeBBox_;
 };
 
 //-----
@@ -243,6 +269,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   //---
 
   bool isContiguous() const;
+
+  bool inside(const Point &p, DrawType drawType) const override;
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;
@@ -390,6 +418,8 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   bool isContiguous() const;
 
+  bool inside(const Point &p, DrawType drawType) const override;
+
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;
 
@@ -480,10 +510,10 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   Q_OBJECT
 
-  Q_PROPERTY(int     dataMin   READ dataMin   WRITE setDataMin  )
-  Q_PROPERTY(int     dataMax   READ dataMax   WRITE setDataMax  )
-  Q_PROPERTY(int     mapMin    READ mapMin    WRITE setMapMin   )
-  Q_PROPERTY(int     mapMax    READ mapMax    WRITE setMapMax   )
+  Q_PROPERTY(long    dataMin   READ dataMin   WRITE setDataMin  )
+  Q_PROPERTY(long    dataMax   READ dataMax   WRITE setDataMax  )
+  Q_PROPERTY(long    mapMin    READ mapMin    WRITE setMapMin   )
+  Q_PROPERTY(long    mapMax    READ mapMax    WRITE setMapMax   )
   Q_PROPERTY(QString symbolSet READ symbolSet WRITE setSymbolSet)
 
  public:
@@ -507,20 +537,20 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   //---
 
   // data range
-  int dataMin() const { return dataMin_; }
-  void setDataMin(int i) { dataMin_ = i; invalidate(); }
+  long dataMin() const { return dataMin_; }
+  void setDataMin(long i) { dataMin_ = i; invalidate(); }
 
-  int dataMax() const { return dataMax_; }
-  void setDataMax(int i) { dataMax_ = i; invalidate(); }
+  long dataMax() const { return dataMax_; }
+  void setDataMax(long i) { dataMax_ = i; invalidate(); }
 
   //---
 
   // map range
-  int mapMin() const { return mapMin_; }
-  void setMapMin(int i) { mapMin_ = i; invalidate(); }
+  long mapMin() const { return mapMin_; }
+  void setMapMin(long i) { mapMin_ = i; invalidate(); }
 
-  int mapMax() const { return mapMax_; }
-  void setMapMax(int i) { mapMax_ = i; invalidate(); }
+  long mapMax() const { return mapMax_; }
+  void setMapMax(long i) { mapMax_ = i; invalidate(); }
 
   //---
 
@@ -534,6 +564,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   //---
 
   bool isContiguous() const;
+
+  bool inside(const Point &p, DrawType drawType) const override;
 
   void draw(PaintDevice *device, const DrawData &drawData=DrawData(),
             DrawType drawType=DrawType::VIEW) override;
@@ -571,11 +603,11 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   using ItemBoxes     = std::vector<ItemBox>;
   using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
-  int dataMin_ { 0 }; //!< model data min
-  int dataMax_ { 1 }; //!< model data max
+  long dataMin_ { 0 }; //!< model data min
+  long dataMax_ { 1 }; //!< model data max
 
-  int mapMin_ { 0 }; //!< mapped symbol type min
-  int mapMax_ { 1 }; //!< mapped symbol type max
+  long mapMin_ { 0 }; //!< mapped symbol type min
+  long mapMax_ { 1 }; //!< mapped symbol type max
 
   QString symbolSet_;
 
@@ -617,6 +649,11 @@ class CQChartsMapKeyFrame : public QFrame {
   void paintEvent(QPaintEvent *) override;
 
   void mousePressEvent(QMouseEvent *) override;
+
+  void contextMenuEvent(QContextMenuEvent *e) override;
+
+ private slots:
+  void showKeySlot(bool b);
 
  private:
   CQChartsMapKeyWidget* w_ { nullptr };

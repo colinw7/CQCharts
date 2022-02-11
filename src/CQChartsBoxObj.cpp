@@ -63,8 +63,13 @@ addBoxProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
-  addProp(path, "margin" , "", desc.length() ? desc + " outer margin" : "Outer margin");
-  addProp(path, "padding", "", desc.length() ? desc + " inner padding" : "Inner padding");
+  if (! hasCustomMargin())
+    addProp(path, "margin", "", desc.length() ? desc + " outer margin" : "Outer margin");
+
+  if (! hasCustomPadding())
+    addProp(path, "padding", "", desc.length() ? desc + " inner padding" : "Inner padding");
+
+  //---
 
   auto bgPath = path + "/fill";
 
@@ -74,6 +79,8 @@ addBoxProperties(PropertyModel *model, const QString &path, const QString &desc)
   addStyleProp(bgPath, "fillColor"  , "color"  , fillDesc + " color");
   addStyleProp(bgPath, "fillAlpha"  , "alpha"  , fillDesc + " alpha");
   addStyleProp(bgPath, "fillPattern", "pattern", fillDesc + " pattern");
+
+  //---
 
   auto strokePath = path + "/stroke";
 
@@ -137,7 +144,7 @@ CQChartsBoxObj::
 drawBox(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush,
         const Length &cornerSize, const Sides &borderSides)
 {
-  if (penBrush.brush != Qt::NoBrush) {
+  if (penBrush.brush.style() != Qt::NoBrush) {
     // set pen and brush
     auto penBrush1 = penBrush;
 
@@ -147,7 +154,7 @@ drawBox(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush,
     CQChartsDrawUtil::drawRoundedRect(device, penBrush1, bbox, cornerSize, borderSides);
   }
 
-  if (penBrush.pen != Qt::NoPen) {
+  if (penBrush.pen.style() != Qt::NoPen) {
     // set pen and brush
     auto penBrush1 = penBrush;
 
@@ -163,7 +170,7 @@ CQChartsBoxObj::
 drawPolygon(PaintDevice *device, const Polygon &poly, const PenBrush &penBrush,
             const Length &cornerSize)
 {
-  if (penBrush.brush != Qt::NoBrush) {
+  if (penBrush.brush.style() != Qt::NoBrush) {
     // set pen and brush
     auto penBrush1 = penBrush;
 
@@ -173,7 +180,7 @@ drawPolygon(PaintDevice *device, const Polygon &poly, const PenBrush &penBrush,
     CQChartsDrawUtil::drawRoundedPolygon(device, penBrush1, poly, cornerSize);
   }
 
-  if (penBrush.pen != Qt::NoPen) {
+  if (penBrush.pen.style() != Qt::NoPen) {
     // set pen and brush
     auto penBrush1 = penBrush;
 

@@ -123,6 +123,10 @@ class CQChartsCmds : public QObject {
 
   //---
 
+  void setNameValue(const QString &name, const QString &value);
+
+  //---
+
   bool getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot);
 
   bool getViewArg(CQChartsCmdArgs &argv, CQChartsView* &view);

@@ -87,9 +87,9 @@ calc()
 
   Points points;
 
-  points.resize(numSamples_);
+  points.resize(size_t(numSamples_));
 
-  for (int i = 0; i < numSamples_; i++) {
+  for (uint i = 0; i < uint(numSamples_); i++) {
     double x = xmin_ + i*step;
     double y = eval(x);
 
@@ -129,7 +129,7 @@ calc()
     }
   }
 
-  int nl = lpoints.size();
+  int nl = int(lpoints.size());
 
   //--
 
@@ -156,12 +156,12 @@ calc()
     }
   }
 
-  int nr = rpoints.size();
+  int nr = int(rpoints.size());
 
   //---
 
-  xmin1_ = (nl > 0 ? lpoints[nl - 1].x : xmin_);
-  xmax1_ = (nr > 0 ? rpoints[nr - 1].x : xmax_);
+  xmin1_ = (nl > 0 ? lpoints[size_t(nl - 1)].x : xmin_);
+  xmax1_ = (nr > 0 ? rpoints[size_t(nr - 1)].x : xmax_);
 
   //---
 
@@ -200,12 +200,12 @@ calc()
   // scale y to area
   area_ = poly.area();
 
-  opoints_.resize(np);
+  opoints_.resize(size_t(np));
 
   for (int i = 0; i < np; ++i) {
     auto p = poly.point(i);
 
-    opoints_[i] = Point(p.x*xl + xmin1_, p.y/area_);
+    opoints_[size_t(i)] = Point(p.x*xl + xmin1_, p.y/area_);
   }
 
   ymin1_ = 0.0;
@@ -246,9 +246,9 @@ init()
   avg_   = 0.0;
   sigma_ = 0.0;
 
-  nx_ = xvals_.size();
+  nx_ = int(xvals_.size());
 
-  for (int i = 0; i < nx_; i++) {
+  for (uint i = 0; i < uint(nx_); i++) {
     double x = xvals_[i];
 
     if (i == 0) {
@@ -312,7 +312,7 @@ eval(double x) const
 
   double y = 0;
 
-  for (int i = 0; i < nx_; i++) {
+  for (size_t i = 0; i < size_t(nx_); i++) {
     double z = (x - xvals_[i])/bandwidth;
 
     y += exp(-0.5*z*z)/bandwidth;
@@ -527,10 +527,10 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
   if (opts.violin)
     vys /= 2.0;
 
-  int no = opoints.size();
-  int np = (opts.violin ? 2*no + 2 : no + 2);
+  auto no = opoints.size();
+  auto np = (opts.violin ? 2*no + 2 : no + 2);
 
-  poly.resize(np);
+  poly.resize(int(np));
 
   double px, py;
 
@@ -582,10 +582,10 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
     p2 = Point(px + xn, py + yn);
   }
 
-  poly.setPoint(0     , Point(p1.x, p1.y));
-  poly.setPoint(no + 1, Point(p2.x, p2.y));
+  poly.setPoint(0          , Point(p1.x, p1.y));
+  poly.setPoint(int(no + 1), Point(p2.x, p2.y));
 
-  int ip = 0;
+  uint ip = 0;
 
   for (auto &p : opoints) {
     double x1;
@@ -610,7 +610,7 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
         p1 = Point(px + x1, py + y1);
       }
 
-      poly.setPoint(ip + 1, Point(p1.x, p1.y));
+      poly.setPoint(int(ip + 1), Point(p1.x, p1.y));
     }
     else {
       Point p1, p2;
@@ -624,8 +624,8 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
         p2 = Point(px + x1, py + y1);
       }
 
-      poly.setPoint(ip + 1     , Point(p1.x, p1.y));
-      poly.setPoint(np - ip - 1, Point(p2.x, p2.y));
+      poly.setPoint(int(     ip + 1), Point(p1.x, p1.y));
+      poly.setPoint(int(np - ip - 1), Point(p2.x, p2.y));
     }
 
     ++ip;
@@ -664,8 +664,8 @@ drawBuckets(PaintDevice *device, const BBox &rect, const Qt::Orientation &orient
     return;
 
   if (orientation == Qt::Horizontal) {
-    double dx = rect.getWidth ()/bucketCount.size();
-    double dy = rect.getHeight()/maxCount;
+    double dx = rect.getWidth ()/double(bucketCount.size());
+    double dy = rect.getHeight()/double(maxCount);
 
     double x = rect.getXMin();
     double y = rect.getYMin();
@@ -683,8 +683,8 @@ drawBuckets(PaintDevice *device, const BBox &rect, const Qt::Orientation &orient
     }
   }
   else {
-    double dx = rect.getWidth ()/maxCount;
-    double dy = rect.getHeight()/bucketCount.size();
+    double dx = rect.getWidth ()/double(maxCount);
+    double dy = rect.getHeight()/double(bucketCount.size());
 
     double x = rect.getXMin();
     double y = rect.getYMin();

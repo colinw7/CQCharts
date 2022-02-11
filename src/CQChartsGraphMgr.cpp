@@ -120,7 +120,7 @@ addNode(Node *node) const
 {
   auto *th = const_cast<CQChartsGraphMgr *>(this);
 
-  node->setId(nameNodeMap_.size());
+  node->setId(int(nameNodeMap_.size()));
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(),
               NameNodeMap::value_type(node->str(), node));
@@ -159,7 +159,7 @@ addEdge(Edge *edge) const
 
   th->edges_.push_back(edge);
 
-  edge->setId(th->edges_.size());
+  edge->setId(int(th->edges_.size()));
 }
 
 CQChartsGraphMgr::Edge *
@@ -593,11 +593,11 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   double perpPos1;
 
   if (mgr_->isHorizontal()) {
-    perpPos1  = bbox_.getYMid() + (nodePerpSize + valueMargin)*nodes.size()/2.0; // top
+    perpPos1  = bbox_.getYMid() + (nodePerpSize + valueMargin)*double(nodes.size())/2.0; // top
     perpPos1 -= valueMargin/2.0;
   }
   else {
-    perpPos1  = bbox_.getXMid() - (nodePerpSize + valueMargin)*nodes.size()/2.0; // left
+    perpPos1  = bbox_.getXMid() - (nodePerpSize + valueMargin)*double(nodes.size())/2.0; // left
     perpPos1 += valueMargin/2.0;
   }
 
@@ -822,7 +822,7 @@ adjustNodeCentersLtoR() const
 
   // second to last minus one (last if SRC align)
   int startPos = 1;
-  int endPos   = posNodesMap().size() - 1;
+  int endPos   = int(posNodesMap().size() - 1);
 
   if (mgr_->align() == CQChartsGraphMgr::Align::SRC)
     ++endPos;
@@ -850,7 +850,7 @@ adjustNodeCentersRtoL() const
 
   // last minus one to second (first if DEST align)
   int startPos = 1;
-  int endPos   = posNodesMap().size() - 1;
+  int endPos   = int(posNodesMap().size() - 1);
 
   if (mgr_->align() == CQChartsGraphMgr::Align::DEST)
     --startPos;

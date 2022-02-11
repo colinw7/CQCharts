@@ -197,14 +197,14 @@ addExtraColumnExpr(const QString &header, const QString &expr, int &column)
   //---
 
   // init calculated values in separate array
-  auto *extraColumn = extraColumns_[ecolumn];
+  auto *extraColumn = extraColumns_[size_t(ecolumn)];
 
   nr_ = rowCount();
 
-  extraColumn->values.resize(nr_);
+  extraColumn->values.resize(size_t(nr_));
 
   for (int r = 0; r < nr_; ++r)
-    extraColumn->values[r] = QVariant();
+    extraColumn->values[size_t(r)] = QVariant();
 
   // calculate new values
   extraColumn->function = Function::ADD;
@@ -249,16 +249,16 @@ addExtraColumnStrs(const QString &header, const QStringList &strs, int &column)
   //---
 
   // init calculated values in separate array
-  auto *extraColumn = extraColumns_[ecolumn];
+  auto *extraColumn = extraColumns_[size_t(ecolumn)];
 
   nr_ = rowCount();
 
-  extraColumn->values.resize(nr_);
+  extraColumn->values.resize(size_t(nr_));
 
   int ns = strs.size();
 
   for (int r = 0; r < std::min(ns, nr_); ++r)
-    extraColumn->values[r] = strs[r];
+    extraColumn->values[size_t(r)] = strs[r];
 
   extraColumn->function = Function::NONE;
 
@@ -280,12 +280,12 @@ removeExtraColumn(int column)
   if (! isExtraColumn(column, ecolumn))
     return false;
 
-  delete extraColumns_[ecolumn];
+  delete extraColumns_[size_t(ecolumn)];
 
   beginRemoveColumns(QModelIndex(), column, column);
 
   for (int i = ecolumn + 1; i < numExtraColumns(); ++i)
-    extraColumns_[i - 1] = extraColumns_[i];
+    extraColumns_[size_t(i - 1)] = extraColumns_[size_t(i)];
 
   extraColumns_.pop_back();
 
@@ -393,14 +393,14 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   calcExtraColumn(column, ecolumn);
 
   // store calculated values in separate array
-  auto *extraColumn = extraColumns_[ecolumn];
+  auto *extraColumn = extraColumns_[size_t(ecolumn)];
 
   nr_ = rowCount();
 
-  extraColumn->values.resize(nr_);
+  extraColumn->values.resize(size_t(nr_));
 
   for (int r = 0; r < nr_; ++r)
-    extraColumn->values[r] = extraColumn->variantMap[r];
+    extraColumn->values[size_t(r)] = extraColumn->variantMap[r];
 
   // set new expression and ensure all column values calculated
   if (header != "")
@@ -499,7 +499,7 @@ getExtraColumnDetails(int column, QString &header, QString &expr) const
   if (! isExtraColumn(column, ecolumn))
     return false;
 
-  const auto *extraColumn = extraColumns_[ecolumn];
+  const auto *extraColumn = extraColumns_[size_t(ecolumn)];
 
   header = extraColumn->header;
   expr   = extraColumn->expr;
@@ -916,7 +916,7 @@ getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
   //---
 
   if (extraColumn.function == Function::NONE) {
-    return extraColumn.values[row];
+    return extraColumn.values[size_t(row)];
   }
 
   //---
@@ -924,7 +924,7 @@ getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
   // if evaluating the expression for this row use cached values for referenced values
   if (extraColumn.evaluating.load()) {
     if (! extraColumn.values.empty())
-      return extraColumn.values[row];
+      return extraColumn.values[size_t(row)];
 
     return QVariant();
   }
@@ -1009,7 +1009,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 
   if (extraColumn.function == Function::ADD) {
     if (! extraColumn.values.empty())
-      extraColumn.values[row] = var;
+      extraColumn.values[size_t(row)] = var;
   }
 
   if (isDebug())
@@ -1927,11 +1927,11 @@ normCmd(const Values &values) const
       (void) cmdValues.getInt(maxVal);
     }
 
-    int    d = maxVal - minVal;
+    long   d = maxVal - minVal;
     double s = 0.0;
 
     if (d > 0)
-      s = scale*double(value - minVal)/d;
+      s = scale*double(value - minVal)/double(d);
 
     return CQChartsVariant::fromReal(s);
   }
@@ -2393,8 +2393,8 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       }
     }
 
-    rmin = imin;
-    rmax = imax;
+    rmin = double(imin);
+    rmax = double(imax);
   }
   else {
     return false;

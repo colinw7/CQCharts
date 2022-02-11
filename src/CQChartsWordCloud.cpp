@@ -25,7 +25,7 @@ addWord(const QString &word, int count)
 {
   assert(count > 0);
 
-  int ind = wordDataArray_.size() + 1;
+  int ind = int(wordDataArray_.size() + 1);
 
   auto *wordData = new WordData(word, count);
 

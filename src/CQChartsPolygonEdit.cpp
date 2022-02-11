@@ -416,11 +416,11 @@ polygonToWidgets()
   unitsEdit_->setUnits(units);
 
   int n  = numPoints();
-  int ne = pointEdits_.size();
+  int ne = int(pointEdits_.size());
   assert(n == ne);
 
   for (int i = 0; i < n; ++i)
-    pointEdits_[i]->setValue(polygon_.point(i));
+    pointEdits_[size_t(i)]->setValue(polygon_.point(i));
 
   //---
 
@@ -432,11 +432,11 @@ CQChartsPolygonEdit::
 widgetsToPolygon()
 {
   int n  = numPoints();
-  int ne = pointEdits_.size();
+  int ne = int(pointEdits_.size());
   assert(n == ne);
 
   for (int i = 0; i < n; ++i)
-    polygon_.setPoint(i, pointEdits_[i]->getValue());
+    polygon_.setPoint(i, pointEdits_[size_t(i)]->getValue());
 
   auto units = unitsEdit_->units();
 
@@ -511,7 +511,7 @@ CQChartsPolygonEdit::
 updatePointEdits()
 {
   int n  = numPoints();
-  int ne = pointEdits_.size();
+  int ne = int(pointEdits_.size());
 
   while (ne < n) {
     auto *edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");

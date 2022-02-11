@@ -1280,7 +1280,7 @@ menuPlotObjs(PlotObjs &objs) const
 
   if (objs.empty()) {
     auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+    auto pos  = view()->mapFromGlobal(QPointF(gpos.x, gpos.y).toPoint());
 
     auto w = pixelToWindow(Point(pos));
 
@@ -2164,9 +2164,9 @@ void
 CQChartsTreeMapHierNode::
 removeChild(HierNode *child)
 {
-  int nc = children_.size();
+  auto nc = children_.size();
 
-  int i = 0;
+  size_t i = 0;
 
   for ( ; i < nc; ++i)
     if (children_[i] == child)
@@ -2241,7 +2241,7 @@ CQChartsTreeMapHierNode::
 packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
 {
   // place nodes
-  int n = nodes.size();
+  auto n = nodes.size();
   if (n == 0) return;
 
   if (n >= 2) {
@@ -2251,12 +2251,12 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
 #if 1
     double size12 = 0.0;
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
       size12 += nodes[i]->hierSize();
 
     double hsize = size12/2;
 
-    int i = 0;
+    size_t i = 0;
 
     for ( ; i < n - 1; ++i) {
       if (size1 > hsize)
@@ -2343,9 +2343,9 @@ void
 CQChartsTreeMapHierNode::
 removeNode(Node *node)
 {
-  int n = nodes_.size();
+  auto n = nodes_.size();
 
-  int i = 0;
+  size_t i = 0;
 
   for ( ; i < n; ++i) {
     if (nodes_[i] == node)

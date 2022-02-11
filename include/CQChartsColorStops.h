@@ -57,7 +57,7 @@ class CQChartsColorStops :
 
   //---
 
-  int size() const { return values_.size(); }
+  int size() const { return int(values_.size()); }
 
   //---
 
@@ -73,7 +73,7 @@ class CQChartsColorStops :
       return -1;
 
     for (int i = 0; i < n; ++i) {
-      if (v < values_[i])
+      if (v < values_[size_t(i)])
         return i;
     }
 

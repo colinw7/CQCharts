@@ -232,7 +232,7 @@ getColumnValue(const Values &values, int &ind, int &col) const
 
   bool ok;
 
-  col = CQChartsVariant::toInt(values[ind], ok);
+  col = int(CQChartsVariant::toInt(values[size_t(ind)], ok));
   if (! ok) return false;
 
   ++ind;
@@ -249,7 +249,7 @@ getRowValue(const Values &values, int &ind, int &row) const
 
   bool ok;
 
-  row = CQChartsVariant::toInt(values[ind], ok);
+  row = int(CQChartsVariant::toInt(values[size_t(ind)], ok));
   if (! ok) return false;
 
   ++ind;

@@ -51,16 +51,14 @@ calc()
 
   ipoints_.clear();
 
-  int num_points = points_.size();
-
-  if (num_points < 3)
-    return false;
+  auto num_points = points_.size();
+  if (num_points < 3) return false;
 
   // set point indices
-  ipoints_.resize(num_points);
+  ipoints_.resize(size_t(num_points));
 
-  for (int i = 0; i < num_points; ++i)
-    ipoints_[i] = i;
+  for (size_t i = 0; i < num_points; ++i)
+    ipoints_[i] = int(i);
 
   // find lowest point
   findLowest();
@@ -71,10 +69,8 @@ calc()
   // remove colinear
   squash();
 
-  int num_ipoints = ipoints_.size();
-
-  if (num_ipoints < 3)
-    return false;
+  auto num_ipoints = ipoints_.size();
+  if (num_ipoints < 3) return false;
 
   rc_ = doScan();
 
@@ -91,24 +87,24 @@ doScan()
   ipoint_stack.push_back(ipoints_[0]);
   ipoint_stack.push_back(ipoints_[1]);
 
-  int i = 2;
+  uint i = 2;
 
-  int num_ipoints = ipoints_.size();
+  auto num_ipoints = ipoints_.size();
 
   while (i < num_ipoints) {
-    uint ns = ipoint_stack.size();
+    auto ns = ipoint_stack.size();
 
     if (ns < 2) {
       ipoints_.clear();
       return false;
     }
 
-    int i1 = ipoint_stack[ns - 2];
-    int i2 = ipoint_stack[ns - 1];
-    int i3 = ipoints_[i];
+    uint i1 = uint(ipoint_stack[ns - 2]);
+    uint i2 = uint(ipoint_stack[ns - 1]);
+    uint i3 = uint(ipoints_[i]);
 
     if (pointLineLeft(points_[i1], points_[i2], points_[i3])) {
-      ipoint_stack.push_back(i3);
+      ipoint_stack.push_back(int(i3));
 
       ++i;
     }
@@ -128,34 +124,34 @@ getHull(Polygon &poly) const
 {
   constCalc();
 
-  int num_ipoints = ipoints_.size();
+  auto num_ipoints = ipoints_.size();
 
-  poly.resize(num_ipoints);
+  poly.resize(int(num_ipoints));
 
-  for (int i = 0; i < num_ipoints; ++i)
-    poly.setPoint(i, points_[ipoints_[i]]);
+  for (uint i = 0; i < num_ipoints; ++i)
+    poly.setPoint(int(i), points_[size_t(ipoints_[i])]);
 }
 
 void
 CQChartsGrahamHull::
 findLowest()
 {
-  int num_points = ipoints_.size();
+  auto num_points = ipoints_.size();
 
   int  min_i = 0;
-  auto min_p = points_[ipoints_[min_i]];
+  auto min_p = points_[size_t(ipoints_[size_t(min_i)])];
 
-  for (int i = 1; i < num_points; ++i) {
-    const auto &p = points_[ipoints_[i]];
+  for (uint i = 1; i < num_points; ++i) {
+    const auto &p = points_[size_t(ipoints_[i])];
 
     if (p.y < min_p.y || (p.y == min_p.y && p.x > min_p.x)) {
-      min_i = i;
+      min_i = int(i);
       min_p = p;
     }
   }
 
   if (min_i > 0)
-    std::swap(ipoints_[0], ipoints_[min_i]);
+    std::swap(ipoints_[0], ipoints_[size_t(min_i)]);
 }
 
 void
@@ -174,9 +170,9 @@ sortLowestClockwise()
   int i0 = ipoints_[0];
 
   std::sort(p1, p2, [&](const int &i1, const int &i2) {
-    const auto &p0 = points_[i0];
-    const auto &p1 = points_[i1];
-    const auto &p2 = points_[i2];
+    const auto &p0 = points_[size_t(i0)];
+    const auto &p1 = points_[size_t(i1)];
+    const auto &p2 = points_[size_t(i2)];
 
     int as = areaSign(p0, p1, p2);
 
@@ -217,18 +213,18 @@ squash()
     return;
 
   // remove colinear points
-  int num_ipoints = ipoints_.size();
+  auto num_ipoints = ipoints_.size();
 
-  int j = 0;
+  uint j = 0;
 
-  for (int i = 0; i < num_ipoints; ++i) {
+  for (uint i = 0; i < num_ipoints; ++i) {
     int pi = ipoints_[i];
 
     if (delPoints_.find(pi) == delPoints_.end())
       ipoints_[j++] = pi;
   }
 
-  assert(j == (num_ipoints - int(delPoints_.size())));
+  assert(j == (num_ipoints - delPoints_.size()));
 
   ipoints_.resize(j);
 }
@@ -263,7 +259,7 @@ draw(CQChartsPaintDevice *device) const
 
   getHull(hpoly);
 
-  int n = hpoly.size();
+  auto n = hpoly.size();
 
   if (n > 0) {
     auto path = CQChartsDrawUtil::polygonToPath(hpoly, /*closed*/true);

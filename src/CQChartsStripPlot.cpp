@@ -375,7 +375,7 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
   if (positionColumn().isValid()) {
     ModelIndex positionInd(th, data.row, positionColumn(), data.parent);
 
-    position = OptInt(modelInteger(positionInd, ok));
+    position = OptInt(int(modelInteger(positionInd, ok)));
     if (! ok) { th->addDataError(positionInd, "Invalid position"); position = OptInt(); }
   }
 
@@ -385,7 +385,7 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
     auto pn = th->namePos_.find(name);
 
     if (pn == th->namePos_.end()) {
-      int n = th->namePos_.size();
+      int n = int(th->namePos_.size());
 
       pn = th->namePos_.insert(pn, NamePos::value_type(name, n));
     }
@@ -510,7 +510,7 @@ addRowObj(const ModelVisitor::VisitData &data, PlotObjs &objs) const
   if (positionColumn().isValid()) {
     ModelIndex positionInd(th, data.row, positionColumn(), data.parent);
 
-    position = OptInt(modelInteger(positionInd, ok));
+    position = OptInt(int(modelInteger(positionInd, ok)));
     if (! ok) { th->addDataError(positionInd, "Invalid position"); position = OptInt(); }
   }
 
@@ -561,7 +561,7 @@ addRowObj(const ModelVisitor::VisitData &data, PlotObjs &objs) const
 
   auto &valuesData = (*pyv).second;
 
-  int iv = valuesData.values.size();
+  int iv = int(valuesData.values.size());
   int nv = valuesData.n;
 
 #if 0

@@ -1588,7 +1588,7 @@ initRawObjs(PlotObjs &objs) const
 
     if (! isConnected()) {
       int is = 0;
-      int ns = setWhiskerMap.size();
+      int ns = int(setWhiskerMap.size());
 
       double sf = (ns > 1 ? 1.0/ns : 1.0);
 
@@ -1942,7 +1942,7 @@ initCalcObjs(PlotObjs &objs) const
   double ymargin = this->ymargin();
 
   int is = 0;
-  int ns = whiskerDataList_.size();
+  int ns = int(whiskerDataList_.size());
 
   //int ipos = 0;
 
@@ -2048,7 +2048,7 @@ addKeyItems(PlotKey *key)
       auto groupName = groupIndName(groupInd);
 
       int is = 0;
-      int ns = setWhiskerMap.size();
+      int ns = int(setWhiskerMap.size());
 
       for (const auto &setWhiskers : setWhiskerMap) {
         int   setId   = setWhiskers.first;
@@ -2108,7 +2108,7 @@ addKeyItems(PlotKey *key)
     auto groupName = groupIndName(groupInd);
 
     int is = 0;
-    int ns = setWhiskerMap.size();
+    int ns = int(setWhiskerMap.size());
 
     for (const auto &setWhiskers : setWhiskerMap) {
     //int   setId   = setWhiskers.first;
@@ -3372,7 +3372,7 @@ calcTipId() const
 
   const auto &setWhiskerMap = this->setWhiskerMap();
 
-  int ns = setWhiskerMap.size();
+  int ns = int(setWhiskerMap.size());
 
   CQChartsTableTip tableTip;
 
@@ -3412,7 +3412,7 @@ initPolygon()
 
   //---
 
-  int np = maxPoly.size();
+  int np = int(maxPoly.size());
 
   for (int i = 0; i < np; ++i)
     poly_.addPoint(maxPoly.point(i));
@@ -3453,7 +3453,7 @@ CQChartsBoxPlotConnectedObj::
 draw(PaintDevice *device) const
 {
   // draw range polygon
-  int np = poly_.size();
+  int np = int(poly_.size());
 
   if (np) {
     // set pen and brush

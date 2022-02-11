@@ -58,8 +58,8 @@ void
 CQChartsWindowMgr::
 removeWindow(CQChartsWindow *window)
 {
-  int i = 0;
-  int n = windows_.size();
+  size_t i = 0;
+  size_t n = windows_.size();
 
   for ( ; i < n; ++i) {
     if (windows_[i] == window)

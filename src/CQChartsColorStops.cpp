@@ -76,13 +76,13 @@ cmp(const CQChartsColorStops &s) const
     return (units_ == Units::ABSOLUTE ? -1 : 1);
   }
 
-  int n1 =   values_.size();
-  int n2 = s.values_.size();
+  auto n1 =   values_.size();
+  auto n2 = s.values_.size();
 
   if (n1 != n2)
-    return n1 - n2;
+    return int(n1 - n2);
 
-  for (int i = 0; i < n1; ++i) {
+  for (size_t i = 0; i < n1; ++i) {
     if (values_[i] == s.values_[i])
       continue;
 

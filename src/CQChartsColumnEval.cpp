@@ -145,7 +145,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
     c = CQChartsUtil::stringToColor(values[0].toString());
   }
   else if (values.size() == 3) {
-    auto clamp = [](double x) { return CMathUtil::clamp(x, 0.0, 255.0); };
+    auto clamp = [](double x) { return int(CMathUtil::clamp(x, 0.0, 255.0)); };
 
     bool ok;
 

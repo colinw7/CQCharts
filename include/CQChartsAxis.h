@@ -12,6 +12,7 @@
 #include <CQChartsAxisTickLabelPlacement.h>
 #include <CQChartsTextPlacer.h>
 #include <CInterval.h>
+#include <CSafeIndex.h>
 
 #include <map>
 #include <set>
@@ -456,9 +457,9 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   // used ?
   const double *tickSpaces() const { return &tickSpaces_[0]; }
-  uint          numTickSpaces() const { return tickSpaces_.size(); }
+  uint          numTickSpaces() const { return uint(tickSpaces_.size()); }
 
-  double tickSpace(int i) const { return tickSpaces_[i]; }
+  double tickSpace(int i) const { return CUtil::safeIndex(tickSpaces_, i); }
   void setTickSpaces(double *tickSpaces, uint numTickSpaces);
 
   //---
@@ -651,7 +652,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
  private:
   using TickSpaces  = std::vector<double>;
-  using ITickLabels = std::map<int, QString>;
+  using ITickLabels = std::map<long, QString>;
   using RTickLabels = std::map<double, QString>;
 
   using EditHandlesP = std::unique_ptr<EditHandles>;

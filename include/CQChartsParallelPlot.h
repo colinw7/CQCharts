@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+#include <CSafeIndex.h>
 
 //---
 
@@ -259,12 +260,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   Range setRange(int i) const {
     if (i >= 0 && i < int(setRanges_.size()))
-      return setRanges_[i];
+      return setRanges_[size_t(i)];
 
     return Range();
   }
 
-  Axis *axis(int i) const { return axes_[i].get(); }
+  Axis *axis(int i) const { return CUtil::safeIndex(axes_, i).get(); }
 
   //---
 

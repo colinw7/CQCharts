@@ -71,7 +71,7 @@ class CQChartsViewPlotObj : public CQChartsObj,
 
   void drawEditHandles(PaintDevice *device) const override;
 
-  void setEditHandlesBBox() const;
+  virtual void setEditHandlesBBox() const;
 
   //---
 

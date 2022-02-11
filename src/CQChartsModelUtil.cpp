@@ -839,7 +839,7 @@ processExpression(QAbstractItemModel *model, const QString &exprStr)
     return -1;
   }
 
-  Column column(icolumn);
+  auto column = Column(int(icolumn));
 
   return processExpression(model, function, column, expr);
 }
@@ -1935,7 +1935,7 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 
   bool ok;
 
-  row = CQChartsUtil::toInt(strs[0], ok);
+  row = int(CQChartsUtil::toInt(strs[0], ok));
   if (! ok) return false;
 
   if (! stringToColumn(model, strs[1], column)) {
@@ -1944,7 +1944,7 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
     long icol = CQChartsUtil::toInt(strs[1], ok);
     if (! ok) return false;
 
-    column = Column(icol);
+    column = Column(int(icol));
   }
 
   for (int i = 2; i < n; ++i) {
@@ -1953,7 +1953,7 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
     long prow = CQChartsUtil::toInt(strs[i], ok);
     if (! ok) return false;
 
-    prows.push_back(prow);
+    prows.push_back(int(prow));
   }
 
   return true;
@@ -2291,7 +2291,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
         auto p = valueGroup_.find(groupVar);
 
         if (p == valueGroup_.end()) {
-          int group = valueGroup_.size();
+          int group = int(valueGroup_.size());
 
           p = valueGroup_.insert(p, ValueGroup::value_type(groupVar, group));
 
@@ -2327,7 +2327,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
     int numFlatColumns() const { return numCols() - numHierColumns(); }
 
-    int numHierRows() const { return rowColValueSet_.size(); }
+    int numHierRows() const { return int(rowColValueSet_.size()); }
 
     QVariant groupValue(int row) {
       assert(row >= 0 && row <= int(groupValue_.size()));
@@ -2447,7 +2447,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
     dataModel = new CQDataModel(nc + nh, nr);
   }
   else {
-    nc = 1 + flattenData.columnOps.size(); // groupColumn + each column with op
+    nc = 1 + int(flattenData.columnOps.size()); // groupColumn + each column with op
 
     dataModel = new CQDataModel(nc, nr);
   }

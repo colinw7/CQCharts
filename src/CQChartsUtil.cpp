@@ -208,7 +208,7 @@ bool scanReal(const QString &fmt, const QString &str, double &r) {
   if      (v.type() == CScanF::ValueType::REAL)
     r = v.real();
   else if (v.type() == CScanF::ValueType::INTEGER)
-    r = v.integer();
+    r = double(v.integer());
   else
     return false;
 
@@ -227,7 +227,7 @@ bool scanInteger(const QString &fmt, const QString &str, long &i) {
   const auto &v = scanf.value(0);
 
   if      (v.type() == CScanF::ValueType::REAL)
-    i = v.real();
+    i = long(v.real());
   else if (v.type() == CScanF::ValueType::INTEGER)
     i = v.integer();
   else
@@ -325,7 +325,7 @@ QColor blendColors(const std::vector<QColor> &colors) {
   if (colors.empty())
     return QColor();
 
-  double f = 1.0/colors.size();
+  double f = 1.0/double(colors.size());
 
   double r = 0.0;
   double g = 0.0;
@@ -757,11 +757,11 @@ bool parsePolygons(CQStrParse &parse, std::vector<Polygon> &polygons) {
 }
 
 QString polygonListToString(const std::vector<Polygon> &polyList) {
-  int np = polyList.size();
+  auto np = polyList.size();
 
   QStringList strs;
 
-  for (int i = 0; i < np; ++i) {
+  for (size_t i = 0; i < np; ++i) {
     const auto &poly = polyList[i];
 
     strs += polygonToString(poly);
@@ -1164,7 +1164,7 @@ namespace CQChartsUtil {
 QString timeToString(const QString &fmt, double r) {
   static char buffer[512];
 
-  time_t t(r);
+  auto t = time_t(r);
 
   auto *tm1 = localtime(&t);
   if (! tm1) return "<no_time>";
@@ -1180,7 +1180,7 @@ bool stringToTime(const QString &fmt, const QString &str, double &t) {
   char *p = strptime(str.toLatin1().constData(), fmt.toLatin1().constData(), &tm1);
   if (! p) return false;
 
-  t = mktime(&tm1);
+  t = double(mktime(&tm1));
 
   return true;
 }
@@ -1213,7 +1213,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   //---
 
   // number of newlines
-  std::size_t nl = str.count('\n');
+  int nl = str.count('\n');
 
   //---
 
@@ -1249,13 +1249,13 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   if (formatData1.isValid())
     findStringCustomSplits(sstr, splits, formatData1);
 
-  if (splits.size() < nl + 1)
+  if (splits.size() < size_t(nl + 1))
     findStringSpaceSplits(sstr, splits);
 
-  if (splits.size() < nl + 1)
+  if (splits.size() < size_t(nl + 1))
     findStringPunctSplits(sstr, splits);
 
-  if (splits.size() < nl + 1)
+  if (splits.size() < size_t(nl + 1))
     findStringCaseSplits(sstr, splits);
 
   if (splits.empty()) {
@@ -1275,7 +1275,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 
     if (bestInd < 0 || dist < bestDist) {
       bestDist = dist;
-      bestInd  = i;
+      bestInd  = int(i);
     }
   }
 
@@ -1287,7 +1287,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   //---
 
   // split at best and measure
-  int split = splits[bestInd];
+  int split = splits[size_t(bestInd)];
 
   auto str1 = sstr.mid(0, split).trimmed();
 
@@ -1298,8 +1298,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   else
     str2 = sstr.mid(split).trimmed();
 
-  std::size_t nl1 = str1.count('\n');
-  std::size_t nl2 = str2.count('\n');
+  int nl1 = str1.count('\n');
+  int nl2 = str2.count('\n');
 
   bool fit1 = false;
   bool fit2 = false;
@@ -1568,7 +1568,7 @@ Point nearestRectPoint(const BBox &rect, const Point &pos) {
 
   pointList.resize(8);
 
-  int np = 0;
+  size_t np = 0;
 
   pointList[np++] = Point(rect.getXMin(), rect.getYMin());
   pointList[np++] = Point(rect.getXMin(), rect.getYMid());
@@ -1590,24 +1590,24 @@ Point nearestPointListPoint(const PointList &points, const Point &pos, int &i) {
     return std::hypot(p1.x - p2.x, p1.y - p2.y);
   };
 
-  int np = points.size();
+  auto np = points.size();
   assert(np > 0);
 
   int  i1 = -1;
   auto d  = pointPointDist(points[0], pos);
 
-  for (int ip = 0; ip < np; ++ip) {
+  for (size_t ip = 0; ip < np; ++ip) {
     auto d1 = pointPointDist(points[ip], pos);
 
     if (i1 < 0 || d1 < d) {
-      i1 = ip;
+      i1 = int(ip);
       d  = d1;
     }
   }
 
   i = i1;
 
-  return points[i1];
+  return points[size_t(i1)];
 }
 
 }

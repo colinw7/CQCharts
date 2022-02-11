@@ -904,7 +904,7 @@ indPoints(const QVariant &var, int isGroup) const
 
   if (isGroup) {
     bool ok;
-    long groupInd = CQChartsVariant::toInt(var, ok);
+    int groupInd = int(CQChartsVariant::toInt(var, ok));
 
     auto p = groupPoints_.find(groupInd);
     if (p == groupPoints_.end()) return points;

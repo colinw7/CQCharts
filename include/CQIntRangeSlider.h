@@ -73,11 +73,11 @@ class CQIntRangeSlider : public CQRangeSlider {
   QString intToString(int i) const;
 
   void deltaSliderMin(int d) override {
-    setSliderMin(clampValue(deltaValue(getSliderMin(), d)), /*force*/true);
+    setSliderMin(clampValue(deltaValue(int(getSliderMin()), d)), /*force*/true);
   }
 
   void deltaSliderMax(int d) override {
-    setSliderMax(clampValue(deltaValue(getSliderMax(), d)), /*force*/true);
+    setSliderMax(clampValue(deltaValue(int(getSliderMax()), d)), /*force*/true);
   }
 
   void reset() override {

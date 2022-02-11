@@ -81,8 +81,8 @@ class CQChartsColumnTypeParam {
 
  private:
   CQChartsColumnTypeParam &setAttribute(bool b, Attribute attribute) {
-    if (b) attributes_ |=  int(attribute);
-    else   attributes_ &= ~int(attribute);
+    if (b) attributes_ |=  uint(attribute);
+    else   attributes_ &= ~uint(attribute);
     return *this;
   }
 

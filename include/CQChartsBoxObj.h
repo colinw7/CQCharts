@@ -66,6 +66,9 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   CQChartsGeom::Margin parentMargin(const Margin &m) const;
 
+  virtual bool hasCustomMargin() const { return false; }
+  virtual bool hasCustomPadding() const { return false; }
+
   //---
 
   void dataInvalidate() override { boxObjInvalidate(); }

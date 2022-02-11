@@ -54,9 +54,9 @@ class CQChartsPolygonList {
   friend bool operator==(const CQChartsPolygonList &lhs, const CQChartsPolygonList &rhs) {
     if (lhs.polygons_.size() != rhs.polygons_.size()) return false;
 
-    int np = lhs.polygons_.size();
+    auto np = lhs.polygons_.size();
 
-    for (int i = 0; i < np; ++i) {
+    for (size_t i = 0; i < np; ++i) {
       if (lhs.polygons_[i] != rhs.polygons_[i])
         return false;
     }

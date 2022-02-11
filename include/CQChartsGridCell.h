@@ -97,7 +97,7 @@ class CQChartsGridCell {
   }
 
   int numPoints(int ix, int iy) const {
-    return points(ix, iy).size();
+    return int(points(ix, iy).size());
   }
 
  private:

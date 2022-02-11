@@ -492,15 +492,15 @@ setModelData(CQChartsModelData *modelData)
     connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
   if (isBasic_) {
-    int ne = columnCombos_.size();
+    auto ne = columnCombos_.size();
 
-    for (int i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i)
       columnCombos_[i]->setModelData(modelData_);
   }
   else {
-    int ne = columnEdits_.size();
+    auto ne = columnEdits_.size();
 
-    for (int i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i)
       columnEdits_[i]->setModelData(modelData_);
   }
 
@@ -539,15 +539,15 @@ setNumericOnly(bool b)
   numericOnly_ = b;
 
   if (isBasic_) {
-    int ne = columnCombos_.size();
+    auto ne = columnCombos_.size();
 
-    for (int i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i)
       columnCombos_[i]->setNumericOnly(b);
   }
   else {
-    int ne = columnEdits_.size();
+    auto ne = columnEdits_.size();
 
-    for (int i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i)
       columnEdits_[i]->setNumericOnly(b);
   }
 }
@@ -565,18 +565,18 @@ columnsToWidgets()
   int n = columns_.count();
 
   if (isBasic_) {
-    int ne = columnCombos_.size();
-    assert(n == ne);
+    auto ne = columnCombos_.size();
+    assert(size_t(n) == ne);
 
-    for (int i = 0; i < n; ++i)
-      columnCombos_[i]->setColumn(columns_.getColumn(i));
+    for (size_t i = 0; i < ne; ++i)
+      columnCombos_[i]->setColumn(columns_.getColumn(int(i)));
   }
   else {
-    int ne = columnEdits_.size();
-    assert(n == ne);
+    auto ne = columnEdits_.size();
+    assert(size_t(n) == ne);
 
-    for (int i = 0; i < n; ++i)
-      columnEdits_[i]->setColumn(columns_.getColumn(i));
+    for (size_t i = 0; i < ne; ++i)
+      columnEdits_[i]->setColumn(columns_.getColumn(int(i)));
   }
 
   connectSlots(true);
@@ -589,18 +589,18 @@ widgetsToColumn()
   int n = columns_.count();
 
   if (isBasic_) {
-    int ne = columnCombos_.size();
-    assert(n == ne);
+    auto ne = columnCombos_.size();
+    assert(size_t(n) == ne);
 
-    for (int i = 0; i < n; ++i)
-      columns_.setColumn(i, columnCombos_[i]->getColumn());
+    for (size_t i = 0; i < size_t(n); ++i)
+      columns_.setColumn(int(i), columnCombos_[i]->getColumn());
   }
   else {
-    int ne = columnEdits_.size();
-    assert(n == ne);
+    auto ne = columnEdits_.size();
+    assert(size_t(n) == ne);
 
-    for (int i = 0; i < n; ++i)
-      columns_.setColumn(i, columnEdits_[i]->column());
+    for (size_t i = 0; i < size_t(n); ++i)
+      columns_.setColumn(int(i), columnEdits_[i]->column());
   }
 
   emit columnsChanged();
@@ -634,9 +634,9 @@ updateEdits()
 {
   connectSlots(false);
 
-  int n = columns_.count();
+  size_t n = size_t(columns_.count());
 
-  int ne = 0;
+  size_t ne = 0;
 
   if (isBasic_) {
     ne = columnCombos_.size();
@@ -718,9 +718,9 @@ sizeHint() const
   int h1 = s1.height() + 2;
 
   if (isBasic_) {
-    int ne = columnCombos_.size();
+    auto ne = columnCombos_.size();
 
-    for (int i = 0; i < ne; ++i) {
+    for (uint i = 0; i < ne; ++i) {
       auto s2 = columnCombos_[i]->sizeHint();
 
       w1  = std::max(w1, s2.width());
@@ -728,9 +728,9 @@ sizeHint() const
     }
   }
   else {
-    int ne = columnEdits_.size();
+    auto ne = columnEdits_.size();
 
-    for (int i = 0; i < ne; ++i) {
+    for (uint i = 0; i < ne; ++i) {
       auto s2 = columnEdits_[i]->sizeHint();
 
       w1  = std::max(w1, s2.width());

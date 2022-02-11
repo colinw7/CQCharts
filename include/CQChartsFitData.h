@@ -51,7 +51,7 @@ class CQChartsFitData {
   //---
 
   void calc(const std::vector<Point> &points, int order=-1) {
-    int np = points.size();
+    auto np = points.size();
 
     std::vector<double> x, y;
 
@@ -79,13 +79,13 @@ class CQChartsFitData {
     if (order <= 0) {
       num_coeffs_ = 8;
 
-      CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], np,
+      CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], int(np),
         coeffs_, coeffs_free_, &num_coeffs_, &deviation_, &return_code);
     }
     else {
       num_coeffs_ = std::min(std::max(order, 1), 8);
 
-      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
+      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], int(np),
         coeffs_, coeffs_free_, num_coeffs_, &deviation_, &return_code);
     }
 
@@ -93,7 +93,7 @@ class CQChartsFitData {
   }
 
   void calc(const Polygon &poly, int order=-1) {
-    int np = poly.size();
+    auto np = poly.size();
 
     std::vector<double> x, y;
 
@@ -123,13 +123,13 @@ class CQChartsFitData {
     if (order <= 0) {
       num_coeffs_ = 8;
 
-      CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], np,
+      CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], int(np),
         coeffs_, coeffs_free_, &num_coeffs_, &deviation_, &return_code);
     }
     else {
       num_coeffs_ = std::min(std::max(order, 1), 8);
 
-      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
+      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], int(np),
         coeffs_, coeffs_free_, num_coeffs_, &deviation_, &return_code);
     }
 

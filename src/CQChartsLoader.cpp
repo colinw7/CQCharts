@@ -323,9 +323,9 @@ createVarsModel(const InputData &inputData)
       columnValues = qtcl_->getListVar(varName);
 
     if (! inputData.transpose) {
-      int nc = columnValues.size();
+      auto nc = columnValues.size();
 
-      for (int c = 0; c < nc; ++c) {
+      for (size_t c = 0; c < nc; ++c) {
         ColumnValues columnValues1;
 
         if (CQChartsVariant::isList(columnValues[c])) {
@@ -338,12 +338,12 @@ createVarsModel(const InputData &inputData)
           columnValues1.push_back(columnValues[c]);
         }
 
-        int nv1 = columnValues1.size();
+        auto nv1 = columnValues1.size();
 
         if (nr < 0)
-          nr = nv1;
+          nr = int(nv1);
         else
-          nr = std::min(nr, nv1);
+          nr = std::min(nr, int(nv1));
 
         varColumns.push_back(columnValues1);
       }
@@ -353,9 +353,9 @@ createVarsModel(const InputData &inputData)
 
       IndColumnValues indColumnValues;
 
-      nr = columnValues.size();
+      nr = int(columnValues.size());
 
-      for (int r = 0; r < nr; ++r) {
+      for (uint r = 0; r < uint(nr); ++r) {
         if (CQChartsVariant::isList(columnValues[r])) {
           auto columnVars = columnValues[r].toList();
 
@@ -398,12 +398,12 @@ createVarsModel(const InputData &inputData)
       if (qtcl_)
         columnValues = qtcl_->getListVar(varName);
 
-      int nv1 = columnValues.size();
+      auto nv1 = columnValues.size();
 
       if (nr < 0)
-        nr = nv1;
+        nr = int(nv1);
       else
-        nr = std::min(nr, nv1);
+        nr = std::min(nr, int(nv1));
 
       varColumns.push_back(columnValues);
     }
@@ -421,10 +421,10 @@ createVarsModel(const InputData &inputData)
 
   //---
 
-  int nc = varColumns.size();
+  auto nc = varColumns.size();
 
-  int nc1 = nc - ic;
-  int nr1 = nr - ir;
+  int nc1 = int(nc) - ic;
+  int nr1 = int(nr) - ir;
 
   if (nc1 < 0 || nr1 < 0)
     return nullptr;
@@ -439,23 +439,23 @@ createVarsModel(const InputData &inputData)
   if (inputData.firstColumnHeader) {
     const auto &columnValues = varColumns[0];
 
-    for (int r = ir; r < nr; ++r)
-      varsModel->setHeaderData(r - ir, Qt::Vertical, columnValues[r]);
+    for (uint r = uint(ir); r < uint(nr); ++r)
+      varsModel->setHeaderData(int(r - uint(ir)), Qt::Vertical, columnValues[r]);
   }
 
   if (inputData.firstLineHeader) {
-    for (int c = ic; c < nc; ++c) {
+    for (uint c = uint(ic); c < uint(nc); ++c) {
       const auto &columnValues = varColumns[c];
 
-      varsModel->setHeaderData(c - ic, Qt::Horizontal, columnValues[0]);
+      varsModel->setHeaderData(int(c - uint(ic)), Qt::Horizontal, columnValues[0]);
     }
   }
 
-  for (int c = ic; c < nc; ++c) {
+  for (uint c = uint(ic); c < nc; ++c) {
     const auto &columnValues = varColumns[c];
 
-    for (int r = ir; r < nr; ++r) {
-      auto ind = varsModel->index(r - ir, c - ic, parent);
+    for (uint r = uint(ir); r < uint(nr); ++r) {
+      auto ind = varsModel->index(int(r - uint(ir)), int(c - uint(ic)), parent);
 
       varsModel->setData(ind, columnValues[r]);
     }
@@ -494,7 +494,7 @@ createTclModel(const InputData &inputData)
       nr = std::max(nr, strs.length());
     }
 
-    nc = inputData.vars.size();
+    nc = int(inputData.vars.size());
 
     for (const auto &var : inputData.vars) {
       auto strs = var.toStringList();
@@ -513,9 +513,9 @@ createTclModel(const InputData &inputData)
       nc = std::max(nc, strs.length());
     }
 
-    nr = inputData.vars.size();
+    nr = int(inputData.vars.size());
 
-    columnStrs.resize(nc);
+    columnStrs.resize(size_t(nc));
 
     for (const auto &var : inputData.vars) {
       auto strs = var.toStringList();
@@ -523,8 +523,8 @@ createTclModel(const InputData &inputData)
       while (strs.length() < nc)
         strs << "";
 
-      for (int i = 0; i < nc; ++i)
-        columnStrs[i].push_back(strs[i]);
+      for (uint i = 0; i < uint(nc); ++i)
+        columnStrs[i].push_back(strs[int(i)]);
     }
   }
 
@@ -550,13 +550,13 @@ createTclModel(const InputData &inputData)
 
   QModelIndex parent;
 
-  for (int c = ic; c < nc; ++c) {
+  for (uint c = uint(ic); c < uint(nc); ++c) {
     const auto &strs = columnStrs[c];
 
-    for (int r = ir; r < nr; ++r) {
-      auto ind = tclModel->index(r - ir, c - ic, parent);
+    for (uint r = uint(ir); r < uint(nr); ++r) {
+      auto ind = tclModel->index(int(r - uint(ir)), int(c - uint(ic)), parent);
 
-      tclModel->setData(ind, strs[r]);
+      tclModel->setData(ind, strs[int(r)]);
     }
   }
 
@@ -565,15 +565,15 @@ createTclModel(const InputData &inputData)
   if (inputData.firstColumnHeader) {
     const auto &strs = columnStrs[0];
 
-    for (int r = ir; r < nr; ++r)
-      tclModel->setHeaderData(r - ir, Qt::Vertical, strs[r]);
+    for (uint r = uint(ir); r < uint(nr); ++r)
+      tclModel->setHeaderData(int(r - uint(ir)), Qt::Vertical, strs[int(r)]);
   }
 
   if (inputData.firstLineHeader) {
-    for (int c = ic; c < nc; ++c) {
+    for (uint c = uint(ic); c < uint(nc); ++c) {
       const auto &strs = columnStrs[c];
 
-      tclModel->setHeaderData(c - ic, Qt::Horizontal, strs[0]);
+      tclModel->setHeaderData(int(c - uint(ic)), Qt::Horizontal, strs[0]);
     }
   }
 
@@ -633,17 +633,17 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
     //---
 
-    int nc1 = columnSet.size();
+    auto nc1 = columnSet.size();
 
-    nv = nc1;
+    nv = int(nc1);
 
-    columnValues.resize(nv);
-    columnNames .resize(nv);
-    columnMinMax.resize(nv);
+    columnValues.resize(size_t(nv));
+    columnNames .resize(size_t(nv));
+    columnMinMax.resize(size_t(nv));
 
     //---
 
-    int ic = 0;
+    size_t ic = 0;
 
     for (const auto &c : columnSet) {
       bool ok;
@@ -654,7 +654,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
       auto &values = columnValues[ic];
       auto &minMax = columnMinMax[ic];
 
-      values.resize(nr);
+      values.resize(size_t(nr));
 
       for (int ir = 0; ir < nr; ++ir) {
         auto ind = model->index(ir, c.column(), QModelIndex());
@@ -663,7 +663,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
         double v = CQChartsModelUtil::modelReal(model, ind, ok);
 
-        values[ir] = v;
+        values[size_t(ir)] = v;
 
         minMax.add(v);
       }
@@ -674,24 +674,24 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
   else {
     nv = nr;
 
-    columnValues.resize(nv);
-    columnNames .resize(nv);
-    columnMinMax.resize(nv);
+    columnValues.resize(size_t(nv));
+    columnNames .resize(size_t(nv));
+    columnMinMax.resize(size_t(nv));
 
     //---
 
-    for (int ir = 0; ir < nr; ++ir) {
+    for (size_t ir = 0; ir < size_t(nr); ++ir) {
       bool ok;
 
-      columnNames[ir] = CQChartsModelUtil::modelHeaderString(model, ir, Qt::Vertical, ok);
+      columnNames[ir] = CQChartsModelUtil::modelHeaderString(model, int(ir), Qt::Vertical, ok);
 
       auto &values = columnValues[ir];
       auto &minMax = columnMinMax[ir];
 
-      values.resize(nc);
+      values.resize(size_t(nc));
 
-      for (int ic = 0; ic < nc; ++ic) {
-        auto ind = model->index(ir, ic, QModelIndex());
+      for (size_t ic = 0; ic < size_t(nc); ++ic) {
+        auto ind = model->index(int(ir), int(ic), QModelIndex());
 
         bool ok;
 
@@ -725,13 +725,13 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
   for (int ic1 = 0; ic1 < nv; ++ic1) {
     CQChartsColumn c1(ic1);
 
-    auto &values1 = columnValues[ic1];
+    auto &values1 = columnValues[size_t(ic1)];
 
     for (int ic2 = ic1; ic2 < nv; ++ic2) {
       if (ic1 != ic2) {
         CQChartsColumn c2(ic2);
 
-        auto &values2 = columnValues[ic2];
+        auto &values2 = columnValues[size_t(ic2)];
 
         double corr = CMathCorrelation::calc(values1, values2);
 
@@ -745,9 +745,9 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
         assert(values1.size() == values2.size());
 
-        int nv1 = values1.size();
+        auto nv1 = values1.size();
 
-        for (int j = 0; j < nv1; ++j) {
+        for (size_t j = 0; j < size_t(nv1); ++j) {
           points1.emplace_back(values1[j], values2[j]);
           points2.emplace_back(values2[j], values1[j]);
         }
@@ -764,11 +764,11 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
       else {
         CQChartsCorrelationModel::Points points1;
 
-        int nv1 = values1.size();
+        auto nv1 = values1.size();
 
         CQChartsDensity::XVals xvals;
 
-        for (int j = 0; j < nv1; ++j)
+        for (size_t j = 0; j < size_t(nv1); ++j)
           xvals.push_back(values1[j]);
 
         if (! columnDensity[ic1])
@@ -817,11 +817,11 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
   // set header values and diagonal values
   for (int ic = 0; ic < nv; ++ic) {
-    int ics = sortedColumns[ic];
+    int ics = sortedColumns[size_t(ic)];
 
     CQChartsColumn c(ic);
 
-    auto columnName = columnNames[ics];
+    auto columnName = columnNames[size_t(ics)];
 
     CQChartsModelUtil::setModelHeaderValue(correlationModel, ic, Qt::Horizontal,
                                            columnName, Qt::DisplayRole);
@@ -835,17 +835,17 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
   // set off diagonal values
   for (int ic1 = 0; ic1 < nv; ++ic1) {
-    int ic1s = sortedColumns[ic1];
+    int ic1s = sortedColumns[size_t(ic1)];
 
     CQChartsColumn c1(ic1);
 
-    auto &minMax = columnMinMax[ic1s];
+    auto &minMax = columnMinMax[size_t(ic1s)];
 
     correlationModel->setMinMax(ic1, minMax);
 
     for (int ic2 = ic1; ic2 < nv; ++ic2) {
       if (ic1 != ic2) {
-        int ic2s = sortedColumns[ic2];
+        int ic2s = sortedColumns[size_t(ic2)];
 
         CQChartsColumn c2(ic2);
 

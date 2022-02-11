@@ -46,7 +46,7 @@ fromString(const QString &str)
   auto column = Column(strs[1]);
   if (! column.isValid()) return false;
 
-  modelInd_ = modelInd;
+  modelInd_ = int(modelInd);
   column_   = column;
 
   return true;

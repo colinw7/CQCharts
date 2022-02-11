@@ -46,7 +46,7 @@ class CQChartsValueInd {
     auto p = valueSet_.find(r);
 
     if (p == valueSet_.end()) {
-      int id = valueSet_.size() + 1;
+      int id = int(valueSet_.size() + 1);
 
       p = valueSet_.insert(p, ValueSet::value_type(r, id));
 
@@ -66,7 +66,7 @@ class CQChartsValueInd {
     auto p = nameSet_.find(s);
 
     if (p == nameSet_.end()) {
-      int id = nameSet_.size() + 1;
+      int id = int(nameSet_.size() + 1);
 
       p = nameSet_.insert(p, NameSet::value_type(s, id));
 

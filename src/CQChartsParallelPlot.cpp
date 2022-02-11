@@ -466,12 +466,12 @@ calcRange() const
      plot_(plot) {
       ns_ = plot_->visibleYColumns().count();
 
-      details_.resize(ns_);
+      details_.resize(size_t(ns_));
 
       for (int i = 0; i < ns_; ++i) {
         const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
-        details_[i] = plot_->columnDetails(yColumn);
+        details_[size_t(i)] = plot_->columnDetails(yColumn);
 
         setRanges_.emplace_back();
       }
@@ -479,7 +479,7 @@ calcRange() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int i = 0; i < ns_; ++i) {
-        auto &range = setRanges_[i];
+        auto &range = setRanges_[size_t(i)];
 
         const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
@@ -491,7 +491,7 @@ calcRange() const
         double y = data.row;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(details_[i], yColumnInd, y, /*defVal*/y))
+        if (! plot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
           continue;
 
         if (plot_->isVertical())
@@ -526,7 +526,7 @@ calcRange() const
   int ns = visibleYColumns().count();
 
   for (int j = 0; j < ns; ++j) {
-    auto &range = th->setRanges_[j];
+    auto &range = th->setRanges_[size_t(j)];
     if (! range.isSet()) continue;
 
     if (isVertical()) {
@@ -679,12 +679,12 @@ createObjs(PlotObjs &objs) const
      plot_(plot) {
       ns_ = plot_->visibleYColumns().count();
 
-      details_.resize(ns_);
+      details_.resize(size_t(ns_));
 
       for (int i = 0; i < ns_; ++i) {
         const auto &yColumn = plot_->visibleYColumns().getColumn(i);
 
-        details_[i] = plot_->columnDetails(yColumn);
+        details_[size_t(i)] = plot_->columnDetails(yColumn);
       }
     }
 
@@ -710,7 +710,7 @@ createObjs(PlotObjs &objs) const
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(details_[i], yColumnInd, y, /*defVal*/y))
+        if (! plot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
           continue;
 
         if (plot_->isVertical())
@@ -753,11 +753,11 @@ createObjs(PlotObjs &objs) const
 
   plotSymbolSize(symbolSize(), sx, sy);
 
-  int n = polys.size();
+  int n = int(polys.size());
 
   for (int i = 0; i < n; ++i) {
-    const auto &poly = polys[i];
-    const auto &xind = xinds[i];
+    const auto &poly = polys[size_t(i)];
+    const auto &xind = xinds[size_t(i)];
 
     auto xind1 = normalizeIndex(xind);
 

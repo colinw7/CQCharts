@@ -255,9 +255,9 @@ createObjs(PlotObjs &) const
 
   std::vector<double> x, y, z;
 
-  x.resize(nx_);
-  y.resize(ny_);
-  z.resize(nx_*ny_);
+  x.resize(size_t(nx_));
+  y.resize(size_t(ny_));
+  z.resize(size_t(nx_*ny_));
 
   //---
 
@@ -286,7 +286,7 @@ createObjs(PlotObjs &) const
           if (! ok || CMathUtil::isNaN(y))
             y = 0.0;
 
-          y_[iy_++] = y;
+          y_[size_t(iy_++)] = y;
         }
       }
       // remaining rows are x values (first column) and z values
@@ -304,7 +304,7 @@ createObjs(PlotObjs &) const
         if (! ok || CMathUtil::isNaN(x))
           x = 0.0;
 
-         x_[ix_++] = x;
+         x_[size_t(ix_++)] = x;
 
         for (int col = 1; col < numCols(); ++col) {
           ModelIndex columnModelInd1(plot_, data.row, Column(col), data.parent);
@@ -315,7 +315,7 @@ createObjs(PlotObjs &) const
           if (! ok || CMathUtil::isNaN(z))
             z = 0.0; // default bad value to zero
 
-          z_[iz_++] = z;
+          z_[size_t(iz_++)] = z;
         }
       }
 

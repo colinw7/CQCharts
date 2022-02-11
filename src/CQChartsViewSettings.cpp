@@ -224,7 +224,7 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     clear();
 
     setColumnCount(4);
-    setRowCount(modelDatas.size());
+    setRowCount(int(modelDatas.size()));
 
     setHorizontalHeaderItem(0, new QTableWidgetItem("Name"       ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Index"      ));
@@ -526,14 +526,14 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQChartsViewSettingsAnno
 
     const auto &viewAnnotations = view->annotations();
 
-    int nv = viewAnnotations.size();
+    int nv = int(viewAnnotations.size());
 
     setRowCount(nv);
 
     addHeaderItems();
 
     for (int i = 0; i < nv; ++i) {
-      auto *annotation = viewAnnotations[i];
+      auto *annotation = viewAnnotations[size_t(i)];
 
       (void) createItem(annotation->id()      , i, 0, annotation);
       (void) createItem(annotation->typeName(), i, 1, annotation);
@@ -560,14 +560,14 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQChartsViewSettingsAnno
 
     const auto &plotAnnotations = plot->annotations();
 
-    int np = plotAnnotations.size();
+    int np = int(plotAnnotations.size());
 
     setRowCount(np);
 
     addHeaderItems();
 
     for (int i = 0; i < np; ++i) {
-      auto *annotation = plotAnnotations[i];
+      auto *annotation = plotAnnotations[size_t(i)];
 
       (void) createItem(annotation->id()      , i, 0, annotation);
       (void) createItem(annotation->typeName(), i, 1, annotation);
@@ -1180,9 +1180,9 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //----
 
-  int globalSize = INT_MAX*0.1;
-  int viewSize   = INT_MAX*0.2;
-  int quickSize  = INT_MAX*0.1; // quick controls
+  int globalSize = int(INT_MAX*0.1);
+  int viewSize   = int(INT_MAX*0.2);
+  int quickSize  = int(INT_MAX*0.1); // quick controls
   int plotSize   = INT_MAX - viewSize - quickSize;
 
   propertiesWidgets_.propertiesSplit->
@@ -1941,8 +1941,8 @@ initSymbolsFrame(QFrame *symbolSetsFrame)
 
   //---
 
-  int size1 = INT_MAX*0.20;
-  int size2 = INT_MAX*0.45;
+  int size1 = int(INT_MAX*0.20);
+  int size2 = int(INT_MAX*0.45);
   int size3 = INT_MAX - size1 - size2;
 
   symbolsSplit->setSizes(QList<int>({size1, size2, size3}));
@@ -2874,14 +2874,14 @@ updatePlotControls()
 
   //---
 
-  int viewSize  = INT_MAX*0.3;
+  int viewSize  = int(INT_MAX*0.3);
   int quickSize = 0;
 
   if (quickControlFrame_->numIFaces() > 0) {
     if (! propertiesWidgets_.propertiesSplit->hasWidget(quickControlFrame_)) {
       propertiesWidgets_.propertiesSplit->addWidget(quickControlFrame_, "Quick Controls");
 
-      quickSize = INT_MAX*0.1; // quick controls
+      quickSize = int(INT_MAX*0.1); // quick controls
 
       quickControlFrame_->setVisible(true);
     }
@@ -3870,12 +3870,12 @@ moveCurrentUp()
   bool ok;
   long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-  if (! ok || ! symbolSet->moveUp(i))
+  if (! ok || ! symbolSet->moveUp(int(i)))
     return;
 
   updateItems();
 
-  setCurrentItem(this->item(i - 1), QItemSelectionModel::Select);
+  setCurrentItem(this->item(int(i - 1)), QItemSelectionModel::Select);
 }
 
 void
@@ -3891,12 +3891,12 @@ moveCurrentDown()
   bool ok;
   long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-  if (! ok || ! symbolSet->moveDown(i))
+  if (! ok || ! symbolSet->moveDown(int(i)))
     return;
 
   updateItems();
 
-  setCurrentItem(this->item(i + 1), QItemSelectionModel::Select);
+  setCurrentItem(this->item(int(i + 1)), QItemSelectionModel::Select);
 }
 
 QListWidgetItem *
@@ -3925,7 +3925,7 @@ selectedSymbol(CQChartsSymbol &symbol) const
   long i = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
   if (! ok) return false;
 
-  symbol = symbolSet->symbol(i);
+  symbol = symbolSet->symbol(int(i));
 
   return true;
 }

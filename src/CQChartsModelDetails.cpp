@@ -278,7 +278,7 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
   std::vector<QVariant> rowValues1, rowValues2;
 
   if (all)
-    rowValues2.resize(numColumns_);
+    rowValues2.resize(size_t(numColumns_));
   else
     rowValues2.resize(1);
 
@@ -293,9 +293,9 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
         auto var = CQChartsModelUtil::modelValue(charts, model, r, CQChartsColumn(c), parent, ok);
 
-        rowValues2[c] = var;
+        rowValues2[size_t(c)] = var;
 
-        if (rowValues1.empty() || var != rowValues1[c])
+        if (rowValues1.empty() || var != rowValues1[size_t(c)])
           match = false;
       }
     }
@@ -1955,13 +1955,13 @@ calcBucketer()
     long i1 = CQChartsVariant::toInt(minValue(), ok);
     long i2 = CQChartsVariant::toInt(maxValue(), ok);
 
-    int n = i2 - i1 + 1;
-    int d = n/num;
+    long n = i2 - i1 + 1;
+    long d = n/num;
 
     if (d <= 0) d = 1;
 
-    bucketer_->setIStart(i1);
-    bucketer_->setIDelta(d);
+    bucketer_->setIStart(int(i1));
+    bucketer_->setIDelta(int(d));
     bucketer_->setNumAuto(num);
   }
   else if (type() == CQBaseModelType::REAL) {
@@ -2030,7 +2030,7 @@ addValue(const QVariant &value)
   auto p = valueInds_.find(value);
 
   if (p == valueInds_.end()) {
-    int ind = valueInds_.size();
+    int ind = int(valueInds_.size());
 
     (void) valueInds_.insert(p, VariantInds::value_type(value, ind));
   }

@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsConnectionList.h>
 #include <CQChartsOptInt.h>
+#include <CSafeIndex.h>
 
 //---
 
@@ -320,7 +321,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
     const Values &values() const { return values_; }
 
-    const Value &ivalue(int i) const { return values_[i]; }
+    const Value &ivalue(int i) const { return CUtil::safeIndex(values_, i); }
 
     void addValue(int to, const OptReal &value, bool primary) {
       addValue(to, value, QModelIndex(), primary);
@@ -399,7 +400,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     Values      values_;                 //!< connection values
     QModelIndex nameInd_;                //!< name model index
     QModelIndex groupInd_;               //!< group model index
-    double      totalValid_   { false }; //!< is total valid
+    bool        totalValid_   { false }; //!< is total valid
     bool        totalPrimary_ { false }; //!< is total for primary only
     double      total_        { 0.0 };   //!< value total
   };

@@ -171,7 +171,7 @@ class CQChartsGraphMgr {
 
   //---
 
-  int numNodes() const { return nameNodeMap_.size(); }
+  int numNodes() const { return int(nameNodeMap_.size()); }
 
   void clearNodesAndEdges();
 
@@ -198,7 +198,7 @@ class CQChartsGraphMgr {
   Length          nodeMargin_       { Length::plot(0.05) }; //!< node margin (perp)
   Length          nodeSpacing_      { Length::plot(0.05) }; //!< node spacing (parallel)
   NodeShape       nodeShape_        { NODE_SHAPE_NONE };    //!< node shape
-  double          minNodeMargin_    { 4 };                  //!< minimum node margin (in pixels)
+  int             minNodeMargin_    { 4 };                  //!< minimum node margin (in pixels)
   NameNodeMap     nameNodeMap_;                             //!< name node map
   IndNodeMap      indNodeMap_;                              //!< ind node map
   Edges           edges_;                                   //!< all edges

@@ -24,7 +24,7 @@ class CQChartsExprCmdValues {
 
   bool hasValues() const { return ! values_.empty(); }
 
-  int numValues() const { return values_.size(); }
+  int numValues() const { return int(values_.size()); }
 
   QVariant popValue() {
     QVariant value = values_.back();
@@ -41,7 +41,7 @@ class CQChartsExprCmdValues {
 
     bool ok;
 
-    long i1 = CQChartsVariant::toInt(values_[ind_], ok);
+    long i1 = CQChartsVariant::toInt(values_[size_t(ind_)], ok);
 
     if (ok) {
       i = i1;
@@ -57,7 +57,7 @@ class CQChartsExprCmdValues {
 
     bool ok;
 
-    double r1 = values_[ind_].toDouble(&ok);
+    double r1 = values_[size_t(ind_)].toDouble(&ok);
 
     if (ok) {
       r = r1;
@@ -71,7 +71,7 @@ class CQChartsExprCmdValues {
   bool getStr(QString &s) {
     if (ind_ > eind_) return false;
 
-    s = values_[ind_++].toString();
+    s = values_[size_t(ind_++)].toString();
 
     return true;
   }
@@ -79,7 +79,7 @@ class CQChartsExprCmdValues {
   bool getBool(bool &b) {
     if (ind_ > eind_) return false;
 
-    b = values_[ind_].toBool();
+    b = values_[size_t(ind_)].toBool();
 
     ++ind_;
 

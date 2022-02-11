@@ -65,6 +65,12 @@ toString() const
   if (! angle().isZero())
     str += QString(",angle=%1").arg(angle().toString());
 
+  if (radius() != 0.0)
+    str += QString(",radius=%1").arg(radius());
+
+  if (delta() != 0.0)
+    str += QString(",delta=%1").arg(delta());
+
   return str;
 }
 
@@ -77,7 +83,7 @@ fromString(const QString &s)
 
 // format:
 //   <typeStr>[, palette=<palette>][, image=<image>][, altColor=<altColor>][, altAlpha=<altAlpha>]
-//            [, scale=<scale>][, angle=<angle>]
+//            [, scale=<scale>][, angle=<angle>][, radius=<radius>][[, delta=<delta>]
 bool
 CQChartsFillPattern::
 setValue(const QString &s)
@@ -99,6 +105,8 @@ setValue(const QString &s)
       type_ = type;
     }
     else {
+      bool ok;
+
       auto pos = strs[i].indexOf("=");
 
       auto name  = strs[i].mid(0, pos).trimmed();
@@ -127,12 +135,19 @@ setValue(const QString &s)
         altAlpha_ = Alpha(value);
       }
       else if (name == "scale") {
-        bool ok;
         scale_ = CQChartsUtil::toReal(value, ok);
         if (! ok) scale_ = 1.0;
       }
       else if (name == "angle") {
         angle_ = Angle(value);
+      }
+      else if (name == "radius") {
+        radius_ = CQChartsUtil::toReal(value, ok);
+        if (! ok) radius_ = -1.0;
+      }
+      else if (name == "delta") {
+        delta_ = CQChartsUtil::toReal(value, ok);
+        if (! ok) delta_ = -1.0;
       }
     }
   }

@@ -45,7 +45,7 @@ setSymbolSetName(const QString &name)
   auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_);
 
   if (pointPlot)
-    setSliderMinMax(pointPlot->symbolTypeMapMin(), pointPlot->symbolTypeMapMax());
+    setSliderMinMax(int(pointPlot->symbolTypeMapMin()), int(pointPlot->symbolTypeMapMax()));
 
   fixSliderValues();
 }

@@ -40,9 +40,11 @@ CQChartsColumn(Type type, int column, const QString &s, int role) :
   if (type_ == Type::EXPR || type_ == Type::DATA_INDEX) {
     int len = s.length();
 
-    expr_ = new char [len + 1];
+    auto len1 = size_t(len + 1);
 
-    memcpy(expr_, s.toLatin1().constData(), len + 1);
+    expr_ = new char [len1];
+
+    memcpy(expr_, s.toLatin1().constData(), len1);
   }
 
   updateType();
@@ -53,19 +55,23 @@ CQChartsColumn(const CQChartsColumn &rhs) :
  type_(rhs.type_), column_(rhs.column_), role_(rhs.role_)
 {
   if (rhs.hasExpr() || rhs.hasIndex()) {
-    int len = strlen(rhs.expr_);
+    auto len = strlen(rhs.expr_);
 
-    expr_ = new char [len + 1];
+    auto len1 = size_t(len + 1);
 
-    memcpy(expr_, rhs.expr_, len + 1);
+    expr_ = new char [len1];
+
+    memcpy(expr_, rhs.expr_, len1);
   }
 
   if (rhs.hasName()) {
-    int len = strlen(rhs.name_);
+    auto len = strlen(rhs.name_);
 
-    name_ = new char [len + 1];
+    auto len1 = size_t(len + 1);
 
-    memcpy(name_, rhs.name_, len + 1);
+    name_ = new char [len1];
+
+    memcpy(name_, rhs.name_, len1);
   }
 
   updateType();
@@ -103,19 +109,23 @@ operator=(const CQChartsColumn &rhs)
     name_   = nullptr;
 
     if (rhs.hasExpr() || rhs.hasIndex()) {
-      int len = strlen(rhs.expr_);
+      auto len = strlen(rhs.expr_);
 
-      expr_ = new char [len + 1];
+      auto len1 = size_t(len + 1);
 
-      memcpy(expr_, rhs.expr_, len + 1);
+      expr_ = new char [len1];
+
+      memcpy(expr_, rhs.expr_, len1);
     }
 
     if (rhs.hasName()) {
-      int len = strlen(rhs.name_);
+      auto len = strlen(rhs.name_);
 
-      name_ = new char [len + 1];
+      auto len1 = size_t(len + 1);
 
-      memcpy(name_, rhs.name_, len + 1);
+      name_ = new char [len1];
+
+      memcpy(name_, rhs.name_, len1);
     }
   }
 
@@ -157,9 +167,11 @@ setName(const QString &name)
   int len = name.length();
 
   if (len) {
-    name_ = new char [len + 1];
+    auto len1 = size_t(len + 1);
 
-    memcpy(name_, name.toStdString().c_str(), len + 1);
+    name_ = new char [len1];
+
+    memcpy(name_, name.toStdString().c_str(), len1);
   }
   else
     name_ = nullptr;
@@ -190,9 +202,11 @@ setValue(const QString &str)
   if (type == Type::EXPR || type == Type::DATA_INDEX) {
     int len = expr.length();
 
-    expr_ = new char [len + 1];
+    auto len1 = size_t(len + 1);
 
-    memcpy(expr_, expr.toStdString().c_str(), len + 1);
+    expr_ = new char [len1];
+
+    memcpy(expr_, expr.toStdString().c_str(), len1);
   }
 
   if (name != "")

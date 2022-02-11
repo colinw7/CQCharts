@@ -3,6 +3,7 @@
 
 #include <CQChartsModelTypes.h>
 #include <CQBucketer.h>
+#include <CSafeIndex.h>
 
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
@@ -146,7 +147,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool columnRange(int column, double &minVal, double &maxVal) const;
   bool columnRange(int column, long &minVal, long &maxVal) const;
 
-  int numExtraColumns() const { return extraColumns_.size(); }
+  int numExtraColumns() const { return int(extraColumns_.size()); }
 
   bool getExtraColumnDetails(int column, QString &header, QString &expr) const;
 
@@ -232,9 +233,13 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   //---
 
-  const ExtraColumn &extraColumn(int i) const { return *extraColumns_[i]; }
+  const ExtraColumn &extraColumn(int i) const {
+    return *CUtil::safeIndex(extraColumns_, i);
+  }
 
-  ExtraColumn &extraColumn(int i) { return *extraColumns_[i]; }
+  ExtraColumn &extraColumn(int i) {
+    return *CUtil::safeIndex(extraColumns_, i);
+  }
 
   bool calcExtraColumn(int column, int ecolumn);
 

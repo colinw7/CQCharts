@@ -20,6 +20,8 @@
 #include <CQChartsModelIndex.h>
 #include <CQChartsPlotModelVisitor.h>
 
+#include <CSafeIndex.h>
+
 #include <QAbstractItemModel>
 #include <QFrame>
 #include <QTimer>
@@ -255,7 +257,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Data, data)
 
   Q_PROPERTY(CQChartsSides dataBorderSides READ dataBorderSides WRITE setDataBorderSides)
+  Q_PROPERTY(bool          dataRawRange    READ isDataRawRange  WRITE setDataRawRange   )
   Q_PROPERTY(bool          dataClip        READ isDataClip      WRITE setDataClip       )
+  Q_PROPERTY(bool          dataRawClip     READ isDataRawClip   WRITE setDataRawClip    )
 
   // fit area
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit, fit)
@@ -706,11 +710,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Sides &dataBorderSides() const { return dataBorderSides_; }
   void setDataBorderSides(const Sides &s);
 
+  bool isDataRawRange() const { return dataRawRange_; }
+  void setDataRawRange(bool b);
+
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b);
 
-  bool isDataRawRange() const { return dataRawRange_; }
-  void setDataRawRange(bool b) { dataRawRange_ = b; }
+  bool isDataRawClip() const { return dataRawClip_; }
+  void setDataRawClip(bool b);
 
   //---
 
@@ -793,7 +800,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool isEqualScale() const;
   virtual void setEqualScale(bool b);
 
-  void applyEqualScale(Range &dataRange) const;
+  virtual void applyEqualScale(Range &dataRange) const;
 
   //---
 
@@ -1935,9 +1942,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   const PlotObjs &plotObjects() const { return plotObjs_; }
 
-  int numPlotObjects() const { return plotObjs_.size(); }
+  int numPlotObjects() const { return int(plotObjs_.size()); }
 
-  PlotObj *plotObject(int i) const { return plotObjs_[i]; }
+  PlotObj *plotObject(int i) const { return CUtil::safeIndex(plotObjs_, i); }
 
   bool isNoData() const { return noData_; }
   void setNoData(bool b) { noData_ = b; }
@@ -3480,14 +3487,19 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QString   visibleFilterStr_;          //!< visible filter
   bool      skipBad_          { true }; //!< skip bad values
 
-  // borders
-  Sides plotBorderSides_  { "tlbr" }; //!< plot border sides
-  bool  plotClip_         { true };   //!< is clipped at plot limits
-  Sides dataBorderSides_  { "tlbr" }; //!< data border sides
-  bool  dataClip_         { false };  //!< is clipped at data limits
-  bool  dataRawRange_     { true };   //!< use raw range for data box draw
-  Sides fitBorderSides_   { "tlbr" }; //!< fit border sides
-  bool  fitClip_          { false };  //!< is clipped at fit limits
+  // plot border
+  Sides plotBorderSides_ { "tlbr" }; //!< plot border sides
+  bool  plotClip_        { true };   //!< is clipped at plot limits
+
+  // data border
+  Sides dataBorderSides_ { "tlbr" }; //!< data border sides
+  bool  dataRawRange_    { true };   //!< use raw range for data box draw
+  bool  dataClip_        { true };   //!< is clipped at data limits
+  bool  dataRawClip_     { false };  //!< clip to raw range for data box draw
+
+  // fit border
+  Sides fitBorderSides_ { "tlbr" }; //!< fit border sides
+  bool  fitClip_        { false };  //!< is clipped at fit limits
 
   // title
   TitleP  titleObj_; //!< title object

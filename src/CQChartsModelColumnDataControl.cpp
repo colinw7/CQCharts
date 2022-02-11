@@ -558,7 +558,7 @@ setColumnData(int icolumn)
       //---
 
       // update widget to parameter name and type
-      auto &paramEdit = paramEdits_[paramInd];
+      auto &paramEdit = paramEdits_[size_t(paramInd)];
 
       paramEdit.label->setText(param->name());
 
@@ -577,7 +577,7 @@ setColumnData(int icolumn)
         long i = CQChartsVariant::toInt(var, ok);
 
         if (ok)
-          paramEdit.edit->setInteger(i);
+          paramEdit.edit->setInteger(int(i));
         else
           paramEdit.edit->setString(var.toString());
       }

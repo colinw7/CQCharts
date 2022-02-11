@@ -218,7 +218,7 @@ CQChartsPlotParameterGroup *
 CQChartsPlotType::
 startParameterGroup(const QString &name)
 {
-  int parameterGroupId = parameterGroups_.size();
+  auto parameterGroupId = int(parameterGroups_.size());
 
   auto *parameterGroup = new CQChartsPlotParameterGroup(name, parameterGroupId);
 

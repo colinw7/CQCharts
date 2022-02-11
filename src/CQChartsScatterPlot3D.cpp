@@ -160,8 +160,6 @@ init()
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setDataClip(false);
-
   //---
 
   addKey();
@@ -721,7 +719,7 @@ addPointObjects() const
   int hasGroups = (numGroups() > 1);
 
   int ig = 0;
-  int ng = groupNameValues_.size();
+  int ng = int(groupNameValues_.size());
 
   if (! hasGroups) {
     if (ng <= 1 && parentPlot()) {
@@ -756,7 +754,7 @@ addPointObjects() const
     //---
 
     int is = 0;
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     for (const auto &nameValue : nameValues) {
       if (isInterrupt())
@@ -771,7 +769,7 @@ addPointObjects() const
     //const auto &name   = nameValue.first;
       const auto &values = nameValue.second.values;
 
-      int nv = values.size();
+      int nv = int(values.size());
 
       for (int iv = 0; iv < nv; ++iv) {
         if (isInterrupt())
@@ -780,7 +778,7 @@ addPointObjects() const
         //---
 
         // get point position
-        const auto &valuePoint = values[iv];
+        const auto &valuePoint = values[size_t(iv)];
 
         const auto &p = valuePoint.p;
 
@@ -1151,7 +1149,7 @@ addPointKeyItems(CQChartsPlotKey *key)
     return colorItem;
   };
 
-  int ng = groupNameValues_.size();
+  int ng = int(groupNameValues_.size());
 
   // multiple group - key item per group
   if      (ng > 1) {
@@ -1186,7 +1184,7 @@ addPointKeyItems(CQChartsPlotKey *key)
   else if (ng > 0) {
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     if (ns > 1) {
       int is = 0;
@@ -1201,7 +1199,7 @@ addPointKeyItems(CQChartsPlotKey *key)
         if (colorColumn().isValid()) {
           const auto &values = nameValue.second.values;
 
-          int nv = values.size();
+          int nv = int(values.size());
 
           if (nv > 0) {
             const auto &valuePoint = values[0];
@@ -1306,7 +1304,7 @@ addObjs() const
 {
   auto *th = const_cast<CQChartsScatterPlot3D *>(this);
 
-  int ng = groupPoints_.size();
+  int ng = int(groupPoints_.size());
 
   if (isDrawBars()) {
     for (auto &gp : groupPoints_) {
@@ -1599,9 +1597,9 @@ draw3D()
 
     glEnable(GL_TEXTURE_2D);
 
-    textureId = glWidget->bindTexture(image);
+    textureId = int(glWidget->bindTexture(image));
 
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTexture(GL_TEXTURE_2D, GLuint(textureId));
 
   //glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
   //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
@@ -1613,7 +1611,7 @@ draw3D()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   }
 
-  glPointSize(pss);
+  glPointSize(GLfloat(pss));
 
   glColor4f(1.0, 1.0, 1.0, 1.0);
 
@@ -1642,7 +1640,7 @@ draw3D()
     if (v.color.isValid()) {
       auto c = interpColor(v.color, ColorInd());
 
-      glColor4f(c.redF(), c.greenF(), c.blueF(), 1.0);
+      glColor4f(GLfloat(c.redF()), GLfloat(c.greenF()), GLfloat(c.blueF()), 1.0f);
     }
 
     auto x = CMathUtil::map(v.p.x, range3D_.xmin(), range3D_.xmax(), -1, 1);
@@ -1680,7 +1678,7 @@ draw3D()
     glEnd();
 
   if (symbol().isValid()) {
-    glWidget->deleteTexture(textureId);
+    glWidget->deleteTexture(GLuint(textureId));
 
   //glDisable(GL_POINT_SPRITE);
 
@@ -1758,7 +1756,7 @@ drawAxes3D()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-  glColor4f(1.0, 1.0, 1.0, 0.5);
+  glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
   drawLine(-1.0, -1.0, -1.0,  1.0, -1.0, -1.0);
   drawLine(-1.0, -1.0, -1.0, -1.0,  1.0, -1.0);
@@ -1772,7 +1770,7 @@ drawAxes3D()
   yinterval.setStart(range3D_.ymin()); yinterval.setEnd(range3D_.ymax()); yinterval.setNumMajor(10);
   zinterval.setStart(range3D_.zmin()); zinterval.setEnd(range3D_.zmax()); zinterval.setNumMajor(10);
 
-  glColor4f(0.5, 0.5, 0.5, 0.5);
+  glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 
   drawPlane(-1, -1, -1,  1, -1, -1,  1,  1, -1, -1,  1, -1);
   drawPlane(-1, -1, -1, -1,  1, -1, -1,  1,  1, -1, -1,  1);
@@ -1786,17 +1784,17 @@ drawAxes3D()
 
     double x1 = CMathUtil::map(x, range3D_.xmin(), range3D_.xmax(), -1.0, 1.0);
 
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     glWidget->renderText(x1, -1.1, -1.1, QString::number(x));
 
-    glColor4f(1.0, 1.0, 1.0, 0.5);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
     drawLine(x1, -1, -1, x1,  1, -1);
     drawLine(x1, -1, -1, x1, -1,  1);
   }
 
-  glColor4f(1.0, 1.0, 1.0, 1.0);
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
   glWidget->renderText(0, -1.2, -1.2, "X");
 
@@ -1806,17 +1804,17 @@ drawAxes3D()
 
     double y1 = CMathUtil::map(y, range3D_.ymin(), range3D_.ymax(), -1.0, 1.0);
 
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     glWidget->renderText(-1.1, y1, -1.1, QString::number(y));
 
-    glColor4f(1.0, 1.0, 1.0, 0.5);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
     drawLine(-1, y1, -1, -1, y1,  1);
     drawLine(-1, y1, -1,  1, y1, -1);
   }
 
-  glColor4f(1.0, 1.0, 1.0, 1.0);
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
   glWidget->renderText(-1.2, 0, -1.2, "Y");
 
@@ -1826,17 +1824,17 @@ drawAxes3D()
 
     double z1 = CMathUtil::map(z, range3D_.zmin(), range3D_.zmax(), -1.0, 1.0);
 
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     glWidget->renderText(-1.1, -1.1, z1, QString::number(z));
 
-    glColor4f(1.0, 1.0, 1.0, 0.5);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
     drawLine(-1, -1, z1,  1, -1, z1);
     drawLine(-1, -1, z1, -1,  1, z1);
   }
 
-  glColor4f(1.0, 1.0, 1.0, 1.0);
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
   glWidget->renderText(-1.2, -1.2, 0, "Z");
 
@@ -2017,7 +2015,7 @@ calcTipId() const
   if (p != (*pg).second.end()) {
     const auto &values = (*p).second.values;
 
-    valuePoint = values[iv_.i];
+    valuePoint = values[size_t(iv_.i)];
   }
 
   //---

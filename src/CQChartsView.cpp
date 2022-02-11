@@ -529,7 +529,7 @@ setScrolled(bool b, bool update)
         pos += 100;
       }
 
-      scrollData_.numPages = basePlots.size();
+      scrollData_.numPages = int(basePlots.size());
     }
     else {
       bool allFound = true;
@@ -1606,11 +1606,11 @@ raiseAnnotation(Annotation *annotation)
   int pos = annotationPos(annotation);
   if (pos < 0) return; // not found
 
-  int np = annotations().size();
+  int np = int(annotations().size());
   if (np < 2) return;
 
   if (pos < np - 1)
-    std::swap(annotations_[pos + 1], annotations_[pos]);
+    std::swap(annotations_[size_t(pos + 1)], annotations_[size_t(pos)]);
 
   doUpdate();
 
@@ -1624,11 +1624,11 @@ lowerAnnotation(Annotation *annotation)
   int pos = annotationPos(annotation);
   if (pos < 0) return; // not found
 
-  int np = annotations().size();
+  int np = int(annotations().size());
   if (np < 2) return;
 
   if (pos > 0)
-    std::swap(annotations_[pos - 1], annotations_[pos]);
+    std::swap(annotations_[size_t(pos - 1)], annotations_[size_t(pos)]);
 
   doUpdate();
 
@@ -1639,10 +1639,10 @@ int
 CQChartsView::
 annotationPos(Annotation *annotation) const
 {
-  int np = annotations().size();
+  int np = int(annotations().size());
 
   for (int i = 0; i < np; ++i) {
-    if (annotations_[i] == annotation)
+    if (annotations_[size_t(i)] == annotation)
       return i;
   }
 
@@ -1662,14 +1662,14 @@ removeAnnotation(Annotation *annotation)
     ++pos;
   }
 
-  int n = annotations_.size();
+  int n = int(annotations_.size());
 
   assert(pos >= 0 && pos < n);
 
   delete annotation;
 
   for (int i = pos + 1; i < n; ++i)
-    annotations_[i - 1] = annotations_[i];
+    annotations_[size_t(i - 1)] = annotations_[size_t(i)];
 
   annotations_.pop_back();
 
@@ -1794,11 +1794,11 @@ raisePlot(Plot *plot)
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
 
-  int np = plots().size();
+  int np = int(plots().size());
   if (np < 2) return;
 
   if (pos < np - 1)
-    std::swap(plots_[pos + 1], plots_[pos]);
+    std::swap(plots_[size_t(pos + 1)], plots_[size_t(pos)]);
 
   doUpdate();
 
@@ -1812,11 +1812,11 @@ lowerPlot(Plot *plot)
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
 
-  int np = plots().size();
+  int np = int(plots().size());
   if (np < 2) return;
 
   if (pos > 0)
-    std::swap(plots_[pos - 1], plots_[pos]);
+    std::swap(plots_[size_t(pos - 1)], plots_[size_t(pos)]);
 
   doUpdate();
 
@@ -1827,10 +1827,10 @@ int
 CQChartsView::
 plotPos(Plot *plot) const
 {
-  int np = plots().size();
+  int np = int(plots().size());
 
   for (int i = 0; i < np; ++i) {
-    if (plots_[i] == plot)
+    if (plots_[size_t(i)] == plot)
       return i;
   }
 
@@ -2377,7 +2377,7 @@ autoPlacePlots()
       visiblePlots.push_back(plot);
   }
 
-  int np = visiblePlots.size();
+  int np = int(visiblePlots.size());
 
   int nr = std::max(int(std::sqrt(np)), 1);
   int nc = (np + nr - 1)/nr;
@@ -2426,7 +2426,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
   //---
 
-  int np = plots1.size();
+  int np = int(plots1.size());
 
   if (np <= 0)
     return;
@@ -2476,7 +2476,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
-      auto *plot = plots1[i];
+      auto *plot = plots1[size_t(i)];
 
       BBox bbox(0, 0, vr, vr);
 
@@ -2497,7 +2497,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
         if (i >= int(plots1.size()))
           break;
 
-        auto *plot = plots1[i];
+        auto *plot = plots1[size_t(i)];
 
         BBox bbox(x, y - dy, x + dx, y);
 
@@ -2580,7 +2580,7 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.reset();
 
   mouseData_.pressPoint = adjustMousePos(mp);
-  mouseData_.button     = me->button();
+  mouseData_.button     = int(me->button());
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.selMod     = CQChartsUtil::modifiersToSelMod(me->modifiers());
@@ -2804,7 +2804,7 @@ mouseDoubleClickEvent(QMouseEvent *me)
   mouseData_.reset();
 
   mouseData_.pressPoint = adjustMousePos(mp);
-  mouseData_.button     = me->button();
+  mouseData_.button     = int(me->button());
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.selMod     = CQChartsUtil::modifiersToSelMod(me->modifiers());
@@ -2902,7 +2902,7 @@ keyPressEvent(QKeyEvent *ke)
   plotsAt(w, plots, plot);
 
   if (plot)
-    plot->keyPress(ke->key(), ke->modifiers());
+    plot->keyPress(ke->key(), int(ke->modifiers()));
 
   //---
 
@@ -3266,7 +3266,7 @@ showProbeLines(const Point &p)
       probeData_.bands.push_back(probeBand);
     }
 
-    probeData_.bands[ind]->showVertical(plot, tip, px, py1, py2, py3);
+    probeData_.bands[size_t(ind)]->showVertical(plot, tip, px, py1, py2, py3);
 
     ++ind;
   };
@@ -3281,7 +3281,7 @@ showProbeLines(const Point &p)
       probeData_.bands.push_back(probeBand);
     }
 
-    probeData_.bands[ind]->showHorizontal(plot, tip, px1, px2, px3, py);
+    probeData_.bands[size_t(ind)]->showHorizontal(plot, tip, px1, px2, px3, py);
 
     ++ind;
   };
@@ -3341,14 +3341,14 @@ showProbeLines(const Point &p)
         auto py1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
         auto py2 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMax()));
 
-        int nx = probeData.xvals.size();
-        int ny = probeData.yvals.size();
+        int nx = int(probeData.xvals.size());
+        int ny = int(probeData.yvals.size());
 
         int n = std::min(nx, ny);
 
         for (int i = 0; i < n; ++i) {
-          const auto &xval = probeData.xvals[i];
-          const auto &yval = probeData.yvals[i];
+          const auto &xval = probeData.xvals[size_t(i)];
+          const auto &yval = probeData.yvals[size_t(i)];
 
           auto px3 = plot->windowToPixel(Point(xval.value, probeData.p.y));
           auto py3 = plot->windowToPixel(Point(probeData.p.x, yval.value));
@@ -3416,7 +3416,7 @@ showProbeLines(const Point &p)
   //---
 
   for (int i = probeInd; i < int(probeData_.bands.size()); ++i)
-    probeData_.bands[i]->hide();
+    probeData_.bands[size_t(i)]->hide();
 
   //---
 
@@ -4173,7 +4173,7 @@ updateSelText()
 
   //---
 
-  int num = objs.size();
+  int num = int(objs.size());
 
   for (auto &plot : plots()) {
     if (! plot->isVisible())
@@ -4446,7 +4446,7 @@ updateSeparators()
 
     this->getPlots(plots);
 
-    int np = plots.size();
+    int np = int(plots.size());
 
     if (np < 2) {
       clearSeparators();
@@ -4541,13 +4541,13 @@ updateSeparators()
         const auto &bbox = pp.second->viewBBox();
 
         if (i > 0) {
-          auto *sep = separators_[i - 1];
+          auto *sep = separators_[size_t(i - 1)];
 
           sep->setOrientation(Qt::Vertical);
 
           double px1 = this->width()*x/vr;
 
-          sep->move(px1 - 4, 0);
+          sep->move(int(px1 - 4), 0);
           sep->resize(8, height());
 
           sep->setVisible(true);
@@ -4570,13 +4570,13 @@ updateSeparators()
         const auto &bbox = pp.second->viewBBox();
 
         if (i > 0) {
-          auto *sep = separators_[i - 1];
+          auto *sep = separators_[size_t(i - 1)];
 
           sep->setOrientation(Qt::Horizontal);
 
           double py1 = this->height()*y/vr;
 
-          sep->move(0, py1 - 4);
+          sep->move(0, int(py1 - 4));
           sep->resize(width(), 8);
 
           sep->setVisible(true);
@@ -7664,12 +7664,12 @@ CQChartsPlot *
 CQChartsView::
 getPlotForInd(int ind) const
 {
-  int np = plots().size();
+  int np = int(plots().size());
 
   if (ind < 0 || ind >= np)
     return nullptr;
 
-  auto *plot = plots_[ind];
+  auto *plot = plots_[size_t(ind)];
 
   return plot;
 }
@@ -7681,11 +7681,11 @@ getIndForPlot(const Plot *plot) const
   if (! plot)
     return -1;
 
-  int np = plots().size();
+  auto np = plots().size();
 
-  for (int ind = 0; ind < np; ++ind) {
+  for (size_t ind = 0; ind < np; ++ind) {
     if (plots_[ind] == plot)
-      return ind;
+      return int(ind);
   }
 
   return -1;
@@ -8352,7 +8352,7 @@ windowToPixel(const Polygon &poly) const
 {
   Polygon ppoly;
 
-  int np = poly.size();
+  int np = int(poly.size());
 
   for (int i = 0; i < np; ++i)
     ppoly.addPoint(windowToPixel(poly.point(i)));
@@ -8581,10 +8581,10 @@ struct CRGBAToFV {
   float fvalues[4];
 
   CRGBAToFV(const CRGBA &rgba) {
-    fvalues[0] = rgba.getRed  ();
-    fvalues[1] = rgba.getGreen();
-    fvalues[2] = rgba.getBlue ();
-    fvalues[3] = rgba.getAlpha();
+    fvalues[0] = float(rgba.getRed  ());
+    fvalues[1] = float(rgba.getGreen());
+    fvalues[2] = float(rgba.getBlue ());
+    fvalues[3] = float(rgba.getAlpha());
   }
 };
 
@@ -8664,10 +8664,10 @@ paintGL()
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
 
-  static GLfloat pos[4] = {5.0, 5.0, 10.0, 10.0};
+  static GLfloat pos[4] = {5.0f, 5.0f, 10.0f, 10.0f};
 
-  static float lambient[4] = {0.2, 0.2, 0.2, 1.0};
-  static float ldiffuse[4] = {0.4, 0.4, 0.4, 1.0};
+  static float lambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+  static float ldiffuse[4] = {0.4f, 0.4f, 0.4f, 1.0f};
 
   glLightfv(GL_LIGHT0, GL_POSITION, pos);
   glEnable(GL_LIGHT0);
@@ -8734,9 +8734,9 @@ mouseMoveEvent(QMouseEvent *e)
   GLdouble project[16];
   glGetDoublev(GL_PROJECTION_MATRIX, project);
 
-  float x1 = e->x();
-  float y1 = viewport[3] - e->y() - 1;
-  float z1 = 0.0;
+  float x1 = float(e->x());
+  float y1 = float(viewport[3] - e->y() - 1);
+  float z1 = 0.0f;
 
   glReadPixels(e->x(), int(y1), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z1);
 

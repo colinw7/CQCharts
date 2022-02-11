@@ -836,7 +836,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   const auto &pargs = argv.getParseArgs();
 
-  int nargs = pargs.size();
+  auto nargs = pargs.size();
 
   auto cmd = (nargs > 0 ? pargs[0].toString() : QString());
 
@@ -847,7 +847,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto cmd1 = cmd;
 
-  for (int i = 1; i < nargs; ++i)
+  for (size_t i = 1; i < nargs; ++i)
     cmd1 += " " + pargs[i].toString();
 
   int rc = system(cmd1.toLatin1().constData());

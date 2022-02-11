@@ -1,4 +1,5 @@
 #include <CQChartsSymbolSet.h>
+#include <CSafeIndex.h>
 
 CQChartsSymbolSetMgr::
 CQChartsSymbolSetMgr(CQCharts *charts) :
@@ -28,7 +29,7 @@ int
 CQChartsSymbolSetMgr::
 numSymbolSets() const
 {
-  return symbolSets_.size();
+  return int(symbolSets_.size());
 }
 
 bool
@@ -54,7 +55,7 @@ symbolSet(int i) const
 {
   assert(i >= 0 && i < numSymbolSets());
 
-  return symbolSets_[i];
+  return symbolSets_[size_t(i)];
 }
 
 QStringList
@@ -94,16 +95,14 @@ int
 CQChartsSymbolSet::
 numSymbols() const
 {
-  return symbols_.size();
+  return int(symbols_.size());
 }
 
 const CQChartsSymbolSet::SymbolData &
 CQChartsSymbolSet::
 symbolData(int i) const
 {
-  assert(i >= 0 && i < numSymbols());
-
-  return symbols_[i];
+  return CUtil::safeIndex(symbols_, i);
 }
 
 CQChartsSymbolSet::SymbolData
@@ -153,7 +152,7 @@ symbol(int i) const
   if (i < 0 || i >= numSymbols())
     return CQChartsSymbol();
 
-  return symbols_[i].symbol;
+  return symbols_[size_t(i)].symbol;
 }
 
 QStringList
@@ -175,7 +174,7 @@ moveUp(int i)
   if (i <= 0 || i >= numSymbols())
     return false;
 
-  std::swap(symbols_[i - 1], symbols_[i]);
+  std::swap(symbols_[size_t(i - 1)], symbols_[size_t(i)]);
 
   return true;
 }
@@ -187,7 +186,7 @@ moveDown(int i)
   if (i < 0 || i >= numSymbols() - 1)
     return false;
 
-  std::swap(symbols_[i], symbols_[i + 1]);
+  std::swap(symbols_[size_t(i)], symbols_[size_t(i + 1)]);
 
   return true;
 }

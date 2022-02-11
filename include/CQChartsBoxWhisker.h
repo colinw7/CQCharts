@@ -4,7 +4,10 @@
 #include <CQChartsDensity.h>
 #include <CQChartsUtil.h>
 #include <CQStatData.h>
+#include <CSafeIndex.h>
+
 #include <QString>
+
 #include <cassert>
 #include <vector>
 #include <algorithm>
@@ -38,11 +41,7 @@ class CQChartsBoxWhiskerT {
 
   const Values &values() const { return values_; }
 
-  const VALUE &value(int i) const {
-    assert(i >= 0 && i < int(values_.size()));
-
-    return values_[i];
-  }
+  const VALUE &value(int i) const { return CUtil::safeIndex(values_, i); }
 
   void addValue(const VALUE &value) {
     values_.push_back(value);

@@ -200,7 +200,7 @@ class CQChartsModelColumnDetails {
 
   int numNull() const;
 
-  int numValues() const { return valueInds_.size(); }
+  int numValues() const { return int(valueInds_.size()); }
 
   int valueInd(const QVariant &value) const;
 

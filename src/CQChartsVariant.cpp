@@ -260,7 +260,7 @@ double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
     return var.value<int>();
 
   if (var.type() == QVariant::LongLong)
-    return var.value<qlonglong>();
+    return double(var.value<qlonglong>());
 
   converted = true;
 

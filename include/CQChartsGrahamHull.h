@@ -24,7 +24,7 @@ class CQChartsGrahamHull {
  public:
   CQChartsGrahamHull();
 
-  int numPoints() const { return points_.size(); }
+  int numPoints() const { return int(points_.size()); }
 
   void clear();
 

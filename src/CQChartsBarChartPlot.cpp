@@ -577,7 +577,7 @@ calcRange() const
         numVisible = 0;
 
         for (const auto &pg : valueData_.valueGroupInd) {
-          const auto &valueSet = valueData_.valueSets[pg.second];
+          const auto &valueSet = valueData_.valueSets[size_t(pg.second)];
 
           double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
 
@@ -1048,7 +1048,7 @@ int
 CQChartsBarChartPlot::
 numValueSets() const
 {
-  return valueData_.valueSets.size();
+  return int(valueData_.valueSets.size());
 }
 
 const CQChartsBarChartPlot::ValueSet &
@@ -1065,12 +1065,12 @@ valueSet(int i) const
         th->valueData_.sortedInds.push_back(vi.second);
     }
 
-    int i1 = valueData_.sortedInds[i];
+    int i1 = valueData_.sortedInds[size_t(i)];
 
-    return valueData_.valueSets[i1];
+    return valueData_.valueSets[size_t(i1)];
   }
   else
-    return valueData_.valueSets[i];
+    return valueData_.valueSets[size_t(i)];
 }
 
 int
@@ -1109,7 +1109,7 @@ groupValueSetI(int groupInd)
 
     assert(ind >= 0 && ind < int(valueData_.valueSets.size()));
 
-    return &valueData_.valueSets[ind];
+    return &valueData_.valueSets[size_t(ind)];
   }
 
   //---

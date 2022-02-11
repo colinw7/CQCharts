@@ -89,7 +89,7 @@ class CQChartsSymbolNamedPaths {
     namePathData_[name] = pathsStylesData;
   }
 
-  int numNamedPaths() const { return namePathData_.size(); }
+  int numNamedPaths() const { return int(namePathData_.size()); }
 
   QStringList pathNames() const {
     QStringList names;
@@ -443,7 +443,7 @@ fromString(const QString &s)
     auto indStr = s1.mid(pos + 1);
 
     bool ok;
-    ind_ = CQChartsUtil::toInt(indStr, ok);
+    ind_ = int(CQChartsUtil::toInt(indStr, ok));
     if (! ok) return false;
   }
   else if (s.left(5) == "char:") {
@@ -622,11 +622,10 @@ fromSVGFile(const CQChartsFile &file, const QString &name, bool styled)
 
   svgData.bbox = bbox;
 
-  int np = paths.size();
+  size_t np = paths.size();
+  assert(np == styles.size());
 
-  assert(np == int(styles.size()));
-
-  for (int ip = 0; ip < np; ++ip) {
+  for (size_t ip = 0; ip < np; ++ip) {
     auto &path = paths[ip];
 
     auto path1 = CQChartsPath::moveScalePath(path.path(), bbox, 0.0, 0.0, 1.0, -1.0);

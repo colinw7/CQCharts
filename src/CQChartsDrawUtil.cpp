@@ -14,12 +14,14 @@ namespace CQChartsDrawUtil {
 void
 setPenBrush(PaintDevice *device, const PenBrush &penBrush)
 {
-  device->setPen      (penBrush.pen);
-  device->setBrush    (penBrush.brush);
-  device->setAltColor (penBrush.altColor);
-  device->setAltAlpha (penBrush.altAlpha);
-  device->setFillAngle(penBrush.fillAngle);
-  device->setFillType (penBrush.fillType);
+  device->setPen       (penBrush.pen);
+  device->setBrush     (penBrush.brush);
+  device->setAltColor  (penBrush.altColor);
+  device->setAltAlpha  (penBrush.altAlpha);
+  device->setFillAngle (penBrush.fillAngle);
+  device->setFillType  (penBrush.fillType);
+  device->setFillRadius(penBrush.fillRadius);
+  device->setFillDelta (penBrush.fillDelta);
 }
 
 void
@@ -303,7 +305,7 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 {
   assert(rect.isValid());
 
-  if (! rect.isValid())
+  if (! text.length())
     return;
 
   //---
@@ -2151,9 +2153,9 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   //if (options.angle.isZero())
   //  painter->setClipRect(ptbbox2.qrect(), Qt::IntersectClip);
 
-  int pw = ptbbox.getWidth();  // psize.width() ?
-  int ph = ptbbox.getHeight(); // psize.width() ?
-  int pm = 8;
+  double pw = ptbbox.getWidth();  // psize.width() ?
+  double ph = ptbbox.getHeight(); // psize.width() ?
+  double pm = 8;
 
   td.setPageSize(QSizeF(pw + pm, ph + pm));
 

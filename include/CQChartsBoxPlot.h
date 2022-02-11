@@ -774,7 +774,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool isWhiskersGrouped() const { return isWhiskersGrouped_; }
 
-  int numGroupWhiskers() const { return groupWhiskers_.size(); }
+  int numGroupWhiskers() const { return int(groupWhiskers_.size()); }
 
   const GroupSetWhiskerMap &groupWhiskers() const { return groupWhiskers_; }
 

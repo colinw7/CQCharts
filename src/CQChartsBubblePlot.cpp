@@ -669,13 +669,11 @@ loadModel() const
         int         groupInd  = pg.first;
         const auto &modelInds = pg.second;
 
-        int size = modelInds.size();
-
-        if (! size)
-          continue;
+        auto size = modelInds.size();
+        if (! size) continue;
 
         if (plot_->minSize().isSet()) {
-          if (size < plot_->minSize().real())
+          if (double(size) < plot_->minSize().real())
             continue;
         }
 
@@ -694,7 +692,7 @@ loadModel() const
         auto groupName = plot_->groupIndName(groupInd, /*hier*/false);
 
         auto *pnode = parentHier(data);
-        auto *node  = plot_->addNode(pnode, groupName, size, nameInd1);
+        auto *node  = plot_->addNode(pnode, groupName, double(size), nameInd1);
 
         for (const auto &ind : modelInds) {
           ModelIndex nameModelInd;
@@ -1537,9 +1535,9 @@ void
 CQChartsBubbleHierNode::
 removeNode(Node *node)
 {
-  int n = nodes_.size();
+  size_t n = nodes_.size();
 
-  int i = 0;
+  size_t i = 0;
 
   for ( ; i < n; ++i) {
     if (nodes_[i] == node)

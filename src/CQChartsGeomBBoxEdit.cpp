@@ -30,7 +30,7 @@ init(const BBox &value)
 {
   setObjectName("edit");
 
-  setFrameStyle(QFrame::NoFrame | QFrame::Plain);
+  setFrameStyle(uint(QFrame::NoFrame) | uint(QFrame::Plain));
 
   auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 

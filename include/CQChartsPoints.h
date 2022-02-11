@@ -57,12 +57,12 @@ class CQChartsPoints :
   //---
 
   friend bool operator==(const CQChartsPoints &lhs, const CQChartsPoints &rhs) {
-    int nl = lhs.points_.size();
-    int nr = rhs.points_.size();
+    auto nl = lhs.points_.size();
+    auto nr = rhs.points_.size();
 
     if (nl != nr) return false;
 
-    for (int i = 0; i < nl; ++i) {
+    for (size_t i = 0; i < nl; ++i) {
       if (lhs.points_[i] != rhs.points_[i])
         return false;
     }

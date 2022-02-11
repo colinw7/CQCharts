@@ -1096,7 +1096,7 @@ pushSlot()
 
   if (objs.empty()) {
     auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+    auto pos  = view()->mapFromGlobal(QPointF(gpos.x, gpos.y).toPoint());
 
     auto w = pixelToWindow(Point(pos));
 
@@ -1847,12 +1847,12 @@ void
 CQChartsHierBubbleHierNode::
 removeNode(CQChartsHierBubbleNode *node)
 {
-  int n = nodes_.size();
+  int n = int(nodes_.size());
 
   int i = 0;
 
   for ( ; i < n; ++i) {
-    if (nodes_[i] == node)
+    if (nodes_[size_t(i)] == node)
       break;
   }
 
@@ -1861,7 +1861,7 @@ removeNode(CQChartsHierBubbleNode *node)
   ++i;
 
   for ( ; i < n; ++i)
-    nodes_[i - 1] = nodes_[i];
+    nodes_[size_t(i - 1)] = nodes_[size_t(i)];
 
   nodes_.pop_back();
 }

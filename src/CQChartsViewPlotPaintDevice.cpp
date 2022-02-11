@@ -249,6 +249,8 @@ setFillAngle(double a)
     else
       hdPainter_->setFillAngle(45.0);
   }
+
+  fillAngle_ = a;
 }
 
 void
@@ -256,6 +258,27 @@ CQChartsViewPlotPaintDevice::
 setFillType(CQChartsFillPattern::Type type)
 {
   fillType_ = type;
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setFillRadius(double r)
+{
+  fillRadius_ = r;
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setFillDelta(double r)
+{
+  fillDelta_ = r;
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setFillWidth(double w)
+{
+  fillWidth_ = w;
 }
 
 void
@@ -338,7 +361,7 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 
   //---
 
-  auto image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
+  auto image1 = image.scaled(int(pbbox.getWidth()), int(pbbox.getHeight()));
 
   //auto format1 = image1.format();
   //assert(format1 == QImage::Format_ARGB32 || format1 == QImage::Format_ARGB32_Premultiplied);
@@ -354,9 +377,9 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
     image1 = image1.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
   if      (imageType == "texture") {
-    double ir = brush1.color().red  ();
-    double ig = brush1.color().green();
-    double ib = brush1.color().blue ();
+    int ir = brush1.color().red  ();
+    int ig = brush1.color().green();
+    int ib = brush1.color().blue ();
 
     for (int y = 0; y < image1.height(); ++y) {
       for (int x = 0; x < image1.width(); ++x) {
@@ -404,15 +427,15 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
       maskPainter.setPen(Qt::color0);
     }
 
-    double ir = brush1.color().red  ();
-    double ig = brush1.color().green();
-    double ib = brush1.color().blue ();
-    double ia = brush1.color().alpha();
+    int ir = brush1.color().red  ();
+    int ig = brush1.color().green();
+    int ib = brush1.color().blue ();
+    int ia = brush1.color().alpha();
 
-    double iar = altColor.red  ();
-    double iag = altColor.green();
-    double iab = altColor.blue ();
-    double iaa = altColor.alpha();
+    int iar = altColor.red  ();
+    int iag = altColor.green();
+    int iab = altColor.blue ();
+    int iaa = altColor.alpha();
 
     for (int y = 0; y < image1.height(); ++y) {
       for (int x = 0; x < image1.width(); ++x) {
@@ -500,15 +523,20 @@ drawRect(const BBox &bbox)
     texture.setBgColor (painter_->brush().color());
     texture.setFgColor (painter_->pen().color());
     texture.setAltColor(altColor_);
-
-    texture.setRadius(8);
-    texture.setDelta(4);
-    texture.setWidth(2);
+    texture.setAngle   (fillAngle_);
+    texture.setRadius  (fillRadius_ > 0 ? fillRadius_ : 8);
+    texture.setDelta   (fillDelta_ > 0 ? fillDelta_ : 4);
+    texture.setWidth   (fillWidth_ > 0 ? fillWidth_ : 2);
 
     texture.fillRect(painter_, pbbox.qrect());
-  }
-  else
+
+    painter_->setBrush(Qt::transparent);
+
     painter_->drawRect(pbbox.qrect());
+  }
+  else {
+    painter_->drawRect(pbbox.qrect());
+  }
 }
 
 void

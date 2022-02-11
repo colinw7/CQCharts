@@ -273,7 +273,7 @@ calcRange() const
       for (int ic = 0; ic < nc; ++ic) {
         ModelIndex columnModelInd(plot_, data.row, Column(ic), data.parent);
 
-        if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
+        if (columnTypes_[size_t(ic)] == CQBaseModelType::IMAGE) {
           valueRange_.add(0.0);
         }
         else {
@@ -381,7 +381,7 @@ createObjs(PlotObjs &objs) const
         CQChartsImageObj *obj = nullptr;
 
         // get column value (image or real)
-        if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
+        if (columnTypes_[size_t(ic)] == CQBaseModelType::IMAGE) {
           CQChartsImage image;
 
           auto imageVar = plot_->modelValue(columnInd, ok);

@@ -50,7 +50,7 @@ showVertical(CQChartsPlot *plot, const QString &text,
   if (text.length()) {
     tip_->setText(text);
 
-    int pl = px + tickLen_ + 2;
+    int pl = int(px + tickLen_ + 2);
 
     Point p4;
 
@@ -109,7 +109,7 @@ showHorizontal(CQChartsPlot *plot, const QString &text,
   if (text.length()) {
     tip_->setText(text);
 
-    int pl = py - tickLen_ - 2 - tip_->sizeHint().height();
+    int pl = int(py - tickLen_ - 2 - tip_->sizeHint().height());
 
     Point p4;
 

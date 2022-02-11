@@ -42,9 +42,10 @@ void errorMsg(const QString &msg) {
 //----
 
 struct MainData {
-  using InitDatas = std::vector<CQChartsInitData>;
-  using OptString = boost::optional<QString>;
-  using OptReal   = boost::optional<double>;
+  using InitDatas  = std::vector<CQChartsInitData>;
+  using OptString  = boost::optional<QString>;
+  using OptReal    = boost::optional<double>;
+  using NameValues = std::map<QString, QString>;
 
   bool             dark         { false };
   QString          execFile;
@@ -77,6 +78,7 @@ struct MainData {
   OptReal          ymax1;
   OptReal          ymin2;
   OptReal          ymax2;
+  NameValues       nameValues;
   CQChartsInitData initData;
   InitDatas        initDatas;
 };
@@ -136,18 +138,24 @@ main(int argc, char **argv)
 
   //---
 
+  for (const auto &nv : mainData.nameValues) {
+    test.cmds()->setNameValue(nv.first, nv.second);
+  }
+
+  //---
+
   // calculate default layout for plots
-  int nd = mainData.initDatas.size();
+  auto nd = mainData.initDatas.size();
 
   int nr = 1, nc = 1;
 
   if      (mainData.horizontal)
-    nc = nd;
+    nc = int(nd);
   else if (mainData.vertical)
-    nr = nd;
+    nr = int(nd);
   else {
-    nr = std::max(int(sqrt(nd)), 1);
-    nc = (nd + nr - 1)/nr;
+    nr = std::max(int(std::sqrt(nd)), 1);
+    nc = (int(nd) + nr - 1)/nr;
   }
 
   //---
@@ -745,6 +753,25 @@ parseArgs(int argc, char **argv, MainData &mainData)
         mainData.perfClient = true;
       }
 
+      // define
+      else if (arg[0] == 'D') {
+        auto arg1 = arg.mid(1);
+
+        auto p = arg1.indexOf('=');
+
+        QString lhs, rhs;
+
+        if (p != -1) {
+          lhs = arg1.mid(0, p);
+          rhs = arg1.mid(p + 1);
+        }
+        else {
+          lhs = arg1;
+          rhs = "1";
+        }
+
+        mainData.nameValues[lhs] = rhs;
+      }
       else {
         errorMsg("Invalid option '" + QString(args.arg()));
       }

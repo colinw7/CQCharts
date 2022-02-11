@@ -1659,17 +1659,14 @@ int
 CQChartsCompositePlot::
 numChildPlots() const
 {
-  return plots_.size();
+  return int(plots_.size());
 }
 
 CQChartsPlot *
 CQChartsCompositePlot::
 childPlot(int i) const
 {
-  if (i < 0 || i >= int(plots_.size()))
-    return nullptr;
-
-  return plots_[i];
+  return CUtil::safeIndex(plots_, i);
 }
 
 int

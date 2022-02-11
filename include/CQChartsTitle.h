@@ -134,7 +134,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setEditHandlesBBox() const;
+  void setEditHandlesBBox() const override;
 
  private:
   void init();

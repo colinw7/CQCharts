@@ -8,12 +8,14 @@
 int
 main(int argc, char **argv)
 {
-  int  n      { 10 };
-  int  seed   { -1 };
-  bool fromTo { false };
-  bool size   { false };
-  bool header { false };
-  bool group  { false };
+  int  n       { 10 };
+  int  seed    { -1 };
+  bool fromTo  { false };
+  bool series  { false };
+  bool scatter { false };
+  bool size    { false };
+  bool header  { false };
+  bool group   { false };
 
   CArgv::visit(argc, argv,
    [&](const std::string &opt, CArgv::State &state) { // opt
@@ -29,6 +31,12 @@ main(int argc, char **argv)
      }
      else if (opt == "from_to") {
        fromTo = true;
+     }
+     else if (opt == "series") {
+       series = true;
+     }
+     else if (opt == "scatter") {
+       scatter = true;
      }
      else if (opt == "size") {
        size = true;
@@ -115,7 +123,7 @@ main(int argc, char **argv)
       // get random number of connected names
       int nn = CMathRand::randInRange(0, int(names.size()));
 
-      for (int i = 0; i < nn; ++i) {
+      for (size_t i = 0; i < size_t(nn); ++i) {
         auto name1 = names[i];
 
         // get number of connections
@@ -179,6 +187,25 @@ main(int argc, char **argv)
           sizeOutput.insert(name);
         }
       }
+    }
+  }
+  else if (series) {
+    std::cout << "X,Y\n";
+
+    for (int i = 0; i < n; ++i) {
+      auto y = CMathRand::randInRange(1, 100);
+
+      std::cout << (i + 1) << "," << y << "\n";
+    }
+  }
+  else if (scatter) {
+    std::cout << "X,Y\n";
+
+    for (int i = 0; i < n; ++i) {
+      auto x = CMathRand::randInRange(1, 100);
+      auto y = CMathRand::randInRange(1, 100);
+
+      std::cout << x << "," << y << "\n";
     }
   }
   else {

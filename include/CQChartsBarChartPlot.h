@@ -4,6 +4,7 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
+#include <CSafeIndex.h>
 
 //---
 
@@ -109,14 +110,14 @@ class CQChartsBarChartValue {
   void calcRange(ValueInd &minInd, ValueInd &maxInd, double &mean, double &sum) const {
     assert(! valueInds_.empty());
 
-    int n = valueInds_.size();
+    auto n = valueInds_.size();
 
     minInd = valueInds_[0];
     maxInd = valueInds_[0];
 
     sum = valueInds_[0].value;
 
-    for (int i = 1; i < n; ++i) {
+    for (size_t i = 1; i < n; ++i) {
       double value = valueInds_[i].value;
 
       if (value < minInd.value)
@@ -128,7 +129,7 @@ class CQChartsBarChartValue {
       sum += value;
     }
 
-    mean = sum/n;
+    mean = sum/double(n);
   }
 
  private:
@@ -162,7 +163,7 @@ class CQChartsBarChartValueSet {
   int groupInd() const { return groupInd_; }
   void setGroupInd(int i) { groupInd_ = i; }
 
-  int numValues() const { return values_.size(); }
+  int numValues() const { return int(values_.size()); }
 
   const Values &values() const { return values_; }
 
@@ -170,11 +171,7 @@ class CQChartsBarChartValueSet {
     values_.push_back(value);
   }
 
-  const CQChartsBarChartValue &value(int i) const {
-    assert(i >= 0 && i < int(values_.size()));
-
-    return values_[i];
-  }
+  const CQChartsBarChartValue &value(int i) const { return CUtil::safeIndex(values_, i); }
 
   bool calcSums(double &posSum, double &negSum) const {
     if (values_.empty()) return false;

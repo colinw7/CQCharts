@@ -269,7 +269,7 @@ createTypeDataFrame()
   advancedPlotDataStack_ = CQUtil::makeWidget<QStackedWidget>("advancedStack");
 
   for (std::size_t i = 0; i < plotTypes.size(); ++i)
-    addPlotWidgets(plotTypes[i], i);
+    addPlotWidgets(plotTypes[i], int(i));
 
   plotDataStack_->addWidget(basicPlotDataStack_   );
   plotDataStack_->addWidget(advancedPlotDataStack_);
@@ -1032,7 +1032,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
       childGroups1.push_back(parameterGroup1);
     }
 
-    int ng1 = childGroups1.size();
+    auto ng1 = childGroups1.size();
 
     for (const auto &parameterGroup1 : childGroups1) {
       // get parameters and child parameter groups

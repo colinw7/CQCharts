@@ -63,6 +63,13 @@ setMargin(double m)
 
 void
 CQChartsMapKey::
+setPadding(double p)
+{
+  CQChartsUtil::testAndSet(padding_, p, [&]() { invalidate(); } );
+}
+
+void
+CQChartsMapKey::
 setPosition(const Position &p)
 {
   CQChartsUtil::testAndSet(position_, p, [&]() { invalidate(); } );
@@ -99,7 +106,7 @@ calcPosition(Position &pos, Qt::Alignment &align) const
 
   if (location().type() == Location::Type::ABSOLUTE_POSITION) {
     if (! position().isValid()) {
-      double bm = this->margin();
+      double bm = this->padding();
 
       auto pbbox = plot()->calcPlotPixelRect();
 
@@ -115,21 +122,28 @@ calcPosition(Position &pos, Qt::Alignment &align) const
     align = this->align   ();
   }
   else {
+    double xpad = 0, ypad = 0;
+
+    if (! drawData_.isWidget) {
+      xpad = plot()->pixelToWindowWidth (this->margin());
+      ypad = plot()->pixelToWindowHeight(this->margin());
+    }
+
     align = Qt::Alignment();
 
     if      (location().onLeft   ()) {
-      x = bbox.getXMin(); align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight); }
+      x = bbox.getXMin() + xpad; align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight); }
     else if (location().onHCenter()) {
       x = bbox.getXMid(); align |=  Qt::AlignHCenter; }
     else if (location().onRight  ()) {
-      x = bbox.getXMax(); align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft); }
+      x = bbox.getXMax() - xpad; align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft); }
 
     if      (location().onTop    ()) {
-      y = bbox.getYMax(); align |= (isInsideY() ? Qt::AlignTop  : Qt::AlignBottom); }
+      y = bbox.getYMax() - ypad; align |= (isInsideY() ? Qt::AlignTop  : Qt::AlignBottom); }
     else if (location().onVCenter()) {
       y = bbox.getYMid(); align |= Qt::AlignVCenter; }
     else if (location().onBottom ()) {
-      y = bbox.getYMin(); align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop); }
+      y = bbox.getYMin() + ypad; align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop); }
 
     pos = Position::plot(Point(x, y));
   }
@@ -202,6 +216,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp("insideX" , "Inside Plot X");
   addProp("insideY" , "Inside Plot Y");
   addProp("margin"  , "Margin");
+  addProp("padding" , "Padding");
   addProp("position", "Position");
   addProp("align"   , "Alignment");
 
@@ -295,6 +310,18 @@ bgColor(PaintDevice *device) const
   return w->palette().window().color();
 }
 
+void
+CQChartsMapKey::
+setEditHandlesBBox() const
+{
+  auto rect = this->rect();
+  if (! rect.isValid()) return;
+
+  auto *th = const_cast<CQChartsMapKey *>(this);
+
+  th->editHandles()->setBBox(th->typeBBox_[DrawType::VIEW]);
+}
+
 //---
 
 CQChartsColorMapKey::
@@ -338,6 +365,22 @@ isContiguous() const
   return isNumeric();
 }
 
+bool
+CQChartsColorMapKey::
+inside(const Point &p, DrawType drawType) const
+{
+  auto pb = itemBoxes_.find(drawType);
+  if (pb == itemBoxes_.end()) return false;
+
+  const auto &itemBoxes = (*pb).second;
+
+  for (const auto &itemBox : itemBoxes)
+    if (itemBox.rect.inside(p))
+      return true;
+
+  return false;
+}
+
 void
 CQChartsColorMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -354,6 +397,12 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
     drawContiguous(device);
   else
     drawDiscreet(device, drawType);
+
+  //---
+
+  auto *th = const_cast<CQChartsColorMapKey *>(this);
+
+  th->typeBBox_[drawType] = th->bbox();
 }
 
 void
@@ -368,7 +417,7 @@ drawContiguous(PaintDevice *device)
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  double bm = this->padding();
   double bw = fm.horizontalAdvance("X") + 16; // color box width
 
   //---
@@ -472,7 +521,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  double bm = this->padding();
   double bs = fm.horizontalAdvance("X") + 16; // color box size
 
   //---
@@ -629,7 +678,7 @@ calcContiguousSize() const
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  double bm = this->padding();
 
   double bw = fm.horizontalAdvance("X") + 16; // color box width
   double bh = fm.height()*5;                  // color box height
@@ -652,7 +701,7 @@ calcContiguousSize() const
   kw_ = bw + tw + 3*bm;
   kh_ = bh + fm.height() + 2*bm;
 
-  return QSize(kw_, kh_);
+  return QSize(int(kw_), int(kh_));
 }
 
 QSize
@@ -663,7 +712,7 @@ calcDiscreetSize() const
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  double bm = this->padding();
 
   double bs = fm.horizontalAdvance("X") + 16; // color box size
 
@@ -684,7 +733,7 @@ calcDiscreetSize() const
   kw_ = bs + tw + 3*bm;
   kh_ = n*bs + 2*bm;
 
-  return QSize(kw_, kh_);
+  return QSize(int(kw_), int(kh_));
 }
 
 void
@@ -730,18 +779,18 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
-  int ni = itemBoxes.size();
+  auto ni = itemBoxes.size();
 
   std::vector<int> oldItemVisible;
 
   oldItemVisible.resize(ni);
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->colorVisible(itemBoxes[i].color);
 
   auto newItemVisible = oldItemVisible;
 
-  for (int i = 0; i < ni; ++i) {
+  for (size_t i = 0; i < ni; ++i) {
     bool inside = itemBoxes[i].rect.inside(p);
 
     if      (selMod == CQChartsSelMod::ADD) {
@@ -758,7 +807,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
     }
   }
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
       emit itemSelected(itemBoxes[i].color, newItemVisible[i]);
 
@@ -821,6 +870,22 @@ isContiguous() const
   return isNumeric();
 }
 
+bool
+CQChartsSymbolSizeMapKey::
+inside(const Point &p, DrawType drawType) const
+{
+  auto pb = itemBoxes_.find(drawType);
+  if (pb == itemBoxes_.end()) return false;
+
+  const auto &itemBoxes = (*pb).second;
+
+  for (const auto &itemBox : itemBoxes)
+    if (itemBox.rect.inside(p))
+      return true;
+
+  return false;
+}
+
 void
 CQChartsSymbolSizeMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -839,6 +904,12 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
     drawContiguous(device, drawType);
   else
     drawDiscreet(device, drawType);
+
+  //---
+
+  auto *th = const_cast<CQChartsSymbolSizeMapKey *>(this);
+
+  th->typeBBox_[drawType] = th->bbox();
 }
 
 void
@@ -918,7 +989,8 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  // outer margin
+  double bm = this->padding();
   double bh = fm.height() + 1; // row height
 
   //---
@@ -1045,7 +1117,7 @@ drawCircles(PaintDevice *device, DrawType drawType, bool usePenBrush)
   double ymax = (palette ? paletteMinMax_.max() : 1.0);
 
   double y  = ymax;
-  double dy = (symbolBoxes_.size() > 1 ? (ymax - ymin)/(symbolBoxes_.size() - 1) : 0.0);
+  double dy = (symbolBoxes_.size() > 1 ? (ymax - ymin)/double(symbolBoxes_.size() - 1) : 0.0);
 
   auto &itemBoxes = itemBoxes_[drawType];
 
@@ -1123,10 +1195,10 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
   double max = this->dataMax();
 
   double y  = 1.0;
-  double dy = (symbolBoxes_.size() > 1 ? 1.0/(symbolBoxes_.size() - 1) : 0.0);
+  double dy = (symbolBoxes_.size() > 1 ? 1.0/double(symbolBoxes_.size() - 1) : 0.0);
 
   // outer margin
-  double pm = this->margin();
+  double pm = this->padding();
 
   for (const auto &pbbox : symbolBoxes_) {
     double r = CMathUtil::map(y, 0.0, 1.0, min, max);
@@ -1168,7 +1240,7 @@ calcContiguousSize() const
 
   pbbox_ = psbbox_ + ptbbox_;
 
-  return QSize(pbbox_.getWidth(), pbbox_.getHeight());
+  return QSize(int(pbbox_.getWidth()), int(pbbox_.getHeight()));
 }
 
 QSize
@@ -1179,7 +1251,8 @@ calcDiscreetSize() const
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  // outer margin
+  double bm = this->padding();
   double bh = fm.height() + 1; // row height
 
   //---
@@ -1203,7 +1276,7 @@ calcDiscreetSize() const
   twr_ = 0.0;
 
   for (int i = 0; i < n; ++i) {
-    auto r = mappedValues[i];
+    auto r = mappedValues[size_t(i)];
 
     auto rstr = QString("%1").arg(r, 0, 'f', ndp_);
     auto name = uniqueValues()[i].toString();
@@ -1219,7 +1292,7 @@ calcDiscreetSize() const
 
   pbbox_ = BBox(0, 0, kw_, kh_);
 
-  return QSize(kw_, kh_);
+  return QSize(int(kw_), int(kh_));
 }
 
 void
@@ -1242,7 +1315,7 @@ calcSymbolBoxes() const
   double sy = (rows() > 1 ? 1.0/(rows() - 1) : 0.0);
 
   // outer margin
-  double pm = this->margin();
+  double pm = this->padding();
 
   //---
 
@@ -1315,7 +1388,7 @@ calcTextBBox() const
   double max = this->dataMax();
 
   // outer margin
-  double pm = this->margin();
+  double pm = this->padding();
 
   double pxt1 = (! isStacked() ? pbbox1.getXMid() : pbbox1.getXMax() + pm);
   double pyt1 = (! isStacked() ? pbbox1.getYMid() : pbbox1.getYMin()     );
@@ -1330,7 +1403,7 @@ calcTextBBox() const
   double fa = fm.ascent();
 
   double y  = 1.0;
-  double dy = (symbolBoxes_.size() > 1 ? 1.0/(symbolBoxes_.size() - 1) : 0.0);
+  double dy = (symbolBoxes_.size() > 1 ? 1.0/double(symbolBoxes_.size() - 1) : 0.0);
 
   for (const auto &pbbox : symbolBoxes_) {
     double r = CMathUtil::map(y, 0.0, 1.0, min, max);
@@ -1451,18 +1524,18 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
-  int ni = itemBoxes.size();
+  auto ni = itemBoxes.size();
 
   std::vector<int> oldItemVisible;
 
   oldItemVisible.resize(ni);
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->symbolSizeVisible(itemBoxes[i].size);
 
   auto newItemVisible = oldItemVisible;
 
-  for (int i = 0; i < ni; ++i) {
+  for (size_t i = 0; i < ni; ++i) {
     bool inside = itemBoxes[i].rect.inside(p);
 
     if      (selMod == CQChartsSelMod::ADD) {
@@ -1479,7 +1552,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
     }
   }
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
       emit itemSelected(itemBoxes[i].size, newItemVisible[i]);
 
@@ -1527,6 +1600,22 @@ isContiguous() const
   return isNumeric();
 }
 
+bool
+CQChartsSymbolTypeMapKey::
+inside(const Point &p, DrawType drawType) const
+{
+  auto pb = itemBoxes_.find(drawType);
+  if (pb == itemBoxes_.end()) return false;
+
+  const auto &itemBoxes = (*pb).second;
+
+  for (const auto &itemBox : itemBoxes)
+    if (itemBox.rect.inside(p))
+      return true;
+
+  return false;
+}
+
 void
 CQChartsSymbolTypeMapKey::
 draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
@@ -1547,7 +1636,8 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  // outer margin
+  double bm = this->padding();
   double bw = fm.horizontalAdvance("X") + 4;
 
   //---
@@ -1613,12 +1703,12 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
   auto symbolStrokeColor = plot()->interpThemeColor(ColorInd(1.0));
 
   if (isContiguous()) {
-    for (int i = mapMin(); i <= mapMax(); ++i) {
+    for (long i = mapMin(); i <= mapMax(); ++i) {
       // get symbol
       CQChartsSymbolSet::SymbolData symbolData;
 
       if (symbolSet)
-        symbolData = symbolSet->symbolData(i);
+        symbolData = symbolSet->symbolData(int(i));
       else
         symbolData.symbol = Symbol(CQChartsSymbolType(static_cast<CQChartsSymbolType::Type>(i)));
 
@@ -1644,8 +1734,8 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       // draw symbol
       double ss = std::max(fh/2.0 - 4.0, 3.0);
 
-      auto py = CMathUtil::map(i, mapMin(), mapMax(), pbbox_.getYMax() - fh/2.0 - 1,
-                               pbbox_.getYMin() + fh/2.0 + 1);
+      auto py = CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
+                               pbbox_.getYMax() - fh/2.0 - 1, pbbox_.getYMin() + fh/2.0 + 1);
 
       auto p1 = device->pixelToWindow(Point(pbbox_.getXMin() + ss/2 + bm + 2, py));
 
@@ -1655,7 +1745,8 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       //---
 
       // draw value
-      auto dataStr = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+      auto dataStr = valueText(CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
+                                              double(dataMin()), double(dataMax())));
 
       drawTextLabel(Point(pbbox_.getXMin() + bw + 2*bm, py + df), dataStr);
 
@@ -1679,9 +1770,10 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
       if (isMapped()) {
         if (symbolSet)
-          symbolData = symbolSet->interpI(i + mapMin(), mapMin(), mapMax());
+          symbolData = symbolSet->interpI(int(i + mapMin()), int(mapMin()), int(mapMax()));
         else
-          symbolData.symbol = Symbol::interpOutlineWrap(i + mapMin(), mapMin(), mapMax());
+          symbolData.symbol =
+            Symbol::interpOutlineWrap(int(i + mapMin()), int(mapMin()), int(mapMax()));
       }
       else
         symbolData.symbol = Symbol(name);
@@ -1735,6 +1827,10 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       itemBoxes.push_back(ItemBox(symbolData.symbol, device->pixelToWindow(pbbox1)));
     }
   }
+
+  //---
+
+  th->typeBBox_[drawType] = th->bbox();
 }
 
 QSize
@@ -1747,7 +1843,8 @@ calcSize(const DrawData &drawData) const
 
   QFontMetricsF fm(font);
 
-  double bm = this->margin();
+  // outer margin
+  double bm = this->padding();
   double bw = fm.horizontalAdvance("X") + 4;
 
   double tw = 0.0;
@@ -1755,10 +1852,11 @@ calcSize(const DrawData &drawData) const
   kh_ = 0.0;
 
   if (isContiguous()) {
-    kh_ = (fm.height() + 2)*(mapMax() - mapMin() + 1) + 2*bm;
+    kh_ = (fm.height() + 2)*double(mapMax() - mapMin() + 1) + 2*bm;
 
-    for (int i = mapMin(); i <= mapMax(); ++i) {
-      auto name = valueText(CMathUtil::map(i, mapMin(), mapMax(), dataMin(), dataMax()));
+    for (long i = mapMin(); i <= mapMax(); ++i) {
+      auto name = valueText(CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
+                                           double(dataMin()), double(dataMax())));
 
       tw = std::max(tw, fm.horizontalAdvance(name));
     }
@@ -1782,7 +1880,7 @@ calcSize(const DrawData &drawData) const
 
   kw_ = bw + tw + 3*bm;
 
-  return QSize(kw_, kh_);
+  return QSize(int(kw_), int(kh_));
 }
 
 void
@@ -1828,18 +1926,18 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
-  int ni = itemBoxes.size();
+  auto ni = itemBoxes.size();
 
   std::vector<int> oldItemVisible;
 
   oldItemVisible.resize(ni);
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->symbolTypeVisible(itemBoxes[i].symbol);
 
   auto newItemVisible = oldItemVisible;
 
-  for (int i = 0; i < ni; ++i) {
+  for (size_t i = 0; i < ni; ++i) {
     bool inside = itemBoxes[i].rect.inside(p);
 
     if      (selMod == CQChartsSelMod::ADD) {
@@ -1856,7 +1954,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
     }
   }
 
-  for (int i = 0; i < ni; ++i)
+  for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
       emit itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
 
@@ -1919,6 +2017,8 @@ CQChartsMapKeyFrame(CQChartsMapKeyWidget *w) :
  w_(w)
 {
   setObjectName("keyFrame");
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 bool
@@ -1970,16 +2070,41 @@ paintEvent(QPaintEvent *)
 
 void
 CQChartsMapKeyFrame::
-mousePressEvent(QMouseEvent *e)
+mousePressEvent(QMouseEvent *me)
 {
   auto *key = w_->key();
   if (! key) return;
 
   //---
 
-  auto p = e->pos();
+  if (me->button() == Qt::LeftButton) {
+    auto p = me->pos();
 
-  auto selMod = CQChartsUtil::modifiersToClickMod(e->modifiers());
+    auto selMod = CQChartsUtil::modifiersToClickMod(me->modifiers());
 
-  key->selectPressType(CQChartsGeom::Point(p), selMod, CQChartsMapKey::DrawType::WIDGET);
+    key->selectPressType(CQChartsGeom::Point(p), selMod, CQChartsMapKey::DrawType::WIDGET);
+  }
+}
+
+void
+CQChartsMapKeyFrame::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  auto *menu = new QMenu;
+
+  CQUtil::addCheckedAction(menu, "Plot Key", w_->key()->isVisible(),
+                           this, SLOT(showKeySlot(bool)));
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+void
+CQChartsMapKeyFrame::
+showKeySlot(bool b)
+{
+  w_->key()->setVisible(b);
+
+  w_->key()->plot()->drawObjs();
 }

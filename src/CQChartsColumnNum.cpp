@@ -45,7 +45,7 @@ fromString(const QString &str)
   if (! ok || column < -1)
     return false;
 
-  column_ = column;
+  column_ = int(column);
 
   return true;
 }

@@ -125,7 +125,7 @@ class Point :
   //-----
 
   QPointF qpoint () const { return QPointF(x, y); }
-  QPoint  qpointi() const { return QPoint (x, y); }
+  QPoint  qpointi() const { return QPoint (int(x), int(y)); }
 
   //-----
 

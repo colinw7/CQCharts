@@ -1744,7 +1744,7 @@ addKeyItems(PlotKey *key)
   bool isSummaryGroup = (isSummary() && ! calcDonut());
 
   if (! isSummaryGroup) {
-    int ng = groupObjs_.size();
+    int ng = int(groupObjs_.size());
 
     // add key line per group
     if (ng > 1) {

@@ -118,7 +118,7 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  int i1 = INT_MAX*0.2;
+  int i1 = int(INT_MAX*0.2);
   int i2 = INT_MAX - i1;
 
   splitter->setSizes(QList<int>({i1, i2}));

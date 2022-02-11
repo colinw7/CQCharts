@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGeom.h>
+#include <CSafeIndex.h>
 
 #include <boost/optional.hpp>
 #include <string>
@@ -318,11 +319,11 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   PieObj *lookupObj(const QString &name) const;
 
-  int numObjs() const { return objs_.size(); }
+  int numObjs() const { return int(objs_.size()); }
 
   const PieObjs &objs() const { return objs_; }
 
-  PieObj *obj(int i) const { assert(i >= 0 && i < numObjs()); return objs_[i]; }
+  PieObj *obj(int i) const { return CUtil::safeIndex(objs_, i); }
 
   //---
 
@@ -750,7 +751,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  int numGroupObjs() const { return groupObjs_.size(); }
+  int numGroupObjs() const { return int(groupObjs_.size()); }
 
   //---
 

@@ -42,7 +42,7 @@ class CQChartsDendrogram {
   class Node {
    private:
     static uint nextId() {
-      static int lastId = 0;
+      static uint lastId = 0;
 
       return ++lastId;
     }

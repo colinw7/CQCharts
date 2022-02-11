@@ -216,7 +216,7 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
     // get option values to next command
     std::string lastOption;
 
-    for (int pos1 = commandPos + command.length(); pos1 < text.length(); ++pos1) {
+    for (int pos1 = commandPos + int(command.length()); pos1 < text.length(); ++pos1) {
       auto *token1 = parse.getTokenForPos(tokens, pos1);
       if (! token1) continue;
 
@@ -231,13 +231,13 @@ complete(CQChartsCmdWidget *widget, const QString &text, int pos,
 
         optionValues[lastOption] = "";
 
-        pos1 = token1->pos() + token1->str().length(); // move to end
+        pos1 = token1->pos() + int(token1->str().length()); // move to end
       }
       else {
         if (lastOption != "")
           optionValues[lastOption] = str;
 
-        pos1 = token1->pos() + token1->str().length(); // move to end
+        pos1 = token1->pos() + int(token1->str().length()); // move to end
       }
     }
 

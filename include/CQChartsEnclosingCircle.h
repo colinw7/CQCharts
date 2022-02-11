@@ -57,10 +57,8 @@ class CQChartsEnclosingCircle {
 
   // Given N circles calculate the center and radius of the enclosing circle
   bool calc(Circle &ecircle) {
-    uint nc = circles_.size();
-
-    if (nc == 0)
-      return false;
+    auto nc = circles_.size();
+    if (nc == 0) return false;
 
     if (nc == 1) {
       ecircle = circles_[0];
@@ -89,9 +87,9 @@ class CQChartsEnclosingCircle {
   void getPointCircle(Circle &pcircle) {
     CQChartsPointsCircle::PointArray points;
 
-    uint nc = circles_.size();
+    auto nc = circles_.size();
 
-    for (uint i = 1; i < nc; ++i)
+    for (size_t i = 1; i < nc; ++i)
       points.emplace_back(circles_[i].x(), circles_[i].y());
 
     CQChartsPointsCircle::Circle circle;

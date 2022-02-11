@@ -835,7 +835,7 @@ updateWidgets()
   for (const auto &item : items)
     addItems(item, row);
 
-  table_->setRowCount   (itemData_.rowItems.size());
+  table_->setRowCount   (int(itemData_.rowItems.size()));
   table_->setColumnCount(itemData_.clickable ? 3 : 2);
 
   int col = 0;

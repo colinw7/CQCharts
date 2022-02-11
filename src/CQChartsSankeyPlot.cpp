@@ -1303,9 +1303,9 @@ initTableObjs() const
 
   //---
 
-  int nv = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
     if (tableConnectionData.values().empty())
@@ -1412,9 +1412,9 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
       long pathId = CQChartsUtil::toInt(valueStr, ok);
       if (! ok || pathId < 0) continue;
 
-      edge->setPathId(pathId);
+      edge->setPathId(int(pathId));
 
-      pathIdMinMax_.add(pathId);
+      pathIdMinMax_.add(int(pathId));
     }
 #endif
   }
@@ -1658,7 +1658,7 @@ calcGraphNodesPos(const Nodes &nodes) const
 
     // TODO: stable pos (spiral/circle/grid ?)
     th->align_     = Align::RAND;
-    th->alignRand_ = std::max(CMathRound::RoundNearest(sqrt(nodes.size())), 2);
+    th->alignRand_ = std::max(CMathRound::RoundNearest(sqrt(double(nodes.size()))), 2);
 
     for (const auto &node : nodes)
       node->setDepth(-1);
@@ -1892,7 +1892,7 @@ CQChartsSankeyPlot::NodeObj *
 CQChartsSankeyPlot::
 createObjFromNode(Node *node) const
 {
-  int numNodes = indNodeMap_.size();
+  int numNodes = int(indNodeMap_.size());
 
   ColorInd ig;
 
@@ -2150,7 +2150,7 @@ adjustNodeCenters(bool placed, bool force) const
       const auto &nodes = graph_->posNodes(pos);
 
       if (int(nodes.size()) > maxN) {
-        maxN       = nodes.size();
+        maxN       = int(nodes.size());
         maxNodePos = pos;
       }
     }
@@ -2279,7 +2279,7 @@ adjustEdgeOverlaps(bool force) const
     return false;
   };
 
-  int posNodesDepth = graph_->posNodesMap().size();
+  int posNodesDepth = int(graph_->posNodesMap().size());
 
   // find first pos with nodes
   int pos1 = 0;
@@ -2317,7 +2317,7 @@ adjustEdgeOverlaps(bool force) const
     }
 
     // check edges for overlaps
-    int numEdges = edges.size();
+    int numEdges = int(edges.size());
 
     for (int i1 = 0; i1 < numEdges - 1; ++i1) {
       auto *edge1 = edges[i1];
@@ -3013,7 +3013,7 @@ createNode(const QString &name) const
 {
   auto *node = new Node(this, name);
 
-  node->setId(nameNodeMap_.size());
+  node->setId(int(nameNodeMap_.size()));
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
@@ -3040,7 +3040,7 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 
   th->edges_.push_back(edge);
 
-  edge->setId(th->edges_.size());
+  edge->setId(int(th->edges_.size()));
 
   return edge;
 }
@@ -4054,8 +4054,8 @@ calcTipId() const
   if (depth() >= 0)
     tableTip.addTableRow(namedColumn("Depth"), depth());
 
-  int ns = node()->srcEdges ().size();
-  int nd = node()->destEdges().size();
+  int ns = int(node()->srcEdges ().size());
+  int nd = int(node()->destEdges().size());
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 

@@ -239,7 +239,7 @@ pathPoints(const QPainterPath &path)
 
       CMathGeom2D::BezierToLines(bezier, points, 1E-3);
 
-      for (int i = 1; i < int(points.size()); ++i) {
+      for (size_t i = 1; i < points.size(); ++i) {
         const auto &bp = points[i];
 
         points_.push_back(Point(bp.x, bp.y));
@@ -255,7 +255,7 @@ pathPoints(const QPainterPath &path)
 
       CMathGeom2D::BezierToLines(bezier, points, 1E-3);
 
-      for (int i = 1; i < int(points.size()); ++i) {
+      for (size_t i = 1; i < points.size(); ++i) {
         const auto &bp = points[i];
 
         points_.push_back(Point(bp.x, bp.y));

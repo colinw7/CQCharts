@@ -72,7 +72,7 @@ class CQChartsPolygon :
 
   const Polygon &polygon() const { return polygon_; }
 
-  int numPoints() const { return polygon_.size(); }
+  int numPoints() const { return int(polygon_.size()); }
 
   Point point(int i) const { return polygon_.point(i); }
 

@@ -823,9 +823,9 @@ initTableObjs() const
 
   //---
 
-  int nv = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
     auto srcStr = QString::number(tableConnectionData.from());
@@ -1083,7 +1083,7 @@ findNode(const QString &str) const
 
   //---
 
-  int id = nameNodeMap_.size();
+  int id = int(nameNodeMap_.size());
 
   auto *node = new AdjacencyNode(id, str, 0);
 

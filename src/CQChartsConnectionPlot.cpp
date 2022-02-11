@@ -1192,7 +1192,7 @@ initFromToObjs() const
         auto value = plot_->modelInteger(fromToData.pathIdModelInd, ok4);
         if (! ok4) return State::SKIP;
 
-        fromToData.pathId = OptInt(value);
+        fromToData.pathId = OptInt(int(value));
       }
 #endif
 
@@ -1299,7 +1299,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
       IndRowData indRowData;
 
-      indRowData.rowData.resize(nc);
+      indRowData.rowData.resize(size_t(nc));
 
       for (int ic = 0; ic < nc; ++ic) {
         Column c(ic);
@@ -1314,7 +1314,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
         bool ok;
 
-        indRowData.rowData[ic] = plot_->modelValue(columnInd, ok);
+        indRowData.rowData[size_t(ic)] = plot_->modelValue(columnInd, ok);
       }
 
       indRowDatas_.push_back(std::move(indRowData));
@@ -1338,7 +1338,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   //---
 
   // calc table size
-  int nr = indRowDatas.size();
+  int nr = int(indRowDatas.size());
   int nc = (nr > 0 ? int(indRowDatas[0].rowData.size()) : 0);
 
   //---
@@ -1360,7 +1360,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   //---
 
   // declare connection data per value
-  tableConnectionDatas.resize(nv);
+  tableConnectionDatas.resize(size_t(nv));
 
   //---
 
@@ -1372,7 +1372,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     assert(igroup >= 0);
 
     for (int row = 0; row < nv; ++row) {
-      auto group = indRowDatas[row].rowData[igroup];
+      auto group = indRowDatas[size_t(row)].rowData[size_t(igroup)];
 
       groupValues.addValue(group);
     }
@@ -1386,7 +1386,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   tableConnectionInfo.total = 0.0;
 
   for (int row = 0; row < nv; ++row) {
-    auto &tableConnectionData = tableConnectionDatas[row];
+    auto &tableConnectionData = tableConnectionDatas[size_t(row)];
 
     // from id is row
     tableConnectionData.setFrom(row);
@@ -1394,7 +1394,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     //---
 
     // get index for first column for row number
-    auto &indRowData = indRowDatas[row];
+    auto &indRowData = indRowDatas[size_t(row)];
 
     const auto &ind = indRowData.ind;
 
@@ -1410,7 +1410,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       auto linkInd  = modelIndex(linkModelInd);
       auto linkInd1 = normalizeIndex(linkInd);
 
-      auto linkVar = indRowData.rowData[ilink];
+      auto linkVar = indRowData.rowData[size_t(ilink)];
 
       QString linkStr;
 
@@ -1432,7 +1432,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       auto groupInd  = modelIndex(groupColumnInd);
       auto groupInd1 = normalizeIndex(groupInd);
 
-      auto groupVar = indRowData.rowData[igroup];
+      auto groupVar = indRowData.rowData[size_t(igroup)];
 
       QString groupStr;
 
@@ -1457,7 +1457,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
       // get connection size
       bool ok;
-      double value = CQChartsVariant::toReal(indRowData.rowData[col], ok);
+      double value = CQChartsVariant::toReal(indRowData.rowData[size_t(col)], ok);
 
       //---
 

@@ -357,9 +357,9 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  int numVisibleNodes() const { return sortedNodes_.size(); }
+  int numVisibleNodes() const { return int(sortedNodes_.size()); }
 
-  int numNodes() const { return nodes_.size(); }
+  int numNodes() const { return int(nodes_.size()); }
 
   //---
 

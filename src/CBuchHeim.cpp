@@ -240,10 +240,10 @@ wsPlaceCentered1(DrawTree *tree, int depth, std::map<int, int> &nexts, std::map<
     tree->x_ = place;
   }
   else if (nc == 1) {
-    place = tree->child(0)->x_ - 1;
+    place = int(tree->child(0)->x_) - 1;
   }
   else {
-    place = (tree->child(0)->x_ + tree->child(1)->x_)/2;
+    place = int(tree->child(0)->x_ + tree->child(1)->x_)/2;
   }
 
   offset[depth] = std::max(offset[depth], nexts[depth] - place);
@@ -318,7 +318,7 @@ first_walk(DrawTree *v, double distance)
 
     if (w) {
       v->x_      = w->x() + distance;
-      v->offset_ = v->x() - midpoint;
+      v->offset_ = int(v->x() - midpoint);
     }
     else {
       v->x_ = midpoint;
@@ -360,10 +360,10 @@ apportion(DrawTree *v, DrawTree *default_ancestor, double distance)
     if (shift > 0) {
       auto *a = ancestor(vil, v, default_ancestor);
 
-      move_subtree(a, v, shift);
+      move_subtree(a, v, int(shift));
 
-      sir += shift;
-      sor += shift;
+      sir += int(shift);
+      sor += int(shift);
     }
 
     sil += vil->offset_;
@@ -589,7 +589,7 @@ checkOverlaps() const
     for (const auto &py : px.second) {
       //int y = py.first;
 
-      int n = py.second.size();
+      auto n = py.second.size();
       if (n <= 1) continue;
 
       std::cerr << "Overlaps:";
@@ -622,7 +622,7 @@ fixOverlaps()
       for (const auto &py : px.second) {
         //int y = py.first;
 
-        int n = py.second.size();
+        auto n = py.second.size();
         if (n <= 1) continue;
 
         auto *cp = commonParent(py.second[0], py.second[1]);
@@ -671,7 +671,7 @@ void
 DrawTree::
 checkOverlaps1(DrawTree *root, PositionMap &positionMap) const
 {
-  positionMap[root->x()][root->y()].push_back(root);
+  positionMap[int(root->x())][int(root->y())].push_back(root);
 
   for (const auto &child : root->children())
     checkOverlaps1(child.get(), positionMap);

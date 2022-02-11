@@ -199,7 +199,7 @@ plotStringToValue(const QString &str, CQChartsPlot *plot) {
 
   bool ok;
 
-  int irow = CQChartsUtil::toInt(rowName, ok);
+  long irow = CQChartsUtil::toInt(rowName, ok);
 
   if (! ok) {
     if (plot)
@@ -208,7 +208,7 @@ plotStringToValue(const QString &str, CQChartsPlot *plot) {
       irow = -1;
   }
 
-  return CQChartsRow(irow);
+  return CQChartsRow(int(irow));
 }
 
 template<>

@@ -632,7 +632,7 @@ createObjs(PlotObjs &objs) const
   Polygon poly;
 
   int i = 0;
-  int n = visitor.pointDatas().size();
+  int n = int(visitor.pointDatas().size());
 
   da_ = 360.0/n;
   dx_ = (xmax_ - xmin_)/n;

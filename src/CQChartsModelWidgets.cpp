@@ -48,7 +48,7 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  int i1 = INT_MAX*0.6;
+  int i1 = int(INT_MAX*0.6);
   int i2 = INT_MAX - i1;
 
   split->setSizes(QList<int>({i1, i2}));

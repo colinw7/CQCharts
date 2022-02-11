@@ -87,7 +87,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 class CQChartsSunburstNode {
  private:
   static uint nextId() {
-    static int lastId = 0;
+    static uint lastId = 0;
 
     return ++lastId;
   }

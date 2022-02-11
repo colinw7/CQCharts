@@ -304,7 +304,7 @@ createObjs(PlotObjs &objs) const
         if (! ok1) return State::SKIP;
 
         bool ok2;
-        int count = plot_->modelInteger(countModelInd, ok2);
+        auto count = plot_->modelInteger(countModelInd, ok2);
         if (! ok2 || count < 1) return State::SKIP;
 
         auto ind = plot_->normalizeIndex(plot_->modelIndex(valueModelInd));
@@ -314,7 +314,7 @@ createObjs(PlotObjs &objs) const
         if (p != wordDatas_.end())
           (*p).second.count += count;
         else
-          wordDatas_[name] = WordData(count, ind);
+          wordDatas_[name] = WordData(int(count), ind);
 
         return State::OK;
       }
@@ -346,7 +346,7 @@ createObjs(PlotObjs &objs) const
 
   // create objects
   int i = 0;
-  int n = wordCloud.wordDatas().size();
+  int n = int(wordCloud.wordDatas().size());
 
   for (const auto &wordData : wordCloud.wordDatas()) {
     BBox rect(wordData->wordRect.xmin(), wordData->wordRect.ymin(),

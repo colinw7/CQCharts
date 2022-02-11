@@ -3,6 +3,7 @@
 
 #include <CQChartsEnclosingCircle.h>
 #include <CMathGeom2D.h>
+#include <CSafeIndex.h>
 #include <COSNaN.h>
 
 #include <set>
@@ -86,9 +87,9 @@ class CQChartsCirclePack {
 
   const Nodes &nodes() const { return nodes_; }
 
-  NODE *node(int i) const { assert(i >= 0 && i < int(nodes_.size())); return nodes_[i]; }
+  NODE *node(int i) const { return CUtil::safeIndex(nodes_, i); }
 
-  uint size() const { return nodes_.size(); }
+  uint size() const { return uint(nodes_.size()); }
 
   void boundingBox(double &xmin, double &ymin, double &xmax, double &ymax) const {
     xmin = 0.0;
@@ -96,10 +97,10 @@ class CQChartsCirclePack {
     xmax = 0.0;
     ymax = 0.0;
 
-    int n = size();
+    auto n = size();
 
-    for (int i = 0; i < n; ++i) {
-      NODE *node = this->node(i);
+    for (size_t i = 0; i < n; ++i) {
+      NODE *node = this->node(int(i));
 
       xmin = std::min(xmin, node->x() - node->radius());
       ymin = std::min(ymin, node->y() - node->radius());
@@ -115,13 +116,13 @@ class CQChartsCirclePack {
 
     CQChartsEnclosingCircle enclose;
 
-    int n = size();
+    auto n = size();
 
     if (n <= 0)
       return false;
 
-    for (int i = 0; i < n; ++i) {
-      NODE *node = this->node(i);
+    for (size_t i = 0; i < n; ++i) {
+      NODE *node = this->node(int(i));
 
       enclose.addCircle(node->x(), node->y(), node->radius());
     }
@@ -133,7 +134,7 @@ class CQChartsCirclePack {
 
  private:
   bool findAddPos(double r, double &xc, double &yc) const {
-    int n = size();
+    auto n = size();
 
     if (n == 0) {
       xc = 0.0;
@@ -152,7 +153,7 @@ class CQChartsCirclePack {
     // try to place next to node starting at last
     while (ind2_ > ind1_) {
       if (testIndices(ind1_, ind2_, r, xc, yc)) {
-        ind2_ = n;
+        ind2_ = int(n);
 
         return true;
       }
@@ -239,9 +240,10 @@ class CQChartsCirclePack {
   }
 
   bool isTouching(double x, double y, double r) const {
-    int n = size();
+    auto n = size();
+    if (n == 0) return false;
 
-    for (int i = n - 1; i >= 0; --i) {
+    for (int i = int(n - 1); i >= 0; --i) {
       NODE *node = this->node(i);
 
       double dx = x - node->x();

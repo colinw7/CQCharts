@@ -157,7 +157,7 @@ applySlot()
     foldData.foldType = CQChartsModelData::FoldData::FoldType::BUCKET;
     foldData.isAuto   = autoCheck_->isChecked();
     foldData.delta    = CQChartsUtil::toReal(deltaEdit_->text(), ok);
-    foldData.count    = CQChartsUtil::toInt (countEdit_->text(), ok);
+    foldData.count    = int(CQChartsUtil::toInt(countEdit_->text(), ok));
   }
   else if (typeCombo_->currentIndex() == 1) {
     foldData.foldType  = CQChartsModelData::FoldData::FoldType::SEPARATOR;

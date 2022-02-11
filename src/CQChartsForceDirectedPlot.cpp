@@ -192,14 +192,14 @@ int
 CQChartsForceDirectedPlot::
 numNodes() const
 {
-  return (forceDirected_ ? forceDirected_->nodes().size() : 0);
+  return (forceDirected_ ? int(forceDirected_->nodes().size()) : 0);
 }
 
 int
 CQChartsForceDirectedPlot::
 numEdges() const
 {
-  return (forceDirected_ ? forceDirected_->edges().size() : 0);
+  return (forceDirected_ ? int(forceDirected_->edges().size()) : 0);
 }
 
 //---
@@ -1060,9 +1060,9 @@ initTableObjs() const
 
   //---
 
-  int nv = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
     // create connection data for connection id
@@ -1186,7 +1186,7 @@ getStringId(const QString &str) const
 
   //---
 
-  int id = nameIdMap_.size();
+  int id = int(nameIdMap_.size());
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
@@ -1540,7 +1540,7 @@ calcPointFillColor(Node *node) const
   if      (colorType() == ColorType::GROUP)
     colorInd = ColorInd(node->group(), maxGroup_);
   else if (colorType() == ColorType::INDEX)
-    colorInd = ColorInd(node->id(), nodes_.size());
+    colorInd = ColorInd(node->id(), int(nodes_.size()));
   else
     colorInd = ColorInd(node->value());
 

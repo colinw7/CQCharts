@@ -177,8 +177,6 @@ init()
   setGridCellStroked(true);
   setGridCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.1));
 
-  setDataClip(false);
-
   setDataLabelPosition(CQChartsLabelPosition::TOP_OUTSIDE);
 
   //---
@@ -859,11 +857,7 @@ calcRange() const
 
   //---
 
-  applyEqualScale(dataRange);
-
   dataRange = adjustDataRange(dataRange);
-
-  //---
 
   // update data range if unset
   dataRange.makeNonZero();
@@ -1189,7 +1183,7 @@ addPointObjects(PlotObjs &objs) const
   int hasGroups = (numGroups() > 1);
 
   int ig = 0;
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   if (! hasGroups) {
     if (ng <= 1 && parentPlot()) {
@@ -1224,7 +1218,7 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     int is = 0;
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     for (const auto &nameValue : nameValues) {
       if (isInterrupt())
@@ -1239,9 +1233,9 @@ addPointObjects(PlotObjs &objs) const
     //const auto &name   = nameValue.first;
       const auto &values = nameValue.second.values;
 
-      int nv = values.size();
+      auto nv = values.size();
 
-      for (int iv = 0; iv < nv; ++iv) {
+      for (size_t iv = 0; iv < nv; ++iv) {
         if (isInterrupt())
           break;
 
@@ -1276,9 +1270,9 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // create point object
-        ColorInd is1(is, ns);
-        ColorInd ig1(ig, ng);
-        ColorInd iv1(iv, nv);
+        auto is1 = ColorInd(is, ns);
+        auto ig1 = ColorInd(ig, ng);
+        auto iv1 = ColorInd(int(iv), int(nv));
 
         BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
@@ -1447,7 +1441,7 @@ addGridObjects(PlotObjs &objs) const
   int maxN = gridData_.maxN();
 
   int ig = 0;
-  int ng = groupNameGridData_.size();
+  int ng = int(groupNameGridData_.size());
 
   for (const auto &pg : groupNameGridData_) {
     if (isInterrupt())
@@ -1465,7 +1459,7 @@ addGridObjects(PlotObjs &objs) const
     //---
 
     int is = 0;
-    int ns = nameGridData.size();
+    int ns = int(nameGridData.size());
 
     for (const auto &pn : nameGridData) {
       if (isInterrupt())
@@ -1534,7 +1528,7 @@ addHexObjects(PlotObjs &objs) const
   int maxN = hexMapMaxN_;
 
   int ig = 0;
-  int ng = groupNameHexData_.size();
+  int ng = int(groupNameHexData_.size());
 
   for (const auto &pg : groupNameHexData_) {
     if (isInterrupt())
@@ -1552,7 +1546,7 @@ addHexObjects(PlotObjs &objs) const
     //---
 
     int is = 0;
-    int ns = nameHexData.size();
+    int ns = int(nameHexData.size());
 
     for (const auto &pn : nameHexData) {
       if (isInterrupt())
@@ -1586,7 +1580,7 @@ addHexObjects(PlotObjs &objs) const
           int         j         = py.first;
           const auto &dataArray = py.second;
 
-          int n = dataArray.size();
+          int n = int(dataArray.size());
 
           HexMap::Polygon ipolygon;
 
@@ -1631,7 +1625,7 @@ addBestFitObjects(PlotObjs &objs) const
   auto bbox = calcDataRange(/*adjust*/false);
 
   // one best fit per group (multiple groups) or set (name values)
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   if (ng > 1) {
     int ig = 0;
@@ -1653,7 +1647,7 @@ addBestFitObjects(PlotObjs &objs) const
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int is = 0;
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     for (const auto &nameValue : nameValues) {
       auto *bestFitObj = createBestFitObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
@@ -1676,7 +1670,7 @@ addHullObjects(PlotObjs &objs) const
   auto bbox = calcDataRange(/*adjust*/false);
 
   // one hull per group (multiple groups) or set (name values)
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   if (ng > 1) {
     int ig = 0;
@@ -1698,7 +1692,7 @@ addHullObjects(PlotObjs &objs) const
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int is = 0;
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     for (const auto &nameValue : nameValues) {
       auto &name = nameValue.first;
@@ -2196,7 +2190,7 @@ addPointKeyItems(PlotKey *key)
 
   //---
 
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   // multiple group - key item per group
   if      (ng > 1) {
@@ -2225,7 +2219,7 @@ addPointKeyItems(PlotKey *key)
     if (isSymbols()) {
       const auto &nameValues = (*groupNameValues_.begin()).second;
 
-      int ns = nameValues.size();
+      int ns = int(nameValues.size());
 
       if (ns > 1) {
         int is = 0;
@@ -2240,7 +2234,7 @@ addPointKeyItems(PlotKey *key)
           if (colorColumn().isValid()) {
             const auto &values = nameValue.second.values;
 
-            int nv = values.size();
+            int nv = int(values.size());
 
             if (nv > 0) {
               const auto &valuePoint = values[0];
@@ -2564,7 +2558,7 @@ calcExtraFitBBox() const
     if (isYDensity()) addBBoxY(yAxisDensity_->calcDeltaBBox(dx));
 
     // x/y whisker axis (one per group)
-    int ng = groupInds_.size();
+    int ng = int(groupInds_.size());
 
     if (isXWhisker()) addBBoxX(xAxisWhisker_->calcNDeltaBBox(ng, dy));
     if (isYWhisker()) addBBoxY(yAxisWhisker_->calcNDeltaBBox(ng, dx));
@@ -2596,7 +2590,7 @@ xAxisHeight(const CQChartsAxisSide::Type &side) const
       addHeight(xAxisDensity_->calcDeltaBBox(0.0));
 
     // x whisker axis (one per group)
-    int ng = groupInds_.size();
+    int ng = int(groupInds_.size());
 
     if (isXWhisker() && xAxisWhisker_->side().type() == side)
       addHeight(xAxisWhisker_->calcNDeltaBBox(ng, 0.0));
@@ -2628,7 +2622,7 @@ yAxisWidth(const CQChartsAxisSide::Type &side) const
       addWidth(yAxisDensity_->calcDeltaBBox(0.0));
 
     // y whisker axis (one per group)
-    int ng = groupInds_.size();
+    int ng = int(groupInds_.size());
 
     if (isYWhisker() && yAxisWhisker_->side().type() == side)
       addWidth(yAxisWhisker_->calcNDeltaBBox(ng, 0.0));
@@ -2755,7 +2749,7 @@ drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
     addHeight(xAxisDensity_->calcDeltaBBox(0.0));
 
   if (isXWhisker() && xAxisWhisker_->side().type() == xAxis()->side().type())
-    addHeight(xAxisWhisker_->calcNDeltaBBox(groupInds_.size(), 0.0));
+    addHeight(xAxisWhisker_->calcNDeltaBBox(int(groupInds_.size()), 0.0));
 
   CQChartsPlot::drawXAxisAt(device, plot, pos);
 }
@@ -2780,7 +2774,7 @@ drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
     addWidth(yAxisDensity_->calcDeltaBBox(0.0));
 
   if (isYWhisker() && yAxisWhisker_->side().type() == yAxis()->side().type())
-    addWidth(yAxisWhisker_->calcNDeltaBBox(groupInds_.size(), 0.0));
+    addWidth(yAxisWhisker_->calcNDeltaBBox(int(groupInds_.size()), 0.0));
 
   CQChartsPlot::drawYAxisAt(device, plot, pos);
 }
@@ -2791,7 +2785,7 @@ void
 CQChartsScatterPlot::
 drawStatsLines(PaintDevice *device) const
 {
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   int nf;
 
@@ -2811,7 +2805,7 @@ drawStatsLines(PaintDevice *device) const
   else {
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
-    int ns = nameValues.size();
+    int ns = int(nameValues.size());
 
     //---
 
@@ -2968,7 +2962,7 @@ drawXDensity(PaintDevice *device) const
   //---
 
   int ig = 0;
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
@@ -3002,7 +2996,7 @@ drawYDensity(PaintDevice *device) const
   //---
 
   int ig = 0;
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
@@ -3064,7 +3058,7 @@ drawXWhisker(PaintDevice *device) const
   //---
 
   int ig = 0;
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
@@ -3098,7 +3092,7 @@ drawYWhisker(PaintDevice *device) const
   //---
 
   int ig = 0;
-  int ng = groupInds_.size();
+  int ng = int(groupInds_.size());
 
   for (const auto &groupInd : groupInds_) {
     if (isInterrupt())
@@ -3704,7 +3698,7 @@ calcTipId() const
   if (p != (*pg).second.end()) {
     const auto &values = (*p).second.values;
 
-    valuePoint = values[iv_.i];
+    valuePoint = values[size_t(iv_.i)];
   }
 
   //---
@@ -4123,7 +4117,7 @@ CQChartsScatterCellObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
-  ColorInd ic(points_.size(), maxN_);
+  ColorInd ic(int(points_.size()), maxN_);
 
   auto pc = plot_->interpGridCellStrokeColor(ColorInd());
   auto fc = plot_->interpPaletteColor(ic);

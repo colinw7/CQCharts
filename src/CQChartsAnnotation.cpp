@@ -1320,7 +1320,7 @@ layoutTextCloud()
 
     auto value = std::max(textAnnotation->value().realOr(1.0), 1.0);
 
-    int ind = wordCloud.addWord(textAnnotation->textStr(), value);
+    int ind = wordCloud.addWord(textAnnotation->textStr(), int(value));
 
     wordTextAnnotation[ind] = textAnnotation;
   }
@@ -1529,7 +1529,7 @@ moveChildren(const BBox &bbox)
 
   double dx = bbox.getXMid() - annotationBBox_.getXMid();
   double dy = bbox.getYMid() - annotationBBox_.getYMid();
-  if (! dx && ! dy) return;
+  if (CMathUtil::isZero(dx) && CMathUtil::isZero(dy)) return;
 
   moveChildren(dx, dy);
 }
@@ -2517,9 +2517,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
 
   //---
 
-  auto p = apoly_.point(i);
+  auto p = apoly_.point(int(i));
 
-  apoly_.setPoint(i, Point(p.x + dx, p.y + dy));
+  apoly_.setPoint(int(i), Point(p.x + dx, p.y + dy));
 
   //---
 
@@ -2760,9 +2760,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
 
   //---
 
-  auto p = apoly_.point(i);
+  auto p = apoly_.point(int(i));
 
-  apoly_.setPoint(i, Point(p.x + dx, p.y + dy));
+  apoly_.setPoint(int(i), Point(p.x + dx, p.y + dy));
 
   //---
 
@@ -3776,7 +3776,7 @@ updateDisabledImage(const DisabledImageType &type)
 
     auto prect = windowToPixel(rect_);
 
-    const auto &image = image_.sizedImage(prect.getWidth(), prect.getHeight());
+    const auto &image = image_.sizedImage(int(prect.getWidth()), int(prect.getHeight()));
 
     disabledImage_     = Image(CQChartsUtil::disabledImage(image, bg, f));
     disabledImageType_ = type;
@@ -3973,9 +3973,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   if (! ok || i < 0 || i >= np)
     return;
 
-  auto p = path_.pointAt(i);
+  auto p = path_.pointAt(int(i));
 
-  path_.setPointAt(i, Point(p.x + dx, p.y + dy));
+  path_.setPointAt(int(i), Point(p.x + dx, p.y + dy));
 }
 
 //---
@@ -4558,9 +4558,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
     if (! ok || i < 0 || i >= np)
       return;
 
-    auto p = path_.pointAt(i);
+    auto p = path_.pointAt(int(i));
 
-    path_.setPointAt(i, Point(p.x + dx, p.y + dy));
+    path_.setPointAt(int(i), Point(p.x + dx, p.y + dy));
   }
   else {
     if (i == 0) {
@@ -6584,7 +6584,7 @@ drawGrid(PaintDevice *device)
       int         iy     = py.first;
       const auto &points = py.second;
 
-      int n = points.size();
+      auto n = points.size();
       if (n <= 0) continue;
 
       double ymin, ymax;
@@ -6808,9 +6808,9 @@ void
 CQChartsPoint3DSetAnnotation::
 initContour() const
 {
-  int nx = xvals_.numUnique();
-  int ny = yvals_.numUnique();
-  int nz = nx*ny;
+  uint nx = uint(xvals_.numUnique());
+  uint ny = uint(yvals_.numUnique());
+  uint nz = nx*ny;
 
   std::vector<double> x, y, z;
 
@@ -6818,18 +6818,18 @@ initContour() const
   y.resize(ny);
   z.resize(nz);
 
-  for (int ix = 0; ix < nx; ++ix)
-    x[ix] = xvals_.ivalue(ix);
+  for (uint ix = 0; ix < nx; ++ix)
+    x[ix] = xvals_.ivalue(int(ix));
 
-  for (int iy = 0; iy < ny; ++iy)
-    y[iy] = yvals_.ivalue(iy);
+  for (uint iy = 0; iy < ny; ++iy)
+    y[iy] = yvals_.ivalue(int(iy));
 
-  for (int iz = 0; iz < nz; ++iz)
+  for (uint iz = 0; iz < nz; ++iz)
     CMathUtil::isNaN(z[iz]);
 
   for (const auto &p : points_) {
-    int ix = xvals_.id(p.x);
-    int iy = yvals_.id(p.y);
+    uint ix = uint(xvals_.id(p.x));
+    uint iy = uint(yvals_.id(p.y));
 
     z[iy*nx + ix] = p.z;
   }
@@ -6842,7 +6842,7 @@ initContour() const
     th->contour_->setPlot(plot());
   }
 
-  th->contour_->setData(&x[0], &y[0], &z[0], nx, ny);
+  th->contour_->setData(&x[0], &y[0], &z[0], int(nx), int(ny));
 }
 
 void
@@ -7587,7 +7587,7 @@ setPosition(const OptPosition &p)
 
     auto p = positionToPixel(objRef(), positionValue());
 
-    winWidget_->setPos(p.x, p.y);
+    winWidget_->setPos(int(p.x), int(p.y));
 
     connect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
   }
@@ -7642,8 +7642,8 @@ setRectangle(const OptRect &r)
     else if (view())
       bbox = view()->rectToPixel(rectangle_.rect());
 
-    winWidget_->setPos (bbox.getXMin(), bbox.getYMin());
-    winWidget_->setSize(bbox.getWidth(), bbox.getHeight());
+    winWidget_->setPos (int(bbox.getXMin()), int(bbox.getYMin()));
+    winWidget_->setSize(int(bbox.getWidth()), int(bbox.getHeight()));
 
     connect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
   }

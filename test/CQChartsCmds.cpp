@@ -2537,7 +2537,7 @@ execCmd(CQChartsCmdArgs &argv)
 
       if (i < 0 || i >= n) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
-      return cmdBase_->setCmdRc(palette->definedColor(i));
+      return cmdBase_->setCmdRc(palette->definedColor(int(i)));
     }
 
     else if (nameStr == "distinct") {
@@ -2729,7 +2729,7 @@ execCmd(CQChartsCmdArgs &argv)
       long pos = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid position '%1'").arg(dataStr));
 
-      theme->setNamedPalette(pos, valueStr);
+      theme->setNamedPalette(int(pos), valueStr);
     }
     else if (nameStr == "move_palette") {
       auto *palette = CQColorsMgrInst->getNamedPalette(valueStr);
@@ -2739,7 +2739,7 @@ execCmd(CQChartsCmdArgs &argv)
       long pos = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid position '%1'").arg(dataStr));
 
-      theme->moveNamedPalette(valueStr, pos);
+      theme->moveNamedPalette(valueStr, int(pos));
     }
     else if (nameStr == "?") {
       static auto names = QStringList() << "name" << "desc" << "palettes" <<
@@ -2773,9 +2773,9 @@ execCmd(CQChartsCmdArgs &argv)
       long i = CQChartsUtil::toInt(valueStr, ok);
       if (! ok) return errorMsg(QString("Invalid model index '%1'").arg(valueStr));
 
-      if      (nameStr == "red_model"  ) palette->setRedModel  (i);
-      else if (nameStr == "green_model") palette->setGreenModel(i);
-      else if (nameStr == "blue_model" ) palette->setBlueModel (i);
+      if      (nameStr == "red_model"  ) palette->setRedModel  (int(i));
+      else if (nameStr == "green_model") palette->setGreenModel(int(i));
+      else if (nameStr == "blue_model" ) palette->setBlueModel (int(i));
     }
 
     else if (nameStr == "gray" || nameStr == "red_negative" ||
@@ -4216,7 +4216,7 @@ execCmd(CQChartsCmdArgs &argv)
   if (columns.empty())
     nc = model.data()->columnCount();
   else
-    nc = columns.size();
+    nc = int(columns.size());
 
   OutputRows output(nc, maxWidth);
 
@@ -5529,10 +5529,10 @@ execCmd(CQChartsCmdArgs &argv)
     "name" << "mean" << "min" << "lower_median" << "median" << "upper_median" <<
     "max" << "outliers";
 
-  int nc1 = columnNames.size();
-  int nr1 = columnDatas.size();
+  auto nc1 = columnNames.size();
+  auto nr1 = columnDatas.size();
 
-  auto *statsModel = new CQDataModel(nc1, nr1);
+  auto *statsModel = new CQDataModel(nc1, int(nr1));
 
   for (int c = 0; c < nc1; ++c) {
     CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
@@ -5543,17 +5543,19 @@ execCmd(CQChartsCmdArgs &argv)
                                      QModelIndex(), value, Qt::DisplayRole);
   };
 
-  for (int r = 0; r < nr1; ++r) {
+  for (size_t r = 0; r < nr1; ++r) {
     const auto &data = columnDatas[r];
 
-    setStatsModeValue(r, 0, data.name    );
-    setStatsModeValue(r, 1, data.mean    );
-    setStatsModeValue(r, 2, data.min     );
-    setStatsModeValue(r, 3, data.lmedian );
-    setStatsModeValue(r, 4, data.median  );
-    setStatsModeValue(r, 5, data.umedian );
-    setStatsModeValue(r, 6, data.max     );
-    setStatsModeValue(r, 7, data.outliers);
+    int ri = int(r);
+
+    setStatsModeValue(ri, 0, data.name    );
+    setStatsModeValue(ri, 1, data.mean    );
+    setStatsModeValue(ri, 2, data.min     );
+    setStatsModeValue(ri, 3, data.lmedian );
+    setStatsModeValue(ri, 4, data.median  );
+    setStatsModeValue(ri, 5, data.umedian );
+    setStatsModeValue(ri, 6, data.max     );
+    setStatsModeValue(ri, 7, data.outliers);
   }
 
   //------
@@ -6063,10 +6065,10 @@ execCmd(CQChartsCmdArgs &argv)
       else {
         QModelIndex parent;
 
-        int np = prows.size();
+        auto np = prows.size();
 
-        for (int i = np - 1; i >= 0; --i)
-          parent = model.data()->index(prows[i], 0, parent);
+        for (size_t i1 = np; i1 > 0; --i1)
+          parent = model.data()->index(prows[i1 - 1], 0, parent);
 
 #if 0
         auto ind = model.data()->index(row, column.column(), parent);
@@ -7155,10 +7157,10 @@ execCmd(CQChartsCmdArgs &argv)
       else {
         QModelIndex parent;
 
-        int np = prows.size();
+        auto np = prows.size();
 
-        for (int i = np - 1; i >= 0; --i)
-          parent = model.data()->index(prows[i], 0, parent);
+        for (size_t i1 = np; i1 > 0; --i1)
+          parent = model.data()->index(prows[i1 - 1], 0, parent);
 
         auto ind = model.data()->index(row.row(), column.column(), parent);
 
@@ -7216,8 +7218,8 @@ execCmd(CQChartsCmdArgs &argv)
 
       bool ok1, ok2;
 
-      int r = CQChartsUtil::toInt(strs[0], ok1);
-      int c = CQChartsUtil::toInt(strs[1], ok2);
+      long r = CQChartsUtil::toInt(strs[0], ok1);
+      long c = CQChartsUtil::toInt(strs[1], ok2);
 
       if (! ok1 || ! ok2 || r < 0 || c < 0)
         return errorMsg(QString("Invalid size values '%1' and '%2'").arg(strs[0]).arg(strs[1]));
@@ -7227,7 +7229,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! dataModel)
         return errorMsg(QString("Invalid model type"));
 
-      dataModel->resizeModel(c, r);
+      dataModel->resizeModel(int(c), int(r));
     }
 #if 0
     // model property
@@ -7345,7 +7347,7 @@ execCmd(CQChartsCmdArgs &argv)
           return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
         bool ok;
-        int i = CQChartsUtil::toInt(strs[0], ok);
+        long i = CQChartsUtil::toInt(strs[0], ok);
         if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
 
         auto *xaxis = plot->xAxis();
@@ -7386,7 +7388,7 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
       bool ok;
-      int i = CQChartsUtil::toInt(strs[0], ok);
+      long i = CQChartsUtil::toInt(strs[0], ok);
       if (! ok) return errorMsg(QString("Invalid tick label position '%1'").arg(strs[0]));
 
       axisAnnotation->axis()->setTickLabel(i, strs[1]);
@@ -12461,6 +12463,13 @@ loadFile(const CQChartsFile &file, CQChartsFileType type, const CQChartsInputDat
   return loader.loadFile(file, type, inputData, hierarchical);
 }
 
+void
+CQChartsCmds::
+setNameValue(const QString &name, const QString &value)
+{
+  cmdBase_->qtcl()->createVar(name, value);
+}
+
 //------
 
 bool
@@ -12523,7 +12532,7 @@ getModelData(const QString &id)
 
     long ind = CQChartsUtil::toInt(id.trimmed(), ok);
 
-    modelData = charts_->getModelDataByInd(ind);
+    modelData = charts_->getModelDataByInd(int(ind));
   }
 
   return modelData;

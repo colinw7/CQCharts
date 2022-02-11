@@ -595,9 +595,9 @@ class CQChartsQuadTree {
 
   template<typename PROC>
   void processRect(PROC &proc) {
-    int n = dataList_.size();
+    uint n = uint(dataList_.size());
 
-    proc(rect_, n);
+    proc(rect_, int(n));
 
     for (auto data : dataList_) {
       const RECT &rect1 = data->rect();
@@ -615,7 +615,7 @@ class CQChartsQuadTree {
 
  public:
   uint numElements() const {
-    uint n = dataList_.size();
+    uint n = uint(dataList_.size());
 
     if (bl_tree_)
       n = bl_tree_->numElements() + br_tree_->numElements() +
@@ -664,7 +664,7 @@ class CQChartsQuadTree {
 
  public:
   using Trees    = std::vector<const CQChartsQuadTree *>;
-  using FitTrees = std::map<int, Trees>;
+  using FitTrees = std::map<uint, Trees>;
 
   RECT fitRect(double w, double h) const {
     FitTrees fitTrees;
@@ -726,7 +726,7 @@ class CQChartsQuadTree {
     if (w > w1 || h > h1)
       return;
 
-    int n = numElements();
+    auto n = numElements();
 
     fitTrees[n].push_back(this);
 

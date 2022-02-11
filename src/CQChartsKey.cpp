@@ -650,7 +650,7 @@ selectPress(const Point &w, SelMod selMod)
   int n = std::min(view()->numPlots(), int(prects_.size()));
 
   for (int i = 0; i < n; ++i) {
-    if (! prects_[i].inside(w))
+    if (! prects_[size_t(i)].inside(w))
       continue;
 
     if      (pressBehavior().type() == KeyBehavior::Type::SHOW)

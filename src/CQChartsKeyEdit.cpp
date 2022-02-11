@@ -286,7 +286,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     // spacing
     spacingEdit_ = CQUtil::makeWidget<CQIntegerSpin>("spacingEdit");
 
-    spacingEdit_->setValue(data_.spacing);
+    spacingEdit_->setValue(int(data_.spacing));
     spacingEdit_->setToolTip("Item Spacing");
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Spacing", spacingEdit_, row);
@@ -434,7 +434,7 @@ dataToWidgets()
     absolutePositionEdit_->setValue(data_.absolutePosition);
     insideXEdit_         ->setChecked(data_.insideX);
     insideYEdit_         ->setChecked(data_.insideY);
-    spacingEdit_         ->setValue(data_.spacing);
+    spacingEdit_         ->setValue(int(data_.spacing));
     flippedEdit_         ->setChecked(data_.flipped);
     scrollWidthEdit_     ->setText(data_.scrollWidth.toString());
     scrollHeightEdit_    ->setText(data_.scrollHeight.toString());

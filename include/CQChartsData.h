@@ -877,7 +877,7 @@ struct CQChartsKeyData {
   int                      maxRows;
   bool                     interactive  { false };
   CQChartsKeyPressBehavior pressBehavior;
-  int                      spacing      { 2 };
+  double                   spacing      { 2 }; // pixels
   bool                     flipped      { false };
   QString                  header;
   CQChartsTextData         headerTextData;

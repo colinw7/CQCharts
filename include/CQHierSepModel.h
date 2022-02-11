@@ -1,6 +1,8 @@
 #ifndef CQHierSepModel_H
 #define CQHierSepModel_H
 
+#include <CSafeIndex.h>
+
 #include <QAbstractProxyModel>
 #include <QString>
 #include <vector>
@@ -155,14 +157,9 @@ class CQHierSepModel : public QAbstractProxyModel {
 
     bool hasChildren() const { return ! children_.empty(); }
 
-    int numChildren() const { return children_.size(); }
+    int numChildren() const { return int(children_.size()); }
 
-    Node *child(int i) {
-      if (i < 0 || i >= numChildren())
-        return nullptr;
-
-      return children_[i];
-    }
+    Node *child(int i) { return CUtil::safeIndex(children_, i); }
 
     void addInd(const QModelIndex &ind) { inds_.push_back(ind); }
 

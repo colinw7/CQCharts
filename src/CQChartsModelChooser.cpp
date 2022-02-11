@@ -56,7 +56,7 @@ setCurrentModel(int ind)
   long modelInd = CQChartsVariant::toInt(combo_->itemData(ind), ok);
   if (! ok) return;
 
-  charts_->setCurrentModelInd(modelInd);
+  charts_->setCurrentModelInd(int(modelInd));
 
   emit currentModelChanged();
 }

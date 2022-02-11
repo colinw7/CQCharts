@@ -867,7 +867,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   const Nodes &nodes() const { return nodes_; }
 
-  int numNodes() const { return nodes_.size(); }
+  int numNodes() const { return int(nodes_.size()); }
 
   const Edges &edges() const { return edges_; }
 
@@ -875,9 +875,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void writeGraph(bool weighted=true) const;
-  void writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const;
-  void processGraph(const QString &graphVizFilename, QFile &outFile,
+  bool writeGraph(bool weighted=true) const;
+  bool writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const;
+  bool processGraph(const QString &graphVizFilename, QFile &outFile,
                     const QString &outFilename, const QString &typeName) const;
 
   void fitToBBox(const BBox &bbox);

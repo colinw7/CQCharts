@@ -142,7 +142,7 @@ void
 CQChartsAxisTextPlacer::
 autoHide()
 {
-  int n = drawTexts_.size();
+  auto n = drawTexts_.size();
   if (n <= 1) return;
 
   const auto &firstBBox = drawTexts_[0    ].bbox;
@@ -150,14 +150,14 @@ autoHide()
 
   // if first and last labels overlap then only draw first
   if (lastBBox.overlaps(firstBBox)) {
-    for (int i = 1; i < n; ++i)
+    for (size_t i = 1; i < n; ++i)
       drawTexts_[i].visible = false;
   }
   // otherwise draw first and last and clip others
   else {
     auto prevBBox = firstBBox;
 
-    for (int i = 1; i < n - 1; ++i) {
+    for (size_t i = 1; i < n - 1; ++i) {
       auto &data = drawTexts_[i];
 
       if (data.bbox.overlaps(prevBBox) || data.bbox.overlaps(lastBBox))

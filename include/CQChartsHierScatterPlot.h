@@ -84,11 +84,11 @@ class CQChartsHierScatterPointGroup {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  int numGroups() const { return groups_.size(); }
+  int numGroups() const { return int(groups_.size()); }
 
   const CQChartsHierScatterPointGroupMap &groups() const { return groups_; }
 
-  int numPoints() const { return points_.size(); }
+  int numPoints() const { return int(points_.size()); }
 
   const CQChartsHierScatterPoints &points() const { return points_; }
 
@@ -137,7 +137,7 @@ class CQChartsHierScatterPointGroup {
     auto p = groups_.find(ind);
     assert(p == groups_.end());
 
-    int n = groups_.size();
+    int n = int(groups_.size());
 
     auto *group1 = new CQChartsHierScatterPointGroup(this, ind);
 

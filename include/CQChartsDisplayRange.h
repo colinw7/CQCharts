@@ -105,10 +105,10 @@ class CQChartsDisplayRange {
 
     pixel_.get(&pixel_xmin1, &pixel_ymin1, &pixel_xmax1, &pixel_ymax1);
 
-    *pixel_xmin = pixel_xmin1;
-    *pixel_ymin = pixel_ymin1;
-    *pixel_xmax = pixel_xmax1;
-    *pixel_ymax = pixel_ymax1;
+    *pixel_xmin = int(pixel_xmin1);
+    *pixel_ymin = int(pixel_ymin1);
+    *pixel_xmax = int(pixel_xmax1);
+    *pixel_ymax = int(pixel_ymax1);
   }
 
   void setPixelAdjust(double dp) { dp_ = dp; }
@@ -300,8 +300,8 @@ class CQChartsDisplayRange {
 
     windowToPixel(window_x, window_y, &pixel_x1, &pixel_y1);
 
-    *pixel_x = roundReal(pixel_x1);
-    *pixel_y = roundReal(pixel_y1);
+    *pixel_x = int(roundReal(pixel_x1));
+    *pixel_y = int(roundReal(pixel_y1));
   }
 
   void invertPixel(double px, double py, double &ipx, double &ipy) const {

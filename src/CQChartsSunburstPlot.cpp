@@ -379,7 +379,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  int nr = roots_.size();
+  int nr = int(roots_.size());
 
   bool isUnnamedRoot = (nr == 1 && roots_[0]->name() == "");
 
@@ -476,7 +476,7 @@ replaceRoots() const
                              static_cast<CQChartsSunburstNode::SortType>(sortType()));
   }
   else {
-    Angle da(! roots_.empty() ? 360.0/roots_.size() : 0.0);
+    Angle da(! roots_.empty() ? 360.0/double(roots_.size()) : 0.0);
 
     for (auto &root : roots_) {
       root->setPosition(0.0, a, ri, da);
@@ -1008,7 +1008,7 @@ pushSlot()
 
   if (objs.empty()) {
     auto gpos = view()->menuPos();
-    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
+    auto pos  = view()->mapFromGlobal(QPointF(gpos.x, gpos.y).toPoint());
 
     auto w = pixelToWindow(Point(pos));
 
@@ -1568,7 +1568,7 @@ int
 CQChartsSunburstHierNode::
 numNodes() const
 {
-  int num = nodes_.size();
+  int num = int(nodes_.size());
 
   for (const auto &child : children_)
     num += child->numNodes();
@@ -1669,12 +1669,12 @@ void
 CQChartsSunburstHierNode::
 removeNode(Node *node)
 {
-  int n = nodes_.size();
+  auto n = nodes_.size();
 
-  int i = 0;
+  size_t i = 0;
 
   for ( ; i < n; ++i) {
-    if (nodes_[i] == node)
+    if (nodes_[size_t(i)] == node)
       break;
   }
 

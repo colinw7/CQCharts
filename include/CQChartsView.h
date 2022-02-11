@@ -14,6 +14,7 @@
 #include <CQChartsImage.h>
 #include <CQChartsWidget.h>
 #include <CQChartsTypes.h>
+#include <CSafeIndex.h>
 
 #include <QFrame>
 #include <QGLWidget>
@@ -583,10 +584,10 @@ class CQChartsView : public QFrame,
   // add/get/modify plots
   void addPlot(Plot *plot, const BBox &bbox=BBox());
 
-  int numPlots() const { return plots_.size(); }
+  int numPlots() const { return int(plots_.size()); }
 
   const Plots &plots() const { return plots_; }
-  Plot *plot(int i) { assert(i >= 0 && i < int(plots_.size())); return plots_[i]; }
+  Plot *plot(int i) { return CUtil::safeIndex(plots_, i); }
 
   Plot *getPlotForId(const QString &id) const;
 

@@ -167,7 +167,7 @@ void
 CQChartsColumnTypeMgr::
 addType(Type type, CQChartsColumnType *data)
 {
-  data->setInd(typeData_.size());
+  data->setInd(int(typeData_.size()));
 
   typeData_[type] = data;
 }
@@ -910,7 +910,7 @@ preferredWidth(const CQChartsNameValues &nameValues) const
 
   long width = CQChartsUtil::toInt(str, ok);
 
-  return (ok ? width : -1);
+  return (ok ? int(width) : -1);
 }
 
 QString
@@ -2431,7 +2431,8 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
     long i = CQChartsVariant::toInt(var, ok);
     if (! ok) return QVariant();
 
-    long i1 = CMathUtil::map(i, min, max, size_min, size_max);
+    long i1 = long(CMathUtil::map(double(i), double(min), double(max),
+                                  double(size_min), double(size_max)));
 
     auto symbolTypeInd = static_cast<CQChartsSymbolType::Type>(i1);
 

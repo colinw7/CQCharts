@@ -132,7 +132,7 @@ maxNodes()
   int maxNum = 0;
 
   if (isOpen()) {
-    maxNum = nodes_.size();
+    maxNum = int(nodes_.size());
 
     for (const auto &c : children_)
       maxNum += c.node->maxNodes();
@@ -382,7 +382,7 @@ placeNodes()
 
   depthNodes_.clear();
 
-  depthNodes_.resize(d);
+  depthNodes_.resize(size_t(d));
 
   // calc x delta (width / depth)
   dx_ = 1.0/d;
@@ -417,17 +417,17 @@ setGaps()
   max_rows_ = 1;
 
   // process nodes at each depth
-  int d = depthNodes_.size();
+  auto d = depthNodes_.size();
 
-  for (int i = 0; i < d; ++i) {
+  for (uint i = 0; i < d; ++i) {
     auto &dnodes = depthNodes_[i];
 
-    int n = dnodes.size();
+    auto n = dnodes.size();
 
     // process nodes at depth
     double row = 0;
 
-    for (int j = 0; j < n; ++j) {
+    for (uint j = 0; j < n; ++j) {
       auto *node = dnodes[j];
 
       // calc space from multi-row node
@@ -470,14 +470,14 @@ void
 CQChartsDendrogram::RootNode::
 printGaps() const
 {
-  int d = depthNodes_.size();
+  auto d = depthNodes_.size();
 
-  for (int i = 0; i < d; ++i) {
+  for (uint i = 0; i < d; ++i) {
     const auto &dnodes = depthNodes_[i];
 
-    int n = dnodes.size();
+    auto n = dnodes.size();
 
-    for (int j = 0; j < n; ++j) {
+    for (uint j = 0; j < n; ++j) {
       auto *node = dnodes[j];
 
       if (i > 0 && node->gap() > 0)
@@ -503,14 +503,15 @@ compressNodes()
   bool moved = false;
 
   // work from lowest depth up
-  int d = depthNodes_.size();
+  auto d = depthNodes_.size();
+  if (d <= 1) return;
 
-  for (int i = d - 1; i > 0; --i) {
-    auto &dnodes = depthNodes_[i];
+  for (int i = int(d - 1); i > 0; --i) {
+    auto &dnodes = depthNodes_[size_t(i)];
 
-    int n = dnodes.size();
+    auto n = dnodes.size();
 
-    for (int j = 0; j < n; ++j) {
+    for (uint j = 0; j < n; ++j) {
       auto *node = dnodes[j];
 
       //---
@@ -585,11 +586,11 @@ CQChartsDendrogram::RootNode::
 canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
 {
   // find location of node in depth nodes array
-  auto &dnodes = depthNodes_[node->depth()];
+  auto &dnodes = depthNodes_[size_t(node->depth())];
 
-  int n = dnodes.size();
+  auto n = dnodes.size();
 
-  int i = 0;
+  uint i = 0;
 
   for ( ; i < n; ++i)
     if (dnodes[i] == node)
@@ -655,17 +656,17 @@ void
 CQChartsDendrogram::RootNode::
 setOpenDepth(int depth)
 {
-  int d = depthNodes_.size();
+  auto d = depthNodes_.size();
 
-  for (int i = 0; i < d; ++i) {
+  for (uint i = 0; i < d; ++i) {
     auto &dnodes = depthNodes_[i];
 
-    int n = dnodes.size();
+    auto n = dnodes.size();
 
-    for (int j = 0; j < n; ++j) {
+    for (uint j = 0; j < n; ++j) {
       auto *node = dnodes[j];
 
-      node->setOpen(i < depth);
+      node->setOpen(i < size_t(depth));
     }
   }
 }
@@ -675,11 +676,11 @@ void
 CQChartsDendrogram::RootNode::
 openNode(int depth, const QString &name)
 {
-  auto &dnodes = depthNodes_[depth];
+  auto &dnodes = depthNodes_[size_t(depth)];
 
-  int n = dnodes.size();
+  auto n = dnodes.size();
 
-  for (int j = 0; j < n; ++j) {
+  for (uint j = 0; j < n; ++j) {
     auto *node = dnodes[j];
 
     if (node->name() == name)
@@ -768,14 +769,14 @@ void
 CQChartsDendrogram::RootNode::
 moveHigherNodes(Node *node, double d)
 {
-  auto &dnodes = depthNodes_[node->depth()];
+  auto &dnodes = depthNodes_[size_t(node->depth())];
 
   // work down from top until hit node
-  int n = dnodes.size();
+  auto n = dnodes.size();
+  if (n < 2) return;
 
-  for (int i = n - 1; i >= 0; --i) {
-    auto *dnode = dnodes[i];
-
+  for (int i = int(n - 1); i >= 0; --i) {
+    auto *dnode = dnodes[size_t(i)];
     if (dnode == node) break;
 
     //if (dnode->hasChildren())
@@ -795,7 +796,7 @@ placeNode(Node *node, int depth, double row, double num_rows)
   node->setNumRows(num_rows);
   node->setPlaced (true);
 
-  depthNodes_[depth].push_back(node);
+  depthNodes_[size_t(depth)].push_back(node);
 }
 
 //------

@@ -6,6 +6,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsData.h>
 #include <CQChartsArea.h>
+#include <CSafeIndex.h>
 #include <QModelIndex>
 
 //---
@@ -56,7 +57,7 @@ class CQChartsTreeMapHierNode;
 class CQChartsTreeMapNode {
  private:
   static uint nextId() {
-    static int lastId = 0;
+    static uint lastId = 0;
 
     return ++lastId;
   }
@@ -229,15 +230,11 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   bool hasChildren() const { return ! children_.empty(); }
 
-  int numChildren() const { return children_.size(); }
+  int numChildren() const { return int(children_.size()); }
 
   const Children &getChildren() const { return children_; }
 
-  HierNode *childAt(int i) {
-    assert(i >= 0 && i < numChildren());
-
-    return children_[i];
-  }
+  HierNode *childAt(int i) { return CUtil::safeIndex(children_, i); }
 
   //---
 

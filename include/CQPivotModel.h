@@ -182,14 +182,14 @@ class CQPivotModel : public CQBaseModel {
     double min() const { return min_; }
     double max() const { return max_; }
 
-    double mean() const { int nv = rvalues_.size(); return (nv > 0 ? sum_/nv : 0.0); }
+    double mean() const { int nv = int(rvalues_.size()); return (nv > 0 ? sum_/nv : 0.0); }
 
-    int count      () const { return inds_.size(); }
-    int countUnique() const { return svalues_.size(); }
+    int count      () const { return int(inds_.size()); }
+    int countUnique() const { return int(svalues_.size()); }
 
     const Inds &inds() const { return inds_; }
 
-    int          rcount () const { return rvalues_.size(); }
+    int          rcount () const { return int(rvalues_.size()); }
     const Reals &rvalues() const { return rvalues_; }
 
    private:

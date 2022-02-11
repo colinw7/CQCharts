@@ -126,6 +126,16 @@ class CQChartsFillPattern :
 
   //---
 
+  //! get/set radius
+  double radius() const { return radius_; }
+  void setRadius(double r) { radius_ = r; }
+
+  //! get/set delta
+  double delta() const { return delta_; }
+  void setDelta(double d) { delta_ = d; }
+
+  //---
+
   //! get/set alt color (for pattern)
   const Color &altColor() const { return altColor_; }
   void setAltColor(const Color &c) { altColor_ = c; }
@@ -165,6 +175,8 @@ class CQChartsFillPattern :
     angle_    = Angle();
     altColor_ = Color();
     altAlpha_ = Alpha();
+    radius_   = 0.0;
+    delta_    = 0.0;
   }
 
   //---
@@ -178,7 +190,9 @@ class CQChartsFillPattern :
             lhs.image   () == rhs.image   () &&
             lhs.angle   () == rhs.angle   () &&
             lhs.altColor() == rhs.altColor() &&
-            lhs.altAlpha() == rhs.altAlpha());
+            lhs.altAlpha() == rhs.altAlpha() &&
+            lhs.radius  () == rhs.radius  () &&
+            lhs.delta   () == rhs.delta   ());
   }
 
  private:
@@ -192,6 +206,8 @@ class CQChartsFillPattern :
   Angle       angle_;                   //!< angle for gradient
   Color       altColor_;                //!< alt color for gradient/image background
   Alpha       altAlpha_;                //!< alt alpha for gradient/image background
+  double      radius_   { 0.0 };        //!< radius
+  double      delta_    { 0.0 };        //!< delta
 };
 
 //---

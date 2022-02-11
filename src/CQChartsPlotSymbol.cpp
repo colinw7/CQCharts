@@ -923,11 +923,11 @@ void
 CQChartsPlotSymbolRenderer::
 drawPaths(const std::vector<CQChartsPath> &paths, const std::vector<CQChartsStyle> &styles) const
 {
-  int np = paths.size();
+  auto np = paths.size();
 
-  assert(np == int(styles.size()));
+  assert(np == styles.size());
 
-  for (int i = 0; i < np; ++i)
+  for (size_t i = 0; i < np; ++i)
     drawPath(paths[i], styles[i]);
 }
 

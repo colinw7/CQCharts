@@ -26,7 +26,7 @@ inline int eval(Tcl_Interp *interp, const char *str) {
 //---
 
 inline Tcl_Obj *createStrObj(const std::string &str) {
-  return Tcl_NewStringObj(str.c_str(), str.size());
+  return Tcl_NewStringObj(str.c_str(), int(str.size()));
 }
 
 inline Tcl_Obj *createIntObj(int i) {
@@ -54,7 +54,7 @@ inline std::string stringFromObj(Tcl_Obj *obj) {
 
   char *str = Tcl_GetStringFromObj(obj, &len);
 
-  return std::string(str, len);
+  return std::string(str, size_t(len));
 }
 
 inline void createVar(Tcl_Interp *interp, const std::string &name, const std::string &value) {
@@ -128,20 +128,20 @@ inline bool splitList(const std::string &str, StringList &strs) {
 }
 
 inline std::string mergeList(const StringList &strs) {
-  int argc = strs.size();
+  auto argc = strs.size();
 
   std::vector<char *> argv;
 
   argv.resize(argc);
 
-  for (int i = 0; i < argc; ++i)
+  for (size_t i = 0; i < argc; ++i)
     argv[i] = strdup(strs[i].c_str());
 
-  char *res = Tcl_Merge(argc, &argv[0]);
+  char *res = Tcl_Merge(int(argc), &argv[0]);
 
   std::string str(res);
 
-  for (int i = 0; i < argc; ++i)
+  for (size_t i = 0; i < argc; ++i)
     free(argv[i]);
 
   Tcl_Free(res);
@@ -360,7 +360,7 @@ class CTcl {
   }
 
   void setResult(const std::string &rc) {
-    Tcl_SetObjResult(interp(), Tcl_NewStringObj(rc.c_str(), rc.size()));
+    Tcl_SetObjResult(interp(), Tcl_NewStringObj(rc.c_str(), int(rc.size())));
   }
 
   void setResult(const std::vector<int> &rc) {

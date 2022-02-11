@@ -234,7 +234,7 @@ CQChartsIntParameterEdit(const CQChartsPlotParameter *parameter) :
   if (parameter->isRequired()) {
     spinEdit_ = CQUtil::makeWidget<CQIntegerSpin>("spinEdit");
 
-    spinEdit_->setValue(i);
+    spinEdit_->setValue(int(i));
 
     connect(spinEdit_, SIGNAL(valueChanged(int)), this, SIGNAL(valueChanged()));
 

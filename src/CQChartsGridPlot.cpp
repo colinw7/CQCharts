@@ -278,7 +278,7 @@ calcRange() const
     void initVisit() override {
       int nr = model_->rowCount();
 
-      ny_ = std::sqrt(nr);
+      ny_ = int(std::sqrt(nr));
       nx_ = (nr + ny_ - 1)/std::max(ny_, 1);
     }
 
@@ -289,7 +289,7 @@ calcRange() const
         ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
 
         bool ok1;
-        row = plot_->modelInteger(rowModelInd, ok1);
+        row = int(plot_->modelInteger(rowModelInd, ok1));
         if (! ok1) return State::SKIP;
 
         if (row < 0)
@@ -302,7 +302,7 @@ calcRange() const
         ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
 
         bool ok2;
-        column = plot_->modelInteger(columnModelInd, ok2);
+        column = int(plot_->modelInteger(columnModelInd, ok2));
         if (! ok2) return State::SKIP;
 
         if (column < 0)
@@ -371,7 +371,7 @@ createObjs(PlotObjs &objs) const
     void initVisit() override {
       int nr = model_->rowCount();
 
-      ny_ = std::sqrt(nr);
+      ny_ = int(std::sqrt(nr));
       nx_ = (nr + ny_ - 1)/std::max(ny_, 1);
     }
 
@@ -401,7 +401,7 @@ createObjs(PlotObjs &objs) const
         ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
 
         bool ok2;
-        row = plot_->modelInteger(rowModelInd, ok2);
+        row = int(plot_->modelInteger(rowModelInd, ok2));
         if (! ok2) return State::SKIP;
 
         if (row < 0)
@@ -416,7 +416,7 @@ createObjs(PlotObjs &objs) const
         ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
 
         bool ok3;
-        column = plot_->modelInteger(columnModelInd, ok3);
+        column = int(plot_->modelInteger(columnModelInd, ok3));
         if (! ok3) return State::SKIP;
 
         if (column < 0)

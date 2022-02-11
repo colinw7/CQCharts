@@ -3,6 +3,7 @@
 
 #include <CQChartsTmpl.h>
 #include <CQUtilMeta.h>
+#include <CSafeIndex.h>
 
 #include <QString>
 #include <QStringList>
@@ -302,15 +303,12 @@ class CQChartsColumns :
     if (columns_.empty())
       return 1;
 
-    return columns_.size();
+    return int(columns_.size());
   }
 
   const CQChartsColumn &getColumn(int i) const {
-    if (! columns_.empty()) {
-      assert(i >= 0 && i < int(columns_.size()));
-
-      return columns_[i];
-    }
+    if (! columns_.empty())
+      return CUtil::safeIndex(columns_, i);
 
     assert(i == 0);
 
@@ -326,7 +324,7 @@ class CQChartsColumns :
 
     assert(i >= 0 && i < int(columns_.size()));
 
-    columns_[i] = column;
+    columns_[size_t(i)] = column;
 
     if (i == 0)
       column_ = columns_[0];
@@ -335,8 +333,8 @@ class CQChartsColumns :
   //---
 
   friend bool operator==(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {
-    int nl = lhs.columns_.size();
-    int nr = rhs.columns_.size();
+    int nl = int(lhs.columns_.size());
+    int nr = int(rhs.columns_.size());
 
     if (nl != nr)
       return false;
@@ -345,7 +343,7 @@ class CQChartsColumns :
       return (lhs.column_ == rhs.column_);
 
     for (int i = 0; i < nl; ++i) {
-      if (lhs.columns_[i] != rhs.columns_[i])
+      if (lhs.getColumn(i) != rhs.getColumn(i))
         return false;
     }
 

@@ -506,7 +506,7 @@ tickLabelsStr() const
   for (const auto &p : tickLabels_) {
     QStringList strs1;
 
-    strs1 << CQChartsUtil::realToString(p.first);
+    strs1 << QString::number(p.first);
     strs1 << p.second;
 
     auto str1 = CQTcl::mergeList(strs1);
@@ -952,8 +952,8 @@ calc()
   else
     interval_.setTickIncrement(0);
 
-  numMajorTicks_ = std::max(interval_.calcNumMajor(), 1);
-  numMinorTicks_ = std::max(interval_.calcNumMinor(), 1);
+  numMajorTicks_ = uint(std::max(interval_.calcNumMajor(), 1));
+  numMinorTicks_ = uint(std::max(interval_.calcNumMinor(), 1));
   calcIncrement_ = interval_.calcIncrement();
   calcStart_     = interval_.calcStart    ();
   calcEnd_       = interval_.calcEnd      ();
@@ -1540,7 +1540,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
   }
   else if (isRequireTickLabel() && tickLabels_.size()) {
     for (const auto &p : tickLabels_) {
-      double pos = p.first;
+      double pos = double(p.first);
 
       if (pos < amin || pos > amax)
         continue;

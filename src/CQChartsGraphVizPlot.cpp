@@ -520,7 +520,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  writeGraph(isEdgeWeighted());
+  if (! writeGraph(isEdgeWeighted()))
+    return false;
 
   addObjects(objs);
 
@@ -564,7 +565,7 @@ addObjects(PlotObjs &objs) const
   }
 }
 
-void
+bool
 CQChartsGraphVizPlot::
 writeGraph(bool weighted) const
 {
@@ -574,22 +575,28 @@ writeGraph(bool weighted) const
     // create graphviz input file from data
     QTemporaryFile graphVizFile(QDir::tempPath() + "/XXXXXX.gv");
 
-    graphVizFile.open();
+    if (! graphVizFile.open())
+      return false;
 
     graphVizFilename = graphVizFile.fileName();
 
-    writeGraph(graphVizFile, graphVizFilename, weighted);
+    if (! writeGraph(graphVizFile, graphVizFilename, weighted))
+      return false;
   }
   else {
     QFile graphVizFile(graphVizFilename);
 
-    graphVizFile.open(QIODevice::WriteOnly);
+    if (! graphVizFile.open(QIODevice::WriteOnly))
+      return false;
 
-    writeGraph(graphVizFile, graphVizFilename, weighted);
+    if (! writeGraph(graphVizFile, graphVizFilename, weighted))
+      return false;
   }
+
+  return true;
 }
 
-void
+bool
 CQChartsGraphVizPlot::
 writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const
 {
@@ -667,9 +674,9 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
     bool isNodeScaled = (this->isNodeScaled() && node->hasValue());
 
     if (isNodeScaled) {
-      auto maxValue = maxNodeValue().real();
+      auto maxValue = maxNodeValue().realOr(0.0);
 
-      auto nodeScale = (maxValue > 0 ? node->value().real()/maxValue : 1.0);
+      auto nodeScale = (maxValue > 0.0 ? node->value().real()/maxValue : 1.0);
 
       auto size = nodeScale*lengthPlotWidth(nodeSize());
 
@@ -758,22 +765,28 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
   if (outFilename == "") {
     QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
 
-    outFile.open();
+    if (! outFile.open())
+      return false;
 
     outFilename = outFile.fileName();
 
-    processGraph(graphVizFilename, outFile, outFilename, typeName);
+    if (! processGraph(graphVizFilename, outFile, outFilename, typeName))
+      return false;
   }
   else {
     QFile outFile(outFilename);
 
-    outFile.open(QIODevice::WriteOnly);
+    if (! outFile.open(QIODevice::WriteOnly))
+      return false;
 
-    processGraph(graphVizFilename, outFile, outFilename, typeName);
+    if (! processGraph(graphVizFilename, outFile, outFilename, typeName))
+      return false;
   }
+
+  return true;
 }
 
-void
+bool
 CQChartsGraphVizPlot::
 processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
              const QString &outFilename, const QString &typeName) const
@@ -821,6 +834,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
   if (! process.waitForFinished()) {
     std::cerr << "Command failed : " << dot_file.toStdString() << " " <<
                  cmdArgs.join(" ").toStdString() << " > " << outFilename.toStdString() << "\n";
+    return false;
   }
 #endif
 
@@ -908,12 +922,12 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
     //---
 
-    int nl = dotEdge->lines().size();
+    int nl = int(dotEdge->lines().size());
 
     if (nl > 0) {
       if (nl != 1) {
         charts()->errorMsg("Error: edge " + QString::number(dotEdge->id()) +
-                           " has " + nl + " lines");
+                           " has " + QString::number(nl) + " lines");
         continue;
       }
 
@@ -940,14 +954,14 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
         if (tailNode->shapeType() == Node::ShapeType::CIRCLE ||
             tailNode->shapeType() == Node::ShapeType::OVAL)
           CQChartsGeom::lineIntersectCircle(tailNode->rect(),
-            tailNode->rect().getCenter(), points[it], pit);
+            tailNode->rect().getCenter(), points[size_t(it)], pit);
         else
           CQChartsGeom::lineIntersectRect(tailNode->rect(),
-            tailNode->rect().getCenter(), points[it], pit);
+            tailNode->rect().getCenter(), points[size_t(it)], pit);
 
         tailNode->setEdgePoint(edge, pit);
 
-        //auto d = CQChartsUtil::PointPointDistance(points[it], pit);
+        //auto d = CQChartsUtil::PointPointDistance(points[size_t(it)], pit);
         //charts()->errorMsg("d=" + d);
         //pitValid = (d > delta);
       }
@@ -961,21 +975,21 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
         if (headNode->shapeType() == Node::ShapeType::CIRCLE ||
             headNode->shapeType() == Node::ShapeType::OVAL)
           CQChartsGeom::lineIntersectCircle(headNode->rect(),
-            headNode->rect().getCenter(), points[ih], pih);
+            headNode->rect().getCenter(), points[size_t(ih)], pih);
         else
           CQChartsGeom::lineIntersectRect(headNode->rect(),
-            headNode->rect().getCenter(), points[ih], pih);
+            headNode->rect().getCenter(), points[size_t(ih)], pih);
 
         headNode->setEdgePoint(edge, pih);
 
-        //auto d = CQChartsUtil::PointPointDistance(points[ih], pih);
+        //auto d = CQChartsUtil::PointPointDistance(points[size_t(ih)], pih);
         //charts()->errorMsg("d=" + d);
         //pihValid = (d > delta);
       }
 
 #if 0
-      edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[it]),
-                                       normalizeRectPoint(headNode->rect(), points[ih])));
+      edge->setLine(CQChartsGeom::Line(normalizeRectPoint(tailNode->rect(), points[size_t(it)]),
+                                       normalizeRectPoint(headNode->rect(), points[size_t(ih)])));
 #endif
 
       QPainterPath path1;
@@ -986,17 +1000,18 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
           //addPathPoint(path1, tailNode->rect().getCenter());
 
           //if (pitValid)
-          // addPathPoint(path1, pit);
+          //  addPathPoint(path1, pit);
 
           for (int i = it; i <= ih; ++i) {
-            if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
+            if (headNode->rect().inside(points[size_t(i)]) ||
+                tailNode->rect().inside(points[size_t(i)]))
               continue;
 
-            if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
-                CQChartsUtil::PointPointDistance(points[i], pit) < delta)
+            if (CQChartsUtil::PointPointDistance(points[size_t(i)], pih) < delta ||
+                CQChartsUtil::PointPointDistance(points[size_t(i)], pit) < delta)
               continue;
 
-            addPathPoint(path1, points[i]);
+            addPathPoint(path1, points[size_t(i)]);
           }
 
           //if (pihValid)
@@ -1012,14 +1027,15 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
           //  addPathPoint(path1, pih);
 
           for (int i = ih; i <= it; ++i) {
-            if (headNode->rect().inside(points[i]) || tailNode->rect().inside(points[i]))
+            if (headNode->rect().inside(points[size_t(i)]) ||
+                tailNode->rect().inside(points[size_t(i)]))
               continue;
 
-            if (CQChartsUtil::PointPointDistance(points[i], pih) < delta ||
-                CQChartsUtil::PointPointDistance(points[i], pit) < delta)
+            if (CQChartsUtil::PointPointDistance(points[size_t(i)], pih) < delta ||
+                CQChartsUtil::PointPointDistance(points[size_t(i)], pit) < delta)
               continue;
 
-            addPathPoint(path1, points[i]);
+            addPathPoint(path1, points[size_t(i)]);
           }
 
           //if (pitValid)
@@ -1050,6 +1066,8 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
   th->bbox_ = bbox; // current
 
   th->fitToBBox(targetBBox_);
+
+  return true;
 }
 
 //---
@@ -1171,7 +1189,7 @@ CQChartsGraphVizPlot::
 initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
+  int srcDepth = int(srcHierData.linkStrs.size());
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -1195,7 +1213,7 @@ CQChartsGraphVizPlot::
 initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
+  int srcDepth = int(srcHierData.linkStrs.size());
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -1373,7 +1391,7 @@ propagatePathValues()
       // propagate set node value up to source nodes
       if (node->hasValue()) {
         if (! node->srcEdges().empty()) {
-          //int ns = node->srcEdges().size();
+          //int ns = int(node->srcEdges().size());
 
           double value = node->value().realOr(1.0);
 
@@ -1710,9 +1728,9 @@ initTableObjs() const
 
   //---
 
-  int nv = tableConnectionDatas.size();
+  auto nv = tableConnectionDatas.size();
 
-  for (int row = 0; row < nv; ++row) {
+  for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
     if (tableConnectionData.values().empty())
@@ -1780,7 +1798,7 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
     long n = CQChartsUtil::toInt(valueStr, ok);
 
     if (ok)
-      node->setNumSides(n);
+      node->setNumSides(int(n));
   }
   else if (name == "label") {
     node->setLabel(valueStr);
@@ -1999,7 +2017,7 @@ CQChartsGraphVizPlot::NodeObj *
 CQChartsGraphVizPlot::
 createObjFromNode(Node *node) const
 {
-//int numNodes = graph->nodes().size(); // node id needs to be per graph
+//int numNodes = int(graph->nodes().size()); // node id needs to be per graph
   int numNodes = this->numNodes();
 
   ColorInd iv(node->id(), numNodes);
@@ -2120,7 +2138,7 @@ createNode(const QString &name) const
 
   node->setName(name);
 
-  node->setId(nameNodeMap_.size());
+  node->setId(int(nameNodeMap_.size()));
 
   auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
@@ -2143,7 +2161,7 @@ createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
   auto *edge = new CQChartsGraphVizPlotEdge(value, srcNode, destNode);
 
-  edge->setId(edges_.size());
+  edge->setId(int(edges_.size()));
 
   auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
@@ -2411,8 +2429,8 @@ calcTipId() const
   if (depth() >= 0)
     tableTip.addTableRow(namedColumn("Depth"), depth());
 
-  int ns = node()->srcEdges ().size();
-  int nd = node()->destEdges().size();
+  int ns = int(node()->srcEdges ().size());
+  int nd = int(node()->destEdges().size());
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
@@ -2705,7 +2723,7 @@ drawFg(PaintDevice *device) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 
-    plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, textOptions));
+    plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(pt, str, textOptions));
   }
 
   if (plot->isNodeTextSingleScale())
@@ -3134,9 +3152,9 @@ draw(PaintDevice *device) const
   double edgeScale { 1.0 };
 
   if (isEdgeScaled) {
-    auto maxValue = plot_->maxEdgeValue().real();
+    auto maxValue = plot_->maxEdgeValue().realOr(0.0);
 
-    edgeScale = (maxValue > 0 ? edge()->value().real()/maxValue : 0.0);
+    edgeScale = (maxValue > 0.0 ? edge()->value().real()/maxValue : 0.0);
   }
 
   double lw;

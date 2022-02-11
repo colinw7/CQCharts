@@ -76,7 +76,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   //---
 
-  setFrameStyle(QFrame::NoFrame | QFrame::Plain);
+  setFrameStyle(uint(QFrame::NoFrame) | uint(QFrame::Plain));
 
   //---
 

@@ -13,9 +13,11 @@ struct CQChartsPenBrush {
   QPen     pen;
   QBrush   brush;
   QColor   altColor;
-  double   altAlpha  { 1.0 };
-  double   fillAngle { 45 };
-  FillType fillType  { FillType::NONE };
+  double   altAlpha   { 1.0 };
+  double   fillAngle  { 0.0 };
+  FillType fillType   { FillType::NONE };
+  double   fillRadius { 0.0 };
+  double   fillDelta  { 0.0 };
 
   CQChartsPenBrush() = default;
 

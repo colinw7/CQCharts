@@ -130,8 +130,6 @@ init()
   setDataFilled(true ); setDataStroked(false);
   setFitFilled (false); setFitStroked (false);
 
-  //setDataClip(true);
-
   setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
   setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.12)); // #e5ecf6 (BLEND_INTERFACE)
   setFitFillColor (Color(Color::Type::INTERFACE_VALUE, 0.08));
@@ -2279,6 +2277,22 @@ setDataClip(bool b)
 
 void
 CQChartsPlot::
+setDataRawClip(bool b)
+{
+  CQChartsUtil::testAndSet(dataRawClip_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPlot::
+setDataRawRange(bool b)
+{
+  CQChartsUtil::testAndSet(dataRawRange_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
 setFitClip(bool b)
 {
   CQChartsUtil::testAndSet(fitClip_, b, [&]() { drawObjs(); } );
@@ -3554,7 +3568,9 @@ addBaseProperties()
   auto dataStyleFillStr   = dataStyleStr + "/fill";
   auto dataStyleStrokeStr = dataStyleStr + "/stroke";
 
-  addProp(dataStyleStr, "dataClip", "clip", "Clip to data bounding box");
+  addProp(dataStyleStr, "dataRawRange", "unscaledRange", "Draw unscaled bounding box");
+  addProp(dataStyleStr, "dataClip"    , "clip"         , "Clip to scaled data bounding box");
+  addProp(dataStyleStr, "dataRawClip" , "unscaledClip" , "Clip to unscaled data bounding box");
 
   addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data", /*hidden*/true);
 
@@ -3578,7 +3594,7 @@ addBaseProperties()
   auto fitStyleFillStr   = fitStyleStr + "/fill";
   auto fitStyleStrokeStr = fitStyleStr + "/stroke";
 
-  addProp(dataStyleStr, "fitClip", "clip", "Clip to fit bounding box");
+  addProp(fitStyleStr, "fitClip", "clip", "Clip to fit bounding box");
 
   addStyleProp(fitStyleFillStr, "fitFilled", "visible",
                "Fit background bounding box fill visible", /*hidden*/true);
@@ -5894,6 +5910,8 @@ adjustDataRange(const Range &calcDataRange) const
       dataRange.updateRange(dataRange.xmid(), 0);
   }
 
+  applyEqualScale(dataRange);
+
   return dataRange;
 }
 
@@ -7036,7 +7054,7 @@ mapKeySelectPress(const Point &w, SelMod selMod)
     if (! mapKey->isVisible())
       continue;
 
-    if (mapKey->contains(w)) {
+    if (mapKey->inside(w, CQChartsMapKey::DrawType::VIEW)) {
 #if 0
       auto *item = mapKey->getItemAt(w);
 
@@ -7781,7 +7799,7 @@ mapKeyEditSelect(const Point &w)
     if (! mapKey->isEditable())
       continue;
 
-    if (! mapKey->contains(w))
+    if (! mapKey->inside(w, CQChartsMapKey::DrawType::VIEW))
       continue;
 
     // select/deselect key
@@ -9584,31 +9602,34 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName);
 
   // map symbol index into symbol set range
-  auto interpInd = [&](int i) {
+  auto interpInd = [&](long i) {
     if (symbolSet) {
       CQChartsSymbolSet::SymbolData symbolData;
 
       if (symbolTypeData.mapped)
-        symbolData = symbolSet->interpI(i + symbolTypeData.map_min,
-                                        symbolTypeData.map_min, symbolTypeData.map_max);
+        symbolData = symbolSet->interpI(int(i + symbolTypeData.map_min),
+                                        int(symbolTypeData.map_min),
+                                        int(symbolTypeData.map_max));
       else
-        symbolData = symbolSet->interpI(i);
+        symbolData = symbolSet->interpI(int(i));
 
       symbolType = symbolData.symbol;
     }
     else {
       if (symbolTypeData.mapped)
-        symbolType = Symbol::interpOutlineWrap(i + symbolTypeData.map_min,
-                                               symbolTypeData.map_min, symbolTypeData.map_max);
+        symbolType = Symbol::interpOutlineWrap(int(i + symbolTypeData.map_min),
+                                               int(symbolTypeData.map_min),
+                                               int(symbolTypeData.map_max));
       else
-        symbolType = Symbol::interpOutlineWrap(i + CQChartsSymbolType::minOutlineValue());
+        symbolType = Symbol::interpOutlineWrap(int(i + CQChartsSymbolType::minOutlineValue()));
     }
   };
 
   // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
   auto mapData = [&](long i, long imin, long imax) {
     return CMathRound::Round(
-             CMathUtil::map(i, imin, imax, symbolTypeData.map_min, symbolTypeData.map_max));
+             CMathUtil::map(double(i), double(imin), double(imax),
+                            double(symbolTypeData.map_min), double(symbolTypeData.map_max)));
   };
 
   // interpolate symbol from number in column range to symbol range
@@ -9627,7 +9648,7 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
 
     // map integer value in column range (map min/max) to symbol range (data min/max)
     if (symbolTypeData.mapped) {
-      interpInd(mapData(i, symbolTypeData.data_min, symbolTypeData.data_max));
+      interpInd(mapData(i, int(symbolTypeData.data_min), int(symbolTypeData.data_max)));
     }
     // use integer value directly (no column range map)
     else {
@@ -10050,8 +10071,8 @@ bool
 CQChartsPlot::
 keyPress(int key, int modifier)
 {
-  bool is_shift = (modifier & Qt::ShiftModifier  );
-//bool is_ctrl  = (modifier & Qt::ControlModifier);
+  bool is_shift = (uint(modifier) & Qt::ShiftModifier  );
+//bool is_ctrl  = (uint(modifier) & Qt::ControlModifier);
 
   if      (key == Qt::Key_Left || key == Qt::Key_Right ||
            key == Qt::Key_Up   || key == Qt::Key_Down) {
@@ -10797,7 +10818,7 @@ plotTipText(const Point &p, QString &tip, bool single) const
       tipObj = *tipObjs.begin();
   }
 
-  numObjs = tipObjs.size();
+  numObjs = int(tipObjs.size());
 
   if (tipObj) {
     if (single) {
@@ -12107,7 +12128,7 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
     else {
       QFontMetricsF fm(tabbedFont().font());
 
-      int ps = fm.height();
+      double ps = fm.height();
 
       double xs = pixelToWindowWidth (ps - 4);
       double ys = pixelToWindowHeight(ps - 4);
@@ -12137,8 +12158,8 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
 
   auto tabRect = this->calcTabPixelRect();
 
-  int px = tabRect.getXMin();
-  int py = tabRect.getYMin();
+  double px = tabRect.getXMin();
+  double py = tabRect.getYMin();
 
   for (auto &plot : plots) {
     BBox prect;
@@ -12352,12 +12373,17 @@ drawBackgroundRects(PaintDevice *device) const
                        fitBorderSides());
 
   if (isDataFilled() || isDataStroked()) {
-    if (isDataRawRange())
-      drawBackgroundRect(rawDisplayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
-                         dataBorderSides());
-    else
-      drawBackgroundRect(displayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
-                         dataBorderSides());
+    auto clipBBox = (isDataRawClip() ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    device->save();
+    device->setClipRect(clipBBox);
+
+    auto drawBBox = (isDataRawRange() ? rawDisplayRangeBBox() : displayRangeBBox());
+
+    drawBackgroundRect(drawBBox, dataBrushData(ColorInd()), dataPenData(ColorInd()),
+                       dataBorderSides());
+
+    device->restore();
   }
 }
 
@@ -14000,8 +14026,8 @@ calcTabPixelRect() const
 {
   auto pixelRect = calcPlotPixelRect();
 
-  int px = pixelRect.getXMid() - tabData_.ptw/2;
-  int py = pixelRect.getYMax() - tabData_.pth;
+  int px = int(pixelRect.getXMid() - tabData_.ptw/2);
+  int py = int(pixelRect.getYMax() - tabData_.pth);
 
   return BBox(px, py, px + tabData_.ptw, py + tabData_.pth);
 }
@@ -14074,7 +14100,7 @@ autoFit()
     int i = 0;
 
     processOverlayPlots([&](Plot *plot) {
-      plot->setFitBBox(bboxes[i]);
+      plot->setFitBBox(bboxes[size_t(i)]);
 
       ++i;
     });
@@ -14566,11 +14592,11 @@ raiseAnnotation(Annotation *annotation)
   int pos = annotationPos(annotation);
   if (pos < 0) return; // not found
 
-  int np = annotations().size();
+  int np = int(annotations().size());
   if (np < 2) return;
 
   if (pos < np - 1)
-    std::swap(annotations_[pos + 1], annotations_[pos]);
+    std::swap(annotations_[size_t(pos + 1)], annotations_[size_t(pos)]);
 
   drawObjs();
 
@@ -14584,11 +14610,11 @@ lowerAnnotation(Annotation *annotation)
   int pos = annotationPos(annotation);
   if (pos < 0) return; // not found
 
-  int np = annotations().size();
+  int np = int(annotations().size());
   if (np < 2) return;
 
   if (pos > 0)
-    std::swap(annotations_[pos - 1], annotations_[pos]);
+    std::swap(annotations_[size_t(pos - 1)], annotations_[size_t(pos)]);
 
   drawObjs();
 
@@ -14599,11 +14625,11 @@ int
 CQChartsPlot::
 annotationPos(Annotation *annotation) const
 {
-  int np = annotations().size();
+  auto np = annotations().size();
 
-  for (int i = 0; i < np; ++i) {
+  for (size_t i = 0; i < np; ++i) {
     if (annotations_[i] == annotation)
-      return i;
+      return int(i);
   }
 
   return -1;
@@ -14622,7 +14648,7 @@ removeAnnotation(Annotation *annotation)
     ++pos;
   }
 
-  int n = annotations_.size();
+  int n = int(annotations_.size());
 
   assert(pos >= 0 && pos < n);
 
@@ -14631,7 +14657,7 @@ removeAnnotation(Annotation *annotation)
   delete annotation;
 
   for (int i = pos + 1; i < n; ++i)
-    annotations_[i - 1] = annotations_[i];
+    annotations_[size_t(i - 1)] = annotations_[size_t(i)];
 
   annotations_.pop_back();
 
@@ -15003,7 +15029,7 @@ setClipRect(PaintDevice *device) const
   auto *plot1 = firstPlot();
 
   if      (plot1->isDataClip()) {
-    auto bbox  = displayRangeBBox();
+    auto bbox  = (isDataRawClip() ? rawDisplayRangeBBox() : displayRangeBBox());
     auto abbox = annotationsFitBBox();
     auto ebbox = extraFitBBox();
 
@@ -15264,15 +15290,17 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
   if (brushData.pattern().altColor().isValid())
     penBrush.altColor = brushData.pattern().altColor().color();
   else
-    penBrush.altColor = QColor(Qt::transparent);
+    penBrush.altColor = QColor();
 
   if (brushData.pattern().altAlpha().isSet())
     penBrush.altAlpha = brushData.pattern().altAlpha().value();
   else
     penBrush.altAlpha = 1.0;
 
-  penBrush.fillAngle = brushData.pattern().angle().degrees();
-  penBrush.fillType  = brushData.pattern().type();
+  penBrush.fillAngle  = brushData.pattern().angle().degrees();
+  penBrush.fillType   = brushData.pattern().type();
+  penBrush.fillRadius = brushData.pattern().radius();
+  penBrush.fillDelta  = brushData.pattern().delta();
 }
 
 //------
@@ -15900,14 +15928,14 @@ normalizeIndex(const QModelIndex &ind) const
 
   auto ind1 = ind;
 
-  int i = 0;
+  size_t i = 0;
 
   // ind model should match first proxy model
-  for ( ; i < int(proxyModels.size()); ++i)
+  for ( ; i < proxyModels.size(); ++i)
     if (ind1.model() == proxyModels[i])
       break;
 
-  for ( ; i < int(proxyModels.size()); ++i)
+  for ( ; i < proxyModels.size(); ++i)
     ind1 = proxyModels[i]->mapToSource(ind1);
 
   return ind1;
@@ -15934,11 +15962,11 @@ unnormalizeIndex(const QModelIndex &ind) const
   int i = int(proxyModels.size()) - 1;
 
   for ( ; i >= 0; --i)
-    if (ind1.model() == proxyModels[i]->sourceModel())
+    if (ind1.model() == proxyModels[size_t(i)]->sourceModel())
       break;
 
   for ( ; i >= 0; --i)
-    ind1 = proxyModels[i]->mapFromSource(ind1);
+    ind1 = proxyModels[size_t(i)]->mapFromSource(ind1);
 
   return ind1;
 }
