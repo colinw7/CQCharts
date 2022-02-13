@@ -135,8 +135,9 @@ class CQChartsCreatePlotDlg : public QDialog {
   QFrame *createDataFrame();
   QFrame *createTypeDataFrame();
   QFrame *createGeneralDataFrame();
-  QFrame *createDetailsFrame();
+
   QFrame *createSummaryFrame();
+  QFrame *createDetailsFrame();
   QFrame *createPreviewFrame();
 
   QFrame *createTypeCombo();

@@ -50,9 +50,11 @@ addTypeProperties(PropertyView *model, const QString &path, const QString &desc,
 
   auto textPath = path + "/text";
 
-  auto desc1 = (desc.length() ? desc + " text" : "Text");
+  if (addTypes & static_cast<int>(PropertyType::TEXT)) {
+    auto desc1 = (desc.length() ? desc + " text" : "Text");
 
-  model->addProperty(textPath, this, "textStr", "string")->setDesc(desc1 + " string");
+    model->addProperty(textPath, this, "textStr", "string")->setDesc(desc1 + " string");
+  }
 
   addTextDataProperties(model, textPath, desc, addTypes);
 }
@@ -81,15 +83,26 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
   if (addTypes & static_cast<int>(PropertyType::VISIBLE))
     addProp(path, "textVisible", "visible", desc1 + " visible");
 
-  addStyleProp(path, "textColor", "color", desc1 + " color");
-  addStyleProp(path, "textAlpha", "alpha", desc1 + " alpha");
-  addStyleProp(path, "textFont" , "font" , desc1 + " font");
+  if (addTypes & static_cast<int>(PropertyType::COLOR))
+    addStyleProp(path, "textColor", "color", desc1 + " color");
+
+  if (addTypes & static_cast<int>(PropertyType::ALPHA))
+    addStyleProp(path, "textAlpha", "alpha", desc1 + " alpha");
+
+  if (addTypes & static_cast<int>(PropertyType::FONT))
+    addStyleProp(path, "textFont" , "font" , desc1 + " font");
 
   if (addTypes & static_cast<int>(PropertyType::ANGLE))
     addStyleProp(path, "textAngle", "angle", desc1 + " angle");
 
-  addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
-  addStyleProp(path, "textHtml"    , "html"    , desc1 + " is HTML");
+  if (addTypes & static_cast<int>(PropertyType::CONTRAST))
+    addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
+
+  if (addTypes & static_cast<int>(PropertyType::CONTRAST_ALPHA))
+    addStyleProp(path, "textContrastAlpha", "contrastAlpha", desc1 + " contrast alpha");
+
+  if (addTypes & static_cast<int>(PropertyType::HTML))
+    addStyleProp(path, "textHtml", "html", desc1 + " is HTML");
 
   if (addTypes & static_cast<int>(PropertyType::ALIGN))
     addStyleProp(path, "textAlign", "align", desc1 + " alignment");

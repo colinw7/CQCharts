@@ -1272,11 +1272,11 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
 
       //---
 
-      size_t nl = size_t(plot_->layers());
+      int    nl = plot_->layers(); // -1 if not set
       size_t li = 0;
 
       if (nl > 1 && ny == 1) {
-        while (li < nl - 1 && y[0] > plot_->layerMin() + plot_->layerDelta()) {
+        while (li < size_t(nl - 1) && y[0] > plot_->layerMin() + plot_->layerDelta()) {
           y[0] -= plot_->layerDelta();
 
           ++li;

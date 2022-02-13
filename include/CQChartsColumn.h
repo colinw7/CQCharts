@@ -188,6 +188,17 @@ class CQChartsColumn :
 
   static QString columnsToString(const Columns &columns);
 
+  void reset() {
+    delete [] expr_;
+    delete [] name_;
+
+    type_   = Type::NONE;
+    column_ = -1;
+    role_   = -1;
+    expr_   = nullptr;
+    name_   = nullptr;
+  }
+
  private:
   bool decodeString(const QString &str, Type &type, int &column, int &role,
                     QString &expr, QString &name);
@@ -195,11 +206,11 @@ class CQChartsColumn :
   void updateType();
 
  private:
-  Type  type_   { Type::NONE };
-  int   column_ { -1 };
-  int   role_   { -1 };
-  char* expr_   { nullptr };
-  char* name_   { nullptr };
+  Type  type_   { Type::NONE }; //!< column type
+  int   column_ { -1 };         //!< column number for data (-1 unset)
+  int   role_   { -1 };         //!< column role for data (-1 unset)
+  char* expr_   { nullptr };    //!< column expression (EXPR) or index string (DATA_INDEX)
+  char* name_   { nullptr };    //!< column name
 };
 
 //---

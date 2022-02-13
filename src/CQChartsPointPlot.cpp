@@ -209,15 +209,17 @@ addPointProperties()
   //---
 
   // mapping for columns
-  addProp("mapping/symbolType", "symbolTypeMapped" , "enabled", "Symbol type values mapped");
-  addProp("mapping/symbolType", "symbolTypeMapMin" , "min"    , "Symbol type map min value");
-  addProp("mapping/symbolType", "symbolTypeMapMax" , "max"    , "Symbol type map max value");
-  addProp("mapping/symbolType", "symbolTypeSetName", "set"    , "Symbol type set name");
+  addProp("mapping/symbolType", "symbolTypeMapped" , "enabled"   , "Symbol type values mapped");
+  addProp("mapping/symbolType", "symbolTypeMapMin" , "min"       , "Symbol type map min value");
+  addProp("mapping/symbolType", "symbolTypeMapMax" , "max"       , "Symbol type map max value");
+  addProp("mapping/symbolType", "symbolTypeSetName", "set"       , "Symbol type set name");
+  addProp("mapping/symbolType", "symbolTypeMap"    , "symbol_map", "Symbol type to value map");
 
-  addProp("mapping/symbolSize", "symbolSizeMapped"  , "enabled", "Symbol size values mapped");
-  addProp("mapping/symbolSize", "symbolSizeMapMin"  , "min"    , "Symbol size map min value");
-  addProp("mapping/symbolSize", "symbolSizeMapMax"  , "max"    , "Symbol size map max value");
-  addProp("mapping/symbolSize", "symbolSizeMapUnits", "units"  , "Symbol size map units");
+  addProp("mapping/symbolSize", "symbolSizeMapped"  , "enabled" , "Symbol size values mapped");
+  addProp("mapping/symbolSize", "symbolSizeMapMin"  , "min"     , "Symbol size map min value");
+  addProp("mapping/symbolSize", "symbolSizeMapMax"  , "max"     , "Symbol size map max value");
+  addProp("mapping/symbolSize", "symbolSizeMapUnits", "units"   , "Symbol size map units");
+  addProp("mapping/symbolSize", "symbolSizeMap"     , "size_map", "Symbol size to value map");
 
   addProp("mapping/fontSize", "fontSizeMapped"  , "enabled", "Font size value mapped");
   addProp("mapping/fontSize", "fontSizeMapMin"  , "min"    , "Font size map min value");
@@ -354,6 +356,15 @@ setSymbolTypeSetName(const QString &name)
   } );
 }
 
+void
+CQChartsPointPlot::
+setSymbolTypeMap(const CQChartsSymbolTypeMap &typeMap)
+{
+  CQChartsUtil::testAndSet(symbolTypeData_.typeMap, typeMap, [&]() {
+    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+  } );
+}
+
 //---
 
 void
@@ -417,6 +428,15 @@ CQChartsPointPlot::
 setSymbolSizeMapUnits(const CQChartsUnits &u)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.units, u, [&]() {
+    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+  } );
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeMap(const CQChartsSymbolSizeMap &sizeMap)
+{
+  CQChartsUtil::testAndSet(symbolSizeData_.sizeMap, sizeMap, [&]() {
     updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
@@ -1209,11 +1229,7 @@ updateSymbolSizeMapKey() const
   CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolSizeMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
-  symbolSizeMapKey_->setDataMin(symbolSizeDataMin());
-  symbolSizeMapKey_->setDataMax(symbolSizeDataMax());
-
-  symbolSizeMapKey_->setMapMin(symbolSizeMapMin());
-  symbolSizeMapKey_->setMapMax(symbolSizeMapMax());
+  symbolSizeMapKey_->setData(symbolSizeData());
 
   symbolSizeMapKey_->setPaletteName  (colorMapPalette());
   symbolSizeMapKey_->setPaletteMinMax(RMinMax(colorMapMin(), colorMapMax()));
@@ -1366,13 +1382,7 @@ updateSymbolTypeMapKey() const
   CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolTypeMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
-  symbolTypeMapKey_->setDataMin(symbolTypeDataMin());
-  symbolTypeMapKey_->setDataMax(symbolTypeDataMax());
-
-  symbolTypeMapKey_->setMapMin(symbolTypeMapMin());
-  symbolTypeMapKey_->setMapMax(symbolTypeMapMax());
-
-  symbolTypeMapKey_->setSymbolSet(symbolTypeSetName());
+  symbolTypeMapKey_->setData(symbolTypeData());
 
   symbolTypeMapKey_->setNumeric     (isNumeric);
   symbolTypeMapKey_->setIntegral    (isIntegral);

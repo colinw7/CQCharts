@@ -308,8 +308,6 @@ calcRange() const
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
 
-  applyEqualScale(dataRange);
-
   return dataRange;
 }
 

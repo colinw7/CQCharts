@@ -227,6 +227,10 @@ CQChartsPaletteName.cpp \
 CQChartsArea.cpp \
 CQChartsUnits.cpp \
 \
+CQChartsColorMap.cpp \
+CQChartsSymbolSizeMap.cpp \
+CQChartsSymbolTypeMap.cpp \
+\
 CQChartsSymbol.cpp \
 CQChartsSymbolType.cpp \
 CQChartsSymbolSet.cpp \
@@ -387,6 +391,7 @@ CQFloatTip.cpp \
 CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
 CBuchHeim.cpp \
+CForceDirected.cpp \
 \
 CQTclUtil.cpp \
 CTclParse.cpp \
@@ -645,6 +650,44 @@ HEADERS += \
 ../include/CQChartsArea.h \
 ../include/CQChartsUnits.h \
 \
+../include/CQChartsColorMap.h \
+../include/CQChartsSymbolSizeMap.h \
+../include/CQChartsSymbolTypeMap.h \
+../include/CQChartsColorColumnData.h \
+../include/CQChartsSymbolSizeData.h \
+../include/CQChartsSymbolTypeData.h \
+\
+../include/CQChartsAlphaColumnData.h \
+../include/CQChartsAnalyzeModelData.h \
+../include/CQChartsArcData.h \
+../include/CQChartsBrushData.h \
+../include/CQChartsCirclePack.h \
+../include/CQChartsDisplayRange.h \
+../include/CQChartsEnclosingCircle.h \
+../include/CQChartsEnum.h \
+../include/CQChartsExprCmdValues.h \
+../include/CQChartsFile.h \
+../include/CQChartsFileType.h \
+../include/CQChartsFitData.h \
+../include/CQChartsFontSizeData.h \
+../include/CQChartsForceDirected.h \
+../include/CQChartsGridCell.h \
+../include/CQChartsGroupData.h \
+../include/CQChartsInputData.h \
+../include/CQChartsModelTypes.h \
+../include/CQChartsPenBrush.h \
+../include/CQChartsPenData.h \
+../include/CQChartsPointsCircle.h \
+../include/CQChartsRand.h \
+../include/CQChartsRegExp.h \
+../include/CQChartsRow.h \
+../include/CQChartsSmooth.h \
+../include/CQChartsTextOptions.h \
+../include/CQChartsTip.h \
+../include/CQChartsTmpl.h \
+../include/CQChartsTreeMapPlace.h \
+../include/CQChartsTypes.h \
+\
 ../include/CQChartsOptBool.h \
 ../include/CQChartsOptInt.h \
 ../include/CQChartsOptLength.h \
@@ -747,6 +790,9 @@ HEADERS += \
 ../include/CQCollapseModel.h \
 ../include/CQPivotModel.h \
 ../include/CQBucketer.h \
+../include/CQExprModelCmdValues.h \
+../include/CQExprModelFn.h \
+../include/CQExprUtil.h \
 \
 ../include/CSVGUtil.h \
 \
@@ -769,13 +815,17 @@ HEADERS += \
 ../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
 ../include/CBuchHeim.h \
+../include/CForceDirected.h \
+../include/CHexMap.h \
 \
 ../include/CQTclUtil.h \
+../include/CTclUtil.h \
 ../include/CTclParse.h \
 \
-CQGLControl.h \
-CGLUtil.h \
-CGLTexture.h \
+../include/CQGLControl.h \
+../include/CGLUtil.h \
+../include/CGLTexture.h \
+../include/Springy.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

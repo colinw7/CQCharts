@@ -434,9 +434,6 @@ calcRange() const
   dataRange.updateRange(-1.25, -1.25);
   dataRange.updateRange( 1.25,  1.25);
 
-  // adjust for equal scale
-  applyEqualScale(dataRange);
-
   return dataRange;
 }
 

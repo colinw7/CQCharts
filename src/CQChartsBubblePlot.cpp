@@ -315,8 +315,6 @@ calcRange() const
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
 
-  applyEqualScale(dataRange);
-
   //---
 
   initGroupData(Columns(), nameColumn(), /*hier*/true);

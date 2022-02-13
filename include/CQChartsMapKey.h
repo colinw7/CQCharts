@@ -1,9 +1,14 @@
 #ifndef CQChartsMapKey_H
 #define CQChartsMapKey_H
 
-#include <CQChartsTextBoxObj.h>
+#include <CQChartsBoxObj.h>
+#include <CQChartsColorColumnData.h>
+#include <CQChartsSymbolSizeData.h>
+#include <CQChartsSymbolTypeData.h>
 
-class CQChartsMapKey : public CQChartsTextBoxObj {
+class CQChartsMapKey : public CQChartsBoxObj,
+ public CQChartsObjTextData      <CQChartsMapKey>,
+ public CQChartsObjHeaderTextData<CQChartsMapKey> {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsKeyLocation location  READ location   WRITE setLocation )
@@ -13,11 +18,18 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Q_PROPERTY(double              padding   READ padding    WRITE setPadding  )
   Q_PROPERTY(CQChartsPosition    position  READ position   WRITE setPosition )
   Q_PROPERTY(Qt::Alignment       align     READ align      WRITE setAlign    )
-  Q_PROPERTY(bool                numeric   READ isNumeric  WRITE setNumeric  )
-  Q_PROPERTY(bool                integral  READ isIntegral WRITE setIntegral )
-  Q_PROPERTY(bool                native    READ isNative   WRITE setNative   )
-  Q_PROPERTY(bool                mapped    READ isMapped   WRITE setMapped   )
-  Q_PROPERTY(int                 numUnique READ numUnique  WRITE setNumUnique)
+  Q_PROPERTY(QString             header    READ headerStr  WRITE setHeaderStr)
+
+  // auto set by plot
+  Q_PROPERTY(bool numeric   READ isNumeric  WRITE setNumeric  )
+  Q_PROPERTY(bool integral  READ isIntegral WRITE setIntegral )
+  Q_PROPERTY(bool native    READ isNative   WRITE setNative   )
+  Q_PROPERTY(bool mapped    READ isMapped   WRITE setMapped   )
+  Q_PROPERTY(int  numUnique READ numUnique  WRITE setNumUnique)
+
+  CQCHARTS_TEXT_DATA_PROPERTIES
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
  public:
   using Plot          = CQChartsPlot;
@@ -28,6 +40,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   using Font          = CQChartsFont;
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
+  using Angle         = CQChartsAngle;
   using BBox          = CQChartsGeom::BBox;
   using Point         = CQChartsGeom::Point;
 
@@ -84,6 +97,12 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   //! get/set align
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &a);
+
+  //---
+
+  //! get/set header text
+  const QString &headerStr() const { return header_; }
+  void setHeaderStr(const QString &s);
 
   //---
 
@@ -182,6 +201,10 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   Position      position_;                                          //!< key position
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
 
+  // header
+  QString header_; //!< header
+
+
   // data
   bool numeric_  { false }; //!< is numeric
   bool integral_ { false }; //!< is integral
@@ -204,6 +227,7 @@ class CQChartsMapKey : public CQChartsTextBoxObj {
   mutable BBox          pbbox_;
   mutable DrawData      drawData_;
 
+  // per draw drawn bbox
   using TypeBox = std::map<DrawType, BBox>;
 
   TypeBox typeBBox_;
@@ -221,6 +245,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
 
  public:
+  using ColorData   = CQChartsColorColumnData;
   using PenBrush    = CQChartsPenBrush;
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
@@ -240,21 +265,23 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
-  // data range
-  double dataMin() const { return dataMin_; }
-  void setDataMin(double r) { dataMin_ = r; invalidate(); }
+  void setData(const ColorData &data) { colorData_ = data; }
 
-  double dataMax() const { return dataMax_; }
-  void setDataMax(double r) { dataMax_ = r; invalidate(); }
+  // data range
+  double dataMin() const { return colorData_.data_min; }
+  void setDataMin(double r) { colorData_.data_min = r; invalidate(); }
+
+  double dataMax() const { return colorData_.data_max; }
+  void setDataMax(double r) { colorData_.data_max = r; invalidate(); }
 
   //---
 
   // map range
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; invalidate(); }
+  double mapMin() const { return colorData_.map_min; }
+  void setMapMin(double r) { colorData_.map_min = r; invalidate(); }
 
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; invalidate(); }
+  double mapMax() const { return colorData_.map_max; }
+  void setMapMax(double r) { colorData_.map_max = r; invalidate(); }
 
   //---
 
@@ -277,6 +304,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   QSize calcSize(const DrawData &drawData) const override;
 
+  QSize calcHeaderSize() const;
+
   //---
 
   bool selectPress(const Point &w, SelMod selMod) override;
@@ -285,6 +314,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
  private:
   void invalidate() override;
+
+  void drawHeader(PaintDevice *device);
 
   void drawContiguous(PaintDevice *device);
   void drawDiscreet  (PaintDevice *device, DrawType drawType);
@@ -313,17 +344,16 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   using ItemBoxes     = std::vector<ItemBox>;
   using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
-  double dataMin_ { 0.0 }; //!< model data min
-  double dataMax_ { 1.0 }; //!< model data max
-
-  double mapMin_ { 0.0 }; //!< mapped color min
-  double mapMax_ { 1.0 }; //!< mapped color max
+  ColorData colorData_;
 
   PaletteName paletteName_; //!< custom palette
 
   BBox tbbox_;
 
   TypeItemBoxes itemBoxes_;
+
+  mutable double xoffset_ { 0.0 };
+  mutable double yoffset_ { 0.0 };
 };
 
 //-----
@@ -349,13 +379,14 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
 
  public:
-  using Alpha       = CQChartsAlpha;
-  using PenBrush    = CQChartsPenBrush;
-  using BrushData   = CQChartsBrushData;
-  using PenData     = CQChartsPenData;
-  using PaletteName = CQChartsPaletteName;
-  using Length      = CQChartsLength;
-  using ColorInd    = CQChartsUtil::ColorInd;
+  using Alpha          = CQChartsAlpha;
+  using PenBrush       = CQChartsPenBrush;
+  using BrushData      = CQChartsBrushData;
+  using PenData        = CQChartsPenData;
+  using PaletteName    = CQChartsPaletteName;
+  using Length         = CQChartsLength;
+  using SymbolSizeData = CQChartsSymbolSizeData;
+  using ColorInd       = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;
   using Point = CQChartsGeom::Point;
@@ -369,21 +400,23 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   //---
 
-  // data range
-  double dataMin() const { return dataMin_; }
-  void setDataMin(double r) { dataMin_ = r; invalidate(); }
+  void setData(const SymbolSizeData &data) { symbolSizeData_ = data; }
 
-  double dataMax() const { return dataMax_; }
-  void setDataMax(double r) { dataMax_ = r; invalidate(); }
+  // data range
+  double dataMin() const { return symbolSizeData_.data_min; }
+  void setDataMin(double r) { symbolSizeData_.data_min = r; invalidate(); }
+
+  double dataMax() const { return symbolSizeData_.data_max; }
+  void setDataMax(double r) { symbolSizeData_.data_max = r; invalidate(); }
 
   //---
 
   // map range
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; invalidate(); }
+  double mapMin() const { return symbolSizeData_.map_min; }
+  void setMapMin(double r) { symbolSizeData_.map_min = r; invalidate(); }
 
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; invalidate(); }
+  double mapMax() const { return symbolSizeData_.map_max; }
+  void setMapMax(double r) { symbolSizeData_.map_min = r; invalidate(); }
 
   //---
 
@@ -425,9 +458,13 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   QSize calcSize(const DrawData &drawData) const override;
 
+  QSize calcHeaderSize() const;
+
   //---
 
   void initDraw(PaintDevice *device);
+
+  void drawHeader(PaintDevice *device);
 
   void drawCircles(PaintDevice *device, DrawType drawType, bool usePenBrush=false);
 
@@ -476,11 +513,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   using ItemBoxes     = std::vector<ItemBox>;
   using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
-  double dataMin_ { 0.0 }; //!< model data min
-  double dataMax_ { 1.0 }; //!< model data max
-
-  double mapMin_ { 5.0 };  //!< mapped symbol size min (pixels)
-  double mapMax_ { 17.0 }; //!< mapped symbol size max (pixels)
+  SymbolSizeData symbolSizeData_;
 
   double scale_ { 1.0 }; //!< scale symbol sizes
 
@@ -501,6 +534,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   mutable BBoxes symbolBoxes_;
   mutable Point  pcenter_;
   mutable Point  center_;
+  mutable double yoffset_ { 0.0 };
 
   TypeItemBoxes itemBoxes_;
 };
@@ -517,12 +551,13 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   Q_PROPERTY(QString symbolSet READ symbolSet WRITE setSymbolSet)
 
  public:
-  using PenBrush  = CQChartsPenBrush;
-  using BrushData = CQChartsBrushData;
-  using PenData   = CQChartsPenData;
-  using Symbol    = CQChartsSymbol;
-  using Length    = CQChartsLength;
-  using ColorInd  = CQChartsUtil::ColorInd;
+  using PenBrush       = CQChartsPenBrush;
+  using BrushData      = CQChartsBrushData;
+  using PenData        = CQChartsPenData;
+  using Symbol         = CQChartsSymbol;
+  using Length         = CQChartsLength;
+  using SymbolTypeData = CQChartsSymbolTypeData;
+  using ColorInd       = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;
   using Point = CQChartsGeom::Point;
@@ -536,26 +571,29 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   //---
 
-  // data range
-  long dataMin() const { return dataMin_; }
-  void setDataMin(long i) { dataMin_ = i; invalidate(); }
+  void setData(const SymbolTypeData &data) { symbolTypeData_ = data; }
 
-  long dataMax() const { return dataMax_; }
-  void setDataMax(long i) { dataMax_ = i; invalidate(); }
+  // data range
+  long dataMin() const { return symbolTypeData_.data_min; }
+  void setDataMin(long i) { symbolTypeData_.data_min = i; invalidate(); }
+
+  long dataMax() const { return symbolTypeData_.data_max; }
+  void setDataMax(long i) { symbolTypeData_.data_max = i; invalidate(); }
 
   //---
 
   // map range
-  long mapMin() const { return mapMin_; }
-  void setMapMin(long i) { mapMin_ = i; invalidate(); }
+  long mapMin() const { return symbolTypeData_.map_min; }
+  void setMapMin(long i) { symbolTypeData_.map_min = i; invalidate(); }
 
-  long mapMax() const { return mapMax_; }
-  void setMapMax(long i) { mapMax_ = i; invalidate(); }
+  long mapMax() const { return symbolTypeData_.map_max; }
+  void setMapMax(long i) { symbolTypeData_.map_max = i; invalidate(); }
 
   //---
 
-  const QString &symbolSet() const { return symbolSet_; }
-  void setSymbolSet(const QString &s) { symbolSet_ = s; }
+  // symbol set
+  const QString &symbolSet() const { return symbolTypeData_.setName; }
+  void setSymbolSet(const QString &s) { symbolTypeData_.setName = s; }
 
   //---
 
@@ -603,15 +641,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   using ItemBoxes     = std::vector<ItemBox>;
   using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
-  long dataMin_ { 0 }; //!< model data min
-  long dataMax_ { 1 }; //!< model data max
-
-  long mapMin_ { 0 }; //!< mapped symbol type min
-  long mapMax_ { 1 }; //!< mapped symbol type max
-
-  QString symbolSet_;
-
-  TypeItemBoxes itemBoxes_;
+  SymbolTypeData symbolTypeData_;
+  TypeItemBoxes  itemBoxes_;
 };
 
 //---

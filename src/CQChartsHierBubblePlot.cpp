@@ -282,8 +282,6 @@ calcRange() const
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
 
-  applyEqualScale(dataRange);
-
   return dataRange;
 }
 
@@ -1637,11 +1635,11 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 
     double th = fm.height();
 
-    auto tp1 = plot_->pixelToWindow(Point(pc.x, pc.y - th/2));
-    auto tp2 = plot_->pixelToWindow(Point(pc.x, pc.y + th/2));
+    Point tp1(pc.x, pc.y - th/2);
+    Point tp2(pc.x, pc.y + th/2);
 
-    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp1), strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp2), strs1[1], textOptions);
   }
   else {
     assert(false);

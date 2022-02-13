@@ -28,7 +28,7 @@ CQChartsColumn::
 CQChartsColumn(const QString &s)
 {
   if (! setValue(s))
-    type_ = Type::NONE;
+    reset();
 
   updateType();
 }
@@ -139,14 +139,7 @@ CQChartsColumn::
 operator=(CQChartsColumn &&rhs)
 {
   if (&rhs != this) {
-    delete [] expr_;
-    delete [] name_;
-
-    type_   = Type::NONE;
-    column_ = -1;
-    role_   = -1;
-    expr_   = nullptr;
-    name_   = nullptr;
+    reset();
 
     std::swap(type_  , rhs.type_  );
     std::swap(column_, rhs.column_);
@@ -181,6 +174,11 @@ bool
 CQChartsColumn::
 setValue(const QString &str)
 {
+  if (str.trimmed() == "") {
+    reset();
+    return true;
+  }
+
   Type    type;
   int     column;
   int     role;
@@ -469,7 +467,8 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   if (parse.readInteger(&column1)) {
     // allow special value for unset
     if (column1 == -1) {
-      type = Type::NONE; return true;
+      type = Type::NONE;
+      return true;
     }
 
     if (column1 < 0)

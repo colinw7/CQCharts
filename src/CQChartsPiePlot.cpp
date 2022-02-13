@@ -744,10 +744,6 @@ calcRange() const
 
   //---
 
-  applyEqualScale(dataRange);
-
-  //---
-
   // init grouping
   initGroupData(valueColumns(), labelColumn());
 

@@ -142,6 +142,8 @@ setLocation(const Location &l)
   CQChartsUtil::testAndSet(location_, l, [&]() { updatePosition(); } );
 }
 
+//---
+
 void
 CQChartsKey::
 setHeaderStr(const QString &s)
@@ -2240,6 +2242,28 @@ interpBgColor() const
     return plot()->interpPlotFillColor(ColorInd());
 
   return plot()->interpThemeColor(ColorInd());
+}
+
+//---
+
+void
+CQChartsPlotKey::
+write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os)
+{
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str.clear();
+
+    os << "set_charts_property -plot $" << plotName.toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }
 
 //------

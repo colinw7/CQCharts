@@ -582,6 +582,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void getTickLabelsPositions(std::set<int> &positions) const;
 
+  //---
+
+  void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
+
  signals:
   void ticksChanged();
   void tickPlacementChanged();

@@ -2,6 +2,7 @@
 #define CQChartsPlotCustomControls_H
 
 #include <CQChartsColor.h>
+#include <CQChartsOptBool.h>
 
 #include <QScrollArea>
 #include <QPointer>
@@ -36,6 +37,12 @@ class CQChartsPlotCustomControls : public QScrollArea {
   Q_PROPERTY(bool numericOnly READ isNumericOnly WRITE setNumericOnly)
   Q_PROPERTY(bool showTitle   READ isShowTitle   WRITE setShowTitle  )
 
+  Q_PROPERTY(CQChartsOptBool showColorRange   READ isShowColorRange   WRITE setShowColorRange  )
+  Q_PROPERTY(CQChartsOptBool showColorMapping READ isShowColorMapping WRITE setShowColorMapping)
+
+ public:
+  using OptBool = CQChartsOptBool;
+
  public:
   CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType);
 
@@ -55,6 +62,14 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   bool isShowTitle() const { return showTitle_; }
   void setShowTitle(bool b);
+
+  //---
+
+  const OptBool &isShowColorRange() const { return showColorRange_; }
+  void setShowColorRange(const OptBool &b) { showColorRange_ = b; updateWidgets(); }
+
+  const OptBool &isShowColorMapping() const { return showColorMapping_; }
+  void setShowColorMapping(const OptBool &b) { showColorMapping_ = b; updateWidgets(); }
 
   //---
 
@@ -126,6 +141,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   void colorColumnSlot();
   void colorRangeSlot();
   void colorPaletteSlot();
+  void colorMappingSlot();
 
   void columnSlot();
   void columnsSlot();
@@ -164,6 +180,9 @@ class CQChartsPlotCustomControls : public QScrollArea {
   bool numericOnly_ { false }; //!< support numeric only columns
   bool showTitle_   { true };  //!< show title
 
+  OptBool showColorRange_;
+  OptBool showColorMapping_;
+
   QFrame* titleFrame_ { nullptr }; //!< title frame
   QLabel* titleLabel_ { nullptr }; //!< title label
 
@@ -177,6 +196,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   CQChartsColorRangeSlider*   colorRange_        { nullptr }; //!< color range slider
   CQChartsPaletteNameEdit*    colorPaletteEdit_  { nullptr }; //!< color palette edit
   CQChartsMapKeyWidget*       colorMapKeyWidget_ { nullptr }; //!< color map key widget
+  QLineEdit*                  colorMappingEdit_  { nullptr }; //!< color mapping edit
 
   bool connected_ { false }; //!< is connected
 

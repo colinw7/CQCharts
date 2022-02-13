@@ -2293,18 +2293,16 @@ setDataRawRange(bool b)
 
 void
 CQChartsPlot::
-setFitClip(bool b)
-{
-  CQChartsUtil::testAndSet(fitClip_, b, [&]() { drawObjs(); } );
-}
-
-//---
-
-void
-CQChartsPlot::
 setFitBorderSides(const Sides &s)
 {
   CQChartsUtil::testAndSet(fitBorderSides_, s, [&]() { drawBackground(); } );
+}
+
+void
+CQChartsPlot::
+setFitClip(bool b)
+{
+  CQChartsUtil::testAndSet(fitClip_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -3837,10 +3835,11 @@ void
 CQChartsPlot::
 addColorMapProperties()
 {
-  addProp("mapping/color", "colorMapped"    , "enabled", "Color values mapped");
-  addProp("mapping/color", "colorMapMin"    , "min"    , "Color value map min");
-  addProp("mapping/color", "colorMapMax"    , "max"    , "Color value map max");
-  addProp("mapping/color", "colorMapPalette", "palette", "Color map palette");
+  addProp("mapping/color", "colorMapped"    , "enabled"  , "Color values mapped");
+  addProp("mapping/color", "colorMapMin"    , "min"      , "Color value map min");
+  addProp("mapping/color", "colorMapMax"    , "max"      , "Color value map max");
+  addProp("mapping/color", "colorMapPalette", "palette"  , "Color map palette");
+  addProp("mapping/color", "colorMap"       , "color_map", "Value to color map");
 }
 
 CQPropertyViewItem *
@@ -4446,11 +4445,7 @@ updateColorMapKey() const
   CQChartsWidgetUtil::AutoDisconnect autoDisconnect(colorMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
-  colorMapKey_->setDataMin(colorMapDataMin());
-  colorMapKey_->setDataMax(colorMapDataMax());
-
-  colorMapKey_->setMapMin(colorMapMin());
-  colorMapKey_->setMapMax(colorMapMax());
+  colorMapKey_->setData(colorColumnData());
 
   colorMapKey_->setPaletteName(colorMapPalette());
 
@@ -7055,27 +7050,10 @@ mapKeySelectPress(const Point &w, SelMod selMod)
       continue;
 
     if (mapKey->inside(w, CQChartsMapKey::DrawType::VIEW)) {
-#if 0
-      auto *item = mapKey->getItemAt(w);
-
-      if (item) {
-        bool handled = item->selectPress(w, selMod);
-
-        if (handled) {
-          emit mapKeyItemPressed  (item);
-          emit mapKeyItemIdPressed(item->id());
-
-          return true;
-        }
-      }
-#endif
-
       bool handled = mapKey->selectPress(w, selMod);
 
       if (handled) {
-        emit mapKeyPressed  (mapKey);
-        //emit mapKeyIdPressed(mapKey->id());
-
+        emit mapKeyPressed(mapKey);
         return true;
       }
     }
@@ -9049,7 +9027,9 @@ void
 CQChartsPlot::
 setColorType(const ColorType &t)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.colorType, t, [&]() {
+  auto t1 = static_cast<CQChartsColorType>(t);
+
+  CQChartsUtil::testAndSet(colorColumnData_.colorType, t1, [&]() {
     updateObjs(); emit colorDetailsChanged();
   } );
 }
@@ -9105,6 +9085,15 @@ setColorYStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() {
     updateObjs(); emit colorDetailsChanged();
+  } );
+}
+
+void
+CQChartsPlot::
+setColorMap(const CQChartsColorMap &colorMap)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.colorMap, colorMap, [&]() {
+    updateRangeAndObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9222,7 +9211,12 @@ columnValueColor(const QVariant &var, Color &color) const
   // use unique index/count of edit values (which may have been converted)
   // not same as CQChartsColumnColorType::userData
   auto mapVarToColor = [&](const QVariant &var) {
-    if (! getDetails()) return Color();
+    Color color;
+
+    if (colorMap().valueToColor(var, color))
+      return color;
+
+    if (! getDetails()) return color;
 
     int    i = columnDetails->valueInd(var);
     double r = CMathUtil::map(i, 0, numUnique - 1, colorMapMin(), colorMapMax());
@@ -9580,6 +9574,13 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
   auto var = modelValue(symbolTypeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
+  return varSymbolType(var, symbolTypeData, symbolType);
+}
+
+bool
+CQChartsPlot::
+varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol &symbolType) const
+{
   auto uniqueInd = [&]() {
     int i = 0, n = 1;
 
@@ -9598,11 +9599,15 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
     return std::pair<int, int>(i, n);
   };
 
+  //---
+
   auto *symbolSetMgr = charts()->symbolSetMgr();
   auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName);
 
   // map symbol index into symbol set range
   auto interpInd = [&](long i) {
+    Symbol symbolType;
+
     if (symbolSet) {
       CQChartsSymbolSet::SymbolData symbolData;
 
@@ -9623,6 +9628,8 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
       else
         symbolType = Symbol::interpOutlineWrap(int(i + CQChartsSymbolType::minOutlineValue()));
     }
+
+    return symbolType;
   };
 
   // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
@@ -9632,44 +9639,51 @@ columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbo
                             double(symbolTypeData.map_min), double(symbolTypeData.map_max)));
   };
 
+  //---
+
   // interpolate symbol from number in column range to symbol range
   if      (CQChartsVariant::isNumeric(var)) {
     // get integer value
+    bool ok;
     auto i = CQChartsVariant::toInt(var, ok);
 
     if (! ok) {
       double r = CQChartsVariant::toReal(var, ok);
-      if (! ok) return false;
 
       i = CMathRound::Round(r);
     }
 
     //---
 
-    // map integer value in column range (map min/max) to symbol range (data min/max)
     if (symbolTypeData.mapped) {
-      interpInd(mapData(i, int(symbolTypeData.data_min), int(symbolTypeData.data_max)));
+      // map integer value in column range (map min/max) to symbol range (data min/max)
+      symbolType = interpInd(mapData(i, int(symbolTypeData.data_min),
+                                        int(symbolTypeData.data_max)));
     }
-    // use integer value directly (no column range map)
     else {
-      interpInd(i);
+      // use integer value directly (no column range map)
+      symbolType = interpInd(i);
     }
   }
   else if (CQChartsVariant::isSymbol(var)) {
     // use symbol directly for type
+    bool ok;
     symbolType = CQChartsVariant::toSymbol(var, ok);
   }
   else {
     if (symbolTypeData.mapped) {
-      // get unique id of value
-      auto ind = uniqueInd();
+      if (! symbolTypeData.typeMap.valueToSymbol(var, symbolType)) {
+        // get unique id of value
+        auto ind = uniqueInd();
 
-      interpInd(ind.first);
-      //interpInd(mapData(ind.first, 0, ind.second - 1));
+        symbolType = interpInd(ind.first);
+        //symbolType = interpInd(mapData(ind.first, 0, ind.second - 1));
+      }
     }
     else {
       // init symbol from string
       // TODO: only if column marked as symbol ?
+      bool ok;
       auto str = CQChartsVariant::toString(var, ok);
 
       symbolType = Symbol(str);
@@ -9769,8 +9783,6 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
 
   auto *th = const_cast<Plot *>(this);
 
-  auto units = symbolSizeData.units;
-
   ModelIndex symbolSizeModelInd(th, row, symbolSizeData.column, parent);
 
   bool ok;
@@ -9778,48 +9790,76 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
   auto var = modelValue(symbolSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
+  return varSymbolSize(var, symbolSizeData, symbolSize, sizeDir);
+}
+
+bool
+CQChartsPlot::
+varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
+              Length &symbolSize, Qt::Orientation &sizeDir) const
+{
+  auto uniqueInd = [&]() {
+    int i = 0, n = 1;
+
+    // use index of value in unique values to generate value in range
+    // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+    auto *columnDetails = this->columnDetails(symbolSizeData.column);
+
+    if (columnDetails) {
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorSize::userData
+      // TODO: use map min/max
+      n = columnDetails->numUnique();
+      i = columnDetails->valueInd(var);
+    }
+
+    return std::pair<int, int>(i, n);
+  };
+
+  /// map value in range (min, max) to (symbolSizeData.user_map_min, symbolSizeData.user_map_max)
+  auto mapData = [&](double r, double min, double max) {
+    return CMathUtil::map(r, min, max, symbolSizeData.user_map_min, symbolSizeData.user_map_max);
+  };
+
+  //---
+
+  auto units = symbolSizeData.units;
+
+  // interpolate size from number in column range to size
   if      (CQChartsVariant::isNumeric(var)) {
     if (symbolSizeData.mapped) {
       // map value in range (symbolSizeData.data_min, symbolSizeData.data_max) to
       // (symbolSizeData.user_map_min, symbolSizeData.user_map_max)
-      double r = CQChartsVariant::toReal(var, ok);
-      if (! ok) return false;
-
-      double r1 = CMathUtil::map(r, symbolSizeData.data_min, symbolSizeData.data_max,
-                                 symbolSizeData.user_map_min, symbolSizeData.user_map_max);
+      bool ok;
+      double r  = CQChartsVariant::toReal(var, ok);
+      double r1 = mapData(r, symbolSizeData.data_min, symbolSizeData.data_max);
 
       symbolSize = Length(r1, units.type());
     }
     else {
       // use value directly for size
+      bool ok;
       symbolSize = CQChartsVariant::toLength(var, ok);
     }
   }
   else if (CQChartsVariant::isLength(var)) {
     // use length directly for size
+    bool ok;
     symbolSize = CQChartsVariant::toLength(var, ok);
   }
   else {
     if (symbolSizeData.mapped) {
-      // use index of value in unique values to generate value in range
-      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
-      auto *columnDetails = this->columnDetails(symbolSizeData.column);
-      if (! columnDetails) return false;
+      if (! symbolSizeData.sizeMap.valueToLength(var, symbolSize)) {
+        // get unique id of value
+        auto ind = uniqueInd();
 
-      // use unique index/count of edit values (which may have been converted)
-      // not same as CQChartsColumnColorSize::userData
-      // TODO: use map min/max
-      int n = columnDetails->numUnique();
-      int i = columnDetails->valueInd(var);
+        double r = mapData(double(ind.first), 0, double(ind.second - 1));
 
-//    double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
-//                              CQChartsSymbolSize::maxValue());
-      double r = CMathUtil::map(i, 0, n - 1,
-                                symbolSizeData.user_map_min, symbolSizeData.user_map_max);
-
-      symbolSize = Length(r, units.type());
+        symbolSize = Length(r, units.type());
+      }
     }
     else {
+      bool ok;
       auto str = CQChartsVariant::toString(var, ok);
 
       symbolSize = Length(str, units.type());
@@ -9916,7 +9956,6 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
       // map value in range (fontSizeData.data_min, fontSizeData.data_max) to
       // (fontSizeData.user_map_min, fontSizeData.user_map_max)
       double r = CQChartsVariant::toReal(var, ok);
-      if (! ok) return false;
 
       double r1 = CMathUtil::map(r, fontSizeData.data_min, fontSizeData.data_max,
                                  fontSizeData.user_map_min, fontSizeData.user_map_max);
@@ -18036,7 +18075,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   for (auto &propPath : parameterPropPaths) {
     QVariant value;
 
-    bool rc = getProperty(propPath, value);
+    bool rc = getTclProperty(propPath, value);
     assert(rc);
 
     nameValues[propPath] = value;
@@ -18057,4 +18096,16 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
+
+  //---
+
+  // xaxis
+  if (xAxis()) xAxis()->write(propertyModel(), plotName(), os);
+  if (yAxis()) yAxis()->write(propertyModel(), plotName(), os);
+
+  // key
+  if (key()) key()->write(propertyModel(), plotName(), os);
+
+  // title
+  if (title()) title()->write(propertyModel(), plotName(), os);
 }

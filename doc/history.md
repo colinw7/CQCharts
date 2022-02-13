@@ -1368,3 +1368,7 @@
  + Add missing plot images for docs
  + Add support for custom fill patterns
  + Support zoom text on all plots
+# 2/13/2022
+ + add value->symbol type/size maps for symnol type/size columns
+ + add optional title to map key
+ + add write of plot axis/key/title properties

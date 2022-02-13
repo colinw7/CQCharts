@@ -430,10 +430,6 @@ calcRange() const
 
   //---
 
-  applyEqualScale(dataRange);
-
-  //---
-
   return dataRange;
 }
 

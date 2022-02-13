@@ -18,10 +18,11 @@ class CQChartsFile;
  * \brief Symbol Data
  * \ingroup Charts
  *
- * A symbol is a vector (dynamically resizable) shape supporting:
+ * A symbol supports:
  *  + Builtin symbol types
  +  + UTF-8 Characters
- *  + SVG
+ *  + Path
+ *  + SVG file
  */
 class CQChartsSymbol :
   public CQChartsComparatorBase<CQChartsSymbol>,

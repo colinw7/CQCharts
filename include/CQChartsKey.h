@@ -110,8 +110,6 @@ class CQChartsKey : public CQChartsBoxObj,
   const QString &headerStr() const { return header_; }
   void setHeaderStr(const QString &s);
 
-  //! TODO header text properties
-
   //---
 
   //! get/set color when associated object hidden
@@ -480,6 +478,8 @@ class CQChartsPlotKey : public CQChartsKey {
   QColor interpBgColor() const;
 
   //---
+
+  void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
 
  private slots:
   void hscrollSlot(int);

@@ -23,13 +23,21 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
  public:
   enum PropertyType {
-    VISIBLE = (1<<0),
-    ANGLE   = (1<<1),
-    ALIGN   = (1<<2),
+    VISIBLE        = (1<<0),
+    TEXT           = (1<<1),
+    COLOR          = (1<<2),
+    ALPHA          = (1<<3),
+    FONT           = (1<<4),
+    ANGLE          = (1<<5),
+    CONTRAST       = (1<<6),
+    CONTRAST_ALPHA = (1<<7),
+    HTML           = (1<<8),
+    ALIGN          = (1<<9),
 
     NONE        = 0,
-    NOT_VISIBLE = ANGLE | ALIGN,
-    ALL         = VISIBLE | ANGLE | ALIGN
+    BASIC       = COLOR | ALPHA | FONT | ANGLE | CONTRAST | CONTRAST_ALPHA,
+    ALL         = 0xFFFF,
+    NOT_VISIBLE = (ALL & ~VISIBLE)
   };
 
   using View         = CQChartsView;

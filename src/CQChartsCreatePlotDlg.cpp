@@ -763,25 +763,12 @@ createGeneralDataFrame()
 
 QFrame *
 CQChartsCreatePlotDlg::
-createDetailsFrame()
-{
-  auto *detailsFrame  = CQUtil::makeWidget<QFrame>("details");
-  auto *detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 0, 2);
-
-  detailsWidget_ = new CQChartsModelDetailsWidget(charts_);
-
-  detailsLayout->addWidget(detailsWidget_);
-
-  return detailsFrame;
-}
-
-QFrame *
-CQChartsCreatePlotDlg::
 createSummaryFrame()
 {
   auto *summaryFrame = CQUtil::makeWidget<QFrame>("summary");
 
   summaryFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  summaryFrame->setAutoFillBackground(true);
 
   auto *summaryLayout = CQUtil::makeLayout<QVBoxLayout>(summaryFrame, 0, 2);
 
@@ -898,10 +885,28 @@ createSummaryFrame()
 
 QFrame *
 CQChartsCreatePlotDlg::
+createDetailsFrame()
+{
+  auto *detailsFrame  = CQUtil::makeWidget<QFrame>("details");
+  auto *detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 0, 2);
+
+  detailsFrame->setAutoFillBackground(true);
+
+  detailsWidget_ = new CQChartsModelDetailsWidget(charts_);
+
+  detailsLayout->addWidget(detailsWidget_);
+
+  return detailsFrame;
+}
+
+QFrame *
+CQChartsCreatePlotDlg::
 createPreviewFrame()
 {
   auto *previewFrame  = CQUtil::makeWidget<QFrame>("preview");
   auto *previewLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 0, 2);
+
+  previewFrame->setAutoFillBackground(true);
 
   //---
 

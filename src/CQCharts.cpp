@@ -124,6 +124,10 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsHtml.h>
 
+#include <CQChartsColorMap.h>
+#include <CQChartsSymbolTypeMap.h>
+#include <CQChartsSymbolSizeMap.h>
+
 // dialogs
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -460,6 +464,7 @@ CQCharts()
   CQChartsAxisValueType         ::registerMetaType();
   CQChartsBoxData               ::registerMetaType();
   CQChartsColor                 ::registerMetaType();
+  CQChartsColorMap              ::registerMetaType();
   CQChartsColorStops            ::registerMetaType();
   CQChartsColumnNum             ::registerMetaType();
   CQChartsColumn                ::registerMetaType();
@@ -499,6 +504,8 @@ CQCharts()
   CQChartsSymbolData            ::registerMetaType();
   CQChartsSymbol                ::registerMetaType();
   CQChartsSymbolType            ::registerMetaType();
+  CQChartsSymbolTypeMap         ::registerMetaType();
+  CQChartsSymbolSizeMap         ::registerMetaType();
   CQChartsTextBoxData           ::registerMetaType();
   CQChartsTextData              ::registerMetaType();
   CQChartsThemeName             ::registerMetaType();

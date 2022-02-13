@@ -618,12 +618,6 @@ calcRange() const
   //---
 
 #if 0
-  applyEqualScale(dataRange);
-#endif
-
-  //---
-
-#if 0
   double xm = (boxMargin_ > 0.0 ? dataRange.xsize()*boxMargin_ : 0.0);
   double ym = (boxMargin_ > 0.0 ? dataRange.ysize()*boxMargin_ : 0.0);
 

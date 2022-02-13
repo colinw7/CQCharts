@@ -1091,6 +1091,22 @@ write(std::ostream &os, const QString &varName) const
   const auto *gnuModel      = dynamic_cast<const CQGnuDataModel        *>(dataModel);
   const auto *jsonModel     = dynamic_cast<const CQJsonModel           *>(baseModel);
 
+  //---
+
+  if      (csvModel || tsvModel || jsonModel || gnuModel) {
+  }
+  else if (varsModel) {
+    os << "# NOTE: definition of tcl variable not saved\n";
+  }
+  else if (exprDataModel) {
+    os << "# NOTE: expr model values not saved\n";
+  }
+  else {
+    os << "# NOTE: model values not saved\n";
+  }
+
+  //---
+
   if (varName != "")
     os << "set " << varName.toStdString();
   else

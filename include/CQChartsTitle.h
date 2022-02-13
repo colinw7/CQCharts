@@ -136,6 +136,10 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void setEditHandlesBBox() const override;
 
+  //---
+
+  void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
+
  private:
   void init();
 

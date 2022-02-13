@@ -255,8 +255,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addProp(path, "majorIncrement", "", "Axis tick major increment");
 
   if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION))) {
-    addProp(path, "start", "", "Axis start position");
-    addProp(path, "end"  , "", "Axis end position");
+    addProp(path, "start", "", "Axis start position", /*hidden*/true);
+    addProp(path, "end"  , "", "Axis end position"  , /*hidden*/true);
   }
 
   addProp(path, "includeZero", "", "Axis force include zero", true);
@@ -2908,6 +2908,28 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
   }
 
   bbox_ += bbox;
+}
+
+//---
+
+void
+CQChartsAxis::
+write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os)
+{
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str.clear();
+
+    os << "set_charts_property -plot $" << plotName.toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }
 
 //---

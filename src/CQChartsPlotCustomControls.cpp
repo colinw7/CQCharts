@@ -164,11 +164,13 @@ addColorColumnWidgets(const QString &title)
   colorColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("colorColumnCombo");
   colorRange_       = CQUtil::makeWidget<CQChartsColorRangeSlider>("colorRange");
   colorPaletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("colorPaletteEdit");
+  colorMappingEdit_ = CQUtil::makeWidget<QLineEdit>("colorMappingEdit");
 
   addFrameWidget(colorControlGroupData.fixedFrame , "Color"  , colorEdit_);
   addFrameWidget(colorControlGroupData.columnFrame, "Column" , colorColumnCombo_);
   addFrameWidget(colorControlGroupData.columnFrame, "Range"  , colorRange_);
   addFrameWidget(colorControlGroupData.columnFrame, "Palette", colorPaletteEdit_);
+  addFrameWidget(colorControlGroupData.columnFrame, "Mapping", colorMappingEdit_);
 
   addFrameRowStretch(colorControlGroupData.fixedFrame );
   addFrameRowStretch(colorControlGroupData.columnFrame);
@@ -231,6 +233,8 @@ connectSlots(bool b)
       colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
     CQChartsWidgetUtil::connectDisconnect(b,
       colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      colorMappingEdit_, SIGNAL(editingFinished()), this, SLOT(colorMappingSlot()));
   }
 
   for (auto *columnEdit : columnEdits_)
@@ -641,6 +645,7 @@ updateWidgets()
     colorEdit_       ->setEnabled(! hasColorColumn);
     colorRange_      ->setEnabled(hasColorColumn && ! isNative);
     colorPaletteEdit_->setEnabled(hasColorColumn && ! isNative);
+    colorMappingEdit_->setEnabled(hasColorColumn && ! isNative);
 
     colorEdit_->setColor(getColorValue());
 
@@ -648,13 +653,18 @@ updateWidgets()
 
     auto paletteName = plot()->colorMapPalette();
 
-    colorRange_->setPlot(plot());
-    colorRange_->setPaletteName(paletteName);
-
+    colorRange_      ->setPlot(plot());
+    colorRange_      ->setPaletteName(paletteName);
     colorPaletteEdit_->setChartsPaletteName(plot()->charts(), paletteName);
+    colorMappingEdit_->setText(plot_->colorMap().toString());
 
     if (hasColorColumn)
       colorControlGroup_->setColumn();
+
+    bool hasColorMap = plot_->colorMap().isValid();
+
+    setFrameWidgetVisible(colorRange_      , isShowColorRange  ().boolOr(! hasColorMap));
+    setFrameWidgetVisible(colorMappingEdit_, isShowColorMapping().boolOr(  hasColorMap));
   }
 
   //---
@@ -758,6 +768,19 @@ CQChartsPlotCustomControls::
 colorPaletteSlot()
 {
   plot()->setColorMapPalette(colorPaletteEdit_->paletteName());
+}
+
+void
+CQChartsPlotCustomControls::
+colorMappingSlot()
+{
+  connectSlots(false);
+
+  plot_->setColorMap(CQChartsColorMap(colorMappingEdit_->text()));
+
+  connectSlots(true);
+
+  updateWidgets();
 }
 
 //---

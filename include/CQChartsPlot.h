@@ -15,10 +15,16 @@
 #include <CQChartsPlotMargin.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsColorStops.h>
+#include <CQChartsSymbolTypeMap.h>
 #include <CQChartsPaletteName.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
 #include <CQChartsPlotModelVisitor.h>
+#include <CQChartsColorColumnData.h>
+#include <CQChartsAlphaColumnData.h>
+#include <CQChartsSymbolTypeData.h>
+#include <CQChartsSymbolSizeData.h>
+#include <CQChartsFontSizeData.h>
 
 #include <CSafeIndex.h>
 
@@ -189,6 +195,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsPaletteName colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
   Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
   Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
+  Q_PROPERTY(CQChartsColorMap    colorMap        READ colorMap        WRITE setColorMap       )
 
   // alpha map (for alpha column)
   Q_PROPERTY(bool   alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
@@ -490,6 +497,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using ModelData          = CQChartsModelData;
   using ModelDetails       = CQChartsModelDetails;
   using ModelColumnDetails = CQChartsModelColumnDetails;
+
+  using ColorColumnData = CQChartsColorColumnData;
+  using AlphaColumnData = CQChartsAlphaColumnData;
+  using SymbolTypeData  = CQChartsSymbolTypeData;
+  using SymbolSizeData  = CQChartsSymbolSizeData;
+  using FontSizeData    = CQChartsFontSizeData;
 
  public:
   CQChartsPlot(View *view, PlotType *type, const ModelP &model);
@@ -1723,62 +1736,25 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  //! \brief symbol type (column) data
-  struct SymbolTypeData {
-    Column  column;             //!< symbol type column
-    bool    valid    { false }; //!< symbol type valid
-    bool    mapped   { false }; //!< symbol type values mapped
-    long    data_min { 0 };     //!< model data min
-    long    data_max { 1 };     //!< model data max
-    long    map_min  { 0 };     //!< mapped size min
-    long    map_max  { 1 };     //!< mapped size max
-    QString setName;            //!< symbol set name
-  };
-
   void initSymbolTypeData(SymbolTypeData &symbolTypeData) const;
 
   bool columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
                         Symbol &symbolType) const;
 
-  //---
+  bool varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData,
+                     Symbol &symbolType) const;
 
-  //! \brief symbol size (column) data
-  struct SymbolSizeData {
-    Column          column;                          //!< symbol size column
-    bool            valid        { false };          //!< symbol size valid
-    bool            mapped       { false };          //!< symbol size values mapped
-    double          data_min     { 0.0 };            //!< model data min
-    double          data_max     { 1.0 };            //!< model data max
-    double          data_mean    { 0.0 };            //!< model data mean
-    double          map_min      { 0.0 };            //!< mapped size min
-    double          map_max      { 1.0 };            //!< mapped size max
-    double          user_map_min { 0.0 };            //!< user specified mapped size min
-    double          user_map_max { 1.0 };            //!< user specified mapped size max
-    CQChartsUnits   units        { Units::PIXEL };   //!< mapped size units
-    Qt::Orientation direction    { Qt::Horizontal }; //!< mapped size direction
-  };
+  //---
 
   void initSymbolSizeData(SymbolSizeData &symbolSizeData) const;
 
   bool columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
                         Length &symbolSize, Qt::Orientation &sizeDir) const;
 
-  //---
+  bool varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
+                     Length &symbolSize, Qt::Orientation &sizeDir) const;
 
-  //! \brief font size (column) data
-  struct FontSizeData {
-    Column          column;                          //!< font size column
-    bool            valid        { false };          //!< font size valid
-    bool            mapped       { false };          //!< font size values mapped
-    double          data_min     { 0.0 };            //!< model data min
-    double          data_max     { 1.0 };            //!< model data max
-    double          map_min      { 0.0 };            //!< mapped size min
-    double          map_max      { 1.0 };            //!< mapped size max
-    double          user_map_min { 0.0 };            //!< user specified mapped size min
-    double          user_map_max { 1.0 };            //!< user specified mapped size max
-    CQChartsUnits   units        { Units::PIXEL };   //!< mapped size units
-    Qt::Orientation direction    { Qt::Horizontal }; //!< mapped size direction
-  };
+  //---
 
   void initFontSizeData(FontSizeData &fontSizeData) const;
 
@@ -2001,8 +1977,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setNamedColumns(const QString &name, const Columns &c);
 
  public:
+  const ColorColumnData &colorColumnData() const { return colorColumnData_; }
+
   // coloring
-  const ColorType &colorType() const { return colorColumnData_.colorType; }
+  ColorType colorType() const { return static_cast<ColorType>(colorColumnData_.colorType); }
   void setColorType(const ColorType &t);
 
   bool isColorMapped() const { return colorColumnData_.mapped; }
@@ -2024,6 +2002,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   const ColorStops &colorYStops() const { return colorColumnData_.yStops; }
   void setColorYStops(const ColorStops &s);
+
+  const CQChartsColorMap &colorMap() const { return colorColumnData_.colorMap; }
+  void setColorMap(const CQChartsColorMap &s);
 
  protected:
   double colorMapDataMin() const { return colorColumnData_.data_min; }
@@ -3338,36 +3319,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  //! \brief color column data
-  struct ColorColumnData {
-    Column      column;                         //<! color column
-    ColorType   colorType { ColorType::AUTO };  //<! color type
-    bool        valid     { false };            //<! color valid
-    bool        mapped    { true };             //<! color values mapped
-    double      map_min   { 0.0 };              //<! map value min
-    double      map_max   { 1.0 };              //<! map value max
-    double      data_min  { 0.0 };              //<! model data min
-    double      data_max  { 1.0 };              //<! model data max
-    ColumnType  modelType { ColumnType::NONE }; //<! color model type
-    PaletteName palette;                        //<! color palette
-    ColorStops  xStops;                         //<! color x stops
-    ColorStops  yStops;                         //<! color y stops
-  };
-
-  //! \brief alpha column data
-  struct AlphaColumnData {
-    Column     column;                         //<! alpha column
-    bool       valid     { false };            //<! alpha valid
-    bool       mapped    { true };             //<! alpha values mapped
-    double     map_min   { 0.0 };              //<! map value min
-    double     map_max   { 1.0 };              //<! map value max
-    double     data_min  { 0.0 };              //<! model data min
-    double     data_max  { 1.0 };              //<! model data max
-    ColumnType modelType { ColumnType::NONE }; //<! alpha model type
-  };
-
-  //---
-
   //! \brief every row selection data
   struct EveryData {
     bool enabled { false };
@@ -3493,8 +3444,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // data border
   Sides dataBorderSides_ { "tlbr" }; //!< data border sides
-  bool  dataRawRange_    { true };   //!< use raw range for data box draw
-  bool  dataClip_        { true };   //!< is clipped at data limits
+  bool  dataRawRange_    { false };  //!< use raw range for data box draw
+  bool  dataClip_        { false };  //!< is clipped at data limits
   bool  dataRawClip_     { false };  //!< clip to raw range for data box draw
 
   // fit border

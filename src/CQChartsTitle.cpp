@@ -6,6 +6,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -629,4 +630,26 @@ textBoxObjInvalidate()
     setBBox(BBox());
 
   plot_->drawObjs();
+}
+
+//---
+
+void
+CQChartsTitle::
+write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os)
+{
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str.clear();
+
+    os << "set_charts_property -plot $" << plotName.toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }
