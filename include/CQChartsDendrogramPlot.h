@@ -102,6 +102,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   bool isOpen() const { return open_; }
   void setOpen(bool b) { open_ = b; }
 
+  //---
+
   ModelIndex modelIndex() const { return modelIndex_; }
   void setModelIndex(const ModelIndex &modelIndex) { modelIndex_ = modelIndex; }
 
@@ -199,6 +201,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
  public CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>,
  public CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot> {
   Q_OBJECT
+
+  //! follow view
+  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
 
   // columns
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
@@ -302,6 +307,12 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set folow view expand
+  bool isFollowViewExpand() const { return followViewExpand_; }
+  void setFollowViewExpand(bool b);
+
+  //---
+
   //! get/set circle size
   const Length &symbolSize() const { return symbolSize_; }
   void setSymbolSize(const Length &s);
@@ -348,6 +359,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
+  void addHierName(const QString &nameStr, const ModelIndex &modelInd) const;
+
   void addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const OptReal &value,
                     const ModelIndex &modelInd, const OptReal &colorValue,
                     OptReal &sizeValue, Edges &edges) const;
@@ -366,6 +379,17 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
+  void modelViewExpansionChanged() override;
+
+  void resetNodeExpansion(bool expanded);
+  void resetNodeExpansion(Node *hierNode, bool expanded);
+
+  void setNodeExpansion(Node *hierNode, const std::set<QModelIndex> &indSet);
+
+  void expandedModelIndices(std::set<QModelIndex> &indSet) const;
+
+  //---
+
   BBox getBBox(Node *node) const;
 
   //---
@@ -375,7 +399,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  NodeObj *rootNodeObj() const { return rootNodeObj_; }
+  Node *rootNode() const { return (dendrogram_ ? dendrogram_->root() : nullptr); }
+
+  NodeObj *rootNodeObj() const { return cacheData_.rootNodeObj; }
 
   virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
@@ -413,6 +439,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
+  void setOpen(NodeObj *nodeObj, bool open);
+
   bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res) override;
 
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -421,6 +449,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void expandNode(Node *hierNode, bool all);
   void collapseNode(Node *hierNode, bool all);
 
+  bool isExpandModelIndex(const QModelIndex &ind) const;
+
+  void expandModelIndex(const QModelIndex &ind, bool b);
+
  private slots:
   void expandSlot();
   void expandAllSlot();
@@ -428,12 +460,15 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
  private:
   using Dendrogram = CQChartsDendrogram;
+  using NodeObjs   = std::map<Node *, NodeObj *>;
 
   // columns
-  Column          nameColumn_;  //!< name column
-  Column          linkColumn_;  //!< link column
-  Column          valueColumn_; //!< value column
-  Column          sizeColumn_;  //!< size column
+  Column nameColumn_;  //!< name column
+  Column linkColumn_;  //!< link column
+  Column valueColumn_; //!< value column
+  Column sizeColumn_;  //!< size column
+
+  bool followViewExpand_ { false }; //!< follow view expand
 
   Dendrogram* dendrogram_ { nullptr }; //!< dendrogram class
   Node*       tempRoot_   { nullptr };
@@ -453,13 +488,22 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
 
-  NodeObj *rootNodeObj_ { nullptr }; //!< root node obj
+  //---
 
-  mutable bool needsReload_ { true }; //!< needs reload
-  mutable bool needsPlace_  { true }; //!< needs place
+  // cached data
+  struct CacheData {
+    bool needsReload { true }; //!< needs reload
+    bool needsPlace  { true }; //!< needs place
 
-  mutable CBuchHeim::Tree*     buchheimTree_     { nullptr }; //!< buchheim tree
-  mutable CBuchHeim::DrawTree* buchheimDrawTree_ { nullptr }; //!< buchheim draw tree
+    CBuchHeim::Tree*     buchheimTree     { nullptr }; //!< buchheim tree
+    CBuchHeim::DrawTree* buchheimDrawTree { nullptr }; //!< buchheim draw tree
+
+    NodeObj *rootNodeObj { nullptr }; //!< root node obj
+
+    NodeObjs nodeObjs;
+  };
+
+  mutable CacheData cacheData_;
 };
 
 //---

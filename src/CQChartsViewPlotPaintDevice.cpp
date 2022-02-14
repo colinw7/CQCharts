@@ -227,7 +227,7 @@ updateBackground()
 {
   auto c = altColor_;
 
-  if (c.isValid()) {
+  if (c.isValid() && c.alpha()) {
     c.setAlphaF(altAlpha_);
 
     painter_->setBackgroundMode(Qt::OpaqueMode);
