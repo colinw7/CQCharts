@@ -46,6 +46,7 @@ class CQChartsPointSetAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
+class CQChartsShapeAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
@@ -631,12 +632,13 @@ class CQChartsView : public QFrame,
   using PolygonAnnotation   = CQChartsPolygonAnnotation;
   using PolylineAnnotation  = CQChartsPolylineAnnotation;
   using RectangleAnnotation = CQChartsRectangleAnnotation;
+  using ShapeAnnotation     = CQChartsShapeAnnotation;
   using TextAnnotation      = CQChartsTextAnnotation;
   using ValueSetAnnotation  = CQChartsValueSetAnnotation;
   using WidgetAnnotation    = CQChartsWidgetAnnotation;
+  using Layer               = CQChartsLayer;
   using Buffer              = CQChartsBuffer;
   using BufferP             = std::unique_ptr<Buffer>;
-  using Layer               = CQChartsLayer;
 
   // get annotations
   const Annotations &annotations() const { return annotations_; }
@@ -661,6 +663,7 @@ class CQChartsView : public QFrame,
   PolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
   PolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
   RectangleAnnotation *addRectangleAnnotation(const Rect &rect);
+  ShapeAnnotation     *addShapeAnnotation    (const Rect &rect);
   TextAnnotation      *addTextAnnotation     (const Position &pos, const QString &text);
   TextAnnotation      *addTextAnnotation     (const Rect &rect, const QString &text);
   ValueSetAnnotation  *addValueSetAnnotation (const Rect &rect, const CQChartsReals &values);
@@ -811,6 +814,9 @@ class CQChartsView : public QFrame,
 
   const QString &scriptSelectProc() const { return scriptSelectProc_; }
   void setScriptSelectProc(const QString &s) { scriptSelectProc_ = s; }
+
+  // write stats
+  void writeStats(const BBox &bbox);
 
   //---
 
@@ -1277,6 +1283,8 @@ class CQChartsView : public QFrame,
 
   void writeScriptSlot();
   void writeScriptSlot(const QString &filename);
+
+  void writeStatsSlot();
 
   //---
 

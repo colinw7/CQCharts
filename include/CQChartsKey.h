@@ -68,6 +68,8 @@ class CQChartsKey : public CQChartsBoxObj,
 
   void setSelected(bool b) override;
 
+  void hideScrollBars();
+
   //---
 
   virtual const BBox &bbox() const = 0;

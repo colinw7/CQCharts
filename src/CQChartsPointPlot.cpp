@@ -225,10 +225,6 @@ addPointProperties()
   addProp("mapping/fontSize", "fontSizeMapMin"  , "min"    , "Font size map min value");
   addProp("mapping/fontSize", "fontSizeMapMax"  , "max"    , "Font size map max value");
   addProp("mapping/fontSize", "fontSizeMapUnits", "units"  , "Font size map units");
-
-  //---
-
-  //hideProp(this, "scaling.equal");
 }
 
 void
@@ -302,7 +298,7 @@ CQChartsPointPlot::
 setSymbolTypeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
-    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+    symbolTypeData_.valid = false; updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
 }
 
@@ -311,7 +307,7 @@ CQChartsPointPlot::
 setSymbolTypeMapped(bool b)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() {
-    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+    symbolTypeData_.valid = false; updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
 }
 
@@ -320,7 +316,7 @@ CQChartsPointPlot::
 setSymbolTypeMapMin(long i)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() {
-    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+    symbolTypeData_.valid = false; updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
 }
 
@@ -329,7 +325,7 @@ CQChartsPointPlot::
 setSymbolTypeMapMax(long i)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() {
-    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+    symbolTypeData_.valid = false; updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
 }
 
@@ -361,7 +357,7 @@ CQChartsPointPlot::
 setSymbolTypeMap(const CQChartsSymbolTypeMap &typeMap)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.typeMap, typeMap, [&]() {
-    updateRangeAndObjs(); emit symbolTypeDetailsChanged();
+    symbolTypeData_.valid = false; updateRangeAndObjs(); emit symbolTypeDetailsChanged();
   } );
 }
 
@@ -372,7 +368,7 @@ CQChartsPointPlot::
 setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -381,7 +377,7 @@ CQChartsPointPlot::
 setSymbolSizeMapped(bool b)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -391,7 +387,7 @@ setSymbolSizeMapMin(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() {
     symbolSizeData_.user_map_min = symbolSizeData_.map_min;
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -401,7 +397,7 @@ setSymbolSizeMapMax(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() {
     symbolSizeData_.user_map_max = symbolSizeData_.map_max;
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -410,7 +406,7 @@ CQChartsPointPlot::
 setSymbolSizeUserMapMin(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.user_map_min, r, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -419,7 +415,7 @@ CQChartsPointPlot::
 setSymbolSizeUserMapMax(double r)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.user_map_max, r, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -428,7 +424,7 @@ CQChartsPointPlot::
 setSymbolSizeMapUnits(const CQChartsUnits &u)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.units, u, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -437,7 +433,7 @@ CQChartsPointPlot::
 setSymbolSizeMap(const CQChartsSymbolSizeMap &sizeMap)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.sizeMap, sizeMap, [&]() {
-    updateRangeAndObjs(); emit symbolSizeDetailsChanged();
+    symbolSizeData_.valid = false; updateRangeAndObjs(); emit symbolSizeDetailsChanged();
   } );
 }
 
@@ -1190,6 +1186,14 @@ drawSymbolSizeMapKey(PaintDevice *device) const
   updateSymbolSizeMapKey();
 
   symbolSizeMapKey_->draw(device);
+
+  //---
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  auto symbolSizeMapKeyPath = QString("mapKeys.symbolSize");
+
+  symbolSizeMapKey_->updateProperties(th->propertyModel(), symbolSizeMapKeyPath);
 }
 
 void
@@ -1343,6 +1347,14 @@ drawSymbolTypeMapKey(PaintDevice *device) const
   updateSymbolTypeMapKey();
 
   symbolTypeMapKey_->draw(device);
+
+  //---
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  auto symbolTypeMapKeyPath = QString("mapKeys.symbolType");
+
+  symbolTypeMapKey_->updateProperties(th->propertyModel(), symbolTypeMapKeyPath);
 }
 
 void

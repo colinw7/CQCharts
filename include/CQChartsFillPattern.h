@@ -99,6 +99,7 @@ class CQChartsFillPattern :
   //---
 
   bool isValid() const { return type() != Type::NONE; }
+  bool isSolid() const { return type() == Type::SOLID; }
 
   //---
 

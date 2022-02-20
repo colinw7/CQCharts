@@ -349,7 +349,7 @@ CQChartsScatterPlot::
 setPlotType(PlotType type)
 {
   CQChartsUtil::testAndSet(plotType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); updateProperties(); emit customDataChanged();
   } );
 }
 
@@ -574,7 +574,7 @@ addProperties()
   auto densityMapPropPath = QString("overlays/densityMap");
 
   addProp(densityMapPropPath, "densityMap"        , "visible" , "Show density map overlay");
-  addProp(densityMapPropPath, "densityMapGridSize", "gridSize", "Density map grid size");
+  addProp(densityMapPropPath, "densityMapGridSize", "gridSize", "Density map grid size in pixels");
   addProp(densityMapPropPath, "densityMapDelta"   , "delta"   , "Density map delta");
   addProp(densityMapPropPath, "densityMapLayer"   , "layer"   , "Density map draw layer");
 
@@ -612,6 +612,9 @@ addProperties()
   addStyleProp     ("gridCells/stroke", "gridCellStroked", "visible", "Grid cell stroke visible");
   addLineProperties("gridCells/stroke", "gridCellStroke" , "Grid cell");
 
+  hideProp(this, "gridCells.stroke.dash");
+  hideProp(this, "gridCells.stroke.cap");
+
   //---
 
   // color map
@@ -637,6 +640,34 @@ addProperties()
   //---
 
   CQChartsPointPlot::addPointProperties();
+
+  //---
+
+  updateProperties();
+}
+
+//--
+
+void
+CQChartsScatterPlot::
+updateProperties()
+{
+  bool hasGrid = (isGridCells() || isHexCells());
+
+  enableProp(this, "gridCells.nx", hasGrid);
+  enableProp(this, "gridCells.ny", hasGrid);
+
+  enableProp(this, "gridCells.fill.visible", hasGrid);
+  enableProp(this, "gridCells.fill.color"  , hasGrid);
+  enableProp(this, "gridCells.fill.alpha"  , hasGrid);
+  enableProp(this, "gridCells.fill.pattern", hasGrid);
+
+  enableProp(this, "gridCells.stroke.visible", hasGrid);
+  enableProp(this, "gridCells.stroke.color"  , hasGrid);
+  enableProp(this, "gridCells.stroke.alpha"  , hasGrid);
+  enableProp(this, "gridCells.stroke.width"  , hasGrid);
+
+  CQChartsPointPlot::updateProperties();
 }
 
 //---
@@ -1115,15 +1146,17 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  if (isSymbols())
+  // plot types (one of)
+  if      (isSymbols())
     addPointObjects(objs);
-
-  if (isGridCells())
+  else if (isGridCells())
     addGridObjects(objs);
-
-  if (isHexCells())
+  else if (isHexCells())
     addHexObjects(objs);
 
+  //---
+
+  // overlays
   if (isBestFit())
     addBestFitObjects(objs);
 
@@ -3593,30 +3626,33 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
+  plot()->addTipHeader(tableTip, modelInd());
+
   plot()->addNoTipColumns(tableTip);
 
   //---
 
-  // add name (label or name column) as header
-  if (nameColumn().isValid() && name().length()) {
-    if (! tableTip.hasColumn(nameColumn())) {
-      tableTip.addBoldLine(name());
+  if (nameColumn().isValid() && name().length() && ! tableTip.hasColumn(nameColumn())) {
+    auto name = plot()->columnHeaderName(nameColumn(), /*tip*/true);
 
-      tableTip.addColumn(nameColumn());
-    }
+    tableTip.addTableRow(name, this->name());
+
+    tableTip.addColumn(nameColumn());
   }
-
-  //---
-
-  // TODO: id column
 
   //---
 
   // add group column (TODO: check group column)
   if (ig_.n > 1) {
-    auto groupName = plot_->groupIndName(groupInd_);
+    auto groupColumn = plot_->groupIndColumn();
 
-    tableTip.addTableRow("Group", groupName);
+    if (! tableTip.hasColumn(groupColumn)) {
+      auto groupName = plot_->groupIndName(groupInd_);
+
+      tableTip.addTableRow("Group", groupName);
+
+      tableTip.addColumn(groupColumn);
+    }
   }
 
   //---
@@ -3661,21 +3697,7 @@ calcTipId() const
   //---
 
   auto addColumnRowValue = [&](const Column &column) {
-    if (! column.isValid()) return;
-
-    if (tableTip.hasColumn(column))
-      return;
-
-    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
-
-    bool ok;
-
-    auto str = plot_->modelString(columnInd, ok);
-    if (! ok) return;
-
-    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
-
-    tableTip.addColumn(column);
+    plot_->addTipColumn(tableTip, column, modelInd());
   };
 
   //---
@@ -4314,7 +4336,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw density
-  CQChartsPaintDevice::SaveRestore saveRestore(device);
+  PaintDevice::SaveRestore saveRestore(device);
 
   plot_->setClipRect(device);
 
@@ -4329,30 +4351,6 @@ CQChartsScatterColorKeyItem(Plot *plot, int groupInd, const ColorInd &is, const 
 {
   setClickable(true);
 }
-
-#if 0
-bool
-CQChartsScatterColorKeyItem::
-selectPress(const Point &, SelMod selMod)
-{
-  auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
-
-  auto ic = (is_.n > 1 ? is_ : ig_);
-
-  auto ih = setIndex();
-
-  if (selMod == SelMod::ADD) {
-    for (int i = 0; i < ic.n; ++i) {
-      plot_->CQChartsPlot::setSetHidden(i, i != ih.i);
-    }
-  }
-  else {
-    plot->setSetHidden(ih.i, ! plot->isSetHidden(ih.i));
-  }
-
-  return true;
-}
-#endif
 
 void
 CQChartsScatterColorKeyItem::

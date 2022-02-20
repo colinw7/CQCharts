@@ -199,6 +199,12 @@ class Point :
 
   //------
 
+  static Point interp(const Point &p1, const Point &p2, double d=0.5) {
+     return Point(p1.x + d*(p2.x - p1.x), p1.y + d*(p2.y - p1.y));
+  }
+
+  //---
+
   double minComponent() const { return std::min(x, y); }
   double maxComponent() const { return std::max(x, y); }
 
@@ -251,6 +257,10 @@ class Point :
 
   static Point max(const Point &lhs, const Point &rhs) {
     return Point(std::max(lhs.x, rhs.x), std::max(lhs.y, rhs.y));
+  }
+
+  static Point avg(const Point &lhs, const Point &rhs) {
+    return Point(CMathUtil::avg(lhs.x, rhs.x), CMathUtil::avg(lhs.y, rhs.y));
   }
 
   //-----
@@ -772,6 +782,11 @@ class BBox :
   double getYMid() const { return CMathUtil::avg(getYMin(), getYMax()); }
 
   double getXYMid(bool horizontal) const { return (horizontal ? getXMid() : getYMid()); }
+
+  void getXYRange(bool horizontal, double &min, double &max) const {
+    min = (horizontal ? getXMin() : getYMin());
+    max = (horizontal ? getXMax() : getYMax());
+  }
 
   Point getCenter() const { return 0.5*(getMin() + getMax()); }
 

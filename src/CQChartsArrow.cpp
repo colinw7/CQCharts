@@ -269,7 +269,7 @@ isSolid() const
 
 void
 CQChartsArrow::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   PenBrush penBrush;
 
@@ -284,7 +284,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsArrow::
-draw(CQChartsPaintDevice *device, const PenBrush &penBrush) const
+draw(PaintDevice *device, const PenBrush &penBrush) const
 {
 #if DEBUG_LABELS
   drawData_.debugLabels = isDebugLabels();
@@ -909,7 +909,8 @@ drawContents(PaintDevice *device, const Point &from, const Point &to,
 #if DEBUG_LABELS
   // draw debug labels
   for (const auto &pointLabel : drawData.pointLabels)
-    drawPointLabel(device, pointLabel.point, pointLabel.text, pointLabel.above);
+    CQChartsDrawUtil::drawPointLabel(device, device->pixelToWindow(pointLabel.point),
+                                     pointLabel.text, pointLabel.above);
 #endif
 }
 
@@ -986,42 +987,6 @@ drawLine(PaintDevice *device, const Point &point1, const Point &point2,
 
   device->drawLine(Point(p1), Point(p2));
 }
-
-#if DEBUG_LABELS
-void
-CQChartsArrow::
-drawPointLabel(PaintDevice *device, const Point &point, const QString &text, bool above)
-{
-  // draw cross symbol
-  QPen tpen;
-
-  auto tc = Qt::black;
-
-  CQChartsUtil::setPen(tpen, true, tc);
-
-  device->setPen(tpen);
-
-  Point p1(point.x - 4, point.y    );
-  Point p2(point.x + 4, point.y    );
-  Point p3(point.x    , point.y - 4);
-  Point p4(point.x    , point.y + 4);
-
-  device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
-  device->drawLine(device->pixelToWindow(p3), device->pixelToWindow(p4));
-
-  //---
-
-  QFontMetricsF fm(device->font());
-
-  double fw = fm.width(text);
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  Point pt(point.x - fw/2, point.y + (above ? -(fd + 4) : fa + 4));
-
-  CQChartsDrawUtil::drawContrastText(device, device->pixelToWindow(pt), text, CQChartsAlpha(0.5));
-}
-#endif
 
 //---
 

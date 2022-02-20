@@ -34,6 +34,7 @@ class CQChartsColumn :
     DATA,       // model row data
     DATA_INDEX, // model row data sub value (e.g. time sub value)
     EXPR,       // expression
+    COLUMN_REF, // renference column
     ROW,        // model row number
     COLUMN,     // model column number
     CELL,       // model cell data
@@ -124,6 +125,12 @@ class CQChartsColumn :
   bool hasIndex() const { return (type_ == Type::DATA_INDEX && expr_); }
 
   QString index() const { return QString(hasIndex() ? expr_ : ""); }
+
+  //--
+
+  bool hasRef() const { return (type_ == Type::COLUMN_REF && expr_); }
+
+  QString refName() const { return QString(hasRef() ? expr_ : ""); }
 
   //--
 

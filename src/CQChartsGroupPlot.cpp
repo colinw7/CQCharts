@@ -843,6 +843,13 @@ groupIndName(int ind, bool hier) const
   }
 }
 
+CQChartsColumn
+CQChartsGroupPlot::
+groupIndColumn() const
+{
+  return groupBucket_->column();
+}
+
 CQChartsPlot::ColumnType
 CQChartsGroupPlot::
 groupType() const

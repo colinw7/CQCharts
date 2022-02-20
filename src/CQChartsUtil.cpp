@@ -1563,26 +1563,43 @@ QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize)
 
 namespace CQChartsUtil {
 
-Point nearestRectPoint(const BBox &rect, const Point &pos) {
+Point nearestRectPoint(const BBox &rect, const Point &pos,
+                       Qt::Orientation &orient, bool useCorners) {
   PointList pointList;
 
-  pointList.resize(8);
+  pointList.resize(useCorners ? 8 : 4);
 
   size_t np = 0;
 
-  pointList[np++] = Point(rect.getXMin(), rect.getYMin());
+  if (useCorners) {
+    pointList[np++] = Point(rect.getXMin(), rect.getYMin());
+    pointList[np++] = Point(rect.getXMin(), rect.getYMax());
+    pointList[np++] = Point(rect.getXMax(), rect.getYMin());
+    pointList[np++] = Point(rect.getXMax(), rect.getYMax());
+  }
+
   pointList[np++] = Point(rect.getXMin(), rect.getYMid());
-  pointList[np++] = Point(rect.getXMin(), rect.getYMax());
   pointList[np++] = Point(rect.getXMid(), rect.getYMin());
-//pointList[np++] = Point(rect.getXMid(), rect.getYMid());
   pointList[np++] = Point(rect.getXMid(), rect.getYMax());
-  pointList[np++] = Point(rect.getXMax(), rect.getYMin());
   pointList[np++] = Point(rect.getXMax(), rect.getYMid());
-  pointList[np++] = Point(rect.getXMax(), rect.getYMax());
+
+//pointList[np++] = Point(rect.getXMid(), rect.getYMid());
 
   int i;
 
-  return nearestPointListPoint(pointList, pos, i);
+  auto p = nearestPointListPoint(pointList, pos, i);
+
+  if (useCorners)
+    i -= 4;
+
+  if      (i == 0 || i == 3)
+    orient = Qt::Horizontal;
+  else if (i == 1 || i == 2)
+    orient = Qt::Vertical;
+  else
+    orient = Qt::Horizontal;
+
+  return p;
 }
 
 Point nearestPointListPoint(const PointList &points, const Point &pos, int &i) {

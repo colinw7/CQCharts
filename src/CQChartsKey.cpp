@@ -103,6 +103,14 @@ setSelected(bool b)
   } );
 }
 
+void
+CQChartsKey::
+hideScrollBars()
+{
+  scrollData_.hbar->hide();
+  scrollData_.vbar->hide();
+}
+
 //---
 
 void
@@ -789,8 +797,7 @@ CQChartsPlotKey(Plot *plot) :
   scrollData_.vbar = new QScrollBar(Qt::Vertical  , plot->view());
   scrollData_.vbar->setObjectName("keyVBar");
 
-  scrollData_.hbar->hide();
-  scrollData_.vbar->hide();
+  hideScrollBars();
 
   connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hscrollSlot(int)));
   connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
@@ -1786,11 +1793,12 @@ setFlipped(bool b)
 
 void
 CQChartsPlotKey::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
+  auto *th = const_cast<CQChartsPlotKey *>(this);
+
   if (! plot()->isVisible() || ! isOverlayVisible() || isEmpty()) {
-    scrollData_.hbar->hide();
-    scrollData_.vbar->hide();
+    th->hideScrollBars();
     return;
   }
 
@@ -1798,8 +1806,6 @@ draw(CQChartsPaintDevice *device) const
     return;
 
   //---
-
-  auto *th = const_cast<CQChartsPlotKey *>(this);
 
   th->doLayout();
 
@@ -1860,8 +1866,7 @@ draw(CQChartsPaintDevice *device) const
   // check if key size exceeds plot pixel size (auto hide if needed)
   if (isAutoHide()) {
     if (layoutData_.pixelWidthExceeded || layoutData_.pixelHeightExceeded) {
-      scrollData_.hbar->hide();
-      scrollData_.vbar->hide();
+      th->hideScrollBars();
       return;
     }
   }
@@ -1886,7 +1891,9 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
-  auto *painter = dynamic_cast<CQChartsPlotPaintDevice *>(device)->painter();
+  auto *pdevice = dynamic_cast<CQChartsPlotPaintDevice *>(device);
+  auto *painter = (pdevice ? pdevice->painter() : nullptr);
+  if (! painter) return;
 
   CQChartsPlotPaintDevice device1(drawPlot, painter);
 

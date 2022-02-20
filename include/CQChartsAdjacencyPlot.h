@@ -518,12 +518,12 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using NameNodeMap = std::map<QString, AdjacencyNode *>;
 
   // options
-  SortType    sortType_      { SortType::GROUP }; //!< sort type
-  bool        forceDiagonal_ { false };           //!< force diagonal
-  Length      bgMargin_      { "2px" };           //!< background margin
-  NodeMap     nodes_;                             //!< all nodes
-  NameNodeMap nameNodeMap_;                       //!< name node map
-  double      fontFactor_    { -1.0 };            //!< font factor
+  SortType    sortType_      { SortType::GROUP };  //!< sort type
+  bool        forceDiagonal_ { false };            //!< force diagonal
+  Length      bgMargin_      { Length::pixel(2) }; //!< background margin
+  NodeMap     nodes_;                              //!< all nodes
+  NameNodeMap nameNodeMap_;                        //!< name node map
+  double      fontFactor_    { -1.0 };             //!< font factor
 
   // inside obj
   CellObj* insideObj_ { nullptr }; //!< last inside object

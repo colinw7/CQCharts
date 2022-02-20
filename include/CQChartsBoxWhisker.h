@@ -313,8 +313,8 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   Plot*           plot_      { nullptr };                 //!< plot
   Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
-  Length          width_     { "24px" };                  //!< width
-  Length          margin_    { "8px" };                   //!< margin
+  Length          width_     { Length::pixel(24) };       //!< width
+  Length          margin_    { Length::pixel(8) };        //!< margin
   Alpha           alpha_     { 0.5 };                     //!< alpha
   DrawType        drawType_  { DrawType::WHISKER };       //!< draw type
   BoxWhisker      whisker_;                               //!< whisker data
@@ -416,7 +416,7 @@ class CQChartsAxisDensity : public CQChartsObj {
   Plot*           plot_      { nullptr };                 //!< plot
   Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
-  Length          width_     { "48px" };                  //!< width
+  Length          width_     { Length::pixel(48) };       //!< width
   Alpha           alpha_     { 0.5 };                     //!< alpha
   DrawType        drawType_  { DrawType::DISTRIBUTION };  //!< draw type
   BoxWhisker      whisker_;                               //!< whisker data

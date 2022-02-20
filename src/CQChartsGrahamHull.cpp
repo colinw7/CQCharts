@@ -249,7 +249,7 @@ areaSign(const Point &a, const Point &b, const Point &c)
 
 void
 CQChartsGrahamHull::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   constCalc();
 

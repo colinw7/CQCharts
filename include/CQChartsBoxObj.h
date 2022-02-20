@@ -81,6 +81,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   void addBoxProperties(PropertyModel *model, const QString &path, const QString &desc);
 
+  virtual void updateProperties(PropertyModel *, const QString &) { }
+
   //---
 
   void draw(PaintDevice *device, const BBox &bbox) const;

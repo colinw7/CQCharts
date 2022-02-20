@@ -136,7 +136,7 @@ setContourColors(const ColorArray &colors)
 
 void
 CQChartsContour::
-drawContour(CQChartsPaintDevice *device)
+drawContour(PaintDevice *device)
 {
   if (isSolid())
     drawContourSolid(device);
@@ -146,7 +146,7 @@ drawContour(CQChartsPaintDevice *device)
 
 void
 CQChartsContour::
-drawContourLines(CQChartsPaintDevice *device)
+drawContourLines(PaintDevice *device)
 {
   // fill background
   CQChartsGeom::BBox bbox(xmin_, ymin_, xmax_, ymax_);
@@ -351,7 +351,7 @@ drawContourLines(CQChartsPaintDevice *device)
 
 void
 CQChartsContour::
-drawContourSolid(CQChartsPaintDevice *device)
+drawContourSolid(PaintDevice *device)
 {
   ContourLevels levels;
 
@@ -429,7 +429,7 @@ initLevels(ContourLevels &levels) const
 
 void
 CQChartsContour::
-fillContourBox(CQChartsPaintDevice *device, double x1, double y1, double x2, double y2,
+fillContourBox(PaintDevice *device, double x1, double y1, double x2, double y2,
                double z1, double z2, double z3, double z4, const ContourLevels &levels)
 {
   // get box corner values
@@ -531,7 +531,7 @@ fillContourBox(CQChartsPaintDevice *device, double x1, double y1, double x2, dou
 
 void
 CQChartsContour::
-fillPolygon(CQChartsPaintDevice *device, const double *x, const double *y, int n)
+fillPolygon(PaintDevice *device, const double *x, const double *y, int n)
 {
   auto path = CQChartsDrawUtil::polygonToPath(x, y, n, /*closed*/true);
 
@@ -540,14 +540,14 @@ fillPolygon(CQChartsPaintDevice *device, const double *x, const double *y, int n
 
 void
 CQChartsContour::
-drawPoint(CQChartsPaintDevice *device, double x, double y)
+drawPoint(PaintDevice *device, double x, double y)
 {
   device->drawPoint(CQChartsGeom::Point(x, y));
 }
 
 void
 CQChartsContour::
-drawLine(CQChartsPaintDevice *device, double x1, double y1, double x2, double y2)
+drawLine(PaintDevice *device, double x1, double y1, double x2, double y2)
 {
   device->drawLine(CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2));
 }

@@ -638,8 +638,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
  protected:
   struct DotLineData {
-    bool   enabled { false }; //!< shown
-    Length width   { "3px" }; //!< width
+    bool   enabled { false };            //!< shown
+    Length width   { Length::pixel(3) }; //!< width
   };
 
  private:

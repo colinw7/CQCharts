@@ -652,6 +652,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // add properties
   void addProperties() override;
 
+  void updateProperties() override;
+
   //---
 
   Range calcRange() const override;

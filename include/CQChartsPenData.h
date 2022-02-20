@@ -64,13 +64,13 @@ class CQChartsPenData {
   void setLineJoin(const LineJoin &j) { lineJoin_ = j; }
 
  private:
-  bool     visible_  { true };  //!< visible
-  QColor   color_;              //!< pen color
-  Alpha    alpha_;              //!< pen alpha
-  Length   width_    { "0px" }; //!< pen width
-  LineDash dash_;               //!< pen line dash
-  LineCap  lineCap_;            //!< pen line cap
-  LineJoin lineJoin_;           //!< pen line join
+  bool     visible_  { true };             //!< visible
+  QColor   color_;                         //!< pen color
+  Alpha    alpha_;                         //!< pen alpha
+  Length   width_    { Length::pixel(0) }; //!< pen width
+  LineDash dash_;                          //!< pen line dash
+  LineCap  lineCap_;                       //!< pen line cap
+  LineJoin lineJoin_;                      //!< pen line join
 };
 
 #endif

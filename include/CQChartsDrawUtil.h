@@ -233,6 +233,16 @@ void editHandlePath(PaintDevice *device, QPainterPath &path, const BBox &bbox);
 void drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w);
 void roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w);
 
+#if 0
+
+#if DEBUG_LABELS
+QPainterPath pathAddRoundedEnds(PaintDevice *device, const QPainterPath &path, double w);
+#else
+QPainterPath pathAddRoundedEnds(const QPainterPath &path, double w);
+#endif
+
+#endif
+
 bool roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, double ysize);
 
 //---
@@ -277,10 +287,10 @@ void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
 
 void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
-              Qt::Orientation orient=Qt::Horizontal);
+                  Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
 void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
               const EdgeType &edgeType=EdgeType::ARC,
-              Qt::Orientation orientation=Qt::Horizontal);
+              Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
 
 void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
@@ -317,6 +327,12 @@ QString clipTextToLength(PaintDevice *device, const QString &text, const QFont &
 
 QString clipTextToLength(const QString &text, const QFont &font, double clipLength,
                          const Qt::TextElideMode &clipElide);
+
+//---
+
+#if DEBUG_LABELS
+void drawPointLabel(PaintDevice *device, const Point &point, const QString &text, bool above);
+#endif
 
 }
 
@@ -476,6 +492,12 @@ inline void visitPath(const QPainterPath &path, PathVisitor &visitor) {
 
   visitor.term();
 }
+
+//---
+
+void rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
+                          Qt::Orientation &orient1, Qt::Orientation &orient2,
+                          bool useCorners=true);
 
 //---
 

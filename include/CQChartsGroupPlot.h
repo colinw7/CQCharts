@@ -165,6 +165,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   QString groupIndName(int ind, bool hier=false) const;
 
+  Column groupIndColumn() const;
+
   ColumnType groupType() const;
 
   QVariant groupIndValue(int ind) const;

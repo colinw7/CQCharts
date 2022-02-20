@@ -546,7 +546,8 @@ namespace CQChartsUtil {
 
 using PointList = std::vector<Point>;
 
-Point nearestRectPoint(const BBox &bbox, const Point &p);
+Point nearestRectPoint(const BBox &bbox, const Point &p,
+                       Qt::Orientation &orient, bool useCorners=true);
 
 Point nearestPointListPoint(const PointList &points, const Point &pos, int &i);
 

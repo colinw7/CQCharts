@@ -1,5 +1,6 @@
-# sankey link model
-set model [load_charts_model -csv data/connections.csv -first_line_header]
+#set model [load_charts_model -csv data/connections.csv -first_line_header]
+#set model [load_charts_model -csv data/connections2.csv -first_line_header]
+set model [load_charts_model -csv data/connections3.csv -first_line_header]
 
 set plot [create_charts_plot -model $model -type graphviz -columns {{from 0} {to 1} {value 2}}]
 

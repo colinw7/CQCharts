@@ -238,7 +238,7 @@ class CQChartsLineData {
   bool     visible_  { true };                              //!< line visible
   Color    color_    { Color::Type::INTERFACE_VALUE, 1.0 }; //!< line color
   Alpha    alpha_;                                          //!< line alpha
-  Length   width_    { "0px" };                             //!< line width
+  Length   width_    { Length::pixel(0) };                  //!< line width
   LineDash dash_;                                           //!< line dash
   LineCap  lineCap_;                                        //!< line cap
   LineJoin lineJoin_;                                       //!< line join
@@ -398,11 +398,11 @@ class CQChartsStrokeData {
   bool     visible_    { true };                              //!< draw stroke
   Color    color_      { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
   Alpha    alpha_;                                            //!< stroke color alpha
-  Length   width_      { "0px" };                             //!< stroke width
+  Length   width_      { Length::pixel(0) };                  //!< stroke width
   LineDash dash_;                                             //!< stroke line dash
   LineCap  lineCap_;                                          //!< stroke line cap
   LineJoin lineJoin_;                                         //!< stroke line join
-  Length   cornerSize_ { "0px" };                             //!< corner size (for border)
+  Length   cornerSize_ { Length::pixel(0) };                  //!< corner size (for border)
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
@@ -523,11 +523,11 @@ class CQChartsBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool      visible_     { true };              //!< draw box
-  Margin    margin_      { "4px 0px 4px 0px" }; //!< outer margin
-  Margin    padding_     { "0px" };             //!< inner padding
-  ShapeData shape_;                             //!< shape data
-  Sides     borderSides_ { "tlbr" };            //!< border sides to draw
+  bool      visible_     { true };                      //!< draw box
+  Margin    margin_      { Margin::pixel(4, 0, 4, 0) }; //!< outer margin
+  Margin    padding_     { Margin::pixel(0, 0, 0, 0) }; //!< inner padding
+  ShapeData shape_;                                     //!< shape data
+  Sides     borderSides_ { "tlbr" };                    //!< border sides to draw
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsBoxData)
@@ -652,11 +652,11 @@ class CQChartsSymbolData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool       visible_ { true };  //!< visible
-  Symbol     symbol_;            //!< symbol
-  Length     size_    { "5px" }; //!< symbol size
-  StrokeData stroke_;            //!< symbol stroke
-  FillData   fill_;              //!< symbol fill
+  bool       visible_ { true };             //!< visible
+  Symbol     symbol_;                       //!< symbol
+  Length     size_    { Length::pixel(5) }; //!< symbol size
+  StrokeData stroke_;                       //!< symbol stroke
+  FillData   fill_;                         //!< symbol fill
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsSymbolData)

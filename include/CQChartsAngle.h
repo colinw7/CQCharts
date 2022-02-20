@@ -38,6 +38,12 @@ class CQChartsAngle :
   static Angle degrees(double value) { return Angle(Type::DEGREES, value); }
   static Angle radians(double value) { return Angle(Type::RADIANS, value); }
 
+  static Angle pointAngle(const Point &p1, const Point &p2) {
+    return Angle(Type::RADIANS, CQChartsGeom::pointAngle(p1, p2));
+  }
+
+  //---
+
   //! default constructor
   CQChartsAngle() = default;
 

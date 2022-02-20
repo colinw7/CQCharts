@@ -1,7 +1,7 @@
 set plotId [create_charts_plot -type empty -xmin 0 -ymin 0 -xmax 100 -ymax 100]
 
-set rect1 [create_charts_rectangle_annotation -plot $plotId -rectangle {{10 10} {20 20}}]
-set rect2 [create_charts_rectangle_annotation -plot $plotId -rectangle {{80 80} {90 90}}]
+set rect1 [create_charts_shape_annotation -plot $plotId -rectangle {{10 10} {20 20}}]
+set rect2 [create_charts_shape_annotation -plot $plotId -rectangle {{80 80} {90 90}}]
 
 set_charts_property -annotation $rect1 -name shapeType -value POLYGON
 set_charts_property -annotation $rect1 -name numSides -value 7

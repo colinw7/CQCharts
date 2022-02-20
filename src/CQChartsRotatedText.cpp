@@ -9,7 +9,7 @@
 namespace CQChartsRotatedText {
 
 void
-drawInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
+drawInBox(PaintDevice *device, const BBox &rect, const QString &text,
           const CQChartsTextOptions &options, bool /*alignBBox*/, bool /*isRadial*/)
 {
   auto a1 = -options.angle;
@@ -114,7 +114,7 @@ drawInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
 }
 
 void
-draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
+draw(PaintDevice *device, const Point &p, const QString &text,
      const CQChartsTextOptions &options, bool alignBBox, bool isRadial)
 {
   QFontMetricsF fm(device->font());
@@ -195,7 +195,7 @@ draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
 
 // p is in window coords, tx, ty, ax, ay are pixel coords
 void
-drawDelta(CQChartsPaintDevice *device, const Point &p, const QString &text,
+drawDelta(PaintDevice *device, const Point &p, const QString &text,
           const CQChartsTextOptions &options, double tx, double ty, double ax, double ay)
 {
   if (device->isInteractive())

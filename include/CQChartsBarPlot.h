@@ -109,11 +109,11 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
  protected:
   using DataLabelP = std::shared_ptr<DataLabel>;
 
-  Columns         valueColumns_;                  //!< value columns
-  Qt::Orientation orientation_  { Qt::Vertical }; //!< bar orientation
-  Length          margin_       { "2px" };        //!< bar margin
-  Length          groupMargin_  { "4px" };        //!< bar group margin
-  DataLabelP      dataLabel_;                     //!< data label data
+  Columns         valueColumns_;                      //!< value columns
+  Qt::Orientation orientation_  { Qt::Vertical };     //!< bar orientation
+  Length          margin_       { Length::pixel(2) }; //!< bar margin
+  Length          groupMargin_  { Length::pixel(4) }; //!< bar group margin
+  DataLabelP      dataLabel_;                         //!< data label data
 };
 
 #endif

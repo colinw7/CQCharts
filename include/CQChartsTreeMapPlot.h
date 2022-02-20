@@ -705,11 +705,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   };
 
   struct NodeData {
-    bool   hierName    { false }; //!< show hierarchical name
-    bool   textClipped { true };  //!< is text clipped
-    int    numSkipHier { 0 };     //!< number of levels of hier name to skip
-    bool   valueLabel  { false }; //!< draw value with name
-    Length marginWidth { "2px" }; //!< box margin
+    bool   hierName    { false };            //!< show hierarchical name
+    bool   textClipped { true };             //!< is text clipped
+    int    numSkipHier { 0 };                //!< number of levels of hier name to skip
+    bool   valueLabel  { false };            //!< draw value with name
+    Length marginWidth { Length::pixel(2) }; //!< box margin
   };
 
   TitleData   titleData_;                      //!< title data

@@ -41,6 +41,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
   using Angle         = CQChartsAngle;
+  using ClickMod      = CQChartsClickMod;
   using BBox          = CQChartsGeom::BBox;
   using Point         = CQChartsGeom::Point;
 
@@ -140,6 +141,8 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
+  void updateProperties(PropertyModel *model, const QString &path) override;
+
   //---
 
   QFont calcDrawFont(const Font &textFont) const;
@@ -148,9 +151,13 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   //---
 
-  virtual bool selectPressType(const Point &w, SelMod selMod, DrawType) {
-    return selectPress(w, selMod);
-  }
+  // implement select interface
+  virtual bool selectPressType(const Point &w, SelMod selMod, DrawType);
+
+  std::vector<int> adjustItemVisible(const std::vector<int> &itemVisible, const Point &p,
+                                     SelMod selMod, DrawType drawType) const;
+
+  virtual bool isItemInside(size_t i, const Point &p, DrawType drawType) const = 0;
 
   //---
 
@@ -197,13 +204,12 @@ class CQChartsMapKey : public CQChartsBoxObj,
   bool          insideX_   { true };                                //!< inside plot x
   bool          insideY_   { true };                                //!< inside plot y
   double        margin_    { 4.0 };                                 //!< external margin in pixels
-  double        padding_   { 4.0 };                                 //!< internal padding in pixels
+  double        padding_   { 2.0 };                                 //!< internal padding in pixels
   Position      position_;                                          //!< key position
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
 
   // header
   QString header_; //!< header
-
 
   // data
   bool numeric_  { false }; //!< is numeric
@@ -238,11 +244,12 @@ class CQChartsMapKey : public CQChartsBoxObj,
 class CQChartsColorMapKey : public CQChartsMapKey {
   Q_OBJECT
 
-  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
-  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
-  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
-  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
-  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+  Q_PROPERTY(double              dataMin      READ dataMin      WRITE setDataMin     )
+  Q_PROPERTY(double              dataMax      READ dataMax      WRITE setDataMax     )
+  Q_PROPERTY(double              mapMin       READ mapMin       WRITE setMapMin      )
+  Q_PROPERTY(double              mapMax       READ mapMax       WRITE setMapMax      )
+  Q_PROPERTY(CQChartsPaletteName paletteName  READ paletteName  WRITE setPaletteName )
+  Q_PROPERTY(CQChartsLength      cornerRadius READ cornerRadius WRITE setCornerRadius)
 
  public:
   using ColorData   = CQChartsColorColumnData;
@@ -250,6 +257,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
   using PaletteName = CQChartsPaletteName;
+  using Length      = CQChartsLength;
   using ColorInd    = CQChartsUtil::ColorInd;
 
   using BBox    = CQChartsGeom::BBox;
@@ -291,7 +299,14 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
+  const Length &cornerRadius() const { return cornerSize_; }
+  void setCornerRadius(const Length &r) { cornerSize_ = r; invalidate(); };
+
+  //---
+
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  void updateProperties(PropertyModel *model, const QString &path) override;
 
   //---
 
@@ -308,9 +323,12 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   //---
 
+  // implement select interface
   bool selectPress(const Point &w, SelMod selMod) override;
 
   bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+
+  bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 
  private:
   void invalidate() override;
@@ -348,6 +366,8 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   PaletteName paletteName_; //!< custom palette
 
+  Length cornerSize_ { Length::pixel(2) };
+
   BBox tbbox_;
 
   TypeItemBoxes itemBoxes_;
@@ -358,19 +378,24 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
 //-----
 
+CQCHARTS_NAMED_TEXT_DATA(Size, size)
+
 // TODO:
 //  . custom palette
 //  . shape
 //  . spread/overlay
 //  . text align left/center/right
 //  . separate border style
-class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
+class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
+ public CQChartsObjSizeTextData<CQChartsSymbolSizeMapKey> {
   Q_OBJECT
 
-  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
-  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
-  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
-  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
+  Q_PROPERTY(double dataMin READ dataMin WRITE setDataMin)
+  Q_PROPERTY(double dataMax READ dataMax WRITE setDataMax)
+  Q_PROPERTY(double mapMin  READ mapMin  WRITE setMapMin )
+  Q_PROPERTY(double mapMax  READ mapMax  WRITE setMapMax )
+
+  // congiguous circles
   Q_PROPERTY(double              scale       READ scale       WRITE setScale      )
   Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
   Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
@@ -378,13 +403,18 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   Q_PROPERTY(Qt::Alignment       textAlign   READ textAlign   WRITE setTextAlign  )
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
 
+  // discreet text
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Size, size)
+
  public:
+  using Font           = CQChartsFont;
   using Alpha          = CQChartsAlpha;
   using PenBrush       = CQChartsPenBrush;
   using BrushData      = CQChartsBrushData;
   using PenData        = CQChartsPenData;
   using PaletteName    = CQChartsPaletteName;
   using Length         = CQChartsLength;
+  using Angle          = CQChartsAngle;
   using SymbolSizeData = CQChartsSymbolSizeData;
   using ColorInd       = CQChartsUtil::ColorInd;
 
@@ -416,7 +446,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   void setMapMin(double r) { symbolSizeData_.map_min = r; invalidate(); }
 
   double mapMax() const { return symbolSizeData_.map_max; }
-  void setMapMax(double r) { symbolSizeData_.map_min = r; invalidate(); }
+  void setMapMax(double r) { symbolSizeData_.map_max = r; invalidate(); }
 
   //---
 
@@ -447,6 +477,8 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
+  void updateProperties(PropertyModel *model, const QString &path) override;
+
   //---
 
   bool isContiguous() const;
@@ -468,15 +500,18 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
 
   void drawCircles(PaintDevice *device, DrawType drawType, bool usePenBrush=false);
 
-  void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePenBrush);
+  void drawContiguousText(PaintDevice *device, const TextOptions &textOptions, bool usePenBrush);
 
   void drawBorder(PaintDevice *device, bool usePenBrush=false);
 
   //---
 
+  // implement select interface
   bool selectPress(const Point &w, SelMod selMod) override;
 
   bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+
+  bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 
  private:
   void invalidate() override;
@@ -493,9 +528,11 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey {
   void itemSelected(const CQChartsLength &size, bool visible);
 
  private:
-  void calcSymbolBoxes() const;
-  void calcTextBBox   () const;
-  void alignBoxes     (PaintDevice *device) const;
+  void calcContiguousSymbolBoxes() const;
+
+  void calcContiguousTextBBox() const;
+
+  void alignBoxes(PaintDevice *device) const;
 
   QString valueText(double value) const;
 
@@ -599,6 +636,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
+  void updateProperties(PropertyModel *model, const QString &path) override;
+
   //---
 
   bool isContiguous() const;
@@ -616,6 +655,8 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   bool selectPress(const Point &w, SelMod selMod) override;
 
   bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+
+  bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 
  private:
   void invalidate() override;

@@ -1018,8 +1018,7 @@ valueStr(const Plot *plot, double pos) const
   if (column().isValid()) {
     QString str;
 
-    if (CQChartsModelUtil::formatColumnValue(plot->charts(), plot->model().data(),
-                                             column(), valuePos, str))
+    if (plot->formatColumnValue(column(), valuePos, str))
       return str;
 
     if (isDataLabels()) {
@@ -1222,26 +1221,21 @@ drawGrid(const Plot *plot, PaintDevice *device) const
   if (! isDrawGrid())
     return;
 
+  // skip draw if too many ticks
+  if (numMajorTicks() >= maxMajorTicks())
+    return;
+
   //---
 
   auto dataRange = plot->calcDataRange();
 
+  // get axis range
   double amin = start();
   double amax = end  ();
 
+  // get perp data range
   double dmin, dmax;
-
-  if (isHorizontal()) {
-    dmin = dataRange.getYMin();
-    dmax = dataRange.getYMax();
-  }
-  else {
-    dmin = dataRange.getXMin();
-    dmax = dataRange.getXMax();
-  }
-
-  auto a1 = windowToPixel(plot, device, amin, dmin);
-  auto a2 = windowToPixel(plot, device, amax, dmax);
+  dataRange.getXYRange(! isHorizontal(), dmin, dmax);
 
   //---
 
@@ -1254,9 +1248,47 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
   //---
 
+  // get start position
+  auto getStartPos = [&]() {
+    double pos;
+
+    if (isDate()) {
+      pos = interval_.interval(0);
+
+      if (isGridMid())
+        pos = (pos + interval_.interval(1))/2;
+    }
+    else {
+      pos = calcStart();
+
+      if (isGridMid())
+        pos += inc/2.0;
+    }
+
+    return pos;
+  };
+
+  // get next position
+  auto getNextPos = [&](uint i, double lastPos) {
+    double nextPos;
+
+    if (isDate()) {
+      nextPos = interval_.interval(int(i + 1));
+
+      if (isGridMid())
+        nextPos = (nextPos + interval_.interval(int(i + 2)))/2;
+    }
+    else
+      nextPos = lastPos + inc;
+
+    return nextPos;
+  };
+
+  //---
+
   // draw fill
   if (isMajorGridFilled()) {
-    auto dataRect = plot->calcDataPixelRect();
+    auto dataRect = plot->pixelToWindow(plot->calcDataPixelRect()); // TODO: simplify
 
     device->setClipRect(dataRect);
 
@@ -1271,56 +1303,30 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
     //---
 
-    if (numMajorTicks() < maxMajorTicks()) {
-      double pos1;
+    double pos1 = getStartPos();
+    double pos2 = pos1;
 
-      if (isDate()) {
-        pos1 = interval_.interval(0);
+    for (uint i = 0; i < numMajorTicks() + 1; i++) {
+      // fill on alternate gaps (i = 1, 3, ...)
+      if (i & 1) {
+        if (pos2 >= amin || pos1 <= amax) {
+          // clip to axis range
+          double pos3 = std::max(pos1, amin);
+          double pos4 = std::min(pos2, amax);
 
-        if (isGridMid())
-          pos1 = (pos1 + interval_.interval(1))/2;
-      }
-      else {
-        pos1 = calcStart();
+          auto bbox = CQChartsGeom::makeDirBBox(! isHorizontal(), pos3, dmin, pos4, dmax);
 
-        if (isGridMid())
-          pos1 += inc/2.0;
-      }
+          CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-      double pos2 = pos1;
-
-      for (uint i = 0; i < numMajorTicks() + 1; i++) {
-        // fill on alternate gaps
-        if (i & 1) {
-          if (pos2 >= amin || pos1 <= amax) {
-            double pos3 = std::max(pos1, amin);
-            double pos4 = std::min(pos2, amax);
-
-            auto pp1 = windowToPixel(plot, device, Point(pos3, pos1));
-            auto pp2 = windowToPixel(plot, device, Point(pos4, pos2));
-
-            BBox bbox;
-
-            if (isHorizontal())
-              bbox = BBox(pp1.x, a1.y, pp2.x, a2.y);
-            else
-              bbox = BBox(a1.x, pp1.y, a2.x, pp2.y);
-
-            CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-            device->fillRect(bbox);
-          }
+          device->fillRect(bbox);
         }
-
-        //---
-
-        pos1 = pos2;
-
-        if (isDate())
-          pos2 = interval_.interval(int(i + 1));
-        else
-          pos2 = pos1 + inc;
       }
+
+      //---
+
+      // update start end/pos
+      pos1 = pos2;
+      pos2 = getNextPos(i, pos1);
     }
   }
 
@@ -1328,54 +1334,44 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
   // draw grid lines
   if (isMajorGridLinesDisplayed() || isMinorGridLinesDisplayed()) {
-    if (numMajorTicks() < maxMajorTicks()) {
-      double pos1;
+    double pos1 = getStartPos();
 
-      if (isDate()) {
-        pos1 = interval_.interval(0);
+    // TODO: draw minor then major in case of overlap (e.g. log axis)
 
-        if (isGridMid())
-          pos1 = (pos1 + interval_.interval(1))/2;
-      }
-      else {
-        pos1 = calcStart();
-
-        if (isGridMid())
-          pos1 += inc/2.0;
+    for (uint i = 0; i < numMajorTicks() + 1; i++) {
+      // draw major line (grid and tick)
+      if (pos1 >= amin && pos1 <= amax) {
+        // draw major grid line if major or minor displayed
+        if      (isMajorGridLinesDisplayed())
+          drawMajorGridLine(plot, device, pos1, dmin, dmax);
+        else if (isMinorGridLinesDisplayed())
+          drawMinorGridLine(plot, device, pos1, dmin, dmax);
       }
 
-      // TODO: draw minor then major in case of overlap (e.g. log axis)
+      if (isMinorGridLinesDisplayed()) {
+        for (uint j = 1; j < numMinorTicks(); j++) {
+          double pos2;
 
-      for (uint i = 0; i < numMajorTicks() + 1; i++) {
-        // draw major line (grid and tick)
-        if (pos1 >= amin && pos1 <= amax) {
-          // draw major grid line if major or minor displayed
-          if      (isMajorGridLinesDisplayed())
-            drawMajorGridLine(plot, device, pos1, dmin, dmax);
-          else if (isMinorGridLinesDisplayed())
-            drawMinorGridLine(plot, device, pos1, dmin, dmax);
-        }
+          if (isDate()) {
+            auto nextPos = getNextPos(i, pos1);
 
-        if (isMinorGridLinesDisplayed()) {
-          for (uint j = 1; j < numMinorTicks(); j++) {
-            double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
-
-            if (isIntegral() && ! CQModelUtil::isInteger(pos2))
-              continue;
-
-            // draw minor grid line
-            if (pos2 >= amin && pos2 <= amax)
-              drawMinorGridLine(plot, device, pos2, dmin, dmax);
+            pos2 = CMathUtil::map(j, 0, numMinorTicks(), pos1, nextPos);
           }
+          else
+            pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
+
+          if (isIntegral() && ! CQModelUtil::isInteger(pos2))
+            continue;
+
+          // draw minor grid line
+          if (pos2 >= amin && pos2 <= amax)
+            drawMinorGridLine(plot, device, pos2, dmin, dmax);
         }
-
-        //---
-
-        if (isDate())
-          pos1 = interval_.interval(int(i + 1));
-        else
-          pos1 += inc;
       }
+
+      //---
+
+      pos1 = getNextPos(i, pos1);
     }
   }
 

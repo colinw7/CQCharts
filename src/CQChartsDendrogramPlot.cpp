@@ -182,6 +182,9 @@ CQChartsDendrogramPlot::
 term()
 {
   delete dendrogram_;
+
+  delete cacheData_.buchheimTree;
+  delete cacheData_.buchheimDrawTree;
 }
 
 //---
@@ -1112,7 +1115,9 @@ createObjs(PlotObjs &objs) const
   auto rootModelInd1 = modelIndex(rootModelInd);
 
   rootNodeObj()->setModelIndex(rootModelInd);
-  rootNodeObj()->setModelInd  (normalizeIndex(rootModelInd1));
+
+  if (rootModelInd1.isValid())
+    rootNodeObj()->setModelInd(normalizeIndex(rootModelInd1));
 
   th->setOpen(rootNodeObj(), true);
 
@@ -1551,7 +1556,9 @@ CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, Node *node, const 
 
   if (node1) {
     setModelIndex(node1->modelInd());
-    setModelInd  (node1->ind());
+
+    if (node1->ind().isValid())
+      setModelInd(node1->ind());
 
     setColor(node1->colorValue());
     setSize (node1->sizeValue());

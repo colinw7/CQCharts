@@ -108,7 +108,7 @@ calc(const CQChartsPlot *plot, const Data &data)
 
 void
 CQChartsBivariateDensity::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
+draw(const CQChartsPlot *plot, PaintDevice *device)
 {
   for (const auto &cell : cells_) {
     // set brush

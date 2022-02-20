@@ -2917,7 +2917,8 @@ draw(PaintDevice *device) const
             std::swap(y1, y2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
+                                     CQChartsDrawUtil::EdgeType::ARC,
+                                     plot_->orientation(), plot_->orientation());
         }
         else {
           // start x range from source node, and end x range from dest node
@@ -2928,7 +2929,8 @@ draw(PaintDevice *device) const
             std::swap(x1, x2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
+                                     CQChartsDrawUtil::EdgeType::ARC,
+                                     plot_->orientation(), plot_->orientation());
         }
       }
       else {

@@ -263,6 +263,7 @@ CQChartsPaintDevice.cpp \
 CQChartsScriptPaintDevice.cpp \
 CQChartsSVGPaintDevice.cpp \
 CQChartsViewPlotPaintDevice.cpp \
+CQChartsStatsPaintDevice.cpp \
 \
 CQChartsPlotDrawUtil.cpp \
 CQChartsSVGUtil.cpp \
@@ -559,6 +560,7 @@ HEADERS += \
 ../include/CQChartsScriptPaintDevice.h \
 ../include/CQChartsSVGPaintDevice.h \
 ../include/CQChartsViewPlotPaintDevice.h \
+../include/CQChartsStatsPaintDevice.h \
 \
 ../include/CQChartsPlotDrawUtil.h \
 ../include/CQChartsSVGUtil.h \

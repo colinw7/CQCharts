@@ -106,7 +106,7 @@ dataInvalidate()
 
 void
 CQChartsAxisRug::
-draw(CQChartsPaintDevice *device, double delta)
+draw(PaintDevice *device, double delta)
 {
   auto symbol      = this->symbol();
   auto symbolSize  = this->symbolSize();

@@ -23,6 +23,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
+#include <CQChartsStatsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsSymbolSet.h>
@@ -1442,13 +1443,11 @@ writeSVG(SVGPaintDevice *device) const
 
   device->startGroup(plotId, groupData);
 
-  if (hasBackgroundRects()) {
+  if (hasBackgroundRects())
     drawBackgroundRects(device);
-  }
 
-  if (hasBackgroundI()) {
+  if (hasBackgroundI())
     drawCustomBackground(device);
-  }
 
   if (hasGroupedBgAxes()) {
     device->startGroup("bg_axis");
@@ -1466,9 +1465,8 @@ writeSVG(SVGPaintDevice *device) const
     device->endGroup();
   }
 
-  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION))
     drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
-  }
 
   //---
 
@@ -1498,9 +1496,8 @@ writeSVG(SVGPaintDevice *device) const
 
   //---
 
-  if (hasForegroundI()) {
+  if (hasForegroundI())
     drawCustomForeground(device);
-  }
 
   if (hasGroupedFgAxes()) {
     device->startGroup("fg_axis");
@@ -1568,6 +1565,54 @@ writeHtml(HtmlPaintDevice *device) const
 
   writeAnnotations(Layer::Type::BG_ANNOTATION);
   writeAnnotations(Layer::Type::FG_ANNOTATION);
+}
+
+//---
+
+void
+CQChartsPlot::
+writeStats(StatsPaintDevice *device) const
+{
+  if (hasBackgroundRects())
+    drawBackgroundRects(device);
+
+  if (hasBackgroundI())
+    drawCustomBackground(device);
+
+  if (hasGroupedBgAxes())
+    drawGroupedBgAxes(device);
+
+  if (hasGroupedBgKey())
+    drawBgKey(device);
+
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION))
+    drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
+
+  //---
+
+  for (const auto &plotObj : plotObjects()) {
+    plotObj->drawBg(device);
+    plotObj->draw  (device);
+    plotObj->drawFg(device);
+  }
+
+  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
+    drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
+  }
+
+  //---
+
+  if (hasForegroundI())
+    drawCustomForeground(device);
+
+  if (hasGroupedFgAxes())
+    drawGroupedFgAxes(device);
+
+  if (hasGroupedFgKey())
+    drawFgKey(device);
+
+  if (hasTitle())
+    drawTitle(device);
 }
 
 //---
@@ -3470,8 +3515,9 @@ addBaseProperties()
   if (type()->supportsIdColumn())
     addProp("columns", "idColumn", "id", "Id column");
 
-  addProp("columns", "tipColumns"  , "tips"  , "Tip columns");
-  addProp("columns", "noTipColumns", "notips", "No Tip columns");
+  addProp("columns", "tipHeaderColumn", "tipHeader", "Tip header column");
+  addProp("columns", "tipColumns"     , "tips"     , "Tip columns");
+  addProp("columns", "noTipColumns"   , "notips"   , "No Tip columns");
 
   addProp("columns", "visibleColumn", "visible", "Visible column");
 
@@ -3842,6 +3888,17 @@ addColorMapProperties()
   addProp("mapping/color", "colorMap"       , "color_map", "Value to color map");
 }
 
+//--
+
+void
+CQChartsPlot::
+updateProperties()
+{
+  enableProp(this, "font.tabbedFont", isTabbed());
+}
+
+//--
+
 CQPropertyViewItem *
 CQChartsPlot::
 addStyleProp(const QString &path, const QString &name, const QString &alias,
@@ -3870,6 +3927,16 @@ hideProp(QObject *obj, const QString &path)
   auto *item = propertyModel()->propertyItem(obj, path);
 
   CQCharts::setItemIsHidden(item);
+}
+
+void
+CQChartsPlot::
+enableProp(QObject *obj, const QString &path, bool enabled)
+{
+  auto *item = propertyModel()->propertyItem(obj, path);
+
+  if (item)
+    item->setEditable(enabled);
 }
 
 //---
@@ -4399,6 +4466,14 @@ drawColorMapKey(PaintDevice *device) const
   updateColorMapKey();
 
   colorMapKey_->draw(device);
+
+  //---
+
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  auto colorMapKeyPath = QString("mapKeys.color");
+
+  colorMapKey_->updateProperties(th->propertyModel(), colorMapKeyPath);
 }
 
 void
@@ -4446,8 +4521,6 @@ updateColorMapKey() const
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
   colorMapKey_->setData(colorColumnData());
-
-  colorMapKey_->setPaletteName(colorMapPalette());
 
   colorMapKey_->setNumeric     (isReal || isIntegral);
   colorMapKey_->setIntegral    (isIntegral);
@@ -5218,8 +5291,14 @@ updateAndAdjustRanges()
 
   resetExtraFitBBox();
 
-  calcDataRange_  = calcRange();
-  dataRange_      = adjustDataRange(getCalcDataRange());
+  calcDataRange_    = calcRange();
+  unequalDataRange_ = adjustDataRange(getCalcDataRange());
+
+  // adjust to equal scale
+  dataRange_ = unequalDataRange_;
+
+  applyEqualScale(dataRange_);
+
   outerDataRange_ = dataRange_;
 
   postCalcRange();
@@ -5895,6 +5974,9 @@ adjustDataRange(const Range &calcDataRange) const
   if (xmax().isSet()) dataRange.setRight (xmax().real());
   if (ymax().isSet()) dataRange.setTop   (ymax().real());
 
+  //---
+
+  // include zero
   if (xAxis() && xAxis()->isIncludeZero()) {
     if (dataRange.isSet())
       dataRange.updateRange(0, dataRange.ymid());
@@ -5904,8 +5986,6 @@ adjustDataRange(const Range &calcDataRange) const
     if (dataRange.isSet())
       dataRange.updateRange(dataRange.xmid(), 0);
   }
-
-  applyEqualScale(dataRange);
 
   return dataRange;
 }
@@ -8921,6 +9001,13 @@ setIdColumn(const Column &c)
 
 void
 CQChartsPlot::
+setTipHeaderColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(tipHeaderColumn_, c, [&]() { resetObjTips(); } );
+}
+
+void
+CQChartsPlot::
 setTipColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(tipColumns_, c, [&]() { resetObjTips(); } );
@@ -8980,12 +9067,13 @@ void
 CQChartsPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if      (name == "id"     ) this->setIdColumn(c);
-  else if (name == "visible") this->setVisibleColumn(c);
-  else if (name == "image"  ) this->setImageColumn(c);
-  else if (name == "color"  ) this->setColorColumn(c);
-  else if (name == "alpha"  ) this->setAlphaColumn(c);
-  else if (name == "font"   ) this->setFontColumn(c);
+  if      (name == "id"        ) this->setIdColumn(c);
+  else if (name == "tip_header") this->tipHeaderColumn();
+  else if (name == "visible"   ) this->setVisibleColumn(c);
+  else if (name == "image"     ) this->setImageColumn(c);
+  else if (name == "color"     ) this->setColorColumn(c);
+  else if (name == "alpha"     ) this->setAlphaColumn(c);
+  else if (name == "font"      ) this->setFontColumn(c);
   else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 }
 
@@ -9019,7 +9107,7 @@ CQChartsPlot::
 setColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9030,7 +9118,7 @@ setColorType(const ColorType &t)
   auto t1 = static_cast<CQChartsColorType>(t);
 
   CQChartsUtil::testAndSet(colorColumnData_.colorType, t1, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9039,7 +9127,7 @@ CQChartsPlot::
 setColorMapped(bool b)
 {
   CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9048,7 +9136,7 @@ CQChartsPlot::
 setColorMapMin(double r)
 {
   CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9057,7 +9145,7 @@ CQChartsPlot::
 setColorMapMax(double r)
 {
   CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9066,7 +9154,7 @@ CQChartsPlot::
 setColorMapPalette(const PaletteName &name)
 {
   CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9075,7 +9163,7 @@ CQChartsPlot::
 setColorXStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9084,7 +9172,7 @@ CQChartsPlot::
 setColorYStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9093,7 +9181,7 @@ CQChartsPlot::
 setColorMap(const CQChartsColorMap &colorMap)
 {
   CQChartsUtil::testAndSet(colorColumnData_.colorMap, colorMap, [&]() {
-    updateRangeAndObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateRangeAndObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -9137,10 +9225,9 @@ initColorColumnData()
       if (! ok) colorColumnData_.data_max = 1.0;
     }
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
-    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), colorColumn(),
-                                              columnTypeData);
+    (void) modelColumnValueType(colorColumn(), columnTypeData);
 
     if (columnTypeData.type == ColumnType::COLOR) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -9238,7 +9325,7 @@ columnValueColor(const QVariant &var, Color &color) const
 
   //---
 
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     // get real value
     bool ok;
     double r = CQChartsVariant::toReal(var, ok);
@@ -9535,10 +9622,9 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
       if (! ok) symbolTypeData.data_max = 1;
     }
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
-    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolTypeData.column,
-                                              columnTypeData);
+    (void) modelColumnValueType(symbolTypeData.column, columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -9746,10 +9832,9 @@ initSymbolSizeData(SymbolSizeData &symbolSizeData) const
                   CMathUtil::avg(symbolSizeData.data_min, symbolSizeData.data_max);
     }
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
-    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolSizeData.column,
-                                              columnTypeData);
+    (void) modelColumnValueType(symbolSizeData.column, columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -9905,10 +9990,9 @@ initFontSizeData(FontSizeData &fontSizeData) const
       if (! ok) fontSizeData.data_max = 1.0;
     }
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
-    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), fontSizeData.column,
-                                              columnTypeData);
+    (void) modelColumnValueType(fontSizeData.column, columnTypeData);
 
     if (columnTypeData.type == ColumnType::FONT_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -10100,10 +10184,20 @@ columnStr(const Column &column, double r) const
 
   QVariant var(r);
 
-  if (! CQChartsModelUtil::formatColumnValue(charts(), model, column, var, str))
+  if (! formatColumnValue(mapColumn(column), var, str))
     return CQChartsUtil::formatReal(r);
 
   return str;
+}
+
+bool
+CQChartsPlot::
+formatColumnValue(const Column &column, const QVariant &var, QString &str) const
+{
+  auto *model = this->model().data();
+  if (! model) return false;
+
+  return CQChartsModelUtil::formatColumnValue(charts(), model, mapColumn(column), var, str);
 }
 
 bool
@@ -10885,33 +10979,63 @@ plotTipText(const Point &p, QString &tip, bool single) const
 
 void
 CQChartsPlot::
-addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
+addTipHeader(CQChartsTableTip &tableTip, const QModelIndex &ind) const
 {
+  if (! tipHeaderColumn().isValid()) return;
+
   auto *th = const_cast<Plot *>(this);
 
-  for (const auto &c : tipColumns().columns()) {
-    if (! c.isValid()) continue;
+  ModelIndex tipModelInd(th, ind.row(), tipHeaderColumn(), ind.parent());
 
-    if (tableTip.hasColumn(c))
-      continue;
+  auto tipInd  = modelIndex(tipModelInd);
+  auto tipInd1 = unnormalizeIndex(tipInd);
 
-    ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
+  ModelIndex tipModelInd1(th, tipInd1.row(), tipHeaderColumn(), tipInd1.parent());
 
-    auto tipInd  = modelIndex(tipModelInd);
-    auto tipInd1 = unnormalizeIndex(tipInd);
+  bool ok;
+  auto value = modelString(tipModelInd1, ok);
+  if (! ok) return;
 
-    ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
+  tableTip.addBoldLine(value);
 
-    bool ok1, ok2;
+  tableTip.addColumn(tipHeaderColumn());
+}
 
-    auto name  = modelHHeaderString(c, ok1);
-    auto value = modelString(tipModelInd1, ok2);
+void
+CQChartsPlot::
+addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
+{
+  for (const auto &c : tipColumns().columns())
+    addTipColumn(tableTip, c, ind);
+}
 
-    if (ok1 && ok2)
-      tableTip.addTableRow(name, value);
+void
+CQChartsPlot::
+addTipColumn(CQChartsTableTip &tableTip, const Column &c, const QModelIndex &ind) const
+{
+  if (! c.isValid()) return;
 
-    tableTip.addColumn(c);
-  }
+  if (tableTip.hasColumn(c))
+    return;
+
+  auto *th = const_cast<Plot *>(this);
+
+  ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
+
+  auto tipInd  = modelIndex(tipModelInd);
+  auto tipInd1 = unnormalizeIndex(tipInd);
+
+  ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
+
+  auto name = columnHeaderName(c, /*tip*/true);
+
+  bool ok;
+  auto value = modelString(tipModelInd1, ok);
+  if (! ok) value = "";
+
+  tableTip.addTableRow(name, value);
+
+  tableTip.addColumn(c);
 }
 
 void
@@ -12412,12 +12536,12 @@ drawBackgroundRects(PaintDevice *device) const
                        fitBorderSides());
 
   if (isDataFilled() || isDataStroked()) {
-    auto clipBBox = (isDataRawClip() ? rawDisplayRangeBBox() : displayRangeBBox());
+    auto clipBBox = (isDataRawClip() ? unequalDataRange_.bbox() : displayRangeBBox());
 
     device->save();
     device->setClipRect(clipBBox);
 
-    auto drawBBox = (isDataRawRange() ? rawDisplayRangeBBox() : displayRangeBBox());
+    auto drawBBox = (isDataRawRange() ? unequalDataRange_.bbox() : displayRangeBBox());
 
     drawBackgroundRect(drawBBox, dataBrushData(ColorInd()), dataPenData(ColorInd()),
                        dataBorderSides());
@@ -14445,6 +14569,13 @@ addRectangleAnnotation(const Rect &rect)
   return addAnnotationT<RectangleAnnotation>(new RectangleAnnotation(this, rect));
 }
 
+CQChartsShapeAnnotation *
+CQChartsPlot::
+addShapeAnnotation(const Rect &rect)
+{
+  return addAnnotationT<ShapeAnnotation>(new ShapeAnnotation(this, rect));
+}
+
 CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const Position &pos, const QString &text)
@@ -15698,7 +15829,7 @@ CQChartsPlot::ColumnType
 CQChartsPlot::
 columnValueType(const Column &column, const ColumnType &defType) const
 {
-  CQChartsModelTypeData columnTypeData;
+  ModelTypeData columnTypeData;
 
   if (! columnValueType(column, columnTypeData, defType))
     return ColumnType::NONE;
@@ -15708,7 +15839,7 @@ columnValueType(const Column &column, const ColumnType &defType) const
 
 bool
 CQChartsPlot::
-columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
+columnValueType(const Column &column, ModelTypeData &columnTypeData,
                 const ColumnType &defType) const
 {
   if (! column.isValid()) {
@@ -15744,10 +15875,7 @@ columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
     }
   }
   else {
-    auto *model = this->model().data();
-    assert(model);
-
-    if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnTypeData)) {
+    if (! modelColumnValueType(column, columnTypeData)) {
       // if fail column is invalid
       columnTypeData.type     = ColumnType::NONE;
       columnTypeData.baseType = ColumnType::NONE;
@@ -15758,6 +15886,16 @@ columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
   return true;
 }
 
+bool
+CQChartsPlot::
+modelColumnValueType(const Column &column, ModelTypeData &columnTypeData) const
+{
+  auto *model = this->model().data();
+  assert(model);
+
+  return CQChartsModelUtil::columnValueType(charts(), model, mapColumn(column), columnTypeData);
+}
+
 #if 0
 bool
 CQChartsPlot::
@@ -15766,7 +15904,7 @@ columnTypeStr(const Column &column, QString &typeStr) const
   auto *model = this->model().data();
   assert(model);
 
-  return CQChartsModelUtil::columnTypeStr(charts(), model, column, typeStr);
+  return CQChartsModelUtil::columnTypeStr(charts(), model, mapColumn(column), typeStr);
 }
 
 bool
@@ -15776,7 +15914,7 @@ setColumnTypeStr(const Column &column, const QString &typeStr)
   auto *model = this->model().data();
   assert(model);
 
-  return CQChartsModelUtil::setColumnTypeStr(charts(), model, column, typeStr);
+  return CQChartsModelUtil::setColumnTypeStr(charts(), model, mapColumn(column), typeStr);
 }
 #endif
 
@@ -15804,7 +15942,7 @@ columnDetails(const Column &column) const
   auto *details = modelDetails();
   if (! details) return nullptr;
 
-  return details->columnDetails(column);
+  return details->columnDetails(mapColumn(column));
 }
 
 CQChartsModelData *
@@ -16323,14 +16461,14 @@ QVariant
 CQChartsPlot::
 modelHHeaderValue(QAbstractItemModel *model, const Column &column, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, column, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, mapColumn(column), ok);
 }
 
 QVariant
 CQChartsPlot::
 modelHHeaderValue(QAbstractItemModel *model, const Column &column, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, column, role, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, mapColumn(column), role, ok);
 }
 #endif
 
@@ -16388,14 +16526,14 @@ QString
 CQChartsPlot::
 modelHHeaderString(QAbstractItemModel *model, const Column &column, bool &ok) const
 {
-  return CQChartsModelUtil::modelHHeaderString(model, column, ok);
+  return CQChartsModelUtil::modelHHeaderString(model, mapColumn(column), ok);
 }
 
 QString
 CQChartsPlot::
 modelHHeaderString(QAbstractItemModel *model, const Column &column, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHHeaderString(model, column, role, ok);
+  return CQChartsModelUtil::modelHHeaderString(model, mapColumn(column), role, ok);
 }
 
 //--
@@ -16408,7 +16546,7 @@ modelHHeaderTip(const Column &column, bool &ok) const
                CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
 
   if (! ok || ! str.length())
-    str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
+    str = CQChartsModelUtil::modelHHeaderString(model().data(), mapColumn(column), ok);
 
   if (column.hasColumn())
     str += QString(" (#%1)").arg(column.column());
@@ -16509,7 +16647,7 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelValue(charts(), model, row, mapColumn(column), parent, role, ok);
 }
 
 QVariant
@@ -16518,9 +16656,10 @@ modelValue(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, bool &ok) const
 {
   if (column.hasRole())
-    return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, column.role(), ok);
+    return CQChartsModelUtil::modelValue(charts(), model, row, mapColumn(column),
+                                         parent, column.role(), ok);
 
-  return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelValue(charts(), model, row, mapColumn(column), parent, ok);
 }
 
 //---
@@ -16561,7 +16700,7 @@ QString
 CQChartsPlot::
 modelString(QAbstractItemModel *model, const ModelIndex &ind, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(),
+  return CQChartsModelUtil::modelString(charts(), model, ind.row(), mapColumn(ind.column()),
                                         ind.parent(), role, ok);
 }
 
@@ -16569,7 +16708,7 @@ QString
 CQChartsPlot::
 modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const
 {
-  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(),
+  return CQChartsModelUtil::modelString(charts(), model, ind.row(), mapColumn(ind.column()),
                                         ind.parent(), ok);
 }
 
@@ -16578,7 +16717,8 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const Column &column,
             const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelString(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelString(charts(), model, row, mapColumn(column),
+                                        parent, role, ok);
 }
 
 QString
@@ -16587,9 +16727,10 @@ modelString(QAbstractItemModel *model, int row, const Column &column,
             const QModelIndex &parent, bool &ok) const
 {
   if (column.hasRole())
-    return CQChartsModelUtil::modelString(charts(), model, row, column, parent, column.role(), ok);
+    return CQChartsModelUtil::modelString(charts(), model, row, mapColumn(column),
+                                          parent, column.role(), ok);
 
-  return CQChartsModelUtil::modelString(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelString(charts(), model, row, mapColumn(column), parent, ok);
 }
 
 //---
@@ -16653,7 +16794,7 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const Column &column,
           const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelReal(charts(), model, row, mapColumn(column), parent, role, ok);
 }
 
 double
@@ -16662,9 +16803,10 @@ modelReal(QAbstractItemModel *model, int row, const Column &column,
           const QModelIndex &parent, bool &ok) const
 {
   if (column.hasRole())
-    return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, column.role(), ok);
+    return CQChartsModelUtil::modelReal(charts(), model, row, mapColumn(column),
+                                        parent, column.role(), ok);
 
-  return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelReal(charts(), model, row, mapColumn(column), parent, ok);
 }
 
 //--
@@ -16728,7 +16870,8 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const Column &column,
              const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelInteger(charts(), model, row, mapColumn(column),
+                                         parent, role, ok);
 }
 
 long
@@ -16737,9 +16880,22 @@ modelInteger(QAbstractItemModel *model, int row, const Column &column,
              const QModelIndex &parent, bool &ok) const
 {
   if (column.hasRole())
-    return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, column.role(), ok);
+    return CQChartsModelUtil::modelInteger(charts(), model, row, mapColumn(column),
+                                           parent, column.role(), ok);
 
-  return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelInteger(charts(), model, row, mapColumn(column), parent, ok);
+}
+
+//---
+
+CQChartsColumn
+CQChartsPlot::
+mapColumn(const Column &column) const
+{
+  if (column.hasRef())
+    return getNamedColumn(column.refName());
+
+  return column;
 }
 
 //---
@@ -18005,8 +18161,8 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
   // add columns
   QVariantList columnsStrs;
-//QStringList parametersStrs;
-  QStringList parameterPropPaths;
+//QStringList  parametersStrs;
+  QStringList  parameterPropPaths;
 
   for (const auto &param : type()->parameters()) {
     QString defStr;

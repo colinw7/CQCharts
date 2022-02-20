@@ -205,6 +205,8 @@ addCommands()
                new CQChartsCreateChartsPolylineAnnotationCmd    (this));
     addCommand("create_charts_rectangle_annotation",
                new CQChartsCreateChartsRectangleAnnotationCmd   (this));
+    addCommand("create_charts_shape_annotation",
+               new CQChartsCreateChartsShapeAnnotationCmd       (this));
     addCommand("create_charts_text_annotation",
                new CQChartsCreateChartsTextAnnotationCmd        (this));
     addCommand("create_charts_value_set_annotation",
@@ -232,6 +234,7 @@ addCommands()
     // print, write
     addCommand("print_charts_image", new CQChartsPrintChartsImageCmd(this));
     addCommand("write_charts_data" , new CQChartsWriteChartsDataCmd(this));
+    addCommand("write_charts_stats", new CQChartsWriteChartsStatsCmd(this));
 
     // measure/encode text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
@@ -9042,11 +9045,11 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-symbol", ArgType::String, "symbol");
   addArg(argv, "-size"  , ArgType::Length, "symbol size");
 
-//addArg(argv, "-filled"    , ArgType::SBool, "symbol background is filled" ).setHidden();
+  addArg(argv, "-filled"    , ArgType::SBool, "symbol background is filled" ).setHidden();
   addArg(argv, "-fill_color", ArgType::Color, "symbol background fill color").setHidden();
   addArg(argv, "-fill_alpha", ArgType::Real , "symbol background fill alpha").setHidden();
 
-//addArg(argv, "-stroked"     , ArgType::SBool , "symbol border stroke visible").setHidden();
+  addArg(argv, "-stroked"     , ArgType::SBool , "symbol border stroke visible").setHidden();
   addArg(argv, "-stroke_color", ArgType::Color , "symbol border stroke color"  ).setHidden();
   addArg(argv, "-stroke_alpha", ArgType::Real  , "symbol border stroke alpha"  ).setHidden();
   addArg(argv, "-stroke_width", ArgType::Length, "symbol border stroke width"  ).setHidden();
@@ -9134,11 +9137,11 @@ execCmd(CQChartsCmdArgs &argv)
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
 
-//fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
+  fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
   fill.setAlpha  (argv.getParseAlpha("fill_alpha", fill.alpha    ()));
 
-//stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
+  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color    ()));
   stroke.setAlpha  (argv.getParseAlpha ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
@@ -9907,6 +9910,203 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = plot->addRectangleAnnotation(rect);
     else if (view)
       annotation = view->addRectangleAnnotation(rect);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setBoxData(boxData);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsShapeAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-rectangle" , ArgType::Rect, "rectangle bounding box");
+
+  addArg(argv, "-start", ArgType::Position, "start").setHidden();
+  addArg(argv, "-end"  , ArgType::Position, "end"  ).setHidden();
+
+  addArg(argv, "-margin" , ArgType::Real, "margin" ).setHidden();
+  addArg(argv, "-padding", ArgType::Real, "padding").setHidden();
+
+  addArg(argv, "-filled"      , ArgType::SBool , "background is filled"   ).setHidden();
+  addArg(argv, "-fill_color"  , ArgType::Color , "background fill color"  ).setHidden();
+  addArg(argv, "-fill_alpha"  , ArgType::Real  , "background fill alpha"  ).setHidden();
+  addArg(argv, "-fill_pattern", ArgType::String, "background fill pattern").setHidden();
+
+  addArg(argv, "-stroked"     , ArgType::SBool   , "border is stroked"  ).setHidden();
+  addArg(argv, "-stroke_color", ArgType::Color   , "border stroke color").setHidden();
+  addArg(argv, "-stroke_alpha", ArgType::Real    , "border stroke alpha").setHidden();
+  addArg(argv, "-stroke_width", ArgType::Length  , "border stroke width").setHidden();
+  addArg(argv, "-stroke_dash" , ArgType::LineDash, "border stroke dash" ).setHidden();
+
+  addArg(argv, "-corner_size" , ArgType::Length, "corner size" ).setHidden();
+  addArg(argv, "-border_sides", ArgType::Sides , "border sides").setHidden();
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsShapeAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsShapeAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsShapeAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  CQChartsBoxData boxData;
+
+  boxData.setMargin (CQChartsMargin());
+  boxData.setPadding(CQChartsMargin());
+
+  auto &fill   = boxData.shape().fill  ();
+  auto &stroke = boxData.shape().stroke();
+
+  stroke.setVisible(true);
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  boxData.setMargin (argv.getParseMargin(view, plot, "margin" , boxData.margin ()));
+  boxData.setPadding(argv.getParseMargin(view, plot, "padding", boxData.padding()));
+
+  fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseAlpha  ("fill_alpha"  , fill.alpha    ()));
+  fill.setPattern(argv.getParsePattern("fill_pattern", fill.pattern  ()));
+
+  stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
+  stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
+  stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
+  stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
+
+  stroke.setCornerSize(argv.getParseLength(view, plot, "corner_size", stroke.cornerSize()));
+
+  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
+
+  //---
+
+  CQChartsShapeAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
+    auto start = argv.getParsePosition(view, plot, "start");
+    auto end   = argv.getParsePosition(view, plot, "end"  );
+
+    auto rect = CQChartsViewPlotObj::makeRect(view, plot, start, end);
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
+
+    if      (plot)
+      annotation = plot->addShapeAnnotation(rect);
+    else if (view)
+      annotation = view->addShapeAnnotation(rect);
+  }
+  else if (argv.hasParseArg("rectangle")) {
+    auto rect = argv.getParseRect(view, plot, "rectangle");
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
+
+    if      (plot)
+      annotation = plot->addShapeAnnotation(rect);
+    else if (view)
+      annotation = view->addShapeAnnotation(rect);
+  }
+  else {
+    CQChartsGeom::Point start(0, 0);
+    CQChartsGeom::Point end  (1, 1);
+
+    CQChartsRect rect;
+
+    if      (plot)
+      rect = CQChartsRect::plot(CQChartsGeom::BBox(start, end));
+    else if (view)
+      rect = CQChartsRect::view(CQChartsGeom::BBox(start, end));
+
+    if      (plot)
+      annotation = plot->addShapeAnnotation(rect);
+    else if (view)
+      annotation = view->addShapeAnnotation(rect);
   }
 
   if (! annotation)
@@ -11303,6 +11503,81 @@ execCmd(CQChartsCmdArgs &argv)
     else {
       return errorMsg("Invalid write type");
     }
+  }
+
+  return true;
+}
+
+//------
+
+void
+CQChartsWriteChartsStatsCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-bbox", ArgType::String, "Bounding box");
+}
+
+QStringList
+CQChartsWriteChartsStatsCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsWriteChartsStatsCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsWriteChartsDataCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  CQChartsGeom::BBox bbox;
+
+  auto bboxStr = argv.getParseStr("bbox");
+
+  if (bboxStr != "") {
+    if (! bbox.fromString(bboxStr))
+      errorMsg("Invalid bbox");
+  }
+
+  //---
+
+  if      (view)
+    view->writeStats(bbox);
+  else if (plot) {
+    //plot->writeStats();
   }
 
   return true;

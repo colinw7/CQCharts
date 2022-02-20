@@ -27,9 +27,12 @@
 #include <CQChartsKeyEdit.h>
 #include <CQChartsTitleEdit.h>
 #include <CQChartsEditHandles.h>
+
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
+#include <CQChartsStatsPaintDevice.h>
+
 #include <CQChartsDocument.h>
 #include <CQChartsRegionMgr.h>
 
@@ -802,14 +805,14 @@ setPosTextType(const PosTextType &t)
 
 void
 CQChartsView::
-setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
+setPainterFont(PaintDevice *device, const CQChartsFont &font) const
 {
   device->setFont(viewFont(font));
 }
 
 void
 CQChartsView::
-setPlotPainterFont(const Plot *plot, CQChartsPaintDevice *device, const CQChartsFont &font) const
+setPlotPainterFont(const Plot *plot, PaintDevice *device, const CQChartsFont &font) const
 {
   device->setFont(plotFont(plot, font));
 }
@@ -1508,6 +1511,13 @@ CQChartsView::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
   return addAnnotationT<RectangleAnnotation>(new RectangleAnnotation(this, rect));
+}
+
+CQChartsShapeAnnotation *
+CQChartsView::
+addShapeAnnotation(const CQChartsRect &rect)
+{
+  return addAnnotationT<ShapeAnnotation>(new ShapeAnnotation(this, rect));
 }
 
 CQChartsTextAnnotation *
@@ -4643,7 +4653,7 @@ paint(QPainter *painter, Plot *plot)
 
 void
 CQChartsView::
-drawBackground(CQChartsPaintDevice *device) const
+drawBackground(PaintDevice *device) const
 {
   // fill background
   PenBrush penBrush;
@@ -4886,7 +4896,7 @@ showNoData(bool show)
 
 void
 CQChartsView::
-drawNoData(CQChartsPaintDevice *)
+drawNoData(PaintDevice *)
 {
   auto p_font = this->font().font();
   QFontMetricsF p_fm(p_font);
@@ -5007,7 +5017,7 @@ hasAnnotations(const Layer::Type &layerType) const
 
 void
 CQChartsView::
-drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
+drawAnnotations(PaintDevice *device, const CQChartsLayer::Type &layerType)
 {
   auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
     return ((layerType == Layer::Type::BG_ANNOTATION &&
@@ -5047,7 +5057,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
 
 void
 CQChartsView::
-drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
+drawKey(PaintDevice *device, const CQChartsLayer::Type &layerType)
 {
   // draw view key
   if (! key())
@@ -6063,6 +6073,8 @@ showMenu(const Point &p)
 
     addAction(printMenu, "SVG/Html", SLOT(writeSVGSlot()));
     addAction(printMenu, "JS/Html" , SLOT(writeScriptSlot()));
+
+    addAction(printMenu, "Stats" , SLOT(writeStatsSlot()));
   }
 
   //---
@@ -6863,7 +6875,7 @@ writeSVG(const QString &filename, Plot *plot)
   //---
 
   // tooltip procs
-  CQChartsJS::writeToolTipProcs(os, CQChartsPaintDevice::Type::SVG);
+  CQChartsJS::writeToolTipProcs(os, PaintDevice::Type::SVG);
 
   //---
 
@@ -7010,7 +7022,7 @@ writeScript(const QString &filename, Plot *plot)
   //---
 
   // tooltip procs
-  CQChartsJS::writeToolTipProcs(os, CQChartsPaintDevice::Type::SCRIPT);
+  CQChartsJS::writeToolTipProcs(os, PaintDevice::Type::SCRIPT);
 
   //---
 
@@ -7286,6 +7298,29 @@ writeScript(const QString &filename, Plot *plot)
   os << "</html>\n";
 
   return true;
+}
+
+//---
+
+void
+CQChartsView::
+writeStatsSlot()
+{
+  writeStats(BBox());
+}
+
+void
+CQChartsView::
+writeStats(const BBox &bbox)
+{
+  auto *th = const_cast<CQChartsView *>(this);
+
+  CQChartsStatsPaintDevice device(th);
+
+  for (auto &plot : plots())
+    plot->writeStats(&device);
+
+  device.print(bbox);
 }
 
 //------

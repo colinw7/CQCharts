@@ -114,6 +114,8 @@ class CQChartsViewPlotObj : public CQChartsObj,
   double lengthParentSignedWidth (const Length &len) const;
   double lengthParentSignedHeight(const Length &len) const;
 
+  double lengthWindowWidth(const Length &len) const;
+
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;
 
@@ -125,6 +127,8 @@ class CQChartsViewPlotObj : public CQChartsObj,
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
+
+  double windowToPixelWidth(double w) const;
 
   //---
 

@@ -1,7 +1,7 @@
 #ifndef CQChartsArrow_H
 #define CQChartsArrow_H
 
-#define DEBUG_LABELS 1
+//#define DEBUG_LABELS 1
 
 #include <CQChartsObjData.h>
 #include <CQChartsGeom.h>
@@ -366,11 +366,6 @@ class CQChartsArrow : public QObject,
 
   static void drawLine(PaintDevice *device, const Point &point1, const Point &point2,
                        double width, const PenBrush &penBrush);
-
-#if DEBUG_LABELS
-  static void drawPointLabel(PaintDevice *device, const Point &point,
-                             const QString &text, bool above);
-#endif
 
   static double pointLineDistance(const Point &p, const Point &p1, const Point &p2);
 

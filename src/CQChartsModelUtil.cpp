@@ -178,6 +178,9 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
                 CQChartsModelTypeData &columnTypeData, bool init) {
   assert(model);
 
+  if (! column.isValid())
+    return false;
+
   auto setRetType = [&](const ModelType &type) {
     columnTypeData.type     = type;
     columnTypeData.baseType = type;
@@ -185,9 +188,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
     return (columnTypeData.type != ModelType::NONE);
   };
 
-  if (column.type() == Column::Type::DATA ||
-      column.type() == Column::Type::DATA_INDEX ||
-      column.type() == Column::Type::HHEADER) {
+  if      (column.hasColumn()) {
     // get column number and validate
     int icolumn = column.column();
 
@@ -200,7 +201,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
     auto *columnTypeMgr = charts->columnTypeMgr();
 
     if (columnTypeMgr->getModelColumnType(model, Column(icolumn), columnTypeData)) {
-      if (column.type() == Column::Type::DATA_INDEX) {
+      if (column.hasIndex()) {
         const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
         if (typeData)
@@ -215,7 +216,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
     // determine column type from values
     // TODO: cache (in plot ?), max visited values
 
-    if (column.type() == Column::Type::HHEADER)
+    if (column.isHHeader())
       return setRetType(ModelType::STRING);
 
     auto *baseModel =
@@ -235,12 +236,18 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
 
     return setRetType(columnType);
   }
-  else if (column.type() == Column::Type::GROUP) {
+  else if (column.isRow()) {
     return setRetType(ModelType::INTEGER);
   }
-  else {
+  else if (column.isGroup()) {
+    return setRetType(ModelType::INTEGER);
+  }
+  else if (column.hasExpr()) {
     // TODO: for custom expression should determine expression result type (if possible)
     return setRetType(ModelType::STRING);
+  }
+  else {
+    assert(false);
   }
 }
 
@@ -289,7 +296,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const Colum
 
   auto *columnTypeMgr = charts->columnTypeMgr();
 
-  if (column.type() == Column::Type::HHEADER) {
+  if (column.isHHeader()) {
     auto columnType = columnTypeMgr->getType(typeData.headerType);
     if (! columnType) return false;
 
@@ -1162,16 +1169,18 @@ QVariant modelHeaderValueI(const QAbstractItemModel *model, const Column &column
   if (column.hasName())
     return column.name();
 
-  if (column.type() != Column::Type::DATA &&
-      column.type() != Column::Type::DATA_INDEX)
+  if (column.type() == Column::Type::DATA || column.type() == Column::Type::DATA_INDEX) {
+    int icolumn = column.column();
+
+    if (icolumn < 0)
+      return QVariant();
+
+    return CQModelUtil::modelHeaderValue(model, icolumn, orient, role, ok);
+  }
+  else {
+    assert(false);
     return QVariant();
-
-  int icolumn = column.column();
-
-  if (icolumn < 0)
-    return QVariant();
-
-  return CQModelUtil::modelHeaderValue(model, icolumn, orient, role, ok);
+  }
 }
 
 QVariant modelHeaderValue(const QAbstractItemModel *model, int section,
@@ -1233,14 +1242,19 @@ QString modelHHeaderString(const QAbstractItemModel *model, const Column &column
 
 bool setModelHeaderValueI(QAbstractItemModel *model, const Column &column,
                           Qt::Orientation orient, const QVariant &var, int role) {
-  if (column.type() != Column::Type::DATA &&
-      column.type() != Column::Type::DATA_INDEX)
+  if (! column.isValid())
     return false;
 
-  if (role >= 0)
-    return model->setHeaderData(column.column(), orient, var, role);
-  else
-    return model->setHeaderData(column.column(), orient, var, Qt::DisplayRole);
+  if (column.type() == Column::Type::DATA || column.type() == Column::Type::DATA_INDEX) {
+    if (role >= 0)
+      return model->setHeaderData(column.column(), orient, var, role);
+    else
+      return model->setHeaderData(column.column(), orient, var, Qt::DisplayRole);
+  }
+  else {
+    assert(false);
+    return false;
+  }
 }
 
 bool setModelHeaderValue(QAbstractItemModel *model, int section,
@@ -1267,16 +1281,21 @@ bool setModelHeaderValue(QAbstractItemModel *model, const Column &column,
 
 bool setModelValue(QAbstractItemModel *model, int row, const Column &column,
                    const QModelIndex &parent, const QVariant &var, int role) {
-  if (column.type() != Column::Type::DATA &&
-      column.type() != Column::Type::DATA_INDEX)
+  if (! column.isValid())
     return false;
 
-  auto ind = model->index(row, column.column(), parent);
+  if (column.type() == Column::Type::DATA || column.type() == Column::Type::DATA_INDEX) {
+    auto ind = model->index(row, column.column(), parent);
 
-  if (role >= 0)
-    return model->setData(ind, var, role);
-  else
-    return model->setData(ind, var, Qt::EditRole);
+    if (role >= 0)
+      return model->setData(ind, var, role);
+    else
+      return model->setData(ind, var, Qt::EditRole);
+  }
+  else {
+    assert(false);
+    return false;
+  }
 }
 
 bool setModelValue(QAbstractItemModel *model, int row, const Column &column,
@@ -1304,7 +1323,6 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
                     int role, bool &ok) {
   if (! column.isValid()) {
     ok = false;
-
     return QVariant();
   }
 
@@ -1337,29 +1355,29 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     return ivar;
   }
-  else if (column.type() == Column::Type::ROW) {
+  else if (column.isRow()) {
     ok = true;
 
     return row + column.rowOffset();
   }
-  else if (column.type() == Column::Type::COLUMN) {
+  else if (column.isColumn()) {
     ok = true;
 
     return column.columnCol();
   }
-  else if (column.type() == Column::Type::CELL) {
+  else if (column.isCell()) {
     ok = true;
 
     auto ind = model->index(row, column.cellCol(), parent);
 
     return modelValue(model, ind, role, ok);
   }
-  else if (column.type() == Column::Type::VHEADER) {
+  else if (column.isVHeader()) {
     auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 
     return var;
   }
-  else if (column.type() == Column::Type::GROUP) {
+  else if (column.isGroup()) {
     auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical,
                                              CQBaseModelRole::Group, ok);
 
@@ -1389,8 +1407,9 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return var;
   }
   else {
-    ok = false;
+    assert(false);
 
+    ok = false;
     return QVariant();
   }
 }

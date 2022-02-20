@@ -462,7 +462,7 @@ isDrawn() const
 
 void
 CQChartsTitle::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   if (! isDrawn())
     return;

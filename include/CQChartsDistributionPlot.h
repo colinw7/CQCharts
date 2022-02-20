@@ -1074,8 +1074,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
    * \ingroup Charts
    */
   struct DotLineData {
-    bool           enabled { false }; //!< shown
-    CQChartsLength width   { "3px" }; //!< width
+    bool           enabled { false };            //!< shown
+    CQChartsLength width   { Length::pixel(3) }; //!< width
   };
 
   /*!

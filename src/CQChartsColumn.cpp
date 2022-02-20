@@ -54,7 +54,7 @@ CQChartsColumn::
 CQChartsColumn(const CQChartsColumn &rhs) :
  type_(rhs.type_), column_(rhs.column_), role_(rhs.role_)
 {
-  if (rhs.hasExpr() || rhs.hasIndex()) {
+  if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef()) {
     auto len = strlen(rhs.expr_);
 
     auto len1 = size_t(len + 1);
@@ -108,7 +108,7 @@ operator=(const CQChartsColumn &rhs)
     expr_   = nullptr;
     name_   = nullptr;
 
-    if (rhs.hasExpr() || rhs.hasIndex()) {
+    if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef()) {
       auto len = strlen(rhs.expr_);
 
       auto len1 = size_t(len + 1);
@@ -197,7 +197,7 @@ setValue(const QString &str)
   expr_   = nullptr;
   name_   = nullptr;
 
-  if (type == Type::EXPR || type == Type::DATA_INDEX) {
+  if (type == Type::EXPR || type == Type::DATA_INDEX || type == Type::COLUMN_REF) {
     int len = expr.length();
 
     auto len1 = size_t(len + 1);
@@ -257,6 +257,9 @@ toString() const
       str += QString("@%1").arg(role_);
 
     str += QString("[%1]").arg(expr_);
+  }
+  else if (type_ == Type::COLUMN_REF) {
+    str += QString("@REF %1").arg(expr_);
   }
 
   return str;
@@ -456,6 +459,16 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     // group
     if (parse.isWord("@GROUP")) {
       type = Type::GROUP; return true;
+    }
+
+    // column ref
+    if (parse.isWord("@REF")) {
+      parse.skipNonSpace(); parse.skipSpace();
+
+      type = Type::COLUMN_REF;
+      expr = parse.getAt();
+
+      return true;
     }
   }
 

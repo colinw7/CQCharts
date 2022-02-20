@@ -187,7 +187,12 @@ QPainterPath
 CQChartsPaintDevice::
 windowToPixel(const QPainterPath &path) const
 {
-  return (! view_ ? (! plot_ ? path : plot_->windowToPixel(path)) : view_->windowToPixel(path));
+  auto path1 = (! view_ ? (! plot_ ? path :
+    plot_->windowToPixel(path)) : view_->windowToPixel(path));
+
+  path1.setFillRule(path.fillRule());
+
+  return path1;
 }
 
 bool

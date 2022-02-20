@@ -9,6 +9,14 @@ enum class CQChartsSelMod {
   TOGGLE
 };
 
+// click modifier type
+enum CQChartsClickMod {
+  TOGGLE     = int(CQChartsSelMod::REPLACE),
+  SELECT     = int(CQChartsSelMod::ADD),
+  UNSELECT   = int(CQChartsSelMod::REMOVE),
+  TOGGLE_ALL = int(CQChartsSelMod::TOGGLE)
+};
+
 namespace CQChartsSymbolSize {
   inline double minValue() { return 3.0; }
   inline double maxValue() { return 64.0; }
@@ -72,6 +80,7 @@ enum class CQChartsLabelPosition {
 enum class CQChartsEdgeType {
   ARC,
   RECTILINEAR,
+  ROUNDED_LINE,
   LINE
 };
 

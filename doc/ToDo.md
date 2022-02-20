@@ -6,7 +6,6 @@ Abstract Painter/Javascript
 TODO:
  + color discreet values
  + symbol keys -> point keys ?
- + follow model open/close for dendrogram hier model
  + no axis plots default no data clip/no fill. Use plot as background
  + composite plot broken ? (xy_nested_composite_tabs.tcl)
  + update documentation (more desc, missing images)

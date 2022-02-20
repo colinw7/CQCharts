@@ -24,7 +24,8 @@ class CQChartsPaintDevice {
     PLOT,
     VIEW,
     SCRIPT,
-    SVG
+    SVG,
+    STATS
   };
 
  public:

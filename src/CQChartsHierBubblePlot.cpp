@@ -91,8 +91,7 @@ init()
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
-  setOuterMargin(PlotMargin(Length::pixel(4), Length::pixel(4),
-                            Length::pixel(4), Length::pixel(4)));
+  setOuterMargin(PlotMargin::pixel(4, 4, 4, 4));
 
  //marginSet_ = false;
 
@@ -313,8 +312,7 @@ createObjs(PlotObjs &objs) const
 #if 0
   if (! marginSet_) {
     if (title()->textStr().length() > 0) {
-      th->setOuterMargin(PlotMargin(Length::pixel(4), Length::percent(5),
-                                    Length::pixel(4), Length::pixel(4)));
+      th->setOuterMargin(PlotMargin::pixel(4, 4, 4, 4));
 
       marginSet_ = true;
     }

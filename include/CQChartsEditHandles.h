@@ -78,6 +78,7 @@ class CQChartsEditHandles : public QObject {
   const ExtraHandles &extraHandles() const { return extraHandles_; }
 
   void addExtraHandle(Handle *handle);
+  void removeExtraHandle();
 
   void removeExtraHandles();
 

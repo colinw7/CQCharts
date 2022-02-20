@@ -26,6 +26,12 @@ class CQChartsMargin :
   using Units  = CQChartsUnits::Type;
 
  public:
+  static CQChartsMargin pixel(double l, double t, double r, double b) {
+    return CQChartsMargin(Length::pixel(l), Length::pixel(t),
+                          Length::pixel(r), Length::pixel(b));
+  }
+
+ public:
   explicit CQChartsMargin(const QString &str) {
     setValue(str);
   }

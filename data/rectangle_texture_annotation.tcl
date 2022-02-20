@@ -10,12 +10,12 @@ set rect1 [create_charts_rectangle_annotation -plot $plot -id rect1 -tip "Rectan
 set_charts_property -plot $plot -name dataBox.fill.visible -value 0
 
 #set_charts_property -plot $plot -name plotBox.fill.visible -value 1
-#set_charts_property -plot $plot -name plotBox.fill.pattern -value "TEXTURE:data/seamless_bw.png"
+#set_charts_property -plot $plot -name plotBox.fill.pattern -value "texture,image=pics/seamless_bw.png"
 
 set_charts_property -annotation $rect1 -name stroke.visible -value 0
 #set_charts_property -annotation $rect1 -name fill.alpha -value 0.2
 set_charts_property -annotation $rect1 -name fill.color -value red
-#set_charts_property -annotation $rect1 -name fill.pattern -value "MASK:data/seamless_bw.png"
-set_charts_property -annotation $rect1 -name fill.pattern -value "TEXTURE:data/particle.png"
+#set_charts_property -annotation $rect1 -name fill.pattern -value "mask image=pics/seamless_bw.png"
+set_charts_property -annotation $rect1 -name fill.pattern -value "texture,image=pics/particle.png"
 
 connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot

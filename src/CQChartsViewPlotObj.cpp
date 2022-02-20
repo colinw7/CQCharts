@@ -423,6 +423,20 @@ lengthParentSignedHeight(const Length &len) const
 
 double
 CQChartsViewPlotObj::
+lengthWindowWidth(const Length &len) const
+{
+  double w = 1.0;
+
+  if      (plot())
+    w = plot()->lengthPlotWidth(len);
+  else if (view())
+    w = view()->lengthViewWidth(len);
+
+  return w;
+}
+
+double
+CQChartsViewPlotObj::
 lengthPixelWidth(const Length &len) const
 {
   double w = 1.0;
@@ -531,6 +545,20 @@ pixelToWindowHeight(double ph) const
     h = view()->pixelToWindowHeight(ph);
 
   return h;
+}
+
+double
+CQChartsViewPlotObj::
+windowToPixelWidth(double w) const
+{
+  double pw = 0.0;
+
+  if      (plot())
+    pw = plot()->windowToPixelWidth(w);
+  else if (view())
+    pw = view()->windowToPixelWidth(w);
+
+  return pw;
 }
 
 QColor

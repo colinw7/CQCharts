@@ -23,6 +23,8 @@ class CQChartsEmptyPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   bool hasObjs() const override { return false; }
 
   QString description() const override;

@@ -61,10 +61,10 @@ class CQChartsAxisRug : public CQChartsObj,
  private:
   using Points = std::vector<RugPoint>;
 
-  Plot*            plot_      { nullptr };                 //!< plot
-  CQChartsAxisSide side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
-  Qt::Orientation  direction_ { Qt::Horizontal };          //!< rug direction
-  Points           points_;                                //!< rug points
+  Plot*           plot_      { nullptr };                 //!< plot
+  Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
+  Points          points_;                                //!< rug points
 };
 
 #endif

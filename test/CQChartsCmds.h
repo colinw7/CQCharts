@@ -300,6 +300,7 @@ CQCHARTS_DEF_CMD(CreateChartsPoint3DSetAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPolygonAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation)
+CQCHARTS_DEF_CMD(CreateChartsShapeAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsTextAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsWidgetAnnotation)
@@ -334,6 +335,7 @@ CQCHARTS_DEF_CMD(ConnectChartsSignal)
 // export
 CQCHARTS_DEF_CMD(PrintChartsImage)
 CQCHARTS_DEF_CMD(WriteChartsData)
+CQCHARTS_DEF_CMD(WriteChartsStats)
 
 //---
 

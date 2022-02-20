@@ -3011,50 +3011,67 @@ draw(PaintDevice *device) const
   bool isCentered = plot()->isEdgeCentered();
   bool usePath    = plot()->isEdgePath();
 
-  // get default connection line (no path)
-  double x1, y1, x2, y2;
-
   auto orient = plot_->orientation();
 
+  //---
+
+  // get default connection line (no path)
+  Point           p1, p2;
+  Qt::Orientation orient1 = orient, orient2 = orient;
+
+#if 0
   auto horizontalPoints = [&]() {
-    y1 = srcRect .getYMid();
-    y2 = destRect.getYMid();
+    auto y1 = srcRect .getYMid();
+    auto y2 = destRect.getYMid();
 
     // x from right of source rect to left of dest rect
-    x1 = srcRect .getXMax();
-    x2 = destRect.getXMin();
+    auto x1 = srcRect .getXMax();
+    auto x2 = destRect.getXMin();
 
     if (x1 > x2) {
       x1 = destRect.getXMax(), x2 = srcRect.getXMin();
 
       std::swap(y1, y2);
     }
+
+    p1 = Point(x1, y1);
+    p2 = Point(x2, y2);
   };
 
   auto verticalPoints = [&]() {
-    x1 = srcRect .getXMid();
-    x2 = destRect.getXMid();
+    auto x1 = srcRect .getXMid();
+    auto x2 = destRect.getXMid();
 
     // y from top of source rect to bottom of dest rect
-    y1 = srcRect .getYMax();
-    y2 = destRect.getYMin();
+    auto y1 = srcRect .getYMax();
+    auto y2 = destRect.getYMin();
 
     if (y1 > y2) {
       y1 = destRect.getYMax(), y2 = srcRect.getYMin();
 
       std::swap(x1, x2);
     }
+
+    p1 = Point(x1, y1);
+    p2 = Point(x2, y2);
   };
 
   if (orient == Qt::Horizontal)
     horizontalPoints();
   else
     verticalPoints();
+#else
+   CQChartsDrawUtil::rectConnectionPoints(srcRect, destRect, p1, p2, orient1, orient2,
+                                          /*cornerPoints*/false);
+#endif
 
+  //---
+
+#if 0
   if (isCentered) {
     double da = 22.5;
 
-    double a = CMathUtil::Rad2Deg(pointAngle(Point(x1, y1), Point(x2, y2)));
+    double a = CMathUtil::Rad2Deg(pointAngle(p1, p2));
 
     if (orient == Qt::Horizontal) {
       if (a > 90 - da && a < 90 + da) {
@@ -3071,6 +3088,7 @@ draw(PaintDevice *device) const
       }
     }
   }
+#endif
 
   //---
 
@@ -3079,12 +3097,12 @@ draw(PaintDevice *device) const
   if (! isCentered && srcNode->hasEdgePoint(edge()))
     srcPoint = srcNode->edgePoint(edge());
   else
-    srcPoint = Point(x1, y1);
+    srcPoint = p1;
 
   if (! isCentered && destNode->hasEdgePoint(edge()))
     destPoint = destNode->edgePoint(edge());
   else
-    destPoint = Point(x2, y2);
+    destPoint = p2;
 
   //---
 
@@ -3216,7 +3234,7 @@ draw(PaintDevice *device) const
                                   CQChartsDrawUtil::EdgeType::LINE);
 
       if (! isSelf) {
-        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, orient);
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, orient1, orient2);
       }
       else {
         CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, orient);

@@ -3,7 +3,6 @@
 
 #include <CQChartsMargin.h>
 #include <CQChartsGeom.h>
-#include <QStringList>
 
 class CQChartsPlot;
 
@@ -19,17 +18,21 @@ class CQChartsPlotMargin : public CQChartsMargin {
   using Size   = CQChartsGeom::Size;
 
  public:
+  static CQChartsPlotMargin pixel(double l, double t, double r, double b) {
+    return CQChartsPlotMargin(Length::pixel(l), Length::pixel(t),
+                              Length::pixel(r), Length::pixel(b));
+  }
+
+ public:
   CQChartsPlotMargin() = default;
 
   explicit CQChartsPlotMargin(const QString &str);
 
   CQChartsPlotMargin(const Length &l, const Length &t, const Length &r, const Length &b);
-
 //CQChartsPlotMargin(double l, double t, double r, double b);
 
   explicit CQChartsPlotMargin(const Length &l);
-
-//CQChartsPlotMargin(double l);
+//explicit CQChartsPlotMargin(double l);
 
   void set(const Length &l, const Length &t, const Length &r, const Length &b);
 

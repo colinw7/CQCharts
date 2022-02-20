@@ -59,6 +59,19 @@ addExtraHandle(Handle *handle)
 
 void
 CQChartsEditHandles::
+removeExtraHandle()
+{
+  assert(! extraHandles_.empty());
+
+  auto *handle = extraHandles_.back();
+
+  delete handle;
+
+  extraHandles_.pop_back();
+}
+
+void
+CQChartsEditHandles::
 removeExtraHandles()
 {
   for (auto &handle : extraHandles_)

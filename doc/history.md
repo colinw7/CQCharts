@@ -1372,3 +1372,10 @@
  + add value->symbol type/size maps for symnol type/size columns
  + add optional title to map key
  + add write of plot axis/key/title properties
+# 2/20/2022
+ + allow disable properties
+ + add support for reference column
+ + add shape annotation and remove shape properties from rect annotation
+ + adjust data unscaled rect
+ + Use QPainterPathStroker for filled line/curve shapes
+ + Add stat painter to count drawn objects for testing

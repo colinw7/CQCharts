@@ -5,7 +5,7 @@ set plot [create_charts_plot -type empty -xmin 0 -ymin 0 -xmax 100 -ymax 100]
 set point1 [create_charts_point_annotation -plot $plot -position {10 10}]
 set point2 [create_charts_point_annotation -plot $plot -position {90 90}]
 
-set rect1 [create_charts_rectangle_annotation -plot $plot -rectangle {{20 40} {40 60}}]
+set rect1 [create_charts_shape_annotation -plot $plot -rectangle {{20 40} {40 60}}]
 
 set_charts_property -annotation $rect1 -name shapeType -value CIRCLE
 

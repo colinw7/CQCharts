@@ -9,4 +9,6 @@ set_charts_property -plot $plot -name range.xmax -value 100
 set_charts_property -plot $plot -name range.ymax -value 100
 set_charts_property -plot $plot -name range.ymax -value 100
 
+set_charts_property -plot $plot -name dataBox.unscaledRange -value 1
+
 set_charts_property -plot $plot -name scaling.equal -value true

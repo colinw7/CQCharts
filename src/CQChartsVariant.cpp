@@ -26,6 +26,9 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::LongLong) {
     str = CQChartsUtil::formatInteger(var.toLongLong());
   }
+  else if (var.type() == QVariant::Bool) {
+    str = CQChartsUtil::boolToString(var.toBool());
+  }
   else if (var.type() == QVariant::Point) {
     auto point = var.value<QPoint>();
 

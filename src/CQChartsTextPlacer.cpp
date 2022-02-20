@@ -66,7 +66,8 @@ draw(PaintDevice *device)
       auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
                                                         drawText->options);
 
-      auto p = CQChartsUtil::nearestRectPoint(bbox, drawText->targetPoint);
+      Qt::Orientation orient;
+      auto p = CQChartsUtil::nearestRectPoint(bbox, drawText->targetPoint, orient);
 
       device->drawLine(p, drawText->targetPoint);
     }

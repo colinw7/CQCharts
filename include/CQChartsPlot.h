@@ -72,6 +72,7 @@ class CQChartsPoint3DSetAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
+class CQChartsShapeAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
@@ -95,6 +96,7 @@ class CQChartsPlotControlIFace;
 class CQChartsScriptPaintDevice;
 class CQChartsHtmlPaintDevice;
 class CQChartsSVGPaintDevice;
+class CQChartsStatsPaintDevice;
 
 class CQPropertyViewModel;
 class CQPropertyViewItem;
@@ -171,21 +173,22 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // generic columns and control
   // . idColumn used as unique id for row (tcl row lookup can use)
-  // . tipColumns/noTipColumns used for object tooltips for data in extra rows
+  // . tipHeaderColumn/tipColumns/noTipColumns used for object tooltips for data in extra rows
   // . visibleColumn used for individual row hide in model traversal
   // . colorColumn and alphaColumn used for custom color for data on row
   // . fontColumn used for custom font for data on row
   // . imageColumn used for custom image for data on row
   // . controlColumns used for controls for filters on data in specified column
-  Q_PROPERTY(CQChartsColumn  idColumn       READ idColumn       WRITE setIdColumn      )
-  Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
-  Q_PROPERTY(CQChartsColumns noTipColumns   READ noTipColumns   WRITE setNoTipColumns  )
-  Q_PROPERTY(CQChartsColumn  visibleColumn  READ visibleColumn  WRITE setVisibleColumn )
-  Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
-  Q_PROPERTY(CQChartsColumn  alphaColumn    READ alphaColumn    WRITE setAlphaColumn   )
-  Q_PROPERTY(CQChartsColumn  fontColumn     READ fontColumn     WRITE setFontColumn    )
-  Q_PROPERTY(CQChartsColumn  imageColumn    READ imageColumn    WRITE setImageColumn   )
-  Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
+  Q_PROPERTY(CQChartsColumn  idColumn        READ idColumn        WRITE setIdColumn       )
+  Q_PROPERTY(CQChartsColumn  tipHeaderColumn READ tipHeaderColumn WRITE setTipHeaderColumn)
+  Q_PROPERTY(CQChartsColumns tipColumns      READ tipColumns      WRITE setTipColumns     )
+  Q_PROPERTY(CQChartsColumns noTipColumns    READ noTipColumns    WRITE setNoTipColumns   )
+  Q_PROPERTY(CQChartsColumn  visibleColumn   READ visibleColumn   WRITE setVisibleColumn  )
+  Q_PROPERTY(CQChartsColumn  colorColumn     READ colorColumn     WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn  alphaColumn     READ alphaColumn     WRITE setAlphaColumn    )
+  Q_PROPERTY(CQChartsColumn  fontColumn      READ fontColumn      WRITE setFontColumn     )
+  Q_PROPERTY(CQChartsColumn  imageColumn     READ imageColumn     WRITE setImageColumn    )
+  Q_PROPERTY(CQChartsColumns controlColumns  READ controlColumns  WRITE setControlColumns )
 
   // color map (for color column)
   Q_PROPERTY(ColorType           colorType       READ colorType       WRITE setColorType      )
@@ -480,6 +483,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
   using SVGPaintDevice    = CQChartsSVGPaintDevice;
   using HtmlPaintDevice   = CQChartsHtmlPaintDevice;
+  using StatsPaintDevice  = CQChartsStatsPaintDevice;
   using BrushData         = CQChartsBrushData;
   using PenData           = CQChartsPenData;
 
@@ -497,6 +501,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using ModelData          = CQChartsModelData;
   using ModelDetails       = CQChartsModelDetails;
   using ModelColumnDetails = CQChartsModelColumnDetails;
+  using ModelTypeData      = CQChartsModelTypeData;
 
   using ColorColumnData = CQChartsColorColumnData;
   using AlphaColumnData = CQChartsAlphaColumnData;
@@ -596,6 +601,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void writeSVG(SVGPaintDevice *device) const;
 
   void writeHtml(HtmlPaintDevice *device) const;
+
+  void writeStats(StatsPaintDevice *device) const;
 
   //---
 
@@ -1174,6 +1181,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void addColorMapProperties();
 
+  virtual void updateProperties();
+
   CQPropertyViewItem *addStyleProp(const QString &path, const QString &name, const QString &alias,
                                    const QString &desc, bool hidden=false);
 
@@ -1181,6 +1190,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                               const QString &desc, bool hidden=false);
 
   void hideProp(QObject *obj, const QString &path);
+
+  void enableProp(QObject *obj, const QString &path, bool enabled);
 
   //---
 
@@ -1393,6 +1404,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                     const QModelIndex &parent, bool &ok) const;
 
   //---
+
+ public:
+  Column mapColumn(const Column &column) const;
 
  public:
   std::vector<double> modelReals(const ModelIndex &ind, bool &ok) const;
@@ -1944,6 +1958,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &idColumn() const { return idColumn_; }
   void setIdColumn(const Column &column);
 
+  const Column &tipHeaderColumn() const { return tipHeaderColumn_; }
+  void setTipHeaderColumn(const Column &c);
+
   const Columns &tipColumns() const { return tipColumns_; }
   void setTipColumns(const Columns &columns);
 
@@ -1977,9 +1994,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setNamedColumns(const QString &name, const Columns &c);
 
  public:
+  // coloring
   const ColorColumnData &colorColumnData() const { return colorColumnData_; }
 
-  // coloring
   ColorType colorType() const { return static_cast<ColorType>(colorColumnData_.colorType); }
   void setColorType(const ColorType &t);
 
@@ -2069,6 +2086,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual QString yStr(double y) const;
 
   virtual QString columnStr(const Column &column, double x) const;
+
+  bool formatColumnValue(const Column &column, const QVariant &var, QString &str) const;
 
   //---
 
@@ -2189,7 +2208,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // get tip text at point (unchecked)
   virtual bool plotTipText(const Point &p, QString &tip, bool single) const;
 
+  void addTipHeader(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
+  void addTipColumn(CQChartsTableTip &tableTip, const Column &c, const QModelIndex &ind) const;
   void addNoTipColumns(CQChartsTableTip &tableTip) const;
 
   void resetObjTips();
@@ -2383,6 +2404,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using PolygonAnnotation      = CQChartsPolygonAnnotation;
   using PolylineAnnotation     = CQChartsPolylineAnnotation;
   using RectangleAnnotation    = CQChartsRectangleAnnotation;
+  using ShapeAnnotation        = CQChartsShapeAnnotation;
   using TextAnnotation         = CQChartsTextAnnotation;
   using ValueSetAnnotation     = CQChartsValueSetAnnotation;
   using WidgetAnnotation       = CQChartsWidgetAnnotation;
@@ -2422,6 +2444,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   PolygonAnnotation      *addPolygonAnnotation     (const CQChartsPolygon &polygon);
   PolylineAnnotation     *addPolylineAnnotation    (const CQChartsPolygon &polygon);
   RectangleAnnotation    *addRectangleAnnotation   (const Rect &rect);
+  ShapeAnnotation        *addShapeAnnotation       (const Rect &rect);
   TextAnnotation         *addTextAnnotation        (const Position &pos, const QString &text);
   TextAnnotation         *addTextAnnotation        (const Rect &rect, const QString &text);
   ValueSetAnnotation     *addValueSetAnnotation    (const Rect &rect, const CQChartsReals &values);
@@ -2903,8 +2926,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   ColumnType columnValueType(const Column &column,
                              const ColumnType &defType=ColumnType::STRING) const;
 
-  bool columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
+  bool columnValueType(const Column &column, ModelTypeData &columnTypeData,
                        const ColumnType &defType=ColumnType::STRING) const;
+
+  bool modelColumnValueType(const Column &column, ModelTypeData &columnTypeData) const;
 
 #if 0
   bool columnTypeStr(const Column &column, QString &typeStr) const;
@@ -3422,7 +3447,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   DisplayRangeP rawDisplayRange_;               //!< value range mapping (non zoom)
   mutable bool  useRawRange_    { false };      //!< use raw display range
   Range         calcDataRange_;                 //!< calc data range
-  Range         dataRange_;                     //!< data range
+  Range         unequalDataRange_;              //!< raw data range
+  Range         dataRange_;                     //!< equal range adjusted data range
   Range         outerDataRange_;                //!< outer data range
   ZoomData      zoomData_;                      //!< zoom data
 
@@ -3484,15 +3510,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   MapKeys mapKeys_; //!< all map keys
 
   // columns
-  Column  xValueColumn_;   //!< x axis value column
-  Column  yValueColumn_;   //!< y axis value column
-  Column  idColumn_;       //!< unique data id column (signalled)
-  Columns tipColumns_;     //!< tip columns
-  Columns noTipColumns_;   //!< no tip columns
-  Column  visibleColumn_;  //!< visible column
-  Column  fontColumn_;     //!< font column
-  Column  imageColumn_;    //!< image column
-  Columns controlColumns_; //!< control columns
+  Column  xValueColumn_;    //!< x axis value column
+  Column  yValueColumn_;    //!< y axis value column
+  Column  idColumn_;        //!< unique data id column (signalled)
+  Column  tipHeaderColumn_; //!< tip header column
+  Columns tipColumns_;      //!< tip columns
+  Columns noTipColumns_;    //!< no tip columns
+  Column  visibleColumn_;   //!< visible column
+  Column  fontColumn_;      //!< font column
+  Column  imageColumn_;     //!< image column
+  Columns controlColumns_;  //!< control columns
 
   // color data
   ColorColumnData    colorColumnData_; //!< color column data
