@@ -175,6 +175,8 @@ setHiddenAlpha(const Alpha &a)
   CQChartsUtil::testAndSet(hiddenAlpha_, a, [&]() { redraw(); } );
 }
 
+//---
+
 QColor
 CQChartsKey::
 calcHiddenColor(const QColor &c) const

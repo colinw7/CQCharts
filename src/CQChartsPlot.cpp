@@ -4494,6 +4494,7 @@ updateColorMapKey() const
   bool         isMapped   = false;
   int          numUnique  = 0;
   QVariantList uniqueValues;
+  QVariantList uniqueCounts;
 
   auto *columnDetails = this->columnDetails(colorColumn());
 
@@ -4510,6 +4511,7 @@ updateColorMapKey() const
     if (! isReal && ! isColor) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
+      uniqueCounts = columnDetails->uniqueCounts();
     }
   }
 
@@ -4528,6 +4530,7 @@ updateColorMapKey() const
   colorMapKey_->setMapped      (isMapped);
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
+  colorMapKey_->setUniqueCounts(uniqueCounts);
 }
 
 void

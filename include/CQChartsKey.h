@@ -182,19 +182,21 @@ class CQChartsKey : public CQChartsBoxObj,
     QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
   };
 
-  Qt::Orientation    orientation_    { Qt::Vertical }; //!< layout direction
-  bool               above_          { true };         //!< draw above view/plot
-  Location           location_;                        //!< key location
-  QString            header_;                          //!< header
-  bool               autoHide_       { true };         //!< auto hide if too big
-  bool               clipped_        { true };         //!< clipped to parent
-  bool               interactive_    { true };         //!< is interactive
-  Color              hiddenColor_;                     //!< color for hidden item
-  Alpha              hiddenAlpha_    { 0.3 };          //!< alpha for hidden item
-  int                columns_        { 1 };            //!< columns
-  int                maxRows_        { 100 };          //!< max rows
-  KeyBehavior        pressBehavior_;                   //!< press behavior
-  mutable ScrollData scrollData_;                      //!< scrollbar data
+  Qt::Orientation orientation_ { Qt::Vertical }; //!< layout direction
+  bool            above_       { true };         //!< draw above view/plot
+  Location        location_;                     //!< key location
+  QString         header_;                       //!< header
+  bool            autoHide_    { true };         //!< auto hide if too big
+  bool            clipped_     { true };         //!< clipped to parent
+  bool            interactive_ { true };         //!< is interactive
+
+  Color hiddenColor_;          //!< color for hidden item
+  Alpha hiddenAlpha_  { 0.3 }; //!< alpha for hidden item
+
+  int                columns_        { 1 };   //!< columns
+  int                maxRows_        { 100 }; //!< max rows
+  KeyBehavior        pressBehavior_;          //!< press behavior
+  mutable ScrollData scrollData_;             //!< scrollbar data
 };
 
 //------

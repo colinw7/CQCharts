@@ -86,9 +86,34 @@ setAlign(const Qt::Alignment &a)
 
 void
 CQChartsMapKey::
+setItemCount(bool b)
+{
+  CQChartsUtil::testAndSet(itemCount_, b, [&]() { invalidate(); } );
+}
+
+//---
+
+void
+CQChartsMapKey::
 setHeaderStr(const QString &s)
 {
   CQChartsUtil::testAndSet(header_, s, [&]() { invalidate(); } );
+}
+
+//---
+
+void
+CQChartsMapKey::
+setHiddenColor(const Color &c)
+{
+  CQChartsUtil::testAndSet(hiddenColor_, c, [&]() { invalidate(); } );
+}
+
+void
+CQChartsMapKey::
+setHiddenAlpha(const Alpha &a)
+{
+  CQChartsUtil::testAndSet(hiddenAlpha_, a, [&]() { invalidate(); } );
 }
 
 //---
@@ -222,36 +247,45 @@ void
 CQChartsMapKey::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name);
+  auto addPathProp = [&](const QString &path, const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
     item->setDesc(desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-#if 0
-  auto addStyleProp = [&](const QString &name, const QString &desc) {
-    auto *item = addProp(name, desc);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-#endif
-
   //---
 
-  addProp("location", "Location");
-  addProp("insideX" , "Inside Plot X");
-  addProp("insideY" , "Inside Plot Y");
-  addProp("margin"  , "Margin");
-  addProp("padding" , "Padding");
-  addProp("position", "Position");
-  addProp("align"   , "Alignment");
+  auto placementPath = path + "/placement";
 
-  //addProp("numeric"  , "Is Numeric");
-  //addProp("integral" , "Is Integral");
-  //addProp("native"   , "Is Native");
-  //addProp("mapped"   , "Is Mapped");
-  //addProp("numUnique", "Number of Unique Values");
+  addPathProp(placementPath, "location", "", "Location");
+  addPathProp(placementPath, "insideX" , "", "Inside Plot X");
+  addPathProp(placementPath, "insideY" , "", "Inside Plot Y");
+  addPathProp(placementPath, "position", "", "Position");
+  addPathProp(placementPath, "align"   , "", "Alignment");
+
+  auto appearancePath = path + "/appearance";
+
+  addPathProp(appearancePath, "margin" , "", "Margin");
+  addPathProp(appearancePath, "padding", "", "Padding");
+
+  auto hiddenPath = path + "/hidden";
+
+  addPathProp(hiddenPath, "hiddenColor", "color", "Color for hidden items");
+  addPathProp(hiddenPath, "hiddenAlpha", "alpha", "Alpha for hidden items");
+
+  auto discreetPath = path + "/discreet";
+
+  addPathProp(discreetPath, "itemCount", "", "Show item count for discreet values");
+
+  //auto detailsPath = path + "details";
+
+  //addPathProp(detailsPath, "numeric"  , "", "Is Numeric");
+  //addPathProp(detailsPath, "integral" , "", "Is Integral");
+  //addPathProp(detailsPath, "native"   , "", "Is Native");
+  //addPathProp(detailsPath, "mapped"   , "", "Is Mapped");
+  //addPathProp(detailsPath, "numUnique", "", "Number of Unique Values");
 
   //---
 
@@ -498,7 +532,44 @@ setEditHandlesBBox() const
   th->editHandles()->setBBox(th->typeBBox_[DrawType::VIEW]);
 }
 
-//---
+//--
+
+QColor
+CQChartsMapKey::
+calcHiddenColor(PaintDevice *device, const QColor &c) const
+{
+  auto bg = bgColor(device);
+
+  QColor c1;
+
+  if (hiddenColor().isValid()) {
+    charts()->setContrastColor(c);
+
+    c1 = view()->interpColor(hiddenColor(), ColorInd());
+
+    charts()->resetContrastColor();
+  }
+  else
+    c1 = CQChartsUtil::blendColors(c, bg, hiddenAlpha().value());
+
+  return c1;
+}
+
+QString
+CQChartsMapKey::
+uniqueValueName(int i, QString &itemLabel) const
+{
+  auto name = uniqueValues()[i].toString();
+
+  if (isItemCount())
+    itemLabel = QString("%1 (%2)").arg(name).arg(uniqueCounts()[i].toString());
+  else
+    itemLabel = name;
+
+  return name;
+}
+
+//----
 
 CQChartsColorMapKey::
 CQChartsColorMapKey(Plot *plot) :
@@ -511,20 +582,29 @@ void
 CQChartsColorMapKey::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name);
+  auto addPathProp = [&](const QString &path, const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
     item->setDesc(desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  addProp("dataMin", "Model Data Min");
-  addProp("dataMax", "Model Data Max");
+  //---
 
-  addProp("mapMin", "Color Value Min");
-  addProp("mapMax", "Color Value Max");
+  auto mappingPath = path + "/mapping";
 
-  addProp("paletteName", "Palette Name");
+  addPathProp(mappingPath, "dataMin", "", "Model Data Min");
+  addPathProp(mappingPath, "dataMax", "", "Model Data Max");
+
+  addPathProp(mappingPath, "mapMin", "", "Color Value Min");
+  addPathProp(mappingPath, "mapMax", "", "Color Value Max");
+
+  //---
+
+  auto appearancePath = path + "/appearance";
+
+  addPathProp(appearancePath, "paletteName", "", "Palette Name");
 
   //---
 
@@ -601,8 +681,6 @@ drawHeader(PaintDevice *device)
   if (! headerStr().length())
     return;
 
-  auto bg = bgColor(device);
-
   //---
 
   auto drawHeaderTextLabel = [&](const Point &p, const QString &label, bool hidden=false) {
@@ -612,7 +690,7 @@ drawHeader(PaintDevice *device)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = CQChartsUtil::blendColors(tc1, bg, 0.5);
+      tc1 = calcHiddenColor(device, tc1);
 
     CQChartsPenBrush tpenBrush;
 
@@ -802,8 +880,6 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   //---
 
-  auto bg = bgColor(device);
-
   // draw boxes
   auto &itemBoxes = itemBoxes_[drawType];
 
@@ -813,7 +889,11 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
   int n = numUnique();
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
+
+    auto name = uniqueValueName(i, itemLabel);
+
+    //---
 
     Color  color;
     QColor c;
@@ -833,7 +913,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto c1 = c;
 
     if (hidden)
-      c1 = CQChartsUtil::blendColors(c1, bg, 0.5);
+      c1 = calcHiddenColor(device, c1);
 
     //---
 
@@ -887,7 +967,11 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
   double df = (fm.ascent() - fm.descent())/2.0;
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
+
+    auto name = uniqueValueName(i, itemLabel);
+
+    //---
 
     Color  color;
     QColor c;
@@ -908,7 +992,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = CQChartsUtil::blendColors(tc, bg, 0.5);
+      tc1 = calcHiddenColor(device, tc);
 
     CQChartsPenBrush tpenBrush;
 
@@ -918,7 +1002,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
     //---
 
-    drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), name);
+    drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), itemLabel);
   }
 }
 
@@ -1029,9 +1113,11 @@ calcDiscreetSize() const
   double tw = 0.0;
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
 
-    tw = std::max(tw, fm.horizontalAdvance(name));
+    auto name = uniqueValueName(i, itemLabel);
+
+    tw = std::max(tw, fm.horizontalAdvance(itemLabel));
   }
 
   //---
@@ -1132,18 +1218,23 @@ void
 CQChartsSymbolSizeMapKey::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name);
+  auto addPathProp = [&](const QString &path, const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
     item->setDesc(desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  addProp("dataMin", "Model Data Min");
-  addProp("dataMax", "Model Data Max");
+  //---
 
-  addProp("mapMin", "Symbol Size Min");
-  addProp("mapMax", "Symbol Size Max");
+  auto mappingPath = path + "/mapping";
+
+  addPathProp(mappingPath, "dataMin", "", "Model Data Min");
+  addPathProp(mappingPath, "dataMax", "", "Model Data Max");
+
+  addPathProp(mappingPath, "mapMin", "", "Symbol Size Min");
+  addPathProp(mappingPath, "mapMax", "", "Symbol Size Max");
 
   //---
 
@@ -1359,8 +1450,6 @@ drawHeader(PaintDevice *device)
   if (! headerStr().length())
     return;
 
-  auto bg = bgColor(device);
-
   //---
 
   auto drawHeaderTextLabel = [&](const Point &p, const QString &label, bool hidden=false) {
@@ -1370,7 +1459,7 @@ drawHeader(PaintDevice *device)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = CQChartsUtil::blendColors(tc1, bg, 0.5);
+      tc1 = calcHiddenColor(device, tc1);
 
     CQChartsPenBrush tpenBrush;
 
@@ -1492,8 +1581,6 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   //---
 
-  auto bg = bgColor(device);
-
   double min = this->mapMin();
   double max = this->mapMax();
 
@@ -1524,7 +1611,11 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
   int n = numUnique();
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
+
+    auto name = uniqueValueName(i, itemLabel);
+
+    //---
 
     Length  l;
     QString lstr;
@@ -1553,7 +1644,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto ltc1 = ltc;
 
     if (hidden)
-      ltc1 = CQChartsUtil::blendColors(ltc, bg, 0.5);
+      ltc1 = calcHiddenColor(device, ltc);
 
     setPenBrush(tpenBrush, PenData(true, ltc1, sizeTextAlpha()), BrushData(false));
 
@@ -1572,7 +1663,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto rtc1 = rtc;
 
     if (hidden)
-      rtc1 = CQChartsUtil::blendColors(rtc, bg, 0.5);
+      rtc1 = calcHiddenColor(device, rtc);
 
     setPenBrush(tpenBrush, PenData(true, rtc1, textAlpha()), BrushData(false));
 
@@ -1581,7 +1672,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     //---
 
     // draw size text
-    drawTextLabel(Point(tx2, ty1 + rdf), name);
+    drawTextLabel(Point(tx2, ty1 + rdf), itemLabel);
 
     //---
 
@@ -1818,7 +1909,11 @@ calcDiscreetSize() const
   std::vector<double> mappedValues;
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
+
+    auto name = uniqueValueName(i, itemLabel);
+
+    //---
 
     Length l;
 
@@ -1839,7 +1934,11 @@ calcDiscreetSize() const
   twr_ = 0.0;
 
   for (int i = 0; i < n; ++i) {
-    auto name = uniqueValues()[i].toString();
+    QString itemLabel;
+
+    auto name = uniqueValueName(i, itemLabel);
+
+    //---
 
     Length  l;
     QString lstr;
@@ -1854,7 +1953,7 @@ calcDiscreetSize() const
     }
 
     twl_ = std::max(twl_, lfm.horizontalAdvance(lstr));
-    twr_ = std::max(twr_, rfm.horizontalAdvance(name));
+    twr_ = std::max(twr_, rfm.horizontalAdvance(itemLabel));
   }
 
   //---
@@ -2152,18 +2251,23 @@ void
 CQChartsSymbolTypeMapKey::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(path, this, name);
+  auto addPathProp = [&](const QString &path, const QString &name, const QString &alias,
+                         const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
     item->setDesc(desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  addProp("dataMin", "Model Data Min");
-  addProp("dataMax", "Model Data Max");
+  //---
 
-  addProp("mapMin", "Symbol Type Value Min");
-  addProp("mapMax", "Symbol Type Value Max");
+  auto mappingPath = path + "/mapping";
+
+  addPathProp(mappingPath, "dataMin", "", "Model Data Min");
+  addPathProp(mappingPath, "dataMax", "", "Model Data Max");
+
+  addPathProp(mappingPath, "mapMin", "", "Symbol Type Min");
+  addPathProp(mappingPath, "mapMax", "", "Symbol Type Max");
 
   //---
 
@@ -2246,10 +2350,6 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   //---
 
-  auto bg = bgColor(device);
-
-  //---
-
   // draw symbols and labels
   auto drawHeaderTextLabel = [&](const Point &p, const QString &label, bool hidden=false) {
     // set text pen
@@ -2258,7 +2358,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = CQChartsUtil::blendColors(tc1, bg, 0.5);
+      tc1 = calcHiddenColor(device, tc1);
 
     CQChartsPenBrush tpenBrush;
 
@@ -2290,7 +2390,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = CQChartsUtil::blendColors(tc1, bg, 0.5);
+      tc1 = calcHiddenColor(device, tc1);
 
     CQChartsPenBrush tpenBrush;
 
@@ -2410,7 +2510,9 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
     int n = numUnique();
 
     for (int i = 0; i < n; ++i) {
-      auto name = uniqueValues()[i].toString();
+      QString itemLabel;
+
+      auto name = uniqueValueName(i, itemLabel);
 
       //---
 
@@ -2445,7 +2547,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       auto c = symbolStrokeColor;
 
       if (hidden)
-        c = CQChartsUtil::blendColors(c, bg, 0.5);
+        c = calcHiddenColor(device, c);
 
       if (symbolData.symbol.isFilled())
         setPenBrush(symbolPenBrush, PenData(true, c), BrushData(true, symbolFillColor));
@@ -2469,7 +2571,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       //---
 
       // draw unique name
-      drawTextLabel(Point(px + bw + bm, py + df), name, hidden);
+      drawTextLabel(Point(px + bw + bm, py + df), itemLabel, hidden);
 
       //---
 
@@ -2536,9 +2638,11 @@ calcSize(const DrawData &drawData) const
       kh_ = (fm.height() + 2)*n + 2*bm;
 
       for (int i = 0; i < n; ++i) {
-        auto name = uniqueValues()[i].toString();
+        QString itemLabel;
 
-        tw = std::max(tw, fm.horizontalAdvance(name));
+        auto name = uniqueValueName(i, itemLabel);
+
+        tw = std::max(tw, fm.horizontalAdvance(itemLabel));
       }
     }
     else {

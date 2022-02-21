@@ -1206,6 +1206,7 @@ updateSymbolSizeMapKey() const
   bool         isMapped     = false;
   int          numUnique    = 0;
   QVariantList uniqueValues;
+  QVariantList uniqueCounts;
 
   auto *columnDetails = this->columnDetails(symbolSizeColumn());
 
@@ -1223,6 +1224,7 @@ updateSymbolSizeMapKey() const
     if (! isNumeric && ! isSymbolSize) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
+      uniqueCounts = columnDetails->uniqueCounts();
     }
   }
 
@@ -1244,6 +1246,7 @@ updateSymbolSizeMapKey() const
   symbolTypeMapKey_->setMapped      (isMapped);
   symbolSizeMapKey_->setNumUnique   (numUnique);
   symbolSizeMapKey_->setUniqueValues(uniqueValues);
+  symbolSizeMapKey_->setUniqueCounts(uniqueCounts);
 }
 
 void
@@ -1367,6 +1370,7 @@ updateSymbolTypeMapKey() const
   bool         isMapped     = false;
   int          numUnique    = 0;
   QVariantList uniqueValues;
+  QVariantList uniqueCounts;
 
   auto *columnDetails = this->columnDetails(symbolTypeColumn());
 
@@ -1384,6 +1388,7 @@ updateSymbolTypeMapKey() const
     if (! isNumeric && ! isSymbolType) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
+      uniqueCounts = columnDetails->uniqueCounts();
     }
   }
 
@@ -1402,6 +1407,7 @@ updateSymbolTypeMapKey() const
   symbolTypeMapKey_->setMapped      (isMapped);
   symbolTypeMapKey_->setNumUnique   (numUnique);
   symbolTypeMapKey_->setUniqueValues(uniqueValues);
+  symbolTypeMapKey_->setUniqueCounts(uniqueCounts);
 }
 
 void

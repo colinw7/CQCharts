@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + alias for property (so can change with backwards compatibility)
  + color discreet values
  + symbol keys -> point keys ?
  + no axis plots default no data clip/no fill. Use plot as background

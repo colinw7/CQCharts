@@ -20,6 +20,13 @@ class CQChartsMapKey : public CQChartsBoxObj,
   Q_PROPERTY(Qt::Alignment       align     READ align      WRITE setAlign    )
   Q_PROPERTY(QString             header    READ headerStr  WRITE setHeaderStr)
 
+  // discreet
+  Q_PROPERTY(bool itemCount READ isItemCount WRITE setItemCount)
+
+  // hidden color
+  Q_PROPERTY(CQChartsColor hiddenColor READ hiddenColor WRITE setHiddenColor)
+  Q_PROPERTY(CQChartsAlpha hiddenAlpha READ hiddenAlpha WRITE setHiddenAlpha)
+
   // auto set by plot
   Q_PROPERTY(bool numeric   READ isNumeric  WRITE setNumeric  )
   Q_PROPERTY(bool integral  READ isIntegral WRITE setIntegral )
@@ -42,6 +49,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   using Alpha         = CQChartsAlpha;
   using Angle         = CQChartsAngle;
   using ClickMod      = CQChartsClickMod;
+  using ColorInd      = CQChartsUtil::ColorInd;
   using BBox          = CQChartsGeom::BBox;
   using Point         = CQChartsGeom::Point;
 
@@ -101,6 +109,12 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   //---
 
+  //! get/set show item count for discreey
+  bool isItemCount() const { return itemCount_; }
+  void setItemCount(bool b);
+
+  //---
+
   //! get/set header text
   const QString &headerStr() const { return header_; }
   void setHeaderStr(const QString &s);
@@ -131,11 +145,31 @@ class CQChartsMapKey : public CQChartsBoxObj,
   const QVariantList &uniqueValues() const { return uniqueValues_; }
   void setUniqueValues(const QVariantList &v) { uniqueValues_ = v; }
 
+  //! get/set unique values
+  const QVariantList &uniqueCounts() const { return uniqueCounts_; }
+  void setUniqueCounts(const QVariantList &v) { uniqueCounts_ = v; }
+
   //---
 
   //! get/set bbox
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
+
+  //---
+
+  //! get/set color when associated object hidden
+  const Color &hiddenColor() const { return hiddenColor_; }
+  void setHiddenColor(const Color &c);
+
+  //! get/set alpha when associated object hidden
+  const Alpha &hiddenAlpha() const { return hiddenAlpha_; }
+  void setHiddenAlpha(const Alpha &a);
+
+  //! calc color if hidden
+  virtual QColor calcHiddenColor(PaintDevice *device, const QColor &c) const;
+
+  //! get unique value name
+  QString uniqueValueName(int i, QString &itemLabel) const;
 
   //---
 
@@ -208,6 +242,9 @@ class CQChartsMapKey : public CQChartsBoxObj,
   Position      position_;                                          //!< key position
   Qt::Alignment align_     { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
 
+  // discreet
+  bool itemCount_ { false }; //!< show item count for discreet
+
   // header
   QString header_; //!< header
 
@@ -220,6 +257,11 @@ class CQChartsMapKey : public CQChartsBoxObj,
   // unique data
   int           numUnique_ { -1 }; //!< num unique
   QVariantList  uniqueValues_;     //!< unique values
+  QVariantList  uniqueCounts_;     //!< unique value counts
+
+  // hidden data
+  Color hiddenColor_;          //!< color for hidden item
+  Alpha hiddenAlpha_  { 0.3 }; //!< alpha for hidden item
 
   // draw data
   mutable double        kw_     { 0.0 };
@@ -395,7 +437,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   Q_PROPERTY(double mapMin  READ mapMin  WRITE setMapMin )
   Q_PROPERTY(double mapMax  READ mapMax  WRITE setMapMax )
 
-  // congiguous circles
+  // contiguous circles
   Q_PROPERTY(double              scale       READ scale       WRITE setScale      )
   Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
   Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
