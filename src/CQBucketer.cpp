@@ -51,7 +51,7 @@ bucket(const QVariant &var) const
     return stringBucket(str);
   }
   else if (type() == Type::INTEGER_RANGE) {
-    int i = varInt(var, ok);
+    long i = varInt(var, ok);
 
     if (ok)
       return intBucket(i);
@@ -76,7 +76,7 @@ bucket(const QVariant &var) const
         return stopsRealBucket(r);
     }
     else if (! istops_.empty()) {
-      int i = varInt(var, ok);
+      long i = varInt(var, ok);
 
       if (ok)
         return stopsIntBucket(i);
@@ -469,7 +469,7 @@ stringBucket(const QString &str) const
   auto p = stringInd_.find(str);
 
   if (p == stringInd_.end()) {
-    int ind = stringInd_.size();
+    int ind = int(stringInd_.size());
 
     p = stringInd_.insert(p, StringInd::value_type(str, ind));
 
@@ -495,7 +495,7 @@ bucketString(int bucket) const
 
 int
 CQBucketer::
-intBucket(int i) const
+intBucket(long i) const
 {
   int n = INT_MIN; // optional ?
 
@@ -505,7 +505,7 @@ intBucket(int i) const
   if      (i == istart)
     return 0;
   else if (idelta > 0)
-    n = (i - istart)/idelta;
+    n = int((i - long(istart))/long(idelta));
 
   return n;
 }
@@ -582,7 +582,7 @@ stopsRealBucket(double r) const
 
 int
 CQBucketer::
-stopsIntBucket(int i) const
+stopsIntBucket(long i) const
 {
   int n = 0;
 
@@ -630,7 +630,7 @@ calcIStart() const
   int istart = std::min(imin(), this->istart());
 
   if (idelta() > 0)
-    istart = idelta()*CMathRound::RoundDownF(istart/idelta());
+    istart = int(idelta()*CMathRound::RoundDownF(istart/idelta()));
 
   return istart;
 }

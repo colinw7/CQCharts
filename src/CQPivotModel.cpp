@@ -51,9 +51,9 @@ columnCount(const QModelIndex &parent) const
 
   // keys + vertical header + totals
   if (isIncludeTotals())
-    return hColKeys_.size() + 2;
+    return int(hColKeys_.size() + 2);
   else
-    return hColKeys_.size() + 1;
+    return int(hColKeys_.size() + 1);
 }
 
 // get number of child rows for parent
@@ -71,9 +71,9 @@ rowCount(const QModelIndex &parent) const
 
   // keys + totals
   if (isIncludeTotals())
-    return vRowKeys_.size() + 1;
+    return int(vRowKeys_.size() + 1);
   else
-    return vRowKeys_.size();
+    return int(vRowKeys_.size());
 }
 
 // get child node for row/column of parent
@@ -152,7 +152,7 @@ data(const QModelIndex &index, int role) const
         if (r == nr - 1)
           return data_.sum;
 
-        return vdata_[r].sum;
+        return vdata_[size_t(r)].sum;
       }
       else
         return CQBaseModel::data(index, role);
@@ -165,7 +165,7 @@ data(const QModelIndex &index, int role) const
   if (isIncludeTotals()) {
     if (r == nr - 1) {
       if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-        return hdata_[c - 1].sum;
+        return hdata_[size_t(c - 1)].sum;
       }
       else
         return CQBaseModel::data(index, role);
@@ -419,19 +419,19 @@ updateModel()
     auto ph = hKeysCol_.find(hkeys.key());
 
     if (ph == hKeysCol_.end()) {
-      int col = hKeysCol_.size();
+      auto col = hKeysCol_.size();
 
-      hKeysCol_[hkeys.key()] = col;
-      hColKeys_[col        ] = hkeys;
+      hKeysCol_[hkeys.key()] = int(col);
+      hColKeys_[int(col)   ] = hkeys;
     }
 
     auto pv = vKeysRow_.find(vkeys.key());
 
     if (pv == vKeysRow_.end()) {
-      int row = vKeysRow_.size();
+      auto row = vKeysRow_.size();
 
-      vKeysRow_[vkeys.key()] = row;
-      vRowKeys_[row        ] = vkeys;
+      vKeysRow_[vkeys.key()] = int(row);
+      vRowKeys_[int(row)   ] = vkeys;
     }
 
     Values &values = values_[hkeys.key()][vkeys.key()];
@@ -493,7 +493,7 @@ void
 CQPivotModel::
 calcData()
 {
-  int nr = vKeysRow_.size();
+  auto nr = vKeysRow_.size();
 
   vdata_.resize(nr);
 
@@ -524,14 +524,14 @@ calcData()
       }
     }
 
-    assert(r >= 0 && r < nr);
+    assert(r >= 0 && size_t(r) < nr);
 
-    vdata_[r] = data;
+    vdata_[size_t(r)] = data;
   }
 
   //---
 
-  int nc = hKeysCol_.size();
+  auto nc = hKeysCol_.size();
 
   hdata_.resize(nc);
 
@@ -562,9 +562,9 @@ calcData()
       }
     }
 
-    assert(c >= 0 && c < nc);
+    assert(c >= 0 && size_t(c) < nc);
 
-    hdata_[c] = data;
+    hdata_[size_t(c)] = data;
   }
 
   //---
@@ -671,7 +671,7 @@ hmin(int c) const
 {
   assert(c >= 0 && c <= int(hdata_.size()));
 
-  return hdata_[c].min;
+  return hdata_[size_t(c)].min;
 }
 
 double
@@ -680,7 +680,7 @@ hmax(int c) const
 {
   assert(c >= 0 && c <= int(hdata_.size()));
 
-  return hdata_[c].max;
+  return hdata_[size_t(c)].max;
 }
 
 double
@@ -689,7 +689,7 @@ vmin(int r) const
 {
   assert(r >= 0 && r <= int(vdata_.size()));
 
-  return vdata_[r].min;
+  return vdata_[size_t(r)].min;
 }
 
 double
@@ -698,5 +698,5 @@ vmax(int r) const
 {
   assert(r >= 0 && r <= int(vdata_.size()));
 
-  return vdata_[r].max;
+  return vdata_[size_t(r)].max;
 }

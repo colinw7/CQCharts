@@ -151,6 +151,12 @@ void
 CQChartsGraphVizPlot::
 clearNodesAndEdges()
 {
+  for (auto *node : nodes_)
+    delete node;
+
+  for (auto *edge : edges_)
+    delete edge;
+
   nameNodeMap_.clear();
   indNodeMap_ .clear();
 

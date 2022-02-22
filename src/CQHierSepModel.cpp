@@ -359,7 +359,7 @@ createConnections()
       root_->addChild(nodeDataMap.begin()->first);
   }
   else if (data_.connectionType == CQHierConnectionType::CONNECTIONS) {
-    int numNodes = nodeIdData.size();
+    int numNodes = int(nodeIdData.size());
 
     for (const auto &p : nodeIdData) {
       auto &nodeData = p.second;

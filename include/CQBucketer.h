@@ -192,14 +192,14 @@ class CQBucketer {
   int stringBucket(const QString &str) const;
   QString bucketString(int bucket) const;
 
-  int intBucket(int i) const;
+  int intBucket(long i) const;
 
   int realBucket(double r) const;
 
   int autoRealBucket(double r) const;
 
   int stopsRealBucket(double r) const;
-  int stopsIntBucket(int i) const;
+  int stopsIntBucket(long i) const;
 
   //----
 

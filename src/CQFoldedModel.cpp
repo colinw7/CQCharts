@@ -440,7 +440,7 @@ parent(const QModelIndex &child) const
 
   for (std::size_t i = 0; i < pnode->children.size(); ++i) {
     if (pnode->children[i] == node) {
-      row = i;
+      row = int(i);
     }
   }
 
@@ -848,7 +848,7 @@ mapColumnToSource(int column) const
   if (column < 0 || column >= numColumns_)
     return -1;
 
-  return sourceColumns_[column];
+  return sourceColumns_[size_t(column)];
 }
 
 // source column number to folded column number
@@ -857,7 +857,7 @@ CQFoldedModel::
 mapColumnFromSource(int column) const
 {
   for (int i = 0; i < numColumns_; ++i)
-    if (sourceColumns_[i] == column)
+    if (sourceColumns_[size_t(i)] == column)
       return i;
 
   return -1;
@@ -868,30 +868,30 @@ void
 CQFoldedModel::
 initSourceColumns()
 {
-  sourceColumns_.resize(numColumns_);
+  sourceColumns_.resize(size_t(numColumns_));
 
   for (int i = 0; i < numColumns_; ++i)
-    sourceColumns_[i] = i;
+    sourceColumns_[size_t(i)] = i;
 
   if (! isKeepFoldColumn()) {
     if      (foldPos() < foldColumn()) {
       for (int i = foldColumn(); i >= foldPos() + 1; --i)
-        sourceColumns_[i] = sourceColumns_[i - 1];
+        sourceColumns_[size_t(i)] = sourceColumns_[size_t(i - 1)];
 
-      sourceColumns_[foldPos()] = foldColumn();
+      sourceColumns_[size_t(foldPos())] = foldColumn();
     }
     else if (foldPos() > foldColumn()) {
       for (int i = foldColumn() + 1; i <= foldPos(); ++i)
-        sourceColumns_[i - 1] = sourceColumns_[i];
+        sourceColumns_[size_t(i - 1)] = sourceColumns_[size_t(i)];
 
-      sourceColumns_[foldPos()] = foldColumn();
+      sourceColumns_[size_t(foldPos())] = foldColumn();
     }
   }
   else {
     for (int i = numColumns_ - 1; i >= foldPos() + 1; --i)
-      sourceColumns_[i] = sourceColumns_[i - 1];
+      sourceColumns_[size_t(i)] = sourceColumns_[size_t(i - 1)];
 
-    sourceColumns_[foldPos()] = foldColumn();
+    sourceColumns_[size_t(foldPos())] = foldColumn();
   }
 }
 
@@ -907,7 +907,7 @@ foldedChildIndex(Node *pnode, int row, int column) const
   auto *model = this->sourceModel();
   if (! model) return QModelIndex();
 
-  int r = pnode->sourceRows[row];
+  int r = pnode->sourceRows[size_t(row)];
 
   int c = mapColumnToSource(column);
   if (c < 0) return QModelIndex();
@@ -964,7 +964,7 @@ indexNode(const QModelIndex &ind) const
   if (! pnode->isFolded()) {
     assert(ind.row() >= 0 && ind.row() < int(pnode->children.size()));
 
-    return NodeData(pnode, pnode->children[ind.row()]);
+    return NodeData(pnode, pnode->children[size_t(ind.row())]);
   }
 
   // no child for folded

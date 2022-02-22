@@ -238,24 +238,24 @@ load(const QString &filename)
     const FieldsSet &fieldsSet = set_[0][0];
 
     // add fields to model
-    int numColumns = columnHeaderFields_.size();
+    int numColumns = int(columnHeaderFields_.size());
 
     for (const auto &fields : fieldsSet)
       numColumns = std::max(numColumns, int(fields.size()));
 
     for (int i = 0; i < numColumns; ++i) {
       if (i < int(columnHeaderFields_.size()))
-        addColumnHeader(columnHeaderFields_[i]);
+        addColumnHeader(columnHeaderFields_[size_t(i)]);
       else
         addColumnHeader(QString("%1").arg(i + 1));
     }
 
     if (firstColumnHeader) {
-      int numRows = fieldsSet.size();
+      int numRows = int(fieldsSet.size());
 
       for (int i = 0; i < numRows; ++i) {
         if (i < int(rowHeaderFields_.size()))
-          addRowHeader(rowHeaderFields_[i]);
+          addRowHeader(rowHeaderFields_[size_t(i)]);
         else
           addRowHeader(QString("%1").arg(i + 1));
       }
