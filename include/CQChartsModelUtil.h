@@ -413,6 +413,22 @@ inline FlattenOp flattenStringToOp(const QString &str) {
 
 namespace CQChartsModelUtil {
 
+enum class MatchType {
+  EXACT,
+  EXACT_SINGLE,
+  GLOB,
+  REGEXP
+};
+
+bool findRows(QAbstractItemModel *model, const Column &column,
+              const QString &match, MatchType matchType, std::vector<int> &rows);
+
+}
+
+//------
+
+namespace CQChartsModelUtil {
+
 const QStringList &roleNames();
 
 int nameToRole(const QString &name);

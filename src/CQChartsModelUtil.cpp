@@ -2659,6 +2659,77 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
 namespace CQChartsModelUtil {
 
+bool findRows(QAbstractItemModel *model, const Column &column,
+              const QString &match, MatchType matchType, std::vector<int> &rows)
+{
+  int icolumn = column.column();
+
+  if (icolumn < 0 || icolumn >= model->columnCount())
+    return false;
+
+  int nr = model->rowCount();
+
+  const auto *dataModel = getDataModel(model);
+
+  if (dataModel) {
+    if (matchType == MatchType::EXACT_SINGLE) {
+      int row = dataModel->findColumnValue(icolumn, match);
+
+      if (row >= 0)
+        rows.push_back(row);
+    }
+    else {
+      QVariantList vars;
+
+      dataModel->getColumnValues(icolumn, vars);
+      assert(vars.size() == nr);
+
+      for (int r = 0; r < nr; ++r) {
+        bool add = false;
+
+        if (matchType == MatchType::EXACT || matchType == MatchType::EXACT_SINGLE)
+          add = (vars[r].toString() == match);
+
+        if (add) {
+          rows.push_back(r);
+
+          if (matchType == MatchType::EXACT_SINGLE)
+            break;
+        }
+      }
+    }
+  }
+  else {
+    for (int r = 0; r < nr; ++r) {
+      auto ind = model->index(r, icolumn, QModelIndex());
+
+      bool ok;
+      auto var = modelValue(model, ind, Qt::DisplayRole, ok);
+      if (! ok) continue;
+
+      bool add = false;
+
+      if (matchType == MatchType::EXACT || matchType == MatchType::EXACT_SINGLE)
+        add = (var.toString() == match);
+
+      if (add) {
+        rows.push_back(r);
+
+        if (matchType == MatchType::EXACT_SINGLE)
+          break;
+      }
+    }
+  }
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsModelUtil {
+
 const QStringList &roleNames() {
   return CQModelUtil::roleNames();
 };

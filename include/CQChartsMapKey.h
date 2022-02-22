@@ -145,7 +145,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   const QVariantList &uniqueValues() const { return uniqueValues_; }
   void setUniqueValues(const QVariantList &v) { uniqueValues_ = v; }
 
-  //! get/set unique values
+  //! get/set unique counts
   const QVariantList &uniqueCounts() const { return uniqueCounts_; }
   void setUniqueCounts(const QVariantList &v) { uniqueCounts_ = v; }
 

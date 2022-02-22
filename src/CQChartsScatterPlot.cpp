@@ -3726,18 +3726,18 @@ calcTipId() const
   //---
 
   // add color column
-  if (valuePoint.color.isValid())
-    tableTip.addTableRow(plot_->colorHeaderName(/*tip*/true), valuePoint.color.colorStr());
-  else
+  if      (plot_->colorColumn().isValid())
     addColumnRowValue(plot_->colorColumn());
+  else if (valuePoint.color.isValid())
+    tableTip.addTableRow(plot_->colorHeaderName(/*tip*/true), valuePoint.color.colorStr());
 
   //---
 
   // add alpha column
-  if (valuePoint.alpha.isSet())
-    tableTip.addTableRow(plot_->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
-  else
+  if      (plot_->alphaColumn().isValid())
     addColumnRowValue(plot_->alphaColumn());
+  else if (valuePoint.alpha.isSet())
+    tableTip.addTableRow(plot_->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
 
   //---
 

@@ -6089,7 +6089,8 @@ execCmd(CQChartsCmdArgs &argv)
           if (quiet)
             return cmdBase_->setCmdRc(QString());
 
-          return errorMsg("Invalid model value");
+          return errorMsg(QString("Invalid model value for row %1, column %2").
+                            arg(row.row()).arg(column.toString()));
         }
       }
 
@@ -6421,6 +6422,22 @@ execCmd(CQChartsCmdArgs &argv)
       auto name = modelData->name();
 
       return cmdBase_->setCmdRc(name);
+    }
+    // get row for column data
+    else if (name == "find") {
+      if (argv.hasParseArg("column")) {
+        if (! column.isValid())
+          return errorMsg("Invalid column specified");
+      }
+
+      auto data = argv.getParseStr("data");
+
+      std::vector<int> rows;
+
+      (void) CQChartsModelUtil::findRows(model.data(), column, data,
+               CQChartsModelUtil::MatchType::EXACT_SINGLE, rows);
+
+      return cmdBase_->setCmdRc(rows);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["model"] = "";

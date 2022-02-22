@@ -2917,6 +2917,10 @@ draw(PaintDevice *device)
 
   //---
 
+  drawText(device, annotationBBox());
+
+  //---
+
   drawTerm(device);
 }
 
@@ -3024,7 +3028,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   auto path1 = path + "/" + propertyId();
 
-  addProp(model, path1, "polygon", "", "Polyline points");
+  addProp(model, path1, "polygon"   , "", "Polyline points");
+  addProp(model, path1, "pointsType", "", "Polyline points type");
 
   addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 
@@ -3161,14 +3166,24 @@ draw(PaintDevice *device)
   // create path
   QPainterPath path;
 
-  if (isSmoothed()) {
-    initSmooth();
+  if      (pointsType() == PointsType::CONTIGUOUS) {
+    if (isSmoothed()) {
+      initSmooth();
 
-    // smooth path
-    path = smooth_->createPath(/*closed*/false);
+      // smooth path
+      path = smooth_->createPath(/*closed*/false);
+    }
+    else {
+      path = CQChartsDrawUtil::polygonToPath(polygon, /*closed*/false);
+    }
   }
-  else {
-    path = CQChartsDrawUtil::polygonToPath(polygon, /*closed*/false);
+  else if (pointsType() == PointsType::LINE_PAIRS) {
+    int nl = polygon.size()/2;
+
+    for (int i = 0; i < nl; ++i) {
+      path.moveTo(polygon.point(2*i + 0).qpoint());
+      path.lineTo(polygon.point(2*i + 1).qpoint());
+    }
   }
 
   //---
@@ -3211,6 +3226,10 @@ draw(PaintDevice *device)
     apoly_ = polygon_.rotated(polygon_.getCenter(), angle());
   else
     apoly_ = polygon_;
+
+  //---
+
+  drawText(device, annotationBBox());
 
   //---
 
@@ -4102,6 +4121,10 @@ draw(PaintDevice *device)
 
   //---
 
+  drawText(device, annotationBBox());
+
+  //---
+
   drawTerm(device);
 }
 
@@ -4365,6 +4388,10 @@ draw(PaintDevice *device)
     path = CQChartsDrawUtil::rotatePath(path, angle().degrees());
 
   device->drawPath(path);
+
+  //---
+
+  drawText(device, annotationBBox());
 
   //---
 

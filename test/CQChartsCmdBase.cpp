@@ -1229,6 +1229,20 @@ setCmdRc(const QVariantList &rc)
 
 bool
 CQChartsCmdBase::
+setCmdRc(const std::vector<int> &rc)
+{
+  QVariantList vars;
+
+  for (const auto &i : rc)
+    vars.push_back(QVariant(i));
+
+  qtcl()->setResult(vars);
+
+  return true;
+}
+
+bool
+CQChartsCmdBase::
 setCmdError(const QString &msg)
 {
   errorMsg(msg);

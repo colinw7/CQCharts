@@ -65,6 +65,7 @@ class CQChartsCmdBase : public CQTclCmd::Mgr {
   bool setCmdRc(const QVariant &rc);
   bool setCmdRc(const QStringList &rc);
   bool setCmdRc(const QVariantList &rc);
+  bool setCmdRc(const std::vector<int> &rc);
 
   bool setCmdError(const QString &msg);
 

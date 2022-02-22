@@ -87,7 +87,7 @@ load(const QString &filename)
 
   // expand horizontal header to max number of columns
   for (const auto &fields : data) {
-    int numFields = fields.size();
+    int numFields = int(fields.size());
 
     if (isFirstColumnHeader())
       --numFields;
@@ -145,7 +145,7 @@ load(const QString &filename)
   //---
 
   // expand vertical header to number of rows
-  int numRows = data_.size();
+  int numRows = int(data_.size());
 
   while (int(vheader_.size()) < numRows)
     vheader_.push_back("");
@@ -168,7 +168,7 @@ load(const QString &filename)
 
   if (! meta_.empty()) {
     for (const auto &fields : meta_) {
-      int numFields = fields.size();
+      int numFields = int(fields.size());
 
       // handle column data:
       //   column <column_name> <value_type> <value>

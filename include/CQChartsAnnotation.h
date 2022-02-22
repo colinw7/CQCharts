@@ -1058,6 +1058,16 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotationBase {
 class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   Q_OBJECT
 
+  Q_PROPERTY(PointsType pointsType READ pointsType WRITE setPointsType)
+
+  Q_ENUMS(PointsType)
+
+ public:
+  enum class PointsType {
+    CONTIGUOUS,
+    LINE_PAIRS
+  };
+
  public:
   CQChartsPolylineAnnotation(View *view, const Polygon &polygon);
   CQChartsPolylineAnnotation(Plot *plot, const Polygon &polygon);
@@ -1071,6 +1081,11 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   const char *propertyName() const override { return "polylineAnnotation"; }
 
   const char *cmdName() const override { return "create_charts_polyline_annotation"; }
+
+  //---
+
+  const PointsType &pointsType() const { return pointsType_; }
+  void setPointsType(const PointsType &v) { pointsType_ = v; }
 
   //---
 
@@ -1096,6 +1111,9 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   void init();
 
   EditHandles *editHandles() const override;
+
+ private:
+  PointsType pointsType_ { PointsType::CONTIGUOUS };
 };
 
 //---

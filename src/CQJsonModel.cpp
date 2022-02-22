@@ -238,7 +238,7 @@ columnCount(const QModelIndex &index) const
 {
   if (jsonMatch_ != "") {
     if (! jsonValues_.empty())
-      return jsonValues_[0]->numValues();
+      return int(jsonValues_[0]->numValues());
     else
       return 0;
   }
@@ -275,7 +275,7 @@ rowCount(const QModelIndex &parent) const
 {
   if (jsonMatch_ != "") {
     if (! parent.isValid())
-      return jsonValues_.size();
+      return int(jsonValues_.size());
 
     return 0;
   }
@@ -303,7 +303,7 @@ rowCount(const QModelIndex &parent) const
 
       auto *childArray = value->cast<CJson::Array>();
 
-      return childArray->size();
+      return int(childArray->size());
     }
     else {
       return 1;
@@ -318,10 +318,10 @@ rowCount(const QModelIndex &parent) const
     if      (parentValue->isObject()) {
       auto *obj = parentValue->cast<CJson::Object>();
 
-      return obj->nameValueMap().size();
+      return int(obj->nameValueMap().size());
     }
     else if (parentValue->isArray()) {
-      return parentValue->numValues();
+      return int(parentValue->numValues());
     }
     else
       return 0;
@@ -373,7 +373,7 @@ headerString(int section, QString &str) const
     CJson::ValueP value = jsonValues_[0];
 
     if (section < int(value->numValues())) {
-      str = value->indexKey(section).c_str();
+      str = value->indexKey(uint(section)).c_str();
       return true;
     }
 
@@ -396,7 +396,7 @@ headerString(int section, QString &str) const
         CJson::ValueP value1 = parentValue->indexValue(0);
 
         if (section >= 0 && section < int(value1->numValues())) {
-          str = value1->indexKey(section).c_str();
+          str = value1->indexKey(uint(section)).c_str();
           return true;
         }
       }
@@ -429,7 +429,7 @@ parentName(CJson::Value *value) const
       std::string   name1;
       CJson::ValueP value1;
 
-      if (obj->indexNameValue(i, name1, value1) && value1.get() == value)
+      if (obj->indexNameValue(uint(i), name1, value1) && value1.get() == value)
         return name1.c_str();
     }
   }
@@ -437,7 +437,7 @@ parentName(CJson::Value *value) const
     auto *array = parent->cast<CJson::Array>();
 
     for (size_t i = 0; i < array->size(); ++i) {
-      if (array->at(i).get() == value)
+      if (array->at(uint(i)).get() == value)
         return QString("%1").arg(i);
     }
   }
@@ -454,10 +454,10 @@ data(const QModelIndex &index, int role) const
       if (! index.isValid())
         return QVariant();
 
-      CJson::ValueP value = jsonValues_[index.row()];
+      CJson::ValueP value = jsonValues_[uint(index.row())];
 
       if (index.column() >= 0 && index.column() < int(value->numValues()))
-        return value->indexValue(index.column())->to_string().c_str();
+        return value->indexValue(uint(index.column()))->to_string().c_str();
 
       return QVariant();
     }
@@ -550,7 +550,7 @@ index(int row, int column, const QModelIndex &parent) const
     if (parentObj->getNamedValue(hierName_.toStdString(), value)) {
       auto *childArray = value->cast<CJson::Array>();
 
-      CJson::ValueP childValue = childArray->at(row);
+      CJson::ValueP childValue = childArray->at(uint(row));
 
       return createIndex(row, column, childValue.get());
     }
@@ -577,7 +577,7 @@ index(int row, int column, const QModelIndex &parent) const
       std::string   name;
       CJson::ValueP value;
 
-      if (! obj->indexNameValue(row, name, value))
+      if (! obj->indexNameValue(uint(row), name, value))
         return QModelIndex();
 
       return createIndex(row, column, value.get());
@@ -588,7 +588,7 @@ index(int row, int column, const QModelIndex &parent) const
       if (row < 0 || row >= int(array->size()))
         return QModelIndex();
 
-      return createIndex(row, column, array->at(row).get());
+      return createIndex(row, column, array->at(uint(row)).get());
     }
     else
       return QModelIndex();
@@ -633,7 +633,7 @@ parent(const QModelIndex &index) const
     // find index of parentObj in parentParentArray
     for (uint i = 0; i < parentParentArray->size(); ++i) {
       if (parentParentArray->at(i).get() == parentObj)
-        return createIndex(i, 0, parentObj);
+        return createIndex(int(i), 0, parentObj);
     }
 
     // always non-leaf parent
@@ -665,16 +665,16 @@ parent(const QModelIndex &index) const
         std::string   name;
         CJson::ValueP value;
 
-        if (obj->indexNameValue(i, name, value) && value.get() == parentValue)
-          return createIndex(i, 0, parentValue);
+        if (obj->indexNameValue(uint(i), name, value) && value.get() == parentValue)
+          return createIndex(int(i), 0, parentValue);
       }
     }
     else if (parentParentValue->isArray()) {
       auto *array = parentParentValue->cast<CJson::Array>();
 
       for (size_t i = 0; i < array->size(); ++i) {
-        if (array->at(i).get() == parentValue)
-          return createIndex(i, 0, parentValue);
+        if (array->at(uint(i)).get() == parentValue)
+          return createIndex(int(i), 0, parentValue);
       }
     }
 

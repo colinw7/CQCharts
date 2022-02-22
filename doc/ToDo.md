@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + CQChartsPlot::addTipColumn (always normalized ?)
  + alias for property (so can change with backwards compatibility)
  + color discreet values
  + symbol keys -> point keys ?

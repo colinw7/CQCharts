@@ -10988,9 +10988,10 @@ addTipHeader(CQChartsTableTip &tableTip, const QModelIndex &ind) const
 
   auto *th = const_cast<Plot *>(this);
 
-  ModelIndex tipModelInd(th, ind.row(), tipHeaderColumn(), ind.parent());
+//ModelIndex tipModelInd(th, ind.row(), tipHeaderColumn(), ind.parent());
 
-  auto tipInd  = modelIndex(tipModelInd);
+//auto tipInd  = modelIndex(tipModelInd);
+  auto tipInd  = modelIndex(ind.row(), tipHeaderColumn(), ind.parent(), /*normalized*/true);
   auto tipInd1 = unnormalizeIndex(tipInd);
 
   ModelIndex tipModelInd1(th, tipInd1.row(), tipHeaderColumn(), tipInd1.parent());
@@ -11021,16 +11022,17 @@ addTipColumn(CQChartsTableTip &tableTip, const Column &c, const QModelIndex &ind
   if (tableTip.hasColumn(c))
     return;
 
+  auto name = columnHeaderName(c, /*tip*/true);
+
   auto *th = const_cast<Plot *>(this);
 
-  ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
+//ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
 
-  auto tipInd  = modelIndex(tipModelInd);
+//auto tipInd  = modelIndex(tipModelInd);
+  auto tipInd  = modelIndex(ind.row(), c, ind.parent(), /*normalized*/true);
   auto tipInd1 = unnormalizeIndex(tipInd);
 
   ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
-
-  auto name = columnHeaderName(c, /*tip*/true);
 
   bool ok;
   auto value = modelString(tipModelInd1, ok);

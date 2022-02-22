@@ -95,6 +95,8 @@ init()
   generalFrame_  = CQUtil::makeWidget<QFrame>("editFrame");
   generalLayout_ = CQUtil::makeLayout<QGridLayout>(generalFrame_, 0, 2);
 
+  generalFrame_->setAutoFillBackground(true);
+
   split->addWidget(generalFrame_, "General");
 
   //---
@@ -105,12 +107,16 @@ init()
   paramSubFrame_  = CQUtil::makeWidget<QFrame>("paramSubFrame");
   paramSubLayout_ = CQUtil::makeLayout<QGridLayout>(paramSubFrame_, 0, 2);
 
+  paramFrame_->setAutoFillBackground(true);
+
   split->addWidget(paramFrame_, "Parameters");
 
   //---
 
   nullValueFrame_  = CQUtil::makeWidget<QFrame>("nullValueFrame");
   nullValueLayout_ = CQUtil::makeLayout<QGridLayout>(nullValueFrame_, 0, 2);
+
+  nullValueFrame_->setAutoFillBackground(true);
 
   split->addWidget(nullValueFrame_, "Null Value");
 

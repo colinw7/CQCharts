@@ -992,7 +992,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto tc1 = tc;
 
     if (hidden)
-      tc1 = calcHiddenColor(device, tc);
+      tc1 = calcHiddenColor(device, tc1);
 
     CQChartsPenBrush tpenBrush;
 
@@ -1644,7 +1644,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto ltc1 = ltc;
 
     if (hidden)
-      ltc1 = calcHiddenColor(device, ltc);
+      ltc1 = calcHiddenColor(device, ltc1);
 
     setPenBrush(tpenBrush, PenData(true, ltc1, sizeTextAlpha()), BrushData(false));
 
@@ -1663,7 +1663,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     auto rtc1 = rtc;
 
     if (hidden)
-      rtc1 = calcHiddenColor(device, rtc);
+      rtc1 = calcHiddenColor(device, rtc1);
 
     setPenBrush(tpenBrush, PenData(true, rtc1, textAlpha()), BrushData(false));
 
@@ -1671,7 +1671,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
     //---
 
-    // draw size text
+    // draw size label
     drawTextLabel(Point(tx2, ty1 + rdf), itemLabel);
 
     //---

@@ -61,7 +61,7 @@ load(const QString &filename)
 
   // expand horizontal header to max number of columns
   for (const auto &fields : data) {
-    int numFields = fields.size();
+    int numFields = int(fields.size());
 
     if (isFirstColumnHeader())
       --numFields;
@@ -108,7 +108,7 @@ load(const QString &filename)
   //---
 
   // expand vertical header to max number of rows
-  int numRows = data_.size();
+  int numRows = int(data_.size());
 
   while (int(vheader_.size()) < numRows)
     vheader_.push_back("");
