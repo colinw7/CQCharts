@@ -6,8 +6,7 @@ set plot [create_charts_plot -type scatter -columns {{x 0} {y 1}} \
 set_charts_property -plot $plot -name range.xmin -value 0
 set_charts_property -plot $plot -name range.ymin -value 0
 set_charts_property -plot $plot -name range.xmax -value 100
-set_charts_property -plot $plot -name range.ymax -value 100
-set_charts_property -plot $plot -name range.ymax -value 100
+set_charts_property -plot $plot -name range.ymax -value 200
 
 set_charts_property -plot $plot -name dataBox.unscaledRange -value 1
 

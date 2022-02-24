@@ -968,13 +968,13 @@ draw(PaintDevice *device) const
 
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy);
+  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
   //---
 
   // draw symbol
   if (symbol.isValid())
-    plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
+    plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
 
   //---
 

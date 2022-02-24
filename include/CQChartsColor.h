@@ -59,6 +59,8 @@ class CQChartsColor :
     COLOR
   };
 
+  using Color = CQChartsColor;
+
  public:
   static void registerMetaType();
 
@@ -67,6 +69,15 @@ class CQChartsColor :
   //---
 
   CQUTIL_DEF_META_CONVERSIONS(CQChartsColor, metaTypeId)
+
+ public:
+  static Color makePaletteValue(double value=0.0) {
+    return Color(Color::Type::PALETTE_VALUE, value);
+  }
+
+  static Color makeInterfaceValue(double value=0.0) {
+    return Color(Color::Type::INTERFACE_VALUE, value);
+  }
 
  public:
   //! default constructor
@@ -235,7 +246,7 @@ class CQChartsColor :
   }
 
   //! compare two colors
-  friend int cmp(const CQChartsColor &lhs, const CQChartsColor &rhs) {
+  friend int cmp(const Color &lhs, const Color &rhs) {
     if (lhs.type_   != rhs.type_  ) return (lhs.type_   < rhs.type_   ? -1 : 1);
     if (lhs.ind_    != rhs.ind_   ) return (lhs.ind_    < rhs.ind_    ? -1 : 1);
     if (lhs.scale_  != rhs.scale_ ) return (lhs.scale_  < rhs.scale_  ? -1 : 1);

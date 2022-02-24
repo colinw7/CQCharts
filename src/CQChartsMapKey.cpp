@@ -30,7 +30,7 @@ CQChartsMapKey(Plot *plot) :
   font.decFontSize(4);
   setTextFont(font);
 
-  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
+  setTextColor(Color::makeInterfaceValue(1.0));
 }
 
 void
@@ -2269,6 +2269,14 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addPathProp(mappingPath, "mapMin", "", "Symbol Type Min");
   addPathProp(mappingPath, "mapMax", "", "Symbol Type Max");
 
+  auto symbolPath = path + "/symbol";
+
+  addPathProp(symbolPath + "/fill" , "symbolFillColor", "color", "Symbol Fill Color");
+  addPathProp(symbolPath + "/fill" , "symbolFillAlpha", "alpha", "Symbol Fill Alpha");
+
+  addPathProp(symbolPath + "/stoke", "symbolStrokeColor", "color", "Symbol Stroke Color");
+  addPathProp(symbolPath + "/stoke", "symbolStrokeAlpha", "alpha", "Symbol Stroke Alpha");
+
   //---
 
   CQChartsMapKey::addProperties(model, path, desc);
@@ -2448,8 +2456,11 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   auto *symbolSet = symbolSetMgr->symbolSet(this->symbolSet());
 
-  auto symbolFillColor   = plot()->interpPaletteColor(ColorInd());
-  auto symbolStrokeColor = plot()->interpThemeColor(ColorInd(1.0));
+  auto symbolFillColor   = plot()->interpColor(this->symbolFillColor(), ColorInd());
+  auto symbolStrokeColor = plot()->interpColor(this->symbolStrokeColor(), ColorInd());
+
+  auto symbolFillAlpha   = this->symbolFillAlpha();
+  auto symbolStrokeAlpha = this->symbolStrokeAlpha();
 
   if (isContiguous()) {
     for (long i = mapMin(); i <= mapMax(); ++i) {
@@ -2469,12 +2480,14 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       // set pen brush
       PenBrush symbolPenBrush;
 
-      auto c = symbolStrokeColor;
+      auto sc = symbolStrokeColor;
+      auto fc = symbolFillColor;
 
       if (symbolData.symbol.isFilled())
-        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(true, symbolFillColor));
+        setPenBrush(symbolPenBrush, PenData(true, sc, symbolStrokeAlpha),
+                    BrushData(true, fc, symbolFillAlpha));
       else
-        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(false));
+        setPenBrush(symbolPenBrush, PenData(true, sc, symbolStrokeAlpha), BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
@@ -2544,15 +2557,19 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       // set pen brush
       PenBrush symbolPenBrush;
 
-      auto c = symbolStrokeColor;
+      auto sc = symbolStrokeColor;
+      auto fc = symbolFillColor;
 
-      if (hidden)
-        c = calcHiddenColor(device, c);
+      if (hidden) {
+        sc = calcHiddenColor(device, sc);
+        fc = calcHiddenColor(device, fc);
+      }
 
       if (symbolData.symbol.isFilled())
-        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(true, symbolFillColor));
+        setPenBrush(symbolPenBrush, PenData(true, sc, symbolStrokeAlpha),
+                    BrushData(true, fc, symbolFillAlpha));
       else
-        setPenBrush(symbolPenBrush, PenData(true, c), BrushData(false));
+        setPenBrush(symbolPenBrush, PenData(true, sc, symbolStrokeAlpha), BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 

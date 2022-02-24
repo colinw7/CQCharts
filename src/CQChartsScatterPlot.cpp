@@ -3796,7 +3796,7 @@ draw(PaintDevice *device) const
 
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy);
+  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
   //---
 
@@ -3805,7 +3805,7 @@ draw(PaintDevice *device) const
 
   if (! image.isValid()) {
     if (symbol.isValid())
-      plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
+      plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
   }
   else {
     double aspect = (1.0*image.width())/image.height();
@@ -3892,7 +3892,7 @@ drawDataLabel(PaintDevice *) const
 
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy);
+  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
   BBox tbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 

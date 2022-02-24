@@ -629,6 +629,11 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   Q_PROPERTY(long    mapMax    READ mapMax    WRITE setMapMax   )
   Q_PROPERTY(QString symbolSet READ symbolSet WRITE setSymbolSet)
 
+  Q_PROPERTY(CQChartsColor symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(CQChartsAlpha symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
+  Q_PROPERTY(CQChartsColor symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(CQChartsAlpha symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
+
  public:
   using PenBrush       = CQChartsPenBrush;
   using BrushData      = CQChartsBrushData;
@@ -672,7 +677,21 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   // symbol set
   const QString &symbolSet() const { return symbolTypeData_.setName; }
-  void setSymbolSet(const QString &s) { symbolTypeData_.setName = s; }
+  void setSymbolSet(const QString &s) { symbolTypeData_.setName = s; invalidate(); }
+
+  //---
+
+  const Color &symbolStrokeColor() const { return symbolStrokeColor_; }
+  void setSymbolStrokeColor(const Color &c) { symbolStrokeColor_ = c; invalidate(); }
+
+  const Alpha &symbolStrokeAlpha() const { return symbolStrokeAlpha_; }
+  void setSymbolStrokeAlpha(const Alpha &a) { symbolStrokeAlpha_ = a; invalidate(); }
+
+  const Color &symbolFillColor() const { return symbolFillColor_; }
+  void setSymbolFillColor(const Color &c) { symbolFillColor_ = c; invalidate(); }
+
+  const Alpha &symbolFillAlpha() const { return symbolFillAlpha_; }
+  void setSymbolFillAlpha(const Alpha &a) { symbolFillAlpha_ = a; invalidate(); }
 
   //---
 
@@ -726,6 +745,11 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
 
   SymbolTypeData symbolTypeData_;
   TypeItemBoxes  itemBoxes_;
+
+  Color symbolStrokeColor_ { Color::makeInterfaceValue(1.0) };
+  Alpha symbolStrokeAlpha_;
+  Color symbolFillColor_   { Color::makePaletteValue(0.0) };
+  Alpha symbolFillAlpha_;
 };
 
 //---

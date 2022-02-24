@@ -1,0 +1,7 @@
+From,To,Attributes
+A,B,"shape=box"
+B,C,"shape=box"
+C,A,"shape=box"
+A,A,"shape=box"
+B,B,"shape=box"
+C,C,"shape=box"

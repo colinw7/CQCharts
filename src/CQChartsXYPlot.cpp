@@ -18,6 +18,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsColumnCombo.h>
+#include <CQChartsTextPlacer.h>
 #include <CQCharts.h>
 
 #include <CQUtil.h>
@@ -231,6 +232,8 @@ init()
 
   NoUpdate noUpdate(this);
 
+  setLayerActive(Layer::Type::FG_PLOT, true);
+
   //---
 
   setSymbol(Symbol::circle());
@@ -280,12 +283,17 @@ init()
   //---
 
   addColorMapKey();
+
+  //---
+
+  placer_ = new CQChartsTextPlacer;
 }
 
 void
 CQChartsXYPlot::
 term()
 {
+  delete placer_;
 }
 
 //---
@@ -454,6 +462,13 @@ setLayers(int i)
   CQChartsUtil::testAndSet(layers_, i, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsXYPlot::
+setAdjustText(bool b)
+{
+  CQChartsUtil::testAndSet(adjustText_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -619,6 +634,8 @@ addProperties()
   addSymbolProperties("points/symbol", "", "Points");
 
   // data labels
+  addProp("points", "adjustText", "adjustText", "Adjust text placement");
+
   dataLabel()->addPathProperties("points/labels", "Labels");
 
   // lines
@@ -2859,6 +2876,41 @@ yAxisWidth(const CQChartsAxisSide::Type &side) const
 
 //------
 
+void
+CQChartsXYPlot::
+preDrawObjs(PaintDevice *) const
+{
+  if (! isAdjustText())
+    return;
+
+  placer_->clear();
+}
+
+void
+CQChartsXYPlot::
+postDrawObjs(PaintDevice *device) const
+{
+  if (! isAdjustText())
+    return;
+
+  auto rect = this->calcDataRect();
+
+  placer_->place(rect);
+
+  placer_->draw(device);
+}
+
+void
+CQChartsXYPlot::
+addDrawText(PaintDevice *device, const QString &str, const Point &point,
+            const TextOptions &textOptions, const Point &targetPoint,
+            bool centered) const
+{
+  placer_->addDrawText(device, str, point, textOptions, targetPoint, /*margin*/0, centered);
+}
+
+//------
+
 bool
 CQChartsXYPlot::
 hasBackground() const
@@ -3019,6 +3071,26 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
   }
 
   rug->draw(device, delta);
+}
+
+//---
+
+void
+CQChartsXYPlot::
+drawDataLabel(PaintDevice *device, const BBox &bbox, const QString &str,
+              const PenBrush &penBrush, const Font &font) const
+{
+  //auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  if (isAdjustText())
+    dataLabel_->setTextPlacer(placer_);
+
+  dataLabel()->draw(device, bbox, str,
+                  static_cast<CQChartsDataLabel::Position>(dataLabelPosition()),
+                  penBrush, font);
+
+  if (isAdjustText())
+    dataLabel_->setTextPlacer(nullptr);
 }
 
 //---
@@ -3738,7 +3810,7 @@ draw(PaintDevice *device) const
 
     double sx, sy;
 
-    calcSymbolPixelSize(sx, sy);
+    calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
     //---
 
@@ -3747,7 +3819,7 @@ draw(PaintDevice *device) const
 
     if (! image.isValid()) {
       if (symbol.isValid())
-        plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
+        plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
     }
     else {
       double aspect = (1.0*image.width())/image.height();
@@ -3955,9 +4027,7 @@ draw(PaintDevice *device) const
 
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  dataLabel->draw(device, plot_->pixelToWindow(ptbbox), label_,
-                  static_cast<CQChartsDataLabel::Position>(plot_->dataLabelPosition()),
-                  penBrush, font1);
+  plot_->drawDataLabel(device, plot_->pixelToWindow(ptbbox), label_, penBrush, font1);
 }
 
 //------
@@ -4402,11 +4472,14 @@ drawLineLabel(PaintDevice *device) const
 
   auto p = poly_.point(np - 1) + Point(ds.width(), ds.height());
 
-  CQChartsTextOptions options;
+  CQChartsTextOptions textOptions;
 
-  options.align = Qt::AlignLeft;
+  textOptions.align = Qt::AlignLeft;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, p, name(), options, /*centered*/false);
+  if (plot_->isAdjustText())
+    plot_->addDrawText(device, name(), p, textOptions, p, /*centered*/false);
+  else
+    CQChartsDrawUtil::drawTextAtPoint(device, p, name(), textOptions, /*centered*/false);
 }
 
 void

@@ -1302,7 +1302,7 @@ layoutTextOverlap()
 
     auto *drawText =
       new TextPlacer::DrawText(textAnnotation->textStr(), bbox.getCenter(), textOptions,
-                               c, Alpha(), bbox.getCenter());
+                               c, Alpha(), bbox.getCenter(), QFont());
 
     drawText->setBBox(bbox);
 
@@ -3342,7 +3342,7 @@ init(const QString &textStr)
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr);
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setTextColor(Color::makeInterfaceValue(1.0));
 
   setStroked(false);
   setFilled (true);
@@ -7770,7 +7770,7 @@ init(const QString &textStr)
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr);
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setTextColor(Color::makeInterfaceValue(1.0));
 }
 
 //---
@@ -8503,7 +8503,7 @@ init()
   setStroked(true);
   setFilled (true);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setTextColor(Color::makeInterfaceValue(1.0));
 }
 
 //---

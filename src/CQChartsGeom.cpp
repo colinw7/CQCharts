@@ -86,6 +86,28 @@ BBox(const Range &range) :
   update();
 }
 
+void
+BBox::
+equalScale(double targetAspect)
+{
+  auto c = getCenter();
+
+  double w = getWidth ();
+  double h = getHeight();
+
+  auto sourceAspect = (h > 0.0 ? w/h : 1.0);
+
+  auto aspectRatio = targetAspect/sourceAspect;
+
+  if (aspectRatio > 1.0)
+    w *= aspectRatio;
+  else
+    h /= aspectRatio;
+
+  pmin_ = Point(c.x - w/2, c.y - h/2);
+  pmax_ = Point(c.x + w/2, c.y + h/2);
+}
+
 QString
 BBox::
 toString() const
@@ -107,6 +129,30 @@ fromString(const QString &s)
   set_  = true;
 
   return true;
+}
+
+//---
+
+void
+Range::
+equalScale(double targetAspect)
+{
+  auto c = center();
+
+  double w = xsize();
+  double h = ysize();
+
+  auto sourceAspect = (h > 0.0 ? w/h : 1.0);
+
+  auto aspectRatio = targetAspect/sourceAspect;
+
+  if (aspectRatio > 1.0)
+    w *= aspectRatio;
+  else
+    h /= aspectRatio;
+
+  x1_ = c.x - w/2; x2_ = c.x + w/2;
+  y1_ = c.y - h/2; y2_ = c.y + h/2;
 }
 
 //---

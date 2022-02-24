@@ -1491,11 +1491,12 @@ addFromToValue(const FromToData &fromToData) const
       srcNode->setParentGraphId(parentGraphId);
   }
   else {
-    // ignore self connection (TODO: allow)
-    if (fromToData.fromStr == fromToData.toStr)
-      return;
+    Node *destNode = nullptr;
 
-    auto *destNode = findNode(fromToData.toStr);
+    if (fromToData.fromStr != fromToData.toStr)
+      destNode = findNode(fromToData.toStr);
+    else
+      destNode = srcNode;
 
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);

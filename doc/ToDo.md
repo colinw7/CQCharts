@@ -4,6 +4,13 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + units for ruler tool
+ + tip column cleanup all plots
+ + barchart stacked + labels (only one label needed). Tip shows all values for single bar
+ + text placer in all plots (xy plot use data label which includes border !!)
+ + primitive buffer for threaded drawing (draw objs adds to buffer, painter draws)
+ + xy plot with label above below (value and delta (last value)) and line label and no text overlaps
+ + check view/plot/annotation writes all changes
  + CQChartsPlot::addTipColumn (always normalized ?)
  + alias for property (so can change with backwards compatibility)
  + color discreet values

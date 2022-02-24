@@ -5,6 +5,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsTextPlacer.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -260,7 +261,10 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
         textOptions.angle = Angle();
         textOptions.align = Qt::AlignLeft;
 
-        CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions);
+        if (textPlacer_)
+          textPlacer_->addDrawText(device, ystr, pos, textOptions, bbox.getCenter());
+        else
+          CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions);
       }
     }
   }
@@ -332,7 +336,11 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
 //    CQChartsRotatedText::draw(device, pos, ystr, textOptions, /*alignBBox*/ true);
 
-      CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions, /*centered*/true);
+      if (textPlacer_)
+        textPlacer_->addDrawText(device, ystr, pos, textOptions, bbox.getCenter(),
+                                 /*margin*/0, /*centered*/true);
+      else
+        CQChartsDrawUtil::drawTextAtPoint(device, pos, ystr, textOptions, /*centered*/true);
     }
   }
 

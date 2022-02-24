@@ -746,24 +746,7 @@ class BBox :
     return 2*getWidth() + 2*getHeight();
   }
 
-  void equalScale(double aspect) {
-    Point c = getCenter();
-
-    double w = getWidth ();
-    double h = getHeight();
-
-    if (aspect > 1.0) {
-      h = std::max(w, h);
-      w = h*aspect;
-    }
-    else {
-      w = std::max(w, h);
-      h = w/aspect;
-    }
-
-    pmin_ = Point(c.x - w/2, c.y - h/2);
-    pmax_ = Point(c.x + w/2, c.y + h/2);
-  }
+  void equalScale(double targetAspect);
 
   Point getMin() const { assert(set_); return pmin_; }
   Point getMax() const { assert(set_); return pmax_; }
@@ -1255,26 +1238,7 @@ class Range :
 
   //---
 
-  void equalScale(double aspect) {
-    Point c = center();
-
-    double w = xsize();
-    double h = ysize();
-
-    if (aspect > 1.0) {
-      h = std::max(w, h);
-      w = h*aspect;
-    }
-    else {
-      w = std::max(w, h);
-      h = w/aspect;
-    }
-
-    x1_ = c.x - w/2;
-    x2_ = c.x + w/2;
-    y1_ = c.y - h/2;
-    y2_ = c.y + h/2;
-  }
+  void equalScale(double targetAspect);
 
   // supplied point inside this rect
   bool inside(const Point &point) const {

@@ -465,9 +465,9 @@ addProperties()
   addProp("text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
   addProp("text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
-                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+  addTextProperties("text", "text", "", TextOptions::ValueType::CONTRAST |
+                    TextOptions::ValueType::CLIP_LENGTH |
+                    TextOptions::ValueType::CLIP_ELIDE);
 
   addProp("text", "textInternal", "internal", "Draw text internal to plot");
 
@@ -3143,16 +3143,11 @@ printStats()
 
 void
 CQChartsSankeyPlot::
-addDrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
-            const QColor &color, const Alpha &alpha, const Point &targetPoint,
-            const BBox &bbox) const
+addDrawText(PaintDevice *device, const QString &str, const Point &point,
+            const TextOptions &textOptions, const Point &targetPoint,
+            bool centered) const
 {
-  auto *drawText =
-    new CQChartsTextPlacer::DrawText(str, point, options, color, alpha, targetPoint);
-
-  drawText->setBBox(bbox);
-
-  placer_->addDrawText(drawText);
+  placer_->addDrawText(device, str, point, textOptions, targetPoint, /*margin*/0, centered);
 }
 
 //---
@@ -4611,11 +4606,8 @@ drawFgText(PaintDevice *device, const BBox &rect) const
   textOptions.align      = Qt::AlignLeft;
   textOptions.clipLength = clipLength;
 
-  if (plot_->isAdjustText()) {
-    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, pt, str, textOptions);
-
-    plot_->addDrawText(str, pt, textOptions, c, plot_->textAlpha(), rect.getCenter(), bbox);
-  }
+  if (plot_->isAdjustText())
+    plot_->addDrawText(device, str, pt, textOptions, rect.getCenter());
   else {
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }

@@ -13,6 +13,7 @@ class CQChartsXYLabelObj;
 class CQChartsXYPolylineObj;
 class CQChartsArrow;
 class CQChartsGrahamHull;
+class CQChartsTextPlacer;
 
 //---
 
@@ -711,6 +712,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // horizon
   Q_PROPERTY(int layers READ layers WRITE setLayers)
 
+  // labels
+  Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
+
   // point: (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
 
@@ -764,13 +768,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using LabelObj       = CQChartsXYLabelObj;
   using ImpulseLineObj = CQChartsXYImpulseLineObj;
 
-  using Length     = CQChartsLength;
-  using Color      = CQChartsColor;
-  using Alpha      = CQChartsAlpha;
-  using ColorInd   = CQChartsUtil::ColorInd;
-  using PenBrush   = CQChartsPenBrush;
-  using Symbol     = CQChartsSymbol;
-  using SymbolType = CQChartsSymbolType;
+  using Length      = CQChartsLength;
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using ColorInd    = CQChartsUtil::ColorInd;
+  using PenBrush    = CQChartsPenBrush;
+  using Symbol      = CQChartsSymbol;
+  using SymbolType  = CQChartsSymbolType;
+  using TextOptions = CQChartsTextOptions;
 
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
@@ -905,11 +910,18 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  // get/set nu,ber of horizon layers
   int layers() const { return layers_; }
   void setLayers(int i);
 
   double layerMin() const { return layerMin_; }
   double layerDelta() const { return layerDelta_; }
+
+  //---
+
+  //! get/set adjust text
+  bool isAdjustText() const { return adjustText_; }
+  void setAdjustText(bool b);
 
   //---
 
@@ -1024,6 +1036,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  void preDrawObjs (CQChartsPaintDevice *device) const override;
+  void postDrawObjs(CQChartsPaintDevice *device) const override;
+
+  //---
+
   void drawXAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
   void drawYAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
 
@@ -1037,6 +1054,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void drawYRug(PaintDevice *device) const;
 
   void drawXYRug(PaintDevice *device, const RugP &rug, double delta=0.0) const;
+
+  //---
+
+  void drawDataLabel(PaintDevice *device, const BBox &bbox, const QString &str,
+                     const PenBrush &penBrush, const Font &font) const;
 
   //---
 
@@ -1056,6 +1078,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
+
+  //---
+
+  void addDrawText(PaintDevice *device, const QString &str, const Point &point,
+                   const TextOptions &textOptions, const Point &targetPoint,
+                   bool centered) const;
 
  public slots:
   //! set points visible
@@ -1164,10 +1192,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   ArrowP arrowObj_; //!< vectors data
 
   // horizon layers
-  int    layers_     { -1 };
-  double layerMin_   { 0.0 };
-  double layerMax_   { 0.0 };
-  double layerDelta_ { 0.0 };
+  int    layers_     { -1 };  //!< nummber of horizon layers
+  double layerMin_   { 0.0 }; //!< horizon min
+  double layerMax_   { 0.0 }; //!< horizon max
+  double layerDelta_ { 0.0 }; //!< horizon delta
+
+  bool adjustText_ { false }; //!< adjust text position
 
   double symbolWidth_  { 1.0 }; //!< current symbol width
   double symbolHeight_ { 1.0 }; //!< current symbol height
@@ -1181,6 +1211,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   mutable int maxNumPoints_ { 0 };
 
   CQChartsXYInvalidator xyInvalidator_;
+
+  mutable CQChartsTextPlacer *placer_;
 };
 
 //---

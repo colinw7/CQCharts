@@ -5,6 +5,7 @@
 #include <CQChartsGeom.h>
 
 class CQChartsPlot;
+class CQChartsTextPlacer;
 
 /*!
  * \brief class for plot text box object
@@ -43,6 +44,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   using PenBrush    = CQChartsPenBrush;
   using Font        = CQChartsFont;
   using Angle       = CQChartsAngle;
+  using Alpha       = CQChartsAlpha;
+  using TextPlacer  = CQChartsTextPlacer;
   using Margin      = CQChartsGeom::Margin;
   using BBox        = CQChartsGeom::BBox;
   using ColorInd    = CQChartsUtil::ColorInd;
@@ -144,6 +147,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
+  const TextPlacer *textPlacer() const { return textPlacer_; }
+  void setTextPlacer(TextPlacer *p) { textPlacer_ = p; }
+
+  //---
+
   void textBoxObjInvalidate() override;
 
   //---
@@ -167,6 +175,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   bool            drawClipped_ { true };                 //!< draw clipped text
   bool            moveClipped_ { true };                 //!< move clipped
   bool            sendSignal_  { false };                //!< send signal on data change
+  TextPlacer*     textPlacer_  { nullptr };
 };
 
 #endif

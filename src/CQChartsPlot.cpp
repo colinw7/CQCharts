@@ -1762,6 +1762,9 @@ setDataScaleX(double x)
   assert(! isComposite());
 
   zoomData_.dataScale.x = x;
+
+  if (isScaleSymbolSize()) // TODO: only if symbols ?
+    invalidateObjTree();
 }
 
 double
@@ -1791,6 +1794,9 @@ setDataScaleY(double y)
   assert(! isComposite());
 
   zoomData_.dataScale.y = y;
+
+  if (isScaleSymbolSize()) // TODO: only if symbols ?
+    invalidateObjTree();
 }
 
 double
@@ -2504,7 +2510,7 @@ CQChartsPlot::
 applyEqualScale(Range &dataRange) const
 {
   if (isEqualScale()) {
-    double aspect = this->aspect();
+    auto aspect = pixelAspect();
 
     dataRange.equalScale(aspect);
   }
@@ -2780,7 +2786,21 @@ setRange(const BBox &bbox)
 
 double
 CQChartsPlot::
-aspect() const
+pixelAspect() const
+{
+  double pw, ph;
+
+  pixelSize(pw, ph);
+
+  if (pw <= 0.0)
+    return 1.0;
+
+  return pw/ph;
+}
+
+void
+CQChartsPlot::
+pixelSize(double &pw, double &ph) const
 {
   //auto viewBBox = calcViewBBox();
   auto viewBBox = innerViewBBox();
@@ -2788,10 +2808,8 @@ aspect() const
   auto p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
   auto p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
 
-  if (p1.y == p2.y)
-    return 1.0;
-
-  return fabs(p2.x - p1.x)/fabs(p2.y - p1.y);
+  pw = fabs(p2.x - p1.x);
+  ph = fabs(p2.y - p1.y);
 }
 
 //---
@@ -9061,7 +9079,7 @@ getNamedColumn(const QString &name) const
   else if (name == "color"  ) c = this->colorColumn();
   else if (name == "alpha"  ) c = this->alphaColumn();
   else if (name == "font"   ) c = this->fontColumn();
-  else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
+//else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 
   return c;
 }
@@ -15290,28 +15308,32 @@ getFirstPlotKey() const
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-           double pxs, double pys, const PenBrush &penBrush) const
+           double pxs, double pys, const PenBrush &penBrush, bool scaled) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  drawSymbol(device, p, symbol, pxs, pys);
+  drawSymbol(device, p, symbol, pxs, pys, scaled);
 }
 
 // Note: symbol size already scaled
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-           double pxs, double pys) const
+           double pxs, double pys, bool scaled) const
 {
-  useRawRange_ = isScaleSymbolSize();
+  double xs, ys;
 
-  double xs = pixelToWindowWidth (pxs);
-  double ys = pixelToWindowHeight(pys);
+  if (scaled) {
+    useRawRange_ = isScaleSymbolSize();
 
-  useRawRange_ = false;
+    xs = pixelToWindowWidth (pxs);
+    ys = pixelToWindowHeight(pys);
 
-  pxs = windowToPixelWidth (xs);
-  pys = windowToPixelHeight(ys);
+    useRawRange_ = false;
+
+    pxs = windowToPixelWidth (xs);
+    pys = windowToPixelHeight(ys);
+  }
 
   if (bufferSymbols_) {
     auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
@@ -16422,7 +16444,9 @@ CQChartsPlot::
 modelIndex(int row, const Column &column, const QModelIndex &parent,
            bool normalized /*=false*/) const
 {
-  if (! column.hasColumn())
+  auto column1 = mapColumn(column);
+
+  if (! column1.hasColumn())
     return QModelIndex();
 
   if (! normalized) {
@@ -16431,7 +16455,7 @@ modelIndex(int row, const Column &column, const QModelIndex &parent,
 
     assert(! parent.model() || parent.model() == model);
 
-    return model->index(row, column.column(), parent);
+    return model->index(row, column1.column(), parent);
   }
   else {
     ProxyModels         proxyModels;
@@ -16441,7 +16465,7 @@ modelIndex(int row, const Column &column, const QModelIndex &parent,
 
     assert(! parent.model() || parent.model() == sourceModel);
 
-    return sourceModel->index(row, column.column(), parent);
+    return sourceModel->index(row, column1.column(), parent);
   }
 }
 
@@ -16553,8 +16577,10 @@ modelHHeaderTip(const Column &column, bool &ok) const
   if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model().data(), mapColumn(column), ok);
 
-  if (column.hasColumn())
-    str += QString(" (#%1)").arg(column.column());
+  auto column1 = mapColumn(column);
+
+  if (column1.hasColumn())
+    str += QString(" (#%1)").arg(column1.column());
 
   return str;
 }

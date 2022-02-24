@@ -1002,6 +1002,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using Length      = CQChartsLength;
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
+  using TextOptions = CQChartsTextOptions;
   using ColorInd    = CQChartsUtil::ColorInd;
 
   struct NodePerpPos {
@@ -1334,9 +1335,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void addDrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
-                   const QColor &color, const Alpha &alpha, const Point &targetPoint,
-                   const BBox &bbox) const;
+  void addDrawText(PaintDevice *device, const QString &str, const Point &point,
+                   const TextOptions &textOptions, const Point &targetPoint,
+                   bool centered=false) const;
 
  protected:
   void clearNodesAndEdges();

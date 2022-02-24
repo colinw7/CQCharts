@@ -42,14 +42,14 @@ init()
   setStroked(false);
 
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setTextColor(Color::makeInterfaceValue(1.0));
 
   //---
 
   subTitle_ = new TextBoxObj(plot_);
 
   subTitle_->setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
-  subTitle_->setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  subTitle_->setTextColor(Color::makeInterfaceValue(1.0));
 }
 
 QString

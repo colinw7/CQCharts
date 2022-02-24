@@ -748,7 +748,7 @@ draw(PaintDevice *device) const
   // get symbol size
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy);
+  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
   //---
 
@@ -778,7 +778,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush);
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
 }
 
 //------

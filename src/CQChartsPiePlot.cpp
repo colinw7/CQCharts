@@ -3353,6 +3353,15 @@ drawDumbbell(PaintDevice *device) const
 
     //---
 
+    // set text pen
+    PenBrush tpenBrush;
+
+    plot_->setPen(tpenBrush, PenData(true, tc, plot_->groupTextAlpha()));
+
+    device->setPen(tpenBrush.pen);
+
+    //---
+
     // draw text label
     auto valueStr = obj->valueStr();
 
@@ -3362,28 +3371,10 @@ drawDumbbell(PaintDevice *device) const
 
     textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
-    if (plot_->isAdjustText()) {
-      auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, p1, valueStr, textOptions);
-      bbox.expand(-8*dxt, -8*dyt, 8*dxt, 8*dyt);
-    //device->drawRect(bbox);
-
-      auto *text = new CQChartsTextPlacer::DrawText(valueStr, p1, textOptions, tc,
-                                                    plot_->groupTextAlpha(), p);
-
-      text->setBBox(bbox);
-
-      textPlacer.addDrawText(text);
-    }
-    else {
-      // set text pen
-      PenBrush tpenBrush;
-
-      plot_->setPen(tpenBrush, PenData(true, tc, plot_->groupTextAlpha()));
-
-      device->setPen(tpenBrush.pen);
-
+    if (plot_->isAdjustText())
+      textPlacer.addDrawText(device, valueStr, p1, textOptions, p, /*margin*/8);
+    else
       CQChartsDrawUtil::drawTextAtPoint(device, p1, valueStr, textOptions);
-    }
   }
 
   // draw placed text

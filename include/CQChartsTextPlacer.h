@@ -6,39 +6,45 @@
 #include <CQChartsPaintDevice.h>
 #include <CQChartsUtil.h>
 
+/*!
+ * Auto place text strings to avoid overlaps
+ */
 class CQChartsTextPlacer {
  public:
   using Alpha       = CQChartsAlpha;
+  using PaintDevice = CQChartsPaintDevice;
+  using TextOptions = CQChartsTextOptions;
   using BBox        = CQChartsGeom::BBox;
   using Point       = CQChartsGeom::Point;
-  using PaintDevice = CQChartsPaintDevice;
 
  public:
   //! draw text data
   struct DrawText : public CQChartsRectPlacer::RectData {
-    using TextOptions = CQChartsTextOptions;
-    using Rect        = CQChartsRectPlacer::Rect;
+    using Rect = CQChartsRectPlacer::Rect;
 
     DrawText(const QString &str, const Point &point, const TextOptions &options,
-             const QColor &color, const Alpha &alpha, const Point &targetPoint);
+             const QColor &color, const Alpha &alpha, const Point &targetPoint,
+             const QFont &font, bool centered=false);
 
     void setBBox(const BBox &bbox);
 
     const Rect &rect() const override;
-
     void setRect(const Rect &r) override;
 
     std::string name() const override;
 
     QString     str;
     Point       point;
-    Point       origPoint;
     TextOptions options;
     QColor      color;
     Alpha       alpha;
-    Rect        textRect;
-    Rect        origRect;
     Point       targetPoint;
+    QFont       font;
+    bool        centered { false };
+
+    Point origPoint;
+    Rect  textRect;
+    Rect  origRect;
   };
 
  public:
@@ -46,6 +52,10 @@ class CQChartsTextPlacer {
  ~CQChartsTextPlacer();
 
   void setDebug(bool b);
+
+  void addDrawText(PaintDevice *device, const QString &str, const Point &point,
+                   const TextOptions &textOptions, const Point &targetPoint,
+                   int margin=0, bool centered=false);
 
   void addDrawText(DrawText *drawText);
 

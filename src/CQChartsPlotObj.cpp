@@ -569,13 +569,18 @@ rectIntersect(const BBox &r, bool inside) const
 
 void
 CQChartsPlotPointObj::
-calcSymbolPixelSize(double &sx, double &sy, bool square) const
+calcSymbolPixelSize(double &sx, double &sy, bool square, bool enforceMinSize) const
 {
   if (plot_->isScaleSymbolSize()) {
     auto prect = plot_->windowToPixel(rect());
 
-    sx = std::max(prect.getWidth ()/2.0, 4.0);
-    sy = std::max(prect.getHeight()/2.0, 4.0);
+    sx = prect.getWidth ()/2.0;
+    sy = prect.getHeight()/2.0;
+
+    if (enforceMinSize) {
+      sx = std::max(sx, 4.0);
+      sy = std::max(sy, 4.0);
+    }
 
     if (square) { sx = std::min(sx, sy); sy = sx; }
   }

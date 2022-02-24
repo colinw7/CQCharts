@@ -943,8 +943,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // aspect ratio
-  double aspect() const;
+  // pixel aspect ratio
+  double pixelAspect() const;
+  void pixelSize(double &pw, double &ph) const;
 
   //---
 
@@ -2815,9 +2816,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // draw symbol (symbol size is pixels)
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-                  double xs, double ys, const PenBrush &penBrush) const;
+                  double xs, double ys, const PenBrush &penBrush, bool scaled=true) const;
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
-                  double xs, double ys) const;
+                  double xs, double ys, bool scaled=true) const;
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const Symbol &symbol, double size) const;

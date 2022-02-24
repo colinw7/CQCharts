@@ -16,8 +16,14 @@ set model [load_charts_model -var symbol_data -transpose -first_line_header]
 #---
 
 set plot1 [create_charts_plot -model $model -type scatter \
-  -columns {{x 0} {y 1} {color 2} {symbolType 2} {symbolSize 2}} \
-  -title "Scatter Color Map"]
+  -columns {{x 0} {y 1}} -title "Scatter Color Map"]
+
+#set_charts_property -plot $plot1 -name columns.color -value "@REF x"
+#set_charts_property -plot $plot1 -name columns.symbolType -value "@REF y"
+#set_charts_property -plot $plot1 -name columns.symbolSize -value "@REF name"
+set_charts_property -plot $plot1 -name columns.color -value 2
+set_charts_property -plot $plot1 -name columns.symbolType -value 2
+set_charts_property -plot $plot1 -name columns.symbolSize -value 2
 
 set_charts_property -plot $plot1 -name mapping.color.enabled -value 1
 set_charts_property -plot $plot1 -name mapping.symbolType.enabled -value 1

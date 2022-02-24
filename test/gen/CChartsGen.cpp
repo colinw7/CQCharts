@@ -11,11 +11,13 @@ main(int argc, char **argv)
   int  n       { 10 };
   int  seed    { -1 };
   bool fromTo  { false };
-  bool series  { false };
+  int  series  { 0 };
   bool scatter { false };
   bool size    { false };
   bool header  { false };
   bool group   { false };
+  bool labels  { false };
+  bool stacked { false };
 
   CArgv::visit(argc, argv,
    [&](const std::string &opt, CArgv::State &state) { // opt
@@ -33,7 +35,9 @@ main(int argc, char **argv)
        fromTo = true;
      }
      else if (opt == "series") {
-       series = true;
+       if (state.hasNext()) {
+         series = std::stoi(state.next());
+       }
      }
      else if (opt == "scatter") {
        scatter = true;
@@ -46,6 +50,12 @@ main(int argc, char **argv)
      }
      else if (opt == "group") {
        group = true;
+     }
+     else if (opt == "labels") {
+       labels = true;
+     }
+     else if (opt == "stacked") {
+       stacked = true;
      }
      else {
        state.unhandled();
@@ -189,13 +199,46 @@ main(int argc, char **argv)
       }
     }
   }
-  else if (series) {
-    std::cout << "X,Y\n";
+  else if (series > 0) {
+    if (series == 1) {
+      std::cout << "X,Y\n";
 
-    for (int i = 0; i < n; ++i) {
-      auto y = CMathRand::randInRange(1, 100);
+      for (int i = 0; i < n; ++i) {
+        auto y = CMathRand::randInRange(1, 100);
 
-      std::cout << (i + 1) << "," << y << "\n";
+        std::cout << (i + 1) << "," << y << "\n";
+      }
+    }
+    else {
+      std::cout << "X";
+
+      for (int is = 0; is < series; ++is)
+        std::cout << ",Y" << std::to_string(is + 1);
+
+      if (labels)
+        std::cout << ",Label";
+
+      std::cout << "\n";
+
+      std::vector<int> ranges;
+
+      int ds = 100/series;
+
+      for (int i = 0; i < n; ++i) {
+        std::cout << (i + 1);
+
+        for (int is = 0; is < series; ++is) {
+          auto y = (! stacked ? CMathRand::randInRange(1, 100) :
+                                CMathRand::randInRange(is*ds, (is + 1)*ds));
+
+          std::cout << "," << y;
+        }
+
+        if (labels)
+          std::cout << "," << CMathRand::randString();
+
+        std::cout << "\n";
+      }
     }
   }
   else if (scatter) {

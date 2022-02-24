@@ -414,7 +414,8 @@ class CQChartsPlotPointObj : public CQChartsPlotObj {
 
   virtual Qt::Orientation calcSymbolDir() const { return Qt::Horizontal; }
 
-  virtual void calcSymbolPixelSize(double &sx, double &sy, bool square=true) const;
+  virtual void calcSymbolPixelSize(double &sx, double &sy, bool square=true,
+                                   bool enforceMinSize=true) const;
 
  protected:
   Point p_; //!< point

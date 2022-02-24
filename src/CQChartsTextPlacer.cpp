@@ -22,6 +22,31 @@ setDebug(bool b)
 
 void
 CQChartsTextPlacer::
+addDrawText(PaintDevice *device, const QString &str, const Point &point,
+            const TextOptions &textOptions, const Point &targetPoint,
+            int margin, bool centered)
+{
+  auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, point, str, textOptions);
+
+  if (margin > 0) {
+    auto dxt = margin*device->pixelToWindowWidth (1);
+    auto dyt = margin*device->pixelToWindowHeight(1);
+
+    bbox.expand(-dxt, -dyt, dxt, dyt);
+  }
+
+  auto color = device->pen().color();
+
+  auto *drawText = new DrawText(str, point, textOptions, color, Alpha(), targetPoint,
+                                device->font(), centered);
+
+  drawText->setBBox(bbox);
+
+  addDrawText(drawText);
+}
+
+void
+CQChartsTextPlacer::
 addDrawText(DrawText *drawText)
 {
   drawTexts_.push_back(drawText);
@@ -44,10 +69,12 @@ void
 CQChartsTextPlacer::
 draw(PaintDevice *device)
 {
-  for (const auto &drawText : drawTexts_) {
+  for (const auto *drawText : drawTexts_) {
     CQChartsPenBrush penBrush;
 
     CQChartsUtil::setPen(penBrush.pen, true, drawText->color, drawText->alpha);
+
+    device->setFont(drawText->font);
 
     BBox bbox(drawText->rect().xmin(), drawText->rect().ymin(),
               drawText->rect().xmax(), drawText->rect().ymax());
@@ -90,8 +117,10 @@ clear()
 
 CQChartsTextPlacer::DrawText::
 DrawText(const QString &str, const Point &point, const TextOptions &options,
-         const QColor &color, const Alpha &alpha, const Point &targetPoint) :
-  str(str), point(point), options(options), color(color), alpha(alpha), targetPoint(targetPoint)
+         const QColor &color, const Alpha &alpha, const Point &targetPoint,
+         const QFont &font, bool centered) :
+ str(str), point(point), options(options), color(color), alpha(alpha), targetPoint(targetPoint),
+ font(font), centered(centered)
 {
   origPoint = point;
 }

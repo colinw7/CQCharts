@@ -107,7 +107,7 @@ init()
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.0));
+  setBackgroundFillColor(Color::makeInterfaceValue(0.0));
 
   //---
 
@@ -2558,7 +2558,7 @@ QColor
 CQChartsView::
 interpInterfaceColor(double r) const
 {
-  CQChartsColor c(CQChartsColor::Type::INTERFACE_VALUE, r);
+  auto c = Color::makeInterfaceValue(r);
 
   return charts()->interpColor(c, ColorInd());
 }

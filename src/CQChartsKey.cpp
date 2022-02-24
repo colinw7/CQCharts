@@ -628,7 +628,7 @@ CQChartsViewKey::setEditHandlesBBox() const
 
 void
 CQChartsViewKey::
-drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) const
+drawCheckBox(PaintDevice *device, double px, double py, int bs, bool checked) const
 {
   auto cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
@@ -650,7 +650,7 @@ drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) cons
 
   spainter.drawControl(QStyle::CE_CheckBox, opt);
 
-  device->drawImage(Point(x, y), cimage);
+  device->drawImage(device->pixelToWindow(Point(px, py)), cimage);
 }
 
 //------
@@ -751,7 +751,7 @@ doShow(int i, SelMod selMod)
     for (auto &plot1 : plots)
       num_visible += plot1->isVisible();
 
-    bool state = (num_visible != int(plots.size()) ? false : true);
+    bool state = (num_visible != int(plots.size()) ? true : false);
 
     for (auto &plot1 : plots)
       plot1->setVisible(state);

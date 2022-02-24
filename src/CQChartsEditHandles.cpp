@@ -187,15 +187,9 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto windowToPixel =[&](const BBox &bbox) {
-    return (view_ ? view_->windowToPixel(bbox) : plot_->windowToPixel(bbox));
-  };
-
-  auto pbbox = windowToPixel(bbox_);
-
   QPainterPath path;
 
-  CQChartsDrawUtil::editHandlePath(device, path, pbbox);
+  CQChartsDrawUtil::editHandlePath(device, path, bbox_);
 
   device->strokePath(path, pen);
 
@@ -221,6 +215,6 @@ draw(PaintDevice *device) const
     device->setPen(QColor(Qt::red));
     device->setBrush(Qt::NoBrush);
 
-    device->drawRect(pbbox);
+    device->drawRect(bbox_);
   }
 }
