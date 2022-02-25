@@ -16,10 +16,13 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
+  using Color = CQChartsColor;
+
+ public:
   CQChartsColorLineEdit(QWidget *parent=nullptr);
 
-  const CQChartsColor &color() const;
-  void setColor(const CQChartsColor &c);
+  const Color &color() const;
+  void setColor(const Color &c);
 
   void setNoFocus();
 
@@ -34,7 +37,7 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
  private:
   void textChanged() override;
 
-  void updateColor(const CQChartsColor &c, bool updateText);
+  void updateColor(const Color &c, bool updateText);
 
   void colorToWidgets();
 
@@ -69,10 +72,13 @@ class CQChartsColorEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
+  using Color = CQChartsColor;
+
+ public:
   CQChartsColorEdit(QWidget *parent=nullptr);
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &c);
+  const Color &color() const { return color_; }
+  void setColor(const Color &c);
 
   void setNoFocus();
 
@@ -96,7 +102,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  CQChartsColor      color_;                     //!< color
+  Color              color_;                     //!< color
   QComboBox*         typeCombo_     { nullptr }; //!< palette index/type combo
   QComboBox*         indPalCombo_   { nullptr }; //!< type combo
   QStackedWidget*    indPalStack_   { nullptr }; //!< palette index/type edit stack

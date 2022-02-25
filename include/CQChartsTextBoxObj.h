@@ -42,6 +42,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   using View         = CQChartsView;
   using Plot         = CQChartsPlot;
+  using Color        = CQChartsColor;
   using PropertyView = CQPropertyViewModel;
 
  public:

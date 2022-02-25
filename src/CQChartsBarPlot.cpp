@@ -31,7 +31,7 @@ init()
   NoUpdate noUpdate(this);
 
   setBarFilled   (true);
-  setBarFillColor(Color(Color::Type::PALETTE));
+  setBarFillColor(Color::makePalette());
 
   setBarStroked(true);
 

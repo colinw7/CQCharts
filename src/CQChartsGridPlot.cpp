@@ -562,7 +562,7 @@ draw(PaintDevice *device) const
   // draw background ellipse
   double f = CMathUtil::map(values_.max(0.0), plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
 
-  Color color(Color::Type::PALETTE);
+  auto color = Color::makePalette();
 
   PenBrush penBrush;
 
@@ -583,7 +583,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto tc = plot_->interpColor(Color(Color::Type::INTERFACE_VALUE, 1.0), ColorInd());
+  auto tc = plot_->interpColor(Color::makeInterfaceValue(1.0), ColorInd());
 
   //---
 
@@ -636,7 +636,7 @@ draw(PaintDevice *device) const
     //---
 
     // set palette color
-    Color color(Color::Type::PALETTE);
+    auto color = Color::makePalette();
 
     color.setPaletteName(plot_->cellPalette().name());
 

@@ -124,15 +124,15 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setBackgroundFillColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
+  setBackgroundFillColor(Color::makeInterfaceValue(0.2));
 
-  setStrokeColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
+  setStrokeColor(Color::makeInterfaceValue(1.0));
   setStrokeAlpha(Alpha(0.5));
 
-  setEmptyCellFillColor  (Color(Color::Type::INTERFACE_VALUE, 0.1));
-  setEmptyCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
+  setEmptyCellFillColor  (Color::makeInterfaceValue(0.1));
+  setEmptyCellStrokeColor(Color::makeInterfaceValue(0.2));
 
-  setFillColor(Color(Color::Type::PALETTE));
+  setFillColor(Color::makePalette());
 
   setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
 

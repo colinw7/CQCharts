@@ -956,8 +956,7 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
 
   if      (c.type() == Color::Type::COLOR)
     return c.color();
-  else if (c.type() == Color::Type::PALETTE ||
-           c.type() == Color::Type::PALETTE_VALUE) {
+  else if (c.type() == Color::Type::PALETTE || c.type() == Color::Type::PALETTE_VALUE) {
     if      (c.hasPaletteIndex()) {
       int ind = c.getPaletteIndex();
 
@@ -1280,8 +1279,7 @@ adjustDefaultPalette(const Color &c, const QString &defaultPalette) const
 {
   assert(defaultPalette.length());
 
-  if ((c.type() == Color::Type::PALETTE ||
-       c.type() == Color::Type::PALETTE_VALUE) &&
+  if ((c.type() == Color::Type::PALETTE || c.type() == Color::Type::PALETTE_VALUE) &&
       ! c.hasPaletteIndex() && ! c.hasPaletteName()) {
     auto c1 = c;
 

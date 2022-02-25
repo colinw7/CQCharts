@@ -5,6 +5,7 @@
 
 class CQChartsWindow;
 class CQChartsView;
+class CQChartsUnits;
 class CQIconCombo;
 
 class QToolButton;
@@ -19,6 +20,9 @@ class QStackedWidget;
  */
 class CQChartsViewToolBar : public QFrame {
   Q_OBJECT
+
+ public:
+  using Units = CQChartsUnits;
 
  public:
   CQChartsViewToolBar(CQChartsWindow *window);
@@ -59,6 +63,7 @@ class CQChartsViewToolBar : public QFrame {
   void regionButtonClicked(int);
 
   void clearRulerSlot();
+  void rulerUnitsComboSlot(int);
 
   void autoFitSlot();
 
@@ -84,6 +89,7 @@ class CQChartsViewToolBar : public QFrame {
   QToolButton*    autoFitButton_         { nullptr }; //!< auto fit button
   QRadioButton*   regionPointButton_     { nullptr }; //!< region point radio
   QRadioButton*   regionRectButton_      { nullptr }; //!< region rect radio
+  QComboBox*      rulerUnitsCombo_       { nullptr }; //!< rule units combp
   QToolButton*    leftButton_            { nullptr }; //!< scroll plots left button
   QToolButton*    rightButton_           { nullptr }; //!< scroll plots right button
   QToolButton*    consoleButton_         { nullptr }; //!< show/hide console button

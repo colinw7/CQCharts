@@ -105,7 +105,7 @@ init()
 
   addTitle();
 
-  setCellFillColor     (Color(Color::Type::PALETTE));
+  setCellFillColor     (Color::makePalette());
   setCellStroked       (false);
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   setXLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);

@@ -127,7 +127,7 @@ init()
   setSymbol(Symbol::circle());
   setSymbolSize(Length::pixel(4));
   setSymbolFilled(true);
-  setSymbolFillColor(Color(Color::Type::PALETTE));
+  setSymbolFillColor(Color::makePalette());
 
   //---
 

@@ -158,7 +158,7 @@ init()
   setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(Color(Color::Type::PALETTE));
+  setSymbolFillColor(Color::makePalette());
 
   //---
 
@@ -1168,7 +1168,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           double r = CMathUtil::map(groupInd, colorMapDataMin(), colorMapDataMax(),
                                     colorMapMin(), colorMapMax());
 
-          auto color = Color(Color::Type::PALETTE_VALUE, r);
+          auto color = Color::makePaletteValue(r);
 
           if (color.isValid())
             colorItem->setColor(color);

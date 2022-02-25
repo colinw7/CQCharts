@@ -151,6 +151,7 @@ class Point :
 
   // Addition of points makes no mathematical sense but
   // is useful for weighted sum
+
   Point &operator+=(const Point &rhs) { x += rhs.x; y += rhs.y; return *this; }
 
 //Point &operator+=(double rhs) { x += rhs; y += rhs; return *this; }
@@ -178,7 +179,6 @@ class Point :
 //Point operator*(const Point &rhs) const { return Point(x*rhs.x, y*rhs.y); }
 
   friend Point operator*(const Point &lhs, double rhs) { return Point(lhs.x*rhs, lhs.y*rhs); }
-
   friend Point operator*(double lhs, const Point &rhs) { return Point(rhs.x*lhs, rhs.y*lhs); }
 
   //------

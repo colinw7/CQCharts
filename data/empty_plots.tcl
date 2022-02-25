@@ -5,12 +5,17 @@ set types [get_charts_data -name plot_types]
 set plots {}
 
 foreach type $types {
+  if {$type == "forcedirected"} {
+    continue
+  }
+
   echo "$type"
 
   set plot [create_charts_plot -type $type -model $model]
 
   if {$type == "forcedirected"} {
     set_charts_property -plot $plot -name options.running -value 0
+    continue
   }
 
   if {[get_charts_data -type $type -name title]} {

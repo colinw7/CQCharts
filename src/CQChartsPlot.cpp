@@ -131,9 +131,9 @@ init()
   setDataFilled(true ); setDataStroked(false);
   setFitFilled (false); setFitStroked (false);
 
-  setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.12)); // #e5ecf6 (BLEND_INTERFACE)
-  setFitFillColor (Color(Color::Type::INTERFACE_VALUE, 0.08));
+  setPlotFillColor(Color::makeInterfaceValue(0.00));
+  setDataFillColor(Color::makeInterfaceValue(0.12)); // #e5ecf6 (BLEND_INTERFACE)
+  setFitFillColor (Color::makeInterfaceValue(0.08));
 
   //--
 
@@ -9433,7 +9433,7 @@ colorFromColorMapPaletteValue(double r) const
   if (palette)
     color = Color(palette->getColor(r));
   else
-    color = Color(Color::Type::PALETTE_VALUE, r);
+    color = Color::makePaletteValue(r);
 
   return color;
 }
@@ -11838,7 +11838,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
     text = "Draw Objects";
 
   if (text.length()) {
-    Color color(Color::Type::INTERFACE_VALUE, 1.0);
+    auto color = Color::makeInterfaceValue(1.0);
 
     auto tc = charts()->interpColor(color, ColorInd());
 
@@ -12297,11 +12297,11 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
 
   //---
 
-  Color textColor       (Color::Type::INTERFACE_VALUE, 1.0);
-  Color currentTextColor(Color::Type::INTERFACE_VALUE, 0.0);
-  Color fillColor       (Color::Type::INTERFACE_VALUE, 0.3);
-  Color currentFillColor(Color::Type::INTERFACE_VALUE, 0.6);
-  Color borderColor     (Color::Type::INTERFACE_VALUE, 0.0);
+  auto textColor        = Color::makeInterfaceValue(1.0);
+  auto currentTextColor = Color::makeInterfaceValue(0.0);
+  auto fillColor        = Color::makeInterfaceValue(0.3);
+  auto currentFillColor = Color::makeInterfaceValue(0.6);
+  auto borderColor      = Color::makeInterfaceValue(0.0);
 
   auto drawTab = [&](const BBox &rect, bool current) {
     device->setBrush(interpColor(current ? currentFillColor : fillColor, ColorInd()));
@@ -15596,7 +15596,7 @@ QColor
 CQChartsPlot::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  Color c(Color::Type::PALETTE);
+  auto c = Color::makePalette();
 
   c.setScale(scale);
 

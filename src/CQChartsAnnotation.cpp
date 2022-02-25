@@ -7064,7 +7064,7 @@ drawGrid(PaintDevice *device)
 
       ColorInd colorInd(CMathUtil::map(double(n), 1.0, 1.0*maxN, 0.0, 1.0));
 
-      auto bgColor = view()->interpColor(Color(Color::Type::PALETTE), colorInd);
+      auto bgColor = view()->interpColor(Color::makePalette(), colorInd);
 
       // set pen and brush
       PenBrush penBrush1;
@@ -7576,7 +7576,7 @@ drawBarChart(PaintDevice *device)
   double x = bbox.getXMin();
   double y = bbox.getYMin();
 
-  Color color(Color::Type::PALETTE);
+  auto color = Color::makePalette();
 
   color.setPaletteName(calcPaletteName());
 
@@ -7650,7 +7650,7 @@ drawBubble(PaintDevice *device)
   int ix = 0;
   int nx = reals_.numReals();
 
-  Color color(Color::Type::PALETTE);
+  auto color = Color::makePalette();
 
   color.setPaletteName(calcPaletteName());
 

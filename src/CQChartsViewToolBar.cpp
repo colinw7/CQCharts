@@ -119,8 +119,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  auto makePushButton = [&](const QString &label, const QString &name, const QString &tip,
-                            const char *slotName) {
+  auto makePushButton = [&](const QString &label, const QString &name, QHBoxLayout *layout,
+                            const QString &tip, const char *slotName) {
     auto *button = CQUtil::makeLabelWidget<QPushButton>(label, name);
 
     button->setFocusPolicy(Qt::NoFocus);
@@ -128,20 +128,25 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
     connect(button, SIGNAL(clicked()), this, slotName);
 
+    layout->addWidget(button);
+
     return button;
   };
 
-  auto makeRadioButton = [&](const QString &label, const QString &name, const QString &tip) {
+  auto makeRadioButton = [&](const QString &label, const QString &name,
+                             QHBoxLayout *layout, const QString &tip) {
     auto *button = CQUtil::makeLabelWidget<QRadioButton>(label, name);
 
     button->setFocusPolicy(Qt::NoFocus);
     button->setToolTip(tip);
 
+    layout->addWidget(button);
+
     return button;
   };
 
   auto makeCheckBox = [&](const QString &label, const QString &name, bool isChecked,
-                          const QString &tip, const char *slotName) {
+                          QHBoxLayout *layout, const QString &tip, const char *slotName) {
     auto *check = CQUtil::makeLabelWidget<QCheckBox>(label, name);
 
     check->setFocusPolicy(Qt::NoFocus);
@@ -151,17 +156,38 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
     connect(check, SIGNAL(stateChanged(int)), this, slotName);
 
+    layout->addWidget(check);
+
     return check;
   };
 
-  //---
+  auto makeCombo = [&](const QString &label, const QString &name, const QStringList &items,
+                       QHBoxLayout *layout, const QString &tip, const char *slotName) {
+    auto *labelWidget = CQUtil::makeLabelWidget<QLabel>(label, name + "Label");
+
+    auto *combo = CQUtil::makeWidget<QComboBox>(name + "Combo");
+
+    combo->setToolTip(tip);
+
+    combo->addItems(items);
+
+    connect(combo, SIGNAL(currentIndexChanged(int)), this, slotName);
+
+    layout->addWidget(labelWidget);
+    layout->addWidget(combo);
+
+    return combo;
+  };
+
+  //-----
 
   // TODO: add smart
   auto *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
-  selectPointButton_ = makeRadioButton("Point", "point", "Select objects at point");
-  selectRectButton_  = makeRadioButton("Rect" , "rect" ,
-                         "Select objects inside/touching rectangle");
+  selectPointButton_ = makeRadioButton("Point", "point", selectControlsLayout,
+                                       "Select objects at point");
+  selectRectButton_  = makeRadioButton("Rect" , "rect" , selectControlsLayout,
+                                       "Select objects inside/touching rectangle");
 
   if (view()->selectMode() == CQChartsView::SelectMode::POINT)
     selectPointButton_->setChecked(true);
@@ -171,37 +197,23 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   auto *selectButtonGroup =
     CQUtil::makeButtonGroup(this, {selectPointButton_, selectRectButton_});
 
-  selectControlsLayout->addWidget(selectPointButton_);
-  selectControlsLayout->addWidget(selectRectButton_ );
-
   connect(selectButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(selectButtonClicked(int)));
 
   //--
 
   selectInsideCheck_ = makeCheckBox("Inside", "selectInside", view()->isSelectInside(),
-    "Rectangle intersect inside (checked) or touching (unchecked)",
+    selectControlsLayout, "Rectangle intersect inside (checked) or touching (unchecked)",
     SLOT(selectInsideSlot(int)));
-
-  selectControlsLayout->addWidget(selectInsideCheck_);
 
   //--
 
   selectControlsLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
 
-  //---
+  //--
 
-  auto *selecyKeyLabel = CQUtil::makeLabelWidget<QLabel>("Key", "selecyKeyLabel");
-
-  selectKeyCombo_ = CQUtil::makeWidget<QComboBox>("selectKeyCombo");
-
-  selectKeyCombo_->addItem("Show");
-  selectKeyCombo_->addItem("Select");
-
-  connect(selectKeyCombo_, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(selectKeyComboSlot(int)));
-
-  selectControlsLayout->addWidget(selecyKeyLabel);
-  selectControlsLayout->addWidget(selectKeyCombo_);
+  selectKeyCombo_ = makeCombo("Key", "selectKey", QStringList() << "Show" << "Select",
+                               selectControlsLayout, "Select Key",
+                               SLOT(selectKeyComboSlot(int)));
 
   //--
 
@@ -211,9 +223,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *zoomInControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomInControls, 0, 2);
 
-  auto *zoomResetButton = makePushButton("Reset", "reset", "Reset Zoom", SLOT(zoomFullSlot()));
-
-  zoomInControlsLayout->addWidget(zoomResetButton);
+  makePushButton("Reset", "reset", zoomInControlsLayout, "Reset Zoom", SLOT(zoomFullSlot()));
 
   zoomInControlsLayout->addStretch(1);
 
@@ -221,9 +231,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
 
-  auto *panButton = makePushButton("Reset", "reset", "Reset Pan", SLOT(panResetSlot()));
-
-  panControlsLayout->addWidget(panButton);
+  makePushButton("Reset", "reset", panControlsLayout, "Reset Pan", SLOT(panResetSlot()));
 
   panControlsLayout->addStretch(1);
 
@@ -237,11 +245,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *editControlsLayout = CQUtil::makeLayout<QHBoxLayout>(editControls, 0, 2);
 
-  auto *flipHButton = makePushButton("Flip H", "fliph", "Flip Horizontal", SLOT(flipHSlot()));
-  auto *flipVButton = makePushButton("Flip V", "flipv", "Flip Vertical"  , SLOT(flipVSlot()));
-
-  editControlsLayout->addWidget(flipHButton);
-  editControlsLayout->addWidget(flipVButton);
+  makePushButton("Flip H", "fliph", editControlsLayout, "Flip Horizontal", SLOT(flipHSlot()));
+  makePushButton("Flip V", "flipv", editControlsLayout, "Flip Vertical"  , SLOT(flipVSlot()));
 
   editControlsLayout->addStretch(1);
 
@@ -249,8 +254,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *regionControlsLayout = CQUtil::makeLayout<QHBoxLayout>(regionControls, 0, 2);
 
-  regionPointButton_ = makeRadioButton("Point", "point", "Define region at point");
-  regionRectButton_  = makeRadioButton("Rect" , "rect" , "Define region rectangle");
+  regionPointButton_ = makeRadioButton("Point", "point", regionControlsLayout,
+                                       "Define region at point");
+  regionRectButton_  = makeRadioButton("Rect" , "rect" , regionControlsLayout,
+                                       "Define region rectangle");
 
   if (view()->regionMode() == CQChartsView::RegionMode::POINT)
     regionPointButton_->setChecked(true);
@@ -273,9 +280,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *rulerControlsLayout = CQUtil::makeLayout<QHBoxLayout>(rulerControls, 0, 2);
 
-  auto *rulerClearButton = makePushButton("Clear", "clear", "Clear Ruler", SLOT(clearRulerSlot()));
+  rulerUnitsCombo_ = makeCombo("Units", "rulerUnits",
+                               QStringList() << "Plot" << "View" << "Pixel",
+                               rulerControlsLayout, "Ruler Units",
+                               SLOT(rulerUnitsComboSlot(int)));
 
-  rulerControlsLayout->addWidget(rulerClearButton);
+  makePushButton("Clear", "clear", rulerControlsLayout, "Clear Ruler", SLOT(clearRulerSlot()));
 
   rulerControlsLayout->addStretch(1);
 
@@ -477,6 +487,17 @@ regionButtonClicked(int ind)
     view()->setRegionMode(CQChartsView::RegionMode::POINT);
   else
     view()->setRegionMode(CQChartsView::RegionMode::RECT);
+}
+
+//---
+
+void
+CQChartsViewToolBar::
+rulerUnitsComboSlot(int ind)
+{
+  if      (ind == 0) view()->setRulerUnits(Units::Type::PLOT);
+  else if (ind == 1) view()->setRulerUnits(Units::Type::VIEW);
+  else if (ind == 2) view()->setRulerUnits(Units::Type::PIXEL);
 }
 
 void

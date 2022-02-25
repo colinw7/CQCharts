@@ -126,7 +126,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color::makeInterfaceValue(1.0));
 
   //---
 

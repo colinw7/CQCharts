@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Use Color::makeInterfaceValue, Color::makePaletteValue everywhere
  + units for ruler tool
  + tip column cleanup all plots
  + barchart stacked + labels (only one label needed). Tip shows all values for single bar

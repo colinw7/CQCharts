@@ -84,7 +84,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setContourFillColor(Color(Color::Type::PALETTE));
+  setContourFillColor(Color::makePalette());
 
   addAxes();
 

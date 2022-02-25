@@ -19,11 +19,11 @@ draw(PaintDevice *device) const
   // get plot inside bbox in view coords
   auto bbox = plot()->innerViewBBox();
 
-  // get position of center
-  double xm = bbox.getXMid();
-  double ym = bbox.getYMid();
+  // get position of center (in view coords)
+  auto vc = bbox.getCenter();
 
-  Point c(xm, ym);
+  // get position of center (in plot coords)
+  auto c = plot()->pixelToWindow(view->windowToPixel(vc));
 
   //--
 

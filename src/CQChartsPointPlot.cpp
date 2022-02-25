@@ -75,7 +75,7 @@ init()
   dataLabel_ = std::make_shared<CQChartsDataLabel>(this);
 
   dataLabel_->setClip(false);
-  dataLabel_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+  dataLabel_->setTextColor(Color::makeInterfaceValue(1.0));
   dataLabel_->setMoveClipped(false);
   dataLabel_->setSendSignal(true);
 
@@ -110,12 +110,12 @@ init()
   setBestFit(false);
   setBestFitStrokeDash(LineDash(LineDash::Lengths({2, 2}), 0));
   setBestFitStrokeWidth(Length::pixel(4));
-  setBestFitStrokeColor(Color(Color::Type::PALETTE));
-  setBestFitFillColor(Color(Color::Type::PALETTE));
+  setBestFitStrokeColor(Color::makePalette());
+  setBestFitFillColor(Color::makePalette());
   setBestFitFillAlpha(Alpha(0.5));
 
   // hull
-  setHullFillColor(Color(Color::Type::PALETTE));
+  setHullFillColor(Color::makePalette());
   setHullFillAlpha(Alpha(0.5));
 
   // stats

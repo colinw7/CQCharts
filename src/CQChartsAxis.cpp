@@ -68,10 +68,10 @@ init()
 
   //--
 
-  Color themeFg   (Color::Type::INTERFACE_VALUE, 1);
-  Color themeGray1(Color::Type::INTERFACE_VALUE, 0.7);
-  Color themeGray2(Color::Type::INTERFACE_VALUE, 0.3);
-  Color themeGray3(Color::Type::INTERFACE_VALUE, 0.3);
+  auto themeFg    = Color::makeInterfaceValue(1.0);
+  auto themeGray1 = Color::makeInterfaceValue(0.7);
+  auto themeGray2 = Color::makeInterfaceValue(0.3);
+  auto themeGray3 = Color::makeInterfaceValue(0.3);
 
   setAxesLabelTextColor    (themeFg);
   setAxesTickLabelTextColor(themeFg);

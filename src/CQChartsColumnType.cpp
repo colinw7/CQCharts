@@ -2148,12 +2148,12 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         auto *palette = paletteName.palette();
 
         if (palette)
-          color = CQChartsColor(palette->getColor(r1));
+          color = Color(palette->getColor(r1));
         else
-          color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
+          color = Color::makePaletteValue(r1);
       }
       else
-        color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
+        color = Color::makePaletteValue(r1);
 
       return CQChartsVariant::fromColor(color);
     }
@@ -2179,12 +2179,12 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
           auto *palette = paletteName.palette();
 
           if (palette)
-            color = CQChartsColor(palette->getColor(r));
+            color = Color(palette->getColor(r));
           else
-            color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+            color = Color::makePaletteValue(r);
         }
         else
-          color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+          color = Color::makePaletteValue(r);
 
         return CQChartsVariant::fromColor(color);
       }

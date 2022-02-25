@@ -185,11 +185,11 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   //---
 
-  // implement select interface
-  virtual bool selectPressType(const Point &w, SelMod selMod, DrawType);
+  // select interface
+  virtual bool selectPressType(const Point &w, ClickMod clickMod, DrawType);
 
   std::vector<int> adjustItemVisible(const std::vector<int> &itemVisible, const Point &p,
-                                     SelMod selMod, DrawType drawType) const;
+                                     ClickMod selMod, DrawType drawType) const;
 
   virtual bool isItemInside(size_t i, const Point &p, DrawType drawType) const = 0;
 
@@ -368,7 +368,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   // implement select interface
   bool selectPress(const Point &w, SelMod selMod) override;
 
-  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+  bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 
   bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 
@@ -551,7 +551,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   // implement select interface
   bool selectPress(const Point &w, SelMod selMod) override;
 
-  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+  bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 
   bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 
@@ -715,7 +715,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   // implement select interface
   bool selectPress(const Point &w, SelMod selMod) override;
 
-  bool selectPressType(const Point &w, SelMod selMod, DrawType drawType) override;
+  bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 
   bool isItemInside(size_t i, const Point &p, DrawType drawType) const override;
 

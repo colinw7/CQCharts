@@ -91,8 +91,8 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setHeaderFillColor(Color(Color::Type::INTERFACE_VALUE, 0.4));
-  setHeaderTextColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
+  setHeaderFillColor(Color::makeInterfaceValue(0.4));
+  setHeaderTextColor(Color::makeInterfaceValue(1.0));
 
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
@@ -102,8 +102,8 @@ init()
 
   setHeaderFilled(true);
 
-  setFillColor(Color(Color::Type::PALETTE ));
-  setTextColor(Color(Color::Type::CONTRAST));
+  setFillColor(Color::makePalette());
+  setTextColor(Color::makeContrast());
 
   setFilled (true);
   setStroked(true);

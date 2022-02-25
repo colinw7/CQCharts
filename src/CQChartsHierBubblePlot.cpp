@@ -81,7 +81,7 @@ init()
 
   //---
 
-  setFillColor(Color(Color::Type::PALETTE));
+  setFillColor(Color::makePalette());
 
   setFilled (true);
   setStroked(true);
@@ -89,7 +89,7 @@ init()
   setTextContrast(true);
   setTextFontSize(12.0);
 
-  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color::makeInterfaceValue(1.0));
 
   setOuterMargin(PlotMargin::pixel(4, 4, 4, 4));
 

@@ -401,18 +401,16 @@ setDrawPainterFont(PaintDevice *device, const Font &textFont)
 
 bool
 CQChartsMapKey::
-selectPressType(const Point &w, SelMod selMod, DrawType)
+selectPressType(const Point &, ClickMod, DrawType)
 {
-  return selectPress(w, selMod);
+  return false;
 }
 
 std::vector<int>
 CQChartsMapKey::
 adjustItemVisible(const std::vector<int> &itemVisible, const Point &p,
-                  SelMod selMod, DrawType drawType) const
+                  ClickMod clickMod, DrawType drawType) const
 {
-  auto clickMod = static_cast<ClickMod>(selMod);
-
   auto ni = itemVisible.size();
 
   auto newItemVisible = itemVisible;
@@ -1164,12 +1162,14 @@ bool
 CQChartsColorMapKey::
 selectPress(const Point &p, SelMod selMod)
 {
-  return selectPressType(p, selMod, DrawType::VIEW);
+  auto clickMod = static_cast<ClickMod>(selMod);
+
+  return selectPressType(p, clickMod, DrawType::VIEW);
 }
 
 bool
 CQChartsColorMapKey::
-selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
@@ -1182,7 +1182,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
   for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->colorVisible(itemBoxes[i].color);
 
-  auto newItemVisible = adjustItemVisible(oldItemVisible, p, selMod, drawType);
+  auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
   for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
@@ -2202,12 +2202,14 @@ bool
 CQChartsSymbolSizeMapKey::
 selectPress(const Point &p, SelMod selMod)
 {
-  return selectPressType(p, selMod, DrawType::VIEW);
+  auto clickMod = static_cast<ClickMod>(selMod);
+
+  return selectPressType(p, clickMod, DrawType::VIEW);
 }
 
 bool
 CQChartsSymbolSizeMapKey::
-selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
@@ -2220,7 +2222,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
   for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->symbolSizeVisible(itemBoxes[i].size);
 
-  auto newItemVisible = adjustItemVisible(oldItemVisible, p, selMod, drawType);
+  auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
   for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
@@ -2711,12 +2713,14 @@ bool
 CQChartsSymbolTypeMapKey::
 selectPress(const Point &p, SelMod selMod)
 {
-  return selectPressType(p, selMod, DrawType::VIEW);
+  auto clickMod = static_cast<ClickMod>(selMod);
+
+  return selectPressType(p, clickMod, DrawType::VIEW);
 }
 
 bool
 CQChartsSymbolTypeMapKey::
-selectPressType(const Point &p, SelMod selMod, DrawType drawType)
+selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
   const auto &itemBoxes = itemBoxes_[drawType];
 
@@ -2729,7 +2733,7 @@ selectPressType(const Point &p, SelMod selMod, DrawType drawType)
   for (size_t i = 0; i < ni; ++i)
     oldItemVisible[i] = plot()->symbolTypeVisible(itemBoxes[i].symbol);
 
-  auto newItemVisible = adjustItemVisible(oldItemVisible, p, selMod, drawType);
+  auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
   for (size_t i = 0; i < ni; ++i)
     if (oldItemVisible[i] != newItemVisible[i])
@@ -2864,9 +2868,11 @@ mousePressEvent(QMouseEvent *me)
   if (me->button() == Qt::LeftButton) {
     auto p = me->pos();
 
-    auto selMod = CQChartsUtil::modifiersToClickMod(me->modifiers());
+    auto selMod = CQChartsUtil::modifiersToSelMod(me->modifiers());
 
-    key->selectPressType(CQChartsGeom::Point(p), selMod, CQChartsMapKey::DrawType::WIDGET);
+    auto clickMod = static_cast<CQChartsClickMod>(selMod);
+
+    key->selectPressType(CQChartsGeom::Point(p), clickMod, CQChartsMapKey::DrawType::WIDGET);
   }
 }
 

@@ -27,7 +27,7 @@ void
 CQChartsTextBoxObj::
 init()
 {
-  CQChartsColor themeFg(CQChartsColor::Type::CONTRAST);
+  auto themeFg = Color::makeContrast();
 
   textData_.setColor(themeFg); //setTextColor(themeFg);
 

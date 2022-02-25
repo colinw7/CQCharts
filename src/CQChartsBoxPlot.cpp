@@ -216,7 +216,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setBoxFillColor(Color(Color::Type::PALETTE));
+  setBoxFillColor(Color::makePalette());
 
   setBoxStroked(true);
   setBoxFilled (true);
@@ -224,12 +224,12 @@ init()
   setOutlierSymbol(Symbol::circle());
   setOutlierSymbolSize(Length::pixel(4));
   setOutlierSymbolFilled(true);
-  setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
+  setOutlierSymbolFillColor(Color::makePalette());
 
   setJitterSymbol(Symbol::circle());
   setJitterSymbolSize(Length::pixel(4));
   setJitterSymbolFilled(true);
-  setJitterSymbolFillColor(Color(Color::Type::PALETTE));
+  setJitterSymbolFillColor(Color::makePalette());
 
   addAxes();
 
@@ -1673,7 +1673,7 @@ initRawObjs(PlotObjs &objs) const
 
             if (colorColumn().isValid()) {
               if (! colorColumnColor(ovalue.ind.row(), ovalue.ind.parent(), pointColor))
-                pointColor = Color(Color::Type::NONE);
+                pointColor = Color();
             }
 
             if (pointColor.isValid())
@@ -1774,7 +1774,7 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     if (colorColumn().isValid()) {
       if (! colorColumnColor(value.ind.row(), value.ind.parent(), pointColor))
-        pointColor = Color(Color::Type::NONE);
+        pointColor = Color();
     }
 
     if (pointColor.isValid())
@@ -1925,7 +1925,7 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     if (colorColumn().isValid()) {
       if (! colorColumnColor(value.ind.row(), value.ind.parent(), pointColor))
-        pointColor = Color(Color::Type::NONE);
+        pointColor = Color();
     }
 
     if (pointColor.isValid())
@@ -2006,7 +2006,7 @@ initCalcObjs(PlotObjs &objs) const
           const auto &ind = whiskerData.outliersInd;
 
           if (! colorColumnColor(ind.row(), ind.parent(), pointColor))
-            pointColor = Color(Color::Type::NONE);
+            pointColor = Color();
         }
 
         if (pointColor.isValid())

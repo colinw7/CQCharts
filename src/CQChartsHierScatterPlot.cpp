@@ -109,7 +109,7 @@ init()
   setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(Color(Color::Type::PALETTE));
+  setSymbolFillColor(Color::makePalette());
 
   //---
 

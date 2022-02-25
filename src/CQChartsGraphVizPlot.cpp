@@ -102,7 +102,7 @@ init()
 
   //---
 
-  Color bg(Color::Type::PALETTE);
+  auto bg = Color::makePalette();
 
   setNodeFilled(true);
   setNodeFillColor(bg);

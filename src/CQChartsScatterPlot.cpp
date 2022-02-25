@@ -171,11 +171,11 @@ init()
   setSymbol(Symbol::circle());
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(Color(Color::Type::PALETTE));
+  setSymbolFillColor(Color::makePalette());
 
   setGridCellFilled (true);
   setGridCellStroked(true);
-  setGridCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.1));
+  setGridCellStrokeColor(Color::makeInterfaceValue(0.1));
 
   setDataLabelPosition(CQChartsLabelPosition::TOP_OUTSIDE);
 

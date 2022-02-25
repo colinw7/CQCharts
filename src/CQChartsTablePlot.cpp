@@ -119,9 +119,9 @@ init()
 
   setDataClip(false);
 
-  setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setFitFillColor (Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setPlotFillColor(Color::makeInterfaceValue(0.00));
+  setDataFillColor(Color::makeInterfaceValue(0.00));
+  setFitFillColor (Color::makeInterfaceValue(0.00));
 
   //---
 
@@ -141,11 +141,11 @@ init()
   setMaxRows (10*pageSize);
   setPageSize(pageSize);
 
-  setGridColor(Color(Color::Type::INTERFACE_VALUE, 0.50));
+  setGridColor(Color::makeInterfaceValue(0.50));
 
   setHeaderColor(Color(QColor("#c0c8dc"))); // TODO: from style
 
-  setCellColor    (Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setCellColor    (Color::makeInterfaceValue(0.00));
   setInsideColor  (Color(QColor("#c5c8bc"))); // TODO: from style
   setSelectedColor(Color(QColor("#bcc5c8"))); // TODO: from style
 

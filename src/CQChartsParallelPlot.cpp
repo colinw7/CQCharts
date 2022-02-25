@@ -143,7 +143,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setLinesColor(Color(Color::Type::PALETTE));
+  setLinesColor(Color::makePalette());
 
   setPoints(true);
 
@@ -151,7 +151,7 @@ init()
 
   setSymbolStrokeAlpha(Alpha(0.25));
   setSymbolFilled     (true);
-  setSymbolFillColor  (Color(Color::Type::PALETTE));
+  setSymbolFillColor  (Color::makePalette());
   setSymbolFillAlpha  (Alpha(0.5));
 
   masterAxis_ = std::make_unique<CQChartsAxis>(this, Qt::Vertical, 0.0, 1.0);
@@ -1156,7 +1156,8 @@ drawFgAxes(PaintDevice *device) const
 
   //---
 
-  th->axesBBox_ = pixelToWindow(axesBBox_);
+  if (axesBBox_.isValid())
+    th->axesBBox_ = pixelToWindow(axesBBox_);
 }
 
 //---

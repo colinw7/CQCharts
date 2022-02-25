@@ -137,19 +137,19 @@ class CQChartsTextData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool              visible_       { true };                              //!< is visible
-  Color             color_         { Color::Type::INTERFACE_VALUE, 1.0 }; //!< color
-  Alpha             alpha_;                                               //!< alpha
-  Font              font_;                                                //!< font
-  Angle             angle_;                                               //!< angle
-  bool              contrast_      { false };                             //!< contrast
-  Alpha             contrastAlpha_ { 0.5 };                               //!< contrast alpha
-  Qt::Alignment     align_         { Qt::AlignLeft | Qt::AlignVCenter };  //!< align
-  bool              formatted_     { false };                             //!< formatted
-  bool              scaled_        { false };                             //!< scaled
-  bool              html_          { false };                             //!< html
-  Length            clipLength_;                                          //!< clip length
-  Qt::TextElideMode clipElide_     { Qt::ElideRight };                    //!< clip elide
+  bool              visible_       { true };                             //!< is visible
+  Color             color_         { Color::makeInterfaceValue(1.0) };   //!< color
+  Alpha             alpha_;                                              //!< alpha
+  Font              font_;                                               //!< font
+  Angle             angle_;                                              //!< angle
+  bool              contrast_      { false };                            //!< contrast
+  Alpha             contrastAlpha_ { 0.5 };                              //!< contrast alpha
+  Qt::Alignment     align_         { Qt::AlignLeft | Qt::AlignVCenter }; //!< align
+  bool              formatted_     { false };                            //!< formatted
+  bool              scaled_        { false };                            //!< scaled
+  bool              html_          { false };                            //!< html
+  Length            clipLength_;                                         //!< clip length
+  Qt::TextElideMode clipElide_     { Qt::ElideRight };                   //!< clip elide
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)
@@ -235,13 +235,13 @@ class CQChartsLineData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool     visible_  { true };                              //!< line visible
-  Color    color_    { Color::Type::INTERFACE_VALUE, 1.0 }; //!< line color
-  Alpha    alpha_;                                          //!< line alpha
-  Length   width_    { Length::pixel(0) };                  //!< line width
-  LineDash dash_;                                           //!< line dash
-  LineCap  lineCap_;                                        //!< line cap
-  LineJoin lineJoin_;                                       //!< line join
+  bool     visible_  { true };                           //!< line visible
+  Color    color_    { Color::makeInterfaceValue(1.0) }; //!< line color
+  Alpha    alpha_;                                       //!< line alpha
+  Length   width_    { Length::pixel(0) };               //!< line width
+  LineDash dash_;                                        //!< line dash
+  LineCap  lineCap_;                                     //!< line cap
+  LineJoin lineJoin_;                                    //!< line join
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -309,10 +309,10 @@ class CQChartsFillData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool        visible_  { true };                              //!< visible
-  Color       color_    { Color::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
-  Alpha       alpha_;                                          //!< fill alpha
-  FillPattern pattern_  { FillPattern::Type::SOLID };          //!< fill pattern
+  bool        visible_  { true };                           //!< visible
+  Color       color_    { Color::makeInterfaceValue(0.0) }; //!< fill color
+  Alpha       alpha_;                                       //!< fill alpha
+  FillPattern pattern_  { FillPattern::Type::SOLID };       //!< fill pattern
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsFillData)
@@ -395,14 +395,14 @@ class CQChartsStrokeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool     visible_    { true };                              //!< draw stroke
-  Color    color_      { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  Alpha    alpha_;                                            //!< stroke color alpha
-  Length   width_      { Length::pixel(0) };                  //!< stroke width
-  LineDash dash_;                                             //!< stroke line dash
-  LineCap  lineCap_;                                          //!< stroke line cap
-  LineJoin lineJoin_;                                         //!< stroke line join
-  Length   cornerSize_ { Length::pixel(0) };                  //!< corner size (for border)
+  bool     visible_    { true };                           //!< draw stroke
+  Color    color_      { Color::makeInterfaceValue(1.0) }; //!< stroke color
+  Alpha    alpha_;                                         //!< stroke color alpha
+  Length   width_      { Length::pixel(0) };               //!< stroke width
+  LineDash dash_;                                          //!< stroke line dash
+  LineCap  lineCap_;                                       //!< stroke line cap
+  LineJoin lineJoin_;                                      //!< stroke line join
+  Length   cornerSize_ { Length::pixel(0) };               //!< corner size (for border)
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)

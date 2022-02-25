@@ -164,7 +164,7 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setNodeFillColor(Color(Color::Type::PALETTE));
+  setNodeFillColor(Color::makePalette());
 
   //---
 
@@ -677,6 +677,7 @@ CQChartsDendrogramPlot::
 placeBuchheim() const
 {
   auto *root = rootNode();
+  if (! root) return;
 
   delete cacheData_.buchheimTree;
   delete cacheData_.buchheimDrawTree;
@@ -1114,7 +1115,8 @@ createObjs(PlotObjs &objs) const
 
   auto rootModelInd1 = modelIndex(rootModelInd);
 
-  rootNodeObj()->setModelIndex(rootModelInd);
+  if (rootNodeObj())
+    rootNodeObj()->setModelIndex(rootModelInd);
 
   if (rootModelInd1.isValid())
     rootNodeObj()->setModelInd(normalizeIndex(rootModelInd1));

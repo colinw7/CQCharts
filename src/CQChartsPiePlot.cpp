@@ -151,18 +151,18 @@ init()
 
   //---
 
-  setFillColor(Color(Color::Type::PALETTE));
+  setFillColor(Color::makePalette());
 
-  setGroupFillColor(Color(Color::Type::PALETTE));
+  setGroupFillColor(Color::makePalette());
 
   setGridLines(false);
-  setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
+  setGridLinesColor(Color::makeInterfaceValue(0.5));
 
   setTextLabelFilled(false);
   setTextLabelStroked(false);
-  setTextLabelTextColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
+  setTextLabelTextColor(Color::makeInterfaceValue(1.0));
 
-  setRadiusLabelTextColor(Color(Color::Type::CONTRAST));
+  setRadiusLabelTextColor(Color::makeContrast());
   setRadiusLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
   //---

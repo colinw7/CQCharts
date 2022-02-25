@@ -241,10 +241,10 @@ init()
   setImpulseLines  (false);
   setBivariateLines(false);
 
-  setLinesColor(Color(Color::Type::PALETTE));
+  setLinesColor(Color::makePalette());
 
-  setImpulseLinesColor  (Color(Color::Type::PALETTE));
-  setBivariateLinesColor(Color(Color::Type::PALETTE));
+  setImpulseLinesColor  (Color::makePalette());
+  setBivariateLinesColor(Color::makePalette());
 
   setLines (true);
   setPoints(false);
@@ -263,14 +263,14 @@ init()
   //---
 
   setFillUnderFilled   (false);
-  setFillUnderFillColor(Color(Color::Type::PALETTE));
+  setFillUnderFillColor(Color::makePalette());
   setFillUnderFillAlpha(Alpha(0.5));
 
   //---
 
   // moving average
   setMovingAverageLinesWidth(Length::pixel(4));
-  setMovingAverageLinesColor(Color(Color::Type::PALETTE));
+  setMovingAverageLinesColor(Color::makePalette());
 
   //---
 

@@ -522,7 +522,8 @@ bool
 CQChartsPlotPointObj::
 inside(const Point &p) const
 {
-  if (! isVisible()) return false;
+  if (! isVisible() || isFiltered())
+    return false;
 
   //---
 

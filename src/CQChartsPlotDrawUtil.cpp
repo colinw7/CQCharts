@@ -24,7 +24,7 @@ drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
   double sum = values.sum();
   if (sum <= 0.0) return;
 
-  Color color(Color::Type::PALETTE);
+  auto color = Color::makePalette();
 
   color.setPaletteName(paletteName.name());
 
@@ -71,7 +71,7 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
 
   //---
 
-  Color color(Color::Type::PALETTE);
+  auto color = Color::makePalette();
 
   color.setPaletteName(paletteName.name());
 

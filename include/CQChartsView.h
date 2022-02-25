@@ -775,6 +775,8 @@ class CQChartsView : public QFrame,
 
   void drawOverlay(QPainter *painter);
 
+  void drawRuler(PaintDevice *device);
+
   void showNoData(bool show);
 
   void drawNoData(PaintDevice *device);
@@ -1016,6 +1018,10 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void setRulerUnits(const Units &units);
+
+  //---
+
   void doUpdate();
 
   //---
@@ -1198,8 +1204,12 @@ class CQChartsView : public QFrame,
   void editModeSlot();
   void regionModeSlot();
 
+  //---
+
   void rulerModeSlot();
   void clearRulerSlot();
+
+  //---
 
   void plotModelChanged();
   void plotConnectDataChangedSlot();
@@ -1465,9 +1475,10 @@ class CQChartsView : public QFrame,
 
   //! structure containing the ruler data
   struct RulerData {
-    bool  set { false };
+    bool  set   { false };
     Point start;
     Point end;
+    Units units { Units::PLOT };
   };
 
   //! structure containing the auto/fixed size data and associated scroll bars

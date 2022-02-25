@@ -117,7 +117,7 @@ init()
 
   textBox_ = std::make_unique<RotatedTextBoxObj>(this);
 
-  textBox_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+  textBox_->setTextColor(Color::makeInterfaceValue(1.0));
 
   //---
 

@@ -144,14 +144,14 @@ init()
 
   setSelectedMode(HighlightDataMode::FILL);
 
-  setSelectedFillColor  (Color(Color::Type::CONTRAST));
+  setSelectedFillColor  (Color::makeContrast());
   setSelectedFillAlpha  (Alpha(0.3));
-  setSelectedStrokeColor(Color(Color::Type::CONTRAST));
+  setSelectedStrokeColor(Color::makeContrast());
   setSelectedStrokeWidth(Length::pixel(2));
 
-  setInsideFillColor  (Color(Color::Type::CONTRAST));
+  setInsideFillColor  (Color::makeContrast());
   setInsideFillAlpha  (Alpha(0.3));
-  setInsideStrokeColor(Color(Color::Type::CONTRAST));
+  setInsideStrokeColor(Color::makeContrast());
   setInsideStrokeWidth(Length::pixel(2));
 
   //---
@@ -1057,6 +1057,8 @@ regionModeSlot()
   setMode(Mode::REGION);
 }
 
+//---
+
 void
 CQChartsView::
 rulerModeSlot()
@@ -1074,6 +1076,19 @@ clearRulerSlot()
 
   updatePlots();
 }
+
+void
+CQChartsView::
+setRulerUnits(const Units &units)
+{
+  rulerData_.units = units;
+
+  invalidateOverlay();
+
+  updatePlots();
+}
+
+//---
 
 void
 CQChartsView::
@@ -2530,7 +2545,7 @@ QColor
 CQChartsView::
 interpPaletteColor(const ColorInd &ind, bool scale, bool invert) const
 {
-  Color c(CQChartsColor::Type::PALETTE);
+  auto c = Color::makePalette();
 
   c.setScale (scale );
   c.setInvert(invert);
@@ -4613,6 +4628,11 @@ paintEvent(QPaintEvent *)
 
   //---
 
+  if (mode() == Mode::RULER)
+    invalidateOverlay();
+
+  //---
+
   if (! lockPainter(true))
     return;
 
@@ -4797,52 +4817,87 @@ drawOverlay(QPainter *painter)
 
     //---
 
-    if (mode() == Mode::RULER) {
-      if (rulerData_.set) {
-        auto *currentPlot = this->currentPlot(/*remap*/true);
-
-        if (currentPlot) {
-          auto p1 = currentPlot->viewToWindow(rulerData_.start);
-          auto p2 = currentPlot->viewToWindow(rulerData_.end);
-
-          bool usePen     = true;
-          bool forceColor = false;
-
-          CQChartsAxis xaxis(this, Qt::Horizontal);
-          CQChartsAxis yaxis(this, Qt::Vertical  );
-
-          auto rs = Point(std::min(rulerData_.start.x, rulerData_.end.x),
-                          std::min(rulerData_.start.y, rulerData_.end.y));
-
-          //auto ps = currentPlot->viewToWindow(rs);
-
-          xaxis.setPosition  (CQChartsOptReal(rs.y));
-          xaxis.setRange     (rulerData_.start.x, rulerData_.end.x);
-          xaxis.setValueRange(0.0, std::abs(p2.x - p1.x));
-          xaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.x - p1.x))));
-
-          yaxis.setPosition  (CQChartsOptReal(rs.x));
-          yaxis.setRange     (rulerData_.start.y, rulerData_.end.y);
-          yaxis.setValueRange(0.0, std::abs(p2.y - p1.y));
-          yaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.y - p1.y))));
-
-          CQChartsViewPaintDevice pdevice(this, painter1);
-
-          xaxis.draw(this, &pdevice, usePen, forceColor);
-          yaxis.draw(this, &pdevice, usePen, forceColor);
-
-          auto d = std::hypot(p2.x - p1.x, p2.y - p1.y);
-
-          pdevice.drawLine(rulerData_.start, rulerData_.end);
-          pdevice.drawText((rulerData_.start + rulerData_.end)/2, QString::number(d));
-        }
-        else
-          device.drawLine(rulerData_.start, rulerData_.end);
-      }
-    }
+    if (mode() == Mode::RULER)
+      drawRuler(&device);
   }
 
   overlayBuffer_->endPaint();
+}
+
+void
+CQChartsView::
+drawRuler(PaintDevice *device)
+{
+  if (! rulerData_.set)
+    return;
+
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+
+  Point p1, p2;
+
+  if (currentPlot) {
+    if      (rulerData_.units == Units::PLOT) {
+      p1 = currentPlot->viewToWindow(rulerData_.start);
+      p2 = currentPlot->viewToWindow(rulerData_.end);
+    }
+    else if (rulerData_.units == Units::VIEW) {
+      p1 = rulerData_.start;
+      p2 = rulerData_.end;
+    }
+    else if (rulerData_.units == Units::PIXEL) {
+      p1 = currentPlot->windowToPixel(currentPlot->viewToWindow(rulerData_.start));
+      p2 = currentPlot->windowToPixel(currentPlot->viewToWindow(rulerData_.end  ));
+    }
+    else
+      return;
+  }
+  else {
+    if      (rulerData_.units == Units::VIEW) {
+      p1 = rulerData_.start;
+      p2 = rulerData_.end;
+    }
+    else if (rulerData_.units == Units::PIXEL) {
+      p1 = windowToPixel(rulerData_.start);
+      p2 = windowToPixel(rulerData_.end);
+    }
+    else
+      return;
+  }
+
+  //---
+
+  auto unitsStr = " (" + CQChartsUnits::unitsString(rulerData_.units) + ")";
+
+  //---
+
+  bool usePen     = true;
+  bool forceColor = false;
+
+  CQChartsAxis xaxis(this, Qt::Horizontal);
+  CQChartsAxis yaxis(this, Qt::Vertical  );
+
+  auto rs = Point(std::min(rulerData_.start.x, rulerData_.end.x),
+                  std::min(rulerData_.start.y, rulerData_.end.y));
+
+  xaxis.setPosition  (CQChartsOptReal(rs.y));
+  xaxis.setRange     (rulerData_.start.x, rulerData_.end.x);
+  xaxis.setValueRange(0.0, std::abs(p2.x - p1.x));
+  xaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.x - p1.x)) + unitsStr));
+
+  yaxis.setPosition  (CQChartsOptReal(rs.x));
+  yaxis.setRange     (rulerData_.start.y, rulerData_.end.y);
+  yaxis.setValueRange(0.0, std::abs(p2.y - p1.y));
+  yaxis.setLabel     (CQChartsOptString(QString::number(std::abs(p2.y - p1.y)) + unitsStr));
+
+  CQChartsViewPaintDevice pdevice(this, device->painter());
+
+  xaxis.draw(this, &pdevice, usePen, forceColor);
+  yaxis.draw(this, &pdevice, usePen, forceColor);
+
+  auto d = std::hypot(p2.x - p1.x, p2.y - p1.y);
+
+  pdevice.drawLine(rulerData_.start, rulerData_.end);
+  pdevice.drawText((rulerData_.start + rulerData_.end)/2, QString::number(d) + unitsStr);
 }
 
 //---

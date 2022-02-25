@@ -177,7 +177,7 @@ init()
 
   dataLabel_ = new CQChartsDataLabel(this);
 
-  setFillColor(Color(Color::Type::PALETTE));
+  setFillColor(Color::makePalette());
 
   setFilled (true);
   setStroked(true);

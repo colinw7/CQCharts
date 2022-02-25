@@ -203,11 +203,11 @@ init()
   setDotSymbol         (Symbol::circle());
   setDotSymbolSize     (Length::pixel(7));
   setDotSymbolFilled   (true);
-  setDotSymbolFillColor(Color(Color::Type::PALETTE));
+  setDotSymbolFillColor(Color::makePalette());
 
   setRugSymbolSize       (Length::pixel(5));
   setRugSymbolStroked    (true);
-  setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
+  setRugSymbolStrokeColor(Color::makePalette());
 
   //---
 

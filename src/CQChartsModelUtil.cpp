@@ -1178,7 +1178,7 @@ QVariant modelHeaderValueI(const QAbstractItemModel *model, const Column &column
     return CQModelUtil::modelHeaderValue(model, icolumn, orient, role, ok);
   }
   else {
-    assert(false);
+    //assert(false);
     return QVariant();
   }
 }
@@ -1712,7 +1712,7 @@ CQChartsColor variantToColor(const QVariant &var) {
     double r;
 
     if (CQChartsVariant::toReal(var, r))
-      color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
+      color = CQChartsColor::makePaletteValue(r);
   }
   else {
     QString str;

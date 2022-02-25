@@ -110,7 +110,7 @@ init()
   //---
 
   setBarFilled   (true);
-  setBarFillColor(Color(Color::Type::PALETTE));
+  setBarFillColor(Color::makePalette());
 
   setBarStroked(true);
 
@@ -1648,7 +1648,7 @@ CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndice
     color_ = columnDetails->tableDrawColor();
 
   if (! color_.isValid())
-    color_ = Color(Color::Type::PALETTE);
+    color_ = Color::makePalette();
 }
 
 QString

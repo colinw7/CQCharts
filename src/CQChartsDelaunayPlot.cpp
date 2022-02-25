@@ -148,8 +148,8 @@ init()
 
   setSymbol(Symbol::circle());
 
-  setSymbolStrokeColor(Color(Color::Type::PALETTE));
-  setVoronoiFillColor (Color(Color::Type::PALETTE));
+  setSymbolStrokeColor(Color::makePalette());
+  setVoronoiFillColor (Color::makePalette());
 
   addAxes();
 

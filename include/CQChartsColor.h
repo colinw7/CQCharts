@@ -71,12 +71,28 @@ class CQChartsColor :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsColor, metaTypeId)
 
  public:
+  static Color makePalette() {
+    return Color(Color::Type::PALETTE);
+  }
+
   static Color makePaletteValue(double value=0.0) {
     return Color(Color::Type::PALETTE_VALUE, value);
   }
 
+  static Color makeInterface() {
+    return Color(Color::Type::INTERFACE);
+  }
+
   static Color makeInterfaceValue(double value=0.0) {
     return Color(Color::Type::INTERFACE_VALUE, value);
+  }
+
+  static Color makeContrast() {
+    return Color(Color::Type::CONTRAST);
+  }
+
+  static Color makeContrastValue(double value=0.0) {
+    return Color(Color::Type::CONTRAST_VALUE, value);
   }
 
  public:

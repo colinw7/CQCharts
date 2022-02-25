@@ -129,15 +129,15 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
+  setGridLinesColor(Color::makeInterfaceValue(0.5));
 
-  setFillColor(Color(Color::Type::PALETTE));
+  setFillColor(Color::makePalette());
   setFillAlpha(Alpha(0.5));
 
   setFilled (true);
   setStroked(true);
 
-  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color::makeInterfaceValue(1.0));
 
   //---
 
