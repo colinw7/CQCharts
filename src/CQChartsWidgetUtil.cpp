@@ -28,7 +28,7 @@ createHSpacer(int width, const char *name)
 
   QFontMetrics fm(spacer->font());
 
-  spacer->setFixedWidth(width*fm.width("X"));
+  spacer->setFixedWidth(width*fm.horizontalAdvance("X"));
 
   return spacer;
 }

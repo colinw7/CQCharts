@@ -80,7 +80,7 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  return QSize(fm.width("none") + 8, fm.height() + 4);
+  return QSize(fm.horizontalAdvance("none") + 8, fm.height() + 4);
 }
 
 //------
@@ -123,7 +123,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QFontMetrics fm(option.font);
 
-  int w = fm.width(str);
+  int w = fm.horizontalAdvance(str);
 
   //---
 

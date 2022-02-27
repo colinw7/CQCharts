@@ -199,7 +199,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QFontMetrics fm(option.font);
 
-  int w = fm.width(str);
+  int w = fm.horizontalAdvance(str);
 
   //---
 
@@ -560,7 +560,7 @@ calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const
 {
   QFontMetrics fm(font());
 
-  int ew = 32*fm.width("8");
+  int ew = 32*fm.horizontalAdvance("8");
   int eh = fm.height() + 4;
 
   QStyleOptionSlider opt;

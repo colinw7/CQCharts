@@ -18,6 +18,7 @@
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+#include <CQChartsFitData.h>
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
@@ -846,7 +847,7 @@ execDrawBackground(PaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsSummaryPlot::
-fitBBox() const
+fitBBox(FitType fitType) const
 {
   auto font = view()->viewFont(this->font());
 
@@ -879,7 +880,7 @@ fitBBox() const
 
   //---
 
-  auto bbox = CQChartsPlot::fitBBox();
+  auto bbox = CQChartsPlot::fitBBox(fitType);
 
   bbox += Point(-maxWidth - thw/2.0, -thh - thh/2.0);
 
@@ -1987,7 +1988,7 @@ sizeHint() const
 
   int nr = std::min(valueList_->rowCount() + 1, 6);
 
-  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
+  return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
 }
 
 //------

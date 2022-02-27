@@ -645,19 +645,24 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
   Edge*                edge_      { nullptr }; //!< edge
   BBox                 srcRect_;               //!< src rect
   BBox                 destRect_;              //!< dest rect
+  mutable QPainterPath epath_;                 //!< line path
   mutable QPainterPath path_;                  //!< painter path
 };
 
 //---
+
+CQCHARTS_NAMED_TEXT_DATA(Node, node)
+CQCHARTS_NAMED_TEXT_DATA(Edge, edge)
 
 /*!
  * \brief Graph Plot
  * \ingroup Charts
  */
 class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
- public CQChartsObjTextData<CQChartsGraphVizPlot>,
  public CQChartsObjNodeShapeData<CQChartsGraphVizPlot>,
- public CQChartsObjEdgeShapeData<CQChartsGraphVizPlot> {
+ public CQChartsObjNodeTextData <CQChartsGraphVizPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsGraphVizPlot>,
+ public CQChartsObjEdgeTextData <CQChartsGraphVizPlot> {
   Q_OBJECT
 
   // plot type
@@ -698,8 +703,10 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
-  // text style
-  CQCHARTS_TEXT_DATA_PROPERTIES
+  // node/edge text style
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
+
 
   Q_ENUMS(PlotType)
   Q_ENUMS(OutputFormat)
@@ -718,9 +725,10 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   };
 
   enum class EdgeShape {
-    NONE,
-    LINE,
-    ARC
+    NONE        = int(CQChartsEdgeType::NONE),
+    LINE        = int(CQChartsEdgeType::LINE),
+    RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
+    ARC         = int(CQChartsEdgeType::ARC)
   };
 
   enum class PlotType {
@@ -740,17 +748,19 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
     DOT
   };
 
-  using Node     = CQChartsGraphVizPlotNode;
-  using Nodes    = std::vector<Node *>;
-  using NodeSet  = std::set<Node *>;
-  using Edge     = CQChartsGraphVizPlotEdge;
-  using Edges    = std::vector<Edge *>;
-  using NodeObj  = CQChartsGraphVizNodeObj;
-  using EdgeObj  = CQChartsGraphVizEdgeObj;
-  using Length   = CQChartsLength;
-  using Color    = CQChartsColor;
-  using Alpha    = CQChartsAlpha;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Node        = CQChartsGraphVizPlotNode;
+  using Nodes       = std::vector<Node *>;
+  using NodeSet     = std::set<Node *>;
+  using Edge        = CQChartsGraphVizPlotEdge;
+  using Edges       = std::vector<Edge *>;
+  using NodeObj     = CQChartsGraphVizNodeObj;
+  using EdgeObj     = CQChartsGraphVizEdgeObj;
+  using Length      = CQChartsLength;
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using PenData     = CQChartsPenData;
+  using TextOptions = CQChartsTextOptions;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsGraphVizPlot(View *view, const ModelP &model);
@@ -948,18 +958,21 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //---
 
   struct DrawTextData {
-    Point               p;
-    BBox                rect;
-    QString             str;
-    CQChartsTextOptions textOptions;
-    bool                isRect { false };
+    Point       p;
+    BBox        rect;
+    QString     str;
+    QColor      c;
+    TextOptions textOptions;
+    bool        isRect { false };
 
-    DrawTextData(const Point &p, const QString &str, const CQChartsTextOptions &textOptions) :
-     p(p), str(str), textOptions(textOptions) {
+    DrawTextData(const Point &p, const QString &str, const QColor &c,
+                 const TextOptions &textOptions) :
+     p(p), str(str), c(c), textOptions(textOptions) {
     }
 
-    DrawTextData(const BBox &rect, const QString &str, const CQChartsTextOptions &textOptions) :
-     rect(rect), str(str), textOptions(textOptions), isRect(true) {
+    DrawTextData(const BBox &rect, const QString &str, const QColor &c,
+                 const TextOptions &textOptions) :
+     rect(rect), str(str), c(c), textOptions(textOptions), isRect(true) {
     }
   };
 
@@ -1042,11 +1055,11 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   // edge data
   EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
-  bool      edgeArrow_    { true };             //!< edge arrow
+  bool      edgeArrow_    { false };            //!< edge arrow
   bool      edgeScaled_   { false };            //!< is edge scaled
   Length    edgeWidth_    { Length::pixel(8) }; //!< edge width
   bool      edgeCentered_ { false };            //!< is edge centered
-  bool      edgePath_     { true };             //!< use edge path
+  bool      edgePath_     { false };            //!< use edge path
 
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation
@@ -1057,7 +1070,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
 
   // coloring
-  bool blendEdgeColor_ { true }; //!< blend edge color
+  bool blendEdgeColor_ { false }; //!< blend edge color
 
   // placement data
   double fdpK_       { -1.0 };
@@ -1094,6 +1107,9 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
   Q_OBJECT
 
  public:
+  using Color = CQChartsColor;
+
+ public:
   CQChartsGraphVizPlotCustomControls(CQCharts *charts);
 
   void init() override;
@@ -1109,8 +1125,8 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
   void updateWidgets() override;
 
  protected:
-  CQChartsColor getColorValue() override;
-  void setColorValue(const CQChartsColor &c) override;
+  Color getColorValue() override;
+  void setColorValue(const Color &c) override;
 
  private:
   CQChartsGraphVizPlot* plot_ { nullptr };

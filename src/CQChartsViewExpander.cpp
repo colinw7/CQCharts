@@ -464,7 +464,7 @@ paintEvent(QPaintEvent *)
 
     QFontMetrics fm(font());
 
-    int tw = (title_.length() ? fm.width(title_) : 0);
+    int tw = (title_.length() ? fm.horizontalAdvance(title_) : 0);
 
     int is = (! icon_.isNull() ? fm.ascent() : 0);
 

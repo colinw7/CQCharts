@@ -209,11 +209,11 @@ addPointProperties()
   //---
 
   // mapping for columns
-  addProp("mapping/symbolType", "symbolTypeMapped" , "enabled"   , "Symbol type values mapped");
-  addProp("mapping/symbolType", "symbolTypeMapMin" , "min"       , "Symbol type map min value");
-  addProp("mapping/symbolType", "symbolTypeMapMax" , "max"       , "Symbol type map max value");
-  addProp("mapping/symbolType", "symbolTypeSetName", "set"       , "Symbol type set name");
-  addProp("mapping/symbolType", "symbolTypeMap"    , "symbol_map", "Symbol type to value map");
+  addProp("mapping/symbolType", "symbolTypeMapped" , "enabled" , "Symbol type values mapped");
+  addProp("mapping/symbolType", "symbolTypeMapMin" , "min"     , "Symbol type map min value");
+  addProp("mapping/symbolType", "symbolTypeMapMax" , "max"     , "Symbol type map max value");
+  addProp("mapping/symbolType", "symbolTypeSetName", "set"     , "Symbol type set name");
+  addProp("mapping/symbolType", "symbolTypeMap"    , "type_map", "Symbol type to value map");
 
   addProp("mapping/symbolSize", "symbolSizeMapped"  , "enabled" , "Symbol size values mapped");
   addProp("mapping/symbolSize", "symbolSizeMapMin"  , "min"     , "Symbol size map min value");
@@ -728,15 +728,17 @@ setHullLayer(const DrawLayer &l)
 
 CQChartsGeom::BBox
 CQChartsPointPlot::
-fitBBox() const
+fitBBox(FitType fitType) const
 {
-  auto bbox = CQChartsPlot::fitBBox();
+  auto bbox = CQChartsPlot::fitBBox(fitType);
 
-  if (symbolTypeMapKey_ && symbolTypeMapKey_->isVisible())
-    bbox += symbolTypeMapKey_->bbox();
+  if (fitType == FitType::ALL) {
+    if (symbolTypeMapKey_ && symbolTypeMapKey_->isVisible())
+      bbox += symbolTypeMapKey_->bbox();
 
-  if (symbolSizeMapKey_ && symbolSizeMapKey_->isVisible())
-    bbox += symbolSizeMapKey_->bbox();
+    if (symbolSizeMapKey_ && symbolSizeMapKey_->isVisible())
+      bbox += symbolSizeMapKey_->bbox();
+  }
 
   return bbox;
 }
@@ -1274,6 +1276,45 @@ symbolSizeVisible(const Length &size) const
   return (p == symbolSizeFilter_.end());
 }
 
+QStringList
+CQChartsPointPlot::
+symbolSizeFilterNames() const
+{
+  int n = (symbolSizeMapKey_ ? symbolSizeMapKey_->uniqueValues().size() : 0);
+
+  auto mapMin = symbolSizeData_.map_min;
+  auto mapMax = symbolSizeData_.map_max;
+
+  using LengthSize = std::map<Real, QString>;
+
+  LengthSize lengthSize;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = symbolSizeMapKey_->uniqueValues().at(i).toString();
+
+    Length l;
+    Real   size;
+
+    if (symbolSizeData_.sizeMap.valueToLength(name, l))
+      size = Real(lengthPixelWidth(l));
+    else
+      size = Real(CMathUtil::map(i, 0, n - 1, mapMin, mapMax));
+
+    lengthSize[size] = name;
+  }
+
+  QStringList names;
+
+  for (const auto &s : symbolSizeFilter_) {
+    auto p = lengthSize.find(s);
+
+    if (p != lengthSize.end())
+      names << (*p).second;
+  }
+
+  return names;
+}
+
 //---
 
 void
@@ -1429,6 +1470,50 @@ symbolTypeVisible(const Symbol &symbol) const
   auto p = symbolTypeFilter_.find(symbol);
 
   return (p == symbolTypeFilter_.end());
+}
+
+QStringList
+CQChartsPointPlot::
+symbolTypeFilterNames() const
+{
+  const auto *symbolSetMgr = charts()->symbolSetMgr();
+
+  auto *symbolSet = symbolSetMgr->symbolSet(symbolTypeData_.setName);
+
+  int n = (symbolTypeMapKey_ ? symbolTypeMapKey_->uniqueValues().size() : 0);
+
+  auto mapMin = symbolTypeData_.map_min;
+  auto mapMax = symbolTypeData_.map_max;
+
+  using SymbolName = std::map<Symbol, QString>;
+
+  SymbolName symbolName;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = symbolTypeMapKey_->uniqueValues().at(i).toString();
+
+    Symbol symbol;
+
+    if (! symbolTypeData_.typeMap.valueToSymbol(name, symbol)) {
+      if (symbolSet)
+        symbol = symbolSet->interpI(int(i + mapMin), int(mapMin), int(mapMax)).symbol;
+      else
+        symbol = Symbol::interpOutlineWrap(int(i + mapMin), int(mapMin), int(mapMax));
+    }
+
+    symbolName[symbol] = name;
+  }
+
+  QStringList names;
+
+  for (const auto &s : symbolTypeFilter_) {
+    auto p = symbolName.find(s);
+
+    if (p != symbolName.end())
+      names << (*p).second;
+  }
+
+  return names;
 }
 
 //---

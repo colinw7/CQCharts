@@ -53,6 +53,7 @@ class CQChartsSymbolSizeMap :
   //---
 
   bool valueToLength(const QVariant &value, Length &length) const;
+  bool lengthToValue(const Length &length, QVariant &value) const;
 
   //---
 

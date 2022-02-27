@@ -28,6 +28,7 @@
 #include <CQChartsSymbolSet.h>
 #include <CQChartsSVGUtil.h>
 #include <CQChartsFile.h>
+#include <CQChartsPointPlot.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -1041,7 +1042,7 @@ execCmd(CQChartsCmdArgs &argv)
   if (! html) {
     QFontMetricsF fm(font);
 
-    tw = fm.width(text);
+    tw = fm.horizontalAdvance(text);
     ta = fm.ascent();
     td = fm.descent();
   }
@@ -6857,6 +6858,31 @@ execCmd(CQChartsCmdArgs &argv)
       plot->getErrors(strs);
 
       return cmdBase_->setCmdRc(strs);
+    }
+    else if (name == "color_filter") {
+      auto typeNames = plot->colorFilterNames();
+
+       return cmdBase_->setCmdRc(typeNames);
+    }
+    else if (name == "symbol_type_filter") {
+      auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
+
+      QStringList typeNames;
+
+      if (pointPlot)
+        typeNames = pointPlot->symbolTypeFilterNames();
+
+      return cmdBase_->setCmdRc(typeNames);
+    }
+    else if (name == "symbol_size_filter") {
+      auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
+
+      QStringList typeNames;
+
+      if (pointPlot)
+        typeNames = pointPlot->symbolSizeFilterNames();
+
+      return cmdBase_->setCmdRc(typeNames);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["plot"] = "";

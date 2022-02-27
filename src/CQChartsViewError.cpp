@@ -54,7 +54,7 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  int tw = 80*fm.width("X");
+  int tw = 80*fm.horizontalAdvance("X");
 
   int w = 0, h = 0;
 

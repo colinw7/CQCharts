@@ -2496,7 +2496,7 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
   double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
 
@@ -2838,48 +2838,19 @@ draw(PaintDevice *device) const
   // draw edge
   path_ = QPainterPath();
 
+  auto orient = plot_->orientation();
+
+  auto edgeType = CQChartsDrawUtil::EdgeType::ARC;
+
   if (shapeType() == ShapeType::ARROW) {
-#if 0
-    if (plot_->isHorizontal()) {
-      y1 = srcRect .getYMid();
-      y2 = destRect.getYMid();
-
-      if (swapped)
-        std::swap(y1, y2);
-    }
-    else {
-      x1 = srcRect .getXMid();
-      x2 = destRect.getXMid();
-
-      if (swapped)
-        std::swap(x1, x2);
-    }
-#endif
-
     const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(false);
 
     double lw = plot_->lengthPlotHeight(plot()->edgeWidth());
 
     if (! isSelf) {
-#if 0
-      CQChartsArrow arrow(const_cast<CQChartsGraphPlot *>(plot()), Point(x1, y1), Point(x2, y2));
-
-      arrow.setRectilinear (true);
-      arrow.setLineWidth   (plot()->edgeWidth());
-      arrow.setFrontVisible(false);
-      arrow.setFilled      (true);
-      arrow.setFillColor   (penBrush.brush.color());
-      arrow.setStroked     (true);
-      arrow.setStrokeColor (penBrush.pen.color());
-
-      arrow.draw(device);
-
-      path_ = arrow.drawnPath();
-#else
       QPainterPath lpath;
 
-      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect,
-                                  CQChartsDrawUtil::EdgeType::ARC, plot_->orientation());
+      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, edgeType, orient);
 
       CQChartsArrowData arrowData;
 
@@ -2889,7 +2860,6 @@ draw(PaintDevice *device) const
       CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 1.0, 1.0, path_);
 
       device->drawPath(path_);
-#endif
     }
     else {
       CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
@@ -2901,8 +2871,7 @@ draw(PaintDevice *device) const
   }
   else {
     if (plot_->isEdgeScaled()) {
-      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
-                                 plot_->orientation());
+      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, edgeType, orient);
     }
     else {
       double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
@@ -2917,8 +2886,7 @@ draw(PaintDevice *device) const
             std::swap(y1, y2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     CQChartsDrawUtil::EdgeType::ARC,
-                                     plot_->orientation(), plot_->orientation());
+                                     edgeType, orient, orient);
         }
         else {
           // start x range from source node, and end x range from dest node
@@ -2929,8 +2897,7 @@ draw(PaintDevice *device) const
             std::swap(x1, x2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     CQChartsDrawUtil::EdgeType::ARC,
-                                     plot_->orientation(), plot_->orientation());
+                                     edgeType, orient, orient);
         }
       }
       else {
@@ -3006,7 +2973,7 @@ drawFg(PaintDevice *device) const
   if (! str.length())
     return;
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;

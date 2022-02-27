@@ -115,7 +115,7 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  return QSize(fm.width("XX"), fm.height() + 4);
+  return QSize(fm.horizontalAdvance("XX"), fm.height() + 4);
 }
 
 //------

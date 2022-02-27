@@ -1637,7 +1637,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   if (visible) {
     QFontMetricsF fm(device->font());
 
-    double minTextWidth  = fm.width("X") + 4;
+    double minTextWidth  = fm.horizontalAdvance("X") + 4;
     double minTextHeight = fm.height() + 4;
 
     visible = (pbbox.getWidth() >= minTextWidth && pbbox.getHeight() >= minTextHeight);
@@ -1951,7 +1951,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
   // check if text visible
   QFontMetricsF fm(device->font());
 
-  double minTextWidth  = fm.width("X") + 4;
+  double minTextWidth  = fm.horizontalAdvance("X") + 4;
   double minTextHeight = fm.height() + 4;
 
   bool visible = (bbox.getWidth() >= minTextWidth && bbox.getHeight() >= minTextHeight);

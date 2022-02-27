@@ -971,7 +971,7 @@ sizeHint() const
 
   int nr = std::min(table_->rowCount() + 1, 6);
 
-  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
+  return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
 }
 
 //------
@@ -1064,5 +1064,5 @@ sizeHint() const
 
   QFontMetrics fm(font());
 
-  return QSize(fm.width("X")*40, (fm.height() + 6)*nr + 8);
+  return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
 }

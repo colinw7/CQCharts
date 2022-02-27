@@ -1267,6 +1267,7 @@ class CQChartsView : public QFrame,
   //---
 
   void fitSlot();
+  void fitDataSlot();
   void zoomFullSlot();
 
   //---

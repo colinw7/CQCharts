@@ -992,6 +992,35 @@ class BBox :
 
   //---
 
+  bool isZero() const { return isXZero() || isYZero(); }
+
+  bool isXZero() const { return CMathUtil::isZero(getWidth()); }
+  bool isYZero() const { return CMathUtil::isZero(getHeight()); }
+
+  void makeNonZero(double d=1.0) {
+    if (isSet()) {
+      if (isXZero()) {
+        double x = getXMid(), y = getYMid();
+
+        add(x - d, y);
+        add(x + d, y);
+      }
+
+      if (isYZero()) {
+        double x = getXMid(), y = getYMid();
+
+        add(x, y - d);
+        add(x, y + d);
+      }
+    }
+    else {
+      add(-d, -d);
+      add( d,  d);
+    }
+  }
+
+  //---
+
   void scale(double xf, double yf) {
     double w = getWidth ()*xf;
     double h = getHeight()*yf;

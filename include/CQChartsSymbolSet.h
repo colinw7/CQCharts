@@ -51,7 +51,7 @@ class CQChartsSymbolSet {
 
     SymbolData() = default;
 
-    SymbolData(const CQChartsSymbol &symbol) :
+    explicit SymbolData(const CQChartsSymbol &symbol) :
      symbol(symbol) {
     }
   };

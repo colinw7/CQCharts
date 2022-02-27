@@ -367,7 +367,7 @@ drawStringsInBox(PaintDevice *device, const BBox &rect,
       double tw = 0;
 
       for (int i = 0; i < strs.size(); ++i)
-        tw = std::max(tw, fm.width(strs[i]));
+        tw = std::max(tw, fm.horizontalAdvance(strs[i]));
 
       tw += 2*options.margin;
 
@@ -407,7 +407,7 @@ drawStringsInBox(PaintDevice *device, const BBox &rect,
   for (int i = 0; i < strs.size(); ++i) {
     double dx = 0.0;
 
-    double tw = fm.width(strs[i]);
+    double tw = fm.horizontalAdvance(strs[i]);
 
     if      (options.align & Qt::AlignHCenter)
       dx = (prect.getWidth() - tw)/2;
@@ -468,7 +468,7 @@ calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text
   double ta = fm.ascent();
   double td = fm.descent();
 
-  double tw = fm.width(text1);
+  double tw = fm.horizontalAdvance(text1);
 
   //---
 
@@ -567,7 +567,7 @@ drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
   double ta = fm.ascent();
   double td = fm.descent();
 
-  double tw = fm.width(text1);
+  double tw = fm.horizontalAdvance(text1);
 
   //---
 
@@ -657,7 +657,7 @@ drawAlignedText(PaintDevice *device, const Point &p, const QString &text,
 {
   QFontMetricsF fm(device->font());
 
-  double tw = fm.width(text);
+  double tw = fm.horizontalAdvance(text);
   double ta = fm.ascent ();
   double td = fm.descent();
 
@@ -685,7 +685,7 @@ calcAlignedTextRect(PaintDevice *device, const QFont &font, const Point &p,
 {
   QFontMetricsF fm(font);
 
-  double tw = fm.width(text);
+  double tw = fm.horizontalAdvance(text);
   double ta = fm.ascent ();
   double td = fm.descent();
 
@@ -760,7 +760,7 @@ calcTextSize(const QString &text, const QFont &font, const TextOptions &options)
 
   QFontMetricsF fm(font);
 
-  return Size(fm.width(text), fm.height());
+  return Size(fm.horizontalAdvance(text), fm.height());
 }
 
 //------
@@ -772,7 +772,7 @@ drawCenteredText(PaintDevice *device, const Point &pos, const QString &text)
 
   auto ppos = device->windowToPixel(pos);
 
-  Point ppos1(ppos.x - fm.width(text)/2, ppos.y + (fm.ascent() - fm.descent())/2);
+  Point ppos1(ppos.x - fm.horizontalAdvance(text)/2, ppos.y + (fm.ascent() - fm.descent())/2);
 
   drawSimpleText(device, device->pixelToWindow(ppos1), text);
 }
@@ -952,7 +952,7 @@ drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w)
 }
 
 void
-roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w)
+roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double lw)
 {
   QPainterPath lpath;
 
@@ -961,337 +961,14 @@ roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w)
 
   QPainterPathStroker stroker;
 
-  stroker.setCapStyle   (Qt::RoundCap);
+  stroker.setCapStyle   (Qt::FlatCap);
   stroker.setDashOffset (0.0);
   stroker.setDashPattern(Qt::SolidLine);
   stroker.setJoinStyle  (Qt::RoundJoin);
-  stroker.setWidth      (w);
+  stroker.setWidth      (lw);
 
   path = stroker.createStroke(lpath);
-
-#if 0
-  path = QPainterPath();
-
-  double w2 = w/2.0;
-
-  double a = CQChartsGeom::pointAngle(p1, p2);
-
-  auto pl1 = movePointPerpLine(p1, a,  w2);
-  auto pl2 = movePointPerpLine(p2, a,  w2);
-  auto pl6 = movePointPerpLine(p2, a, -w2);
-  auto pl7 = movePointPerpLine(p1, a, -w2);
-
-  auto pl4 = movePointOnLine(p2, a,  w2);
-  auto pl9 = movePointOnLine(p1, a, -w2);
-
-  auto pl3 = movePointOnLine(pl2, a,  w2);
-  auto pl5 = movePointOnLine(pl6, a,  w2);
-  auto pl8 = movePointOnLine(pl7, a, -w2);
-  auto pl0 = movePointOnLine(pl1, a, -w2);
-
-  auto pl23 = (pl2 + pl3)/2.0;
-  auto pl34 = (pl3 + pl4)/2.0;
-  auto pl45 = (pl4 + pl5)/2.0;
-  auto pl56 = (pl5 + pl6)/2.0;
-
-  auto pl78 = (pl7 + pl8)/2.0;
-  auto pl89 = (pl8 + pl9)/2.0;
-  auto pl90 = (pl9 + pl0)/2.0;
-  auto pl01 = (pl0 + pl1)/2.0;
-
-#if 0
-  double c = std::cos(a);
-  double s = std::sin(a);
-
-  QPointF pl1(p1.x + w2*s, p1.y - w2*c);
-  QPointF pl2(p2.x + w2*s, p2.y - w2*c);
-  QPointF pl6(p2.x - w2*s, p2.y + w2*c);
-  QPointF pl7(p1.x - w2*s, p1.y + w2*c);
-
-  QPointF pl4(p2.x + w2*c, p2.y + w2*s);
-  QPointF pl9(p1.x - w2*c, p1.y - w2*s);
-
-  QPointF pl3(pl2.x() + w2*c, pl2.y() + w2*s);
-  QPointF pl5(pl6.x() + w2*c, pl6.y() + w2*s);
-  QPointF pl8(pl7.x() - w2*c, pl7.y() - w2*s);
-  QPointF pl0(pl1.x() - w2*c, pl1.y() - w2*s);
-
-  QPointF pl23((pl2.x() + pl3.x())/2.0, (pl2.y() + pl3.y())/2.0);
-  QPointF pl34((pl3.x() + pl4.x())/2.0, (pl3.y() + pl4.y())/2.0);
-  QPointF pl45((pl4.x() + pl5.x())/2.0, (pl4.y() + pl5.y())/2.0);
-  QPointF pl56((pl5.x() + pl6.x())/2.0, (pl5.y() + pl6.y())/2.0);
-
-  QPointF pl78((pl7.x() + pl8.x())/2.0, (pl7.y() + pl8.y())/2.0);
-  QPointF pl89((pl8.x() + pl9.x())/2.0, (pl8.y() + pl9.y())/2.0);
-  QPointF pl90((pl9.x() + pl0.x())/2.0, (pl9.y() + pl0.y())/2.0);
-  QPointF pl01((pl0.x() + pl1.x())/2.0, (pl0.y() + pl1.y())/2.0);
-#endif
-
-  // top of line
-  path.moveTo(pl1.qpoint());
-  path.lineTo(pl2.qpoint());
-
-  // end rounded
-  path.cubicTo(pl23.qpoint(), pl34.qpoint(), pl4.qpoint());
-  path.cubicTo(pl45.qpoint(), pl56.qpoint(), pl6.qpoint());
-
-  // bottom of line
-  path.lineTo(pl7.qpoint());
-
-  // start rounded
-  path.cubicTo(pl78.qpoint(), pl89.qpoint(), pl9.qpoint());
-  path.cubicTo(pl90.qpoint(), pl01.qpoint(), pl1.qpoint());
-
-  path.closeSubpath();
-#endif
 }
-
-#if 0
-QPainterPath
-#if DEBUG_LABELS
-pathAddRoundedEnds(PaintDevice *device, const QPainterPath &path, double w)
-#else
-pathAddRoundedEnds(const QPainterPath &path, double w)
-#endif
-{
-  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
-   public:
-#if DEBUG_LABELS
-    PathVisitor(PaintDevice *device, double lw) :
-     device_(device), lw_(lw) {
-    }
-#else
-    PathVisitor(double lw) :
-     lw_(lw) {
-    }
-#endif
-
-    void moveTo(const Point &p) override {
-      p1_ = p;
-      p2_ = p;
-    }
-
-    void lineTo(const Point &p) override {
-      p1_ = p2_;
-      p2_ = p;
-
-      handleFirst();
-
-      //---
-
-      auto a1 = Angle::pointAngle(p1_, p2_);
-
-      // three points
-      if (nextP != p2_) {
-        auto a2 = Angle::pointAngle(p2_, nextP);
-
-        Point lp1, lp2, lp3, lp4, lp5, lp6, lp7, lp8;
-
-        addWidthToPoint(p1_  , a1, lw_, lp2, lp1); // above/below at first point/first angle
-        addWidthToPoint(p2_  , a1, lw_, lp4, lp3); // above/below at second point/first angle
-        addWidthToPoint(p2_  , a2, lw_, lp6, lp5); // above/below at second point/second angle
-        addWidthToPoint(nextP, a2, lw_, lp8, lp7); // above/below at third point/second angle
-
-        Point  pi1, pi2;
-        double mu1, mu2;
-
-        // intersect above/blow lines to get mid points
-        if (CQChartsUtil::intersectLines(lp1, lp3, lp5, lp7, pi1, mu1, mu2) &&
-            CQChartsUtil::intersectLines(lp2, lp4, lp6, lp8, pi2, mu1, mu2)) {
-          path1_.lineTo(pi1.qpoint());
-          path2_.lineTo(pi2.qpoint());
-        }
-      }
-      // last two points
-      else {
-        auto ps = movePointOnLine(p2_, a1, lw_);
-
-        Point ps1, ps2;
-
-        addWidthToPoint(ps, a1, lw_, ps1, ps2); // above/below last point
-
-        Point lp1, lp2;
-
-        addWidthToPoint(p2_, a1, lw_, lp1, lp2); // above/below last point
-
-        auto pl11 = Point::interp(ps1, lp1, 0.5);
-        auto pl22 = Point::interp(ps2, lp2, 0.5);
-        auto pl01 = Point::interp(ps , ps1, 0.5);
-        auto pl02 = Point::interp(ps , ps2, 0.5);
-
-        path1_.lineTo(lp2.qpoint());
-        path2_.lineTo(lp1.qpoint());
-
-        path1_.cubicTo(pl22.qpoint(), pl02.qpoint(), ps.qpoint());
-        path2_.cubicTo(pl11.qpoint(), pl01.qpoint(), ps.qpoint());
-
-#if DEBUG_LABELS
-        CQChartsDrawUtil::drawPointLabel(device_, ps  , "ps"  , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl01, "pl01", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl02, "pl02", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl11, "pl11", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl22, "pl22", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, ps1 , "ps1" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, ps2 , "ps2" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, lp1 , "lp1" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, lp2 , "lp2" , /*above*/false);
-#endif
-      }
-    }
-
-    void quadTo(const Point &pc1, const Point &p2) override {
-      p1_ = p2_;
-      p2_ = pc1;
-
-      handleFirst();
-
-      //---
-
-      auto a1 = Angle::pointAngle(p1_, pc1); // first point to control point
-      auto a2 = Angle::pointAngle(pc1, p2 ); // control point to next point
-
-      Point lp11, lp21, lp12, lp22;
-
-      addWidthToPoint(pc1, a1, lw_, lp21, lp11); // above/below control point
-      addWidthToPoint(p2 , a2, lw_, lp22, lp12); // above/below end point
-
-      path1_.quadTo(lp11.qpoint(), lp12.qpoint());
-      path2_.quadTo(lp21.qpoint(), lp22.qpoint());
-
-      //---
-
-      p1_ = pc1;
-      p2_ = p2;
-    }
-
-    void curveTo(const Point &pc1, const Point &pc2, const Point &p2) override {
-      p1_ = p2_;
-      p2_ = pc1;
-
-      handleFirst();
-
-      //---
-
-      auto a1 = Angle::pointAngle(p1_, pc1); // first point to first control point
-      auto a2 = Angle::pointAngle(pc1, pc2); // first control point to second control point
-      auto a3 = Angle::pointAngle(pc2, p2 ); // second control point to next point
-
-      Point lp11, lp21, lp12, lp22, lp13, lp23;
-
-      addWidthToPoint(pc1, a1, lw_, lp21, lp11); // above/below first control point
-      addWidthToPoint(pc2, a2, lw_, lp22, lp12); // above/below second control point
-      addWidthToPoint(p2 , a3, lw_, lp23, lp13); // above/below end point
-
-      path1_.cubicTo(lp21.qpoint(), lp22.qpoint(), lp23.qpoint());
-      path2_.cubicTo(lp11.qpoint(), lp12.qpoint(), lp13.qpoint());
-
-      //---
-
-      p1_ = pc2;
-      p2_ = p2;
-    }
-
-    void handleFirst() {
-      if (first_) {
-        auto a = Angle::pointAngle(p1_, p2_);
-
-        auto ps = movePointOnLine(p1_, a, -lw_);
-
-        Point ps1, ps2;
-
-        addWidthToPoint(ps, a, lw_, ps1, ps2); // above/below
-
-        path1_.moveTo(ps.qpoint());
-        path2_.moveTo(ps.qpoint());
-
-        Point lp1, lp2;
-
-        addWidthToPoint(p1_, a, lw_, lp1, lp2); // above/below
-
-        auto pl11 = Point::interp(ps1, lp1, 0.50);
-        auto pl22 = Point::interp(ps2, lp2, 0.50);
-        auto pl01 = Point::interp(ps , ps1, 0.50);
-        auto pl02 = Point::interp(ps , ps2, 0.50);
-
-        path1_.cubicTo(pl02.qpoint(), pl22.qpoint(), lp2.qpoint());
-        path2_.cubicTo(pl01.qpoint(), pl11.qpoint(), lp1.qpoint());
-
-#if DEBUG_LABELS
-        CQChartsDrawUtil::drawPointLabel(device_, ps  , "ps"  , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl01, "pl01", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl02, "pl02", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl11, "pl11", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, pl22, "pl22", /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, ps1 , "ps1" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, ps2 , "ps2" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, lp1 , "lp1" , /*above*/false);
-        CQChartsDrawUtil::drawPointLabel(device_, lp2 , "lp2" , /*above*/false);
-#endif
-
-        first_ = false;
-      }
-    }
-
-    bool isLast() const {
-      return (i == (n - 1));
-    }
-
-    void term() override {
-      if (! first_) {
-        path2_ = CQChartsPath::reversePath(path2_);
-        //printPath("reversed", path2_);
-
-        path1_ = CQChartsPath::combinePaths(path1_, path2_);
-        //printPath("combined", path1_);
-      }
-    }
-
-#if 0
-    void printPath(const QString &name, const QPainterPath &path) {
-      std::cerr << name.toStdString() << ": " <<
-        CQChartsSVGUtil::pathToString(path).toStdString() << "\n";
-    }
-#endif
-
-    const QPainterPath &path() const { return path1_; }
-
-   private:
-    void addWidthToPoint(const Point &p, const Angle &a, double lw, Point &p1, Point &p2) const {
-      double dx = lw*a.sin()/2.0;
-      double dy = lw*a.cos()/2.0;
-
-      p1 = Point(p.x - dx, p.y + dy); // above
-      p2 = Point(p.x + dx, p.y - dy); // below
-    }
-
-    Point movePointOnLine(const Point &p, const Angle &a, double lw) const {
-      return Point(p.x + lw*a.cos()/2.0, p.y + lw*a.sin()/2.0);
-    }
-
-   private:
-#if DEBUG_LABELS
-    PaintDevice* device_   {nullptr };
-#endif
-    double       lw_       { 1.0 };  // line width
-    Point        p1_, p2_;           // start is front point, end is end point
-    bool         first_    { true }; // is first point
-    QPainterPath path1_;             // top path
-    QPainterPath path2_;             // bottom path
-  };
-
-  //---
-
-#if DEBUG_LABELS
-  PathVisitor visitor(device, w);
-#else
-  PathVisitor visitor(w);
-#endif
-
-  CQChartsDrawUtil::visitPath(path, visitor);
-
-  return visitor.path();
-}
-#endif
 
 //---
 
@@ -1673,14 +1350,30 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
       double xr1 = xr - lw/2.0;
       double xr2 = xr + lw/2.0;
 
-      path.moveTo(QPointF(x1 , y11));
-      path.moveTo(QPointF(xr2, y11));
-      path.moveTo(QPointF(xr2, y21));
-      path.lineTo(QPointF(x2 , y21));
-      path.lineTo(QPointF(x2 , y22));
-      path.lineTo(QPointF(xr1, y22));
-      path.lineTo(QPointF(xr1, y12));
-      path.lineTo(QPointF(x1 , y12));
+      path.moveTo(QPointF(x1, y11));
+
+      if (ibbox.getYMid() < obbox.getYMid()) {
+        path.lineTo(QPointF(xr1, y11));
+        path.lineTo(QPointF(xr1, y21));
+      }
+      else {
+        path.lineTo(QPointF(xr2, y11));
+        path.lineTo(QPointF(xr2, y21));
+      }
+
+      path.lineTo(QPointF(x2, y21));
+      path.lineTo(QPointF(x2, y22));
+
+      if (ibbox.getYMid() < obbox.getYMid()) {
+        path.lineTo(QPointF(xr2, y22));
+        path.lineTo(QPointF(xr2, y12));
+      }
+      else {
+        path.lineTo(QPointF(xr1, y22));
+        path.lineTo(QPointF(xr1, y12));
+      }
+
+      path.lineTo(QPointF(x1, y12));
     }
     else if (edgeType == EdgeType::ROUNDED_LINE || edgeType == EdgeType::LINE) {
       path.moveTo(QPointF(x1, y11));
@@ -1714,14 +1407,30 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
       double yr1 = yr - lw/2.0;
       double yr2 = yr + lw/2.0;
 
-      path.moveTo(QPointF(x11, y1 ));
-      path.moveTo(QPointF(x11, yr2));
-      path.moveTo(QPointF(x21, yr2));
-      path.lineTo(QPointF(x21, y2 ));
-      path.lineTo(QPointF(x22, y2 ));
-      path.lineTo(QPointF(x22, yr1));
-      path.lineTo(QPointF(x12, yr1));
-      path.lineTo(QPointF(x12, y1 ));
+      path.moveTo(QPointF(x11, y1));
+
+      if (ibbox.getXMid() < obbox.getXMid()) {
+        path.lineTo(QPointF(x11, yr2));
+        path.lineTo(QPointF(x21, yr2));
+      }
+      else {
+        path.lineTo(QPointF(x11, yr1));
+        path.lineTo(QPointF(x21, yr1));
+      }
+
+      path.lineTo(QPointF(x21, y2));
+      path.lineTo(QPointF(x22, y2));
+
+      if (ibbox.getXMid() < obbox.getXMid()) {
+        path.lineTo(QPointF(x22, yr2));
+        path.lineTo(QPointF(x12, yr2));
+      }
+      else {
+        path.lineTo(QPointF(x22, yr1));
+        path.lineTo(QPointF(x12, yr1));
+      }
+
+      path.lineTo(QPointF(x12, y1));
     }
     else if (edgeType == EdgeType::ROUNDED_LINE || edgeType == EdgeType::LINE) {
       path.moveTo(QPointF(x11, y1));
@@ -1759,242 +1468,92 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
   //---
 
+  auto strokerPath = [&](const QPainterPath &path) {
+    QPainterPathStroker stroker;
+
+    stroker.setCapStyle   (Qt::FlatCap);
+    stroker.setDashOffset (0.0);
+    stroker.setDashPattern(Qt::SolidLine);
+    stroker.setJoinStyle  (Qt::RoundJoin);
+    stroker.setWidth      (lw);
+
+    return stroker.createStroke(path);
+  };
+
   if      (edgeType == EdgeType::ARC) {
     auto f1 = 1.0/3.0;
     auto f2 = 2.0/3.0;
 
-    double x3, y3, x4, y4;
+    Point p3, p4;
 
-    if (orient1 == Qt::Horizontal) {
-      // curve control point x at f1 and f2
-      x3 = CMathUtil::lerp(f1, p1.x, p2.x);
-      y3 = p1.y;
-    }
-    else {
-      // curve control point y at f1 and f2
-      x3 = p1.x;
-      y3 = CMathUtil::lerp(f1, p1.y, p2.y);
-    }
+    // curve control point f1
+    if (orient1 == Qt::Horizontal)
+      p3 = Point(CMathUtil::lerp(f1, p1.x, p2.x), p1.y);
+    else
+      p3 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p2.y));
 
-    if (orient2 == Qt::Horizontal) {
-      x4 = CMathUtil::lerp(f2, p1.x, p2.x);
-      y4 = p2.y;
-    }
-    else {
-      // curve control point y at f1 and f2
-      x4 = p2.x;
-      y4 = CMathUtil::lerp(f2, p1.y, p2.y);
-    }
+    // curve control point at f1
+    if (orient2 == Qt::Horizontal)
+      p4 = Point(CMathUtil::lerp(f2, p1.x, p2.x), p2.y);
+    else
+      p4 = Point(p2.x, CMathUtil::lerp(f2, p1.y, p2.y));
 
     //---
 
-#if 1
     QPainterPath lpath;
 
     lpath.moveTo(p1.qpoint());
-    lpath.cubicTo(QPointF(x3, y3), QPointF(x4, y4), p2.qpoint());
+    lpath.cubicTo(p3.qpoint(), p4.qpoint(), p2.qpoint());
 
-    QPainterPathStroker stroker;
-
-    stroker.setCapStyle   (Qt::FlatCap);
-    stroker.setDashOffset (0.0);
-    stroker.setDashPattern(Qt::SolidLine);
-    stroker.setJoinStyle  (Qt::RoundJoin);
-    stroker.setWidth      (lw);
-
-    path = stroker.createStroke(lpath);
-#else
-    if (orient1 == Qt::Horizontal) {
-      double y11 = p1.y + lw/2.0, y12 = p1.y - lw/2.0;
-      double y21 = p2.y + lw/2.0, y22 = p2.y - lw/2.0;
-
-      auto pm = Point::avg(p1, p2);
-
-      auto a = CQChartsGeom::pointAngle(p1, p2);
-
-      auto pm1 = CQChartsGeom::movePointPerpLine(pm, a, -lw/2.0);
-      auto pm2 = CQChartsGeom::movePointPerpLine(pm, a,  lw/2.0);
-
-      auto lp1 = CQChartsGeom::movePointOnLine(pm, a, -lw/2.0);
-      auto lp2 = CQChartsGeom::movePointOnLine(pm, a,  lw/2.0);
-
-      auto pp11 = CQChartsGeom::movePointPerpLine(lp1, a, -lw/2.0);
-      auto pp12 = CQChartsGeom::movePointPerpLine(lp1, a,  lw/2.0);
-      auto pp21 = CQChartsGeom::movePointPerpLine(lp2, a, -lw/2.0);
-      auto pp22 = CQChartsGeom::movePointPerpLine(lp2, a,  lw/2.0);
-
-      auto py11 = Point(p1.x, y11);
-      auto py12 = Point(p1.x, y12);
-      auto py21 = Point(p2.x, y21);
-      auto py22 = Point(p2.x, y22);
-
-      auto p113 = Point(x3, y11);
-      auto p123 = Point(x3, y12);
-      auto p214 = Point(x4, y21);
-      auto p224 = Point(x4, y22);
-
-      path.moveTo (py11.qpoint());
-      path.cubicTo(p113.qpoint(), pp11.qpoint(), pm1 .qpoint());
-      path.cubicTo(pp21.qpoint(), p214.qpoint(), py21.qpoint());
-      path.lineTo (py22.qpoint());
-      path.cubicTo(p224.qpoint(), pp22.qpoint(), pm2 .qpoint());
-      path.cubicTo(pp12.qpoint(), p123.qpoint(), py12.qpoint());
-
-      path.closeSubpath();
-    }
-    else {
-      double x11 = p1.x - lw/2.0, x12 = p1.x + lw/2.0;
-      double x21 = p2.x - lw/2.0, x22 = p2.x + lw/2.0;
-
-      auto pm = Point::avg(p1, p2);
-
-      auto a = CQChartsGeom::pointAngle(p1, p2);
-
-      auto pm1 = CQChartsGeom::movePointPerpLine(pm, a, -lw/2.0);
-      auto pm2 = CQChartsGeom::movePointPerpLine(pm, a,  lw/2.0);
-
-      auto lp1 = CQChartsGeom::movePointOnLine(pm, a, -lw/2.0);
-      auto lp2 = CQChartsGeom::movePointOnLine(pm, a,  lw/2.0);
-
-      auto pp11 = CQChartsGeom::movePointPerpLine(lp1, a, -lw/2.0);
-      auto pp12 = CQChartsGeom::movePointPerpLine(lp1, a,  lw/2.0);
-      auto pp21 = CQChartsGeom::movePointPerpLine(lp2, a, -lw/2.0);
-      auto pp22 = CQChartsGeom::movePointPerpLine(lp2, a,  lw/2.0);
-
-      auto px11 = Point(x11, p1.y);
-      auto px12 = Point(x12, p1.y);
-      auto px21 = Point(x21, p2.y);
-      auto px22 = Point(x22, p2.y);
-
-      auto p113 = Point(x11, y3);
-      auto p123 = Point(x12, y3);
-      auto p214 = Point(x21, y4);
-      auto p224 = Point(x22, y4);
-
-      path.moveTo (px11.qpoint());
-      path.cubicTo(p113.qpoint(), pp11.qpoint(), pm1 .qpoint());
-      path.cubicTo(pp21.qpoint(), p214.qpoint(), px21.qpoint());
-      path.lineTo (px22.qpoint());
-      path.cubicTo(p224.qpoint(), pp22.qpoint(), pm2 .qpoint());
-      path.cubicTo(pp12.qpoint(), p123.qpoint(), px12.qpoint());
-
-      path.closeSubpath();
-    }
-#endif
+    path = strokerPath(lpath);
   }
   else if (edgeType == EdgeType::RECTILINEAR) {
-#if 1
     QPainterPath lpath;
-#endif
 
-    if (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
+    lpath.moveTo(p1.qpoint());
+
+    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
       double xr = CMathUtil::lerp(0.5, p1.x, p2.x);
 
-#if 1
-      lpath.moveTo(p1.qpoint());
       lpath.lineTo(QPointF(xr, p1.y));
       lpath.lineTo(QPointF(xr, p2.y));
-      lpath.moveTo(p2.qpoint());
-#else
-      double y11 = p1.y - lw/2.0, y12 = p1.y + lw/2.0;
-      double y21 = p2.y - lw/2.0, y22 = p2.y + lw/2.0;
-
-      double xr1 = xr - lw/2.0;
-      double xr2 = xr + lw/2.0;
-
-      if (p1.y > p2.y)
-        std::swap(xr1, xr2);
-
-      path.moveTo(p1.x, y11);
-      path.lineTo(xr2 , y11);
-      path.lineTo(xr2 , y21);
-      path.lineTo(p2.x, y21);
-      path.lineTo(p2.x, y22);
-      path.lineTo(xr1 , y22);
-      path.lineTo(xr1 , y12);
-      path.lineTo(p1.x, y12);
-#endif
     }
     else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
       double yr = CMathUtil::lerp(0.5, p1.y, p2.y);
 
-#if 1
-      lpath.moveTo(p1.qpoint());
       lpath.lineTo(QPointF(p1.x, yr));
       lpath.lineTo(QPointF(p2.x, yr));
-      lpath.moveTo(p2.qpoint());
-#else
-      double x11 = p1.x - lw/2.0, x12 = p1.x + lw/2.0;
-      double x21 = p2.x - lw/2.0, x22 = p2.x + lw/2.0;
-
-      double yr1 = yr - lw/2.0;
-      double yr2 = yr + lw/2.0;
-
-      if (p1.x > p2.x)
-        std::swap(yr1, yr2);
-
-      path.moveTo(x11, p1.y);
-      path.lineTo(x11, yr2 );
-      path.lineTo(x21, yr2 );
-      path.lineTo(x21, p2.y);
-      path.lineTo(x22, p2.y);
-      path.lineTo(x22, yr1);
-      path.lineTo(x12, yr1);
-      path.lineTo(x12, p1.y);
-#endif
     }
     else {
       auto pm = Point::avg(p1, p2);
 
-      lpath.moveTo(p1.qpoint());
+      if (orient1 == Qt::Vertical)
+        lpath.lineTo(QPointF(p1.x, pm.y));
+      else
+        lpath.lineTo(QPointF(pm.x, p1.y));
+
       lpath.lineTo(pm.qpoint());
-      lpath.moveTo(p2.qpoint());
+
+      if (orient2 == Qt::Vertical)
+        lpath.lineTo(QPointF(p2.x, pm.y));
+      else
+        lpath.lineTo(QPointF(pm.x, p2.y));
     }
 
-#if 1
-    QPainterPathStroker stroker;
+    lpath.lineTo(p2.qpoint());
 
-    stroker.setCapStyle   (Qt::FlatCap);
-    stroker.setDashOffset (0.0);
-    stroker.setDashPattern(Qt::SolidLine);
-    stroker.setJoinStyle  (Qt::RoundJoin);
-    stroker.setWidth      (lw);
-
-    path = stroker.createStroke(lpath);
-#endif
+    path = strokerPath(lpath);
   }
   else if (edgeType == EdgeType::ROUNDED_LINE) {
     roundedLinePath(path, p1, p2, lw);
   }
   else if (edgeType == EdgeType::LINE) {
-#if 1
     QPainterPath lpath;
 
     lpath.moveTo(p1.qpoint());
     lpath.lineTo(p2.qpoint());
 
-    QPainterPathStroker stroker;
-
-    stroker.setCapStyle   (Qt::FlatCap);
-    stroker.setDashOffset (0.0);
-    stroker.setDashPattern(Qt::SolidLine);
-    stroker.setJoinStyle  (Qt::RoundJoin);
-    stroker.setWidth      (lw);
-
-    path = stroker.createStroke(lpath);
-#else
-    auto p11 = CQChartsGeom::movePointPerpLine(p1, a, -lw/2.0);
-    auto p12 = CQChartsGeom::movePointPerpLine(p1, a, +lw/2.0);
-    auto p21 = CQChartsGeom::movePointPerpLine(p2, a, -lw/2.0);
-    auto p22 = CQChartsGeom::movePointPerpLine(p2, a, +lw/2.0);
-
-    path.moveTo(p11.qpoint());
-    path.lineTo(p21.qpoint());
-    path.lineTo(p22.qpoint());
-    path.lineTo(p12.qpoint());
-
-    path.closeSubpath();
-#endif
+    path = strokerPath(lpath);
   }
 }
 
@@ -2078,49 +1637,22 @@ void
 curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
           const EdgeType &edgeType, Qt::Orientation orient)
 {
-  // x from right of source rect to left of dest rect
-  bool swapped = false;
+  Point           p1, p2;
+  Qt::Orientation orient1 = orient, orient2 = orient;
 
-  double x1, y1, x2, y2;
+  rectConnectionPoints(ibbox, obbox, p1, p2, orient1, orient2, /*cornerPoints*/false);
 
-  if (orient == Qt::Horizontal) {
-    x1 = ibbox.getXMax(); x2 = obbox.getXMin();
-
-    if (x1 > x2) {
-      x1 = obbox.getXMax(), x2 = ibbox.getXMin();
-      swapped = true;
-    }
-
-    y1 = ibbox.getYMid(); y2 = obbox.getYMid();
-
-    if (swapped)
-      std::swap(y1, y2);
-  }
-  else {
-    y1 = ibbox.getYMax(); y2 = obbox.getYMin();
-
-    if (y1 > y2) {
-      y1 = obbox.getYMax(), y2 = ibbox.getYMin();
-      swapped = true;
-    }
-
-    x1 = ibbox.getXMid(); x2 = obbox.getXMid();
-
-    if (swapped)
-      std::swap(x1, x2);
-  }
-
-  curvePath(path, Point(x1, y1), Point(x2, y2), edgeType, orient);
+  curvePath(path, p1, p2, edgeType, orient1, orient2);
 }
 
 // draw connecting line between two bounding boxes
 void
 drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
-              const EdgeType &edgeType, Qt::Orientation orient)
+              const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
 {
   QPainterPath path;
 
-  curvePath(path, p1, p2, edgeType, orient);
+  curvePath(path, p1, p2, edgeType, orient1, orient2);
 
   device->drawPath(path);
 }
@@ -2128,50 +1660,62 @@ drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
 // calculate path connecting line between two points
 void
 curvePath(QPainterPath &path, const Point &p1, const Point &p4,
-          const EdgeType &edgeType, Qt::Orientation orient)
+          const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
 {
   path = QPainterPath();
 
   //---
 
-  Point p2, p3;
-
   if      (edgeType == EdgeType::ARC) {
-    if (orient == Qt::Horizontal) {
-      double x2 = CMathUtil::lerp(1.0/3.0, p1.x, p4.x);
-      double x3 = CMathUtil::lerp(2.0/3.0, p1.x, p4.x);
+    auto f1 = 1.0/3.0;
+    auto f2 = 2.0/3.0;
 
-      p2 = Point(x2, p1.y);
-      p3 = Point(x3, p4.y);
-    }
-    else {
-      double y2 = CMathUtil::lerp(1.0/3.0, p1.y, p4.y);
-      double y3 = CMathUtil::lerp(2.0/3.0, p1.y, p4.y);
+    Point p2, p3;
 
-      p2 = Point(p1.x, y2);
-      p3 = Point(p4.x, y3);
-    }
+    if (orient1 == Qt::Horizontal)
+      p2 = Point(CMathUtil::lerp(f1, p1.x, p4.x), p1.y);
+    else
+      p2 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p4.y));
+
+    if (orient2 == Qt::Horizontal)
+      p3 = Point(CMathUtil::lerp(f2, p1.x, p4.x), p4.y);
+    else
+      p3 = Point(p4.x, CMathUtil::lerp(f2, p1.y, p4.y));
 
     path.moveTo (p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
   }
   else if (edgeType == EdgeType::RECTILINEAR) {
-    if (orient == Qt::Horizontal) {
+    path.moveTo(p1.qpoint());
+
+    if (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
       double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
 
-      p2 = Point(x2, p1.y);
-      p3 = Point(x2, p4.y);
+      path.lineTo(QPointF(x2, p1.y));
+      path.lineTo(QPointF(x2, p4.y));
     }
-    else {
+    else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
       double y2 = CMathUtil::lerp(0.5, p1.y, p4.y);
 
-      p2 = Point(p1.x, y2);
-      p3 = Point(p4.x, y2);
+      path.lineTo(QPointF(p1.x, y2));
+      path.lineTo(QPointF(p4.x, y2));
+    }
+    else {
+      auto pm = Point::avg(p1, p4);
+
+      if (orient1 == Qt::Vertical)
+        path.lineTo(QPointF(p1.x, pm.y));
+      else
+        path.lineTo(QPointF(pm.x, p1.y));
+
+      path.lineTo(pm.qpoint());
+
+      if (orient2 == Qt::Vertical)
+        path.lineTo(QPointF(p4.x, pm.y));
+      else
+        path.lineTo(QPointF(pm.x, p4.y));
     }
 
-    path.moveTo(p1.qpoint());
-    path.lineTo(p2.qpoint());
-    path.lineTo(p3.qpoint());
     path.lineTo(p4.qpoint());
   }
   else {
@@ -2291,7 +1835,7 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
 
   QFontMetricsF fm(font);
 
-  double ellipsisWidth = fm.width("...");
+  double ellipsisWidth = fm.horizontalAdvance("...");
 
   if (ellipsisWidth > clipLength)
     return "";
@@ -2301,7 +1845,7 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
   //---
 
   auto isClipped = [&](const QString &str) {
-    double w = fm.width(str);
+    double w = fm.horizontalAdvance(str);
 
     return (w > clipLength1);
   };
@@ -2402,7 +1946,7 @@ drawPointLabel(PaintDevice *device, const Point &point, const QString &text, boo
 
   QFontMetricsF fm(device->font());
 
-  double fw = fm.width(text);
+  double fw = fm.horizontalAdvance(text);
   double fa = fm.ascent();
   double fd = fm.descent();
 
@@ -2709,6 +2253,11 @@ rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
   p2 = CQChartsUtil::nearestRectPoint(rect2, p1, orient2, useCorners);
 }
 
+QPointF pathMidPoint(const QPainterPath &path)
+{
+  return path.pointAtPercent(0.5);
+}
+
 }
 
 //---
@@ -2719,6 +2268,116 @@ double
 lengthPixelWidth(PaintDevice *device, const Length &len)
 {
   return device->lengthPixelWidth(len);
+}
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+void
+visitPath(const QPainterPath &path, PathVisitor &visitor)
+{
+  visitor.n = path.elementCount();
+
+  visitor.init();
+
+  for (visitor.i = 0; visitor.i < visitor.n; ++visitor.i) {
+    const auto &e = path.elementAt(visitor.i);
+
+    if      (e.isMoveTo()) {
+      Point p(e.x, e.y);
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        visitor.nextP = Point(e1.x, e1.y);
+      }
+      else
+        visitor.nextP = p;
+
+      visitor.moveTo(p);
+
+      visitor.lastP = p;
+    }
+    else if (e.isLineTo()) {
+      Point p(e.x, e.y);
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        visitor.nextP = Point(e1.x, e1.y);
+      }
+      else
+        visitor.nextP = p;
+
+      visitor.lineTo(p);
+
+      visitor.lastP = p;
+    }
+    else if (e.isCurveTo()) {
+      Point p(e.x, e.y);
+
+      Point p1, p2;
+
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        e1t = e1.type;
+
+        p1 = Point(e1.x, e1.y);
+      }
+
+      if (visitor.i < visitor.n - 2) {
+        auto e2 = path.elementAt(visitor.i + 2);
+
+        e2t = e2.type;
+
+        p2 = Point(e2.x, e2.y);
+      }
+
+      if (e1t == QPainterPath::CurveToDataElement) {
+        ++visitor.i;
+
+        if (e2t == QPainterPath::CurveToDataElement) {
+          ++visitor.i;
+
+          if (visitor.i < visitor.n - 1) {
+            auto e3 = path.elementAt(visitor.i + 1);
+
+            visitor.nextP = Point(e3.x, e3.y);
+          }
+          else
+            visitor.nextP = p;
+
+          visitor.curveTo(p, p1, p2);
+
+          visitor.lastP = p;
+        }
+        else {
+          if (visitor.i < visitor.n - 1) {
+            auto e3 = path.elementAt(visitor.i + 1);
+
+            visitor.nextP = Point(e3.x, e3.y);
+          }
+          else
+            visitor.nextP = p;
+
+          visitor.quadTo(p, p1);
+
+          visitor.lastP = p;
+        }
+      }
+    }
+    else
+      assert(false);
+  }
+
+  visitor.term();
 }
 
 }

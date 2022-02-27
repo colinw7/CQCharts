@@ -280,10 +280,10 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 void drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                   const EdgeType &edgeType=EdgeType::ARC,
-                  Qt::Orientation orientation=Qt::Horizontal);
+                  Qt::Orientation orient=Qt::Horizontal);
 void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
               const EdgeType &edgeType=EdgeType::ARC,
-              Qt::Orientation orientation=Qt::Horizontal);
+              Qt::Orientation orient=Qt::Horizontal);
 
 void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
@@ -294,24 +294,26 @@ void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
 void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
-                  Qt::Orientation orientation=Qt::Horizontal);
+                  Qt::Orientation orient=Qt::Horizontal);
 
 //---
 
+void drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
+                   const EdgeType &edgeType=EdgeType::ARC,
+                   Qt::Orientation orient=Qt::Horizontal);
 void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
                const EdgeType &edgeType=EdgeType::ARC,
-               Qt::Orientation orientation=Qt::Horizontal);
+               Qt::Orientation orient=Qt::Horizontal);
 
 void drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
                    const EdgeType &edgeType=EdgeType::ARC,
-                   Qt::Orientation orient=Qt::Horizontal);
+                   Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
 void curvePath(QPainterPath &path, const Point &p1, const Point &p2,
                const EdgeType &edgeType=EdgeType::ARC,
-               Qt::Orientation orientation=Qt::Horizontal);
+               Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
 
-void selfCurvePath(QPainterPath &path, const BBox &bbox,
-                   const EdgeType &edgeType=EdgeType::ARC,
-                   Qt::Orientation orientation=Qt::Horizontal);
+void selfCurvePath(QPainterPath &path, const BBox &bbox, const EdgeType &edgeType=EdgeType::ARC,
+                   Qt::Orientation orient=Qt::Horizontal);
 
 //---
 
@@ -391,115 +393,26 @@ class PathVisitor {
   Point nextP;
 };
 
-inline void visitPath(const QPainterPath &path, PathVisitor &visitor) {
-  visitor.n = path.elementCount();
+void visitPath(const QPainterPath &path, PathVisitor &visitor);
 
-  visitor.init();
-
-  for (visitor.i = 0; visitor.i < visitor.n; ++visitor.i) {
-    const auto &e = path.elementAt(visitor.i);
-
-    if      (e.isMoveTo()) {
-      Point p(e.x, e.y);
-
-      if (visitor.i < visitor.n - 1) {
-        auto e1 = path.elementAt(visitor.i + 1);
-
-        visitor.nextP = Point(e1.x, e1.y);
-      }
-      else
-        visitor.nextP = p;
-
-      visitor.moveTo(p);
-
-      visitor.lastP = p;
-    }
-    else if (e.isLineTo()) {
-      Point p(e.x, e.y);
-
-      if (visitor.i < visitor.n - 1) {
-        auto e1 = path.elementAt(visitor.i + 1);
-
-        visitor.nextP = Point(e1.x, e1.y);
-      }
-      else
-        visitor.nextP = p;
-
-      visitor.lineTo(p);
-
-      visitor.lastP = p;
-    }
-    else if (e.isCurveTo()) {
-      Point p(e.x, e.y);
-
-      Point p1, p2;
-
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
-
-      if (visitor.i < visitor.n - 1) {
-        auto e1 = path.elementAt(visitor.i + 1);
-
-        e1t = e1.type;
-
-        p1 = Point(e1.x, e1.y);
-      }
-
-      if (visitor.i < visitor.n - 2) {
-        auto e2 = path.elementAt(visitor.i + 2);
-
-        e2t = e2.type;
-
-        p2 = Point(e2.x, e2.y);
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        ++visitor.i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          ++visitor.i;
-
-          if (visitor.i < visitor.n - 1) {
-            auto e3 = path.elementAt(visitor.i + 1);
-
-            visitor.nextP = Point(e3.x, e3.y);
-          }
-          else
-            visitor.nextP = p;
-
-          visitor.curveTo(p, p1, p2);
-
-          visitor.lastP = p;
-        }
-        else {
-          if (visitor.i < visitor.n - 1) {
-            auto e3 = path.elementAt(visitor.i + 1);
-
-            visitor.nextP = Point(e3.x, e3.y);
-          }
-          else
-            visitor.nextP = p;
-
-          visitor.quadTo(p, p1);
-
-          visitor.lastP = p;
-        }
-      }
-    }
-    else
-      assert(false);
-  }
-
-  visitor.term();
 }
 
 //---
+
+namespace CQChartsDrawUtil {
 
 void rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
                           Qt::Orientation &orient1, Qt::Orientation &orient2,
                           bool useCorners=true);
 
+
+QPointF pathMidPoint(const QPainterPath &path);
+
+}
+
 //---
+
+namespace CQChartsDrawUtil {
 
 inline QColor setColorAlpha(QColor &c, const CQChartsAlpha &a) {
   c.setAlphaF(a.valueOr(1.0));

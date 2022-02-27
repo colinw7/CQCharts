@@ -738,7 +738,7 @@ calcExtraFitBBox() const
       auto name = modelHHeaderString(col, ok);
       if (! name.length()) continue;
 
-      tw = std::max(tw, fm.width(name));
+      tw = std::max(tw, fm.horizontalAdvance(name));
     }
 
     double tw1 = pixelToWindowHeight(tw + tm);
@@ -757,7 +757,7 @@ calcExtraFitBBox() const
       auto name = modelVHeaderString(row, Qt::Vertical, ok);
       if (! name.length()) continue;
 
-      tw = std::max(tw, fm.width(name));
+      tw = std::max(tw, fm.horizontalAdvance(name));
     }
 
     double tw1 = pixelToWindowWidth(tw + tm);

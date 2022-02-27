@@ -416,7 +416,6 @@ addProperties()
   addProp("placement", "reorderEdges"      , "reorderEdges"      , "Reorder edges");
 //addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
   addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
-  addProp("placement", "adjustText"        , "adjustText"        , "Adjust text placement");
   addProp("placement", "constrainMove"     , "constrainMove"     , "Constrain move in edit mode");
 
   // options
@@ -470,6 +469,8 @@ addProperties()
                     TextOptions::ValueType::CLIP_ELIDE);
 
   addProp("text", "textInternal", "internal", "Draw text internal to plot");
+
+  addProp("text", "adjustText", "adjustText", "Adjust text placement");
 
   //---
 
@@ -4537,7 +4538,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   //---
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
   auto clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
 
@@ -4628,7 +4629,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
   auto str = QString::number(value);
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
   double tw = plot_->pixelToWindowWidth(ptw);
 
@@ -5110,7 +5111,7 @@ drawFg(PaintDevice *device) const
 
   double pTextMargin = 4; // pixels
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
   double tx = prect.getXMid() - pTextMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;

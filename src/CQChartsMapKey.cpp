@@ -881,8 +881,8 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
   // draw boxes
   auto &itemBoxes = itemBoxes_[drawType];
 
-  double min = this->mapMin();
-  double max = this->mapMax();
+  double mapMin = this->mapMin();
+  double mapMax = this->mapMax();
 
   int n = numUnique();
 
@@ -897,7 +897,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     QColor c;
 
     if (! colorData_.colorMap.valueToColor(name, color)) {
-      double r = CMathUtil::map(i, 0, n - 1, min, max);
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       c = colorsPalette->getColor(r);
     }
@@ -975,7 +975,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     QColor c;
 
     if (! colorData_.colorMap.valueToColor(name, color)) {
-      double r = CMathUtil::map(i, 0, n - 1, min, max);
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       c = colorsPalette->getColor(r);
     }
@@ -1184,11 +1184,16 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
-  for (size_t i = 0; i < ni; ++i)
-    if (oldItemVisible[i] != newItemVisible[i])
-      emit itemSelected(itemBoxes[i].color, newItemVisible[i]);
+  bool changed = false;
 
-  return false;
+  for (size_t i = 0; i < ni; ++i) {
+    if (oldItemVisible[i] != newItemVisible[i]) {
+      emit itemSelected(itemBoxes[i].color, newItemVisible[i]);
+      changed = true;
+    }
+  }
+
+  return changed;
 }
 
 bool
@@ -1581,8 +1586,8 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   //---
 
-  double min = this->mapMin();
-  double max = this->mapMax();
+  double mapMin = this->mapMin();
+  double mapMax = this->mapMax();
 
   //---
 
@@ -1621,7 +1626,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     QString lstr;
 
     if (! symbolSizeData_.sizeMap.valueToLength(name, l)) {
-      double r = CMathUtil::map(i, 0, n - 1, min, max);
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       l    = Length::pixel(r);
       lstr = QString("%1").arg(r, 0, 'f', ndp_);
@@ -1810,8 +1815,8 @@ drawContiguousText(PaintDevice *device, const CQChartsTextOptions &textOptions, 
 
   //---
 
-  double min = this->dataMin();
-  double max = this->dataMax();
+  double dataMin = this->dataMin();
+  double dataMax = this->dataMax();
 
   double y  = 1.0;
   double dy = (symbolBoxes_.size() > 1 ? 1.0/double(symbolBoxes_.size() - 1) : 0.0);
@@ -1820,7 +1825,7 @@ drawContiguousText(PaintDevice *device, const CQChartsTextOptions &textOptions, 
   double pm = this->padding();
 
   for (const auto &pbbox : symbolBoxes_) {
-    double r = CMathUtil::map(y, 0.0, 1.0, min, max);
+    double r = CMathUtil::map(y, 0.0, 1.0, dataMin, dataMax);
 
     if (! isStacked()) {
       drawText(Point(pbbox.getXMid(), pbbox.getYMin() - 2), r, textAlign());
@@ -1903,8 +1908,8 @@ calcDiscreetSize() const
   // calc mapped values
   int n = numUnique();
 
-  double min = this->mapMin();
-  double max = this->mapMax();
+  double mapMin = this->mapMin();
+  double mapMax = this->mapMax();
 
   std::vector<double> mappedValues;
 
@@ -1918,7 +1923,7 @@ calcDiscreetSize() const
     Length l;
 
     if (! symbolSizeData_.sizeMap.valueToLength(name, l)) {
-      double r = CMathUtil::map(i, 0, n - 1, min, max);
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       mappedValues.push_back(r);
     }
@@ -2055,8 +2060,8 @@ calcContiguousTextBBox() const
 
   //---
 
-  double min = this->dataMin();
-  double max = this->dataMax();
+  double dataMin = this->dataMin();
+  double dataMax = this->dataMax();
 
   // outer margin
   double pm = this->padding();
@@ -2077,7 +2082,7 @@ calcContiguousTextBBox() const
   double dy = (symbolBoxes_.size() > 1 ? 1.0/double(symbolBoxes_.size() - 1) : 0.0);
 
   for (const auto &pbbox : symbolBoxes_) {
-    double r = CMathUtil::map(y, 0.0, 1.0, min, max);
+    double r = CMathUtil::map(y, 0.0, 1.0, dataMin, dataMax);
 
     auto text = valueText(r);
 
@@ -2224,11 +2229,16 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
-  for (size_t i = 0; i < ni; ++i)
-    if (oldItemVisible[i] != newItemVisible[i])
-      emit itemSelected(itemBoxes[i].size, newItemVisible[i]);
+  bool changed = false;
 
-  return false;
+  for (size_t i = 0; i < ni; ++i) {
+    if (oldItemVisible[i] != newItemVisible[i]) {
+      emit itemSelected(itemBoxes[i].size, newItemVisible[i]);
+      changed = true;
+    }
+  }
+
+  return changed;
 }
 
 bool
@@ -2356,7 +2366,9 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
 
   // outer margin
   double bm = this->padding();
-  double bw = fm.horizontalAdvance("X") + 4;
+  double bs = std::max(fm.horizontalAdvance("X") + 4, fm.height() + 2);
+
+  double ss = bs/2.0 - 2.0;
 
   //---
 
@@ -2496,12 +2508,10 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       //---
 
       // draw symbol
-      double ss = std::max(fh/2.0 - 4.0, 3.0);
-
       auto py = CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
                                py2 - fh/2.0, py1 + fh/2.0);
 
-      auto p1 = device->pixelToWindow(Point(px + bw/2, py));
+      auto p1 = device->pixelToWindow(Point(px + bs/2, py));
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
                                    Length::pixel(ss));
@@ -2512,7 +2522,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       auto dataStr = valueText(CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
                                               double(dataMin()), double(dataMax())));
 
-      drawTextLabel(Point(px + bw + bm, py + df), dataStr);
+      drawTextLabel(Point(px + bs + bm, py + df), dataStr);
 
       //---
 
@@ -2578,11 +2588,9 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       //---
 
       // draw symbol
-      double ss = std::max(fh/2.0 - 4.0, 3.0);
-
       auto py = CMathUtil::map(i, 0, n - 1, py2 - fh/2.0, py1 + fh/2.0);
 
-      auto p1 = device->pixelToWindow(Point(px + bw/2, py));
+      auto p1 = device->pixelToWindow(Point(px + bs/2, py));
 
       CQChartsDrawUtil::drawSymbol(device, symbolPenBrush, symbolData.symbol, p1,
                                    Length::pixel(ss));
@@ -2590,7 +2598,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       //---
 
       // draw unique name
-      drawTextLabel(Point(px + bw + bm, py + df), itemLabel, hidden);
+      drawTextLabel(Point(px + bs + bm, py + df), itemLabel, hidden);
 
       //---
 
@@ -2619,7 +2627,7 @@ calcSize(const DrawData &drawData) const
 
   // outer margin
   double bm = this->padding();
-  double bw = fm.horizontalAdvance("X") + 4;
+  double bs = std::max(fm.horizontalAdvance("X") + 4, fm.height() + 2);
 
   //---
 
@@ -2641,7 +2649,7 @@ calcSize(const DrawData &drawData) const
   kh_ = 0.0;
 
   if (isContiguous()) {
-    kh_ = (fm.height() + 2)*double(mapMax() - mapMin() + 1) + 2*bm;
+    kh_ = bs*double(mapMax() - mapMin() + 1) + 2*bm;
 
     for (long i = mapMin(); i <= mapMax(); ++i) {
       auto name = valueText(CMathUtil::map(double(i), double(mapMin()), double(mapMax()),
@@ -2654,7 +2662,7 @@ calcSize(const DrawData &drawData) const
     int n = numUnique();
 
     if (n) {
-      kh_ = (fm.height() + 2)*n + 2*bm;
+      kh_ = bs*n + 2*bm;
 
       for (int i = 0; i < n; ++i) {
         QString itemLabel;
@@ -2669,7 +2677,7 @@ calcSize(const DrawData &drawData) const
     }
   }
 
-  kw_ = std::max(bw + tw + 3*bm, hw + 2*bm);
+  kw_ = std::max(bs + tw + 3*bm, hw + 2*bm);
 
   if (hh > 0)
     kh_ += hh + bm;
@@ -2735,11 +2743,16 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   auto newItemVisible = adjustItemVisible(oldItemVisible, p, clickMod, drawType);
 
-  for (size_t i = 0; i < ni; ++i)
-    if (oldItemVisible[i] != newItemVisible[i])
-      emit itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
+  bool changed = false;
 
-  return false;
+  for (size_t i = 0; i < ni; ++i) {
+    if (oldItemVisible[i] != newItemVisible[i]) {
+      emit itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
+      changed = true;
+    }
+  }
+
+  return changed;
 }
 
 bool

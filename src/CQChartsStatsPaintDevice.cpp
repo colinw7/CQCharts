@@ -134,9 +134,9 @@ void
 CQChartsStatsPaintDevice::
 addText(const Point &p, const QString &text)
 {
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
-  auto w  = pixelToWindowWidth(fm.width(text));
+  auto w  = pixelToWindowWidth(fm.horizontalAdvance(text));
   auto fa = pixelToWindowHeight(fm.ascent());
   auto fd = pixelToWindowHeight(fm.descent());
 

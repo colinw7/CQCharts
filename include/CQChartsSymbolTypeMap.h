@@ -53,6 +53,7 @@ class CQChartsSymbolTypeMap :
   //---
 
   bool valueToSymbol(const QVariant &value, Symbol &symbol) const;
+  bool symbolToValue(const Symbol &symbol, QVariant &value) const;
 
   //---
 

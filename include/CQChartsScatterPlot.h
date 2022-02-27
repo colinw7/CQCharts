@@ -677,6 +677,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  BBox dataFitBBox() const override;
+
+  //---
+
   Density *getDensity(int groupInd, const QString &name) const;
 
   //---

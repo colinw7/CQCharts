@@ -149,7 +149,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
     QFontMetricsF fm(device->font());
 
-    double tw = fm.width(ystr);
+    double tw = fm.horizontalAdvance(ystr);
     double th = fm.descent() + fm.ascent();
     double tm = (fm.ascent() - fm.descent())/2.0;
 
@@ -368,7 +368,7 @@ isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const
 
     QFontMetricsF fm(pfont);
 
-    double tw = fm.width(ystr);
+    double tw = fm.horizontalAdvance(ystr);
     double th = fm.descent() + fm.ascent();
 
     // clip if needed
@@ -461,7 +461,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position,
   if (textAngle().isZero()) {
     QFontMetricsF fm(pfont);
 
-    double tw = fm.width(ystr);
+    double tw = fm.horizontalAdvance(ystr);
     double tm = (fm.ascent() - fm.descent())/2.0;
 
     // calc text position

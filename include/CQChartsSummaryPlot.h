@@ -239,7 +239,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox fitBBox() const override;
+  CQChartsGeom::BBox fitBBox(FitType fitType) const override;
 
   //---
 

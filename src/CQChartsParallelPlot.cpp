@@ -1108,7 +1108,7 @@ drawFgAxes(PaintDevice *device) const
         }
       }
 
-      double tw = fm.width(label);
+      double tw = fm.horizontalAdvance(label);
       double ta = fm.ascent();
       double td = fm.descent();
 

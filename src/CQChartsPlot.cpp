@@ -201,6 +201,7 @@ init()
 
   registerSlot("zoom_full", QStringList());
   registerSlot("fit"      , QStringList());
+  registerSlot("fit_data" , QStringList());
 
   //---
 
@@ -2593,20 +2594,23 @@ setFitMargin(const PlotMargin &m)
 
 bool
 CQChartsPlot::
-needsAutoFit() const
+needsAutoFit(FitType &fitType) const
 {
   assert(! isComposite());
+
+  fitType = autoFitType_;
 
   return needsAutoFit_;
 }
 
 void
 CQChartsPlot::
-setNeedsAutoFit(bool b)
+setNeedsAutoFit(bool b, FitType fitType)
 {
   assert(! isComposite());
 
   needsAutoFit_ = b;
+  autoFitType_  = fitType;
 }
 
 void
@@ -4644,6 +4648,52 @@ colorVisible(const QColor &color) const
   auto p = colorFilter_.find(Color(color));
 
   return (p == colorFilter_.end());
+}
+
+QStringList
+CQChartsPlot::
+colorFilterNames() const
+{
+  CQColorsPalette *colorsPalette = nullptr;
+
+  if (colorColumnData_.palette.isValid())
+    colorsPalette = colorColumnData_.palette.palette();
+  else
+    colorsPalette = view()->themePalette();
+
+  int n = (colorMapKey_ ? colorMapKey_->uniqueValues().size() : 0);
+
+  auto mapMin = colorColumnData_.map_min;
+  auto mapMax = colorColumnData_.map_max;
+
+  using ColorName = std::map<Color, QString>;
+
+  ColorName colorName;
+
+  for (int i = 0; i < n; ++i) {
+    auto name = colorMapKey_->uniqueValues().at(i).toString();
+
+    Color color;
+
+    if (! colorColumnData_.colorMap.valueToColor(name, color)) {
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
+
+      color = Color(colorsPalette->getColor(r));
+    }
+
+    colorName[color] = name;
+  }
+
+  QStringList names;
+
+  for (const auto &s : colorFilter_) {
+    auto p = colorName.find(s);
+
+    if (p != colorName.end())
+      names << (*p).second;
+  }
+
+  return names;
 }
 
 //------
@@ -7391,7 +7441,7 @@ handleSelectMove(const Point &w, Constraints constraints, bool first)
 
   //---
 
-  if (key()) {
+  if (isKeyVisible()) {
     bool handled = key()->selectMove(w);
 
     if (handled)
@@ -8264,7 +8314,6 @@ handleEditMove(const Point &p, const Point &w, bool /*first*/)
     return false;
 
   if      (mouseData_.dragObjType == DragObjType::KEY) {
-
     if (key()->editMove(w))
       mouseData_.dragged = true;
   }
@@ -10365,6 +10414,8 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
     zoomFull();
   else if (name == "fit")
     autoFit();
+  else if (name == "fit_data")
+    autoFitData();
   else if (name == "show_color_key")
     setColorMapKey(CQChartsVariant::toBool(args[0], ok));
   else
@@ -11848,7 +11899,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
     QFontMetricsF fm(font);
 
-    double tw = fm.width(text);
+    double tw = fm.horizontalAdvance(text);
     double ta = fm.ascent();
 
     double tx = x - tw/2.0;
@@ -12330,7 +12381,7 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
     auto xc = rect.getXMid();
     auto yc = rect.getYMid();
 
-    double tw1 = pixelToWindowWidth(fm.width(text));
+    double tw1 = pixelToWindowWidth(fm.horizontalAdvance(text));
 
     device->setPen(interpColor(current ? currentTextColor : textColor, ColorInd()));
 
@@ -12359,7 +12410,7 @@ drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const
       if (! title.length())
         title = plot->calcName();
 
-      ptw1  = fm.width(title) + 2*tabData_.pxm;
+      ptw1  = fm.horizontalAdvance(title) + 2*tabData_.pxm;
       prect = BBox(px, py, px + ptw1, py + tabData_.pth);
     }
     else {
@@ -14184,7 +14235,7 @@ calcTabData(const Plots &plots) const
 
   QFontMetricsF fm(tabbedFont().font());
 
-  th->tabData_.pxm = fm.width("X")/2.0;
+  th->tabData_.pxm = fm.horizontalAdvance("X")/2.0;
   th->tabData_.pym = fm.height()/4.0;
 
   th->tabData_.ptw = 0.0;
@@ -14196,7 +14247,7 @@ calcTabData(const Plots &plots) const
       if (! title.length())
         title = plot->calcName();
 
-      th->tabData_.ptw += fm.width(title) + 2*tabData_.pxm;
+      th->tabData_.ptw += fm.horizontalAdvance(title) + 2*tabData_.pxm;
     }
     else {
       th->tabData_.ptw += 4*tabData_.pxm;
@@ -14225,13 +14276,15 @@ CQChartsPlot::
 updateAutoFit()
 {
   // auto fit based on last draw
-  if (needsAutoFit()) {
+  FitType fitType;
+
+  if (needsAutoFit(fitType)) {
     if (calcNextState() != UpdateState::INVALID)
       return;
 
     setNeedsAutoFit(false);
 
-    autoFit();
+    autoFit1(fitType);
   }
 }
 
@@ -14239,13 +14292,27 @@ void
 CQChartsPlot::
 autoFit()
 {
+  autoFit1(FitType::ALL);
+}
+
+void
+CQChartsPlot::
+autoFitData()
+{
+  autoFit1(FitType::DATA);
+}
+
+void
+CQChartsPlot::
+autoFit1(FitType fitType)
+{
   if (isOverlay() && ! isFirstPlot())
     return;
 
-  CQPerfTrace trace("CQChartsPlot::autoFit");
+  CQPerfTrace trace("CQChartsPlot::autoFit1");
 
   if (! isZoomFull()) {
-    setNeedsAutoFit(true);
+    setNeedsAutoFit(true, fitType);
 
     zoomFull(/*notify*/false);
 
@@ -14262,7 +14329,7 @@ autoFit()
     BBox bbox;
 
     processOverlayPlots([&](const Plot *plot) {
-      auto bbox1 = plot->fitBBox();
+      auto bbox1 = plot->fitBBox(fitType);
       auto bbox2 = plot->windowToPixel(bbox1);
       auto bbox3 = pixelToWindow(bbox2);
 
@@ -14292,17 +14359,17 @@ autoFit()
     });
   }
   else {
-    autoFitOne();
+    autoFitOne(fitType);
   }
 }
 
 void
 CQChartsPlot::
-autoFitOne()
+autoFitOne(FitType fitType)
 {
 #if 0
   for (int i = 0; i < 5; ++i) {
-    auto bbox = fitBBox();
+    auto bbox = fitBBox(fitType);
 
     setFitBBox(bbox);
 
@@ -14317,7 +14384,7 @@ autoFitOne()
 
   //---
 
-  auto bbox = fitBBox();
+  auto bbox = fitBBox(fitType);
 
   setFitBBox(bbox);
 
@@ -14352,20 +14419,30 @@ setFitBBox(const BBox &bbox)
 
 CQChartsGeom::BBox
 CQChartsPlot::
-fitBBox() const
+fitBBox(FitType fitType) const
 {
   // calc fit box
   BBox bbox;
 
-  bbox += dataFitBBox       ();
-  bbox += axesFitBBox       ();
-  bbox += keyFitBBox        ();
-  bbox += titleFitBBox      ();
+  bbox += dataFitBBox();
+
+  if (fitType == FitType::ALL) {
+    bbox += axesFitBBox       ();
+    bbox += keyFitBBox        ();
+    bbox += titleFitBBox      ();
+  }
+
   bbox += annotationsFitBBox();
   bbox += extraFitBBox      ();
 
-  if (colorMapKey_ && colorMapKey_->isVisible())
-    bbox += colorMapKey_->bbox();
+  if (fitType == FitType::ALL) {
+    if (colorMapKey_ && colorMapKey_->isVisible())
+      bbox += colorMapKey_->bbox();
+  }
+
+  bbox.makeNonZero();
+
+  //---
 
   // add margin (TODO: config pixel margin size)
   auto marginSize = pixelToWindowSize(Size(8, 8));

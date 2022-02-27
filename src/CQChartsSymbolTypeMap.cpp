@@ -80,6 +80,20 @@ valueToSymbol(const QVariant &value, Symbol &symbol) const
   return true;
 }
 
+bool
+CQChartsSymbolTypeMap::
+symbolToValue(const Symbol &symbol, QVariant &value) const
+{
+  updateSymbolValue();
+
+  auto p = symbolValue_.find(symbol);
+  if (p == symbolValue_.end()) return false;
+
+  value = (*p).second;
+
+  return true;
+}
+
 int
 CQChartsSymbolTypeMap::
 cmp(const CQChartsSymbolTypeMap &s) const

@@ -188,18 +188,18 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_TEXT_DATA(HierLabel, hierLabel)
-CQCHARTS_NAMED_TEXT_DATA(LeafLabel, leafLabel)
+CQCHARTS_NAMED_TEXT_DATA(Hier, hier)
+CQCHARTS_NAMED_TEXT_DATA(Leaf, leaf)
 
 /*!
  * \brief Dendrogram Plot
  * \ingroup Charts
  */
 class CQChartsDendrogramPlot : public CQChartsPlot,
- public CQChartsObjNodeShapeData    <CQChartsDendrogramPlot>,
- public CQChartsObjEdgeShapeData    <CQChartsDendrogramPlot>,
- public CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>,
- public CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot> {
+ public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjHierTextData <CQChartsDendrogramPlot>,
+ public CQChartsObjLeafTextData <CQChartsDendrogramPlot> {
   Q_OBJECT
 
   //! follow view
@@ -236,8 +236,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
   // hier, leaf labels
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(HierLabel, hierLabel)
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(LeafLabel, leafLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Hier, hier)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Leaf, leaf)
 
   Q_ENUMS(PlaceType)
 

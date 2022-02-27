@@ -2045,7 +2045,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
   double ta = fm.ascent();
   double td = fm.descent();
 
-  double tw = fm.width(text1); // TODO: support HTML
+  double tw = fm.horizontalAdvance(text1); // TODO: support HTML
 
   if (isHorizontal()) {
     bool invertY = (plot ? plot->isInvertY() : false);
@@ -2685,7 +2685,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     tw = CQChartsDrawUtil::calcTextSize(text1, device->font(), options).width();
   }
   else {
-    tw = fm.width(text1);
+    tw = fm.horizontalAdvance(text1);
   }
 
   BBox bbox;

@@ -3553,7 +3553,7 @@ drawHText(PaintDevice *device, double pxl, double pxr, double py,
 
   QFontMetricsF fm(device->font());
 
-  auto tp = (onLeft ? Point(px - margin - fm.width(text), py) : Point(px + margin, py));
+  auto tp = (onLeft ? Point(px - margin - fm.horizontalAdvance(text), py) : Point(px + margin, py));
 
   // only support contrast
   auto textOptions = plot_->textOptions(device);
@@ -3598,7 +3598,7 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
 
   QFontMetricsF fm(device->font());
 
-  double xf = fm.width(text)/2.0;
+  double xf = fm.horizontalAdvance(text)/2.0;
   double yf = fm.height()/2.0;
 
   auto tp = (onBottom ? Point(px - xf, py + margin + yf) : Point(px - xf, py - margin - yf));
@@ -3650,9 +3650,9 @@ addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text, bool 
   double tx;
 
   if (onLeft)
-    tx = x - margin - fm.width(text);
+    tx = x - margin - fm.horizontalAdvance(text);
   else
-    tx = x + margin + fm.width(text);
+    tx = x + margin + fm.horizontalAdvance(text);
 
   pbbox += Point(tx, y + yf - fa);
   pbbox += Point(tx, y + yf + fd);
@@ -3674,7 +3674,7 @@ addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text, bool 
 
   QFontMetricsF fm(font);
 
-  double xf = fm.width(text)/2.0;
+  double xf = fm.horizontalAdvance(text)/2.0;
   double fa = fm.ascent ();
   double fd = fm.descent();
 

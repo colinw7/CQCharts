@@ -80,6 +80,20 @@ valueToLength(const QVariant &value, Length &length) const
   return true;
 }
 
+bool
+CQChartsSymbolSizeMap::
+lengthToValue(const Length &length, QVariant &value) const
+{
+  updateLengthValue();
+
+  auto p = lengthValue_.find(length);
+  if (p == lengthValue_.end()) return false;
+
+  value = (*p).second;
+
+  return true;
+}
+
 int
 CQChartsSymbolSizeMap::
 cmp(const CQChartsSymbolSizeMap &s) const

@@ -140,8 +140,7 @@ drawContents(PaintDevice *device)
 
   device->setFont(font);
 
-  QFontMetrics fm(device->font());
-
+  //QFontMetricsF fm(device->font());
   //double fa = device->pixelToWindowHeight(fm.ascent ());
   //double fd = device->pixelToWindowHeight(fm.descent());
 

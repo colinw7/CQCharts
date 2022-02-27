@@ -4,7 +4,6 @@
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAxisRug.h>
-#include <CQChartsFitData.h>
 #include <CQStatData.h>
 
 class CQChartsPointPlot;
@@ -295,6 +294,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   bool symbolTypeVisible(const Symbol &symbol) const override;
 
+  QStringList symbolTypeFilterNames() const;
+
   //---
 
   // symbol size column and map
@@ -350,6 +351,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   CQChartsSymbolSizeMapKey *symbolSizeMapKey() const { return symbolSizeMapKey_.get(); }
 
   bool symbolSizeVisible(const Length &size) const override;
+
+  QStringList symbolSizeFilterNames() const;
 
   //----
 
@@ -493,7 +496,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsGeom::BBox fitBBox() const override;
+  CQChartsGeom::BBox fitBBox(FitType fitType) const override;
 
   //---
 

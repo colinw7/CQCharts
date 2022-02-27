@@ -80,6 +80,20 @@ valueToColor(const QVariant &value, Color &color) const
   return true;
 }
 
+bool
+CQChartsColorMap::
+colorToValue(const Color &color, QVariant &value) const
+{
+  updateColorValue();
+
+  auto p = colorValue_.find(color);
+  if (p == colorValue_.end()) return false;
+
+  value = (*p).second;
+
+  return true;
+}
+
 int
 CQChartsColorMap::
 cmp(const CQChartsColorMap &s) const

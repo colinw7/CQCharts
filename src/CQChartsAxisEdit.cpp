@@ -96,7 +96,9 @@ sizeHint() const
 
   QFontMetrics fm(font());
 
-  int w = fm.width("Major Grid Line") + fm.width("Minor Grid Line") + fm.width("Grid Fill") + 100;
+  int w = fm.horizontalAdvance("Major Grid Line") +
+          fm.horizontalAdvance("Minor Grid Line") +
+          fm.horizontalAdvance("Grid Fill") + 100;
 
   s.setWidth(w);
 

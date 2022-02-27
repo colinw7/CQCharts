@@ -74,9 +74,10 @@ create(View *view, const ModelP &model) const
 CQChartsGraphVizPlot::
 CQChartsGraphVizPlot(View *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("graphviz"), model),
- CQChartsObjTextData<CQChartsGraphVizPlot>(this),
  CQChartsObjNodeShapeData<CQChartsGraphVizPlot>(this),
- CQChartsObjEdgeShapeData<CQChartsGraphVizPlot>(this)
+ CQChartsObjNodeTextData <CQChartsGraphVizPlot>(this),
+ CQChartsObjEdgeShapeData<CQChartsGraphVizPlot>(this),
+ CQChartsObjEdgeTextData <CQChartsGraphVizPlot>(this)
 {
 }
 
@@ -350,8 +351,6 @@ addProperties()
   addProp("node", "nodeScaled", "scaled"   , "Node is scaled");
   addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
 
-  addProp("node", "nodeTextSingleScale", "textSingleScale", "Text single scale (when scaled)");
-
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
 
@@ -385,9 +384,24 @@ addProperties()
   //---
 
   // text
-  addProp("text", "textVisible", "visible", "Text label visible");
+  addProp("node/text", "nodeTextVisible", "visible", "Node text label visible");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+  addTextProperties("node/text", "nodeText", "Node Text",
+                    CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::FORMATTED |
+                    CQChartsTextOptions::ValueType::SCALED |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  addProp("node/text", "nodeTextSingleScale", "singleScale",
+          "Node text single scale (when scaled)");
+
+  //--
+
+  addProp("edge/text", "edgeTextVisible", "visible", "Edge text label visible");
+
+  addTextProperties("edge/text", "edgeText", "Edge Text",
+                    CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::FORMATTED |
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
@@ -1098,7 +1112,17 @@ postDrawFgObjs(PaintDevice *device) const
 
     auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
+    setPainterFont(device, nodeTextFont());
+
     for (auto &data : th->drawTextDatas_) {
+      // set text pen
+      PenBrush penBrush;
+
+      setPen(penBrush, PenData(true, data.c, nodeTextAlpha()));
+
+      device->setPen(penBrush.pen);
+
+      // set scale and draw
       data.textOptions.scale = s;
 
       if (data.isRect)
@@ -2645,7 +2669,7 @@ void
 CQChartsGraphVizNodeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isTextVisible())
+  if (! plot_->isNodeTextVisible())
     return;
 
   auto prect = plot_->windowToPixel(rect());
@@ -2653,7 +2677,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->nodeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2664,9 +2688,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpTextColor(ic);
+  auto c = plot_->interpNodeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  plot_->setPen(penBrush, PenData(true, c, plot_->nodeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -2681,9 +2705,9 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
 
-  double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
+  double clipLength = plot_->lengthPixelWidth(plot()->nodeTextClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
@@ -2708,7 +2732,7 @@ drawFg(PaintDevice *device) const
     device->setNull(true);
 
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = plot_->nodeTextOptions(device);
 
   textOptions.angle = Angle();
   textOptions.align = Qt::AlignLeft;
@@ -2722,7 +2746,8 @@ drawFg(PaintDevice *device) const
 
       CQChartsDrawUtil::drawTextInBox(device, rect(), str, textOptions);
 
-      plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, textOptions));
+      if (plot->isNodeTextSingleScale())
+        plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, c, textOptions));
     }
   }
   else {
@@ -2730,7 +2755,8 @@ drawFg(PaintDevice *device) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 
-    plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(pt, str, textOptions));
+    if (plot->isNodeTextSingleScale())
+      plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(pt, str, c, textOptions));
   }
 
   if (plot->isNodeTextSingleScale())
@@ -2992,24 +3018,6 @@ draw(PaintDevice *device) const
   bool isArrow      = plot()->isEdgeArrow();
   bool isEdgeScaled = (plot_->isEdgeScaled() && edge()->hasValue());
 
-#if 0
-  if (isArrow || ! isEdgeScaled) {
-    if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::POLYGON ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::CIRCLE ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::DOUBLE_CIRCLE) {
-      srcRect = srcObj->rect();
-    }
-
-    if (edge()->destNode()->shapeType() == Node::ShapeType::DIAMOND ||
-        edge()->destNode()->shapeType() == Node::ShapeType::POLYGON ||
-        edge()->destNode()->shapeType() == Node::ShapeType::CIRCLE ||
-        edge()->destNode()->shapeType() == Node::ShapeType::DOUBLE_CIRCLE) {
-      destRect = destObj->rect();
-    }
-  }
-#endif
-
   if (! srcRect.isSet() || ! destRect.isSet())
     return;
 
@@ -3026,76 +3034,8 @@ draw(PaintDevice *device) const
   Point           p1, p2;
   Qt::Orientation orient1 = orient, orient2 = orient;
 
-#if 0
-  auto horizontalPoints = [&]() {
-    auto y1 = srcRect .getYMid();
-    auto y2 = destRect.getYMid();
-
-    // x from right of source rect to left of dest rect
-    auto x1 = srcRect .getXMax();
-    auto x2 = destRect.getXMin();
-
-    if (x1 > x2) {
-      x1 = destRect.getXMax(), x2 = srcRect.getXMin();
-
-      std::swap(y1, y2);
-    }
-
-    p1 = Point(x1, y1);
-    p2 = Point(x2, y2);
-  };
-
-  auto verticalPoints = [&]() {
-    auto x1 = srcRect .getXMid();
-    auto x2 = destRect.getXMid();
-
-    // y from top of source rect to bottom of dest rect
-    auto y1 = srcRect .getYMax();
-    auto y2 = destRect.getYMin();
-
-    if (y1 > y2) {
-      y1 = destRect.getYMax(), y2 = srcRect.getYMin();
-
-      std::swap(x1, x2);
-    }
-
-    p1 = Point(x1, y1);
-    p2 = Point(x2, y2);
-  };
-
-  if (orient == Qt::Horizontal)
-    horizontalPoints();
-  else
-    verticalPoints();
-#else
-   CQChartsDrawUtil::rectConnectionPoints(srcRect, destRect, p1, p2, orient1, orient2,
-                                          /*cornerPoints*/false);
-#endif
-
-  //---
-
-#if 0
-  if (isCentered) {
-    double da = 22.5;
-
-    double a = CMathUtil::Rad2Deg(pointAngle(p1, p2));
-
-    if (orient == Qt::Horizontal) {
-      if (a > 90 - da && a < 90 + da) {
-        orient = Qt::Vertical;
-
-        verticalPoints();
-      }
-    }
-    else {
-      if (a < da || a > 180 - da) {
-        orient = Qt::Horizontal;
-
-        horizontalPoints();
-      }
-    }
-  }
-#endif
+  CQChartsDrawUtil::rectConnectionPoints(srcRect, destRect, p1, p2, orient1, orient2,
+                                         /*cornerPoints*/false);
 
   //---
 
@@ -3113,12 +3053,10 @@ draw(PaintDevice *device) const
 
   //---
 
-  bool isLine = (plot()->edgeShape() == Plot::EdgeShape::LINE);
-
   // calc edge path
   QPainterPath epath1;
 
-  if (! isLine) {
+  if (plot()->edgeShape() == Plot::EdgeShape::NONE) {
     // add start and end node points to edge path
     auto epath = edge()->edgePath();
 
@@ -3191,12 +3129,19 @@ draw(PaintDevice *device) const
 
   lw *= edgeScale;
 
+  bool isLine = (plot()->edgeWidth().value() <= 0.0);
+
   //---
 
-  // draw edge
-  path_ = QPainterPath();
+  // calc edge path
+  path_  = QPainterPath();
+  epath_ = QPainterPath();
+
+  auto edgeType = static_cast<CQChartsEdgeType>(plot()->edgeShape());
 
   if (! epath1.isEmpty() && usePath) {
+    epath_ = epath1;
+
     CQChartsArrowData arrowData;
 
     if (isArrow && edge()->isDirected())
@@ -3204,52 +3149,53 @@ draw(PaintDevice *device) const
 
     QPainterPath path1;
 
-    CQChartsArrow::pathAddArrows(epath1, arrowData, lw,
+    CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
                                  plot_->arrowWidth(), plot_->arrowWidth(), path_);
-
-    device->drawPath(path_);
   }
   else {
     if (isArrow) {
       const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(false);
 
       if (! isSelf) {
-        auto edgeType = CQChartsDrawUtil::EdgeType::RECTILINEAR;
-
-        QPainterPath lpath;
-
-        CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, edgeType, orient);
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, orient1, orient2);
 
         CQChartsArrowData arrowData;
 
         arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw,
+        CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
                                      plot_->arrowWidth(), plot_->arrowWidth(), path_);
       }
       else {
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, orient1);
+
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
       }
-
-      device->drawPath(path_);
 
       const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(true);
     }
     else {
-      auto edgeType = (! isLine ? CQChartsDrawUtil::EdgeType::ARC :
-                                  CQChartsDrawUtil::EdgeType::LINE);
-
       if (! isSelf) {
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, orient1, orient2);
+
         CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, orient1, orient2);
       }
       else {
-        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, orient);
-      }
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, orient1);
 
-      device->drawPath(path_);
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, orient1);
+      }
     }
   }
+
+  //---
+
+  // draw edge
+  if (isLine)
+    device->drawPath(epath_);
+  else
+    device->drawPath(path_);
 
   device->resetColorNames();
 }
@@ -3258,7 +3204,7 @@ void
 CQChartsGraphVizEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isTextVisible())
+  if (! plot_->isEdgeTextVisible())
     return;
 
   auto str = edge()->label();
@@ -3266,27 +3212,8 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  // get connection rect of source and destination object
-  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
-  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
-  assert(srcNode && destNode);
-
-  auto *srcObj  = srcNode ->obj();
-  auto *destObj = destNode->obj();
-
-  bool isSelf = (srcObj == destObj);
-
-  auto srcRect  = edge()->srcNode ()->rect();
-  auto destRect = edge()->destNode()->rect();
-
-  auto rect = (isSelf ? srcRect : srcRect + destRect);
-
-  auto prect = plot_->windowToPixel(rect);
-
-  //---
-
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->edgeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3297,28 +3224,53 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpTextColor(ic);
+  auto c = plot_->interpEdgeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  plot_->setPen(penBrush, PenData(true, c, plot_->edgeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
   //---
 
+#if 0
   double textMargin = 4; // pixels
 
-  double ptw = fm.width(str);
+  double ptw = fm.horizontalAdvance(str);
+
+  //---
+
+  // get connection rect of source and destination object
+  auto *srcNode  = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->srcNode ());
+  auto *destNode = dynamic_cast<CQChartsGraphVizPlotNode *>(edge()->destNode());
+  assert(srcNode && destNode);
+
+  auto srcRect  = edge()->srcNode ()->rect();
+  auto destRect = edge()->destNode()->rect();
+
+  auto *srcObj  = srcNode ->obj();
+  auto *destObj = destNode->obj();
+
+  bool isSelf = (srcObj == destObj);
+
+  auto rect = (isSelf ? srcRect : srcRect + destRect);
+
+  auto prect = plot_->windowToPixel(rect);
+
+  //---
 
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
   auto pt = plot_->pixelToWindow(Point(tx, ty));
+#else
+  auto pt = Point(CQChartsDrawUtil::pathMidPoint(epath_));
+#endif
 
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = plot_->edgeTextOptions(device);
 
   textOptions.angle     = Angle();
-  textOptions.align     = Qt::AlignLeft;
+  textOptions.align     = Qt::AlignCenter;
   textOptions.formatted = false;
   textOptions.scaled    = false;
   textOptions.html      = false;
@@ -3381,6 +3333,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   plot_->setPenBrush(penBrush, plot_->edgePenData(sc), plot_->edgeBrushData(fc));
+
+  bool isLine = (plot()->edgeWidth().value() <= 0.0);
+
+  if (isLine) {
+    penBrush.pen  .setColor(fc);
+    penBrush.brush.setStyle(Qt::NoBrush);
+  }
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

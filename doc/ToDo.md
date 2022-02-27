@@ -4,8 +4,6 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + Use Color::makeInterfaceValue, Color::makePaletteValue everywhere
- + units for ruler tool
  + tip column cleanup all plots
  + barchart stacked + labels (only one label needed). Tip shows all values for single bar
  + text placer in all plots (xy plot use data label which includes border !!)
@@ -41,6 +39,7 @@ TODO:
  + ruler tool
    + editable start/end points
    + arc/angle
+   + points in plot coords
  + dendrogram plot
    + simplify dendrogram to single node structure (root node and node)
    + support connection plot model types in dendrogram

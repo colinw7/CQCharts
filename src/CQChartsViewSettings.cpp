@@ -88,7 +88,7 @@ class CQChartsPlotTipLabel : public QLabel {
 
     auto s = QLabel::sizeHint();
 
-    int w = std::min(s.width(), fm.width("X")*50);
+    int w = std::min(s.width(), fm.horizontalAdvance("X")*50);
 
     setMaximumWidth(w);
 

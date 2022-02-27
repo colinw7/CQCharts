@@ -73,7 +73,7 @@ place(const Plot *plot)
 
       QFontMetricsF fm(font);
 
-      double ptw = fm.width(wordData->word);
+      double ptw = fm.horizontalAdvance(wordData->word);
       double pth = fm.height();
 
       double tw = plot->pixelToWindowWidth (ptw);

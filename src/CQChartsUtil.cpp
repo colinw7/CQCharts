@@ -1222,7 +1222,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   double h = fm.height();
 
   if (nl == 0) {
-    double w  = fm.width(sstr);
+    double w  = fm.horizontalAdvance(sstr);
     double dw = (bbox.getWidth() - w);
 
     if (dw > 0 || CMathUtil::isZero(dw)) { // fits
@@ -1305,13 +1305,13 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   bool fit2 = false;
 
   if (nl1 == 0) {
-    double w1 = fm.width(str1);
+    double w1 = fm.horizontalAdvance(str1);
 
     fit1 = (w1 <= bbox.getWidth());
   }
 
   if (nl2 == 0) {
-    double w2 = fm.width(str2);
+    double w2 = fm.horizontalAdvance(str2);
 
     fit2 = (w2 <= bbox.getWidth());
   }

@@ -856,22 +856,29 @@ calcRange() const
 
   auto dataRange = visitor.range();
 
+  //---
+
   th->uniqueX_ = visitor.isUniqueX();
   th->uniqueY_ = visitor.isUniqueY();
 
   //---
 
+#if 0
   if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet()) {
     dataRange = Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
   }
+#endif
 
   //---
 
+#if 0
   if (isInterrupt())
     return dataRange;
+#endif
 
   //---
 
+  // if unique values (string values) then adjust range
   if (dataRange.isSet()) {
     if (isUniqueX() || isUniqueY()) {
       if (isUniqueX()) {
@@ -888,18 +895,18 @@ calcRange() const
 
   //---
 
-  dataRange = adjustDataRange(dataRange);
+  //dataRange = adjustDataRange(dataRange);
 
   // update data range if unset
   dataRange.makeNonZero();
 
   //---
 
-  th->initGridData(dataRange);
-
-  //---
-
   if (isGridCells()) {
+    th->initGridData(dataRange);
+
+    //---
+
     if (dataRange.isSet()) {
       dataRange.updateRange(gridData().xStart(), gridData().yStart());
       dataRange.updateRange(gridData().xEnd  (), gridData().yEnd  ());
@@ -1077,6 +1084,31 @@ yAxisName(QString &name, const QString &def) const
     name = def;
 
   return name.length();
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsScatterPlot::
+dataFitBBox() const
+{
+  BBox bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    if (! plotObj->isVisible())
+      continue;
+
+    auto *pointObj = dynamic_cast<CQChartsScatterPointObj    *>(plotObj);
+
+    if (pointObj) {
+      if (pointObj->isFiltered())
+        continue;
+    }
+
+    bbox += plotObj->rect();
+  }
+
+  return bbox;
 }
 
 //------

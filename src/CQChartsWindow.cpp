@@ -709,7 +709,7 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  int w = fm.width("X")*150;
+  int w = fm.horizontalAdvance("X")*150;
   int h = fm.height()*80;
 
   return QSize(w, h);

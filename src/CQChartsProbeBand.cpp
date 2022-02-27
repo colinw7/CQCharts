@@ -74,7 +74,7 @@ showVertical(CQChartsPlot *plot, const QString &text,
 
       tip_->move(gpos);
 
-      tip_->resize(fm.width(text) + 4, fm.height() + 4);
+      tip_->resize(fm.horizontalAdvance(text) + 4, fm.height() + 4);
 
       tip_->show();
     }
@@ -133,7 +133,7 @@ showHorizontal(CQChartsPlot *plot, const QString &text,
 
       tip_->move(gpos);
 
-      tip_->resize(fm.width(text) + 4, fm.height() + 4);
+      tip_->resize(fm.horizontalAdvance(text) + 4, fm.height() + 4);
 
       tip_->show();
     }

@@ -139,10 +139,10 @@ create(View *view, const ModelP &model) const
 CQChartsDendrogramPlot::
 CQChartsDendrogramPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("dendrogram"), model),
- CQChartsObjNodeShapeData    <CQChartsDendrogramPlot>(this),
- CQChartsObjEdgeShapeData    <CQChartsDendrogramPlot>(this),
- CQChartsObjHierLabelTextData<CQChartsDendrogramPlot>(this),
- CQChartsObjLeafLabelTextData<CQChartsDendrogramPlot>(this)
+ CQChartsObjNodeShapeData<CQChartsDendrogramPlot>(this),
+ CQChartsObjEdgeShapeData<CQChartsDendrogramPlot>(this),
+ CQChartsObjHierTextData <CQChartsDendrogramPlot>(this),
+ CQChartsObjLeafTextData <CQChartsDendrogramPlot>(this)
 {
 }
 
@@ -218,16 +218,16 @@ addProperties()
   addLineProperties("edge/stroke", "edgeStroke", "Edge");
 
   // hier label
-  addProp("label/hier", "hierLabelTextVisible", "visible", "Hier Labels visible");
+  addProp("label/hier", "hierTextVisible", "visible", "Hier Labels visible");
 
-  addTextProperties("label/hier", "hierLabelText", "Hier Label",
+  addTextProperties("label/hier", "hierText", "Hier Label",
                     CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
-  addProp("label/leaf", "leafLabelTextVisible", "visible", "Leaf Labels visible");
+  addProp("label/leaf", "leafTextVisible", "visible", "Leaf Labels visible");
 
-  addTextProperties("label/leaf", "leafLabelText", "Leaf Label",
+  addTextProperties("label/leaf", "leafText", "Leaf Label",
                     CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
@@ -343,8 +343,8 @@ calcSymbolSize() const
   auto ss = lengthPixelWidth(symbolSize_);
 
   if (ss <= 0) {
-    auto hfont = view()->plotFont(this, hierLabelTextFont());
-    auto lfont = view()->plotFont(this, leafLabelTextFont());
+    auto hfont = view()->plotFont(this, hierTextFont());
+    auto lfont = view()->plotFont(this, leafTextFont());
 
     QFontMetricsF hfm(hfont);
     QFontMetricsF lfm(lfont);
@@ -642,7 +642,7 @@ placeModel() const
     }
 
     for (const auto &edge : edges) {
-      if (edge.from->parent() == tempRoot_)
+      if (root && edge.from->parent() == tempRoot_)
         root->addChild(edge.from, CQChartsDendrogram::OptReal());
     }
 
@@ -756,6 +756,7 @@ CQChartsDendrogramPlot::
 placeCircular() const
 {
   auto *root = rootNode();
+  if (! root) return;
 
   root->resetPlaced();
 
@@ -1039,7 +1040,7 @@ calcExtraFitBBox() const
 
     bool is_hier = nodeObj->isHier();
 
-    bool textVisible = (is_hier ? isHierLabelTextVisible() : isLeafLabelTextVisible());
+    bool textVisible = (is_hier ? isHierTextVisible() : isLeafTextVisible());
 
     if (textVisible)
       bbox += nodeObj->textRect();
@@ -1642,7 +1643,7 @@ textRect() const
   // get font
   bool is_hier = this->isHier();
 
-  auto font  = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
+  auto font  = (is_hier ? plot()->hierTextFont() : plot()->leafTextFont());
   auto qfont = plot()->view()->plotFont(plot(), font);
 
   //---
@@ -1662,7 +1663,7 @@ textRect() const
   device.setFont(qfont);
 
   auto textOptions = (is_hier ?
-    plot()->hierLabelTextOptions(&device) : plot()->leafLabelTextOptions(&device));
+    plot()->hierTextOptions(&device) : plot()->leafTextOptions(&device));
 
   textOptions.angle     = angle;
   textOptions.align     = align;
@@ -1679,7 +1680,7 @@ textRect() const
   QFontMetricsF fm(qfont);
 
   double dy = (fm.ascent() - fm.descent())/2.0;
-  double dx = fm.width(name);
+  double dx = fm.horizontalAdvance(name);
 
   auto pbbox = plot()->windowToPixel(rect());
 
@@ -1779,7 +1780,7 @@ drawText(PaintDevice *device) const
 {
   bool is_hier = this->isHier();
 
-  bool textVisible = (is_hier ? plot_->isHierLabelTextVisible() : plot_->isLeafLabelTextVisible());
+  bool textVisible = (is_hier ? plot_->isHierTextVisible() : plot_->isLeafTextVisible());
   if (! textVisible) return;
 
   //---
@@ -1788,10 +1789,10 @@ drawText(PaintDevice *device) const
   ColorInd colorInd;
   PenBrush tpenBrush;
 
-  auto tc = (is_hier ? plot()->interpHierLabelTextColor(colorInd) :
-                       plot()->interpLeafLabelTextColor(colorInd));
+  auto tc = (is_hier ? plot()->interpHierTextColor(colorInd) :
+                       plot()->interpLeafTextColor(colorInd));
 
-  auto ta = (is_hier ? plot()->hierLabelTextAlpha() : plot()->leafLabelTextAlpha());
+  auto ta = (is_hier ? plot()->hierTextAlpha() : plot()->leafTextAlpha());
 
   plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
 
@@ -1800,7 +1801,7 @@ drawText(PaintDevice *device) const
   //---
 
   // set font
-  auto font = (is_hier ? plot()->hierLabelTextFont() : plot()->leafLabelTextFont());
+  auto font = (is_hier ? plot()->hierTextFont() : plot()->leafTextFont());
 
   plot()->setPainterFont(device, font);
 
@@ -1821,7 +1822,7 @@ drawText(PaintDevice *device) const
   const auto &name = this->name();
 
   auto textOptions = (is_hier ?
-    plot()->hierLabelTextOptions(device) : plot()->leafLabelTextOptions(device));
+    plot()->hierTextOptions(device) : plot()->leafTextOptions(device));
 
   textOptions.angle     = angle;
   textOptions.align     = align;
@@ -1844,7 +1845,7 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
 
 //double dy = (fm.ascent() - fm.descent())/2.0;
   double dy = 0.0;
-  double dx = fm.width(name);
+  double dx = fm.horizontalAdvance(name);
 
   BBox pbbox = plot()->windowToPixel(rect1);
 

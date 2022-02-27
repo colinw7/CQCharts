@@ -20,7 +20,7 @@ set plot1 [create_charts_plot -model $model -type scatter \
 
 set_charts_property -plot $plot1 -name mapping.symbolType.enabled -value 1
 
-set_charts_property -plot $plot1 -name mapping.symbolType.symbol_map \
+set_charts_property -plot $plot1 -name mapping.symbolType.type_map \
   -value {{one circle} {two triangle} {three hexagon} {four cross}}
 
 set_charts_property -plot $plot1 -name margins.inner.left   -value 20px

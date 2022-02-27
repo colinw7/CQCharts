@@ -8,16 +8,17 @@
 int
 main(int argc, char **argv)
 {
-  int  n       { 10 };
-  int  seed    { -1 };
-  bool fromTo  { false };
-  int  series  { 0 };
-  bool scatter { false };
-  bool size    { false };
-  bool header  { false };
-  bool group   { false };
-  bool labels  { false };
-  bool stacked { false };
+  int  n        { 10 };
+  int  seed     { -1 };
+  bool fromTo   { false };
+  int  series   { 0 };
+  bool scatter  { false };
+  bool size     { false };
+  bool header   { false };
+  bool group    { false };
+  bool labels   { false };
+  bool discreet { false };
+  bool stacked  { false };
 
   CArgv::visit(argc, argv,
    [&](const std::string &opt, CArgv::State &state) { // opt
@@ -53,6 +54,9 @@ main(int argc, char **argv)
      }
      else if (opt == "labels") {
        labels = true;
+     }
+     else if (opt == "discreet") {
+       discreet = true;
      }
      else if (opt == "stacked") {
        stacked = true;
@@ -242,13 +246,42 @@ main(int argc, char **argv)
     }
   }
   else if (scatter) {
-    std::cout << "X,Y\n";
+    using Labels = std::map<int, std::string>;
+
+    int    nl;
+    Labels dlabels;
+
+    if (labels && discreet) {
+      nl = std::max(n/10, 3);
+
+      for (int i = 0; i < nl; ++i)
+        dlabels[i] = CMathRand::randString();
+    }
+
+    std::cout << "X,Y";
+
+    if (labels)
+      std::cout << ",Label";
+
+    std::cout << "\n";
 
     for (int i = 0; i < n; ++i) {
       auto x = CMathRand::randInRange(1, 100);
       auto y = CMathRand::randInRange(1, 100);
 
-      std::cout << x << "," << y << "\n";
+      std::cout << x << "," << y;
+
+      if (labels) {
+        if (discreet) {
+          int id = CMathRand::randInRange(0, nl - 1);
+
+          std::cout << "," << dlabels[id];
+        }
+        else
+          std::cout << "," << CMathRand::randString();
+      }
+
+      std::cout << "\n";
     }
   }
   else {

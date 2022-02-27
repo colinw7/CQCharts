@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot3D.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsFitData.h>
 #include <CQChartsImage.h>
 #include <CQStatData.h>
 #include <CInterval.h>

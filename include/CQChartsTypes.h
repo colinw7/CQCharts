@@ -78,6 +78,7 @@ enum class CQChartsLabelPosition {
 };
 
 enum class CQChartsEdgeType {
+  NONE,
   ARC,
   RECTILINEAR,
   ROUNDED_LINE,

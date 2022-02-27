@@ -189,7 +189,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   virtual bool selectPressType(const Point &w, ClickMod clickMod, DrawType);
 
   std::vector<int> adjustItemVisible(const std::vector<int> &itemVisible, const Point &p,
-                                     ClickMod selMod, DrawType drawType) const;
+                                     ClickMod clickMod, DrawType drawType) const;
 
   virtual bool isItemInside(size_t i, const Point &p, DrawType drawType) const = 0;
 

@@ -678,7 +678,7 @@ calcTableSize() const
   }
 
   th->tableData_.pmargin    = cellMargin();
-  th->tableData_.pSortWidth = int(hfm.width("X") + 4);
+  th->tableData_.pSortWidth = int(hfm.horizontalAdvance("X") + 4);
 
   th->tableData_.phrh = hfm.height() + 2.0*tableData_.pmargin;
   th->tableData_.prh  = fm.height() + 2.0*tableData_.pmargin;
@@ -689,7 +689,7 @@ calcTableSize() const
 
     const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
-    data.pwidth  = power*fm.width("X") + 2.0*tableData_.pmargin;
+    data.pwidth  = power*fm.horizontalAdvance("X") + 2.0*tableData_.pmargin;
     data.numeric = false;
   }
 
@@ -712,7 +712,7 @@ calcTableSize() const
 
     if (! ok) continue;
 
-    double cw = hfm.width(str) + 2.0*tableData_.pmargin + tableData_.pSortWidth;
+    double cw = hfm.horizontalAdvance(str) + 2.0*tableData_.pmargin + tableData_.pSortWidth;
 
     if (i == 0)
       cw += tableData_.maxDepth*indent(); // add hierarchical indent
@@ -779,7 +779,7 @@ calcTableSize() const
 
         auto &data = tableData_.columnDataMap[c];
 
-        double cw = fm_.width(str) + 2.0*tableData_.pmargin;
+        double cw = fm_.horizontalAdvance(str) + 2.0*tableData_.pmargin;
 
         if (i == 0)
           cw += tableData_.maxDepth*plot_->indent(); // add hierarchical indent
@@ -1090,8 +1090,10 @@ wheelHScroll(int delta)
 
   QFontMetrics fm(font);
 
-  //hscrollSlot(scrollData_.hpos + (delta > 0 ? fm.width("X") : -fm.width("X")));
-  scrollData_.hbar->setValue(scrollData_.hpos + (delta > 0 ? fm.width("X") : -fm.width("X")));
+  auto xw = fm.horizontalAdvance("X");
+
+  //hscrollSlot(scrollData_.hpos + (delta > 0 ? xw : -xm));
+  scrollData_.hbar->setValue(scrollData_.hpos + (delta > 0 ? xw : -xw));
 }
 
 void

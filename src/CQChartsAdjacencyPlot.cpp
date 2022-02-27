@@ -1136,7 +1136,7 @@ initFontFactor()
     const auto &str = node->name();
 
     // TODO: use clipped text width
-    double tw = fm.width(str) + 4;
+    double tw = fm.horizontalAdvance(str) + 4;
 
     twMax = std::max(twMax, tw);
   }
@@ -1254,7 +1254,7 @@ execDrawBackground(PaintDevice *device) const
       BBox bbox1, bbox2;
 
       for (const auto &p : pr1.second) {
-        double tw = fm.width(str) + 4;
+        double tw = fm.horizontalAdvance(str) + 4;
 
         auto p1 = Point(p.x + xts_ - tw - 4, p.y       );
         auto p2 = Point(p.x + xts_         , p.y + pys_);
@@ -1409,7 +1409,7 @@ drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) con
 {
   QFontMetricsF fm(device->font());
 
-  double tw = fm.width(str) + 4;
+  double tw = fm.horizontalAdvance(str) + 4;
 
   twMax_ = std::max(twMax_, tw);
 

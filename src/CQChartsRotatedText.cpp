@@ -22,7 +22,7 @@ drawInBox(PaintDevice *device, const BBox &rect, const QString &text,
   QFontMetricsF fm(device->font());
 
   double th = fm.height();
-  double tw = fm.width(text);
+  double tw = fm.horizontalAdvance(text);
 
   //---
 
@@ -72,7 +72,7 @@ drawInBox(PaintDevice *device, const BBox &rect, const QString &text,
     fm = QFontMetricsF(device->font());
 
     th = fm.height();
-    tw = fm.width(text);
+    tw = fm.horizontalAdvance(text);
 
     dx = -tw/2.0;
     dy =  th/2.0;
@@ -120,7 +120,7 @@ draw(PaintDevice *device, const Point &p, const QString &text,
   QFontMetricsF fm(device->font());
 
   double th = fm.height();
-  double tw = fm.width(text);
+  double tw = fm.horizontalAdvance(text);
 
   auto a1 = -options.angle;
 
@@ -294,8 +294,8 @@ calcBBoxData(double px, double py, const QString &text, const QFont &font,
   double ytm = border.top   ();
   double ybm = border.bottom();
 
-  double th = fm.height()    + xlm + xrm;
-  double tw = fm.width(text) + ybm + ytm;
+  double th = fm.height()                + xlm + xrm;
+  double tw = fm.horizontalAdvance(text) + ybm + ytm;
 
   auto a1 = -options.angle;
 

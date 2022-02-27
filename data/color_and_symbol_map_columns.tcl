@@ -31,7 +31,7 @@ set_charts_property -plot $plot1 -name mapping.symbolSize.enabled -value 1
 
 set_charts_property -plot $plot1 -name mapping.color.color_map \
   -value {{one red} {two green} {three blue} {four cyan}}
-set_charts_property -plot $plot1 -name mapping.symbolType.symbol_map \
+set_charts_property -plot $plot1 -name mapping.symbolType.type_map \
   -value {{one circle} {two square} {three triangle} {four star}}
 set_charts_property -plot $plot1 -name mapping.symbolSize.size_map \
   -value {{one 0.1P} {two 0.2P} {three 0.3P} {four 0.4P}}

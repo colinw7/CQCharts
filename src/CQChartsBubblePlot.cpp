@@ -1270,7 +1270,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
       auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
                                                      clipLength, clipElide);
 
-      tw = std::max(tw, fm.width(str1));
+      tw = std::max(tw, fm.horizontalAdvance(str1));
 
       strs1.push_back(str1);
     }

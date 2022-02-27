@@ -344,7 +344,7 @@ doLayout()
 
       auto name = plot->keyText();
 
-      double tw = fm.width(name) + bs + xlm + xrm;
+      double tw = fm.horizontalAdvance(name) + bs + xlm + xrm;
 
       pw = std::max(pw, tw);
 
@@ -583,7 +583,7 @@ draw(PaintDevice *device) const
 
     double px2 = px1 + bs + xrm;
 
-    //double tw = fm.width(name);
+    //double tw = fm.horizontalAdvance(name);
 
     BBox rect1(px2, py1, px2 + pw - bs - ybm - ytm, py2);
 
@@ -2801,7 +2801,7 @@ size() const
 
   auto text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength, clipElide);
 
-  double w = fm.width(text);
+  double w = fm.horizontalAdvance(text);
   double h = fm.height();
 
   double ww = drawPlot->pixelToWindowWidth (w + 4);
@@ -3059,7 +3059,7 @@ size() const
 
   QFontMetricsF fm(font);
 
-  double w = fm.width("-X-");
+  double w = fm.horizontalAdvance("-X-");
   double h = fm.height();
 
   double ww = drawPlot->pixelToWindowWidth (w + 8);
@@ -3161,7 +3161,7 @@ size() const
 
   QFontMetricsF fm(font);
 
-  double fw = fm.width("X");
+  double fw = fm.horizontalAdvance("X");
   double fh = fm.height();
 
   //---
@@ -3174,7 +3174,7 @@ size() const
   double tw = 0.0;
 
   for (const auto &label : labels)
-    tw = std::max(tw, fm.width(label));
+    tw = std::max(tw, fm.horizontalAdvance(label));
 
   //--
 
@@ -3205,7 +3205,7 @@ draw(PaintDevice *device, const BBox &rect) const
   double tw = 0.0;
 
   for (const auto &label : labels)
-    tw = std::max(tw, fm.width(label));
+    tw = std::max(tw, fm.horizontalAdvance(label));
 
   double wtw = plot_->pixelToWindowWidth(tw);
 

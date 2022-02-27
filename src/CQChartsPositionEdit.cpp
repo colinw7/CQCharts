@@ -216,7 +216,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   QFontMetrics fm(option.font);
 
-  int w = fm.width(str);
+  int w = fm.horizontalAdvance(str);
 
   auto option1 = option;
 

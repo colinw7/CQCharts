@@ -5378,7 +5378,7 @@ calcPath(QPainterPath &path) const
         if (useBoxes)
           CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
         else
-          CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient);
+          CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient, orient);
 
         // add arrows with line width
         CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, arrowSize, path);
@@ -5396,7 +5396,7 @@ calcPath(QPainterPath &path) const
       if (useBoxes)
         CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
       else
-        CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient);
+        CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient, orient);
 
       // add arrows (no line width)
       if (hasArrows)
@@ -7941,7 +7941,7 @@ calcPixelRect() const
 
   QFontMetrics fm(font);
 
-  int w = fm.width(textStr()) + 4;
+  int w = fm.horizontalAdvance(textStr()) + 4;
   int h = fm.height() + 4;
 
   auto p = positionToPixel(objRef(), position());

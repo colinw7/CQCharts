@@ -634,7 +634,7 @@ init()
 
     combo_ = new QComboBox;
 
-    combo_->setFixedWidth(QFontMetrics(font()).width("XXXXXXXX"));
+    combo_->setFixedWidth(QFontMetrics(font()).horizontalAdvance("XXXXXXXX"));
   //combo_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 
     layout->addWidget(combo_);

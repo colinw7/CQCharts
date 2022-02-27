@@ -52,8 +52,8 @@ draw(PaintDevice *device, const Point &center, const QString &text1, const QStri
   QFontMetricsF fm(device->font());
 
   // get text width
-  double tw1 = fm.width(text1);
-  double tw2 = (text2 != "" ? fm.width(text2) : 0.0);
+  double tw1 = fm.horizontalAdvance(text1);
+  double tw2 = (text2 != "" ? fm.horizontalAdvance(text2) : 0.0);
   double th1 = fm.height();
 
   // add external margin
@@ -214,7 +214,7 @@ bbox1(View *view, Plot *plot, const Point &pcenter, const QString &text,
 
   QFontMetricsF fm(font);
 
-  double tw = fm.width(text);
+  double tw = fm.horizontalAdvance(text);
 
   // external margin
   double xlm { 0.0 }, xrm { 0.0 }, ytm { 0.0 }, ybm { 0.0 };

@@ -114,7 +114,7 @@ sizeHint() const
 
   QFontMetrics fm(font());
 
-  QSize fs(fm.width(str) + 4, fm.height() + 4);
+  QSize fs(fm.horizontalAdvance(str) + 4, fm.height() + 4);
 
   QStyleOptionComboBox opt;
 
@@ -294,7 +294,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QFontMetrics fm(option.font);
 
-  int w = fm.width(str);
+  int w = fm.horizontalAdvance(str);
 
   //---
 

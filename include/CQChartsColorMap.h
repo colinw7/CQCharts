@@ -53,6 +53,7 @@ class CQChartsColorMap :
   //---
 
   bool valueToColor(const QVariant &value, Color &color) const;
+  bool colorToValue(const Color &color, QVariant &value) const;
 
   //---
 
