@@ -10260,6 +10260,13 @@ columnStr(const Column &column, double r) const
   return str;
 }
 
+QString
+CQChartsPlot::
+columnValueToString(const Column &, const QVariant &var) const
+{
+  return var.toString();
+}
+
 bool
 CQChartsPlot::
 formatColumnValue(const Column &column, const QVariant &var, QString &str) const
@@ -11066,10 +11073,12 @@ addTipHeader(CQChartsTableTip &tableTip, const QModelIndex &ind) const
   ModelIndex tipModelInd1(th, tipInd1.row(), tipHeaderColumn(), tipInd1.parent());
 
   bool ok;
-  auto value = modelString(tipModelInd1, ok);
+  auto value = modelValue(tipModelInd1, ok);
   if (! ok) return;
 
-  tableTip.addBoldLine(value);
+  auto valueStr = columnValueToString(tipHeaderColumn(), value);
+
+  tableTip.addBoldLine(valueStr);
 
   tableTip.addColumn(tipHeaderColumn());
 }
@@ -11104,10 +11113,12 @@ addTipColumn(CQChartsTableTip &tableTip, const Column &c, const QModelIndex &ind
   ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
 
   bool ok;
-  auto value = modelString(tipModelInd1, ok);
+  auto value = modelValue(tipModelInd1, ok);
   if (! ok) value = "";
 
-  tableTip.addTableRow(name, value);
+  auto valueStr = columnValueToString(c, value);
+
+  tableTip.addTableRow(name, valueStr);
 
   tableTip.addColumn(c);
 }
@@ -11197,6 +11208,9 @@ plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constrain
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
+    if (clipRect_.isSet() && ! plotObj->rectIntersect(clipRect_, /*inside*/false))
+      continue;
+
     plotObjs.push_back(plotObj);
   }
 }
@@ -11240,6 +11254,9 @@ annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &
       continue;
 
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
+      continue;
+
+    if (clipRect_.isSet() && ! annotation->intersects(clipRect_, /*inside*/false))
       continue;
 
     annotations.push_back(annotation);
@@ -11325,6 +11342,9 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
+    if (clipRect_.isSet() && ! plotObj->rectIntersect(clipRect_, /*inside*/false))
+      continue;
+
     plotObjs.push_back(plotObj);
   }
 }
@@ -11369,6 +11389,9 @@ annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
       continue;
 
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
+      continue;
+
+    if (clipRect_.isSet() && ! annotation->intersects(clipRect_, /*inside*/false))
       continue;
 
     annotations.push_back(annotation);
@@ -15316,18 +15339,23 @@ setClipRect(PaintDevice *device) const
       bbox.addY(ebbox);
     }
 
-    device->setClipRect(bbox);
+    clipRect_ = bbox;
   }
   else if (plot1->isFitClip()) {
     auto fitRect = fitBBox();
 
-    device->setClipRect(fitRect);
+    clipRect_ = fitRect;
   }
   else if (plot1->isPlotClip()) {
     auto plotRect = calcPlotRect();
 
-    device->setClipRect(plotRect);
+    clipRect_ = plotRect;
   }
+  else {
+    clipRect_ = BBox();
+  }
+
+  device->setClipRect(clipRect_);
 }
 
 QPainter *

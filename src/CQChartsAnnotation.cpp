@@ -200,6 +200,9 @@ writeProperties(std::ostream &os, const QString &varName) const
   os << "\n";
 
   for (const auto &nv : nameValues) {
+    if (nv.first == "id")
+      continue;
+
     QString str;
 
     if (! CQChartsVariant::toString(nv.second, str))

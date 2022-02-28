@@ -12,6 +12,7 @@ class CQChartsGrahamHull;
 class CQChartsSymbolTypeMapKey;
 class CQChartsSymbolSizeMapKey;
 class CQChartsFitData;
+class CQChartsTextPlacer;
 
 /*!
  * \brief Point plot type (Base class for XY and Symbol Plot Types)
@@ -168,6 +169,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
+  Q_PROPERTY(bool adjustText  READ isAdjustText  WRITE setAdjustText)
 
   // best fit
   Q_PROPERTY(bool      bestFit          READ isBestFit          WRITE setBestFit         )
@@ -486,6 +488,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get/set adjust text
+  bool isAdjustText() const { return adjustText_; }
+  void setAdjustText(bool b);
+
+  //---
+
   //! get/set min symbol size
   const Length &minSymbolSize() const { return minSymbolSize_; }
   void setMinSymbolSize(const Length &l);
@@ -659,7 +667,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using SymbolSizeFilter = std::set<Real>;
   using SymbolTypeFilter = std::set<Symbol>;
 
-  DataLabelP dataLabel_; //!< data label style
+  // label data
+  DataLabelP dataLabel_;            //!< data label style
+  bool       adjustText_ { false }; //!< adjust text position
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data
@@ -693,6 +703,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // options
   Length minSymbolSize_; //!< min symbol size
   Length minLabelSize_;  //!< min label size
+
+  mutable CQChartsTextPlacer *placer_;
 };
 
 #endif

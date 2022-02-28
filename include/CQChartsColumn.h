@@ -44,6 +44,9 @@ class CQChartsColumn :
   };
 
  public:
+  using Column = CQChartsColumn;
+
+ public:
   static void registerMetaType();
 
   static int metaTypeId;
@@ -53,24 +56,24 @@ class CQChartsColumn :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsColumn, metaTypeId)
 
  public:
-  static CQChartsColumn makeData(int column, int role=-1) {
-    return CQChartsColumn(Type::DATA, column, "", role);
+  static Column makeData(int column, int role=-1) {
+    return Column(Type::DATA, column, "", role);
   }
 
-  static CQChartsColumn makeDataIndex(int column, const QString &ind, int role=-1) {
-    return CQChartsColumn(Type::DATA_INDEX, column, ind, role);
+  static Column makeDataIndex(int column, const QString &ind, int role=-1) {
+    return Column(Type::DATA_INDEX, column, ind, role);
   }
 
-  static CQChartsColumn makeExpr(const QString &expr) {
-    return CQChartsColumn(Type::EXPR, -1, expr, -1);
+  static Column makeExpr(const QString &expr) {
+    return Column(Type::EXPR, -1, expr, -1);
   }
 
-  static CQChartsColumn makeRow() { return CQChartsColumn(Type::ROW, -1, "", -1); }
+  static Column makeRow() { return Column(Type::ROW, -1, "", -1); }
 
-  static CQChartsColumn makeHHeader(int c) { return CQChartsColumn(Type::HHEADER, c, "", -1); }
-  static CQChartsColumn makeVHeader() { return CQChartsColumn(Type::VHEADER, -1, "", -1); }
+  static Column makeHHeader(int c) { return Column(Type::HHEADER, c, "", -1); }
+  static Column makeVHeader() { return Column(Type::VHEADER, -1, "", -1); }
 
-  static CQChartsColumn makeGroup() { return CQChartsColumn(Type::GROUP, -1, "", -1); }
+  static Column makeGroup() { return Column(Type::GROUP, -1, "", -1); }
 
  public:
   CQChartsColumn() = default;
@@ -81,13 +84,13 @@ class CQChartsColumn :
 
   explicit CQChartsColumn(const QString &s); // parsed
 
-  CQChartsColumn(const CQChartsColumn &rhs);
-  CQChartsColumn(CQChartsColumn &&rhs);
+  CQChartsColumn(const Column &rhs);
+  CQChartsColumn(Column &&rhs);
 
  ~CQChartsColumn();
 
-  CQChartsColumn &operator=(const CQChartsColumn &rhs);
-  CQChartsColumn &operator=(CQChartsColumn &&rhs);
+  Column &operator=(const Column &rhs);
+  Column &operator=(Column &&rhs);
 
   //--
 
@@ -180,16 +183,16 @@ class CQChartsColumn :
 
   //---
 
-  int cmp(const CQChartsColumn &c) const;
+  int cmp(const Column &c) const;
 
-  friend int cmp(const CQChartsColumn &c1, const CQChartsColumn &c2) {
+  friend int cmp(const Column &c1, const Column &c2) {
     return c1.cmp(c2);
   }
 
   //---
 
  public:
-  using Columns = std::vector<CQChartsColumn>;
+  using Columns = std::vector<Column>;
 
   static bool stringToColumns(const QString &str, Columns &columns);
 
@@ -229,7 +232,8 @@ class CQChartsColumn :
 class CQChartsColumns :
   public CQChartsEqBase<CQChartsColumns>, public CQChartsToStringBase<CQChartsColumns> {
  public:
-  using Columns = std::vector<CQChartsColumn>;
+  using Column  = CQChartsColumn;
+  using Columns = std::vector<Column>;
 
  public:
   static void registerMetaType();
@@ -243,7 +247,7 @@ class CQChartsColumns :
  public:
   CQChartsColumns() { }
 
-  explicit CQChartsColumns(const CQChartsColumn &c) {
+  explicit CQChartsColumns(const Column &c) {
     setColumn(c);
   }
 
@@ -252,10 +256,10 @@ class CQChartsColumns :
   }
 
   // get single column
-  const CQChartsColumn &column() const { return column_; }
+  const Column &column() const { return column_; }
 
   // set single column (multiple columns empty if column invalid)
-  void setColumn(const CQChartsColumn &c) {
+  void setColumn(const Column &c) {
     column_ = c;
 
     columns_.clear();
@@ -265,7 +269,7 @@ class CQChartsColumns :
   }
 
   // add column
-  void addColumn(const CQChartsColumn &c) {
+  void addColumn(const Column &c) {
     if (columns_.empty())
       setColumn(c);
     else
@@ -277,7 +281,7 @@ class CQChartsColumns :
     if (! columns_.empty())
       columns_.pop_back();
     else
-      column_ = CQChartsColumn();
+      column_ = Column();
   }
 
   // get multiple columns
@@ -290,17 +294,17 @@ class CQChartsColumns :
     if (! columns_.empty())
       column_ = columns_[0];
     else
-      column_ = CQChartsColumn();
+      column_ = Column();
   }
 
   QString columnsStr() const {
-    return CQChartsColumn::columnsToString(columns_);
+    return Column::columnsToString(columns_);
   }
 
   bool setColumnsStr(const QString &s) {
     Columns cols;
 
-    if (! CQChartsColumn::stringToColumns(s, cols))
+    if (! Column::stringToColumns(s, cols))
       return false;
 
     setColumns(cols);
@@ -324,7 +328,7 @@ class CQChartsColumns :
     return int(columns_.size());
   }
 
-  const CQChartsColumn &getColumn(int i) const {
+  const Column &getColumn(int i) const {
     if (! columns_.empty())
       return CUtil::safeIndex(columns_, i);
 
@@ -333,7 +337,7 @@ class CQChartsColumns :
     return column_;
   }
 
-  void setColumn(int i, const CQChartsColumn &column) {
+  void setColumn(int i, const Column &column) {
     if (i == 0 && ! isValid()) {
       setColumn(column);
 
@@ -346,6 +350,16 @@ class CQChartsColumns :
 
     if (i == 0)
       column_ = columns_[0];
+  }
+
+  //---
+
+  bool hasColumn(const Column &c) const {
+    for (const auto &column : columns_)
+      if (c == column)
+        return true;
+
+    return false;
   }
 
   //---
@@ -383,8 +397,8 @@ class CQChartsColumns :
   bool fromString(const QString &s) { return setColumnsStr(s); }
 
  private:
-  CQChartsColumn column_;  //!< single column
-  Columns        columns_; //!< multiple columns
+  Column  column_;  //!< single column
+  Columns columns_; //!< multiple columns
 };
 
 //---

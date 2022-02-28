@@ -1379,3 +1379,7 @@
  + adjust data unscaled rect
  + Use QPainterPathStroker for filled line/curve shapes
  + Add stat painter to count drawn objects for testing
+# 2/27/2022
+ + ensure clip objects cannot be selected
+ + update tip columns for xy plot and support time values for header
+ + allow query filter symbol size, symbol type and color columns

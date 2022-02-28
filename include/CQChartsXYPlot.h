@@ -13,7 +13,6 @@ class CQChartsXYLabelObj;
 class CQChartsXYPolylineObj;
 class CQChartsArrow;
 class CQChartsGrahamHull;
-class CQChartsTextPlacer;
 
 //---
 
@@ -712,9 +711,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // horizon
   Q_PROPERTY(int layers READ layers WRITE setLayers)
 
-  // labels
-  Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
-
   // point: (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
 
@@ -812,6 +808,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   Columns getNamedColumns(const QString &name) const override;
   void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
+  QString columnValueToString(const Column &column, const QVariant &var) const override;
 
   //---
 
@@ -916,12 +916,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   double layerMin() const { return layerMin_; }
   double layerDelta() const { return layerDelta_; }
-
-  //---
-
-  //! get/set adjust text
-  bool isAdjustText() const { return adjustText_; }
-  void setAdjustText(bool b);
 
   //---
 
@@ -1197,8 +1191,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   double layerMax_   { 0.0 }; //!< horizon max
   double layerDelta_ { 0.0 }; //!< horizon delta
 
-  bool adjustText_ { false }; //!< adjust text position
-
   double symbolWidth_  { 1.0 }; //!< current symbol width
   double symbolHeight_ { 1.0 }; //!< current symbol height
 
@@ -1211,8 +1203,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   mutable int maxNumPoints_ { 0 };
 
   CQChartsXYInvalidator xyInvalidator_;
-
-  mutable CQChartsTextPlacer *placer_;
 };
 
 //---

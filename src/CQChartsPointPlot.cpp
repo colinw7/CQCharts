@@ -10,6 +10,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsSymbolSet.h>
+#include <CQChartsTextPlacer.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -121,12 +122,18 @@ init()
   // stats
   setStatsLines(false);
   setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
+
+  //---
+
+  placer_ = new CQChartsTextPlacer;
 }
 
 void
 CQChartsPointPlot::
 term()
 {
+  delete placer_;
+
   clearFitData ();
   clearHullData();
 }
@@ -635,6 +642,15 @@ setDataLabelFontSize(const Length &length)
   f.setPointSizeF(lengthPixelHeight(length));
 
   setDataLabelFont(f);
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setAdjustText(bool b)
+{
+  CQChartsUtil::testAndSet(adjustText_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

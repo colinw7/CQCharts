@@ -2095,6 +2095,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual QString columnStr(const Column &column, double x) const;
 
+  virtual QString columnValueToString(const Column &column, const QVariant &var) const;
+
   bool formatColumnValue(const Column &column, const QVariant &var, QString &str) const;
 
   //---
@@ -3489,6 +3491,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // fit border
   Sides fitBorderSides_ { "tlbr" }; //!< fit border sides
   bool  fitClip_        { false };  //!< is clipped at fit limits
+
+  mutable BBox clipRect_;
 
   // title
   TitleP  titleObj_; //!< title object

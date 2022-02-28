@@ -318,6 +318,23 @@ setNamedColumn(const QString &name, const Column &c)
 
 //---
 
+QString
+CQChartsScatterPlot::
+columnValueToString(const Column &column, const QVariant &var) const
+{
+  bool ok;
+
+  if (column == xColumn() && CQChartsVariant::isReal(var))
+    return xStr(CQChartsVariant::toReal(var, ok));
+
+  if (column == yColumn() && CQChartsVariant::isReal(var))
+    return yStr(CQChartsVariant::toReal(var, ok));
+
+  return var.toString();
+}
+
+//---
+
 void
 CQChartsScatterPlot::
 setGridNumX(int n)
@@ -599,6 +616,8 @@ addProperties()
   addSymbolProperties("points", "", "");
 
   // data labels
+  addProp("points", "adjustText", "adjustText", "Adjust text placement");
+
   dataLabel()->addPathProperties("points/labels", "Labels");
 
   //---
@@ -2783,6 +2802,9 @@ preDrawObjs(PaintDevice *) const
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
   th->dataLabelDatas_.clear();
+
+  if (isAdjustText())
+    placer_->clear();
 }
 
 void
@@ -2790,6 +2812,14 @@ CQChartsScatterPlot::
 postDrawObjs(PaintDevice *device) const
 {
   drawDataLabelDatas(device);
+
+  if (isAdjustText()) {
+    auto rect = this->calcDataRect();
+
+    placer_->place(rect);
+
+    placer_->draw(device);
+  }
 }
 
 //---
@@ -3475,6 +3505,26 @@ getGroupObjs(int ig, PlotObjs &objs) const
 
 //---
 
+void
+CQChartsScatterPlot::
+drawDataLabel(PaintDevice *device, const BBox &bbox, const QString &str,
+              const PenBrush &penBrush, const Font &font) const
+{
+  //auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  if (isAdjustText())
+    dataLabel_->setTextPlacer(placer_);
+
+  dataLabel()->draw(device, bbox, str,
+                    static_cast<CQChartsDataLabel::Position>(dataLabelPosition()),
+                    penBrush, font);
+
+  if (isAdjustText())
+    dataLabel_->setTextPlacer(nullptr);
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsScatterPlot::
 createCustomControls()
@@ -3896,7 +3946,7 @@ isMinSymbolSize() const
 
 void
 CQChartsScatterPointObj::
-drawDataLabel(PaintDevice *) const
+drawDataLabel(PaintDevice *device) const
 {
   if (this->isMinLabelSize())
     return;
@@ -3926,11 +3976,15 @@ drawDataLabel(PaintDevice *) const
 
   calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
 
-  BBox tbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  const_cast<CQChartsScatterPlot *>(plot_)->
-    addDataLabelData(plot_->pixelToWindow(tbbox), name(),
-                     plot_->dataLabelPosition(), penBrush, font);
+  auto tbbox = plot_->pixelToWindow(ptbbox);
+
+  if (plot_->isAdjustText())
+    plot_->drawDataLabel(device, tbbox, name(), penBrush, font);
+  else
+    const_cast<CQChartsScatterPlot *>(plot_)->
+      addDataLabelData(tbbox, name(), plot_->dataLabelPosition(), penBrush, font);
 }
 
 bool

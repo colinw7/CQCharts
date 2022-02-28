@@ -562,6 +562,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  QString columnValueToString(const Column &column, const QVariant &var) const override;
+
+  //---
+
   // get x/y column type
   const ColumnType &xColumnType() const { return xColumnType_; }
   const ColumnType &yColumnType() const { return yColumnType_; }
@@ -763,6 +767,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // object for group
   void getGroupObjs(int ig, PlotObjs &objs) const;
+
+  //---
+
+  void drawDataLabel(PaintDevice *device, const BBox &bbox, const QString &str,
+                     const PenBrush &penBrush, const Font &font) const;
 
  private:
   using AxisBoxWhisker = CQChartsAxisBoxWhisker;

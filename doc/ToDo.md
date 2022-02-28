@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + tip header for date
  + tip column cleanup all plots
  + barchart stacked + labels (only one label needed). Tip shows all values for single bar
  + text placer in all plots (xy plot use data label which includes border !!)

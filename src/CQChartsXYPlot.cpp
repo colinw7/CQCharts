@@ -283,17 +283,12 @@ init()
   //---
 
   addColorMapKey();
-
-  //---
-
-  placer_ = new CQChartsTextPlacer;
 }
 
 void
 CQChartsXYPlot::
 term()
 {
-  delete placer_;
 }
 
 //---
@@ -339,6 +334,21 @@ setVectorYColumn(const Column &c)
 }
 
 //---
+
+QString
+CQChartsXYPlot::
+columnValueToString(const Column &column, const QVariant &var) const
+{
+  bool ok;
+
+  if (column == xColumn() && CQChartsVariant::isReal(var))
+    return xStr(CQChartsVariant::toReal(var, ok));
+
+  if (yColumns().hasColumn(column) && CQChartsVariant::isReal(var))
+    return yStr(CQChartsVariant::toReal(var, ok));
+
+  return var.toString();
+}
 
 void
 CQChartsXYPlot::
@@ -460,13 +470,6 @@ CQChartsXYPlot::
 setLayers(int i)
 {
   CQChartsUtil::testAndSet(layers_, i, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setAdjustText(bool b)
-{
-  CQChartsUtil::testAndSet(adjustText_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -2880,24 +2883,21 @@ void
 CQChartsXYPlot::
 preDrawObjs(PaintDevice *) const
 {
-  if (! isAdjustText())
-    return;
-
-  placer_->clear();
+  if (isAdjustText())
+    placer_->clear();
 }
 
 void
 CQChartsXYPlot::
 postDrawObjs(PaintDevice *device) const
 {
-  if (! isAdjustText())
-    return;
+  if (isAdjustText()) {
+    auto rect = this->calcDataRect();
 
-  auto rect = this->calcDataRect();
+    placer_->place(rect);
 
-  placer_->place(rect);
-
-  placer_->draw(device);
+    placer_->draw(device);
+  }
 }
 
 void
@@ -3086,8 +3086,8 @@ drawDataLabel(PaintDevice *device, const BBox &bbox, const QString &str,
     dataLabel_->setTextPlacer(placer_);
 
   dataLabel()->draw(device, bbox, str,
-                  static_cast<CQChartsDataLabel::Position>(dataLabelPosition()),
-                  penBrush, font);
+                    static_cast<CQChartsDataLabel::Position>(dataLabelPosition()),
+                    penBrush, font);
 
   if (isAdjustText())
     dataLabel_->setTextPlacer(nullptr);
@@ -3630,28 +3630,33 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
+  plot()->addTipHeader(tableTip, modelInd());
+
   plot()->addNoTipColumns(tableTip);
 
   //---
 
   // add label (name column) as header
-  if (labelObj() && labelObj()->label().length()) {
-    if (! tableTip.hasColumn(labelObj()->labelColumn())) {
-      tableTip.addBoldLine(labelObj()->label());
+  auto labelStr    = (labelObj() ? labelObj()->label() : QString());
+  auto labelColumn = (labelObj() ? labelObj()->labelColumn() : Column());
 
-      tableTip.addColumn(labelObj()->labelColumn());
-    }
+  if (labelStr.length() && ! tableTip.hasColumn(labelColumn)) {
+    auto name = plot()->columnHeaderName(labelColumn, /*tip*/true);
+
+    tableTip.addTableRow(name, labelStr);
+
+    tableTip.addColumn(labelColumn);
   }
 
   //---
 
   // add id column
-  auto ind1 = plot()->unnormalizeIndex(modelInd());
+  if (! tableTip.hasColumn(plot()->idColumn())) {
+    auto ind1 = plot()->unnormalizeIndex(modelInd());
 
-  QString idStr;
+    QString idStr;
 
-  if (calcColumnId(ind1, idStr)) {
-    if (! tableTip.hasColumn(plot()->idColumn())) {
+    if (calcColumnId(ind1, idStr)) {
       tableTip.addTableRow(plot()->idHeaderName(), idStr);
 
       tableTip.addColumn(plot()->idColumn());
@@ -3662,20 +3667,32 @@ calcTipId() const
 
   // add group column (TODO: check group column)
   if (ig_.n > 1) {
-    auto groupName = plot()->groupIndName(ig_.i);
+    auto groupColumn = plot_->groupIndColumn();
 
-    tableTip.addTableRow("Group", groupName);
+    if (! tableTip.hasColumn(groupColumn)) {
+      auto groupName = plot()->groupIndName(ig_.i);
+
+      tableTip.addTableRow("Group", groupName);
+
+      tableTip.addColumn(groupColumn);
+    }
   }
 
   //---
 
+#if 0
   // add name column (TODO: needed or combine with header)
-  if (! labelObj() || ! labelObj()->label().length()) {
-    auto name = plot()->valueName(is_.i, is_.n, modelInd().row());
+  if (! labelStr.length() && ! tableTip.hasColumn(plot_->nameColumn())) {
+    auto name = plot()->columnHeaderName(plot_->nameColumn(), /*tip*/true);
 
-    if (name.length())
-      tableTip.addTableRow("Name", name);
+    auto value = plot()->valueName(is_.i, is_.n, modelInd().row());
+
+    if (value.length())
+      tableTip.addTableRow(name, value);
+
+    tableTip.addColumn(plot_->nameColumn());
   }
+#endif
 
   //---
 
@@ -3685,14 +3702,13 @@ calcTipId() const
 
     QString xstr;
 
-    if (! plot()->calcMapXColumn()) {
-      xstr = plot()->xStr(x);
-    }
-    else {
+    if (plot()->calcMapXColumn()) {
       auto *columnDetails = plot()->columnDetails(plot()->xColumn());
 
       xstr = (columnDetails ? columnDetails->uniqueValue(int(x)).toString() : plot()->xStr(x));
     }
+    else
+      xstr = plot()->xStr(x);
 
     QString xname;
 
@@ -3720,21 +3736,7 @@ calcTipId() const
   //---
 
   auto addColumnRowValue = [&](const CQChartsColumn &column) {
-    if (! column.isValid()) return;
-
-    if (tableTip.hasColumn(column))
-      return;
-
-    ModelIndex columnModelInd(plot_, modelInd().row(), column, modelInd().parent());
-
-    bool ok;
-
-    auto str = plot_->modelString(columnModelInd, ok);
-    if (! ok) return;
-
-    tableTip.addTableRow(plot_->columnHeaderName(column), str);
-
-    tableTip.addColumn(column);
+    plot_->addTipColumn(tableTip, column, modelInd());
   };
 
   //---
