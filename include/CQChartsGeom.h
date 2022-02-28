@@ -19,6 +19,7 @@
 
 namespace CQChartsGeom {
 
+#if 0
 /*!
  * \brief Real class
  * \ingroup Charts
@@ -49,6 +50,7 @@ class Real : public CQChartsComparatorBase<Real> {
  private:
   double r_ { 0.0 };
 };
+#endif
 
 //---
 

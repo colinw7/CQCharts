@@ -1271,12 +1271,10 @@ void
 CQChartsPointPlot::
 symbolSizeSelected(const Length &size, bool visible)
 {
-  auto psize = lengthPixelWidth(size);
-
   if (! visible)
-    symbolSizeFilter_.insert(CQChartsGeom::Real(psize));
+    symbolSizeFilter_.insert(size);
   else
-    symbolSizeFilter_.erase(CQChartsGeom::Real(psize));
+    symbolSizeFilter_.erase(size);
 
   updateRangeAndObjs();
 }
@@ -1285,9 +1283,7 @@ bool
 CQChartsPointPlot::
 symbolSizeVisible(const Length &size) const
 {
-  auto psize = lengthPixelWidth(size);
-
-  auto p = symbolSizeFilter_.find(Real(psize));
+  auto p = symbolSizeFilter_.find(size);
 
   return (p == symbolSizeFilter_.end());
 }
@@ -1301,22 +1297,19 @@ symbolSizeFilterNames() const
   auto mapMin = symbolSizeData_.map_min;
   auto mapMax = symbolSizeData_.map_max;
 
-  using LengthSize = std::map<Real, QString>;
+  using LengthSize = std::map<Length, QString>;
 
   LengthSize lengthSize;
 
   for (int i = 0; i < n; ++i) {
     auto name = symbolSizeMapKey_->uniqueValues().at(i).toString();
 
-    Length l;
-    Real   size;
+    Length length;
 
-    if (symbolSizeData_.sizeMap.valueToLength(name, l))
-      size = Real(lengthPixelWidth(l));
-    else
-      size = Real(CMathUtil::map(i, 0, n - 1, mapMin, mapMax));
+    if (! symbolSizeData_.sizeMap.valueToLength(name, length))
+      length = Length::pixel(CMathUtil::map(i, 0, n - 1, mapMin, mapMax));
 
-    lengthSize[size] = name;
+    lengthSize[length] = name;
   }
 
   QStringList names;
@@ -1329,6 +1322,22 @@ symbolSizeFilterNames() const
   }
 
   return names;
+}
+
+void
+CQChartsPointPlot::
+setSymbolSizeFilterNames(const QStringList &names)
+{
+  symbolSizeFilter_.clear();
+
+  for (const auto &name : names) {
+    Length length;
+
+    if (symbolSizeData_.sizeMap.valueToLength(name, length))
+      symbolSizeFilter_.insert(length);
+  }
+
+  updateRangeAndObjs();
 }
 
 //---
@@ -1530,6 +1539,22 @@ symbolTypeFilterNames() const
   }
 
   return names;
+}
+
+void
+CQChartsPointPlot::
+setSymbolTypeFilterNames(const QStringList &names)
+{
+  symbolTypeFilter_.clear();
+
+  for (const auto &name : names) {
+    Symbol symbol;
+
+    if (symbolTypeData_.typeMap.valueToSymbol(name, symbol))
+      symbolTypeFilter_.insert(symbol);
+  }
+
+  updateRangeAndObjs();
 }
 
 //---

@@ -4696,6 +4696,22 @@ colorFilterNames() const
   return names;
 }
 
+void
+CQChartsPlot::
+setColorFilterNames(const QStringList &names)
+{
+  colorFilter_.clear();
+
+  for (const auto &name : names) {
+    Color color;
+
+    if (colorColumnData_.colorMap.valueToColor(name, color))
+      colorFilter_.insert(color);
+  }
+
+  updateRangeAndObjs();
+}
+
 //------
 
 void
@@ -14450,9 +14466,9 @@ fitBBox(FitType fitType) const
   bbox += dataFitBBox();
 
   if (fitType == FitType::ALL) {
-    bbox += axesFitBBox       ();
-    bbox += keyFitBBox        ();
-    bbox += titleFitBBox      ();
+    bbox += axesFitBBox ();
+    bbox += keyFitBBox  ();
+    bbox += titleFitBBox();
   }
 
   bbox += annotationsFitBBox();

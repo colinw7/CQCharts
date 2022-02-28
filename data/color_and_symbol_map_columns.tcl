@@ -15,29 +15,41 @@ set model [load_charts_model -var symbol_data -transpose -first_line_header]
 
 #---
 
-set plot1 [create_charts_plot -model $model -type scatter \
+set plot [create_charts_plot -model $model -type scatter \
   -columns {{x 0} {y 1}} -title "Scatter Color Map"]
 
-#set_charts_property -plot $plot1 -name columns.color -value "@REF x"
-#set_charts_property -plot $plot1 -name columns.symbolType -value "@REF y"
-#set_charts_property -plot $plot1 -name columns.symbolSize -value "@REF name"
-set_charts_property -plot $plot1 -name columns.color -value 2
-set_charts_property -plot $plot1 -name columns.symbolType -value 2
-set_charts_property -plot $plot1 -name columns.symbolSize -value 2
+#set_charts_property -plot $plot -name columns.color -value "@REF x"
+#set_charts_property -plot $plot -name columns.symbolType -value "@REF y"
+#set_charts_property -plot $plot -name columns.symbolSize -value "@REF name"
+set_charts_property -plot $plot -name columns.color -value 2
+set_charts_property -plot $plot -name columns.symbolType -value 2
+set_charts_property -plot $plot -name columns.symbolSize -value 2
 
-set_charts_property -plot $plot1 -name mapping.color.enabled -value 1
-set_charts_property -plot $plot1 -name mapping.symbolType.enabled -value 1
-set_charts_property -plot $plot1 -name mapping.symbolSize.enabled -value 1
+set_charts_property -plot $plot -name mapping.color.enabled -value 1
+set_charts_property -plot $plot -name mapping.symbolType.enabled -value 1
+set_charts_property -plot $plot -name mapping.symbolSize.enabled -value 1
 
-set_charts_property -plot $plot1 -name mapping.color.color_map \
+set_charts_property -plot $plot -name mapping.color.color_map \
   -value {{one red} {two green} {three blue} {four cyan}}
-set_charts_property -plot $plot1 -name mapping.symbolType.type_map \
+set_charts_property -plot $plot -name mapping.symbolType.type_map \
   -value {{one circle} {two square} {three triangle} {four star}}
-set_charts_property -plot $plot1 -name mapping.symbolSize.size_map \
+set_charts_property -plot $plot -name mapping.symbolSize.size_map \
   -value {{one 0.1P} {two 0.2P} {three 0.3P} {four 0.4P}}
 
-set_charts_property -plot $plot1 -name mapKeys.color.visible -value 1
-set_charts_property -plot $plot1 -name mapKeys.symbolType.visible -value 1
-set_charts_property -plot $plot1 -name mapKeys.symbolSize.visible -value 1
+set_charts_property -plot $plot -name mapKeys.color.visible -value 1
+set_charts_property -plot $plot -name mapKeys.symbolType.visible -value 1
+set_charts_property -plot $plot -name mapKeys.symbolSize.visible -value 1
 
-set_charts_property -plot $plot1 -name points.size -value 12px
+set_charts_property -plot $plot -name points.size -value 12px
+
+set_charts_data -plot $plot -name color_filter -value one
+set_charts_data -plot $plot -name symbol_type_filter -value two
+set_charts_data -plot $plot -name symbol_size_filter -value three
+
+connect_charts_signal -plot $plot -from plotObjsAdded -to getFilters
+
+proc getFilters { view plot } {
+  echo [get_charts_data -plot $plot -name color_filter]
+  echo [get_charts_data -plot $plot -name symbol_size_filter]
+  echo [get_charts_data -plot $plot -name symbol_type_filter]
+}

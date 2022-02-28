@@ -1117,7 +1117,7 @@ dataFitBBox() const
     if (! plotObj->isVisible())
       continue;
 
-    auto *pointObj = dynamic_cast<CQChartsScatterPointObj    *>(plotObj);
+    auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
     if (pointObj) {
       if (pointObj->isFiltered())

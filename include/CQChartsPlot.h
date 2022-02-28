@@ -2799,6 +2799,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool colorVisible(const QColor &color) const;
 
   QStringList colorFilterNames() const;
+  void setColorFilterNames(const QStringList &names);
 
   virtual bool symbolTypeVisible(const Symbol &) const { return true; }
   virtual bool symbolSizeVisible(const Length &) const { return true; }

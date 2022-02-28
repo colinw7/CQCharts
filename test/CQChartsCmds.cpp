@@ -5949,7 +5949,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       static auto names = QStringList() <<
        "model" << "view" << "value" << "map" << "annotations" << "objects" <<
        "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
-       "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors";
+       "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
+       "color_filter" << "symbol_type_filter" << "symbol_size_filter";
       return names;
     }
     else if (hasAnnotation) {
@@ -6862,7 +6863,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "color_filter") {
       auto typeNames = plot->colorFilterNames();
 
-       return cmdBase_->setCmdRc(typeNames);
+      return cmdBase_->setCmdRc(typeNames);
     }
     else if (name == "symbol_type_filter") {
       auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
@@ -7389,6 +7390,7 @@ execCmd(CQChartsCmdArgs &argv)
         if (! obj) return errorMsg("Invalid plot object id '" + objectId + "'");
 
         QStringList strs;
+
         if (! CQTcl::splitList(value, strs) || strs.size() != 2)
           return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
@@ -7407,10 +7409,33 @@ execCmd(CQChartsCmdArgs &argv)
         }
       }
     }
+    else if (name == "color_filter") {
+      QStringList strs;
+
+      if (CQTcl::splitList(value, strs))
+        plot->setColorFilterNames(strs);
+    }
+    else if (name == "symbol_type_filter") {
+      auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
+
+      QStringList strs;
+
+      if (pointPlot && CQTcl::splitList(value, strs))
+        pointPlot->setSymbolTypeFilterNames(strs);
+    }
+    else if (name == "symbol_size_filter") {
+      auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
+
+      QStringList strs;
+
+      if (pointPlot && CQTcl::splitList(value, strs))
+        pointPlot->setSymbolSizeFilterNames(strs);
+    }
     // plot object property
     else if (name == "?") {
       static auto names = QStringList() << "fit" << "zoom_full" << "updates_enabled" <<
-        "set_hidden" << "select" << "model" << "tick_label";
+        "set_hidden" << "select" << "model" << "tick_label" <<
+        "color_filter" << "symbol_type_filter" << "symbol_size_filter";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -7430,6 +7455,7 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg("Invalid axis annotation");
 
       QStringList strs;
+
       if (! CQTcl::splitList(value, strs) || strs.size() != 2)
         return errorMsg(QString("Invalid tick label '%1'").arg(value));
 

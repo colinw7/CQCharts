@@ -297,6 +297,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool symbolTypeVisible(const Symbol &symbol) const override;
 
   QStringList symbolTypeFilterNames() const;
+  void setSymbolTypeFilterNames(const QStringList &names);
 
   //---
 
@@ -355,6 +356,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool symbolSizeVisible(const Length &size) const override;
 
   QStringList symbolSizeFilterNames() const;
+  void setSymbolSizeFilterNames(const QStringList &names);
 
   //----
 
@@ -663,8 +665,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using GroupFitData     = std::map<int, BestFit *>;
   using GroupHull        = std::map<int, Hull *>;
   using RugP             = std::unique_ptr<CQChartsAxisRug>;
-  using Real             = CQChartsGeom::Real;
-  using SymbolSizeFilter = std::set<Real>;
+  using SymbolSizeFilter = std::set<Length>;
   using SymbolTypeFilter = std::set<Symbol>;
 
   // label data

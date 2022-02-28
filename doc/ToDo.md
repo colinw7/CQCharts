@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + move javascript support to separate file
+ + auto add variable to tcl shell for current file, plot, .... Add commands to history ?
  + tip header for date
  + tip column cleanup all plots
  + barchart stacked + labels (only one label needed). Tip shows all values for single bar
