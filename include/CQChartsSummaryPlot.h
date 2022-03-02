@@ -239,7 +239,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox fitBBox(FitType fitType) const override;
+  CQChartsGeom::BBox fitBBox() const override;
 
   //---
 
@@ -361,6 +361,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   void drawScatter     (PaintDevice *device) const;

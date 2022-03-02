@@ -175,7 +175,7 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   Font calcLabelFont() const;
 
@@ -220,6 +220,8 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 class CQChartsScatterCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(int count READ numPoints)
+
  public:
   using Plot   = CQChartsScatterPlot;
   using Points = std::vector<Point>;
@@ -232,6 +234,8 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   int groupInd() const { return groupInd_; }
 
   const Points &points() const { return points_; }
+
+  int numPoints() const { return int(points_.size()); }
 
   //---
 
@@ -249,13 +253,9 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   void calcRugPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
   const Plot* plot_     { nullptr }; //!< scatter plot
@@ -275,6 +275,8 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 class CQChartsScatterHexObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(int count READ numPoints)
+
  public:
   using Plot   = CQChartsScatterPlot;
   using Points = std::vector<Point>;
@@ -285,6 +287,8 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
                         const Polygon &poly, int n, int maxN);
 
   int groupInd() const { return groupInd_; }
+
+  int numPoints() const { return n_; }
 
   //---
 
@@ -302,11 +306,7 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const Plot* plot_     { nullptr }; //!< scatter plot
@@ -352,6 +352,8 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   bool drawMouseOver() const override { return false; }
 

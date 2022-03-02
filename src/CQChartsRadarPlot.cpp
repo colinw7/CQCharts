@@ -10,7 +10,6 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -1150,15 +1149,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsRadarObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------

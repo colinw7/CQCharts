@@ -784,13 +784,9 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   QColor calcFillColor() const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
   const Plot* plot_        { nullptr }; //!< parent plot
@@ -807,6 +803,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
  */
 class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
+
+  Q_PROPERTY(double value READ value)
 
  public:
   using Plot = CQChartsSankeyPlot;
@@ -841,6 +839,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void setSrcRect (const BBox &rect) { srcRect_  = rect; }
   void setDestRect(const BBox &rect) { destRect_ = rect; }
 
+  double value() const { return (edge()->hasValue() ? edge()->value().real() : 0.0); }
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
@@ -872,9 +872,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
   const Plot*          plot_      { nullptr }; //!< parent plot

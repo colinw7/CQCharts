@@ -12,7 +12,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -1731,20 +1730,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush, drawType());
-}
-
-void
-CQChartsAdjacencyCellObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  auto &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " << value() << ";\n";
 }
 
 double

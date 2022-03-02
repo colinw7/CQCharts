@@ -8,7 +8,6 @@
 #include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsTextPlacer.h>
 #include <CQChartsWidgetUtil.h>
@@ -1013,7 +1012,7 @@ createObjs(PlotObjs &objs) const
         dataTotal = maxValue(); // assume max is sum e.g. values are percent
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType()));
+        auto v = obj->value();
 
         place.addValue(v);
 
@@ -1050,7 +1049,7 @@ createObjs(PlotObjs &objs) const
       double err  = 0.0;
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType())) + err;
+        auto v = obj->value() + err;
 
         auto r = CMathUtil::map(v, 0.0, dataTotal, 0.0, 100.0);
         int  n = CMathRound::RoundNearest(r);
@@ -1613,7 +1612,7 @@ adjustObjAngles() const
         //---
 
         // set angle based on value
-        double value = obj->calcValue(static_cast<CQChartsPieObj::ValueType>(valueType()));
+        double value = obj->value();
 
         double angle  = da1*value;
         double angle2 = angle1 + angle;
@@ -2036,8 +2035,7 @@ valueStr() const
 {
   int valueColumn = modelInd().column();
 
-  return plot_->columnStr(Column(valueColumn),
-           calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())));
+  return plot_->columnStr(Column(valueColumn), value());
 }
 
 CQChartsArcData
@@ -2058,6 +2056,13 @@ arcData() const
   arcData.setAngle2(angle2());
 
   return arcData;
+}
+
+double
+CQChartsPieObj::
+value() const
+{
+  return calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType()));
 }
 
 void
@@ -2320,7 +2325,7 @@ drawSegment(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
+  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
 
   //---
 
@@ -2383,7 +2388,7 @@ drawSegment(PaintDevice *device) const
   if (isInside() && plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     PenBrush penBrush;
 
-    calcPenBrush(penBrush, /*updateState*/false, /*inside*/true);
+    calcPenBrushInside(penBrush, /*updateState*/false, /*inside*/true);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2442,7 +2447,7 @@ drawTreeMap(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
+  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
 
   //---
 
@@ -2497,7 +2502,7 @@ drawWaffle(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
+  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
 
   //---
 
@@ -2850,7 +2855,14 @@ getBBox() const
 
 void
 CQChartsPieObj::
-calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  calcPenBrushInside(penBrush, updateState, /*inside*/false);
+}
+
+void
+CQChartsPieObj::
+calcPenBrushInside(PenBrush &penBrush, bool updateState, bool inside) const
 {
   // calc stroke and brush
   auto colorInd = this->calcColorInd();
@@ -2864,21 +2876,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsPieObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/false, /*inside*/false);
-
-  PlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " <<
-    calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())) << ";\n";
 }
 
 QColor
@@ -3334,14 +3331,12 @@ drawDumbbell(PaintDevice *device) const
   for (const auto &obj : objs_) {
     PenBrush penBrush;
 
-    obj->calcPenBrush(penBrush, /*updateState*/device->isInteractive(), obj->isInside());
+    obj->calcPenBrushInside(penBrush, /*updateState*/device->isInteractive(), obj->isInside());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     // draw symbol
-    double r = CMathUtil::map(
-      obj->calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType())),
-      vmin, vmax, x1, x2);
+    double r = CMathUtil::map(obj->value(), vmin, vmax, x1, x2);
 
     auto p = Point(r, c.y);
 

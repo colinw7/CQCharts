@@ -5,7 +5,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
 
@@ -1588,12 +1587,12 @@ draw(PaintDevice *device) const
   //---
 
   if (hier_->isShowTitle())
-    drawText(device, bbox);
+    drawText(device, bbox, updateState);
 }
 
 void
 CQChartsTreeMapHierObj::
-drawText(PaintDevice *device, const BBox &bbox) const
+drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 {
   // get label (name)
   auto name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
@@ -1602,7 +1601,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/false);
+  calcPenBrush(penBrush, updateState);
 
   plot_->charts()->setContrastColor(penBrush.brush.color());
 
@@ -1615,7 +1614,8 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->headerTextAlpha()));
 
-  plot_->updateObjPenBrushState(this, tPenBrush);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1699,21 +1699,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsTreeMapHierObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  writeObjScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.name = \"" << node_->name().toStdString() << "\";\n";
-  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 //------
@@ -1848,7 +1833,7 @@ draw(PaintDevice *device) const
 
   bool updateState = device->isInteractive();
 
-  calcPenBrush(penBrush, isNodePoint, updateState);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -1872,12 +1857,12 @@ draw(PaintDevice *device) const
   //---
 
   if (plot_->isTextVisible())
-    drawText(device, bbox);
+    drawText(device, bbox, updateState);
 }
 
 void
 CQChartsTreeMapNodeObj::
-drawText(PaintDevice *device, const BBox &bbox) const
+drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1920,7 +1905,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*isNodePoint*/false, /*updateState*/false);
+  calcPenBrushNodePoint(penBrush, /*isNodePoint*/false, updateState);
 
   plot_->charts()->setContrastColor(penBrush.brush.color());
 
@@ -1935,7 +1920,8 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
 
-  plot_->updateObjPenBrushState(this, tPenBrush);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1999,7 +1985,16 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
 void
 CQChartsTreeMapNodeObj::
-calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  bool isNodePoint = this->isNodePoint();
+
+  calcPenBrushNodePoint(penBrush, isNodePoint, updateState);
+}
+
+void
+CQChartsTreeMapNodeObj::
+calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
@@ -2053,23 +2048,6 @@ isNodePoint() const
   double ph = std::abs(p2.y - p1.y) - 2;
 
   return (pw <= 1.5 || ph <= 1.5);
-}
-
-void
-CQChartsTreeMapNodeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  bool isNodePoint = this->isNodePoint();
-
-  calcPenBrush(penBrush_, isNodePoint, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.name = \"" << node_->name().toStdString() << "\";\n";
-  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 bool

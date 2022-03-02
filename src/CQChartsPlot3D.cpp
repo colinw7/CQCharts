@@ -744,6 +744,12 @@ CQChartsPlot3DObj(const CQChartsPlot3D *plot3D) :
 {
 }
 
+void
+CQChartsPlot3DObj::
+calcPenBrush(PenBrush &, bool) const
+{
+}
+
 //---
 
 CQChartsLine3DObj::

@@ -90,11 +90,7 @@ class CQChartsWordObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WordCloudPlot* plot_ { nullptr }; //!< parent plot

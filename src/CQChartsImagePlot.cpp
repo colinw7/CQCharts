@@ -7,7 +7,6 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
@@ -935,7 +934,8 @@ draw(PaintDevice *device) const
 
       plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
-      plot_->updateObjPenBrushState(this, tPenBrush);
+      if (updateState)
+        plot_->updateObjPenBrushState(this, tPenBrush);
 
       device->setPen(tPenBrush.pen);
 
@@ -1001,20 +1001,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsImageObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " << value() << ";\n";
 }
 
 double

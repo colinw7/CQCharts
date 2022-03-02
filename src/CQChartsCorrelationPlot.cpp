@@ -11,7 +11,6 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -983,7 +982,7 @@ draw(PaintDevice *device) const
                      CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
-        drawCellLabel(device, xname);
+        drawCellLabel(device, xname, updateState);
 
       skipLabel = true;
     }
@@ -1000,8 +999,8 @@ draw(PaintDevice *device) const
       BBox rect1(x1, y1, x1 + w/2.0, y1 + h/2.0);
       BBox rect2(x2 - w/2.0, y2 - h/2.0, x2, y2);
 
-      drawCellLabel(device, QString::number(minMax.min()), rect1, -4);
-      drawCellLabel(device, QString::number(minMax.max()), rect2, -4);
+      drawCellLabel(device, QString::number(minMax.min()), rect1, -4, updateState);
+      drawCellLabel(device, QString::number(minMax.max()), rect2, -4, updateState);
 
       //---
 
@@ -1011,7 +1010,7 @@ draw(PaintDevice *device) const
                      CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
-        drawCellLabel(device, xname);
+        drawCellLabel(device, xname, updateState);
 
       //---
 
@@ -1192,7 +1191,7 @@ draw(PaintDevice *device) const
   if (plot_->isCellLabels() && ! skipLabel) {
     auto valueStr = CQChartsUtil::formatReal(value());
 
-    drawCellLabel(device, valueStr);
+    drawCellLabel(device, valueStr, updateState);
   }
 
   //---
@@ -1202,14 +1201,15 @@ draw(PaintDevice *device) const
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(PaintDevice *device, const QString &str) const
+drawCellLabel(PaintDevice *device, const QString &str, bool updateState) const
 {
-  drawCellLabel(device, str, rect());
+  drawCellLabel(device, str, rect(), /*fontInc*/0.0, updateState);
 }
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect, double fontInc) const
+drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect,
+              double fontInc, bool updateState) const
 {
   // calc pen and brush
   ColorInd ic;
@@ -1235,7 +1235,8 @@ drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect, double 
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
-  plot_->updateObjPenBrushState(this, tPenBrush);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, tPenBrush);
 
   device->setPen(tPenBrush.pen);
 
@@ -1276,20 +1277,6 @@ CQChartsCorrelationCellObj::
 valueColorInd(ColorInd &ic) const
 {
   ic = ColorInd(std::abs(value()));
-}
-
-void
-CQChartsCorrelationCellObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " << value() << ";\n";
 }
 
 double

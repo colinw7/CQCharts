@@ -82,6 +82,8 @@ class CQChartsDelaunayPointObj : public CQChartsPlotPointObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   Length calcSymbolSize() const override;
 
  private:

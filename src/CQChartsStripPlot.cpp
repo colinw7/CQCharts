@@ -10,7 +10,6 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -753,9 +752,23 @@ draw(PaintDevice *device) const
   //---
 
   // calc stroke and brush
-  auto colorInd = this->calcColorInd();
-
   PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  // draw symbol
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsStripPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = this->calcColorInd();
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
 
@@ -773,12 +786,8 @@ draw(PaintDevice *device) const
     }
   }
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
-
-  //---
-
-  // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------

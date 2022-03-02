@@ -744,17 +744,15 @@ setHullLayer(const DrawLayer &l)
 
 CQChartsGeom::BBox
 CQChartsPointPlot::
-fitBBox(FitType fitType) const
+fitBBox() const
 {
-  auto bbox = CQChartsPlot::fitBBox(fitType);
+  auto bbox = CQChartsPlot::fitBBox();
 
-  if (fitType == FitType::ALL) {
-    if (symbolTypeMapKey_ && symbolTypeMapKey_->isVisible())
-      bbox += symbolTypeMapKey_->bbox();
+  if (symbolTypeMapKey_ && symbolTypeMapKey_->isVisible())
+    bbox += symbolTypeMapKey_->bbox();
 
-    if (symbolSizeMapKey_ && symbolSizeMapKey_->isVisible())
-      bbox += symbolSizeMapKey_->bbox();
-  }
+  if (symbolSizeMapKey_ && symbolSizeMapKey_->isVisible())
+    bbox += symbolSizeMapKey_->bbox();
 
   return bbox;
 }
@@ -771,7 +769,7 @@ createBestFitObj(int groupInd, const QString &name, const ColorInd &ig, const Co
 
 void
 CQChartsPointPlot::
-drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) const
+drawBestFit(PaintDevice *device, const BestFit *fitData, const PenBrush &penBrush) const
 {
   // calc fit shape at each pixel
   Polygon bpoly, poly, tpoly;
@@ -805,55 +803,47 @@ drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) con
     }
   }
 
+  if (! poly.size())
+    return;
+
   //---
 
-  if (poly.size()) {
-    // calc pen and brush
-    PenBrush penBrush;
+  // calc pen and brush
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    auto strokeColor = interpBestFitStrokeColor(ic);
-    auto fillColor   = interpBestFitFillColor  (ic);
+  //---
 
-    setPenBrush(penBrush, bestFitPenData(strokeColor), bestFitBrushData(fillColor));
+  // draw fit deviation shape
+  if (isBestFitDeviation()) {
+    Polygon dpoly;
 
-    updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+    for (int i = 0; i < bpoly.size(); ++i) {
+      if (isInterrupt())
+        return;
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+      auto p = bpoly.point(i);
 
-    //---
-
-    // draw fit deviation shape
-    if (isBestFitDeviation()) {
-      Polygon dpoly;
-
-      for (int i = 0; i < bpoly.size(); ++i) {
-        if (isInterrupt())
-          return;
-
-        auto p = bpoly.point(i);
-
-        dpoly.addPoint(p);
-      }
-
-      for (int i = tpoly.size() - 1; i >= 0; --i) {
-        if (isInterrupt())
-          return;
-
-        auto p = tpoly.point(i);
-
-        dpoly.addPoint(p);
-      }
-
-      device->drawPolygon(dpoly);
+      dpoly.addPoint(p);
     }
 
-    //---
+    for (int i = tpoly.size() - 1; i >= 0; --i) {
+      if (isInterrupt())
+        return;
 
-    // draw fit line
-    auto path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
+      auto p = tpoly.point(i);
 
-    device->strokePath(path, penBrush.pen);
+      dpoly.addPoint(p);
+    }
+
+    device->drawPolygon(dpoly);
   }
+
+  //---
+
+  // draw fit line
+  auto path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
+
+  device->strokePath(path, penBrush.pen);
 }
 
 void
@@ -1678,10 +1668,37 @@ draw(PaintDevice *device) const
 {
   auto *bestFit = getBestFit();
 
-  if (name_ == "")
-    plot_->drawBestFit(device, bestFit, ig_);
+  //---
+
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  plot_->drawBestFit(device, bestFit, penBrush);
+}
+
+void
+CQChartsPointBestFitObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic;
+
+  if (name_ != "")
+    ic = is_;
   else
-    plot_->drawBestFit(device, bestFit, is_);
+    ic = ig_;
+
+  // calc pen and brush
+  auto strokeColor = plot_->interpBestFitStrokeColor(ic);
+  auto fillColor   = plot_->interpBestFitFillColor  (ic);
+
+  plot_->setPenBrush(penBrush, plot_->bestFitPenData(strokeColor),
+                     plot_->bestFitBrushData(fillColor));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 CQChartsFitData *
@@ -1769,31 +1786,42 @@ void
 CQChartsPointHullObj::
 draw(PaintDevice *device) const
 {
-  // draw hull
-  auto drawHullData = [&](const Hull *hull, const ColorInd &ic) {
-    // set pen/brush
-    PenBrush penBrush;
+  // set pen/brush
+  PenBrush penBrush;
 
-    plot_->setPenBrush(penBrush, plot_->hullPenData(ic), plot_->hullBrushData(ic));
+  bool updateState = device->isInteractive();
 
-    Color color1;
-
-    if (plot_->adjustedGroupColor(ig_.i, ig_.n, color1))
-      CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color1, ig_));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    hull->draw(device);
-  };
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   auto *hull = getHull();
 
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  hull->draw(device);
+}
+
+void
+CQChartsPointHullObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic;
+
   if (name_ != "")
-    drawHullData(hull, is_);
+    ic = is_;
   else
-    drawHullData(hull, ig_);
+    ic = ig_;
+
+  plot_->setPenBrush(penBrush, plot_->hullPenData(ic), plot_->hullBrushData(ic));
+
+  Color color1;
+
+  if (plot_->adjustedGroupColor(ig_.i, ig_.n, color1))
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color1, ig_));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::BOX);
 }
 
 CQChartsGrahamHull *

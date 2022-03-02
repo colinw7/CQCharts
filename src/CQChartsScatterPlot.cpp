@@ -13,7 +13,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBivariateDensity.h>
 #include <CQChartsPlotParameterEdit.h>
@@ -2919,6 +2918,8 @@ drawStatsLines(PaintDevice *device) const
 
   //---
 
+  bool updateState = device->isInteractive();
+
   // draw stats data
   for (int i = 0; i < nf; ++i) {
     if (isInterrupt())
@@ -2938,7 +2939,8 @@ drawStatsLines(PaintDevice *device) const
 
     setStatsLineDataPen(penBrush.pen, ic);
 
-    updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+    if (updateState)
+      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4249,20 +4251,6 @@ calcRugPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
-void
-CQChartsScatterCellObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.count = " << points_.size() << ";\n";
-}
-
 //------
 
 CQChartsScatterHexObj::
@@ -4342,20 +4330,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsScatterHexObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.count = " << n_ << ";\n";
-}
-
 //------
 
 CQChartsScatterDensityObj::
@@ -4427,6 +4401,13 @@ draw(PaintDevice *device) const
   plot_->setClipRect(device);
 
   density->draw(plot_, device);
+}
+
+void
+CQChartsScatterDensityObj::
+calcPenBrush(PenBrush &, bool) const
+{
+  // TODO
 }
 
 //------

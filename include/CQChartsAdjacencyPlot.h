@@ -208,6 +208,8 @@ class CQChartsAdjacencyPlot;
 class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double value READ value)
+
  public:
   using AdjacencyPlot = CQChartsAdjacencyPlot;
   using AdjacencyNode = CQChartsAdjacencyNode;
@@ -234,9 +236,7 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;

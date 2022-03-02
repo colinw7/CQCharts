@@ -11,7 +11,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsArrow.h>
@@ -2591,15 +2590,6 @@ calcFillColor() const
   return fc;
 }
 
-void
-CQChartsGraphNodeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsGraphEdgeObj::
@@ -3059,22 +3049,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsGraphEdgeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  if (edge()->hasValue()) {
-    std::ostream &os = device->os();
-
-    os << "\n";
-    os << "  this.value = " << edge()->value().real() << ";\n";
-  }
-}
-
 //------
 
 CQChartsGraphGraphObj::
@@ -3259,15 +3233,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsGraphGraphObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------

@@ -14,7 +14,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsRand.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
@@ -4317,6 +4316,16 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
 
 void
 CQChartsDistributionBarObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto barColor = this->barColor();
+  bool useLine  = this->isUseLine();
+
+  calcBarPenBrush(Color(barColor), useLine, penBrush, updateState);
+}
+
+void
+CQChartsDistributionBarObj::
 calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool updateState) const
 {
   // set pen and brush
@@ -4365,24 +4374,6 @@ isUseLine() const
   }
 
   return useLine;
-}
-
-void
-CQChartsDistributionBarObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  auto barColor = this->barColor();
-
-  bool useLine = this->isUseLine();
-
-  calcBarPenBrush(Color(barColor), useLine, penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.count = " << count() << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -4753,15 +4744,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsDistributionDensityObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsDistributionScatterObj::
@@ -4827,14 +4809,11 @@ CQChartsDistributionScatterObj::
 draw(PaintDevice *device) const
 {
   // set pen brush
-  // TODO: allow control of stroke color, alpha, and line width
-  auto ic = (is_.n > 1 ? is_ : iv_);
-
-  auto c = plot_->interpBarFillColor(ic);
-
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4868,6 +4847,18 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
   }
+}
+
+void
+CQChartsDistributionScatterObj::
+calcPenBrush(PenBrush &penBrush, bool) const
+{
+  // TODO: allow control of stroke color, alpha, and line width
+  auto ic = (is_.n > 1 ? is_ : iv_);
+
+  auto c = plot_->interpBarFillColor(ic);
+
+  plot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
 }
 
 //------

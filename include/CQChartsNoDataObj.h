@@ -28,6 +28,8 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &, bool) const override { }
+
  private:
   Font font_; //!< label font
 };

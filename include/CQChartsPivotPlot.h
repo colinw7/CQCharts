@@ -49,6 +49,8 @@ class CQChartsPivotPlot;
 class CQChartsPivotBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double value READ value)
+
  public:
   using PivotPlot = CQChartsPivotPlot;
 
@@ -87,11 +89,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   void drawFg(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
   const PivotPlot* plot_  { nullptr }; //!< parent plot
@@ -132,6 +130,8 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
   const PivotPlot* plot_     { nullptr }; //!< parent plot
@@ -174,6 +174,8 @@ class CQChartsPivotPointObj : public CQChartsPlotPointObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   Length calcSymbolSize() const override;
 
  protected:
@@ -189,6 +191,8 @@ class CQChartsPivotPointObj : public CQChartsPlotPointObj {
  */
 class CQChartsPivotCellObj : public CQChartsPlotObj {
   Q_OBJECT
+
+  Q_PROPERTY(double value READ value)
 
  public:
   using PivotPlot = CQChartsPivotPlot;
@@ -220,12 +224,12 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &bgPenBrush, bool updateState) const override;
+
   void calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const;
   void calcFgPenBrush(PenBrush &bgPenBrush, bool updateState) const;
 
   //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   void writeScriptGC(ScriptPaintDevice *device, const PenBrush &penBrush) const override;
 

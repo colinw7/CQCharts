@@ -2594,23 +2594,20 @@ setFitMargin(const PlotMargin &m)
 
 bool
 CQChartsPlot::
-needsAutoFit(FitType &fitType) const
+needsAutoFit() const
 {
   assert(! isComposite());
-
-  fitType = autoFitType_;
 
   return needsAutoFit_;
 }
 
 void
 CQChartsPlot::
-setNeedsAutoFit(bool b, FitType fitType)
+setNeedsAutoFit(bool b)
 {
   assert(! isComposite());
 
   needsAutoFit_ = b;
-  autoFitType_  = fitType;
 }
 
 void
@@ -10433,12 +10430,12 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
 {
   bool ok;
 
-  if      (name == "zoom_full")
-    zoomFull();
-  else if (name == "fit")
+  if      (name == "fit")
     autoFit();
-  else if (name == "fit_data")
-    autoFitData();
+  else if (name == "zoom_data")
+    zoomData();
+  else if (name == "zoom_full")
+    zoomFull();
   else if (name == "show_color_key")
     setColorMapKey(CQChartsVariant::toBool(args[0], ok));
   else
@@ -10956,6 +10953,28 @@ zoomFull1(bool notify)
 
   if (notify)
     emit zoomPanChanged();
+}
+
+void
+CQChartsPlot::
+zoomToData()
+{
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->zoomToData();
+
+  // calc fit box
+  BBox bbox;
+
+  bbox += dataFitBBox();
+
+  bbox += annotationsFitBBox();
+  bbox += extraFitBBox      ();
+
+  bbox.makeNonZero();
+
+  //---
+
+  zoomTo(bbox);
 }
 
 void
@@ -14315,15 +14334,13 @@ CQChartsPlot::
 updateAutoFit()
 {
   // auto fit based on last draw
-  FitType fitType;
-
-  if (needsAutoFit(fitType)) {
+  if (needsAutoFit()) {
     if (calcNextState() != UpdateState::INVALID)
       return;
 
     setNeedsAutoFit(false);
 
-    autoFit1(fitType);
+    autoFit();
   }
 }
 
@@ -14331,27 +14348,13 @@ void
 CQChartsPlot::
 autoFit()
 {
-  autoFit1(FitType::ALL);
-}
-
-void
-CQChartsPlot::
-autoFitData()
-{
-  autoFit1(FitType::DATA);
-}
-
-void
-CQChartsPlot::
-autoFit1(FitType fitType)
-{
   if (isOverlay() && ! isFirstPlot())
     return;
 
-  CQPerfTrace trace("CQChartsPlot::autoFit1");
+  CQPerfTrace trace("CQChartsPlot::autoFit");
 
   if (! isZoomFull()) {
-    setNeedsAutoFit(true, fitType);
+    setNeedsAutoFit(true);
 
     zoomFull(/*notify*/false);
 
@@ -14368,7 +14371,7 @@ autoFit1(FitType fitType)
     BBox bbox;
 
     processOverlayPlots([&](const Plot *plot) {
-      auto bbox1 = plot->fitBBox(fitType);
+      auto bbox1 = plot->fitBBox();
       auto bbox2 = plot->windowToPixel(bbox1);
       auto bbox3 = pixelToWindow(bbox2);
 
@@ -14398,17 +14401,17 @@ autoFit1(FitType fitType)
     });
   }
   else {
-    autoFitOne(fitType);
+    autoFitOne();
   }
 }
 
 void
 CQChartsPlot::
-autoFitOne(FitType fitType)
+autoFitOne()
 {
 #if 0
   for (int i = 0; i < 5; ++i) {
-    auto bbox = fitBBox(fitType);
+    auto bbox = fitBBox();
 
     setFitBBox(bbox);
 
@@ -14423,7 +14426,7 @@ autoFitOne(FitType fitType)
 
   //---
 
-  auto bbox = fitBBox(fitType);
+  auto bbox = fitBBox();
 
   setFitBBox(bbox);
 
@@ -14458,26 +14461,22 @@ setFitBBox(const BBox &bbox)
 
 CQChartsGeom::BBox
 CQChartsPlot::
-fitBBox(FitType fitType) const
+fitBBox() const
 {
   // calc fit box
   BBox bbox;
 
   bbox += dataFitBBox();
 
-  if (fitType == FitType::ALL) {
-    bbox += axesFitBBox ();
-    bbox += keyFitBBox  ();
-    bbox += titleFitBBox();
-  }
+  bbox += axesFitBBox ();
+  bbox += keyFitBBox  ();
+  bbox += titleFitBBox();
 
   bbox += annotationsFitBBox();
   bbox += extraFitBBox      ();
 
-  if (fitType == FitType::ALL) {
-    if (colorMapKey_ && colorMapKey_->isVisible())
-      bbox += colorMapKey_->bbox();
-  }
+  if (colorMapKey_ && colorMapKey_->isVisible())
+    bbox += colorMapKey_->bbox();
 
   bbox.makeNonZero();
 
@@ -14544,7 +14543,7 @@ titleFitBBox() const
 {
   BBox bbox;
 
-  if (title() && title()->isVisible())
+  if (title() && title()->isDrawn())
     bbox += title()->fitBBox();
 
   return bbox;

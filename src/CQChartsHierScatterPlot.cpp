@@ -946,20 +946,12 @@ void
 CQChartsHierScatterPointObj::
 draw(PaintDevice *device) const
 {
-  auto ic = calcColorInd();
-
-  //---
-
   // calc pen and brush
   PenBrush penBrush;
 
-  auto fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
-  auto strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
+  bool updateState = device->isInteractive();
 
-  plot_->setPenBrush(penBrush,
-    plot_->symbolPenData(strokeColor), plot_->symbolBrushData(fillColor));
-
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -988,6 +980,22 @@ draw(PaintDevice *device) const
 
     dataLabel->draw(device, plot_->pixelToWindow(ebbox), name_);
   }
+}
+
+void
+CQChartsHierScatterPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto ic = calcColorInd();
+
+  auto fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
+  auto strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
+
+  plot_->setPenBrush(penBrush,
+    plot_->symbolPenData(strokeColor), plot_->symbolBrushData(fillColor));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------

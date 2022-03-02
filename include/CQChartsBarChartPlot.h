@@ -295,13 +295,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   QColor calcBarColor() const;
-
-  //---
-
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 

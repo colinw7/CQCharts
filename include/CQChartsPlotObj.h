@@ -318,11 +318,15 @@ class CQChartsPlotObj : public CQChartsObj,
 
   virtual bool drawMouseOver() const { return true; }
 
+  virtual void calcPenBrush(PenBrush &penBrush, bool updateState) const = 0;
+
   //---
 
   virtual void writeScriptData(ScriptPaintDevice *device) const;
 
-  void writeObjScriptData(ScriptPaintDevice *device) const;
+  virtual void writeObjScriptData(ScriptPaintDevice *device) const;
+
+  virtual void writeScriptProperties(ScriptPaintDevice *device) const;
 
   virtual void writeScriptGC(ScriptPaintDevice *device, const PenBrush &penBrush) const;
 

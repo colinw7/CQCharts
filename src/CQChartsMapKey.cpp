@@ -1171,6 +1171,9 @@ bool
 CQChartsColorMapKey::
 selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
+  if (isContiguous())
+    return false;
+
   const auto &itemBoxes = itemBoxes_[drawType];
 
   auto ni = itemBoxes.size();
@@ -2216,6 +2219,9 @@ bool
 CQChartsSymbolSizeMapKey::
 selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
+  if (isContiguous())
+    return false;
+
   const auto &itemBoxes = itemBoxes_[drawType];
 
   auto ni = itemBoxes.size();
@@ -2730,6 +2736,9 @@ bool
 CQChartsSymbolTypeMapKey::
 selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 {
+  if (isContiguous())
+    return false;
+
   const auto &itemBoxes = itemBoxes_[drawType];
 
   auto ni = itemBoxes.size();

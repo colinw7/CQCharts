@@ -224,11 +224,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  //---
-
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   //---
 
@@ -286,6 +282,8 @@ class CQChartsBoxPlotOutlierObj : public CQChartsPlotPointObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   Length calcSymbolSize() const override;
 
  private:
@@ -330,6 +328,8 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   BBox extraFitBBox() const;
 
  private:
@@ -363,6 +363,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   bool inside(const Point &p) const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   using Whisker       = CQChartsBoxPlotWhisker;
@@ -422,6 +424,8 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   Length calcSymbolSize() const override;
 

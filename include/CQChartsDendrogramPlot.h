@@ -139,6 +139,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   void drawText(PaintDevice *device) const;
 
   void drawEdges(PaintDevice *device) const;

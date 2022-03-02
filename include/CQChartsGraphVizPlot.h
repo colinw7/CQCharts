@@ -538,13 +538,9 @@ class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   QColor calcFillColor() const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
   const Plot* plot_        { nullptr }; //!< parent plot
@@ -563,6 +559,7 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
   Q_PROPERTY(ShapeType shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(double    value     READ value)
 
   Q_ENUMS(ShapeType)
 
@@ -611,6 +608,8 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
   ShapeType shapeType() const;
   void setShapeType(const ShapeType &s);
 
+  double value() const { return (edge()->hasValue() ? edge()->value().real() : 0.0); }
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
@@ -636,9 +635,7 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
   const Plot*          plot_      { nullptr }; //!< parent plot

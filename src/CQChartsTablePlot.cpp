@@ -2093,6 +2093,16 @@ draw(PaintDevice *device) const
 
 void
 CQChartsTableHeaderObj::
+calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
+{
+  auto bg = plot_->interpColor(plot_->headerColor(), ColorInd());
+  auto tc = plot_->calcTextColor(bg);
+
+  plot_->setPen(penBrush, PenData(true, tc));
+}
+
+void
+CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
   ModelIndex ind(plot_, 0, headerObjData_.c, QModelIndex());
@@ -2181,6 +2191,16 @@ draw(PaintDevice *device) const
   //---
 
   device->restore();
+}
+
+void
+CQChartsTableRowObj::
+calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
+{
+  auto bg = plot_->interpColor(plot_->cellColor(), ColorInd());
+  auto tc = plot_->calcTextColor(bg);
+
+  plot_->setPen(penBrush, PenData(true, tc));
 }
 
 bool
@@ -2408,6 +2428,12 @@ draw(PaintDevice *device) const
   //---
 
   device->restore();
+}
+
+void
+CQChartsTableCellObj::
+calcPenBrush(PenBrush &, bool /*updateState*/) const
+{
 }
 
 void

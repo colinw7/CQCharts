@@ -11,7 +11,6 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 
@@ -2525,7 +2524,8 @@ draw(PaintDevice *device) const
 
   plot_->setBrush(whiskerPenBrush, BrushData(false));
 
-  plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
+  if (updateState)
+    plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
@@ -2612,7 +2612,8 @@ draw(PaintDevice *device) const
         PenData  (true, strokeColor, plot_->boxShapeData().stroke()),
         BrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
 
-      plot_->updateObjPenBrushState(this, symbolPenBrush, drawType());
+      if (updateState)
+        plot_->updateObjPenBrushState(this, symbolPenBrush, drawType());
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
@@ -2786,30 +2787,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush, drawType());
-}
-
-void
-CQChartsBoxPlotWhiskerObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  //---
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.pos         = " << pos        () << ";\n";
-  os << "  this.min         = " << min        () << ";\n";
-  os << "  this.lowerMedian = " << lowerMedian() << ";\n";
-  os << "  this.median      = " << median     () << ";\n";
-  os << "  this.upperMedian = " << upperMedian() << ";\n";
-  os << "  this.max         = " << max        () << ";\n";
-  os << "  this.mean        = " << mean       () << ";\n";
-  os << "  this.stddev      = " << stddev     () << ";\n";
-  os << "  this.notch       = " << notch      () << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -3028,24 +3005,34 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  // draw symbol
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsBoxPlotOutlierObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
   auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
-
-  PenBrush penBrush;
 
   plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
   if (color_.isValid())
     CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
 
-  plot_->updateObjPenBrushState(this, penBrush, drawType());
-
-  //---
-
-  // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 double
@@ -3125,6 +3112,8 @@ void
 CQChartsBoxPlotDataObj::
 draw(PaintDevice *device) const
 {
+  bool updateState = device->isInteractive();
+
   // set whisker fill and stroke
   PenBrush whiskerPenBrush;
 
@@ -3132,7 +3121,8 @@ draw(PaintDevice *device) const
 
   plot_->setBrush(whiskerPenBrush, BrushData(false));
 
-  plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
+  if (updateState)
+    plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
@@ -3144,7 +3134,8 @@ draw(PaintDevice *device) const
 
   plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
 
-  plot_->updateObjPenBrushState(this, penBrush, drawType());
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3265,6 +3256,13 @@ draw(PaintDevice *device) const
     if (drawVText(device, t.yb, t.yt, t.x, t.text, t.onBottom, t.bbox))
       th->addDrawBBox(t.bbox);
   }
+}
+
+void
+CQChartsBoxPlotDataObj::
+calcPenBrush(PenBrush &, bool) const
+{
+  // TODO
 }
 
 CQChartsGeom::BBox
@@ -3452,6 +3450,8 @@ void
 CQChartsBoxPlotConnectedObj::
 draw(PaintDevice *device) const
 {
+  bool updateState = device->isInteractive();
+
   // draw range polygon
   int np = int(poly_.size());
 
@@ -3459,12 +3459,7 @@ draw(PaintDevice *device) const
     // set pen and brush
     PenBrush pPenBrush;
 
-    auto bc = plot_->interpBoxStrokeColor(ig_);
-    auto fc = plot_->interpBoxFillColor  (ig_);
-
-    plot_->setPenBrush(pPenBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
-
-    plot_->updateObjPenBrushState(this, pPenBrush, drawType());
+    calcPenBrush(pPenBrush, updateState);
 
     CQChartsDrawUtil::setPenBrush(device, pPenBrush);
 
@@ -3486,7 +3481,8 @@ draw(PaintDevice *device) const
   plot_->setPen(lPenBrush,
     PenData(true, lineColor, plot_->boxShapeData().stroke()));
 
-  plot_->updateObjPenBrushState(this, lPenBrush, drawType());
+  if (updateState)
+    plot_->updateObjPenBrushState(this, lPenBrush, drawType());
 
   device->setPen(lPenBrush.pen);
 
@@ -3499,6 +3495,19 @@ draw(PaintDevice *device) const
     line.addPoint(line_.point(i));
 
   device->drawPolyline(line);
+}
+
+void
+CQChartsBoxPlotConnectedObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto bc = plot_->interpBoxStrokeColor(ig_);
+  auto fc = plot_->interpBoxFillColor  (ig_);
+
+  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------
@@ -3808,24 +3817,34 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  // draw symbol
+  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsBoxPlotPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
   auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
-
-  PenBrush penBrush;
 
   plot_->setJitterSymbolPenBrush(penBrush, colorInd);
 
   if (color_.isValid())
     CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
 
-  plot_->updateObjPenBrushState(this, penBrush, drawType());
-
-  //---
-
-  // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------

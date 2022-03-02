@@ -242,6 +242,8 @@ class CQChartsPlot3DObj : public CQChartsPlotObj {
   const BBox &drawBBox() const { return drawBBox_; }
   void setDrawBBox(const BBox &b) { drawBBox_ = b; }
 
+  void calcPenBrush(PenBrush &, bool) const override;
+
  private:
   const CQChartsPlot3D* plot3D_ { nullptr }; //!< parent plot
   Point3D               refPoint_;           //!< reference point

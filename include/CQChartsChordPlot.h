@@ -189,6 +189,8 @@ class CQChartsChordHierObj;
 class CQChartsChordSegmentObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double total READ calcTotal)
+
  public:
   using ChordPlot   = CQChartsChordPlot;
   using ChordData   = CQChartsChordData;
@@ -286,13 +288,9 @@ class CQChartsChordSegmentObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   QColor calcFromColor() const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -362,7 +360,7 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   //---
 
@@ -432,7 +430,7 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   QColor fillColor() const;
 

@@ -115,7 +115,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   //---
 

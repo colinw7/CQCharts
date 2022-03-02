@@ -67,6 +67,8 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   bool drawMouseOver() const override { return false; }
 
  private:
@@ -114,6 +116,8 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   bool drawMouseOver() const override { return false; }
 
@@ -506,7 +510,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsGeom::BBox fitBBox(FitType fitType) const override;
+  CQChartsGeom::BBox fitBBox() const override;
 
   //---
 
@@ -555,7 +559,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
  public:
-  void drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) const;
+  void drawBestFit(PaintDevice *device, const BestFit *fitData, const PenBrush &penBrush) const;
 
   void initGroupBestFit(BestFit *fitData, int ind, const QVariant &var, bool isGroup) const;
 

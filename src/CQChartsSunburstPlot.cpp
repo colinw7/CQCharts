@@ -1125,27 +1125,10 @@ resetNodeExpansion(HierNode *hierNode)
 
 //------
 
-#if 0
 void
 CQChartsSunburstPlot::
-drawNodes(PaintDevice *device, HierNode *hier) const
-{
-  for (auto &node : hier->getNodes())
-    drawNode(device, nullptr, node);
-
-  //------
-
-  for (auto &hierNode : hier->getChildren()) {
-    drawNode(device, nullptr, hierNode);
-
-    drawNodes(device, hierNode);
-  }
-}
-#endif
-
-void
-CQChartsSunburstPlot::
-drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
+drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
+         const PenBrush &tPenBrush) const
 {
   if (! node->placed())
     return;
@@ -1196,22 +1179,8 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   //---
 
-  // calc stroke and brush
-  auto colorInd = nodeObj->calcColorInd();
-
-  PenBrush penBrush;
-
-  auto bc = interpStrokeColor(colorInd);
-  auto fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
-
-  setPenBrush(penBrush, penData(bc), brushData(fc));
-
-  if (nodeObj)
-    updateObjPenBrushState(nodeObj, penBrush);
-
+  // draw path
   CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  //---
 
   QPainterPath path;
 
@@ -1237,23 +1206,12 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
     }
   }
 
-  charts()->setContrastColor(fc);
+  charts()->setContrastColor(penBrush.brush.color());
 
   //---
 
+  // draw text
   if (isTextVisible()) {
-    // calc text pen
-    PenBrush tPenBrush;
-
-    auto tc = interpTextColor(colorInd);
-
-    setPen(tPenBrush, PenData(true, tc, textAlpha()));
-
-    if (nodeObj)
-      updateObjPenBrushState(nodeObj, tPenBrush);
-
-    //---
-
     // set font
     setPainterFont(device, textFont());
 
@@ -1495,7 +1453,50 @@ void
 CQChartsSunburstNodeObj::
 draw(PaintDevice *device) const
 {
-  plot_->drawNode(device, const_cast<CQChartsSunburstNodeObj *>(this), node_);
+  bool updateState = device->isInteractive();
+
+  // calc stroke and brush
+  PenBrush penBrush;
+
+  calcPenBrush(penBrush, updateState);
+
+  // calc text pen
+  PenBrush tPenBrush;
+
+  calcTextPenBrush(tPenBrush, updateState);
+
+  //---
+
+  plot_->drawNode(device, node_, penBrush, tPenBrush);
+}
+
+void
+CQChartsSunburstNodeObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  auto bc = plot_->interpStrokeColor(colorInd);
+  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+
+  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsSunburstNodeObj::
+calcTextPenBrush(PenBrush &tPenBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  auto tc = plot_->interpTextColor(colorInd);
+
+  plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, tPenBrush);
 }
 
 //------

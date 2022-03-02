@@ -214,7 +214,7 @@ init()
 
   registerSlot("set_mode"     , QStringList() << "string");
   registerSlot("fit"          , QStringList());
-  registerSlot("fit_data"     , QStringList());
+  registerSlot("zoom_data"    , QStringList());
   registerSlot("zoom_full"    , QStringList());
   registerSlot("show_table"   , QStringList() << "bool");
   registerSlot("show_settings", QStringList() << "bool");
@@ -6053,7 +6053,7 @@ showMenu(const Point &p)
     popupMenu->addSeparator();
 
     addAction(popupMenu, "Fit"      , SLOT(fitSlot()));
-    addAction(popupMenu, "Fit Data" , SLOT(fitDataSlot()));
+    addAction(popupMenu, "Zoom Data", SLOT(zoomDataSlot()));
     addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
   }
 
@@ -6618,13 +6618,13 @@ fitSlot()
 
 void
 CQChartsView::
-fitDataSlot()
+zoomDataSlot()
 {
   auto *currentPlot = this->currentPlot(/*remap*/true);
   auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
-    basePlot->autoFitData();
+    basePlot->zoomToData();
 }
 
 void
@@ -8977,8 +8977,8 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &)
   }
   else if (name == "fit")
     fitSlot();
-  else if (name == "fit_data")
-    fitDataSlot();
+  else if (name == "zoom_data")
+    zoomDataSlot();
   else if (name == "zoom_full")
     zoomFullSlot();
   else if (name == "show_table")

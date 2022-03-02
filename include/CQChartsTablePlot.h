@@ -517,6 +517,8 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   void getObjSelectIndices(Indices &inds) const override;
 
   bool rectIntersect(const BBox &r, bool inside) const override;
@@ -549,6 +551,8 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
@@ -578,6 +582,8 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 

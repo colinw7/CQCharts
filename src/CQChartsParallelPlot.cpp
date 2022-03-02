@@ -9,7 +9,6 @@
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
@@ -1502,15 +1501,6 @@ getPolyLine(Polygon &poly) const
   }
 }
 
-void
-CQChartsParallelLineObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsParallelPointObj::
@@ -1645,18 +1635,28 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
-  auto colorInd = calcColorInd();
-
   PenBrush penBrush;
 
-  plot()->setSymbolPenBrush(penBrush, colorInd);
+  bool updateState = device->isInteractive();
 
-  plot()->updateObjPenBrushState(this, penBrush, drawType());
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw symbol
   plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsParallelPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  plot()->setSymbolPenBrush(penBrush, colorInd);
+
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------

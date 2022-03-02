@@ -63,6 +63,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
   Q_PROPERTY(QString       label       READ label       WRITE setLabel      )
   Q_PROPERTY(QString       keyLabel    READ keyLabel    WRITE setKeyLabel   )
   Q_PROPERTY(bool          exploded    READ isExploded  WRITE setExploded   )
+  Q_PROPERTY(double        value       READ value)
+
+  Q_ENUMS(ValueType)
 
  public:
   enum class ValueType {
@@ -160,6 +163,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
+  double value() const;
+
+  //---
+
   const BBox &treeMapBBox() const { return treeMapBBox_; }
   void setTreeMapBBox(const BBox &b) { treeMapBBox_ = b; }
 
@@ -199,7 +206,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  void calcPenBrushInside(PenBrush &penBrush, bool updateState, bool inside) const;
 
   void getDrawLabels(QStringList &labels) const;
 
@@ -210,8 +219,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
   BBox calcTreeMapBBox() const;
 
   //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   QColor fillColor() const;
 
@@ -363,7 +370,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void setPenBrush(PaintDevice *device) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   //---
 

@@ -9,7 +9,6 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -1229,68 +1228,41 @@ void
 CQChartsPointObj::
 draw(PaintDevice *device) const
 {
-  auto pp = plot_->pointToPolarPoint(point());
-
-  //---
-
-  bool updateState = device->isInteractive();
+  if (! pointData_.min.isSet() || ! pointData_.max.isSet())
+    return;
 
   device->setColorNames();
 
   //---
 
-  auto normalizeTemp = [&](double t) {
-    double nt = CMathUtil::map(t, plot_->coldTemp(), plot_->hotTemp(), 0.0, 1.0);
-    return std::min(std::max(nt, 0.0), 1.0);
-  };
+  double min = pointData_.min.real();
+  double max = pointData_.max.real();
 
-  if (pointData_.min.isSet() && pointData_.max.isSet()) {
-    double min = pointData_.min.real();
-    double max = pointData_.max.real();
+  //---
 
-    //---
+  auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, min));
+  auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, min));
+  auto pp3 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, max));
+  auto pp4 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, max));
 
-    auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, min));
-    auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, min));
-    auto pp3 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, max));
-    auto pp4 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, max));
+  //---
 
-    //---
+  Polygon poly;
 
-    //CQChartsFillPattern fillPattern(CQChartsFillPattern::Type::LGRADIENT);
+  poly.addPoint(pp2.point);
+  poly.addPoint(pp4.point);
+  poly.addPoint(pp3.point);
+  poly.addPoint(pp1.point);
 
-    double pmin = normalizeTemp(min);
-    double pmax = normalizeTemp(max);
+  PenBrush penBrush;
 
-    auto palette = plot_->tempPalette();
-    palette.setMin(pmin); palette.setMax(pmax);
+  bool updateState = device->isInteractive();
 
-    CQChartsFillPattern fillPattern(CQChartsFillPattern::Type::PALETTE);
+  calcPenBrush(penBrush, updateState);
 
-    fillPattern.setPalette(palette);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    //fillPattern.setAltColor(c2);
-
-    fillPattern.setAngle(Angle(pp.polar.a));
-
-    Polygon poly;
-
-    poly.addPoint(pp2.point);
-    poly.addPoint(pp4.point);
-    poly.addPoint(pp3.point);
-    poly.addPoint(pp1.point);
-
-    PenBrush penBrush;
-
-    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, QColor(), Alpha(), fillPattern));
-
-    if (updateState)
-      plot_->updateObjPenBrushState(this, penBrush);
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    device->drawPolygon(poly);
-  }
+  device->drawPolygon(poly);
 
   //---
 
@@ -1299,9 +1271,38 @@ draw(PaintDevice *device) const
 
 void
 CQChartsPointObj::
-writeScriptData(ScriptPaintDevice *device) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  CQChartsPlotObj::writeScriptData(device);
+  auto normalizeTemp = [&](double t) {
+    double nt = CMathUtil::map(t, plot_->coldTemp(), plot_->hotTemp(), 0.0, 1.0);
+    return std::min(std::max(nt, 0.0), 1.0);
+  };
+
+  //CQChartsFillPattern fillPattern(CQChartsFillPattern::Type::LGRADIENT);
+
+  double min = pointData_.min.real();
+  double max = pointData_.max.real();
+
+  double pmin = normalizeTemp(min);
+  double pmax = normalizeTemp(max);
+
+  auto palette = plot_->tempPalette();
+  palette.setMin(pmin); palette.setMax(pmax);
+
+  CQChartsFillPattern fillPattern(CQChartsFillPattern::Type::PALETTE);
+
+  fillPattern.setPalette(palette);
+
+  //fillPattern.setAltColor(c2);
+
+  auto pp = plot_->pointToPolarPoint(point());
+
+  fillPattern.setAngle(Angle(pp.polar.a));
+
+  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, QColor(), Alpha(), fillPattern));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1394,15 +1395,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsLineObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------
@@ -1540,15 +1532,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsInnerBarObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsOuterBarObj::
@@ -1675,15 +1658,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsOuterBarObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsOuterBubbleObj::
@@ -1791,15 +1765,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsOuterBubbleObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------

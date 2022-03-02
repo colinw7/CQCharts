@@ -4,9 +4,12 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+
+#include <QMetaProperty>
 
 CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const BBox &rect, const ColorInd &is,
@@ -377,7 +380,11 @@ void
 CQChartsPlotObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
+  calcPenBrush(penBrush_, /*updateState*/false);
+
   writeObjScriptData(device);
+
+  writeScriptProperties(device);
 }
 
 void
@@ -439,6 +446,42 @@ writeObjScriptData(ScriptPaintDevice *device) const
     os << "  this.arc.ro = " << arc.outerRadius() << ";\n";
     os << "  this.arc.a1 = " << arc.angle1().value() << ";\n";
     os << "  this.arc.a2 = " << arc.angle2().value() << ";\n";
+  }
+}
+
+void
+CQChartsPlotObj::
+writeScriptProperties(ScriptPaintDevice *device) const
+{
+  std::ostream &os = device->os();
+
+  const auto *metaObject = this->metaObject();
+  if (! metaObject) return;
+
+  int firstProp = metaObject->propertyOffset();
+  int numProp   = metaObject->propertyCount();
+
+  if (firstProp < numProp)
+    os << "\n";
+
+  for (int p = firstProp; p < numProp; ++p) {
+    auto metaProperty = metaObject->property(p);
+
+    auto name = metaProperty.name();
+
+    auto var = this->property(name);
+
+    QString valueStr;
+
+    if (! CQChartsVariant::toString(var, valueStr))
+      continue;
+
+    if (! CQChartsVariant::isNumeric(var))
+      valueStr = "\"" + valueStr + "\"";
+
+    auto assignStr = QString("  this.%1 = %2;").arg(name).arg(valueStr);
+
+    os << assignStr.toStdString() << "\n";
   }
 }
 

@@ -2096,7 +2096,10 @@ draw(PaintDevice *device) const
 
     plot()->setPen(tPenBrush, PenData(true, tc, headerTextAlpha()));
 
-    plot()->updateObjPenBrushState(this, tPenBrush);
+    bool updateState = device->isInteractive();
+
+    if (updateState)
+      plot()->updateObjPenBrushState(this, tPenBrush);
 
     //---
 

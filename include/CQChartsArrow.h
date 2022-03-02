@@ -224,7 +224,7 @@ class CQChartsArrow : public QObject,
  public:
   //! arrow angle data (caches cos/sin)
   struct ArrowAngle {
-    double angle { 0.0 }; //<! radians
+    double angle { 0.0 }; //!< radians
     double sin   { 0.0 };
     double cos   { 1.0 };
 

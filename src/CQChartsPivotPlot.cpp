@@ -1346,20 +1346,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsPivotBarObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " << value() << ";\n";
-}
-
 //------
 
 CQChartsPivotLineObj::
@@ -1469,6 +1455,8 @@ draw(PaintDevice *device) const
 
   //---
 
+  bool updateState = device->isInteractive();
+
   // draw line
   if (isLines) {
     // calc pen and brush
@@ -1478,7 +1466,8 @@ draw(PaintDevice *device) const
 
     plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
-    plot_->updateObjPenBrushState(this, penBrush);
+    if (updateState)
+      plot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1500,9 +1489,7 @@ draw(PaintDevice *device) const
     // calc pen and brush
     PenBrush penBrush;
 
-    plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
-
-    plot_->updateObjPenBrushState(this, penBrush);
+    calcPenBrush(penBrush, updateState);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1523,7 +1510,8 @@ draw(PaintDevice *device) const
 
     plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.5)));
 
-    plot_->updateObjPenBrushState(this, penBrush);
+    if (updateState)
+      plot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1531,6 +1519,18 @@ draw(PaintDevice *device) const
 
     device->drawPath(path);
   }
+}
+
+void
+CQChartsPivotLineObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1614,18 +1614,28 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
-  auto colorInd = calcColorInd();
-
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+  bool updateState = device->isInteractive();
 
-  plot_->updateObjPenBrushState(this, penBrush);
+  calcPenBrush(penBrush, updateState);
 
   // draw points (symbols)
   auto symbol = Symbol::circle();
 
   plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsPivotPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1851,6 +1861,13 @@ draw(PaintDevice *device) const
 
 void
 CQChartsPivotCellObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  calcBgPenBrush(penBrush, updateState);
+}
+
+void
+CQChartsPivotCellObj::
 calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const
 {
   // get background color
@@ -1875,20 +1892,6 @@ calcFgPenBrush(PenBrush &fgPenBrush, bool /*updateState*/) const
   plot_->setPen(fgPenBrush, plot_->barPenData(colorInd));
 
   fgPenBrush.brush = QBrush(plot_->interpPlotFillColor(ColorInd()));
-}
-
-void
-CQChartsPivotCellObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcFgPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.value = " << value() << ";\n";
 }
 
 void

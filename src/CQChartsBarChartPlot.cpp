@@ -8,7 +8,6 @@
 #include <CQChartsDataLabel.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
@@ -2506,15 +2505,6 @@ calcBarColor() const
   }
 
   return barColor;
-}
-
-void
-CQChartsBarChartObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 const CQChartsBarChartValue *

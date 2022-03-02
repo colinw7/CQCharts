@@ -48,6 +48,8 @@ class CQChartsCorrelationPlot;
 class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double value READ value)
+
  public:
   using CorrelationPlot = CQChartsCorrelationPlot;
   using Symbol          = CQChartsSymbol;
@@ -79,17 +81,13 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawCellLabel(PaintDevice *device, const QString &str) const;
-  void drawCellLabel(PaintDevice *device, const QString &str,
-                     const BBox &rect, double fontInc=0.0) const;
+  void drawCellLabel(PaintDevice *device, const QString &str, bool updateState) const;
+  void drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect,
+                     double fontInc, bool updateState) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   void valueColorInd(ColorInd &ic) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 

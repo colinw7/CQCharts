@@ -12,7 +12,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsArrow.h>
 #include <CQChartsHtml.h>
 
@@ -1711,20 +1710,6 @@ calcFromColor() const
   }
   else
     return plot_->interpPaletteColor(colorInd);
-}
-
-void
-CQChartsChordSegmentObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.total = " << calcTotal() << ";\n";
 }
 
 CQChartsGeom::BBox

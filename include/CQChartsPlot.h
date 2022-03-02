@@ -426,13 +426,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  enum class FitType {
-    ALL,
-    DATA
-  };
-
-  //---
-
   using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
@@ -859,8 +852,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void resetExtraFitBBox() const;
 
  protected:
-  virtual bool needsAutoFit(FitType &fitType) const;
-  virtual void setNeedsAutoFit(bool b, FitType fitType=FitType::ALL);
+  virtual bool needsAutoFit() const;
+  virtual void setNeedsAutoFit(bool b);
 
   //---
 
@@ -1799,7 +1792,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void updateAutoFit();
 
-  virtual void autoFitOne(FitType fitType);
+  virtual void autoFitOne();
 
  public:
   // (re)initialize plot objects (called by initPlotObjs)
@@ -2300,6 +2293,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void zoomOut(double f=1.5);
 
   virtual void zoomFull(bool notify=true);
+  virtual void zoomToData();
 
   //---
 
@@ -2376,10 +2370,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // auto fit
   virtual void autoFit();
-  virtual void autoFitData();
-  virtual void autoFit1(FitType fitType);
 
-  virtual BBox fitBBox(FitType fitType=FitType::ALL) const;
+  virtual BBox fitBBox() const;
 
   void setFitBBox(const BBox &bbox);
 
@@ -3570,11 +3562,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool followMouse_ { true }; //!< track object under mouse
 
   // fit
-  bool         autoFit_      { false };        //!< auto fit on data change
-  PlotMargin   fitMargin_;                     //!< fit margin
-  bool         needsAutoFit_ { false };        //!< needs auto fit on next draw
-  FitType      autoFitType_  { FitType::ALL }; //!< auto fit type
-  mutable BBox extraFitBBox_;                  //!< cached extra fit bbox
+  bool         autoFit_      { false }; //!< auto fit on data change
+  PlotMargin   fitMargin_;              //!< fit margin
+  bool         needsAutoFit_ { false }; //!< needs auto fit on next draw
+  mutable BBox extraFitBBox_;           //!< cached extra fit bbox
 
   // preview
   bool preview_        { false }; //!< is preview plot

@@ -11,7 +11,6 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
@@ -954,6 +953,8 @@ drawFg(PaintDevice *device) const
 
   //---
 
+  bool updateState = device->isInteractive();
+
   // draw balloon for value
   if (plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && hasValue()) {
     auto safeSqrt = [](double r) {
@@ -1001,7 +1002,8 @@ drawFg(PaintDevice *device) const
       PenData  (/*stroked*/true, pc),
       BrushData(/*filled*/ true, bc, Alpha(0.5)));
 
-    plot_->updateObjPenBrushState(this, penBrush);
+    if (updateState)
+      plot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1084,22 +1086,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsGeometryObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-
-  if (hasValue())
-    os << "  this.value = " << value() << ";\n";
 }
 
 //------

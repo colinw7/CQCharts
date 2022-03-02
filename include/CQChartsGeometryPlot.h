@@ -130,9 +130,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const GeometryPlot* plot_     { nullptr }; //!< parent plot

@@ -45,6 +45,8 @@ class CQChartsImagePlot;
 class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double value READ value)
+
  public:
   using Plot  = CQChartsImagePlot;
   using Image = CQChartsImage;
@@ -83,11 +85,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   //---
 

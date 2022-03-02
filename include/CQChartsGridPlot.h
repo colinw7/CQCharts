@@ -195,6 +195,8 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
   void getObjSelectIndices(Indices &inds) const override;
 
  private:

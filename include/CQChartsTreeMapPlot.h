@@ -270,7 +270,9 @@ class CQChartsTreeMapHierObj;
 class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(int ind READ ind WRITE setInd)
+  Q_PROPERTY(int     ind  READ ind WRITE setInd)
+  Q_PROPERTY(QString name READ hierName)
+  Q_PROPERTY(double  size READ hierSize)
 
  public:
   using Plot    = CQChartsTreeMapPlot;
@@ -289,6 +291,9 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   int ind() const { return i_; }
   void setInd(int i) { i_ = i; }
+
+  QString hierName() const { return node_->name(); }
+  double  hierSize() const { return node_->hierSize(); }
 
   //---
 
@@ -310,17 +315,15 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox) const;
+  void drawText(PaintDevice *device, const BBox &bbox, bool updateState) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  void calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
 
   bool isMinArea() const;
 
   bool isNodePoint() const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -345,6 +348,9 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString name READ hierName)
+  Q_PROPERTY(double  size READ hierSize)
+
  public:
   using Plot     = CQChartsTreeMapPlot;
   using HierNode = CQChartsTreeMapHierNode;
@@ -355,6 +361,9 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
                          const BBox &rect, const ColorInd &is);
 
   HierNode *hierNode() const { return hier_; }
+
+  QString hierName() const { return node_->name(); }
+  double  hierSize() const { return node_->hierSize(); }
 
   //---
 
@@ -376,13 +385,9 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox) const;
+  void drawText(PaintDevice *device, const BBox &bbox, bool updateState) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   HierNode* hier_ { nullptr }; //!< associated tree hier

@@ -1709,21 +1709,55 @@ void
 CQChartsDendrogramNodeObj::
 draw(PaintDevice *device) const
 {
-  auto rect1 = displayRect();
+  // calc pen and brush
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
 
   //---
 
-  // set pen and brush
-  ColorInd colorInd;
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  PenBrush penBrush;
+  //---
+
+  // draw node
+  auto rect1 = displayRect();
+  auto p     = rect1.getCenter();
+
+  auto ss = calcSymbolSize();
+
+  bool is_hier = this->isHier();
+
+  auto symbol = (is_hier ? CQChartsSymbol::diamond() : CQChartsSymbol::circle());
+
+  plot()->drawSymbol(device, p, symbol, ss, ss);
+
+  //---
+
+  drawText(device);
+
+  //---
+
+  if (plot()->showBoxes()) {
+    auto bbox = textRect();
+
+    drawDebugRect(device, bbox);
+  }
+}
+
+void
+CQChartsDendrogramNodeObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  ColorInd colorInd;
 
   auto strokeColor = plot()->interpNodeStrokeColor(colorInd);
   auto fillColor   = plot()->interpNodeFillColor  (colorInd);
 
   bool is_hier = this->isHier();
-
-  bool closed = (is_hier && ! isOpen());
+  bool closed  = (is_hier && ! isOpen());
 
   bool colored = false;
 
@@ -1746,32 +1780,8 @@ draw(PaintDevice *device) const
   plot()->setPenBrush(penBrush, plot()->nodePenData(strokeColor),
     (closed || colored) ? plot()->nodeBrushData(fillColor) : BrushData(false));
 
-  plot()->updateObjPenBrushState(this, penBrush);
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  //---
-
-  // draw node
-  auto ss = calcSymbolSize();
-
-  auto p = rect1.getCenter();
-
-  auto symbol = (is_hier ? CQChartsSymbol::diamond() : CQChartsSymbol::circle());
-
-  plot()->drawSymbol(device, p, symbol, ss, ss);
-
-  //---
-
-  drawText(device);
-
-  //---
-
-  if (plot()->showBoxes()) {
-    auto bbox = textRect();
-
-    drawDebugRect(device, bbox);
-  }
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -1972,7 +1982,8 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
       plot()->edgePenData(strokeColor), BrushData(false));
   }
 
-  //plot()->updateObjPenBrushState(this, penBrush);
+  //if (updateState)
+  //  plot()->updateObjPenBrushState(this, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, lPenBrush);
 

@@ -961,10 +961,10 @@ roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double lw)
 
   QPainterPathStroker stroker;
 
-  stroker.setCapStyle   (Qt::FlatCap);
+  stroker.setCapStyle   (Qt::RoundCap);
   stroker.setDashOffset (0.0);
   stroker.setDashPattern(Qt::SolidLine);
-  stroker.setJoinStyle  (Qt::RoundJoin);
+  stroker.setJoinStyle  (Qt::MiterJoin);
   stroker.setWidth      (lw);
 
   path = stroker.createStroke(lpath);
@@ -1312,15 +1312,23 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
     // ensure input on left, output on right
     double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
 
-    if (x1 > x2)
-      return edgePath(path, obbox, ibbox, edgeType, orient);
+    if (x1 > x2) {
+      x1 = obbox.getXMax(); x2 = ibbox.getXMin();
+
+      if (x1 < x2)
+        return edgePath(path, obbox, ibbox, edgeType, orient);
+    }
   }
   else {
     // ensure input on bottom, output on top
     double y1 = ibbox.getYMax(), y2 = obbox.getYMin();
 
-    if (y1 > y2)
-      return edgePath(path, obbox, ibbox, edgeType, orient);
+    if (y1 > y2) {
+      y1 = obbox.getYMax(); y2 = ibbox.getYMin();
+
+      if (y1 < y2)
+        return edgePath(path, obbox, ibbox, edgeType, orient);
+    }
   }
 
   path = QPainterPath();
@@ -1468,13 +1476,13 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
   //---
 
-  auto strokerPath = [&](const QPainterPath &path) {
+  auto strokerPath = [&](const QPainterPath &path, Qt::PenJoinStyle joinStyle) {
     QPainterPathStroker stroker;
 
     stroker.setCapStyle   (Qt::FlatCap);
     stroker.setDashOffset (0.0);
     stroker.setDashPattern(Qt::SolidLine);
-    stroker.setJoinStyle  (Qt::RoundJoin);
+    stroker.setJoinStyle  (joinStyle);
     stroker.setWidth      (lw);
 
     return stroker.createStroke(path);
@@ -1505,7 +1513,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     lpath.moveTo(p1.qpoint());
     lpath.cubicTo(p3.qpoint(), p4.qpoint(), p2.qpoint());
 
-    path = strokerPath(lpath);
+    path = strokerPath(lpath, Qt::RoundJoin);
   }
   else if (edgeType == EdgeType::RECTILINEAR) {
     QPainterPath lpath;
@@ -1542,7 +1550,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
     lpath.lineTo(p2.qpoint());
 
-    path = strokerPath(lpath);
+    path = strokerPath(lpath, Qt::MiterJoin);
   }
   else if (edgeType == EdgeType::ROUNDED_LINE) {
     roundedLinePath(path, p1, p2, lw);
@@ -1553,7 +1561,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     lpath.moveTo(p1.qpoint());
     lpath.lineTo(p2.qpoint());
 
-    path = strokerPath(lpath);
+    path = strokerPath(lpath, Qt::RoundJoin);
   }
 }
 

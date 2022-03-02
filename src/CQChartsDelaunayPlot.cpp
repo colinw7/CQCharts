@@ -903,18 +903,28 @@ draw(PaintDevice *device) const
   //---
 
   // calc pen and brush
-  auto colorInd = calcColorInd();
-
   PenBrush penBrush;
 
-  plot_->setSymbolPenBrush(penBrush, colorInd);
+  bool updateState = device->isInteractive();
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw symbol
   plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+void
+CQChartsDelaunayPointObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  plot_->setSymbolPenBrush(penBrush, colorInd);
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------

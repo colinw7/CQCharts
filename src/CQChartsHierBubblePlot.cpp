@@ -5,7 +5,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -1362,13 +1361,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsHierBubbleHierObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  CQChartsHierBubbleNodeObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsHierBubbleNodeObj::
@@ -1509,12 +1501,12 @@ draw(PaintDevice *device) const
     return;
 
   if (plot_->isTextVisible())
-    drawText(device, bbox, penBrush.brush.color());
+    drawText(device, bbox, penBrush.brush.color(), updateState);
 }
 
 void
 CQChartsHierBubbleNodeObj::
-drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
+drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool updateState) const
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1540,7 +1532,8 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
 
-  plot_->updateObjPenBrushState(this, tPenBrush);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1712,21 +1705,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsHierBubbleNodeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.name = \"" << node()->hierName().toStdString() << "\";\n";
-  os << "  this.size = " << node()->hierSize() << ";\n";
 }
 
 //------

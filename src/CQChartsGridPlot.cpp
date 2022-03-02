@@ -560,17 +560,11 @@ draw(PaintDevice *device) const
   if (! nv) return;
 
   // draw background ellipse
-  double f = CMathUtil::map(values_.max(0.0), plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
-
-  auto color = Color::makePalette();
-
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush,
-    PenData(false), BrushData(true, plot_->interpColor(color, ColorInd(f))));
+  bool updateState = device->isInteractive();
 
-  if (device->isInteractive())
-    plot_->updateObjPenBrushState(this, penBrush);
+  calcPenBrush(penBrush, updateState);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -704,6 +698,21 @@ draw(PaintDevice *device) const
     CQChartsDrawUtil::drawTextAtPoint(device, Point(tx, ty), text,
                                       textOptions, /*centered*/false);
   }
+}
+
+void
+CQChartsGridCellObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto color = Color::makePalette();
+
+  double f = CMathUtil::map(values_.max(0.0), plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
+
+  plot_->setPenBrush(penBrush,
+    PenData(false), BrushData(true, plot_->interpColor(color, ColorInd(f))));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 void

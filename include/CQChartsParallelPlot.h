@@ -93,11 +93,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  private:
   void getPolyLine(Polygon &poly) const;
@@ -148,6 +144,8 @@ class CQChartsParallelPointObj : public CQChartsPlotPointObj {
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   Length calcSymbolSize() const override;
 

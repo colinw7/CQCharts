@@ -179,7 +179,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   // fit
  public:
-  void autoFitOne(FitType fitType) override;
+  void autoFitOne() override;
 
   void autoFit() override;
 
@@ -192,8 +192,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void resetExtraFitBBox() const override;
 
  protected:
-  bool needsAutoFit(FitType &fitType) const override;
-  void setNeedsAutoFit(bool b, FitType fitType) override;
+  bool needsAutoFit() const override;
+  void setNeedsAutoFit(bool b) override;
 
  public:
   BBox calcViewBBox() const override;

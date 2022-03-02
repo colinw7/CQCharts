@@ -24,13 +24,13 @@ class CQChartsPenData {
   explicit CQChartsPenData(bool visible, const QColor &color=QColor(), const Alpha &alpha=Alpha(),
                            const Length &width=Length(), const LineDash &dash=LineDash(),
                            const LineCap &lineCap=LineCap(), const LineJoin &lineJoin=LineJoin()) :
-   visible_(visible), color_(color), alpha_(alpha), width_(width),
-   dash_(dash), lineCap_(lineCap), lineJoin_(lineJoin) {
+   visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash),
+   lineCap_(lineCap), lineJoin_(lineJoin) {
   }
 
   CQChartsPenData(bool visible, const QColor &color, const CQChartsStrokeData &strokeData) :
    visible_(visible), color_(color), alpha_(strokeData.alpha()), width_(strokeData.width()),
-   dash_(strokeData.dash()) {
+   dash_(strokeData.dash()), lineCap_(strokeData.lineCap()), lineJoin_(strokeData.lineJoin()) {
   }
 
   //---

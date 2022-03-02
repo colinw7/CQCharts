@@ -72,6 +72,10 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  void calcTextPenBrush(PenBrush &tPenBrush, bool updateState) const;
+
  private:
   const Plot* plot_ { nullptr }; //!< parent plot
   Node*       node_ { nullptr }; //!< associated node
@@ -442,7 +446,8 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  void drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const;
+  void drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
+                const PenBrush &tPenBrush) const;
 
   //---
 

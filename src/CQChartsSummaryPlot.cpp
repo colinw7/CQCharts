@@ -847,7 +847,7 @@ execDrawBackground(PaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsSummaryPlot::
-fitBBox(FitType fitType) const
+fitBBox() const
 {
   auto font = view()->viewFont(this->font());
 
@@ -880,7 +880,7 @@ fitBBox(FitType fitType) const
 
   //---
 
-  auto bbox = CQChartsPlot::fitBBox(fitType);
+  auto bbox = CQChartsPlot::fitBBox();
 
   bbox += Point(-maxWidth - thw/2.0, -thh - thh/2.0);
 
@@ -1142,14 +1142,11 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto bg = plot_->interpInterfaceColor(0.15);
-  auto fg = plot_->interpInterfaceColor(1.00);
-
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, fg, Alpha(0.3)), BrushData(true, bg));
+  bool updateState = device->isInteractive();
 
-  plot_->updateObjPenBrushState(this, penBrush, drawType());
+  calcPenBrush(penBrush, updateState);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1181,6 +1178,19 @@ draw(PaintDevice *device) const
     else if (plot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE)
       drawPie(device);
   }
+}
+
+void
+CQChartsSummaryCellObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto bg = plot_->interpInterfaceColor(0.15);
+  auto fg = plot_->interpInterfaceColor(1.00);
+
+  plot_->setPenBrush(penBrush, PenData(true, fg, Alpha(0.3)), BrushData(true, bg));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 void

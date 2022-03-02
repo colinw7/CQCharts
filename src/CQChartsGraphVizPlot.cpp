@@ -11,7 +11,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsArrow.h>
@@ -175,7 +174,7 @@ void
 CQChartsGraphVizPlot::
 setNodeShape(const NodeShape &s)
 {
-  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -189,14 +188,14 @@ void
 CQChartsGraphVizPlot::
 setNodeSize(const Length &s)
 {
-  CQChartsUtil::testAndSet(nodeSize_, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(nodeSize_, s, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setNodeTextSingleScale(bool b)
 {
-  CQChartsUtil::testAndSet(nodeTextSingleScale_, b, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(nodeTextSingleScale_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -205,49 +204,49 @@ void
 CQChartsGraphVizPlot::
 setEdgeShape(const EdgeShape &s)
 {
-  CQChartsUtil::testAndSet(edgeShape_, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(edgeShape_, s, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setEdgeScaled(bool b)
 {
-  CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setEdgeArrow(bool b)
 {
-  CQChartsUtil::testAndSet(edgeArrow_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeArrow_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setEdgeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setEdgeCentered(bool b)
 {
-  CQChartsUtil::testAndSet(edgeCentered_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeCentered_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setEdgePath(bool b)
 {
-  CQChartsUtil::testAndSet(edgePath_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgePath_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsGraphVizPlot::
 setArrowWidth(double w)
 {
-  CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { drawObjs(); } );
 }
 
 void
@@ -2815,15 +2814,6 @@ calcFillColor() const
   return fc;
 }
 
-void
-CQChartsGraphVizNodeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsGraphVizEdgeObj::
@@ -3194,8 +3184,12 @@ draw(PaintDevice *device) const
   // draw edge
   if (isLine)
     device->drawPath(epath_);
-  else
-    device->drawPath(path_);
+  else {
+    if (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR)
+      device->drawPath(path_.simplified());
+    else
+      device->drawPath(path_);
+  }
 
   device->resetColorNames();
 }
@@ -3343,22 +3337,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsGraphVizEdgeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  if (edge()->hasValue()) {
-    std::ostream &os = device->os();
-
-    os << "\n";
-    os << "  this.value = " << edge()->value().real() << ";\n";
-  }
 }
 
 //------

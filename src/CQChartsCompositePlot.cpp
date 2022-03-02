@@ -656,9 +656,9 @@ setEqualScale(bool b)
 
 void
 CQChartsCompositePlot::
-autoFitOne(FitType fitType)
+autoFitOne()
 {
-  return (currentPlot() ? currentPlot()->autoFitOne(fitType) : CQChartsPlot::autoFitOne(fitType));
+  return (currentPlot() ? currentPlot()->autoFitOne() : CQChartsPlot::autoFitOne());
 }
 
 void
@@ -705,18 +705,16 @@ resetExtraFitBBox() const
 
 bool
 CQChartsCompositePlot::
-needsAutoFit(FitType &fitType) const
+needsAutoFit() const
 {
-  return (currentPlot() ? currentPlot()->needsAutoFit(fitType) :
-                          CQChartsPlot::needsAutoFit(fitType));
+  return (currentPlot() ? currentPlot()->needsAutoFit() : CQChartsPlot::needsAutoFit());
 }
 
 void
 CQChartsCompositePlot::
-setNeedsAutoFit(bool b, FitType fitType)
+setNeedsAutoFit(bool b)
 {
-  return (currentPlot() ? currentPlot()->setNeedsAutoFit(b, fitType) :
-                          CQChartsPlot::setNeedsAutoFit(b, fitType));
+  return (currentPlot() ? currentPlot()->setNeedsAutoFit(b) : CQChartsPlot::setNeedsAutoFit(b));
 }
 
 //---

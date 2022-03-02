@@ -287,6 +287,9 @@ class CQChartsBubbleHierObj;
 class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString name READ hierName)
+  Q_PROPERTY(double  size READ hierSize)
+
  public:
   using Plot    = CQChartsBubblePlot;
   using Node    = CQChartsBubbleNode;
@@ -305,6 +308,11 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   bool isCircle() const override { return true; }
 
   double radius() const override { return node_->radius(); }
+
+  //---
+
+  QString hierName() const { return (node_ ? node_->hierName() : ""); }
+  double  hierSize() const { return (node_ ? node_->hierSize() : 0); }
 
   //---
 
@@ -330,7 +338,8 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const;
+  void drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor,
+                bool updateState) const;
 
   //---
 
@@ -340,9 +349,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  protected:
   const Plot* plot_    { nullptr }; //!< parent plot
@@ -393,9 +400,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  protected:
   HierNode* hier_ { nullptr }; //!< associated hier node

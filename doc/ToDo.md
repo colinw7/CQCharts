@@ -4,9 +4,18 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + contiguous symbol type key should have value range [a-b)
+ + map key hide broken ! (symbol type contiguous ?) scatter_fixed_equal_scale.tcl
+ + stable graphviz unless parameters changed
+ + rectilinear edge drawn incorrectly (graphviz)
+   + stroke bad
  + move javascript support to separate file
+    + all obj has calcPenBrush which obeys updateState
+    + writeScriptData calls calcPenBrush
+    + remove dead writeScriptData calls for plot objects
+    + method to add extra variables
+    + fix bugs
  + auto add variable to tcl shell for current file, plot, .... Add commands to history ?
- + tip header for date
  + tip column cleanup all plots
  + barchart stacked + labels (only one label needed). Tip shows all values for single bar
  + text placer in all plots (xy plot use data label which includes border !!)

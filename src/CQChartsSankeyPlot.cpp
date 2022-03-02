@@ -13,7 +13,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsTextPlacer.h>
 #include <CQChartsHtml.h>
@@ -4785,15 +4784,6 @@ calcFillColor() const
   return fc;
 }
 
-void
-CQChartsSankeyNodeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsSankeyEdgeObj::
@@ -5211,22 +5201,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsSankeyEdgeObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  if (edge()->hasValue()) {
-    std::ostream &os = device->os();
-
-    os << "\n";
-    os << "  this.value = " << edge()->value().real() << ";\n";
-  }
 }
 
 //------

@@ -128,9 +128,7 @@ class CQChartsPointObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WheelPlot* plot_ { nullptr }; //!< parent plot
@@ -173,11 +171,7 @@ class CQChartsLineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WheelPlot* plot_ { nullptr }; //!< parent plot
@@ -221,11 +215,7 @@ class CQChartsInnerBarObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WheelPlot* plot_ { nullptr }; //!< parent plot
@@ -269,11 +259,7 @@ class CQChartsOuterBarObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WheelPlot* plot_ { nullptr }; //!< parent plot
@@ -317,11 +303,7 @@ class CQChartsOuterBubbleObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const WheelPlot* plot_ { nullptr }; //!< parent plot

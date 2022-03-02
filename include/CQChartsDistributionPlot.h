@@ -252,6 +252,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   void drawRug(PaintDevice *device) const;
 
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
+
   //---
 
   BBox calcRect() const;
@@ -276,8 +278,6 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   //---
 
   bool isUseLine() const;
-
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 
@@ -383,11 +383,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   void drawRug(PaintDevice *device) const;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   //---
 
@@ -445,6 +441,8 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   //---
 

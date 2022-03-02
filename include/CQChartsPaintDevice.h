@@ -217,7 +217,7 @@ class CQChartsPaintDevice {
 
   //---
 
-  virtual void setPainterFont(const Font &) { assert(false); }
+  virtual void setPainterFont(const Font &) { }
 
   //---
 

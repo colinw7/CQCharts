@@ -16,7 +16,6 @@
 #include <CQChartsHtml.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsTextPlacer.h>
 #include <CQCharts.h>
@@ -3057,7 +3056,7 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
     if (biLineObj) {
       PenBrush penBrush;
 
-      biLineObj->calcPointPenBrush(penBrush);
+      biLineObj->calcPointPenBrush(penBrush, /*updateState*/false);
 
       if (rug->direction() == Qt::Horizontal)
         rug->addPoint(CQChartsAxisRug::RugPoint(biLineObj->x(), penBrush.pen.color()));
@@ -3260,9 +3259,12 @@ drawLines(PaintDevice *device, const Point &p1, const Point &p2) const
   // calc pen and brush
   PenBrush penBrush;
 
+  bool updateState = device->isInteractive();
+
   plot()->setBivariateLineDataPen(penBrush.pen, is_);
 
-  plot()->updateObjPenBrushState(this, penBrush);
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3288,7 +3290,7 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
   // calc pen and brush
   PenBrush penBrush;
 
-  calcPointPenBrush(penBrush);
+  calcPointPenBrush(penBrush, /*updateState*/false);
 
   //---
 
@@ -3304,11 +3306,19 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
 
 void
 CQChartsXYBiLineObj::
-calcPointPenBrush(PenBrush &penBrush) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  calcPointPenBrush(penBrush, updateState);
+}
+
+void
+CQChartsXYBiLineObj::
+calcPointPenBrush(PenBrush &penBrush, bool updateState) const
 {
   plot_->setSymbolPenBrush(penBrush, is_);
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
@@ -3417,33 +3427,22 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto ic = (is_.n > 1 ? is_ : iv_);
-
-  //---
-
   // calc pen and brush
-  double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
-
-  bool isThinLine (lw <= 1.0);
-
   PenBrush penBrush;
 
-  if (isThinLine) {
-    plot()->setImpulseLineDataPen(penBrush.pen, ic);
-  }
-  else {
-    auto strokeColor = plot()->interpImpulseLinesColor(ic);
+  bool updateState = device->isInteractive();
 
-    plot()->setPenBrush(penBrush, PenData(false), plot()->impulseLineDataBrushData(strokeColor));
-  }
-
-  plot()->updateObjPenBrushState(this, penBrush);
+  calcPenBrush(penBrush, updateState);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   // draw impulse
+  double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
+
+  bool isThinLine (lw <= 1.0);
+
   auto p1 = Point(x(), y1());
   auto p2 = Point(x(), y2());
 
@@ -3458,6 +3457,29 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::drawRoundedRect(device, plot_->pixelToWindow(pbbox));
   }
+}
+
+void
+CQChartsXYImpulseLineObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto ic = (is_.n > 1 ? is_ : iv_);
+
+  double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
+
+  bool isThinLine (lw <= 1.0);
+
+  if (isThinLine) {
+    plot()->setImpulseLineDataPen(penBrush.pen, ic);
+  }
+  else {
+    auto strokeColor = plot()->interpImpulseLinesColor(ic);
+
+    plot()->setPenBrush(penBrush, PenData(false), plot()->impulseLineDataBrushData(strokeColor));
+  }
+
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -3988,16 +4010,14 @@ draw(PaintDevice *device) const
   if (! isVisible())
     return;
 
-  auto *dataLabel = plot_->dataLabel();
-
   //---
 
   // text font color
   PenBrush penBrush;
 
-  auto tc = dataLabel->interpTextColor(ColorInd());
+  bool updateState = device->isInteractive();
 
-  plot()->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -4030,6 +4050,17 @@ draw(PaintDevice *device) const
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
   plot_->drawDataLabel(device, plot_->pixelToWindow(ptbbox), label_, penBrush, font1);
+}
+
+void
+CQChartsXYLabelObj::
+calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
+{
+  auto *dataLabel = plot_->dataLabel();
+
+  auto tc = dataLabel->interpTextColor(ColorInd());
+
+  plot()->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
 }
 
 //------
@@ -4361,9 +4392,24 @@ drawBestFit(PaintDevice *device) const
 {
   const_cast<CQChartsXYPolylineObj *>(this)->initBestFit();
 
+  //---
+
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  plot()->drawBestFit(device, &bestFit_, ic);
+  auto strokeColor = plot_->interpBestFitStrokeColor(ic);
+  auto fillColor   = plot_->interpBestFitFillColor  (ic);
+
+  plot_->setPenBrush(penBrush, plot_->bestFitPenData(strokeColor),
+                     plot_->bestFitBrushData(fillColor));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+
+  plot()->drawBestFit(device, &bestFit_, penBrush);
 }
 
 void
@@ -4379,9 +4425,12 @@ drawStatsLines(PaintDevice *device) const
 
   PenBrush penBrush;
 
+  bool updateState = device->isInteractive();
+
   plot()->setStatsLineDataPen(penBrush.pen, ic);
 
-  plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
+  if (updateState)
+    plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
 
   //---
 
@@ -4436,11 +4485,14 @@ drawMovingAverage(PaintDevice *device) const
   // calc pen and brush
   PenBrush penBrush;
 
+  bool updateState = device->isInteractive();
+
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
   plot()->setMovingAverageLineDataPen(penBrush.pen, ic);
 
-  plot()->updateObjPenBrushState(this, penBrush);
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush);
 
   //---
 
@@ -4520,15 +4572,6 @@ fitBBox() const
                     p.x + psize.width(), p.y + psize.height()/2.0);
 
   return plot_->pixelToWindow(pbbox);
-}
-
-void
-CQChartsXYPolylineObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/false);
-
-  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------
@@ -4701,15 +4744,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     plot()->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsXYPolygonObj::
-writeScriptData(ScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
 //------
 
 CQChartsXYKeyColor::
@@ -4803,6 +4837,8 @@ void
 CQChartsXYKeyColor::
 drawLine(PaintDevice *device, const BBox &rect) const
 {
+  bool updateState = device->isInteractive();
+
   device->save();
 
   auto *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
@@ -4887,8 +4923,10 @@ drawLine(PaintDevice *device, const BBox &rect) const
 
     auto *obj = plotObj();
 
-    if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
+    if (obj) {
+      if (updateState)
+        plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
+    }
 
     if (isInside())
       linePenBrush.pen = plot()->insideColor(linePenBrush.pen.color());
@@ -4928,8 +4966,10 @@ drawLine(PaintDevice *device, const BBox &rect) const
 
     auto *obj = plotObj();
 
-    if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    if (obj) {
+      if (updateState)
+        plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    }
 
     //---
 

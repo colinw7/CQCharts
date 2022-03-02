@@ -100,7 +100,9 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPointPenBrush(PenBrush &penBrush) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  void calcPointPenBrush(PenBrush &penBrush, bool updateState) const;
 
  private:
   void drawLines (PaintDevice *device, const Point &p1, const Point &p2) const;
@@ -165,6 +167,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
@@ -277,7 +281,7 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
   using OptPoint = boost::optional<Point>;
@@ -370,6 +374,8 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
  private:
   const Plot*     plot_     { nullptr }; //!< parent plot
   int             groupInd_ { -1 };      //!< group ind
@@ -461,15 +467,11 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void drawMovingAverage(PaintDevice *device) const;
   void drawLineLabel    (PaintDevice *device) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   //---
 
   BBox fitBBox() const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -556,11 +558,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  //---
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   //---
 
