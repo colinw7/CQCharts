@@ -696,6 +696,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int    fdpStart   READ fdpStart   WRITE setFdpStart  )
   Q_PROPERTY(double fdpEdgeLen READ fdpEdgeLen WRITE setFdpEdgeLen)
 
+  Q_PROPERTY(int processTimeout READ processTimeout WRITE setProcessTimeout)
+
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
@@ -846,6 +848,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   double fdpEdgeLen() const { return fdpEdgeLen_; }
   void setFdpEdgeLen(double r);
+
+  int processTimeout() const { return processTimeout_; }
+  void setProcessTimeout(int i) { processTimeout_ = i; }
 
   //---
 
@@ -1003,7 +1008,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
  protected:
   void clearNodesAndEdges();
 
-  Node *findNode(const QString &name) const;
+  Node *findNode(const QString &name, bool create=true) const;
 
   Node *findIdNode(int dotId) const;
 
@@ -1042,6 +1047,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
  protected:
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
+  using NameNameMap = std::map<QString, QString>;
 
   // node data
   NodeShape nodeShape_  { NodeShape::NONE };    //!< node shape
@@ -1075,10 +1081,13 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   int    fdpStart_   { -1 };
   double fdpEdgeLen_ { -1.0 };
 
+  int processTimeout_ { 60 };
+
   // data
   Nodes            nodes_;                  //!< all nodes
   NameNodeMap      nameNodeMap_;            //!< name node map
   IndNodeMap       indNodeMap_;             //!< ind node map
+  NameNameMap      nameNameMap_;            //!< name node map
   Edges            edges_;                  //!< all edges
   BBox             bbox_;                   //!< bbox
   CQChartsValueInd groupValueInd_;          //!< group value ind

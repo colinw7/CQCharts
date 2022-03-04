@@ -43,6 +43,10 @@ class CQChartsCmdBase : public CQTclCmd::Mgr {
 
   //---
 
+  void setFilename(const QString &filename);
+
+  //---
+
   static bool isCompleteLine(QString &line, bool &join);
 
   void parseLine(const QString &line, bool log=true);

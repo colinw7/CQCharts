@@ -253,14 +253,14 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
  * \brief Pivot Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsPivotKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsPivotColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
   using PivotPlot = CQChartsPivotPlot;
 
  public:
-  CQChartsPivotKeyColor(PivotPlot *plot, const ColorInd &ic);
+  CQChartsPivotColorKeyItem(PivotPlot *plot, const ColorInd &ic);
 
   QBrush fillBrush() const override;
 
@@ -271,14 +271,14 @@ class CQChartsPivotKeyColor : public CQChartsColorBoxKeyItem {
  * \brief Pivot Plot Key Text
  * \ingroup Charts
  */
-class CQChartsPivotKeyText : public CQChartsTextKeyItem {
+class CQChartsPivotTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
   using PivotPlot = CQChartsPivotPlot;
 
  public:
-  CQChartsPivotKeyText(PivotPlot *plot, const QString &name);
+  CQChartsPivotTextKeyItem(PivotPlot *plot, const QString &name);
 };
 
 //---

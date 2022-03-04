@@ -1267,6 +1267,15 @@ stringToCmds(const QString &str) const
 
 //------
 
+void
+CQChartsCmdBase::
+setFilename(const QString &filename)
+{
+  qtcl()->createVar("filename", filename);
+}
+
+//------
+
 bool
 CQChartsCmdBase::
 isCompleteLine(QString &str, bool &join)

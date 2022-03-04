@@ -8,6 +8,8 @@
 
 #include <QTextDocument>
 #include <QAbstractTextDocumentLayout>
+#include <QStylePainter>
+#include <QStyleOptionSlider>
 
 namespace CQChartsDrawUtil {
 
@@ -2187,6 +2189,103 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   painter->restore();
 
   delete ipainter;
+}
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+void
+drawCheckBox(PaintDevice *device, double px, double py, int bs, bool checked)
+{
+  auto img = CQChartsUtil::initImage(QSize(bs, bs));
+
+  img.fill(Qt::transparent);
+
+  BBox bbox(0, 0, bs, bs);
+
+  auto *view = (device->plot() ? device->plot()->view() : device->view());
+
+  QStylePainter spainter(&img, view);
+
+  spainter.setPen(device->pen());
+
+  QStyleOptionButton opt;
+
+  opt.initFrom(view);
+
+  opt.rect = bbox.qrect().toRect();
+
+  opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
+
+  spainter.drawControl(QStyle::CE_CheckBox, opt);
+
+  device->drawImage(device->pixelToWindow(Point(px, py)), img);
+}
+
+void
+drawPushButton(PaintDevice *device, const BBox &prect, const QString &textStr,
+               const ButtonData &buttonData)
+{
+  int pw = int(prect.getWidth());
+  int ph = int(prect.getHeight());
+
+  auto img = CQChartsUtil::initImage(QSize(pw, ph));
+
+  img.fill(Qt::transparent);
+
+  auto *view = (device->plot() ? device->plot()->view() : device->view());
+
+  QStylePainter spainter(&img, view);
+
+  QStyleOptionButton opt;
+
+  opt.initFrom(view);
+
+  opt.rect = QRect(0, 0, pw, ph);
+  opt.text = textStr;
+
+  if (buttonData.pressed)
+    opt.state |= QStyle::State_Sunken;
+  else
+    opt.state |= QStyle::State_Raised;
+
+  opt.state |= QStyle::State_Active;
+
+  if (buttonData.enabled)
+    opt.state |= QStyle::State_Enabled;
+
+  if (buttonData.checkable) {
+    if (buttonData.checked)
+      opt.state |= QStyle::State_On;
+    else
+      opt.state |= QStyle::State_Off;
+  }
+
+  opt.palette = view->palette();
+
+  spainter.setFont(device->font());
+
+  auto bg = opt.palette.color(QPalette::Button);
+  auto fg = opt.palette.color(QPalette::ButtonText);
+
+  auto c = fg;
+
+  if      (! buttonData.enabled)
+    c = CQChartsUtil::blendColors(bg, fg, 0.6);
+  else if (buttonData.inside)
+    c = Qt::blue;
+
+  opt.palette.setColor(QPalette::ButtonText, c);
+
+  spainter.drawControl(QStyle::CE_PushButton, opt);
+
+  int px = int(prect.getXMin());
+  int py = int(prect.getYMin());
+
+  device->painter()->drawImage(px, py, img);
 }
 
 }

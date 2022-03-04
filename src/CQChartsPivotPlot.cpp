@@ -999,10 +999,10 @@ addKeyItems(PlotKey *key)
     int row = 0;
 
     auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
-      auto *colorItem = new CQChartsPivotKeyColor(this, ic);
-      auto *textItem  = new CQChartsPivotKeyText (this, name);
+      auto *colorItem = new CQChartsPivotColorKeyItem(this, ic);
+      auto *textItem  = new CQChartsPivotTextKeyItem (this, name);
 
-      auto *groupItem = new CQChartsKeyItemGroup(this);
+      auto *groupItem = new CQChartsGroupKeyItem(this);
 
       groupItem->addRowItems(colorItem, textItem);
 
@@ -1936,14 +1936,14 @@ writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const
 
 //------
 
-CQChartsPivotKeyColor::
-CQChartsPivotKeyColor(PivotPlot *plot, const ColorInd &ic) :
+CQChartsPivotColorKeyItem::
+CQChartsPivotColorKeyItem(PivotPlot *plot, const ColorInd &ic) :
  CQChartsColorBoxKeyItem(plot, ColorInd(), ic, ColorInd())
 {
 }
 
 QBrush
-CQChartsPivotKeyColor::
+CQChartsPivotColorKeyItem::
 fillBrush() const
 {
   auto *plot = qobject_cast<PivotPlot *>(this->plot());
@@ -1960,7 +1960,7 @@ fillBrush() const
 }
 
 bool
-CQChartsPivotKeyColor::
+CQChartsPivotColorKeyItem::
 calcHidden() const
 {
   return plot_->isSetHidden(ig_.i);
@@ -1968,8 +1968,8 @@ calcHidden() const
 
 //------
 
-CQChartsPivotKeyText::
-CQChartsPivotKeyText(PivotPlot *plot, const QString &name) :
+CQChartsPivotTextKeyItem::
+CQChartsPivotTextKeyItem(PivotPlot *plot, const QString &name) :
  CQChartsTextKeyItem(plot, name, ColorInd())
 {
 }

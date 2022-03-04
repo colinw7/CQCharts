@@ -788,10 +788,10 @@ addKeyItems(PlotKey *key)
 
     const auto &name = group->name();
 
-    auto *colorItem = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
-    auto *textItem  = new CQChartsTextKeyItem        (this, name, ColorInd(i, n));
+    auto *colorItem = new CQChartsHierScatterColorKeyItem(this, group, ColorInd(i, n));
+    auto *textItem  = new CQChartsTextKeyItem             (this, name, ColorInd(i, n));
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -1000,15 +1000,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 //------
 
-CQChartsHierScatterKeyColor::
-CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
-                            const ColorInd &ic) :
+CQChartsHierScatterColorKeyItem::
+CQChartsHierScatterColorKeyItem(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
+                                const ColorInd &ic) :
  CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic), group_(group)
 {
 }
 
 bool
-CQChartsHierScatterKeyColor::
+CQChartsHierScatterColorKeyItem::
 selectPress(const Point &, SelMod)
 {
   auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
@@ -1022,7 +1022,7 @@ selectPress(const Point &, SelMod)
 }
 
 QBrush
-CQChartsHierScatterKeyColor::
+CQChartsHierScatterColorKeyItem::
 fillBrush() const
 {
   auto c = CQChartsColorBoxKeyItem::fillBrush().color();

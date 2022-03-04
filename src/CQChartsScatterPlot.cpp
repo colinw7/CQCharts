@@ -2260,7 +2260,7 @@ addPointKeyItems(PlotKey *key)
     auto *colorItem = new CQChartsScatterColorKeyItem(this, groupInd, is, ig);
     auto *textItem  = new CQChartsTextKeyItem        (this, name, ic);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 

@@ -157,9 +157,6 @@ void
 CQChartsAdjacencyPlot::
 clearNodes()
 {
-  for (auto &pnode : nodes_)
-    delete pnode.second;
-
   nodes_.clear();
 
   nameNodeMap_.clear();
@@ -353,8 +350,8 @@ initHierObjsAddConnection(const QString &srcStr, double /*srcValue*/,
                           const QString &destStr, double destValue) const
 {
   // get src and dest nodes
-  auto *srcNode  = findNode(srcStr);
-  auto *destNode = findNode(destStr);
+  auto srcNode  = findNode(srcStr);
+  auto destNode = findNode(destStr);
 
   assert(srcNode != destNode);
 
@@ -413,8 +410,8 @@ addPathValue(const PathData &pathData) const
   for (int i = 1; i < n; ++i) {
     auto path2 = path1 + separator + pathData.pathStrs[i];
 
-    auto *srcNode  = findNode(path1);
-    auto *destNode = findNode(path2);
+    auto srcNode  = findNode(path1);
+    auto destNode = findNode(path2);
 
     srcNode ->setLabel(pathData.pathStrs[i - 1]);
     destNode->setLabel(pathData.pathStrs[i    ]);
@@ -429,13 +426,13 @@ addPathValue(const PathData &pathData) const
       if (! srcNode->hasNode(destNode)) {
         srcNode->addEdge(destNode);
 
-        destNode->setParent(srcNode);
+        destNode->setParent(srcNode.get());
       }
     }
     else {
       srcNode->addEdge(destNode, OptReal(pathData.value));
 
-      destNode->setParent(srcNode);
+      destNode->setParent(srcNode.get());
       destNode->setValue (OptReal(pathData.value));
     }
 
@@ -450,7 +447,7 @@ propagatePathValues()
   // propagate node value up through edges and parent nodes
   for (int depth = maxNodeDepth_; depth >= 0; --depth) {
     for (auto &p : nameNodeMap_) {
-      auto *node = p.second;
+      auto &node = p.second;
       if (node->depth() != depth) continue;
 
       // set node value from sum of dest values
@@ -504,7 +501,7 @@ void
 CQChartsAdjacencyPlot::
 addFromToValue(const FromToData &fromToData) const
 {
-  auto *srcNode = findNode(fromToData.fromStr);
+  auto srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth > 0)
     srcNode->setDepth(fromToData.depth);
@@ -526,7 +523,7 @@ addFromToValue(const FromToData &fromToData) const
     if (fromToData.fromStr == fromToData.toStr)
       return;
 
-    auto *destNode = findNode(fromToData.toStr);
+    auto destNode = findNode(fromToData.toStr);
 
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);
@@ -564,7 +561,7 @@ filterObjs()
   // hide nodes below depth
   if (maxDepth() > 0) {
     for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+      const auto &node = p.second;
 
       if (node->depth() > maxDepth())
         node->setVisible(false);
@@ -574,7 +571,7 @@ filterObjs()
   // hide nodes less than min value
   if (minValue() > 0) {
     for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+      const auto &node = p.second;
 
       if (! node->value().isSet() || node->value().real() < minValue())
         node->setVisible(false);
@@ -624,8 +621,8 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
-  auto *srcNode  = findNode(linkConnectionData.srcStr );
-  auto *destNode = findNode(linkConnectionData.destStr);
+  auto srcNode  = findNode(linkConnectionData.srcStr );
+  auto destNode = findNode(linkConnectionData.destStr);
 //assert(srcNode != destNode);
 
   if (! srcNode->hasNode(destNode))
@@ -704,7 +701,7 @@ initConnectionObjs(PlotObjs &objs) const
     const auto &name  = idConnections.second.name;
     int         group = idConnections.second.group;
 
-    auto *node = new AdjacencyNode(id, name, group);
+    auto node = std::make_shared<AdjacencyNode>(id, name, group);
 
     if (ind.isValid())
       node->setInd(0, ind);
@@ -718,10 +715,10 @@ initConnectionObjs(PlotObjs &objs) const
     int         id          = idConnections.first;
     const auto &connections = idConnections.second;
 
-    auto node = th->nodes_[id];
+    auto &node = th->nodes_[id];
 
     for (const auto &connection : connections.connections) {
-      auto node1 = th->nodes_[connection.node];
+      auto &node1 = th->nodes_[connection.node];
 
       node->addEdge(node1, OptReal(connection.value));
     }
@@ -826,7 +823,7 @@ initTableObjs() const
 
     auto srcStr = QString::number(tableConnectionData.from());
 
-    auto *srcNode = findNode(srcStr);
+    auto srcNode = findNode(srcStr);
 
     srcNode->setName (tableConnectionData.name());
     srcNode->setGroup(tableConnectionData.group().ig);
@@ -834,7 +831,7 @@ initTableObjs() const
     for (const auto &value : tableConnectionData.values()) {
       auto destStr = QString::number(value.to);
 
-      auto *destNode = findNode(destStr);
+      auto destNode = findNode(destStr);
 
       if (! srcNode->hasNode(destNode))
         srcNode->addEdge(destNode, OptReal(value.value));
@@ -945,7 +942,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   nodeData.maxNode  = 0;
 
   for (auto &pnode : nodes) {
-    auto *node = const_cast<AdjacencyNode *>(pnode.second);
+    auto &node = pnode.second;
 
     sortedNodes.push_back(node);
 
@@ -955,25 +952,28 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   }
 
   if      (sortType() == SortType::NAME) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
-        return lhs->name() < rhs->name();
-      });
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](const AdjacencyNodeP &lhs,
+                                                         const AdjacencyNodeP &rhs) {
+      return lhs->name() < rhs->name();
+    });
   }
   else if (sortType() == SortType::GROUP) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
-        if (lhs->group() != rhs->group())
-          return (lhs->group() < rhs->group());
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](const AdjacencyNodeP &lhs,
+                                                         const AdjacencyNodeP &rhs) {
+      if (lhs->group() != rhs->group())
+        return (lhs->group() < rhs->group());
 
-        return lhs->name() < rhs->name();
-      });
+      return lhs->name() < rhs->name();
+    });
   }
   else if (sortType() == SortType::COUNT) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
-        if (lhs->value() != rhs->value())
-          return (lhs->value() < rhs->value());
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](const AdjacencyNodeP &lhs,
+                                                         const AdjacencyNodeP &rhs) {
+      if (lhs->value() != rhs->value())
+        return (lhs->value() < rhs->value());
 
-        return lhs->name() < rhs->name();
-      });
+      return lhs->name() < rhs->name();
+    });
   }
 }
 
@@ -988,7 +988,7 @@ createNameNodeObjs(PlotObjs &objs) const
   //---
 
   for (const auto &nameNode : nameNodeMap_) {
-    auto *node = nameNode.second;
+    const auto &node = nameNode.second;
     if (! node->isVisible()) continue;
 
     th->nodes_[node->id()] = node;
@@ -1068,7 +1068,7 @@ createNameNodeObjs(PlotObjs &objs) const
 
 //---
 
-CQChartsAdjacencyNode *
+CQChartsAdjacencyPlot::AdjacencyNodeP
 CQChartsAdjacencyPlot::
 findNode(const QString &str) const
 {
@@ -1081,7 +1081,7 @@ findNode(const QString &str) const
 
   int id = int(nameNodeMap_.size());
 
-  auto *node = new AdjacencyNode(id, str, 0);
+  auto node = std::make_shared<AdjacencyNode>(id, str, 0);
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
@@ -1111,7 +1111,7 @@ addMenuItems(QMenu *menu)
 
 CQChartsAdjacencyCellObj *
 CQChartsAdjacencyPlot::
-createCellObj(AdjacencyNode *node1, AdjacencyNode *node2, double value,
+createCellObj(const AdjacencyNodeP &node1, const AdjacencyNodeP &node2, double value,
               const BBox &rect, const ColorInd &ig)
 {
   return new CellObj(this, node1, node2, value, rect, ig);
@@ -1223,7 +1223,7 @@ execDrawBackground(PaintDevice *device) const
     double py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
     for (auto &node : sortedNodes_) {
-      drawRowNodeLabel(device, Point(px, py), node);
+      drawRowNodeLabel(device, Point(px, py), node.get());
 
       py += pys_;
     }
@@ -1236,7 +1236,7 @@ execDrawBackground(PaintDevice *device) const
     py = po.y + lengthPixelHeight(bgMargin()) + yts_;
 
     for (auto &node : sortedNodes_) {
-      drawColNodeLabel(device, Point(px, py), node);
+      drawColNodeLabel(device, Point(px, py), node.get());
 
       px += pxs_;
     }
@@ -1533,8 +1533,9 @@ createCustomControls()
 //------
 
 CQChartsAdjacencyCellObj::
-CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, AdjacencyNode *node1, AdjacencyNode *node2,
-                         double value, const BBox &rect, const ColorInd &ig) :
+CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, const AdjacencyNodeP &node1,
+                         const AdjacencyNodeP &node2, double value, const BBox &rect,
+                         const ColorInd &ig) :
  CQChartsPlotObj(const_cast<AdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
@@ -1642,7 +1643,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // get fill color for node
-  auto nodeFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode, bool &scaled) {
+  auto nodeFillColor = [&](const AdjacencyNodeP &srcNode,
+                           const AdjacencyNodeP &destNode, bool &scaled) {
     auto colorType = plot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
@@ -1666,7 +1668,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       return plot_->interpFillColor(colorInd);
   };
 
-  auto nodesFillColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode, bool &scaled) {
+  auto nodesFillColor = [&](const AdjacencyNodeP &srcNode,
+                            const AdjacencyNodeP &destNode, bool &scaled) {
     if  (srcNode == destNode)
       return nodeFillColor(srcNode, destNode, scaled);
     else {
@@ -1678,7 +1681,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // get stroke color for node
-  auto nodeStrokeColor = [&](AdjacencyNode *srcNode, AdjacencyNode * /*destNode*/) {
+  auto nodeStrokeColor = [&](const AdjacencyNodeP &srcNode, const AdjacencyNodeP & /*destNode*/) {
     auto colorType = plot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
@@ -1690,7 +1693,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       return plot_->interpStrokeColor(colorInd);
   };
 
-  auto nodesStrokeColor = [&](AdjacencyNode *srcNode, AdjacencyNode *destNode) {
+  auto nodesStrokeColor = [&](const AdjacencyNodeP &srcNode, const AdjacencyNodeP &destNode) {
     if  (srcNode == destNode)
       return nodeStrokeColor(srcNode, destNode);
     else

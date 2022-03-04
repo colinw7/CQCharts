@@ -361,6 +361,27 @@ void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
 
 }
 
+//---
+
+namespace CQChartsDrawUtil {
+  using PaintDevice = CQChartsPaintDevice;
+
+  struct ButtonData {
+    bool  pressed   { false };
+    bool  enabled   { true };
+    bool  checkable { false };
+    bool  checked   { false };
+    bool  inside    { false };
+  };
+
+  void drawCheckBox(PaintDevice *device, double px, double py, int bs, bool checked);
+
+  void drawPushButton(PaintDevice *device, const BBox &prect, const QString &textStr,
+                      const ButtonData &buttonData);
+}
+
+//---
+
 namespace CQChartsDrawUtil {
   using PaintDevice = CQChartsPaintDevice;
 

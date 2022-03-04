@@ -35,8 +35,6 @@
 #include <CQWinWidget.h>
 #include <CMathRound.h>
 
-#include <QStylePainter>
-
 const QStringList &
 CQChartsAnnotation::
 typeNames()
@@ -6499,7 +6497,26 @@ init()
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
 
-//---
+CQChartsColumn
+CQChartsKeyAnnotation::
+column() const
+{
+  auto columnKey = dynamic_cast<CQChartsKeyAnnotationColumnKey *>(key_);
+
+  return (columnKey ? columnKey->column() : Column());
+}
+
+void
+CQChartsKeyAnnotation::
+setColumn(const Column &c)
+{
+  auto columnKey = dynamic_cast<CQChartsKeyAnnotationColumnKey *>(key_);
+
+  if (columnKey)
+    columnKey->setColumn(c);
+}
+
+//--
 
 void
 CQChartsKeyAnnotation::
@@ -7870,8 +7887,11 @@ draw(PaintDevice *device)
   //---
 
   if (device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+    auto font = calcFont(textFont());
 
+    device->setFont(font);
+
+#if 0
     auto img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
 
     QStylePainter spainter(&img, view());
@@ -7900,7 +7920,7 @@ draw(PaintDevice *device)
 
     opt.palette = view()->palette();
 
-    spainter.setFont(calcFont(textFont()));
+    spainter.setFont(device->font());
 
     auto bg = opt.palette.color(QPalette::Button);
     auto fg = opt.palette.color(QPalette::ButtonText);
@@ -7918,7 +7938,19 @@ draw(PaintDevice *device)
 
     auto p = prect_.topLeft();
 
-    painter->painter()->drawImage(p.x(), p.y(), img);
+    auto *pdevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+
+    pdevice->painter()->drawImage(p.x(), p.y(), img);
+#else
+    CQChartsDrawUtil::ButtonData buttonData;
+
+    buttonData.pressed   = pressed_;
+    buttonData.enabled   = isEnabled();
+    buttonData.checkable = isCheckable();
+    buttonData.checked   = isChecked();
+
+    CQChartsDrawUtil::drawPushButton(device, BBox(prect_), textStr(), buttonData);
+#endif
   }
 
   //---

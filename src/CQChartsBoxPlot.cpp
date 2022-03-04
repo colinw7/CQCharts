@@ -2057,10 +2057,10 @@ addKeyItems(PlotKey *key)
 
         ColorInd sc(is, ns), gc;
 
-        auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
-        auto *textItem  = new CQChartsBoxKeyText (this, setName, sc, gc);
+        auto *colorItem = new CQChartsBoxColorKeyItem(this, sc, gc);
+        auto *textItem  = new CQChartsBoxTextKeyItem (this, setName, sc, gc);
 
-        auto *groupItem = new CQChartsKeyItemGroup(this);
+        auto *groupItem = new CQChartsGroupKeyItem(this);
 
         groupItem->addRowItems(colorItem, textItem);
 
@@ -2082,10 +2082,10 @@ addKeyItems(PlotKey *key)
 
         ColorInd sc, gc(ig, ng);
 
-        auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
-        auto *textItem  = new CQChartsBoxKeyText (this, groupName, sc, gc);
+        auto *colorItem = new CQChartsBoxColorKeyItem(this, sc, gc);
+        auto *textItem  = new CQChartsBoxTextKeyItem (this, groupName, sc, gc);
 
-        auto *groupItem = new CQChartsKeyItemGroup(this);
+        auto *groupItem = new CQChartsGroupKeyItem(this);
 
         groupItem->addRowItems(colorItem, textItem);
 
@@ -2117,10 +2117,10 @@ addKeyItems(PlotKey *key)
 
       ColorInd sc(is, ns), gc;
 
-      auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
-      auto *textItem  = new CQChartsBoxKeyText (this, name, sc, gc);
+      auto *colorItem = new CQChartsBoxColorKeyItem(this, sc, gc);
+      auto *textItem  = new CQChartsBoxTextKeyItem (this, name, sc, gc);
 
-      auto *groupItem = new CQChartsKeyItemGroup(this);
+      auto *groupItem = new CQChartsGroupKeyItem(this);
 
       groupItem->addRowItems(colorItem, textItem);
 
@@ -3849,14 +3849,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 //------
 
-CQChartsBoxKeyColor::
-CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig) :
+CQChartsBoxColorKeyItem::
+CQChartsBoxColorKeyItem(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig) :
  CQChartsColorBoxKeyItem(plot, is, ig, ColorInd())
 {
 }
 
 bool
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 selectPress(const Point &, SelMod)
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
@@ -3869,7 +3869,7 @@ selectPress(const Point &, SelMod)
 }
 
 QBrush
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 fillBrush() const
 {
   auto c = CQChartsColorBoxKeyItem::fillBrush().color();
@@ -3880,7 +3880,7 @@ fillBrush() const
 }
 
 bool
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 calcHidden() const
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
@@ -3891,7 +3891,7 @@ calcHidden() const
 }
 
 double
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 xColorValue(bool relative) const
 {
   auto *boxObj = this->boxObj();
@@ -3900,7 +3900,7 @@ xColorValue(bool relative) const
 }
 
 double
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 yColorValue(bool relative) const
 {
   auto *boxObj = this->boxObj();
@@ -3909,7 +3909,7 @@ yColorValue(bool relative) const
 }
 
 CQChartsBoxPlotWhiskerObj *
-CQChartsBoxKeyColor::
+CQChartsBoxColorKeyItem::
 boxObj() const
 {
   for (const auto &plotObj : plot_->plotObjects()) {
@@ -3925,15 +3925,15 @@ boxObj() const
 
 //------
 
-CQChartsBoxKeyText::
-CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
-                   const ColorInd &is, const ColorInd &ig) :
+CQChartsBoxTextKeyItem::
+CQChartsBoxTextKeyItem(CQChartsBoxPlot *plot, const QString &text,
+                       const ColorInd &is, const ColorInd &ig) :
  CQChartsTextKeyItem(plot, text, (is.n > 1 ? is : ig))
 {
 }
 
 QColor
-CQChartsBoxKeyText::
+CQChartsBoxTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
@@ -3944,7 +3944,7 @@ interpTextColor(const ColorInd &ind) const
 }
 
 bool
-CQChartsBoxKeyText::
+CQChartsBoxTextKeyItem::
 calcHidden() const
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);

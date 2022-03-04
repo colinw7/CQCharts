@@ -159,6 +159,7 @@ clearNodesAndEdges()
 
   nameNodeMap_.clear();
   indNodeMap_ .clear();
+  nameNameMap_.clear();
 
   nodes_.clear();
   edges_.clear();
@@ -810,6 +811,8 @@ CQChartsGraphVizPlot::
 processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
              const QString &outFilename, const QString &typeName) const
 {
+  auto columnDataType = calcColumnDataType();
+
   QString cmd { "dot" };
 
   switch (plotType()) {
@@ -841,20 +844,25 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
   cmd.wait();
 #else
-  QProcess process;
+  auto *process = new QProcess;
 
-  process.setStandardOutputFile(outFilename);
+  process->setStandardOutputFile(outFilename);
 
   auto typeArg = "-T" + typeName;
   auto cmdArgs = QStringList() << typeArg << graphVizFilename;
 
-  process.start(dot_file, cmdArgs);
+  process->start(dot_file, cmdArgs);
 
-  if (! process.waitForFinished()) {
+  int timeout = processTimeout_*1000;
+
+  if (! process->waitForFinished(timeout)) {
     std::cerr << "Command failed : " << dot_file.toStdString() << " " <<
                  cmdArgs.join(" ").toStdString() << " > " << outFilename.toStdString() << "\n";
+    delete process;
     return false;
   }
+
+  delete process;
 #endif
 
   //---
@@ -875,10 +883,19 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
   // create nodes
   for (auto &object : dot.objects()) {
-    auto *node = findNode(object->name());
+    Node *node = nullptr;
+
+    if (columnDataType == ColumnDataType::CONNECTIONS) {
+      auto pn = nameNameMap_.find(object->name());
+
+      if (pn != nameNameMap_.end())
+        node = findNode((*pn).second, /*create*/false);
+    }
+    else
+      node = findNode(object->name(), /*create*/false);
 
     if (! node) {
-      charts()->errorMsg(object->name() + " Not Found");
+      charts()->errorMsg("Node " + object->name() + " not found");
       continue;
     }
 
@@ -911,7 +928,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
     auto *edge = tailNode->findDestEdge(headNode);
     if (! edge) edge = tailNode->findSrcEdge(headNode);
     if (! edge) {
-      charts()->errorMsg("Edge " + QString::number(dotEdge->id()) + " not Found");
+      charts()->errorMsg("Edge " + QString::number(dotEdge->id()) + " not found");
       continue;
     }
 
@@ -1678,6 +1695,8 @@ void
 CQChartsGraphVizPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex &) const
 {
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
   // get src node
   auto srcStr = QString::number(id);
 
@@ -1685,13 +1704,13 @@ addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex
 
   srcNode->setName(connectionsData.name);
 
+  th->nameNameMap_[connectionsData.name] = srcStr;
+
   //---
 
   // set group
   if (connectionsData.groupData.isValid() && ! connectionsData.groupData.isNull()) {
     srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
-
-    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, connectionsData.groupData.ng);
   }
@@ -2139,14 +2158,14 @@ addEdgeObj(Edge *edge) const
 
 CQChartsGraphVizPlotNode *
 CQChartsGraphVizPlot::
-findNode(const QString &name) const
+findNode(const QString &name, bool create) const
 {
   auto p = nameNodeMap_.find(name);
 
   if (p != nameNodeMap_.end())
     return (*p).second;
 
-  return createNode(name);
+  return (create ? createNode(name) : nullptr);
 }
 
 CQChartsGraphVizPlotNode *
@@ -2155,7 +2174,7 @@ findIdNode(int dotId) const
 {
   for (const auto &node : nodes())
     if (node->dotId() == dotId)
-     return node;
+      return node;
 
   return nullptr;
 }
@@ -2164,6 +2183,8 @@ CQChartsGraphVizPlotNode *
 CQChartsGraphVizPlot::
 createNode(const QString &name) const
 {
+  assert(! findNode(name, /*create*/false));
+
   auto *node = new CQChartsGraphVizPlotNode(name);
 
   node->setName(name);

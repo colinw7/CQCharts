@@ -1115,6 +1115,8 @@ exec(const QString &filename)
     return false;
   }
 
+  cmds_->cmdBase()->setFilename(filename);
+
   return CQChartsInput::processFileLines(filename,
     [&](QString &line, bool &join) { return CQChartsCmdBase::isCompleteLine(line, join); },
     [&](const QString &line) { cmds_->cmdBase()->parseLine(line, /*log*/false); }

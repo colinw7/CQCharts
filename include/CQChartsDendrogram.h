@@ -199,8 +199,8 @@ class CQChartsDendrogram {
 
     virtual ~RootNode() { }
 
-    void setDebug(bool debug) { debug_ = debug; }
     bool debug() const { return debug_; }
+    void setDebug(bool debug) { debug_ = debug; }
 
     void setSingleStep(bool singleStep) { singleStep_ = singleStep; }
     bool singleStep() const { return singleStep_; }
@@ -265,7 +265,7 @@ class CQChartsDendrogram {
   virtual ~CQChartsDendrogram();
 
   //! get/set debug
-  bool debug() const;
+  bool debug() const { return debug_; }
   void setDebug(bool b);
 
   //! get/set single setp
@@ -297,7 +297,8 @@ class CQChartsDendrogram {
   void printGaps();
 
  private:
-  RootNode* root_ { nullptr }; //!< root node
+  RootNode* root_  { nullptr }; //!< root node
+  bool      debug_ { false };   //!< is debug
 };
 
 #endif

@@ -1134,10 +1134,10 @@ addPointKeyItems(CQChartsPlotKey *key)
   auto addKeyItem = [&](int ind, const QString &name, int i, int n) {
     ColorInd ic(i, n);
 
-    auto *colorItem = new CQChartsScatterKeyColor3D(this, ind , ic);
-    auto *textItem  = new CQChartsTextKeyItem      (this, name, ic);
+    auto *colorItem = new CQChartsScatter3DColorKeyItem(this, ind , ic);
+    auto *textItem  = new CQChartsTextKeyItem          (this, name, ic);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -2152,14 +2152,14 @@ postDraw(PaintDevice *device)
 
 //------
 
-CQChartsScatterKeyColor3D::
-CQChartsScatterKeyColor3D(CQChartsScatterPlot3D *plot, int groupInd, const ColorInd &ic) :
+CQChartsScatter3DColorKeyItem::
+CQChartsScatter3DColorKeyItem(CQChartsScatterPlot3D *plot, int groupInd, const ColorInd &ic) :
  CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
 {
 }
 
 bool
-CQChartsScatterKeyColor3D::
+CQChartsScatter3DColorKeyItem::
 selectPress(const Point &, SelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
@@ -2179,7 +2179,7 @@ selectPress(const Point &, SelMod selMod)
 }
 
 QBrush
-CQChartsScatterKeyColor3D::
+CQChartsScatter3DColorKeyItem::
 fillBrush() const
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
@@ -2202,7 +2202,7 @@ fillBrush() const
 }
 
 bool
-CQChartsScatterKeyColor3D::
+CQChartsScatter3DColorKeyItem::
 calcHidden() const
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
@@ -2213,7 +2213,7 @@ calcHidden() const
 }
 
 int
-CQChartsScatterKeyColor3D::
+CQChartsScatter3DColorKeyItem::
 hideIndex() const
 {
   return (groupInd_ >= 0 ? groupInd_ : ic_.i);

@@ -146,14 +146,14 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
  * \brief Scatter Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsScatterKeyColor3D : public CQChartsColorBoxKeyItem {
+class CQChartsScatter3DColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsScatterPlot3D;
 
  public:
-  CQChartsScatterKeyColor3D(Plot *plot, int groupInd, const ColorInd &ic);
+  CQChartsScatter3DColorKeyItem(Plot *plot, int groupInd, const ColorInd &ic);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }

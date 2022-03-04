@@ -2843,10 +2843,10 @@ addKeyItems(PlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const RangeValue &xv,
                        const RangeValue &yv, const QString &name) {
-    auto *colorItem = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
-    auto *textItem  = new CQChartsDistKeyText    (this, name, iv);
+    auto *colorItem = new CQChartsDistColorKeyItem(this, ig, iv, xv, yv);
+    auto *textItem  = new CQChartsDistTextKeyItem  (this, name, iv);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -2854,7 +2854,7 @@ addKeyItems(PlotKey *key)
 
     key->nextRowCol(row, col);
 
-    return std::pair<CQChartsDistKeyColorBox *, CQChartsDistKeyText*>(colorItem, textItem);
+    return std::pair<CQChartsDistColorKeyItem *, CQChartsDistTextKeyItem *>(colorItem, textItem);
   };
 
   //---
@@ -4863,9 +4863,9 @@ calcPenBrush(PenBrush &penBrush, bool) const
 
 //------
 
-CQChartsDistKeyColorBox::
-CQChartsDistKeyColorBox(Plot *plot, const ColorInd &ig, const ColorInd &iv,
-                        const RangeValue &xv, const RangeValue &yv) :
+CQChartsDistColorKeyItem::
+CQChartsDistColorKeyItem(Plot *plot, const ColorInd &ig, const ColorInd &iv,
+                         const RangeValue &xv, const RangeValue &yv) :
  CQChartsColorBoxKeyItem(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
 {
   setClickable(true);
@@ -4873,7 +4873,7 @@ CQChartsDistKeyColorBox(Plot *plot, const ColorInd &ig, const ColorInd &iv,
 
 #if 0
 bool
-CQChartsDistKeyColorBox::
+CQChartsDistColorKeyItem::
 selectPress(const Point &, SelMod)
 {
   setSetHidden(! isSetHidden());
@@ -4884,7 +4884,7 @@ selectPress(const Point &, SelMod)
 
 #if 0
 void
-CQChartsDistKeyColorBox::
+CQChartsDistColorKeyItem::
 doSelect(SelMod)
 {
   CQChartsPlot::PlotObjs objs;
@@ -4901,7 +4901,7 @@ doSelect(SelMod)
 #endif
 
 QBrush
-CQChartsDistKeyColorBox::
+CQChartsDistColorKeyItem::
 fillBrush() const
 {
   if (color_.isValid())
@@ -4918,7 +4918,7 @@ fillBrush() const
 
 #if 0
 bool
-CQChartsDistKeyColorBox::
+CQChartsDistColorKeyItem::
 isSetHidden() const
 {
   if (ig_.n > 1)
@@ -4928,7 +4928,7 @@ isSetHidden() const
 }
 
 void
-CQChartsDistKeyColorBox::
+CQChartsDistColorKeyItem::
 setSetHidden(bool b)
 {
   if (ig_.n > 1)
@@ -4940,14 +4940,14 @@ setSetHidden(bool b)
 
 //------
 
-CQChartsDistKeyText::
-CQChartsDistKeyText(Plot *plot, const QString &text, const ColorInd &iv) :
+CQChartsDistTextKeyItem::
+CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &iv) :
  CQChartsTextKeyItem(plot, text, iv)
 {
 }
 
 QColor
-CQChartsDistKeyText::
+CQChartsDistTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
@@ -4959,7 +4959,7 @@ interpTextColor(const ColorInd &ind) const
 
 #if 0
 bool
-CQChartsDistKeyText::
+CQChartsDistTextKeyItem::
 isSetHidden() const
 {
   return plot_->CQChartsPlot::isSetHidden(ic_.i);

@@ -584,7 +584,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  * \brief XY Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsXYKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsXYColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
@@ -593,7 +593,7 @@ class CQChartsXYKeyColor : public CQChartsColorBoxKeyItem {
   using Obj    = CQChartsPlotObj;
 
  public:
-  CQChartsXYKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsXYColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
 
   Plot *plot() const { return plot_; }
 
@@ -618,14 +618,14 @@ class CQChartsXYKeyColor : public CQChartsColorBoxKeyItem {
  * \brief XY Plot Key Text
  * \ingroup Charts
  */
-class CQChartsXYKeyText : public CQChartsTextKeyItem {
+class CQChartsXYTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsXYPlot;
 
  public:
-  CQChartsXYKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
+  CQChartsXYTextKeyItem(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
 
   Plot *plot() const { return plot_; }
 

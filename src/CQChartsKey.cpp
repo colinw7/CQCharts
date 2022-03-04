@@ -20,8 +20,6 @@
 #include <CMathRound.h>
 
 #include <QScrollBar>
-#include <QStylePainter>
-#include <QStyleOptionSlider>
 
 CQChartsKey::
 CQChartsKey(View *view) :
@@ -573,7 +571,9 @@ draw(PaintDevice *device) const
 
     //---
 
-    drawCheckBox(device, px1, (py1 + py2)/2.0 - bs/2.0, int(bs), checked);
+    device->setPen(interpTextColor(ColorInd()));
+
+    CQChartsDrawUtil::drawCheckBox(device, px1, (py1 + py2)/2.0 - bs/2.0, int(bs), checked);
 
     //---
 
@@ -624,33 +624,6 @@ CQChartsViewKey::setEditHandlesBBox() const
   editHandles()->setMode(EditHandles::Mode::MOVE);
 
   editHandles()->setBBox(pbbox_);
-}
-
-void
-CQChartsViewKey::
-drawCheckBox(PaintDevice *device, double px, double py, int bs, bool checked) const
-{
-  auto cimage = CQChartsUtil::initImage(QSize(bs, bs));
-
-  cimage.fill(Qt::transparent);
-
-  BBox bbox(0, 0, bs, bs);
-
-  QStylePainter spainter(&cimage, view());
-
-  spainter.setPen(interpTextColor(ColorInd()));
-
-  QStyleOptionButton opt;
-
-  opt.initFrom(view());
-
-  opt.rect = bbox.qrect().toRect();
-
-  opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
-
-  spainter.drawControl(QStyle::CE_CheckBox, opt);
-
-  device->drawImage(device->pixelToWindow(Point(px, py)), cimage);
 }
 
 //------
@@ -1576,7 +1549,7 @@ getItemAt(const Point &p) const
     return nullptr;
 
   for (auto *item : items_) {
-    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item);
+    auto *group = dynamic_cast<CQChartsGroupKeyItem *>(item);
 
     if (group) {
       auto *item1 = group->getItemAt(p);
@@ -1750,7 +1723,7 @@ setInsideItem(CQChartsKeyItem *item)
   for (auto &item1 : items_) {
     if (! item1) continue;
 
-    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
+    auto *group = dynamic_cast<CQChartsGroupKeyItem *>(item1);
 
     if (group) {
       if (group->setInsideItem(item))
@@ -2326,19 +2299,21 @@ updateItems()
   int col = 0;
 
   auto addKeyRow = [&](const QString &name, const ColorInd &ic) {
-    auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ic);
+//  auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ic);
+    auto *checkItem = new CQChartsCheckKeyItem   (this, ColorInd(), ColorInd(), ic);
     auto *textItem  = new CQChartsTextKeyItem    (this, name, ic);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
+  //groupItem->addRowItems(colorItem, textItem);
+    groupItem->addRowItems(checkItem, textItem);
 
     addItem(groupItem, row, col);
 
     nextRowCol(row, col);
 
-    return std::pair<CQChartsColorBoxKeyItem *, CQChartsTextKeyItem *>(colorItem, textItem);
+    //return std::pair<CQChartsColorBoxKeyItem *, CQChartsTextKeyItem *>(colorItem, textItem);
+    return std::pair<CQChartsCheckKeyItem *, CQChartsTextKeyItem *>(checkItem, textItem);
   };
 
   clearItems();
@@ -2505,27 +2480,27 @@ tipText(const Point &, QString &) const
 
 //------
 
-CQChartsKeyItemGroup::
-CQChartsKeyItemGroup(Plot *plot) :
+CQChartsGroupKeyItem::
+CQChartsGroupKeyItem(Plot *plot) :
  CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
 {
 }
 
-CQChartsKeyItemGroup::
-CQChartsKeyItemGroup(PlotKey *key) :
+CQChartsGroupKeyItem::
+CQChartsGroupKeyItem(PlotKey *key) :
  CQChartsKeyItem(key, ColorInd()), plot_(key->plot())
 {
 }
 
-CQChartsKeyItemGroup::
-~CQChartsKeyItemGroup()
+CQChartsGroupKeyItem::
+~CQChartsGroupKeyItem()
 {
   for (auto &item : items_)
     delete item;
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 setKey(PlotKey *key)
 {
   CQChartsKeyItem::setKey(key);
@@ -2535,7 +2510,7 @@ setKey(PlotKey *key)
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 addRowItems(KeyItem *litem, KeyItem *ritem)
 {
   if (key()->isFlipped())
@@ -2549,11 +2524,11 @@ addRowItems(KeyItem *litem, KeyItem *ritem)
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 addItem(KeyItem *item)
 {
   if (item->group())
-    const_cast<CQChartsKeyItemGroup *>(item->group())->removeItem(item, /*keep*/true);
+    const_cast<CQChartsGroupKeyItem *>(item->group())->removeItem(item, /*keep*/true);
 
   items_.push_back(item);
 
@@ -2563,7 +2538,7 @@ addItem(KeyItem *item)
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 removeItem(KeyItem *item, bool keep)
 {
   assert(item->group() == this);
@@ -2581,7 +2556,7 @@ removeItem(KeyItem *item, bool keep)
 }
 
 CQChartsGeom::Size
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 size() const
 {
   double w = 0.0;
@@ -2599,7 +2574,7 @@ size() const
 }
 
 bool
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 tipText(const Point &p, QString &tip) const
 {
   for (auto &item : items_) {
@@ -2611,7 +2586,7 @@ tipText(const Point &p, QString &tip) const
 }
 
 bool
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 calcHidden() const
 {
   for (const auto &item : items_) {
@@ -2625,11 +2600,11 @@ calcHidden() const
 //---
 
 CQChartsKeyItem *
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 getItemAt(const Point &p) const
 {
   for (auto *item : items_) {
-    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item);
+    auto *group = dynamic_cast<CQChartsGroupKeyItem *>(item);
 
     if (group) {
       auto *item1 = group->getItemAt(p);
@@ -2647,7 +2622,7 @@ getItemAt(const Point &p) const
 }
 
 bool
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 setInsideItem(CQChartsKeyItem *item)
 {
   bool changed = false;
@@ -2655,7 +2630,7 @@ setInsideItem(CQChartsKeyItem *item)
   for (auto &item1 : items_) {
     if (! item1) continue;
 
-    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
+    auto *group = dynamic_cast<CQChartsGroupKeyItem *>(item1);
 
     if (group) {
       if (group->setInsideItem(item))
@@ -2685,7 +2660,7 @@ setInsideItem(CQChartsKeyItem *item)
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 updateInside()
 {
   bool inside = false;
@@ -2693,7 +2668,7 @@ updateInside()
   for (auto &item1 : items_) {
     if (! item1) continue;
 
-    auto *group = dynamic_cast<CQChartsKeyItemGroup *>(item1);
+    auto *group = dynamic_cast<CQChartsGroupKeyItem *>(item1);
 
     if (group)
       updateInside();
@@ -2708,7 +2683,7 @@ updateInside()
 //---
 
 bool
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 selectPress(const Point &p, SelMod selMod)
 {
   for (auto &item : items_) {
@@ -2720,7 +2695,7 @@ selectPress(const Point &p, SelMod selMod)
 }
 
 bool
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 selectMove(const Point &p)
 {
   for (auto &item : items_) {
@@ -2734,7 +2709,7 @@ selectMove(const Point &p)
 //---
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 doShow(SelMod selMod)
 {
   for (auto &item : items_)
@@ -2742,7 +2717,7 @@ doShow(SelMod selMod)
 }
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 doSelect(SelMod selMod)
 {
   for (auto &item : items_)
@@ -2752,7 +2727,7 @@ doSelect(SelMod selMod)
 //---
 
 void
-CQChartsKeyItemGroup::
+CQChartsGroupKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   double x = rect.getXMin();
@@ -3321,4 +3296,118 @@ calcLabels(QStringList &labels) const
   labels.push_back(QString::number(n3));
   labels.push_back(QString::number(n4));
   labels.push_back(QString::number(n5));
+}
+
+//------
+
+CQChartsCheckKeyItem::
+CQChartsCheckKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv)
+{
+  assert(is_.isValid());
+  assert(ig_.isValid());
+  assert(iv_.isValid());
+
+  setClickable(true);
+}
+
+CQChartsCheckKeyItem::
+CQChartsCheckKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsKeyItem(key, iv), plot_(key->plot()), is_(is), ig_(ig), iv_(iv)
+{
+  assert(is_.isValid());
+  assert(ig_.isValid());
+  assert(iv_.isValid());
+
+  setClickable(true);
+}
+
+CQChartsGeom::Size
+CQChartsCheckKeyItem::
+size() const
+{
+  // get char width/height
+  auto font = plot_->view()->plotFont(plot_, key_->textFont());
+
+  QFontMetricsF fm(font);
+
+  double fw = fm.horizontalAdvance("X") + 4;
+  double fh = fm.height() + 4;
+
+  auto ps = std::max(fw, fh);
+
+  double ww = plot_->pixelToWindowWidth (ps + 4);
+  double wh = plot_->pixelToWindowHeight(ps + 4);
+
+  return Size(ww, wh);
+}
+
+bool
+CQChartsCheckKeyItem::
+selectPress(const Point &w, SelMod selMod)
+{
+  if (! value_.isValid())
+    return CQChartsKeyItem::selectPress(w, selMod);
+
+  if (! isClickable())
+    return false;
+
+  if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
+    auto *plot = key_->plot();
+
+    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+      plot->setHideValue(value_);
+    else
+      plot->setHideValue(QVariant());
+
+    plot->updateRangeAndObjs();
+  }
+  else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
+  }
+
+  return true;
+}
+
+void
+CQChartsCheckKeyItem::
+draw(PaintDevice *device, const BBox &rect) const
+{
+  // get char height
+  plot_->setPainterFont(device, key_->textFont());
+
+  QFontMetricsF fm(device->font());
+
+  double fw = fm.horizontalAdvance("X") + 4;
+  double fh = fm.height() + 4;
+
+  //---
+
+  auto prect = device->windowToPixel(rect);
+
+  auto ps = std::max(fw, fh);
+  auto px = prect.getXMid() - ps/2;
+  auto py = prect.getYMid() - ps/2;
+
+  //device->setPen(interpTextColor(ColorInd()));
+
+  bool checked = ! calcHidden();
+
+  CQChartsDrawUtil::drawCheckBox(device, int(px), int(py), int(ps), checked);
+}
+
+bool
+CQChartsCheckKeyItem::
+calcHidden() const
+{
+  bool hidden = false;
+
+  if (value_.isValid())
+    hidden = (CQChartsVariant::cmp(value_, plot_->hideValue()) == 0);
+  else {
+    auto ic = calcColorInd();
+
+    hidden = plot_->isSetHidden(ic.i);
+  }
+
+  return hidden;
 }

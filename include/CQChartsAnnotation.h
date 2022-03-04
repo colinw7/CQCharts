@@ -2096,6 +2096,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
   using Column = CQChartsColumn;
@@ -2122,6 +2123,9 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   //! get/set object reference
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  Column column() const;
+  void setColumn(const Column &c);
 
   //---
 

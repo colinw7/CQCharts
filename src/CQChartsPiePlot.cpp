@@ -1708,7 +1708,7 @@ addKeyItems(PlotKey *key)
     auto *colorItem = new CQChartsPieColorKeyItem(this, obj);
     auto *textItem  = new CQChartsPieTextKeyItem (this, obj);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -1725,7 +1725,7 @@ addKeyItems(PlotKey *key)
 
     colorItem->setValue(value);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 

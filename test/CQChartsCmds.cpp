@@ -10996,6 +10996,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
   addArg(argv, "-id", ArgType::String , "item id");
 
+  addArg(argv, "-group", ArgType::Boolean, "Add items to group");
+
   addArg(argv, "-row"  , ArgType::Integer, "item row");
   addArg(argv, "-col"  , ArgType::Integer, "item column");
   addArg(argv, "-nrows", ArgType::Integer, "item row count");
@@ -11097,10 +11099,12 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   // get position of next row, column
-  int nr = plotKey->calcNumRows();
+  int row = (! plotKey->isHorizontal() ? plotKey->maxRow() : 0);
+  int col = (! plotKey->isHorizontal() ? 0 : plotKey->maxCol());
 
-  int row   = (argv.hasParseArg("row") ? argv.getParseInt("row") : nr);
-  int col   = (argv.hasParseArg("col") ? argv.getParseInt("col") : 0);
+  row = argv.getParseInt("row", row);
+  col = argv.getParseInt("col", col);
+
   int nrows = argv.getParseInt("nrows", 1);
   int ncols = argv.getParseInt("ncols", 1);
 
@@ -11108,6 +11112,62 @@ execCmd(CQChartsCmdArgs &argv)
 
   // get text label
   auto text = argv.getParseStr("text");
+
+  //---
+
+  QString id;
+
+  if (argv.hasParseArg("id"))
+    id = argv.getParseStr("id");
+
+  int ind = 0;
+
+  //---
+
+  auto addItems = [&](CQChartsKeyItem *item1, CQChartsKeyItem *item2) {
+    if (id != "") {
+      item1->setId(QString("keyitem:%1:%2").arg(id).arg(item1->typeName()));
+      item2->setId(QString("keyitem:%1:%2").arg(id).arg(item2->typeName()));
+    }
+    else {
+      item1->setId(QString("keyitem:%1:%2").arg(ind++).arg(item1->typeName()));
+      item2->setId(QString("keyitem:%1:%2").arg(ind++).arg(item2->typeName()));
+    }
+
+    if (argv.hasParseArg("group")) {
+      auto *groupItem = new CQChartsGroupKeyItem(plotKey);
+
+      if (id != "")
+        groupItem->setId(QString("keygroup:%1:%2").arg(id).arg(groupItem->typeName()));
+      else
+        groupItem->setId(QString("keygroup:%1:%2").arg(ind++).arg(groupItem->typeName()));
+
+      groupItem->addRowItems(item1, item2);
+
+      plotKey->addItem(groupItem, row, col);
+
+      //plotKey->nextRowCol(row, col);
+    }
+    else {
+      if (! plotKey->isHorizontal()) {
+        plotKey->addItem(item1, row, col        , nrows, ncols);
+        plotKey->addItem(item2, row, col + ncols, nrows, ncols);
+      }
+      else {
+        plotKey->addItem(item1, row        , col, nrows, ncols);
+        plotKey->addItem(item2, row + nrows, col, nrows, ncols);
+      }
+    }
+  };
+
+  auto addItem = [&](CQChartsKeyItem *item) {
+    if (id != "")
+      item->setId(QString("keyitem:%1:%2").arg(id).arg(item->typeName()));
+    else
+      item->setId(QString("keyitem:%1:%2").arg(ind++).arg(item->typeName()));
+
+    plotKey->addItem(item, row, col, nrows, ncols);
+  };
 
   //---
 
@@ -11137,19 +11197,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     item1->setSymbolData(symbolData);
 
-    if (argv.hasParseArg("id")) {
-      auto id = argv.getParseStr("id");
-
-      item1->setId(QString("keyitem:%1:line").arg(id));
-      item2->setId(QString("keyitem:%1:text").arg(id));
-    }
-    else {
-      item1->setId(QString("keyitem:%1:%2").arg(row).arg(col    ));
-      item2->setId(QString("keyitem:%1:%2").arg(row).arg(col + 1));
-    }
-
-    plotKey->addItem(item1, row, col    , nrows);
-    plotKey->addItem(item2, row, col + 1, ncols);
+    addItems(item1, item2);
   }
   // add text and color box
   else if (argv.hasParseArg("color")) {
@@ -11162,19 +11210,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     item1->setColor(color);
 
-    if (argv.hasParseArg("id")) {
-      auto id = argv.getParseStr("id");
-
-      item1->setId(QString("keyitem:%1:color").arg(id));
-      item2->setId(QString("keyitem:%1:text" ).arg(id));
-    }
-    else {
-      item1->setId(QString("keyitem:%1,%2").arg(row).arg(col    ));
-      item2->setId(QString("keyitem:%1,%2").arg(row).arg(col + 1));
-    }
-
-    plotKey->addItem(item1, row, col    , nrows);
-    plotKey->addItem(item2, row, col + 1, ncols);
+    addItems(item1, item2);
   }
   // add text and gradient
   else if (argv.hasParseArg("gradient")) {
@@ -11184,15 +11220,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     item->setPalette(CQChartsPaletteName(palette));
 
-    if (argv.hasParseArg("id")) {
-      auto id = argv.getParseStr("id");
-
-      item->setId(QString("keyitem:%1:gradient").arg(id));
-    }
-    else
-      item->setId(QString("keyitem:%1,%2").arg(row).arg(col));
-
-    plotKey->addItem(item, row, col, nrows);
+    addItem(item);
   }
   // add text
   else {
@@ -11200,15 +11228,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     auto *item = new CQChartsTextKeyItem(plotKey->plot(), text, colorInd);
 
-    if (argv.hasParseArg("id")) {
-      auto id = argv.getParseStr("id");
-
-      item->setId(QString("keyitem:%1:text").arg(id));
-    }
-    else
-      item->setId(QString("%1,%2").arg(row).arg(col));
-
-    plotKey->addItem(item, row, col, nrows, ncols);
+    addItem(item);
   }
 
   return true;

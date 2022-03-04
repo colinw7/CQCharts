@@ -39,7 +39,7 @@ proc createWidgets { } {
   set ann [create_charts_widget_annotation -plot $::plot -id rightFrame \
     -position [list 8 8] -widget $rightFrame]
 
-  set_charts_property -annotation $ann -name align -value "AlignLeft|AlignBottom"
+  set_charts_property -annotation $ann -name align -value "AlignLeft|AlignTop"
   set_charts_property -annotation $ann -name sizePolicy -value "Fixed Expanding"
 
   set view [get_charts_data -plot $::plot -name view_path]
@@ -782,8 +782,8 @@ proc initBoard { } {
 }
 
 proc updateImageModel { } {
-  set white_image data/white_piece.svg
-  set black_image data/black_piece.svg
+  set white_image pics/white_piece.svg
+  set black_image pics/black_piece.svg
   set no_image ""
 
   for {set y 0} {$y < 8} {incr y} {

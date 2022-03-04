@@ -679,7 +679,7 @@ addKeyItems(PlotKey *key)
       auto *colorItem = new CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic);
       auto *textItem  = new CQChartsTextKeyItem    (plot, name, ic);
 
-      auto *groupItem = new CQChartsKeyItemGroup(plot);
+      auto *groupItem = new CQChartsGroupKeyItem(plot);
 
       groupItem->addRowItems(colorItem, textItem);
 

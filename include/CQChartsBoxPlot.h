@@ -444,14 +444,14 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
  * \brief Box Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsBoxKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsBoxColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsBoxPlot;
 
  public:
-  CQChartsBoxKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsBoxColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
 
   //! handle select press
   bool selectPress(const Point &p, SelMod selMod) override;
@@ -473,14 +473,14 @@ class CQChartsBoxKeyColor : public CQChartsColorBoxKeyItem {
  * \brief Box Plot Key Text
  * \ingroup Charts
  */
-class CQChartsBoxKeyText : public CQChartsTextKeyItem {
+class CQChartsBoxTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsBoxPlot;
 
  public:
-  CQChartsBoxKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
+  CQChartsBoxTextKeyItem(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 

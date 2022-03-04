@@ -70,6 +70,7 @@ class CQChartsAdjacencyNode {
   };
 
   using Node       = CQChartsAdjacencyNode;
+  using NodeP      = std::shared_ptr<Node>;
   using EdgeMap    = std::map<int, EdgeData>;
   using ModelIndex = CQChartsModelIndex;
 
@@ -125,12 +126,12 @@ class CQChartsAdjacencyNode {
   const EdgeMap &edges() const { return edges_; }
 
   //! had connected node
-  bool hasNode(Node *node) const {
+  bool hasNode(NodeP node) const {
     return (edges_.find(node->id()) != edges_.end());
   }
 
   //! add edge to another node
-  void addEdge(Node *node, const OptReal &value=OptReal()) {
+  void addEdge(NodeP node, const OptReal &value=OptReal()) {
     edges_[node->id()] = EdgeData(node->id(), value);
 
     if (value.isSet()) {
@@ -141,8 +142,8 @@ class CQChartsAdjacencyNode {
   }
 
   // get connected node value
-  double edgeValue(Node *node, double equalValue=0.0) const {
-    double defValue = (node == this ? equalValue : 0.0);
+  double edgeValue(NodeP node, double equalValue=0.0) const {
+    double defValue = (node.get() == this ? equalValue : 0.0);
 
     auto p = edges_.find(node->id());
     if (p == edges_.end()) return defValue;
@@ -155,7 +156,7 @@ class CQChartsAdjacencyNode {
     return edgeData.value.real();
   }
 
-  void setEdgeValue(Node *node, const OptReal &value) {
+  void setEdgeValue(NodeP node, const OptReal &value) {
     auto p = edges_.find(node->id());
     if (p == edges_.end()) return;
 
@@ -211,18 +212,19 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
   Q_PROPERTY(double value READ value)
 
  public:
-  using AdjacencyPlot = CQChartsAdjacencyPlot;
-  using AdjacencyNode = CQChartsAdjacencyNode;
+  using AdjacencyPlot  = CQChartsAdjacencyPlot;
+  using AdjacencyNode  = CQChartsAdjacencyNode;
+  using AdjacencyNodeP = std::shared_ptr<AdjacencyNode>;
 
  public:
-  CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, AdjacencyNode *node1,
-                           AdjacencyNode *node2, double value, const BBox &rect,
+  CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, const AdjacencyNodeP &node1,
+                           const AdjacencyNodeP &node2, double value, const BBox &rect,
                            const ColorInd &ig);
 
   QString typeName() const override { return "cell"; }
 
-  AdjacencyNode *node1() const { return node1_; }
-  AdjacencyNode *node2() const { return node2_; }
+  const AdjacencyNodeP &node1() const { return node1_; }
+  const AdjacencyNodeP &node2() const { return node2_; }
 
   QString calcId() const override;
 
@@ -243,8 +245,8 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
 
  private:
   const AdjacencyPlot* plot_  { nullptr }; //!< parent plot
-  AdjacencyNode*       node1_ { nullptr }; //!< row node
-  AdjacencyNode*       node2_ { nullptr }; //!< column node
+  AdjacencyNodeP       node1_;             //!< row node
+  AdjacencyNodeP       node2_;             //!< column node
   double               value_ { 0.0 };     //!< connections value
 };
 
@@ -304,15 +306,16 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
     COUNT /*! sort by value */
   };
 
-  using AdjacencyNode = CQChartsAdjacencyNode;
-  using CellObj       = CQChartsAdjacencyCellObj;
-  using Length        = CQChartsLength;
-  using Angle         = CQChartsAngle;
-  using Color         = CQChartsColor;
-  using Alpha         = CQChartsAlpha;
-  using PenData       = CQChartsPenData;
-  using BrushData     = CQChartsBrushData;
-  using ColorInd      = CQChartsUtil::ColorInd;
+  using AdjacencyNode  = CQChartsAdjacencyNode;
+  using AdjacencyNodeP = std::shared_ptr<AdjacencyNode>;
+  using CellObj        = CQChartsAdjacencyCellObj;
+  using Length         = CQChartsLength;
+  using Angle          = CQChartsAngle;
+  using Color          = CQChartsColor;
+  using Alpha          = CQChartsAlpha;
+  using PenData        = CQChartsPenData;
+  using BrushData      = CQChartsBrushData;
+  using ColorInd       = CQChartsUtil::ColorInd;
 
  public:
   CQChartsAdjacencyPlot(View *view, const ModelP &model);
@@ -375,7 +378,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual CellObj *createCellObj(AdjacencyNode *node1, AdjacencyNode *node2,
+  virtual CellObj *createCellObj(const AdjacencyNodeP &node1, const AdjacencyNodeP &node2,
                                  double value, const BBox &rect, const ColorInd &ig);
 
   //---
@@ -447,7 +450,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
  private:
   bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const;
 
-  AdjacencyNode *findNode(const QString &str) const;
+  AdjacencyNodeP findNode(const QString &str) const;
 
   //---
 
@@ -499,8 +502,9 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using NodeMap   = std::map<int, AdjacencyNode *>;
-  using NodeArray = std::vector<AdjacencyNode *>;
+  using NodeMap     = std::map<int, AdjacencyNodeP>;
+  using NodeArray   = std::vector<AdjacencyNodeP>;
+  using NameNodeMap = std::map<QString, AdjacencyNodeP>;
 
   struct NodeData {
     double maxValue       { 0 };   //!< max node value
@@ -515,8 +519,6 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) const;
 
  private:
-  using NameNodeMap = std::map<QString, AdjacencyNode *>;
-
   // options
   SortType    sortType_      { SortType::GROUP };  //!< sort type
   bool        forceDiagonal_ { false };            //!< force diagonal

@@ -466,15 +466,15 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  * \brief Distribution Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsDistKeyColorBox : public CQChartsColorBoxKeyItem {
+class CQChartsDistColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsDistributionPlot;
 
  public:
-  CQChartsDistKeyColorBox(Plot *plot, const ColorInd &ig, const ColorInd &iv,
-                          const RangeValue &xv, const RangeValue &yv);
+  CQChartsDistColorKeyItem(Plot *plot, const ColorInd &ig, const ColorInd &iv,
+                           const RangeValue &xv, const RangeValue &yv);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
@@ -501,14 +501,14 @@ class CQChartsDistKeyColorBox : public CQChartsColorBoxKeyItem {
  * \brief Distribution Plot Key Text
  * \ingroup Charts
  */
-class CQChartsDistKeyText : public CQChartsTextKeyItem {
+class CQChartsDistTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsDistributionPlot;
 
  public:
-  CQChartsDistKeyText(Plot *plot, const QString &text, const ColorInd &iv);
+  CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &iv);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 

@@ -162,7 +162,7 @@ if ($git == 1) then
 endif
 
 if ($save == 1) then
-  set exe = /home/colinw/bin/CQChartsSaveTest
+  set exe = ~/bin/CQChartsSaveTest
 endif
 
 if      ($dbx == 1) then

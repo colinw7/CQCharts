@@ -1627,7 +1627,7 @@ addKeyItems(PlotKey *key)
     auto *colorItem = new CQChartsBarColorKeyItem(this, name, is, ig, iv);
     auto *textItem  = new CQChartsBarTextKeyItem (this, name, iv);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 

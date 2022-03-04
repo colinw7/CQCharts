@@ -225,15 +225,15 @@ class CQChartsHierScatterPointObj : public CQChartsPlotPointObj {
  * \brief Hierarchical Scatter Plot Key Color Box
  * \ingroup Charts
  */
-class CQChartsHierScatterKeyColor : public CQChartsColorBoxKeyItem {
+class CQChartsHierScatterColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
   using Plot = CQChartsHierScatterPlot;
 
  public:
-  CQChartsHierScatterKeyColor(Plot *plot, CQChartsHierScatterPointGroup *group,
-                              const ColorInd &ic);
+  CQChartsHierScatterColorKeyItem(Plot *plot, CQChartsHierScatterPointGroup *group,
+                                  const ColorInd &ic);
 
   //! handle select press
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;

@@ -4343,7 +4343,7 @@ addColorKeyItems(CQChartsPlotKey *key)
     auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ColorInd());
     auto *textItem  = new CQChartsTextKeyItem    (this, name, ColorInd());
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -7178,7 +7178,7 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       }
     }
 
-    auto *group = const_cast<CQChartsKeyItemGroup *>(item->group());
+    auto *group = const_cast<CQChartsGroupKeyItem *>(item->group());
 
     if (group) {
       bool handled = group->selectPress(w, selMod);
@@ -11566,16 +11566,27 @@ void
 CQChartsPlot::
 updatePlotKeyPosition(Plot *plot, bool force)
 {
-  if (! isKeyVisibleAndNonEmpty())
-    return;
+  if (isKeyVisibleAndNonEmpty()) {
+    if (force)
+      key()->invalidateLayout();
 
-  if (force)
-    key()->invalidateLayout();
+    if (plot->dataRange().isSet())
+      key()->updatePlotLocation();
+  }
 
-  if (! plot->dataRange().isSet())
-    return;
+  for (auto &annotation : annotations()) {
+    auto *keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
+    if (! keyAnnotation) continue;
 
-  key()->updatePlotLocation();
+    auto *key = dynamic_cast<CQChartsPlotKey *>(keyAnnotation->key());
+    if (! key) continue;
+
+    if (force)
+      key->invalidateLayout();
+
+    if (plot->dataRange().isSet())
+      key->updatePlotLocation();
+  }
 }
 
 //------
@@ -14452,6 +14463,23 @@ setFitBBox(const BBox &bbox)
 
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
+
+  if (isEqualScale()) {
+#if 0
+    auto size = std::max(std::max(std::max(left, bottom), right), top);
+
+    left = size; bottom = size; right = size; top = size;
+#else
+    auto xmargin = left + right;
+    auto ymargin = top + bottom;
+
+    auto size = std::max(xmargin, ymargin);
+    auto xf = (size > 0 ? xmargin/size : 1.0);
+    auto yf = (size > 0 ? ymargin/size : 1.0);
+    left   /= xf; right /= xf;
+    bottom /= yf; top   /= yf;
+#endif
+  }
 
   auto outerMargin = PlotMargin(Length::percent(left ), Length::percent(top   ),
                                 Length::percent(right), Length::percent(bottom));

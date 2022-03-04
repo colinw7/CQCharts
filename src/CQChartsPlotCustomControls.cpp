@@ -909,7 +909,7 @@ void
 CQChartsPlotCustomKey::
 addItems(const CQChartsKeyItem *item, int &row)
 {
-  auto *group = dynamic_cast<const CQChartsKeyItemGroup *>(item);
+  auto *group = dynamic_cast<const CQChartsGroupKeyItem *>(item);
 
   if (group) {
     int row1 = row + item->row();

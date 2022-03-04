@@ -812,22 +812,14 @@ CQChartsDendrogram::
   delete root_;
 }
 
-bool
-CQChartsDendrogram::
-debug() const
-{
-  if (root_)
-    return root_->debug();
-  else
-    return false;
-}
-
 void
 CQChartsDendrogram::
 setDebug(bool b)
 {
+  debug_ = b;
+
   if (root_)
-    root_->setDebug(b);
+    root_->setDebug(debug());
 }
 
 bool
@@ -885,7 +877,12 @@ CQChartsDendrogram::RootNode *
 CQChartsDendrogram::
 createRootNode(const QString &name) const
 {
-  return new RootNode(name);
+  auto *root = new RootNode(name);
+
+  if (debug())
+    root->setDebug(true);
+
+  return root;
 }
 
 CQChartsDendrogram::Node *

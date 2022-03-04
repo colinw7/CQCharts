@@ -589,7 +589,7 @@ class CQChartsColumnKey : public CQChartsPlotKey {
 
 //------
 
-class CQChartsKeyItemGroup;
+class CQChartsGroupKeyItem;
 
 /*!
  * \brief Key Item base class
@@ -605,7 +605,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
  public:
   using Plot        = CQChartsPlot;
   using PlotKey     = CQChartsPlotKey;
-  using ItemGroup   = CQChartsKeyItemGroup;
+  using ItemGroup   = CQChartsGroupKeyItem;
   using SelMod      = CQChartsSelMod;
   using PenBrush    = CQChartsPenBrush;
   using BrushData   = CQChartsBrushData;
@@ -624,6 +624,8 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   virtual ~CQChartsKeyItem() { }
 
   virtual Size size() const = 0;
+
+  virtual QString typeName() const = 0;
 
   //! get/set item id
   virtual QString id() const { return id_; }
@@ -747,7 +749,7 @@ class CQChartsPlot;
  * \brief Key Item Group class
  * \ingroup Charts
  */
-class CQChartsKeyItemGroup : public CQChartsKeyItem {
+class CQChartsGroupKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
@@ -755,10 +757,12 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   using KeyItems = std::vector<KeyItem *>;
 
  public:
-  CQChartsKeyItemGroup(Plot *plot);
-  CQChartsKeyItemGroup(PlotKey *key);
+  CQChartsGroupKeyItem(Plot *plot);
+  CQChartsGroupKeyItem(PlotKey *key);
 
-  virtual ~CQChartsKeyItemGroup();
+  virtual ~CQChartsGroupKeyItem();
+
+  QString typeName() const override { return "group"; }
 
   Plot *plot() const { return plot_; }
 
@@ -829,6 +833,8 @@ class CQChartsTextKeyItem : public CQChartsKeyItem {
   CQChartsTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic);
   CQChartsTextKeyItem(PlotKey *key, const QString &text, const ColorInd &ic);
 
+  QString typeName() const override { return "text"; }
+
   Plot *plot() const { return plot_; }
 
   const QString &text() const { return text_; }
@@ -873,10 +879,16 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
                           const ColorInd &iv, const RangeValue &xv=RangeValue(),
                           const RangeValue &yv=RangeValue());
 
+  QString typeName() const override { return "color"; }
+
+  //---
+
   Plot *plot() const { return plot_; }
 
   const Length &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
   void setCornerRadius(const Length &r) { boxData_.shape().stroke().setCornerSize(r); }
+
+  //---
 
   Size size() const override;
 
@@ -939,6 +951,8 @@ class CQChartsLineKeyItem : public CQChartsKeyItem {
   CQChartsLineKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
   CQChartsLineKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig);
 
+  QString typeName() const override { return "line"; }
+
   Plot *plot() const { return plot_; }
 
   Size size() const override;
@@ -988,6 +1002,8 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   CQChartsGradientKeyItem(Plot *plot);
   CQChartsGradientKeyItem(PlotKey *key);
 
+  QString typeName() const override { return "gradient"; }
+
   //---
 
   double minValue() const { return minValue_; }
@@ -1019,6 +1035,47 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   double      maxValue_ { 100 };
   bool        integer_  { false };
   PaletteName palette_;
+};
+
+//---
+
+/*!
+ * \brief Plot Gradient Key Item
+ * \ingroup Charts
+ */
+class CQChartsCheckKeyItem : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsCheckKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig,
+                       const ColorInd &iv);
+  CQChartsCheckKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig,
+                       const ColorInd &iv);
+
+  QString typeName() const override { return "check"; }
+
+  //---
+
+  Plot *plot() const { return plot_; }
+
+  //---
+
+  Size size() const override;
+
+  QVariant drawValue() const override { return QVariant(); } // TODO
+
+  void draw(PaintDevice *device, const BBox &rect) const override;
+
+  // implement select interface
+  bool selectPress(const Point &w, SelMod selMod) override;
+
+  bool calcHidden() const override;
+
+ private:
+  Plot*    plot_ { nullptr }; //!< parent plot
+  ColorInd is_;               //!< group index
+  ColorInd ig_;               //!< group index
+  ColorInd iv_;               //!< number of groups
 };
 
 #endif

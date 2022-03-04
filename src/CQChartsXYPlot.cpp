@@ -2467,10 +2467,10 @@ addKeyItems(PlotKey *key)
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addColorKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
-    auto *colorItem = new CQChartsXYKeyColor(this, is, ig);
-    auto *textItem  = new CQChartsXYKeyText (this, name, is, ig);
+    auto *colorItem = new CQChartsXYColorKeyItem(this, is, ig);
+    auto *textItem  = new CQChartsXYTextKeyItem (this, name, is, ig);
 
-    auto *groupItem = new CQChartsKeyItemGroup(this);
+    auto *groupItem = new CQChartsGroupKeyItem(this);
 
     groupItem->addRowItems(colorItem, textItem);
 
@@ -4746,15 +4746,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 //------
 
-CQChartsXYKeyColor::
-CQChartsXYKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig) :
+CQChartsXYColorKeyItem::
+CQChartsXYColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig) :
  CQChartsColorBoxKeyItem(plot, is, ig, ColorInd()), plot_(plot)
 {
   setClickable(true);
 }
 
 void
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 doSelect(SelMod selMod)
 {
   auto *obj = plotObj();
@@ -4824,7 +4824,7 @@ doSelect(SelMod selMod)
 }
 
 void
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   if (plot()->isKeyLine())
@@ -4834,7 +4834,7 @@ draw(PaintDevice *device, const BBox &rect) const
 }
 
 void
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 drawLine(PaintDevice *device, const BBox &rect) const
 {
   bool updateState = device->isInteractive();
@@ -4990,7 +4990,7 @@ drawLine(PaintDevice *device, const BBox &rect) const
 }
 
 QBrush
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 fillBrush() const
 {
   PenBrush penBrush;
@@ -5024,7 +5024,7 @@ fillBrush() const
 }
 
 bool
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 calcHidden() const
 {
   bool hidden = false;
@@ -5038,7 +5038,7 @@ calcHidden() const
 }
 
 CQChartsPlotObj *
-CQChartsXYKeyColor::
+CQChartsXYColorKeyItem::
 plotObj() const
 {
   if (ig_.n <= 1)
@@ -5051,14 +5051,14 @@ plotObj() const
 
 //------
 
-CQChartsXYKeyText::
-CQChartsXYKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig) :
+CQChartsXYTextKeyItem::
+CQChartsXYTextKeyItem(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig) :
  CQChartsTextKeyItem(plot, text, is.n > 1 ? is : ig), plot_(plot)
 {
 }
 
 QColor
-CQChartsXYKeyText::
+CQChartsXYTextKeyItem::
 interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
@@ -5069,7 +5069,7 @@ interpTextColor(const ColorInd &ind) const
 }
 
 bool
-CQChartsXYKeyText::
+CQChartsXYTextKeyItem::
 calcHidden() const
 {
   return plot()->isSetHidden(ic_.i);
