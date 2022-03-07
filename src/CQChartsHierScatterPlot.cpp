@@ -1009,7 +1009,7 @@ CQChartsHierScatterColorKeyItem(CQChartsHierScatterPlot *plot, CQChartsHierScatt
 
 bool
 CQChartsHierScatterColorKeyItem::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 

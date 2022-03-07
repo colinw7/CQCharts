@@ -366,7 +366,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 
@@ -549,7 +549,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 
@@ -713,7 +713,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   bool selectPressType(const Point &w, ClickMod clickMod, DrawType drawType) override;
 

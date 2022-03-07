@@ -426,7 +426,6 @@ void rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point
                           Qt::Orientation &orient1, Qt::Orientation &orient2,
                           bool useCorners=true);
 
-
 QPointF pathMidPoint(const QPainterPath &path);
 
 }

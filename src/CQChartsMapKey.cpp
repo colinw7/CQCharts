@@ -1160,9 +1160,9 @@ valueText(double value) const
 
 bool
 CQChartsColorMapKey::
-selectPress(const Point &p, SelMod selMod)
+selectPress(const Point &p, SelData &selData)
 {
-  auto clickMod = static_cast<ClickMod>(selMod);
+  auto clickMod = static_cast<ClickMod>(selData.selMod);
 
   return selectPressType(p, clickMod, DrawType::VIEW);
 }
@@ -2208,9 +2208,9 @@ valueText(double value) const
 
 bool
 CQChartsSymbolSizeMapKey::
-selectPress(const Point &p, SelMod selMod)
+selectPress(const Point &p, SelData &selData)
 {
-  auto clickMod = static_cast<ClickMod>(selMod);
+  auto clickMod = static_cast<ClickMod>(selData.selMod);
 
   return selectPressType(p, clickMod, DrawType::VIEW);
 }
@@ -2725,9 +2725,9 @@ valueText(double value) const
 
 bool
 CQChartsSymbolTypeMapKey::
-selectPress(const Point &p, SelMod selMod)
+selectPress(const Point &p, SelData &selData)
 {
-  auto clickMod = static_cast<ClickMod>(selMod);
+  auto clickMod = static_cast<ClickMod>(selData.selMod);
 
   return selectPressType(p, clickMod, DrawType::VIEW);
 }

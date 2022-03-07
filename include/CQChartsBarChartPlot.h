@@ -333,7 +333,7 @@ class CQChartsBarColorKeyItem : public CQChartsColorBoxKeyItem {
 
 #if 0
   //! handle select press
-  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 #endif
 
   QBrush fillBrush() const override;

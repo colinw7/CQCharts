@@ -3566,7 +3566,9 @@ selectPointPress()
 
   // select key
   if (key() && key()->contains(w)) {
-    bool handled = key()->selectPress(w, mouseClickMod());
+    CQChartsSelectableIFace::SelData selData(mouseClickMod());
+
+    bool handled = key()->selectPress(w, selData);
 
     if (handled) {
       emit keyPressed  (key());
@@ -3583,12 +3585,16 @@ selectPointPress()
 
 #if 0
   for (const auto &annotation : pressAnnotations_) {
-    annotation->selectPress(w, mouseSelMod());
+    CQChartsSelectableIFace::SelData selData(mouseSelMod());
+
+    annotation->selectPress(w, selData);
   }
 #endif
 
   for (const auto &selAnnotation : pressAnnotations_) {
-    if (! selAnnotation->selectPress(w, mouseSelMod()))
+    CQChartsSelectableIFace::SelData selData(mouseSelMod());
+
+    if (! selAnnotation->selectPress(w, selData))
       continue;
 
     selectOneObj(selAnnotation);
@@ -3630,8 +3636,11 @@ selectPointPress()
 
 #if 0
   // select view key
-  if (key() && key()->contains(w))
-    key()->selectPress(w, SelMod::REPLACE);
+  if (key() && key()->contains(w)) {
+    CQChartsSelectableIFace::SelData selData;
+
+    key()->selectPress(w, selData);
+  }
 #endif
 }
 

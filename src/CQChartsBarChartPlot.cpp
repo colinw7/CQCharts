@@ -758,7 +758,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
     auto colorValue = modelValue(colorModelInd, ok);
 
-    bool hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
+    bool hidden = (ok && isHideValue(colorValue));
 
     if (hidden)
       return;
@@ -2554,9 +2554,9 @@ CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
 #if 0
 bool
 CQChartsBarColorKeyItem::
-selectPress(const Point &, SelMod selMod)
+selectPress(const Point &, SelData &selData)
 {
-  if (selMod == SelMod::ADD) {
+  if (selData.selMod == SelMod::ADD) {
     for (int i = 0; i < iv_.n; ++i) {
       plot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
     }

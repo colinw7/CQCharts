@@ -2160,13 +2160,13 @@ CQChartsScatter3DColorKeyItem(CQChartsScatterPlot3D *plot, int groupInd, const C
 
 bool
 CQChartsScatter3DColorKeyItem::
-selectPress(const Point &, SelMod selMod)
+selectPress(const Point &, SelData &selData)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
 
   int ih = hideIndex();
 
-  if (selMod == SelMod::ADD) {
+  if (selData.selMod == SelMod::ADD) {
     for (int i = 0; i < ic_.n; ++i) {
       plot_->CQChartsPlot::setSetHidden(i, i != ih);
     }

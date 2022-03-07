@@ -7,6 +7,7 @@
 
 class CQChartsView;
 class CQChartsPlot;
+
 class CQChartsPositionEdit;
 class CQChartsRectEdit;
 class CQChartsLengthEdit;
@@ -180,26 +181,34 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   };
 
  private:
+  struct GridData {
+    QGridLayout *layout;
+    int          row { 0 };
+  };
+
+ private:
   QStringList typeNames() const;
 
   void initWidgets();
 
-  void createRectFrame    ();
-  void createEllipseFrame ();
-  void createPolygonFrame ();
-  void createPolyLineFrame();
-  void createTextFrame    ();
-  void createImageFrame   ();
-  void createPathFrame    ();
-  void createArrowFrame   ();
-  void createArcFrame     ();
-  void createPointFrame   ();
-  void createPieSliceFrame();
-  void createAxisFrame    ();
-  void createKeyFrame     ();
-  void createPointSetFrame();
-  void createValueSetFrame();
-  void createButtonFrame  ();
+  QFrame *createNamedFrame(const QString &typeName);
+
+  QFrame *createRectFrame    ();
+  QFrame *createEllipseFrame ();
+  QFrame *createPolygonFrame ();
+  QFrame *createPolyLineFrame();
+  QFrame *createTextFrame    ();
+  QFrame *createImageFrame   ();
+  QFrame *createPathFrame    ();
+  QFrame *createArrowFrame   ();
+  QFrame *createArcFrame     ();
+  QFrame *createPointFrame   ();
+  QFrame *createPieSliceFrame();
+  QFrame *createAxisFrame    ();
+  QFrame *createKeyFrame     ();
+  QFrame *createPointSetFrame();
+  QFrame *createValueSetFrame();
+  QFrame *createButtonFrame  ();
 
   void addFillWidgets  (Widgets &widgets, QBoxLayout *playout);
   void addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool corner);
@@ -210,20 +219,33 @@ class CQChartsCreateAnnotationDlg : public QDialog {
 
   //---
 
-  CQChartsLineEdit*      createLineEdit(const QString &name, const QString &tip="") const;
-  CQRealSpin*            createRealEdit(const QString &name, double r,
-                                        const QString &tip="") const;
-  CQChartsPositionEdit*  createPositionEdit(const QString &name, double x, double y,
-                                            const QString &tip="") const;
-  CQChartsLengthEdit*    createLengthEdit(const QString &name, double l,
-                                        const QString &tip="") const;
-  CQChartsRectEdit*      createRectEdit(const QString &name, const QString &tip="") const;
-  CQChartsPolygonEdit*   createPolygonEdit(const QString &name, const QString &tip="") const;
-  CQChartsMarginEdit*    createMarginEdit(const QString &name, const QString &tip="") const;
-  CQChartsImageEdit*     createImageEdit(const QString &name, const QString &tip="") const;
-  CQChartsColorLineEdit* createColorEdit(const QString &name, const QString &tip="") const;
-  CQChartsAngleEdit*     createAngleEdit(const QString &name, double a,
-                                         const QString &tip="") const;
+  CQCheckBox*            addBoolEdit(GridData &gridData, const QString &name,
+                                     const QString &label, const QString &tip) const;
+  CQChartsLineEdit*      addLineEdit(GridData &gridData, const QString &name,
+                                     const QString &label, const QString &tip) const;
+  CQRealSpin*            addRealEdit(GridData &gridData, const QString &name, const QString &label,
+                                     double r, const QString &tip) const;
+  QComboBox*             addComboEdit(GridData &gridData, const QString &name, const QString &label,
+                                      const QStringList &items, const QString &tip) const;
+  CQChartsPositionEdit*  addPositionEdit(GridData &gridData, const QString &name,
+                                         const QString &label, double x, double y,
+                                         const QString &tip) const;
+  CQChartsLengthEdit*    addLengthEdit(GridData &gridData, const QString &name,
+                                       const QString &label, double l, const QString &tip) const;
+  CQChartsRectEdit*      addRectEdit(GridData &gridData, const QString &name,
+                                     const QString &label, const QString &tip) const;
+  CQChartsPolygonEdit*   addPolygonEdit(GridData &gridData, const QString &name,
+                                        const QString &label, const QString &tip) const;
+  CQChartsMarginEdit*    addMarginEdit(GridData &gridData, const QString &name,
+                                       const QString &label, const QString &tip) const;
+  CQChartsImageEdit*     addImageEdit(GridData &gridData, const QString &name,
+                                      const QString &label, const QString &tip) const;
+  CQChartsColorLineEdit* addColorEdit(GridData &gridData, const QString &name,
+                                      const QString &label, const QString &tip) const;
+  CQChartsAngleEdit*     addAngleEdit(GridData &gridData, const QString &name,
+                                      const QString &label, double a, const QString &tip) const;
+
+  GridData createGrid(QBoxLayout *layout) const;
 
   //---
 

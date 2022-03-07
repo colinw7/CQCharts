@@ -1681,7 +1681,7 @@ isIndexHidden(const ModelIndex &ind) const
 
     auto colorValue = modelValue(colorInd, ok);
 
-    hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
+    hidden = (ok && isHideValue(colorValue));
   }
   else {
     if (numGroups() > 1) {
@@ -3633,7 +3633,7 @@ CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj) :
 #if 0
 bool
 CQChartsPieColorKeyItem::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   auto *plot = qobject_cast<PiePlot *>(plot_);
 

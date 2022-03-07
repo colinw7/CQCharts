@@ -130,6 +130,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
  public:
   static const QStringList &typeNames();
+  static const QStringList &typeDescs();
 
  public:
   CQChartsAnnotation(View *view, Type type);
@@ -233,6 +234,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  virtual bool hasMargin() const { return false; }
+  virtual bool hasPadding() const { return false; }
+
   // get margin values
   void getMarginValues(double &xlm, double &xrm, double &ytm, double &ybm) const;
 
@@ -312,7 +316,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! handle select press
-  bool selectPress(const Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   //---
 
@@ -751,6 +755,8 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
 
   const char *cmdName() const override { return "create_charts_rectangle_annotation"; }
 
+  bool hasMargin() const override { return true; }
+
   //---
 
   //! get/set rectangle
@@ -758,11 +764,11 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
   void setRectangle(const Rect &rectangle);
   void setRectangle(const Position &start, const Position &end);
 
-  //! get/set start point
+  //! get/set start point (TODO: remove)
   Position start() const;
   void setStart(const Position &p);
 
-  //! get/set end point
+  //! get/set end point (TODO: remove)
   Position end() const;
   void setEnd(const Position &p);
 
@@ -835,11 +841,13 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
 
   //---
 
-  const char *typeName() const override { return "rectangle"; }
+  const char *typeName() const override { return "shape"; }
 
-  const char *propertyName() const override { return "rectangleAnnotation"; }
+  const char *propertyName() const override { return "shapeAnnotation"; }
 
-  const char *cmdName() const override { return "create_charts_rectangle_annotation"; }
+  const char *cmdName() const override { return "create_charts_shape_annotation"; }
+
+  bool hasMargin() const override { return true; }
 
   //---
 
@@ -1157,6 +1165,9 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   SubType subType() const override { return SubType::TEXT; }
 
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
+
   //---
 
   //! get/set position
@@ -1258,6 +1269,9 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotationBase {
   const char *propertyName() const override { return "imageAnnotation"; }
 
   const char *cmdName() const override { return "create_charts_image_annotation"; }
+
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
 
   //---
 
@@ -1474,6 +1488,9 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   const char *propertyName() const override { return "arrowAnnotation"; }
 
   const char *cmdName() const override { return "create_charts_arrow_annotation"; }
+
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
 
   //---
 
@@ -1840,6 +1857,9 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   SubType subType() const override { return SubType::POINT; }
 
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
+
   //---
 
   //! get/set position
@@ -2137,14 +2157,14 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+  bool editMove(const Point &) override;
 
   bool inside(const Point &p) const override;
 
   //---
 
   //! handle select press
-  bool selectPress(const Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   //---
 
@@ -2541,7 +2561,7 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   //---
 
-  bool selectPress  (const Point &w, SelMod) override;
+  bool selectPress  (const Point &w, SelData &) override;
   bool selectMove   (const Point &w) override;
   bool selectRelease(const Point &w) override;
 
@@ -2618,6 +2638,9 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   const char *cmdName() const override { return "create_charts_widget_annotation"; }
 
   SubType subType() const override { return SubType::WIDGET; }
+
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
 
   //---
 

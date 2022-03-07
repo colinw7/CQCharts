@@ -236,7 +236,7 @@ class CQChartsHierScatterColorKeyItem : public CQChartsColorBoxKeyItem {
                                   const ColorInd &ic);
 
   //! handle select press
-  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   QBrush fillBrush() const override;
 

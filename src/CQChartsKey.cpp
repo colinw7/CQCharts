@@ -630,7 +630,7 @@ CQChartsViewKey::setEditHandlesBBox() const
 
 bool
 CQChartsViewKey::
-selectPress(const Point &w, SelMod selMod)
+selectPress(const Point &w, SelData &selData)
 {
   int n = std::min(view()->numPlots(), int(prects_.size()));
 
@@ -639,9 +639,9 @@ selectPress(const Point &w, SelMod selMod)
       continue;
 
     if      (pressBehavior().type() == KeyBehavior::Type::SHOW)
-      doShow(i, selMod);
+      doShow(i, selData.selMod);
     else if (pressBehavior().type() == KeyBehavior::Type::SELECT)
-      doSelect(i, selMod);
+      doSelect(i, selData.selMod);
 
     break;
   }
@@ -1633,34 +1633,55 @@ editMove(const Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (dragSide == CQChartsResizeSide::MOVE) {
-    location_ = Location(Location::Type::ABSOLUTE_POSITION);
+  editHandles()->updateBBox(dx, dy);
 
-    setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
-  }
-  else {
-    location_ = Location(Location::Type::ABSOLUTE_RECTANGLE);
-
-    editHandles()->updateBBox(dx, dy);
-
-    wbbox_ = editHandles()->bbox();
-
-    setAbsolutePlotRectangle(wbbox_);
-
-    auto width  = CQChartsLength::plot(wbbox_.getWidth ());
-    auto height = CQChartsLength::plot(wbbox_.getHeight() - layoutData_.headerHeight);
-
-    setScrollWidth (CQChartsOptLength(width ));
-    setScrollHeight(CQChartsOptLength(height));
-
-    invalidateLayout();
-  }
+  if (dragSide == CQChartsResizeSide::MOVE)
+    editDragMove(Point(dx, dy));
+  else
+    editDragResize(editHandles()->bbox());
 
   editHandles()->setDragPos(p);
 
-  updatePosition(/*queued*/false);
-
   return true;
+}
+
+void
+CQChartsPlotKey::
+editDragMove(const Point &d)
+{
+  auto locationType = this->location().type();
+
+  if (locationType != Location::Type::ABSOLUTE_POSITION &&
+      locationType != Location::Type::ABSOLUTE_RECTANGLE) {
+    location_ = Location(Location::Type::ABSOLUTE_POSITION);
+
+    setAbsolutePlotPosition(position() + d);
+  }
+  else
+    setAbsolutePlotPosition(absolutePlotPosition() + d);
+
+  updatePosition(/*queued*/false);
+}
+
+void
+CQChartsPlotKey::
+editDragResize(const BBox &bbox)
+{
+  wbbox_ = bbox;
+
+  location_ = Location(Location::Type::ABSOLUTE_RECTANGLE);
+
+  setAbsolutePlotRectangle(wbbox_);
+
+  auto width  = CQChartsLength::plot(wbbox_.getWidth ());
+  auto height = CQChartsLength::plot(wbbox_.getHeight() - layoutData_.headerHeight);
+
+  setScrollWidth (CQChartsOptLength(width ));
+  setScrollHeight(CQChartsOptLength(height));
+
+  invalidateLayout();
+
+  updatePosition(/*queued*/false);
 }
 
 bool
@@ -2254,17 +2275,30 @@ write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::os
 //------
 
 CQChartsColumnKey::
-CQChartsColumnKey(CQChartsPlot *plot) :
- CQChartsPlotKey(plot)
+CQChartsColumnKey(CQChartsPlot *plot, const Column &column) :
+ CQChartsPlotKey(plot), column_(column)
 {
+  plot_->addFilterColumn(column_);
+
+  updateItems();
+}
+
+CQChartsColumnKey::
+~CQChartsColumnKey()
+{
+  plot_->removeFilterColumn(column_);
 }
 
 void
 CQChartsColumnKey::
-setColumn(const CQChartsColumn &c)
+setColumn(const Column &c)
 {
   if (c != column_) {
+    plot_->removeFilterColumn(column_);
+
     column_ = c;
+
+    plot_->addFilterColumn(column_);
 
     updateItems();
 
@@ -2298,21 +2332,18 @@ updateItems()
   int row = 0;
   int col = 0;
 
-  auto addKeyRow = [&](const QString &name, const ColorInd &ic) {
-//  auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ic);
-    auto *checkItem = new CQChartsCheckKeyItem   (this, ColorInd(), ColorInd(), ic);
-    auto *textItem  = new CQChartsTextKeyItem    (this, name, ic);
+  auto addKeyRow = [&](const QString &name, const Column &column, int i, int n) {
+    auto *checkItem = new CQChartsColumnCheckKeyItem(this, column, i, n);
+    auto *textItem  = new CQChartsTextKeyItem       (this, name, ColorInd());
 
     auto *groupItem = new CQChartsGroupKeyItem(this);
 
-  //groupItem->addRowItems(colorItem, textItem);
     groupItem->addRowItems(checkItem, textItem);
 
     addItem(groupItem, row, col);
 
     nextRowCol(row, col);
 
-    //return std::pair<CQChartsColorBoxKeyItem *, CQChartsTextKeyItem *>(colorItem, textItem);
     return std::pair<CQChartsCheckKeyItem *, CQChartsTextKeyItem *>(checkItem, textItem);
   };
 
@@ -2321,13 +2352,11 @@ updateItems()
   auto *details = plot_->columnDetails(column_);
   if (! details) return;
 
+  int ig = 0;
   int ng = details->numUnique();
 
-  for (const auto &value : details->uniqueValues()) {
-    int ig = details->uniqueId(value); // always 0 -> n - 1 ?
-
-    addKeyRow(value.toString(), ColorInd(ig, ng));
-  }
+  for (const auto &value : details->uniqueValues())
+    addKeyRow(value.toString(), column_, ig++, ng);
 }
 
 void
@@ -2359,15 +2388,15 @@ CQChartsKeyItem(PlotKey *key, const ColorInd &ic) :
 
 bool
 CQChartsKeyItem::
-selectPress(const Point &, SelMod selMod)
+selectPress(const Point &, SelData &selData)
 {
   if (! isClickable())
     return false;
 
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW)
-    doShow(selMod);
+    doShow(selData.selMod);
   else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT)
-    doSelect(selMod);
+    doSelect(selData.selMod);
 
   return true;
 }
@@ -2432,6 +2461,13 @@ CQChartsKeyItem::
 calcHidden() const
 {
   return isSetHidden();
+}
+
+void
+CQChartsKeyItem::
+setHidden(bool hidden)
+{
+  setSetHidden(hidden);
 }
 
 bool
@@ -2684,10 +2720,10 @@ updateInside()
 
 bool
 CQChartsGroupKeyItem::
-selectPress(const Point &p, SelMod selMod)
+selectPress(const Point &p, SelData &selData)
 {
   for (auto &item : items_) {
-    if (item->selectPress(p, selMod))
+    if (item->selectPress(p, selData))
       return true;
   }
 
@@ -2879,10 +2915,10 @@ size() const
 
 bool
 CQChartsColorBoxKeyItem::
-selectPress(const Point &w, SelMod selMod)
+selectPress(const Point &w, SelData &selData)
 {
   if (! value_.isValid())
-    return CQChartsKeyItem::selectPress(w, selMod);
+    return CQChartsKeyItem::selectPress(w, selData);
 
   if (! isClickable())
     return false;
@@ -2890,7 +2926,7 @@ selectPress(const Point &w, SelMod selMod)
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
     auto *plot = key_->plot();
 
-    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+    if (! plot_->isHideValue(value_))
       plot->setHideValue(value_);
     else
       plot->setHideValue(QVariant());
@@ -2970,7 +3006,7 @@ calcHidden() const
   bool hidden = false;
 
   if (value_.isValid())
-    hidden = (CQChartsVariant::cmp(value_, plot_->hideValue()) == 0);
+    hidden = plot_->isHideValue(value_);
   else {
     auto ic = calcColorInd();
 
@@ -3048,10 +3084,10 @@ size() const
 
 bool
 CQChartsLineKeyItem::
-selectPress(const Point &w, SelMod selMod)
+selectPress(const Point &w, SelData &selData)
 {
   if (! value_.isValid())
-    return CQChartsKeyItem::selectPress(w, selMod);
+    return CQChartsKeyItem::selectPress(w, selData);
 
   if (! isClickable())
     return false;
@@ -3059,7 +3095,7 @@ selectPress(const Point &w, SelMod selMod)
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
     auto *plot = key_->plot();
 
-    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+    if (! plot->isHideValue(value_))
       plot->setHideValue(value_);
     else
       plot->setHideValue(QVariant());
@@ -3344,28 +3380,41 @@ size() const
 
 bool
 CQChartsCheckKeyItem::
-selectPress(const Point &w, SelMod selMod)
+selectPress(const Point &w, SelData &selData)
 {
-  if (! value_.isValid())
-    return CQChartsKeyItem::selectPress(w, selMod);
-
   if (! isClickable())
     return false;
 
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
     auto *plot = key_->plot();
 
-    if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
-      plot->setHideValue(value_);
-    else
-      plot->setHideValue(QVariant());
+    setHidden(! calcHidden());
 
     plot->updateRangeAndObjs();
   }
   else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
+    if (! value_.isValid())
+      return CQChartsKeyItem::selectPress(w, selData);
   }
 
   return true;
+}
+
+void
+CQChartsCheckKeyItem::
+setHidden(bool hidden)
+{
+  if (value_.isValid()) {
+    if (hidden)
+      plot_->setHideValue(value_);
+    else
+      plot_->setHideValue(QVariant());
+  }
+  else {
+    auto ic = calcColorInd();
+
+    plot_->setSetHidden(ic.i, hidden);
+  }
 }
 
 void
@@ -3402,7 +3451,7 @@ calcHidden() const
   bool hidden = false;
 
   if (value_.isValid())
-    hidden = (CQChartsVariant::cmp(value_, plot_->hideValue()) == 0);
+    hidden = plot_->isHideValue(value_);
   else {
     auto ic = calcColorInd();
 
@@ -3410,4 +3459,40 @@ calcHidden() const
   }
 
   return hidden;
+}
+
+//------
+
+CQChartsColumnCheckKeyItem::
+CQChartsColumnCheckKeyItem(PlotKey *key, const Column &column, int i, int n) :
+ CQChartsCheckKeyItem(key, ColorInd(), ColorInd(), ColorInd()), column_(column), i_(i), n_(n)
+{
+}
+
+bool
+CQChartsColumnCheckKeyItem::
+calcHidden() const
+{
+  auto *details = plot()->columnDetails(column_);
+  if (! details) return false;
+
+  auto value = details->uniqueValue(i_);
+
+  return ! plot()->isColumnValueVisible(column_, value);
+}
+
+void
+CQChartsColumnCheckKeyItem::
+setHidden(bool hidden)
+{
+  auto *details = plot()->columnDetails(column_);
+  if (! details) return;
+
+  auto value = details->uniqueValue(i_);
+
+  plot()->setColumnValueVisible(column_, value, ! hidden);
+
+  QString str;
+  CQChartsVariant::toString(value, str);
+  std::cerr << str.toStdString() << " = " << hidden << "\n";
 }

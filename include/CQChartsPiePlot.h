@@ -422,7 +422,7 @@ class CQChartsPieColorKeyItem : public CQChartsColorBoxKeyItem {
 
 #if 0
   // handle select press
-  bool selectPress(const Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 #endif
 
   QBrush fillBrush() const override;

@@ -4874,7 +4874,7 @@ CQChartsDistColorKeyItem(Plot *plot, const ColorInd &ig, const ColorInd &iv,
 #if 0
 bool
 CQChartsDistColorKeyItem::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   setSetHidden(! isSetHidden());
 

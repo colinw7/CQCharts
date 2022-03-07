@@ -47,6 +47,18 @@ typeNames()
   return names;
 }
 
+const QStringList &
+CQChartsAnnotation::
+typeDescs()
+{
+  static auto names = QStringList() <<
+    "Arc" << "Arrow" << "Axis" << "Button" << "Ellipse" << "Image" << "Key" << "Path" <<
+    "Pie Slice" << "Point" << "Point Set" << "Polygon" << "Polyline" << "Rectangle" <<
+    "Text" << "Value Set" << "Widget" << "Group";
+
+  return names;
+}
+
 CQChartsAnnotation::
 CQChartsAnnotation(View *view, Type type) :
  CQChartsTextBoxObj(view), type_(type)
@@ -354,9 +366,13 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   model->setObjectRoot(path1, this);
 
-  auto statePath = path1 + "/state";
+  addProp(model, path1, "id" , "id" , "Annotation id");
+  addProp(model, path1, "tip", "tip", "Annotation tip");
 
-  addProp(model, path1, "id", "id", "Annotation id");
+  //---
+
+  // state
+  auto statePath = path1 + "/state";
 
   addProp(model, statePath, "visible"   , "visible"   , "Is visible");
   addProp(model, statePath, "enabled"   , "enabled"   , "Is enabled"   , true);
@@ -366,6 +382,14 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(model, statePath, "selectable", "selectable", "Is selectable");
   addProp(model, statePath, "editable"  , "editable"  , "Is editable"  , true);
   addProp(model, statePath, "fitted"    , "fitted"    , "Is fitted"    , true);
+
+  //---
+
+  if (hasMargin())
+    addProp(model, path1, "margin", "", "Outer margin", true);
+
+  if (hasPadding())
+    addProp(model, path1, "padding", "", "Inner padding", true);
 
   //---
 
@@ -752,7 +776,7 @@ calcPaletteName() const
 
 bool
 CQChartsAnnotation::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   if (! isEnabled())
     return false;
@@ -1096,9 +1120,9 @@ layoutHV()
     ++n;
   }
 
-  if (annotationBBox_.isSet()) {
-    x = annotationBBox_.getXMin();
-    y = annotationBBox_.getYMax();
+  if (annotationBBox().isSet()) {
+    x = annotationBBox().getXMin();
+    y = annotationBBox().getYMax();
   }
 
   // left to right
@@ -1528,7 +1552,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, layoutPath, "layoutOrient" , "orient" , "Layout orientation");
   addProp(model, layoutPath, "layoutAlign"  , "align"  , "Layout alignment");
   addProp(model, layoutPath, "layoutSpacing", "spacing", "Layout spacing");
-  addProp(model, layoutPath, "layoutMargin" , "margn"  , "Layout margin");
+  addProp(model, layoutPath, "layoutMargin" , "margin" , "Layout margin");
 
   //---
 
@@ -1568,11 +1592,11 @@ void
 CQChartsAnnotationGroup::
 moveChildren(const BBox &bbox)
 {
-  if (! annotationBBox_.isValid())
+  if (! annotationBBox().isValid())
     return;
 
-  double dx = bbox.getXMid() - annotationBBox_.getXMid();
-  double dy = bbox.getYMid() - annotationBBox_.getYMid();
+  double dx = bbox.getXMid() - annotationBBox().getXMid();
+  double dy = bbox.getYMid() - annotationBBox().getYMid();
   if (CMathUtil::isZero(dx) && CMathUtil::isZero(dy)) return;
 
   moveChildren(dx, dy);
@@ -1623,7 +1647,7 @@ flip(Qt::Orientation orient)
     bool flipX = (orient == Qt::Horizontal);
     bool flipY = (orient == Qt::Vertical  );
 
-    auto center = annotationBBox_.getCenter();
+    auto center = annotationBBox().getCenter();
 
     for (auto *annotation : annotations_) {
       auto bbox1 = annotation->annotationBBox();
@@ -2027,8 +2051,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "start"    , "", "Rectangle bottom left", true);
   addProp(model, path1, "end"      , "", "Rectangle top right", true);
 
-  addProp(model, path1, "margin", "", "Rectangle inner margin", true); // TODO: general ?
-
   addStrokeFillProperties(model, path1);
 }
 
@@ -2341,7 +2363,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "rectangle", "", "Rectangle bounding box");
   addProp(model, path1, "start"    , "", "Rectangle bottom left", true);
   addProp(model, path1, "end"      , "", "Rectangle top right", true);
-  addProp(model, path1, "margin"   , "", "Rectangle inner margin", true); // TODO: general
   addProp(model, path1, "shapeType", "", "Node shape type");
   addProp(model, path1, "numSides" , "", "Number of Shape Sides");
 
@@ -2681,7 +2702,7 @@ draw(PaintDevice *device)
   // create path
   QPainterPath path;
 
-  path.addEllipse(rect_.qrect());
+  path.addEllipse(annotationBBox().qrect());
 
   if (! angle().isZero())
     path = CQChartsDrawUtil::rotatePath(path, angle().degrees());
@@ -2788,13 +2809,15 @@ void
 CQChartsPolygonAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  double dx = bbox.getXMin() - rect_.getXMin();
-  double dy = bbox.getYMin() - rect_.getYMin();
-  double sx = (rect_.getWidth () > 0 ? bbox.getWidth ()/rect_.getWidth () : 1.0);
-  double sy = (rect_.getHeight() > 0 ? bbox.getHeight()/rect_.getHeight() : 1.0);
+  double dx = bbox.getXMin() - annotationBBox().getXMin();
+  double dy = bbox.getYMin() - annotationBBox().getYMin();
+  double sx = (annotationBBox().getWidth () > 0 ?
+                 bbox.getWidth ()/annotationBBox().getWidth () : 1.0);
+  double sy = (annotationBBox().getHeight() > 0 ?
+                 bbox.getHeight()/annotationBBox().getHeight() : 1.0);
 
-  double x1 = rect_.getXMin();
-  double y1 = rect_.getYMin();
+  double x1 = annotationBBox().getXMin();
+  double y1 = annotationBBox().getYMin();
 
   auto poly = polygon_.polygon();
 
@@ -2809,7 +2832,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   if (polygon.isValid(/*closed*/true)) {
     polygon_ = polygon;
-    rect_    = bbox;
+
+    setAnnotationBBox(bbox);
   }
 }
 
@@ -3043,13 +3067,15 @@ void
 CQChartsPolylineAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  double dx = bbox.getXMin() - rect_.getXMin();
-  double dy = bbox.getYMin() - rect_.getYMin();
-  double sx = (rect_.getWidth () > 0 ? bbox.getWidth ()/rect_.getWidth () : 1.0);
-  double sy = (rect_.getHeight() > 0 ? bbox.getHeight()/rect_.getHeight() : 1.0);
+  double dx = bbox.getXMin() - annotationBBox().getXMin();
+  double dy = bbox.getYMin() - annotationBBox().getYMin();
+  double sx = (annotationBBox().getWidth () > 0 ?
+                 bbox.getWidth ()/annotationBBox().getWidth () : 1.0);
+  double sy = (annotationBBox().getHeight() > 0 ?
+                 bbox.getHeight()/annotationBBox().getHeight() : 1.0);
 
-  double x1 = rect_.getXMin();
-  double y1 = rect_.getYMin();
+  double x1 = annotationBBox().getXMin();
+  double y1 = annotationBBox().getYMin();
 
   auto poly = polygon_.polygon();
 
@@ -3064,7 +3090,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   if (polygon.isValid(/*closed*/false)) {
     polygon_ = polygon;
-    rect_    = bbox;
+
+    setAnnotationBBox(bbox);
   }
 }
 
@@ -3454,9 +3481,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "rectangle", "", "Text bounding box");
   addProp(model, path1, "objRef"   , "", "Object reference");
 
-  addProp(model, path1, "padding", "", "Text rectangle inner padding");
-  addProp(model, path1, "margin" , "", "Text rectangle outer margin");
-
   //---
 
   auto textPath = path1 + "/text";
@@ -3592,14 +3616,16 @@ draw(PaintDevice *device)
   if (! rectangle().isSet())
     positionToBBox();
 
-  if (! rect_.isValid())
+  auto rect = annotationBBox();
+
+  if (! rect.isValid())
     return;
 
   //---
 
   drawInit(device);
 
-  drawInRect(device, rect_);
+  drawInRect(device, rect);
 
   drawTerm(device);
 }
@@ -3703,7 +3729,7 @@ initRectangle()
 
     //---
 
-    auto rect = Rect(rect_, parentUnits());
+    auto rect = Rect(annotationBBox(), parentUnits());
 
     setRectangle(rect);
   }
@@ -3981,9 +4007,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "image"        , "image"        , "Image name");
   addProp(model, path1, "disabledImage", "disabledImage", "Disabled image name");
 
-  addProp(model, path1, "padding", "", "Image rectangle inner padding");
-  addProp(model, path1, "margin" , "", "Image rectangle outer margin");
-
   addStrokeFillProperties(model, path1);
 }
 
@@ -4058,7 +4081,9 @@ draw(PaintDevice *device)
   if (! rectangle().isSet())
     positionToBBox();
 
-  if (! rect_.isValid())
+  auto rect = annotationBBox();
+
+  if (! rect.isValid())
     return;
 
   //---
@@ -4077,12 +4102,9 @@ draw(PaintDevice *device)
   //---
 
   // draw box
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect, cornerSize(), borderSides());
 
   //---
-
-  // set box
-//auto pbbox = windowToPixel(rect_);
 
   // get inner padding
   double xlp, xrp, ytp, ybp;
@@ -4094,10 +4116,10 @@ draw(PaintDevice *device)
 
   getMarginValues(xlm, xrm, ytm, ybm);
 
-  double tx =          rect_.getXMin  () +       xlm + xlp;
-  double ty =          rect_.getYMin  () +       ybm + ybp;
-  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+  double tx =          rect.getXMin  () +       xlm + xlp;
+  double ty =          rect.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -4150,7 +4172,9 @@ updateDisabledImage(const DisabledImageType &type)
 
     auto bg = backgroundColor();
 
-    auto prect = windowToPixel(rect_);
+    auto rect = annotationBBox();
+
+    auto prect = windowToPixel(rect);
 
     const auto &image = image_.sizedImage(int(prect.getWidth()), int(prect.getHeight()));
 
@@ -4169,7 +4193,7 @@ initRectangle()
 
     //---
 
-    auto rect = Rect(rect_, parentUnits());
+    auto rect = Rect(annotationBBox(), parentUnits());
 
     setRectangle(rect);
   }
@@ -4298,19 +4322,19 @@ setEditBBox(const BBox &bbox, const ResizeSide &dragSide)
 {
   if (dragSide == CQChartsResizeSide::MOVE) {
     // get position
-    double dx = bbox.getXMid() - annotationBBox_.getXMid();
-    double dy = bbox.getYMid() - annotationBBox_.getYMid();
+    double dx = bbox.getXMid() - annotationBBox().getXMid();
+    double dy = bbox.getYMid() - annotationBBox().getYMid();
 
     path_.move(dx, dy);
   }
   else {
-    auto c1 = annotationBBox_.getCenter();
+    auto c1 = annotationBBox().getCenter();
     auto c2 = bbox.getCenter();
 
-    auto w1 = annotationBBox_.getWidth();
+    auto w1 = annotationBBox().getWidth();
     auto w2 = bbox.getWidth();
 
-    auto h1 = annotationBBox_.getHeight();
+    auto h1 = annotationBBox().getHeight();
     auto h2 = bbox.getHeight();
 
     double dx = c2.x - c1.x;
@@ -5789,8 +5813,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   auto p = positionToParent(objRef(), position());
 
-  double dx = bbox.getXMin() - rect_.getXMin();
-  double dy = bbox.getYMin() - rect_.getYMin();
+  double dx = bbox.getXMin() - annotationBBox().getXMin();
+  double dy = bbox.getYMin() - annotationBBox().getYMin();
 
   p += Point(dx, dy);
 
@@ -5886,7 +5910,9 @@ draw(PaintDevice *device)
   if (! symbol.isValid())
     symbol = Symbol::circle();
 
-  Point ps(rect_.getXMid(), rect_.getYMid());
+  auto rect = annotationBBox();
+
+  Point ps(rect.getXMid(), rect.getYMid());
 
   if      (shapeType() == ShapeType::CORNER_HANDLE) {
     QPainterPath path;
@@ -6055,8 +6081,10 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   auto p = positionToParent(objRef(), position());
 
-  double dx = bbox.getXMin() - rect_.getXMin();
-  double dy = bbox.getYMin() - rect_.getYMin();
+  auto rect = annotationBBox();
+
+  double dx = bbox.getXMin() - rect.getXMin();
+  double dy = bbox.getYMin() - rect.getYMin();
 
   p += Point(dx, dy);
 
@@ -6322,7 +6350,7 @@ bool
 CQChartsAxisAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 void
@@ -6447,8 +6475,7 @@ class CQChartsKeyAnnotationColumnKey : public CQChartsColumnKey {
 
  public:
   CQChartsKeyAnnotationColumnKey(Plot *plot, KeyAnnotation *annotation, const Column &column) :
-   CQChartsColumnKey(plot), annotation_(annotation) {
-    setColumn(column);
+   CQChartsColumnKey(plot, column), annotation_(annotation) {
   }
 
   void redraw(bool) override {
@@ -6543,21 +6570,45 @@ void
 CQChartsKeyAnnotation::
 updateLocationSlot()
 {
-  if (plot_) {
-    auto *plotKey = qobject_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = qobject_cast<CQChartsPlotKey *>(key_);
 
-    if (plotKey)
-      plotKey->updatePlotLocation();
-  }
+  if (plotKey)
+    plotKey->updatePlotLocation();
 }
 
 //---
 
-void
+bool
 CQChartsKeyAnnotation::
-setEditBBox(const BBox &bbox, const ResizeSide &)
+editMove(const Point &p)
 {
-  setAnnotationBBox(bbox);
+  auto *plotKey = qobject_cast<CQChartsPlotKey *>(key_);
+
+  if (plotKey) {
+    const auto &dragPos  = editHandles()->dragPos();
+    const auto &dragSide = editHandles()->dragSide();
+
+    if (dragSide == CQChartsResizeSide::NONE)
+      return false;
+
+    double dx = p.x - dragPos.x;
+    double dy = p.y - dragPos.y;
+
+    editHandles()->updateBBox(dx, dy);
+
+    if (dragSide == ResizeSide::MOVE)
+      plotKey->editDragMove(Point(dx, dy));
+
+    setEditBBox(editHandles()->bbox(), dragSide);
+
+    editHandles()->setDragPos(p);
+
+    invalidate();
+
+    return true;
+  }
+  else
+    return CQChartsAnnotation::editMove(p);
 }
 
 //---
@@ -6566,14 +6617,14 @@ bool
 CQChartsKeyAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 bool
 CQChartsKeyAnnotation::
-selectPress(const Point &w, SelMod selMod)
+selectPress(const Point &w, SelData &selData)
 {
-  if (key_->selectPress(w, selMod)) {
+  if (key_->selectPress(w, selData)) {
     emit pressed(QString("%1:%2").arg(id()).arg(key_->id()));
     return true;
   }
@@ -6584,16 +6635,17 @@ selectPress(const Point &w, SelMod selMod)
     auto *item = plotKey->getItemAt(w);
 
     if (item) {
-      bool handled = item->selectPress(w, selMod);
+      bool handled = item->selectPress(w, selData);
 
       if (handled) {
+        selData.select = false;
         emit pressed(QString("%1:%2:%3").arg(id()).arg(key_->id()).arg(item->id()));
         return true;
       }
     }
   }
 
-  return CQChartsAnnotation::selectPress(w, selMod);
+  return CQChartsAnnotation::selectPress(w, selData);
 }
 
 void
@@ -6844,7 +6896,7 @@ bool
 CQChartsPointSetAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 void
@@ -7243,7 +7295,7 @@ bool
 CQChartsPoint3DSetAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 void
@@ -7534,7 +7586,7 @@ bool
 CQChartsValueSetAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 void
@@ -7832,7 +7884,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
 bool
 CQChartsButtonAnnotation::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   pressed_ = true;
 
@@ -7882,75 +7934,26 @@ draw(PaintDevice *device)
   //---
 
   prect_ = calcPixelRect();
-  rect_  = pixelToWindow(BBox(prect_));
+
+  setAnnotationBBox(pixelToWindow(BBox(prect_)));
 
   //---
 
   if (device->isInteractive()) {
+    // TODO : support text color, fill color, ... ?
     auto font = calcFont(textFont());
 
     device->setFont(font);
 
-#if 0
-    auto img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
-
-    QStylePainter spainter(&img, view());
-
-    QStyleOptionButton opt;
-
-    opt.rect = QRect(0, 0, prect_.width(), prect_.height());
-    opt.text = textStr();
-
-    if (pressed_)
-      opt.state |= QStyle::State_Sunken;
-    else
-      opt.state |= QStyle::State_Raised;
-
-    opt.state |= QStyle::State_Active;
-
-    if (isEnabled())
-      opt.state |= QStyle::State_Enabled;
-
-    if (isCheckable()) {
-      if (isChecked())
-        opt.state |= QStyle::State_On;
-      else
-        opt.state |= QStyle::State_Off;
-    }
-
-    opt.palette = view()->palette();
-
-    spainter.setFont(device->font());
-
-    auto bg = opt.palette.color(QPalette::Button);
-    auto fg = opt.palette.color(QPalette::ButtonText);
-
-    auto c = fg;
-
-    if      (! isEnabled())
-      c = CQChartsUtil::blendColors(bg, fg, 0.6);
-    else if (isInside())
-      c = Qt::blue;
-
-    opt.palette.setColor(QPalette::ButtonText, c);
-
-    spainter.drawControl(QStyle::CE_PushButton, opt);
-
-    auto p = prect_.topLeft();
-
-    auto *pdevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-
-    pdevice->painter()->drawImage(p.x(), p.y(), img);
-#else
     CQChartsDrawUtil::ButtonData buttonData;
 
     buttonData.pressed   = pressed_;
     buttonData.enabled   = isEnabled();
     buttonData.checkable = isCheckable();
     buttonData.checked   = isChecked();
+    buttonData.inside    = isInside();
 
     CQChartsDrawUtil::drawPushButton(device, BBox(prect_), textStr(), buttonData);
-#endif
   }
 
   //---
@@ -7963,9 +7966,10 @@ CQChartsButtonAnnotation::
 writeHtml(HtmlPaintDevice *device)
 {
   prect_ = calcPixelRect();
-  rect_  = pixelToWindow(BBox(prect_));
 
-  device->createButton(rect_, textStr(), id(), "annotationClick");
+  setAnnotationBBox(pixelToWindow(BBox(prect_)));
+
+  device->createButton(annotationBBox(), textStr(), id(), "annotationClick");
 }
 
 QRect
@@ -8376,15 +8380,14 @@ draw(PaintDevice *)
     if (! rectangle().isSet())
       positionToBBox();
 
-    if (! rect_.isValid())
+    auto rect = annotationBBox();
+
+    if (! rect.isValid())
       return;
 
     //---
 
     //drawInit(device);
-
-    // set box
-    //auto pbbox = windowToPixel(rect_);
 
     // get inner padding
     double xlp, xrp, ytp, ybp;
@@ -8396,10 +8399,10 @@ draw(PaintDevice *)
 
     getMarginValues(xlm, xrm, ytm, ybm);
 
-    double tx =          rect_.getXMin  () +       xlm + xlp;
-    double ty =          rect_.getYMin  () +       ybm + ybp;
-    double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-    double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+    double tx =          rect.getXMin  () +       xlm + xlp;
+    double ty =          rect.getYMin  () +       ybm + ybp;
+    double tw = std::max(rect.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+    double th = std::max(rect.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
     BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -8428,7 +8431,7 @@ initRectangle()
 
     //---
 
-    auto rect = Rect(rect_, parentUnits());
+    auto rect = Rect(annotationBBox(), parentUnits());
 
     setRectangle(rect);
   }
@@ -8600,7 +8603,7 @@ bool
 CQChartsSymbolSizeMapKeyAnnotation::
 inside(const Point &p) const
 {
-  return annotationBBox().inside(p);
+  return CQChartsAnnotation::inside(p);
 }
 
 void

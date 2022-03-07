@@ -908,7 +908,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  // get/set nu,ber of horizon layers
+  // get/set number of horizon layers
   int layers() const { return layers_; }
   void setLayers(int i);
 

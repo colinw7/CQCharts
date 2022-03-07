@@ -174,13 +174,24 @@ class CQChartsSelectableIFace {
   using SelMod = CQChartsSelMod;
   using Point  = CQChartsGeom::Point;
 
+  struct SelData {
+    SelData() { }
+
+    explicit SelData(SelMod selMod) :
+     selMod(selMod) {
+    }
+
+    SelMod selMod { CQChartsSelMod::REPLACE };
+    bool   select { true };
+  };
+
  public:
   CQChartsSelectableIFace() { }
 
   virtual ~CQChartsSelectableIFace() { }
 
   //! handle select press, move, release
-  virtual bool selectPress  (const Point &, SelMod) { return false; }
+  virtual bool selectPress  (const Point &, SelData &) { return false; }
   virtual bool selectMove   (const Point &) { return false; }
   virtual bool selectRelease(const Point &) { return false; }
 

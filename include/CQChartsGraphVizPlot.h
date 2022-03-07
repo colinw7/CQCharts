@@ -706,7 +706,6 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
 
-
   Q_ENUMS(PlotType)
   Q_ENUMS(OutputFormat)
 
@@ -1081,7 +1080,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   int    fdpStart_   { -1 };
   double fdpEdgeLen_ { -1.0 };
 
-  int processTimeout_ { 60 };
+  int processTimeout_ { 60 }; //!< graphviz process timeout
 
   // data
   Nodes            nodes_;                  //!< all nodes

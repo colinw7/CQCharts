@@ -2802,6 +2802,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void addFilterColumn(const Column &column);
+  void removeFilterColumn(const Column &column);
+
+  bool isValueVisible(int row, const QModelIndex &parent) const;
+
+  void setColumnValueVisible(const Column &column, const QVariant &value, bool visible);
+  bool isColumnValueVisible(const Column &column, const QVariant &value) const;
+
+  //---
+
   // set clip rect
   void setClipRect(PaintDevice *device) const;
 
@@ -2988,6 +2998,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   const QVariant &hideValue() const { return hideValue_; }
   void setHideValue(const QVariant &value) { hideValue_ = value; }
+
+  bool isHideValue(const QVariant &value) const;
 
   //---
 
@@ -3426,13 +3438,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setEveryData(const EveryData &everyData);
 
  protected:
-  using DisplayRangeP  = std::unique_ptr<DisplayRange>;
-  using EditHandlesP   = std::unique_ptr<EditHandles>;
-  using TitleP         = std::unique_ptr<Title>;
-  using AxisP          = std::unique_ptr<Axis>;
-  using PlotKeyP       = std::unique_ptr<PlotKey>;
-  using PropertyModelP = std::unique_ptr<PropertyModel>;
-  using ColorFilter    = std::set<Color>;
+  using DisplayRangeP     = std::unique_ptr<DisplayRange>;
+  using EditHandlesP      = std::unique_ptr<EditHandles>;
+  using TitleP            = std::unique_ptr<Title>;
+  using AxisP             = std::unique_ptr<Axis>;
+  using PlotKeyP          = std::unique_ptr<PlotKey>;
+  using PropertyModelP    = std::unique_ptr<PropertyModel>;
+  using ColorFilter       = std::set<Color>;
+  using ColumnSet         = std::set<Column>;
+  using VariantSet        = std::set<QVariant>;
+  using ColumnValueFilter = std::map<Column, VariantSet>;
 
   View*     view_ { nullptr }; //!< parent view
   PlotType* type_ { nullptr }; //!< plot type data
@@ -3514,9 +3529,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   int maxMappedValues_ { 20 }; // max number of unique values to treats as distinct
 
-  ColorFilter colorFilter_; //!< color map filter
+  ColorFilter colorFilter_;  //!< color map filter
 
   MapKeys mapKeys_; //!< all map keys
+
+  // column filters
+  ColumnSet         filterColumns_;     //!< filter columns
+  ColumnValueFilter columnValueFilter_; //!< per column value filter
 
   // columns
   Column  xValueColumn_;    //!< x axis value column
@@ -3602,17 +3621,27 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // inside data
   struct InsideData {
-    Point       p;             //!< inside point
-    int         ind     { 0 }; //!< current inside object ind
-    ObjPSet     objs;          //!< inside plot objects
-    SizeObjPSet sizeObjs;      //!< inside plot objects
+    bool        set     { false }; //!< is set
+    Point       p;                 //!< inside point
+    int         ind     { 0 };     //!< current inside object ind
+    ObjPSet     objs;              //!< inside plot objects
+    SizeObjPSet sizeObjs;          //!< inside plot objects
+
+    bool isSet() const { return set; }
 
     void clear() {
+      set = false;
+
       p   = Point();
       ind = 0;
 
       objs    .clear();
       sizeObjs.clear();
+    }
+
+    void setPoint(const Point &point) {
+      set = true;
+      p   = point;
     }
 
     void nextInd() {

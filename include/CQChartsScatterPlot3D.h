@@ -159,7 +159,7 @@ class CQChartsScatter3DColorKeyItem : public CQChartsColorBoxKeyItem {
   void setColor(const CQChartsColor &c) { color_ = c; }
 
   // select interface
-  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   QBrush fillBrush() const override;
 

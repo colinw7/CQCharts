@@ -513,7 +513,7 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   // select interface
-  bool selectPress(const Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   void draw(PaintDevice *device) const override;
 

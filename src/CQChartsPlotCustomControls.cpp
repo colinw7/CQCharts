@@ -953,7 +953,8 @@ boolClickSlot(int row, int column, bool /*b*/)
         const auto &data = cr.second;
 
         if (data.clickable && data.item) {
-          data.item->selectPress(CQChartsGeom::Point(0, 0), CQChartsKeyItem::SelMod::REPLACE);
+          CQChartsSelectableIFace::SelData selData;
+          data.item->selectPress(CQChartsGeom::Point(0, 0), selData);
           break;
         }
       }

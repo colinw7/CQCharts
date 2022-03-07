@@ -3857,7 +3857,7 @@ CQChartsBoxColorKeyItem(CQChartsBoxPlot *plot, const ColorInd &is, const ColorIn
 
 bool
 CQChartsBoxColorKeyItem::
-selectPress(const Point &, SelMod)
+selectPress(const Point &, SelData &)
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 

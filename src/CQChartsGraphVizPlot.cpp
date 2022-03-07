@@ -4,7 +4,6 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsConnectionList.h>
@@ -856,7 +855,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
   int timeout = processTimeout_*1000;
 
   if (! process->waitForFinished(timeout)) {
-    std::cerr << "Command failed : " << dot_file.toStdString() << " " <<
+    std::cerr << "Command failed or timed out : " << dot_file.toStdString() << " " <<
                  cmdArgs.join(" ").toStdString() << " > " << outFilename.toStdString() << "\n";
     delete process;
     return false;

@@ -1979,7 +1979,7 @@ calcTipId() const
 
 bool
 CQChartsTableHeaderObj::
-selectPress(const Point & /*p*/, SelMod /*selMod*/)
+selectPress(const Point & /*p*/, SelData & /*selData*/)
 {
   auto *plot = const_cast<CQChartsTablePlot *>(plot_);
 

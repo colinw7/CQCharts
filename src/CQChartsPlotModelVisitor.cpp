@@ -20,6 +20,7 @@ initVisit()
 {
   assert(plot_);
 
+  // expr used by filter and expression columns
   expr_ = new CQChartsModelExprMatch;
 
   expr_->setModel(plot_->model().data());
@@ -56,6 +57,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
   //---
 
+  // filter by expression
   if (plot_->filterStr().length()) {
     bool ok;
 
@@ -67,6 +69,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
   //---
 
+  // filter by row
   if (plot_->isEveryEnabled()) {
     int start = plot_->everyStart();
     int end   = plot_->everyEnd();
@@ -86,6 +89,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
   //---
 
+  // filter by visible column value
   using ModelIndex = CQChartsModelIndex;
 
   if (plot_->visibleColumn().isValid()) {
@@ -95,9 +99,16 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
     auto value = plot_->modelValue(visibleColumnInd, ok);
 
+    // empty or false value
     if (! ok || ! CQChartsVariant::toBool(value, ok))
       return State::SKIP;
   }
+
+  //---
+
+  // filter by filter column value
+  if (! plot_->isValueVisible(data.row, data.parent))
+    return State::SKIP;
 
   return State::OK;
 }

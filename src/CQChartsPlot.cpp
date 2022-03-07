@@ -4713,6 +4713,72 @@ setColorFilterNames(const QStringList &names)
 
 void
 CQChartsPlot::
+addFilterColumn(const Column &column)
+{
+  filterColumns_.insert(column);
+}
+
+void
+CQChartsPlot::
+removeFilterColumn(const Column &column)
+{
+  filterColumns_.erase(column);
+}
+
+bool
+CQChartsPlot::
+isValueVisible(int row, const QModelIndex &parent) const
+{
+  if (filterColumns_.empty())
+    return true;
+
+  for (const auto &c : filterColumns_) {
+    auto ind = ModelIndex(this, row, c, parent);
+
+    bool ok;
+    auto var = modelValue(ind, ok);
+    if (! ok || ! var.isValid()) continue;
+
+    if (! isColumnValueVisible(c, var))
+      return false;
+  }
+
+  return true;
+}
+
+void
+CQChartsPlot::
+setColumnValueVisible(const Column &column, const QVariant &value, bool visible)
+{
+  auto p = columnValueFilter_.find(column);
+
+  if (p == columnValueFilter_.end())
+    p = columnValueFilter_.insert(p, ColumnValueFilter::value_type(column, VariantSet()));
+
+  if (visible)
+    (*p).second.erase(value);
+  else
+    (*p).second.insert(value);
+}
+
+bool
+CQChartsPlot::
+isColumnValueVisible(const Column &column, const QVariant &value) const
+{
+  // visible if not in hidden value list
+  auto p = columnValueFilter_.find(column);
+  if (p == columnValueFilter_.end()) return true;
+
+  auto pv = (*p).second.find(value);
+  if (pv == (*p).second.end()) return true;
+
+  return false;
+}
+
+//------
+
+void
+CQChartsPlot::
 threadTimerSlot()
 {
   if (isOverlay() && ! isFirstPlot())
@@ -6649,7 +6715,7 @@ updateInsideObjects1(const Point &w, Constraints constraints)
   // get objects and annotations at point
   Objs objs;
 
-  insideData_.p = w;
+  insideData_.setPoint(w);
 
   groupedObjsAtPoint(insideData_.p, objs, constraints);
 
@@ -6662,9 +6728,9 @@ setInsideObjects(const Point &w, Objs &objs)
 {
   assert(! parentPlot());
 
-  //std::cerr << "updateInsideObjects1 " << calcName().toStdString() << "\n";
+  //std::cerr << "setInsideObjects " << calcName().toStdString() << "\n";
 
-  insideData_.p = w;
+  insideData_.setPoint(w);
 
   //---
 
@@ -6750,15 +6816,18 @@ resetInsideObjs1()
         obj->setInside(false);
 
       for (auto &annotation : oplot->annotations())
-        annotation->setInside(false);
+        if (annotation->isInside())
+          annotation->setInside(false);
     }
   }
   else {
     for (auto &obj : plotObjects())
-      obj->setInside(false);
+      if (obj->isInside())
+        obj->setInside(false);
 
     for (auto &annotation : annotations())
-      annotation->setInside(false);
+      if (annotation->isInside())
+        annotation->setInside(false);
   }
 }
 
@@ -6855,7 +6924,7 @@ setInsideObject()
 
   // update object is inside (TODO: update all objs state ?)
   for (auto &obj : insideData_.objs) {
-    if (obj == insideObj)
+    if (obj == insideObj && ! obj->isInside())
       obj->setInside(true);
   }
 }
@@ -7168,7 +7237,9 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
     auto *item = key->getItemAt(w);
 
     if (item) {
-      bool handled = item->selectPress(w, selMod);
+      CQChartsSelectableIFace::SelData selData(selMod);
+
+      bool handled = item->selectPress(w, selData);
 
       if (handled) {
         emit keyItemPressed  (item);
@@ -7178,10 +7249,12 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       }
     }
 
-    auto *group = const_cast<CQChartsGroupKeyItem *>(item->group());
+    auto *group = (item ? const_cast<CQChartsGroupKeyItem *>(item->group()) : nullptr);
 
     if (group) {
-      bool handled = group->selectPress(w, selMod);
+      CQChartsSelectableIFace::SelData selData(selMod);
+
+      bool handled = group->selectPress(w, selData);
 
       if (handled) {
         emit keyItemPressed  (group);
@@ -7191,7 +7264,9 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       }
     }
 
-    bool handled = key->selectPress(w, selMod);
+    CQChartsSelectableIFace::SelData selData(selMod);
+
+    bool handled = key->selectPress(w, selData);
 
     if (handled) {
       emit keyPressed  (key);
@@ -7214,7 +7289,9 @@ mapKeySelectPress(const Point &w, SelMod selMod)
       continue;
 
     if (mapKey->inside(w, CQChartsMapKey::DrawType::VIEW)) {
-      bool handled = mapKey->selectPress(w, selMod);
+      CQChartsSelectableIFace::SelData selData(selMod);
+
+      bool handled = mapKey->selectPress(w, selData);
 
       if (handled) {
         emit mapKeyPressed(mapKey);
@@ -7232,7 +7309,9 @@ titleSelectPress(CQChartsTitle *title, const Point &w, SelMod selMod)
 {
   // select title
   if (title && title->contains(w)) {
-    if (title->selectPress(w, selMod)) {
+    CQChartsSelectableIFace::SelData selData(selMod);
+
+    if (title->selectPress(w, selData)) {
       emit titlePressed  (title);
       emit titleIdPressed(title->id());
 
@@ -7251,14 +7330,18 @@ annotationsSelectPress(const Point &w, SelMod selMod)
   groupedAnnotationsAtPoint(w, pressAnnotations_, Constraints::SELECTABLE);
 
   for (const auto &annotation : pressAnnotations_) {
-    annotation->selectPress(w, selMod);
+    CQChartsSelectableIFace::SelData selData(selMod);
+
+    annotation->selectPress(w, selData);
   }
 
   for (const auto &annotation : pressAnnotations_) {
     if (! annotation->isSelectable())
       continue;
 
-    if (! annotation->selectPress(w, selMod))
+    CQChartsSelectableIFace::SelData selData(selMod);
+
+    if (! annotation->selectPress(w, selData))
       continue;
 
     selectOneObj(annotation, /*allObjs*/true);
@@ -7281,25 +7364,31 @@ objectsSelectPress(const Point &w, SelMod selMod)
 {
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
+  // TODO: only selectable
   using ObjsSelected = std::map<Obj*, bool>;
 
   ObjsSelected objsSelected;
 
+  auto updateObjSelected = [&](Obj *obj) {
+    if (obj->isSelectable())
+      objsSelected[obj] = (selMod != SelMod::REPLACE ? obj->isSelected() : false);
+  };
+
   if (isOverlay()) {
     processOverlayPlots([&](Plot *plot) {
       for (auto &plotObj : plot->plotObjects())
-        objsSelected[plotObj] = (selMod != SelMod::REPLACE ? plotObj->isSelected() : false);
+        updateObjSelected(plotObj);
 
       for (const auto &annotation : plot->annotations())
-        objsSelected[annotation] = (selMod != SelMod::REPLACE ? annotation->isSelected() : false);
+        updateObjSelected(annotation);
     });
   }
   else {
     for (auto &plotObj : plotObjects())
-      objsSelected[plotObj] = (selMod != SelMod::REPLACE ? plotObj->isSelected() : false);
+      updateObjSelected(plotObj);
 
     for (const auto &annotation : annotations())
-      objsSelected[annotation] = (selMod != SelMod::REPLACE ? annotation->isSelected() : false);
+      updateObjSelected(annotation);
   }
 
   //---
@@ -7307,7 +7396,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   // get object under mouse
   Obj *selectObj = nullptr;
 
-  if (isFollowMouse()) {
+  if (isFollowMouse() && insideData_.isSet()) {
     // get nth inside object
     selectObj = insideObject();
 
@@ -7346,18 +7435,25 @@ objectsSelectPress(const Point &w, SelMod selMod)
     auto *selectAnnotation = dynamic_cast<Annotation *>(selectObj);
 
     if (selectPlotObj) {
-      selectPlotObj->selectPress(w, selMod);
+      CQChartsSelectableIFace::SelData selData(selMod);
 
-      emit objPressed  (selectPlotObj);
-      emit objIdPressed(selectPlotObj->id());
+      if (selectPlotObj->selectPress(w, selData)) {
+        emit objPressed  (selectPlotObj);
+        emit objIdPressed(selectPlotObj->id());
+      }
     }
     else if (selectAnnotation) {
-      selectAnnotation->selectPress(w, selMod);
+      CQChartsSelectableIFace::SelData selData(selMod);
 
-      drawForeground();
+      if (selectAnnotation->selectPress(w, selData)) {
+        if (! selData.select)
+           objsSelected[selectAnnotation] = false;
 
-      emit annotationPressed  (selectAnnotation);
-      emit annotationIdPressed(selectAnnotation->id());
+        drawForeground();
+
+        emit annotationPressed  (selectAnnotation);
+        emit annotationIdPressed(selectAnnotation->id());
+      }
     }
 
     // potential crash if signals cause objects to be deleted (defer !!!)
@@ -11043,7 +11139,7 @@ plotTipText(const Point &p, QString &tip, bool single) const
 
   Objs tipObjs;
 
-  if (isFollowMouse()) {
+  if (isFollowMouse() && insideData_.isSet()) {
     assert(! parentPlot());
 
     objNum = insideData_.ind;
@@ -15591,6 +15687,15 @@ resetSetHidden()
     updateRangeAndObjs();
   }
 }
+
+bool
+CQChartsPlot::
+isHideValue(const QVariant &value) const
+{
+  return (CQChartsVariant::cmp(value, hideValue()) == 0);
+}
+
+//---
 
 void
 CQChartsPlot::

@@ -233,7 +233,7 @@ class CQChartsViewKey : public CQChartsKey {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   //---
 
@@ -265,7 +265,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void redraw(bool queued=true) override;
 
- private:
+ protected:
   void doLayout();
 
  private:
@@ -454,6 +454,9 @@ class CQChartsPlotKey : public CQChartsKey {
   bool editMove  (const Point &w) override;
   bool editMotion(const Point &w) override;
 
+  void editDragMove(const Point &d);
+  void editDragResize(const BBox &bbox);
+
   void editMoveBy(const Point &d) override;
 
   bool isEditResize() const override;
@@ -489,7 +492,7 @@ class CQChartsPlotKey : public CQChartsKey {
   void hscrollSlot(int);
   void vscrollSlot(int);
 
- private:
+ protected:
   void doLayout();
 
  private:
@@ -570,10 +573,14 @@ class CQChartsColumnKey : public CQChartsPlotKey {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
-  CQChartsColumnKey(Plot *plot);
+  using Column = CQChartsColumn;
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c);
+ public:
+  CQChartsColumnKey(Plot *plot, const Column &c);
+ ~CQChartsColumnKey();
+
+  const Column &column() const { return column_; }
+  void setColumn(const Column &c);
 
   void updatePosition(bool /*queued*/=true) override;
 
@@ -584,7 +591,7 @@ class CQChartsColumnKey : public CQChartsPlotKey {
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
  private:
-  CQChartsColumn column_;
+  Column column_;
 };
 
 //------
@@ -699,7 +706,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   //---
 
   // implement select interface
-  bool selectPress(const Point &, SelMod) override;
+  bool selectPress(const Point &, SelData &) override;
   bool selectMove (const Point &) override;
 
   //---
@@ -717,6 +724,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   virtual void setSetHidden(bool b);
 
   virtual bool calcHidden() const;
+  virtual void setHidden(bool hidden);
 
   //---
 
@@ -801,7 +809,7 @@ class CQChartsGroupKeyItem : public CQChartsKeyItem {
   //---
 
   // implement select interface
-  bool selectPress(const Point &, SelMod) override;
+  bool selectPress(const Point &, SelData &selData) override;
   bool selectMove (const Point &) override;
 
   //---
@@ -913,7 +921,7 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   //---
 
@@ -965,7 +973,7 @@ class CQChartsLineKeyItem : public CQChartsKeyItem {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   //---
 
@@ -1026,7 +1034,7 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 
- private:
+ protected:
   void calcLabels(QStringList &labels) const;
 
  private:
@@ -1067,15 +1075,38 @@ class CQChartsCheckKeyItem : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
   // implement select interface
-  bool selectPress(const Point &w, SelMod selMod) override;
+  bool selectPress(const Point &w, SelData &selData) override;
 
   bool calcHidden() const override;
+  void setHidden(bool hidden) override;
 
  private:
   Plot*    plot_ { nullptr }; //!< parent plot
   ColorInd is_;               //!< group index
   ColorInd ig_;               //!< group index
   ColorInd iv_;               //!< number of groups
+};
+
+//---
+
+class CQChartsColumnCheckKeyItem : public CQChartsCheckKeyItem {
+  Q_OBJECT
+
+ public:
+  using Column = CQChartsColumn;
+
+ public:
+  CQChartsColumnCheckKeyItem(PlotKey *key, const Column &column, int i, int n);
+
+  QString typeName() const override { return "column_check"; }
+
+  bool calcHidden() const override;
+  void setHidden(bool hidden) override;
+
+ private:
+  Column column_;
+  int    i_ { -1 };
+  int    n_ { 0 };
 };
 
 #endif

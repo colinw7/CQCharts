@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + arrow on curve needs min start/end length
+ + generate annotation dialog
  + key column annotation. Slow draw. Allow check boxes
  + equal scale with axis/title not exact
    + use equal margins

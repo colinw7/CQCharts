@@ -454,7 +454,7 @@ class CQChartsBoxColorKeyItem : public CQChartsColorBoxKeyItem {
   CQChartsBoxColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
 
   //! handle select press
-  bool selectPress(const Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelData &selData) override;
 
   QBrush fillBrush() const override;
 

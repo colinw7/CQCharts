@@ -1,8 +1,10 @@
 #include <CQChartsEditAnnotationDlg.h>
-#include <CQChartsAnnotation.h>
-#include <CQChartsArrow.h>
+
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsAnnotation.h>
+#include <CQChartsArrow.h>
+
 #include <CQChartsPositionEdit.h>
 #include <CQChartsRectEdit.h>
 #include <CQChartsLengthEdit.h>
@@ -18,6 +20,7 @@
 #include <CQChartsImageEdit.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
+
 #include <CQChartsWidgetUtil.h>
 
 #include <CQRealSpin.h>
@@ -57,20 +60,13 @@ initWidgets()
 
   //----
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  layout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(layout);
 
   //--
 
   // id, tip edits
-  idEdit_  = createLineEdit("id" , annotation()->id   (), "Annotation Id");
-  tipEdit_ = createLineEdit("tip", annotation()->tipId(), "Annotation Tooltip");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Id" , idEdit_ , row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Tip", tipEdit_, row);
+  idEdit_  = addLineEdit(gridData, "id" , "Id" , annotation()->id   (), "Annotation Id");
+  tipEdit_ = addLineEdit(gridData, "tip", "Tip", annotation()->tipId(), "Annotation Tooltip");
 
   //----
 
@@ -112,6 +108,7 @@ initWidgets()
 
   //---
 
+  // message label
   msgLabel_ = CQUtil::makeWidget<QLabel>("msgLabel");
 
   CQChartsWidgetUtil::setTextColor(msgLabel_, Qt::red);
@@ -147,34 +144,23 @@ createRectFrame()
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(frameLayout);
 
   //--
 
   // rect
-  rectWidgets_.rectEdit = createRectEdit("rectEdit", annotation->rectangle(), "Rectangle");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Rect", rectWidgets_.rectEdit, row);
+  rectWidgets_.rectEdit =
+    addRectEdit(gridData, "rectEdit", "Rect", annotation->rectangle(), "Rectangle");
 
   //--
 
   // outer margin
   rectWidgets_.marginEdit =
-    createMarginEdit("marginEdit", annotation->margin(), "Rectangle Margin");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Margin", rectWidgets_.marginEdit, row);
-
-  //--
+    addMarginEdit(gridData, "marginEdit", "Margin", annotation->margin(), "Rectangle Margin");
 
   // inner padding
   rectWidgets_.paddingEdit =
-    createMarginEdit("paddingEdit", annotation->padding(), "Rectangle Padding");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
+    addMarginEdit(gridData, "paddingEdit", "Padding", annotation->padding(), "Rectangle Padding");
 
   //----
 
@@ -218,38 +204,33 @@ createEllipseFrame()
   centerRectLayout->addWidget(ellipseWidgets_.rectRadio);
   centerRectLayout->addStretch(1);
 
-  connect(ellipseWidgets_.centerRadio, SIGNAL(toggled(bool)), this, SLOT(ellipseCenterSlot(bool)));
-
-  ellipseWidgets_.centerEdit =
-    createPositionEdit("centerEdit", annotation->center(), "Ellipse Center Position");
-
-  ellipseWidgets_.rxEdit =
-    createLengthEdit("rxEdit", annotation->xRadius(), "Ellipse X Radius Length");
-  ellipseWidgets_.ryEdit =
-    createLengthEdit("ryEdit", annotation->yRadius(), "Ellipse Y Radius Length");
-
-  ellipseWidgets_.rectEdit = createRectEdit("rectEdit", CQChartsRect(), "Ellipse Rectangle");
-
   ellipseWidgets_.centerRadio->setChecked(true);
 
   frameLayout->addWidget(centerRectFrame);
 
-  ellipseCenterSlot(true);
+  connect(ellipseWidgets_.centerRadio, SIGNAL(toggled(bool)), this, SLOT(ellipseCenterSlot(bool)));
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridData = createGrid(frameLayout);
 
-  frameLayout->addLayout(gridLayout);
+  //---
 
-  int row = 0;
+  ellipseWidgets_.centerEdit =
+    addPositionEdit(gridData, "centerEdit", "Center", annotation->center(),
+                    "Ellipse Center Position");
 
-  //--
+  ellipseWidgets_.rxEdit =
+    addLengthEdit(gridData, "rxEdit", "Radius X", annotation->xRadius(),
+                  "Ellipse X Radius Length");
+  ellipseWidgets_.ryEdit =
+    addLengthEdit(gridData, "ryEdit", "Radius Y", annotation->yRadius(),
+                  "Ellipse Y Radius Length");
 
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center"  , ellipseWidgets_.centerEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius X", ellipseWidgets_.rxEdit    , row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius Y", ellipseWidgets_.ryEdit    , row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Rect"    , ellipseWidgets_.rectEdit  , row);
+  ellipseWidgets_.rectEdit =
+    addRectEdit(gridData, "rectEdit", "Rect", CQChartsRect(), "Ellipse Rectangle");
+
+  ellipseCenterSlot(true);
 
   //---
 
@@ -272,18 +253,20 @@ createPolygonFrame()
 
   //---
 
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
+
   polygonWidgets_.frame = CQUtil::makeWidget<QFrame>("polygonFrame");
 
   frameLayout_->addWidget(polygonWidgets_.frame);
 
-  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
+  //---
+
+  auto gridData = createGrid(frameLayout);
 
   //---
 
   polygonWidgets_.pointsEdit =
-    createPolygonEdit("pointsEdit", annotation->polygon(), "Polygon Points");
-
-  addLabelWidget(frameLayout, "Points", polygonWidgets_.pointsEdit);
+    addPolygonEdit(gridData, "pointsEdit", "Points", annotation->polygon(), "Polygon Points");
 
   //---
 
@@ -304,18 +287,20 @@ createPolyLineFrame()
 
   //---
 
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
+
   polylineWidgets_.frame = CQUtil::makeWidget<QFrame>("polylineFrame");
 
   frameLayout_->addWidget(polylineWidgets_.frame);
 
-  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
+  //---
+
+  auto gridData = createGrid(frameLayout);
 
   //---
 
   polylineWidgets_.pointsEdit =
-    createPolygonEdit("pointsEdit", annotation->polygon(), "Polyline Points");
-
-  addLabelWidget(frameLayout, "Points", polylineWidgets_.pointsEdit);
+    addPolygonEdit(gridData, "pointsEdit", "Points", annotation->polygon(), "Polyline Points");
 
   //---
 
@@ -357,13 +342,6 @@ createTextFrame()
   positionRectLayout->addWidget(textWidgets_.rectRadio);
   positionRectLayout->addStretch(1);
 
-  connect(textWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(textPositionSlot(bool)));
-
-  textWidgets_.positionEdit =
-    createPositionEdit("positionEdit", CQChartsPosition(), "Text Position");
-  textWidgets_.rectEdit =
-    createRectEdit    ("rectEdit", CQChartsRect(), "Text Rectangle");
-
   if (annotation->position().isSet()) {
     textWidgets_.positionRadio->setChecked(true);
     textWidgets_.positionEdit ->setPosition(annotation->positionValue());
@@ -376,36 +354,27 @@ createTextFrame()
 
   frameLayout->addWidget(positionRectFrame);
 
-  textPositionSlot(true);
+  connect(textWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(textPositionSlot(bool)));
 
   //---
 
-  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout1);
-
-  int row1 = 0;
+  auto gridData1 = createGrid(frameLayout);
 
   //--
 
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Position", textWidgets_.positionEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Rect"    , textWidgets_.rectEdit    , row1);
+  textWidgets_.positionEdit =
+    addPositionEdit(gridData1, "positionEdit", "Position", CQChartsPosition(), "Text Position");
+  textWidgets_.rectEdit =
+    addRectEdit(gridData1, "rectEdit", "Rect", CQChartsRect(), "Text Rectangle");
 
   //---
 
-  textWidgets_.textEdit = createLineEdit("edit", annotation->textStr(), "Text String");
+  auto gridData = createGrid(frameLayout);
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
-
-  //--
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Text", textWidgets_.textEdit, row);
+  textWidgets_.textEdit =
+    addLineEdit(gridData, "edit", "Text", annotation->textStr(), "Text String");
 
   //---
 
@@ -429,6 +398,8 @@ createTextFrame()
   //---
 
   frameLayout->addStretch(1);
+
+  textPositionSlot(true);
 }
 
 void
@@ -461,13 +432,6 @@ createImageFrame()
   positionRectLayout->addWidget(imageWidgets_.rectRadio);
   positionRectLayout->addStretch(1);
 
-  connect(imageWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(imagePositionSlot(bool)));
-
-  imageWidgets_.positionEdit =
-    createPositionEdit("positionEdit", CQChartsPosition(), "Image Position");
-  imageWidgets_.rectEdit =
-    createRectEdit("rectEdit", CQChartsRect(), "Image Rectangle");
-
   if (annotation->position().isSet()) {
     imageWidgets_.positionRadio->setChecked(true);
     imageWidgets_.positionEdit ->setPosition(annotation->positionValue());
@@ -480,46 +444,36 @@ createImageFrame()
 
   frameLayout->addWidget(positionRectFrame);
 
-  imagePositionSlot(true);
+  connect(imageWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(imagePositionSlot(bool)));
 
   //---
 
-  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout1);
-
-  int row1 = 0;
+  auto gridData1 = createGrid(frameLayout);
 
   //--
 
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Position", imageWidgets_.positionEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Rect"    , imageWidgets_.rectEdit    , row1);
+  imageWidgets_.positionEdit =
+    addPositionEdit(gridData1, "positionEdit", "Position", CQChartsPosition(), "Image Position");
+  imageWidgets_.rectEdit =
+    addRectEdit(gridData1, "rectEdit", "Rect", CQChartsRect(), "Image Rectangle");
+
+  //---
+
+  auto gridData = createGrid(frameLayout);
 
   //--
 
-  imageWidgets_.imageEdit = createImageEdit("imageEdit", annotation->image(), "Image");
-
+  imageWidgets_.imageEdit =
+    addImageEdit(gridData, "imageEdit", "Image", annotation->image(), "Image");
   imageWidgets_.disabledImageEdit =
-    createImageEdit("disabledImageEdit", annotation->disabledImage(), "Disabled Image");
-
-  //---
-
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
-
-  //--
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Image",
-    imageWidgets_.imageEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Disabled",
-    imageWidgets_.disabledImageEdit, row);
+    addImageEdit(gridData, "disabledImageEdit", "Disabled", annotation->disabledImage(),
+                 "Disabled Image");
 
   //---
 
   frameLayout->addStretch(1);
+
+  imagePositionSlot(true);
 }
 
 void
@@ -550,22 +504,15 @@ createArrowFrame()
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(frameLayout);
 
   //--
 
   // start, end point
   arrowWidgets_.startEdit =
-    createPositionEdit("startEdit", annotation->start(), "Arrow Start Point");
+    addPositionEdit(gridData, "startEdit", "Start", annotation->start(), "Arrow Start Point");
   arrowWidgets_.endEdit =
-    createPositionEdit("endEdit"  , annotation->end  (), "Arrow End Point"  );
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start", arrowWidgets_.startEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "End"  , arrowWidgets_.endEdit  , row);
+    addPositionEdit(gridData, "endEdit"  , "End"  , annotation->end  (), "Arrow End Point"  );
 
   //---
 
@@ -580,35 +527,24 @@ createArrowFrame()
 
   //---
 
-  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout1);
-
-  int row1 = 0;
+  auto gridData1 = createGrid(frameLayout);
 
   //--
 
   // stroke width, stroke color, filled and fill color
   arrowWidgets_.strokeWidthEdit =
-    createLengthEdit("strokeWidthEdit", stroke.width(), "Arrow Stroke Width");
+    addLengthEdit(gridData1, "strokeWidthEdit", "Stroke Width", stroke.width(),
+                  "Arrow Stroke Width");
   arrowWidgets_.strokeColorEdit =
-    createColorEdit("strokeColorEdit", stroke.color(), "Arrow Stroke Color");
+    addColorEdit(gridData1, "strokeColorEdit", "Stroke Color", stroke.color(),
+                 "Arrow Stroke Color");
 
-  arrowWidgets_.filledCheck = CQUtil::makeWidget<CQCheckBox>("filledCheck");
-  arrowWidgets_.filledCheck->setToolTip("Arrow Is Filled");
-  arrowWidgets_.filledCheck->setChecked(fill.isVisible());
+  arrowWidgets_.filledCheck =
+    addBoolEdit(gridData1, "filledCheck", "Filled", fill.isVisible(), "Arrow Is Filled");
 
-  arrowWidgets_.fillColorEdit->setColor(fill.color());
-    createColorEdit("fillColorEdit", fill.color(), "Arrow Fill Color");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Width",
-    arrowWidgets_.strokeWidthEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Color",
-    arrowWidgets_.strokeColorEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Is Filled"      ,
-    arrowWidgets_.filledCheck    , row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Fill Color"  ,
-    arrowWidgets_.fillColorEdit  , row1);
+  arrowWidgets_.fillColorEdit =
+    addColorEdit(gridData1, "fillColorEdit", "Fill Color", fill.color(),
+                 "Arrow Fll Color");
 
   //---
 
@@ -632,19 +568,13 @@ createPointFrame()
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(frameLayout);
 
   //---
 
   // position
   pointWidgets_.positionEdit =
-    createPositionEdit("positionEdit", annotation->position(), "Point Position");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", pointWidgets_.positionEdit, row);
+    addPositionEdit(gridData, "positionEdit", "Position", annotation->position(), "Point Position");
 
   //---
 
@@ -678,45 +608,31 @@ createPieSliceFrame()
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(frameLayout);
 
   //---
 
   // center
   pieSliceWidgets_.centerEdit =
-    createPositionEdit("centerEdit", annotation->position(), "Center");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center", pieSliceWidgets_.centerEdit, row);
+    addPositionEdit(gridData, "center", "Center", annotation->position(), "Center");
 
   //--
 
   // radii
   pieSliceWidgets_.innerRadiusEdit =
-    createLengthEdit("innerRadius", annotation->innerRadius(), "Inner Radius");
+    addLengthEdit(gridData, "innerRadius", "Inner Radius", annotation->innerRadius(),
+                  "Inner Radius");
   pieSliceWidgets_.outerRadiusEdit =
-    createLengthEdit("outerRadius", annotation->outerRadius(), "Outer Radius");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Inner Radius",
-    pieSliceWidgets_.innerRadiusEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Outer Radius",
-    pieSliceWidgets_.outerRadiusEdit, row);
+    addLengthEdit(gridData, "outerRadius", "Outer Radius", annotation->outerRadius(),
+                  "Outer Radius");
 
   //---
 
   // angles
   pieSliceWidgets_.startAngleEdit =
-    createAngleEdit("startAngle", annotation->startAngle(), "Start Angle");
+    addAngleEdit(gridData, "startAngle", "Start Angle", annotation->startAngle(), "Start Angle");
   pieSliceWidgets_.spanAngleEdit  =
-    createAngleEdit("spanAngle" , annotation->spanAngle(), "Span Angle");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start Angle",
-    pieSliceWidgets_.startAngleEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Span Angle",
-    pieSliceWidgets_.spanAngleEdit, row);
+    addAngleEdit(gridData, "spanAngle" , "Span Angle", annotation->spanAngle(), "Span Angle");
 
   //---
 
@@ -740,38 +656,25 @@ createAxisFrame()
 
   //---
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  frameLayout->addLayout(gridLayout);
-
-  int row = 0;
+  auto gridData = createGrid(frameLayout);
 
   //---
 
-  axisWidgets_.orientationEdit = CQUtil::makeWidget<QComboBox>("orientation");
+  auto orientNames = QStringList() << "Horizontal" << "Vertical";
 
-  axisWidgets_.orientationEdit->addItem("Horizontal");
-  axisWidgets_.orientationEdit->addItem("Vertical"  );
+  axisWidgets_.orientationEdit =
+    addComboEdit(gridData, "orientation", "Orientation", orientNames, "Orientation");
 
   if (annotation->direction() == Qt::Vertical)
     axisWidgets_.orientationEdit->setCurrentIndex(1);
 
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Orientation",
-                                         axisWidgets_.orientationEdit, row);
+  axisWidgets_.positionEdit =
+    addRealEdit(gridData, "position", "Position", annotation->position(), "Position");
 
-  //--
-
-  axisWidgets_.positionEdit = createRealEdit("position", annotation->position(), "Position");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", axisWidgets_.positionEdit, row);
-
-  //--
-
-  axisWidgets_.startEdit = createRealEdit("start", annotation->start(), "Start Value");
-  axisWidgets_.endEdit   = createRealEdit("end"  , annotation->end  (), "End Value");
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start", axisWidgets_.startEdit, row);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "End"  , axisWidgets_.endEdit  , row);
+  axisWidgets_.startEdit =
+    addRealEdit(gridData, "start", "Start", annotation->start(), "Start Value");
+  axisWidgets_.endEdit =
+    addRealEdit(gridData, "end"  , "End"  , annotation->end  (), "End Value");
 
   //---
 
@@ -817,6 +720,8 @@ addFillWidgets(Widgets &widgets, QBoxLayout *playout)
   widgets.backgroundDataEdit = CQUtil::makeWidget<CQChartsFillDataEdit>("backgroundDataEdit");
 
   widgets.backgroundDataEdit->setTitle("Fill");
+  widgets.backgroundDataEdit->setPlot(annotation()->plot());
+  widgets.backgroundDataEdit->setView(annotation()->view());
   widgets.backgroundDataEdit->setData(fillData);
   widgets.backgroundDataEdit->setToolTip("Enable Fill");
 
@@ -837,6 +742,8 @@ addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
                              CQChartsStrokeDataEditConfig().setCornerSize(cornerSize));
 
   widgets.strokeDataEdit->setTitle("Stroke");
+  widgets.strokeDataEdit->setPlot(annotation()->plot());
+  widgets.strokeDataEdit->setView(annotation()->view());
   widgets.strokeDataEdit->setData(strokeData);
   widgets.strokeDataEdit->setToolTip("Enable Stroke");
 
@@ -849,23 +756,20 @@ addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 {
   auto boxData = annotation()->boxData();
 
+  //--
+
+  auto gridData = createGrid(playout);
+
   //---
 
   widgets.borderSidesEdit = CQUtil::makeWidget<CQChartsSidesEdit>("borderSidesEdit");
 
   widgets.borderSidesEdit->setSides(boxData.borderSides());
 
-  //---
+  widgets.borderSidesEdit->setToolTip("Border Sides");
 
-  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
-
-  playout->addLayout(gridLayout);
-
-  int row = 0;
-
-  //--
-
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Border Sides", widgets.borderSidesEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, "Border Sides",
+                                         widgets.borderSidesEdit, gridData.row);
 }
 
 QHBoxLayout *
@@ -887,37 +791,27 @@ addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget)
 
 //---
 
-CQChartsImageEdit *
+CQCheckBox *
 CQChartsEditAnnotationDlg::
-createImageEdit(const QString &name, const CQChartsImage &image, const QString &tip) const
+addBoolEdit(GridData &gridData, const QString &name, const QString &label, bool checked,
+            const QString &tip) const
 {
-  auto *edit = CQUtil::makeWidget<CQChartsImageEdit>(name);
-
-  edit->setImage(image);
+  auto *check = CQUtil::makeWidget<CQCheckBox>(name);
 
   if (tip != "")
-    edit->setToolTip(tip);
+    check->setToolTip(tip);
 
-  return edit;
-}
+  check->setChecked(checked);
 
-CQChartsColorLineEdit *
-CQChartsEditAnnotationDlg::
-createColorEdit(const QString &name, const CQChartsColor &color, const QString &tip) const
-{
-  auto *edit = CQUtil::makeWidget<CQChartsColorLineEdit>(name);
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, check, gridData.row);
 
-  edit->setColor(color);
-
-  if (tip != "")
-    edit->setToolTip(tip);
-
-  return edit;
+  return check;
 }
 
 CQChartsLineEdit *
 CQChartsEditAnnotationDlg::
-createLineEdit(const QString &name, const QString &text, const QString &tip) const
+addLineEdit(GridData &gridData, const QString &name, const QString &label,
+            const QString &text, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(name);
 
@@ -926,12 +820,15 @@ createLineEdit(const QString &name, const QString &text, const QString &tip) con
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQRealSpin *
 CQChartsEditAnnotationDlg::
-createRealEdit(const QString &name, double r, const QString &tip) const
+addRealEdit(GridData &gridData, const QString &name, const QString &label,
+            double r, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQRealSpin>(name);
 
@@ -940,12 +837,32 @@ createRealEdit(const QString &name, double r, const QString &tip) const
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
+  return edit;
+}
+
+QComboBox *
+CQChartsEditAnnotationDlg::
+addComboEdit(GridData &gridData, const QString &name, const QString &label,
+             const QStringList &items, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<QComboBox>(name);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  edit->addItems(items);
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsPositionEdit *
 CQChartsEditAnnotationDlg::
-createPositionEdit(const QString &name, const CQChartsPosition &pos, const QString &tip) const
+addPositionEdit(GridData &gridData, const QString &name, const QString &label,
+                const CQChartsPosition &pos, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsPositionEdit>(name);
 
@@ -957,12 +874,15 @@ createPositionEdit(const QString &name, const CQChartsPosition &pos, const QStri
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsLengthEdit *
 CQChartsEditAnnotationDlg::
-createLengthEdit(const QString &name, const CQChartsLength &len, const QString &tip) const
+addLengthEdit(GridData &gridData, const QString &name, const QString &label,
+              const CQChartsLength &len, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsLengthEdit>(name);
 
@@ -971,12 +891,15 @@ createLengthEdit(const QString &name, const CQChartsLength &len, const QString &
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsRectEdit *
 CQChartsEditAnnotationDlg::
-createRectEdit(const QString &name, const CQChartsRect &rect, const QString &tip) const
+addRectEdit(GridData &gridData, const QString &name, const QString &label,
+            const CQChartsRect &rect, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsRectEdit>(name);
 
@@ -988,12 +911,15 @@ createRectEdit(const QString &name, const CQChartsRect &rect, const QString &tip
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsPolygonEdit *
 CQChartsEditAnnotationDlg::
-createPolygonEdit(const QString &name, const CQChartsPolygon &poly, const QString &tip) const
+addPolygonEdit(GridData &gridData, const QString &name, const QString &label,
+               const CQChartsPolygon &poly, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsPolygonEdit>(name);
 
@@ -1008,12 +934,15 @@ createPolygonEdit(const QString &name, const CQChartsPolygon &poly, const QStrin
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsMarginEdit *
 CQChartsEditAnnotationDlg::
-createMarginEdit(const QString &name, const CQChartsMargin &margin, const QString &tip) const
+addMarginEdit(GridData &gridData, const QString &name, const QString &label,
+              const CQChartsMargin &margin, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsMarginEdit>(name);
 
@@ -1022,12 +951,49 @@ createMarginEdit(const QString &name, const CQChartsMargin &margin, const QStrin
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
+  return edit;
+}
+
+CQChartsImageEdit *
+CQChartsEditAnnotationDlg::
+addImageEdit(GridData &gridData, const QString &name, const QString &label,
+             const CQChartsImage &image, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsImageEdit>(name);
+
+  edit->setImage(image);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
+  return edit;
+}
+
+CQChartsColorLineEdit *
+CQChartsEditAnnotationDlg::
+addColorEdit(GridData &gridData, const QString &name, const QString &label,
+             const CQChartsColor &color, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsColorLineEdit>(name);
+
+  edit->setColor(color);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
 }
 
 CQChartsAngleEdit *
 CQChartsEditAnnotationDlg::
-createAngleEdit(const QString &name, const CQChartsAngle &a, const QString &tip) const
+addAngleEdit(GridData &gridData, const QString &name, const QString &label,
+             const CQChartsAngle &a, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsAngleEdit>(name);
 
@@ -1036,7 +1002,24 @@ createAngleEdit(const QString &name, const CQChartsAngle &a, const QString &tip)
   if (tip != "")
     edit->setToolTip(tip);
 
+  CQChartsWidgetUtil::addGridLabelWidget(gridData.layout, label, edit, gridData.row);
+
   return edit;
+}
+
+//---
+
+CQChartsEditAnnotationDlg::GridData
+CQChartsEditAnnotationDlg::
+createGrid(QBoxLayout *layout) const
+{
+  GridData gridData;
+
+  gridData.layout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  layout->addLayout(gridData.layout);
+
+  return gridData;
 }
 
 //---
