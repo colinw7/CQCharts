@@ -1591,10 +1591,7 @@ addAnnotation(Annotation *annotation)
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -1701,10 +1698,7 @@ removeAnnotation(Annotation *annotation)
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -1724,10 +1718,7 @@ removeAllAnnotations()
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -1801,10 +1792,7 @@ addPlot(Plot *plot, const BBox &bbox)
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -1914,10 +1902,7 @@ removePlot(Plot *plot)
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -1943,10 +1928,7 @@ removeAllPlots()
 
   //---
 
-  invalidateObjects();
-  invalidateOverlay();
-
-  doUpdate();
+  updateView();
 
   //---
 
@@ -6340,9 +6322,7 @@ viewKeyVisibleSlot(bool b)
   if (key() && b != key()->isVisible()) {
     key()->setVisible(b);
 
-    invalidateObjects();
-
-    doUpdate();
+    updateView();
   }
 }
 
@@ -6360,9 +6340,7 @@ viewKeyPositionSlot(QAction *action)
 
   viewKey->setLocation(CQChartsKeyLocation(location));
 
-  invalidateObjects();
-
-  doUpdate();
+  updateView();
 }
 
 //------
@@ -7516,6 +7494,16 @@ currentPlotSlot()
 }
 
 //------
+
+void
+CQChartsView::
+updateView()
+{
+  invalidateObjects();
+  invalidateOverlay();
+
+  doUpdate();
+}
 
 void
 CQChartsView::

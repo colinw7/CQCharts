@@ -274,7 +274,7 @@ class CQChartsViewKey : public CQChartsKey {
   int           numPlots_  { 0 };    //!< number of plots
   Point         pposition_ { 0, 0 }; //!< pixel position
   Point         wposition_ { 0, 0 }; //!< view position
-  Size          size_;               //!< pixel size
+  Size          psize_;              //!< pixel size
   mutable BBox  wbbox_;              //!< view bounding box
   mutable BBox  pbbox_;              //!< view pixel bounding box
   mutable Rects prects_;             //!< plot key item rects
@@ -531,7 +531,7 @@ class CQChartsPlotKey : public CQChartsKey {
   using RowHeights = std::map<int, double>;
   using ColWidths  = std::map<int, double>;
 
-  struct Margin {
+  struct MarginData {
     double xl { 0.0 }; //!< x left margin (pixels)
     double xr { 0.0 }; //!< x right margin (pixels)
     double yt { 0.0 }; //!< y top margin (pixels)
@@ -555,8 +555,8 @@ class CQChartsPlotKey : public CQChartsKey {
   mutable RowColCell rowColCell_;              //!< cells (per row/col)
   mutable double     xs_            { 0.0 };   //!< x spacing (pixels)
   mutable double     ys_            { 0.0 };   //!< y spacing (pixels)
-  mutable Margin     pmargin_;                 //!< margin (pixels)
-  mutable Margin     ppadding_;                //!< padding (pixels)
+  mutable MarginData pmargin_;                 //!< margin (pixels)
+  mutable MarginData ppadding_;                //!< padding (pixels)
   mutable double     sx_            { 0.0 };   //!< scroll x offset
   mutable double     sy_            { 0.0 };   //!< scroll y offset
 };

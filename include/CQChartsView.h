@@ -1216,6 +1216,7 @@ class CQChartsView : public QFrame,
 
   void plotViewBoxChanged();
 
+  void updateView();
   void updateAll();
   void updatePlots();
 

@@ -259,6 +259,9 @@ CQChartsViewKey(View *view) :
  CQChartsKey(view)
 {
   setPressBehavior(view->keyBehavior());
+
+  setMargin (Margin::pixel(8, 8, 8, 8));
+  setPadding(Margin::pixel(4, 4, 4, 4));
 }
 
 CQChartsViewKey::
@@ -295,39 +298,35 @@ doLayout()
 
   double bs = fm.height() + 4.0;
 
-  //----
-
-  double x = 0.0, y = 0.0;
-//double dx = 0.0, dy = 0.0;
-
-  if      (location().onLeft   ()) { x =   0.0; /*dx =  1.0; */ }
-  else if (location().onHCenter()) { x =  50.0; /*dx =  0.0; */ }
-  else if (location().onRight  ()) { x = 100.0; /*dx = -1.0; */ }
-
-  if      (location().onTop    ()) { y = 100.0; /*dy =  1.0; */ }
-  else if (location().onVCenter()) { y =  50.0; /*dy =  0.0; */ }
-  else if (location().onBottom ()) { y =   0.0; /*dy = -1.0; */ }
-
-  //----
-
-  auto p = view()->windowToPixel(Point(x, y));
-
-  //p.x += dx*bs;
-  //p.y += dy*bs;
-
   //---
 
-  // get external margin
+  // get external margin (view)
   double xlm = view()->lengthViewWidth (margin().left  ());
   double xrm = view()->lengthViewWidth (margin().right ());
   double ytm = view()->lengthViewHeight(margin().top   ());
   double ybm = view()->lengthViewHeight(margin().bottom());
 
-  // get internal padding
-//double xlp = view()->lengthViewWidth (padding().left  ());
-//double xrp = view()->lengthViewWidth (padding().right ());
-//double ytp = view()->lengthViewHeight(padding().top   ());
-//double ybp = view()->lengthViewHeight(padding().bottom());
+  // get internal padding (pixels)
+  double xlp = view()->lengthPixelWidth (padding().left  ());
+  double xrp = view()->lengthPixelWidth (padding().right ());
+  double ytp = view()->lengthPixelHeight(padding().top   ());
+  double ybp = view()->lengthPixelHeight(padding().bottom());
+
+  //----
+
+  double x = 0.0, y = 0.0;
+
+  if      (location().onLeft   ()) { x =         xlm;  }
+  else if (location().onHCenter()) { x =        50.0;  }
+  else if (location().onRight  ()) { x = 100.0 - xrm;  }
+
+  if      (location().onTop    ()) { y = 100.0 - ytm;  }
+  else if (location().onVCenter()) { y =        50.0;  }
+  else if (location().onBottom ()) { y =         ybm;  }
+
+  //----
+
+  auto p = view()->windowToPixel(Point(x, y));
 
   //---
 
@@ -342,31 +341,31 @@ doLayout()
 
       auto name = plot->keyText();
 
-      double tw = fm.horizontalAdvance(name) + bs + xlm + xrm;
+      double tw = fm.horizontalAdvance(name) + bs + 4;
 
       pw = std::max(pw, tw);
 
       ph += bs;
     }
 
-    size_ = Size(pw + xlm + xrm, ph + ybm + ytm + (numPlots_ - 1)*2);
+    psize_ = Size(pw + xlp + xrp, ph + ybp + ytp + (numPlots_ - 1)*2);
 
     //---
 
     double pxr = 0.0, pyr = 0.0;
 
-    if      (location().onLeft   ()) pxr = p.x                   + xlm;
-    else if (location().onHCenter()) pxr = p.x - size_.width()/2;
-    else if (location().onRight  ()) pxr = p.x - size_.width()   - xrm;
+    if      (location().onLeft   ()) pxr = p.x;
+    else if (location().onHCenter()) pxr = p.x - psize_.width ()/2;
+    else if (location().onRight  ()) pxr = p.x - psize_.width ();
 
-    if      (location().onTop    ()) pyr = p.y                    + ytm;
-    else if (location().onVCenter()) pyr = p.y - size_.height()/2;
-    else if (location().onBottom ()) pyr = p.y - size_.height()   - ybm;
+    if      (location().onTop    ()) pyr = p.y;
+    else if (location().onVCenter()) pyr = p.y - psize_.height()/2;
+    else if (location().onBottom ()) pyr = p.y - psize_.height();
 
-    pposition_ = Point(pxr, pyr);
+    pposition_ = Point(pxr, pyr); // top left
   }
   else {
-    size_      = Size(0.0, 0.0);
+    psize_     = Size (0.0, 0.0);
     pposition_ = Point(0.0, 0.0);
   }
 
@@ -490,7 +489,7 @@ bool
 CQChartsViewKey::
 contains(const Point &p) const
 {
-  return pbbox_.inside(p);
+  return wbbox_.inside(p);
 }
 
 void
@@ -511,41 +510,33 @@ draw(PaintDevice *device) const
 
   //---
 
-  // pixel position & size (TODO: using view/units)
+  // pixel position & size
   double px = pposition_.x; // left
   double py = pposition_.y; // top
 
-  double pw = size_.width ();
-  double ph = size_.height();
+  double pw = psize_.width ();
+  double ph = psize_.height();
 
-  wbbox_ = BBox(px, py - ph, px + pw, py);
-
-  //---
-
-  auto p1 = view()->pixelToWindow(Point(px     , py     ));
-  auto p2 = view()->pixelToWindow(Point(px + pw, py + ph));
-
-  pbbox_ = BBox(p1.x, p2.y, p2.x, p1.y);
+  pbbox_ = BBox(px, py, px + pw, py + ph);
+  wbbox_ = view()->pixelToWindow(pbbox_);
 
   //---
 
-  BBox bbox(px, py, px + pw, py + ph);
-
-  CQChartsBoxObj::draw(device, bbox);
+  CQChartsBoxObj::draw(device, wbbox_);
 
   //---
 
-  // get external margin
-  double xlm = view()->lengthViewWidth (margin().left  ());
-  double xrm = view()->lengthViewWidth (margin().right ());
-  double ytm = view()->lengthViewHeight(margin().top   ());
-  double ybm = view()->lengthViewHeight(margin().bottom());
+  // get external margin (view)
+//double xlm = view()->lengthViewWidth (margin().left  ());
+//double xrm = view()->lengthViewWidth (margin().right ());
+//double ytm = view()->lengthViewHeight(margin().top   ());
+//double ybm = view()->lengthViewHeight(margin().bottom());
 
-  // get internal padding
-//double xlp = view()->lengthViewWidth (padding().left  ());
-//double xrp = view()->lengthViewWidth (padding().right ());
-//double ytp = view()->lengthViewHeight(padding().top   ());
-//double ybp = view()->lengthViewHeight(padding().bottom());
+  // get internal padding (pixels)
+  double xlp = view()->lengthPixelWidth (padding().left  ());
+  double xrp = view()->lengthPixelWidth (padding().right ());
+  double ytp = view()->lengthPixelHeight(padding().top   ());
+//double ybp = view()->lengthPixelHeight(padding().bottom());
 
   //---
 
@@ -553,8 +544,8 @@ draw(PaintDevice *device) const
 
   QFontMetricsF fm(device->font());
 
-  double px1 = px + xlm;
-  double py1 = py + ybm;
+  double px1 = px + xlp;
+  double py1 = py + ytp;
 
   double bs = fm.height() + 4.0;
 
@@ -581,11 +572,11 @@ draw(PaintDevice *device) const
 
     auto name = plot->keyText();
 
-    double px2 = px1 + bs + xrm;
+    double px2 = px1 + bs + 2;
 
     //double tw = fm.horizontalAdvance(name);
 
-    BBox rect1(px2, py1, px2 + pw - bs - ybm - ytm, py2);
+    BBox rect1(px2, py1, px + pw - xrp, py2);
 
     auto textOptions = this->textOptions();
 
@@ -619,7 +610,8 @@ drawEditHandles(PaintDevice *device) const
 }
 
 void
-CQChartsViewKey::setEditHandlesBBox() const
+CQChartsViewKey::
+setEditHandlesBBox() const
 {
   editHandles()->setMode(EditHandles::Mode::MOVE);
 
@@ -778,6 +770,11 @@ CQChartsPlotKey(Plot *plot) :
   connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
 
   scrollData_.pixelBarSize = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
+
+  //---
+
+  setMargin (Margin::pixel(4, 4, 4, 4));
+  setPadding(Margin::pixel(2, 2, 2, 2));
 }
 
 CQChartsPlotKey::

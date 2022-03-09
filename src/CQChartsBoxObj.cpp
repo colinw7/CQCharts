@@ -213,7 +213,7 @@ boxObjInvalidate()
   if      (plot())
     plot()->drawObjs();
   else if (view())
-    view()->doUpdate();
+    view()->updateView();
 }
 
 //---
