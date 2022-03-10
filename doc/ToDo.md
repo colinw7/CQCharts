@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Force directed no thread
+ + Force directed node size (min edge length)
+ + key item data in get_charts_data/set_charts_data
  + arrow on curve needs min start/end length
  + generate annotation dialog
  + key column annotation. Slow draw. Allow check boxes

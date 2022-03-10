@@ -596,6 +596,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void writeScript(ScriptPaintDevice *device) const;
 
+  virtual void writeScriptParts(PaintDevice *) const { }
+
   void writeScriptRange(ScriptPaintDevice *device) const;
 
   void writeSVG(SVGPaintDevice *device) const;
@@ -1794,6 +1796,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void autoFitOne();
 
+  virtual void autoFitUpdate();
+
  public:
   // (re)initialize plot objects (called by initPlotObjs)
   virtual bool initObjs();
@@ -2596,9 +2600,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // draw plot parts (from draw and thread)
   virtual void drawParts(QPainter *painter) const;
 
-  // draw plot device parts
-  virtual void drawDeviceParts(PaintDevice *) const { }
-
   // draw background layer plot parts
   virtual void drawBackgroundParts(QPainter *painter) const;
 
@@ -3330,7 +3331,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     //std::cerr << "< " << updateData_.lockData.id << "\n";
     updateData_.lockData.lock.unlock();
     resetLockId();
-   }
+  }
 
   //*! \brief RAII class to lock/unlock plot mutex
   struct LockMutex {

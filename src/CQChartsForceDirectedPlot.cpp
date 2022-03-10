@@ -18,6 +18,7 @@
 #include <CQPerfMonitor.h>
 
 #include <QCheckBox>
+#include <QPushButton>
 
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
@@ -136,12 +137,37 @@ void
 CQChartsForceDirectedPlot::
 setRunning(bool b)
 {
-  running_ = b;
+  if (b != running_) {
+    running_ = b;
 
-  if (! isRunning())
-    stopAnimateTimer();
-  else
-    startAnimateTimer();
+    if (! isRunning())
+      stopAnimateTimer();
+    else
+      startAnimateTimer();
+
+    emit customDataChanged();
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+setInitSteps(int i)
+{
+  CQChartsUtil::testAndSet(initSteps_, i, [&]() { } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setAnimateSteps(int i)
+{
+  CQChartsUtil::testAndSet(animateSteps_, i, [&]() { } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setStepSize(double s)
+{
+  CQChartsUtil::testAndSet(stepSize_, s, [&]() { } );
 }
 
 void
@@ -211,8 +237,12 @@ addProperties()
   CQChartsConnectionPlot::addProperties();
 
   // options
-  addProp("options", "running"  , "", "Is running");
-  addProp("options", "rangeSize", "", "Range size");
+  addProp("options", "running"     , "", "Is running");
+  addProp("options", "initSteps"   , "", "Initial steps");
+  addProp("options", "animateSteps", "", "Animate steps");
+  addProp("options", "numSteps"    , "", "Number of steps");
+  addProp("options", "stepSize"    , "", "Step size");
+  addProp("options", "rangeSize"   , "", "Range size");
 
   // node/edge
   addProp("node", "nodeRadius", "radius"     , "Node radius in pixels")->setMinValue(0.0);
@@ -267,11 +297,7 @@ bool
 CQChartsForceDirectedPlot::
 createObjs(PlotObjs &) const
 {
-  static bool inside;
-
-  if (inside) return false; // TODO: assert
-
-  inside = true;
+  std::unique_lock<std::mutex> lock(createMutex_);
 
   CQPerfTrace trace("CQChartsForceDirectedPlot::createObjs");
 
@@ -317,10 +343,8 @@ createObjs(PlotObjs &) const
   else if (columnDataType == ColumnDataType::TABLE)
     rc = initTableObjs();
 
-  if (! rc) {
-    inside = false;
+  if (! rc)
     return false;
-  }
 
   //---
 
@@ -330,27 +354,23 @@ createObjs(PlotObjs &) const
 
   //---
 
-  stepInit_ = false;
+  numSteps_ = 0;
 
-  if (isRunning())
-    th->initSteps();
+  th->execInitSteps();
 
   //---
-
-  inside = false;
 
   return true;
 }
 
 void
 CQChartsForceDirectedPlot::
-initSteps()
+execInitSteps()
 {
-  if (! stepInit_) {
-    for (int i = 0; i < initSteps_; ++i)
-      forceDirected_->step(stepSize_);
+  while (numSteps_ < initSteps()) {
+    forceDirected_->step(stepSize());
 
-    stepInit_ = true;
+    ++numSteps_;
   }
 }
 
@@ -1219,15 +1239,46 @@ void
 CQChartsForceDirectedPlot::
 animateStep()
 {
+  execInitSteps();
+
+  //---
+
   if (pressed_ || ! isRunning())
     return;
 
   //---
 
-  initSteps();
+  execAnimateStep();
 
-  forceDirected_->step(stepSize_);
+  //---
 
+  if (! isUpdatesEnabled()) {
+    LockMutex lock(this, "setUpdatesEnabled");
+
+    setUpdatesEnabled(true );
+    setUpdatesEnabled(false);
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+execAnimateStep()
+{
+  for (int i = 0; i < animateSteps(); ++i) {
+    forceDirected_->step(stepSize());
+
+    ++numSteps_;
+  }
+
+  doAutoFit();
+
+  drawObjs();
+}
+
+void
+CQChartsForceDirectedPlot::
+doAutoFit()
+{
   if (isAutoFit()) {
     double xmin { 0.0 }, ymin { 0.0 }, xmax { 0.0 }, ymax { 0.0 };
 
@@ -1243,16 +1294,12 @@ animateStep()
 
     //applyDataRange();
   }
+}
 
-  drawObjs();
-
-  //---
-
-  if (! isUpdatesEnabled()) {
-    setUpdatesEnabled(true);
-
-    setUpdatesEnabled(false);
-  }
+void
+CQChartsForceDirectedPlot::
+autoFitUpdate()
+{
 }
 
 bool
@@ -1378,35 +1425,15 @@ calcNodeLabel(CQChartsSpringyNode *node) const
   return label;
 }
 
-#if 0
 void
 CQChartsForceDirectedPlot::
-draw(QPainter *painter)
+drawParts(QPainter *painter) const
 {
-  drawParts(painter);
+  std::unique_lock<std::mutex> lock(createMutex_);
 
-  //---
-
-  {
-  LockMutex lock(this, "draw");
-
-  auto updateState = this->updateState();
-
-  if (updateState == UpdateState::READY)
-    setGroupedUpdateState(UpdateState::DRAWN);
-  }
-}
-#endif
-
-void
-CQChartsForceDirectedPlot::
-drawPlotParts(QPainter *painter) const
-{
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   if (! hasLockId()) {
-    LockMutex lock(th, "drawParts");
-
     CQChartsPlotPaintDevice device(th, painter);
 
     drawDeviceParts(&device);
@@ -1624,6 +1651,20 @@ addWidgets()
   runningCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Running", "runningCheck");
 
   addFrameColWidget(optionsFrame, runningCheck_);
+
+  //---
+
+  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 2, 2);
+
+  layout_->addWidget(buttonFrame);
+
+  auto *stepButton = CQUtil::makeLabelWidget<QPushButton>("Step", "step");
+
+  connect(stepButton, SIGNAL(clicked()), this, SLOT(stepSlot()));
+
+  buttonLayout->addWidget(stepButton);
+  buttonLayout->addStretch(1);
 }
 
 void
@@ -1640,9 +1681,15 @@ void
 CQChartsForceDirectedPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_)
+    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   plot_ = dynamic_cast<CQChartsForceDirectedPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
+
+  if (plot_)
+    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1666,7 +1713,16 @@ void
 CQChartsForceDirectedPlotCustomControls::
 runningSlot(int state)
 {
-  plot_->setRunning(state);
+  if (plot_)
+    plot_->setRunning(state);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+stepSlot()
+{
+  if (plot_)
+    plot_->execAnimateStep();
 }
 
 CQChartsColor

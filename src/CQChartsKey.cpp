@@ -485,6 +485,23 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addTextStyleProp("textClipElide" , "clipElide" , "text clip elide");
 }
 
+int
+CQChartsViewKey::
+numItems() const
+{
+  return std::min(view()->numPlots(), int(prects_.size()));
+}
+
+CQChartsGeom::BBox
+CQChartsViewKey::
+itemBBox(int i) const
+{
+  int n = numItems();
+  if (i < 0 || i >= n) return BBox();
+
+  return prects_[size_t(i)];
+}
+
 bool
 CQChartsViewKey::
 contains(const Point &p) const
@@ -624,7 +641,7 @@ bool
 CQChartsViewKey::
 selectPress(const Point &w, SelData &selData)
 {
-  int n = std::min(view()->numPlots(), int(prects_.size()));
+  int n = numItems();
 
   for (int i = 0; i < n; ++i) {
     if (! prects_[size_t(i)].inside(w))

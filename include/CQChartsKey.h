@@ -230,6 +230,10 @@ class CQChartsViewKey : public CQChartsKey {
 
   bool contains(const Point &p) const override;
 
+  int numItems() const;
+
+  BBox itemBBox(int i) const;
+
   //---
 
   // implement select interface

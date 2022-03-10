@@ -1344,7 +1344,7 @@ writeScript(ScriptPaintDevice *device) const
     }
   }
 
-  drawDeviceParts(device);
+  writeScriptParts(device);
 
   os << "}\n";
 
@@ -14537,10 +14537,17 @@ autoFitOne()
 
   setFitBBox(bbox);
 
-  updateRangeAndObjs();
+  autoFitUpdate();
 #endif
 
   emit zoomPanChanged();
+}
+
+void
+CQChartsPlot::
+autoFitUpdate()
+{
+  updateRangeAndObjs();
 }
 
 void

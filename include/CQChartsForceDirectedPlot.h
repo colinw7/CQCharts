@@ -57,13 +57,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // control
-  Q_PROPERTY(bool   running   READ isRunning WRITE setRunning  )
-  Q_PROPERTY(double rangeSize READ rangeSize WRITE setRangeSize)
+  Q_PROPERTY(bool   running      READ isRunning    WRITE setRunning)
+  Q_PROPERTY(int    initSteps    READ initSteps    WRITE setInitSteps)
+  Q_PROPERTY(int    animateSteps READ animateSteps WRITE setAnimateSteps)
+  Q_PROPERTY(double stepSize     READ stepSize     WRITE setStepSize)
+  Q_PROPERTY(double rangeSize    READ rangeSize    WRITE setRangeSize)
+  Q_PROPERTY(int    numSteps     READ numSteps)
 
   // node
-  Q_PROPERTY(double nodeRadius   READ nodeRadius   WRITE setNodeRadius)
-  Q_PROPERTY(bool   nodeScaled   READ isNodeScaled WRITE setNodeScaled)
-  Q_PROPERTY(bool   nodeLabel    READ isNodeLabel  WRITE setNodeLabel )
+  Q_PROPERTY(double nodeRadius READ nodeRadius   WRITE setNodeRadius)
+  Q_PROPERTY(bool   nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(bool   nodeLabel  READ isNodeLabel  WRITE setNodeLabel )
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -106,6 +110,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isRunning() const { return running_; }
   void setRunning(bool b);
 
+  //! get/set init steps
+  int initSteps() const { return initSteps_; }
+  void setInitSteps(int i);
+
+  //! get/set animate steps
+  int animateSteps() const { return animateSteps_; }
+  void setAnimateSteps(int i);
+
+  //! get number of steps
+  int numSteps() const { return numSteps_; }
+
+  //! get/set step size
+  double stepSize() const { return stepSize_; }
+  void setStepSize(double s);
+
   //! get/set range size
   double rangeSize() const { return rangeSize_; }
   void setRangeSize(double r);
@@ -142,7 +161,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void initSteps();
+  void execInitSteps();
 
   //---
 
@@ -222,15 +241,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-//void draw(QPainter *painter) override;
+  void drawParts(QPainter *painter) const override;
 
-  void drawPlotParts(QPainter *painter) const override;
-
-  void drawDeviceParts(PaintDevice *device) const override;
+  void drawDeviceParts(PaintDevice *device) const;
 
   //---
 
   QString calcNodeLabel(CQChartsSpringyNode *nodes) const;
+
+  //---
+
+  void execAnimateStep();
+
+  void doAutoFit();
+
+  void autoFitUpdate() override;
 
  private:
   // connection between nodes (edge)
@@ -301,15 +326,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using IndStringMap    = std::map<int, QString>;
 
   // options
-  bool         running_             { true };  //!< is running
-  double       nodeRadius_          { 6.0 };   //!< node radius (pixel)
-  bool         nodeScaled_          { true };  //!< node radius scaled
-  bool         edgeLinesValueWidth_ { true };  //!< use value for edge width
-  int          initSteps_           { 100 };   //!< initial steps
-  double       stepSize_            { 0.01 };  //!< step size
-  mutable bool stepInit_            { false }; //!< have initial steps been run
-  double       maxLineWidth_        { 8.0 };   //!< max line width
-  bool         nodeLabel_           { false }; //!< max line width
+  bool        running_             { true };  //!< is running
+  int         initSteps_           { 100 };   //!< initial steps
+  int         animateSteps_        { 1 };     //!< animate steps
+  mutable int numSteps_            { 0 };     //!< number of steps
+  double      stepSize_            { 0.01 };  //!< step size
+  double      nodeRadius_          { 6.0 };   //!< node radius (pixel)
+  bool        nodeScaled_          { true };  //!< node radius scaled
+  bool        edgeLinesValueWidth_ { true };  //!< use value for edge width
+  double      maxLineWidth_        { 8.0 };   //!< max line width
+  bool        nodeLabel_           { false }; //!< max line width
 
   // data
   IdConnectionsData idConnections_;              //!< id connections
@@ -328,6 +354,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double nodeMass_     { 1.0 };   //!< node mass
   double widthScale_   { 1.0 };   //!< width scale
   int    maxNodeDepth_ { 0 };     //!< max node depth
+
+  mutable std::mutex createMutex_;
 };
 
 //---
@@ -360,6 +388,7 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
  protected slots:
   void runningSlot(int);
+  void stepSlot();
 
  private:
   CQChartsForceDirectedPlot* plot_         { nullptr };

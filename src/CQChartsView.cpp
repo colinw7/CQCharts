@@ -4388,11 +4388,6 @@ void
 CQChartsView::
 doResize(int w, int h)
 {
-  if (! lockPainter(true))
-    return;
-
-  //---
-
   for (const auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
@@ -4411,10 +4406,6 @@ doResize(int w, int h)
 
   displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
                                prect_.getXMax(), prect_.getYMax());
-
-  //---
-
-  lockPainter(false);
 
   //---
 
@@ -4625,8 +4616,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  if (! lockPainter(true))
-    return;
+  lockPainter(true);
 
   paint(ipainter_);
 
