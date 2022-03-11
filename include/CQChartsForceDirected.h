@@ -12,6 +12,7 @@
 class CQChartsSpringyNode : public Springy::Node {
  public:
   using OptReal = CQChartsOptReal;
+  using BBox    = CQChartsGeom::BBox;
 
  public:
   explicit CQChartsSpringyNode(int id) :
@@ -27,10 +28,18 @@ class CQChartsSpringyNode : public Springy::Node {
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
 
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &v) { bbox_ = v; }
+
+  bool isInside() const { return inside_; }
+  void setInside(bool b) { inside_ = b; }
+
  private:
   int         group_ { -1 };
   OptReal     nodeValue_;
   QModelIndex ind_;
+  BBox        bbox_;
+  bool        inside_ { false };
 };
 
 /*!
@@ -40,11 +49,38 @@ class CQChartsSpringyNode : public Springy::Node {
 class CQChartsSpringyEdge : public Springy::Edge {
  public:
   using NodeP = Springy::NodeP;
+  using Point = CQChartsGeom::Point;
 
  public:
   CQChartsSpringyEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
    Springy::Edge(id, node1, node2) {
   }
+
+  bool getIsLine() const { return isLine_; }
+  void setIsLine(bool b) { isLine_ = b; }
+
+  const Point &startPoint() const { return startPoint_; }
+  void setStartPoint(const Point &v) { startPoint_ = v; }
+
+  const Point &endPoint() const { return endPoint_; }
+  void setEndPoint(const Point &v) { endPoint_ = v; }
+
+  const QPainterPath &edgePath() const { return edgePath_; }
+  void setEdgePath(const QPainterPath &v) { edgePath_ = v; }
+
+  const QPainterPath &curvePath() const { return curvePath_; }
+  void setCurvePath(const QPainterPath &v) { curvePath_ = v; }
+
+  bool isInside() const { return inside_; }
+  void setInside(bool b) { inside_ = b; }
+
+ private:
+  bool         isLine_ { true };
+  Point        startPoint_;
+  Point        endPoint_;
+  QPainterPath edgePath_;
+  QPainterPath curvePath_;
+  bool         inside_ { false };
 };
 
 /*!

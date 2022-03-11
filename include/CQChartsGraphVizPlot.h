@@ -648,9 +648,6 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_TEXT_DATA(Node, node)
-CQCHARTS_NAMED_TEXT_DATA(Edge, edge)
-
 /*!
  * \brief Graph Plot
  * \ingroup Charts
@@ -886,12 +883,18 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  //---
+
   bool writeGraph(bool weighted=true) const;
   bool writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) const;
   bool processGraph(const QString &graphVizFilename, QFile &outFile,
                     const QString &outFilename, const QString &typeName) const;
 
+  //---
+
   void fitToBBox(const BBox &bbox);
+
+  //---
 
   bool initHierObjs() const;
 
@@ -940,6 +943,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   void processNodeNameValue (Node *node, const QString &name, const QString &value) const;
 
   void processEdgeNameValues(Edge *edge, const NameValues &valueValues) const;
+
+  //---
 
   static void stringToShapeType(const QString &str, Node::ShapeType &shapeType);
   static QString shapeTypeToString(const Node::ShapeType &shapeType);
@@ -1043,7 +1048,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
  protected:
   friend class CQChartsGraphVizPlotNode;
 
- protected:
+ private:
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
   using NameNameMap = std::map<QString, QString>;
@@ -1062,6 +1067,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Length    edgeWidth_    { Length::pixel(8) }; //!< edge width
   bool      edgeCentered_ { false };            //!< is edge centered
   bool      edgePath_     { false };            //!< use edge path
+  double    arrowWidth_   { 1.5 };              //!< edge arrow size factor
 
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation
@@ -1093,7 +1099,6 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   int              maxNodeDepth_  { 0 };    //!< max node depth (all graphs)
   double           edgeMargin_    { 0.01 }; //!< edge bounding box margin
   int              numGroups_     { 1 };    //!< node number of groups
-  double           arrowWidth_    { 1.5 };  //!< edge bounding box margin
   bool             edgeWeighted_  { true }; //!< edge placement weighted by value
 
   OptReal maxNodeValue_;

@@ -4,8 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + Force directed no thread
- + Force directed node size (min edge length)
+ + Force directed
+   + no thread
+   + node size (min edge length)
+   + edge direction
+   + bad tooltip
+   + node/edge attributes ?
  + key item data in get_charts_data/set_charts_data
  + arrow on curve needs min start/end length
  + generate annotation dialog

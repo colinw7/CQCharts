@@ -1383,3 +1383,5 @@
  + ensure clip objects cannot be selected
  + update tip columns for xy plot and support time values for header
  + allow query filter symbol size, symbol type and color columns
+# 3/10/2022
+ + Update force directed plot to match latest graph features

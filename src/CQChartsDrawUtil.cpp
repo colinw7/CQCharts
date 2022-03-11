@@ -921,6 +921,15 @@ trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &
   path.closeSubpath();
 }
 
+void
+linePath(QPainterPath &path, const Point &p1, const Point &p2)
+{
+  path = QPainterPath();
+
+  path.moveTo(p1.x, p1.y);
+  path.lineTo(p2.x, p2.y);
+}
+
 //---
 
 void

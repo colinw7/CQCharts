@@ -1495,7 +1495,7 @@ addFromToValue(const FromToData &fromToData) const
 
   // Just node
   if (fromToData.toStr == "") {
-    // set node color (if color column specified)
+    // set source node color (if color column specified)
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
@@ -1508,6 +1508,7 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
+    // get graph id
     auto groupNames = fromToData.groupData.value.toString().split("/");
 
     int graphId = -1, parentGraphId = -1;
@@ -1839,7 +1840,7 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
 
     node->setShapeType(shapeType);
   }
-  // num sides
+  // shape num sides
   else if (name == "num_sides") {
     bool ok;
 

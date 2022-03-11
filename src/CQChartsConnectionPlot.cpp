@@ -759,7 +759,7 @@ initLinkObjs() const
         auto attributesStr = plot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
-        linkConnectionData.nameValues = CQChartsNameValues(attributesStr);
+        linkConnectionData.nameValues = NameValues(attributesStr);
       }
 
       //---
@@ -887,7 +887,7 @@ initConnectionObjs() const
         auto attributesStr = plot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
-        connectionsData.nameValues = CQChartsNameValues(attributesStr);
+        connectionsData.nameValues = NameValues(attributesStr);
       }
 
       //---
@@ -1206,7 +1206,7 @@ initFromToObjs() const
         auto attributesStr = plot_->modelString(attributesModelInd, ok5);
         if (! ok5) return State::SKIP;
 
-        fromToData.nameValues = CQChartsNameValues(attributesStr);
+        fromToData.nameValues = NameValues(attributesStr);
       }
 
       //---

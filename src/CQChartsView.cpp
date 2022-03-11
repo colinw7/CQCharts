@@ -229,7 +229,16 @@ term()
 
   //---
 
+  {
+  lockPainter(true);
+
   delete ipainter_;
+
+  lockPainter(false);
+  }
+
+  //---
+
   delete image_;
 
   for (auto &plot : plots_)
@@ -4295,8 +4304,13 @@ resizeEvent(QResizeEvent *)
 
   //---
 
-  int w = width ();
-  int h = height();
+  int w, h;
+
+  {
+  lockPainter(true);
+
+  w = width ();
+  h = height();
 
   delete ipainter_;
   delete image_;
@@ -4309,6 +4323,9 @@ resizeEvent(QResizeEvent *)
   image_->fill(Qt::transparent);
 
   ipainter_ = new QPainter(image_);
+
+  lockPainter(false);
+  }
 
   //---
 

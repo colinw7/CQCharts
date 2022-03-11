@@ -25,12 +25,13 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
   void addParameters() override;
 
   bool hasTitle() const override { return false; }
-
-  bool hasAxes() const override { return false; }
+  bool hasAxes () const override { return false; }
 
   bool canProbe() const override { return false; }
 
   bool canRectSelect() const override { return false; }
+
+  bool canEqualScale() const override { return true; }
 
   QString description() const override;
 
@@ -53,7 +54,9 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
  */
 class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  public CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>,
- public CQChartsObjEdgeLineData <CQChartsForceDirectedPlot> {
+ public CQChartsObjNodeTextData <CQChartsForceDirectedPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsForceDirectedPlot>,
+ public CQChartsObjEdgeTextData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
   // control
@@ -64,32 +67,65 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double rangeSize    READ rangeSize    WRITE setRangeSize)
   Q_PROPERTY(int    numSteps     READ numSteps)
 
-  // node
-  Q_PROPERTY(double nodeRadius READ nodeRadius   WRITE setNodeRadius)
-  Q_PROPERTY(bool   nodeScaled READ isNodeScaled WRITE setNodeScaled)
-  Q_PROPERTY(bool   nodeLabel  READ isNodeLabel  WRITE setNodeLabel )
+  // node data
+  Q_PROPERTY(NodeShape nodeShape  READ nodeShape    WRITE setNodeShape )
+  Q_PROPERTY(bool      nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(double    nodeRadius READ nodeRadius   WRITE setNodeRadius)
 
-  // node stroke/fill
+  // edge data
+  Q_PROPERTY(EdgeShape edgeShape  READ edgeShape    WRITE setEdgeShape)
+  Q_PROPERTY(bool      edgeArrow  READ isEdgeArrow  WRITE setEdgeArrow)
+  Q_PROPERTY(bool      edgeScaled READ isEdgeScaled WRITE setEdgeScaled)
+  Q_PROPERTY(double    edgeWidth  READ edgeWidth    WRITE setEdgeWidth)
+  Q_PROPERTY(double    arrowWidth READ arrowWidth   WRITE setArrowWidth)
+
+  // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
-  // edge line
-  Q_PROPERTY(bool   edgeLinesValueWidth READ isEdgeLinesValueWidth WRITE setEdgeLinesValueWidth)
-  Q_PROPERTY(double maxLineWidth        READ maxLineWidth          WRITE setMaxLineWidth)
-
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
+  // node/edge text style
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
 
   // info
   Q_PROPERTY(int numNodes READ numNodes)
   Q_PROPERTY(int numEdges READ numEdges)
 
+  Q_ENUMS(NodeShape)
+  Q_ENUMS(EdgeShape)
+
  public:
+  enum class NodeShape {
+    NONE,
+    DIAMOND,
+    BOX,
+    POLYGON,
+    CIRCLE,
+    DOUBLE_CIRCLE
+  };
+
+  enum class EdgeShape {
+    NONE        = int(CQChartsEdgeType::NONE),
+    LINE        = int(CQChartsEdgeType::LINE),
+    RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
+    ARC         = int(CQChartsEdgeType::ARC)
+  };
+
   using Length    = CQChartsLength;
   using Color     = CQChartsColor;
   using Alpha     = CQChartsAlpha;
+  using Angle     = CQChartsAngle;
   using PenBrush  = CQChartsPenBrush;
   using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
+
+ private:
+  struct Connection;
+  struct ConnectionsData;
+
+  using Node = CQChartsSpringyNode;
+  using Edge = CQChartsSpringyEdge;
 
  public:
   CQChartsForceDirectedPlot(View *view, const ModelP &model);
@@ -97,12 +133,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool isBufferLayers() const override { return false; }
+  void init() override;
+  void term() override;
 
   //---
 
-  void init() override;
-  void term() override;
+  bool isBufferLayers() const override { return false; }
 
   //----
 
@@ -131,33 +167,44 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //----
 
-  //! get/set node size (radius)
-  double nodeRadius() const { return nodeRadius_; }
-  void setNodeRadius(double r);
+  //! get/set node shape
+  NodeShape nodeShape() const { return nodeShape_; }
+  void setNodeShape(const NodeShape &s);
 
   //! get/set node scaled
   bool isNodeScaled() const { return nodeScaled_; }
   void setNodeScaled(bool b);
 
-  //! get/set node label
-  bool isNodeLabel() const { return nodeLabel_; }
-  void setNodeLabel(bool b);
+  //! get/set node size (radius in pixels)
+  double nodeRadius() const { return nodeRadius_; }
+  void setNodeRadius(double r);
 
   //---
 
-  //! get/set use edge value for width
-  bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
-  void setEdgeLinesValueWidth(bool b);
+  //! get/set edge shape
+  const EdgeShape &edgeShape() const { return edgeShape_; }
+  void setEdgeShape(const EdgeShape &s);
 
-  //! get/set max line width
-  double maxLineWidth() const { return maxLineWidth_; }
-  void setMaxLineWidth(double r);
+  //! get/set has arrow
+  bool isEdgeArrow() const { return edgeArrow_; }
+  void setEdgeArrow(bool b);
+
+  //! get/set is edge scaled
+  bool isEdgeScaled() const { return edgeScaled_; }
+  void setEdgeScaled(bool b);
+
+  //! get/set edge width (in pixels)
+  double edgeWidth() const { return edgeWidth_; }
+  void setEdgeWidth(double r);
+
+  //! get/set edge directed arrow width
+  double arrowWidth() const { return arrowWidth_; }
+  void setArrowWidth(double r);
 
   //---
 
-  double maxValue() const { return maxValue_; }
-
-  double maxDataValue() const { return maxDataValue_; }
+  double maxNodeValue() const { return maxNodeValue_; }
+  double maxEdgeValue() const { return maxEdgeValue_; }
 
   //---
 
@@ -176,9 +223,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  // add properties
   void addProperties() override;
 
+  //---
+
   Range calcRange() const override;
+
+  //--
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -216,7 +268,18 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void addLinkConnection(const LinkConnectionData &) const override { }
 
+  //---
+
   bool initTableObjs() const;
+
+  //---
+
+  void processNodeNameValues(ConnectionsData &connectionsData,
+                             const NameValues &nameValues) const;
+  void processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
+                            const QString &valueStr) const;
+
+  void processEdgeNameValues(Connection *, const NameValues &nameValues) const;
 
   //---
 
@@ -247,7 +310,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  QString calcNodeLabel(CQChartsSpringyNode *nodes) const;
+  QString calcNodeLabel(Node *nodes) const;
 
   //---
 
@@ -260,14 +323,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  private:
   // connection between nodes (edge)
   struct Connection {
-    int         node  { -1 };
+    int         srcNode  { -1 };
+    int         destNode { -1 };
     OptReal     value;
+    QString     label;
+    Color       fillColor;
     QModelIndex ind;
 
     Connection() = default;
 
-    Connection(int node, double value) :
-     node(node), value(value) {
+    Connection(int srcNode, int destNode, double value) :
+     srcNode(srcNode), destNode(destNode), value(value) {
     }
   };
 
@@ -285,12 +351,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     int         depth        { -1 };   //!< depth
     bool        visible      { true }; //!< is visible
     int         parentId     { -1 };   //!< parent
+    Color       fillColor;             //!< fillColor
     Connections connections;           //!< connections
   };
 
   using IdConnectionsData = std::map<int, ConnectionsData>;
-
-  using Node = CQChartsSpringyNode;
 
  private:
   bool getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, int &destId,
@@ -304,15 +369,23 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   const ConnectionsData &getConnections(int id) const;
   ConnectionsData &getConnections(int id);
 
-  void addEdge(ConnectionsData &srcConnectionsData,
-               ConnectionsData &destConnectionsData, double value) const;
+  ConnectionsData &getConnections1(int id, const QString &str);
+
+  Connection *addEdge(ConnectionsData &srcConnectionsData,
+                      ConnectionsData &destConnectionsData, const OptReal &value) const;
 
   //! get unique index for string
   int getStringId(const QString &str) const;
   //! get string for unique index
   QString getIdString(int id) const;
 
-  QColor calcPointFillColor(Node *node) const;
+  BBox nodeBBox(const CForceDirected::NodeP &node, Node *snode) const;
+
+  double calcNodeValue(Node *node) const;
+  double calcNormalizedNodeValue(Node *node) const;
+  double calcScaledNodeValue(Node *node) const;
+
+  QColor calcNodeFillColor(Node *node) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -322,37 +395,46 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using NodeMap         = std::map<int, NodeP>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
+  using ForceDirectedP  = std::unique_ptr<ForceDirected>;
   using StringIndMap    = std::map<QString, int>;
   using IndStringMap    = std::map<int, QString>;
 
-  // options
-  bool        running_             { true };  //!< is running
-  int         initSteps_           { 100 };   //!< initial steps
-  int         animateSteps_        { 1 };     //!< animate steps
-  mutable int numSteps_            { 0 };     //!< number of steps
-  double      stepSize_            { 0.01 };  //!< step size
-  double      nodeRadius_          { 6.0 };   //!< node radius (pixel)
-  bool        nodeScaled_          { true };  //!< node radius scaled
-  bool        edgeLinesValueWidth_ { true };  //!< use value for edge width
-  double      maxLineWidth_        { 8.0 };   //!< max line width
-  bool        nodeLabel_           { false }; //!< max line width
+  // animation data
+  bool        running_      { true };  //!< is running
+  int         initSteps_    { 100 };   //!< initial steps
+  int         animateSteps_ { 1 };     //!< animate steps
+  mutable int numSteps_     { 0 };     //!< number of steps
+  double      stepSize_     { 0.01 };  //!< step size
 
-  // data
+  // node data
+  NodeShape nodeShape_  { NodeShape::CIRCLE }; //!< node shape
+  bool      nodeScaled_ { true };              //!< node radius scaled
+  double    nodeRadius_ { 6.0 };               //!< node radius (pixel)
+
+  // edge data
+  EdgeShape edgeShape_  { EdgeShape::LINE }; //!< edge shape
+  bool      edgeArrow_  { false };           //!< edge arrow
+  bool      edgeScaled_ { true };            //!< use value for edge width
+  double    edgeWidth_  { 8.0 };             //!< max edge width
+  double    arrowWidth_ { 1.5 };             //!< edge arrow size factorr
+
+  // connection data
   IdConnectionsData idConnections_;              //!< id connections
   StringIndMap      nameIdMap_;                  //!< node name index map
   IndStringMap      idNameMap_;                  //!< node name index map
   NodeMap           nodes_;                      //!< force directed nodes
   ConnectionNodes   connectionNodes_;            //!< ids of force directed nodes
   int               maxGroup_       { 0 };       //!< max group
-  double            maxValue_       { 0.0 };     //!< max connection value
-  double            maxDataValue_   { 0.0 };     //!< max data value
-  ForceDirected*    forceDirected_  { nullptr }; //!< force directed class
+  double            maxNodeValue_   { 0.0 };     //!< max node value
+  double            maxEdgeValue_   { 0.0 };     //!< max edge value
+
+  ForceDirectedP forceDirected_; //!< force directed class
 
   // state
   bool   pressed_      { false }; //!< is pressed
   double rangeSize_    { 20.0 };  //!< range size
   double nodeMass_     { 1.0 };   //!< node mass
-  double widthScale_   { 1.0 };   //!< width scale
+  double edgeScale_    { 1.0 };   //!< edge scale
   int    maxNodeDepth_ { 0 };     //!< max node depth
 
   mutable std::mutex createMutex_;

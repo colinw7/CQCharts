@@ -226,6 +226,8 @@ void diamondPath(QPainterPath &path, const BBox &bbox);
 
 void trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &p3);
 
+void linePath(QPainterPath &path, const Point &p1, const Point &p2);
+
 void editHandlePath(PaintDevice *device, QPainterPath &path, const BBox &bbox);
 
 //---
