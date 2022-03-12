@@ -57,6 +57,33 @@ foreach dir ($dirs)
   endif
 end
 
+# extra libs
+set edirs = (CQDot/graphviz/src)
+
+foreach edir ($edirs)
+  echo "--- Build $edir ---"
+
+  if (-e $cdir/$edir) then
+    cd $cdir/$edir
+
+    if (! -e ../obj) then
+      mkdir ../obj
+    endif
+
+    if (! -e ../lib) then
+      mkdir ../lib
+    endif
+
+    set n = `find . -maxdepth 1 -name "*.pro" | wc -l`
+
+    if ($n == 1) then
+      qmake
+    endif
+
+    make
+  endif
+end
+
 echo "--- Build CQCharts (src) ---"
 
 cd $cdir/CQCharts/src

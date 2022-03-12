@@ -26,4 +26,4 @@ Additional dependencies are standard UNIX packages:
 There is also a 'experimental' build script in $ROOT/CQCharts/scripts/build.sh. To use:
  . make empty build directory
  . cp $ROOT/CQCharts/scripts/build.sh to empty build directory
- . Run ./build.s
+ . Run ./build.sh
