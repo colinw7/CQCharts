@@ -251,7 +251,7 @@ bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const 
 
   double delta = dx1*dy2 - dy1*dx2;
 
-  if (fabs(delta) < 1E-6) // parallel
+  if (fabs(delta) < 1E-15) // parallel
     return false;
 
   double idelta = 1.0/delta;
@@ -1563,8 +1563,7 @@ QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize)
 
 namespace CQChartsUtil {
 
-Point nearestRectPoint(const BBox &rect, const Point &pos,
-                       Qt::Orientation &orient, bool useCorners) {
+Point nearestRectPoint(const BBox &rect, const Point &pos, double &angle, bool useCorners) {
   PointList pointList;
 
   pointList.resize(useCorners ? 8 : 4);
@@ -1572,16 +1571,16 @@ Point nearestRectPoint(const BBox &rect, const Point &pos,
   size_t np = 0;
 
   if (useCorners) {
-    pointList[np++] = Point(rect.getXMin(), rect.getYMin());
-    pointList[np++] = Point(rect.getXMin(), rect.getYMax());
-    pointList[np++] = Point(rect.getXMax(), rect.getYMin());
-    pointList[np++] = Point(rect.getXMax(), rect.getYMax());
+    pointList[np++] = Point(rect.getXMin(), rect.getYMin()); // bottom left
+    pointList[np++] = Point(rect.getXMin(), rect.getYMax()); // top left
+    pointList[np++] = Point(rect.getXMax(), rect.getYMin()); // bottom right
+    pointList[np++] = Point(rect.getXMax(), rect.getYMax()); // top right
   }
 
-  pointList[np++] = Point(rect.getXMin(), rect.getYMid());
-  pointList[np++] = Point(rect.getXMid(), rect.getYMin());
-  pointList[np++] = Point(rect.getXMid(), rect.getYMax());
-  pointList[np++] = Point(rect.getXMax(), rect.getYMid());
+  pointList[np++] = Point(rect.getXMin(), rect.getYMid()); // left mid
+  pointList[np++] = Point(rect.getXMid(), rect.getYMin()); // bottom mid
+  pointList[np++] = Point(rect.getXMid(), rect.getYMax()); // top mid
+  pointList[np++] = Point(rect.getXMax(), rect.getYMid()); // right mid
 
 //pointList[np++] = Point(rect.getXMid(), rect.getYMid());
 
@@ -1589,15 +1588,22 @@ Point nearestRectPoint(const BBox &rect, const Point &pos,
 
   auto p = nearestPointListPoint(pointList, pos, i);
 
-  if (useCorners)
-    i -= 4;
+  int i1 = i;
 
-  if      (i == 0 || i == 3)
-    orient = Qt::Horizontal;
-  else if (i == 1 || i == 2)
-    orient = Qt::Vertical;
-  else
-    orient = Qt::Horizontal;
+  if (useCorners)
+    i1 -= 4;
+
+  if      (i1 == 0) angle = 180;
+  else if (i1 == 1) angle = -90;
+  else if (i1 == 2) angle = 90;
+  else if (i1 == 3) angle = 0;
+
+  else if (i  == 0) angle = -135;
+  else if (i  == 1) angle = 135;
+  else if (i  == 2) angle = -45;
+  else if (i  == 3) angle = 45;
+
+  else assert(false);
 
   return p;
 }

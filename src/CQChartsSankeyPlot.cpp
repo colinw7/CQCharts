@@ -3903,12 +3903,12 @@ edgePath(QPainterPath &path, bool isLine) const
 
   //---
 
+  auto angle = Angle(plot_->orientation() ? 0 : -90);
+
   if (! isLine)
-    CQChartsDrawUtil::edgePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
-                               plot_->orientation());
+    CQChartsDrawUtil::edgePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC, angle);
   else
-    CQChartsDrawUtil::curvePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC,
-                                plot_->orientation());
+    CQChartsDrawUtil::curvePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC, angle);
 
   return true;
 }

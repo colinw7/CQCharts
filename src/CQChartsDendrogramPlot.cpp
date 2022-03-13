@@ -2018,12 +2018,12 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
   }
 
   if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
+    auto angle = Angle(plot()->orientation() == Qt::Horizontal ? 0 : -90);
+
     if (edgeFilled)
-      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC,
-                                     plot()->orientation());
+      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC, angle);
     else
-      CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC,
-                                      plot()->orientation());
+      CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC, angle);
   }
   else {
     if (edgeFilled)

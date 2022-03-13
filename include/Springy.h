@@ -218,12 +218,16 @@ namespace Springy {
     double value() const { return value_; }
     void setValue(double v) { value_ = v; }
 
+    const std::string &label() const { return label_; }
+    void setLabel(const std::string &label) { label_ = label; }
+
    private:
-    int    id_     { 0 };   //!< id
-    NodeP  source_;         //!< source node
-    NodeP  target_;         //!< target node
-    double length_ { 1.0 }; //!< length
-    double value_  { 0.0 }; //!< value
+    int         id_     { 0 };   //!< id
+    NodeP       source_;         //!< source node
+    NodeP       target_;         //!< target node
+    double      length_ { 1.0 }; //!< length
+    double      value_  { 0.0 }; //!< value
+    std::string label_;          //!< label
   };
 
   using EdgeP = std::shared_ptr<Edge>;

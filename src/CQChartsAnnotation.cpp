@@ -5387,8 +5387,8 @@ calcPath(QPainterPath &path) const
 
   //---
 
-  Qt::Orientation orient = (useBoxes ? CQChartsUtil::lineOrient(ibbox, obbox) :
-                                       CQChartsUtil::lineOrient(start, end));
+  Angle angle = (useBoxes ? Angle::pointAngle(ibbox.getCenter(), obbox.getCenter()) :
+                            Angle::pointAngle(start, end));
 
   auto drawEdgeType = static_cast<CQChartsDrawUtil::EdgeType>(edgeType());
 
@@ -5401,9 +5401,9 @@ calcPath(QPainterPath &path) const
       if (hasArrows) {
         // create line path
         if (useBoxes)
-          CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
+          CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, angle);
         else
-          CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient, orient);
+          CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, angle, angle);
 
         // add arrows with line width
         CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, arrowSize, path);
@@ -5411,17 +5411,17 @@ calcPath(QPainterPath &path) const
       else {
         // create line width line (no arrows)
         if (useBoxes)
-          CQChartsDrawUtil::edgePath(path, ibbox, obbox, drawEdgeType, orient);
+          CQChartsDrawUtil::edgePath(path, ibbox, obbox, drawEdgeType, angle);
         else
-          CQChartsDrawUtil::edgePath(path, start, end, lw, drawEdgeType, orient, orient);
+          CQChartsDrawUtil::edgePath(path, start, end, lw, drawEdgeType, angle, angle);
       }
     }
     else {
       // create line path
       if (useBoxes)
-        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, orient);
+        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, drawEdgeType, angle);
       else
-        CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, orient, orient);
+        CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, angle, angle);
 
       // add arrows (no line width)
       if (hasArrows)

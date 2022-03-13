@@ -1,6 +1,6 @@
 #include <CQChartsSymbolTypeEdit.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 

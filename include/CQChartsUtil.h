@@ -152,10 +152,6 @@ inline Qt::Orientation lineOrient(const Point &p1, const Point &p2) {
   return (dx > dy ? Qt::Horizontal : Qt::Vertical);
 }
 
-inline Qt::Orientation lineOrient(const BBox &bbox1, const BBox &bbox2) {
-  return lineOrient(bbox1.getCenter(), bbox2.getCenter());
-}
-
 }
 
 //---
@@ -546,8 +542,7 @@ namespace CQChartsUtil {
 
 using PointList = std::vector<Point>;
 
-Point nearestRectPoint(const BBox &bbox, const Point &p,
-                       Qt::Orientation &orient, bool useCorners=true);
+Point nearestRectPoint(const BBox &bbox, const Point &p, double &angle, bool useCorners=true);
 
 Point nearestPointListPoint(const PointList &points, const Point &pos, int &i);
 

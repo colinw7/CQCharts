@@ -4,14 +4,6 @@
 #include <QBitmap>
 #include <QBuffer>
 
-CQChartsPixelPaintDevice::
-CQChartsPixelPaintDevice(QPainter *painter) :
- CQChartsViewPlotPaintDevice(painter)
-{
-}
-
-//---
-
 CQChartsViewPaintDevice::
 CQChartsViewPaintDevice(View *view, QPainter *painter) :
  CQChartsViewPlotPaintDevice(view, painter)

@@ -1161,6 +1161,18 @@ drawEllipse(PaintDevice *device, const BBox &bbox)
 }
 
 void
+drawDoubleEllipse(PaintDevice *device, const BBox &bbox)
+{
+  double dx = bbox.getWidth ()/10.0;
+  double dy = bbox.getHeight()/10.0;
+
+  auto bbox1 = bbox.expanded(dx, dy, -dx, -dy);
+
+  device->drawEllipse(bbox );
+  device->drawEllipse(bbox1);
+}
+
+void
 ellipsePath(QPainterPath &path, const BBox &bbox)
 {
   path = QPainterPath();
@@ -1317,8 +1329,10 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
 // TODO: support path angle, offset control points by line width
 void
 edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeType &edgeType,
-         Qt::Orientation orient)
+         const Angle &angle)
 {
+  auto orient = angle.orient();
+
   if (orient == Qt::Horizontal) {
     // ensure input on left, output on right
     double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
@@ -1327,7 +1341,7 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
       x1 = obbox.getXMax(); x2 = ibbox.getXMin();
 
       if (x1 < x2)
-        return edgePath(path, obbox, ibbox, edgeType, orient);
+        return edgePath(path, obbox, ibbox, edgeType, angle);
     }
   }
   else {
@@ -1338,7 +1352,7 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
       y1 = obbox.getYMax(); y2 = ibbox.getYMin();
 
       if (y1 < y2)
-        return edgePath(path, obbox, ibbox, edgeType, orient);
+        return edgePath(path, obbox, ibbox, edgeType, angle);
     }
   }
 
@@ -1462,11 +1476,11 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
 
 void
 drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
-             const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
+             const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
 {
   QPainterPath path;
 
-  edgePath(path, p1, p2, lw, edgeType, orient1, orient2);
+  edgePath(path, p1, p2, lw, edgeType, angle1, angle2);
 
   device->drawPath(path);
 }
@@ -1474,15 +1488,18 @@ drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
 // draw connecting edge, of line width, between two points
 void
 edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
-         const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
+         const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
 {
+  auto orient1 = angle1.orient();
+  auto orient2 = angle2.orient();
+
   if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
     if (p1.x > p2.x)
-      return edgePath(path, p2, p1, lw, edgeType, orient1, orient2);
+      return edgePath(path, p2, p1, lw, edgeType, angle2, angle1);
   }
   else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
     if (p1.y > p2.y)
-      return edgePath(path, p2, p1, lw, edgeType, orient1, orient2);
+      return edgePath(path, p2, p1, lw, edgeType, angle2, angle1);
   }
 
   //---
@@ -1501,6 +1518,8 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
   if      (edgeType == EdgeType::ARC) {
     auto f1 = 1.0/3.0;
+
+#if 0
     auto f2 = 2.0/3.0;
 
     Point p3, p4;
@@ -1516,6 +1535,12 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
       p4 = Point(CMathUtil::lerp(f2, p1.x, p2.x), p2.y);
     else
       p4 = Point(p2.x, CMathUtil::lerp(f2, p1.y, p2.y));
+#else
+    auto len = CQChartsUtil::PointPointDistance(p1, p2);
+
+    auto p3 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
+    auto p4 = CQChartsGeom::movePointOnLine(p2, angle2.radians(), f1*len);
+#endif
 
     //---
 
@@ -1579,8 +1604,10 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 // draw connecting edge, of line width, from rect to itself
 void
 selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
-             const EdgeType & /*edgeType*/, Qt::Orientation orient)
+             const EdgeType & /*edgeType*/, const Angle &angle)
 {
+  auto orient = angle.orient();
+
   double xr = bbox.getWidth ()/2.0;
   double yr = bbox.getHeight()/2.0;
 
@@ -1642,11 +1669,11 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
 
 void
 drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
-              const EdgeType &edgeType, Qt::Orientation orient)
+              const EdgeType &edgeType, const Angle &angle)
 {
   QPainterPath path;
 
-  curvePath(path, ibbox, obbox, edgeType, orient);
+  curvePath(path, ibbox, obbox, edgeType, angle);
 
   device->drawPath(path);
 }
@@ -1654,24 +1681,24 @@ drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
 // calculate path connecting line between two bounding boxes
 void
 curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
-          const EdgeType &edgeType, Qt::Orientation orient)
+          const EdgeType &edgeType, const Angle &angle)
 {
-  Point           p1, p2;
-  Qt::Orientation orient1 = orient, orient2 = orient;
+  Point p1, p2;
+  Angle angle1 = angle, angle2 = angle;
 
-  rectConnectionPoints(ibbox, obbox, p1, p2, orient1, orient2, /*cornerPoints*/false);
+  rectConnectionPoints(ibbox, obbox, p1, p2, angle1, angle2, 0.0, /*cornerPoints*/false);
 
-  curvePath(path, p1, p2, edgeType, orient1, orient2);
+  curvePath(path, p1, p2, edgeType, angle1, angle2);
 }
 
 // draw connecting line between two bounding boxes
 void
 drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
-              const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
+              const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
 {
   QPainterPath path;
 
-  curvePath(path, p1, p2, edgeType, orient1, orient2);
+  curvePath(path, p1, p2, edgeType, angle1, angle2);
 
   device->drawPath(path);
 }
@@ -1679,14 +1706,20 @@ drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
 // calculate path connecting line between two points
 void
 curvePath(QPainterPath &path, const Point &p1, const Point &p4,
-          const EdgeType &edgeType, Qt::Orientation orient1, Qt::Orientation orient2)
+          const EdgeType &edgeType, const Angle &angle1, const Angle &angle2,
+          double /*startLength*/, double /*endLength*/)
 {
+  auto orient1 = angle1.orient();
+  auto orient2 = angle2.orient();
+
   path = QPainterPath();
 
   //---
 
   if      (edgeType == EdgeType::ARC) {
     auto f1 = 1.0/3.0;
+
+#if 0
     auto f2 = 2.0/3.0;
 
     Point p2, p3;
@@ -1700,14 +1733,20 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
       p3 = Point(CMathUtil::lerp(f2, p1.x, p4.x), p4.y);
     else
       p3 = Point(p4.x, CMathUtil::lerp(f2, p1.y, p4.y));
+#else
+    auto len = CQChartsUtil::PointPointDistance(p1, p4);
 
-    path.moveTo (p1.qpoint());
+    auto p2 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
+    auto p3 = CQChartsGeom::movePointOnLine(p4, angle2.radians(), f1*len);
+#endif
+
+    path.moveTo(p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
   }
   else if (edgeType == EdgeType::RECTILINEAR) {
     path.moveTo(p1.qpoint());
 
-    if (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
+    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
       double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
 
       path.lineTo(QPointF(x2, p1.y));
@@ -1746,7 +1785,7 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
 // draw connecting line from rect to itself
 void
 selfCurvePath(QPainterPath &path, const BBox &bbox,
-              const EdgeType &edgeType, Qt::Orientation /*orient*/)
+              const EdgeType &edgeType, const Angle &/*angle*/)
 {
   path = QPainterPath();
 
@@ -2305,68 +2344,104 @@ namespace CQChartsDrawUtil {
 
 void
 rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                     Qt::Orientation &orient1, Qt::Orientation &orient2, bool useCorners)
+                     Angle &angle1, Angle &angle2, double gap, bool useCorners)
+{
+  if (! rectConnectionPoint(rect1, rect2, p1, angle1, gap, useCorners)) {
+    p2     = rect2.getCenter();
+    angle2 = Angle::pointAngle(p2, p1);
+    return;
+  }
+
+  double a2;
+  p2 = CQChartsUtil::nearestRectPoint(rect2, p1, a2, useCorners);
+
+  angle2 = Angle(a2);
+}
+
+bool
+rectConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
+                    Angle &angle, double gap, bool useCorners)
 {
   double dxr = rect2.getXMin() - rect1.getXMax();
   double dxl = rect1.getXMin() - rect2.getXMax();
   double dyt = rect2.getYMin() - rect1.getYMax();
   double dyb = rect1.getYMin() - rect2.getYMax();
 
-  if      (dxr > 0) {
+  if      (dxr > gap) {
     // top right
-    if      (dyt > 0) {
-      if      (useCorners) { p1 = rect1.getUR  (); orient1 = Qt::Horizontal; }
-      else if (dxr > dyt)  { p1 = rect1.getMidR(); orient1 = Qt::Horizontal; }
-      else                 { p1 = rect1.getMidT(); orient1 = Qt::Vertical; }
+    if      (dyt > gap) {
+      if      (useCorners) { p = rect1.getUR  (); angle = Angle(45); }
+      else if (dxr > dyt)  { p = rect1.getMidR(); angle = Angle(0); }
+      else                 { p = rect1.getMidT(); angle = Angle(90); }
     }
     // bottom right
-    else if (dyb > 0) {
-      if      (useCorners) { p1 = rect1.getLR  (); orient1 = Qt::Horizontal; }
-      else if (dxr > dyb)  { p1 = rect1.getMidR(); orient1 = Qt::Horizontal; }
-      else                 { p1 = rect1.getMidB(); orient1 = Qt::Vertical; }
+    else if (dyb > gap) {
+      if      (useCorners) { p = rect1.getLR  (); angle = Angle(-45); }
+      else if (dxr > dyb)  { p = rect1.getMidR(); angle = Angle(0); }
+      else                 { p = rect1.getMidB(); angle = Angle(-90); }
     }
     // mid right
     else {
-      p1 = rect1.getMidR(); orient1 = Qt::Horizontal;
+      p = rect1.getMidR(); angle = Angle(0);
     }
   }
-  else if (dxl> 0) {
+  else if (dxl > gap) {
     // top left
-    if      (dyt > 0) {
-      if      (useCorners) { p1 = rect1.getUL  (); orient1 = Qt::Horizontal; }
-      else if (dxl > dyt)  { p1 = rect1.getMidL(); orient1 = Qt::Horizontal; }
-      else                 { p1 = rect1.getMidT(); orient1 = Qt::Vertical; }
+    if      (dyt > gap) {
+      if      (useCorners) { p = rect1.getUL  (); angle = Angle(135); }
+      else if (dxl > dyt)  { p = rect1.getMidL(); angle = Angle(180); }
+      else                 { p = rect1.getMidT(); angle = Angle(90); }
     }
     // bottom left
-    else if (dyb > 0) {
-      if      (useCorners) { p1 = rect1.getLL  (); orient1 = Qt::Horizontal; }
-      else if (dxl > dyb)  { p1 = rect1.getMidL(); orient1 = Qt::Horizontal; }
-      else                 { p1 = rect1.getMidB(); orient1 = Qt::Vertical; }
+    else if (dyb > gap) {
+      if      (useCorners) { p = rect1.getLL  (); angle = Angle(-135); }
+      else if (dxl > dyb)  { p = rect1.getMidL(); angle = Angle(-180); }
+      else                 { p = rect1.getMidB(); angle = Angle(-90); }
     }
     // mid left
     else {
-      p1 = rect1.getMidL(); orient1 = Qt::Horizontal;
+      p = rect1.getMidL(); angle = Angle(180);
     }
   }
   else {
     // top center
-    if      (dyt > 0) {
-      p1 = rect1.getMidT(); orient1 = Qt::Vertical;
+    if      (dyt > gap) {
+      p = rect1.getMidT(); angle = Angle(90);
     }
     // bottom center
-    else if (dyb > 0) {
-      p1 = rect1.getMidB(); orient1 = Qt::Vertical;
+    else if (dyb > gap) {
+      p = rect1.getMidB(); angle = Angle(-90);
     }
 
     // center
     else {
-      p1 = rect1.getCenter(); p2 = rect2.getCenter();
-      orient1 = Qt::Horizontal; orient2 = Qt::Horizontal;
-      return;
+      p     = rect1.getCenter();
+      angle = Angle::pointAngle(p, rect2.getCenter());
+      return false;
     }
   }
 
-  p2 = CQChartsUtil::nearestRectPoint(rect2, p1, orient2, useCorners);
+  return true;
+}
+
+void
+circleConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
+                       Angle &angle1, Angle &angle2, double gap)
+{
+  circleConnectionPoint(rect1, rect2, p1, angle1, gap);
+  circleConnectionPoint(rect2, rect1, p2, angle2, gap);
+}
+
+void
+circleConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
+                      Angle &angle, double /*gap*/)
+{
+  auto c1 = rect1.getCenter();
+  auto c2 = rect2.getCenter();
+
+  angle = Angle::pointAngle(c1, c2);
+
+  p = CQChartsGeom::circlePoint(c1, rect1.getWidth()/2, angle.radians());
 }
 
 QPointF pathMidPoint(const QPainterPath &path)

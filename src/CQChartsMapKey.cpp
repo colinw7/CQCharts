@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsSymbolSet.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>

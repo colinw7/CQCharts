@@ -1,19 +1,16 @@
 #include <CQChartsGraphVizPlot.h>
 #include <CQChartsView.h>
-#include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
-#include <CQChartsConnectionList.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsWidgetUtil.h>
-#include <CQChartsDrawUtil.h>
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
@@ -30,7 +27,7 @@
 #include <QTemporaryFile>
 #include <QDir>
 
-#include <fstream>
+//#include <fstream>
 
 CQChartsGraphVizPlotType::
 CQChartsGraphVizPlotType()
@@ -55,7 +52,7 @@ description() const
     h3("Summary").
      p("Draw connected objects as a connected graph.").
     h3("Limitations").
-     p("None.").
+     p("The plot does not support axes, key or logarithmic scales..").
     h3("Example").
      p(IMG("images/graphviz.png"));
 }
@@ -92,6 +89,8 @@ CQChartsGraphVizPlot::
 init()
 {
   CQChartsConnectionPlot::init();
+
+  setSymmetric(false);
 
   //---
 
@@ -347,7 +346,7 @@ addProperties()
 
   // node
   addProp("node", "nodeShape" , "shapeType", "Node shape type");
-  addProp("node", "nodeScaled", "scaled"   , "Node is scaled");
+  addProp("node", "nodeScaled", "scaled"   , "Node scaled by value");
   addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
 
   // node style
@@ -364,8 +363,8 @@ addProperties()
   // edge
   addProp("edge", "edgeShape"   , "shapeType" , "Edge shape type");
   addProp("edge", "edgeArrow"   , "arrow"     , "Edge arrow");
-  addProp("edge", "edgeScaled"  , "scaled"    , "Edge is scaled");
-  addProp("edge", "edgeWidth"   , "width"     , "Edge width");
+  addProp("edge", "edgeScaled"  , "scaled"    , "Edge scaled by value");
+  addProp("edge", "edgeWidth"   , "width"     , "Max edge width");
   addProp("edge", "edgeCentered", "centered"  , "Edge is cenetered");
   addProp("edge", "edgePath"    , "usePath"   , "Use Edge path");
   addProp("edge", "arrowWidth"  , "arrowWidth", "Directed edge arrow width factor");
@@ -719,18 +718,21 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
 
     writeGraphViz("\"" + node1->name() + "\" -> \"" + node2->name() + "\"");
 
+     int edgeAttrCount = 0;
+
     if (weighted) {
       if (edge->hasValue())
-        writeGraphViz(" [weight=" + QString::number(edge->value().real()) + "]");
+        printAttr("weight", QString::number(edge->value().real()), edgeAttrCount);
     }
 
     if (fdpEdgeLen() > 0.0)
-      writeGraphViz(" [len=" + QString::number(fdpEdgeLen()) + "]\n");
-
-    int edgeAttrCount = 0;
+      printAttr("len", QString::number(fdpEdgeLen()), edgeAttrCount);
 
     if (edge->label().length())
       printAttr("label", edge->label(), edgeAttrCount);
+
+    if (! isSymmetric())
+      printAttr("directed", "1", edgeAttrCount);
 
     endPrintAttr(edgeAttrCount);
   };
@@ -1234,7 +1236,7 @@ CQChartsGraphVizPlot::
 initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = int(srcHierData.linkStrs.size());
+  int srcDepth = srcHierData.linkStrs.size();
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -1258,7 +1260,7 @@ CQChartsGraphVizPlot::
 initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = int(srcHierData.linkStrs.size());
+  int srcDepth = srcHierData.linkStrs.size();
 
   Node *srcNode  = nullptr;
   Node *destNode = nullptr;
@@ -1472,6 +1474,8 @@ void
 CQChartsGraphVizPlot::
 addFromToValue(const FromToData &fromToData) const
 {
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
   // get src node
   auto *srcNode = findNode(fromToData.fromStr);
 
@@ -1483,8 +1487,6 @@ addFromToValue(const FromToData &fromToData) const
   // set group
   if (fromToData.groupData.isValid() && ! fromToData.groupData.isNull()) {
     srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
-
-    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, fromToData.groupData.ng);
   }
@@ -1516,8 +1518,6 @@ addFromToValue(const FromToData &fromToData) const
     int ng = groupNames.length();
 
     if (ng > 0) {
-      auto *th = const_cast<CQChartsGraphVizPlot *>(this);
-
       graphId = th->groupValueInd_.calcId(groupNames[ng - 1]);
 
       if (ng > 1)
@@ -1603,6 +1603,8 @@ void
 CQChartsGraphVizPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
   // get src/dest nodes (TODO: allow single source node)
   auto *srcNode  = findNode(linkConnectionData.srcStr);
   auto *destNode = findNode(linkConnectionData.destStr);
@@ -1649,8 +1651,6 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   // set group
   if (linkConnectionData.groupData.isValid() && ! linkConnectionData.groupData.isNull()) {
     srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
-
-    auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, linkConnectionData.groupData.ng);
   }
@@ -2131,7 +2131,7 @@ addEdgeObj(Edge *edge) const
   //---
 
   // set shape type
-  EdgeObj::ShapeType shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
+  auto shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
 
   if (shapeType == EdgeObj::ShapeType::NONE)
     shapeType = static_cast<EdgeObj::ShapeType>(edgeShape());
@@ -2640,6 +2640,11 @@ void
 CQChartsGraphVizNodeObj::
 draw(PaintDevice *device) const
 {
+  if (! rect().isSet())
+    return;
+
+  //---
+
   // calc pen and brush
   PenBrush penBrush;
 
@@ -2656,29 +2661,18 @@ draw(PaintDevice *device) const
   //---
 
   // draw node
-  if (rect().isSet()) {
-    if      (shapeType() == ShapeType::BOX)
-      device->drawRect(rect());
-    else if (shapeType() == ShapeType::DIAMOND)
-      device->drawDiamond(rect());
-    else if (shapeType() == ShapeType::POLYGON)
-      device->drawPolygonSides(rect(), numSides());
-    else if (shapeType() == ShapeType::CIRCLE)
-      device->drawEllipse(rect());
-    else if (shapeType() == ShapeType::DOUBLE_CIRCLE) {
-      auto rect = this->rect();
-
-      double dx = rect.getWidth ()/10.0;
-      double dy = rect.getHeight()/10.0;
-
-      auto rect1 = rect.expanded(dx, dy, -dx, -dy);
-
-      device->drawEllipse(rect );
-      device->drawEllipse(rect1);
-    }
-    else
-      device->drawRect(rect());
-  }
+  if      (shapeType() == ShapeType::BOX)
+    device->drawRect(rect());
+  else if (shapeType() == ShapeType::DIAMOND)
+    device->drawDiamond(rect());
+  else if (shapeType() == ShapeType::POLYGON)
+    device->drawPolygonSides(rect(), numSides());
+  else if (shapeType() == ShapeType::CIRCLE)
+    device->drawEllipse(rect());
+  else if (shapeType() == ShapeType::DOUBLE_CIRCLE)
+    CQChartsDrawUtil::drawDoubleEllipse(device, rect());
+  else
+    device->drawRect(rect());
 
   //---
 
@@ -2716,8 +2710,7 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  double textMargin = 4; // pixels
-
+  // get text
   auto str = node()->label();
 
   if (! str.length())
@@ -2735,6 +2728,8 @@ drawFg(PaintDevice *device) const
   double tw = plot_->pixelToWindowWidth(ptw);
 
   //---
+
+  double textMargin = 4; // pixels
 
   auto range = plot_->getCalcDataRange();
 
@@ -3041,12 +3036,52 @@ draw(PaintDevice *device) const
 
   //---
 
-  // get default connection line (no path)
-  Point           p1, p2;
-  Qt::Orientation orient1 = orient, orient2 = orient;
+  // calc edge width
+  double edgeScale { 1.0 };
 
-  CQChartsDrawUtil::rectConnectionPoints(srcRect, destRect, p1, p2, orient1, orient2,
-                                         /*cornerPoints*/false);
+  if (isEdgeScaled) {
+    auto maxValue = plot_->maxEdgeValue().realOr(0.0);
+
+    edgeScale = (maxValue > 0.0 ? edge()->value().real()/maxValue : 0.0);
+  }
+
+  double lw;
+
+  if (orient == Qt::Horizontal)
+    lw = plot_->lengthPlotHeight(plot()->edgeWidth());
+  else
+    lw = plot_->lengthPlotWidth(plot()->edgeWidth());
+
+  lw *= edgeScale;
+
+  bool isLine = (plot()->edgeWidth().value() <= 0.0);
+
+  //---
+
+  double connectGap = 0.0;
+
+  if (isArrow) {
+    if (plot()->isSymmetric())
+      connectGap += 1.5*plot_->arrowWidth()*lw;
+
+    connectGap = 1.5*plot_->arrowWidth()*lw;
+  }
+
+  // get default connection line (no path)
+  Point p1, p2;
+  Angle angle1, angle2;
+
+  if (srcNode->shapeType() == Node::ShapeType::CIRCLE)
+    CQChartsDrawUtil::circleConnectionPoint(srcRect, destRect, p1, angle1, 0.0);
+  else
+    CQChartsDrawUtil::rectConnectionPoint(srcRect, destRect, p1, angle1,
+                                          connectGap, /*cornerPoints*/false);
+
+  if (destNode->shapeType() == Node::ShapeType::CIRCLE)
+    CQChartsDrawUtil::circleConnectionPoint(destRect, srcRect, p2, angle2, 0.0);
+  else
+    CQChartsDrawUtil::rectConnectionPoint(destRect, srcRect, p2, angle2,
+                                          connectGap, /*cornerPoints*/false);
 
   //---
 
@@ -3067,7 +3102,9 @@ draw(PaintDevice *device) const
   // calc edge path
   QPainterPath epath1;
 
-  if (plot()->edgeShape() == Plot::EdgeShape::NONE) {
+  auto edgeType = static_cast<CQChartsEdgeType>(shapeType());
+
+  if (edgeType == CQChartsEdgeType::NONE) {
     // add start and end node points to edge path
     auto epath = edge()->edgePath();
 
@@ -3122,41 +3159,23 @@ draw(PaintDevice *device) const
 
   //---
 
-  // calc edge width
-  double edgeScale { 1.0 };
-
-  if (isEdgeScaled) {
-    auto maxValue = plot_->maxEdgeValue().realOr(0.0);
-
-    edgeScale = (maxValue > 0.0 ? edge()->value().real()/maxValue : 0.0);
-  }
-
-  double lw;
-
-  if (orient == Qt::Horizontal)
-    lw = plot_->lengthPlotHeight(plot()->edgeWidth());
-  else
-    lw = plot_->lengthPlotWidth(plot()->edgeWidth());
-
-  lw *= edgeScale;
-
-  bool isLine = (plot()->edgeWidth().value() <= 0.0);
-
-  //---
-
   // calc edge path
   path_  = QPainterPath();
   epath_ = QPainterPath();
-
-  auto edgeType = static_cast<CQChartsEdgeType>(plot()->edgeShape());
 
   if (! epath1.isEmpty() && usePath) {
     epath_ = epath1;
 
     CQChartsArrowData arrowData;
 
-    if (isArrow && edge()->isDirected())
+    if (isArrow) {
+      if (plot_->isSymmetric())
+        arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+      else
+        arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);
+
       arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+    }
 
     QPainterPath path1;
 
@@ -3167,19 +3186,31 @@ draw(PaintDevice *device) const
     if (isArrow) {
       const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(false);
 
+      double startLength = 0.0, endLength = 0.0;
+
       if (! isSelf) {
-        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, orient1, orient2);
+        if (plot()->isSymmetric())
+          startLength = 1.5*plot_->arrowWidth()*lw;
+
+        endLength = 1.5*plot_->arrowWidth()*lw;
+
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, angle1, angle2,
+                                    startLength, endLength);
 
         CQChartsArrowData arrowData;
 
-        arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+        if (plot()->isSymmetric())
+          arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+        else
+          arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);
+
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
         CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
                                      plot_->arrowWidth(), plot_->arrowWidth(), path_);
       }
       else {
-        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, orient1);
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, angle1);
 
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
       }
@@ -3188,14 +3219,14 @@ draw(PaintDevice *device) const
     }
     else {
       if (! isSelf) {
-        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, orient1, orient2);
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, angle1, angle2);
 
-        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, orient1, orient2);
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, angle1, angle2);
       }
       else {
-        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, orient1);
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, angle1);
 
-        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, orient1);
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, angle1);
       }
     }
   }
@@ -3211,6 +3242,8 @@ draw(PaintDevice *device) const
     else
       device->drawPath(path_);
   }
+
+  //---
 
   device->resetColorNames();
 }

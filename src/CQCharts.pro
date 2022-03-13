@@ -259,11 +259,12 @@ CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
 CQChartsHtmlPaintDevice.cpp \
-CQChartsPaintDevice.cpp \
 CQChartsScriptPaintDevice.cpp \
 CQChartsSVGPaintDevice.cpp \
 CQChartsViewPlotPaintDevice.cpp \
 CQChartsStatsPaintDevice.cpp \
+CQChartsPixelPaintDevice.cpp \
+CQChartsPaintDevice.cpp \
 \
 CQChartsPlotDrawUtil.cpp \
 CQChartsSVGUtil.cpp \
@@ -556,11 +557,12 @@ HEADERS += \
 ../include/CQChartsEnv.h \
 \
 ../include/CQChartsHtmlPaintDevice.h \
-../include/CQChartsPaintDevice.h \
 ../include/CQChartsScriptPaintDevice.h \
 ../include/CQChartsSVGPaintDevice.h \
 ../include/CQChartsViewPlotPaintDevice.h \
 ../include/CQChartsStatsPaintDevice.h \
+../include/CQChartsPixelPaintDevice.h \
+../include/CQChartsPaintDevice.h \
 \
 ../include/CQChartsPlotDrawUtil.h \
 ../include/CQChartsSVGUtil.h \

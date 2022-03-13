@@ -8,7 +8,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>

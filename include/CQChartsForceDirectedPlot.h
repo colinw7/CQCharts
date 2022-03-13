@@ -68,16 +68,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int    numSteps     READ numSteps)
 
   // node data
-  Q_PROPERTY(NodeShape nodeShape  READ nodeShape    WRITE setNodeShape )
-  Q_PROPERTY(bool      nodeScaled READ isNodeScaled WRITE setNodeScaled)
-  Q_PROPERTY(double    nodeRadius READ nodeRadius   WRITE setNodeRadius)
+  Q_PROPERTY(NodeShape      nodeShape  READ nodeShape    WRITE setNodeShape )
+  Q_PROPERTY(bool           nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(CQChartsLength nodeSize   READ nodeSize     WRITE setNodeSize  )
 
   // edge data
-  Q_PROPERTY(EdgeShape edgeShape  READ edgeShape    WRITE setEdgeShape)
-  Q_PROPERTY(bool      edgeArrow  READ isEdgeArrow  WRITE setEdgeArrow)
-  Q_PROPERTY(bool      edgeScaled READ isEdgeScaled WRITE setEdgeScaled)
-  Q_PROPERTY(double    edgeWidth  READ edgeWidth    WRITE setEdgeWidth)
-  Q_PROPERTY(double    arrowWidth READ arrowWidth   WRITE setArrowWidth)
+  Q_PROPERTY(EdgeShape      edgeShape  READ edgeShape    WRITE setEdgeShape)
+  Q_PROPERTY(bool           edgeArrow  READ isEdgeArrow  WRITE setEdgeArrow)
+  Q_PROPERTY(bool           edgeScaled READ isEdgeScaled WRITE setEdgeScaled)
+  Q_PROPERTY(CQChartsLength edgeWidth  READ edgeWidth    WRITE setEdgeWidth)
+  Q_PROPERTY(double         arrowWidth READ arrowWidth   WRITE setArrowWidth)
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -96,19 +96,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
  public:
   enum class NodeShape {
-    NONE,
-    DIAMOND,
-    BOX,
-    POLYGON,
-    CIRCLE,
-    DOUBLE_CIRCLE
+    NONE          = int(CQChartsNodeType::NONE),
+    BOX           = int(CQChartsNodeType::BOX),
+    CIRCLE        = int(CQChartsNodeType::CIRCLE),
+    DOUBLE_CIRCLE = int(CQChartsNodeType::DOUBLE_CIRCLE)
   };
 
   enum class EdgeShape {
     NONE        = int(CQChartsEdgeType::NONE),
-    LINE        = int(CQChartsEdgeType::LINE),
+    ARC         = int(CQChartsEdgeType::ARC),
     RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
-    ARC         = int(CQChartsEdgeType::ARC)
+    LINE        = int(CQChartsEdgeType::LINE)
   };
 
   using Length    = CQChartsLength;
@@ -175,9 +173,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isNodeScaled() const { return nodeScaled_; }
   void setNodeScaled(bool b);
 
-  //! get/set node size (radius in pixels)
-  double nodeRadius() const { return nodeRadius_; }
-  void setNodeRadius(double r);
+  //! get/set node size
+  const Length &nodeSize() const { return nodeSize_; }
+  void setNodeSize(const Length &s);
 
   //---
 
@@ -194,8 +192,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setEdgeScaled(bool b);
 
   //! get/set edge width (in pixels)
-  double edgeWidth() const { return edgeWidth_; }
-  void setEdgeWidth(double r);
+  const Length &edgeWidth() const { return edgeWidth_; }
+  void setEdgeWidth(const Length &l);
 
   //! get/set edge directed arrow width
   double arrowWidth() const { return arrowWidth_; }
@@ -264,6 +262,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool initLinkObjs() const;
+  bool initConnectionObjs() const;
   bool initLinkConnectionObjs() const;
 
   void addLinkConnection(const LinkConnectionData &) const override { }
@@ -280,6 +280,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
                             const QString &valueStr) const;
 
   void processEdgeNameValues(Connection *, const NameValues &nameValues) const;
+
+  //---
+
+  static void stringToShapeType(const QString &str, NodeShape &shapeType);
+  static void stringToShapeType(const QString &str, EdgeShape &shapeType);
 
   //---
 
@@ -302,11 +307,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   bool plotTipText(const Point &p, QString &tip, bool single) const override;
 
+  void nodeTipText(Node *node, CQChartsTableTip &tableTip) const;
+  void edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const;
+
+  void nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const;
+
   //---
 
   void drawParts(QPainter *painter) const override;
 
   void drawDeviceParts(PaintDevice *device) const;
+
+  void drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const;
+
+  void drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
+                const ColorInd &colorInd) const;
 
   //---
 
@@ -323,10 +338,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  private:
   // connection between nodes (edge)
   struct Connection {
-    int         srcNode  { -1 };
-    int         destNode { -1 };
+    int         srcNode   { -1 };
+    int         destNode  { -1 };
     OptReal     value;
     QString     label;
+    EdgeShape   shapeType { EdgeShape::NONE }; //!< edge shape
     Color       fillColor;
     QModelIndex ind;
 
@@ -341,18 +357,19 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // node connection data
   struct ConnectionsData {
-    QModelIndex ind;                   //!< model index
-    int         node         { 0 };    //!< unique index
-    QString     name;                  //!< name
-    QString     label;                 //!< label
-    int         group        { 0 };    //!< group
-    OptReal     value;                 //!< value
-    OptReal     total;                 //!< total
-    int         depth        { -1 };   //!< depth
-    bool        visible      { true }; //!< is visible
-    int         parentId     { -1 };   //!< parent
-    Color       fillColor;             //!< fillColor
-    Connections connections;           //!< connections
+    QModelIndex ind;                              //!< model index
+    int         node         { 0 };               //!< unique index
+    QString     name;                             //!< name
+    QString     label;                            //!< label
+    int         group        { 0 };               //!< group
+    OptReal     value;                            //!< value
+    OptReal     total;                            //!< total
+    int         depth        { -1 };              //!< depth
+    bool        visible      { true };            //!< is visible
+    int         parentId     { -1 };              //!< parent
+    NodeShape   shapeType    { NodeShape::NONE }; //!< shape
+    Color       fillColor;                        //!< fillColor
+    Connections connections;                      //!< connections
   };
 
   using IdConnectionsData = std::map<int, ConnectionsData>;
@@ -379,6 +396,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get string for unique index
   QString getIdString(int id) const;
 
+  Node::Shape calcNodeShape(Node *snode) const;
+  Edge::Shape calcEdgeShape(Edge *sedge) const;
+
   BBox nodeBBox(const CForceDirected::NodeP &node, Node *snode) const;
 
   double calcNodeValue(Node *node) const;
@@ -386,6 +406,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double calcScaledNodeValue(Node *node) const;
 
   QColor calcNodeFillColor(Node *node) const;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -408,15 +432,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // node data
   NodeShape nodeShape_  { NodeShape::CIRCLE }; //!< node shape
-  bool      nodeScaled_ { true };              //!< node radius scaled
-  double    nodeRadius_ { 6.0 };               //!< node radius (pixel)
+  bool      nodeScaled_ { true };              //!< is node scaled
+  Length    nodeSize_   { Length::pixel(64) }; //!< node size
 
   // edge data
-  EdgeShape edgeShape_  { EdgeShape::LINE }; //!< edge shape
-  bool      edgeArrow_  { false };           //!< edge arrow
-  bool      edgeScaled_ { true };            //!< use value for edge width
-  double    edgeWidth_  { 8.0 };             //!< max edge width
-  double    arrowWidth_ { 1.5 };             //!< edge arrow size factorr
+  EdgeShape edgeShape_  { EdgeShape::LINE };   //!< edge shape
+  bool      edgeArrow_  { false };             //!< edge arrow
+  bool      edgeScaled_ { true };              //!< scale width by value
+  Length    edgeWidth_  { Length::pixel(16) }; //!< max edge width
+  double    arrowWidth_ { 1.0 };               //!< edge arrow size factorr
 
   // connection data
   IdConnectionsData idConnections_;              //!< id connections

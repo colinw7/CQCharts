@@ -776,9 +776,11 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool isNodeScaled() const { return nodeScaled_; }
   void setNodeScaled(bool b);
 
+  //! get/set node size
   const Length &nodeSize() const { return nodeSize_; }
   void setNodeSize(const Length &s);
 
+  //! get/set node text single scale
   bool isNodeTextSingleScale() const { return nodeTextSingleScale_; }
   void setNodeTextSingleScale(bool b);
 
@@ -1063,11 +1065,11 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   // edge data
   EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
   bool      edgeArrow_    { false };            //!< edge arrow
-  bool      edgeScaled_   { false };            //!< is edge scaled
-  Length    edgeWidth_    { Length::pixel(8) }; //!< edge width
+  bool      edgeScaled_   { false };            //!< scale width by value
+  Length    edgeWidth_    { Length::pixel(8) }; //!< max edge width
   bool      edgeCentered_ { false };            //!< is edge centered
   bool      edgePath_     { false };            //!< use edge path
-  double    arrowWidth_   { 1.5 };              //!< edge arrow size factor
+  double    arrowWidth_   { 1.0 };              //!< edge arrow size factor
 
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation

@@ -1164,6 +1164,9 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
           arrowPath1_.lineTo(pi1.qpoint());
           arrowPath2_.lineTo(pi2.qpoint());
         }
+        else {
+          std::cerr << "lineTo: Intersect failed\n";
+        }
       }
       else {
         //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
@@ -1307,6 +1310,12 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
               arrowPath1_.lineTo(pi3.qpoint());
               arrowPath2_.lineTo(pi4.qpoint());
             }
+            else {
+              std::cerr << "handleFirst: Intersect failed\n";
+            }
+          }
+          else {
+            std::cerr << "handleFirst: Intersect failed\n";
           }
         }
         else {
@@ -1391,6 +1400,12 @@ pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
               arrowPath1_.lineTo(p2_.qpoint());
               arrowPath2_.lineTo(p2_.qpoint());
             }
+            else {
+              std::cerr << "term: Intersect failed\n";
+            }
+          }
+          else {
+            std::cerr << "term: Intersect failed\n";
           }
         }
       }

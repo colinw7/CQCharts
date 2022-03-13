@@ -77,12 +77,19 @@ enum class CQChartsLabelPosition {
   RIGHT_OUTSIDE
 };
 
+enum class CQChartsNodeType {
+  NONE,
+  BOX,
+  CIRCLE,
+  DOUBLE_CIRCLE
+};
+
 enum class CQChartsEdgeType {
   NONE,
   ARC,
   RECTILINEAR,
-  ROUNDED_LINE,
-  LINE
+  LINE,
+  ROUNDED_LINE
 };
 
 #endif

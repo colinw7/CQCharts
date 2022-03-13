@@ -39,7 +39,7 @@ class CQChartsAngle :
   static Angle radians(double value) { return Angle(Type::RADIANS, value); }
 
   static Angle pointAngle(const Point &p1, const Point &p2) {
-    return Angle(Type::RADIANS, CQChartsGeom::pointAngle(p1, p2));
+    return radians(CQChartsGeom::pointAngle(p1, p2));
   }
 
   //---
@@ -99,6 +99,12 @@ class CQChartsAngle :
 
   double degrees() const { return a_; }
   double radians() const { return CMathUtil::Deg2Rad(a_); }
+
+  //---
+
+  Qt::Orientation orient() const {
+    return (std::abs(sin()) <= 0.5 ? Qt::Horizontal : Qt::Vertical);
+  }
 
   //---
 

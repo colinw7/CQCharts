@@ -2,7 +2,7 @@
 #include <CQChartsPropertyViewTree.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 #include <CQCharts.h>
 #include <QHBoxLayout>
 

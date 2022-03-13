@@ -3,7 +3,7 @@
 #include <CQChartsSymbolSet.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 
 #include <QPainter>
 

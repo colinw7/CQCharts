@@ -1,8 +1,7 @@
 # sankey link model
-set model [load_charts_model -csv data/sankey_energy.csv -comment_header \
- -column_type {{{0 name_pair}}}]
+set model [load_charts_model -csv data/one_edge.csv -comment_header]
 
-set plot [create_charts_plot -model $model -type graphviz -columns {{link 0} {value 1}}]
+set plot [create_charts_plot -model $model -type graphviz -columns {{from 0} {to 1}}]
 
 set_charts_property -plot $plot -name node.text.scaled -value 1
 

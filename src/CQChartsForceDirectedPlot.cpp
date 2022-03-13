@@ -1,23 +1,21 @@
 #include <CQChartsForceDirectedPlot.h>
-#include <CQChartsConnectionList.h>
 #include <CQChartsView.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
-#include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsArrow.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
-#include <CQChartsArrow.h>
+#include <CQChartsDisplayRange.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-#include <CQChartsDisplayRange.h>
 
 #include <QCheckBox>
 #include <QPushButton>
@@ -60,7 +58,8 @@ description() const
        "name for the id can be supplied in the " + B("Name") + " column.").
      p("The group is specified using the " + B("Group") + " column.").
     h3("Styling").
-     p("The styling (fill, stroke) of the nodes and edges can be set").
+     p("The styling (fill, stroke) of the node shape and edge shape can be set").
+     p("The stlying (font, size, ...) of the node and edge text can be set").
     h3("Limitations").
      p("The plot does not support axes, key or logarithmic scales.").
     h3("Example").
@@ -114,15 +113,13 @@ init()
 {
   CQChartsConnectionPlot::init();
 
+  setSymmetric(false);
+
   //---
 
   NoUpdate noUpdate(this);
 
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
-
-  setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
-
-  setEqualScale(true);
 
   //---
 
@@ -133,6 +130,8 @@ init()
 
   setNodeStroked(true);
   setNodeStrokeAlpha(Alpha(0.2));
+
+  setNodeTextColor(Color::makeContrast());
 
   //---
 
@@ -145,7 +144,19 @@ init()
 
   //---
 
+  addTitle();
+
+  //---
+
+  addColorMapKey();
+
+  //---
+
   setAutoFit(true);
+
+  setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
+
+  setEqualScale(true);
 }
 
 void
@@ -211,9 +222,9 @@ setNodeScaled(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setNodeRadius(double r)
+setNodeSize(const Length &s)
 {
-  CQChartsUtil::testAndSet(nodeRadius_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeSize_, s, [&]() { drawObjs(); } );
 }
 
 //---
@@ -241,9 +252,9 @@ setEdgeArrow(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setEdgeWidth(double r)
+setEdgeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(edgeWidth_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { drawObjs(); } );
 }
 
 void
@@ -298,8 +309,8 @@ addProperties()
 
   // node
   addProp("node", "nodeShape" , "shapeType", "Node shape type");
-  addProp("node", "nodeScaled", "scaled"   , "Node radius scaled from value");
-  addProp("node", "nodeRadius", "radius"   , "Node radius in pixels")->setMinValue(0.0);
+  addProp("node", "nodeScaled", "scaled"   , "Node scaled by value");
+  addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -315,8 +326,8 @@ addProperties()
   // edge
   addProp("edge", "edgeShape" , "shapeType" , "Edge shape type");
   addProp("edge", "edgeArrow" , "arrow"     , "Edge arrow");
-  addProp("edge", "edgeScaled", "scaled"    , "Line width scaled from value");
-  addProp("edge", "edgeWidth" , "width"     , "Max edge width in pixels");
+  addProp("edge", "edgeScaled", "scaled"    , "Edge width scaled by value");
+  addProp("edge", "edgeWidth" , "width"     , "Max edge width");
   addProp("edge", "arrowWidth", "arrowWidth", "Directed edge arrow width factor");
 
   // edge style
@@ -361,6 +372,8 @@ addProperties()
   addProp("stats", "numEdges", "", "Number of edges");
 }
 
+//---
+
 CQChartsGeom::Range
 CQChartsForceDirectedPlot::
 calcRange() const
@@ -389,16 +402,20 @@ calcRange() const
   dataRange.updateRange(-rangeSize, -rangeSize);
   dataRange.updateRange( rangeSize,  rangeSize);
 
+  //---
+
   return dataRange;
 }
+
+//------
 
 bool
 CQChartsForceDirectedPlot::
 createObjs(PlotObjs &) const
 {
-  std::unique_lock<std::mutex> lock(createMutex_);
-
   CQPerfTrace trace("CQChartsForceDirectedPlot::createObjs");
+
+  std::unique_lock<std::mutex> lock(createMutex_);
 
   NoUpdate noUpdate(this);
 
@@ -430,9 +447,9 @@ createObjs(PlotObjs &) const
   if      (columnDataType == ColumnDataType::HIER)
     rc = initHierObjs();
   else if (columnDataType == ColumnDataType::LINK)
-    rc = initLinkConnectionObjs();
+    rc = initLinkObjs();
   else if (columnDataType == ColumnDataType::CONNECTIONS)
-    rc = initLinkConnectionObjs();
+    rc = initConnectionObjs();
   else if (columnDataType == ColumnDataType::PATH)
     rc = initPathObjs();
   else if (columnDataType == ColumnDataType::FROM_TO)
@@ -469,6 +486,8 @@ execInitSteps()
 
     ++numSteps_;
   }
+
+  doAutoFit();
 }
 
 void
@@ -480,7 +499,6 @@ addIdConnections() const
   //---
 
   th->maxGroup_     = 0;
-  th->maxNodeValue_ = 0.0;
   th->maxEdgeValue_ = 0.0;
 
   for (const auto &idConnections : idConnections_) {
@@ -489,9 +507,6 @@ addIdConnections() const
     if (! connectionsData.visible) continue;
 
     th->maxGroup_ = std::max(th->maxGroup_, connectionsData.group);
-
-    if (connectionsData.value.isSet())
-      th->maxNodeValue_ = std::max(th->maxNodeValue_, connectionsData.value.real());
 
     for (const auto &connection : connectionsData.connections) {
       if (connection.value.isSet())
@@ -521,8 +536,8 @@ addIdConnections() const
 
     auto node = forceDirected_->newNode();
 
-    auto *pnode = dynamic_cast<Node *>(node.get());
-    assert(pnode);
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
 
     if (! forceDirected_->getNode(node->id()))
       forceDirected_->addNode(node);
@@ -530,19 +545,22 @@ addIdConnections() const
     //auto id = QString("%1:%2").arg(name).arg(group);
 
     if (name.length())
-      pnode->setLabel(name.toStdString());
+      snode->setLabel(name.toStdString());
 
-    pnode->setMass (nodeMass_);
-    pnode->setValue((1.0*group)/maxGroup_);
-    pnode->setInd  (connectionsData.ind);
+    snode->setMass (nodeMass_);
+    snode->setValue((1.0*group)/maxGroup_);
+    snode->setInd  (connectionsData.ind);
 
-    pnode->setGroup(group);
+    snode->setGroup(group);
 
     if (connectionsData.value.isSet())
-      pnode->setNodeValue(connectionsData.value);
+      snode->setNodeValue(connectionsData.value);
+
+    if (connectionsData.shapeType != NodeShape::NONE)
+      snode->setShape(static_cast<Node::Shape>(connectionsData.shapeType));
 
     th->nodes_          [id         ] = node;
-    th->connectionNodes_[pnode->id()] = id;
+    th->connectionNodes_[snode->id()] = id;
   }
 
   th->edgeScale_ = (maxEdgeValue() > 0.0 ? 1.0/maxEdgeValue() : 1.0);
@@ -572,23 +590,42 @@ addIdConnections() const
       auto node1 = (*pn1).second;
       assert(node1);
 
-      if (! connection.value.isSet())
-        continue;
+      double value = 0.0;
 
-      double value = connection.value.real();
-
-      assert(value > 0.0);
+      if (connection.value.isSet())
+        value = connection.value.real();
 
       auto edge = forceDirected_->newEdge(node, node1);
 
       auto *sedge = dynamic_cast<Edge *>(edge.get());
       assert(sedge);
 
-      sedge->setLength(1.0/value);
+      sedge->setLength(value > 0.0 ? 1.0/value : 1.0);
       sedge->setValue(value);
+
+      if (connection.label.length())
+        sedge->setLabel(connection.label.toStdString());
+
+      if (connection.shapeType != EdgeShape::NONE)
+        sedge->setShape(static_cast<Edge::Shape>(connection.shapeType));
     }
   }
+
+  //---
+
+  th->maxNodeValue_ = 0.0;
+
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    auto value = calcNodeValue(snode);
+
+    th->maxNodeValue_ = std::max(th->maxNodeValue_, value);
+  }
 }
+
+//------
 
 bool
 CQChartsForceDirectedPlot::
@@ -682,7 +719,7 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
 
     //---
 
-    // src ->dest connections
+    // src -> dest connections
     if (srcLinkInd.isValid()) {
       Connection connection;
 
@@ -712,7 +749,8 @@ initPathObjs() const
 
   //---
 
-  CQChartsConnectionPlot::initPathObjs();
+  if (! CQChartsConnectionPlot::initPathObjs())
+    return false;
 
   //---
 
@@ -754,16 +792,17 @@ addPathValue(const PathData &pathData) const
     destConnectionsData.group = destConnectionsData.depth;
 
     if (i < n - 1) {
-      bool hasConnection = false;
+      bool hasEdge = false;
 
       for (auto &connection : srcConnectionsData.connections) {
         if (connection.destNode == destConnectionsData.node) {
-          hasConnection = true;
+          hasEdge = true;
           break;
         }
       }
 
-      if (! hasConnection) {
+      if (! hasEdge) {
+        // create edge
         Connection connection;
 
         connection.srcNode  = srcConnectionsData.node;
@@ -776,6 +815,7 @@ addPathValue(const PathData &pathData) const
       }
     }
     else {
+      // create edge
       Connection connection;
 
       connection.srcNode  = srcConnectionsData.node;
@@ -867,12 +907,16 @@ addFromToValue(const FromToData &fromToData) const
   // get src data
   auto &srcConnectionsData = th->getConnections(fromToData.fromStr);
 
-//if (depth > 0)
-//  srcConnectionsData.setDepth(depth);
+  if (fromToData.depth > 0)
+    srcConnectionsData.depth = fromToData.depth;
 
   //---
 
-  // TODO: group ?
+  // set group
+  if (fromToData.groupData.isValid() && ! fromToData.groupData.isNull())
+    srcConnectionsData.group = fromToData.groupData.ig;
+  else
+    srcConnectionsData.group = -1;
 
   //---
 
@@ -888,17 +932,21 @@ addFromToValue(const FromToData &fromToData) const
 
     // set node name values (attribute column)
     processNodeNameValues(srcConnectionsData, fromToData.nameValues);
+
+    //----
+
+    // get graph id ?
   }
   else {
-    // No self connect (allow ?)
+    // No self connect (allow for draw only ?)
     if (fromToData.fromStr == fromToData.toStr)
       return;
 
     // get dest node
     auto &destConnectionsData = th->getConnections(fromToData.toStr);
 
-//  if (depth > 0)
-//    destConnectionsData.setDepth(depth + 1);
+    if (fromToData.depth > 0)
+      destConnectionsData.depth = fromToData.depth + 1;
 
     //---
 
@@ -950,6 +998,20 @@ addFromToValue(const FromToData &fromToData) const
 
 bool
 CQChartsForceDirectedPlot::
+initLinkObjs() const
+{
+  return initLinkConnectionObjs();
+}
+
+bool
+CQChartsForceDirectedPlot::
+initConnectionObjs() const
+{
+  return initLinkConnectionObjs();
+}
+
+bool
+CQChartsForceDirectedPlot::
 initLinkConnectionObjs() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::initLinkConnectionObjs");
@@ -965,7 +1027,7 @@ initLinkConnectionObjs() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // Get group value
-      long group = data.row;
+      long group = -1;
 
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
@@ -1213,6 +1275,8 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   return true;
 }
 
+//---
+
 bool
 CQChartsForceDirectedPlot::
 initTableObjs() const
@@ -1234,13 +1298,20 @@ initTableObjs() const
   for (size_t row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
+    if (tableConnectionData.values().empty())
+      continue;
+
     // create connection data for connection id
     auto &connectionsData =
       const_cast<ConnectionsData &>(getConnections(tableConnectionData.from()));
 
-    connectionsData.ind   = tableConnectionData.nameInd();
-    connectionsData.name  = tableConnectionData.name();
-    connectionsData.group = tableConnectionData.group().ig;
+    connectionsData.ind  = tableConnectionData.nameInd();
+    connectionsData.name = tableConnectionData.name();
+
+    if (tableConnectionData.group().isValid() && ! tableConnectionData.group().isNull())
+      connectionsData.group = tableConnectionData.group().ig;
+    else
+      connectionsData.group = -1;
 
     // add connections
     for (const auto &value : tableConnectionData.values()) {
@@ -1277,7 +1348,16 @@ CQChartsForceDirectedPlot::
 processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
                      const QString &valueStr) const
 {
-  if      (name == "label") {
+  // shape
+  if      (name == "shape") {
+    NodeShape shapeType;
+
+    stringToShapeType(valueStr, shapeType);
+
+    connectionsData.shapeType = shapeType;
+  }
+  // shape num sides
+  else if (name == "label") {
     connectionsData.label = valueStr;
   }
   else if (name == "value") {
@@ -1300,6 +1380,14 @@ processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
   else if (name == "stroke_alpha") {
     //connectionsData.strokeAlpha = CQChartsUtil::toReal(valueStr, ok);
   }
+#if 0
+  else if (name == "stroke_width" || name == "width") {
+    node->setStrokeWidth(CQChartsLength(valueStr));
+  }
+  else if (name == "stroke_dash" || name == "dash") {
+    node->setStrokeDash(CQChartsLineDash(valueStr));
+  }
+#endif
 }
 
 void
@@ -1310,6 +1398,13 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
     const auto &name     = nv.first;
     auto        valueStr = nv.second.toString();
 
+    if      (name == "shape") {
+      EdgeShape shapeType;
+
+      stringToShapeType(valueStr, shapeType);
+
+      connection->shapeType = shapeType;
+    }
     if      (name == "label") {
       connection->label = valueStr;
     }
@@ -1329,6 +1424,30 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
       processNodeNameValue(destConnections, name.mid(5), valueStr);
     }
   }
+}
+
+void
+CQChartsForceDirectedPlot::
+stringToShapeType(const QString &str, NodeShape &shapeType)
+{
+  if      (str == "box"         ) shapeType = NodeShape::BOX;
+  else if (str == "circle"      ) shapeType = NodeShape::CIRCLE;
+  else if (str == "ellipse"     ) shapeType = NodeShape::CIRCLE;
+  else if (str == "doublecircle") shapeType = NodeShape::DOUBLE_CIRCLE;
+  else {
+    //charts()->errorMsg("Unhandled shape type " + str);
+    shapeType = NodeShape::BOX;
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+stringToShapeType(const QString &str, EdgeShape &shapeType)
+{
+  if      (str == "arc" )        shapeType = EdgeShape::ARC;
+  else if (str == "line")        shapeType = EdgeShape::LINE;
+  else if (str == "rectilinear") shapeType = EdgeShape::RECTILINEAR;
+  else                           shapeType = EdgeShape::NONE;
 }
 
 //---
@@ -1356,6 +1475,21 @@ filterObjs()
         connectionsData.visible = false;
     }
   }
+}
+
+//---
+
+bool
+CQChartsForceDirectedPlot::
+addMenuItems(QMenu *menu)
+{
+  if (canDrawColorMapKey()) {
+    menu->addSeparator();
+
+    addColorMapKeyItems(menu);
+  }
+
+  return true;
 }
 
 //---
@@ -1518,10 +1652,12 @@ doAutoFit()
   if (isAutoFit()) {
     double xmin { 0.0 }, ymin { 0.0 }, xmax { 0.0 }, ymax { 0.0 };
 
-    double r = std::max(nodeRadius(), 0.0);
+    double s = lengthPlotWidth(nodeSize());
 
-    double xm = pixelToWindowWidth (2*r);
-    double ym = pixelToWindowHeight(2*r);
+    auto minSize = pixelToWindowWidth(3.0);
+
+    double xm = std::max(s, minSize);
+    double ym = xm;
 
     forceDirected_->calcRange(xmin, ymin, xmax, ymax);
 
@@ -1550,6 +1686,8 @@ CQChartsForceDirectedPlot::
 autoFitUpdate()
 {
 }
+
+//---
 
 bool
 CQChartsForceDirectedPlot::
@@ -1588,42 +1726,54 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
     //---
 
     if (! running_) {
-      Node *insideNode = nullptr;
-      Edge *insideEdge = nullptr;
+      using NodeSet = std::set<Node *>;
+      using EdgeSet = std::set<Edge *>;
+
+      NodeSet insideNodes;
 
       for (auto &node : forceDirected_->nodes()) {
         auto *snode = dynamic_cast<Node *>(node.get());
         assert(snode);
 
-        snode->setInside(false);
-
-        if (! insideNode && snode->bbox().inside(p))
-          insideNode = snode;
+        if (snode->isInside())
+          insideNodes.insert(snode);
       }
 
-      double minDist = 9999;
+      EdgeSet insideEdges;
 
       for (auto &edge : forceDirected_->edges()) {
         auto *sedge = dynamic_cast<Edge *>(edge.get());
         assert(sedge);
 
-        sedge->setInside(false);
-
-        if (sedge->getIsLine()) {
-          double d;
-
-          if (CQChartsUtil::PointLineDistance(p, sedge->startPoint(), sedge->endPoint(), &d)) {
-            if (! insideEdge || d < minDist) {
-              insideEdge = sedge;
-              minDist    = d;
-            }
-          }
-        }
-        else {
-          if (! insideEdge && sedge->curvePath().contains(p.qpoint()))
-            insideEdge = sedge;
-        }
+        if (sedge->isInside())
+          insideEdges.insert(sedge);
       }
+
+      //---
+
+      Node *insideNode = nullptr;
+      Edge *insideEdge = nullptr;
+
+      nearestNodeEdge(p, insideNode, insideEdge);
+
+      if (insideNode) {
+        if (insideNodes.size() == 1 && *insideNodes.begin() == insideNode)
+          return false;
+      }
+      else if (insideEdge) {
+        if (insideEdges.size() == 1 && *insideEdges.begin() == insideEdge)
+          return false;
+      }
+      else {
+        if (insideNodes.empty() && insideEdges.empty())
+          return false;
+      }
+
+      for (auto *node : insideNodes)
+        node->setInside(false);
+
+      for (auto *edge : insideEdges)
+        edge->setInside(false);
 
       if      (insideNode)
         insideNode->setInside(true);
@@ -1631,6 +1781,8 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
         insideEdge->setInside(true);
 
       drawObjs();
+
+      return true;
     }
   }
 
@@ -1654,6 +1806,8 @@ handleSelectRelease(const Point &p)
   return true;
 }
 
+//---
+
 bool
 CQChartsForceDirectedPlot::
 keyPress(int key, int modifier)
@@ -1667,41 +1821,35 @@ keyPress(int key, int modifier)
   return true;
 }
 
+//---
+
 bool
 CQChartsForceDirectedPlot::
 plotTipText(const Point &p, QString &tip, bool /*single*/) const
 {
   if (! isRunning()) {
+    CQChartsTableTip tableTip;
+
+#if 0
     auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
     auto *node = dynamic_cast<Node *>(nodePoint.first.get());
     if (! node) return false;
 
-    CQChartsTableTip tableTip;
+    nodeTipText(node, tableTip);
+#else
+    Node *insideNode = nullptr;
+    Edge *insideEdge = nullptr;
 
-    auto pc = connectionNodes_.find(node->id());
+    nearestNodeEdge(p, insideNode, insideEdge);
 
-    tableTip.addTableRow("Id", node->id());
-
-    if (pc != connectionNodes_.end()) {
-      auto &connectionsData = getConnections((*pc).second);
-
-      if (connectionsData.name.length())
-        tableTip.addTableRow("Label", connectionsData.name);
-      else
-        tableTip.addTableRow("Label", calcNodeLabel(node));
-
-      tableTip.addTableRow("Group", connectionsData.group);
-
-      if (connectionsData.total.isSet())
-        tableTip.addTableRow("Total", connectionsData.total.real());
-
-      tableTip.addTableRow("Connections", connectionsData.connections.size());
-    }
+    if      (insideNode)
+      nodeTipText(insideNode, tableTip);
+    else if (insideEdge)
+      edgeTipText(insideEdge, tableTip);
     else
-      tableTip.addTableRow("Label", calcNodeLabel(node));
-
-    tableTip.addTableRow("Value", calcNodeValue(node));
+      return false;
+#endif
 
     tip = tableTip.str();
 
@@ -1710,6 +1858,93 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
 
   return false;
 }
+
+void
+CQChartsForceDirectedPlot::
+nodeTipText(Node *node, CQChartsTableTip &tableTip) const
+{
+  auto pc = connectionNodes_.find(node->id());
+
+  tableTip.addTableRow("Id", node->id());
+
+  if (pc != connectionNodes_.end()) {
+    auto &connectionsData = getConnections((*pc).second);
+
+    if (connectionsData.name.length())
+      tableTip.addTableRow("Label", connectionsData.name);
+    else
+      tableTip.addTableRow("Label", calcNodeLabel(node));
+
+    tableTip.addTableRow("Group", connectionsData.group);
+
+    if (connectionsData.total.isSet())
+      tableTip.addTableRow("Total", connectionsData.total.real());
+
+    tableTip.addTableRow("Connections", connectionsData.connections.size());
+  }
+  else
+    tableTip.addTableRow("Label", calcNodeLabel(node));
+
+  tableTip.addTableRow("Value", calcNodeValue(node));
+}
+
+void
+CQChartsForceDirectedPlot::
+edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const
+{
+  auto edgeStr = QString::fromStdString(edge->label());
+
+  tableTip.addTableRow("Label", edgeStr);
+  tableTip.addTableRow("Value", edge->value());
+
+  auto *snode = dynamic_cast<Node *>(edge->source().get());
+  auto *tnode = dynamic_cast<Node *>(edge->target().get());
+
+  tableTip.addTableRow("From", calcNodeLabel(snode));
+  tableTip.addTableRow("To"  , calcNodeLabel(tnode));
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const
+{
+  insideNode = nullptr;
+  insideEdge = nullptr;
+
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (! insideNode && snode->bbox().inside(p))
+      insideNode = snode;
+  }
+
+  double minDist = 9999;
+
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    if (sedge->getIsLine()) {
+      double d;
+
+      if (CQChartsUtil::PointLineDistance(p, sedge->startPoint(), sedge->endPoint(), &d)) {
+        if (! insideEdge || d < minDist) {
+          insideEdge = sedge;
+          minDist    = d;
+        }
+      }
+    }
+    else {
+      if (! insideEdge && sedge->curvePath().contains(p.qpoint()))
+        insideEdge = sedge;
+    }
+  }
+}
+
+//---
 
 QString
 CQChartsForceDirectedPlot::
@@ -1723,10 +1958,15 @@ calcNodeLabel(Node *node) const
   return label;
 }
 
+//---
+
 void
 CQChartsForceDirectedPlot::
 drawParts(QPainter *painter) const
 {
+  if (numSteps_ < initSteps())
+    return;
+
   std::unique_lock<std::mutex> lock(createMutex_);
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
@@ -1744,110 +1984,22 @@ drawDeviceParts(PaintDevice *device) const
 
   setClipRect(device);
 
+  //--
+
   // draw edges
   int numEdges = int(forceDirected_->edges().size());
   int edgeNum  = 0;
-
-  auto edgeType = static_cast<CQChartsDrawUtil::EdgeType>(edgeShape());
 
   for (auto &edge : forceDirected_->edges()) {
     auto *sedge = dynamic_cast<Edge *>(edge.get());
     assert(sedge);
 
-    //---
-
-    // set edge brush
-    PenBrush edgePenBrush;
-
     ColorInd colorInd(edgeNum++, numEdges);
 
-    auto fc = interpEdgeFillColor(colorInd);
-    auto sc = interpEdgeStrokeColor(colorInd);
-
-    if (sedge->isInside())
-      fc = insideColor(fc);
-
-    setPenBrush(edgePenBrush, edgePenData(sc), edgeBrushData(fc));
-
-    //---
-
-    auto *snode = dynamic_cast<Node *>(edge->source().get());
-    auto *tnode = dynamic_cast<Node *>(edge->target().get());
-
-    auto sbbox = nodeBBox(edge->source(), snode);
-    auto tbbox = nodeBBox(edge->target(), tnode);
-
-    // get default connection line (no path)
-    Point           ep1, ep2;
-    Qt::Orientation orient1 = Qt::Horizontal, orient2 = Qt::Horizontal;
-
-    CQChartsDrawUtil::rectConnectionPoints(sbbox, tbbox, ep1, ep2, orient1, orient2,
-                                            /*cornerPoints*/false);
-
-    //---
-
-    // calc edge paths
-    bool isArrow = isEdgeArrow();
-    bool isLine  = false;
-
-    QPainterPath edgePath, curvePath;
-
-    double lw = 0.0;
-
-    if (isEdgeScaled())
-      lw = edgeWidth()*(edgeScale_*edge->value());
-    else
-      lw = edgeWidth();
-
-    if (lw > 0.5) {
-      double lww = pixelToWindowWidth(lw);
-
-      CQChartsDrawUtil::curvePath(edgePath, ep1, ep2, edgeType, orient1, orient2);
-
-      if (isArrow) {
-        CQChartsArrowData arrowData;
-
-        arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);  // directional
-        arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
-
-        CQChartsArrow::pathAddArrows(edgePath, arrowData, lww,
-                                     arrowWidth(), arrowWidth(), curvePath);
-      }
-      else {
-        CQChartsDrawUtil::edgePath(curvePath, ep1, ep2, lww, edgeType, orient1, orient2);
-      }
-    }
-    else {
-      CQChartsDrawUtil::linePath(edgePath, ep1, ep2);
-
-      isLine = true;
-    }
-
-    //---
-
-    // draw path
-    CQChartsDrawUtil::setPenBrush(device, edgePenBrush);
-
-    if (isLine)
-      device->drawPath(edgePath);
-    else {
-      if (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR)
-        device->drawPath(curvePath.simplified());
-      else
-        device->drawPath(curvePath);
-    }
-
-    //---
-
-    // set edge draw geometry
-    sedge->setIsLine(isLine);
-
-    sedge->setStartPoint(ep1);
-    sedge->setEndPoint  (ep2);
-
-    sedge->setCurvePath(curvePath);
-    sedge->setEdgePath (edgePath);
+    drawEdge(device, sedge, colorInd);
   }
+
+  //--
 
   // draw nodes
   int numNodes = int(forceDirected_->nodes().size());
@@ -1857,51 +2009,11 @@ drawDeviceParts(PaintDevice *device) const
     auto *snode = dynamic_cast<Node *>(node.get());
     assert(snode);
 
-    //---
+    auto point = forceDirected_->point(node);
 
     auto colorInd = ColorInd(nodeNum++, numNodes);
 
-    PenBrush penBrush;
-
-    auto pc = interpNodeStrokeColor(colorInd);
-    auto fc = calcNodeFillColor(snode);
-
-    if (snode->isInside())
-      fc = insideColor(fc);
-
-    setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    auto ebbox = nodeBBox(node, snode);
-
-    if (nodeShape() == NodeShape::CIRCLE)
-      device->drawEllipse(ebbox);
-    else
-      device->drawRect(ebbox);
-
-    if (isNodeTextVisible()) {
-      auto c = interpNodeTextColor(colorInd);
-
-      setPen(penBrush, PenData(true, c, nodeTextAlpha()));
-
-      device->setPen(penBrush.pen);
-
-      //---
-
-      auto textOptions = nodeTextOptions(device);
-
-      textOptions.angle = Angle();
-      textOptions.align = Qt::AlignCenter;
-
-      CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
-    }
-
-    //---
-
-    snode->setBBox(ebbox);
+    drawNode(device, node, snode, colorInd);
   }
 
   //---
@@ -1909,24 +2021,246 @@ drawDeviceParts(PaintDevice *device) const
   device->restore();
 }
 
+void
+CQChartsForceDirectedPlot::
+drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
+{
+  // calc pen and brush
+  PenBrush penBrush;
+
+  auto fc = interpEdgeFillColor(colorInd);
+  auto sc = interpEdgeStrokeColor(colorInd);
+
+  if (sedge->isInside())
+    fc = insideColor(fc);
+
+  setPenBrush(penBrush, edgePenData(sc), edgeBrushData(fc));
+
+  //---
+
+  // get connection rect of source and destination object
+  auto *snode = dynamic_cast<Node *>(sedge->source().get());
+  auto *tnode = dynamic_cast<Node *>(sedge->target().get());
+
+  auto sbbox = nodeBBox(sedge->source(), snode);
+  auto tbbox = nodeBBox(sedge->target(), tnode);
+
+  // get default connection line (no path)
+  Point ep1, ep2;
+  Angle angle1, angle2;
+
+  auto sshape = calcNodeShape(snode);
+  auto tshape = calcNodeShape(tnode);
+
+  if (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE)
+    CQChartsDrawUtil::circleConnectionPoint(sbbox, tbbox, ep1, angle1, 0.0);
+  else
+    CQChartsDrawUtil::rectConnectionPoint(sbbox, tbbox, ep1, angle1, 0.0, /*cornerPoints*/false);
+
+  if (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE)
+    CQChartsDrawUtil::circleConnectionPoint(tbbox, sbbox, ep2, angle2, 0.0);
+  else
+    CQChartsDrawUtil::rectConnectionPoint(tbbox, sbbox, ep2, angle2, 0.0, /*cornerPoints*/false);
+
+  //---
+
+  auto edgeType = calcEdgeShape(sedge);
+
+  // calc edge paths
+  bool isArrow = isEdgeArrow();
+  bool isLine  = false;
+
+  QPainterPath edgePath, curvePath;
+
+  double edgeWidth = lengthPixelWidth(this->edgeWidth());
+
+  double lw = 0.0;
+
+  if (isEdgeScaled())
+    lw = edgeWidth*edgeScale_*sedge->value();
+  else
+    lw = edgeWidth;
+
+  if (lw > 0.5) {
+    double lww = pixelToWindowWidth(lw);
+
+    CQChartsDrawUtil::curvePath(edgePath, ep1, ep2, edgeType, angle1, angle2);
+
+    if (isArrow) {
+      CQChartsArrowData arrowData;
+
+      arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);  // directional
+      arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+
+      CQChartsArrow::pathAddArrows(edgePath, arrowData, lww,
+                                   arrowWidth(), arrowWidth(), curvePath);
+    }
+    else {
+      CQChartsDrawUtil::edgePath(curvePath, ep1, ep2, lww, edgeType, angle1, angle2);
+    }
+  }
+  else {
+    CQChartsDrawUtil::linePath(edgePath, ep1, ep2);
+
+    isLine = true;
+  }
+
+  //---
+
+  // draw path
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  if (isLine)
+    device->drawPath(edgePath);
+  else {
+    if (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR)
+      device->drawPath(curvePath.simplified());
+    else
+      device->drawPath(curvePath);
+  }
+
+  //---
+
+  // set edge draw geometry
+  sedge->setIsLine(isLine);
+
+  sedge->setStartPoint(ep1);
+  sedge->setEndPoint  (ep2);
+
+  sedge->setCurvePath(curvePath);
+  sedge->setEdgePath (edgePath);
+
+  //---
+
+  // draw text
+  auto edgeStr = QString::fromStdString(sedge->label());
+
+  if (isEdgeTextVisible() && edgeStr.length()) {
+    // set font
+    setPainterFont(device, edgeTextFont());
+
+    //---
+
+    // set text pen
+    auto c = interpEdgeTextColor(colorInd);
+
+    setPen(penBrush, PenData(true, c, edgeTextAlpha()));
+
+    device->setPen(penBrush.pen);
+
+    //---
+
+    auto pt = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
+
+    auto textOptions = nodeTextOptions(device);
+
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignCenter;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, edgeStr, textOptions);
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
+         const ColorInd &colorInd) const
+{
+  // calc pen and brush
+  PenBrush penBrush;
+
+  auto pc = interpNodeStrokeColor(colorInd);
+  auto fc = calcNodeFillColor(snode);
+
+  if (snode->isInside())
+    fc = insideColor(fc);
+
+  setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw node
+  auto shape = calcNodeShape(snode);
+
+  auto ebbox = nodeBBox(node, snode);
+
+  if      (shape == Node::Shape::DOUBLE_CIRCLE)
+    CQChartsDrawUtil::drawDoubleEllipse(device, ebbox);
+  else if (shape == Node::Shape::CIRCLE)
+    device->drawEllipse(ebbox);
+  else
+    device->drawRect(ebbox);
+
+  //---
+
+  // draw text
+  charts()->setContrastColor(fc);
+
+  if (isNodeTextVisible()) {
+    // set font
+    setPainterFont(device, nodeTextFont());
+
+    //---
+
+    // set text pen
+    auto c = interpNodeTextColor(colorInd);
+
+    setPen(penBrush, PenData(true, c, nodeTextAlpha()));
+
+    device->setPen(penBrush.pen);
+
+    //---
+
+    auto textOptions = nodeTextOptions(device);
+
+    textOptions.angle = Angle();
+    textOptions.align = Qt::AlignCenter;
+
+    CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
+  }
+
+  charts()->resetContrastColor();
+
+  //---
+
+  snode->setBBox(ebbox);
+}
+
+CQChartsForceDirectedPlot::Node::Shape
+CQChartsForceDirectedPlot::
+calcNodeShape(Node *snode) const
+{
+  auto shape = snode->shape();
+
+  return (shape != Node::Shape::NONE ? shape : static_cast<Node::Shape>(nodeShape()));
+}
+
+CQChartsForceDirectedPlot::Edge::Shape
+CQChartsForceDirectedPlot::
+calcEdgeShape(Edge *sedge) const
+{
+  auto shape = sedge->shape();
+
+  return (shape != Edge::Shape::NONE ? shape : static_cast<Edge::Shape>(edgeShape()));
+}
+
 CQChartsGeom::BBox
 CQChartsForceDirectedPlot::
 nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
 {
-  double xmn, ymn;
+  double s;
 
-  if (isNodeScaled()) {
-    auto rn = calcScaledNodeValue(snode);
+  if (isNodeScaled())
+    s = calcScaledNodeValue(snode);
+  else
+    s = lengthPlotWidth(nodeSize());
 
-    xmn = pixelToWindowWidth (2*rn);
-    ymn = pixelToWindowHeight(2*rn);
-  }
-  else {
-    double r = std::max(nodeRadius(), 0.0);
+  auto minSize = pixelToWindowWidth(3.0);
 
-    xmn = pixelToWindowWidth (2*r);
-    ymn = pixelToWindowHeight(2*r);
-  }
+  auto xmn = std::max(s, minSize);
+  auto ymn = xmn;
 
   auto point = forceDirected_->point(node);
 
@@ -1951,14 +2285,14 @@ calcNormalizedNodeValue(Node *node) const
 {
   auto value = calcNodeValue(node);
 
-  return (value > 0.0 ? value/maxNodeValue() : 0.0);
+  return (value > 0.0 && maxNodeValue() > 0.0 ? value/maxNodeValue() : 0.0);
 }
 
 double
 CQChartsForceDirectedPlot::
 calcScaledNodeValue(Node *node) const
 {
-  return nodeRadius()*calcNormalizedNodeValue(node);
+  return lengthPlotWidth(nodeSize())*calcNormalizedNodeValue(node);
 }
 
 QColor

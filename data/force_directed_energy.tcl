@@ -6,3 +6,9 @@ set plot [create_charts_plot -model $model -type force_directed -columns {{link 
 
 set_charts_property -plot $plot -name options.initSteps -value 1000
 set_charts_property -plot $plot -name options.running   -value 0
+
+set_charts_property -plot $plot -name node.scaled -value 0
+set_charts_property -plot $plot -name node.text.scaled -value 1
+set_charts_property -plot $plot -name node.shapeType -value BOX
+
+set_charts_property -plot $plot -name edge.shapeType -value ARC

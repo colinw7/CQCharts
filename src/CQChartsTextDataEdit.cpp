@@ -6,7 +6,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsLengthEdit.h>
 #include <CQChartsWidgetUtil.h>

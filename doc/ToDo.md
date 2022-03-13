@@ -4,12 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + format text in rect with scale and zoom
  + Force directed
-   + no thread
-   + node size (min edge length)
-   + edge direction
-   + bad tooltip
-   + node/edge attributes ?
+   + don't lose zoom on auto fit
+   + placement uses node size (min edge length)
+   + overlapping connections (if to and from then adjust angles)
+   + allow title
  + key item data in get_charts_data/set_charts_data
  + arrow on curve needs min start/end length
  + generate annotation dialog

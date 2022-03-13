@@ -394,6 +394,7 @@ class CQChartsSankeyPlotEdge {
   using ModelInds  = std::vector<ModelIndex>;
   using Column     = CQChartsColumn;
   using Color      = CQChartsColor;
+  using Angle      = CQChartsAngle;
   using OptReal    = CQChartsOptReal;
   using BBox       = CQChartsGeom::BBox;
   using Point      = CQChartsGeom::Point;

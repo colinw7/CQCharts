@@ -2830,6 +2830,8 @@ draw(PaintDevice *device) const
 
   auto orient = plot_->orientation();
 
+  auto angle = Angle(orient == Qt::Horizontal ? 0 : -90);
+
   auto edgeType = CQChartsDrawUtil::EdgeType::ARC;
 
   if (shapeType() == ShapeType::ARROW) {
@@ -2840,7 +2842,7 @@ draw(PaintDevice *device) const
     if (! isSelf) {
       QPainterPath lpath;
 
-      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, edgeType, orient);
+      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, edgeType, angle);
 
       CQChartsArrowData arrowData;
 
@@ -2861,7 +2863,7 @@ draw(PaintDevice *device) const
   }
   else {
     if (plot_->isEdgeScaled()) {
-      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, edgeType, orient);
+      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, edgeType, angle);
     }
     else {
       double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
@@ -2876,7 +2878,7 @@ draw(PaintDevice *device) const
             std::swap(y1, y2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     edgeType, orient, orient);
+                                     edgeType, angle, angle);
         }
         else {
           // start x range from source node, and end x range from dest node
@@ -2887,7 +2889,7 @@ draw(PaintDevice *device) const
             std::swap(x1, x2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     edgeType, orient, orient);
+                                     edgeType, angle, angle);
         }
       }
       else {

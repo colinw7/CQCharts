@@ -24,7 +24,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 #include <CQChartsSymbolEditor.h>
 
 #include <CQChartsPlotCustomControls.h>

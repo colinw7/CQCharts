@@ -257,6 +257,7 @@ void pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, cons
 //---
 
 void drawEllipse(PaintDevice *device, const BBox &bbox);
+void drawDoubleEllipse(PaintDevice *device, const BBox &bbox);
 void ellipsePath(QPainterPath &path, const BBox &bbox);
 
 //---
@@ -282,40 +283,41 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 void drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                   const EdgeType &edgeType=EdgeType::ARC,
-                  Qt::Orientation orient=Qt::Horizontal);
+                  const Angle &angle=Angle());
 void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
               const EdgeType &edgeType=EdgeType::ARC,
-              Qt::Orientation orient=Qt::Horizontal);
+              const Angle &angle=Angle());
 
 void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
-                  Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
+                  const Angle &angle1=Angle(), const Angle &angle2=Angle());
 void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
               const EdgeType &edgeType=EdgeType::ARC,
-              Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
+              const Angle &angle1=Angle(), const Angle &angle2=Angle());
 
 void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
-                  Qt::Orientation orient=Qt::Horizontal);
+                  const Angle &angle=Angle());
 
 //---
 
 void drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                    const EdgeType &edgeType=EdgeType::ARC,
-                   Qt::Orientation orient=Qt::Horizontal);
+                   const Angle &angle=Angle());
 void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
                const EdgeType &edgeType=EdgeType::ARC,
-               Qt::Orientation orient=Qt::Horizontal);
+               const Angle &angle=Angle());
 
 void drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
                    const EdgeType &edgeType=EdgeType::ARC,
-                   Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
+                   const Angle &angle1=Angle(), const Angle &angle2=Angle());
 void curvePath(QPainterPath &path, const Point &p1, const Point &p2,
                const EdgeType &edgeType=EdgeType::ARC,
-               Qt::Orientation orient1=Qt::Horizontal, Qt::Orientation orient2=Qt::Horizontal);
+               const Angle &angle1=Angle(), const Angle &angle2=Angle(),
+               double startLength=0.0, double endLength=0.0);
 
 void selfCurvePath(QPainterPath &path, const BBox &bbox, const EdgeType &edgeType=EdgeType::ARC,
-                   Qt::Orientation orient=Qt::Horizontal);
+                   const Angle &angle=Angle());
 
 //---
 
@@ -425,8 +427,13 @@ void visitPath(const QPainterPath &path, PathVisitor &visitor);
 namespace CQChartsDrawUtil {
 
 void rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                          Qt::Orientation &orient1, Qt::Orientation &orient2,
-                          bool useCorners=true);
+                          Angle &angle1, Angle &angle2, double gap=0.0, bool useCorners=true);
+bool rectConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
+                         Angle &angle, double gap, bool useCorners);
+void circleConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
+                            Angle &angle1, Angle &angle2, double gap=0.0);
+void circleConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
+                           Angle &angle, double gap=0.0);
 
 QPointF pathMidPoint(const QPainterPath &path);
 

@@ -136,21 +136,6 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 //---
 
 /*!
- * \brief Paint Device for drawing on Widget (pixel only)
- * \ingroup Charts
- */
-class CQChartsPixelPaintDevice : public CQChartsViewPlotPaintDevice {
- public:
-  explicit CQChartsPixelPaintDevice(QPainter *painter);
-
-  Type type() const override { return Type::PIXEL; }
-
-  bool invertY() const override { return true; }
-};
-
-//---
-
-/*!
  * \brief Paint Device for drawing on View
  * \ingroup Charts
  */

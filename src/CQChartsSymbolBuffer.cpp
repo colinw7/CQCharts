@@ -1,6 +1,6 @@
 #include <CQChartsSymbolBuffer.h>
 #include <CQChartsUtil.h>
-#include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPixelPaintDevice.h>
 
 #include <QPainter>
 #include <CMathRound.h>

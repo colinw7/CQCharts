@@ -1,6 +1,7 @@
 #ifndef CQChartsForceDirected_H
 #define CQChartsForceDirected_H
 
+#include <CQChartsTypes.h>
 #include <CForceDirected.h>
 
 //---
@@ -11,6 +12,7 @@
  */
 class CQChartsSpringyNode : public Springy::Node {
  public:
+  using Shape   = CQChartsNodeType;
   using OptReal = CQChartsOptReal;
   using BBox    = CQChartsGeom::BBox;
 
@@ -21,6 +23,9 @@ class CQChartsSpringyNode : public Springy::Node {
 
   int group() const { return group_; }
   void setGroup(int i) { group_ = i; }
+
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &v) { shape_ = v; }
 
   const OptReal &nodeValue() const { return nodeValue_; }
   void setNodeValue(const OptReal &v) { nodeValue_ = v; }
@@ -35,7 +40,8 @@ class CQChartsSpringyNode : public Springy::Node {
   void setInside(bool b) { inside_ = b; }
 
  private:
-  int         group_ { -1 };
+  int         group_  { -1 };
+  Shape       shape_  { Shape::NONE };
   OptReal     nodeValue_;
   QModelIndex ind_;
   BBox        bbox_;
@@ -48,6 +54,7 @@ class CQChartsSpringyNode : public Springy::Node {
  */
 class CQChartsSpringyEdge : public Springy::Edge {
  public:
+  using Shape = CQChartsEdgeType;
   using NodeP = Springy::NodeP;
   using Point = CQChartsGeom::Point;
 
@@ -55,6 +62,9 @@ class CQChartsSpringyEdge : public Springy::Edge {
   CQChartsSpringyEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
    Springy::Edge(id, node1, node2) {
   }
+
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &v) { shape_ = v; }
 
   bool getIsLine() const { return isLine_; }
   void setIsLine(bool b) { isLine_ = b; }
@@ -75,6 +85,7 @@ class CQChartsSpringyEdge : public Springy::Edge {
   void setInside(bool b) { inside_ = b; }
 
  private:
+  Shape        shape_  { Shape::NONE };
   bool         isLine_ { true };
   Point        startPoint_;
   Point        endPoint_;
