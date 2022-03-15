@@ -52,7 +52,7 @@ description() const
     h3("Summary").
      p("Draw connected objects as a connected graph.").
     h3("Limitations").
-     p("The plot does not support axes, key or logarithmic scales..").
+     p("The plot does not support axes, key or logarithmic scales.").
     h3("Example").
      p(IMG("images/graphviz.png"));
 }
@@ -3064,24 +3064,25 @@ draw(PaintDevice *device) const
     if (plot()->isSymmetric())
       connectGap += 1.5*plot_->arrowWidth()*lw;
 
-    connectGap = 1.5*plot_->arrowWidth()*lw;
+    connectGap += 1.5*plot_->arrowWidth()*lw;
   }
 
   // get default connection line (no path)
-  Point p1, p2;
-  Angle angle1, angle2;
+  CQChartsDrawUtil::ConnectPos        p1, p2;
+  CQChartsDrawUtil::RectConnectData   rectConnectData;
+  CQChartsDrawUtil::CircleConnectData circleConnectData;
+
+  rectConnectData.gap = connectGap;
 
   if (srcNode->shapeType() == Node::ShapeType::CIRCLE)
-    CQChartsDrawUtil::circleConnectionPoint(srcRect, destRect, p1, angle1, 0.0);
+    CQChartsDrawUtil::circleConnectionPoint(srcRect, destRect, p1, circleConnectData);
   else
-    CQChartsDrawUtil::rectConnectionPoint(srcRect, destRect, p1, angle1,
-                                          connectGap, /*cornerPoints*/false);
+    CQChartsDrawUtil::rectConnectionPoint(srcRect, destRect, p1, rectConnectData);
 
   if (destNode->shapeType() == Node::ShapeType::CIRCLE)
-    CQChartsDrawUtil::circleConnectionPoint(destRect, srcRect, p2, angle2, 0.0);
+    CQChartsDrawUtil::circleConnectionPoint(destRect, srcRect, p2, circleConnectData);
   else
-    CQChartsDrawUtil::rectConnectionPoint(destRect, srcRect, p2, angle2,
-                                          connectGap, /*cornerPoints*/false);
+    CQChartsDrawUtil::rectConnectionPoint(destRect, srcRect, p2, rectConnectData);
 
   //---
 
@@ -3090,12 +3091,12 @@ draw(PaintDevice *device) const
   if (! isCentered && srcNode->hasEdgePoint(edge()))
     srcPoint = srcNode->edgePoint(edge());
   else
-    srcPoint = p1;
+    srcPoint = p1.p;
 
   if (! isCentered && destNode->hasEdgePoint(edge()))
     destPoint = destNode->edgePoint(edge());
   else
-    destPoint = p2;
+    destPoint = p2.p;
 
   //---
 
@@ -3194,7 +3195,7 @@ draw(PaintDevice *device) const
 
         endLength = 1.5*plot_->arrowWidth()*lw;
 
-        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, angle1, angle2,
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, p1.angle, p2.angle,
                                     startLength, endLength);
 
         CQChartsArrowData arrowData;
@@ -3210,7 +3211,7 @@ draw(PaintDevice *device) const
                                      plot_->arrowWidth(), plot_->arrowWidth(), path_);
       }
       else {
-        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, angle1);
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, p1.angle);
 
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
       }
@@ -3219,14 +3220,14 @@ draw(PaintDevice *device) const
     }
     else {
       if (! isSelf) {
-        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, angle1, angle2);
+        CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, p1.angle, p2.angle);
 
-        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, angle1, angle2);
+        CQChartsDrawUtil::edgePath(path_, srcPoint, destPoint, lw, edgeType, p1.angle, p2.angle);
       }
       else {
-        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, angle1);
+        CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, p1.angle);
 
-        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, angle1);
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw, edgeType, p1.angle);
       }
     }
   }

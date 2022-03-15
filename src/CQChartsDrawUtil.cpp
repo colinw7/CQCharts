@@ -1683,12 +1683,14 @@ void
 curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
           const EdgeType &edgeType, const Angle &angle)
 {
-  Point p1, p2;
-  Angle angle1 = angle, angle2 = angle;
+  ConnectPos p1, p2;
 
-  rectConnectionPoints(ibbox, obbox, p1, p2, angle1, angle2, 0.0, /*cornerPoints*/false);
+  p1.angle = angle;
+  p2.angle = angle;
 
-  curvePath(path, p1, p2, edgeType, angle1, angle2);
+  rectConnectionPoints(ibbox, obbox, p1, p2);
+
+  curvePath(path, p1.p, p2.p, edgeType, p1.angle, p2.angle);
 }
 
 // draw connecting line between two bounding boxes
@@ -2343,80 +2345,84 @@ drawPushButton(PaintDevice *device, const BBox &prect, const QString &textStr,
 namespace CQChartsDrawUtil {
 
 void
-rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                     Angle &angle1, Angle &angle2, double gap, bool useCorners)
+rectConnectionPoints(const BBox &rect1, const BBox &rect2, ConnectPos &pos1, ConnectPos &pos2,
+                     const RectConnectData &connectData)
 {
-  if (! rectConnectionPoint(rect1, rect2, p1, angle1, gap, useCorners)) {
-    p2     = rect2.getCenter();
-    angle2 = Angle::pointAngle(p2, p1);
+  pos2.slot = -1;
+
+  if (! rectConnectionPoint(rect1, rect2, pos1, connectData)) {
+    pos2.p     = rect2.getCenter();
+    pos2.angle = Angle::pointAngle(pos2.p, pos1.p);
     return;
   }
 
   double a2;
-  p2 = CQChartsUtil::nearestRectPoint(rect2, p1, a2, useCorners);
+  pos2.p = CQChartsUtil::nearestRectPoint(rect2, pos1.p, a2, connectData.useCorners);
 
-  angle2 = Angle(a2);
+  pos2.angle = Angle(a2);
 }
 
 bool
-rectConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
-                    Angle &angle, double gap, bool useCorners)
+rectConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
+                    const RectConnectData &connectData)
 {
+  pos.slot = -1;
+
   double dxr = rect2.getXMin() - rect1.getXMax();
   double dxl = rect1.getXMin() - rect2.getXMax();
   double dyt = rect2.getYMin() - rect1.getYMax();
   double dyb = rect1.getYMin() - rect2.getYMax();
 
-  if      (dxr > gap) {
+  if      (dxr > connectData.gap) {
     // top right
-    if      (dyt > gap) {
-      if      (useCorners) { p = rect1.getUR  (); angle = Angle(45); }
-      else if (dxr > dyt)  { p = rect1.getMidR(); angle = Angle(0); }
-      else                 { p = rect1.getMidT(); angle = Angle(90); }
+    if      (dyt > connectData.gap) {
+      if      (connectData.useCorners) { pos.p = rect1.getUR  (); pos.angle = Angle(45); }
+      else if (dxr > dyt)              { pos.p = rect1.getMidR(); pos.angle = Angle(0); }
+      else                             { pos.p = rect1.getMidT(); pos.angle = Angle(90); }
     }
     // bottom right
-    else if (dyb > gap) {
-      if      (useCorners) { p = rect1.getLR  (); angle = Angle(-45); }
-      else if (dxr > dyb)  { p = rect1.getMidR(); angle = Angle(0); }
-      else                 { p = rect1.getMidB(); angle = Angle(-90); }
+    else if (dyb > connectData.gap) {
+      if      (connectData.useCorners) { pos.p = rect1.getLR  (); pos.angle = Angle(-45); }
+      else if (dxr > dyb)              { pos.p = rect1.getMidR(); pos.angle = Angle(0); }
+      else                             { pos.p = rect1.getMidB(); pos.angle = Angle(-90); }
     }
     // mid right
     else {
-      p = rect1.getMidR(); angle = Angle(0);
+      pos.p = rect1.getMidR(); pos.angle = Angle(0);
     }
   }
-  else if (dxl > gap) {
+  else if (dxl > connectData.gap) {
     // top left
-    if      (dyt > gap) {
-      if      (useCorners) { p = rect1.getUL  (); angle = Angle(135); }
-      else if (dxl > dyt)  { p = rect1.getMidL(); angle = Angle(180); }
-      else                 { p = rect1.getMidT(); angle = Angle(90); }
+    if      (dyt > connectData.gap) {
+      if      (connectData.useCorners) { pos.p = rect1.getUL  (); pos.angle = Angle(135); }
+      else if (dxl > dyt)              { pos.p = rect1.getMidL(); pos.angle = Angle(180); }
+      else                             { pos.p = rect1.getMidT(); pos.angle = Angle(90); }
     }
     // bottom left
-    else if (dyb > gap) {
-      if      (useCorners) { p = rect1.getLL  (); angle = Angle(-135); }
-      else if (dxl > dyb)  { p = rect1.getMidL(); angle = Angle(-180); }
-      else                 { p = rect1.getMidB(); angle = Angle(-90); }
+    else if (dyb > connectData.gap) {
+      if      (connectData.useCorners) { pos.p = rect1.getLL  (); pos.angle = Angle(-135); }
+      else if (dxl > dyb)              { pos.p = rect1.getMidL(); pos.angle = Angle(-180); }
+      else                             { pos.p = rect1.getMidB(); pos.angle = Angle(-90); }
     }
     // mid left
     else {
-      p = rect1.getMidL(); angle = Angle(180);
+      pos.p = rect1.getMidL(); pos.angle = Angle(180);
     }
   }
   else {
     // top center
-    if      (dyt > gap) {
-      p = rect1.getMidT(); angle = Angle(90);
+    if      (dyt > connectData.gap) {
+      pos.p = rect1.getMidT(); pos.angle = Angle(90);
     }
     // bottom center
-    else if (dyb > gap) {
-      p = rect1.getMidB(); angle = Angle(-90);
+    else if (dyb > connectData.gap) {
+      pos.p = rect1.getMidB(); pos.angle = Angle(-90);
     }
 
     // center
     else {
-      p     = rect1.getCenter();
-      angle = Angle::pointAngle(p, rect2.getCenter());
+      pos.p     = rect1.getCenter();
+      pos.angle = Angle::pointAngle(pos.p, rect2.getCenter());
       return false;
     }
   }
@@ -2425,23 +2431,67 @@ rectConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
 }
 
 void
-circleConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                       Angle &angle1, Angle &angle2, double gap)
+circleConnectionPoints(const BBox &rect1, const BBox &rect2, ConnectPos &pos1, ConnectPos &pos2,
+                       const CircleConnectData &connectData)
 {
-  circleConnectionPoint(rect1, rect2, p1, angle1, gap);
-  circleConnectionPoint(rect2, rect1, p2, angle2, gap);
+  circleConnectionPoint(rect1, rect2, pos1, connectData);
+  circleConnectionPoint(rect2, rect1, pos2, connectData);
 }
 
 void
-circleConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
-                      Angle &angle, double /*gap*/)
+circleConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
+                      const CircleConnectData &connectData)
 {
   auto c1 = rect1.getCenter();
   auto c2 = rect2.getCenter();
 
-  angle = Angle::pointAngle(c1, c2);
+  auto r1 = rect1.getWidth()/2;
+  auto r2 = rect2.getWidth()/2;
 
-  p = CQChartsGeom::circlePoint(c1, rect1.getWidth()/2, angle.radians());
+  return circleConnectionPoint(c1, r1, c2, r2, pos, connectData);
+}
+
+void
+circleConnectionPoint(const Point &c1, double r1, const Point &c2, double /*r2*/,
+                      ConnectPos &pos, const CircleConnectData &connectData)
+{
+  pos.angle = Angle::pointAngle(c1, c2);
+
+  pos.p    = CQChartsGeom::circlePoint(c1, r1, pos.angle.radians());
+  pos.slot = -1;
+
+  if (connectData.numSlots > 0) {
+    auto sa = Angle(0);
+    auto da = Angle(360)/connectData.numSlots;
+
+    int    nearestSlot = -1;
+    Point  nearestP;
+    double nearestDist { 0 };
+    Angle  nearestAngle;
+
+    for (int i = 0; i < connectData.numSlots; ++i) {
+      if (connectData.occupiedSlots.find(i) != connectData.occupiedSlots.end())
+        continue;
+
+      auto sa1 = sa + da*i;
+
+      auto p1 = CQChartsGeom::circlePoint(c1, r1, sa1.radians());
+      auto d1 = CQChartsUtil::PointPointDistance(pos.p, p1);
+
+      if (nearestSlot < 0 || d1 < nearestDist) {
+        nearestSlot  = i;
+        nearestP     = p1;
+        nearestDist  = d1;
+        nearestAngle = sa1;
+      }
+    }
+
+    if (nearestSlot >= 0) {
+      pos.p     = nearestP;
+      pos.angle = nearestAngle;
+      pos.slot  = nearestSlot;
+    }
+  }
 }
 
 QPointF pathMidPoint(const QPainterPath &path)

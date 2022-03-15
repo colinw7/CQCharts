@@ -488,6 +488,8 @@ execInitSteps()
   }
 
   doAutoFit();
+
+  drawObjs();
 }
 
 void
@@ -1676,8 +1678,11 @@ doAutoFit()
 
     //---
 
-    displayRange_->setWindowRange(dataRange_.xmin(), dataRange_.ymin(),
-                                  dataRange_.xmax(), dataRange_.ymax());
+    auto bbox = CQChartsUtil::rangeBBox(dataRange_);
+
+    auto adjustedBBox = adjustDataRangeBBox(bbox);
+
+    setWindowRange(bbox, adjustedBBox);
   }
 }
 
@@ -1986,6 +1991,16 @@ drawDeviceParts(PaintDevice *device) const
 
   //--
 
+  // reset node slots
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    snode->clearOccupiedSlots();
+  }
+
+  //---
+
   // draw edges
   int numEdges = int(forceDirected_->edges().size());
   int edgeNum  = 0;
@@ -2028,13 +2043,13 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   // calc pen and brush
   PenBrush penBrush;
 
-  auto fc = interpEdgeFillColor(colorInd);
-  auto sc = interpEdgeStrokeColor(colorInd);
+  auto fillColor   = interpEdgeFillColor(colorInd);
+  auto strokeColor = interpEdgeStrokeColor(colorInd);
 
   if (sedge->isInside())
-    fc = insideColor(fc);
+    fillColor = insideColor(fillColor);
 
-  setPenBrush(penBrush, edgePenData(sc), edgeBrushData(fc));
+  setPenBrush(penBrush, edgePenData(strokeColor), edgeBrushData(fillColor));
 
   //---
 
@@ -2046,21 +2061,37 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   auto tbbox = nodeBBox(sedge->target(), tnode);
 
   // get default connection line (no path)
-  Point ep1, ep2;
-  Angle angle1, angle2;
+  CQChartsDrawUtil::ConnectPos        ep1, ep2;
+  CQChartsDrawUtil::RectConnectData   rectConnectData;
+  CQChartsDrawUtil::CircleConnectData circleConnectData;
 
   auto sshape = calcNodeShape(snode);
   auto tshape = calcNodeShape(tnode);
 
-  if (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE)
-    CQChartsDrawUtil::circleConnectionPoint(sbbox, tbbox, ep1, angle1, 0.0);
-  else
-    CQChartsDrawUtil::rectConnectionPoint(sbbox, tbbox, ep1, angle1, 0.0, /*cornerPoints*/false);
+  auto sc = sbbox.getCenter(); auto sr = sbbox.getWidth()/2.0;
+  auto tc = tbbox.getCenter(); auto tr = tbbox.getWidth()/2.0;
 
-  if (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE)
-    CQChartsDrawUtil::circleConnectionPoint(tbbox, sbbox, ep2, angle2, 0.0);
+  if (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE) {
+    circleConnectData.numSlots      = 16;
+    circleConnectData.occupiedSlots = snode->occupiedSlots();
+
+    CQChartsDrawUtil::circleConnectionPoint(sc, sr, tc, tr, ep1, circleConnectData);
+
+    snode->addOccupiedSlot(ep1.slot);
+  }
   else
-    CQChartsDrawUtil::rectConnectionPoint(tbbox, sbbox, ep2, angle2, 0.0, /*cornerPoints*/false);
+    CQChartsDrawUtil::rectConnectionPoint(sbbox, tbbox, ep1, rectConnectData);
+
+  if (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE) {
+    circleConnectData.numSlots      = 16;
+    circleConnectData.occupiedSlots = tnode->occupiedSlots();
+
+    CQChartsDrawUtil::circleConnectionPoint(tc, tr, ep1.p, 0.0, ep2, circleConnectData);
+
+    tnode->addOccupiedSlot(ep2.slot);
+  }
+  else
+    CQChartsDrawUtil::rectConnectionPoint(tbbox, sbbox, ep2, rectConnectData);
 
   //---
 
@@ -2084,7 +2115,7 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   if (lw > 0.5) {
     double lww = pixelToWindowWidth(lw);
 
-    CQChartsDrawUtil::curvePath(edgePath, ep1, ep2, edgeType, angle1, angle2);
+    CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
 
     if (isArrow) {
       CQChartsArrowData arrowData;
@@ -2096,11 +2127,11 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
                                    arrowWidth(), arrowWidth(), curvePath);
     }
     else {
-      CQChartsDrawUtil::edgePath(curvePath, ep1, ep2, lww, edgeType, angle1, angle2);
+      CQChartsDrawUtil::edgePath(curvePath, ep1.p, ep2.p, lww, edgeType, ep1.angle, ep2.angle);
     }
   }
   else {
-    CQChartsDrawUtil::linePath(edgePath, ep1, ep2);
+    CQChartsDrawUtil::linePath(edgePath, ep1.p, ep2.p);
 
     isLine = true;
   }
@@ -2124,8 +2155,8 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   // set edge draw geometry
   sedge->setIsLine(isLine);
 
-  sedge->setStartPoint(ep1);
-  sedge->setEndPoint  (ep2);
+  sedge->setStartPoint(ep1.p);
+  sedge->setEndPoint  (ep2.p);
 
   sedge->setCurvePath(curvePath);
   sedge->setEdgePath (edgePath);

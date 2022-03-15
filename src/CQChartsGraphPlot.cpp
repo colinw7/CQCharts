@@ -2830,7 +2830,7 @@ draw(PaintDevice *device) const
 
   auto orient = plot_->orientation();
 
-  auto angle = Angle(orient == Qt::Horizontal ? 0 : -90);
+  auto angle = Angle::fromOrientation(orient);
 
   auto edgeType = CQChartsDrawUtil::EdgeType::ARC;
 

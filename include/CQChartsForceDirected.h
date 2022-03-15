@@ -16,6 +16,8 @@ class CQChartsSpringyNode : public Springy::Node {
   using OptReal = CQChartsOptReal;
   using BBox    = CQChartsGeom::BBox;
 
+  using Slots = std::set<int>;
+
  public:
   explicit CQChartsSpringyNode(int id) :
    Springy::Node(id) {
@@ -39,6 +41,10 @@ class CQChartsSpringyNode : public Springy::Node {
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
+  const Slots &occupiedSlots() { return occupiedSlots_; }
+  void clearOccupiedSlots() { occupiedSlots_.clear(); }
+  void addOccupiedSlot(int slot) { occupiedSlots_.insert(slot); }
+
  private:
   int         group_  { -1 };
   Shape       shape_  { Shape::NONE };
@@ -46,6 +52,7 @@ class CQChartsSpringyNode : public Springy::Node {
   QModelIndex ind_;
   BBox        bbox_;
   bool        inside_ { false };
+  Slots       occupiedSlots_;
 };
 
 /*!

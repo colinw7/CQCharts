@@ -130,7 +130,7 @@ description() const
              B("max") + " and " + B("outliers") + " columns.") }).
      p("The x value name can be supplied using this " + B("name") + " column.").
     h3("Options").
-     p("The outliers values can be shown or hidden..").
+     p("The outliers values can be shown or hidden.").
      p("Multiple boxes (for each unique x value) can be connected by their y value.").
      p("The box can be drawn vertically or horizontally.").
      p("The y values can be normalized to the range 0-1 so whiskers with different y ranges "

@@ -106,6 +106,10 @@ class CQChartsAngle :
     return (std::abs(sin()) <= 0.5 ? Qt::Horizontal : Qt::Vertical);
   }
 
+  static Angle fromOrientation(Qt::Orientation orient) {
+    return Angle(orient == Qt::Horizontal ? 0 : -90);
+  }
+
   //---
 
   double cos() const { return std::cos(radians()); }
@@ -135,6 +139,18 @@ class CQChartsAngle :
 
   // operator -
   Angle operator-() const { return Angle(-a_); }
+
+  //---
+
+  // operator*
+  friend Angle operator*(const Angle &lhs, double rhs) {
+    return Angle(lhs.a_*rhs);
+  }
+
+  // operator/
+  friend Angle operator/(const Angle &lhs, double rhs) {
+    return Angle(lhs.a_/rhs);
+  }
 
   //---
 

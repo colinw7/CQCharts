@@ -16,6 +16,8 @@
 #include <QFont>
 #include <QString>
 
+#include <set>
+
 class  CQChartsPaintDevice;
 struct CQChartsPenBrush;
 class  CQChartsBrushData;
@@ -101,10 +103,11 @@ inline QPainterPath rotatePath(const QPainterPath &path, double angle) {
 // pen/brush
 namespace CQChartsDrawUtil {
 
-using PenBrush  = CQChartsPenBrush;
-using BrushData = CQChartsBrushData;
+using PaintDevice = CQChartsPaintDevice;
+using PenBrush    = CQChartsPenBrush;
+using BrushData   = CQChartsBrushData;
 
-void setPenBrush(CQChartsPaintDevice *device, const PenBrush &penBrush);
+void setPenBrush(PaintDevice *device, const PenBrush &penBrush);
 void setPenBrush(QPainter *device, const PenBrush &penBrush);
 
 void setBrush(QBrush &brush, const BrushData &data);
@@ -252,7 +255,7 @@ bool roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, d
 void drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro, const Angle &a1,
                   const Angle &a2, bool isInvertX=false, bool isInvertY=false);
 void pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Angle &a1,
-                  const Angle &a2, bool isInvertX, bool isInvertY);
+                  const Angle &a2, bool isInvertX=false, bool isInvertY=false);
 
 //---
 
@@ -275,9 +278,9 @@ void arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
 //---
 
 void drawArcsConnector(PaintDevice *device, const BBox &ibbox, const Angle &a1, const Angle &da1,
-                       const Angle &a2, const Angle &da2, bool isSelf);
+                       const Angle &a2, const Angle &da2, bool isSelf=false);
 void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, const Angle &da1,
-                       const Angle &a2, const Angle &da2, bool isSelf);
+                       const Angle &a2, const Angle &da2, bool isSelf=false);
 
 //---
 
@@ -426,14 +429,37 @@ void visitPath(const QPainterPath &path, PathVisitor &visitor);
 
 namespace CQChartsDrawUtil {
 
-void rectConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                          Angle &angle1, Angle &angle2, double gap=0.0, bool useCorners=true);
-bool rectConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
-                         Angle &angle, double gap, bool useCorners);
-void circleConnectionPoints(const BBox &rect1, const BBox &rect2, Point &p1, Point &p2,
-                            Angle &angle1, Angle &angle2, double gap=0.0);
-void circleConnectionPoint(const BBox &rect1, const BBox &rect2, Point &p,
-                           Angle &angle, double gap=0.0);
+struct ConnectPos {
+  Point p;
+  Angle angle;
+  int   slot { -1 };
+};
+
+struct RectConnectData {
+  bool          useCorners { false };
+  double        gap { 0.0 };
+  std::set<int> occupiedSlots;
+};
+
+struct CircleConnectData {
+  int           numSlots { -1 };
+  double        gap { 0.0 };
+  std::set<int> occupiedSlots;
+};
+
+void rectConnectionPoints(const BBox &rect1, const BBox &rect2,
+                          ConnectPos &pos1, ConnectPos &pos2,
+                          const RectConnectData &connectData=RectConnectData());
+bool rectConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
+                         const RectConnectData &connectData=RectConnectData());
+
+void circleConnectionPoints(const BBox &rect1, const BBox &rect2,
+                            ConnectPos &pos1, ConnectPos &pos2,
+                            const CircleConnectData &connectData=CircleConnectData());
+void circleConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
+                           const CircleConnectData &connectData=CircleConnectData());
+void circleConnectionPoint(const Point &c1, double r1, const Point &c2, double r2, ConnectPos &pos,
+                           const CircleConnectData &connectData=CircleConnectData());
 
 QPointF pathMidPoint(const QPainterPath &path);
 

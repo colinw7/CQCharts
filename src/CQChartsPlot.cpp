@@ -5747,7 +5747,7 @@ adjustDataRangeBBox(const BBox &bbox) const
 
   auto *th = const_cast<Plot *>(this);
 
-  //th->setWindowRange(dataRange);
+//th->setWindowRange(dataRange);
   th->displayRange_->setWindowRange(dataRange.getXMin(), dataRange.getYMin(),
                                     dataRange.getXMax(), dataRange.getYMax());
 

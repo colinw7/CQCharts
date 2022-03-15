@@ -3308,6 +3308,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void setInterrupt(bool b=true);
 
+  //---
+
   bool hasLockId() const { return updateData_.lockData.id; }
   void setLockId(const char *id) { updateData_.lockData.id = id; }
   void resetLockId() { updateData_.lockData.id = nullptr; }
@@ -3350,6 +3352,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Plot* plot   { nullptr };
     bool  locked { false };
   };
+
+  //---
 
   void drawBusy(QPainter *painter, const UpdateState &updateState) const;
 
