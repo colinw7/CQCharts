@@ -210,7 +210,7 @@ void
 CQChartsForceDirectedPlot::
 setNodeShape(const NodeShape &s)
 {
-  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { drawObjs(); } );
 }
 
 void
@@ -534,7 +534,11 @@ addIdConnections() const
     int id = idConnections.first;
 
     const auto &name  = connectionsData.name;
-    int         group = connectionsData.group;
+
+    int group = connectionsData.group;
+
+    if (group < 0)
+      group = 0;
 
     auto node = forceDirected_->newNode();
 
@@ -550,10 +554,8 @@ addIdConnections() const
       snode->setLabel(name.toStdString());
 
     snode->setMass (nodeMass_);
-    snode->setValue((1.0*group)/maxGroup_);
-    snode->setInd  (connectionsData.ind);
-
     snode->setGroup(group);
+    snode->setInd  (connectionsData.ind);
 
     if (connectionsData.value.isSet())
       snode->setNodeValue(connectionsData.value);
@@ -623,7 +625,8 @@ addIdConnections() const
 
     auto value = calcNodeValue(snode);
 
-    th->maxNodeValue_ = std::max(th->maxNodeValue_, value);
+    if (value.isSet())
+      th->maxNodeValue_ = std::max(th->maxNodeValue_, value.real());
   }
 }
 
@@ -1880,7 +1883,8 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
     else
       tableTip.addTableRow("Label", calcNodeLabel(node));
 
-    tableTip.addTableRow("Group", connectionsData.group);
+    if (connectionsData.group >= 0)
+      tableTip.addTableRow("Group", connectionsData.group);
 
     if (connectionsData.total.isSet())
       tableTip.addTableRow("Total", connectionsData.total.real());
@@ -1890,7 +1894,10 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
   else
     tableTip.addTableRow("Label", calcNodeLabel(node));
 
-  tableTip.addTableRow("Value", calcNodeValue(node));
+  auto value = calcNodeValue(node);
+
+  if (value.isSet())
+    tableTip.addTableRow("Value", value.real());
 }
 
 void
@@ -1900,7 +1907,9 @@ edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const
   auto edgeStr = QString::fromStdString(edge->label());
 
   tableTip.addTableRow("Label", edgeStr);
-  tableTip.addTableRow("Value", edge->value());
+
+  if (edge->value())
+    tableTip.addTableRow("Value", edge->value().value());
 
   auto *snode = dynamic_cast<Node *>(edge->source().get());
   auto *tnode = dynamic_cast<Node *>(edge->target().get());
@@ -1928,6 +1937,9 @@ nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const
 
   double minDist = 9999;
 
+  Edge *insideLineEdge  = nullptr;
+  Edge *insideSolidEdge = nullptr;
+
   for (auto &edge : forceDirected_->edges()) {
     auto *sedge = dynamic_cast<Edge *>(edge.get());
     assert(sedge);
@@ -1936,16 +1948,25 @@ nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const
       double d;
 
       if (CQChartsUtil::PointLineDistance(p, sedge->startPoint(), sedge->endPoint(), &d)) {
-        if (! insideEdge || d < minDist) {
-          insideEdge = sedge;
-          minDist    = d;
+        if (! insideLineEdge || d < minDist) {
+          insideLineEdge = sedge;
+          minDist        = d;
         }
       }
     }
     else {
-      if (! insideEdge && sedge->curvePath().contains(p.qpoint()))
-        insideEdge = sedge;
+      if (! insideSolidEdge && sedge->curvePath().contains(p.qpoint()))
+        insideSolidEdge = sedge;
     }
+  }
+
+  if (insideSolidEdge)
+    insideEdge = insideSolidEdge;
+  else {
+    auto pd = windowToPixelWidth(minDist);
+
+    if (pd < 4)
+      insideEdge = insideLineEdge;
   }
 }
 
@@ -2107,8 +2128,8 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
 
   double lw = 0.0;
 
-  if (isEdgeScaled())
-    lw = edgeWidth*edgeScale_*sedge->value();
+  if (isEdgeScaled() && sedge->value())
+    lw = edgeWidth*edgeScale_*sedge->value().value();
   else
     lw = edgeWidth;
 
@@ -2281,10 +2302,15 @@ CQChartsGeom::BBox
 CQChartsForceDirectedPlot::
 nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
 {
-  double s;
+  OptReal optValue;
 
   if (isNodeScaled())
-    s = calcScaledNodeValue(snode);
+    optValue = calcScaledNodeValue(snode);
+
+  double s;
+
+  if (optValue.isSet())
+    s = optValue.real();
   else
     s = lengthPlotWidth(nodeSize());
 
@@ -2300,30 +2326,41 @@ nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
   return BBox(p1.x() - xmn/2.0, p1.y() - ymn/2.0, p1.x() + xmn/2.0, p1.y() + ymn/2.0);
 }
 
-double
+CQChartsForceDirectedPlot::OptReal
 CQChartsForceDirectedPlot::
 calcNodeValue(Node *node) const
 {
-  if (node->nodeValue().isSet())
-    return node->nodeValue().real();
+  if      (node->nodeValue().isSet())
+    return node->nodeValue();
+  else if (node->value())
+    return OptReal(node->value().value());
   else
-    return node->value();
+    return OptReal();
 }
 
-double
+CQChartsForceDirectedPlot::OptReal
 CQChartsForceDirectedPlot::
 calcNormalizedNodeValue(Node *node) const
 {
   auto value = calcNodeValue(node);
+  if (! value.isSet()) return value;
 
-  return (value > 0.0 && maxNodeValue() > 0.0 ? value/maxNodeValue() : 0.0);
+  auto r    = value.real();
+  auto rmax = maxNodeValue();
+
+  return OptReal(r > 0.0 && rmax > 0.0 ? r/rmax : 0.0);
 }
 
-double
+CQChartsForceDirectedPlot::OptReal
 CQChartsForceDirectedPlot::
 calcScaledNodeValue(Node *node) const
 {
-  return lengthPlotWidth(nodeSize())*calcNormalizedNodeValue(node);
+  auto value = calcNormalizedNodeValue(node);
+  if (! value.isSet()) return value;
+
+  auto r = value.real();
+
+  return OptReal(lengthPlotWidth(nodeSize())*r);
 }
 
 QColor
@@ -2339,7 +2376,8 @@ calcNodeFillColor(Node *node) const
   else {
     auto value = calcNormalizedNodeValue(node);
 
-    colorInd = ColorInd(value);
+    if (value.isSet())
+      colorInd = ColorInd(value.real());
   }
 
   //---

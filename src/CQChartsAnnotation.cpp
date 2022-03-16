@@ -59,6 +59,37 @@ typeDescs()
   return names;
 }
 
+CQChartsAnnotation::Type
+CQChartsAnnotation::
+stringToType(const QString &str)
+{
+  if      (str == "group"          ) return Type::GROUP;
+  else if (str == "rect"           ) return Type::RECT;
+  else if (str == "ellipse"        ) return Type::ELLIPSE;
+  else if (str == "polygon"        ) return Type::POLYGON;
+  else if (str == "polylin"        ) return Type::POLYLINE;
+  else if (str == "text"           ) return Type::TEXT;
+  else if (str == "image"          ) return Type::IMAGE;
+  else if (str == "path"           ) return Type::PATH;
+  else if (str == "arrow"          ) return Type::ARROW;
+  else if (str == "arc"            ) return Type::ARC;
+  else if (str == "arc_connector"  ) return Type::ARC_CONNECTOR;
+  else if (str == "point"          ) return Type::POINT;
+  else if (str == "pie_slice"      ) return Type::PIE_SLICE;
+  else if (str == "axis"           ) return Type::AXIS;
+  else if (str == "key"            ) return Type::KEY;
+  else if (str == "point3d_set"    ) return Type::POINT3D_SET;
+  else if (str == "point_set"      ) return Type::POINT_SET;
+  else if (str == "value_set"      ) return Type::VALUE_SET;
+  else if (str == "button"         ) return Type::BUTTON;
+  else if (str == "widget"         ) return Type::WIDGET;
+  else if (str == "symbol_map_key" ) return Type::SYMBOL_MAP_KEY;
+
+  return Type::NONE;
+}
+
+//---
+
 CQChartsAnnotation::
 CQChartsAnnotation(View *view, Type type) :
  CQChartsTextBoxObj(view), type_(type)

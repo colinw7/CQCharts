@@ -4,9 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + unique model object names
  + format text in rect with scale and zoom
  + Force directed
-   + don't lose zoom on auto fit
+   + Custom Controls for node/edge scaling (auto size ?)
    + placement uses node size (min edge length)
    + overlapping connections (if to and from then adjust angles)
    + allow title

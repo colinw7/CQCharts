@@ -1,5 +1,6 @@
 #include <CQChartsEmptyPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
@@ -66,6 +67,9 @@ init()
   addAxes();
 
   addTitle();
+
+  xAxis()->setVisible(false);
+  yAxis()->setVisible(false);
 }
 
 void

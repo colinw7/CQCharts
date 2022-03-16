@@ -401,9 +401,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   BBox nodeBBox(const CForceDirected::NodeP &node, Node *snode) const;
 
-  double calcNodeValue(Node *node) const;
-  double calcNormalizedNodeValue(Node *node) const;
-  double calcScaledNodeValue(Node *node) const;
+  OptReal calcNodeValue(Node *node) const;
+  OptReal calcNormalizedNodeValue(Node *node) const;
+  OptReal calcScaledNodeValue(Node *node) const;
 
   QColor calcNodeFillColor(Node *node) const;
 
@@ -443,14 +443,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double    arrowWidth_ { 1.0 };               //!< edge arrow size factorr
 
   // connection data
-  IdConnectionsData idConnections_;              //!< id connections
-  StringIndMap      nameIdMap_;                  //!< node name index map
-  IndStringMap      idNameMap_;                  //!< node name index map
-  NodeMap           nodes_;                      //!< force directed nodes
-  ConnectionNodes   connectionNodes_;            //!< ids of force directed nodes
-  int               maxGroup_       { 0 };       //!< max group
-  double            maxNodeValue_   { 0.0 };     //!< max node value
-  double            maxEdgeValue_   { 0.0 };     //!< max edge value
+  IdConnectionsData idConnections_;          //!< id connections
+  StringIndMap      nameIdMap_;              //!< node name index map
+  IndStringMap      idNameMap_;              //!< node name index map
+  NodeMap           nodes_;                  //!< force directed nodes
+  ConnectionNodes   connectionNodes_;        //!< ids of force directed nodes
+  int               maxGroup_       { 0 };   //!< max group
+  double            maxNodeValue_   { 0.0 }; //!< max node value
+  double            maxEdgeValue_   { 0.0 }; //!< max edge value
 
   ForceDirectedP forceDirected_; //!< force directed class
 

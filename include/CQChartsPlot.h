@@ -2425,6 +2425,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   using Point3DArray = std::vector<CQChartsGeom::Point3D>;
 
+  Annotation *addAnnotation(CQChartsAnnotationType type);
+
+  // TODO: remove custom add annotation routines
   AnnotationGroup        *addAnnotationGroup       ();
   ArcAnnotation          *addArcAnnotation         (const Position &start, const Position &end);
   ArcConnectorAnnotation *addArcConnectorAnnotation(const Position &center, const Length &radius,
@@ -2460,12 +2463,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   WidgetAnnotation       *addWidgetAnnotation      (const Rect &rect, const Widget &widget);
   SymbolMapKeyAnnotation *addSymbolMapKeyAnnotation();
 
-  void addAnnotation(Annotation *annotation);
+  Annotation *addAnnotationI(Annotation *annotation);
+
+  template<typename TYPE>
+  TYPE *addAnnotationT(Plot *plot) {
+    return dynamic_cast<TYPE *>(addAnnotationI(new TYPE(plot)));
+  }
 
   template<typename TYPE>
   TYPE *addAnnotationT(TYPE *annotation) {
-    addAnnotation(annotation);
-    return annotation;
+    return dynamic_cast<TYPE *>(addAnnotationI(annotation));
   }
 
   // --- get annotation ---

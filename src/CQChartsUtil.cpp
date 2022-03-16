@@ -96,18 +96,18 @@ QString formatVar(const QVariant &var, const QString &fmt) {
      CPrintF(fmt.toStdString()), var_(var) {
     }
 
-    int   getInt     () const { bool ok; return var_.toInt(&ok); }
-    long  getLong    () const { bool ok; return var_.toInt(&ok); }
-    LLong getLongLong() const { bool ok; return var_.toInt(&ok); }
+    int   getInt     () const override { bool ok; return var_.toInt(&ok); }
+    long  getLong    () const override { bool ok; return var_.toInt(&ok); }
+    LLong getLongLong() const override { bool ok; return var_.toInt(&ok); }
 
-    double getDouble() const {
+    double getDouble() const override {
       bool ok;
       double r = var_.toDouble(&ok);
       if (CMathUtil::isZero(r)) r = 0.0;
       return r;
     }
 
-    std::string getString() const { return var_.toString().toStdString(); }
+    std::string getString() const override { return var_.toString().toStdString(); }
 
    private:
     QVariant var_;
@@ -1130,10 +1130,7 @@ QString pathToString(const CQChartsPath &path) {
 bool stringToPath(const QString &str, CQChartsPath &path) {
   path = CQChartsPath();
 
-  if (! path.fromString(str))
-    return false;
-
-  return true;
+  return path.fromString(str);
 }
 
 }
@@ -1149,10 +1146,7 @@ QString styleToString(const CQChartsStyle &style) {
 bool stringToStyle(const QString &str, CQChartsStyle &style) {
   style = CQChartsStyle();
 
-  if (! style.fromString(str))
-    return false;
-
-  return true;
+  return style.fromString(str);
 }
 
 }

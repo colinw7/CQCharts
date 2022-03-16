@@ -1437,6 +1437,68 @@ propertyItem(const QString &name, bool hidden) const
 
 //------
 
+CQChartsAnnotation *
+CQChartsView::
+addAnnotation(CQChartsAnnotationType annotationType)
+{
+  auto type = static_cast<CQChartsAnnotation::Type>(annotationType);
+
+  switch (type) {
+    case Annotation::Type::GROUP:
+      return addAnnotationT<AnnotationGroup>(this);
+    case Annotation::Type::RECT:
+      return addAnnotationT<CQChartsRectangleAnnotation>(this);
+    case Annotation::Type::ELLIPSE:
+      return addAnnotationT<CQChartsEllipseAnnotation>(this);
+    case Annotation::Type::POLYGON:
+      return addAnnotationT<CQChartsPolygonAnnotation>(this);
+    case Annotation::Type::POLYLINE:
+      return addAnnotationT<CQChartsPolylineAnnotation>(this);
+    case Annotation::Type::TEXT:
+      return addAnnotationT<CQChartsTextAnnotation>(this);
+    case Annotation::Type::IMAGE:
+      return addAnnotationT<CQChartsImageAnnotation>(this);
+    case Annotation::Type::PATH:
+      return addAnnotationT<CQChartsPathAnnotation>(this);
+    case Annotation::Type::ARROW:
+      return addAnnotationT<CQChartsArrowAnnotation>(this);
+    case Annotation::Type::ARC:
+      return addAnnotationT<CQChartsArcAnnotation>(this);
+#if 0
+    case Annotation::Type::ARC_CONNECTOR:
+      return addAnnotationT<CQChartsArcConnectorAnnotation>(this);
+#endif
+    case Annotation::Type::POINT:
+      return addAnnotationT<CQChartsPointAnnotation>(this);
+    case Annotation::Type::PIE_SLICE:
+      return addAnnotationT<CQChartsPieSliceAnnotation>(this);
+#if 0
+    case Annotation::Type::AXIS:
+      return addAnnotationT<CQChartsAxisAnnotation>(this);
+#endif
+    case Annotation::Type::KEY:
+      return addAnnotationT<CQChartsKeyAnnotation>(this);
+    case Annotation::Type::POINT3D_SET:
+      return addAnnotationT<CQChartsPoint3DSetAnnotation>(this);
+    case Annotation::Type::POINT_SET:
+      return addAnnotationT<CQChartsPointSetAnnotation>(this);
+    case Annotation::Type::VALUE_SET:
+      return addAnnotationT<CQChartsValueSetAnnotation>(this);
+    case Annotation::Type::BUTTON:
+      return addAnnotationT<CQChartsButtonAnnotation>(this);
+    case Annotation::Type::WIDGET:
+      return addAnnotationT<CQChartsWidgetAnnotation>(this);
+#if 0
+    case Annotation::Type::SYMBOL_MAP_KEY:
+      return addAnnotationT<CQChartsSymbolSizeMapKeyAnnotation>(this);
+#endif
+    default:
+      assert(false);
+  }
+
+  return nullptr;
+}
+
 CQChartsAnnotationGroup *
 CQChartsView::
 addAnnotationGroup()
@@ -1587,9 +1649,11 @@ addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
   return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
 
-void
+//------
+
+CQChartsView::Annotation *
 CQChartsView::
-addAnnotation(Annotation *annotation)
+addAnnotationI(Annotation *annotation)
 {
   annotations_.push_back(annotation);
 
@@ -1605,6 +1669,8 @@ addAnnotation(Annotation *annotation)
   //---
 
   emit annotationsChanged();
+
+  return annotation;
 }
 
 CQChartsAnnotation *

@@ -92,4 +92,29 @@ enum class CQChartsEdgeType {
   ROUNDED_LINE
 };
 
+enum class CQChartsAnnotationType {
+  NONE,
+  GROUP,
+  RECT,
+  ELLIPSE,
+  POLYGON,
+  POLYLINE,
+  TEXT,
+  IMAGE,
+  PATH,
+  ARROW,
+  ARC,
+  ARC_CONNECTOR,
+  POINT,
+  PIE_SLICE,
+  AXIS,
+  KEY,
+  POINT3D_SET,
+  POINT_SET,
+  VALUE_SET,
+  BUTTON,
+  WIDGET,
+  SYMBOL_MAP_KEY
+};
+
 #endif

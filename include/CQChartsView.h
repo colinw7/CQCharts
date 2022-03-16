@@ -645,6 +645,9 @@ class CQChartsView : public QFrame,
 
   // --- add annotation ---
 
+  Annotation *addAnnotation(CQChartsAnnotationType type);
+
+  // TODO: remove custom add annotation routines
   AnnotationGroup     *addAnnotationGroup    ();
   ArcAnnotation       *addArcAnnotation      (const Position &start, const Position &end);
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
@@ -670,12 +673,16 @@ class CQChartsView : public QFrame,
   WidgetAnnotation    *addWidgetAnnotation   (const Position &pos, const Widget &widget);
   WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
 
-  void addAnnotation(Annotation *annotation);
+  Annotation *addAnnotationI(Annotation *annotation);
+
+  template<typename TYPE>
+  TYPE *addAnnotationT(View *view) {
+    return dynamic_cast<TYPE *>(addAnnotationI(new TYPE(view)));
+  }
 
   template<typename TYPE>
   TYPE *addAnnotationT(TYPE *annotation) {
-    addAnnotation(annotation);
-    return annotation;
+    return dynamic_cast<TYPE *>(addAnnotationI(annotation));
   }
 
   // --- get annotation ---

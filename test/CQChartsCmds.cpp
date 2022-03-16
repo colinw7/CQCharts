@@ -174,6 +174,8 @@ addCommands()
     // annotations
     addCommand("create_charts_annotation_group",
                new CQChartsCreateChartsAnnotationGroupCmd       (this));
+    addCommand("create_charts_annotation",
+               new CQChartsCreateChartsAnnotationCmd            (this));
     addCommand("create_charts_arc_annotation",
                new CQChartsCreateChartsArcAnnotationCmd         (this));
     addCommand("create_charts_arc_connector_annotation",
@@ -7626,6 +7628,463 @@ execCmd(CQChartsCmdArgs &argv)
 //------
 
 void
+CQChartsCreateChartsAnnotationGroupCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsAnnotationGroupCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsAnnotationGroupCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+#if 0
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+#endif
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsAnnotationGroupCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  //---
+
+  CQChartsAnnotationGroup *annotation = nullptr;
+
+  if      (plot)
+    annotation = plot->addAnnotationGroup();
+  else if (view)
+    annotation = view->addAnnotationGroup();
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-type", ArgType::String, "annotation type").setRequired();
+}
+
+QStringList
+CQChartsCreateChartsAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  auto typeStr = argv.getParseStr("type");
+
+  auto type = CQChartsAnnotation::stringToType(typeStr);
+
+  if (type == CQChartsAnnotation::Type::NONE)
+    return errorMsg(QString("Invalid type '%1'").arg(typeStr));
+
+  auto type1 = static_cast<CQChartsAnnotationType>(type);
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  //---
+
+  CQChartsAnnotation *annotation = nullptr;
+
+  if      (plot)
+    annotation = plot->addAnnotation(type1);
+  else if (view)
+    annotation = view->addAnnotation(type1);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsArcAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-start", ArgType::Position, "start position");
+  addArg(argv, "-end"  , ArgType::Position, "end position");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsArcAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsArcAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsArcAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  auto start = argv.getParsePosition(view, plot, "start");
+  auto end   = argv.getParsePosition(view, plot, "end"  );
+
+  if (! start.isValid() || ! end.isValid())
+    return errorMsg("Invalid start/end");
+
+  //---
+
+  //if (start == end)
+  //  return errorMsg("Arc has zero length");
+
+  CQChartsArcAnnotation *annotation = nullptr;
+
+  if      (plot)
+    annotation = plot->addArcAnnotation(start, end);
+  else if (view)
+    annotation = view->addArcAnnotation(start, end);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-plot", ArgType::String, "plot name");
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-center", ArgType::Position, "center");
+  addArg(argv, "-radius", ArgType::Length  , "radius");
+
+  addArg(argv, "-src_start_angle", ArgType::String, "source start angle");
+  addArg(argv, "-src_span_angle" , ArgType::String, "source span angle");
+
+  addArg(argv, "-dest_start_angle", ArgType::String, "destination start angle");
+  addArg(argv, "-dest_span_angle" , ArgType::String, "destination span angle");
+
+  addArg(argv, "-self", ArgType::Boolean, "connects to self");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsArcConnectorAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  //auto errorMsg = [&](const QString &msg) { charts()->errorMsg(msg); return false; };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsArcConnectorAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getPlotArg(argv, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  auto center = argv.getParsePosition(nullptr, plot, "center");
+  auto radius = argv.getParseLength  (nullptr, plot, "radius");
+
+  auto srcStartAngle = argv.getParseAngle("src_start_angle");
+  auto srcSpanAngle  = argv.getParseAngle("src_span_angle");
+
+  auto destStartAngle = argv.getParseAngle("dest_start_angle");
+  auto destSpanAngle  = argv.getParseAngle("dest_span_angle");
+
+  auto self = argv.getParseBool("self");
+
+  //---
+
+  auto *annotation =
+    plot->addArcConnectorAnnotation(center, radius, srcStartAngle, srcSpanAngle,
+                                    destStartAngle, destSpanAngle, self);
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
 CQChartsCreateChartsArrowAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
@@ -7924,241 +8383,6 @@ execCmd(CQChartsCmdArgs &argv)
 //------
 
 void
-CQChartsCreateChartsArcAnnotationCmd::
-addCmdArgs(CQChartsCmdArgs &argv)
-{
-  argv.startCmdGroup(CmdGroup::Type::OneReq);
-  addArg(argv, "-view", ArgType::String, "view name");
-  addArg(argv, "-plot", ArgType::String, "plot name");
-  argv.endCmdGroup();
-
-  addArg(argv, "-group", ArgType::String, "annotation group");
-
-  addArg(argv, "-id" , ArgType::String, "annotation id" );
-  addArg(argv, "-tip", ArgType::String, "annotation tip");
-
-  addArg(argv, "-start", ArgType::Position, "start position");
-  addArg(argv, "-end"  , ArgType::Position, "end position");
-
-  addArg(argv, "-properties", ArgType::String, "name_values");
-}
-
-QStringList
-CQChartsCreateChartsArcAnnotationCmd::
-getArgValues(const QString &arg, const NameValueMap &)
-{
-  if      (arg == "view") return cmds()->viewArgValues();
-  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
-
-  return QStringList();
-}
-
-bool
-CQChartsCreateChartsArcAnnotationCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts()->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCreateChartsArcAnnotationCmd::exec");
-
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  // get parent plot or view
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if (! cmds()->getViewPlotArg(argv, view, plot))
-    return false;
-
-  //---
-
-  // get parent group
-  CQChartsAnnotationGroup *group = nullptr;
-
-  if (argv.hasParseArg("group")) {
-    group = dynamic_cast<CQChartsAnnotationGroup *>(
-              cmds()->getAnnotationByName(argv.getParseStr("group")));
-    if (! group) return false;
-  }
-
-  //---
-
-  // get id and tip
-  auto id    = argv.getParseStr("id");
-  auto tipId = argv.getParseStr("tip");
-
-  auto start = argv.getParsePosition(view, plot, "start");
-  auto end   = argv.getParsePosition(view, plot, "end"  );
-
-  if (! start.isValid() || ! end.isValid())
-    return errorMsg("Invalid start/end");
-
-  //---
-
-  //if (start == end)
-  //  return errorMsg("Arc has zero length");
-
-  CQChartsArcAnnotation *annotation = nullptr;
-
-  if      (plot)
-    annotation = plot->addArcAnnotation(start, end);
-  else if (view)
-    annotation = view->addArcAnnotation(start, end);
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  //---
-
-  if (group)
-    group->addAnnotation(annotation);
-
-  //---
-
-  // set properties
-  cmds()->setAnnotationArgProperties(argv, annotation);
-
-  //---
-
-  return cmdBase_->setCmdRc(annotation->pathId());
-}
-
-//------
-
-void
-CQChartsCreateChartsArcConnectorAnnotationCmd::
-addCmdArgs(CQChartsCmdArgs &argv)
-{
-  addArg(argv, "-plot", ArgType::String, "plot name");
-
-  addArg(argv, "-group", ArgType::String, "annotation group");
-
-  addArg(argv, "-id" , ArgType::String, "annotation id" );
-  addArg(argv, "-tip", ArgType::String, "annotation tip");
-
-  addArg(argv, "-center", ArgType::Position, "center");
-  addArg(argv, "-radius", ArgType::Length  , "radius");
-
-  addArg(argv, "-src_start_angle", ArgType::String, "source start angle");
-  addArg(argv, "-src_span_angle" , ArgType::String, "source span angle");
-
-  addArg(argv, "-dest_start_angle", ArgType::String, "destination start angle");
-  addArg(argv, "-dest_span_angle" , ArgType::String, "destination span angle");
-
-  addArg(argv, "-self", ArgType::Boolean, "connects to self");
-
-  addArg(argv, "-properties", ArgType::String, "name_values");
-}
-
-QStringList
-CQChartsCreateChartsArcConnectorAnnotationCmd::
-getArgValues(const QString &arg, const NameValueMap &)
-{
-  if (arg == "plot") return cmds()->plotArgValues(nullptr);
-
-  return QStringList();
-}
-
-bool
-CQChartsCreateChartsArcConnectorAnnotationCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-  //auto errorMsg = [&](const QString &msg) { charts()->errorMsg(msg); return false; };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCreateChartsArcConnectorAnnotationCmd::exec");
-
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  // get parent plot
-  CQChartsPlot *plot = nullptr;
-
-  if (! cmds()->getPlotArg(argv, plot))
-    return false;
-
-  //---
-
-  // get parent group
-  CQChartsAnnotationGroup *group = nullptr;
-
-  if (argv.hasParseArg("group")) {
-    group = dynamic_cast<CQChartsAnnotationGroup *>(
-              cmds()->getAnnotationByName(argv.getParseStr("group")));
-    if (! group) return false;
-  }
-
-  //---
-
-  // get id and tip
-  auto id    = argv.getParseStr("id");
-  auto tipId = argv.getParseStr("tip");
-
-  auto center = argv.getParsePosition(nullptr, plot, "center");
-  auto radius = argv.getParseLength  (nullptr, plot, "radius");
-
-  auto srcStartAngle = argv.getParseAngle("src_start_angle");
-  auto srcSpanAngle  = argv.getParseAngle("src_span_angle");
-
-  auto destStartAngle = argv.getParseAngle("dest_start_angle");
-  auto destSpanAngle  = argv.getParseAngle("dest_span_angle");
-
-  auto self = argv.getParseBool("self");
-
-  //---
-
-  auto *annotation =
-    plot->addArcConnectorAnnotation(center, radius, srcStartAngle, srcSpanAngle,
-                                    destStartAngle, destSpanAngle, self);
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  //---
-
-  if (group)
-    group->addAnnotation(annotation);
-
-  //---
-
-  // set properties
-  cmds()->setAnnotationArgProperties(argv, annotation);
-
-  //---
-
-  return cmdBase_->setCmdRc(annotation->pathId());
-}
-
-//------
-
-void
 CQChartsCreateChartsAxisAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
@@ -8266,6 +8490,144 @@ execCmd(CQChartsCmdArgs &argv)
     annotation->setTipId(tipId);
 
   annotation->setPosition(position);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsButtonAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-position", ArgType::Position, "position");
+
+  addArg(argv, "-text", ArgType::String, "text");
+
+  addArg(argv, "-font" , ArgType::String, "font");
+  addArg(argv, "-color", ArgType::Color , "color");
+  addArg(argv, "-alpha", ArgType::Real  , "alpha");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsButtonAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsButtonAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsButtonAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  auto text = argv.getParseStr("text", "Annotation");
+
+  CQChartsTextData textData;
+
+  textData.setFont (argv.getParseFont ("font" , textData.font      ()));
+  textData.setColor(argv.getParseColor("color", textData.color     ()));
+  textData.setAlpha(argv.getParseAlpha("alpha", textData.alpha     ()));
+
+  //---
+
+  CQChartsButtonAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("position")) {
+    auto pos = argv.getParsePosition(view, plot, "position");
+
+    if      (plot)
+      annotation = plot->addButtonAnnotation(pos, text);
+    else if (view)
+      annotation = view->addButtonAnnotation(pos, text);
+  }
+  else {
+    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
+
+    if      (plot)
+      annotation = plot->addButtonAnnotation(pos, text);
+    else if (view)
+      annotation = view->addButtonAnnotation(pos, text);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setTextData(textData);
 
   //---
 
@@ -8430,115 +8792,6 @@ execCmd(CQChartsCmdArgs &argv)
     annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
-
-  //---
-
-  if (group)
-    group->addAnnotation(annotation);
-
-  //---
-
-  // set properties
-  cmds()->setAnnotationArgProperties(argv, annotation);
-
-  //---
-
-  return cmdBase_->setCmdRc(annotation->pathId());
-}
-
-//------
-
-void
-CQChartsCreateChartsAnnotationGroupCmd::
-addCmdArgs(CQChartsCmdArgs &argv)
-{
-  argv.startCmdGroup(CmdGroup::Type::OneReq);
-  addArg(argv, "-view", ArgType::String, "view name");
-  addArg(argv, "-plot", ArgType::String, "plot name");
-  argv.endCmdGroup();
-
-  addArg(argv, "-group", ArgType::String, "annotation group");
-
-  addArg(argv, "-id" , ArgType::String, "annotation id" );
-  addArg(argv, "-tip", ArgType::String, "annotation tip");
-
-  addArg(argv, "-properties", ArgType::String, "name_values");
-}
-
-QStringList
-CQChartsCreateChartsAnnotationGroupCmd::
-getArgValues(const QString &arg, const NameValueMap &)
-{
-  if      (arg == "view") return cmds()->viewArgValues();
-  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
-
-  return QStringList();
-}
-
-bool
-CQChartsCreateChartsAnnotationGroupCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-#if 0
-  auto errorMsg = [&](const QString &msg) {
-    charts()->errorMsg(msg);
-    return false;
-  };
-#endif
-
-  //---
-
-  CQPerfTrace trace("CQChartsCreateChartsAnnotationGroupCmd::exec");
-
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  // get parent plot or view
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if (! cmds()->getViewPlotArg(argv, view, plot))
-    return false;
-
-  //---
-
-  // get parent group
-  CQChartsAnnotationGroup *group = nullptr;
-
-  if (argv.hasParseArg("group")) {
-    group = dynamic_cast<CQChartsAnnotationGroup *>(
-              cmds()->getAnnotationByName(argv.getParseStr("group")));
-    if (! group) return false;
-  }
-
-  //---
-
-  // get id and tip
-  auto id    = argv.getParseStr("id");
-  auto tipId = argv.getParseStr("tip");
-
-  //---
-
-  CQChartsAnnotationGroup *annotation = nullptr;
-
-  if      (plot)
-    annotation = plot->addAnnotationGroup();
-  else if (view)
-    annotation = view->addAnnotationGroup();
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
 
   //---
 
@@ -10501,144 +10754,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   if (tipId != "")
     annotation->setTipId(tipId);
-
-  //---
-
-  if (group)
-    group->addAnnotation(annotation);
-
-  //---
-
-  // set properties
-  cmds()->setAnnotationArgProperties(argv, annotation);
-
-  //---
-
-  return cmdBase_->setCmdRc(annotation->pathId());
-}
-
-//------
-
-void
-CQChartsCreateChartsButtonAnnotationCmd::
-addCmdArgs(CQChartsCmdArgs &argv)
-{
-  argv.startCmdGroup(CmdGroup::Type::OneReq);
-  addArg(argv, "-view", ArgType::String, "view name");
-  addArg(argv, "-plot", ArgType::String, "plot name");
-  argv.endCmdGroup();
-
-  addArg(argv, "-group", ArgType::String, "annotation group");
-
-  addArg(argv, "-id" , ArgType::String, "annotation id" );
-  addArg(argv, "-tip", ArgType::String, "annotation tip");
-
-  addArg(argv, "-position", ArgType::Position, "position");
-
-  addArg(argv, "-text", ArgType::String, "text");
-
-  addArg(argv, "-font" , ArgType::String, "font");
-  addArg(argv, "-color", ArgType::Color , "color");
-  addArg(argv, "-alpha", ArgType::Real  , "alpha");
-
-  addArg(argv, "-properties", ArgType::String, "name_values");
-}
-
-QStringList
-CQChartsCreateChartsButtonAnnotationCmd::
-getArgValues(const QString &arg, const NameValueMap &)
-{
-  if      (arg == "view") return cmds()->viewArgValues();
-  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
-
-  return QStringList();
-}
-
-bool
-CQChartsCreateChartsButtonAnnotationCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts()->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCreateChartsButtonAnnotationCmd::exec");
-
-  addArgs(argv);
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  // get parent plot or view
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if (! cmds()->getViewPlotArg(argv, view, plot))
-    return false;
-
-  //---
-
-  // get parent group
-  CQChartsAnnotationGroup *group = nullptr;
-
-  if (argv.hasParseArg("group")) {
-    group = dynamic_cast<CQChartsAnnotationGroup *>(
-              cmds()->getAnnotationByName(argv.getParseStr("group")));
-    if (! group) return false;
-  }
-
-  //---
-
-  // get id and tip
-  auto id    = argv.getParseStr("id");
-  auto tipId = argv.getParseStr("tip");
-
-  auto text = argv.getParseStr("text", "Annotation");
-
-  CQChartsTextData textData;
-
-  textData.setFont (argv.getParseFont ("font" , textData.font      ()));
-  textData.setColor(argv.getParseColor("color", textData.color     ()));
-  textData.setAlpha(argv.getParseAlpha("alpha", textData.alpha     ()));
-
-  //---
-
-  CQChartsButtonAnnotation *annotation = nullptr;
-
-  if      (argv.hasParseArg("position")) {
-    auto pos = argv.getParsePosition(view, plot, "position");
-
-    if      (plot)
-      annotation = plot->addButtonAnnotation(pos, text);
-    else if (view)
-      annotation = view->addButtonAnnotation(pos, text);
-  }
-  else {
-    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
-
-    if      (plot)
-      annotation = plot->addButtonAnnotation(pos, text);
-    else if (view)
-      annotation = view->addButtonAnnotation(pos, text);
-  }
-
-  if (! annotation)
-    return errorMsg("Failed to create annotation");
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  annotation->setTextData(textData);
 
   //---
 

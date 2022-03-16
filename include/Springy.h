@@ -1,6 +1,8 @@
 #ifndef Springy_H
 #define Springy_H
 
+#include <boost/optional.hpp>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -9,6 +11,8 @@
 #include <cassert>
 
 namespace Springy {
+  using OptReal = boost::optional<double>;
+
   class Node;
   using NodeP = std::shared_ptr<Node>;
 
@@ -174,8 +178,8 @@ namespace Springy {
     const std::string &label() const { return label_; }
     void setLabel(const std::string &label) { label_ = label; }
 
-    double value() const { return value_; }
-    void setValue(double v) { value_ = v; }
+    const OptReal &value() const { return value_; }
+    void setValue(const OptReal &v) { value_ = v; }
 
     bool isFixed() const { return fixed_; }
     void setFixed(bool b) { fixed_ = b; }
@@ -185,7 +189,7 @@ namespace Springy {
     Vector      pos_;              //!< position
     double      mass_   { 1.0 };   //!< mass
     std::string label_;            //!< label
-    double      value_  { 0.0 };   //!< value
+    OptReal     value_;            //!< value
     bool        fixed_  { false }; //!< is fixed
   };
 
@@ -215,8 +219,8 @@ namespace Springy {
     double length() const { return length_; }
     void setLength(double l) { length_ = l; }
 
-    double value() const { return value_; }
-    void setValue(double v) { value_ = v; }
+    const OptReal &value() const { return value_; }
+    void setValue(const OptReal &v) { value_ = v; }
 
     const std::string &label() const { return label_; }
     void setLabel(const std::string &label) { label_ = label; }
@@ -226,7 +230,7 @@ namespace Springy {
     NodeP       source_;         //!< source node
     NodeP       target_;         //!< target node
     double      length_ { 1.0 }; //!< length
-    double      value_  { 0.0 }; //!< value
+    OptReal     value_;          //!< value
     std::string label_;          //!< label
   };
 

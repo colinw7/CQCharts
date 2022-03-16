@@ -284,6 +284,7 @@ CQCHARTS_DEF_CMD(ExecuteChartsSlot)
 
 // annotation
 CQCHARTS_DEF_CMD(CreateChartsAnnotationGroup)
+CQCHARTS_DEF_CMD(CreateChartsAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArcAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArcConnectorAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation)
