@@ -29,6 +29,7 @@ class CQChartsModelView : public CQModelView {
  ~CQChartsModelView();
 
   CQCharts *charts() const { return charts_; }
+  void setCharts(CQCharts *charts);
 
   ModelP modelP() const { return model_; }
   void setModelP(const ModelP &model);

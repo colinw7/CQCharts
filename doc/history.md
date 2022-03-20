@@ -1385,3 +1385,6 @@
  + allow query filter symbol size, symbol type and color columns
 # 3/10/2022
  + Update force directed plot to match latest graph features
+# 3/20/2022
+ + Support multiple data columns in pivot model
+ + Improve annotation widget handling and add more widgets

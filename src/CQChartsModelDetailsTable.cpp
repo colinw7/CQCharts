@@ -11,7 +11,7 @@
 // TODO: create model and use CQChartsModelView/CQModelView
 
 CQChartsModelDetailsTable::
-CQChartsModelDetailsTable(CQChartsModelData *modelData) :
+CQChartsModelDetailsTable(ModelData *modelData) :
  QFrame(nullptr)
 {
   setObjectName("detailsTable");
@@ -34,24 +34,47 @@ CQChartsModelDetailsTable(CQChartsModelData *modelData) :
 
 void
 CQChartsModelDetailsTable::
-setModelData(CQChartsModelData *modelData)
+setCharts(CQCharts *charts)
+{
+  charts_ = charts;
+}
+
+int
+CQChartsModelDetailsTable::
+modelInd() const
+{
+  return (modelData() ? modelData()->ind() : -1);
+}
+
+void
+CQChartsModelDetailsTable::
+setModelInd(int ind)
+{
+  auto *modelData = (charts_ ? charts_->getModelDataByInd(ind) : nullptr);
+  if (! modelData) return;
+
+  setModelData(modelData);
+}
+
+void
+CQChartsModelDetailsTable::
+setModelData(ModelData *modelData)
 {
   if (modelData != modelData_) {
-    if (modelData_) {
-      auto *charts = modelData_->charts();
-
+    if (modelData_)
       disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
-      disconnect(charts, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
-    }
 
-    modelData_ = modelData;
+    if (charts_)
+      disconnect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 
-    if (modelData_) {
-      auto *charts = modelData_->charts();
+    modelData_ = const_cast<ModelData *>(modelData);
+    charts_    = (modelData_ ? modelData_->charts() : nullptr);
 
+    if (modelData_)
       connect(modelData_, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
-      connect(charts, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
-    }
+
+    if (charts_)
+      connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 
     if (isAutoUpdate())
       update();
@@ -80,7 +103,7 @@ void
 CQChartsModelDetailsTable::
 modelTypeChangedSlot(int modelInd)
 {
-  if (modelData_ && modelData_->ind() == modelInd)
+  if (modelData() && modelData()->ind() == modelInd)
     checkedUpdate();
 }
 
@@ -109,10 +132,8 @@ update()
 
   //---
 
-  if (! modelData_)
-    return;
-
-  auto *details = modelData_->details();
+  auto *details = (modelData() ? modelData()->details() : nullptr);
+  if (! details) return;
 
   int  nc     = details->numColumns    ();
 //int  nr     = details->numRows       ();

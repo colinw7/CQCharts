@@ -36,6 +36,7 @@
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelDetailsTable.h>
+#include <CQChartsModelDetailsWidget.h>
 #include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsModelColumnDataControl.h>
 #include <CQChartsModelExprControl.h>
@@ -14933,6 +14934,24 @@ CQChartsWidgetAnnotation *
 CQChartsPlot::
 addWidgetAnnotation(const Position &pos, const Widget &widget)
 {
+  initWidgetAnnotation(widget);
+
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, pos, widget));
+}
+
+CQChartsWidgetAnnotation *
+CQChartsPlot::
+addWidgetAnnotation(const Rect &rect, const Widget &widget)
+{
+  initWidgetAnnotation(widget);
+
+  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
+}
+
+void
+CQChartsPlot::
+initWidgetAnnotation(const Widget &widget)
+{
   auto *control = dynamic_cast<CQChartsPlotControlIFace *>(widget.widget());
 
   if (control) {
@@ -14943,36 +14962,32 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
     controls_.push_back(control);
   }
 
-  auto *controlFrame = dynamic_cast<CQChartsPlotControlFrame *>(widget.widget());
-
-  if (controlFrame)
-    controlFrame->setPlot(this);
-
   //---
 
-  auto *propertyEditGroup = dynamic_cast<CQChartsPlotPropertyEditGroup *>(widget.widget());
+  auto widgetIFace = dynamic_cast<CQChartsWidgetIFace *>(widget.widget());
 
-  if (propertyEditGroup)
-    propertyEditGroup->setPlot(this);
-
-  auto *propertyEdit = dynamic_cast<CQChartsPlotPropertyEdit *>(widget.widget());
-
-  if (propertyEdit)
-    propertyEdit->setPlot(this);
+  if (widgetIFace) {
+    widgetIFace->setCharts(charts());
+    widgetIFace->setView  (view());
+    widgetIFace->setPlot  (this);
+  }
 
   //---
 
   auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget.widget());
 
-  if (modelHolder) {
-    modelHolder->setCharts(charts());
+  if (modelHolder)
     modelHolder->setModel(model(), isHierarchical());
-  }
 
   auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget.widget());
 
   if (detailsTable)
     detailsTable->setModelData(getModelData());
+
+  auto *detailsWidget = dynamic_cast<CQChartsModelDetailsWidget *>(widget.widget());
+
+  if (detailsWidget)
+    detailsWidget->setModelData(getModelData());
 
   //---
 
@@ -14985,17 +15000,6 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
 
   if (modelExpr)
     modelExpr->setModelData(getModelData());
-
-  //---
-
-  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, pos, widget));
-}
-
-CQChartsWidgetAnnotation *
-CQChartsPlot::
-addWidgetAnnotation(const Rect &rect, const Widget &widget)
-{
-  return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
 
 CQChartsSymbolSizeMapKeyAnnotation *

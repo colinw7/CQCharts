@@ -43,7 +43,8 @@ CQChartsModelView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
+  if (charts_)
+    connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 CQChartsModelView::
@@ -54,6 +55,19 @@ CQChartsModelView::
 
   delete delegate_;
   delete match_;
+}
+
+void
+CQChartsModelView::
+setCharts(CQCharts *charts)
+{
+  if (charts_)
+    disconnect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
+
+  charts_ = charts;
+
+  if (charts_)
+    connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 void

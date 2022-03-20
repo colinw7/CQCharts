@@ -86,6 +86,13 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
   layout->addWidget(detailsTable_);
 }
 
+void
+CQChartsModelDetailsWidget::
+setCharts(CQCharts *charts)
+{
+  charts_ = charts;
+}
+
 bool
 CQChartsModelDetailsWidget::
 isFlip() const
@@ -102,7 +109,14 @@ setFlip(bool b)
 
 void
 CQChartsModelDetailsWidget::
-setModelData(CQChartsModelData *modelData, bool invalidate)
+setModelData(ModelData *modelData)
+{
+  invalidateModelData(const_cast<ModelData *>(modelData));
+}
+
+void
+CQChartsModelDetailsWidget::
+invalidateModelData(ModelData *modelData, bool invalidate)
 {
   if (modelData != modelData_) {
     if (modelData_)

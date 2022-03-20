@@ -26,6 +26,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsPixelPaintDevice.h>
 #include <CQChartsSymbolEditor.h>
+#include <CQChartsModelTable.h>
 
 #include <CQChartsPlotCustomControls.h>
 #include <CQChartsPlotControlWidgets.h>
@@ -203,80 +204,6 @@ class CQChartsPlotTip : public CQToolTipIFace {
 #endif
 
 //------
-
-class CQChartsViewSettingsModelTable : public CQTableWidget {
- public:
-  CQChartsViewSettingsModelTable() {
-    setObjectName("modelTable");
-
-    horizontalHeader()->setStretchLastSection(true);
-
-  //setSelectionMode(ExtendedSelection);
-
-    setSelectionBehavior(QAbstractItemView::SelectRows);
-  }
-
-  void updateModels(CQCharts *charts) {
-    CQCharts::ModelDatas modelDatas;
-
-    charts->getModelDatas(modelDatas);
-
-    clear();
-
-    setColumnCount(4);
-    setRowCount(int(modelDatas.size()));
-
-    setHorizontalHeaderItem(0, new QTableWidgetItem("Name"       ));
-    setHorizontalHeaderItem(1, new QTableWidgetItem("Index"      ));
-    setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"   ));
-    setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
-
-    auto createItem = [&](const QString &name, int r, int c) {
-      auto *item = new QTableWidgetItem(name);
-
-      item->setToolTip(name);
-      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-      setItem(r, c, item);
-
-      return item;
-    };
-
-    int i = 0;
-
-    for (const auto &modelData : modelDatas) {
-      auto *nameItem = createItem(modelData->id(), i, 0);
-
-      nameItem->setData(Qt::UserRole, modelData->ind());
-
-      (void) createItem(QString::number(modelData->ind()), i, 1);
-      (void) createItem(modelData->filename()            , i, 2);
-      (void) createItem(modelData->model()->objectName() , i, 3);
-
-      ++i;
-    }
-  }
-
-  long selectedModel() const {
-    auto items = selectedItems();
-
-    for (int i = 0; i < items.length(); ++i) {
-      auto *item = items[i];
-      if (item->column() != 0) continue;
-
-      bool ok;
-
-      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-
-      if (ok)
-        return ind;
-    }
-
-    return -1;
-  }
-};
-
-//---
 
 class CQChartsViewSettingsPlotTable : public CQTableWidget {
  public:
@@ -1193,6 +1120,11 @@ void
 CQChartsViewSettings::
 initModelsFrame(QFrame *modelsFrame)
 {
+  auto *view   = window_->view();
+  auto *charts = view->charts();
+
+  //---
+
   auto *modelsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(modelsFrame, 2, 2);
 
   //----
@@ -1214,7 +1146,7 @@ initModelsFrame(QFrame *modelsFrame)
 
   //--
 
-  modelsWidgets_.modelTable = new CQChartsViewSettingsModelTable;
+  modelsWidgets_.modelTable = new CQChartsModelTable(charts);
 
   connect(modelsWidgets_.modelTable, SIGNAL(itemSelectionChanged()),
           this, SLOT(modelsSelectionChangeSlot()));
@@ -1231,9 +1163,6 @@ initModelsFrame(QFrame *modelsFrame)
   modelsSplit->addWidget(modelsWidgets_.detailsFrame, "Details");
 
   //--
-
-  auto *view   = window_->view();
-  auto *charts = view->charts();
 
   modelsWidgets_.detailsWidget = new CQChartsModelDetailsWidget(charts);
 
@@ -2212,12 +2141,6 @@ void
 CQChartsViewSettings::
 updateModels()
 {
-  auto *charts = window_->view()->charts();
-
-  modelsWidgets_.modelTable->updateModels(charts);
-
-  //---
-
   invalidateModelDetails(false);
 }
 
@@ -2226,12 +2149,6 @@ void
 CQChartsViewSettings::
 updateModelsData()
 {
-  auto *charts = window_->view()->charts();
-
-  modelsWidgets_.modelTable->updateModels(charts);
-
-  //---
-
   invalidateModelDetails(true);
 }
 
@@ -2243,7 +2160,7 @@ invalidateModelDetails(bool changed)
 
   auto *modelData = charts->currentModelData();
 
-  modelsWidgets_.detailsWidget->setModelData(modelData, /*invalidate*/changed);
+  modelsWidgets_.detailsWidget->invalidateModelData(modelData, /*invalidate*/changed);
 }
 
 void
@@ -2291,9 +2208,7 @@ CQChartsViewSettings::
 removeModelSlot()
 {
   long ind = modelsWidgets_.modelTable->selectedModel();
-
-  if (ind < 0)
-    return;
+  if (ind < 0) return;
 
   auto *charts = window_->view()->charts();
 
@@ -2308,9 +2223,7 @@ CQChartsViewSettings::
 createPlotModelSlot()
 {
   long ind = modelsWidgets_.modelTable->selectedModel();
-
-  if (ind < 0)
-    return;
+  if (ind < 0) return;
 
   auto *charts = window_->view()->charts();
 

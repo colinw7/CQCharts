@@ -1,6 +1,8 @@
 #ifndef CQChartsPlotPropertyEdit_H
 #define CQChartsPlotPropertyEdit_H
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 
 class CQChartsPlotPropertyEdit;
@@ -14,7 +16,7 @@ class QVBoxLayout;
  * \brief Widget to hold a Group of Plot Property Editors
  * \ingroup Charts
  */
-class CQChartsPlotPropertyEditGroup : public QFrame {
+class CQChartsPlotPropertyEditGroup : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
@@ -24,7 +26,7 @@ class CQChartsPlotPropertyEditGroup : public QFrame {
   CQChartsPlotPropertyEditGroup(Plot *plot=nullptr);
 
   const Plot *plot() const { return plot_; }
-  void setPlot(Plot *p);
+  void setPlot(Plot *p) override;
 
   void addEdit(CQChartsPlotPropertyEdit *edit);
 
@@ -48,7 +50,7 @@ class CQChartsPlotPropertyEditGroup : public QFrame {
  * \brief Plot Property Editor with optional Label
  * \ingroup Charts
  */
-class CQChartsPlotPropertyEdit : public QFrame {
+class CQChartsPlotPropertyEdit : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(QString propertyName READ propertyName WRITE setPropertyName)
@@ -61,7 +63,7 @@ class CQChartsPlotPropertyEdit : public QFrame {
   CQChartsPlotPropertyEdit(Plot *plot=nullptr, const QString &propertyName="");
 
   const Plot *plot() const { return plot_; }
-  void setPlot(Plot *p);
+  void setPlot(Plot *p) override;
 
   const QString &propertyName() const { return propertyName_; }
   void setPropertyName(const QString &s);

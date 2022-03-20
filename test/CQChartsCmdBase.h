@@ -174,6 +174,10 @@ class CQChartsCmdBaseSlot : public QObject {
   // combo box
   void currentIndexChanged(const QString &s);
 
+  // model table
+  void itemSelectionChanged();
+  void columnClicked(int);
+
   void timerSlot();
 
  private:

@@ -29,6 +29,30 @@ CQChartsModelColumnDataControl(QWidget *parent) :
 
 void
 CQChartsModelColumnDataControl::
+setCharts(CQCharts *charts)
+{
+  charts_ = charts;
+}
+
+int
+CQChartsModelColumnDataControl::
+modelInd() const
+{
+  return (modelData() ? modelData()->ind() : -1);
+}
+
+void
+CQChartsModelColumnDataControl::
+setModelInd(int ind)
+{
+  auto *modelData = (charts_ ? charts_->getModelDataByInd(ind) : nullptr);
+  if (! modelData) return;
+
+  setModelData(modelData);
+}
+
+void
+CQChartsModelColumnDataControl::
 setModelData(CQChartsModelData *modelData)
 {
   if (modelData != modelData_) {
@@ -36,6 +60,7 @@ setModelData(CQChartsModelData *modelData)
       disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
 
     modelData_ = modelData;
+    charts_    = (modelData_ ? modelData_->charts() : nullptr);
 
     if (modelData_ && ! generalFrame_)
       init();
@@ -52,10 +77,6 @@ void
 CQChartsModelColumnDataControl::
 init()
 {
-  auto *charts = modelData_->charts();
-
-  //---
-
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
@@ -146,7 +167,7 @@ init()
 
     label->setText(name);
 
-    combo->setCharts(charts);
+    combo->setCharts(charts_);
 
     generalLayout_->addWidget(label, generalRow, 0);
     generalLayout_->addWidget(combo, generalRow, 1); ++generalRow;
@@ -282,15 +303,13 @@ generalApplySlot()
 
   ModelP model = modelData_->currentModel();
 
-  auto *charts = modelData_->charts();
-
   //---
 
   // get column to change
   auto column = columnNumEdit_->getColumn();
 
   if (! column.isValid()) {
-    charts->errorMsg("Invalid column");
+    charts_->errorMsg("Invalid column");
     return;
   }
 
@@ -301,7 +320,7 @@ generalApplySlot()
 
   if (nameStr.length()) {
     if (! model->setHeaderData(column.column(), Qt::Horizontal, nameStr, Qt::DisplayRole)) {
-      charts->errorMsg("Failed to set name");
+      charts_->errorMsg("Failed to set name");
       return;
     }
   }
@@ -309,7 +328,7 @@ generalApplySlot()
   //---
 
   // get current type data
-  auto *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   CQChartsModelTypeData typeData;
 
@@ -322,13 +341,13 @@ generalApplySlot()
   const auto *columnType = typeCombo_->columnType();
 
   if (! columnType) {
-    charts->errorMsg("Invalid column type");
+    charts_->errorMsg("Invalid column type");
     return;
   }
 
   if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),
                                           typeData.nameValues)) {
-    charts->errorMsg("Failed to set column type");
+    charts_->errorMsg("Failed to set column type");
     return;
   }
 
@@ -339,7 +358,7 @@ generalApplySlot()
 
   if (headerColumnType) {
     if (! columnTypeMgr->setModelHeaderType(model.data(), column, headerColumnType->type())) {
-      charts->errorMsg("Failed to set header type");
+      charts_->errorMsg("Failed to set header type");
       return;
     }
   }
@@ -361,22 +380,20 @@ paramApplySlot()
 
   ModelP model = modelData_->currentModel();
 
-  auto *charts = modelData_->charts();
-
   //---
 
   // get column to change
   auto column = columnNumEdit_->getColumn();
 
   if (! column.isValid()) {
-    charts->errorMsg("Invalid column");
+    charts_->errorMsg("Invalid column");
     return;
   }
 
   //---
 
   // get current type data
-  auto *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   CQChartsModelTypeData typeData;
 
@@ -396,7 +413,7 @@ paramApplySlot()
     const auto *param = columnType->getParam(name);
 
     if (! param) {
-      charts->errorMsg("Invalid parameter '" + name + "'");
+      charts_->errorMsg("Invalid parameter '" + name + "'");
       continue;
     }
 
@@ -439,7 +456,7 @@ paramApplySlot()
 
   if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),
                                           nameValues)) {
-    charts->errorMsg("Failed to set column type");
+    charts_->errorMsg("Failed to set column type");
     return;
   }
 
@@ -460,15 +477,13 @@ nullValueApplySlot()
 
   ModelP model = modelData_->currentModel();
 
-  auto *charts = modelData_->charts();
-
   //---
 
   // get column to change
   auto column = columnNumEdit_->getColumn();
 
   if (! column.isValid()) {
-    charts->errorMsg("Invalid column");
+    charts_->errorMsg("Invalid column");
     return;
   }
 
@@ -492,20 +507,29 @@ nullValueApplySlot()
 
 //------
 
+int
+CQChartsModelColumnDataControl::
+columnData() const
+{
+  return icolumn_;
+}
+
 void
 CQChartsModelColumnDataControl::
 setColumnData(int icolumn)
 {
+  icolumn_ = icolumn;
+
+  //----
+
   if (! modelData_)
     return;
 
   ModelP model = modelData_->currentModel();
 
-  auto *charts = modelData_->charts();
-
   //---
 
-  CQChartsColumn column(icolumn);
+  CQChartsColumn column(icolumn_);
 
   // update column number
   columnNumEdit_->setModelData(modelData_);
@@ -514,7 +538,7 @@ setColumnData(int icolumn)
   //---
 
   // update column name
-  auto headerStr = model->headerData(icolumn, Qt::Horizontal).toString();
+  auto headerStr = model->headerData(icolumn_, Qt::Horizontal).toString();
 
   nameEdit_->setText(headerStr);
 
@@ -522,8 +546,8 @@ setColumnData(int icolumn)
 
   CQChartsModelTypeData columnTypeData;
 
-  if (CQChartsModelUtil::columnValueType(charts, model.data(), column, columnTypeData)) {
-    auto *columnTypeMgr = charts->columnTypeMgr();
+  if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnTypeData)) {
+    auto *columnTypeMgr = charts_->columnTypeMgr();
 
     //--
 

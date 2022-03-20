@@ -2,6 +2,7 @@
 #define CQChartsPlotControlWidgets_H
 
 #include <CQChartsColumn.h>
+#include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
 
@@ -24,7 +25,7 @@ class QGridLayout;
  * \brief Plot Property Control Container class
  * \ingroup Charts
  */
-class CQChartsPlotControlFrame : public QFrame {
+class CQChartsPlotControlFrame : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(bool opEqual READ isEqual WRITE setEqual)
@@ -37,7 +38,7 @@ class CQChartsPlotControlFrame : public QFrame {
   CQChartsPlotControlFrame(QWidget *parent=nullptr);
 
   Plot *plot() const { return plot_; }
-  void setPlot(Plot *p) { plot_ = p; }
+  void setPlot(Plot *p) override { plot_ = p; }
 
   bool isEqual() const;
   void setEqual(bool b);

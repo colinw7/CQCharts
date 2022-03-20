@@ -45,7 +45,7 @@ setPlot(CQChartsPlot *plot)
     setModelData(plot->getModelData());
 }
 
-const CQChartsModelData *
+CQChartsModelData *
 CQChartsColumnLineEdit::
 modelData() const
 {
@@ -54,7 +54,7 @@ modelData() const
 
 void
 CQChartsColumnLineEdit::
-setModelData(const CQChartsModelData *modelData)
+setModelData(CQChartsModelData *modelData)
 {
   dataEdit_->setModelData(modelData);
 }
@@ -433,7 +433,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
 void
 CQChartsColumnEdit::
-setModelData(const CQChartsModelData *modelData)
+setModelData(CQChartsModelData *modelData)
 {
   if (modelData_)
     disconnect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));

@@ -70,7 +70,7 @@ setColumn(const CQChartsColumn &column)
 
 void
 CQChartsColumnCombo::
-setModelData(const CQChartsModelData *modelData)
+setModelData(CQChartsModelData *modelData)
 {
   if (modelData == modelData_)
     return;

@@ -1,11 +1,14 @@
 #ifndef CQChartsModelViewHolder_H
 #define CQChartsModelViewHolder_H
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
 class CQCharts;
+class CQChartsModelData;
 
 #ifdef CQCHARTS_MODEL_VIEW
 class CQChartsModelView;
@@ -21,18 +24,22 @@ class QItemSelectionModel;
  * \brief Model View Holder Widget (Tree or Table)
  * \ingroup Charts
  */
-class CQChartsModelViewHolder : public QFrame {
+class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
+  Q_PROPERTY(int modelInd READ modelInd WRITE setModelInd)
+
  public:
-  using ModelP = QSharedPointer<QAbstractItemModel>;
+  using ModelData = CQChartsModelData;
+  using ModelP    = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsModelViewHolder(CQCharts *charts=nullptr, QWidget *parent=nullptr);
  ~CQChartsModelViewHolder();
 
+  //! get/set charts
   CQCharts *charts() const { return charts_; }
-  void setCharts(CQCharts *charts) { charts_ = charts; init(); }
+  void setCharts(CQCharts *charts) override;
 
 #ifdef CQCHARTS_MODEL_VIEW
   CQChartsModelView *view() const { return view_; }
@@ -51,6 +58,13 @@ class CQChartsModelViewHolder : public QFrame {
   void setSearch(const QString &text);
   void addSearch(const QString &text);
 
+  //! get/set model ind
+  int modelInd() const;
+  void setModelInd(int i);
+
+  //! set model data
+  void setModelData(ModelData *modelData) override;
+
   ModelP model() const;
   void setModel(ModelP model, bool hierarchical);
 
@@ -61,6 +75,7 @@ class CQChartsModelViewHolder : public QFrame {
 
  signals:
   void filterChanged();
+  void columnClicked(int);
 
  private:
   void init();

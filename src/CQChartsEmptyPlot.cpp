@@ -70,6 +70,10 @@ init()
 
   xAxis()->setVisible(false);
   yAxis()->setVisible(false);
+
+  //---
+
+  setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
 }
 
 void

@@ -12,6 +12,15 @@ class CQJsonModel : public CQBaseModel {
   Q_PROPERTY(bool flat         READ isFlat         WRITE setFlat        )
   Q_PROPERTY(bool readOnly     READ isReadOnly     WRITE setReadOnly    )
 
+ private:
+  using ColumnValues = std::vector<QVariantList>;
+
+  struct ColumnArrayData {
+    int          numRows { -1 };
+    QStringList  headerNames;
+    ColumnValues columnValues;
+  };
+
  public:
   CQJsonModel();
 
@@ -78,20 +87,24 @@ class CQJsonModel : public CQBaseModel {
 
   QString parentName(CJson::Value *value) const;
 
- protected:
-  typedef std::vector<QString> Cells;
-  typedef std::vector<Cells>   Data;
+  bool isColumnArray(ColumnArrayData &data) const;
 
-  QString       filename_;
-  CJson*        json_      { nullptr };
-  CJson::ValueP jsonValue_;
-  QString       jsonMatch_;
-  CJson::Values jsonValues_;
-  bool          hier_      { false };
-  bool          flat_      { false };
-  bool          readOnly_  { false };
-  QString       hierName_;
-  QStringList   hierColumns_;
+ protected:
+  using Cells = std::vector<QString>;
+  using Data  = std::vector<Cells>;
+
+  QString         filename_;
+  CJson*          json_        { nullptr };
+  CJson::ValueP   jsonValue_;
+  QString         jsonMatch_;
+  CJson::Values   jsonValues_;
+  bool            hier_        { false };
+  bool            flat_        { false };
+  bool            readOnly_    { false };
+  bool            columnArray_ { false };
+  ColumnArrayData columnArrayData_;
+  QString         hierName_;
+  QStringList     hierColumns_;
 };
 
 #endif

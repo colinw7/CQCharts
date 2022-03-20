@@ -9,12 +9,13 @@ class CQChartsViewSettingsPlotPropertiesWidget;
 class CQChartsViewSettingsObjectPropertiesWidget;
 
 class CQChartsViewSettingsFilterEdit;
-class CQChartsViewSettingsModelTable;
 class CQChartsViewSettingsPlotTable;
 class CQChartsViewSettingsViewAnnotationsTable;
 class CQChartsViewSettingsPlotAnnotationsTable;
 class CQChartsViewSettingsViewLayerTable;
 class CQChartsViewSettingsPlotLayerTable;
+
+class CQChartsModelTable;
 class CQChartsPlotTip;
 
 class CQChartsModelDetailsWidget;
@@ -248,7 +249,7 @@ class CQChartsViewSettings : public QFrame {
   using ObjectPropertiesWidget = CQChartsViewSettingsObjectPropertiesWidget;
 
   using FilterEdit           = CQChartsViewSettingsFilterEdit;
-  using ModelTable           = CQChartsViewSettingsModelTable;
+  using ModelTable           = CQChartsModelTable;
   using ModelDetailsWidget   = CQChartsModelDetailsWidget;
   using PlotTable            = CQChartsViewSettingsPlotTable;
   using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;

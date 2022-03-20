@@ -166,6 +166,7 @@ CQChartsModelDetailsTable.cpp \
 CQChartsModelFlattenControl.cpp \
 CQChartsModelFilterControl.cpp \
 CQChartsModelChooser.cpp \
+CQChartsModelTable.cpp \
 CQChartsPreviewPlot.cpp \
 CQChartsParamEdit.cpp \
 \
@@ -600,6 +601,7 @@ HEADERS += \
 ../include/CQChartsModelFlattenControl.h \
 ../include/CQChartsModelFilterControl.h \
 ../include/CQChartsModelChooser.h \
+../include/CQChartsModelTable.h \
 ../include/CQChartsPreviewPlot.h \
 ../include/CQChartsParamEdit.h \
 \

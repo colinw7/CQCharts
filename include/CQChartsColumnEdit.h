@@ -19,15 +19,16 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(bool           numericOnly READ isNumericOnly WRITE setNumericOnly)
 
  public:
-  using Column = CQChartsColumn;
+  using ModelData = CQChartsModelData;
+  using Column    = CQChartsColumn;
 
  public:
   CQChartsColumnLineEdit(QWidget *parent=nullptr);
 
   void setPlot(CQChartsPlot *plot) override;
 
-  const CQChartsModelData *modelData() const;
-  void setModelData(const CQChartsModelData *model);
+  ModelData *modelData() const;
+  void setModelData(ModelData *model);
 
   const Column &column() const;
   void setColumn(const Column &c);
@@ -74,13 +75,14 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
-  using Column = CQChartsColumn;
+  using ModelData = CQChartsModelData;
+  using Column    = CQChartsColumn;
 
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
-  const CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(const CQChartsModelData *model);
+  ModelData *modelData() const { return modelData_; }
+  void setModelData(ModelData *model);
 
   const Column &column() const;
   void setColumn(const Column &c);
@@ -109,17 +111,17 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  const CQChartsModelData* modelData_      { nullptr }; //!< model data
-  Column                   column_;                     //!< column
-  CQChartsLineEdit*        nameEdit_       { nullptr }; //!< name edit
-  QComboBox*               typeCombo_      { nullptr }; //!< type combo
-  CQChartsColumnCombo*     columnCombo_    { nullptr }; //!< column combo
-  CQChartsLineEdit*        roleEdit_       { nullptr }; //!< role edit
-  CQChartsLineEdit*        indexEdit_      { nullptr }; //!< index edit
-  CQChartsLineEdit*        expressionEdit_ { nullptr }; //!< expression edit
-  WidgetLabels             widgetLabels_;               //!< widget labels
-  int                      widgetHeight_   { 100 };
-  bool                     connected_      { false };   //!< is connected
+  ModelData*           modelData_      { nullptr }; //!< model data
+  Column               column_;                     //!< column
+  CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
+  QComboBox*           typeCombo_      { nullptr }; //!< type combo
+  CQChartsColumnCombo* columnCombo_    { nullptr }; //!< column combo
+  CQChartsLineEdit*    roleEdit_       { nullptr }; //!< role edit
+  CQChartsLineEdit*    indexEdit_      { nullptr }; //!< index edit
+  CQChartsLineEdit*    expressionEdit_ { nullptr }; //!< expression edit
+  WidgetLabels         widgetLabels_;               //!< widget labels
+  int                  widgetHeight_   { 100 };     //!< widget height
+  bool                 connected_      { false };   //!< is connected
 };
 
 //------

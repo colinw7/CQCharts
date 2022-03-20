@@ -1,4 +1,5 @@
 #include <CQPivotModel.h>
+#include <CMathUtil.h>
 #include <assert.h>
 
 //------
@@ -36,6 +37,69 @@ setSourceModel(QAbstractItemModel *sourceModel)
 
 //------
 
+CQPivotModel::ValueType
+CQPivotModel::
+stringToValueType(const QString &str)
+{
+  auto str1 = str.toLower();
+
+  if      (str1 == "count")
+    return ValueType::COUNT;
+  else if (str1 == "count_unique")
+    return ValueType::COUNT_UNIQUE;
+  else if (str1 == "sum")
+    return ValueType::SUM;
+  else if (str1 == "min")
+    return ValueType::MIN;
+  else if (str1 == "max")
+    return ValueType::MAX;
+  else if (str1 == "mean")
+    return ValueType::MEAN;
+  else
+    return ValueType::NONE;
+}
+
+QString
+CQPivotModel::
+valueTypeToString(ValueType valueType)
+{
+  switch (valueType) {
+    case ValueType::COUNT       : return "count";
+    case ValueType::COUNT_UNIQUE: return "count_unique";
+    case ValueType::SUM         : return "sum";
+    case ValueType::MIN         : return "min";
+    case ValueType::MAX         : return "max";
+    case ValueType::MEAN        : return "mean";
+    default: return "";
+  }
+}
+
+//------
+
+CQPivotModel::ColumnType
+CQPivotModel::
+columnType(Column column) const
+{
+  auto p = columnTypes_.find(column);
+  if (p != columnTypes_.end()) return (*p).second;
+
+  auto *sm = this->sourceModel();
+
+  auto *baseModel = (sm ? dynamic_cast<CQBaseModel *>(sm) : nullptr);
+  if (! baseModel) return CQBaseModelType::STRING;
+
+  return baseModel->columnType(column);
+}
+
+void
+CQPivotModel::
+setColumnType(Column column, const ColumnType &t)
+{
+  columnTypes_[column] = t;
+}
+
+//------
+
 // get number of columns
 int
 CQPivotModel::
@@ -44,8 +108,8 @@ columnCount(const QModelIndex &parent) const
   if (parent.isValid())
     return 0;
 
-  auto *model = this->sourceModel();
-  if (! model) return 0;
+  auto *sm = this->sourceModel();
+  if (! sm) return 0;
 
   updateModel();
 
@@ -64,8 +128,8 @@ rowCount(const QModelIndex &parent) const
   if (parent.isValid())
     return 0;
 
-  auto *model = this->sourceModel();
-  if (! model) return 0;
+  auto *sm = this->sourceModel();
+  if (! sm) return 0;
 
   updateModel();
 
@@ -121,8 +185,8 @@ data(const QModelIndex &index, int role) const
   if (c < 0 || c >= nc)
     return QVariant();
 
-  auto *model = this->sourceModel();
-  if (! model) return QVariant();
+  auto *sm = this->sourceModel();
+  if (! sm) return QVariant();
 
   //---
 
@@ -187,10 +251,10 @@ data(const QModelIndex &index, int role) const
   const Keys &hkeys = (*ph).second;
 
   if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-    auto p = values_.find(hkeys.key());
+    auto p = values_.find(hkeys);
     if (p == values_.end()) return QVariant();
 
-    auto p1 = (*p).second.find(vkeys.key());
+    auto p1 = (*p).second.find(vkeys);
     if (p1 == (*p).second.end()) return QVariant();
 
     const Values &values = (*p1).second;
@@ -200,8 +264,7 @@ data(const QModelIndex &index, int role) const
     else if (values.rcount())
       return values.rcount();
     else
-      return QVariant();
-
+      return calcFillValue();
   }
   else {
     return CQBaseModel::data(index, role);
@@ -224,8 +287,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (c < 0 || c >= nc)
     return false;
 
-  auto *model = this->sourceModel();
-  if (! model) return false;
+  auto *sm = this->sourceModel();
+  if (! sm) return false;
 
   //---
 
@@ -246,8 +309,8 @@ QVariant
 CQPivotModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  auto *model = this->sourceModel();
-  if (! model) return QVariant();
+  auto *sm = this->sourceModel();
+  if (! sm) return QVariant();
 
   int nc = columnCount();
 
@@ -293,8 +356,8 @@ bool
 CQPivotModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  auto *model = this->sourceModel();
-  if (! model) return false;
+  auto *sm = this->sourceModel();
+  if (! sm) return false;
 
   int nc = columnCount();
 
@@ -318,8 +381,8 @@ Qt::ItemFlags
 CQPivotModel::
 flags(const QModelIndex &index) const
 {
-  auto *model = this->sourceModel();
-  if (! model) return 0;
+  auto *sm = this->sourceModel();
+  if (! sm) return Qt::ItemFlags();
 
   int r = index.row   ();
   int c = index.column();
@@ -344,10 +407,13 @@ bool
 CQPivotModel::
 modelInds(const QString &hkey, const QString &vkey, Inds &inds) const
 {
-  auto p = values_.find(hkey);
+  Keys hkeys(KeyString(KeyString::STRING, hkey), separator());
+  Keys vkeys(KeyString(KeyString::STRING, vkey), separator());
+
+  auto p = values_.find(hkeys);
   if (p == values_.end()) return false;
 
-  auto p1 = (*p).second.find(vkey);
+  auto p1 = (*p).second.find(vkeys);
   if (p1 == (*p).second.end()) return false;
 
   const Values &values = (*p1).second;
@@ -379,10 +445,23 @@ updateModel()
 {
   modelValid_ = true;
 
+  //---
+
+  bool multipleValueTypes = false;
+
+  for (const auto &pv : columnValueTypes_) {
+    if (pv.first >= 0 || pv.second.size() > 1) {
+      multipleValueTypes = true;
+      break;
+    }
+  }
+
+  bool multipleValues = (valueColumns_.size() > 1);
+
+  //---
+
   hKeysCol_.clear();
-  hColKeys_.clear();
   vKeysRow_.clear();
-  vRowKeys_.clear();
   values_  .clear();
 
   auto *sm = sourceModel();
@@ -390,71 +469,130 @@ updateModel()
   int nr = sm->rowCount();
 
   for (int row = 0; row < nr; ++row) {
-    Keys hkeys;
+    Keys hkeys(separator());
 
-    for (auto &column : hColumns_) {
-      auto ind = sm->index(row, column);
+    if (! hColumns_.empty()) {
+      for (auto &column : hColumns_) {
+        auto ind  = sm->index(row, column);
+        auto data = sm->data(ind);
 
-      auto data = sm->data(ind);
-
-      if (data.isValid())
-        hkeys.add(data.toString());
+        if (data.isValid())
+          hkeys.add(KeyString(KeyString::Type::STRING, data.toString()));
+      }
     }
 
     //---
 
-    Keys vkeys;
+    Keys vkeys(separator());
 
     for (auto &column : vColumns_) {
-      auto ind = sm->index(row, column);
-
+      auto ind  = sm->index(row, column);
       auto data = sm->data(ind);
 
       if (data.isValid())
-        vkeys.add(data.toString());
+        vkeys.add(KeyString(KeyString::Type::STRING, data.toString()));
     }
 
     //---
 
-    auto ph = hKeysCol_.find(hkeys.key());
+    if (! hColumns_.empty() && ! multipleValues) {
+      auto ph = hKeysCol_.find(hkeys);
 
-    if (ph == hKeysCol_.end()) {
-      auto col = hKeysCol_.size();
+      if (ph == hKeysCol_.end()) {
+        auto col = hKeysCol_.size();
 
-      hKeysCol_[hkeys.key()] = int(col);
-      hColKeys_[int(col)   ] = hkeys;
+        hKeysCol_[hkeys] = int(col);
+      }
     }
 
-    auto pv = vKeysRow_.find(vkeys.key());
+    auto pv = vKeysRow_.find(vkeys);
 
     if (pv == vKeysRow_.end()) {
       auto row = vKeysRow_.size();
 
-      vKeysRow_[vkeys.key()] = int(row);
-      vRowKeys_[int(row)   ] = vkeys;
+      vKeysRow_[vkeys] = int(row);
     }
 
-    Values &values = values_[hkeys.key()][vkeys.key()];
+    //---
 
-    if (valueColumn_ >= 0) {
-      auto ind = sm->index(row, valueColumn_);
+    if (! valueColumns_.empty()) {
+      for (const auto &valueColumn : valueColumns_) {
+        auto valueTypes = this->columnValueTypes(valueColumn);
 
-      auto data = sm->data(ind);
+        if (valueTypes.empty())
+          valueTypes.push_back(ValueType::SUM);
 
-      if (data.isValid()) {
-        bool ok;
+        for (const auto &valueType : valueTypes) {
+          auto hkeys1 = hkeys;
 
-        double r = data.toReal(&ok);
+          if (hColumns_.empty() || multipleValues) {
+            auto str = sm->headerData(valueColumn, Qt::Horizontal).toString();
 
-        if (ok)
-          values.add(r);
+            if (! multipleValues)
+              hkeys1.add(KeyString(KeyString::Type::STRING, str));
+            else
+              hkeys1.addFront(KeyString(KeyString::Type::STRING, str));
 
-        values.add(ind, data.toString());
+            if (multipleValueTypes)
+              hkeys1.add(KeyString(KeyString::Type::VALUE_TYPE, valueTypeToString(valueType)));
+
+            auto ph = hKeysCol_.find(hkeys1);
+
+            if (ph == hKeysCol_.end()) {
+              auto col = hKeysCol_.size();
+
+              hKeysCol_[hkeys1] = int(col);
+            }
+          }
+
+          Values &values = values_[hkeys1][vkeys];
+
+          values.setValueType(valueType);
+
+          auto ind  = sm->index(row, valueColumn);
+          auto data = sm->data(ind);
+
+          if (data.isValid()) {
+            bool ok;
+
+            double r = data.toReal(&ok);
+
+            if (ok)
+              values.addReal(r);
+
+            values.addValue(ind, data.toString());
+          }
+        }
       }
     }
     else {
-      values.add(1);
+      Values &values = values_[hkeys][vkeys];
+
+      values.setValueType(this->valueType());
+
+      values.addReal(1);
     }
+  }
+
+  //---
+
+  hColKeys_.clear();
+  vRowKeys_.clear();
+
+  size_t col = 0;
+
+  for (auto &p : hKeysCol_) {
+    p.second = int(col++);
+
+    hColKeys_[p.second] = p.first;
+  }
+
+  size_t row = 0;
+
+  for (auto &p : vKeysRow_) {
+    p.second = int(row++);
+
+    vRowKeys_[p.second] = p.first;
   }
 
   //---
@@ -464,26 +602,35 @@ updateModel()
 
   //---
 
-  // set horizontal header (keys)
-  Keys hkeys;
+  // set horizontal summary header (keys)
+  Keys hkeys(separator());
 
-  for (auto &column : hColumns_) {
-    auto value = sm->headerData(column, Qt::Horizontal).toString();
+  if      (! hColumns_.empty()) {
+    for (auto &column : hColumns_) {
+      auto value = sm->headerData(column, Qt::Horizontal).toString();
 
-    hkeys.add(value);
+      hkeys.add(KeyString(KeyString::STRING, value));
+    }
+  }
+  else if (! valueColumns_.empty()) {
+    for (auto &column : valueColumns_) {
+      auto value = sm->headerData(column, Qt::Horizontal).toString();
+
+      hkeys.add(KeyString(KeyString::STRING, value));
+    }
   }
 
   hheader_ = hkeys.key();
 
   //---
 
-  // set vertical header (keys)
-  Keys vkeys;
+  // set vertical summary header (keys)
+  Keys vkeys(separator());
 
   for (auto &column : vColumns_) {
     auto value = sm->headerData(column, Qt::Horizontal).toString();
 
-    vkeys.add(value);
+    vkeys.add(KeyString(KeyString::STRING, value));
   }
 
   vheader_ = vkeys.key();
@@ -509,18 +656,28 @@ calcData()
       const Values &values = values_[hkey][vkey];
 
       if      (values.count() != 0) {
-        double value = typeValue(values);
+        auto value = typeValue(values);
 
-        data.min  = (data.set ? std::min(data.min, value) : value);
-        data.max  = (data.set ? std::max(data.max, value) : value);
-        data.sum += value;
+        data.min = (data.set ? std::min(data.min, value) : value);
+        data.max = (data.set ? std::max(data.max, value) : value);
+
+        if (value.type() == QVariant::Double) {
+          bool ok;
+          data.sum = data.sum.toDouble(&ok) + value.toDouble(&ok);
+        }
+        else
+          data.sum = data.sum.toString() + value.toString();
+
         data.set  = true;
       }
       else if (values.rcount()) {
-        data.min  = 0;
-        data.max  = 1;
-        data.sum += values.rcount();
-        data.set  = true;
+        data.min = 0;
+        data.max = 1;
+
+        bool ok;
+        data.sum = data.sum.toDouble(&ok) + values.rcount();
+
+        data.set = true;
       }
     }
 
@@ -547,7 +704,7 @@ calcData()
       const Values &values = values_[hkey][vkey];
 
       if      (values.count() != 0) {
-        double value = typeValue(values);
+        auto value = typeValue(values);
 
         data.min = (data.set ? std::min(data.min, value) : value);
         data.max = (data.set ? std::max(data.max, value) : value);
@@ -557,7 +714,10 @@ calcData()
       else if (values.rcount()) {
         data.min  = 0;
         data.max  = 1;
-        data.sum += values.rcount();
+
+        bool ok;
+        data.sum = data.sum.toDouble(&ok) + values.rcount();
+
         data.set  = true;
       }
     }
@@ -579,25 +739,41 @@ calcData()
   }
 }
 
-double
+QVariant
 CQPivotModel::
 typeValue(const Values &values) const
 {
-  if      (valueType() == ValueType::SUM)
-    return values.sum();
-  else if (valueType() == ValueType::MIN)
-    return values.min();
-  else if (valueType() == ValueType::MAX)
-    return values.max();
-  else if (valueType() == ValueType::MEAN)
-    return values.mean();
-  else if (valueType() == ValueType::COUNT)
+  if      (values.valueType() == ValueType::SUM) {
+    if (values.dataType() == ColumnType::REAL)
+      return values.rsum();
+    else
+      return values.ssum();
+  }
+  else if (values.valueType() == ValueType::MIN) {
+    if (values.dataType() == ColumnType::REAL)
+      return values.rmin();
+    else
+      return values.smin();
+  }
+  else if (values.valueType() == ValueType::MAX) {
+    if (values.dataType() == ColumnType::REAL)
+      return values.rmax();
+    else
+      return values.smax();
+  }
+  else if (values.valueType() == ValueType::MEAN) {
+    if (values.dataType() == ColumnType::REAL)
+      return values.rmean();
+    else
+      return calcFillValue();
+  }
+  else if (values.valueType() == ValueType::COUNT)
     return values.count();
-  else if (valueType() == ValueType::COUNT_UNIQUE)
+  else if (values.valueType() == ValueType::COUNT_UNIQUE)
     return values.countUnique();
   else {
     assert(false);
-    return 0.0;
+    return calcFillValue();
   }
 }
 
@@ -611,7 +787,7 @@ hkeys(bool sorted) const
 
   if (sorted) {
     for (const auto &ph : hKeysCol_)
-      strs << ph.first;
+      strs << ph.first.key();
   }
   else {
     for (const auto &ph : hColKeys_)
@@ -631,7 +807,7 @@ vkeys(bool sorted) const
 
   if (sorted) {
     for (const auto &ph : vKeysRow_)
-      strs << ph.first;
+      strs << ph.first.key();
   }
   else {
     for (const auto &ph : vRowKeys_)
@@ -645,9 +821,11 @@ int
 CQPivotModel::
 hkeyCol(const QString &key) const
 {
+  Keys keys(KeyString(KeyString::STRING, key), separator());
+
   updateModel();
 
-  auto p = hKeysCol_.find(key);
+  auto p = hKeysCol_.find(keys);
   if (p == hKeysCol_.end()) return -1;
 
   return (*p).second;
@@ -657,15 +835,17 @@ int
 CQPivotModel::
 vkeyRow(const QString &key) const
 {
+  Keys keys(KeyString(KeyString::STRING, key), separator());
+
   updateModel();
 
-  auto p = vKeysRow_.find(key);
+  auto p = vKeysRow_.find(keys);
   if (p == vKeysRow_.end()) return -1;
 
   return (*p).second;
 }
 
-double
+QVariant
 CQPivotModel::
 hmin(int c) const
 {
@@ -674,7 +854,7 @@ hmin(int c) const
   return hdata_[size_t(c)].min;
 }
 
-double
+QVariant
 CQPivotModel::
 hmax(int c) const
 {
@@ -683,7 +863,7 @@ hmax(int c) const
   return hdata_[size_t(c)].max;
 }
 
-double
+QVariant
 CQPivotModel::
 vmin(int r) const
 {
@@ -692,11 +872,21 @@ vmin(int r) const
   return vdata_[size_t(r)].min;
 }
 
-double
+QVariant
 CQPivotModel::
 vmax(int r) const
 {
   assert(r >= 0 && r <= int(vdata_.size()));
 
   return vdata_[size_t(r)].max;
+}
+
+QVariant
+CQPivotModel::
+calcFillValue() const
+{
+  if (fillValue().isValid())
+    return fillValue();
+  else
+    return CMathUtil::getNaN();
 }

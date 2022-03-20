@@ -1405,6 +1405,22 @@ currentIndexChanged(const QString &s)
 
 void
 CQChartsCmdBaseSlot::
+itemSelectionChanged()
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
+columnClicked(int c)
+{
+  auto args = QString::number(c);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
 timerSlot()
 {
   execProc();

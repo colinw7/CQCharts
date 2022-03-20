@@ -135,6 +135,10 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  bool isHierarchical() const;
+
+  //---
+
   // get details
   ModelDetails *details();
   const ModelDetails *details() const;

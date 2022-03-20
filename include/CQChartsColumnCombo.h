@@ -38,7 +38,7 @@ class CQChartsColumnCombo : public QComboBox {
 
   //! get/set model data
   const ModelData *modelData() const { return modelData_; }
-  void setModelData(const ModelData *model);
+  void setModelData(ModelData *model);
 
   //! convenience routine to set model and column
   void setModelColumn(ModelData *modelData, const Column &column);

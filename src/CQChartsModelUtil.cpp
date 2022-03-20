@@ -15,7 +15,6 @@
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
-#include <CQPivotModel.h>
 #include <CQHierSepModel.h>
 #include <CQModelUtil.h>
 

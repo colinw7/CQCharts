@@ -1,6 +1,7 @@
 #ifndef CQChartsModelColumnDataControl_H
 #define CQChartsModelColumnDataControl_H
 
+#include <CQChartsWidgetIFace.h>
 #include <QFrame>
 #include <QSharedPointer>
 
@@ -19,17 +20,30 @@ class QLabel;
  * \brief Widget to allow User to change data of Columns of Model
  * \ingroup Charts
  */
-class CQChartsModelColumnDataControl : public QFrame {
+class CQChartsModelColumnDataControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
+  Q_PROPERTY(int modelInd   READ modelInd   WRITE setModelInd)
+  Q_PROPERTY(int columnData READ columnData WRITE setColumnData)
+
  public:
-  using ModelP = QSharedPointer<QAbstractItemModel>;
+  using ModelData = CQChartsModelData;
+  using ModelP    = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsModelColumnDataControl(QWidget *parent=nullptr);
 
-  CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  void setCharts(CQCharts *charts) override;
+
+  //! get/set model data
+  ModelData *modelData() const { return modelData_; }
+  void setModelData(ModelData *modelData) override;
+
+  //! get/set model ind
+  int modelInd() const;
+  void setModelInd(int i);
+
+  int columnData() const;
 
   void init();
 
@@ -55,7 +69,10 @@ class CQChartsModelColumnDataControl : public QFrame {
 
   using ParamEdits = std::vector<ParamEdit>;
 
-  CQChartsModelData*       modelData_       { nullptr };
+  CQCharts*  charts_    { nullptr };
+  ModelData* modelData_ { nullptr };
+  int        icolumn_   { -1 };
+
   QFrame*                  generalFrame_    { nullptr };
   QGridLayout*             generalLayout_   { nullptr };
   QFrame*                  paramFrame_      { nullptr };

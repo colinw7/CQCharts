@@ -215,6 +215,20 @@ desc() const
   return id();
 }
 
+bool
+CQChartsModelData::
+isHierarchical() const
+{
+  auto *details = this->details();
+
+  if (details)
+    return details->isHierarchical();
+
+  auto *model = this->model().data();
+
+  return CQChartsModelUtil::isHierarchical(model);
+}
+
 CQChartsModelDetails *
 CQChartsModelData::
 details()

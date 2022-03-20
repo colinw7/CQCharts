@@ -8444,7 +8444,7 @@ draw(PaintDevice *)
     widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
                    CMathRound::RoundNearest(ptbbox.getHeight()));
 
-    widget_.move(int(ptbbox.getXMin()), int(ptbbox.getYMax()));
+    widget_.move(int(ptbbox.getXMin()), int(ptbbox.getYMin()));
 
     //---
 

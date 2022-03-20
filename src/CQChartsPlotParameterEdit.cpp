@@ -57,7 +57,7 @@ CQChartsColumnParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic
 
 void
 CQChartsColumnParameterEdit::
-setModelData(const CQChartsModelData *modelData)
+setModelData(CQChartsModelData *modelData)
 {
   if      (combo_)
     combo_->setModelData(modelData);

@@ -1,4 +1,6 @@
 #include <CQChartsModelViewHolder.h>
+#include <CQChartsModelData.h>
+#include <CQCharts.h>
 
 #ifdef CQCHARTS_MODEL_VIEW
 #include <CQChartsModelView.h>
@@ -14,11 +16,11 @@
 
 CQChartsModelViewHolder::
 CQChartsModelViewHolder(CQCharts *charts, QWidget *parent) :
- QFrame(parent), charts_(charts)
+ QFrame(parent)
 {
   setObjectName("modelViewHolder");
 
-  init();
+  setCharts(charts);
 }
 
 CQChartsModelViewHolder::
@@ -34,11 +36,33 @@ CQChartsModelViewHolder::
 
 void
 CQChartsModelViewHolder::
+setCharts(CQCharts *charts)
+{
+  charts_ = charts;
+
+#ifdef CQCHARTS_MODEL_VIEW
+  if (! view_)
+    init();
+#else
+  if (! table_)
+    init();
+#endif
+
+#ifdef CQCHARTS_MODEL_VIEW
+  view_ ->setCharts(this->charts());
+#else
+  table_->setCharts(this->charts());
+  tree_ ->setCharts(this->charts());
+#endif
+}
+
+void
+CQChartsModelViewHolder::
 init()
 {
-  assert(charts_);
-
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //---
 
 #ifdef CQCHARTS_MODEL_VIEW
   assert(! view_);
@@ -46,21 +70,32 @@ init()
   view_ = new CQChartsModelView(charts(), this);
 
   layout->addWidget(view_);
+
+  connect(view_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
 #else
   assert(! stack_);
 
+  // table/tree stack
   stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
+  layout->addWidget(stack_);
+
+  //---
+
+  // table (flat data)
   table_ = new CQChartsTable(charts(), this);
 
   connect(table_, SIGNAL(filterChanged()), this, SIGNAL(filterChanged()));
-
-  tree_ = new CQChartsTree(charts(), this);
+  connect(table_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
 
   stack_->addWidget(table_);
-  stack_->addWidget(tree_ );
 
-  layout->addWidget(stack_);
+  // tree (hier data)
+  tree_ = new CQChartsTree(charts(), this);
+
+  connect(tree_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
+
+  stack_->addWidget(tree_ );
 #endif
 }
 
@@ -142,6 +177,33 @@ model() const
   else
     return tree_->modelP();
 #endif
+}
+
+int
+CQChartsModelViewHolder::
+modelInd() const
+{
+  auto *modelData = (charts_ ? charts_->getModelData(model()) : nullptr);
+  if (! modelData) return -1;
+
+  return modelData->ind();
+}
+
+void
+CQChartsModelViewHolder::
+setModelInd(int ind)
+{
+  auto *modelData = (charts_ ? charts_->getModelDataByInd(ind) : nullptr);
+  if (! modelData) return;
+
+  setModelData(modelData);
+}
+
+void
+CQChartsModelViewHolder::
+setModelData(ModelData *modelData)
+{
+  setModel(modelData->currentModel(), modelData->isHierarchical());
 }
 
 void

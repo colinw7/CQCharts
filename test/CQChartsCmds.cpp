@@ -79,6 +79,9 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QFont>
+#include <QTemporaryFile>
+#include <QDir>
+
 #include <fstream>
 
 //------
@@ -370,14 +373,14 @@ execCmd(CQChartsCmdArgs &argv)
 
     // { { <column_values> } { <column_values> } ... }
     for (int i = 0; i < strs.length(); ++i) {
+      // split into strings per column
       QStringList columnsStrs;
 
-      // split into strings per column
       if (! CQTcl::splitList(strs[i], columnsStrs))
         continue;
 
-      // split into strings per column
       for (int j = 0; j < columnsStrs.length(); ++j) {
+        // split into strings per column
         QStringList columnStrs;
 
         if (! CQTcl::splitList(columnsStrs[j], columnStrs))
@@ -467,10 +470,39 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto *charts = this->charts();
 
-  CQChartsFile file(charts, filename);
+  if (filename[0] == '@') {
+#if 0
+    QTemporaryFile tempFile(QDir::tempPath() + "/XXXXXX.tcl");
 
-  if (! cmds()->loadFileModel(file, fileType, inputData))
-    return false;
+    if (! tempFile.open())
+      return errorMsg("Can't open temp file");
+#else
+    QFile tempFile("/tmp/charts_model.tcl");
+
+    if (! tempFile.open(QIODevice::WriteOnly))
+      return false;
+#endif
+
+    auto data = cmdBase_->qtcl()->getVar(filename.mid(1)).toString();
+    //std::cerr << data.toStdString() << "\n";
+
+    tempFile.write(data.toLatin1().constData());
+
+    tempFile.close();
+
+    CQChartsFile file(charts, tempFile.fileName());
+
+    auto rc = cmds()->loadFileModel(file, fileType, inputData);
+
+    if (! rc)
+      return false;
+  }
+  else {
+    CQChartsFile file(charts, filename);
+
+    if (! cmds()->loadFileModel(file, fileType, inputData))
+      return false;
+  }
 
   //---
 
@@ -614,12 +646,14 @@ execCmd(CQChartsCmdArgs &argv)
 
     auto vars = argv.getParseStr("vars");
 
+    // split into variable names
     QStringList varsStrs;
 
     if (! CQTcl::splitList(vars, varsStrs))
       varsStrs = QStringList();
 
     for (auto &varStr : varsStrs) {
+      // split into name values
       QStringList nameValueStrs;
 
       if (! CQTcl::splitList(varStr, nameValueStrs))
@@ -648,6 +682,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (argv.hasParseArg("tcl")) {
       auto str = argv.getParseStr("tcl");
 
+      // split into extra column strings
       QStringList strs;
 
       (void) CQTcl::splitList(str, strs);
@@ -1179,6 +1214,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto str = argv.getParseStr("values");
 
+  // split into values
   QStringList strs;
 
   (void) CQTcl::splitList(str, strs);
@@ -1429,6 +1465,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (! columnsStr.length())
       continue;
 
+    // split into columns
     QStringList strs;
 
     if (! CQTcl::splitList(columnsStr, strs))
@@ -1437,6 +1474,7 @@ execCmd(CQChartsCmdArgs &argv)
     for (int j = 0; j < strs.size(); ++j) {
       const auto &nameValue = strs[j];
 
+      // split into name values
       QStringList strs1;
 
       if (! CQTcl::splitList(nameValue, strs1))
@@ -1462,6 +1500,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     QString name, value;
 
+    // split into parameter name/value
     QStringList strs1;
 
     if (! CQTcl::splitList(parameterStr, strs1))
@@ -1499,6 +1538,7 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
   if (positionStr != "") {
+    // split into position values (xmin, ymin, xmax, ymax)
     QStringList positionStrs;
 
     if (! CQTcl::splitList(positionStr, positionStrs))
@@ -1600,12 +1640,14 @@ execCmd(CQChartsCmdArgs &argv)
   //---
 
   for (int i = 0; i < properties.length(); ++i) {
+    // split into properites name values
     QStringList strs;
 
     if (! CQTcl::splitList(properties[i], strs))
       return errorMsg(QString("Invalid properties string '%1'").arg(properties[i]));
 
     for (int j = 0; j < strs.length(); ++j) {
+      // split into name value
       QStringList strs1;
 
       if (! CQTcl::splitList(strs[j], strs1))
@@ -2704,6 +2746,7 @@ execCmd(CQChartsCmdArgs &argv)
 #endif
 
     else if (nameStr == "palettes") {
+      // split into palette names
       QStringList strs;
 
       CQTcl::splitList(valueStr, strs);
@@ -2852,6 +2895,7 @@ execCmd(CQChartsCmdArgs &argv)
 
       //--
 
+      // split into color names
       QStringList strs;
 
       CQTcl::splitList(valueStr, strs);
@@ -2864,6 +2908,7 @@ execCmd(CQChartsCmdArgs &argv)
         double v = j*dv;
         QColor c;
 
+        // split color name/value
         QStringList strs1;
 
         if (! CQTcl::splitList(strs[j], strs1))
@@ -3630,7 +3675,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto argStringToColumns = [&](const QString &name) {
+  auto argStringToColumns = [&](const QString &name, bool &ok) {
+    ok = true;
+
     std::vector<CQChartsColumn> columns;
 
     auto columnsStrs = argv.getParseStrs(name);
@@ -3644,7 +3691,7 @@ execCmd(CQChartsCmdArgs &argv)
       std::vector<CQChartsColumn> columns1;
 
       if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
-        (void) errorMsg("Bad columns name '" + columnsStr + "'");
+        ok = errorMsg("Bad columns name '" + columnsStr + "'");
         continue;
       }
 
@@ -3656,8 +3703,9 @@ execCmd(CQChartsCmdArgs &argv)
   };
 
   // get sum and mean columns
-  auto sumColumns  = argStringToColumns("sum_columns" );
-  auto meanColumns = argStringToColumns("mean_columns");
+  bool ok;
+  auto sumColumns  = argStringToColumns("sum_columns" , ok); if (! ok) return false;
+  auto meanColumns = argStringToColumns("mean_columns", ok); if (! ok) return false;
 
   //---
 
@@ -3673,12 +3721,14 @@ execCmd(CQChartsCmdArgs &argv)
   auto stringToColumnOps = [&](const QString &opStr) {
     ColumnOps columnOps;
 
+    // split column ops
     QStringList strs;
 
     if (! CQTcl::splitList(opStr, strs))
       return columnOps;
 
     for (const auto &str : strs) {
+      // split op/column
       QStringList strs1;
 
       if (! CQTcl::splitList(str, strs1))
@@ -3865,13 +3915,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  // split into strings per model
   auto modelsStr = argv.getParseStr("models");
 
   using ModelDatas = std::vector<CQChartsModelData *>;
 
   ModelDatas modelDatas;
 
+  // split into strings per model
   QStringList modelStrs;
 
   if (! CQTcl::splitList(modelsStr, modelStrs))
@@ -4002,7 +4052,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
 {
   addArg(argv, "-model"    , ArgType::String , "model_id");
   addArg(argv, "-header"   , ArgType::SBool  , "show header");
-  addArg(argv, "-columns"  , ArgType::String , "columns to ouput");
+  addArg(argv, "-columns"  , ArgType::String , "columns to output");
   addArg(argv, "-max_rows" , ArgType::Integer, "maximum number of rows to write");
   addArg(argv, "-max_width", ArgType::Integer, "maximum column width");
   addArg(argv, "-hier"     , ArgType::SBool  , "output hierarchically");
@@ -5142,7 +5192,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto argStringToColumns = [&](const QString &name) {
+  auto argStringToColumns = [&](const QString &name, bool &ok) {
+    ok = true;
+
     std::vector<CQChartsColumn> columns;
 
     auto columnsStrs = argv.getParseStrs(name);
@@ -5156,7 +5208,7 @@ execCmd(CQChartsCmdArgs &argv)
       std::vector<CQChartsColumn> columns1;
 
       if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
-        (void) errorMsg("Bad columns name '" + columnsStr + "'");
+        ok = errorMsg("Bad columns name '" + columnsStr + "'");
         continue;
       }
 
@@ -5168,8 +5220,9 @@ execCmd(CQChartsCmdArgs &argv)
   };
 
   // get sum and mean columns
-  auto sumColumns  = argStringToColumns("sum" );
-  auto meanColumns = argStringToColumns("mean");
+  bool ok;
+  auto sumColumns  = argStringToColumns("sum" , ok); if (! ok) return false;
+  auto meanColumns = argStringToColumns("mean", ok); if (! ok) return false;
 
   //---
 
@@ -5237,9 +5290,11 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-model"         , ArgType::String , "model_id");
   addArg(argv, "-hcolumns"      , ArgType::String , "horizontal columns");
   addArg(argv, "-vcolumns"      , ArgType::String , "vertical columns");
-  addArg(argv, "-dcolumn"       , ArgType::String , "data column");
-  addArg(argv, "-value_type"    , ArgType::String , "value type");
+  addArg(argv, "-dcolumns"      , ArgType::String , "data columns");
+  addArg(argv, "-value_types"   , ArgType::String , "column value types");
   addArg(argv, "-include_totals", ArgType::Boolean, "include totals");
+  addArg(argv, "-fill_value"    , ArgType::String , "fill_value");
+  addArg(argv, "-separator"     , ArgType::String , "separator");
 }
 
 QStringList
@@ -5283,7 +5338,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto argStringToColumns = [&](const QString &name) {
+  auto argStringToColumns = [&](const QString &name, bool &ok) {
+    ok = true;
+
     CQPivotModel::Columns columns;
 
     auto columnsStrs = argv.getParseStrs(name);
@@ -5297,7 +5354,7 @@ execCmd(CQChartsCmdArgs &argv)
       std::vector<CQChartsColumn> columns1;
 
       if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
-        (void) errorMsg("Bad columns name '" + columnsStr + "'");
+        ok = errorMsg("Bad columns name '" + columnsStr + "'");
         continue;
       }
 
@@ -5308,17 +5365,9 @@ execCmd(CQChartsCmdArgs &argv)
     return columns;
   };
 
-  auto hColumns = argStringToColumns("hcolumns" );
-  auto vColumns = argStringToColumns("vcolumns");
-
-  CQChartsColumn dcolumn;
-
-  if (argv.hasParseArg("dcolumn")) {
-    auto dcolumnStr = argv.getParseStr("dcolumn");
-
-    if (! CQChartsModelUtil::stringToColumn(model.data(), dcolumnStr, dcolumn))
-      return errorMsg("Bad column name '" + dcolumnStr + "'");
-  }
+  bool ok;
+  auto hColumns = argStringToColumns("hcolumns", ok); if (! ok) return false;
+  auto vColumns = argStringToColumns("vcolumns", ok); if (! ok) return false;
 
   //------
 
@@ -5327,28 +5376,83 @@ execCmd(CQChartsCmdArgs &argv)
   pivotModel->setHColumns(hColumns);
   pivotModel->setVColumns(vColumns);
 
-  if (dcolumn.isValid())
-    pivotModel->setValueColumn(dcolumn.column());
+  if (argv.hasParseArg("dcolumns")) {
+    bool ok;
+    auto dColumns = argStringToColumns("dcolumns", ok);
+    if (! ok) { delete pivotModel; return false; }
 
-  if (argv.hasParseArg("value_type")) {
-    auto valueTypeStr = argv.getParseStr("value_type").toLower();
+    pivotModel->setValueColumns(dColumns);
+  }
 
-    if      (valueTypeStr == "count")
-      pivotModel->setValueType(CQPivotModel::ValueType::COUNT);
-    else if (valueTypeStr == "count_unique")
-      pivotModel->setValueType(CQPivotModel::ValueType::COUNT_UNIQUE);
-    else if (valueTypeStr == "sum")
-      pivotModel->setValueType(CQPivotModel::ValueType::SUM);
-    else if (valueTypeStr == "min")
-      pivotModel->setValueType(CQPivotModel::ValueType::MIN);
-    else if (valueTypeStr == "max")
-      pivotModel->setValueType(CQPivotModel::ValueType::MAX);
-    else if (valueTypeStr == "mean")
-      pivotModel->setValueType(CQPivotModel::ValueType::MEAN);
+  if (argv.hasParseArg("value_types")) {
+    // get value types
+    auto valueTypeStr = argv.getParseStr("value_types");
+
+    QStringList valueTypeStrs;
+
+    if (! CQTcl::splitList(valueTypeStr, valueTypeStrs))
+      return errorMsg(QString("Invalid value_type strings '%1'").arg(valueTypeStr));
+
+    CQPivotModel::ColumnValueTypes columnValueTypes;
+
+    for (const auto &valueTypeStr : valueTypeStrs) {
+      // split into column/value_types
+      QStringList columnTypes;
+
+      int numColumnTypes = 0;
+
+      if (CQTcl::splitList(valueTypeStr, columnTypes))
+        numColumnTypes = columnTypes.size();
+
+      if (numColumnTypes != 1 && numColumnTypes != 2)
+        return errorMsg(QString("Invalid column/value type string '%1'").arg(valueTypeStr));
+
+      CQChartsColumn column;
+      QString        typeStr;
+
+      if (columnTypes.size() == 2) {
+        auto columnName = columnTypes[0];
+
+        if (! CQChartsModelUtil::stringToColumn(model.data(), columnName, column))
+          return errorMsg(QString("Invalid column '%1'").arg(columnName));
+
+        typeStr = columnTypes[1];
+      }
+      else
+        typeStr = columnTypes[0];
+
+      QStringList types;
+
+      if (! CQTcl::splitList(typeStr, types))
+        return errorMsg(QString("Invalid types string '%1'").arg(typeStr));
+
+      CQPivotModel::ValueTypes valueTypes;
+
+      for (const auto &typeStr : types) {
+        auto valueType = CQPivotModel::stringToValueType(typeStr);
+
+        if (valueType == CQPivotModel::ValueType::NONE)
+          return errorMsg("Invalid value type '" + typeStr + "'");
+
+        valueTypes.push_back(valueType);
+      }
+
+      columnValueTypes[column.column()] = valueTypes;
+    }
+
+    pivotModel->setColumnValueTypes(columnValueTypes);
   }
 
   if (argv.hasParseArg("include_totals"))
     pivotModel->setIncludeTotals(true);
+  else
+    pivotModel->setIncludeTotals(false);
+
+  if (argv.hasParseArg("fill_value"))
+    pivotModel->setFillValue(argv.getParseStr("fill_value"));
+
+  if (argv.hasParseArg("separator"))
+    pivotModel->setSeparator(argv.getParseStr("separator")[0]);
 
   //---
 
@@ -5424,7 +5528,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto argStringToColumns = [&](const QString &name) {
+  auto argStringToColumns = [&](const QString &name, bool &ok) {
+    ok = true;
+
     std::vector<CQChartsColumn> columns;
 
     auto columnsStrs = argv.getParseStrs(name);
@@ -5438,7 +5544,7 @@ execCmd(CQChartsCmdArgs &argv)
       std::vector<CQChartsColumn> columns1;
 
       if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
-        (void) errorMsg("Bad columns name '" + columnsStr + "'");
+        ok = errorMsg("Bad columns name '" + columnsStr + "'");
         continue;
       }
 
@@ -5449,7 +5555,8 @@ execCmd(CQChartsCmdArgs &argv)
     return columns;
   };
 
-  auto columns = argStringToColumns("columns");
+  bool ok;
+  auto columns = argStringToColumns("columns", ok); if (! ok) return false;
 
   using ColumnSet = std::set<int>;
 
@@ -6928,6 +7035,13 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(names);
     }
+    // get widget path
+    else if (name == "widget_path") {
+      auto *widgetAnnotation = dynamic_cast<CQChartsWidgetAnnotation *>(annotation);
+      if (! annotation) return errorMsg("Invalid annotation for widget_path");
+
+      return cmdBase_->setCmdRc(CQUtil::fullName(widgetAnnotation->widget().widget()));
+    }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["annotation"] = "";
 
@@ -7260,6 +7374,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // data model size
     else if (name == "size") {
+      // split into size (rows, cols)
       QStringList strs;
 
       if (! CQTcl::splitList(value, strs) || strs.length() != 2)
@@ -7391,6 +7506,7 @@ execCmd(CQChartsCmdArgs &argv)
         auto *obj = plot->getObject(objectId);
         if (! obj) return errorMsg("Invalid plot object id '" + objectId + "'");
 
+        // split into tick value/label
         QStringList strs;
 
         if (! CQTcl::splitList(value, strs) || strs.size() != 2)
@@ -7412,6 +7528,7 @@ execCmd(CQChartsCmdArgs &argv)
       }
     }
     else if (name == "color_filter") {
+      // split into color filters
       QStringList strs;
 
       if (CQTcl::splitList(value, strs))
@@ -7420,6 +7537,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "symbol_type_filter") {
       auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
 
+      // split into symbol type filters
       QStringList strs;
 
       if (pointPlot && CQTcl::splitList(value, strs))
@@ -7428,6 +7546,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "symbol_size_filter") {
       auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot);
 
+      // split into symbol size filters
       QStringList strs;
 
       if (pointPlot && CQTcl::splitList(value, strs))
@@ -7456,6 +7575,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! axisAnnotation)
         return errorMsg("Invalid axis annotation");
 
+      // split into tick value/label
       QStringList strs;
 
       if (! CQTcl::splitList(value, strs) || strs.size() != 2)
@@ -7484,6 +7604,7 @@ execCmd(CQChartsCmdArgs &argv)
   }
   else {
     if      (name == "path_list") {
+      // split into path strings
       QStringList strs;
 
       if (! CQTcl::splitList(value, strs))
@@ -8210,6 +8331,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   // single value (common head & tail angle), two values (separate head & tail angle)
   if (argv.hasParseArg("angle")) {
+    // split into arrow angles
     QStringList strs;
 
     if (! CQTcl::splitList(argv.getParseStr("angle"), strs))
@@ -8237,6 +8359,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   // single value (common head & tail back angle), two values (separate head & tail back angle)
   if (argv.hasParseArg("back_angle")) {
+    // split into arrow angles
     QStringList strs;
 
     if (! CQTcl::splitList(argv.getParseStr("back_angle"), strs))
@@ -8264,6 +8387,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   // single value (common head & tail length), two values (separate head & tail length)
   if (argv.hasParseArg("length")) {
+    // split into arrow lengths
     QStringList strs;
 
     if (! CQTcl::splitList(argv.getParseStr("length"), strs))
@@ -8293,6 +8417,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   // single value (common head & tail line ends), two values (separate head & tail line ends)
   if (argv.hasParseArg("line_ends")) {
+    // split into line ends
     QStringList strs;
 
     if (! CQTcl::splitList(argv.getParseStr("line_ends"), strs))
@@ -9719,6 +9844,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto pointsStr = argv.getParseStr("points");
 
+  // split into points
   QStringList pointStrs;
 
   if (! CQTcl::splitList(pointsStr, pointStrs))
@@ -12588,6 +12714,7 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
 
   //---
 
+  // split into properties
   QStringList strs;
 
   if (! CQTcl::splitList(properties, strs))
@@ -12596,6 +12723,7 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
   bool rc = true;
 
   for (int i = 0; i < strs.length(); ++i) {
+    // split into name/value
     QStringList strs1;
 
     if (! CQTcl::splitList(strs[i], strs1))

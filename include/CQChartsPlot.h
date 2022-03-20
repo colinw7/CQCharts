@@ -2463,6 +2463,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   WidgetAnnotation       *addWidgetAnnotation      (const Rect &rect, const Widget &widget);
   SymbolMapKeyAnnotation *addSymbolMapKeyAnnotation();
 
+  void initWidgetAnnotation(const Widget &widget);
+
   Annotation *addAnnotationI(Annotation *annotation);
 
   template<typename TYPE>

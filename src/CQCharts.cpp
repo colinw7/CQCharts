@@ -138,9 +138,11 @@
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelDetailsTable.h>
+#include <CQChartsModelDetailsWidget.h>
 #include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsModelColumnDataControl.h>
 #include <CQChartsModelExprControl.h>
+#include <CQChartsModelTable.h>
 
 // colors
 #include <CQColorsPalette.h>
@@ -721,8 +723,10 @@ init()
     widgetMgr->addWidgetFactoryT<CQChartsPlotValueControl>("CQChartsPlotValueControl");
 
     // model view
-    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelViewHolder>("CQChartsModelViewHolder");
-    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelDetailsTable>("CQChartsModelDetailsTable");
+    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelViewHolder   >("CQChartsModelViewHolder");
+    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelDetailsTable >("CQChartsModelDetailsTable");
+    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelDetailsWidget>("CQChartsModelDetailsWidget");
+    widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelTable        >("CQChartsModelTable");
 
     widgetMgr->addWidgetFactoryNoArgsT<
       CQChartsModelColumnDataControl>("CQChartsModelColumnDataControl");

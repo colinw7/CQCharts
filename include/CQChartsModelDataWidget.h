@@ -23,16 +23,21 @@ class CQChartsModelDataWidget : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData);
+  using ModelData = CQChartsModelData;
 
+ public:
+  CQChartsModelDataWidget(CQCharts *charts, ModelData *modelData);
  ~CQChartsModelDataWidget();
 
-  CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  ModelData *modelData() const { return modelData_; }
+  void setModelData(ModelData *modelData);
 
   void reloadModel();
 
   void setDetails();
+
+ private:
+  void init();
 
  signals:
   void filterTextChanged(const QString &);
@@ -46,8 +51,9 @@ class CQChartsModelDataWidget : public QFrame {
   void selectionChanged();
 
  private:
-  CQCharts*                   charts_        { nullptr };
-  CQChartsModelData*          modelData_     { nullptr };
+  CQCharts*  charts_    { nullptr };
+  ModelData* modelData_ { nullptr };
+
 #ifdef CQCHARTS_MODEL_VIEW
   CQChartsModelView*          view_          { nullptr };
 #else

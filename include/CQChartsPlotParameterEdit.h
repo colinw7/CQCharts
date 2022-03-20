@@ -18,14 +18,16 @@ class CQChartsColumnParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
-  using Column = CQChartsColumn;
+  using PlotParameter = CQChartsPlotParameter;
+  using ModelData     = CQChartsModelData;
+  using Column        = CQChartsColumn;
 
  public:
-  CQChartsColumnParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic);
+  CQChartsColumnParameterEdit(const PlotParameter *parameter, bool isBasic);
 
-  const CQChartsPlotParameter *parameter() const { return parameter_; }
+  const PlotParameter *parameter() const { return parameter_; }
 
-  void setModelData(const CQChartsModelData *modelData);
+  void setModelData(ModelData *modelData);
 
   Column getColumn() const;
   void setColumn(const Column &column);
@@ -37,9 +39,9 @@ class CQChartsColumnParameterEdit : public QFrame {
   void columnChanged();
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
-  CQChartsColumnCombo*         combo_     { nullptr };
-  CQChartsColumnLineEdit*      edit_      { nullptr };
+  const PlotParameter*    parameter_ { nullptr };
+  CQChartsColumnCombo*    combo_     { nullptr };
+  CQChartsColumnLineEdit* edit_      { nullptr };
 };
 
 //---
@@ -48,12 +50,15 @@ class CQChartsColumnsParameterEdit : public CQChartsColumnsLineEdit {
   Q_OBJECT
 
  public:
-  CQChartsColumnsParameterEdit(const CQChartsPlotParameter *parameter, bool isBasic);
+  using PlotParameter = CQChartsPlotParameter;
 
-  const CQChartsPlotParameter *parameter() const { return parameter_; }
+ public:
+  CQChartsColumnsParameterEdit(const PlotParameter *parameter, bool isBasic);
+
+  const PlotParameter *parameter() const { return parameter_; }
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
+  const PlotParameter* parameter_ { nullptr };
 };
 
 //---
@@ -62,10 +67,13 @@ class CQChartsStringParameterEdit : public CQChartsLineEdit {
   Q_OBJECT
 
  public:
-  CQChartsStringParameterEdit(const CQChartsPlotParameter *parameter);
+  using PlotParameter = CQChartsPlotParameter;
+
+ public:
+  CQChartsStringParameterEdit(const PlotParameter *parameter);
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
+  const PlotParameter* parameter_ { nullptr };
 };
 
 //---
@@ -74,7 +82,10 @@ class CQChartsRealParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsRealParameterEdit(const CQChartsPlotParameter *parameter);
+  using PlotParameter = CQChartsPlotParameter;
+
+ public:
+  CQChartsRealParameterEdit(const PlotParameter *parameter);
 
   double value() const;
 
@@ -82,9 +93,9 @@ class CQChartsRealParameterEdit : public QFrame {
   void valueChanged();
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
-  CQRealSpin*                  spinEdit_  { nullptr };
-  CQChartsLineEdit*            lineEdit_  { nullptr };
+  const PlotParameter* parameter_ { nullptr };
+  CQRealSpin*          spinEdit_  { nullptr };
+  CQChartsLineEdit*    lineEdit_  { nullptr };
 };
 
 //---
@@ -93,7 +104,10 @@ class CQChartsIntParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsIntParameterEdit(const CQChartsPlotParameter *parameter);
+  using PlotParameter = CQChartsPlotParameter;
+
+ public:
+  CQChartsIntParameterEdit(const PlotParameter *parameter);
 
   int value() const;
 
@@ -101,9 +115,9 @@ class CQChartsIntParameterEdit : public QFrame {
   void valueChanged();
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
-  CQIntegerSpin*               spinEdit_  { nullptr };
-  CQChartsLineEdit*            lineEdit_  { nullptr };
+  const PlotParameter* parameter_ { nullptr };
+  CQIntegerSpin*       spinEdit_  { nullptr };
+  CQChartsLineEdit*    lineEdit_  { nullptr };
 };
 
 //---
@@ -112,13 +126,16 @@ class CQChartsEnumParameterEdit : public QComboBox {
   Q_OBJECT
 
  public:
-  CQChartsEnumParameterEdit(const CQChartsEnumParameter *parameter);
+  using EnumParameter = CQChartsEnumParameter;
+
+ public:
+  CQChartsEnumParameterEdit(const EnumParameter *parameter);
 
   int currentValue() const;
   void setCurrentValue(int i);
 
  private:
-  const CQChartsEnumParameter* parameter_ { nullptr };
+  const EnumParameter* parameter_ { nullptr };
 };
 
 //---
@@ -130,13 +147,16 @@ class CQChartsBoolParameterEdit : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsBoolParameterEdit(const CQChartsPlotParameter *parameter, bool choice=false);
+  using PlotParameter = CQChartsPlotParameter;
+
+ public:
+  CQChartsBoolParameterEdit(const PlotParameter *parameter, bool choice=false);
 
   bool isChecked() const;
   void setChecked(bool b);
 
  private:
-  const CQChartsPlotParameter* parameter_ { nullptr };
+  const PlotParameter* parameter_ { nullptr };
 
  signals:
   void stateChanged(int);

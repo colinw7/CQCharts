@@ -343,7 +343,11 @@ updatePivot()
   pivotModel()->setHColumns(xColumns);
   pivotModel()->setVColumns(yColumns);
 
-  pivotModel()->setValueColumn(valueColumn);
+  Columns valueColumns;
+
+  valueColumns.push_back(valueColumn);
+
+  pivotModel()->setValueColumns(valueColumns);
 
   if      (valueType() == ValueType::COUNT)
     pivotModel()->setValueType(CQPivotModel::ValueType::COUNT);
@@ -873,8 +877,9 @@ createObjs(PlotObjs &objs) const
 
       int c1 = c + 1;
 
-      double hmin = 0.0; // pivotModel()->hmin(c);
-      double hmax = pivotModel()->hmax(c);
+      bool ok;
+      double hmin = 0.0; // pivotModel()->hmin(c).toDouble(&ok);
+      double hmax = pivotModel()->hmax(c).toDouble(&ok);
 
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
@@ -884,14 +889,13 @@ createObjs(PlotObjs &objs) const
         auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
-
         double value = CQChartsVariant::toReal(var, ok);
         if (! ok) value = 0.0;
 
         //---
 
-        double vmin = 0.0; // pivotModel()->vmin(r);
-        double vmax = pivotModel()->vmax(r);
+        double vmin = 0.0; // pivotModel()->vmin(r).toDouble(&ok);
+        double vmax = pivotModel()->vmax(r).toDouble(&ok);
 
         double hnorm = (hmax > hmin ? (value - hmin)/(hmax - hmin) : 0.0);
         double vnorm = (vmax > hmin ? (value - vmin)/(vmax - vmin) : 0.0);

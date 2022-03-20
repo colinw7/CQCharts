@@ -33,9 +33,9 @@ set plot [create_charts_plot -model $model2 -type barchart \
 #---
 
 #set model3 [create_charts_pivot_model -model $model \
-#  -hcolumns {Improved} -vcolumns {Treatment} -dcolumn {Age}]
+#  -hcolumns {Improved} -vcolumns {Treatment} -dcolumns {Age}]
 
 set model3 [create_charts_pivot_model -model $model \
-  -hcolumns {Improved} -vcolumns {Treatment} -value_type count]
+  -hcolumns {Improved} -vcolumns {Treatment} -value_types count]
 
 show_charts_manage_models_dlg

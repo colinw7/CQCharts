@@ -1,6 +1,8 @@
 #ifndef CQChartsModelDetailsWidget_H
 #define CQChartsModelDetailsWidget_H
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 #include <QPointer>
 
@@ -17,18 +19,27 @@ class QCheckBox;
  * \brief Model Details Widget
  * \ingroup Charts
  */
-class CQChartsModelDetailsWidget : public QFrame {
+class CQChartsModelDetailsWidget : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(bool flip READ isFlip WRITE setFlip)
 
  public:
-  CQChartsModelDetailsWidget(CQCharts *charts);
+  using ModelData    = CQChartsModelData;
+  using DetailsTable = CQChartsModelDetailsTable;
 
+ public:
+  CQChartsModelDetailsWidget(CQCharts *charts=nullptr);
+
+  //! get/set flip
   bool isFlip() const;
   void setFlip(bool b);
 
-  void setModelData(CQChartsModelData *modelData, bool invalidate=true);
+  void setCharts(CQCharts *charts) override;
+
+  void setModelData(ModelData *modelData) override;
+
+  void invalidateModelData(ModelData *modelData, bool invalidate=true);
 
   void invalidate();
 
@@ -38,17 +49,17 @@ class CQChartsModelDetailsWidget : public QFrame {
   void updateSlot();
 
  private:
-  using ModelDataP = QPointer<CQChartsModelData>;
+  using ModelDataP = QPointer<ModelData>;
 
-  CQCharts*                  charts_          { nullptr };
-  ModelDataP                 modelData_;
-  QLabel*                    modelLabel_      { nullptr };
-  QPushButton*               updateButton_    { nullptr };
-  CQLabel*                   numColumnsLabel_ { nullptr };
-  CQLabel*                   numRowsLabel_    { nullptr };
-  QLabel*                    hierLabel_       { nullptr };
-  QCheckBox*                 flipCheck_       { nullptr };
-  CQChartsModelDetailsTable* detailsTable_    { nullptr };
+  CQCharts*     charts_          { nullptr };
+  ModelDataP    modelData_;
+  QLabel*       modelLabel_      { nullptr };
+  QPushButton*  updateButton_    { nullptr };
+  CQLabel*      numColumnsLabel_ { nullptr };
+  CQLabel*      numRowsLabel_    { nullptr };
+  QLabel*       hierLabel_       { nullptr };
+  QCheckBox*    flipCheck_       { nullptr };
+  DetailsTable* detailsTable_    { nullptr };
 };
 
 #endif

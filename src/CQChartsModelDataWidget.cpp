@@ -21,11 +21,23 @@
 #include <set>
 
 CQChartsModelDataWidget::
-CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
+CQChartsModelDataWidget(CQCharts *charts, ModelData *modelData) :
  QFrame(nullptr), charts_(charts), modelData_(modelData)
 {
   setObjectName("modelData");
 
+  init();
+}
+
+CQChartsModelDataWidget::
+~CQChartsModelDataWidget()
+{
+}
+
+void
+CQChartsModelDataWidget::
+init()
+{
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //--
@@ -71,6 +83,8 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
 #ifdef CQCHARTS_MODEL_VIEW
+  assert(! view_);
+
   view_ = new CQChartsModelView(charts_);
 
   viewLayout->addWidget(view_);
@@ -78,6 +92,8 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   connect(view_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
   connect(view_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
 #else
+  assert(! stack_);
+
   // table/tree stack
   stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
@@ -125,14 +141,9 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   setDetails();
 }
 
-CQChartsModelDataWidget::
-~CQChartsModelDataWidget()
-{
-}
-
 void
 CQChartsModelDataWidget::
-setModelData(CQChartsModelData *modelData)
+setModelData(ModelData *modelData)
 {
   if (modelData_)
     disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
@@ -260,7 +271,7 @@ setDetails()
 
   //---
 
-  const CQChartsModelData *modelData1 = nullptr;
+  const ModelData *modelData1 = nullptr;
 
 #ifdef CQCHARTS_MODEL_VIEW
   modelData1 = charts_->getModelData(view_->modelP());
@@ -280,5 +291,5 @@ setDetails()
 
   //---
 
-  detailsWidget_->setModelData(const_cast<CQChartsModelData *>(modelData1));
+  detailsWidget_->setModelData(const_cast<ModelData *>(modelData1));
 }
