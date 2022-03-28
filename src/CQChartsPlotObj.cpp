@@ -169,6 +169,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 //---
 
+bool
+CQChartsPlotObj::
+selectPress(const Point &, SelData &)
+{
+  return true;
+}
+
 // are any of the normalized indices in object's select indices
 bool
 CQChartsPlotObj::

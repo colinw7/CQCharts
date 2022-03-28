@@ -842,12 +842,12 @@ class CQChartsView : public QFrame,
                               DrawType drawType=DrawType::BOX) const;
 
   void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                              PenBrush &penBrush, DrawType drawType) const;
+                              PenBrush &penBrush, DrawType drawType=DrawType::BOX) const;
 
   void updateInsideObjPenBrushState  (const ColorInd &ic, PenBrush &penBrush,
-                                      bool outline, DrawType drawType) const;
+                                      bool outline=false, DrawType drawType=DrawType::BOX) const;
   void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
-                                      DrawType drawType) const;
+                                      DrawType drawType=DrawType::BOX) const;
 
   //---
 

@@ -462,7 +462,7 @@ headerName() const
 
   bool ok;
 
-  return CQChartsModelUtil::modelHHeaderString(model, column_, ok);
+  return CQChartsModelUtil::columnToString(model, column_, ok);
 }
 
 bool

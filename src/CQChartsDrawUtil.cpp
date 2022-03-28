@@ -330,6 +330,14 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
     if (options.formatted) {
       auto prect = device->windowToPixel(rect);
 
+      if (options.scaled) {
+        auto w = prect.getWidth ();
+        auto h = prect.getHeight();
+
+        prect = BBox(prect.getXMid() - w/2.0, prect.getYMid() - h/2.0,
+                     prect.getXMid() + w/2.0, prect.getYMid() + h/2.0);
+      }
+
       CQChartsUtil::formatStringInRect(text1, device->font(), prect, strs,
                                        CQChartsUtil::FormatData(options.formatSeps));
     }

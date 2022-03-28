@@ -23,6 +23,8 @@ class CQChartsSpringyNode : public Springy::Node {
    Springy::Node(id) {
   }
 
+  QString stringId() const { return QString("node:%1").arg(id()); }
+
   int group() const { return group_; }
   void setGroup(int i) { group_ = i; }
 
@@ -38,6 +40,9 @@ class CQChartsSpringyNode : public Springy::Node {
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &v) { bbox_ = v; }
 
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; }
+
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
@@ -46,12 +51,13 @@ class CQChartsSpringyNode : public Springy::Node {
   void addOccupiedSlot(int slot) { occupiedSlots_.insert(slot); }
 
  private:
-  int         group_  { -1 };
-  Shape       shape_  { Shape::NONE };
+  int         group_    { -1 };
+  Shape       shape_    { Shape::NONE };
   OptReal     nodeValue_;
   QModelIndex ind_;
   BBox        bbox_;
-  bool        inside_ { false };
+  bool        selected_ { false };
+  bool        inside_   { false };
   Slots       occupiedSlots_;
 };
 
@@ -69,6 +75,8 @@ class CQChartsSpringyEdge : public Springy::Edge {
   CQChartsSpringyEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
    Springy::Edge(id, node1, node2) {
   }
+
+  QString stringId() const { return QString("node:%1").arg(id()); }
 
   const Shape &shape() const { return shape_; }
   void setShape(const Shape &v) { shape_ = v; }
@@ -88,17 +96,21 @@ class CQChartsSpringyEdge : public Springy::Edge {
   const QPainterPath &curvePath() const { return curvePath_; }
   void setCurvePath(const QPainterPath &v) { curvePath_ = v; }
 
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; }
+
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
  private:
-  Shape        shape_  { Shape::NONE };
-  bool         isLine_ { true };
+  Shape        shape_    { Shape::NONE };
+  bool         isLine_   { true };
   Point        startPoint_;
   Point        endPoint_;
   QPainterPath edgePath_;
   QPainterPath curvePath_;
-  bool         inside_ { false };
+  bool         selected_ { false };
+  bool         inside_   { false };
 };
 
 /*!

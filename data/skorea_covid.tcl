@@ -21,10 +21,24 @@ cd skorea_covid
 #set model5  [load_charts_model -csv SearchTrend.csv -first_line_header]
 #set model6  [load_charts_model -csv SeoulFloating.csv -first_line_header]
 #set model7  [load_charts_model -csv Time.csv -first_line_header]
-set model8  [load_charts_model -csv TimeAge.csv -first_line_header]
-set model9  [load_charts_model -csv TimeGender.csv -first_line_header]
-set model10 [load_charts_model -csv TimeProvince.csv -first_line_header]
+set timeAgeModel      [load_charts_model -csv TimeAge.csv -first_line_header]
+set timeGenderModel   [load_charts_model -csv TimeGender.csv -first_line_header]
+set timeProvinceModel [load_charts_model -csv TimeProvince.csv -first_line_header]
 #set model11 [load_charts_model -csv Weather.csv -first_line_header]
+
+set_charts_data -model $timeAgeModel -column 0 -name column_type \
+  -value {{time} {format %Y-%m-%d} {oformat %F}}
+set_charts_data -model $timeGenderModel -column 0 -name column_type \
+  -value {{time} {format %Y-%m-%d} {oformat %F}}
+set_charts_data -model $timeGenderModel -column 0 -name column_type \
+  -value {{time} {format %Y-%m-%d} {oformat %F}}
+
+set timeAgePivot [create_charts_pivot_model -model $timeAgeModel \
+  -vcolumns date -hcolumns age -dcolumns {confirmed deceased}]
+set timeGenderPivot [create_charts_pivot_model -model $timeGenderModel \
+  -vcolumns date -hcolumns sex -dcolumns {confirmed deceased}]
+set provincePivot [create_charts_pivot_model -model $timeProvinceModel \
+  -vcolumns date -hcolumns province -dcolumns {confirmed deceased}]
 
 set plot [create_charts_plot -type empty]
 

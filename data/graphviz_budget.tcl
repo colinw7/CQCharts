@@ -15,7 +15,6 @@ proc objPressed { view plot id } {
 set model [load_charts_model -csv data/sankey.csv -comment_header \
  -column_type {{{0 name_pair}}}]
 
-set plot [create_charts_plot -model $model -type force_directed \
-  -columns {{link 0} {value 1}} -title "Force Directed Budget"]
+set plot [create_charts_plot -model $model -type graphviz -columns {{link 0} {value 1}}]
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed

@@ -58,8 +58,22 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
 
   void setTransform(const QTransform &t, bool combine=false) override;
 
+  //---
+
   std::string context() const;
   void setContext(const std::string &context);
+
+  const std::string &id() const { return id_; }
+  void setId(const std::string &s) { id_ = s; }
+
+  //---
+
+  void startGroup(const QString &id, const GroupData &groupData=GroupData()) override;
+  void endGroup() override;
+
+  //---
+
+  void writeProc(const QString &proc);
 
   //---
 
@@ -100,6 +114,7 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
 
  private:
   std::string context_;
+  std::string id_;
 };
 
 #endif

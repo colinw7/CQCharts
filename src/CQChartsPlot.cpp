@@ -1058,6 +1058,8 @@ writeScript(ScriptPaintDevice *device) const
 {
   std::string plotId = CQChartsJS::encodeId("plot_" + this->id().toStdString());
 
+  device->setId(plotId);
+
   //---
 
   device->setContext("charts");
@@ -1171,39 +1173,33 @@ writeScript(ScriptPaintDevice *device) const
   bool bgAxes = hasGroupedBgAxes();
   bool bgKey  = hasGroupedBgKey();
 
-  if (bgAxes) { os << "\n"; os << "  this.drawBgAxes();\n"; }
-  if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
+  if (bgAxes) device->writeProc("drawBgAxes");
+  if (bgKey ) device->writeProc("drawBgKey");
 
   // background annotations
-  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
-    os << "\n"; os << "  this.drawBgAnnotations();\n";
-  }
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) device->writeProc("drawBgAnnotations");
 
   //---
 
   // middle parts (objects)
-  os << "\n"; os << "  this.drawObjs();\n";
+  device->writeProc("drawObjs");
 
   //---
 
   // foreground annotations
-  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
-    os << "\n"; os << "  this.drawFgAnnotations();\n";
-  }
+  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) device->writeProc("drawFgAnnotations");
 
   // foreground axis and key
   bool fgAxes = hasGroupedFgAxes();
   bool fgKey  = hasGroupedFgKey();
 
-  if (fgAxes) { os << "\n"; os << "  this.drawFgAxes();\n"; }
-  if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
+  if (fgAxes) device->writeProc("drawFgAxes");
+  if (fgKey ) device->writeProc("drawFgKey");
 
   // foreground title
   bool title = hasTitle();
 
-  if (title) {
-    os << "\n"; os << "  this.drawTitle();\n";
-  }
+  if (title) device->writeProc("drawTitle");
 
   // custom foreground
   if (this->hasForegroundI()) {
@@ -1315,10 +1311,11 @@ writeScript(ScriptPaintDevice *device) const
 
   // draw background annotations proc
   if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawBgAnnotations = function() {\n";
+    device->startGroup("bgAnnotations");
+
     drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   //---
@@ -1353,10 +1350,11 @@ writeScript(ScriptPaintDevice *device) const
 
   // draw annotations proc
   if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawFgAnnotations = function() {\n";
+    device->startGroup("fgAnnotations");
+
     drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   //---
@@ -1365,19 +1363,21 @@ writeScript(ScriptPaintDevice *device) const
   if (bgAxes) {
     device->resetData();
 
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawBgAxes = function() {\n";
+    device->startGroup("bgAxes");
+
     drawGroupedBgAxes(device);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   if (fgAxes) {
     device->resetData();
 
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawFgAxes = function() {\n";
+    device->startGroup("fgAxes");
+
     drawGroupedFgAxes(device);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   //---
@@ -1386,19 +1386,21 @@ writeScript(ScriptPaintDevice *device) const
   if (bgKey) {
     device->resetData();
 
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawBgKey = function() {\n";
+    device->startGroup("bgKey");
+
     drawBgKey(device);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   if (fgKey) {
     device->resetData();
 
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawFgKey = function() {\n";
+    device->startGroup("fgKey");
+
     drawFgKey(device);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   //---
@@ -1407,10 +1409,11 @@ writeScript(ScriptPaintDevice *device) const
   if (title) {
     device->resetData();
 
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawTitle = function() {\n";
+    device->startGroup("title");
+
     drawTitle(device);
-    os << "}\n";
+
+    device->endGroup();
   }
 
   //---
@@ -14964,42 +14967,65 @@ initWidgetAnnotation(const Widget &widget)
 
   //---
 
-  auto widgetIFace = dynamic_cast<CQChartsWidgetIFace *>(widget.widget());
+  using Widgets = std::vector<QWidget *>;
 
-  if (widgetIFace) {
-    widgetIFace->setCharts(charts());
-    widgetIFace->setView  (view());
-    widgetIFace->setPlot  (this);
+  Widgets widgets;
+
+  widgets.push_back(widget.widget());
+
+  auto widgets1 = widget.widget()->findChildren<QWidget *>();
+
+  for (auto *widget1 : widgets1) {
+    auto *widgetIFace1 = (widget1 ? dynamic_cast<CQChartsWidgetIFace *>(widget1) : nullptr);
+
+    if (widgetIFace1)
+      widgets.push_back(widget1);
   }
 
   //---
 
-  auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget.widget());
+  auto *modelData = getModelData();
 
-  if (modelHolder)
-    modelHolder->setModel(model(), isHierarchical());
+  for (auto *widget : widgets) {
+    auto widgetIFace = dynamic_cast<CQChartsWidgetIFace *>(widget);
 
-  auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget.widget());
+    if (widgetIFace) {
+      // set in increasing dependency
+      widgetIFace->setCharts   (charts());
+      widgetIFace->setView     (view());
+      widgetIFace->setModelData(modelData);
+      widgetIFace->setPlot     (this);
+    }
 
-  if (detailsTable)
-    detailsTable->setModelData(getModelData());
+    //---
 
-  auto *detailsWidget = dynamic_cast<CQChartsModelDetailsWidget *>(widget.widget());
+    auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget);
 
-  if (detailsWidget)
-    detailsWidget->setModelData(getModelData());
+    if (modelHolder)
+      modelHolder->setModel(model(), isHierarchical());
 
-  //---
+    auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget);
 
-  auto *modelControlData = dynamic_cast<CQChartsModelColumnDataControl *>(widget.widget());
+    if (detailsTable)
+      detailsTable->setModelData(modelData);
 
-  if (modelControlData)
-    modelControlData->setModelData(getModelData());
+    auto *detailsWidget = dynamic_cast<CQChartsModelDetailsWidget *>(widget);
 
-  auto *modelExpr = dynamic_cast<CQChartsModelExprControl *>(widget.widget());
+    if (detailsWidget)
+      detailsWidget->setModelData(modelData);
 
-  if (modelExpr)
-    modelExpr->setModelData(getModelData());
+    //---
+
+    auto *modelControlData = dynamic_cast<CQChartsModelColumnDataControl *>(widget);
+
+    if (modelControlData)
+      modelControlData->setModelData(modelData);
+
+    auto *modelExpr = dynamic_cast<CQChartsModelExprControl *>(widget);
+
+    if (modelExpr)
+      modelExpr->setModelData(modelData);
+  }
 }
 
 CQChartsSymbolSizeMapKeyAnnotation *
@@ -16913,32 +16939,30 @@ modelHHeaderTip(const Column &column, bool &ok) const
 
 QString
 CQChartsPlot::
-modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const
+modelVHeaderString(int section, int role, bool &ok) const
 {
-  return modelVHeaderString(model().data(), section, orient, role, ok);
+  return modelVHeaderString(model().data(), section, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const
+modelVHeaderString(int section, bool &ok) const
 {
-  return modelVHeaderString(model().data(), section, orient, Qt::DisplayRole, ok);
+  return modelVHeaderString(model().data(), section, Qt::DisplayRole, ok);
 }
 
 QString
 CQChartsPlot::
-modelVHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                   int role, bool &ok) const
+modelVHeaderString(QAbstractItemModel *model, int section, int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, section, orientation, role, ok);
+  return CQChartsModelUtil::modelVHeaderString(model, section, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelVHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                   bool &ok) const
+modelVHeaderString(QAbstractItemModel *model, int section, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, section, orientation, ok);
+  return CQChartsModelUtil::modelVHeaderString(model, section, ok);
 }
 
 //------

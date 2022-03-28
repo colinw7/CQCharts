@@ -60,19 +60,8 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
 
   //---
 
-  //! group data
-  struct GroupData {
-    bool    visible   { true };
-    bool    onclick   { false };
-    QString clickProc { "clickProc" };
-    bool    hasTip    { false };
-    QString tipStr;
-
-    GroupData() { }
-  };
-
-  void startGroup(const QString &id, const GroupData &groupData=GroupData());
-  void endGroup();
+  void startGroup(const QString &id, const GroupData &groupData=GroupData()) override;
+  void endGroup() override;
 
   //---
 

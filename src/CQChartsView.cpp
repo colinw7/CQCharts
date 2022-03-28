@@ -51,7 +51,6 @@
 
 #include <QSvgGenerator>
 #include <QFileDialog>
-#include <QRubberBand>
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QMenu>
@@ -964,9 +963,8 @@ setCurrentPlotInd(int ind)
   // disconnect previous plot
   auto *currentPlot = getPlotForInd(currentPlotInd_);
 
-  if (currentPlot) {
+  if (currentPlot)
     disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
-  }
 
   //---
 
@@ -978,9 +976,13 @@ setCurrentPlotInd(int ind)
 
   currentPlot = getPlotForInd(currentPlotInd_);
 
-  if (currentPlot) {
+  if (currentPlot)
     connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
-  }
+
+  //---
+
+  if (currentPlot && ! currentPlot->type()->canRectSelect() && selectMode() == SelectMode::RECT)
+    setSelectMode(SelectMode::POINT);
 
   //---
 
@@ -3105,26 +3107,24 @@ editMousePress()
   //---
 
   // select/deselect key
-  if (key()) {
-    if (key()->contains(w)) {
-      if (! key()->isSelected()) {
-        selectOneObj(key());
+  if (key() && key()->contains(w)) {
+    if (! key()->isSelected()) {
+      selectOneObj(key());
 
-        doUpdate();
+      doUpdate();
 
-        return true;
-      }
-
-      if (key()->editPress(w)) {
-        mouseData_.dragObj = DragObj::KEY;
-
-        invalidateOverlay();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
+
+    if (key()->editPress(w)) {
+      mouseData_.dragObj = DragObj::KEY;
+
+      invalidateOverlay();
+
+      return true;
+    }
+
+    return false;
   }
 
   //---
@@ -7263,11 +7263,11 @@ writeScript(const QString &filename, Plot *plot)
   // draw background proc
   CQChartsScriptPaintDevice device(const_cast<CQChartsView *>(this), os);
 
-  os << "Charts.prototype.drawBackground = function() {\n";
+  device.startGroup("background");
 
   drawBackground(&device);
 
-  os << "}\n";
+  device.endGroup();
 
   //---
 
@@ -7276,21 +7276,19 @@ writeScript(const QString &filename, Plot *plot)
   bool hasFgAnnotations = hasAnnotations(Layer::Type::FG_ANNOTATION);
 
   if (hasBgAnnotations) {
-    os << "\n";
-    os << "Charts.prototype.drawBgAnnotations = function() {\n";
+    device.startGroup("bgAnnotations");
 
     drawAnnotations(&device, CQChartsLayer::Type::BG_ANNOTATION);
 
-    os << "}\n";
+    device.endGroup();
   }
 
   if (hasFgAnnotations) {
-    os << "\n";
-    os << "Charts.prototype.drawFgAnnotations = function() {\n";
+    device.startGroup("fgAnnotations");
 
     drawAnnotations(&device, CQChartsLayer::Type::FG_ANNOTATION);
 
-    os << "}\n";
+    device.endGroup();
   }
 
   //---

@@ -219,6 +219,8 @@ loadJson(const CQChartsFile &file, const InputData &inputData)
 
   auto *jsonModel = new CQJsonModel;
 
+  jsonModel->setAllowSingleQuote(true);
+
   auto *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
   json->setObjectName("jsonFilterModel");
 
@@ -647,9 +649,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
 
     for (const auto &c : columnSet) {
       bool ok;
-
-      columnNames[ic] =
-        CQChartsModelUtil::modelHeaderString(model, c.column(), Qt::Horizontal, ok);
+      columnNames[ic] = CQChartsModelUtil::columnToString(model, c, ok);
 
       auto &values = columnValues[ic];
       auto &minMax = columnMinMax[ic];
@@ -683,7 +683,7 @@ createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correla
     for (size_t ir = 0; ir < size_t(nr); ++ir) {
       bool ok;
 
-      columnNames[ir] = CQChartsModelUtil::modelHeaderString(model, int(ir), Qt::Vertical, ok);
+      columnNames[ir] = CQChartsModelUtil::modelVHeaderString(model, int(ir), ok);
 
       auto &values = columnValues[ir];
       auto &minMax = columnMinMax[ir];

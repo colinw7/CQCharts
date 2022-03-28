@@ -1388,3 +1388,6 @@
 # 3/20/2022
  + Support multiple data columns in pivot model
  + Improve annotation widget handling and add more widgets
+# 3/27/2022
+ + add title and selection support to force directed plot
+ + more work on model join customization

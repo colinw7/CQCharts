@@ -1308,7 +1308,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   }
 
   if (! data.name.length()) {
-    data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok); // ignore fail
+    data.name = modelVHeaderString(vdata.row, ok); // ignore fail
 
     if (! data.name.length()) {
       data.name = QString::number(vdata.row);

@@ -379,3 +379,34 @@ setContext(const std::string &context)
 {
   context_ = context;
 }
+
+void
+CQChartsScriptPaintDevice::
+writeProc(const QString &procName)
+{
+  *os_ << "\n";
+  *os_ << "  this." << procName.toStdString() << "();\n";
+}
+
+void
+CQChartsScriptPaintDevice::
+startGroup(const QString &gid, const GroupData &)
+{
+  *os_ << "\n";
+
+  auto procName = gid[0].toUpper() + gid.mid(1);
+
+  if (id() != "")
+    *os_ << "Charts_" << id();
+  else
+    *os_ << "Charts";
+
+  *os_ << ".prototype.draw" << procName.toStdString() << " = function() {\n";
+}
+
+void
+CQChartsScriptPaintDevice::
+endGroup()
+{
+  *os_ << "}\n";
+}

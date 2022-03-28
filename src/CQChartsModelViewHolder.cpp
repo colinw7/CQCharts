@@ -203,7 +203,10 @@ void
 CQChartsModelViewHolder::
 setModelData(ModelData *modelData)
 {
-  setModel(modelData->currentModel(), modelData->isHierarchical());
+  if (modelData)
+    setModel(modelData->currentModel(), modelData->isHierarchical());
+  else
+    setModel(ModelP(), false);
 }
 
 void

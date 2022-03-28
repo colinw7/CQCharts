@@ -554,8 +554,8 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
   if (strs.length() == 1 && strs[0].trimmed() == "")
     return true;
 
-  Column column;
-  QString        typeName;
+  Column  column;
+  QString typeName;
 
   QStringList strs1;
 
@@ -1217,14 +1217,20 @@ QString modelHeaderStringI(const QAbstractItemModel *model, const Column &column
   return str;
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, int section,
-                          Qt::Orientation orient, int role, bool &ok) {
-  return modelHeaderStringI(model, Column(section), orient, role, ok);
+QString modelHHeaderString(const QAbstractItemModel *model, int section, int role, bool &ok) {
+  return modelHeaderStringI(model, Column(section), Qt::Horizontal, role, ok);
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, int section,
-                          Qt::Orientation orient, bool &ok) {
-  return modelHeaderStringI(model, Column(section), orient, Qt::DisplayRole, ok);
+QString modelHHeaderString(const QAbstractItemModel *model, int section, bool &ok) {
+  return modelHeaderStringI(model, Column(section), Qt::Horizontal, Qt::DisplayRole, ok);
+}
+
+QString modelVHeaderString(const QAbstractItemModel *model, int section, int role, bool &ok) {
+  return modelHeaderStringI(model, Column(section), Qt::Horizontal, role, ok);
+}
+
+QString modelVHeaderString(const QAbstractItemModel *model, int section, bool &ok) {
+  return modelHeaderStringI(model, Column(section), Qt::Horizontal, Qt::DisplayRole, ok);
 }
 
 QString modelHHeaderString(const QAbstractItemModel *model, const Column &column,
@@ -1977,6 +1983,36 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
   return true;
 }
 
+QString columnsToString(const QAbstractItemModel *model, const Columns &columns, bool &ok)
+{
+  ok = true;
+
+  QStringList strs;
+
+  for (const auto &c : columns) {
+    bool ok1;
+    strs += columnToString(model, c, ok1);
+    if (! ok1)
+      ok = false;
+  }
+
+  return CQTcl::mergeList(strs);
+}
+
+QString columnToString(const QAbstractItemModel *model, const Column &column, bool &ok)
+{
+  ok = true;
+
+  QString str;
+
+  if (column.type() == Column::Type::DATA)
+    str = modelHHeaderString(model, column.column(), ok);
+  else
+    str = column.toString();
+
+  return str;
+}
+
 }
 
 //------
@@ -2501,7 +2537,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
   auto initModelColumn = [&](int src, int dest, FlattenOp flattenOp, bool isGroup) {
     bool ok;
 
-    auto name = CQChartsModelUtil::modelHeaderString(model, src, Qt::Horizontal, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(model, src, ok);
 
     if (flattenOp != FlattenOp::NONE)
       name += QString(" (") +  opName(flattenOp) + ")";

@@ -737,14 +737,18 @@ init()
 #endif
 
     // other edits (all ?)
-    widgetMgr->addWidgetFactoryT<CQChartsAlphaEdit>("CQChartsAlphaEdit");
-    widgetMgr->addWidgetFactoryT<CQChartsAngleEdit>("CQChartsAngleEdit");
-    widgetMgr->addWidgetFactoryT<CQChartsColorEdit>("CQChartsColorEdit");
-    widgetMgr->addWidgetFactoryT<CQChartsFontEdit >("CQChartsFontEdit" );
-
+    widgetMgr->addWidgetFactoryT<CQChartsAlphaEdit     >("CQChartsAlphaEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsAngleEdit     >("CQChartsAngleEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsColorEdit     >("CQChartsColorEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsColumnEdit    >("CQChartsColumnEdit"    );
+    widgetMgr->addWidgetFactoryT<CQChartsColumnsEdit   >("CQChartsColumnsEdit"   );
+    widgetMgr->addWidgetFactoryT<CQChartsFontEdit      >("CQChartsFontEdit"      );
     widgetMgr->addWidgetFactoryT<CQChartsImageEdit     >("CQChartsImageEdit"     );
     widgetMgr->addWidgetFactoryT<CQChartsLengthEdit    >("CQChartsLengthEdit"    );
+    widgetMgr->addWidgetFactoryT<CQChartsLineEdit      >("CQChartsLineEdit"      );
+    widgetMgr->addWidgetFactoryT<CQChartsPolygonEdit   >("CQChartsPolygonEdit"   );
     widgetMgr->addWidgetFactoryT<CQChartsPositionEdit  >("CQChartsPositionEdit"  );
+    widgetMgr->addWidgetFactoryT<CQChartsRectEdit      >("CQChartsRectEdit"      );
     widgetMgr->addWidgetFactoryT<CQChartsSymbolEdit    >("CQChartsSymbolEdit"    );
     widgetMgr->addWidgetFactoryT<CQChartsSymbolSetEdit> ("CQChartsSymbolSetEdit" );
     widgetMgr->addWidgetFactoryT<CQChartsSymbolTypeEdit>("CQChartsSymbolTypeEdit");

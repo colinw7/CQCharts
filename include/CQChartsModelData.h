@@ -64,6 +64,15 @@ class CQChartsModelData : public QObject {
     QString  separator { "/" };
   };
 
+  enum JoinType {
+    NONE,
+    LEFT,
+    RIGHT,
+    OUTER,
+    INNER,
+    CROSS
+  };
+
  public:
   static QString description();
   static QString typeDescription(const QString &type);
@@ -241,18 +250,23 @@ class CQChartsModelData : public QObject {
 
   QAbstractItemModel *copy(const CopyData &copyData);
 
-  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinColumns);
+  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &lColumns,
+                           const Columns &rColumns, JoinType joinType=JoinType::NONE);
+  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinCColumns,
+                           JoinType joinType=JoinType::NONE);
 
   QAbstractItemModel *groupColumns(const Columns &groupColumns);
 
-  void copyHeaderRoles(QAbstractItemModel *toModel) const;
+  bool copyHeaderRoles(QAbstractItemModel *toModel) const;
 
-  void copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const;
+  bool copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const;
 
  private:
   void updatePropertyModel();
 
   void connectModel(bool b);
+
+  QVariant modelIndData(QAbstractItemModel *model, const QModelIndex &ind) const;
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);

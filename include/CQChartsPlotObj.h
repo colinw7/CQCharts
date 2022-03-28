@@ -273,7 +273,10 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
-  // select
+  //! handle select press
+  bool selectPress(const Point &p, SelData &selData) override;
+
+  //---
 
  public:
   // are any of the normalized indices in object's select indices

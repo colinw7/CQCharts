@@ -131,6 +131,7 @@ init()
   setNodeStroked(true);
   setNodeStrokeAlpha(Alpha(0.2));
 
+  setNodeTextScaled(true);
   setNodeTextColor(Color::makeContrast());
 
   //---
@@ -1701,10 +1702,49 @@ bool
 CQChartsForceDirectedPlot::
 handleSelectPress(const Point &p, SelMod /*selMod*/)
 {
-  auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+  setCurrentNode(p);
 
-  forceDirected_->setCurrentNode (nodePoint.first );
-  forceDirected_->setCurrentPoint(nodePoint.second);
+  pressed_ = true;
+
+  selectAt(p);
+
+  drawObjs();
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
+handleSelectMove(const Point &p, Constraints, bool)
+{
+  setCurrentNode(p);
+
+  if (! running_)
+    updateInside(p);
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
+handleSelectRelease(const Point & /*p*/)
+{
+  resetCurrentNode();
+
+  pressed_ = false;
+
+  drawObjs();
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsForceDirectedPlot::
+handleEditPress(const Point &, const Point &p, bool)
+{
+  setCurrentNode(p);
 
   pressed_ = true;
 
@@ -1715,7 +1755,7 @@ handleSelectPress(const Point &p, SelMod /*selMod*/)
 
 bool
 CQChartsForceDirectedPlot::
-handleSelectMove(const Point &p, Constraints constraints, bool first)
+handleEditMove(const Point &, const Point &p, bool)
 {
   if (pressed_) {
     if (forceDirected_->currentPoint())
@@ -1726,92 +1766,231 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
     return true;
   }
   else {
-    auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
-
-    forceDirected_->setCurrentNode (nodePoint.first );
-    forceDirected_->setCurrentPoint(nodePoint.second);
+    setCurrentNode(p);
 
     //---
 
-    if (! running_) {
-      using NodeSet = std::set<Node *>;
-      using EdgeSet = std::set<Edge *>;
-
-      NodeSet insideNodes;
-
-      for (auto &node : forceDirected_->nodes()) {
-        auto *snode = dynamic_cast<Node *>(node.get());
-        assert(snode);
-
-        if (snode->isInside())
-          insideNodes.insert(snode);
-      }
-
-      EdgeSet insideEdges;
-
-      for (auto &edge : forceDirected_->edges()) {
-        auto *sedge = dynamic_cast<Edge *>(edge.get());
-        assert(sedge);
-
-        if (sedge->isInside())
-          insideEdges.insert(sedge);
-      }
-
-      //---
-
-      Node *insideNode = nullptr;
-      Edge *insideEdge = nullptr;
-
-      nearestNodeEdge(p, insideNode, insideEdge);
-
-      if (insideNode) {
-        if (insideNodes.size() == 1 && *insideNodes.begin() == insideNode)
-          return false;
-      }
-      else if (insideEdge) {
-        if (insideEdges.size() == 1 && *insideEdges.begin() == insideEdge)
-          return false;
-      }
-      else {
-        if (insideNodes.empty() && insideEdges.empty())
-          return false;
-      }
-
-      for (auto *node : insideNodes)
-        node->setInside(false);
-
-      for (auto *edge : insideEdges)
-        edge->setInside(false);
-
-      if      (insideNode)
-        insideNode->setInside(true);
-      else if (insideEdge)
-        insideEdge->setInside(true);
-
-      drawObjs();
-
-      return true;
-    }
+    if (! running_)
+      updateInside(p);
   }
 
-  return CQChartsPlot::handleSelectMove(p, constraints, first);
+  return true;
 }
 
 bool
 CQChartsForceDirectedPlot::
-handleSelectRelease(const Point &p)
+handleEditRelease(const Point &, const Point &p)
 {
   if (forceDirected_->currentPoint())
     forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));
 
-  forceDirected_->setCurrentNode (nullptr);
-  forceDirected_->setCurrentPoint(nullptr);
+  resetCurrentNode();
 
   pressed_ = false;
 
   drawObjs();
 
   return true;
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+setCurrentNode(const Point &p)
+{
+  auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+
+  forceDirected_->setCurrentNode (nodePoint.first );
+  forceDirected_->setCurrentPoint(nodePoint.second);
+}
+
+void
+CQChartsForceDirectedPlot::
+resetCurrentNode()
+{
+  forceDirected_->setCurrentNode (nullptr);
+  forceDirected_->setCurrentPoint(nullptr);
+}
+
+bool
+CQChartsForceDirectedPlot::
+selectAt(const Point &p)
+{
+  using NodeSet = std::set<Node *>;
+  using EdgeSet = std::set<Edge *>;
+
+  NodeSet selectedNodes;
+
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (snode->isSelected())
+      selectedNodes.insert(snode);
+  }
+
+  EdgeSet selectedEdges;
+
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    if (sedge->isSelected())
+      selectedEdges.insert(sedge);
+  }
+
+  //---
+
+  Node *selectedNode = nullptr;
+  Edge *selectedEdge = nullptr;
+
+  nearestNodeEdge(p, selectedNode, selectedEdge);
+
+  if (selectedNode) {
+    if (selectedNodes.size() == 1 && *selectedNodes.begin() == selectedNode)
+      return false;
+  }
+  else if (selectedEdge) {
+    if (selectedEdges.size() == 1 && *selectedEdges.begin() == selectedEdge)
+      return false;
+  }
+  else {
+    if (selectedNodes.empty() && selectedEdges.empty())
+      return false;
+  }
+
+  for (auto *node : selectedNodes)
+    node->setSelected(false);
+
+  for (auto *edge : selectedEdges)
+    edge->setSelected(false);
+
+  if      (selectedNode)
+    selectedNode->setSelected(true);
+  else if (selectedEdge)
+    selectedEdge->setSelected(true);
+
+  updateSelText();
+
+  drawObjs();
+
+  //---
+
+  if      (selectedNode)
+    emit objIdPressed(selectedNode->stringId());
+  else if (selectedEdge)
+    emit objIdPressed(selectedEdge->stringId());
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
+updateInside(const Point &p)
+{
+  using NodeSet = std::set<Node *>;
+  using EdgeSet = std::set<Edge *>;
+
+  NodeSet insideNodes;
+
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (snode->isInside())
+      insideNodes.insert(snode);
+  }
+
+  EdgeSet insideEdges;
+
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    if (sedge->isInside())
+      insideEdges.insert(sedge);
+  }
+
+  //---
+
+  Node *insideNode = nullptr;
+  Edge *insideEdge = nullptr;
+
+  nearestNodeEdge(p, insideNode, insideEdge);
+
+  if (insideNode) {
+    if (insideNodes.size() == 1 && *insideNodes.begin() == insideNode)
+      return false;
+  }
+  else if (insideEdge) {
+    if (insideEdges.size() == 1 && *insideEdges.begin() == insideEdge)
+      return false;
+  }
+  else {
+    if (insideNodes.empty() && insideEdges.empty())
+      return false;
+  }
+
+  for (auto *node : insideNodes)
+    node->setInside(false);
+
+  for (auto *edge : insideEdges)
+    edge->setInside(false);
+
+  if      (insideNode)
+    insideNode->setInside(true);
+  else if (insideEdge)
+    insideEdge->setInside(true);
+
+  drawObjs();
+
+  return true;
+}
+
+void
+CQChartsForceDirectedPlot::
+updateSelText()
+{
+  Node *selectedNode = nullptr;
+  Edge *selectedEdge = nullptr;
+
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (snode->isSelected()) {
+      selectedNode = snode;
+      break;
+    }
+  }
+
+  if (! selectedNode) {
+    for (auto &edge : forceDirected_->edges()) {
+      auto *sedge = dynamic_cast<Edge *>(edge.get());
+      assert(sedge);
+
+      if (sedge->isSelected()) {
+        selectedEdge = sedge;
+        break;
+      }
+    }
+  }
+
+  //---
+
+  QString selText;
+
+  if      (selectedNode)
+    selText = calcNodeLabel(selectedNode);
+  else if (selectedEdge) {
+    auto *snode = dynamic_cast<Node *>(selectedEdge->source().get());
+    auto *tnode = dynamic_cast<Node *>(selectedEdge->target().get());
+
+    selText = QString("%1 -> %2").arg(calcNodeLabel(snode)).arg(calcNodeLabel(tnode));
+  }
+
+  view()->setSelText(selText);
 }
 
 //---
@@ -2054,6 +2233,11 @@ drawDeviceParts(PaintDevice *device) const
 
   //---
 
+  if (hasTitle())
+    drawTitle(device);
+
+  //---
+
   device->restore();
 }
 
@@ -2224,10 +2408,18 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   auto pc = interpNodeStrokeColor(colorInd);
   auto fc = calcNodeFillColor(snode);
 
-  if (snode->isInside())
-    fc = insideColor(fc);
-
   setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
+
+  if      (snode->isInside()) {
+    if (snode->isSelected()) {
+      view()->updateSelectedObjPenBrushState(colorInd, penBrush);
+      view()->updateInsideObjPenBrushState  (colorInd, penBrush);
+    }
+    else
+      view()->updateInsideObjPenBrushState(colorInd, penBrush);
+  }
+  else if (snode->isSelected())
+    view()->updateSelectedObjPenBrushState(colorInd, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

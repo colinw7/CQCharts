@@ -614,27 +614,44 @@ exec(CQTclCmd::CmdArgs &argv)
 
     //---
 
-    auto columnsStr = argv.getParseStr("column");
+    auto lcolumnsStr = argv.getParseStr("lcolumn");
+    auto rcolumnsStr = argv.getParseStr("rcolumn");
 
-    QStringList columnsStrs;
+    QStringList lcolumnsStrs;
 
-    if (! CQTcl::splitList(columnsStr, columnsStrs))
-      return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
+    if (! CQTcl::splitList(lcolumnsStr, lcolumnsStrs))
+      return errorMsg(QString("Invalid lcolumns string '%1'").arg(lcolumnsStr));
+
+    QStringList rcolumnsStrs;
+
+    if (! CQTcl::splitList(rcolumnsStr, rcolumnsStrs))
+      return errorMsg(QString("Invalid rcolumns string '%1'").arg(rcolumnsStr));
 
     using Columns = std::vector<CQChartsColumn>;
 
-    Columns columns;
+    Columns lcolumns;
 
-    for (int i = 0; i < columnsStrs.length(); ++i) {
+    for (int i = 0; i < lcolumnsStrs.length(); ++i) {
       CQChartsColumn column;
 
-      if (! CQChartsModelUtil::stringToColumn(pmodel, columnsStrs[i], column))
-        return errorMsg(QString("Invalid column '%1'").arg(columnsStrs[i]));
+      if (! CQChartsModelUtil::stringToColumn(pmodel, lcolumnsStrs[i], column))
+        return errorMsg(QString("Invalid column '%1'").arg(lcolumnsStrs[i]));
 
-      columns.push_back(column);
+      lcolumns.push_back(column);
     }
 
-    auto *newModel = modelData->join(joinModelData, columns);
+    Columns rcolumns;
+
+    for (int i = 0; i < rcolumnsStrs.length(); ++i) {
+      CQChartsColumn column;
+
+      if (! CQChartsModelUtil::stringToColumn(pmodel, rcolumnsStrs[i], column))
+        return errorMsg(QString("Invalid column '%1'").arg(rcolumnsStrs[i]));
+
+      rcolumns.push_back(column);
+    }
+
+    auto *newModel = modelData->join(joinModelData, lcolumns, rcolumns);
 
     CQChartsCmds::ModelP newModelP(newModel);
 

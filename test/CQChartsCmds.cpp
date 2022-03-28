@@ -471,7 +471,7 @@ execCmd(CQChartsCmdArgs &argv)
   auto *charts = this->charts();
 
   if (filename[0] == '@') {
-#if 0
+#if 1
     QTemporaryFile tempFile(QDir::tempPath() + "/XXXXXX.tcl");
 
     if (! tempFile.open())
@@ -3877,13 +3877,16 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// join models to create new model
+// Command: join_charts_model
+// Desc   : Join models to create new model
 void
 CQChartsJoinChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  addArg(argv, "-models" , ArgType::String, "model_ids");
-  addArg(argv, "-columns", ArgType::String, "columns");
+  addArg(argv, "-models"  , ArgType::String, "model_ids");
+  addArg(argv, "-lcolumns", ArgType::String, "lcolumns");
+  addArg(argv, "-rcolumns", ArgType::String, "rcolumns");
+  addArg(argv, "-type"    , ArgType::String, "type");
 }
 
 QStringList
@@ -3938,23 +3941,59 @@ execCmd(CQChartsCmdArgs &argv)
     return errorMsg("Need two models to join");
 
   auto model0 = modelDatas[0]->currentModel();
+  auto model1 = modelDatas[1]->currentModel();
 
   //---
 
-  // split into strings per column
-  CQChartsCmds::Columns columns;
+  // split left columns string into left model columns
+  CQChartsCmds::Columns lcolumns;
 
-  auto columnsStr = argv.getParseStr("columns");
+  auto lcolumnsStr = argv.getParseStr("lcolumns");
 
-  if (! cmds()->stringToModelColumns(model0, columnsStr, columns))
+  if (! cmds()->stringToModelColumns(model0, lcolumnsStr, lcolumns))
     return false;
 
-  if (columns.size() < 1)
+  if (lcolumns.size() < 1)
     return errorMsg("Need one or more column to join");
 
   //---
 
-  auto *newModel = modelDatas[0]->join(modelDatas[1], columns);
+  // split right columns string into right model columns
+  CQChartsCmds::Columns rcolumns;
+
+  if (argv.hasParseArg("rcolumns")) {
+    auto rcolumnsStr = argv.getParseStr("rcolumns");
+
+    if (! cmds()->stringToModelColumns(model1, rcolumnsStr, rcolumns))
+      return false;
+
+    if (rcolumns.size() < 1)
+      return errorMsg("Need one or more column to join");
+  }
+
+  //---
+
+  // get join type
+  CQChartsModelData::JoinType joinType = CQChartsModelData::JoinType::NONE;
+
+  if (argv.hasParseArg("type")) {
+    auto typeStr = argv.getParseStr("type").toLower();
+
+    if      (typeStr == "left" ) joinType = CQChartsModelData::JoinType::LEFT;
+    else if (typeStr == "right") joinType = CQChartsModelData::JoinType::RIGHT;
+    else if (typeStr == "outer") joinType = CQChartsModelData::JoinType::OUTER;
+    else if (typeStr == "inner") joinType = CQChartsModelData::JoinType::INNER;
+    else if (typeStr == "cross") joinType = CQChartsModelData::JoinType::CROSS;
+  }
+
+  //---
+
+  QAbstractItemModel *newModel;
+
+  if (! rcolumns.empty())
+    newModel = modelDatas[0]->join(modelDatas[1], lcolumns, rcolumns, joinType);
+  else
+    newModel = modelDatas[0]->join(modelDatas[1], lcolumns, joinType);
 
   if (! newModel)
     return errorMsg("Join failed");
@@ -6034,7 +6073,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       auto names = QStringList() <<
         "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
-        "title" /* << "property.<name>" */ << "name";
+        "title" << "data_model" << "expr_model" << "data_model" << "base_model" <<
+        "name" << "ind" << "find" /* << "property.<name>" */ << "name";
 
       auto detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
 
@@ -6140,10 +6180,14 @@ execCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    std::vector<int> prows;
-
+    // get optional column and row
     auto column = argv.getParseColumn("column", model.data());
     auto row    = argv.getParseRow("row");
+
+    //---
+
+    // get optional model indices
+    std::vector<int> prows;
 
     if (argv.hasParseArg("ind")) {
       int irow { 0 };
@@ -6161,6 +6205,7 @@ execCmd(CQChartsCmdArgs &argv)
     if      (name == "value") {
       QVariant var;
 
+      // get column header value
       if (header) {
         if (! column.isValid())
           return errorMsg("Invalid header column specified");
@@ -6176,6 +6221,7 @@ execCmd(CQChartsCmdArgs &argv)
           return errorMsg("Invalid header value");
         }
       }
+      // get row value
       else {
         QModelIndex parent;
 
@@ -6533,6 +6579,10 @@ execCmd(CQChartsCmdArgs &argv)
       auto name = modelData->name();
 
       return cmdBase_->setCmdRc(name);
+    }
+    // get model index
+    else if (name == "ind") {
+      return cmdBase_->setCmdRc(modelData->ind());
     }
     // get row for column data
     else if (name == "find") {

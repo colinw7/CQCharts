@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + thread pool for animate thread
+ + join model
+ + formatted + scale with text (needs aspect)
  + unique model object names
  + format text in rect with scale and zoom
  + Force directed

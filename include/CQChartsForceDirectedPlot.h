@@ -24,8 +24,7 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
   void addParameters() override;
 
-  bool hasTitle() const override { return false; }
-  bool hasAxes () const override { return false; }
+  bool hasAxes() const override { return false; }
 
   bool canProbe() const override { return false; }
 
@@ -301,6 +300,22 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false) override;
   bool handleSelectRelease(const Point &p) override;
 
+  // plot edit interface
+  bool handleEditPress  (const Point &p, const Point &w, bool inside=false) override;
+  bool handleEditMove   (const Point &p, const Point &w, bool first=false) override;
+  bool handleEditRelease(const Point &p, const Point &w) override;
+
+  //---
+
+  void setCurrentNode(const Point &p);
+  void resetCurrentNode();
+
+  bool selectAt(const Point &p);
+
+  bool updateInside(const Point &p);
+
+  void updateSelText();
+
   //---
 
   bool keyPress(int key, int modifier) override;
@@ -424,16 +439,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using IndStringMap    = std::map<int, QString>;
 
   // animation data
-  bool        running_      { true };  //!< is running
-  int         initSteps_    { 100 };   //!< initial steps
-  int         animateSteps_ { 1 };     //!< animate steps
-  mutable int numSteps_     { 0 };     //!< number of steps
-  double      stepSize_     { 0.01 };  //!< step size
+  bool        running_      { true }; //!< is running
+  int         initSteps_    { 500 };  //!< initial steps
+  int         animateSteps_ { 10 };   //!< animate steps
+  mutable int numSteps_     { 0 };    //!< number of steps
+  double      stepSize_     { 0.01 }; //!< step size
 
   // node data
   NodeShape nodeShape_  { NodeShape::CIRCLE }; //!< node shape
   bool      nodeScaled_ { true };              //!< is node scaled
-  Length    nodeSize_   { Length::pixel(64) }; //!< node size
+  Length    nodeSize_   { Length::plot(1) };   //!< node size
 
   // edge data
   EdgeShape edgeShape_  { EdgeShape::LINE };   //!< edge shape
@@ -461,7 +476,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double edgeScale_    { 1.0 };   //!< edge scale
   int    maxNodeDepth_ { 0 };     //!< max node depth
 
-  mutable std::mutex createMutex_;
+  mutable std::mutex createMutex_; //!< create mutex
 };
 
 //---

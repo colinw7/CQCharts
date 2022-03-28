@@ -312,12 +312,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
   auto *sm = this->sourceModel();
   if (! sm) return QVariant();
 
-  int nc = columnCount();
-
-  if (section < 0 || section >= nc)
-    return QVariant();
-
   if (orientation == Qt::Horizontal) {
+    int nc = columnCount();
+
+    if (section < 0 || section >= nc)
+      return QVariant();
+
     // vertical header
     if (section == 0) {
       if (role == Qt::DisplayRole)
@@ -359,12 +359,12 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   auto *sm = this->sourceModel();
   if (! sm) return false;
 
-  int nc = columnCount();
-
-  if (section < 0 || section >= nc)
-    return false;
-
   if (orientation == Qt::Horizontal) {
+    int nc = columnCount();
+
+    if (section < 0 || section >= nc)
+      return false;
+
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
       return false;
     }

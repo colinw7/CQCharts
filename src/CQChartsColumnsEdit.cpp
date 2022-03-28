@@ -16,8 +16,8 @@
 #include <QPainter>
 
 CQChartsColumnsLineEdit::
-CQChartsColumnsLineEdit(QWidget *parent, bool isBasic) :
- CQChartsLineEditBase(parent), isBasic_(isBasic)
+CQChartsColumnsLineEdit(QWidget *parent, bool basic) :
+ CQChartsLineEditBase(parent), basic_(basic)
 {
   setObjectName("columnsLineEdit");
 
@@ -25,7 +25,7 @@ CQChartsColumnsLineEdit(QWidget *parent, bool isBasic) :
 
   //---
 
-  menuEdit_ = dataEdit_ = new CQChartsColumnsEdit(nullptr, isBasic);
+  menuEdit_ = dataEdit_ = new CQChartsColumnsEdit(nullptr, basic);
 
   menu_->setWidget(dataEdit_);
 
@@ -48,14 +48,16 @@ CQChartsModelData *
 CQChartsColumnsLineEdit::
 modelData() const
 {
-  return dataEdit_->modelData();
+  return modelData_;
 }
 
 void
 CQChartsColumnsLineEdit::
 setModelData(CQChartsModelData *modelData)
 {
-  dataEdit_->setModelData(modelData);
+  modelData_ = modelData;
+
+  dataEdit_->setModelData(modelData_);
 }
 
 const CQChartsColumns &
@@ -70,6 +72,17 @@ CQChartsColumnsLineEdit::
 setColumns(const CQChartsColumns &columns)
 {
   updateColumns(columns, /*updateText*/true);
+}
+
+void
+CQChartsColumnsLineEdit::
+setBasic(bool b)
+{
+  basic_ = b;
+
+  dataEdit_->setBasic(b);
+
+  columnsToWidgets();
 }
 
 void
@@ -115,10 +128,18 @@ columnsToWidgets()
 {
   connectSlots(false);
 
-  if (columns().isValid())
-    edit_->setText(columns().toString());
-  else
-    edit_->setText("");
+  QString text;
+
+  if (columns().isValid()) {
+    if (modelData()) {
+      bool ok;
+      text = CQChartsModelUtil::columnsToString(modelData()->model().data(), columns(), ok);
+    }
+    else
+      text = columns().toString();
+  }
+
+  edit_->setText(text);
 
   auto tip = QString("%1 (%2)").arg(toolTip()).arg(columns().toString());
 
@@ -424,8 +445,8 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsColumnsEdit::
-CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
- CQChartsEditBase(parent), isBasic_(isBasic)
+CQChartsColumnsEdit(QWidget *parent, bool basic) :
+ CQChartsEditBase(parent), basic_(basic)
 {
   setObjectName("columnsEdit");
 
@@ -491,7 +512,7 @@ setModelData(CQChartsModelData *modelData)
   if (modelData_)
     connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
-  if (isBasic_) {
+  if (isBasic()) {
     auto ne = columnCombos_.size();
 
     for (size_t i = 0; i < ne; ++i)
@@ -534,11 +555,20 @@ setColumns(const CQChartsColumns &columns)
 
 void
 CQChartsColumnsEdit::
+setBasic(bool b)
+{
+  basic_ = b;
+
+  columnsToWidgets();
+}
+
+void
+CQChartsColumnsEdit::
 setNumericOnly(bool b)
 {
   numericOnly_ = b;
 
-  if (isBasic_) {
+  if (isBasic()) {
     auto ne = columnCombos_.size();
 
     for (size_t i = 0; i < ne; ++i)
@@ -564,7 +594,7 @@ columnsToWidgets()
 
   int n = columns_.count();
 
-  if (isBasic_) {
+  if (isBasic()) {
     auto ne = columnCombos_.size();
     assert(size_t(n) == ne);
 
@@ -588,7 +618,7 @@ widgetsToColumn()
 {
   int n = columns_.count();
 
-  if (isBasic_) {
+  if (isBasic()) {
     auto ne = columnCombos_.size();
     assert(size_t(n) == ne);
 
@@ -638,7 +668,7 @@ updateEdits()
 
   size_t ne = 0;
 
-  if (isBasic_) {
+  if (isBasic()) {
     ne = columnCombos_.size();
 
     while (ne < n) {
@@ -661,7 +691,11 @@ updateEdits()
       --ne;
     }
 
-    countLabel_->setText(QString("%1 Columns").arg(ne));
+    while (! columnEdits_.empty()) {
+      delete columnEdits_.back();
+
+      columnEdits_.pop_back();
+    }
   }
   else {
     ne = columnEdits_.size();
@@ -685,6 +719,12 @@ updateEdits()
 
       --ne;
     }
+
+    while (! columnCombos_.empty()) {
+      delete columnCombos_.back();
+
+      columnCombos_.pop_back();
+    }
   }
 
   countLabel_->setText(QString("%1 Columns").arg(ne));
@@ -696,7 +736,7 @@ void
 CQChartsColumnsEdit::
 connectSlots(bool b)
 {
-  if (isBasic_) {
+  if (isBasic()) {
     for (auto &edit : columnCombos_)
       CQChartsWidgetUtil::connectDisconnect(b,
         edit, SIGNAL(columnChanged()), this, SLOT(widgetsToColumn()));
@@ -717,7 +757,7 @@ sizeHint() const
   int w1 = s1.width();
   int h1 = s1.height() + 2;
 
-  if (isBasic_) {
+  if (isBasic()) {
     auto ne = columnCombos_.size();
 
     for (uint i = 0; i < ne; ++i) {

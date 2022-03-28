@@ -8,7 +8,6 @@ set df {{
 set model [load_charts_model -json @df]
 write_charts_model -model $model
 
-if {0} {
 set modelp [create_charts_pivot_model -model $model \
   -hcolumns {C} -vcolumns {A B} -dcolumns {D}]
 write_charts_model -model $modelp
@@ -24,7 +23,6 @@ write_charts_model -model $modelp
 set modelp [create_charts_pivot_model -model $model \
   -vcolumns {A C} -dcolumns {D E} -fill_value 0 -value_types {{D mean} {E {min max mean}}}]
 write_charts_model -model $modelp
-}
 
 set modelp [create_charts_pivot_model -model $model \
   -hcolumns B -vcolumns A -dcolumns {D E}]

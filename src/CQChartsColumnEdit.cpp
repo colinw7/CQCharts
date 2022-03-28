@@ -128,10 +128,18 @@ columnToWidgets()
 {
   connectSlots(false);
 
-  if (column().isValid())
-    edit_->setText(column().toString());
-  else
-    edit_->setText("");
+  QString text;
+
+  if (column().isValid()) {
+    if (modelData()) {
+      bool ok;
+      text = CQChartsModelUtil::columnToString(modelData()->model().data(), column(), ok);
+    }
+    else
+      text = column().toString();
+  }
+
+  edit_->setText(text);
 
   auto tip = QString("%1 (%2)").arg(toolTip()).arg(column().toString());
 

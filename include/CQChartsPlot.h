@@ -1323,13 +1323,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  QString modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
-  QString modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const;
+  QString modelVHeaderString(int section, int role, bool &ok) const;
+  QString modelVHeaderString(int section, bool &ok) const;
 
   virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
-                                     Qt::Orientation orientation, int role, bool &ok) const;
-  virtual QString modelVHeaderString(QAbstractItemModel *model,  int section,
-                                     Qt::Orientation orientation, bool &ok) const;
+                                     int role, bool &ok) const;
+  virtual QString modelVHeaderString(QAbstractItemModel *model, int section, bool &ok) const;
 
   //---
 
@@ -2157,10 +2156,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   // handle edit
-  bool handleEditPress  (const Point &p, const Point &w, bool inside=false);
-  bool handleEditMove   (const Point &p, const Point &w, bool first=false);
-  bool handleEditMotion (const Point &p, const Point &w); // return true if inside
-  bool handleEditRelease(const Point &p, const Point &w);
+  virtual bool handleEditPress  (const Point &p, const Point &w, bool inside=false);
+  virtual bool handleEditMove   (const Point &p, const Point &w, bool first=false);
+  virtual bool handleEditMotion (const Point &p, const Point &w); // return true if inside
+  virtual bool handleEditRelease(const Point &p, const Point &w);
 
   void handleEditMoveBy(const Point &d);
 

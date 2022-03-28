@@ -180,6 +180,22 @@ class CQChartsPaintDevice {
 
   //---
 
+  //! group data
+  struct GroupData {
+    bool    visible   { true };
+    bool    onclick   { false };
+    QString clickProc { "clickProc" };
+    bool    hasTip    { false };
+    QString tipStr;
+
+    GroupData() { }
+  };
+
+  virtual void startGroup(const QString &, const GroupData& =GroupData()) { }
+  virtual void endGroup() { }
+
+  //---
+
   BBox windowToPixel(const BBox &r) const;
   BBox pixelToWindow(const BBox &r) const;
 

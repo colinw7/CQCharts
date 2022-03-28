@@ -24,6 +24,8 @@ load(const QString &filename)
   // parse file into array of fields
   json_ = new CJson;
 
+  json_->setAllowSingleQuote(isAllowSingleQuote());
+
   if (! json_->loadFile(filename.toStdString(), jsonValue_)) {
     std::cerr << "Parse failed" << std::endl;
     return false;

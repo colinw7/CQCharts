@@ -192,7 +192,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   if (view()->selectMode() == CQChartsView::SelectMode::POINT)
     selectPointButton_->setChecked(true);
   else
-    selectRectButton_ ->setChecked(true);
+    selectRectButton_->setChecked(true);
 
   auto *selectButtonGroup =
     CQUtil::makeButtonGroup(this, {selectPointButton_, selectRectButton_});
@@ -351,7 +351,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  connect(view(), SIGNAL(plotAdded(const QString &)), this, SLOT(updateState()));
+  connect(view(), SIGNAL(plotsChanged()), this, SLOT(updateState()));
 
   connect(view(), SIGNAL(scrollDataChanged()), this, SLOT(updateState()));
 
@@ -387,6 +387,13 @@ updateState()
     regionPointButton_->setChecked(true);
   else if (view()->regionMode() == CQChartsView::RegionMode::RECT)
     regionRectButton_->setChecked(true);
+
+  bool allowRectSelect = true;
+
+  if (view()->currentPlot() && ! view()->currentPlot()->type()->canRectSelect())
+    allowRectSelect = false;
+
+  selectRectButton_->setEnabled(allowRectSelect);
 }
 
 void

@@ -1,6 +1,7 @@
 #ifndef CQChartsColumnsEdit_H
 #define CQChartsColumnsEdit_H
 
+#include <CQChartsWidgetIFace.h>
 #include <CQChartsColumn.h>
 #include <CQChartsLineEditBase.h>
 
@@ -17,17 +18,24 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
   Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
+  Q_PROPERTY(bool            basic       READ isBasic       WRITE setBasic      )
 
  public:
-  CQChartsColumnsLineEdit(QWidget *parent=nullptr, bool isBasic=false);
+  using ModelData = CQChartsModelData;
+
+ public:
+  CQChartsColumnsLineEdit(QWidget *parent=nullptr, bool basic=false);
 
   void setPlot(CQChartsPlot *plot) override;
 
-  CQChartsModelData *modelData() const;
-  void setModelData(CQChartsModelData *modelData);
+  ModelData *modelData() const;
+  void setModelData(ModelData *modelData);
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
+
+  bool isBasic() const { return basic_; }
+  void setBasic(bool b);
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
@@ -55,7 +63,8 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
  private:
   CQChartsColumnsEdit *dataEdit_    { nullptr };
-  bool                 isBasic_     { false };
+  ModelData*           modelData_   { nullptr };
+  bool                 basic_       { false };
   bool                 numericOnly_ { false };
 };
 
@@ -70,20 +79,27 @@ class QLabel;
  * \brief Columns edit
  * \ingroup Charts
  */
-class CQChartsColumnsEdit : public CQChartsEditBase {
+class CQChartsColumnsEdit : public CQChartsEditBase, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
   Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
+  Q_PROPERTY(bool            basic       READ isBasic       WRITE setBasic      )
 
  public:
-  CQChartsColumnsEdit(QWidget *parent=nullptr, bool isBasic=false);
+  using ModelData = CQChartsModelData;
 
-  CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+ public:
+  CQChartsColumnsEdit(QWidget *parent=nullptr, bool basic=false);
+
+  ModelData *modelData() const { return modelData_; }
+  void setModelData(ModelData *modelData) override;
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
+
+  bool isBasic() const { return basic_; }
+  void setBasic(bool b);
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
@@ -112,15 +128,15 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   using ColumnCombos = std::vector<CQChartsColumnCombo *>;
   using ColumnEdits  = std::vector<CQChartsColumnLineEdit *>;
 
-  CQChartsColumns    columns_;
-  bool               isBasic_      { false };
-  bool               numericOnly_  { false };
-  CQChartsModelData* modelData_    { nullptr };
-  QFrame*            controlFrame_ { nullptr };
-  QFrame*            columnsFrame_ { nullptr };
-  QLabel*            countLabel_   { nullptr };
-  ColumnCombos       columnCombos_;
-  ColumnEdits        columnEdits_;
+  CQChartsColumns columns_;
+  bool            basic_        { false };
+  bool            numericOnly_  { false };
+  ModelData*      modelData_    { nullptr };
+  QFrame*         controlFrame_ { nullptr };
+  QFrame*         columnsFrame_ { nullptr };
+  QLabel*         countLabel_   { nullptr };
+  ColumnCombos    columnCombos_;
+  ColumnEdits     columnEdits_;
 };
 
 //------

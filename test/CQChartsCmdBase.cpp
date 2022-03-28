@@ -201,8 +201,9 @@ void
 CQChartsBaseAddChildWidgetCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  addArg(argv, "-parent", ArgType::String, "parent name");
-  addArg(argv, "-child" , ArgType::String, "child name");
+  addArg(argv, "-parent" , ArgType::String , "parent name");
+  addArg(argv, "-child"  , ArgType::String , "child name");
+  addArg(argv, "-stretch", ArgType::Integer, "stretch");
 }
 
 QStringList
@@ -229,20 +230,37 @@ execCmd(CQChartsCmdArgs &argv)
   if (! parentWidget)
     return errorMsg(QString("No parent '%1'").arg(parentName));
 
-  auto  childName   = argv.getParseStr("child");
-  auto *childWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(childName));
+  if      (argv.hasParseArg("child")) {
+    auto  childName   = argv.getParseStr("child");
+    auto *childWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(childName));
 
-  if (! childWidget)
-    return errorMsg(QString("No widget '%1'").arg(childName));
+    if (! childWidget)
+      return errorMsg(QString("No widget '%1'").arg(childName));
 
-  auto *layout = parentWidget->layout();
+    auto *layout = parentWidget->layout();
 
-  if (! layout)
-    layout = new QVBoxLayout(parentWidget);
+    if (! layout)
+      layout = new QVBoxLayout(parentWidget);
 
-  layout->addWidget(childWidget);
+    layout->addWidget(childWidget);
 
-  return cmdBase_->setCmdRc(CQUtil::fullName(childWidget));
+    return cmdBase_->setCmdRc(CQUtil::fullName(childWidget));
+  }
+  else if (argv.hasParseArg("stretch")) {
+    int stretch = argv.getParseInt("stretch");
+
+    auto *layout = qobject_cast<QBoxLayout *>(parentWidget->layout());
+
+    if (! layout)
+      return errorMsg(QString("No layout for '%1'").arg(parentName));
+
+    layout->addStretch(stretch);
+
+    return cmdBase_->setCmdRc(QString());
+  }
+  else {
+    return errorMsg("Specify -child or -layout");
+  }
 }
 
 //------

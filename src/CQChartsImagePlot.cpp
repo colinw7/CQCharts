@@ -666,7 +666,7 @@ drawYLabels(PaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    auto name = modelVHeaderString(row, Qt::Vertical, ok);
+    auto name = modelVHeaderString(row, ok);
     if (! name.length()) continue;
 
     double px = 0.0;
@@ -688,7 +688,7 @@ drawYLabels(PaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    auto name = modelVHeaderString(row, Qt::Vertical, ok);
+    auto name = modelVHeaderString(row, ok);
     if (! name.length()) continue;
 
     Point p(0, row + 0.5);
@@ -753,7 +753,7 @@ calcExtraFitBBox() const
     for (int row = 0; row < numRows(); ++row) {
       bool ok;
 
-      auto name = modelVHeaderString(row, Qt::Vertical, ok);
+      auto name = modelVHeaderString(row, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.horizontalAdvance(name));
@@ -844,7 +844,7 @@ calcTipId() const
   bool ok;
 
   auto xname = plot_->modelHHeaderString(CQChartsColumn(modelInd().column()), ok);
-  auto yname = plot_->modelVHeaderString(modelInd().row(), Qt::Vertical, ok);
+  auto yname = plot_->modelVHeaderString(modelInd().row(), ok);
 
   if (xname.length())
     tableTip.addTableRow("X", xname);

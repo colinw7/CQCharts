@@ -22,6 +22,7 @@ class QAbstractItemModel;
 namespace CQChartsModelUtil {
 
 using Column        = CQChartsColumn;
+using Columns       = CQChartsColumns;
 using ColumnType    = CQChartsColumnType;
 using ModelTypeData = CQChartsModelTypeData;
 using ModelType     = CQBaseModelType;
@@ -175,15 +176,15 @@ QVariant modelHeaderValue(const QAbstractItemModel *model, const Column &column,
 QString modelHeaderStringI(const QAbstractItemModel *model, const Column &column,
                           Qt::Orientation orient, int role, bool &ok);
 
-QString modelHeaderString(const QAbstractItemModel *model, int section,
-                          Qt::Orientation orient, int role, bool &ok);
-QString modelHeaderString(const QAbstractItemModel *model, int section,
-                          Qt::Orientation orient, bool &ok);
-
 QString modelHHeaderString(const QAbstractItemModel *model, const Column &column,
                            int role, bool &ok);
 QString modelHHeaderString(const QAbstractItemModel *model, const Column &column,
                            bool &ok);
+
+QString modelHHeaderString(const QAbstractItemModel *model, int section, int role, bool &ok);
+QString modelHHeaderString(const QAbstractItemModel *model, int section, bool &ok);
+QString modelVHeaderString(const QAbstractItemModel *model, int section, int role, bool &ok);
+QString modelVHeaderString(const QAbstractItemModel *model, int section, bool &ok);
 
 //--
 
@@ -305,6 +306,9 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, Column 
 
 bool stringToColumns(const QAbstractItemModel *model, const QString &str,
                      std::vector<Column> &columns);
+
+QString columnsToString(const QAbstractItemModel *model, const Columns &columns, bool &ok);
+QString columnToString(const QAbstractItemModel *model, const Column &column, bool &ok);
 
 #if 0
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,

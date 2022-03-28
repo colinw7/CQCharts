@@ -1393,7 +1393,7 @@ writeCSV(std::ostream &fs) const
 
     bool ok;
 
-    auto header = CQChartsModelUtil::modelHHeaderString(model, c, ok);
+    auto header = CQChartsModelUtil::columnToString(model, c, ok);
 
     auto writeMetaColumnData = [&](const QString &name, const QString &value) {
       fs << "#  column," << header.toStdString() << "," <<
@@ -1493,7 +1493,7 @@ writeCSV(std::ostream &fs) const
 
     bool ok;
 
-    auto header = CQChartsModelUtil::modelHHeaderString(model, c, ok);
+    auto header = CQChartsModelUtil::columnToString(model, c, ok);
 
     if (ic > 0)
       fs << ",";
@@ -1544,12 +1544,8 @@ writeCSV(std::ostream &fs) const
         }
       }
 
-      if (! converted) {
-        var = model->data(ind, Qt::EditRole);
-
-        if (! var.isValid())
-          var = model->data(ind, Qt::DisplayRole);
-      }
+      if (! converted)
+        var = modelIndData(model, ind);
 
       if (ic > 0)
         fs << ",";
@@ -1705,7 +1701,7 @@ copy(const CopyData &copyData)
 
       bool ok;
 
-      auto name = CQChartsModelUtil::modelHHeaderString(model_.data(), c, ok);
+      auto name = CQChartsModelUtil::columnToString(model_.data(), c, ok);
 
       expr->setNameColumn(expr->encodeColumnName(name), ic);
 
@@ -1766,7 +1762,7 @@ copy(const CopyData &copyData)
 
     bool ok;
 
-    auto var = CQChartsModelUtil::modelHHeaderString(model, c, ok);
+    auto var = CQChartsModelUtil::columnToString(model, c, ok);
 
     if (var.length())
       dataModel->setHeaderData(ic, Qt::Horizontal, var, Qt::DisplayRole);
@@ -1838,78 +1834,284 @@ copy(const CopyData &copyData)
 
 QAbstractItemModel *
 CQChartsModelData::
-join(CQChartsModelData *joinModelData, const Columns &joinColumns)
+join(CQChartsModelData *rModelData, const Columns &lColumns, const Columns &rColumns,
+     JoinType /*joinType*/)
+{
+  if (lColumns.empty() || rColumns.empty())
+    return nullptr;
+
+  //--
+
+  // get model details
+  auto *ldetails = this->details();
+  auto *rdetails = rModelData->details();
+
+  int lnc = ldetails->numColumns();
+  int lnr = ldetails->numRows();
+
+  int rnc = rdetails->numColumns();
+  int rnr = rdetails->numRows();
+
+  //---
+
+  // get models
+  auto *lModel = this->model().data();
+  if (! lModel) return nullptr;
+
+  auto *rModel = rModelData->model().data();
+  if (! rModel) return nullptr;
+
+  //---
+
+  // get set of columns to join (by index)
+  using ColumnSet = std::set<int>;
+
+  ColumnSet lColumnSet, rColumnSet;
+
+  for (const auto &lColumn : lColumns) {
+    int ilColumn = lColumn.column();
+
+    if (ilColumn < 0 || ilColumn >= lnc)
+      return nullptr;
+
+    lColumnSet.insert(ilColumn);
+  }
+
+  for (const auto &rColumn : rColumns) {
+    int irColumn = rColumn.column();
+
+    if (irColumn < 0 || irColumn >= rnc)
+      return nullptr;
+
+    rColumnSet.insert(irColumn);
+  }
+
+  //---
+
+  auto encodeVariantList = [&](const QVariantList &vars) {
+    if (vars.size() == 1)
+      return vars[0];
+
+    QStringList strs;
+
+    for (const auto &var : vars)
+      strs.push_back(var.toString());
+
+    return QVariant(strs.join(":"));
+  };
+
+  //---
+
+  // build map of left columns variant/name to row
+  using Rows        = std::vector<int>;
+  using Variants    = std::vector<QVariant>;
+  using VariantRows = std::map<QVariant, Rows>;
+
+  Variants    lVariants;
+  VariantRows lVariantRows, rVariantRows;
+
+  for (int r = 0; r < lnr; ++r) {
+    QVariantList vars;
+
+    for (const auto &ilColumn : lColumnSet) {
+      auto ind1 = lModel->index(r, ilColumn);
+      auto var  = modelIndData(lModel, ind1);
+
+      vars.push_back(var);
+    }
+
+    auto var = encodeVariantList(vars);
+
+    auto pv = lVariantRows.find(var);
+
+    if (pv == lVariantRows.end())
+      lVariants.push_back(var);
+
+    lVariantRows[var].push_back(r);
+  }
+
+  for (int r = 0; r < rnr; ++r) {
+    QVariantList vars;
+
+    for (const auto &irColumn : rColumnSet) {
+      auto ind1 = rModel->index(r, irColumn);
+      auto var  = modelIndData(rModel, ind1);
+
+      vars.push_back(var);
+    }
+
+    auto var = encodeVariantList(vars);
+
+    rVariantRows[var].push_back(r);
+  }
+
+  //---
+
+  int nc = 0;
+
+  using RowVariants = std::vector<QVariantList>;
+
+  RowVariants rowVariants;
+
+  for (const auto &lvar : lVariants) {
+    auto pl = lVariantRows.find(lvar);
+    assert(pl != lVariantRows.end());
+
+    const auto &lkey  = (*pl).first;
+    const auto &lrows = (*pl).second;
+
+    auto pr = rVariantRows.find(lkey);
+
+    if (pr != rVariantRows.end()) {
+      const auto &rrows = (*pr).second;
+
+      for (const auto &lr : lrows) {
+        for (const auto &rr : rrows) {
+          QVariantList vars;
+
+          for (int lc = 0; lc < lnc; ++lc) {
+            auto ind1 = lModel->index(lr, lc);
+            auto var  = modelIndData(lModel, ind1);
+
+            vars.push_back(var);
+          }
+
+          for (int rc = 0; rc < rnc; ++rc) {
+            auto ind1 = rModel->index(rr, rc);
+            auto var  = modelIndData(rModel, ind1);
+
+            vars.push_back(var);
+          }
+
+          rowVariants.push_back(vars);
+
+          nc = std::max(nc, vars.size());
+        }
+      }
+    }
+    else {
+      for (const auto &lr : lrows) {
+        QVariantList vars;
+
+        for (int lc = 0; lc < lnc; ++lc) {
+          auto ind1 = lModel->index(lr, lc);
+          auto var  = modelIndData(lModel, ind1);
+
+          vars.push_back(var);
+        }
+
+        rowVariants.push_back(vars);
+
+        nc = std::max(nc, vars.size());
+      }
+    }
+  }
+
+  // create new (merged model)
+  int nr = int(rowVariants.size());
+
+  auto *dataModel = new CQDataModel(nc, nr);
+
+  int r = 0;
+
+  for (const auto &vars : rowVariants) {
+    int c = 0;
+
+    for (const auto &v : vars) {
+      auto ind = dataModel->index(r, c);
+
+      dataModel->setData(ind, v);
+
+      ++c;
+    }
+
+    ++r;
+  }
+
+  //---
+
+  // create model
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
+
+  filterModel->setObjectName("joinModel");
+
+  //---
+
+  return filterModel;
+}
+
+QAbstractItemModel *
+CQChartsModelData::
+join(CQChartsModelData *joinModelData, const Columns &joinColumns, JoinType joinType)
 {
   if (joinColumns.empty())
     return nullptr;
 
   //--
 
-  auto *details = this->details();
+  // get model details
+  auto *ldetails = this->details();
+  auto *rdetails = joinModelData->details();
 
-  int nc = details->numColumns();
-  int nr = details->numRows();
+  int lnc = ldetails->numColumns();
+  int lnr = ldetails->numRows();
+
+  int rnc = rdetails->numColumns();
+  int rnr = rdetails->numRows();
 
   //---
 
+  // get models
+  auto *lmodel = this->model().data();
+  if (! lmodel) return nullptr;
+
+  auto *rmodel = joinModelData->model().data();
+  if (! rmodel) return nullptr;
+
+  //---
+
+  // get set of columns to join (by index)
   using ColumnSet = std::set<int>;
 
-  ColumnSet columnSet;
+  ColumnSet lcolumnSet;
 
   for (const auto &joinColumn : joinColumns) {
     int ijoinColumn = joinColumn.column();
 
-    if (ijoinColumn < 0 || ijoinColumn >= nc)
+    if (ijoinColumn < 0 || ijoinColumn >= lnc)
       return nullptr;
 
-    columnSet.insert(ijoinColumn);
+    lcolumnSet.insert(ijoinColumn);
   }
 
   //---
 
-  auto *joinDetails = joinModelData->details();
-
-  int joinNc = joinDetails->numColumns();
-  int joinNr = joinDetails->numRows();
-
-  //---
-
-  auto *model = this->model().data();
-  if (! model) return nullptr;
-
-  auto *joinModel = joinModelData->model().data();
-  if (! joinModel) return nullptr;
-
-  //---
-
-  // get name of join column(s)
+  // get name of join column(s) ...
   bool ok;
 
   QStringList columnNames;
 
   for (const auto &joinColumn : joinColumns) {
-    auto columnName = CQChartsModelUtil::modelHHeaderString(model, joinColumn, ok);
+    auto columnName = CQChartsModelUtil::columnToString(lmodel, joinColumn, ok);
 
     columnNames.push_back(columnName);
   }
 
-  //---
+  // ... and find column with matching name in join model
+  ColumnSet rcolumnSet;
 
-  // find column with matching name in join model
-  ColumnSet joinColumnSet;
-
-  for (int ic = 0; ic < joinNc; ++ic) {
+  for (int ic = 0; ic < rnc; ++ic) {
     CQChartsColumn c(ic);
 
     bool ok;
 
-    auto joinColumnName = CQChartsModelUtil::modelHHeaderString(joinModel, c, ok);
+    auto joinColumnName = CQChartsModelUtil::columnToString(rmodel, c, ok);
 
     if (columnNames.contains(joinColumnName))
-      joinColumnSet.insert(ic);
+      rcolumnSet.insert(ic);
   }
 
-  if (joinColumnSet.size() != joinColumns.size())
+  if (rcolumnSet.size() != joinColumns.size())
     return nullptr;
 
   //---
@@ -1928,108 +2130,258 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
 
   //---
 
-  // build map of join columns variant/name to row
-  using VariantRowMap = std::map<QVariant, int>;
+  using Rows          = std::vector<int>;
+  using VariantRowMap = std::map<QVariant, Rows>;
+  using RowVariantMap = std::map<int, QVariant>;
 
-  VariantRowMap variantRowMap;
+  // build map of model columns variant/name to row
+  VariantRowMap lvariantRowMap;
+  RowVariantMap lrowVariantMap;
 
-  for (int r = 0; r < joinNr; ++r) {
+  for (int r = 0; r < lnr; ++r) {
     QVariantList vars;
 
-    for (const auto &ijoinColumn : joinColumnSet) {
-      auto ind1 = joinModel->index(r, ijoinColumn);
-
-      auto var = joinModel->data(ind1, Qt::EditRole);
-
-      if (! var.isValid())
-        var = joinModel->data(ind1, Qt::DisplayRole);
+    for (const auto &lcolumn : lcolumnSet) {
+      auto ind = lmodel->index(r, lcolumn);
+      auto var = modelIndData(lmodel, ind);
 
       vars.push_back(var);
     }
 
     auto var = encodeVariantList(vars);
 
-    variantRowMap[var] = r;
+    lvariantRowMap[var].push_back(r);
+
+    lrowVariantMap[r] = var;
   }
 
-  //---
+  // build map of join columns variant/name to row
+  VariantRowMap rvariantRowMap;
+  RowVariantMap rrowVariantMap;
 
-  auto *dataModel = new CQDataModel(int(size_t(nc + joinNc) - joinColumns.size()), nr);
+  for (int r = 0; r < rnr; ++r) {
+    QVariantList vars;
 
-  //---
+    for (const auto &rcolumn : rcolumnSet) {
+      auto ind = rmodel->index(r, rcolumn);
+      auto var = modelIndData(rmodel, ind);
 
-  // copy model data
-  for (int r = 0; r < nr; ++r) {
-    // add model column data and generate join key
-    QVariantList joinVars;
-
-    for (int ic = 0; ic < nc; ++ic) {
-      auto ind1 = model->index(r, ic);
-
-      auto var = model->data(ind1);
-
-      if (columnSet.find(ic) != columnSet.end())
-        joinVars.push_back(var);
-
-      if (var.isValid()) {
-        auto ind2 = dataModel->index(r, ic);
-
-        dataModel->setData(ind2, var);
-      }
+      vars.push_back(var);
     }
 
-    auto joinVar = encodeVariantList(joinVars);
+    auto var = encodeVariantList(vars);
 
-    //---
+    rvariantRowMap[var].push_back(r);
 
-    // get matching row in join model for key
-    auto p = variantRowMap.find(joinVar);
+    rrowVariantMap[r] = var;
+  }
 
-    if (p == variantRowMap.end())
-      continue;
+  std::cerr << "LKeys:";
+  for (const auto &pl : lvariantRowMap)
+    std::cerr << " \'" << pl.first.toString().toStdString() << "\'";
+  std::cerr << "\n";
 
-    int joinRow = (*p).second;
+  std::cerr << "RKeys:";
+  for (const auto &pr : rvariantRowMap)
+    std::cerr << " \'" << pr.first.toString().toStdString() << "\'";
+  std::cerr << "\n";
 
-    //---
+  //---
 
-    // add join module column values for matching row
-    int c1 = nc;
+  // get join keys
+  std::vector<QVariant> joinKeys;
 
-    for (int ic = 0; ic < joinNc; ++ic) {
-      // skip join columns
-      if (joinColumnSet.find(ic) != joinColumnSet.end())
-        continue;
+  if (joinType == JoinType::INNER) {
+    for (const auto &pl : lvariantRowMap) {
+      const auto &lvar = pl.first;
 
-      auto ind1 = joinModel->index(joinRow, ic);
+      auto pr = rvariantRowMap.find(lvar);
+      if (pr == rvariantRowMap.end()) continue;
 
-      auto var = joinModel->data(ind1, Qt::EditRole);
+      joinKeys.push_back(lvar);
+    }
+  }
 
-      if (! var.isValid())
-        var = joinModel->data(ind1, Qt::DisplayRole);
+  std::cerr << "JoinKeys:";
+  for (const auto &k : joinKeys)
+    std::cerr << " \'" << k.toString().toStdString() << "\'";
+  std::cerr << "\n";
 
-      if (var.isValid()) {
-        auto ind2 = dataModel->index(r, c1);
+  //---
 
-        dataModel->setData(ind2, var);
+  CQDataModel *dataModel = nullptr;
+
+  if (! joinKeys.empty()) {
+    using RowVariants = std::vector<QVariantList>;
+
+    RowVariants rowVariants;
+
+    int nc = 0;
+
+    for (const auto &joinKey : joinKeys) {
+      QVariantList vars;
+
+      vars.push_back(joinKey);
+
+      const auto &lrows = lvariantRowMap[joinKey];
+      const auto &rrows = rvariantRowMap[joinKey];
+
+      auto lrow = lrows.front();
+      auto rrow = rrows.front();
+
+      for (int ic = 0; ic < lnc; ++ic) {
+        // skip join columns
+        if (lcolumnSet.find(ic) != lcolumnSet.end())
+          continue;
+
+        auto ind = lmodel->index(lrow, ic);
+        auto var = modelIndData(lmodel, ind);
+
+        vars.push_back(var);
       }
 
-      ++c1;
+      for (int ic = 0; ic < rnc; ++ic) {
+        // skip join columns
+        if (rcolumnSet.find(ic) != rcolumnSet.end())
+          continue;
+
+        auto ind = rmodel->index(rrow, ic);
+        auto var = modelIndData(rmodel, ind);
+
+        vars.push_back(var);
+      }
+
+      rowVariants.push_back(vars);
+
+      nc = std::max(nc, vars.size());
+    }
+
+    // create new (merged model)
+    int nr = int(rowVariants.size());
+
+    dataModel = new CQDataModel(nc, nr);
+
+    int r = 0;
+
+    for (const auto &vars : rowVariants) {
+      int c = 0;
+
+      for (const auto &v : vars) {
+        auto ind = dataModel->index(r, c);
+
+        dataModel->setData(ind, v);
+
+        ++c;
+      }
+
+      ++r;
+    }
+  }
+  else {
+    // create new (merged model)
+    int nlj = int(lcolumnSet.size());
+    int nrj = int(rcolumnSet.size());
+
+    dataModel = new CQDataModel(int(lnc - nlj) + (rnc - nrj) + 1, lnr);
+
+    //---
+
+    // copy model data
+    for (int r = 0; r < lnr; ++r) {
+      int c1 = 0;
+
+      // get join key
+      auto joinVar = lrowVariantMap[r];
+
+      //---
+
+      // add join key to joined table
+      auto ind1 = dataModel->index(r, c1++);
+      dataModel->setData(ind1, joinVar);
+
+      //---
+
+      // add (left) model column values to joined table (skip join columns)
+      for (int ic = 0; ic < lnc; ++ic) {
+        // skip join columns
+        if (lcolumnSet.find(ic) != lcolumnSet.end())
+          continue;
+
+        auto ind = lmodel->index(r, ic);
+        auto var = modelIndData(lmodel, ind);
+
+        auto ind1 = dataModel->index(r, c1++);
+        dataModel->setData(ind1, var);
+      }
+
+      //---
+
+      // get matching rows in join model for key
+      auto p = rvariantRowMap.find(joinVar);
+
+      if (p == rvariantRowMap.end())
+        continue;
+
+      const auto &joinRows = (*p).second;
+
+      int joinRow = joinRows.front();
+
+      //---
+
+      // add join (right) model column values for matching row ((skip join columns)
+      for (int ic = 0; ic < rnc; ++ic) {
+        // skip join columns
+        if (rcolumnSet.find(ic) != rcolumnSet.end())
+          continue;
+
+        auto ind = rmodel->index(joinRow, ic);
+        auto var = modelIndData(rmodel, ind);
+
+        auto ind1 = dataModel->index(r, c1++);
+        dataModel->setData(ind1, var);
+      }
     }
   }
 
   //---
 
   // copy horizontal header data
-  copyHeaderRoles(dataModel);
+  int c1 = 0;
 
-  int c1 = nc;
+  dataModel->setHeaderData(c1++, Qt::Horizontal, columnNames.join(" "), Qt::DisplayRole);
 
-  for (int ic = 0; ic < joinNc; ++ic) {
+  auto *lBaseModel = dynamic_cast<CQBaseModel *>(lmodel);
+
+  for (int ic = 0; ic < lnc; ++ic) {
     // skip join columns
-    if (joinColumnSet.find(ic) != joinColumnSet.end())
+    if (lcolumnSet.find(ic) != lcolumnSet.end())
       continue;
 
-    joinModelData->copyColumnHeaderRoles(dataModel, ic, c1);
+    if (lBaseModel)
+      lBaseModel->copyColumnHeaderRoles(dataModel, ic, c1);
+    else {
+      auto name = lmodel->headerData(ic, Qt::Horizontal);
+
+      dataModel->setHeaderData(c1, Qt::Horizontal, name, Qt::DisplayRole);
+    }
+
+    ++c1;
+  }
+
+  auto *rBaseModel = dynamic_cast<CQBaseModel *>(rmodel);
+
+  for (int ic = 0; ic < rnc; ++ic) {
+    // skip join columns
+    if (rcolumnSet.find(ic) != rcolumnSet.end())
+      continue;
+
+    if (rBaseModel)
+      rBaseModel->copyColumnHeaderRoles(dataModel, ic, c1);
+     else {
+      auto name = rmodel->headerData(ic, Qt::Horizontal);
+
+      dataModel->setHeaderData(c1, Qt::Horizontal, name, Qt::DisplayRole);
+    }
 
     ++c1;
   }
@@ -2114,7 +2466,7 @@ groupColumns(const Columns &groupColumns)
   for (const auto &groupColumn : groupColumnSet) {
     bool ok;
 
-    auto columnName = CQChartsModelUtil::modelHHeaderString(model, CQChartsColumn(groupColumn), ok);
+    auto columnName = CQChartsModelUtil::columnToString(model, CQChartsColumn(groupColumn), ok);
 
     for (int r = 0; r < nr; ++r, ++r1) {
       int c1 = 0;
@@ -2123,12 +2475,10 @@ groupColumns(const Columns &groupColumns)
         if (groupColumnSet.find(c) != groupColumnSet.end())
           continue;
 
-        auto ind1 = model->index(r, c);
-
-        auto var = model->data(ind1);
+        auto ind = model->index(r, c);
+        auto var = model->data(ind);
 
         auto ind2 = dataModel->index(r1, c1);
-
         dataModel->setData(ind2, var);
 
         ++c1;
@@ -2141,11 +2491,9 @@ groupColumns(const Columns &groupColumns)
       dataModel->setData(ind3, columnName);
 
       auto ind4 = model->index(r, groupColumn);
-
-      auto var = model->data(ind4);
+      auto var  = model->data(ind4);
 
       auto ind5 = dataModel->index(r1, c1); ++c1;
-
       dataModel->setData(ind5, var);
     }
   }
@@ -2164,44 +2512,46 @@ groupColumns(const Columns &groupColumns)
 
 //------
 
-void
+bool
 CQChartsModelData::
 copyHeaderRoles(QAbstractItemModel *toModel) const
 {
-  const auto *details = this->details();
+  auto *model = this->model().data();
+  if (! model) return false;
 
-  int nc = details->numColumns();
+  auto *baseModel = dynamic_cast<CQBaseModel *>(model);
+  if (! baseModel) return false;
 
-  for (int ic = 0; ic < nc; ++ic)
-    copyColumnHeaderRoles(toModel, ic, ic);
+  baseModel->copyHeaderRoles(toModel);
+
+  return true;
 }
 
-void
+bool
 CQChartsModelData::
 copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const
 {
-  static std::vector<int> hroles = {{
-    Qt::DisplayRole,
-    CQModelUtil::roleCast(CQBaseModelRole::Type),
-    CQModelUtil::roleCast(CQBaseModelRole::BaseType),
-    CQModelUtil::roleCast(CQBaseModelRole::TypeValues),
-    CQModelUtil::roleCast(CQBaseModelRole::Min),
-    CQModelUtil::roleCast(CQBaseModelRole::Max),
-    CQModelUtil::roleCast(CQBaseModelRole::Key),
-    CQModelUtil::roleCast(CQBaseModelRole::Sorted),
-    CQModelUtil::roleCast(CQBaseModelRole::SortOrder),
-    CQModelUtil::roleCast(CQBaseModelRole::HeaderType),
-    CQModelUtil::roleCast(CQBaseModelRole::HeaderTypeValues)
-  }};
-
   auto *model = this->model().data();
-  if (! model) return;
+  if (! model) return false;
 
-  // copy horizontal header data
-  for (const auto &role : hroles) {
-    auto var = model->headerData(c1, Qt::Horizontal, role);
+  auto *baseModel = dynamic_cast<CQBaseModel *>(model);
+  if (! baseModel) return false;
 
-    if (var.isValid())
-      toModel->setHeaderData(c2, Qt::Horizontal, var, role);
-  }
+  baseModel->copyColumnHeaderRoles(toModel, c1, c2);
+
+  return true;
+}
+
+//------
+
+QVariant
+CQChartsModelData::
+modelIndData(QAbstractItemModel *model, const QModelIndex &ind) const
+{
+  auto var = model->data(ind, Qt::EditRole);
+
+  if (! var.isValid())
+    var = model->data(ind, Qt::DisplayRole);
+
+  return var;
 }
