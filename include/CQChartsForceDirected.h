@@ -76,7 +76,7 @@ class CQChartsSpringyEdge : public Springy::Edge {
    Springy::Edge(id, node1, node2) {
   }
 
-  QString stringId() const { return QString("node:%1").arg(id()); }
+  QString stringId() const { return QString("edge:%1").arg(id()); }
 
   const Shape &shape() const { return shape_; }
   void setShape(const Shape &v) { shape_ = v; }

@@ -70,7 +70,8 @@ class CQChartsModelData : public QObject {
     RIGHT,
     OUTER,
     INNER,
-    CROSS
+    CROSS,
+    CONCAT
   };
 
  public:
@@ -255,6 +256,13 @@ class CQChartsModelData : public QObject {
   QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinCColumns,
                            JoinType joinType=JoinType::NONE);
 
+  static QAbstractItemModel *cross(const std::vector<CQChartsModelData *> &models);
+  QAbstractItemModel *cross(CQChartsModelData *joinModel);
+
+  static QAbstractItemModel *concat(const std::vector<CQChartsModelData *> &models,
+                                    const QStringList &keys=QStringList(),
+                                    Qt::Orientation orient=Qt::Vertical);
+
   QAbstractItemModel *groupColumns(const Columns &groupColumns);
 
   bool copyHeaderRoles(QAbstractItemModel *toModel) const;
@@ -266,7 +274,7 @@ class CQChartsModelData : public QObject {
 
   void connectModel(bool b);
 
-  QVariant modelIndData(QAbstractItemModel *model, const QModelIndex &ind) const;
+  static QVariant modelIndData(QAbstractItemModel *model, const QModelIndex &ind);
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);

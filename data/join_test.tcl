@@ -11,6 +11,9 @@ set model3 [join_charts_model -models [list $model1 $model2] -lcolumns lkey -rco
 if {$model3 != ""} { write_charts_model -model $model3 }
 }
 
+#---
+
+if {0} {
 set df1 {{'a': ['foo', 'bar'], 'b': [1, 2]}}
 set df2 {{'a': ['foo', 'baz'], 'c': [3, 4]}}
 
@@ -24,5 +27,21 @@ if {$model6 != ""} { write_charts_model -model $model6 }
 
 set model7 [join_charts_model -models [list $model4 $model5] -lcolumns a -type left]
 if {$model7 != ""} { write_charts_model -model $model7 }
+}
+
+#---
+
+set df1 {{'left': ['foo', 'bar']}}
+set df2 {{'right': [7, 8]}}
+
+set model8 [load_charts_model -json @df1]
+write_charts_model -model $model8
+set model9 [load_charts_model -json @df2]
+write_charts_model -model $model9
+
+set model10 [join_charts_model -models [list $model8 $model9] -type cross]
+if {$model10 != ""} { write_charts_model -model $model10 }
+
+#---
 
 exit

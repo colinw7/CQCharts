@@ -2189,9 +2189,47 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns, JoinType join
   //---
 
   // get join keys
+  //  . left : use only keys from left frame; preserve key order.
+  //  . right: use only keys from right frame; preserve key order.
+  //  . outer: use union of keys from both frames; sort keys lexicographically.
+  //  . inner: use intersection of keys from both frames; preserve the order of the left keys.
+  //  . cross: creates the cartesian product from both frames, preserves the order of the left keys.
+
   std::vector<QVariant> joinKeys;
 
-  if (joinType == JoinType::INNER) {
+  if      (joinType == JoinType::LEFT) {
+    for (const auto &pl : lvariantRowMap) {
+      const auto &lvar = pl.first;
+
+      joinKeys.push_back(lvar);
+    }
+  }
+  else if (joinType == JoinType::RIGHT) {
+    for (const auto &pr : rvariantRowMap) {
+      const auto &rvar = pr.first;
+
+      joinKeys.push_back(rvar);
+    }
+  }
+  else if (joinType == JoinType::OUTER) {
+    std::set<QVariant> outerJoinKeys;
+
+    for (const auto &pl : lvariantRowMap) {
+      const auto &lvar = pl.first;
+
+      outerJoinKeys.insert(lvar);
+    }
+
+    for (const auto &pr : rvariantRowMap) {
+      const auto &rvar = pr.first;
+
+      outerJoinKeys.insert(rvar);
+    }
+
+    for (const auto &k : outerJoinKeys)
+      joinKeys.push_back(k);
+  }
+  else if (joinType == JoinType::INNER) {
     for (const auto &pl : lvariantRowMap) {
       const auto &lvar = pl.first;
 
@@ -2350,7 +2388,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns, JoinType join
 
   dataModel->setHeaderData(c1++, Qt::Horizontal, columnNames.join(" "), Qt::DisplayRole);
 
-  auto *lBaseModel = dynamic_cast<CQBaseModel *>(lmodel);
+  auto *lBaseModel = qobject_cast<CQBaseModel *>(CQChartsModelUtil::getBaseModel(lmodel));
 
   for (int ic = 0; ic < lnc; ++ic) {
     // skip join columns
@@ -2368,7 +2406,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns, JoinType join
     ++c1;
   }
 
-  auto *rBaseModel = dynamic_cast<CQBaseModel *>(rmodel);
+  auto *rBaseModel = qobject_cast<CQBaseModel *>(CQChartsModelUtil::getBaseModel(rmodel));
 
   for (int ic = 0; ic < rnc; ++ic) {
     // skip join columns
@@ -2394,6 +2432,322 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns, JoinType join
   filterModel->setObjectName("joinModel");
 
   //---
+
+  return filterModel;
+}
+
+QAbstractItemModel *
+CQChartsModelData::
+cross(CQChartsModelData *rModelData)
+{
+  std::vector<CQChartsModelData *> models;
+
+  models.push_back(this);
+  models.push_back(rModelData);
+
+  return cross(models);
+}
+
+QAbstractItemModel *
+CQChartsModelData::
+cross(const std::vector<CQChartsModelData *> &models)
+{
+  assert(models.size() == 2);
+
+  auto *lModelData = models[0];
+  auto *rModelData = models[1];
+
+  // get model details
+  auto *ldetails = lModelData->details();
+  auto *rdetails = rModelData->details();
+
+  int lnc = ldetails->numColumns();
+  int lnr = ldetails->numRows();
+
+  int rnc = rdetails->numColumns();
+  int rnr = rdetails->numRows();
+
+  //---
+
+  // get models
+  auto *lModel = lModelData->model().data();
+  if (! lModel) return nullptr;
+
+  auto *rModel = rModelData->model().data();
+  if (! rModel) return nullptr;
+
+  //---
+
+  int nc = 0;
+
+  using RowVariants = std::vector<QVariantList>;
+
+  RowVariants rowVariants;
+
+  for (int lr = 0; lr < lnr; ++lr) {
+    QVariantList vars1;
+
+    for (int lc = 0; lc < lnc; ++lc) {
+      auto ind1 = lModel->index(lr, lc);
+      auto var1 = modelIndData(lModel, ind1);
+
+      vars1.push_back(var1);
+    }
+
+    for (int rr = 0; rr < rnr; ++rr) {
+      QVariantList vars2 = vars1;
+
+      for (int rc = 0; rc < rnc; ++rc) {
+        auto ind2 = rModel->index(rr, rc);
+        auto var2 = modelIndData(rModel, ind2);
+
+        vars2.push_back(var2);
+      }
+
+      rowVariants.push_back(vars2);
+
+      nc = std::max(nc, vars2.size());
+    }
+  }
+
+  //---
+
+  // create new (merged model)
+  int nr = int(rowVariants.size());
+
+  auto *dataModel = new CQDataModel(nc, nr);
+
+  int r = 0;
+
+  for (const auto &vars : rowVariants) {
+    int c = 0;
+
+    for (const auto &v : vars) {
+      auto ind = dataModel->index(r, c);
+
+      dataModel->setData(ind, v);
+
+      ++c;
+    }
+
+    ++r;
+  }
+
+  //---
+
+  // create model
+  auto *charts = lModelData->charts();
+
+  auto *filterModel = new CQChartsFilterModel(charts, dataModel);
+
+  filterModel->setObjectName("crossModel");
+
+  //---
+
+  return filterModel;
+}
+
+QAbstractItemModel *
+CQChartsModelData::
+concat(const std::vector<CQChartsModelData *> &modelDatas, const QStringList &keys,
+       Qt::Orientation orient)
+{
+  if (modelDatas.empty())
+    return nullptr;
+
+  auto *refModelData = modelDatas[0];
+
+  //---
+
+  bool hasKeys = (keys.length() > 0);
+
+  //---
+
+  int nc = 0, nr = 0;
+
+  if (orient == Qt::Vertical) {
+    for (auto *modelData : modelDatas) {
+      // get model details
+      auto *details = modelData->details();
+
+      int nc1 = details->numColumns();
+
+      nc = std::max(nc, nc1);
+    }
+
+    if (hasKeys)
+      ++nc;
+  }
+  else {
+    for (auto *modelData : modelDatas) {
+      // get model details
+      auto *details = modelData->details();
+
+      int nr1 = details->numColumns();
+
+      nr = std::max(nr, nr1);
+    }
+
+    if (hasKeys)
+      ++nr;
+  }
+
+  //---
+
+  using Variants = std::vector<QVariantList>;
+
+  Variants rowVariants, colVariants;
+
+  int nm = 0;
+
+  for (auto *modelData : modelDatas) {
+    // get model details
+    auto *details = modelData->details();
+
+    int nc1 = details->numColumns();
+    int nr1 = details->numRows();
+
+    auto *model = modelData->model().data();
+
+    if (orient == Qt::Vertical) {
+      for (int r = 0; r < nr1; ++r) {
+        QVariantList vars;
+
+        if (hasKeys)
+          vars.push_back(keys.at(nm));
+
+        for (int c = 0; c < nc1; ++c) {
+          auto ind1 = model->index(r, c);
+          auto var1 = modelIndData(model, ind1);
+
+          vars.push_back(var1);
+        }
+
+        rowVariants.push_back(vars);
+      }
+    }
+    else {
+      for (int c = 0; c < nc1; ++c) {
+        QVariantList vars;
+
+        if (hasKeys)
+          vars.push_back(keys.at(nm));
+
+        for (int r = 0; r < nr1; ++r) {
+          auto ind1 = model->index(r, c);
+          auto var1 = modelIndData(model, ind1);
+
+          vars.push_back(var1);
+        }
+
+        colVariants.push_back(vars);
+      }
+    }
+
+    ++nm;
+  }
+
+  //---
+
+  // create new (merged model)
+  if (orient == Qt::Vertical)
+    nr = int(rowVariants.size());
+  else
+    nc = int(colVariants.size());
+
+  auto *dataModel = new CQDataModel(nc, nr);
+
+  if (orient == Qt::Vertical) {
+    int r = 0;
+
+    for (const auto &vars : rowVariants) {
+      int c = 0;
+
+      for (const auto &v : vars) {
+        auto ind = dataModel->index(r, c);
+
+        dataModel->setData(ind, v);
+
+        ++c;
+      }
+
+      ++r;
+    }
+  }
+  else {
+    int c = 0;
+
+    for (const auto &vars : colVariants) {
+      int r = 0;
+
+      for (const auto &v : vars) {
+        auto ind = dataModel->index(r, c);
+
+        dataModel->setData(ind, v);
+
+        ++r;
+      }
+
+      ++c;
+    }
+  }
+
+  //---
+
+  // create model
+  auto *charts = refModelData->charts();
+
+  auto *filterModel = new CQChartsFilterModel(charts, dataModel);
+
+  filterModel->setObjectName("crossModel");
+
+  //---
+
+  // copy horizontal header data
+  if (orient == Qt::Vertical) {
+    auto *refModel = refModelData->model().data();
+
+    auto *refBaseModel = qobject_cast<CQBaseModel *>(CQChartsModelUtil::getBaseModel(refModel));
+
+    auto *refDetails = refModelData->details();
+
+    int nc1 = refDetails->numColumns();
+
+    for (int c = 0; c < nc1; ++c) {
+      if (refBaseModel)
+        refBaseModel->copyColumnHeaderRoles(dataModel, c, c);
+      else {
+        auto name = refModel->headerData(c, Qt::Horizontal);
+
+        dataModel->setHeaderData(c, Qt::Horizontal, name, Qt::DisplayRole);
+      }
+    }
+  }
+  else {
+    int c1 = 0;
+
+    for (auto *modelData : modelDatas) {
+      auto *model = modelData->model().data();
+
+      auto *baseModel = qobject_cast<CQBaseModel *>(CQChartsModelUtil::getBaseModel(model));
+
+      auto *details = modelData->details();
+
+      int nc = details->numColumns();
+
+      for (int c = 0; c < nc; ++c) {
+        if (baseModel)
+          baseModel->copyColumnHeaderRoles(dataModel, c, c1);
+        else {
+          auto name = model->headerData(c, Qt::Horizontal);
+
+          dataModel->setHeaderData(c1, Qt::Horizontal, name, Qt::DisplayRole);
+        }
+
+        ++c1;
+      }
+    }
+  }
 
   return filterModel;
 }
@@ -2546,7 +2900,7 @@ copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const
 
 QVariant
 CQChartsModelData::
-modelIndData(QAbstractItemModel *model, const QModelIndex &ind) const
+modelIndData(QAbstractItemModel *model, const QModelIndex &ind)
 {
   auto var = model->data(ind, Qt::EditRole);
 

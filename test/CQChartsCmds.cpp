@@ -3887,6 +3887,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-lcolumns", ArgType::String, "lcolumns");
   addArg(argv, "-rcolumns", ArgType::String, "rcolumns");
   addArg(argv, "-type"    , ArgType::String, "type");
+  addArg(argv, "-keys"    , ArgType::String, "keys");
+  addArg(argv, "-axis"    , ArgType::String, "axis name");
 }
 
 QStringList
@@ -3937,8 +3939,29 @@ execCmd(CQChartsCmdArgs &argv)
     modelDatas.push_back(modelData);
   }
 
-  if (modelDatas.size() != 2)
-    return errorMsg("Need two models to join");
+  //---
+
+  // get join type
+  CQChartsModelData::JoinType joinType = CQChartsModelData::JoinType::NONE;
+
+  if (argv.hasParseArg("type")) {
+    auto typeStr = argv.getParseStr("type").toLower();
+
+    if      (typeStr == "left"  ) joinType = CQChartsModelData::JoinType::LEFT;
+    else if (typeStr == "right" ) joinType = CQChartsModelData::JoinType::RIGHT;
+    else if (typeStr == "outer" ) joinType = CQChartsModelData::JoinType::OUTER;
+    else if (typeStr == "inner" ) joinType = CQChartsModelData::JoinType::INNER;
+    else if (typeStr == "cross" ) joinType = CQChartsModelData::JoinType::CROSS;
+    else if (typeStr == "concat") joinType = CQChartsModelData::JoinType::CONCAT;
+  }
+
+  bool needsColumns = ! (joinType == CQChartsModelData::JoinType::CROSS ||
+                         joinType == CQChartsModelData::JoinType::CONCAT);
+
+  //---
+
+  if (modelDatas.size() < 2)
+    return errorMsg("Need at least two models to join");
 
   auto model0 = modelDatas[0]->currentModel();
   auto model1 = modelDatas[1]->currentModel();
@@ -3953,7 +3976,7 @@ execCmd(CQChartsCmdArgs &argv)
   if (! cmds()->stringToModelColumns(model0, lcolumnsStr, lcolumns))
     return false;
 
-  if (lcolumns.size() < 1)
+  if (needsColumns && lcolumns.size() < 1)
     return errorMsg("Need one or more column to join");
 
   //---
@@ -3967,33 +3990,52 @@ execCmd(CQChartsCmdArgs &argv)
     if (! cmds()->stringToModelColumns(model1, rcolumnsStr, rcolumns))
       return false;
 
-    if (rcolumns.size() < 1)
+    if (needsColumns && rcolumns.size() < 1)
       return errorMsg("Need one or more column to join");
   }
 
   //---
 
-  // get join type
-  CQChartsModelData::JoinType joinType = CQChartsModelData::JoinType::NONE;
+  QStringList keysStrs;
 
-  if (argv.hasParseArg("type")) {
-    auto typeStr = argv.getParseStr("type").toLower();
+  if (argv.hasParseArg("keys")) {
+    auto keysStr = argv.getParseStr("keys");
 
-    if      (typeStr == "left" ) joinType = CQChartsModelData::JoinType::LEFT;
-    else if (typeStr == "right") joinType = CQChartsModelData::JoinType::RIGHT;
-    else if (typeStr == "outer") joinType = CQChartsModelData::JoinType::OUTER;
-    else if (typeStr == "inner") joinType = CQChartsModelData::JoinType::INNER;
-    else if (typeStr == "cross") joinType = CQChartsModelData::JoinType::CROSS;
+    if (! CQTcl::splitList(keysStr, keysStrs))
+      return errorMsg(QString("Invalid keys strings '%1'").arg(keysStr));
+  }
+
+  //---
+
+  auto axis = Qt::Vertical;
+
+  if (argv.hasParseArg("axis")) {
+    auto axisStr = argv.getParseStr("axis").toLower();
+
+    if      (axisStr == "v" || axisStr == "vertical")
+      axis = Qt::Vertical;
+    else if (axisStr == "h" || axisStr == "horizontal")
+      axis = Qt::Horizontal;
+    else
+      return errorMsg(QString("Invalid axis string '%1'").arg(axisStr));
   }
 
   //---
 
   QAbstractItemModel *newModel;
 
-  if (! rcolumns.empty())
-    newModel = modelDatas[0]->join(modelDatas[1], lcolumns, rcolumns, joinType);
-  else
-    newModel = modelDatas[0]->join(modelDatas[1], lcolumns, joinType);
+  if      (joinType == CQChartsModelData::JoinType::CROSS) {
+    newModel = modelDatas[0]->cross(modelDatas[1]);
+  }
+  else if (joinType == CQChartsModelData::JoinType::CONCAT) {
+    newModel = CQChartsModelData::concat(modelDatas, keysStrs, axis);
+  }
+  else {
+    if (! rcolumns.empty())
+      newModel = modelDatas[0]->join(modelDatas[1], lcolumns, rcolumns, joinType);
+    else
+      newModel = modelDatas[0]->join(modelDatas[1], lcolumns, joinType);
+  }
 
   if (! newModel)
     return errorMsg("Join failed");
