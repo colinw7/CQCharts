@@ -1586,6 +1586,8 @@ addObjects(PlotObjs &objs) const
     // create graph object
     auto *graphObj = createGraphObj(graph->rect(), graph);
 
+    connect(graphObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     if (graph->parent())
       graphObj->setEditable(true);
 
@@ -1795,7 +1797,9 @@ createObjFromNode(Graph *, Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, iv);
 
-  NodeObj::ShapeType shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
+  connect(nodeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  auto shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
 
   if (shapeType == NodeObj::ShapeType::NONE)
     shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
@@ -1834,7 +1838,9 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
-  EdgeObj::ShapeType shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
+  connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  auto shapeType = static_cast<EdgeObj::ShapeType>(edge->shapeType());
 
   if (shapeType == EdgeObj::ShapeType::NONE)
     shapeType = static_cast<EdgeObj::ShapeType>(edgeShape());

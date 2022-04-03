@@ -46,7 +46,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setVisible(bool b) override { TextBoxObj::setVisible(b); redraw(); }
+  void setVisible(bool b) override { TextBoxObj::setVisible(b); updatePlotPosition(); }
 
   void setSelected(bool b) override;
 
@@ -97,7 +97,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void boxObjInvalidate() override { redraw(); }
+  void boxObjInvalidate() override { updatePlotPosition(); }
 
   //---
 
@@ -110,7 +110,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   BBox fitBBox() const;
 
+  void updateLocation();
+
   //---
+
+  void updatePlotPosition();
 
   void redraw(bool wait=true);
 
@@ -143,8 +147,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
  private:
   void init();
-
-  void updateLocation();
 
   void textBoxObjInvalidate() override;
 

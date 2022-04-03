@@ -1211,6 +1211,8 @@ addNodeObj(Node *node, PlotObjs &objs, bool isHier) const
 
   auto *obj = createNodeObj(node, rect);
 
+  connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
   obj->setHier(isHier);
 
   objs.push_back(obj);

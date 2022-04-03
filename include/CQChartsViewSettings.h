@@ -81,8 +81,10 @@ class CQChartsViewSettings : public QFrame {
   CQChartsPropertyViewTree *viewPropertyTree() const;
   CQChartsPropertyViewTree *plotPropertyTree(Plot *plot) const;
 
+  // show query tab on query
   void showQueryTab();
 
+  // show error tab on error
   void showErrorsTab();
 
   CQChartsPlot *currentPlot(bool remap=true) const;
@@ -91,6 +93,9 @@ class CQChartsViewSettings : public QFrame {
   void objectsPropertyItemChanged(QObject *obj, const QString &path);
 
   void propertyItemSelected(QObject *obj, const QString &path);
+
+ public slots:
+  void updatePlotObjects();
 
  private slots:
   void updateModels();
@@ -109,8 +114,6 @@ class CQChartsViewSettings : public QFrame {
   void updateAnnotations();
   void updateViewAnnotations();
   void updatePlotAnnotations();
-
-  void updatePlotObjects();
 
   void symbolListSelectionChangeSlot();
   void symbolUpSlot();
@@ -379,8 +382,6 @@ class CQChartsViewSettings : public QFrame {
   QString plotId_; //!< current plot id
 
   QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
-
-  int maxPlotObjs_ { 100 };
 };
 
 //---

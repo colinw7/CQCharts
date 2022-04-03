@@ -601,6 +601,8 @@ addRowObj(const ModelVisitor::VisitData &data, PlotObjs &objs) const
 
   auto *obj = createPointObj(bbox, is, p, ind, ColorInd(ig, ng), ColorInd(iv, nv));
 
+  connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
   objs.push_back(obj);
 }
 

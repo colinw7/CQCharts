@@ -186,9 +186,9 @@ init()
 
   //---
 
-  searchTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_SEARCH_TIMEOUT", searchTimeout_);
+  searchData_.timeout = CQChartsEnv::getInt("CQ_CHARTS_SEARCH_TIMEOUT", searchData_.timeout);
 
-  setSearchTimeout(searchTimeout_);
+  setSearchTimeout(searchData_.timeout);
 
   //---
 
@@ -386,6 +386,12 @@ addProperties()
   addStyleProp("handdrawn", "handRoughness", "roughness", "Handdraw roughness");
   addStyleProp("handdrawn", "handFillDelta", "fillDelta", "Handdraw fill delta");
 
+  // overview
+  addStyleProp("overview", "overviewXSize"     , "xSize"     , "Overview X Size");
+  addStyleProp("overview", "overviewYSize"     , "ySize"     , "Overview Y Size");
+  addStyleProp("overview", "overviewRangeColor", "rangeColor", "Overview Range Color");
+  addStyleProp("overview", "overviewRangeAlpha", "rangeAlpha", "Overview Range ALpha");
+
   // sizing
   addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
   addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
@@ -467,6 +473,11 @@ addProperties()
   addProp("probe", "probeObjects", "objects", "Probe nearest object");
   addProp("probe", "probeNamed"  , "named"  , "Show value name");
   addProp("probe", "probePos"    , "pos"    , "Probe value position");
+
+  // view settings
+  addProp("view_settings", "viewSettingsMajorObjects", "majorObjects", "Show major objects");
+  addProp("view_settings", "viewSettingsMinorObjects", "minorObjects", "Show minor objects");
+  addProp("view_settings", "viewSettingsMaxObjects"  , "maxObjects"  , "Max objects");
 }
 
 //---
@@ -749,25 +760,67 @@ setHandFillDelta(double r)
 
 void
 CQChartsView::
+setOverviewXSize(int i)
+{
+  overviewData_.xsize = i;
+
+  if (window())
+    window()->updateOverview();
+}
+
+void
+CQChartsView::
+setOverviewYSize(int i)
+{
+  overviewData_.ysize = i;
+
+  if (window())
+    window()->updateOverview();
+}
+
+void
+CQChartsView::
+setOverviewRangeColor(const QColor &c)
+{
+  overviewData_.rangeColor = c;
+
+  if (window())
+    window()->updateOverview();
+}
+
+void
+CQChartsView::
+setOverviewRangeAlpha(double a)
+{
+  overviewData_.rangeAlpha = a;
+
+  if (window())
+    window()->updateOverview();
+}
+
+//---
+
+void
+CQChartsView::
 setSearchTimeout(int i)
 {
-  searchTimeout_ = i;
+  searchData_.timeout = i;
 
-  if (searchTimeout_ > 0) {
-    if (! searchTimer_) {
-      searchTimer_ = new QTimer(this);
+  if (searchData_.timeout > 0) {
+    if (! searchData_.timer) {
+      searchData_.timer = new QTimer(this);
 
-      searchTimer_->setSingleShot(true);
+      searchData_.timer->setSingleShot(true);
 
-      connect(searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
+      connect(searchData_.timer, SIGNAL(timeout()), this, SLOT(searchSlot()));
     }
 
-    searchTimer_->setInterval(searchTimeout_);
+    searchData_.timer->setInterval(searchData_.timeout);
   }
   else {
-    delete searchTimer_;
+    delete searchData_.timer;
 
-    searchTimer_ = nullptr;
+    searchData_.timer = nullptr;
   }
 }
 
@@ -2794,7 +2847,7 @@ mouseMoveEvent(QMouseEvent *me)
     if      (mode() == Mode::SELECT) {
       selectMouseMove();
 
-      searchPos_ = mouseMovePoint();
+      searchData_.pos = mouseMovePoint();
     }
     // draw zoom rectangle
     else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT)
@@ -3730,7 +3783,7 @@ selectMouseMove()
       bool current = (plot == mousePlot());
 
       return plot->selectMouseMove(pos, current);
-    }, searchPos_);
+    }, searchData_.pos);
   }
   else if (isRectSelectMode()) {
     if (mouseData_.escape)
@@ -5581,10 +5634,10 @@ void
 CQChartsView::
 searchMouse()
 {
-  searchPos_ = mouseMovePoint();
+  searchData_.pos = mouseMovePoint();
 
-  if (searchTimer_)
-    searchTimer_->start();
+  if (searchData_.timer)
+    searchData_.timer->start();
   else
     searchSlot();
 }
@@ -5595,7 +5648,7 @@ searchSlot()
 {
   setStatusText("");
 
-  auto w = pixelToWindow(searchPos_);
+  auto w = pixelToWindow(searchData_.pos);
 
   searchAt(w);
 }
@@ -7515,6 +7568,8 @@ setShowTable(bool b)
     window()->setDataTable(b);
 }
 
+//------
+
 bool
 CQChartsView::
 isShowSettings() const
@@ -7528,6 +7583,51 @@ setShowSettings(bool b)
 {
   if (window())
     window()->setViewSettings(b);
+}
+
+bool
+CQChartsView::
+isViewSettingsMajorObjects() const
+{
+  return (window() ? window()->isViewSettingsMajorObjects() : false);
+}
+
+void
+CQChartsView::
+setViewSettingsMajorObjects(bool b)
+{
+  if (window())
+    window()->setViewSettingsMajorObjects(b);
+}
+
+bool
+CQChartsView::
+isViewSettingsMinorObjects() const
+{
+  return (window() ? window()->isViewSettingsMinorObjects() : false);
+}
+
+void
+CQChartsView::
+setViewSettingsMinorObjects(bool b)
+{
+  if (window())
+    window()->setViewSettingsMinorObjects(b);
+}
+
+int
+CQChartsView::
+viewSettingsMaxObjects() const
+{
+  return (window() ? window()->viewSettingsMaxObjects() : 100);
+}
+
+void
+CQChartsView::
+setViewSettingsMaxObjects(int n)
+{
+  if (window())
+    window()->setViewSettingsMaxObjects(n);
 }
 
 //------

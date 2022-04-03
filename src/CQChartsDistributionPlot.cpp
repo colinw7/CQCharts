@@ -2236,6 +2236,8 @@ createObjs(PlotObjs &objs) const
       if (bbox.isSet()) {
         auto *barObj = createDensityObj(bbox, groupInd, data, doffset, ColorInd(ig, ng));
 
+        connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
         objs.push_back(barObj);
       }
 
@@ -2281,6 +2283,8 @@ createObjs(PlotObjs &objs) const
 
         auto *scatterObj = createScatterObj(bbox, groupInd, sbucket, n,
                                             ColorInd(ig, ng), ColorInd(iv, nv));
+
+        connect(scatterObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         objs.push_back(scatterObj);
 
@@ -2487,6 +2491,8 @@ createObjs(PlotObjs &objs) const
         if (bbox.isValid()) {
           auto *barObj = createBarObj(bbox, groupInd, sbucket, barValue,
                                       isLine, ColorInd(ig, ng), ColorInd(iv, nv));
+
+          connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
           objs.push_back(barObj);
         }

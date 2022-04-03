@@ -1633,6 +1633,8 @@ initRawObjs(PlotObjs &objs) const
         auto *boxObj = createWhiskerObj(rect, setId, groupInd, whisker,
                                         ColorInd(is, ns), ColorInd(ig, ng));
 
+        connect(boxObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
         objs.push_back(boxObj);
 
         //---
@@ -1667,6 +1669,8 @@ initRawObjs(PlotObjs &objs) const
 
             auto *outlierObj = createOutlierObj(orect, setId, groupInd, whisker,
                                                 ColorInd(is, ns), ColorInd(ig, ng), o);
+
+            connect(outlierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
             Color pointColor;
 
@@ -1704,6 +1708,8 @@ initRawObjs(PlotObjs &objs) const
       auto rect = getDataRange();
 
       auto *connectedObj = createConnectedObj(rect, groupInd, ColorInd(ig, ng));
+
+      connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       objs.push_back(connectedObj);
     }
@@ -1768,6 +1774,8 @@ addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
 
     auto *pointObj = createPointObj(rect, setId, groupInd, pos1, value.ind,
                                     is, ig, ColorInd(iv, nv));
+
+    connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     Color pointColor;
 
@@ -1920,6 +1928,8 @@ addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
     pointObj = createPointObj(rect, setId, groupInd, ipos, value.ind,
                               is, ig, ColorInd(iv, nv));
 
+    connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     Color pointColor;
 
     if (colorColumn().isValid()) {
@@ -1962,6 +1972,8 @@ initCalcObjs(PlotObjs &objs) const
 
     auto *boxObj = createDataObj(rect, whiskerData, ColorInd(is, ns));
 
+    connect(boxObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(boxObj);
 
     //++ipos;
@@ -1998,6 +2010,8 @@ initCalcObjs(PlotObjs &objs) const
 
         auto *outlierObj = createOutlierObj(rect, -1, -1, nullptr,
                                             ColorInd(is, ns), ColorInd(), io);
+
+        connect(outlierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         Color pointColor;
 

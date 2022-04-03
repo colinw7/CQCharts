@@ -157,7 +157,6 @@ class CQChartsView : public QFrame,
   // anti-alias, buffer, preview, pos text type
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias   )
   Q_PROPERTY(bool        showTable      READ isShowTable    WRITE setShowTable   )
-  Q_PROPERTY(bool        showSettings   READ isShowSettings WRITE setShowSettings)
   Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers)
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
@@ -183,12 +182,28 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(double handRoughness READ handRoughness WRITE setHandRoughness)
   Q_PROPERTY(double handFillDelta READ handFillDelta WRITE setHandFillDelta)
 
-  //! search timeout
+  Q_PROPERTY(int    overviewXSize      READ overviewXSize      WRITE setOverviewXSize     )
+  Q_PROPERTY(int    overviewYSize      READ overviewYSize      WRITE setOverviewYSize     )
+  Q_PROPERTY(QColor overviewRangeColor READ overviewRangeColor WRITE setOverviewRangeColor)
+  Q_PROPERTY(double overviewRangeAlpha READ overviewRangeAlpha WRITE setOverviewRangeAlpha)
+
+  // search timeout
   Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
 
+  // probe
   Q_PROPERTY(bool     probeObjects READ isProbeObjects WRITE setProbeObjects)
   Q_PROPERTY(bool     probeNamed   READ isProbeNamed   WRITE setProbeNamed  )
   Q_PROPERTY(ProbePos probePos     READ probePos       WRITE setProbePos    )
+
+  // view settings
+  Q_PROPERTY(bool showSettings READ isShowSettings WRITE setShowSettings)
+
+  Q_PROPERTY(bool viewSettingsMajorObjects READ isViewSettingsMajorObjects
+                                           WRITE setViewSettingsMajorObjects)
+  Q_PROPERTY(bool viewSettingsMinorObjects READ isViewSettingsMinorObjects
+                                           WRITE setViewSettingsMinorObjects)
+  Q_PROPERTY(int  viewSettingsMaxObjects READ viewSettingsMaxObjects
+                                         WRITE setViewSettingsMaxObjects)
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -418,7 +433,6 @@ class CQChartsView : public QFrame,
   void setAntiAlias(bool b);
 
   bool isShowTable() const;
-  bool isShowSettings() const;
 
   bool isBufferLayers() const { return bufferLayers_; }
   void setBufferLayers(bool b);
@@ -476,9 +490,22 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // search for objects under mouse
+  int overviewXSize() const { return overviewData_.xsize; }
+  void setOverviewXSize(int i);
 
-  int searchTimeout() const { return searchTimeout_; }
+  int overviewYSize() const { return overviewData_.ysize; }
+  void setOverviewYSize(int i);
+
+  const QColor &overviewRangeColor() const { return overviewData_.rangeColor; }
+  void setOverviewRangeColor(const QColor &v);
+
+  double overviewRangeAlpha() const { return overviewData_.rangeAlpha; }
+  void setOverviewRangeAlpha(double r);
+
+  //---
+
+  // search for objects under mouse
+  int searchTimeout() const { return searchData_.timeout; }
   void setSearchTimeout(int i);
 
   void searchMouse();
@@ -892,6 +919,19 @@ class CQChartsView : public QFrame,
   void updateProbes();
 
   void removeProbeOverlaps();
+
+  //---
+
+  bool isShowSettings() const;
+
+  bool isViewSettingsMajorObjects() const;
+  void setViewSettingsMajorObjects(bool b);
+
+  bool isViewSettingsMinorObjects() const;
+  void setViewSettingsMinorObjects(bool b);
+
+  int viewSettingsMaxObjects() const;
+  void setViewSettingsMaxObjects(int b);
 
   //---
 
@@ -1584,9 +1624,9 @@ class CQChartsView : public QFrame,
   Window*   window_ { nullptr }; //!< parent window
 
   // draw data
-  QImage*        image_         { nullptr }; //!< image buffer
-  QPainter*      ipainter_      { nullptr }; //!< image painter
-  DisplayRangeP  displayRange_;              //!< display range
+  QImage*       image_         { nullptr }; //!< image buffer
+  QPainter*     ipainter_      { nullptr }; //!< image painter
+  DisplayRangeP displayRange_;              //!< display range
 
   PropertyModelP propertyModel_; //!< property model
 
@@ -1647,12 +1687,26 @@ class CQChartsView : public QFrame,
   double      aspect_      { 1.0 };               //!< current aspect
   MouseData   mouseData_;                         //!< mouse data
 
-  // mouse search data
-  int     searchTimeout_ { 10 };      //!< search timeout
-  QTimer* searchTimer_   { nullptr }; //!< search timer
-  Point   searchPos_;                 //!< search pos
+  // overview
+  struct OverviewData {
+    int    xsize      { 128 };           //!< x size (height)
+    int    ysize      { 128 };           //!< y size (width)
+    QColor rangeColor { 140, 180, 200 }; //!< range color
+    double rangeAlpha { 0.3 };           //!< range alpha
+  };
 
-  // rubber bands
+  OverviewData overviewData_;
+
+  // mouse search data
+  struct SearchData {
+    int     timeout { 10 };      //!< search timeout
+    QTimer* timer   { nullptr }; //!< search timer
+    Point   pos;                 //!< search pos
+  };
+
+  SearchData searchData_;
+
+  // probe data
   struct ProbeData {
     RegionBand regionBand;                        //!< zoom region rubberband
     ProbeBands bands;                             //!< probe lines

@@ -797,6 +797,8 @@ initTableObjs(PlotObjs &objs) const
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
+    connect(segmentObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(segmentObj);
 
     th->segmentObjs_.push_back(segmentObj);
@@ -810,6 +812,8 @@ initTableObjs(PlotObjs &objs) const
         continue;
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
+
+      connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       edgeObj->setIv(ColorInd(ind, int(nv)));
 
@@ -1096,6 +1100,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
+    connect(segmentObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(segmentObj);
 
     th->segmentObjs_.push_back(segmentObj);
@@ -1109,6 +1115,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
         continue;
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
+
+      connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       edgeObj->setIv(ColorInd(ind, int(nv)));
 
@@ -1143,6 +1151,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
         if (! parentHierObj) {
           parentHierObj = createHierObj(parentName, rect);
+
+          connect(parentHierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
           objs.push_back(parentHierObj);
 
@@ -1311,8 +1321,7 @@ calcId() const
   auto name = data_.group().value.toString();
 
   if (name != "")
-    return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).
-             arg(name).arg(iv_.i);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).arg(name).arg(iv_.i);
   else
     return QString("%1:%2:%3").arg(typeName()).arg(dataName()).arg(iv_.i);
 }
@@ -1865,7 +1874,7 @@ calcId() const
   auto fromName = (fromObj ? fromObj->dataName() : QString::number(from()));
   auto toName   = (toObj   ? toObj  ->dataName() : QString::number(to  ()));
 
-  return QString("%1:%2").arg(fromName).arg(toName);
+  return QString("%1:%2:%3").arg(typeName()).arg(fromName).arg(toName);
 }
 
 QString

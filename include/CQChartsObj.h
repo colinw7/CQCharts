@@ -98,18 +98,15 @@ class CQChartsObj : public QObject {
 
   //! get/set visible
   virtual bool isVisible() const { return visible_; }
-  virtual void setVisible(bool b) {
-    visible_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setVisible(bool b) { visible_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //! set/get selected
   virtual bool isSelected() const { return selected_; }
-  virtual void setSelected(bool b) {
-    selected_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setSelected(bool b) { selected_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //! set/get inside
   virtual bool isInside() const { return inside_; }
-  virtual void setInside(bool b) {
-    inside_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setInside(bool b) { inside_ = b; if (notificationsEnabled_) dataInvalidate(); }
 
   //---
 

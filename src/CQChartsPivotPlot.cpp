@@ -736,8 +736,11 @@ createObjs(PlotObjs &objs) const
             obj = createBarObj(rect, ind, inds, ir, ic, value);
         }
 
-        if (obj)
+        if (obj) {
+          connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
           objs.push_back(obj);
+        }
       }
     }
   }
@@ -818,6 +821,8 @@ createObjs(PlotObjs &objs) const
 
       auto *obj = createLineObj(rect, inds, ic, polygon, name);
 
+      connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
       objs.push_back(obj);
     }
   }
@@ -866,6 +871,8 @@ createObjs(PlotObjs &objs) const
         BBox rect(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         auto *obj = createPointObj(rect, inds, ir, ic, p, value);
+
+        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         objs.push_back(obj);
       }
@@ -917,6 +924,8 @@ createObjs(PlotObjs &objs) const
                       iv - 0.5, ih - 0.5, iv + 0.5, ih + 0.5);
 
         auto *obj = createCellObj(rect, inds, ir, ic, name, value, hnorm, vnorm, ok);
+
+        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         objs.push_back(obj);
       }

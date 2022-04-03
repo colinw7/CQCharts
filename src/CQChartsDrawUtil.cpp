@@ -792,9 +792,6 @@ drawCenteredText(PaintDevice *device, const Point &pos, const QString &text)
 void
 drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 {
-  if (device->isNull())
-    return;
-
   device->drawText(pos, text);
 }
 

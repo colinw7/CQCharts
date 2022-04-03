@@ -8,6 +8,7 @@
 #include <CQChartsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsViewPlotPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -1054,7 +1055,14 @@ updatePlotPosition()
 {
   auto *plot = const_cast<Plot *>(this->plot());
 
+  CQChartsPlotPaintDevice device(plot, nullptr);
+
+  drawI(nullptr, plot, &device);
+
   plot->updateMargins();
+
+  if (plot->isAutoFit())
+    plot->setNeedsAutoFit(true);
 }
 
 bool
@@ -1686,7 +1694,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
   if (plot && plot->showBoxes()) {
     plot->drawWindowColorBox(device, bbox(), Qt::blue);
 
-    plot->drawColorBox(device, lbbox_, Qt::green);
+    plot->drawColorBox(device, pixelToWindow(plot, device, lbbox_), Qt::green);
   }
 
   //---
@@ -2612,7 +2620,6 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
 
   auto a1 = windowToPixel(plot, device, amin, apos);
   auto a2 = windowToPixel(plot, device, amax, apos);
-  auto a3 = windowToPixel(plot, device, amin, apos);
 
   //---
 
@@ -2708,7 +2715,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     double atw = pixelToWindowWidth(plot, device, tw/2);
 
     if (isPixelBottom) {
-      ath = pixelToWindowHeight(plot, device, (lbbox_.getYMax() - a3.y) + tgap) + wfh;
+      ath = pixelToWindowHeight(plot, device, (lbbox_.getYMax() - a1.y) + tgap) + wfh;
 
       Point pt(axm, lbbox_.getYMax() + ta + tgap);
 
@@ -2740,17 +2747,20 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (! invertY) {
         bbox += Point((amin + amax)/2 - atw, apos - (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos - (ath - wfh));
+
+        fitLBBox_ += Point((amin + amax)/2, apos - (ath      ));
+        fitLBBox_ += Point((amin + amax)/2, apos - (ath - wfh));
       }
       else {
         bbox += Point((amin + amax)/2 - atw, apos + (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos + (ath - wfh));
-      }
 
-      fitLBBox_ += Point((amin + amax)/2, apos - (ath      ));
-      fitLBBox_ += Point((amin + amax)/2, apos - (ath - wfh));
+        fitLBBox_ += Point((amin + amax)/2, apos + (ath      ));
+        fitLBBox_ += Point((amin + amax)/2, apos + (ath - wfh));
+      }
     }
     else {
-      ath = pixelToWindowHeight(plot, device, (a3.y - lbbox_.getYMin()) + tgap) + wfh;
+      ath = pixelToWindowHeight(plot, device, (a1.y - lbbox_.getYMin()) + tgap) + wfh;
 
       Point pt(axm, lbbox_.getYMin() - td - tgap);
 
@@ -2782,14 +2792,17 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (! invertY) {
         bbox += Point((amin + amax)/2 - atw, apos + (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos + (ath - wfh));
+
+        fitLBBox_ += Point((amin + amax)/2, apos + (ath      ));
+        fitLBBox_ += Point((amin + amax)/2, apos + (ath - wfh));
       }
       else {
         bbox += Point((amin + amax)/2 - atw, apos - (ath      ));
         bbox += Point((amin + amax)/2 + atw, apos - (ath - wfh));
-      }
 
-      fitLBBox_ += Point((amin + amax)/2, apos + (ath      ));
-      fitLBBox_ += Point((amin + amax)/2, apos + (ath - wfh));
+        fitLBBox_ += Point((amin + amax)/2, apos - (ath      ));
+        fitLBBox_ += Point((amin + amax)/2, apos - (ath - wfh));
+      }
     }
   }
   else {
@@ -2811,7 +2824,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     if (isPixelLeft) {
       double aym = (a2.y + a1.y)/2.0 + tw/2.0;
 
-      atw = pixelToWindowWidth(plot, device, (a3.x - lbbox_.getXMin()) + tgap) + wfh;
+      atw = pixelToWindowWidth(plot, device, (a1.x - lbbox_.getXMin()) + tgap) + wfh;
 
     //double tx = lbbox_.getXMin() - tgap - td;
       double tx = lbbox_.getXMin() - tgap;
@@ -2841,17 +2854,20 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (! invertX) {
         bbox += Point(apos - (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos - (atw - wfh), (amin + amax)/2 + ath);
+
+        fitLBBox_ += Point(apos - (atw      ), (amin + amax)/2);
+        fitLBBox_ += Point(apos - (atw - wfh), (amin + amax)/2);
       }
       else {
         bbox += Point(apos + (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos + (atw - wfh), (amin + amax)/2 + ath);
-      }
 
-      fitLBBox_ += Point(apos - (atw      ), (amin + amax)/2);
-      fitLBBox_ += Point(apos - (atw - wfh), (amin + amax)/2);
+        fitLBBox_ += Point(apos + (atw      ), (amin + amax)/2);
+        fitLBBox_ += Point(apos + (atw - wfh), (amin + amax)/2);
+      }
     }
     else {
-      atw = pixelToWindowWidth(plot, device, (lbbox_.getXMax() - a3.x) + tgap) + wfh;
+      atw = pixelToWindowWidth(plot, device, (lbbox_.getXMax() - a1.x) + tgap) + wfh;
 
 #if 0
       double aym = (a2.y + a1.y)/2 - tw/2;
@@ -2888,14 +2904,17 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
       if (! invertX) {
         bbox += Point(apos + (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos + (atw - wfh), (amin + amax)/2 + ath);
+
+        fitLBBox_ += Point(apos + (atw      ), (amin + amax)/2);
+        fitLBBox_ += Point(apos + (atw - wfh), (amin + amax)/2);
       }
       else {
         bbox += Point(apos - (atw      ), (amin + amax)/2 - ath);
         bbox += Point(apos - (atw - wfh), (amin + amax)/2 + ath);
-      }
 
-      fitLBBox_ += Point(apos + (atw      ), (amin + amax)/2);
-      fitLBBox_ += Point(apos + (atw - wfh), (amin + amax)/2);
+        fitLBBox_ += Point(apos - (atw      ), (amin + amax)/2);
+        fitLBBox_ += Point(apos - (atw - wfh), (amin + amax)/2);
+      }
     }
   }
 

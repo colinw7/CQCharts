@@ -375,8 +375,10 @@ class CQChartsPlotKey : public CQChartsKey {
   //---
 
   //! get/set bbox
-  const BBox &bbox() const override { return wbbox_; }
-  void setBBox(const BBox &b) { wbbox_ = b; }
+  const BBox &bbox() const override { assert(wbboxValid_); return wbbox_; }
+  void setBBox(const BBox &b) { wbboxValid_ = true; wbbox_ = b; }
+
+  void resetBBox() { wbboxValid_ = false; }
 
   //---
 
@@ -554,6 +556,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int                numRows_       { 0 };     //!< number of rows
   int                numCols_       { 0 };     //!< number of columns
   mutable BBox       wbbox_;                   //!< window bounding box
+  mutable bool       wbboxValid_    { false }; //!< window bounding box valid
   mutable RowHeights rowHeights_;              //!< row heights
   mutable ColWidths  colWidths_;               //!< column widths
   mutable RowColCell rowColCell_;              //!< cells (per row/col)

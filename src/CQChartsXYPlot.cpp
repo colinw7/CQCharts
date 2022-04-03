@@ -3239,9 +3239,6 @@ void
 CQChartsXYBiLineObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
   auto p1 = Point(x(), y1());
   auto p2 = Point(x(), y2());
 
@@ -3422,11 +3419,6 @@ void
 CQChartsXYImpulseLineObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
-  //---
-
   // calc pen and brush
   PenBrush penBrush;
 
@@ -3808,7 +3800,7 @@ draw(PaintDevice *device) const
 {
   bool isVector = this->isVector();
 
-  if (! isVisible() && ! isVector)
+  if (! isVector)
     return;
 
   //---
@@ -4007,11 +3999,6 @@ void
 CQChartsXYLabelObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
-  //---
-
   // text font color
   PenBrush penBrush;
 
@@ -4686,11 +4673,6 @@ void
 CQChartsXYPolygonObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
-  //---
-
   // calc pen and brush
   PenBrush penBrush;
 

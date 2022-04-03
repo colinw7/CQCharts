@@ -1361,6 +1361,8 @@ addPointObjects(PlotObjs &objs) const
 
         auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
+        connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
         if (valuePoint.ind.isValid())
           pointObj->setModelInd(valuePoint.ind);
 
@@ -1589,6 +1591,8 @@ addGridObjects(PlotObjs &objs) const
 
           auto *cellObj = createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
+          connect(cellObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
           objs.push_back(cellObj);
         }
       }
@@ -1688,6 +1692,8 @@ addHexObjects(PlotObjs &objs) const
 
           auto *hexObj = createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
 
+          connect(hexObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
           objs.push_back(hexObj);
         }
       }
@@ -1719,6 +1725,8 @@ addBestFitObjects(PlotObjs &objs) const
 
       auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
+      connect(bestFitObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
       bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
       objs.push_back(bestFitObj);
@@ -1734,6 +1742,8 @@ addBestFitObjects(PlotObjs &objs) const
 
     for (const auto &nameValue : nameValues) {
       auto *bestFitObj = createBestFitObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
+
+      connect(bestFitObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
@@ -1764,6 +1774,8 @@ addHullObjects(PlotObjs &objs) const
 
       auto *hullObj = createHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
 
+      connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
       hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
 
       objs.push_back(hullObj);
@@ -1781,6 +1793,8 @@ addHullObjects(PlotObjs &objs) const
       auto &name = nameValue.first;
 
       auto *hullObj = createHullObj(-1, name, ColorInd(), ColorInd(is, ns), bbox);
+
+      connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
 
@@ -1813,6 +1827,8 @@ addDensityObjects(PlotObjs &objs) const
       const auto &name = pn.first;
 
       auto *densityObj = createDensityObj(groupInd, name, bbox);
+
+      connect(densityObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       densityObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(densityMapLayer()));
 
@@ -3880,7 +3896,7 @@ draw(PaintDevice *device) const
 
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
+  calcSymbolPixelSize(sx, sy, /*square*/true, /*enforceMinSize*/false);
 
   //---
 
@@ -3976,7 +3992,7 @@ drawDataLabel(PaintDevice *device) const
 
   double sx, sy;
 
-  calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
+  calcSymbolPixelSize(sx, sy, /*square*/true, /*enforceMinSize*/false);
 
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 

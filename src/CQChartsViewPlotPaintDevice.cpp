@@ -102,7 +102,8 @@ save()
 {
   ++saveDepth_;
 
-  painter_->save();
+  if (painter_)
+    painter_->save();
 }
 
 void
@@ -111,7 +112,8 @@ restore()
 {
   assert(saveDepth_ > 0);
 
-  painter_->restore();
+  if (painter_)
+    painter_->restore();
 
   clipPath_ = QPainterPath();
   clipRect_ = BBox();
@@ -128,9 +130,11 @@ setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
   clipPath_ = path;
   clipRect_ = BBox();
 
-  auto ppath = windowToPixel(path);
+  if (painter_) {
+    auto ppath = windowToPixel(path);
 
-  painter_->setClipPath(ppath, operation);
+    painter_->setClipPath(ppath, operation);
+  }
 }
 
 void
@@ -144,9 +148,11 @@ setClipRect(const BBox &bbox, Qt::ClipOperation operation)
   clipRect_ = bbox;
   clipPath_ = QPainterPath();
 
-  auto pbbox = windowToPixel(bbox);
+  if (painter_) {
+    auto pbbox = windowToPixel(bbox);
 
-  painter_->setClipRect(pbbox.qrect(), operation);
+    painter_->setClipRect(pbbox.qrect(), operation);
+  }
 }
 
 CQChartsGeom::BBox
@@ -165,28 +171,30 @@ QPen
 CQChartsViewPlotPaintDevice::
 pen() const
 {
-  return painter_->pen();
+  return (painter_ ? painter_->pen() : QPen());
 }
 
 void
 CQChartsViewPlotPaintDevice::
 setPen(const QPen &pen)
 {
-  painter_->setPen(pen);
+  if (painter_)
+    painter_->setPen(pen);
 }
 
 QBrush
 CQChartsViewPlotPaintDevice::
 brush() const
 {
-  return painter_->brush();
+  return (painter_ ? painter_->brush() : QBrush());
 }
 
 void
 CQChartsViewPlotPaintDevice::
 setBrush(const QBrush &brush)
 {
-  painter_->setBrush(brush);
+  if (painter_)
+    painter_->setBrush(brush);
 }
 
 void
@@ -217,6 +225,9 @@ void
 CQChartsViewPlotPaintDevice::
 updateBackground()
 {
+  if (! painter_)
+    return;
+
   auto c = altColor_;
 
   if (c.isValid() && c.alpha()) {
@@ -277,6 +288,12 @@ void
 CQChartsViewPlotPaintDevice::
 fillPath(const QPainterPath &path, const QBrush &brush)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto ppath = windowToPixel(path);
 
   QBrush brush1;
@@ -294,6 +311,12 @@ void
 CQChartsViewPlotPaintDevice::
 strokePath(const QPainterPath &path, const QPen &pen)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto ppath = windowToPixel(path);
 
   if (isHandDrawn())
@@ -306,6 +329,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawPath(const QPainterPath &path)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto ppath = windowToPixel(path);
 
   if (isHandDrawn())
@@ -318,6 +347,12 @@ void
 CQChartsViewPlotPaintDevice::
 fillRect(const BBox &bbox)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   if (! bbox.isValid()) return;
 
   auto pbbox = windowToPixel(bbox);
@@ -490,6 +525,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawRect(const BBox &bbox)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   if (! bbox.isValid()) return;
 
   auto pbbox = windowToPixel(bbox);
@@ -535,6 +576,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawEllipse(const BBox &bbox, const Angle &a)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pbbox = windowToPixel(bbox);
 
   auto prect = pbbox.qrect();
@@ -579,6 +626,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawArc(const BBox &rect, const Angle &a1, const Angle &a2)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pbbox = windowToPixel(bbox);
 
   auto prect = pbbox.qrect();
@@ -595,6 +648,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawPolygon(const Polygon &poly)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto ppoly = windowToPixel(poly);
 
   if (isHandDrawn())
@@ -607,6 +666,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawPolyline(const Polygon &poly)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto ppoly = windowToPixel(poly);
 
   if (isHandDrawn())
@@ -619,6 +684,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawLine(const Point &p1, const Point &p2)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pp1 = windowToPixel(p1);
   auto pp2 = windowToPixel(p2);
 
@@ -632,6 +703,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawPoint(const Point &p)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pp = windowToPixel(p);
 
   if (isHandDrawn())
@@ -644,6 +721,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawText(const Point &p, const QString &text)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pp = windowToPixel(p);
 
   if (isHandDrawn())
@@ -656,6 +739,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawTransformedText(const Point &p, const QString &text)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   // NOTE: p is in pixels
   if (isHandDrawn())
     hdPainter_->drawText(p.qpoint(), text);
@@ -667,6 +756,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle &angle)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   if (! bbox.isSet()) return;
 
   auto pbbox = windowToPixel(bbox);
@@ -744,6 +839,12 @@ void
 CQChartsViewPlotPaintDevice::
 drawImage(const Point &p, const QImage &image)
 {
+  if (isNull())
+    return;
+
+  if (! painter_)
+    return;
+
   auto pp = windowToPixel(p);
 
   if (isHandDrawn())
@@ -786,6 +887,9 @@ void
 CQChartsViewPlotPaintDevice::
 setTransformRotate(const Point &p, double angle)
 {
+  if (! painter_)
+    return;
+
   auto p1 = windowToPixel(p);
 
   auto t = painter_->transform();
@@ -801,21 +905,25 @@ const QTransform &
 CQChartsViewPlotPaintDevice::
 transform() const
 {
-  return painter_->transform();
+  static QTransform t;
+
+  return (painter_ ? painter_->transform() : t);
 }
 
 void
 CQChartsViewPlotPaintDevice::
 setTransform(const QTransform &t, bool combine)
 {
-  painter_->setTransform(t, combine);
+  if (painter_)
+    painter_->setTransform(t, combine);
 }
 
 void
 CQChartsViewPlotPaintDevice::
 setRenderHints(QPainter::RenderHints hints, bool on)
 {
-  painter_->setRenderHints(hints, on);
+  if (painter_)
+    painter_->setRenderHints(hints, on);
 }
 
 void

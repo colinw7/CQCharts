@@ -84,9 +84,19 @@ class CQChartsWindow : public QFrame {
 
   //---
 
-  bool isViewSettings() const { return viewSettings_; }
+  bool isViewSettings() const { return viewSettingsData_.visible; }
   void setViewSettings(bool b);
 
+  bool isViewSettingsMajorObjects() const { return viewSettingsData_.majorObjects; }
+  void setViewSettingsMajorObjects(bool b);
+
+  bool isViewSettingsMinorObjects() const { return viewSettingsData_.minorObjects; }
+  void setViewSettingsMinorObjects(bool b);
+
+  int viewSettingsMaxObjects() const { return viewSettingsData_.maxObjects; }
+  void setViewSettingsMaxObjects(int n);
+
+  //---
   //---
 
   void updateThemePalettes();
@@ -101,6 +111,10 @@ class CQChartsWindow : public QFrame {
   void expandModelIndex(const QModelIndex &ind, bool b);
 
   void expandedModelIndices(QModelIndexList &inds);
+
+  //---
+
+  void updateOverview();
 
   //---
 
@@ -160,21 +174,31 @@ class CQChartsWindow : public QFrame {
   using ToolBar         = CQChartsViewToolBar;
   using Status          = CQChartsViewStatus;
 
-  View*            view_          { nullptr }; //!< parent view
-  bool             xRangeMap_     { false };   //!< xrange map
-  bool             yRangeMap_     { false };   //!< xrange map
-  bool             showDataTable_ { false };   //!< data table
-  bool             viewSettings_  { true };    //!< view settings
-  RangeScroll*     xrangeScroll_  { nullptr }; //!< xrange scroll
-  RangeScroll*     yrangeScroll_  { nullptr }; //!< yrange scroll
-  ViewSettings*    settings_      { nullptr }; //!< settings widget
-  CQTabSplit*      viewSplitter_  { nullptr }; //!< view splitter
-  QFrame*          tableFrame_    { nullptr }; //!< table frame
-  QStackedWidget*  viewStack_     { nullptr }; //!< view stack
-  FilterEdit*      filterEdit_    { nullptr }; //!< filter edit
-  ModelViewHolder* modelView_     { nullptr }; //!< model view
-  ToolBar*         toolbar_       { nullptr }; //!< toolbar
-  Status*          status_        { nullptr }; //!< status
+  View* view_          { nullptr }; //!< parent view
+  bool  xRangeMap_     { false };   //!< xrange map
+  bool  yRangeMap_     { false };   //!< xrange map
+  bool  showDataTable_ { false };   //!< data table
+
+  struct ViewSettingsData {
+    bool visible      { true };  //!< view settings visible
+    bool majorObjects { true };  //!< view settings major objects visible
+    bool minorObjects { false }; //!< view settings minor objects visible
+    int  maxObjects   { 100 };   //!< max number of objects to add
+  };
+
+  ViewSettingsData viewSettingsData_;
+  ViewSettings*    settings_ { nullptr }; //!< settings widget
+
+  RangeScroll* xrangeScroll_ { nullptr }; //!< xrange scroll
+  RangeScroll* yrangeScroll_ { nullptr }; //!< yrange scroll
+
+  CQTabSplit*      viewSplitter_ { nullptr }; //!< view splitter
+  QFrame*          tableFrame_   { nullptr }; //!< table frame
+  QStackedWidget*  viewStack_    { nullptr }; //!< view stack
+  FilterEdit*      filterEdit_   { nullptr }; //!< filter edit
+  ModelViewHolder* modelView_    { nullptr }; //!< model view
+  ToolBar*         toolbar_      { nullptr }; //!< toolbar
+  Status*          status_       { nullptr }; //!< status
 };
 
 //-----

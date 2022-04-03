@@ -137,8 +137,10 @@ adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
       return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEm());
     else if (len.units() == Units::EX)
       return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEx());
-    else
+    else if (len.isValid())
       return len.value();
+    else
+      return 0.0;
   };
 
   auto lengthViewHeight = [&](const Length &len) -> double {
@@ -154,8 +156,10 @@ adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
       return plot->view()->pixelToWindowHeight(len.value()*plot->view()->fontEm());
     else if (len.units() == Units::EX)
       return plot->view()->pixelToWindowHeight(len.value()*plot->view()->fontEx());
-    else
+    else if (len.isValid())
       return len.value();
+    else
+      return 0.0;
   };
 
   double l = lengthViewWidth (left_  );

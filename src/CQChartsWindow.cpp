@@ -165,8 +165,7 @@ CQChartsWindow(View *view) :
   xrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Horizontal);
   yrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Vertical  );
 
-  xrangeScroll_->setFixedHeight(128);
-  yrangeScroll_->setFixedWidth (128);
+  updateOverview();
 
   viewLayout->addWidget(xrangeScroll_, 1, 0);
   viewLayout->addWidget(yrangeScroll_, 0, 1);
@@ -277,6 +276,7 @@ updateRangeMap()
   CQChartsWidgetUtil::AutoDisconnect yscrollDisconnect(
     yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 
+  // get fill range and current range
   auto bbox1 = plot->getDataRange ();
   auto bbox2 = plot->calcDataRange();
 
@@ -285,14 +285,14 @@ updateRangeMap()
   double ysize = bbox2.getHeight()/bbox1.getHeight();
   double ypos  = (bbox2.getYMin() - bbox1.getYMin())/bbox1.getHeight();
 
-  if (xsize != xrangeScroll_->len()) {
+  if (xsize != xrangeScroll_->len() || xpos != xrangeScroll_->pos()) {
     xrangeScroll_->setLen(xsize);
     xrangeScroll_->setPos(xpos);
   }
 
-  if (ysize != yrangeScroll_->len()) {
+  if (ysize != yrangeScroll_->len() || ypos != yrangeScroll_->pos()) {
     yrangeScroll_->setLen(ysize);
-    xrangeScroll_->setPos(ypos);
+    yrangeScroll_->setPos(ypos);
   }
 }
 
@@ -316,14 +316,45 @@ setDataTable(bool b, bool force)
   }
 }
 
+//---
+
 void
 CQChartsWindow::
 setViewSettings(bool b)
 {
-  viewSettings_ = b;
+  viewSettingsData_.visible = b;
 
-  settings_->setVisible(viewSettings_);
+  settings_->setVisible(viewSettingsData_.visible);
 }
+
+void
+CQChartsWindow::
+setViewSettingsMajorObjects(bool b)
+{
+  viewSettingsData_.majorObjects = b;
+
+  settings_->updatePlotObjects();
+}
+
+void
+CQChartsWindow::
+setViewSettingsMinorObjects(bool b)
+{
+  viewSettingsData_.minorObjects = b;
+
+  settings_->updatePlotObjects();
+}
+
+void
+CQChartsWindow::
+setViewSettingsMaxObjects(int n)
+{
+  viewSettingsData_.maxObjects = n;
+
+  settings_->updatePlotObjects();
+}
+
+//---
 
 void
 CQChartsWindow::
@@ -435,6 +466,22 @@ filterChangedSlot()
   //if (! plot) return;
 
   //plot->updateRangeAndObjs();
+}
+
+//------
+
+void
+CQChartsWindow::
+updateOverview()
+{
+  xrangeScroll_->setFixedHeight(view_->overviewXSize());
+  yrangeScroll_->setFixedWidth (view_->overviewYSize());
+
+  xrangeScroll_->setRangeColor(view_->overviewRangeColor());
+  xrangeScroll_->setRangeAlpha(view_->overviewRangeAlpha());
+
+  yrangeScroll_->setRangeColor(view_->overviewRangeColor());
+  yrangeScroll_->setRangeAlpha(view_->overviewRangeAlpha());
 }
 
 //------
@@ -730,12 +777,14 @@ drawBackground(QPainter *p)
   auto *plot = window_->view()->currentPlot();
   if (! plot) return;
 
-  plot->setOverview(true);
+  auto *view = window_->view();
 
-  window_->view()->doResize(p->device()->width(), p->device()->height());
+  plot->setOverview(true);
 
   auto zoomData    = plot->zoomData();
   auto outerMargin = plot->outerMargin();
+
+  view->doResize(p->device()->width(), p->device()->height());
 
   auto margin = CQChartsLength::pixel(this->margin());
 
@@ -745,7 +794,7 @@ drawBackground(QPainter *p)
 
   plot->draw(p);
 
-  window_->view()->doResize(window_->view()->width(), window_->view()->height());
+  view->doResize(view->width(), view->height());
 
   plot->setOuterMargin(outerMargin);
 

@@ -2076,6 +2076,8 @@ createObjFromNode(Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, iv);
 
+  connect(nodeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
   //--
 
   // set shape type
@@ -2127,6 +2129,8 @@ addEdgeObj(Edge *edge) const
             nodeRect.getXMax() + xm, nodeRect.getYMax() + ym);
 
   auto *edgeObj = createEdgeObj(rect, edge);
+
+  connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
   //---
 

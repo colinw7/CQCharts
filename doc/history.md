@@ -1391,3 +1391,7 @@
 # 3/27/2022
  + add title and selection support to force directed plot
  + more work on model join customization
+# 4/3/2022
+ + add properties for view settings objects max count and object types
+ + fix crash in X/Y Overview widget and add customization properties
+ + improve auto fit

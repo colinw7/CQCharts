@@ -4,16 +4,17 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + always square symbols ?
  + thread pool for animate thread
  + join model
  + formatted + scale with text (needs aspect)
- + unique model object names
  + format text in rect with scale and zoom
+ + unique model object names
  + Force directed
    + Custom Controls for node/edge scaling (auto size ?)
    + placement uses node size (min edge length)
    + overlapping connections (if to and from then adjust angles)
-   + allow title
+   + minimum edge length
  + key item data in get_charts_data/set_charts_data
  + arrow on curve needs min start/end length
  + generate annotation dialog

@@ -207,6 +207,11 @@ init()
   //---
 
   startThreadTimer();
+
+  //---
+
+  if (isAutoFit())
+    setNeedsAutoFit(true);
 }
 
 void
@@ -2713,6 +2718,16 @@ updateMargins(const PlotMargin &outerMargin)
 
 //---
 
+void
+CQChartsPlot::
+updateTitlePosition()
+{
+  if (title())
+    title()->updateLocation();
+}
+
+//---
+
 CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRect() const
@@ -3412,6 +3427,9 @@ setInvertX(bool b)
     invertX_ = b;
   }
 
+  if (isAutoFit())
+    setNeedsAutoFit(true);
+
   drawObjs();
 }
 
@@ -3433,6 +3451,9 @@ setInvertY(bool b)
   else {
     invertY_ = b;
   }
+
+  if (isAutoFit())
+    setNeedsAutoFit(true);
 
   drawObjs();
 }
@@ -11637,7 +11658,7 @@ postResize()
   // TODO: does key position need range set ?
   updateKeyPosition(/*force*/true);
 
-  if (isAutoFit())
+  if (! isOverview() && isAutoFit())
     setNeedsAutoFit(true);
 
   drawObjs();
@@ -11666,6 +11687,7 @@ void
 CQChartsPlot::
 updatePlotKeyPosition(Plot *plot, bool force)
 {
+  // update plot key
   if (isKeyVisibleAndNonEmpty()) {
     if (force)
       key()->invalidateLayout();
@@ -11674,6 +11696,7 @@ updatePlotKeyPosition(Plot *plot, bool force)
       key()->updatePlotLocation();
   }
 
+  // update all annotation keys
   for (auto &annotation : annotations()) {
     auto *keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
     if (! keyAnnotation) continue;
@@ -11713,7 +11736,7 @@ void
 CQChartsPlot::
 draw(QPainter *painter)
 {
-  if (! isBufferLayers()) {
+  if (isOverview() || ! isBufferLayers()) {
     initGroupedPlotObjs();
 
     //---
@@ -11722,7 +11745,8 @@ draw(QPainter *painter)
 
     //---
 
-    updateAutoFit();
+    if (! isOverview())
+      updateAutoFit();
 
     return;
   }
@@ -12902,6 +12926,9 @@ bool
 CQChartsPlot::
 hasBgAxes() const
 {
+  if (isOverview())
+    return false;
+
   // just axis grid on background
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
@@ -13314,6 +13341,9 @@ bool
 CQChartsPlot::
 hasFgAxes() const
 {
+  if (isOverview())
+    return false;
+
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
 
@@ -14472,6 +14502,8 @@ autoFit()
     return;
   }
 
+  //---
+
   if (isOverlay()) {
     if (prevPlot())
       return;
@@ -14520,6 +14552,8 @@ void
 CQChartsPlot::
 autoFitOne()
 {
+  inAutoFit_ = true;
+
 #if 0
   for (int i = 0; i < 5; ++i) {
     auto bbox = fitBBox();
@@ -14545,6 +14579,8 @@ autoFitOne()
 #endif
 
   emit zoomPanChanged();
+
+  inAutoFit_ = false;
 }
 
 void
@@ -15600,7 +15636,7 @@ beginPaint(Buffer *buffer, QPainter *painter, const QRectF &rect) const
 {
   drawBuffer_ = buffer->type();
 
-  if (! isBufferLayers())
+  if (isOverview() || ! isBufferLayers())
     return painter;
 
   // resize and clear
@@ -15619,7 +15655,7 @@ void
 CQChartsPlot::
 endPaint(Buffer *buffer) const
 {
-  if (! isBufferLayers())
+  if (isOverview() || ! isBufferLayers())
     return;
 
   buffer->endPaint(false);

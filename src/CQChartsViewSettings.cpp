@@ -3183,28 +3183,30 @@ updatePlotObjects()
 
   //---
 
+  int maxPlotObjects = window_->viewSettingsMaxObjects();
+
   auto *plot = currentPlot(/*remap*/false);
 
   if (plot) {
     objectsWidgets_.propertyModel = new CQPropertyViewModel;
 
-    auto objs = plot->plotObjects();
+    CQChartsPlot::PlotObjs addPlotObjs;
 
-    if (int(objs.size()) > maxPlotObjs_) {
-      CQChartsPlot::PlotObjs majorPlotObjs;
-
-      for (auto &obj : objs) {
-        if (obj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR)
-          majorPlotObjs.push_back(obj);
+    for (auto &obj : plot->plotObjects()) {
+      if (obj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
+        if (window_->isViewSettingsMajorObjects())
+          addPlotObjs.push_back(obj);
       }
-
-      if (int(majorPlotObjs.size()) > maxPlotObjs_)
-        return;
-
-      objs = majorPlotObjs;
+      else {
+        if (window_->isViewSettingsMinorObjects())
+          addPlotObjs.push_back(obj);
+      }
     }
 
-    for (auto &obj : objs)
+    if (int(addPlotObjs.size()) > maxPlotObjects)
+      return;
+
+    for (auto &obj : addPlotObjs)
       obj->addProperties(objectsWidgets_.propertyModel, obj->id());
   }
 

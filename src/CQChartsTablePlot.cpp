@@ -851,6 +851,8 @@ createObjs(PlotObjs &objs) const
 
     auto *obj = createHeaderObj(headerObjData);
 
+    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(obj);
   }
 
@@ -859,6 +861,8 @@ createObjs(PlotObjs &objs) const
 
     auto *obj = createRowObj(rowObjData);
 
+    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(obj);
   }
 
@@ -866,6 +870,8 @@ createObjs(PlotObjs &objs) const
     const auto &cellObjData = pc.second;
 
     auto *obj = createCellObj(cellObjData);
+
+    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     objs.push_back(obj);
   }
@@ -2449,7 +2455,8 @@ bool
 CQChartsTableCellObj::
 inside(const Point &p) const
 {
-  if (! isVisible()) return false;
+  if (! isVisible())
+    return false;
 
   auto rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 

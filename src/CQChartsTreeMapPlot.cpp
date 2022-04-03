@@ -547,6 +547,8 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     hierObj = createHierObj(hier, parentObj, rect, is);
 
+    connect(hierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     hierObj->setInd(ig_);
 
     if (parentObj)
@@ -584,6 +586,8 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
     ColorInd is(node->depth(), maxDepth() + 1);
 
     auto *obj = createNodeObj(node, hierObj, rect, is);
+
+    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     obj->setInd(in_);
 

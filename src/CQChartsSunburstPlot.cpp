@@ -960,6 +960,8 @@ addPlotObj(Node *node, PlotObjs &objs, const ColorInd &ir) const
 
   auto *obj = createNodeObj(bbox, node);
 
+  connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
   obj->setIs(ir);
 
   node->setObj(obj);

@@ -853,7 +853,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void resetExtraFitBBox() const;
 
- protected:
   virtual bool needsAutoFit() const;
   virtual void setNeedsAutoFit(bool b);
 
@@ -2347,6 +2346,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  virtual void updateTitlePosition();
+
+  //---
+
   virtual void updateKeyPosition(bool force=false);
   virtual void updatePlotKeyPosition(Plot *plot, bool force=false);
 
@@ -3595,6 +3598,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // fit
   bool         autoFit_      { false }; //!< auto fit on data change
+  mutable bool inAutoFit_    { false }; //!< in auto fit
   PlotMargin   fitMargin_;              //!< fit margin
   bool         needsAutoFit_ { false }; //!< needs auto fit on next draw
   mutable BBox extraFitBBox_;           //!< cached extra fit bbox

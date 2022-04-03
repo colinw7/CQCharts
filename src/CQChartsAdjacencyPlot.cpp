@@ -786,6 +786,8 @@ initConnectionObjs(PlotObjs &objs) const
 
         auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
 
+        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
         objs.push_back(obj);
       }
 
@@ -1055,6 +1057,8 @@ createNameNodeObjs(PlotObjs &objs) const
         ColorInd ig(node1->group(), maxGroup() + 1);
 
         auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
+
+        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         objs.push_back(obj);
       }

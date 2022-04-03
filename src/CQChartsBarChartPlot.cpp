@@ -1288,6 +1288,8 @@ createObjs(PlotObjs &objs) const
 
         auto *barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv), ColorInd(), ind.ind);
 
+        connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
         barObj->setValueSet(true);
 
         objs.push_back(barObj);
@@ -1410,22 +1412,26 @@ createObjs(PlotObjs &objs) const
         else
           barWidth_ = std::min(barWidth_, brect.getHeight());
 
-        CQChartsBarChartObj *barObj = nullptr;
+        ColorInd cis, cig, civ;
 
         if (ns > 1) {
           // multiple sets:
           //  . set per value column
           //  . group per group column unique value
-          barObj = createBarObj(brect, ColorInd(ivs, nvs), ColorInd(iv, nv),
-                                ColorInd(), minInd.ind);
+          cis = ColorInd(ivs, nvs);
+          cig = ColorInd(iv, nv);
         }
         else {
           // single set:
           //  . group per group column unique value
           //  . value per grouped values
-          barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv),
-                                ColorInd(ivs, nvs), minInd.ind);
+          cig = ColorInd(iv, nv);
+          civ = ColorInd(ivs, nvs);
         }
+
+        auto *barObj = createBarObj(brect, cis, cig, civ, minInd.ind);
+
+        connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
         if (color.isValid())
           barObj->setColor(color);

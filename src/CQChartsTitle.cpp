@@ -70,35 +70,35 @@ void
 CQChartsTitle::
 setLocation(const TitleLocation &l)
 {
-  CQChartsUtil::testAndSet(location_, l, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(location_, l, [&]() { updatePlotPosition(); } );
 }
 
 void
 CQChartsTitle::
 setAbsolutePosition(const CQChartsPosition &p)
 {
-  CQChartsUtil::testAndSet(absolutePosition_, p, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(absolutePosition_, p, [&]() { updatePlotPosition(); } );
 }
 
 void
 CQChartsTitle::
 setAbsoluteRectangle(const CQChartsRect &r)
 {
-  CQChartsUtil::testAndSet(absoluteRectangle_, r, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(absoluteRectangle_, r, [&]() { updatePlotPosition(); } );
 }
 
 void
 CQChartsTitle::
 setInsidePlot(bool b)
 {
-  CQChartsUtil::testAndSet(insidePlot_, b, [&]() { updateLocation(); redraw(); } );
+  CQChartsUtil::testAndSet(insidePlot_, b, [&]() { updateLocation(); updatePlotPosition(); } );
 }
 
 void
 CQChartsTitle::
 setExpandWidth(bool b)
 {
-  CQChartsUtil::testAndSet(expandWidth_, b, [&]() { updateLocation(); redraw(); } );
+  CQChartsUtil::testAndSet(expandWidth_, b, [&]() { updateLocation(); updatePlotPosition(); } );
 }
 
 void
@@ -106,6 +106,16 @@ CQChartsTitle::
 setPosition(const Point &p)
 {
   position_ = p;
+}
+
+void
+CQChartsTitle::
+updatePlotPosition()
+{
+  if (plot_->isAutoFit())
+    plot_->setNeedsAutoFit(true);
+
+  redraw();
 }
 
 void
@@ -132,8 +142,6 @@ CQChartsTitle::
 setLocationStr(const QString &str)
 {
   setLocation(TitleLocation(str));
-
-  redraw();
 }
 
 void
@@ -145,7 +153,9 @@ updateLocation()
 
   setBBox(BBox());
 
-  // all overlay plots and annotation boxes
+  //---
+
+  // place outside all overlay plots, annotation boxes and axes
   auto bbox = plot_->calcGroupedDataRange(
                 CQChartsPlot::RangeTypes().setExtra().setAxes().setKey());
 
@@ -162,14 +172,14 @@ updateLocation()
   double kx = bbox.getXMid() - ts.optWidth()/2;
   double ky = 0.0;
 
-  auto *xAxis = plot_->xAxis();
+  //auto *xAxis = plot_->xAxis();
 
   if      (location.type() == TitleLocation::Type::TOP) {
     if (! isInsidePlot()) {
       ky = bbox.getYMax() + marginSize.height();
 
-      if (xAxis)
-        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getOptHeight();
+      //if (xAxis)
+      //  ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getOptHeight();
     }
     else
       ky = bbox.getYMax() - ts.height() - marginSize.height();
@@ -181,8 +191,8 @@ updateLocation()
     if (! isInsidePlot()) {
       ky = bbox.getYMin() - ts.height() - marginSize.height();
 
-      if (xAxis)
-        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getOptHeight();
+      //if (xAxis)
+      //  ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getOptHeight();
     }
     else
       ky = bbox.getYMin() + marginSize.height();

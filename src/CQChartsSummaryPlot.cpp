@@ -622,6 +622,8 @@ createObjs(PlotObjs &objs) const
     for (int ic = 0; ic < nc; ++ic) {
       auto *obj = createCellObj(cellBBox(ir, ic), ir, ic);
 
+      connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
       objs.push_back(obj);
     }
   }

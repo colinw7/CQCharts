@@ -640,7 +640,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsExprModel::NameValues varNameValues;
 
-  if (! argv.hasParseArg("vars")) {
+  if (argv.hasParseArg("vars")) {
     if (! exprModel)
       return errorMsg("Vars not supported for model");
 
@@ -3457,9 +3457,8 @@ execCmd(CQChartsCmdArgs &argv)
   // get separator
   QString separator;
 
-  if (argv.hasParseArg("separator")) {
+  if (argv.hasParseArg("separator"))
     separator = argv.getParseStr("separator");
-  }
 
   //---
 
@@ -4133,10 +4132,13 @@ addCmdArgs(CQChartsCmdArgs &argv)
 {
   addArg(argv, "-model"    , ArgType::String , "model_id");
   addArg(argv, "-header"   , ArgType::SBool  , "show header");
+  addArg(argv, "-index"    , ArgType::SBool  , "show index");
   addArg(argv, "-columns"  , ArgType::String , "columns to output");
   addArg(argv, "-max_rows" , ArgType::Integer, "maximum number of rows to write");
   addArg(argv, "-max_width", ArgType::Integer, "maximum column width");
   addArg(argv, "-hier"     , ArgType::SBool  , "output hierarchically");
+  addArg(argv, "-separator", ArgType::String , "separator");
+  addArg(argv, "-formatted", ArgType::SBool  , "columns are formatted");
 }
 
 QStringList
@@ -4223,30 +4225,54 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  bool header = true;
+  bool header = true, index = false;
 
-  if (argv.hasParseArg("header")) {
+  if (argv.hasParseArg("header"))
     header = argv.getParseBool("header");
+
+  if (argv.hasParseArg("index"))
+    index = argv.getParseBool("index");
+
+  auto sep = QString("|");
+
+  if (argv.hasParseArg("separator")) {
+    sep = argv.getParseStr("separator");
+
+    if (sep == "\\t")
+      sep = "\t";
   }
+
+  bool formatted = false;
+
+  if (argv.hasParseArg("formatted"))
+    formatted = argv.getParseBool("formatted");
 
   //------
 
   class OutputRows {
    public:
-    OutputRows(int nc, int maxWidth=-1) :
-     nc_(nc), maxWidth_(maxWidth) {
+    OutputRows(int nc, int maxWidth=-1, const QString &sep="|",
+               bool index=false, bool formatted=false) :
+     nc_(nc), maxWidth_(maxWidth), sep_(sep), index_(index), formatted_(formatted) {
     }
 
     void setHeader(const QStringList &strs) {
       assert(strs.size() == nc_);
 
+      int c = 0;
+
+      if (index_)
+        columnWidths_[c++] = 1;
+
       for (int i = 0; i < nc_; ++i) {
         const auto &str = strs[i];
 
-        columnWidths_[i] = std::max(columnWidths_[i], str.length());
+        columnWidths_[c] = std::max(columnWidths_[c], str.length());
 
         if (maxWidth_ > 0)
-          columnWidths_[i] = std::min(columnWidths_[i], maxWidth_);
+          columnWidths_[c] = std::min(columnWidths_[c], maxWidth_);
+
+        ++c;
       }
 
       header_ = strs;
@@ -4255,13 +4281,17 @@ execCmd(CQChartsCmdArgs &argv)
     void addRow(int depth, const QStringList &strs) {
       assert(strs.size() == nc_);
 
+      int c = (index_ ? 1 : 0);
+
       for (int i = 0; i < nc_; ++i) {
         const auto &str = strs[i];
 
-        columnWidths_[i] = std::max(columnWidths_[i], str.length());
+        columnWidths_[c] = std::max(columnWidths_[c], str.length());
 
         if (maxWidth_ > 0)
-          columnWidths_[i] = std::min(columnWidths_[i], maxWidth_);
+          columnWidths_[c] = std::min(columnWidths_[c], maxWidth_);
+
+        ++c;
       }
 
       rows_.emplace_back(depth, strs);
@@ -4273,51 +4303,84 @@ execCmd(CQChartsCmdArgs &argv)
       if (header) {
         QString str;
 
+        int c = 0;
+
+        if (index_)
+          ++c;
+
         for (int i = 0; i < nc_; ++i) {
-          int w = columnWidths_[i];
+          int w = (formatted_ ? columnWidths_[c] : 0);
 
           auto str1 = header_[i];
 
-          if (str1.length() > w)
+          if (formatted_ && str1.length() > w)
             str1 = str1.mid(0, w);
 
-          if (str.length())
-            str += "|";
+          if (c > 0)
+            str += sep_;
 
-          str += QString("%1").arg(str1, w);
+          if (formatted_)
+            str += QString("%1").arg(str1, w);
+          else
+            str += str1;
+
+          ++c;
         }
 
-        std::cout << QString(maxDepth_, ' ').toStdString();
-        std::cout << " " << str.toStdString() << "\n";
+        if (formatted_) {
+          std::cout << QString(maxDepth_, ' ').toStdString();
+          std::cout << " " << str.toStdString() << "\n";
+        }
+        else
+          std::cout << str.toStdString() << "\n";
       }
 
-      for (const auto &row : rows_) {
-        int d1 = row.depth;
-        int d2 = maxDepth_ - d1;
+      int r = 0;
 
-        std::cout << QString(d1, '.').toStdString();
-        std::cout << QString(d2, ' ').toStdString();
-        std::cout << " ";
+      for (const auto &row : rows_) {
+        if (formatted_) {
+          int d1 = row.depth;
+          int d2 = maxDepth_ - d1;
+
+          std::cout << QString(d1, '.').toStdString();
+          std::cout << QString(d2, ' ').toStdString();
+          std::cout << " ";
+        }
 
         //---
 
         QString str;
 
+        int c = 0;
+
+        if (index_) {
+          str += QString::number(r);
+
+          ++c;
+        }
+
         for (int i = 0; i < nc_; ++i) {
-          int w = columnWidths_[i];
+          int w = (formatted_ ? columnWidths_[c] : 0);
 
           auto str1 = row.strs[i];
 
-          if (str1.length() > w)
+          if (formatted_ && str1.length() > w)
             str1 = str1.mid(0, w);
 
-          if (str.length())
-            str += "|";
+          if (c > 0)
+            str += sep_;
 
-          str += QString("%1").arg(str1, w);
+          if (formatted_)
+            str += QString("%1").arg(str1, w);
+          else
+            str += str1;
+
+          ++w;
         }
 
         std::cout << str.toStdString() << "\n";
+
+        ++r;
       }
     }
 
@@ -4335,12 +4398,15 @@ execCmd(CQChartsCmdArgs &argv)
 
     using Rows = std::vector<Row>;
 
-    int          nc_       { 0 };
-    int          maxWidth_ { -1 };
+    int          nc_        { 0 };
+    int          maxWidth_  { -1 };
     ColumnWidths columnWidths_;
     Rows         rows_;
     QStringList  header_;
-    int          maxDepth_ { 0 };
+    int          maxDepth_  { 0 };
+    QString      sep_;
+    bool         index_     { false };
+    bool         formatted_ { false };
   };
 
   //---
@@ -4355,7 +4421,7 @@ execCmd(CQChartsCmdArgs &argv)
   else
     nc = int(columns.size());
 
-  OutputRows output(nc, maxWidth);
+  OutputRows output(nc, maxWidth, sep, index, formatted);
 
   //---
 
@@ -4532,10 +4598,11 @@ void
 CQChartsFilterChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
-  addArg(argv, "-model" , ArgType::String , "model_id");
-  addArg(argv, "-expr"  , ArgType::String , "filter expression");
-  addArg(argv, "-column", ArgType::Column , "column");
-  addArg(argv, "-type"  , ArgType::String , "filter type");
+  addArg(argv, "-model"  , ArgType::String , "model_id");
+  addArg(argv, "-expr"   , ArgType::String , "filter expression");
+  addArg(argv, "-column" , ArgType::Column , "column");
+  addArg(argv, "-type"   , ArgType::String , "filter type");
+  addArg(argv, "-indices", ArgType::Boolean, "return indices");
 }
 
 QStringList
@@ -4572,8 +4639,8 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto expr    = argv.getParseStr("expr");
-  auto type    = argv.getParseStr("type");
+  auto expr = argv.getParseStr("expr");
+  auto type = argv.getParseStr("type");
 
   if (! argv.hasParseArg("type"))
     type = "expression";
@@ -4595,7 +4662,7 @@ execCmd(CQChartsCmdArgs &argv)
   if (! modelFilter)
     return errorMsg("No filter support for model");
 
-  //------
+  //--
 
   // get column
   int icolumn = -1;
@@ -4608,7 +4675,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   modelFilter->setFilterKeyColumn(icolumn);
 
-  //------
+  //---
 
   // filter
   // TODO: selection model from view
@@ -4629,6 +4696,21 @@ execCmd(CQChartsCmdArgs &argv)
     return cmdBase_->setCmdRc(getArgValues("type"));
   else
     return errorMsg(QString("Invalid type '%1'").arg(type));
+
+  //---
+
+  if (argv.hasParseArg("indices")) {
+    int nr = modelFilter->sourceModel()->rowCount();
+
+    std::vector<int> rows;
+
+    for (int r = 0; r < nr; ++r) {
+      if (modelFilter->filterAcceptsRow(r, QModelIndex()))
+        rows.push_back(r);
+    }
+
+    return cmdBase_->setCmdRc(rows);
+  }
 
   return true;
 }
@@ -6115,7 +6197,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       auto names = QStringList() <<
         "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
-        "title" << "data_model" << "expr_model" << "data_model" << "base_model" <<
+        "title" << "expr_model" << "data_model" << "base_model" <<
         "name" << "ind" << "find" /* << "property.<name>" */ << "name";
 
       auto detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
@@ -6568,12 +6650,6 @@ execCmd(CQChartsCmdArgs &argv)
         title = dataModel->title();
 
       return cmdBase_->setCmdRc(title);
-    }
-    // get data model
-    else if (name == "data_model") {
-      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
-
-      return cmdBase_->setCmdRc(dataModel ? CQUtil::addObjectAlias(dataModel) : "");
     }
     // get expr model
     else if (name == "expr_model") {

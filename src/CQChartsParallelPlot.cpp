@@ -782,6 +782,8 @@ createObjs(PlotObjs &objs) const
 
     auto *lineObj = createLineObj(bbox, poly, xind1, is);
 
+    connect(lineObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     objs.push_back(lineObj);
 
     //---
@@ -837,6 +839,8 @@ createObjs(PlotObjs &objs) const
       ColorInd iv(j, nl);
 
       auto *pointObj = createPointObj(bbox, p.y, Point(x, y), yind1, is, iv);
+
+      connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
       objs.push_back(pointObj);
     }
@@ -1424,11 +1428,6 @@ void
 CQChartsParallelLineObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
-  //---
-
   // set pen and brush
   PenBrush penBrush;
 
@@ -1615,11 +1614,6 @@ void
 CQChartsParallelPointObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
-  //---
-
   auto symbol = plot()->symbol();
 
   if (! symbol.isValid())

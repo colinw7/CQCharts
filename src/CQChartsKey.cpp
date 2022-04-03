@@ -280,7 +280,7 @@ void
 CQChartsViewKey::
 updateLayout()
 {
-  redraw();
+  updatePosition();
 }
 
 void
@@ -506,7 +506,7 @@ bool
 CQChartsViewKey::
 contains(const Point &p) const
 {
-  return wbbox_.inside(p);
+  return bbox().inside(p);
 }
 
 void
@@ -535,11 +535,12 @@ draw(PaintDevice *device) const
   double ph = psize_.height();
 
   pbbox_ = BBox(px, py, px + pw, py + ph);
-  wbbox_ = view()->pixelToWindow(pbbox_);
+
+  th->setBBox(view()->pixelToWindow(pbbox_));
 
   //---
 
-  CQChartsBoxObj::draw(device, wbbox_);
+  CQChartsBoxObj::draw(device, bbox());
 
   //---
 
@@ -894,14 +895,19 @@ updateLayout()
 {
   invalidateLayout(/*reset*/true);
 
-  redraw();
+  updatePosition();
 }
 
 void
 CQChartsPlotKey::
 updatePosition(bool queued)
 {
+  resetBBox();
+
   plot()->updateKeyPosition();
+
+  if (plot()->isAutoFit())
+    plot()->setNeedsAutoFit(true);
 
   redraw(queued);
 }
@@ -914,6 +920,9 @@ updatePositionAndLayout(bool queued)
 
   plot()->updateKeyPosition();
 
+  if (plot()->isAutoFit())
+    plot()->setNeedsAutoFit(true);
+
   redraw(queued);
 }
 
@@ -922,9 +931,13 @@ CQChartsPlotKey::
 updatePlotLocation()
 {
   auto bbox = plot()->calcDataRange();
+  if (! bbox.isSet()) return;
 
-  if (! bbox.isSet())
-    return;
+  if (! isInsideX())
+    bbox += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::NONE);
+
+  if (! isInsideY())
+    bbox += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
 
   updateLocation(bbox);
 }
@@ -949,8 +962,8 @@ updateLocation(const BBox &bbox)
 
   //---
 
-  auto *xAxis = drawPlot->xAxis();
-  auto *yAxis = drawPlot->yAxis();
+  //auto *xAxis = drawPlot->xAxis();
+  //auto *yAxis = drawPlot->yAxis();
 
   // get key contents size
   auto ks = calcSize();
@@ -981,9 +994,9 @@ updateLocation(const BBox &bbox)
       kx = bbox.getXMin() - ks.width() - xrm - xrp;
 
       // offset by left y axis width
-      if (yAxis)
-        kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
-                getOptWidth() + xlm;
+      //if (yAxis)
+      //  kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+      //          getOptWidth() + xlm;
     }
   }
   else if (location().onHCenter()) {
@@ -996,9 +1009,9 @@ updateLocation(const BBox &bbox)
       kx = bbox.getXMax() + xrm + xrp;
 
       // offset by right y axis width
-      if (yAxis)
-        kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
-                getOptWidth() + xrm;
+      //if (yAxis)
+      //  kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+      //          getOptWidth() + xrm;
     }
   }
 
@@ -1009,9 +1022,9 @@ updateLocation(const BBox &bbox)
       ky = bbox.getYMax() + ks.height() + ytm + ytp;
 
       // offset by top x axis height
-      if (xAxis)
-        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
-                getOptHeight() + ytm;
+      //if (xAxis)
+      //  ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+      //          getOptHeight() + ytm;
     }
   }
   else if (location().onVCenter()) {
@@ -1024,9 +1037,9 @@ updateLocation(const BBox &bbox)
       ky = bbox.getYMin() - ybm - ybp;
 
       // offset by bottom x axis height
-      if (xAxis)
-        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
-                getOptHeight() + ybm;
+      //if (xAxis)
+      //  ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+      //          getOptHeight() + ybm;
     }
   }
 
@@ -1681,14 +1694,14 @@ void
 CQChartsPlotKey::
 editDragResize(const BBox &bbox)
 {
-  wbbox_ = bbox;
+  setBBox(bbox);
 
   location_ = Location(Location::Type::ABSOLUTE_RECTANGLE);
 
-  setAbsolutePlotRectangle(wbbox_);
+  setAbsolutePlotRectangle(this->bbox());
 
-  auto width  = CQChartsLength::plot(wbbox_.getWidth ());
-  auto height = CQChartsLength::plot(wbbox_.getHeight() - layoutData_.headerHeight);
+  auto width  = CQChartsLength::plot(this->bbox().getWidth ());
+  auto height = CQChartsLength::plot(this->bbox().getHeight() - layoutData_.headerHeight);
 
   setScrollWidth (CQChartsOptLength(width ));
   setScrollHeight(CQChartsOptLength(height));
@@ -1852,13 +1865,13 @@ draw(PaintDevice *device) const
 
   // set displayed bbox
   if (locationType != Location::Type::ABSOLUTE_RECTANGLE) {
-    wbbox_ = BBox(x, y - h, x + w, y);
+    th->setBBox(BBox(x, y - h, x + w, y));
   }
   else {
     auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
-      wbbox_ = bbox;
+      th->setBBox(bbox);
   }
 
   //---
@@ -2151,7 +2164,7 @@ draw(PaintDevice *device) const
 
     item->setBBox(bbox);
 
-    if (wbbox_.overlaps(bbox)) {
+    if (this->bbox().overlaps(bbox)) {
       item->draw(&device1, bbox);
 
       if (plot()->showBoxes())
@@ -2163,7 +2176,7 @@ draw(PaintDevice *device) const
 
   // draw box
   if (plot()->showBoxes()) {
-    drawPlot->drawWindowColorBox(&device1, wbbox_);
+    drawPlot->drawWindowColorBox(&device1, this->bbox());
 
     BBox headerBox(x, y - layoutData_.headerHeight, x + sw, y);
 

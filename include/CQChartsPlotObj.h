@@ -244,6 +244,10 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
+  void dataInvalidate() override { emit dataChanged(); }
+
+  //---
+
   //virtual void postResize() { }
 
   //---
@@ -336,6 +340,7 @@ class CQChartsPlotObj : public CQChartsObj,
   virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
  signals:
+  void dataChanged();
   void layerChanged();
 
  protected:

@@ -1185,6 +1185,8 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
     obj = createPieObj(rect, dataInd1, ig);
 
+    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
     if (hidden)
       obj->setVisible(false);
 
@@ -2254,9 +2256,6 @@ void
 CQChartsPieObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
   if (isHidden())
     return;
 
@@ -2548,9 +2547,6 @@ void
 CQChartsPieObj::
 drawFg(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
   if (isHidden())
     return;
 

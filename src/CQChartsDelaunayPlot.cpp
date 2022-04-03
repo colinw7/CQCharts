@@ -548,6 +548,8 @@ addPointObj(const Point &p, double value, const QModelIndex &xind,
 
   auto *pointObj = createPointObj(bbox, p, value, xind1, iv);
 
+  connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
   objs.push_back(pointObj);
 }
 
@@ -885,9 +887,6 @@ void
 CQChartsDelaunayPointObj::
 draw(PaintDevice *device) const
 {
-  if (! isVisible())
-    return;
-
   auto symbol = plot()->symbol();
 
   if (! symbol.isValid())
