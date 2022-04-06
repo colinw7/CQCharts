@@ -13,6 +13,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsHtml.h>
 
+#include <CQPropertyView.h>
 #include <CQTclUtil.h>
 #include <CQBaseModel.h>
 #include <CQModelUtil.h>
@@ -2771,4 +2772,55 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
   (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", data_max);
 
   return true;
+}
+
+//---
+
+CQUTIL_DEF_META_TYPE(CQChartsColumnTypeId, toString, fromString)
+
+int CQChartsColumnTypeId::metaTypeId;
+
+void
+CQChartsColumnTypeId::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsColumnTypeId);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsColumnTypeId", "columnTypeId");
+}
+
+CQChartsColumnTypeId::
+CQChartsColumnTypeId(CQBaseModelType type) :
+ type_(type)
+{
+}
+
+CQChartsColumnTypeId::
+CQChartsColumnTypeId(const QString &s)
+{
+  if (! fromString(s))
+    type_ = CQBaseModelType::STRING;
+}
+
+//---
+
+bool
+CQChartsColumnTypeId::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    type_ = CQBaseModelType::STRING;
+    return true;
+  }
+
+  type_ = CQBaseModel::nameType(str);
+
+  return true;
+}
+
+QString
+CQChartsColumnTypeId::
+toString() const
+{
+  return CQBaseModel::typeName(type_);
 }

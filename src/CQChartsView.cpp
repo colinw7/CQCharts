@@ -2976,6 +2976,8 @@ keyPressEvent(QKeyEvent *ke)
   if (isPreview())
     return;
 
+  auto gpos = QCursor::pos();
+
   if      (ke->key() == Qt::Key_Escape) {
     mouseData_.escape = true;
 
@@ -3026,11 +3028,14 @@ keyPressEvent(QKeyEvent *ke)
         cycleEdit();
     }
   }
+  else if (ke->key() == Qt::Key_Question) {
+    if (floatTip_->isVisible())
+      floatTip_->showQuery(gpos);
+  }
 
   //---
 
-  auto gpos = QCursor::pos();
-  auto pos  = mapFromGlobal(gpos);
+  auto pos = mapFromGlobal(gpos);
 
   auto w = pixelToWindow(Point(pos));
 
@@ -8831,19 +8836,12 @@ CQChartsSplitter::
 event(QEvent *event)
 {
   switch (event->type()) {
-    case QEvent::HoverEnter:
-      hover_ = true;
-      update();
-      break;
-    case QEvent::HoverLeave:
-      hover_ = false;
-      update();
-      break;
-    default:
-      break;
+    case QEvent::HoverEnter: hover_ = true ; update(); break;
+    case QEvent::HoverLeave: hover_ = false; update(); break;
+    default:                 break;
   }
 
-  return QWidget::event(event);
+  return QFrame::event(event);
 }
 
 //---

@@ -235,6 +235,8 @@ showTip(const QPoint &gpos)
 
   this->setVisible(true);
 
+  widget_->setFocus();
+
   startHideTimer();
 }
 
@@ -420,11 +422,15 @@ drawTitleBar(QPainter *painter)
   auto mergedColors = [&](const QColor &colorA, const QColor &colorB, double factor = 50.0) {
     const double maxFactor = 100.0;
 
+    auto mergedValue = [&](double v1, double v2) {
+      return int((v1*factor)/maxFactor + (v2*(maxFactor - factor))/maxFactor);
+    };
+
     QColor tmp = colorA;
 
-    tmp.setRed  ((tmp.red  ()*factor)/maxFactor + (colorB.red  ()*(maxFactor - factor))/maxFactor);
-    tmp.setGreen((tmp.green()*factor)/maxFactor + (colorB.green()*(maxFactor - factor))/maxFactor);
-    tmp.setBlue ((tmp.blue ()*factor)/maxFactor + (colorB.blue ()*(maxFactor - factor))/maxFactor);
+    tmp.setRed  (mergedValue(tmp.red  (), colorB.red  ()));
+    tmp.setGreen(mergedValue(tmp.green(), colorB.green()));
+    tmp.setBlue (mergedValue(tmp.blue (), colorB.blue ()));
 
     return tmp;
   };
@@ -472,10 +478,10 @@ eventFilter(QObject *o, QEvent *e)
   switch (e->type()) {
     case QEvent::KeyPress:
     case QEvent::KeyRelease: {
-      auto *ke = static_cast<QKeyEvent *>(e);
-
       if (widget == widget_) {
-        if (! isIgnoreKey((Qt::Key) ke->key(), ke->modifiers()))
+        auto *ke = static_cast<QKeyEvent *>(e);
+
+        if (! isIgnoreKey(Qt::Key(ke->key()), ke->modifiers()))
           hideLater();
       }
 
@@ -726,9 +732,7 @@ startHideTimer()
 {
   stopTimer();
 
-  double hideSecs = 3.0;
-
-  hideTimer_ = startTimer(int(hideSecs*1000));
+  hideTimer_ = startTimer(int(hideSecs()*1000));
 }
 
 void

@@ -826,28 +826,40 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
   exprModel->addExtraColumnExpr(exprStr, column);
 }
 
+#if 0
 int
 processExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  auto *exprModel = getExprModel(model);
-
-  if (! exprModel) {
-    errorMsg("Expression not supported for model");
-    return -1;
-  }
-
-  CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
-  long                        icolumn  { -1 };
+  CQChartsExprModel::Function function;
+  Column                      column;
   QString                     expr;
 
-  if (! exprModel->decodeExpressionFn(exprStr, function, icolumn, expr)) {
-    errorMsg("Invalid expression '" + exprStr + "'");
+  if (! decodeExpression(model, exprStr, function, column, expr))
+    errorMsg("Invalid model expression '" + exprStr + "'");
     return -1;
   }
 
-  auto column = Column(int(icolumn));
-
   return processExpression(model, function, column, expr);
+}
+#endif
+
+bool
+decodeExpression(QAbstractItemModel *model, const QString &exprStr,
+                 CQChartsExprModel::Function &function, Column &column, QString &expr)
+{
+  function = CQChartsExprModel::Function::EVAL;
+
+  auto *exprModel = getExprModel(model);
+  if (! exprModel) return false;
+
+  long icolumn = -1;
+
+  if (! exprModel->decodeExpressionFn(exprStr, function, icolumn, expr))
+    return false;
+
+  column = Column(int(icolumn));
+
+  return true;
 }
 
 int

@@ -3642,7 +3642,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Point       p;                 //!< inside point
     int         ind     { 0 };     //!< current inside object ind
     ObjPSet     objs;              //!< inside plot objects
-    SizeObjPSet sizeObjs;          //!< inside plot objects
+    SizeObjPSet sizeObjs;          //!< inside plot objects by size
 
     bool isSet() const { return set; }
 
@@ -3664,7 +3664,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     void nextInd() {
       ++ind;
 
-      if (ind >= int(sizeObjs.size()))
+      if (ind >= numSizeObjs())
         ind = 0;
     }
 
@@ -3672,7 +3672,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
       --ind;
 
       if (ind < 0)
-        ind = int(sizeObjs.size()) - 1;
+        ind = numSizeObjs() - 1;
     }
 
     int numSizeObjs() const {

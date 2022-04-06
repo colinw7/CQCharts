@@ -471,6 +471,7 @@ CQCharts()
   CQChartsColumn                ::registerMetaType();
   CQChartsColumns               ::registerMetaType();
   CQChartsColumnNum             ::registerMetaType();
+  CQChartsColumnTypeId          ::registerMetaType();
   CQChartsConnectionList        ::registerMetaType();
   CQChartsFillData              ::registerMetaType();
   CQChartsFillPattern           ::registerMetaType();

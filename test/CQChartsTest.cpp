@@ -881,8 +881,16 @@ initPlot(const CQChartsInitData &initData)
 
     auto strs = initData.process.split(";", QString::SkipEmptyParts);
 
-    for (int i = 0; i < strs.size(); ++i)
-      CQChartsModelUtil::processExpression(model.data(), strs[i]);
+    for (int i = 0; i < strs.size(); ++i) {
+      CQChartsExprModel::Function function;
+      CQChartsColumn              column;
+      QString                     expr;
+
+      if (! CQChartsModelUtil::decodeExpression(model.data(), strs[i], function, column, expr))
+        errorMsg("Invalid model expression '" + strs[i] + "'");
+
+      CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+    }
   }
 
   if (initData.processAdd.length()) {

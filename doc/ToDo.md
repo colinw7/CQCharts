@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + model expr edit test
+ + bad_scatter.tcl colors key with bad values
  + always square symbols ?
  + thread pool for animate thread
  + join model

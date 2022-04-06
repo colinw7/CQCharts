@@ -29,6 +29,8 @@ CQChartsColumnNum(const QString &s)
     column_ = -1;
 }
 
+//---
+
 bool
 CQChartsColumnNum::
 fromString(const QString &str)

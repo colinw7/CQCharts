@@ -345,6 +345,8 @@ class CQChartsViewSettings : public QFrame {
   SymbolsList *symbolsList() const { return symbolsList_; }
 
  private:
+  using TabNum = std::map<QString, int>;
+
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
@@ -364,6 +366,8 @@ class CQChartsViewSettings : public QFrame {
   LayersWidgets         layersWidgets_;                  //!< layers widgets
   QTextEdit*            queryText_          { nullptr }; //!< query text
   ViewError*            error_              { nullptr }; //!< error widget
+
+  TabNum tabNum_;
 
   // dialogs
   using CreateAnnotationDlg = CQChartsCreateAnnotationDlg;

@@ -858,4 +858,56 @@ class CQChartsColumnTypeMgr : public QObject {
   mutable std::mutex mutex_;                      //!< mutex
 };
 
+//----
+
+class CQChartsColumnTypeId :
+  public CQChartsComparatorBase<CQChartsColumnTypeId> {
+ public:
+  static void registerMetaType();
+
+  static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsColumnTypeId, metaTypeId)
+
+ public:
+  CQChartsColumnTypeId() = default;
+
+  explicit CQChartsColumnTypeId(CQBaseModelType type); // data
+
+  explicit CQChartsColumnTypeId(const QString &s); // parsed
+
+  //--
+
+  CQBaseModelType type() const { return type_; }
+
+  //--
+
+  QString toString() const;
+
+  bool fromString(const QString &s);
+
+  //---
+
+  int cmp(const CQChartsColumnTypeId &c) const {
+    if (type_ < c.type_) return -1;
+    if (type_ > c.type_) return  1;
+    return 0;
+  }
+
+  friend int cmp(const CQChartsColumnTypeId &c1, const CQChartsColumnTypeId &c2) {
+    return c1.cmp(c2);
+  }
+
+  //---
+
+ private:
+  CQBaseModelType type_ { CQBaseModelType::STRING };
+};
+
+//---
+
+CQUTIL_DCL_META_TYPE(CQChartsColumnTypeId)
+
 #endif

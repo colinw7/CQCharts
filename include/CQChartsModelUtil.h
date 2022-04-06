@@ -122,10 +122,15 @@ using ExcelModel = CQExcel::Model;
 
 void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
 
+#if 0
 int processExpression(QAbstractItemModel *model, const QString &exprStr);
+#endif
 
 int processExpression(QAbstractItemModel *model, ExprModel::Function function,
                       const Column &column, const QString &expr);
+
+bool decodeExpression(QAbstractItemModel *model, const QString &exprStr,
+                      CQChartsExprModel::Function &function, Column &column, QString &expr);
 
 #ifdef CQCHARTS_EXCEL
 const ExcelModel *getExcelModel(const QAbstractItemModel *model);

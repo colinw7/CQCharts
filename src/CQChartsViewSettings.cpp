@@ -886,6 +886,8 @@ addWidgets()
 
   //----
 
+  int tabNum = 0;
+
   auto addTab = [&](const QString &name) {
     auto objectName = name + "Frame";
 
@@ -899,6 +901,8 @@ addWidgets()
     area->setWidgetResizable(true);
 
     tab_->addTab(area, name);
+
+    tabNum_[name] = tabNum++;
 
     return frame;
   };
@@ -1048,7 +1052,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  propertiesWidgets_.propertiesSplit->setCurrentIndex(2);
+  propertiesWidgets_.propertiesSplit->setCurrentIndex(tabNum_["Properties"]);
 
   //--
 
@@ -1976,7 +1980,7 @@ void
 CQChartsViewSettings::
 showQueryTab()
 {
-  tab_->setCurrentIndex(7);
+  tab_->setCurrentIndex(tabNum_["Query"]);
 }
 
 //------
@@ -2032,7 +2036,7 @@ void
 CQChartsViewSettings::
 showErrorsTab()
 {
-  tab_->setCurrentIndex(10);
+  tab_->setCurrentIndex(tabNum_["Errors"]);
 }
 
 //------

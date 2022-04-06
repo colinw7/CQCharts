@@ -4,6 +4,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsColumnTypeCombo.h>
+#include <CQChartsColumnExprEdit.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
@@ -29,10 +30,14 @@ setModelData(CQChartsModelData *modelData)
 {
   modelData_ = modelData;
 
-  if (modelData_) {
-    columnNumEdit_->setModelData(modelData_);
-    typeCombo_    ->setCharts   (modelData_->charts());
-  }
+  exprEdit_     ->setModelData(modelData_);
+  columnNumEdit_->setModelData(modelData_);
+
+  if (modelData_)
+    typeCombo_->setCharts(modelData_->charts());
+
+  column_ = columnNumEdit_->getColumn();
+  type_   = CQChartsColumnTypeId(typeCombo_->columnType()->type());
 }
 
 void
@@ -83,17 +88,14 @@ init()
 
   //---
 
-  auto *exprValueLabel = CQUtil::makeLabelWidget<QLabel>("Expression", "valueLabel");
+  auto *exprLabel = CQUtil::makeLabelWidget<QLabel>("Expression", "exprLabel");
 
-  valueEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("valueEdit");
+  exprEdit_ = CQUtil::makeWidget<CQChartsColumnExprEdit>("exprEdit");
 
-  valueEdit_->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
-    "Use: @<number> as shorthand for column(<number>)\n"
-    "Functions: column, row, cell, setColumn, setRow, setCell\n"
-    " header, setHeader, type, setType, map, bucket, norm, key, rand");
+  exprGridLayout->addWidget(exprLabel, row, 0);
+  exprGridLayout->addWidget(exprEdit_, row, 1);
 
-  exprGridLayout->addWidget(exprValueLabel, row, 0);
-  exprGridLayout->addWidget(valueEdit_    , row, 1);
+  connect(exprEdit_, SIGNAL(exprChanged()), this, SLOT(exprSlot()));
 
   ++row;
 
@@ -115,6 +117,8 @@ init()
 //exprGridLayout->addWidget(columnEdit_   , row, 1);
   exprGridLayout->addWidget(columnNumEdit_, row, 1);
 
+  connect(columnNumEdit_, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
+
   ++row;
 
   //----
@@ -127,6 +131,8 @@ init()
 
   exprGridLayout->addWidget(exprNameLabel, row, 0);
   exprGridLayout->addWidget(nameEdit_    , row, 1);
+
+  connect(nameEdit_, SIGNAL(editingFinished()), this, SLOT(nameSlot()));
 
   ++row;
 
@@ -144,6 +150,8 @@ init()
   exprGridLayout->addWidget(typeLabel_, row, 0);
 //exprGridLayout->addWidget(typeEdit_ , row, 1);
   exprGridLayout->addWidget(typeCombo_, row, 1);
+
+  connect(typeCombo_, SIGNAL(typeChanged()), this, SLOT(typeSlot()));
 
   ++row;
 
@@ -173,11 +181,20 @@ void
 CQChartsModelExprControl::
 modeSlot()
 {
-  exprMode_ = Mode::ADD;
+  auto mode = Mode::ADD;
 
-  if      (addRadio_   ->isChecked()) exprMode_ = Mode::ADD;
-  else if (removeRadio_->isChecked()) exprMode_ = Mode::REMOVE;
-  else if (modifyRadio_->isChecked()) exprMode_ = Mode::MODIFY;
+  if      (addRadio_   ->isChecked()) mode = Mode::ADD;
+  else if (removeRadio_->isChecked()) mode = Mode::REMOVE;
+  else if (modifyRadio_->isChecked()) mode = Mode::MODIFY;
+
+  setMode(mode);
+}
+
+void
+CQChartsModelExprControl::
+setMode(const Mode &mode)
+{
+  exprMode_ = mode;
 
   columnLabel_  ->setEnabled(exprMode_ == Mode::MODIFY);
 //columnEdit_   ->setEnabled(exprMode_ != Mode::ADD);
@@ -192,16 +209,94 @@ modeSlot()
 
 void
 CQChartsModelExprControl::
+exprSlot()
+{
+  expr_ = exprEdit_->expr();
+}
+
+void
+CQChartsModelExprControl::
+setExpr(const QString &s)
+{
+  expr_ = s;
+
+  exprEdit_->setExpr(s);
+}
+
+void
+CQChartsModelExprControl::
+columnSlot()
+{
+  column_ = columnNumEdit_->getColumn();
+}
+
+void
+CQChartsModelExprControl::
+setColumn(const CQChartsColumn &column)
+{
+  column_ = column;
+
+  columnNumEdit_->setColumn(column_);
+}
+
+void
+CQChartsModelExprControl::
+nameSlot()
+{
+  name_ = nameEdit_->text();
+}
+
+void
+CQChartsModelExprControl::
+setName(const QString &s)
+{
+  name_ = s;
+
+  nameEdit_->setText(s);
+}
+
+void
+CQChartsModelExprControl::
+typeSlot()
+{
+  const auto *typeData = typeCombo_->columnType();
+
+  type_ = CQChartsColumnTypeId(typeData ? typeData->type() : CQBaseModelType::STRING);
+}
+
+void
+CQChartsModelExprControl::
+setType(const CQChartsColumnTypeId &t)
+{
+  type_ = t;
+
+  if (modelData_) {
+    auto *charts = modelData_->charts();
+
+    auto *columnTypeMgr = charts->columnTypeMgr();
+
+    auto *typeP = columnTypeMgr->getType(type_.type());
+
+    typeCombo_->setColumnType(typeP);
+  }
+}
+
+void
+CQChartsModelExprControl::
 applySlot()
 {
-  auto *charts = modelData_->charts();
-
   if (! modelData_) {
-    charts->errorMsg("No model data");
+    std::cerr << "No model data\n";
     return;
   }
 
-  CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
+  auto *charts = modelData_->charts();
+
+  auto model = modelData_->currentModel();
+
+  //---
+
+  auto function = CQChartsExprModel::Function::EVAL;
 
   switch (exprMode_) {
     case Mode::ADD   : function = CQChartsExprModel::Function::ADD   ; break;
@@ -210,13 +305,9 @@ applySlot()
     default:                                                           break;
   }
 
-  ModelP model = modelData_->currentModel();
-
   //---
 
   // get column
-  CQChartsColumn column;
-
 #if 0
   auto columnStr = columnEdit_->text();
 
@@ -226,26 +317,25 @@ applySlot()
     long icolumn = CQChartsUtil::toInt(columnStr, ok);
 
     if (ok)
-      column = CQChartsColumn(icolumn);
+      column_ = CQChartsColumn(icolumn);
 #else
-  column = columnNumEdit_->getColumn();
+  column_ = columnNumEdit_->getColumn();
 #endif
-
-  //---
 
   // set current column (for change notify)
   if (function == CQChartsExprModel::Function::ASSIGN)
-    modelData_->setCurrentColumn(column.column());
+    modelData_->setCurrentColumn(column_.column());
 
   //---
 
   // apply function
-  int icolumn1 = column.column();
+  int icolumn1 = column_.column();
 
-  auto expr = valueEdit_->text().trimmed();
+  expr_ = exprEdit_->expr();
 
-  if (expr.length()) {
-    icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+  if (expr_.length()) {
+    // process expression and return new column
+    icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column_, expr_);
 
     if (function == CQChartsExprModel::Function::ADD && icolumn1 >= 0)
       modelData_->setCurrentColumn(icolumn1);
@@ -261,10 +351,10 @@ applySlot()
     }
 
     // set name
-    auto nameStr = nameEdit_->text();
+    name_ = nameEdit_->text();
 
-    if (nameStr.length())
-      model->setHeaderData(icolumn1, Qt::Horizontal, nameStr, Qt::DisplayRole);
+    if (name_.length())
+      model->setHeaderData(icolumn1, Qt::Horizontal, name_, Qt::DisplayRole);
 
     //---
 
@@ -284,16 +374,13 @@ applySlot()
 
     const auto *typeData = typeCombo_->columnType();
 
-    if (! typeData) {
-      charts->errorMsg("Invalid column type");
-      return;
-    }
+    type_ = CQChartsColumnTypeId(typeData ? typeData->type() : CQBaseModelType::STRING);
 
     auto *columnTypeMgr = charts->columnTypeMgr();
 
     CQChartsNameValues nameValues;
 
-    if (! columnTypeMgr->setModelColumnType(model.data(), column1, typeData->type(), nameValues)) {
+    if (! columnTypeMgr->setModelColumnType(model.data(), column1, type_.type(), nameValues)) {
       charts->errorMsg("Failed to set column type");
       return;
     }

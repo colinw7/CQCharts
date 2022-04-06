@@ -88,3 +88,5 @@ modelDetails $modelId
 process_charts_model -model $modelId -add -expr "(column(1)+column(2)+column(3))/3" -header "Average"
 
 modelDetails $modelId
+
+exit

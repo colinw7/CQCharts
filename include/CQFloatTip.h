@@ -22,6 +22,7 @@ class CQFloatTip : public QFrame {
   Q_PROPERTY(int           border      READ border        WRITE setBorder     )
   Q_PROPERTY(int           margin      READ margin        WRITE setMargin     )
   Q_PROPERTY(BarStyle      barStyle    READ barStyle      WRITE setBarStyle   )
+  Q_PROPERTY(double        hideSecs    READ hideSecs      WRITE setHideSecs   )
 
   Q_ENUMS(BarStyle)
 
@@ -64,6 +65,9 @@ class CQFloatTip : public QFrame {
   //! get/set bar style
   const BarStyle &barStyle() const { return barStyle_; }
   void setBarStyle(const BarStyle &v);
+
+  double hideSecs() const { return hideSecs_; }
+  void setHideSecs(double r) { hideSecs_ = r; }
 
   //---
 
@@ -134,6 +138,8 @@ class CQFloatTip : public QFrame {
   int      margin_   { 2 };         //!< outer margin
   BarStyle barStyle_ { BAR_LINES }; //!< bar style
   bool     isDark_   { false };     //!< is dark
+
+  double hideSecs_ { 3.0 };
 
   // widgets
   QScrollArea*  scroll_      { nullptr }; //!< scroll area

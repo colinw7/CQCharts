@@ -11196,7 +11196,8 @@ plotTipText(const Point &p, QString &tip, bool single) const
       tip += tipObj->tipId();
 
       if (numObjs > 1)
-        tip += QString("<br><font color=\"blue\">&nbsp;&nbsp;%1 of %2</font>").
+        tip += QString("<br><font color=\"blue\">&nbsp;&nbsp;%1 of %2</font>"
+                       " <small>(F1=cycle,?=query,Ctrl+F1=lock)</small>").
                  arg(objNum + 1).arg(numObjs);
     }
     else {

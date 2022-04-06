@@ -7538,7 +7538,14 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // set model process expression
     else if (name == "process_expression") {
-      CQChartsModelUtil::processExpression(model.data(), value);
+      CQChartsExprModel::Function function;
+      CQChartsColumn              column;
+      QString                     expr;
+
+      if (! CQChartsModelUtil::decodeExpression(model.data(), value, function, column, expr))
+        return errorMsg("Invalid model expression '" + value + "'");
+
+      CQChartsModelUtil::processExpression(model.data(), function, column, expr);
     }
     // data model size
     else if (name == "size") {

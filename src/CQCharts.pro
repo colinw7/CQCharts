@@ -305,6 +305,7 @@ CQChartsColumnsEdit.cpp \
 CQChartsColumnNumEdit.cpp \
 CQChartsColumnCombo.cpp \
 CQChartsColumnTypeCombo.cpp \
+CQChartsColumnExprEdit.cpp \
 CQChartsDocument.cpp \
 CQChartsEditBase.cpp \
 CQChartsFillDataEdit.cpp \
@@ -728,6 +729,7 @@ HEADERS += \
 ../include/CQChartsColumnNumEdit.h \
 ../include/CQChartsColumnCombo.h \
 ../include/CQChartsColumnTypeCombo.h \
+../include/CQChartsColumnExprEdit.h \
 ../include/CQChartsDocument.h \
 ../include/CQChartsEditBase.h \
 ../include/CQChartsFillDataEdit.h \
