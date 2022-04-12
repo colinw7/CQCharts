@@ -173,19 +173,49 @@ calcPosition(Position &pos, Qt::Alignment &align) const
 
     align = Qt::Alignment();
 
-    if      (location().onLeft   ()) {
-      x = bbox.getXMin() + dpx*xpad; align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight); }
-    else if (location().onHCenter()) {
-      x = bbox.getXMid()           ; align |=  Qt::AlignHCenter; }
-    else if (location().onRight  ()) {
-      x = bbox.getXMax() - dpx*xpad; align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft); }
+    if      (location().onLeft()) {
+      x = bbox.getXMin() + dpx*xpad;
 
-    if      (location().onTop    ()) {
-      y = bbox.getYMax() - dpy*ypad; align |= (isInsideY() ? Qt::AlignTop  : Qt::AlignBottom); }
+      if (! plot()->isInvertX())
+        align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight);
+      else
+        align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft);
+    }
+    else if (location().onHCenter()) {
+      x = bbox.getXMid();
+
+      align |= Qt::AlignHCenter;
+    }
+    else if (location().onRight()) {
+      x = bbox.getXMax() - dpx*xpad;
+
+      if (! plot()->isInvertX())
+        align |= (isInsideX() ? Qt::AlignRight : Qt::AlignLeft);
+      else
+        align |= (isInsideX() ? Qt::AlignLeft : Qt::AlignRight);
+    }
+
+    if      (location().onTop()) {
+      y = bbox.getYMax() - dpy*ypad;
+
+      if (! plot()->isInvertY())
+        align |= (isInsideY() ? Qt::AlignTop : Qt::AlignBottom);
+      else
+        align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop);
+    }
     else if (location().onVCenter()) {
-      y = bbox.getYMid()           ; align |= Qt::AlignVCenter; }
-    else if (location().onBottom ()) {
-      y = bbox.getYMin() + dpy*ypad; align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop); }
+      y = bbox.getYMid();
+
+      align |= Qt::AlignVCenter;
+    }
+    else if (location().onBottom()) {
+      y = bbox.getYMin() + dpy*ypad;
+
+      if (! plot()->isInvertY())
+        align |= (isInsideY() ? Qt::AlignBottom : Qt::AlignTop);
+      else
+        align |= (isInsideY() ? Qt::AlignTop : Qt::AlignBottom);
+    }
 
     pos = Position::plot(Point(x, y));
   }
