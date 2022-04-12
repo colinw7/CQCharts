@@ -57,6 +57,11 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
   //---
 
+  if (! plot_->modelPreVisit(model, data))
+    return State::SKIP;
+
+  //---
+
   // filter by expression
   if (plot_->filterStr().length()) {
     bool ok;

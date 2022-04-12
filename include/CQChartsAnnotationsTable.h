@@ -1,0 +1,187 @@
+#ifndef CQChartsAnnotationsTable_H
+#define CQChartsAnnotationsTable_H
+
+#include <CQChartsAnnotationsTable.h>
+#include <CQChartsPenBrush.h>
+#include <CQChartsWidgetIFace.h>
+
+#include <CQTableWidget.h>
+
+#include <QItemDelegate>
+
+class CQChartsViewAnnotationsTable;
+class CQChartsPlotAnnotationsTable;
+class CQChartsAnnotationsTable;
+class CQChartsView;
+class CQChartsPlot;
+class CQChartsAnnotation;
+class CQChartsCreateAnnotationDlg;
+class CQChartsEditAnnotationDlg;
+
+class QPushButton;
+
+//---
+
+class CQChartsAnnotationDelegate : public QItemDelegate {
+ public:
+  CQChartsAnnotationDelegate(CQChartsAnnotationsTable *table);
+
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const override;
+
+  CQChartsAnnotationsTable *table() const { return table_; }
+
+ private:
+  CQChartsAnnotationsTable *table_ { nullptr };
+};
+
+//---
+
+class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
+  Q_OBJECT
+
+ public:
+  CQChartsViewAnnotationsControl(QWidget *parent=nullptr);
+
+  CQChartsView *view() const { return view_; }
+  void setView(CQChartsView *view) override;
+
+ private:
+  CQChartsAnnotation *getSelectedViewAnnotation() const;
+
+ private slots:
+  void updateViewAnnotations();
+
+  void viewAnnotationSelectionChangeSlot();
+  void raiseViewAnnotationSlot();
+  void lowerViewAnnotationSlot();
+  void createViewAnnotationSlot();
+  void editViewAnnotationSlot();
+  void removeViewAnnotationsSlot();
+
+ private:
+  using ViewAnnotationsTable = CQChartsViewAnnotationsTable;
+  using CreateAnnotationDlg  = CQChartsCreateAnnotationDlg;
+  using EditAnnotationDlg    = CQChartsEditAnnotationDlg;
+
+  CQChartsView *view_ { nullptr };
+
+  ViewAnnotationsTable* viewTable_        { nullptr }; //!< view annotations table
+  QPushButton*          viewRaiseButton_  { nullptr }; //!< view annotation raise button
+  QPushButton*          viewLowerButton_  { nullptr }; //!< view annotation lower button
+  QPushButton*          viewCreateButton_ { nullptr }; //!< view annotation create button
+  QPushButton*          viewEditButton_   { nullptr }; //!< view annotation edit button
+  QPushButton*          viewRemoveButton_ { nullptr }; //!< view annotation remove button
+
+  CreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
+  EditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
+};
+
+//---
+
+class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
+  Q_OBJECT
+
+ public:
+  CQChartsPlotAnnotationsControl(QWidget *parent=nullptr);
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot) override;
+
+ private:
+  CQChartsAnnotation *getSelectedPlotAnnotation() const;
+
+ private slots:
+  void updatePlotAnnotations();
+
+  void plotAnnotationSelectionChangeSlot();
+  void raisePlotAnnotationSlot();
+  void lowerPlotAnnotationSlot();
+  void createPlotAnnotationSlot();
+  void editPlotAnnotationSlot();
+  void removePlotAnnotationsSlot();
+
+ private:
+  using PlotAnnotationsTable = CQChartsPlotAnnotationsTable;
+  using CreateAnnotationDlg  = CQChartsCreateAnnotationDlg;
+  using EditAnnotationDlg    = CQChartsEditAnnotationDlg;
+
+  CQChartsPlot *plot_ { nullptr };
+
+  PlotAnnotationsTable* plotTable_        { nullptr }; //!< plot annotations table
+  QPushButton*          plotRaiseButton_  { nullptr }; //!< plot annotation raise button
+  QPushButton*          plotLowerButton_  { nullptr }; //!< plot annotation lower button
+  QPushButton*          plotCreateButton_ { nullptr }; //!< plot annotation create button
+  QPushButton*          plotEditButton_   { nullptr }; //!< plot annotation edit button
+  QPushButton*          plotRemoveButton_ { nullptr }; //!< plot annotation remove button
+  QPushButton*          writeButton_      { nullptr }; //!< view and plot annotations write button
+
+  CreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
+  EditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
+};
+
+//---
+
+class CQChartsAnnotationsTable : public CQTableWidget {
+ public:
+  using Annotations = std::vector<CQChartsAnnotation *>;
+
+ public:
+  CQChartsAnnotationsTable(CQChartsView *view=nullptr, CQChartsPlot *plot=nullptr);
+ ~CQChartsAnnotationsTable();
+
+  void setView(CQChartsView *view) { view_ = view; plot_ = nullptr; }
+  void setPlot(CQChartsPlot *plot) { plot_ = plot; view_ = nullptr; }
+
+  void addHeaderItems();
+
+  QTableWidgetItem *createItem(const QString &name, int r, int c,
+                               CQChartsAnnotation *annotation);
+
+  void getSelectedAnnotations(Annotations &annotations);
+
+  CQChartsAnnotation *itemAnnotation(QTableWidgetItem *item) const;
+
+ protected:
+  CQChartsView*                           view_     { nullptr };
+  CQChartsPlot*                           plot_     { nullptr };
+  CQChartsAnnotationDelegate* delegate_ { nullptr };
+};
+
+//---
+
+class CQChartsViewAnnotationsTable : public CQChartsAnnotationsTable, public CQChartsWidgetIFace {
+  Q_OBJECT
+
+ public:
+  CQChartsViewAnnotationsTable();
+
+  CQChartsView *view() const { return view_; }
+  void setView(CQChartsView *view) override;
+
+ public slots:
+  void updateAnnotations();
+
+ private:
+  CQChartsView *view_ { nullptr };
+};
+
+//--
+
+class CQChartsPlotAnnotationsTable : public CQChartsAnnotationsTable, public CQChartsWidgetIFace {
+  Q_OBJECT
+
+ public:
+  CQChartsPlotAnnotationsTable();
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot) override;
+
+ public slots:
+  void updateAnnotations();
+
+ private:
+  CQChartsPlot *plot_ { nullptr };
+};
+
+#endif

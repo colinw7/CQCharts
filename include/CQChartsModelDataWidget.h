@@ -1,6 +1,7 @@
 #ifndef CQChartsModelDataWidget_H
 #define CQChartsModelDataWidget_H
 
+#include <CQChartsWidgetIFace.h>
 #include <QFrame>
 
 class CQChartsModelDetailsWidget;
@@ -19,18 +20,18 @@ class QStackedWidget;
  * \brief Model Data Widget
  * \ingroup Charts
  */
-class CQChartsModelDataWidget : public QFrame {
+class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
   using ModelData = CQChartsModelData;
 
  public:
-  CQChartsModelDataWidget(CQCharts *charts, ModelData *modelData);
+  CQChartsModelDataWidget(CQCharts *charts=nullptr, ModelData *modelData=nullptr);
  ~CQChartsModelDataWidget();
 
   ModelData *modelData() const { return modelData_; }
-  void setModelData(ModelData *modelData);
+  void setModelData(ModelData *modelData) override;
 
   void reloadModel();
 

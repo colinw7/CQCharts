@@ -3,7 +3,6 @@
 
 #include <CQPropertyViewTree.h>
 
-class CQChartsViewSettings;
 class CQPropertyViewModel;
 class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
@@ -20,7 +19,7 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
   Q_PROPERTY(bool showStyleItems  READ isShowStyleItems  WRITE setShowStyleItems )
 
  public:
-  CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model);
+  CQChartsPropertyViewTree(QWidget *parent, CQPropertyViewModel *model);
 
   void addMenuItems(QMenu *menu) override;
 
@@ -47,7 +46,6 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
   void showStyleItems(CQPropertyViewItem *item, bool show);
 
  private:
-  CQChartsViewSettings *settings_        { nullptr };
   CQChartsEditTitleDlg *titleDlg_        { nullptr };
   CQChartsEditKeyDlg*   keyDlg_          { nullptr };
   CQChartsEditAxisDlg*  axisDlg_         { nullptr };

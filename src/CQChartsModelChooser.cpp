@@ -8,8 +8,7 @@
 #include <QVBoxLayout>
 
 CQChartsModelChooser::
-CQChartsModelChooser(CQCharts *charts) :
- charts_(charts)
+CQChartsModelChooser(CQCharts *charts)
 {
   setObjectName("modelChooser");
 
@@ -20,6 +19,19 @@ CQChartsModelChooser(CQCharts *charts) :
   combo_->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
   layout->addWidget(combo_);
+
+  //---
+
+  setCharts(charts);
+}
+
+void
+CQChartsModelChooser::
+setCharts(CQCharts *charts)
+{
+  connectSlots(false);
+
+  charts_ = charts;
 
   connectSlots(true);
 
@@ -33,17 +45,19 @@ connectSlots(bool b)
   CQChartsWidgetUtil::connectDisconnect(b,
     combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(setCurrentModel(int)));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
-    charts_, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    charts_, SIGNAL(modelDataDataChanged()), this, SLOT(updateModels()));
+  if (charts_) {
+    CQChartsWidgetUtil::connectDisconnect(b,
+      charts_, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
+    CQChartsWidgetUtil::connectDisconnect(b,
+      charts_, SIGNAL(modelDataDataChanged()), this, SLOT(updateModels()));
+  }
 }
 
 int
 CQChartsModelChooser::
 currentModelInd() const
 {
-  auto *modelData = charts_->currentModelData();
+  auto *modelData = (charts_ ? charts_->currentModelData() : nullptr);
 
   return (modelData ? modelData->ind() : -1);
 }
@@ -71,7 +85,8 @@ updateModels()
 
   CQCharts::ModelDatas modelDatas;
 
-  charts_->getModelDatas(modelDatas);
+  if (charts_)
+    charts_->getModelDatas(modelDatas);
 
   combo_->clear();
 

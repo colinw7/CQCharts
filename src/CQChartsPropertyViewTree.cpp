@@ -21,8 +21,8 @@
 #include <QKeyEvent>
 
 CQChartsPropertyViewTree::
-CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model) :
- CQPropertyViewTree(settings, model), settings_(settings)
+CQChartsPropertyViewTree(QWidget *parent, CQPropertyViewModel *model) :
+ CQPropertyViewTree(parent, model)
 {
 }
 
@@ -50,6 +50,8 @@ addMenuItems(QMenu *menu)
   addMenuCheckedAction(menu, "Show Style Items", isShowStyleItems(),
                        SLOT(showHideStyleItemsSlot(bool)));
 
+  menu->addSeparator();
+
   //---
 
   CQPropertyViewTree::addStandardMenuItems(menu);
@@ -64,6 +66,7 @@ printItem(CQPropertyViewItem *item) const
   auto dataStr = item->dataStr();
   auto path    = item->path(".", /*alias*/true);
 
+  auto *view       = qobject_cast<CQChartsView       *>(object);
   auto *plot       = qobject_cast<CQChartsPlot       *>(object);
   auto *annotation = qobject_cast<CQChartsAnnotation *>(object);
 
@@ -101,9 +104,7 @@ printItem(CQPropertyViewItem *item) const
                  " -name " << path.toStdString() <<
                  " -value " << dataStr.toStdString() << "\n";
   }
-  else {
-    auto *view = settings_->window()->view();
-
+  else if (view) {
     std::cerr << "set_charts_property -view " << view->id().toStdString() <<
                  " -name " << path.toStdString() <<
                  " -value " << dataStr.toStdString() << "\n";

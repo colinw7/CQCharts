@@ -1,9 +1,176 @@
 #include <CQChartsModelTable.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
+#include <CQChartsCreatePlotDlg.h>
+#include <CQChartsView.h>
 #include <CQCharts.h>
 
 #include <QHeaderView>
+#include <QVBoxLayout>
+#include <QPushButton>
+
+CQChartsModelTableControl::
+CQChartsModelTableControl(CQCharts *charts) :
+ QFrame()
+{
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  modelTable_ = new CQChartsModelTable(charts);
+
+  layout->addWidget(modelTable_);
+
+  connect(modelTable_, SIGNAL(itemSelectionChanged()), this, SLOT(modelsSelectionChangeSlot()));
+
+  //---
+
+  // Model Buttons
+  auto *modelControlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+
+  layout->addLayout(modelControlLayout);
+
+  //--
+
+  auto createButton = [&](const QString &label, const QString &objName, const QString &tip,
+                          const char *slotName) {
+    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+
+    button->setToolTip(tip);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    return button;
+  };
+
+  auto *loadButton = createButton("Load...", "load", "Load Model", SLOT(loadModelSlot()));
+
+  editButton_   = createButton("Edit...", "edit", "Edit Selected Model",
+                               SLOT(editModelSlot()));
+  removeButton_ = createButton("Remove", "remove", "Remove Selected Model",
+                               SLOT(removeModelSlot()));
+  plotButton_   = createButton("Create Plot...", "plot", "Create Plot from Selected Model",
+                               SLOT(createPlotModelSlot()));
+
+  modelControlLayout->addWidget(loadButton);
+  modelControlLayout->addWidget(editButton_);
+  modelControlLayout->addWidget(removeButton_);
+  modelControlLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+  modelControlLayout->addWidget(plotButton_);
+
+  editButton_  ->setEnabled(false);
+  removeButton_->setEnabled(false);
+  plotButton_  ->setEnabled(false);
+
+  //---
+
+  setCharts(charts);
+}
+
+void
+CQChartsModelTableControl::
+setCharts(CQCharts *charts)
+{
+  charts_ = charts;
+
+  modelTable_->setCharts(charts);
+
+  updateState();
+}
+
+void
+CQChartsModelTableControl::
+setView(CQChartsView *view)
+{
+  view_ = view;
+}
+
+void
+CQChartsModelTableControl::
+modelsSelectionChangeSlot()
+{
+  long ind = modelTable_->selectedModel();
+
+  if (ind >= 0)
+    charts_->setCurrentModelInd(int(ind));
+
+  updateState();
+}
+
+void
+CQChartsModelTableControl::
+updateState()
+{
+  long ind = modelTable_->selectedModel();
+
+  editButton_  ->setEnabled(ind >= 0);
+  removeButton_->setEnabled(ind >= 0);
+  plotButton_  ->setEnabled(ind >= 0);
+}
+
+void
+CQChartsModelTableControl::
+loadModelSlot()
+{
+  if (! charts_)
+    return;
+
+  (void) charts_->loadModelDlg();
+}
+
+void
+CQChartsModelTableControl::
+editModelSlot()
+{
+  if (! charts_)
+    return;
+
+  long ind = modelTable_->selectedModel();
+  if (ind < 0) return;
+
+  auto *modelData = charts_->getModelDataByInd(int(ind));
+  if (! modelData) return;
+
+  charts_->editModelDlg(modelData);
+}
+
+void
+CQChartsModelTableControl::
+removeModelSlot()
+{
+  if (! charts_)
+    return;
+
+  long ind = modelTable_->selectedModel();
+  if (ind < 0) return;
+
+  auto *modelData = charts_->getModelDataByInd(int(ind));
+  if (! modelData) return;
+
+  charts_->removeModelData(modelData);
+}
+
+void
+CQChartsModelTableControl::
+createPlotModelSlot()
+{
+  if (! charts_)
+    return;
+
+  long ind = modelTable_->selectedModel();
+  if (ind < 0) return;
+
+  auto *modelData = charts_->getModelDataByInd(int(ind));
+  if (! modelData) return;
+
+  auto *createPlotDlg = charts_->createPlotDlg(modelData);
+
+  auto *view = (view_ ? view_ : charts_->currentView());
+
+  if (view)
+    createPlotDlg->setViewName(view->id());
+}
+
+//------
 
 CQChartsModelTable::
 CQChartsModelTable(CQCharts *charts) :

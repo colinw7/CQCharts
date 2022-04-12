@@ -77,6 +77,9 @@ class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
   void filterChanged();
   void columnClicked(int);
 
+ private slots:
+  void columnClickedSlot(int);
+
  private:
   void init();
 

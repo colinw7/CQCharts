@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + annotation view/plot table uddate (selected ?)
+ + annotation_boxplot.tcl broken ?
  + model expr edit test
  + bad_scatter.tcl colors key with bad values
  + always square symbols ?

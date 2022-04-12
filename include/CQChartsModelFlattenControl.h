@@ -1,6 +1,8 @@
 #ifndef CQChartsModelFlattenControl_H
 #define CQChartsModelFlattenControl_H
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 #include <QSharedPointer>
 
@@ -13,7 +15,7 @@ class QAbstractItemModel;
  * \brief Widget to allow User to Flatten Model Data by Column
  * \ingroup Charts
  */
-class CQChartsModelFlattenControl : public QFrame {
+class CQChartsModelFlattenControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
@@ -23,7 +25,7 @@ class CQChartsModelFlattenControl : public QFrame {
   CQChartsModelFlattenControl(QWidget *parent=nullptr);
 
   CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  void setModelData(CQChartsModelData *modelData) override;
 
  private slots:
   void applySlot();

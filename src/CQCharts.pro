@@ -144,6 +144,21 @@ CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
+CQChartsGlobalPropertiesWidget.cpp \
+CQChartsViewPropertiesWidget.cpp \
+CQChartsPlotPropertiesWidget.cpp \
+CQChartsObjectPropertiesWidget.cpp \
+CQChartsPropertyViewTreeFilterEdit.cpp \
+CQChartsPlotTable.cpp \
+CQChartsAnnotationsTable.cpp \
+CQChartsLayerTable.cpp \
+CQChartsPlotTip.cpp \
+CQChartsSymbolSetsList.cpp \
+CQChartsSymbolsList.cpp \
+CQChartsPaletteCanvas.cpp \
+CQChartsPaletteControl.cpp \
+CQChartsInterfaceControl.cpp \
+\
 CQChartsCreateAnnotationDlg.cpp \
 CQChartsCreatePlotDlg.cpp \
 CQChartsEditAnnotationDlg.cpp \
@@ -579,6 +594,21 @@ HEADERS += \
 \
 ../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsAnalyzeModel.h \
+\
+../include/CQChartsGlobalPropertiesWidget.h \
+../include/CQChartsViewPropertiesWidget.h \
+../include/CQChartsPlotPropertiesWidget.h \
+../include/CQChartsObjectPropertiesWidget.h \
+../include/CQChartsPropertyViewTreeFilterEdit.h \
+../include/CQChartsPlotTable.h \
+../include/CQChartsAnnotationsTable.h \
+../include/CQChartsLayerTable.h \
+../include/CQChartsPlotTip.h \
+../include/CQChartsSymbolSetsList.h \
+../include/CQChartsSymbolsList.h \
+../include/CQChartsPaletteCanvas.h \
+../include/CQChartsPaletteControl.h \
+../include/CQChartsInterfaceControl.h \
 \
 ../include/CQChartsCreateAnnotationDlg.h \
 ../include/CQChartsCreatePlotDlg.h \

@@ -3,6 +3,7 @@
 
 #include <CQChartsColumn.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
 #include <QSharedPointer>
@@ -21,7 +22,7 @@ class QLabel;
  * \brief Widget to allow User to Add/Remove/Modify Extra Columns in Model
  * \ingroup Charts
  */
-class CQChartsModelExprControl : public QFrame {
+class CQChartsModelExprControl : public QFrame, public CQChartsWidgetIFace  {
   Q_OBJECT
 
   Q_PROPERTY(Mode                 mode   READ mode   WRITE setMode  )
@@ -60,7 +61,7 @@ class CQChartsModelExprControl : public QFrame {
   void setType(const CQChartsColumnTypeId &t);
 
   CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  void setModelData(CQChartsModelData *modelData) override;
 
   void init();
 
@@ -70,6 +71,8 @@ class CQChartsModelExprControl : public QFrame {
   void columnSlot();
   void nameSlot();
   void typeSlot();
+
+  void modelColumnSlot(int);
 
   void applySlot();
 

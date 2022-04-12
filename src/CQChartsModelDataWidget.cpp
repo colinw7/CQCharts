@@ -149,6 +149,7 @@ setModelData(ModelData *modelData)
     disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
 
   modelData_ = modelData;
+  charts_    = (modelData_ ? modelData_->charts() : nullptr);
 
   if (modelData_)
     connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));

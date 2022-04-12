@@ -1,6 +1,8 @@
 #ifndef CQChartsModelControl_H
 #define CQChartsModelControl_H
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
@@ -23,18 +25,18 @@ class CQPropertyViewTree;
  * \brief Model Control Widget
  * \ingroup Charts
  */
-class CQChartsModelControl : public QFrame {
+class CQChartsModelControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
-  CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData=nullptr);
+  CQChartsModelControl(CQCharts *charts=nullptr, CQChartsModelData *modelData=nullptr);
  ~CQChartsModelControl();
 
   CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  void setModelData(CQChartsModelData *modelData) override;
 
  public slots:
   void updateCurrentModel();

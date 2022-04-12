@@ -1395,3 +1395,5 @@
  + add properties for view settings objects max count and object types
  + fix crash in X/Y Overview widget and add customization properties
  + improve auto fit
+# 4/11/2022
+ + move view settings widgets to separate files and allow to be created as widget annotations

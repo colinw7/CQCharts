@@ -823,9 +823,8 @@ uniqueCounts() const
 
   QVariantList vars;
 
-  if (column_.type() == Column::Type::ROW) {
+  if (column_.type() == Column::Type::ROW)
     return vars; // TODO
-  }
 
   CQChartsIValues::Counts counts;
 

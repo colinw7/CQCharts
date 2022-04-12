@@ -71,7 +71,7 @@ init()
 
   layout->addWidget(view_);
 
-  connect(view_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
+  connect(view_, SIGNAL(columnClicked(int)), this, SLOT(columnClickedSlot(int)));
 #else
   assert(! stack_);
 
@@ -86,17 +86,29 @@ init()
   table_ = new CQChartsTable(charts(), this);
 
   connect(table_, SIGNAL(filterChanged()), this, SIGNAL(filterChanged()));
-  connect(table_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
+  connect(table_, SIGNAL(columnClicked(int)), this, SLOT(columnClickedSlot(int)));
 
   stack_->addWidget(table_);
 
   // tree (hier data)
   tree_ = new CQChartsTree(charts(), this);
 
-  connect(tree_, SIGNAL(columnClicked(int)), this, SIGNAL(columnClicked(int)));
+  connect(tree_, SIGNAL(columnClicked(int)), this, SLOT(columnClickedSlot(int)));
 
   stack_->addWidget(tree_ );
 #endif
+}
+
+void
+CQChartsModelViewHolder::
+columnClickedSlot(int column)
+{
+  auto *modelData = (charts_ ? charts_->getModelData(model()) : nullptr);
+
+  if (modelData)
+    modelData->setCurrentColumn(column);
+
+  emit columnClicked(column);
 }
 
 void

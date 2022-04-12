@@ -178,6 +178,11 @@ class CQChartsCmdBaseSlot : public QObject {
   void itemSelectionChanged();
   void columnClicked(int);
 
+  // symbol set list/symbol list
+  void setNameChanged(const QString &s);
+  void nameChanged(const QString &s);
+  void symbolChanged();
+
   void timerSlot();
 
  private:

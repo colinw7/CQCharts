@@ -673,6 +673,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // filter every n rows from start to end
  public:
   int isEveryEnabled() const { return everyData().enabled; }
   void setEveryEnabled(bool b);
@@ -688,6 +689,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // filter by expression string
  public:
   virtual const QString &filterStr() const;
   virtual void setFilterStr(const QString &s);
@@ -697,6 +699,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // override for custom plot filter of row values
+  virtual bool modelPreVisit(const QAbstractItemModel * /*model*/,
+                             const CQChartsModelVisitor::VisitData & /*data*/) const {
+    return true;
+  }
+
+  //---
+
+ public:
+  //! get/set skip bad
   virtual bool isSkipBad() const;
   virtual void setSkipBad(bool b);
 
@@ -3249,6 +3261,25 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  public:
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
+  //---
+
+#if 0
+ public:
+  void clearSkipColors() { skipColors_.clear(); }
+  void addSkipColor(const QVariant &v, int row) { skipColors_[v].insert(row); }
+
+  bool hasSkipColors() const { return ! skipColors_.empty(); }
+
+  size_t numSkipColors(const QVariant &v) const {
+    auto p = skipColors_.find(v);
+    if (p == skipColors_.end()) return 0;
+
+    return (*p).second.size();
+  }
+#endif
+
+  //---
+
  public:
   virtual CQChartsPlotCustomControls *createCustomControls() = 0;
 
@@ -3736,6 +3767,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   UpdatesData updatesData_;              //!< updates data
   bool        fromInvalidate_ { false }; //!< call from invalidate
+
+  //---
+
+#if 0
+  using SkipColors = std::map<QVariant, Rows>;
+
+  SkipColors skipColors_;
+#endif
 
   //---
 

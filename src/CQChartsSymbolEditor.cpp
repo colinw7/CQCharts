@@ -6,8 +6,8 @@
 #include <QKeyEvent>
 
 CQChartsSymbolEditor::
-CQChartsSymbolEditor(CQChartsViewSettings *viewSettings) :
- viewSettings_(viewSettings)
+CQChartsSymbolEditor(CQCharts *charts) :
+ charts_(charts)
 {
   setObjectName("symbolEditor");
 

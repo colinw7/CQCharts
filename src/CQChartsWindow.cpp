@@ -324,7 +324,8 @@ setViewSettings(bool b)
 {
   viewSettingsData_.visible = b;
 
-  settings_->setVisible(viewSettingsData_.visible);
+  if (settings_)
+    settings_->setVisible(viewSettingsData_.visible);
 }
 
 void
@@ -333,7 +334,8 @@ setViewSettingsMajorObjects(bool b)
 {
   viewSettingsData_.majorObjects = b;
 
-  settings_->updatePlotObjects();
+  if (settings_)
+    settings_->updatePlotObjects();
 }
 
 void
@@ -342,7 +344,8 @@ setViewSettingsMinorObjects(bool b)
 {
   viewSettingsData_.minorObjects = b;
 
-  settings_->updatePlotObjects();
+  if (settings_)
+    settings_->updatePlotObjects();
 }
 
 void
@@ -351,7 +354,8 @@ setViewSettingsMaxObjects(int n)
 {
   viewSettingsData_.maxObjects = n;
 
-  settings_->updatePlotObjects();
+  if (settings_)
+    settings_->updatePlotObjects();
 }
 
 //---
@@ -560,16 +564,17 @@ selectPropertyObjects()
 
   //---
 
-  CQChartsWidgetUtil::AutoDisconnect settingsDisconnect(
-    settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
-    this, SLOT(propertyItemSelected(QObject *, const QString &)));
+  if (settings_)
+    disconnect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+               this, SLOT(propertyItemSelected(QObject *, const QString &)));
 
   //---
 
   // get currently selected property view objects
   CQPropertyViewTree::Objs selectedObjs;
 
-  settings_->viewPropertyTree()->getSelectedObjects(selectedObjs);
+  if (settings_)
+    settings_->viewPropertyTree()->getSelectedObjects(selectedObjs);
 
   ObjSet selectedObjSet;
 
@@ -583,7 +588,8 @@ selectPropertyObjects()
   for (auto &plot : plots) {
     CQPropertyViewTree::Objs selectedObjs1;
 
-    settings_->plotPropertyTree(plot)->getSelectedObjects(selectedObjs1);
+    if (settings_ && settings_->plotPropertyTree(plot))
+      settings_->plotPropertyTree(plot)->getSelectedObjects(selectedObjs1);
 
     for (auto &obj : selectedObjs1)
       selectedObjSet.insert(obj);
@@ -626,20 +632,28 @@ selectPropertyObjects()
 
   // update selected if changed
   if (changed) {
-    settings_->viewPropertyTree()->deselectAllObjects();
+    if (settings_) {
+      settings_->viewPropertyTree()->deselectAllObjects();
 
-    for (auto &plot : plots)
-      settings_->plotPropertyTree(plot)->deselectAllObjects();
+      for (auto &plot : plots)
+        settings_->plotPropertyTree(plot)->deselectAllObjects();
 
-    for (auto &obj : objSet) {
-      auto *plot = objectPlot(obj);
+      for (auto &obj : objSet) {
+        auto *plot = objectPlot(obj);
 
-      if (plot)
-        settings_->plotPropertyTree(plot)->selectObject(obj);
-      else
-        settings_->viewPropertyTree()->selectObject(obj);
+        if (plot)
+          settings_->plotPropertyTree(plot)->selectObject(obj);
+        else
+          settings_->viewPropertyTree()->selectObject(obj);
+      }
     }
   }
+
+  //---
+
+  if (settings_)
+    connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+            this, SLOT(propertyItemSelected(QObject *, const QString &)));
 }
 
 void
@@ -718,7 +732,8 @@ void
 CQChartsWindow::
 showErrorsTab()
 {
-  settings_->showErrorsTab();
+  if (settings_)
+    settings_->showErrorsTab();
 }
 
 void

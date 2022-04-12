@@ -50,7 +50,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   exprFrame_ = addExprFrame();
 
-  controlTab->addTab(exprFrame_, "Extra Colummns");
+  controlTab->addTab(exprFrame_, "Extra Columns");
 
   //---
 
@@ -91,7 +91,7 @@ addColumnDataFrame()
 {
   auto *columnDataFrame = new CQChartsModelColumnDataControl(this);
 
-  columnDataFrame->setModelData(modelData_);
+  //columnDataFrame->setModelData(modelData_);
 
   return columnDataFrame;
 }
@@ -122,7 +122,7 @@ addExprFrame()
 {
   auto *exprFrame = new CQChartsModelExprControl(this);
 
-  exprFrame->setModelData(modelData_);
+  //exprFrame->setModelData(modelData_);
 
   return exprFrame;
 }
@@ -133,7 +133,7 @@ addFilterFrame()
 {
   auto *filterFrame = new CQChartsModelFilterControl(this);
 
-  filterFrame->setModelData(modelData_);
+  //filterFrame->setModelData(modelData_);
 
   return filterFrame;
 }
@@ -145,7 +145,7 @@ addFoldFrame()
 {
   auto *foldFrame = new CQChartsModelFoldControl(this);
 
-  foldFrame->setModelData(modelData_);
+  //foldFrame->setModelData(modelData_);
 
   return foldFrame;
 }
@@ -157,7 +157,7 @@ addFlattenFrame()
 {
   auto *flattenFrame = new CQChartsModelFlattenControl(this);
 
-  flattenFrame->setModelData(modelData_);
+  //flattenFrame->setModelData(modelData_);
 
   return flattenFrame;
 }
@@ -166,7 +166,7 @@ void
 CQChartsModelControl::
 updateCurrentModel()
 {
-  auto *modelData = charts_->currentModelData();
+  auto *modelData = (charts_ ? charts_->currentModelData() : nullptr);
 
   setModelData(modelData);
 }
@@ -185,13 +185,15 @@ setModelData(CQChartsModelData *modelData)
   if (modelData != modelData_) {
     modelData_ = modelData;
 
-    exprFrame_     ->setModelData(modelData_);
-    filterFrame_   ->setModelData(modelData_);
-#ifdef CQCHARTS_FOLDED_MODEL
-    foldFrame_     ->setModelData(modelData_);
-#endif
-    flattenFrame_  ->setModelData(modelData_);
+    charts_ = (modelData_ ? modelData_->charts() : nullptr);
+
     columnDataFrame_->setModelData(modelData_);
+    exprFrame_      ->setModelData(modelData_);
+    filterFrame_    ->setModelData(modelData_);
+#ifdef CQCHARTS_FOLDED_MODEL
+    foldFrame_      ->setModelData(modelData_);
+#endif
+    flattenFrame_   ->setModelData(modelData_);
 
     //---
 

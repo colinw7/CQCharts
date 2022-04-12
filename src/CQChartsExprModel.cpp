@@ -111,6 +111,8 @@ addFunction(const QString &name)
   auto *fn = new CQChartsExprModelFn(this, name);
 
   tclCmds_.push_back(fn);
+
+  fnNames_.insert(name);
 }
 
 bool
@@ -900,8 +902,7 @@ decodeExpression(const QString &exprStr, QString &header, QString &expr) const
 
   if (pos >= 0) {
     header = expr.mid(0, pos).trimmed();
-
-    expr = expr.mid(pos + 1).trimmed();
+    expr   = expr.mid(pos + 1).trimmed();
   }
 
   return true;

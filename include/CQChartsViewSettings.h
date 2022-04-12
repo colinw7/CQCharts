@@ -3,59 +3,45 @@
 
 #include <QFrame>
 
-class CQChartsViewSettingsGlobalPropertiesWidget;
-class CQChartsViewSettingsViewPropertiesWidget;
-class CQChartsViewSettingsPlotPropertiesWidget;
-class CQChartsViewSettingsObjectPropertiesWidget;
+class CQChartsGlobalPropertiesWidget;
+class CQChartsViewPropertiesControl;
+class CQChartsPlotPropertiesControl;
+class CQChartsObjectPropertiesWidget;
+class CQChartsPropertyViewTreeFilterEdit;
 
-class CQChartsViewSettingsFilterEdit;
-class CQChartsViewSettingsPlotTable;
-class CQChartsViewSettingsViewAnnotationsTable;
-class CQChartsViewSettingsPlotAnnotationsTable;
-class CQChartsViewSettingsViewLayerTable;
-class CQChartsViewSettingsPlotLayerTable;
-
-class CQChartsModelTable;
-class CQChartsPlotTip;
-
+class CQChartsModelTableControl;
 class CQChartsModelDetailsWidget;
+
+class CQChartsPlotTableControl;
+class CQChartsViewAnnotationsControl;
+class CQChartsPlotAnnotationsControl;
+
+class CQChartsViewLayerTable;
+class CQChartsPlotLayerTable;
+
 class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsAnnotation;
-class CQChartsFilterEdit;
-class CQChartsCreateAnnotationDlg;
-class CQChartsEditAnnotationDlg;
-class CQChartsEditTitleDlg;
-class CQChartsEditKeyDlg;
-class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 class CQChartsPlotCustomControls;
 class CQChartsSymbolSetsList;
-class CQChartsSymbolsList;
+class CQChartsSymbolsListControl;
 class CQChartsSymbolEditor;
 class CQChartsViewError;
 class CQChartsPlotControlFrame;
+class CQCharts;
 
-class CQColorsEditCanvas;
-class CQColorsEditControl;
+class CQChartsPaletteControl;
+class CQChartsInterfaceControl;
 class CQColorsEditList;
 class CQPropertyViewModel;
 
 class CQTabWidget;
-class CQIntegerSpin;
-class CQGroupBox;
 class CQTabSplit;
 
-class QComboBox;
 class QPushButton;
-class QToolButton;
-class QRadioButton;
-class QCheckBox;
 class QTextEdit;
-class QLabel;
-class QGridLayout;
-class QButtonGroup;
 class QTimer;
 
 /*!
@@ -104,20 +90,14 @@ class CQChartsViewSettings : public QFrame {
   void invalidateModelDetails(bool changed=true);
 //void updateModelDetails();
 
-  void plotsTabChangedSlot();
-
   void updatePlots();
   void updateCurrentPlot();
 
   void updatePlotControls();
 
   void updateAnnotations();
-  void updateViewAnnotations();
-  void updatePlotAnnotations();
 
-  void symbolListSelectionChangeSlot();
-  void symbolUpSlot();
-  void symbolDownSlot();
+  void symbolListSymbolChangeSlot();
 
   void updateLayers();
 
@@ -135,19 +115,6 @@ class CQChartsViewSettings : public QFrame {
 
   //---
 
-  void modelsSelectionChangeSlot();
-
-  void loadModelSlot();
-  void editModelSlot();
-  void removeModelSlot();
-  void createPlotModelSlot();
-
-  //---
-
-  void createPlotSlot();
-
-  //---
-
   void viewLayersSelectionChangeSlot();
   void viewLayersClickedSlot(int, int);
 
@@ -156,68 +123,19 @@ class CQChartsViewSettings : public QFrame {
 
   //---
 
-  void writeViewSlot();
-
-  //---
-
-  void plotsSelectionChangeSlot();
-
-  void updatePlotOverlayState();
-
-  void editViewKeySlot();
-
-  void editPlotTitleSlot();
-  void editPlotKeySlot();
-  void editPlotXAxisSlot();
-  void editPlotYAxisSlot();
-
-  void groupPlotsSlot();
-
-  void placePlotsSlot();
-
-  void raisePlotSlot();
-  void lowerPlotSlot();
-
-  void removePlotsSlot();
-
-  void writePlotSlot();
-
-  //---
-
-  void viewAnnotationSelectionChangeSlot();
-  void plotAnnotationSelectionChangeSlot();
-
-  void raiseViewAnnotationSlot();
-  void lowerViewAnnotationSlot();
-  void createViewAnnotationSlot();
-  void editViewAnnotationSlot();
-  void removeViewAnnotationsSlot();
-
-  void raisePlotAnnotationSlot();
-  void lowerPlotAnnotationSlot();
-  void createPlotAnnotationSlot();
-  void editPlotAnnotationSlot();
-  void removePlotAnnotationsSlot();
-
   void writeAnnotationSlot();
 
   //---
 
-  void palettesComboSlot(int);
-  void palettesResetSlot();
+  //void palettesComboSlot(int);
+  //void palettesResetSlot();
 
-  void paletteColorsChangedSlot();
+  //void paletteColorsChangedSlot();
 
   void updatePalettes();
   void updateInterface();
 
  private:
-  CQColorsEditCanvas  *interfacePlot   () const { return themeWidgets_.interfacePlot; }
-  CQColorsEditControl *interfaceControl() const { return themeWidgets_.interfaceControl; }
-
-  CQColorsEditCanvas  *palettesPlot   () const { return themeWidgets_.palettesPlot; }
-  CQColorsEditControl *palettesControl() const { return themeWidgets_.palettesControl; }
-
   void addWidgets();
 
   void initControlsFrame   (QFrame *controlsFrame);
@@ -226,98 +144,60 @@ class CQChartsViewSettings : public QFrame {
   void initPlotsFrame      (QFrame *plotsFrame);
   void initAnnotationsFrame(QFrame *annotationsFrame);
   void initObjectsFrame    (QFrame *objectsFrame);
-  void initThemeFrame      (QFrame *themeFrame);
+  void initColorsFrame     (QFrame *colorsFrame);
   void initSymbolsFrame    (QFrame *symbolsFrame);
   void initLayersFrame     (QFrame *layersFrame);
   void initQueryFrame      (QFrame *queryFrame);
   void initErrorsFrame     (QFrame *errorsFrame);
 
-  void updatePaletteWidgets();
-
-  Plot *getPropertiesPlot() const;
-
   Plot *getSelectedPlot() const;
 
   void getSelectedPlots(Plots &plots) const;
 
-  void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
-
-  CQChartsAnnotation *getSelectedViewAnnotation() const;
-  CQChartsAnnotation *getSelectedPlotAnnotation() const;
+  CQTabSplit *createTabSplit(const QString &name, bool tabbed) const;
 
  private:
-  using GlobalPropertiesWidget = CQChartsViewSettingsGlobalPropertiesWidget;
-  using ViewPropertiesWidget   = CQChartsViewSettingsViewPropertiesWidget;
-  using PlotPropertiesWidget   = CQChartsViewSettingsPlotPropertiesWidget;
-  using ObjectPropertiesWidget = CQChartsViewSettingsObjectPropertiesWidget;
+  using GlobalPropertiesWidget = CQChartsGlobalPropertiesWidget;
+  using ViewPropertiesControl  = CQChartsViewPropertiesControl;
+  using PlotPropertiesControl  = CQChartsPlotPropertiesControl;
+  using ObjectPropertiesWidget = CQChartsObjectPropertiesWidget;
 
-  using FilterEdit           = CQChartsViewSettingsFilterEdit;
-  using ModelTable           = CQChartsModelTable;
+  using FilterEdit           = CQChartsPropertyViewTreeFilterEdit;
+  using ModelTable           = CQChartsModelTableControl;
   using ModelDetailsWidget   = CQChartsModelDetailsWidget;
-  using PlotTable            = CQChartsViewSettingsPlotTable;
-  using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;
-  using PlotAnnotationsTable = CQChartsViewSettingsPlotAnnotationsTable;
-  using ViewLayerTable       = CQChartsViewSettingsViewLayerTable;
-  using PlotLayerTable       = CQChartsViewSettingsPlotLayerTable;
+  using PlotTable            = CQChartsPlotTableControl;
+  using ViewAnnotationsTable = CQChartsViewAnnotationsControl;
+  using PlotAnnotationsTable = CQChartsPlotAnnotationsControl;
+  using ViewLayerTable       = CQChartsViewLayerTable;
+  using PlotLayerTable       = CQChartsPlotLayerTable;
   using PlotControlFrame     = CQChartsPlotControlFrame;
   using PlotCustomControls   = CQChartsPlotCustomControls;
   using SymbolSetsList       = CQChartsSymbolSetsList;
-  using SymbolsList          = CQChartsSymbolsList;
+  using SymbolsList          = CQChartsSymbolsListControl;
   using ViewError            = CQChartsViewError;
 
   struct PropertiesWidgets {
     CQTabSplit*             propertiesSplit    { nullptr }; //!< properties split
     GlobalPropertiesWidget* globalPropertyTree { nullptr }; //!< global settings tree
-    ViewPropertiesWidget*   viewPropertyTree   { nullptr }; //!< view settings tree
-    CQTabWidget*            plotsTab           { nullptr }; //!< plots settings tab
-//  CQChartsPlotTip*        plotTip            { nullptr }; //!< current plot tip
-//  QToolButton*            plotTipButton      { nullptr }; //!< current plot tip button
+    ViewPropertiesControl*  viewControl        { nullptr }; //!< view settings control
+    PlotPropertiesControl*  plotsControl       { nullptr }; //!< plots settings control
   };
 
   struct ModelsWidgets {
     ModelTable*         modelTable    { nullptr }; //!< model table widget
     QFrame*             detailsFrame  { nullptr }; //!< model details frame widget
     ModelDetailsWidget* detailsWidget { nullptr }; //!< model details widget
-    QPushButton*        loadButton    { nullptr }; //!< load model button
-    QPushButton*        editButton    { nullptr }; //!< edit model button
-    QPushButton*        removeButton  { nullptr }; //!< remove model button
-    QPushButton*        plotButton    { nullptr }; //!< plot model button
   };
 
   struct PlotsWidgets {
-    PlotTable*     plotTable            { nullptr }; //!< plot table
-    QCheckBox*     overlayCheck         { nullptr }; //!< overlay check
-    QCheckBox*     x1x2Check            { nullptr }; //!< x1x2 check
-    QCheckBox*     y1y2Check            { nullptr }; //!< y1y2 check
-    QRadioButton*  placeVerticalRadio   { nullptr }; //!< place vertical radio
-    QRadioButton*  placeHorizontalRadio { nullptr }; //!< place horizontal radio
-    QRadioButton*  placeGridRadio       { nullptr }; //!< place grid radio
-    CQIntegerSpin* placeRowsEdit        { nullptr }; //!< grid number of rows edit
-    CQIntegerSpin* placeColumnsEdit     { nullptr }; //!< grid number of columns edit
-    QPushButton*   raiseButton          { nullptr }; //!< raise plot button
-    QPushButton*   lowerButton          { nullptr }; //!< lower plot button
-    QPushButton*   createButton         { nullptr }; //!< create plot button
-    QPushButton*   removeButton         { nullptr }; //!< remove plot button
-    QPushButton*   writeButton          { nullptr }; //!< write plot button
+    PlotTable* plotTable { nullptr }; //!< plot table
   };
 
   struct AnnotationsWidgets {
-    CQTabSplit*           split            { nullptr }; //!< tab split
-    QFrame*               viewFrame        { nullptr }; //!< view frame
-    QFrame*               plotFrame        { nullptr }; //!< plot frame
-    ViewAnnotationsTable* viewTable        { nullptr }; //!< view annotations table
-    PlotAnnotationsTable* plotTable        { nullptr }; //!< plot annotations table
-    QPushButton*          viewRaiseButton  { nullptr }; //!< view annotation raise button
-    QPushButton*          viewLowerButton  { nullptr }; //!< view annotation lower button
-    QPushButton*          viewCreateButton { nullptr }; //!< view annotation create button
-    QPushButton*          viewEditButton   { nullptr }; //!< view annotation edit button
-    QPushButton*          viewRemoveButton { nullptr }; //!< view annotation remove button
-    QPushButton*          plotRaiseButton  { nullptr }; //!< plot annotation raise button
-    QPushButton*          plotLowerButton  { nullptr }; //!< plot annotation lower button
-    QPushButton*          plotCreateButton { nullptr }; //!< plot annotation create button
-    QPushButton*          plotEditButton   { nullptr }; //!< plot annotation edit button
-    QPushButton*          plotRemoveButton { nullptr }; //!< plot annotation remove button
-    QPushButton*          writeButton      { nullptr }; //!< view and plot annotations write button
+    CQTabSplit*           split       { nullptr }; //!< tab split
+    ViewAnnotationsTable* viewTable   { nullptr }; //!< view annotations table
+    PlotAnnotationsTable* plotTable   { nullptr }; //!< plot annotations table
+    QPushButton*          writeButton { nullptr }; //!< view and plot annotations write button
   };
 
   struct ObjectsWidgets {
@@ -326,12 +206,9 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ThemeWidgets {
-    CQColorsEditList*    palettesList     { nullptr }; //!< palettes list
-    QComboBox*           palettesCombo    { nullptr }; //!< palettes name combo
-    CQColorsEditCanvas*  palettesPlot     { nullptr }; //!< current palette plot
-    CQColorsEditControl* palettesControl  { nullptr }; //!< current palette control
-    CQColorsEditCanvas*  interfacePlot    { nullptr }; //!< interface palette plot
-    CQColorsEditControl* interfaceControl { nullptr }; //!< interface palette control
+    CQColorsEditList*         palettesList     { nullptr }; //!< palettes list
+    CQChartsPaletteControl   *palettesControl  { nullptr }; //!< named palette control
+    CQChartsInterfaceControl *interfaceControl { nullptr }; //!< interface palette control
   };
 
   struct LayersWidgets {
@@ -340,8 +217,6 @@ class CQChartsViewSettings : public QFrame {
   };
 
  private:
-  friend class CQChartsSymbolSetsList;
-
   SymbolsList *symbolsList() const { return symbolsList_; }
 
  private:
@@ -367,222 +242,11 @@ class CQChartsViewSettings : public QFrame {
   QTextEdit*            queryText_          { nullptr }; //!< query text
   ViewError*            error_              { nullptr }; //!< error widget
 
-  TabNum tabNum_;
-
-  // dialogs
-  using CreateAnnotationDlg = CQChartsCreateAnnotationDlg;
-  using EditAnnotationDlg   = CQChartsEditAnnotationDlg;
-  using EditTitleDlg        = CQChartsEditTitleDlg;
-  using EditKeyDlg          = CQChartsEditKeyDlg;
-  using EditAxisDlg         = CQChartsEditAxisDlg;
-
-  CreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
-  EditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
-  EditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog
-  EditKeyDlg*          editKeyDlg_          { nullptr }; //!< edit plot key dialog
-  EditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
-  EditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
+  TabNum tabNum_; //!< current tab number
 
   QString plotId_; //!< current plot id
 
   QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
-};
-
-//---
-
-/*!
- * \brief View settings global properties widget
- * \ingroup Charts
- */
-class CQChartsViewSettingsGlobalPropertiesWidget : public QFrame {
-  Q_OBJECT
-
- public:
-  CQChartsViewSettingsGlobalPropertiesWidget(CQChartsViewSettings *settings);
-
-  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
-
- signals:
-  void propertyItemSelected(QObject *obj, const QString &path);
-
- private slots:
-  void filterStateSlot(bool show, bool focus);
-
- private:
-  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
-  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
-};
-
-//---
-
-/*!
- * \brief View settings view properties widget
- * \ingroup Charts
- */
-class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
-  Q_OBJECT
-
- public:
-  CQChartsViewSettingsViewPropertiesWidget(CQChartsViewSettings *settings, CQChartsView *view);
-
-  CQChartsView *view() const { return view_; }
-
-  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
-
- signals:
-  void propertyItemSelected(QObject *obj, const QString &path);
-
- private slots:
-  void filterStateSlot(bool show, bool focus);
-
- private:
-  CQChartsView*                   view_         { nullptr };
-  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
-  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
-};
-
-//---
-
-/*!
- * \brief View settings plot properties widget
- * \ingroup Charts
- */
-class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
-  Q_OBJECT
-
- public:
-  using Plot = CQChartsPlot;
-
- public:
-  CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, Plot *plot);
-
-  Plot *plot() const { return plot_; }
-
-  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
-
- signals:
-  void propertyItemSelected(QObject *obj, const QString &path);
-
- private slots:
-  void filterStateSlot(bool show, bool focus);
-
- private:
-  Plot*                           plot_         { nullptr };
-  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
-  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
-};
-
-//---
-
-/*!
- * \brief View settings plot object properties widget
- * \ingroup Charts
- */
-class CQChartsViewSettingsObjectPropertiesWidget : public QFrame {
-  Q_OBJECT
-
- public:
-  using Plot = CQChartsPlot;
-
- public:
-  CQChartsViewSettingsObjectPropertiesWidget(CQChartsViewSettings *settings);
-
-  Plot *plot() const { return plot_; }
-
-  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
-
- signals:
-  void propertyItemSelected(QObject *obj, const QString &path);
-
- private slots:
-  void filterStateSlot(bool show, bool focus);
-
- private:
-  Plot*                           plot_         { nullptr };
-  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
-  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
-};
-
-//---
-
-/*!
- * \brief View settings filter edit widget
- * \ingroup Charts
- */
-class CQChartsViewSettingsFilterEdit : public QFrame {
-  Q_OBJECT
-
- public:
-  CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree);
-
- private slots:
-  void replaceFilterSlot(const QString &text);
-  void addFilterSlot(const QString &text);
-
-  void replaceSearchSlot(const QString &text);
-  void addSearchSlot(const QString &text);
-
-  void hideFilterSlot();
-
- private:
-  CQChartsPropertyViewTree* tree_       { nullptr };
-  CQChartsFilterEdit*       filterEdit_ { nullptr };
-};
-
-//---
-
-#include <CQChartsSymbol.h>
-#include <QListWidget>
-
-class CQChartsSymbolSetsList : public QListWidget {
-  Q_OBJECT
-
- public:
-  CQChartsSymbolSetsList(CQChartsViewSettings *viewSettings);
-
- private slots:
-  void rowChanged(int row);
-
- private:
-  CQChartsViewSettings* viewSettings_ { nullptr };
-};
-
-//---
-
-class CQChartsSymbolsItemDelegate;
-class CQChartsSymbolSet;
-
-class CQChartsSymbolsList : public QListWidget {
-  Q_OBJECT
-
- public:
-  using Symbol = CQChartsSymbol;
-
- public:
-  CQChartsSymbolsList(CQChartsViewSettings *viewSettings);
-
-  const QString &name() const { return name_; }
-  void setName(const QString &s, int ind);
-
-  Symbol symbol(int ind) const;
-
-  CQChartsSymbolSet *symbolSet() const;
-
-  void moveCurrentUp();
-  void moveCurrentDown();
-
-  QListWidgetItem *currentItem() const;
-
-  bool selectedSymbol(Symbol &symbol) const;
-
- private:
-  void updateItems();
-
- private:
-  CQChartsViewSettings*        viewSettings_ { nullptr };
-  QString                      name_;
-  int                          ind_          { 0 };
-  CQChartsSymbolsItemDelegate* delegate_     { nullptr };
 };
 
 #endif

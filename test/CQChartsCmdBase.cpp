@@ -1439,6 +1439,31 @@ columnClicked(int c)
 
 void
 CQChartsCmdBaseSlot::
+setNameChanged(const QString &s)
+{
+  auto args = QString("{%1}").arg(s);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+nameChanged(const QString &s)
+{
+  auto args = QString("{%1}").arg(s);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+symbolChanged()
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
 timerSlot()
 {
   execProc();

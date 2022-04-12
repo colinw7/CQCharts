@@ -28,6 +28,9 @@ void
 CQChartsModelExprControl::
 setModelData(CQChartsModelData *modelData)
 {
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
+
   modelData_ = modelData;
 
   exprEdit_     ->setModelData(modelData_);
@@ -37,7 +40,14 @@ setModelData(CQChartsModelData *modelData)
     typeCombo_->setCharts(modelData_->charts());
 
   column_ = columnNumEdit_->getColumn();
-  type_   = CQChartsColumnTypeId(typeCombo_->columnType()->type());
+
+  auto *columnType = typeCombo_->columnType();
+
+  if (columnType)
+    type_ = CQChartsColumnTypeId(columnType->type());
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
 }
 
 void
@@ -232,11 +242,42 @@ columnSlot()
 
 void
 CQChartsModelExprControl::
+modelColumnSlot(int icolumn)
+{
+  setColumn(CQChartsColumn(icolumn));
+}
+
+void
+CQChartsModelExprControl::
 setColumn(const CQChartsColumn &column)
 {
   column_ = column;
 
   columnNumEdit_->setColumn(column_);
+
+  if (modelData_) {
+    auto *absModel  = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
+    auto *exprModel = CQChartsModelUtil::getExprModel(absModel);
+
+    QString header, expr;
+    bool    columnSet = false;
+
+    if (exprModel) {
+      int icolumn = column.column();
+
+      if (icolumn >= 0 && exprModel->getExtraColumnDetails(icolumn, header, expr))
+        columnSet = true;
+    }
+
+    if (! columnSet) {
+      bool ok;
+      header = CQChartsModelUtil::modelHHeaderString(modelData_->currentModel().data(), column, ok);
+      expr = "";
+    }
+
+    nameEdit_->setText(header);
+    exprEdit_->setText(expr);
+  }
 }
 
 void

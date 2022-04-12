@@ -819,10 +819,16 @@ calcRange() const
 
         //---
 
+        // check for bad value
+        bool skipBad = false;
+
         if (plot_->isSkipBad() && (! okx || ! oky))
-          return State::SKIP;
+          skipBad = true;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
+          skipBad = true;
+
+        if (skipBad)
           return State::SKIP;
 
         range_.updateRange(x, y);
@@ -1986,6 +1992,12 @@ addNameValues() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::addNameValues");
 
+#if 0
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->clearSkipColors();
+#endif
+
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(const CQChartsScatterPlot *plot) :
@@ -1993,6 +2005,10 @@ addNameValues() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      //---
+
       ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
       ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
@@ -2036,10 +2052,16 @@ addNameValues() const
 
       //---
 
+      // check for bad value
+      bool skipBad = false;
+
       if (plot_->isSkipBad() && (! okx || ! oky))
-        return State::SKIP;
+        skipBad = true;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
+        skipBad = true;
+
+      if (skipBad)
         return State::SKIP;
 
       //---
@@ -2067,12 +2089,28 @@ addNameValues() const
       Color color;
 
       // get color label (needed if not string ?)
-      if (plot_->colorColumn().isValid())
+      if (plot_->colorColumn().isValid()) {
         (void) plot_->colorColumnColor(data.row, data.parent, color);
+
+#if 0
+        if (skipBad) {
+          ModelIndex colorColumnInd(plot_, data.row, plot_->colorColumn(), data.parent);
+
+          bool ok;
+          auto var = plot_->modelValue(colorColumnInd, ok);
+
+          if (ok && var.isValid())
+            plot->addSkipColor(var, data.row);
+        }
+#endif
+      }
 
       //---
 
-      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+      if (skipBad)
+        return State::SKIP;
+
+      //---
 
       Point p(x, y);
 

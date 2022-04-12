@@ -38,16 +38,58 @@ void
 CQChartsColumnExprEdit::
 updateTip()
 {
+  auto tip = QString("tcl expression\n");
+
   if (allowPrefix())
-    setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
-      "Use: @<number> as shorthand for column(<number>)\n"
-      "Functions: column, row, cell, setColumn, setRow, setCell\n"
-      " header, setHeader, type, setType, map, bucket, norm, key, rand");
-  else
-    setToolTip("tcl expression\n"
-      "Use: @<number> as shorthand for column(<number>)\n"
-      "Functions: column, row, cell, setColumn, setRow, setCell\n"
-      " header, setHeader, type, setType, map, bucket, norm, key, rand");
+    tip += "+<expr> OR -<column> OR =<column>:<expr>\n";
+
+  tip += "Use: $header for column row value\n"
+         "Use: <header> = <expression> to assign header with expression\n";
+
+  tip += "Functions: ";
+
+  QStringList fnNames;
+
+  if (modelData_) {
+    auto *absModel  = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
+    auto *exprModel = CQChartsModelUtil::getExprModel(absModel);
+
+    if (exprModel) {
+      auto exprFnNames = exprModel->fnNames();
+
+      for (const auto &fnName : exprFnNames)
+        fnNames << fnName;
+    }
+  }
+
+  if (! fnNames.length())
+    fnNames = QStringList() <<
+      "column" << "row" << "cell" << "setColumn" << "setRow" << "setCell" << "header" <<
+      "setHeader" << "type" << "setType" << "map" << "bucket" << "norm" << "key" << "rand";
+
+  int  len   = 11;
+  bool first = true;
+
+  for (const auto &fnName : fnNames) {
+    if (! first) {
+      tip += ", ";
+      len += 2;
+    }
+
+    tip += fnName;
+    len += fnName.size();
+
+    if (len > 60) {
+      tip += "\n";
+
+      len   = 0;
+      first = true;
+    }
+    else
+      first = false;
+  }
+
+  setToolTip(tip);
 }
 
 void

@@ -83,7 +83,8 @@ bool
 CQChartsViewToolTip::
 isHideKey(int key, Qt::KeyboardModifiers mod) const
 {
-  if (key == Qt::Key_Tab || key == Qt::Key_Backtab || key == Qt::Key_F1)
+  if (key == Qt::Key_Tab || key == Qt::Key_Backtab ||
+      key == Qt::Key_F1 || key == Qt::Key_Question)
     return false;
 
   return CQToolTipIFace::isHideKey(key, mod);
@@ -160,7 +161,8 @@ bool
 CQChartsViewFloatTip::
 isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const
 {
-  if (key == Qt::Key_Tab || key == Qt::Key_Backtab || key == Qt::Key_F1)
+  if (key == Qt::Key_Tab || key == Qt::Key_Backtab ||
+      key == Qt::Key_F1 || key == Qt::Key_Question)
     return true;
 
   return CQFloatTip::isIgnoreKey(key, modifiers);

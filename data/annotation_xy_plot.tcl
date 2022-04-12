@@ -55,4 +55,7 @@ for {set i 0} {$i <= $n} {incr i} {
   set sp [create_charts_point_annotation -plot $plot -position [lindex $spoints $i]]
 }
 
+set_charts_property -plot $plot -name xaxis.visible -value 1
+set_charts_property -plot $plot -name yaxis.visible -value 1
+
 set_charts_property -plot $plot -name xaxis.position.value -value 0.0

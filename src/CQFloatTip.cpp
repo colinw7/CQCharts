@@ -478,11 +478,19 @@ eventFilter(QObject *o, QEvent *e)
   switch (e->type()) {
     case QEvent::KeyPress:
     case QEvent::KeyRelease: {
-      if (widget == widget_) {
-        auto *ke = static_cast<QKeyEvent *>(e);
+      int  key = static_cast<QKeyEvent *>(e)->key();
+      auto mod = static_cast<QKeyEvent *>(e)->modifiers();
 
-        if (! isIgnoreKey(Qt::Key(ke->key()), ke->modifiers()))
+      // ignore modifier key presses
+      if (key == Qt::Key_Shift || key == Qt::Key_Control ||
+          key == Qt::Key_Alt   || key == Qt::Key_Meta)
+        break;
+
+      if (widget == widget_) {
+        if (! isIgnoreKey(Qt::Key(key), mod))
           hideLater();
+        else
+          startHideTimer();
       }
 
       break;

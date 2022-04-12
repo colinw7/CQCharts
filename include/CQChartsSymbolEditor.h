@@ -6,17 +6,20 @@
 
 #include <QFrame>
 
-class CQChartsViewSettings;
+class CQCharts;
 
 class CQChartsSymbolEditor : public QFrame {
   Q_OBJECT
+
+  Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
 
  public:
   using Symbol = CQChartsSymbol;
 
  public:
-  CQChartsSymbolEditor(CQChartsViewSettings *viewSettings);
+  CQChartsSymbolEditor(CQCharts *charts=nullptr);
 
+  const Symbol &symbol() const { return symbol_; }
   void setSymbol(const Symbol &symbol);
 
   //--
@@ -59,18 +62,18 @@ class CQChartsSymbolEditor : public QFrame {
   using Points      = std::vector<Point>;
   using PointsArray = std::vector<Points>;
 
-  CQChartsViewSettings* viewSettings_  { nullptr };
-  Symbol                symbol_;
-  CQChartsDisplayRange  range_;
-  PointsArray           pointsArray_;
-  QPointF               pressPos_;
-  QPointF               pointPos_;
-  QPointF               mousePos_;
-  int                   mouseArrayInd_ { 0 };
-  int                   mouseInd_      { 0 };
-  bool                  pressed_       { false };
-  bool                  escape_        { false };
-  Qt::MouseButton       button_        { Qt::LeftButton };
+  CQCharts*            charts_        { nullptr };
+  Symbol               symbol_;
+  CQChartsDisplayRange range_;
+  PointsArray          pointsArray_;
+  QPointF              pressPos_;
+  QPointF              pointPos_;
+  QPointF              mousePos_;
+  int                  mouseArrayInd_ { 0 };
+  int                  mouseInd_      { 0 };
+  bool                 pressed_       { false };
+  bool                 escape_        { false };
+  Qt::MouseButton      button_        { Qt::LeftButton };
 };
 
 #endif

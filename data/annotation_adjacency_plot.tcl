@@ -40,6 +40,7 @@ set nn1 [expr {$nn + 1}]
 
 set plot [create_charts_plot -model $model -type empty -xmin 0 -xmax $nn1 -ymin 0 -ymax $nn1]
 
+set_charts_property -plot $plot -name xaxis.visible                -value true
 set_charts_property -plot $plot -name xaxis.valueType              -value INTEGER
 set_charts_property -plot $plot -name xaxis.majorIncrement         -value 1
 set_charts_property -plot $plot -name xaxis.ticks.label.text.font  -value -8
@@ -47,6 +48,7 @@ set_charts_property -plot $plot -name xaxis.ticks.label.text.angle -value 90
 set_charts_property -plot $plot -name xaxis.grid.middle           -value 1
 set_charts_property -plot $plot -name xaxis.grid.lines            -value MAJOR
 
+set_charts_property -plot $plot -name yaxis.visible               -value true
 set_charts_property -plot $plot -name yaxis.valueType             -value INTEGER
 set_charts_property -plot $plot -name yaxis.majorIncrement        -value 1
 set_charts_property -plot $plot -name yaxis.ticks.label.text.font -value -8
@@ -84,7 +86,7 @@ foreach edge $edges {
 
   set ind [list $plot $row 0]
 
-  set_charts_property -annotation $rect -name index -value $ind
+  set_charts_property -annotation $rect -name modelIndex -value $ind
 }
 
 set_charts_data -plot $plot -object $xaxis_obj -name tick_label -value [list 0 {}]

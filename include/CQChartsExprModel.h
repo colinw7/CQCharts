@@ -89,6 +89,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Values     = std::vector<QVariant>;
   using Rows       = std::vector<int>;
   using NameValues = std::map<QString, QVariant>;
+  using FnNames    = std::set<QString>;
 
  public:
   CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model);
@@ -188,6 +189,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool checkIndex(int row, int col) const;
 
   virtual QVariant processCmd(const QString &name, const Values &values);
+
+  //---
+
+  const FnNames &fnNames() const { return fnNames_; }
 
  private:
   bool calcColumnRange(int column, double &minVal, double &maxVal);
@@ -328,6 +333,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QAbstractItemModel*  model_      { nullptr }; //!< child data model
   CQChartsExprTcl*     qtcl_       { nullptr }; //!< tcl expression
   TclCmds              tclCmds_;                //!< tcl commands
+  FnNames              fnNames_;                //!< function names
   bool                 editable_   { true };    //!< is editable
   bool                 debug_      { false };   //!< is debug
   ExtraColumns         extraColumns_;           //!< extra columns

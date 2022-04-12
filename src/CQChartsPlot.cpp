@@ -40,6 +40,7 @@
 #include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsModelColumnDataControl.h>
 #include <CQChartsModelExprControl.h>
+#include <CQChartsModelControl.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -4558,6 +4559,41 @@ updateColorMapKey() const
       uniqueCounts = columnDetails->uniqueCounts();
     }
   }
+
+  //---
+
+#if 0
+  if (hasSkipColors()) {
+    int          numUnique1 = 0;
+    QVariantList uniqueValues1;
+    QVariantList uniqueCounts1;
+
+    bool changed = false;
+
+    int iv = 0;
+
+    for (const auto &v : uniqueValues) {
+      auto n = uniqueCounts[iv].toInt();
+
+      if (int(numSkipColors(v)) != n) {
+        ++numUnique1;
+
+        uniqueValues1.push_back(v);
+        uniqueCounts1.push_back(n);
+
+        changed = true;
+      }
+
+      ++iv;
+    }
+
+    if (changed) {
+      numUnique    = numUnique1;
+      uniqueValues = uniqueValues1;
+      uniqueCounts = uniqueCounts1;
+    }
+  }
+#endif
 
   //---
 
@@ -15041,27 +15077,36 @@ initWidgetAnnotation(const Widget &widget)
     if (modelHolder)
       modelHolder->setModel(model(), isHierarchical());
 
-    auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget);
+#if 0
+    auto *modelDetailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget);
 
-    if (detailsTable)
-      detailsTable->setModelData(modelData);
+    if (modelDetailsTable)
+      modelDetailsTable->setModelData(modelData);
 
-    auto *detailsWidget = dynamic_cast<CQChartsModelDetailsWidget *>(widget);
+    auto *modelDetailsWidget = dynamic_cast<CQChartsModelDetailsWidget *>(widget);
 
-    if (detailsWidget)
-      detailsWidget->setModelData(modelData);
+    if (modelDetailsWidget)
+      modelDetailsWidget->setModelData(modelData);
+#endif
 
     //---
 
-    auto *modelControlData = dynamic_cast<CQChartsModelColumnDataControl *>(widget);
+#if 0
+    auto *modelColumnDataControl = dynamic_cast<CQChartsModelColumnDataControl *>(widget);
 
-    if (modelControlData)
-      modelControlData->setModelData(modelData);
+    if (modelColumnDataControl)
+      modelColumnDataControl->setModelData(modelData);
 
-    auto *modelExpr = dynamic_cast<CQChartsModelExprControl *>(widget);
+    auto *modelExprControl = dynamic_cast<CQChartsModelExprControl *>(widget);
 
-    if (modelExpr)
-      modelExpr->setModelData(modelData);
+    if (modelExprControl)
+      modelExprControl->setModelData(modelData);
+
+    auto *modelControl = dynamic_cast<CQChartsModelControl *>(widget);
+
+    if (modelControl)
+      modelControl->setModelData(modelData);
+#endif
   }
 }
 

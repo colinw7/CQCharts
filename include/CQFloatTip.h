@@ -64,7 +64,7 @@ class CQFloatTip : public QFrame {
 
   //! get/set bar style
   const BarStyle &barStyle() const { return barStyle_; }
-  void setBarStyle(const BarStyle &v);
+  void setBarStyle(const BarStyle &s);
 
   double hideSecs() const { return hideSecs_; }
   void setHideSecs(double r) { hideSecs_ = r; }

@@ -3,6 +3,8 @@
 
 #ifdef CQCHARTS_FOLDED_MODEL
 
+#include <CQChartsWidgetIFace.h>
+
 #include <QFrame>
 #include <QSharedPointer>
 
@@ -18,7 +20,7 @@ class QCheckBox;
  * \brief Widget to allow User to Fold Model Data by Column
  * \ingroup Charts
  */
-class CQChartsModelFoldControl : public QFrame {
+class CQChartsModelFoldControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
@@ -28,7 +30,7 @@ class CQChartsModelFoldControl : public QFrame {
   CQChartsModelFoldControl(QWidget *parent=nullptr);
 
   CQChartsModelData *modelData() const { return modelData_; }
-  void setModelData(CQChartsModelData *modelData);
+  void setModelData(CQChartsModelData *modelData) override;
 
  private slots:
   void applySlot();

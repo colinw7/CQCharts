@@ -59,6 +59,9 @@ const CQChartsColumnType *
 CQChartsColumnTypeCombo::
 columnType() const
 {
+  if (! charts_)
+    return nullptr;
+
   auto *columnTypeMgr = charts_->columnTypeMgr();
 
   auto typeStr = this->currentText();
