@@ -1900,7 +1900,10 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
 
   QFontMetricsF fm(font);
 
-  double ellipsisWidth = fm.horizontalAdvance("...");
+  auto ellipseStr = QString(QChar(0x2026));
+  //auto ellipseStr = "...";
+
+  double ellipsisWidth = fm.horizontalAdvance(ellipseStr);
 
   if (ellipsisWidth > clipLength)
     return "";
@@ -1970,9 +1973,9 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
   QString text1;
 
   if      (clipElide == Qt::ElideLeft)
-    text1 = "..." + text.right(midLen);
+    text1 = ellipseStr + text.right(midLen);
   else if (clipElide == Qt::ElideRight)
-    text1 = text.left(midLen) + "...";
+    text1 = text.left(midLen) + ellipseStr;
   else
     assert(false);
 

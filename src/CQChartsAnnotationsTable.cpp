@@ -5,13 +5,18 @@
 #include <CQChartsVariant.h>
 #include <CQChartsCreateAnnotationDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQGroupBox.h>
-#include <CQChartsWidgetUtil.h>
+#include <CQTabSplit.h>
 
 #include <QHeaderView>
 #include <QPushButton>
 #include <QPainter>
+#include <QFileDialog>
+#include <QDir>
+
+#include <fstream>
 
 CQChartsAnnotationDelegate::
 CQChartsAnnotationDelegate(CQChartsAnnotationsTable *table) :
@@ -55,10 +60,159 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
 //---
 
+CQChartsAnnotationsControl::
+CQChartsAnnotationsControl(QWidget *parent) :
+ QFrame(parent)
+{
+  setObjectName("annotationsControl");
+
+  //---
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //--
+
+  split_ = CQUtil::makeWidget<CQTabSplit>("annotationsSplit");
+
+  split_->setOrientation(Qt::Vertical);
+  split_->setGrouped(true);
+
+  layout->addWidget(split_);
+
+  //----
+
+  auto createPushButton = [&](const QString &label, const QString &objName,
+                              const char *slotName, const QString &tip) {
+    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  //---
+
+  // view annotations control
+  viewTable_ = new CQChartsViewAnnotationsControl;
+
+  split_->addWidget(viewTable_, "View");
+
+  //---
+
+  // plot annotations control
+  plotTable_ = new CQChartsPlotAnnotationsControl;
+
+  split_->addWidget(plotTable_, "Plot");
+
+  //--
+
+  split_->setSizes(QList<int>({INT_MAX, INT_MAX}));
+
+  //--
+
+  // create view/plot annotation buttons
+  auto *controlGroup  = CQUtil::makeLabelWidget<CQGroupBox>("View/Plot Control", "controlGroup");
+  auto *controlLayout = CQUtil::makeLayout<QHBoxLayout>(controlGroup, 2, 2);
+
+  layout->addWidget(controlGroup);
+
+  auto *writeButton =
+    createPushButton("Write", "write", SLOT(writeAnnotationSlot()),
+                     "Write View and Plot Annotations");
+
+  controlLayout->addWidget(writeButton);
+  controlLayout->addStretch(1);
+}
+
+void
+CQChartsAnnotationsControl::
+setView(CQChartsView *view)
+{
+  if (view_)
+    disconnect(view_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+
+  view_ = view;
+
+  viewTable_->setView(view_);
+
+  if (view_)
+    connect(view_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+}
+
+void
+CQChartsAnnotationsControl::
+setPlot(CQChartsPlot *plot)
+{
+  if (plot_)
+    disconnect(plot_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+
+  plot_ = plot;
+
+  plotTable_->setPlot(plot_);
+
+  if (plot_)
+    connect(plot_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+}
+
+void
+CQChartsAnnotationsControl::
+updateAnnotations()
+{
+  viewTable_->setView(view_);
+
+  //---
+
+  auto plotName = (plot_ ? QString("Plot %1").arg(plot_->id()) : "Plot");
+
+  split_->setWidgetName(plotTable_, plotName);
+
+  plotTable_->setPlot(plot_);
+}
+
+void
+CQChartsAnnotationsControl::
+writeAnnotationSlot()
+{
+  if (! view_) return;
+
+  auto dir = QDir::current().dirName() + "/annotation.tcl";
+
+  auto filename = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
+  if (! filename.length()) return; // cancelled
+
+  auto fs = std::ofstream(filename.toStdString(), std::ofstream::out);
+
+  //---
+
+  const auto &viewAnnotations = view_->annotations();
+
+  for (const auto &annotation : viewAnnotations)
+    annotation->write(fs);
+
+  //---
+
+  CQChartsView::Plots plots;
+
+  view_->getPlots(plots);
+
+  for (const auto &plot : plots) {
+    const auto &plotAnnotations = plot->annotations();
+
+    for (const auto &annotation : plotAnnotations)
+      annotation->write(fs);
+  }
+}
+
+//---
+
 CQChartsViewAnnotationsControl::
 CQChartsViewAnnotationsControl(QWidget *parent) :
  QFrame(parent)
 {
+  setObjectName("viewAnnotationsControl");
+
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //--
@@ -283,6 +437,8 @@ CQChartsPlotAnnotationsControl::
 CQChartsPlotAnnotationsControl(QWidget *parent) :
  QFrame(parent)
 {
+  setObjectName("plotAnnotationsControl");
+
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //--

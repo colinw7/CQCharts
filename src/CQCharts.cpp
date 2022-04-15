@@ -782,6 +782,8 @@ init()
 
     // annotations
     widgetMgr->addWidgetFactoryNoArgsT<
+      CQChartsAnnotationsControl>("CQChartsAnnotationsControl");
+    widgetMgr->addWidgetFactoryNoArgsT<
       CQChartsViewAnnotationsControl>("CQChartsViewAnnotationsControl");
     widgetMgr->addWidgetFactoryNoArgsT<
       CQChartsPlotAnnotationsControl>("CQChartsPlotAnnotationsControl");
@@ -828,6 +830,7 @@ init()
     widgetMgr->addWidgetFactoryNoArgsT<CQChartsSymbolsListControl>("CQChartsSymbolsListControl");
     widgetMgr->addWidgetFactoryNoArgsT<CQChartsSymbolEditor      >("CQChartsSymbolEditor"      );
 
+    widgetMgr->addWidgetFactoryNoArgsT<CQChartsLayerTableControl>("CQChartsLayerTableControl");
     widgetMgr->addWidgetFactoryNoArgsT<CQChartsViewLayerTable>("CQChartsViewLayerTable");
     widgetMgr->addWidgetFactoryNoArgsT<CQChartsPlotLayerTable>("CQChartsPlotLayerTable");
 

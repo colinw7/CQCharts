@@ -9,6 +9,8 @@
 
 #include <QItemDelegate>
 
+class CQChartsViewAnnotationsControl;
+class CQChartsPlotAnnotationsControl;
 class CQChartsViewAnnotationsTable;
 class CQChartsPlotAnnotationsTable;
 class CQChartsAnnotationsTable;
@@ -18,6 +20,7 @@ class CQChartsAnnotation;
 class CQChartsCreateAnnotationDlg;
 class CQChartsEditAnnotationDlg;
 
+class CQTabSplit;
 class QPushButton;
 
 //---
@@ -33,6 +36,35 @@ class CQChartsAnnotationDelegate : public QItemDelegate {
 
  private:
   CQChartsAnnotationsTable *table_ { nullptr };
+};
+
+//---
+
+class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
+  Q_OBJECT
+
+ public:
+  CQChartsAnnotationsControl(QWidget *parent=nullptr);
+
+  CQChartsView *view() const { return view_; }
+  void setView(CQChartsView *view) override;
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot) override;
+
+ private slots:
+  void updateAnnotations();
+
+  void writeAnnotationSlot();
+
+ private:
+  CQTabSplit *split_ { nullptr };
+
+  CQChartsView *view_ { nullptr };
+  CQChartsPlot *plot_ { nullptr };
+
+  CQChartsViewAnnotationsControl* viewTable_ { nullptr }; //!< view annotations table
+  CQChartsPlotAnnotationsControl* plotTable_ { nullptr }; //!< plot annotations table
 };
 
 //---
@@ -143,8 +175,8 @@ class CQChartsAnnotationsTable : public CQTableWidget {
   CQChartsAnnotation *itemAnnotation(QTableWidgetItem *item) const;
 
  protected:
-  CQChartsView*                           view_     { nullptr };
-  CQChartsPlot*                           plot_     { nullptr };
+  CQChartsView*               view_     { nullptr };
+  CQChartsPlot*               plot_     { nullptr };
   CQChartsAnnotationDelegate* delegate_ { nullptr };
 };
 

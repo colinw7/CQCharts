@@ -4,6 +4,154 @@
 #include <CQChartsVariant.h>
 
 #include <QHeaderView>
+#include <QPushButton>
+#include <QDialog>
+
+class CQChartsViewSettingsLayerImage : public QDialog {
+ public:
+  CQChartsViewSettingsLayerImage() {
+    setWindowTitle("Layer Image");
+  }
+
+  void setImage(const QImage &image) {
+    image_ = image;
+
+    setFixedSize(image_.size());
+  }
+
+  void paintEvent(QPaintEvent *) {
+    QPainter p(this);
+
+    p.drawImage(0, 0, image_);
+  }
+
+ private:
+  QImage image_;
+};
+
+//------
+
+CQChartsLayerTableControl::
+CQChartsLayerTableControl(QWidget *parent) :
+ QFrame(parent)
+{
+  setObjectName("layerTableControl");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //---
+
+  viewLayerTable_ = new CQChartsViewLayerTable;
+
+  viewLayerTable_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  layout->addWidget(viewLayerTable_);
+
+  //---
+
+  plotLayerTable_ = new CQChartsPlotLayerTable;
+
+  plotLayerTable_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  layout->addWidget(plotLayerTable_);
+
+  //---
+
+  auto *controlFrame  = CQUtil::makeWidget<QFrame>("control");
+  auto *controlLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame, 2, 2);
+
+  layout->addWidget(controlFrame);
+
+  //--
+
+  auto *viewImageButton = CQUtil::makeLabelWidget<QPushButton>("View Image", "viewImage");
+
+  viewImageButton->setToolTip("Show View Layer Image");
+
+  controlLayout->addWidget(viewImageButton);
+
+  connect(viewImageButton, SIGNAL(clicked()), this, SLOT(viewLayerImageSlot()));
+
+  //--
+
+  auto *plotImageButton = CQUtil::makeLabelWidget<QPushButton>("Plot Image", "plotImage");
+
+  plotImageButton->setToolTip("Show Plot Layer Image");
+
+  controlLayout->addWidget(plotImageButton);
+
+  connect(plotImageButton, SIGNAL(clicked()), this, SLOT(plotLayerImageSlot()));
+
+  //--
+
+  controlLayout->addStretch(1);
+}
+
+void
+CQChartsLayerTableControl::
+setView(CQChartsView *view)
+{
+  view_ = view;
+
+  viewLayerTable_->setView(view_);
+}
+
+void
+CQChartsLayerTableControl::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = plot;
+
+  plotLayerTable_->setPlot(plot_);
+}
+
+void
+CQChartsLayerTableControl::
+viewLayerImageSlot()
+{
+  static CQChartsViewSettingsLayerImage *layerImage;
+
+  //---
+
+  if (! view_) return;
+
+  auto *image = viewLayerTable_->selectedImage(view_);
+  if (! image) return;
+
+  //---
+
+  if (! layerImage)
+    layerImage = new CQChartsViewSettingsLayerImage;
+
+  layerImage->setImage(*image);
+
+  layerImage->show();
+}
+
+void
+CQChartsLayerTableControl::
+plotLayerImageSlot()
+{
+  static CQChartsViewSettingsLayerImage *layerImage;
+
+  //---
+
+  if (! plot_) return;
+
+  auto *image = plotLayerTable_->selectedImage(plot_);
+  if (! image) return;
+
+  //---
+
+  if (! layerImage)
+    layerImage = new CQChartsViewSettingsLayerImage;
+
+  layerImage->setImage(*image);
+
+  layerImage->show();
+}
+
+//------
 
 CQChartsViewLayerTable::
 CQChartsViewLayerTable()
@@ -15,6 +163,9 @@ CQChartsViewLayerTable()
 //setSelectionMode(ExtendedSelection);
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChangeSlot()));
+  connect(this, SIGNAL(cellClicked(int, int)), this, SLOT(clickedSlot(int, int)));
 }
 
 void
@@ -128,6 +279,25 @@ updateLayers(CQChartsView *view)
 
     rectItem->setText(rectStr);
   }
+}
+
+void
+CQChartsViewLayerTable::
+selectionChangeSlot()
+{
+}
+
+void
+CQChartsViewLayerTable::
+clickedSlot(int row, int column)
+{
+  if (! view_ || column != 1)
+    return;
+
+  if (row == 0)
+    view_->invalidateObjects();
+  else
+    view_->invalidateOverlay();
 }
 
 //---
@@ -246,7 +416,7 @@ updateLayers(CQChartsPlot *plot)
 
     auto type = CQChartsLayer::Type(l);
 
-    auto *layer = plot->getLayer(type);
+    auto *layer = (plot ? plot->getLayer(type) : nullptr);
 
     const auto *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
 
@@ -282,7 +452,7 @@ getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &acti
 
   type = CQChartsLayer::nameType(name);
 
-  auto *layer = plot->getLayer(type);
+  auto *layer = (plot ? plot->getLayer(type) : nullptr);
   if (! layer) return false;
 
   auto *stateItem = item(row, 1);
@@ -290,4 +460,36 @@ getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &acti
   active = (stateItem->checkState() == Qt::Checked);
 
   return true;
+}
+
+void
+CQChartsPlotLayerTable::
+selectionChangeSlot()
+{
+}
+
+void
+CQChartsPlotLayerTable::
+clickedSlot(int row, int column)
+{
+  if (! plot_ || column != 1)
+    return;
+
+  CQChartsLayer::Type type;
+  bool                active;
+
+  if (! getLayerState(plot_, row, type, active))
+    return;
+
+  auto *layer = plot_->getLayer(type);
+  if (! layer) return;
+
+  plot_->setLayerActive(type, active);
+
+  const auto *buffer = plot_->getBuffer(layer->buffer());
+
+  if (buffer->type() != CQChartsBuffer::Type::MIDDLE)
+    plot_->invalidateLayer(buffer->type());
+  else
+    plot_->drawObjs();
 }

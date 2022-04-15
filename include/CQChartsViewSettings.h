@@ -7,17 +7,20 @@ class CQChartsGlobalPropertiesWidget;
 class CQChartsViewPropertiesControl;
 class CQChartsPlotPropertiesControl;
 class CQChartsObjectPropertiesWidget;
-class CQChartsPropertyViewTreeFilterEdit;
 
 class CQChartsModelTableControl;
 class CQChartsModelDetailsWidget;
 
 class CQChartsPlotTableControl;
-class CQChartsViewAnnotationsControl;
-class CQChartsPlotAnnotationsControl;
+class CQChartsAnnotationsControl;
+class CQChartsLayerTableControl;
 
-class CQChartsViewLayerTable;
-class CQChartsPlotLayerTable;
+class CQChartsSymbolSetsList;
+class CQChartsSymbolsListControl;
+class CQChartsSymbolEditor;
+
+class CQChartsViewQuery;
+class CQChartsViewError;
 
 class CQChartsWindow;
 class CQChartsView;
@@ -25,10 +28,6 @@ class CQChartsPlot;
 class CQChartsAnnotation;
 class CQChartsPropertyViewTree;
 class CQChartsPlotCustomControls;
-class CQChartsSymbolSetsList;
-class CQChartsSymbolsListControl;
-class CQChartsSymbolEditor;
-class CQChartsViewError;
 class CQChartsPlotControlFrame;
 class CQCharts;
 
@@ -41,7 +40,7 @@ class CQTabWidget;
 class CQTabSplit;
 
 class QPushButton;
-class QTextEdit;
+class QVBoxLayout;
 class QTimer;
 
 /*!
@@ -95,8 +94,6 @@ class CQChartsViewSettings : public QFrame {
 
   void updatePlotControls();
 
-  void updateAnnotations();
-
   void symbolListSymbolChangeSlot();
 
   void updateLayers();
@@ -106,36 +103,25 @@ class CQChartsViewSettings : public QFrame {
   void updateErrorsSlot();
   void updateErrors();
 
-  void viewLayerImageSlot();
-  void plotLayerImageSlot();
-
   void updateSelection();
 
   void updateView();
 
   //---
 
-  void viewLayersSelectionChangeSlot();
-  void viewLayersClickedSlot(int, int);
-
-  void plotLayersSelectionChangeSlot();
-  void plotLayersClickedSlot(int, int);
-
-  //---
-
-  void writeAnnotationSlot();
-
-  //---
-
-  //void palettesComboSlot(int);
-  //void palettesResetSlot();
-
-  //void paletteColorsChangedSlot();
-
   void updatePalettes();
   void updateInterface();
 
  private:
+  struct FrameLayout {
+    QFrame*      frame  { nullptr };
+    QVBoxLayout* layout { nullptr };
+
+    FrameLayout(QFrame *frame, QVBoxLayout *layout) :
+     frame(frame), layout(layout) {
+    }
+  };
+
   void addWidgets();
 
   void initControlsFrame   (QFrame *controlsFrame);
@@ -156,24 +142,24 @@ class CQChartsViewSettings : public QFrame {
 
   CQTabSplit *createTabSplit(const QString &name, bool tabbed) const;
 
+  FrameLayout addSplitFrame(CQTabSplit *split, const QString &label, const QString &name) const;
+
  private:
   using GlobalPropertiesWidget = CQChartsGlobalPropertiesWidget;
   using ViewPropertiesControl  = CQChartsViewPropertiesControl;
   using PlotPropertiesControl  = CQChartsPlotPropertiesControl;
   using ObjectPropertiesWidget = CQChartsObjectPropertiesWidget;
 
-  using FilterEdit           = CQChartsPropertyViewTreeFilterEdit;
   using ModelTable           = CQChartsModelTableControl;
   using ModelDetailsWidget   = CQChartsModelDetailsWidget;
   using PlotTable            = CQChartsPlotTableControl;
-  using ViewAnnotationsTable = CQChartsViewAnnotationsControl;
-  using PlotAnnotationsTable = CQChartsPlotAnnotationsControl;
-  using ViewLayerTable       = CQChartsViewLayerTable;
-  using PlotLayerTable       = CQChartsPlotLayerTable;
+  using AnnotationsControl   = CQChartsAnnotationsControl;
+  using LayerTableControl    = CQChartsLayerTableControl;
   using PlotControlFrame     = CQChartsPlotControlFrame;
   using PlotCustomControls   = CQChartsPlotCustomControls;
   using SymbolSetsList       = CQChartsSymbolSetsList;
   using SymbolsList          = CQChartsSymbolsListControl;
+  using ViewQuery            = CQChartsViewQuery;
   using ViewError            = CQChartsViewError;
 
   struct PropertiesWidgets {
@@ -185,7 +171,6 @@ class CQChartsViewSettings : public QFrame {
 
   struct ModelsWidgets {
     ModelTable*         modelTable    { nullptr }; //!< model table widget
-    QFrame*             detailsFrame  { nullptr }; //!< model details frame widget
     ModelDetailsWidget* detailsWidget { nullptr }; //!< model details widget
   };
 
@@ -194,10 +179,7 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct AnnotationsWidgets {
-    CQTabSplit*           split       { nullptr }; //!< tab split
-    ViewAnnotationsTable* viewTable   { nullptr }; //!< view annotations table
-    PlotAnnotationsTable* plotTable   { nullptr }; //!< plot annotations table
-    QPushButton*          writeButton { nullptr }; //!< view and plot annotations write button
+    CQChartsAnnotationsControl* control { nullptr }; //!< annotations control
   };
 
   struct ObjectsWidgets {
@@ -212,8 +194,7 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct LayersWidgets {
-    ViewLayerTable* viewLayerTable { nullptr }; //!< view layer table widget
-    PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
+    LayerTableControl* layerTableControl { nullptr }; //!< layer table control
   };
 
  private:
@@ -237,9 +218,9 @@ class CQChartsViewSettings : public QFrame {
   ThemeWidgets          themeWidgets_;                   //!< theme widgets
   SymbolSetsList*       symbolSetsList_     { nullptr }; //!< symbol sets list
   SymbolsList*          symbolsList_        { nullptr }; //!< symbols list
-  CQChartsSymbolEditor* symbolEdit_         { nullptr };
+  CQChartsSymbolEditor* symbolEdit_         { nullptr }; //!< symbol editor
   LayersWidgets         layersWidgets_;                  //!< layers widgets
-  QTextEdit*            queryText_          { nullptr }; //!< query text
+  ViewQuery*            query_              { nullptr }; //!< query widget
   ViewError*            error_              { nullptr }; //!< error widget
 
   TabNum tabNum_; //!< current tab number
