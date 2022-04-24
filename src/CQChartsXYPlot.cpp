@@ -5091,39 +5091,50 @@ addWidgets()
 
   //---
 
+  addOptionsWidgets();
+
+  //---
+
+  addKeyList();
+}
+
+void
+CQChartsXYPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
   pointsCheck_ = makeOptionCheck("points");
   linesCheck_  = makeOptionCheck("lines");
 
-  addFrameColWidget(optionsFrame, pointsCheck_);
-  addFrameColWidget(optionsFrame, linesCheck_ );
-  addFrameSpacer   (optionsFrame);
+  addFrameColWidget(optionsFrame_, pointsCheck_);
+  addFrameColWidget(optionsFrame_, linesCheck_ );
+  addFrameSpacer   (optionsFrame_);
 
   fillUnderCheck_ = makeOptionCheck("fillUnder");
   stackedCheck_   = makeOptionCheck("stacked");
   impulseCheck_   = makeOptionCheck("impulse");
 
-  addFrameColWidget(optionsFrame, fillUnderCheck_);
-  addFrameColWidget(optionsFrame, stackedCheck_  );
-  addFrameColWidget(optionsFrame, impulseCheck_  );
-  addFrameSpacer   (optionsFrame);
+  addFrameColWidget(optionsFrame_, fillUnderCheck_);
+  addFrameColWidget(optionsFrame_, stackedCheck_  );
+  addFrameColWidget(optionsFrame_, impulseCheck_  );
+  addFrameSpacer   (optionsFrame_);
 
   bestFitCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"      , "bestFitCheck");
   hullCheck_          = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull"   , "hullCheck");
   movingAverageCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Moving Average", "movingAverageCheck");
 
-  addFrameColWidget(optionsFrame, bestFitCheck_      );
-  addFrameColWidget(optionsFrame, hullCheck_         );
-  addFrameColWidget(optionsFrame, movingAverageCheck_);
-  addFrameSpacer   (optionsFrame);
+  bestFitCheck_      ->setToolTip("Show Best Fit");
+  hullCheck_         ->setToolTip("Show Convex Hull");
+  movingAverageCheck_->setToolTip("Show Moving Average");
 
-  //addFrameSpacer(optionsFrame);
+  addFrameColWidget(optionsFrame_, bestFitCheck_      );
+  addFrameColWidget(optionsFrame_, hullCheck_         );
+  addFrameColWidget(optionsFrame_, movingAverageCheck_);
+  addFrameSpacer   (optionsFrame_);
 
-  //---
-
-  addKeyList();
+  //addFrameSpacer(optionsFrame_);
 }
 
 void

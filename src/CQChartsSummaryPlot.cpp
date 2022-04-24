@@ -2085,26 +2085,7 @@ addWidgets()
 
   //---
 
-  // options frame
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  plotTypeCombo_ = createEnumEdit("plotType");
-
-  diagonalTypeCombo_      = createEnumEdit("diagonalType");
-  upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");
-  lowerDiagonalTypeCombo_ = createEnumEdit("lowerDiagonalType");
-
-  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
-
-  addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
-  addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
-  addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
-
-  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit", "bestFitCheck");
-  densityCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Density" , "densityCheck");
-
-  addFrameColWidget(optionsFrame, bestFitCheck_);
-  addFrameColWidget(optionsFrame, densityCheck_);
+  addOptionsWidgets();
 
   //---
 
@@ -2119,6 +2100,35 @@ addWidgets()
   connect(expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
 
   layout_->addWidget(buttonFrame);
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+addOptionsWidgets()
+{
+  // options frame
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+
+  plotTypeCombo_ = createEnumEdit("plotType");
+
+  diagonalTypeCombo_      = createEnumEdit("diagonalType");
+  upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");
+  lowerDiagonalTypeCombo_ = createEnumEdit("lowerDiagonalType");
+
+  addFrameWidget(optionsFrame_, "Plot Type", plotTypeCombo_);
+
+  addFrameWidget(optionsFrame_, "Diagonal Type"  , diagonalTypeCombo_);
+  addFrameWidget(optionsFrame_, "Upper Cell Type", upperDiagonalTypeCombo_);
+  addFrameWidget(optionsFrame_, "Lower Cell Type", lowerDiagonalTypeCombo_);
+
+  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit", "bestFitCheck");
+  densityCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Density" , "densityCheck");
+
+  bestFitCheck_->setToolTip("Show Best Fit");
+  densityCheck_->setToolTip("Show Density");
+
+  addFrameColWidget(optionsFrame_, bestFitCheck_);
+  addFrameColWidget(optionsFrame_, densityCheck_);
 }
 
 void

@@ -757,6 +757,8 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -774,8 +776,11 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
   void valueSlot();
   void followViewSlot();
 
- private:
-  TreeMapPlot* plot_            { nullptr };
+ protected:
+  TreeMapPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   QCheckBox*   headerCheck_     { nullptr };
   QCheckBox*   valueCheck_      { nullptr };
   QCheckBox*   followViewCheck_ { nullptr };

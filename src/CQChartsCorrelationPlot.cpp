@@ -1318,16 +1318,23 @@ void
 CQChartsCorrelationPlotCustomControls::
 addWidgets()
 {
+  addOptionsWidgets();
+}
+
+void
+CQChartsCorrelationPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   diagonalTypeCombo_      = createEnumEdit("diagonalType");
   upperDiagonalTypeCombo_ = createEnumEdit("upperDiagonalType");
   lowerDiagonalTypeCombo_ = createEnumEdit("lowerDiagonalType");
 
-  addFrameWidget(optionsFrame, "Diagonal Type"  , diagonalTypeCombo_);
-  addFrameWidget(optionsFrame, "Upper Cell Type", upperDiagonalTypeCombo_);
-  addFrameWidget(optionsFrame, "Lower Cell Type", lowerDiagonalTypeCombo_);
+  addFrameWidget(optionsFrame_, "Diagonal Type"  , diagonalTypeCombo_);
+  addFrameWidget(optionsFrame_, "Upper Cell Type", upperDiagonalTypeCombo_);
+  addFrameWidget(optionsFrame_, "Lower Cell Type", lowerDiagonalTypeCombo_);
 }
 
 void

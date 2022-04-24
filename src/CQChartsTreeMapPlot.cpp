@@ -2460,16 +2460,23 @@ addWidgets()
 
   //---
 
+  addOptionsWidgets();
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   headerCheck_     = CQUtil::makeLabelWidget<QCheckBox>("Show Header", "headerCheck");
   valueCheck_      = CQUtil::makeLabelWidget<QCheckBox>("Show Value" , "valueCheck");
   followViewCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Follow View", "followViewCheck_");
 
-  addFrameColWidget(optionsFrame, headerCheck_);
-  addFrameColWidget(optionsFrame, valueCheck_);
-  addFrameColWidget(optionsFrame, followViewCheck_);
+  addFrameColWidget(optionsFrame_, headerCheck_);
+  addFrameColWidget(optionsFrame_, valueCheck_);
+  addFrameColWidget(optionsFrame_, followViewCheck_);
 }
 
 void

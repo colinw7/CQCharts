@@ -960,16 +960,23 @@ addWidgets()
 
   //---
 
+  addOptionsWidgets();
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   //---
 
   delaunayCheck_ = createBoolEdit("delaunay");
   voronoiCheck_  = createBoolEdit("voronoi" );
 
-  addFrameWidget(optionsFrame, "Delaunay", delaunayCheck_);
-  addFrameWidget(optionsFrame, "Voronoi" , voronoiCheck_ );
+  addFrameWidget(optionsFrame_, "Delaunay", delaunayCheck_);
+  addFrameWidget(optionsFrame_, "Voronoi" , voronoiCheck_ );
 }
 
 void

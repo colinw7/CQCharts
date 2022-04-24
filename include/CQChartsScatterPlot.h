@@ -970,6 +970,8 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void addSymbolLabelWidgets();
   void addFontSizeWidgets   ();
 
@@ -1000,8 +1002,10 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void fontSizeColumnSlot();
   void fontSizeRangeSlot(double, double);
 
- private:
+ protected:
   CQChartsScatterPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   QCheckBox* bestFitCheck_ { nullptr };
   QCheckBox* hullCheck_    { nullptr };

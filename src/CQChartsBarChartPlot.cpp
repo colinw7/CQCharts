@@ -2863,6 +2863,8 @@ addWidgets()
 
   labelCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Visible", "labelVisible");
 
+  labelCheck_->setToolTip("Show Bar Label");
+
   labelCornerLayout->addWidget(labelCheck_);
 
   labelColumnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>("labelColumnCombo");
@@ -2875,35 +2877,45 @@ addWidgets()
 
   //---
 
+  addGroupColumnWidgets();
+
+  //---
+
+  addOptionsWidgets();
+
+  //---
+
+  addColorColumnWidgets();
+
+  //---
+
+  addKeyList();
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   orientationCombo_ = createEnumEdit("orientation");
   plotTypeCombo_    = createEnumEdit("plotType");
   valueTypeCombo_   = createEnumEdit("valueType");
 
-  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
-  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
-  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
+  addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame_, "Plot Type"  , plotTypeCombo_);
+  addFrameWidget(optionsFrame_, "Value Type" , valueTypeCombo_);
 
   percentCheck_    = createBoolEdit("percent");
   skipEmptyCheck_  = createBoolEdit("skipEmpty");
   dotLinesCheck_   = createBoolEdit("dotLines");
   colorBySetCheck_ = createBoolEdit("colorBySet");
 
-  addFrameWidget(optionsFrame, "Percent"     , percentCheck_);
-  addFrameWidget(optionsFrame, "Skip Empty"  , skipEmptyCheck_);
-  addFrameWidget(optionsFrame, "Dot Lines"   , dotLinesCheck_);
-  addFrameWidget(optionsFrame, "Color by Set", colorBySetCheck_);
-
-  //---
-
-  addGroupColumnWidgets();
-  addColorColumnWidgets();
-
-  //---
-
-  addKeyList();
+  addFrameWidget(optionsFrame_, "Percent"     , percentCheck_);
+  addFrameWidget(optionsFrame_, "Skip Empty"  , skipEmptyCheck_);
+  addFrameWidget(optionsFrame_, "Dot Lines"   , dotLinesCheck_);
+  addFrameWidget(optionsFrame_, "Color by Set", colorBySetCheck_);
 }
 
 void

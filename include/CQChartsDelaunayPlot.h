@@ -264,6 +264,8 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -276,8 +278,11 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
   void delaunaySlot();
   void voronoiSlot();
 
- private:
-  CQChartsDelaunayPlot*      plot_          { nullptr };
+ protected:
+  CQChartsDelaunayPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   CQChartsBoolParameterEdit* delaunayCheck_ { nullptr };
   CQChartsBoolParameterEdit* voronoiCheck_  { nullptr };
 };

@@ -52,6 +52,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   virtual void addWidgets() { }
 
+  virtual void addOptionsWidgets() { }
+
   //---
 
   virtual CQChartsPlot *plot() const { return plot_; }

@@ -925,6 +925,8 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -945,8 +947,11 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   void dumbbellSlot ();
   void countSlot    ();
 
- private:
-  PiePlot*     plot_           { nullptr };
+ protected:
+  PiePlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   CQEnumCombo* drawTypeCombo_  { nullptr };
   QCheckBox*   separatedCheck_ { nullptr };
   QCheckBox*   donutCheck_     { nullptr };

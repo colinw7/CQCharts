@@ -200,6 +200,8 @@ addKeyList()
 
   keyGroup_->setCheckable(true);
 
+  keyGroup_->setToolTip("Show Key Table");
+
   connect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
 
   keyList_  = new CQChartsPlotCustomKey;

@@ -435,6 +435,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -455,8 +457,10 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void expandSlot();
 
- private:
+ protected:
   CQChartsSummaryPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };

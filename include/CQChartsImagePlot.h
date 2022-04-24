@@ -293,6 +293,8 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -304,8 +306,11 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
  protected slots:
   void cellStyleSlot();
 
- private:
-  CQChartsImagePlot*         plot_           { nullptr };
+ protected:
+  CQChartsImagePlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   CQChartsEnumParameterEdit* cellStyleCombo_ { nullptr };
 };
 

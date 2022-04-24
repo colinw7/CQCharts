@@ -4612,14 +4612,7 @@ addWidgets()
 
   //---
 
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
-  hullCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "hullCheck");
-
-  addFrameColWidget(optionsFrame, bestFitCheck_);
-  addFrameColWidget(optionsFrame, hullCheck_);
+  addOptionsWidgets();
 
   //---
 
@@ -4634,15 +4627,30 @@ addWidgets()
 
   //---
 
+  addKeyList();
+}
+
+void
+CQChartsScatterPlotCustomControls::
+addOptionsWidgets()
+{
+  // options group
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+
+  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
+  hullCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "hullCheck");
+
+  bestFitCheck_->setToolTip("Show Best Fit");
+  hullCheck_   ->setToolTip("Show Convex Hull");
+
+  addFrameColWidget(optionsFrame_, bestFitCheck_);
+  addFrameColWidget(optionsFrame_, hullCheck_);
+
 #if 0
   plotTypeCombo_ = createEnumEdit("plotType");
 
-  addFrameWidget(optionsFrame, "Plot Type", plotTypeCombo_);
+  addFrameWidget(optionsFrame_, "Plot Type", plotTypeCombo_);
 #endif
-
-  //---
-
-  addKeyList();
 }
 
 void
@@ -4656,6 +4664,8 @@ addSymbolLabelWidgets()
 
   symbolLabelGroup_->setTitle("Point Label");
   symbolLabelGroup_->setCheckable(true);
+
+  symbolLabelGroup_->setToolTip("Show per Point Labels");
 
   symbolLabelGroup_->setTitleScale(0.85);
   symbolLabelGroup_->setTitleColored(true);

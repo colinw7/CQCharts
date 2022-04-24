@@ -495,6 +495,8 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -511,9 +513,12 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
   void runningSlot(int);
   void stepSlot();
 
- private:
-  CQChartsForceDirectedPlot* plot_         { nullptr };
-  QCheckBox*                 runningCheck_ { nullptr };
+ protected:
+  CQChartsForceDirectedPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
+  QCheckBox* runningCheck_ { nullptr };
 };
 
 #endif

@@ -378,6 +378,8 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -393,8 +395,10 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
  protected slots:
   void orientationSlot();
 
- private:
+ protected:
   CQChartsParallelPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
 

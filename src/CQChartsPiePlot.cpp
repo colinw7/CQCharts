@@ -3792,19 +3792,31 @@ addWidgets()
   //---
 
   addGroupColumnWidgets();
-  addColorColumnWidgets();
 
   //---
 
+  addOptionsWidgets();
+
+  //---
+
+  addColorColumnWidgets();
+
+  addKeyList();
+}
+
+void
+CQChartsPiePlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
   drawTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("drawTypeCombo");
 
   drawTypeCombo_->setPropName("drawType");
   drawTypeCombo_->setToolTip("Draw Type");
 
-  addFrameColWidget(optionsFrame, drawTypeCombo_ );
+  addFrameColWidget(optionsFrame_, drawTypeCombo_ );
 
   separatedCheck_ = makeOptionCheck("separated");
   donutCheck_     = makeOptionCheck("donut");
@@ -3812,17 +3824,13 @@ addWidgets()
   dumbbellCheck_  = makeOptionCheck("dumbbell");
   countCheck_     = makeOptionCheck("count");
 
-  addFrameColWidget(optionsFrame, separatedCheck_);
-  addFrameColWidget(optionsFrame, donutCheck_);
-  addFrameColWidget(optionsFrame, summaryCheck_);
-  addFrameColWidget(optionsFrame, dumbbellCheck_);
-  addFrameColWidget(optionsFrame, countCheck_);
+  addFrameColWidget(optionsFrame_, separatedCheck_);
+  addFrameColWidget(optionsFrame_, donutCheck_);
+  addFrameColWidget(optionsFrame_, summaryCheck_);
+  addFrameColWidget(optionsFrame_, dumbbellCheck_);
+  addFrameColWidget(optionsFrame_, countCheck_);
 
-  addFrameColWidget(optionsFrame, CQChartsWidgetUtil::createHStretch());
-
-  //---
-
-  addKeyList();
+  addFrameColWidget(optionsFrame_, CQChartsWidgetUtil::createHStretch());
 }
 
 void

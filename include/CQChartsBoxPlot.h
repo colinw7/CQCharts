@@ -1010,6 +1010,8 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  public slots:
@@ -1034,8 +1036,10 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void violinSlot();
   void errorBarSlot();
 
- private:
+ protected:
   CQChartsBoxPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   CQEnumCombo* columnsTypeCombo_ { nullptr };
 

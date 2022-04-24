@@ -1728,22 +1728,29 @@ addWidgets()
 
   //---
 
+  addOptionsWidgets();
+
+  //---
+
+  addColorColumnWidgets("Line Color");
+}
+
+void
+CQChartsParallelPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   //---
 
   orientationCombo_ = createEnumEdit("orientation");
 
-  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
 
-  //addFrameRowStretch(optionsFrame);
+  //addFrameRowStretch(optionsFrame_);
 
   // lines selectable
-
-  //---
-
-  addColorColumnWidgets("Line Color");
 }
 
 void

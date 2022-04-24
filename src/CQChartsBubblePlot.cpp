@@ -1659,6 +1659,7 @@ addWidgets()
   //---
 
   addGroupColumnWidgets();
+
   addColorColumnWidgets();
 }
 

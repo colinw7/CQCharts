@@ -297,6 +297,8 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -310,8 +312,11 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
   void upperDiagonalTypeSlot();
   void lowerDiagonalTypeSlot();
 
- private:
-  CQChartsCorrelationPlot*   plot_                   { nullptr };
+ protected:
+  CQChartsCorrelationPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };
   CQChartsEnumParameterEdit* upperDiagonalTypeCombo_ { nullptr };
   CQChartsEnumParameterEdit* lowerDiagonalTypeCombo_ { nullptr };

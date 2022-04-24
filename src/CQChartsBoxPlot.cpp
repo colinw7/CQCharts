@@ -4054,20 +4054,39 @@ addWidgets()
 
   //---
 
+  addGroupColumnWidgets();
+
+  //---
+
+  addOptionsWidgets();
+
+  //---
+
+  addColorColumnWidgets("Point Color");
+
+  //---
+
+  addKeyList();
+}
+
+void
+CQChartsBoxPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   orientationCombo_ = createEnumEdit("orientation");
   pointsTypeCombo_  = createEnumEdit("pointsType");
 
-  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
-  addFrameWidget(optionsFrame, "Points Type", pointsTypeCombo_ );
+  addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame_, "Points Type", pointsTypeCombo_ );
 
   //---
 
   colorBySetCheck_ = createBoolEdit("colorBySet");
 
-  addFrameWidget(optionsFrame, "Color By Set", colorBySetCheck_);
+  addFrameWidget(optionsFrame_, "Color By Set", colorBySetCheck_);
 
   //---
 
@@ -4079,17 +4098,17 @@ addWidgets()
   auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
   auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 0, 2);
 
-  //auto *optionsFrame2  = CQUtil::makeWidget<QFrame>("optionsFrame2");
-  //auto *optionsLayout2 = CQUtil::makeLayout<QHBoxLayout>(optionsFrame2, 0, 2);
+//auto *optionsFrame2  = CQUtil::makeWidget<QFrame>("optionsFrame2");
+//auto *optionsLayout2 = CQUtil::makeLayout<QHBoxLayout>(optionsFrame2, 0, 2);
 
-  addFrameWidget(optionsFrame, optionsFrame1);
-  //addFrameWidget(optionsFrame, optionsFrame2);
+  addFrameWidget(optionsFrame_, optionsFrame1);
+//addFrameWidget(optionsFrame_, optionsFrame2);
 
   optionsLayout1->addWidget(normalizedCheck_, 0, 0);
   optionsLayout1->addWidget(notchedCheck_   , 0, 1);
 
-  //addFrameWidget(optionsFrame, "Normalized", normalizedCheck_);
-  //addFrameWidget(optionsFrame, "Notched"   , notchedCheck_);
+//addFrameWidget(optionsFrame_, "Normalized", normalizedCheck_);
+//addFrameWidget(optionsFrame_, "Notched"   , notchedCheck_);
 
   optionsLayout1->addWidget(violinCheck_  , 0, 2);
   optionsLayout1->addWidget(errorBarCheck_, 0, 3);
@@ -4097,22 +4116,8 @@ addWidgets()
   optionsLayout1->setColumnStretch(4, 1);
 //optionsLayout2->addStretch(1);
 
-  //addFrameWidget(optionsFrame, "Violin"   , violinCheck_);
-  //addFrameWidget(optionsFrame, "Error Bar", errorBarCheck_);
-
-  //---
-
-  //addFrameRowStretch(optionsFrame);
-
-  //---
-
-  addGroupColumnWidgets();
-
-  addColorColumnWidgets("Point Color");
-
-  //---
-
-  addKeyList();
+//addFrameWidget(optionsFrame_, "Violin"   , violinCheck_);
+//addFrameWidget(optionsFrame_, "Error Bar", errorBarCheck_);
 }
 
 void

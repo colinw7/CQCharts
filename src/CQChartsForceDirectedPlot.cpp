@@ -2646,12 +2646,7 @@ addWidgets()
 
   //---
 
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  runningCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Running", "runningCheck");
-
-  addFrameColWidget(optionsFrame, runningCheck_);
+  addOptionsWidgets();
 
   //---
 
@@ -2666,6 +2661,18 @@ addWidgets()
 
   buttonLayout->addWidget(stepButton);
   buttonLayout->addStretch(1);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+addOptionsWidgets()
+{
+  // options group
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+
+  runningCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Running", "runningCheck");
+
+  addFrameColWidget(optionsFrame_, runningCheck_);
 }
 
 void

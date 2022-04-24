@@ -1221,6 +1221,8 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -1239,8 +1241,10 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   void hullSlot(int);
   void movingAverageSlot(int);
 
- private:
+ protected:
   CQChartsXYPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   QCheckBox* pointsCheck_        { nullptr };
   QCheckBox* linesCheck_         { nullptr };

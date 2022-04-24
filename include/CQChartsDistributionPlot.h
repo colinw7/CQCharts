@@ -1146,6 +1146,8 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -1170,8 +1172,10 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void numBucketsSlot();
   void bucketStopsSlot();
 
- private:
+ protected:
   CQChartsDistributionPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };

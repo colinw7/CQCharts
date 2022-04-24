@@ -674,6 +674,8 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -699,8 +701,10 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void dotLinesSlot();
   void colorBySetSlot();
 
- private:
+ protected:
   CQChartsBarChartPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
 
   FrameData                  labelFrame_;
   QCheckBox*                 labelCheck_       { nullptr };

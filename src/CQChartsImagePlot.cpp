@@ -1050,12 +1050,19 @@ void
 CQChartsImagePlotCustomControls::
 addWidgets()
 {
+  addOptionsWidgets();
+}
+
+void
+CQChartsImagePlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   cellStyleCombo_ = createEnumEdit("cellStyle");
 
-  addFrameWidget(optionsFrame, "Cell Style", cellStyleCombo_);
+  addFrameWidget(optionsFrame_, "Cell Style", cellStyleCombo_);
 }
 
 void

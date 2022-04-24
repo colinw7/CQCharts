@@ -226,6 +226,8 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
+  void addOptionsWidgets() override;
+
   void setPlot(CQChartsPlot *plot) override;
 
  protected:
@@ -237,8 +239,11 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
  private slots:
   void drawTypeSlot();
 
- private:
-  CQChartsGridPlot*          plot_          { nullptr };
+ protected:
+  CQChartsGridPlot* plot_ { nullptr };
+
+  FrameData optionsFrame_;
+
   CQChartsEnumParameterEdit* drawTypeCombo_ { nullptr };
 };
 

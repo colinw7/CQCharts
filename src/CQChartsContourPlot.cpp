@@ -437,12 +437,19 @@ void
 CQChartsContourPlotCustomControls::
 addWidgets()
 {
+  addOptionsWidgets();
+}
+
+void
+CQChartsContourPlotCustomControls::
+addOptionsWidgets()
+{
   // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
   solidCheck_ = createBoolEdit("solid");
 
-  addFrameWidget(optionsFrame, "Solid", solidCheck_);
+  addFrameWidget(optionsFrame_, "Solid", solidCheck_);
 
   // TODO: num levels, palette
 }

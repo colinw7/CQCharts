@@ -5024,20 +5024,7 @@ addWidgets()
 
   //---
 
-  // options group
-  auto optionsFrame = createGroupFrame("Options", "optionsFrame");
-
-  //---
-
-  orientationCombo_ = createEnumEdit("orientation");
-  plotTypeCombo_    = createEnumEdit("plotType");
-  valueTypeCombo_   = createEnumEdit("valueType");
-
-  addFrameWidget(optionsFrame, "Orientation", orientationCombo_);
-  addFrameWidget(optionsFrame, "Plot Type"  , plotTypeCombo_);
-  addFrameWidget(optionsFrame, "Value Type" , valueTypeCombo_);
-
-  //addFrameRowStretch(optionsFrame);
+  addOptionsWidgets();
 
   //---
 
@@ -5103,11 +5090,34 @@ addWidgets()
   //---
 
   addGroupColumnWidgets();
-  addColorColumnWidgets ();
+
+  //--
+
+  addColorColumnWidgets();
 
   //---
 
   addKeyList();
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+addOptionsWidgets()
+{
+  // options group
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+
+  //---
+
+  orientationCombo_ = createEnumEdit("orientation");
+  plotTypeCombo_    = createEnumEdit("plotType");
+  valueTypeCombo_   = createEnumEdit("valueType");
+
+  addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
+  addFrameWidget(optionsFrame_, "Plot Type"  , plotTypeCombo_);
+  addFrameWidget(optionsFrame_, "Value Type" , valueTypeCombo_);
+
+  //addFrameRowStretch(optionsFrame_);
 }
 
 void

@@ -816,6 +816,7 @@ CQChartsStripPlotCustomControls::
 addWidgets()
 {
   addGroupColumnWidgets();
+
   addColorColumnWidgets();
 
   //---
