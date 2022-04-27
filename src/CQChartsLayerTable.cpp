@@ -6,6 +6,7 @@
 #include <QHeaderView>
 #include <QPushButton>
 #include <QDialog>
+#include <QPainter>
 
 class CQChartsViewSettingsLayerImage : public QDialog {
  public:

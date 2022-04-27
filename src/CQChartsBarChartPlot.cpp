@@ -2907,15 +2907,28 @@ addOptionsWidgets()
   addFrameWidget(optionsFrame_, "Plot Type"  , plotTypeCombo_);
   addFrameWidget(optionsFrame_, "Value Type" , valueTypeCombo_);
 
-  percentCheck_    = createBoolEdit("percent");
-  skipEmptyCheck_  = createBoolEdit("skipEmpty");
-  dotLinesCheck_   = createBoolEdit("dotLines");
+  //---
+
   colorBySetCheck_ = createBoolEdit("colorBySet");
 
-  addFrameWidget(optionsFrame_, "Percent"     , percentCheck_);
-  addFrameWidget(optionsFrame_, "Skip Empty"  , skipEmptyCheck_);
-  addFrameWidget(optionsFrame_, "Dot Lines"   , dotLinesCheck_);
-  addFrameWidget(optionsFrame_, "Color by Set", colorBySetCheck_);
+  addFrameWidget(optionsFrame_, "Color By Set", colorBySetCheck_);
+
+  //---
+
+  percentCheck_   = createBoolEdit("percent"  , /*choice*/false);
+  dotLinesCheck_  = createBoolEdit("dotLines" , /*choice*/false);
+  skipEmptyCheck_ = createBoolEdit("skipEmpty", /*choice*/false);
+
+  auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
+  auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 2, 2);
+
+  addFrameWidget(optionsFrame_, optionsFrame1);
+
+  optionsLayout1->addWidget(percentCheck_   , 0, 0);
+  optionsLayout1->addWidget(dotLinesCheck_  , 0, 1);
+  optionsLayout1->addWidget(skipEmptyCheck_ , 0, 2);
+
+  optionsLayout1->setColumnStretch(3, 1);
 }
 
 void

@@ -159,7 +159,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   CQChartsBoolParameterEdit *createBoolEdit(const QString &name, bool choice=true);
   CQChartsEnumParameterEdit *createEnumEdit(const QString &name);
 
-  QCheckBox *makeOptionCheck(const QString &param);
+  //QCheckBox *makeOptionCheck(const QString &param);
 
   void addKeyList();
 

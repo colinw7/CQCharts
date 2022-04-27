@@ -954,7 +954,6 @@ class CQChartsEnumParameterEdit;
 class CQChartsLengthEdit;
 class CQChartsFontSizeRangeSlider;
 class CQEnumCombo;
-class QCheckBox;
 
 /*!
  * \brief Scatter Plot plot custom controls
@@ -1007,8 +1006,8 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
   FrameData optionsFrame_;
 
-  QCheckBox* bestFitCheck_ { nullptr };
-  QCheckBox* hullCheck_    { nullptr };
+  CQChartsBoolParameterEdit* bestFitCheck_ { nullptr };
+  CQChartsBoolParameterEdit* hullCheck_    { nullptr };
 
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
   CQGroupBox*                symbolLabelGroup_ { nullptr };

@@ -952,12 +952,13 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   FrameData optionsFrame_;
 
-  CQEnumCombo* drawTypeCombo_  { nullptr };
-  QCheckBox*   separatedCheck_ { nullptr };
-  QCheckBox*   donutCheck_     { nullptr };
-  QCheckBox*   summaryCheck_   { nullptr };
-  QCheckBox*   dumbbellCheck_  { nullptr };
-  QCheckBox*   countCheck_     { nullptr };
+  CQEnumCombo* drawTypeCombo_ { nullptr };
+
+  CQChartsBoolParameterEdit* separatedCheck_ { nullptr };
+  CQChartsBoolParameterEdit* donutCheck_     { nullptr };
+  CQChartsBoolParameterEdit* summaryCheck_   { nullptr };
+  CQChartsBoolParameterEdit* dumbbellCheck_  { nullptr };
+  CQChartsBoolParameterEdit* countCheck_     { nullptr };
 };
 
 #endif

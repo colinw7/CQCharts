@@ -18,6 +18,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsTextPlacer.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQCharts.h>
 
 #include <CQUtil.h>
@@ -26,7 +27,6 @@
 #include <CQPerfMonitor.h>
 
 #include <QMenu>
-#include <QCheckBox>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -62,6 +62,11 @@ addParameters()
   addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
   addBoolParameter("fillUnder" , "Fill Under", "fillUnderFilled").setTip("Fill Under Curve");
   addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Point Impulse");
+
+  addMiscParameters();
+
+  addBoolParameter("movingAverage", "Moving Average", "movingAverage").
+    setTip("Show moving average");
 
   endParameterGroup();
 
@@ -3800,7 +3805,7 @@ draw(PaintDevice *device) const
 {
   bool isVector = this->isVector();
 
-  if (! isVector)
+  if (! isVisible() && ! isVector)
     return;
 
   //---
@@ -5105,36 +5110,30 @@ addOptionsWidgets()
   // options group
   optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
 
-  pointsCheck_ = makeOptionCheck("points");
-  linesCheck_  = makeOptionCheck("lines");
+  pointsCheck_ = createBoolEdit("points", /*choice*/false);
+  linesCheck_  = createBoolEdit("lines" , /*choice*/false);
 
   addFrameColWidget(optionsFrame_, pointsCheck_);
   addFrameColWidget(optionsFrame_, linesCheck_ );
   addFrameSpacer   (optionsFrame_);
 
-  fillUnderCheck_ = makeOptionCheck("fillUnder");
-  stackedCheck_   = makeOptionCheck("stacked");
-  impulseCheck_   = makeOptionCheck("impulse");
+  fillUnderCheck_ = createBoolEdit("fillUnder", /*choice*/false);
+  stackedCheck_   = createBoolEdit("stacked"  , /*choice*/false);
+  impulseCheck_   = createBoolEdit("impulse"  , /*choice*/false);
 
   addFrameColWidget(optionsFrame_, fillUnderCheck_);
   addFrameColWidget(optionsFrame_, stackedCheck_  );
   addFrameColWidget(optionsFrame_, impulseCheck_  );
   addFrameSpacer   (optionsFrame_);
 
-  bestFitCheck_       = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"      , "bestFitCheck");
-  hullCheck_          = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull"   , "hullCheck");
-  movingAverageCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Moving Average", "movingAverageCheck");
-
-  bestFitCheck_      ->setToolTip("Show Best Fit");
-  hullCheck_         ->setToolTip("Show Convex Hull");
-  movingAverageCheck_->setToolTip("Show Moving Average");
+  bestFitCheck_       = createBoolEdit("bestFit"      , /*choice*/false);
+  hullCheck_          = createBoolEdit("convexHull"   , /*choice*/false);
+  movingAverageCheck_ = createBoolEdit("movingAverage", /*choice*/false);
 
   addFrameColWidget(optionsFrame_, bestFitCheck_      );
   addFrameColWidget(optionsFrame_, hullCheck_         );
   addFrameColWidget(optionsFrame_, movingAverageCheck_);
   addFrameSpacer   (optionsFrame_);
-
-  //addFrameSpacer(optionsFrame_);
 }
 
 void

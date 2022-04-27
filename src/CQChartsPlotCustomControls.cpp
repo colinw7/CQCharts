@@ -573,22 +573,6 @@ showKeyListSlot(bool b)
   plot_->setControlsKey(b);
 }
 
-CQChartsBoolParameterEdit *
-CQChartsPlotCustomControls::
-createBoolEdit(const QString &name, bool choice)
-{
-  auto *plotType = this->plotType();
-  assert(plotType);
-
-  const auto *parameter = plotType->getParameter(name);
-  assert(parameter && parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
-
-  const auto *bparameter = dynamic_cast<const CQChartsBoolParameter *>(parameter);
-  assert(bparameter);
-
-  return new CQChartsBoolParameterEdit(bparameter, choice);
-}
-
 CQChartsEnumParameterEdit *
 CQChartsPlotCustomControls::
 createEnumEdit(const QString &name)
@@ -605,6 +589,23 @@ createEnumEdit(const QString &name)
   return new CQChartsEnumParameterEdit(eparameter);
 }
 
+CQChartsBoolParameterEdit *
+CQChartsPlotCustomControls::
+createBoolEdit(const QString &name, bool choice)
+{
+  auto *plotType = this->plotType();
+  assert(plotType);
+
+  const auto *parameter = plotType->getParameter(name);
+  assert(parameter && parameter->type() == CQChartsPlotParameter::Type::BOOLEAN);
+
+  const auto *bparameter = dynamic_cast<const CQChartsBoolParameter *>(parameter);
+  assert(bparameter);
+
+  return new CQChartsBoolParameterEdit(bparameter, choice);
+}
+
+#if 0
 QCheckBox *
 CQChartsPlotCustomControls::
 makeOptionCheck(const QString &param)
@@ -621,6 +622,7 @@ makeOptionCheck(const QString &param)
 
   return check;
 }
+#endif
 
 void
 CQChartsPlotCustomControls::

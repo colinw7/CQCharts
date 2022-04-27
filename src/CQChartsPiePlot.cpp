@@ -12,8 +12,9 @@
 #include <CQChartsTextPlacer.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
-#include <CQCharts.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTreeMapPlace.h>
+#include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -3818,11 +3819,11 @@ addOptionsWidgets()
 
   addFrameColWidget(optionsFrame_, drawTypeCombo_ );
 
-  separatedCheck_ = makeOptionCheck("separated");
-  donutCheck_     = makeOptionCheck("donut");
-  summaryCheck_   = makeOptionCheck("summary");
-  dumbbellCheck_  = makeOptionCheck("dumbbell");
-  countCheck_     = makeOptionCheck("count");
+  separatedCheck_ = createBoolEdit("separated", /*choice*/false);
+  donutCheck_     = createBoolEdit("donut"    , /*choice*/false);
+  summaryCheck_   = createBoolEdit("summary"  , /*choice*/false);
+  dumbbellCheck_  = createBoolEdit("dumbbell" , /*choice*/false);
+  countCheck_     = createBoolEdit("count"    , /*choice*/false);
 
   addFrameColWidget(optionsFrame_, separatedCheck_);
   addFrameColWidget(optionsFrame_, donutCheck_);

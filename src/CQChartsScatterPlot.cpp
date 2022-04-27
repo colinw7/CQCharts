@@ -30,7 +30,6 @@
 #include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 #include <CQGroupBox.h>
-//#include <CQCheckBox.h>
 #include <CQEnumCombo.h>
 
 #include <QMenu>
@@ -72,6 +71,8 @@ addParameters()
 
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
     setTip("Show Label at Point").setPropPath("labels.visible");
+
+  addMiscParameters();
 
   endParameterGroup();
 
@@ -4637,11 +4638,8 @@ addOptionsWidgets()
   // options group
   optionsFrame_ = createGroupFrame("Options", "optionsFrame");
 
-  bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit"   , "bestFitCheck");
-  hullCheck_    = CQUtil::makeLabelWidget<QCheckBox>("Convex Hull", "hullCheck");
-
-  bestFitCheck_->setToolTip("Show Best Fit");
-  hullCheck_   ->setToolTip("Show Convex Hull");
+  bestFitCheck_ = createBoolEdit("bestFit"   , /*choice*/false);
+  hullCheck_    = createBoolEdit("convexHull", /*choice*/false);
 
   addFrameColWidget(optionsFrame_, bestFitCheck_);
   addFrameColWidget(optionsFrame_, hullCheck_);

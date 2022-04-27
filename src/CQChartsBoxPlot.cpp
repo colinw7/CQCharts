@@ -4098,26 +4098,14 @@ addOptionsWidgets()
   auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
   auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 0, 2);
 
-//auto *optionsFrame2  = CQUtil::makeWidget<QFrame>("optionsFrame2");
-//auto *optionsLayout2 = CQUtil::makeLayout<QHBoxLayout>(optionsFrame2, 0, 2);
-
   addFrameWidget(optionsFrame_, optionsFrame1);
-//addFrameWidget(optionsFrame_, optionsFrame2);
 
   optionsLayout1->addWidget(normalizedCheck_, 0, 0);
   optionsLayout1->addWidget(notchedCheck_   , 0, 1);
-
-//addFrameWidget(optionsFrame_, "Normalized", normalizedCheck_);
-//addFrameWidget(optionsFrame_, "Notched"   , notchedCheck_);
-
-  optionsLayout1->addWidget(violinCheck_  , 0, 2);
-  optionsLayout1->addWidget(errorBarCheck_, 0, 3);
+  optionsLayout1->addWidget(violinCheck_    , 0, 2);
+  optionsLayout1->addWidget(errorBarCheck_  , 0, 3);
 
   optionsLayout1->setColumnStretch(4, 1);
-//optionsLayout2->addStretch(1);
-
-//addFrameWidget(optionsFrame_, "Violin"   , violinCheck_);
-//addFrameWidget(optionsFrame_, "Error Bar", errorBarCheck_);
 }
 
 void

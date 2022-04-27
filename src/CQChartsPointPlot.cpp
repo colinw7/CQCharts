@@ -26,7 +26,7 @@ CQChartsPointPlotType::
 addMappingParameters()
 {
   // custom columns/map
-  startParameterGroup("Symbols");
+  startParameterGroup("Mapping");
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
     setTip("Custom Symbol Type").setMapped().
@@ -41,6 +41,16 @@ addMappingParameters()
     setMapMinMax(CQChartsFontSize::minValue(), CQChartsFontSize::maxValue());
 
   endParameterGroup();
+}
+
+void
+CQChartsPointPlotType::
+addMiscParameters()
+{
+  addBoolParameter("bestFit", "Best Fit", "bestFit").
+    setTip("Show best fit overlay");
+  addBoolParameter("convexHull", "Convex Hull", "convexHull").
+    setTip("Show convex hull overlay");
 }
 
 //---

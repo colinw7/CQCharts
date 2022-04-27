@@ -1246,14 +1246,15 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   FrameData optionsFrame_;
 
-  QCheckBox* pointsCheck_        { nullptr };
-  QCheckBox* linesCheck_         { nullptr };
-  QCheckBox* fillUnderCheck_     { nullptr };
-  QCheckBox* stackedCheck_       { nullptr };
-  QCheckBox* impulseCheck_       { nullptr };
-  QCheckBox* bestFitCheck_       { nullptr };
-  QCheckBox* hullCheck_          { nullptr };
-  QCheckBox* movingAverageCheck_ { nullptr };
+  CQChartsBoolParameterEdit* pointsCheck_    { nullptr };
+  CQChartsBoolParameterEdit* linesCheck_     { nullptr };
+  CQChartsBoolParameterEdit* fillUnderCheck_ { nullptr };
+  CQChartsBoolParameterEdit* stackedCheck_   { nullptr };
+  CQChartsBoolParameterEdit* impulseCheck_   { nullptr };
+
+  CQChartsBoolParameterEdit* bestFitCheck_       { nullptr };
+  CQChartsBoolParameterEdit* hullCheck_          { nullptr };
+  CQChartsBoolParameterEdit* movingAverageCheck_ { nullptr };
 };
 
 #endif

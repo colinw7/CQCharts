@@ -52,6 +52,7 @@ CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
 CQChartsProbeBand.cpp \
 \
+CQChartsViewGLWidget.cpp \
 CQChartsSymbolEditor.cpp \
 \
 CQChartsPlotType.cpp \
@@ -454,6 +455,7 @@ HEADERS += \
 ../include/CQChartsViewToolTip.h \
 ../include/CQChartsProbeBand.h \
 \
+../include/CQChartsViewGLWidget.h \
 ../include/CQChartsSymbolEditor.h \
 \
 ../include/CQChartsPlotType.h \

@@ -28,6 +28,7 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
   QString yColumnName() const override { return "y"; }
 
   void addMappingParameters();
+  void addMiscParameters();
 };
 
 //---
