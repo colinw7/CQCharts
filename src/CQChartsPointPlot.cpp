@@ -51,6 +51,8 @@ addMiscParameters()
     setTip("Show best fit overlay");
   addBoolParameter("convexHull", "Convex Hull", "convexHull").
     setTip("Show convex hull overlay");
+  addBoolParameter("statsLines", "Stats Lines", "statsLines").
+    setTip("Show statistics lines overlay");
 }
 
 //---
@@ -60,7 +62,7 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
  CQChartsGroupPlot(view, plotType, model),
  CQChartsObjBestFitShapeData<CQChartsPointPlot>(this),
  CQChartsObjHullShapeData   <CQChartsPointPlot>(this),
- CQChartsObjStatsLineData   <CQChartsPointPlot>(this)
+ CQChartsObjStatsShapeData  <CQChartsPointPlot>(this)
 {
 }
 
@@ -131,7 +133,9 @@ init()
 
   // stats
   setStatsLines(false);
-  setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
+  setStatsStrokeDash(LineDash(LineDash::Lengths({2, 2}), 0));
+  setStatsFillColor(Color::makePalette());
+  setStatsFillAlpha(Alpha(0.3));
 
   //---
 
@@ -286,9 +290,10 @@ addStatsProperties()
   auto propPath = QString("overlays/statsData");
 
   // stats
-  addProp(propPath, "statsLines", "visible", "Statistic lines visible");
+  addProp(propPath, "statsLines", "visible", "Stats lines visible");
 
-  addLineProperties(propPath + "/stroke", "statsLines", "Statistic lines");
+  addFillProperties(propPath + "/fill"  , "statsFill"  , "Stats lines");
+  addLineProperties(propPath + "/stroke", "statsStroke", "Stats lines");
 }
 
 void
@@ -638,18 +643,24 @@ CQChartsLength
 CQChartsPointPlot::
 dataLabelFontSize() const
 {
-  double dataLabelFontSize = dataLabelFont().pointSizeF();
+  if (dataLabelFontSize_.value() < 0) {
+    double dataLabelFontSize = dataLabelFont().pointSizeF();
 
-  return Length::pixel(dataLabelFontSize);
+    return Length::pixel(dataLabelFontSize);
+  }
+  else
+    return dataLabelFontSize_;
 }
 
 void
 CQChartsPointPlot::
 setDataLabelFontSize(const Length &length)
 {
+  dataLabelFontSize_ = length;
+
   auto f = dataLabelFont();
 
-  f.setPointSizeF(lengthPixelHeight(length));
+  f.setPointSizeF(lengthPixelHeight(dataLabelFontSize_));
 
   setDataLabelFont(f);
 }
@@ -964,13 +975,11 @@ indPoints(const QVariant &var, int isGroup) const
 
 void
 CQChartsPointPlot::
-setStatsLinesSlot(bool b)
+setStatsLines(bool b)
 {
-  if (b != isStatsLines()) {
-    setStatsLines(b);
-
-    drawObjs();
-  }
+  CQChartsUtil::testAndSet(statsLines_, b, [&]() {
+    updateObjs(); emit customDataChanged();
+  } );
 }
 
 //---

@@ -1174,21 +1174,24 @@ void
 CQChartsRadarPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addColorColumnWidgets("Fill Color");
+
+  addKeyList();
+}
+
+void
+CQChartsRadarPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // name and values columns
-  addColumnWidgets(QStringList() << "name" << "values", columnsFrame);
-
-  //---
-
-  addColorColumnWidgets("Fill Color");
-
-  //---
-
-  addKeyList();
+  addNamedColumnWidgets(QStringList() << "name" << "values", columnsFrame);
 }
 
 void

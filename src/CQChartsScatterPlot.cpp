@@ -2500,7 +2500,7 @@ addMenuItems(QMenu *menu)
                               isBestFit   (), SLOT(setBestFit       (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Hull",
                               isHull      (), SLOT(setHull          (bool)));
-  (void) addMenuCheckedAction(overlaysMenu, "Statistic Lines",
+  (void) addMenuCheckedAction(overlaysMenu, "Stats Lines",
                               isStatsLines(), SLOT(setStatsLinesSlot(bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Density Map",
                               isDensityMap(), SLOT(setDensityMap    (bool)));
@@ -2796,7 +2796,8 @@ execDrawBackground(PaintDevice *device) const
   CQChartsPlot::execDrawBackground(device);
 
   // draw stats lines on background
-  if (isStatsLines()) drawStatsLines(device);
+  if (isStatsLines())
+    drawStatsLines(device);
 
   //---
 
@@ -2992,15 +2993,16 @@ drawStatsLines(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    setStatsLineDataPen(penBrush.pen, ic);
+    setStatsPenBrush(penBrush, ic);
 
     if (updateState)
-      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::BOX);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
+    // draw lines
     auto drawXStatLine = [&](double x) {
       Point p1(x, statData.ystat.loutlier);
       Point p2(x, statData.ystat.uoutlier);
@@ -3015,7 +3017,25 @@ drawStatsLines(PaintDevice *device) const
       device->drawLine(p1, p2);
     };
 
-    //---
+    auto fillRect = [&](const BBox &bbox, double f=1.0) {
+      double alpha = CQChartsDrawUtil::brushAlpha(penBrush.brush);
+      CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha*f);
+      device->fillRect(bbox);
+      CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha);
+    };
+
+    //--
+
+    fillRect(BBox(statData.xstat.loutlier, statData.ystat.loutlier,
+                  statData.xstat.uoutlier, statData.ystat.uoutlier), 0.3);
+    fillRect(BBox(statData.xstat.loutlier, statData.ystat.lowerMedian,
+                  statData.xstat.uoutlier, statData.ystat.upperMedian), 0.5);
+    fillRect(BBox(statData.xstat.lowerMedian, statData.ystat.loutlier,
+                  statData.xstat.upperMedian, statData.ystat.uoutlier), 0.5);
+    fillRect(BBox(statData.xstat.lowerMedian, statData.ystat.lowerMedian,
+                  statData.xstat.upperMedian, statData.ystat.upperMedian));
+
+    //--
 
     drawXStatLine(statData.xstat.loutlier   );
     drawXStatLine(statData.xstat.lowerMedian);
@@ -4601,34 +4621,32 @@ void
 CQChartsScatterPlotCustomControls::
 addWidgets()
 {
-  // columns group
-  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
-
-  addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
-//addColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
-
-  //---
+  addColumnWidgets();
 
   addGroupColumnWidgets();
 
-  //---
-
   addOptionsWidgets();
-
-  //---
 
   addColorColumnWidgets("Point Color");
   addSymbolSizeWidgets ();
   addSymbolLabelWidgets();
   addFontSizeWidgets   ();
 
-  //---
-
   // color, contrast, ...
 
-  //---
-
   addKeyList();
+}
+
+void
+CQChartsScatterPlotCustomControls::
+addColumnWidgets()
+{
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
+
+  addNamedColumnWidgets(QStringList() << "x" << "y", columnsFrame);
+
+//addNamedColumnWidgets(QStringList() << "x" << "y" << "name", columnsFrame);
 }
 
 void
@@ -4636,13 +4654,16 @@ CQChartsScatterPlotCustomControls::
 addOptionsWidgets()
 {
   // options group
-  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
 
   bestFitCheck_ = createBoolEdit("bestFit"   , /*choice*/false);
   hullCheck_    = createBoolEdit("convexHull", /*choice*/false);
+  statsCheck_   = createBoolEdit("statsLines", /*choice*/false);
 
-  addFrameColWidget(optionsFrame_, bestFitCheck_);
-  addFrameColWidget(optionsFrame_, hullCheck_);
+  addFrameColWidget (optionsFrame_, bestFitCheck_);
+  addFrameColWidget (optionsFrame_, hullCheck_);
+  addFrameColWidget (optionsFrame_, statsCheck_);
+  addFrameColStretch(optionsFrame_);
 
 #if 0
   plotTypeCombo_ = createEnumEdit("plotType");
@@ -4686,8 +4707,6 @@ addSymbolLabelWidgets()
   addFrameWidget(pointLabelsFrame, "Column"  , labelColumnCombo_);
   addFrameWidget(pointLabelsFrame, "Position", positionEdit_);
 
-//addFrameRowStretch(pointLabelsFrame);
-
   //---
 
   groupLayout->addWidget(pointLabelsFrame.frame);
@@ -4724,35 +4743,32 @@ void
 CQChartsScatterPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     hullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    statsCheck_, SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot()));
 
-  if (plotTypeCombo_)
-    CQChartsWidgetUtil::connectDisconnect(b,
-      plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
 
-  if (labelColumnCombo_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
-      symbolLabelGroup_, SIGNAL(clicked(bool)), this, SLOT(pointLabelsSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      positionEdit_, SIGNAL(currentIndexChanged(int)), this, SLOT(positionSlot()));
-  }
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    symbolLabelGroup_, SIGNAL(clicked(bool)), this, SLOT(pointLabelsSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    positionEdit_, SIGNAL(currentIndexChanged(int)), this, SLOT(positionSlot()));
 
-  if (fontSizeEdit_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
-      fontSizeControlGroup_, SIGNAL(groupChanged()), this, SLOT(fontSizeGroupChanged()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      fontSizeEdit_, SIGNAL(lengthChanged()), this, SLOT(fontSizeSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      fontSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(fontSizeColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
-      fontSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
-      this, SLOT(fontSizeRangeSlot(double, double)));
-  }
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    fontSizeControlGroup_, SIGNAL(groupChanged()), this, SLOT(fontSizeGroupChanged()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    fontSizeEdit_, SIGNAL(lengthChanged()), this, SLOT(fontSizeSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    fontSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(fontSizeColumnSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    fontSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
+    this, SLOT(fontSizeRangeSlot(double, double)));
 
   CQChartsPointPlotCustomControls::connectSlots(b);
 }
@@ -4761,15 +4777,15 @@ void
 CQChartsScatterPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  CQChartsWidgetUtil::optDisconnect(plot_, SIGNAL(customDataChanged()),
+                                    this, SLOT(updateWidgets()));
 
   plot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
 
   CQChartsPointPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  CQChartsWidgetUtil::optConnect(plot_, SIGNAL(customDataChanged()),
+                                 this, SLOT(updateWidgets()));
 }
 
 CQChartsColor
@@ -4794,8 +4810,9 @@ updateWidgets()
 
   //---
 
-  bestFitCheck_->setChecked(plot_->isBestFit());
-  hullCheck_   ->setChecked(plot_->isHull());
+  if (bestFitCheck_) bestFitCheck_->setChecked(plot_->isBestFit());
+  if (hullCheck_   ) hullCheck_   ->setChecked(plot_->isHull());
+  if (statsCheck_  ) statsCheck_  ->setChecked(plot_->isStatsLines());
 
   //---
 
@@ -4807,29 +4824,29 @@ updateWidgets()
   if (labelColumnCombo_) {
     bool hasLabelColumn = plot_->labelColumn().isValid();
 
-  //symbolLabelGroup_->setEnabled(hasLabelColumn);
-    positionEdit_    ->setEnabled(hasLabelColumn);
+  //if (symbolLabelGroup_) symbolLabelGroup_->setEnabled(hasLabelColumn);
+    if (positionEdit_    ) positionEdit_    ->setEnabled(hasLabelColumn);
 
-    symbolLabelGroup_->setChecked(plot_->isPointLabels());
-    labelColumnCombo_->setModelColumn(plot_->getModelData(), plot_->labelColumn());
-    positionEdit_    ->setObj(plot_->dataLabel());
+    if (symbolLabelGroup_) symbolLabelGroup_->setChecked(plot_->isPointLabels());
+    if (labelColumnCombo_) labelColumnCombo_->setModelColumn(plot_->getModelData(),
+                                                             plot_->labelColumn());
+    if (positionEdit_    ) positionEdit_    ->setObj(plot_->dataLabel());
   }
 
   //---
 
-  if (fontSizeEdit_) {
-    bool hasFontSizeColumn = plot_->fontSizeColumn().isValid();
+  bool hasFontSizeColumn = plot_->fontSizeColumn().isValid();
 
-    fontSizeEdit_ ->setEnabled(! hasFontSizeColumn);
-    fontSizeRange_->setEnabled(hasFontSizeColumn);
+  if (fontSizeEdit_ ) fontSizeEdit_ ->setEnabled(! hasFontSizeColumn);
+  if (fontSizeRange_) fontSizeRange_->setEnabled(hasFontSizeColumn);
 
-    fontSizeEdit_       ->setLength(plot_->dataLabelFontSize());
-    fontSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->fontSizeColumn());
-    fontSizeRange_      ->setPlot(plot_);
+  if (fontSizeEdit_       ) fontSizeEdit_       ->setLength(plot_->dataLabelFontSize());
+  if (fontSizeColumnCombo_) fontSizeColumnCombo_->setModelColumn(plot_->getModelData(),
+                                                                 plot_->fontSizeColumn());
+  if (fontSizeRange_      ) fontSizeRange_      ->setPlot(plot_);
 
-    if (hasFontSizeColumn)
-      fontSizeControlGroup_->setColumn();
-  }
+  if (fontSizeControlGroup_ && hasFontSizeColumn)
+    fontSizeControlGroup_->setColumn();
 
   //---
 
@@ -4852,6 +4869,13 @@ CQChartsScatterPlotCustomControls::
 convexHullSlot()
 {
   plot_->setHull(hullCheck_->isChecked());
+}
+
+void
+CQChartsScatterPlotCustomControls::
+statsLinesSlot()
+{
+  plot_->setStatsLines(statsCheck_->isChecked());
 }
 
 void

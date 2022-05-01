@@ -1341,11 +1341,11 @@ void
 CQChartsCorrelationPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     upperDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(upperDiagonalTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     lowerDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(lowerDiagonalTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

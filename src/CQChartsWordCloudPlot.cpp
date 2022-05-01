@@ -575,17 +575,22 @@ void
 CQChartsWordCloudPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addColorColumnWidgets("Text Color");
+}
+
+void
+CQChartsWordCloudPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // value and count columns
-  addColumnWidgets(QStringList() << "value" << "count", columnsFrame);
-
-  //---
-
-  addColorColumnWidgets("Text Color");
+  addNamedColumnWidgets(QStringList() << "value" << "count", columnsFrame);
 }
 
 void

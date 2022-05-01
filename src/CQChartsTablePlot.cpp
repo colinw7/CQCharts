@@ -2498,12 +2498,19 @@ void
 CQChartsTablePlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+}
+
+void
+CQChartsTablePlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "columns", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "columns", columnsFrame);
 }
 
 void

@@ -1956,7 +1956,8 @@ void
 CQChartsHierBubblePlotCustomControls::
 addWidgets()
 {
-  addHierColumnWidgets ();
+  addHierColumnWidgets();
+
   addColorColumnWidgets();
 }
 

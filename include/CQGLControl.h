@@ -4,7 +4,8 @@
 #include <QWidget>
 
 class CQGLControlToolBar;
-class CQToolButton;
+class CQIconButton;
+
 class QGLWidget;
 class QOpenGLWidget;
 
@@ -117,8 +118,8 @@ class CQGLControl : public QObject {
   int    mouse_x_      { 0 };
   int    mouse_y_      { 0 };
   bool   mouse_left_   { false };
-  double mouse_middle_ { false };
-  double mouse_right_  { false };
+  bool   mouse_middle_ { false };
+  bool   mouse_right_  { false };
   double drag_pos_x_   { 0.0 };
   double drag_pos_y_   { 0.0 };
   double drag_pos_z_   { 0.0 };
@@ -140,13 +141,13 @@ class CQGLControlToolBar : public QWidget {
   void stateChanged();
 
  private:
-  CQGLControl  *control_;
-  CQToolButton *depthButton_;
-  CQToolButton *cullButton_;
-  CQToolButton *lightButton_;
-  CQToolButton *outlineButton_;
-  CQToolButton *frontButton_;
-  CQToolButton *smoothButton_;
+  CQGLControl  *control_       { nullptr };
+  CQIconButton *depthButton_   { nullptr };
+  CQIconButton *cullButton_    { nullptr };
+  CQIconButton *lightButton_   { nullptr };
+  CQIconButton *outlineButton_ { nullptr };
+  CQIconButton *frontButton_   { nullptr };
+  CQIconButton *smoothButton_  { nullptr };
 };
 
 #endif

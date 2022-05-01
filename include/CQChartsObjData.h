@@ -1532,6 +1532,7 @@ class CQChartsObj##UNAME##ShapeData { \
   using FillPattern = CQChartsFillPattern; \
   using PenData     = CQChartsPenData; \
   using BrushData   = CQChartsBrushData; \
+  using PenBrush    = CQChartsPenBrush; \
   using ColorInd    = CQChartsUtil::ColorInd; \
   using ShapeData   = CQChartsShapeData; \
 \
@@ -1664,6 +1665,15 @@ class CQChartsObj##UNAME##ShapeData { \
     auto fillAlpha   = (! alpha  .isSet  () ? LNAME##FillAlpha  () : alpha); \
     auto fillPattern = (! pattern.isValid() ? LNAME##FillPattern() : pattern); \
     return BrushData(is##UNAME##Filled(), c, fillAlpha, fillPattern); \
+  } \
+\
+  void set##UNAME##PenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
+    LNAME##ShapeDataObj_->setPenBrush(penBrush, \
+      PenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(ind), \
+              LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash(), \
+              LNAME##StrokeCap(), LNAME##StrokeJoin()), \
+      BrushData(is##UNAME##Filled(), interp##UNAME##FillColor(ind), \
+                LNAME##FillAlpha(), LNAME##FillPattern())); \
   } \
 \
  private: \
@@ -2045,7 +2055,7 @@ class CQChartsObj##UNAME##BoxData { \
     LNAME##BoxData_ = data; LNAME##BoxDataInvalidate(); \
   }; \
 \
-  void set##UNAME##BoxDataPenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
+  void set##UNAME##PenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
     LNAME##BoxDataObj_->setPenBrush(penBrush, \
       PenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(ind), \
               LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash(), \
@@ -2075,7 +2085,7 @@ CQCHARTS_NAMED_FILL_DATA (Background, background)
 CQCHARTS_NAMED_SHAPE_DATA(Bar, bar)
 CQCHARTS_NAMED_TEXT_DATA (Header, header)
 CQCHARTS_NAMED_SHAPE_DATA(BestFit, bestFit)
-CQCHARTS_NAMED_LINE_DATA (Stats, stats)
+CQCHARTS_NAMED_SHAPE_DATA(Stats, stats)
 
 CQCHARTS_NAMED_SHAPE_DATA(Cell, cell)
 CQCHARTS_NAMED_TEXT_DATA(CellLabel, cellLabel)

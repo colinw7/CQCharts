@@ -315,6 +315,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using Alpha          = CQChartsAlpha;
   using PenData        = CQChartsPenData;
   using BrushData      = CQChartsBrushData;
+  using PenBrush       = CQChartsPenBrush;
   using ColorInd       = CQChartsUtil::ColorInd;
 
  public:
@@ -567,17 +568,17 @@ class CQChartsAdjacencyPlotCustomControls : public CQChartsConnectionPlotCustomC
 
   void setPlot(CQChartsPlot *plot) override;
 
- protected:
-  void connectSlots(bool b) override;
-
  public slots:
   void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b) override;
 
  protected:
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- private:
+ protected:
   CQChartsAdjacencyPlot* plot_ { nullptr };
 };
 

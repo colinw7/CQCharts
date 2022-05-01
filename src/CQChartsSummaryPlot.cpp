@@ -2063,43 +2063,41 @@ void
 CQChartsSummaryPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addGroupStatsWidgets();
+
+  addOptionsWidgets();
+
+  addExpandControls();
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+addColumnWidgets()
+{
   // columns frame
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
-  addColumnWidgets(QStringList() << "columns", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "columns", columnsFrame);
 
   chooser_ = new CQChartsSummaryPlotColumnChooser;
 
   addFrameWidget(columnsFrame, chooser_);
+}
 
-  //---
-
+void
+CQChartsSummaryPlotCustomControls::
+addGroupStatsWidgets()
+{
   // group frame
   auto groupFrame = createGroupFrame("Group", "groupFrame");
 
-  addColumnWidgets(QStringList() << "group", groupFrame);
+  addNamedColumnWidgets(QStringList() << "group", groupFrame);
 
   stats_ = new CQChartsSummaryPlotGroupStats;
 
   addFrameWidget(groupFrame, stats_);
-
-  //---
-
-  addOptionsWidgets();
-
-  //---
-
-  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
-  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 0, 0);
-
-  expandButton_ = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
-
-  buttonLayout->addWidget (expandButton_);
-  buttonLayout->addStretch(1);
-
-  connect(expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
-
-  layout_->addWidget(buttonFrame);
 }
 
 void
@@ -2133,20 +2131,37 @@ addOptionsWidgets()
 
 void
 CQChartsSummaryPlotCustomControls::
+addExpandControls()
+{
+  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 0, 0);
+
+  expandButton_ = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
+
+  buttonLayout->addWidget (expandButton_);
+  buttonLayout->addStretch(1);
+
+  connect(expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
+
+  layout_->addWidget(buttonFrame);
+}
+
+void
+CQChartsSummaryPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     upperDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(upperDiagonalTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     lowerDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(lowerDiagonalTypeSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     densityCheck_, SIGNAL(stateChanged(int)), this, SLOT(densitySlot(int)));
 
   CQChartsPlotCustomControls::connectSlots(b);

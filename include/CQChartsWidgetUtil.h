@@ -22,6 +22,28 @@ void setTextColor(QWidget *w, const QColor &c);
 
 namespace CQChartsWidgetUtil {
 
+inline void optConnectDisconnect(bool b, QObject *from, const char *fromName,
+                                 QObject *to, const char *toName) {
+  if (! from || ! to) return;
+
+  if (b)
+    QObject::connect(from, fromName, to, toName);
+  else
+    QObject::disconnect(from, fromName, to, toName);
+}
+
+inline void optConnect(QObject *from, const char *fromName, QObject *to, const char *toName) {
+  if (! from || ! to) return;
+
+  QObject::connect(from, fromName, to, toName);
+}
+
+inline void optDisconnect(QObject *from, const char *fromName, QObject *to, const char *toName) {
+  if (! from || ! to) return;
+
+  QObject::connect(from, fromName, to, toName);
+}
+
 inline void connectDisconnect(bool b, QObject *from, const char *fromName,
                               QObject *to, const char *toName) {
   if (b)

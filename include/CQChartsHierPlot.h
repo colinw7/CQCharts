@@ -117,7 +117,7 @@ class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
  protected:
   void connectSlots(bool b) override;
 
- private:
+ protected:
   CQChartsHierPlot* plot_ { nullptr };
 };
 

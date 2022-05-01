@@ -23,6 +23,7 @@ setInterface(bool interface)
 
   updatePalette();
 }
+
 void
 CQChartsPaletteCanvas::
 setPaletteName(const QString &name)

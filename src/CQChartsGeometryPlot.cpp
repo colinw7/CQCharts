@@ -1130,6 +1130,15 @@ void
 CQChartsGeometryPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addColorColumnWidgets();
+}
+
+void
+CQChartsGeometryPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1137,11 +1146,7 @@ addWidgets()
 
   static auto columnNames = QStringList() << "geometry" << "name" << "value" << "style";
 
-  addColumnWidgets(columnNames, columnsFrame);
-
-  //---
-
-  addColorColumnWidgets();
+  addNamedColumnWidgets(columnNames, columnsFrame);
 }
 
 void

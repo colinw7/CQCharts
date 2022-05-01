@@ -1219,17 +1219,19 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
+
+ protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  void addOptionsWidgets() override;
+
+  void connectSlots(bool b) override;
 
  protected slots:
   void pointsSlot(int);
@@ -1238,7 +1240,8 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   void stackedSlot(int);
   void impulseSlot(int);
   void bestFitSlot(int);
-  void hullSlot(int);
+  void convexHullSlot(int);
+  void statsLinesSlot(int);
   void movingAverageSlot(int);
 
  protected:
@@ -1249,11 +1252,13 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   CQChartsBoolParameterEdit* pointsCheck_    { nullptr };
   CQChartsBoolParameterEdit* linesCheck_     { nullptr };
   CQChartsBoolParameterEdit* fillUnderCheck_ { nullptr };
-  CQChartsBoolParameterEdit* stackedCheck_   { nullptr };
-  CQChartsBoolParameterEdit* impulseCheck_   { nullptr };
+
+  CQChartsBoolParameterEdit* stackedCheck_ { nullptr };
+  CQChartsBoolParameterEdit* impulseCheck_ { nullptr };
 
   CQChartsBoolParameterEdit* bestFitCheck_       { nullptr };
   CQChartsBoolParameterEdit* hullCheck_          { nullptr };
+  CQChartsBoolParameterEdit* statsCheck_         { nullptr };
   CQChartsBoolParameterEdit* movingAverageCheck_ { nullptr };
 };
 

@@ -458,7 +458,7 @@ void
 CQChartsContourPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     solidCheck_, SIGNAL(stateChanged(int)), this, SLOT(solidSlot()));
 }
 

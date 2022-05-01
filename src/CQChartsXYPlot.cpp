@@ -2771,13 +2771,13 @@ addMenuItems(QMenu *menu)
   auto *overlaysMenu = new QMenu("Overlays", menu);
 
   (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
-                              isBestFit      (), SLOT(setBestFit       (bool)));
+                              isBestFit      (), SLOT(setBestFit      (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Hull"       ,
-                              isHull         (), SLOT(setHull          (bool)));
-  (void) addMenuCheckedAction(overlaysMenu, "Statistic Lines",
-                              isStatsLines   (), SLOT(setStatsLinesSlot(bool)));
+                              isHull         (), SLOT(setHull         (bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Stats Lines",
+                              isStatsLines   (), SLOT(setStatsLines   (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Moving Average",
-                              isMovingAverage(), SLOT(setMovingAverage (bool)));
+                              isMovingAverage(), SLOT(setMovingAverage(bool)));
 
   menu->addMenu(overlaysMenu);
 
@@ -4302,6 +4302,8 @@ draw(PaintDevice *device) const
     drawLineLabel(device);
 }
 
+//---
+
 void
 CQChartsXYPolylineObj::
 drawHull(PaintDevice *device) const
@@ -4327,7 +4329,7 @@ drawHull(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  plot()->setPenBrush(penBrush, plot()->hullPenData(ic), plot_->hullBrushData(ic));
+  plot()->setHullPenBrush(penBrush, ic);
 
   //---
 
@@ -4335,6 +4337,8 @@ drawHull(PaintDevice *device) const
 
   hull->draw(device);
 }
+
+//---
 
 void
 CQChartsXYPolylineObj::
@@ -4378,6 +4382,8 @@ drawLines(PaintDevice *device) const
   }
 }
 
+//---
+
 void
 CQChartsXYPolylineObj::
 drawBestFit(PaintDevice *device) const
@@ -4392,17 +4398,15 @@ drawBestFit(PaintDevice *device) const
 
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  auto strokeColor = plot_->interpBestFitStrokeColor(ic);
-  auto fillColor   = plot_->interpBestFitFillColor  (ic);
-
-  plot_->setPenBrush(penBrush, plot_->bestFitPenData(strokeColor),
-                     plot_->bestFitBrushData(fillColor));
+  plot_->setBestFitPenBrush(penBrush, ic);
 
   if (updateState)
     plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
   plot()->drawBestFit(device, &bestFit_, penBrush);
 }
+
+//---
 
 void
 CQChartsXYPolylineObj::
@@ -4412,23 +4416,23 @@ drawStatsLines(PaintDevice *device) const
 
   //---
 
+  bool updateState = device->isInteractive();
+
   // calc pen and brush
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
   PenBrush penBrush;
 
-  bool updateState = device->isInteractive();
-
-  plot()->setStatsLineDataPen(penBrush.pen, ic);
+  plot()->setStatsPenBrush(penBrush, ic);
 
   if (updateState)
     plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
 
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
   //---
 
   // draw lines
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   const auto &dataRange = plot()->dataRange();
 
   auto drawStatLine = [&](double y) {
@@ -4438,12 +4442,31 @@ drawStatsLines(PaintDevice *device) const
     device->drawLine(p1, p2);
   };
 
+  auto fillRect = [&](const BBox &bbox, double f=1.0) {
+    double alpha = CQChartsDrawUtil::brushAlpha(penBrush.brush);
+    CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha*f);
+    device->fillRect(bbox);
+    CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha);
+  };
+
+  //--
+
+  fillRect(BBox(dataRange.xmin(), statData_.loutlier,
+                dataRange.xmax(), statData_.uoutlier), 0.3);
+
+  fillRect(BBox(dataRange.xmin(), statData_.lowerMedian,
+                dataRange.xmax(), statData_.upperMedian));
+
+  //--
+
   drawStatLine(statData_.loutlier   );
   drawStatLine(statData_.lowerMedian);
   drawStatLine(statData_.median     );
   drawStatLine(statData_.upperMedian);
   drawStatLine(statData_.uoutlier   );
 }
+
+//---
 
 void
 CQChartsXYPolylineObj::
@@ -4494,6 +4517,8 @@ drawMovingAverage(PaintDevice *device) const
   device->drawPolyline(poly);
 }
 
+//---
+
 void
 CQChartsXYPolylineObj::
 drawLineLabel(PaintDevice *device) const
@@ -4527,6 +4552,8 @@ drawLineLabel(PaintDevice *device) const
   else
     CQChartsDrawUtil::drawTextAtPoint(device, p, name(), textOptions, /*centered*/false);
 }
+
+//---
 
 void
 CQChartsXYPolylineObj::
@@ -5050,7 +5077,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  adjustFillColor(c);
+  //adjustFillColor(c);
 
   return c;
 }
@@ -5085,22 +5112,23 @@ void
 CQChartsXYPlotCustomControls::
 addWidgets()
 {
-  // columns group
-  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
-
-  addColumnWidgets(QStringList() << "x" << "y" << "label", columnsFrame);
-
-  //---
+  addColumnWidgets();
 
   addGroupColumnWidgets();
 
-  //---
-
   addOptionsWidgets();
 
-  //---
-
   addKeyList();
+}
+
+void
+CQChartsXYPlotCustomControls::
+addColumnWidgets()
+{
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
+
+  addNamedColumnWidgets(QStringList() << "x" << "y" << "label", columnsFrame);
 }
 
 void
@@ -5109,6 +5137,8 @@ addOptionsWidgets()
 {
   // options group
   optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+
+  //---
 
   pointsCheck_ = createBoolEdit("points", /*choice*/false);
   linesCheck_  = createBoolEdit("lines" , /*choice*/false);
@@ -5128,10 +5158,12 @@ addOptionsWidgets()
 
   bestFitCheck_       = createBoolEdit("bestFit"      , /*choice*/false);
   hullCheck_          = createBoolEdit("convexHull"   , /*choice*/false);
+  statsCheck_         = createBoolEdit("statsLines"   , /*choice*/false);
   movingAverageCheck_ = createBoolEdit("movingAverage", /*choice*/false);
 
   addFrameColWidget(optionsFrame_, bestFitCheck_      );
   addFrameColWidget(optionsFrame_, hullCheck_         );
+  addFrameColWidget(optionsFrame_, statsCheck_        );
   addFrameColWidget(optionsFrame_, movingAverageCheck_);
   addFrameSpacer   (optionsFrame_);
 }
@@ -5140,22 +5172,25 @@ void
 CQChartsXYPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
-    pointsCheck_   , SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    linesCheck_    , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    pointsCheck_, SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    linesCheck_ , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
-    stackedCheck_      , SIGNAL(stateChanged(int)), this, SLOT(stackedSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    impulseCheck_      , SIGNAL(stateChanged(int)), this, SLOT(impulseSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    stackedCheck_  , SIGNAL(stateChanged(int)), this, SLOT(stackedSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    impulseCheck_  , SIGNAL(stateChanged(int)), this, SLOT(impulseSlot(int)));
+
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bestFitCheck_      , SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
-    hullCheck_         , SIGNAL(stateChanged(int)), this, SLOT(hullSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    hullCheck_         , SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    statsCheck_        , SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot(int)));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     movingAverageCheck_, SIGNAL(stateChanged(int)), this, SLOT(movingAverageSlot(int)));
 
   CQChartsPointPlotCustomControls::connectSlots(b);
@@ -5165,15 +5200,15 @@ void
 CQChartsXYPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  CQChartsWidgetUtil::optDisconnect(plot_, SIGNAL(customDataChanged()),
+                                    this, SLOT(updateWidgets()));
 
   plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
 
   CQChartsPointPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  CQChartsWidgetUtil::optConnect(plot_, SIGNAL(customDataChanged()),
+                                 this, SLOT(updateWidgets()));
 }
 
 void
@@ -5184,16 +5219,19 @@ updateWidgets()
 
   //---
 
-  pointsCheck_       ->setChecked(plot_->isPoints());
-  linesCheck_        ->setChecked(plot_->isLines());
-  fillUnderCheck_    ->setChecked(plot_->isFillUnderFilled());
-  stackedCheck_      ->setChecked(plot_->isStacked());
-  impulseCheck_      ->setChecked(plot_->isImpulseLines());
-  bestFitCheck_      ->setChecked(plot_->isBestFit());
-  hullCheck_         ->setChecked(plot_->isHull());
-  movingAverageCheck_->setChecked(plot_->isMovingAverage());
+  if (pointsCheck_) pointsCheck_->setChecked(plot_->isPoints());
+  if (linesCheck_ ) linesCheck_ ->setChecked(plot_->isLines());
 
-  stackedCheck_->setEnabled(plot_->yColumns().count() > 1);
+  if (fillUnderCheck_) fillUnderCheck_->setChecked(plot_->isFillUnderFilled());
+  if (stackedCheck_  ) stackedCheck_  ->setChecked(plot_->isStacked());
+  if (impulseCheck_  ) impulseCheck_  ->setChecked(plot_->isImpulseLines());
+
+  if (bestFitCheck_      ) bestFitCheck_      ->setChecked(plot_->isBestFit());
+  if (hullCheck_         ) hullCheck_         ->setChecked(plot_->isHull());
+  if (statsCheck_        ) statsCheck_        ->setChecked(plot_->isStatsLines());
+  if (movingAverageCheck_) movingAverageCheck_->setChecked(plot_->isMovingAverage());
+
+  if (stackedCheck_) stackedCheck_->setEnabled(plot_->yColumns().count() > 1);
 
   //---
 
@@ -5248,9 +5286,16 @@ bestFitSlot(int state)
 
 void
 CQChartsXYPlotCustomControls::
-hullSlot(int state)
+convexHullSlot(int state)
 {
   plot_->setHull(state);
+}
+
+void
+CQChartsXYPlotCustomControls::
+statsLinesSlot(int state)
+{
+  plot_->setStatsLines(state);
 }
 
 void

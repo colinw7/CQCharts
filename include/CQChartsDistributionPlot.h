@@ -508,13 +508,15 @@ class CQChartsDistTextKeyItem : public CQChartsTextKeyItem {
   using Plot = CQChartsDistributionPlot;
 
  public:
-  CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &iv);
+  CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &ig, const ColorInd &iv);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
-#if 0
   bool isSetHidden() const override;
-#endif
+
+ private:
+  ColorInd ig_;
+  ColorInd iv_;
 };
 
 //---
@@ -524,9 +526,9 @@ class CQChartsDistTextKeyItem : public CQChartsTextKeyItem {
  * \ingroup Charts
  */
 class CQChartsDistributionPlot : public CQChartsBarPlot,
- public CQChartsObjStatsLineData<CQChartsDistributionPlot>,
- public CQChartsObjDotPointData <CQChartsDistributionPlot>,
- public CQChartsObjRugPointData <CQChartsDistributionPlot> {
+ public CQChartsObjStatsShapeData<CQChartsDistributionPlot>,
+ public CQChartsObjDotPointData  <CQChartsDistributionPlot>,
+ public CQChartsObjRugPointData  <CQChartsDistributionPlot> {
   Q_OBJECT
 
   // columns
@@ -567,7 +569,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
   // stats data
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
+  Q_PROPERTY(bool statsLines READ isStatsLines WRITE setStatsLines)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Stats, stats)
 
   Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
 
@@ -637,6 +641,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
   using Color      = CQChartsColor;
+  using Alpha      = CQChartsAlpha;
   using ColorInd   = CQChartsUtil::ColorInd;
   using PenBrush   = CQChartsPenBrush;
 
@@ -755,6 +760,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  // density
   double densityOffset() const { return densityData_.offset; }
   void setDensityOffset(double o);
 
@@ -769,10 +775,16 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  // scatter
   bool isScatter() const { return (plotType_ == PlotType::SCATTER); }
 
   double scatterFactor() const { return scatterData_.factor; }
   void setScatterFactor(double r);
+
+  //---
+
+  // stats lines
+  bool isStatsLines() const { return statsLines_; }
 
   //---
 
@@ -1028,14 +1040,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set scatter
   void setScatter(bool b);
 
+  // stats lines
+  void setStatsLines(bool b);
+
   // set dot lines
   void setDotLines(bool b);
 
   // set rug
   void setRug(bool b);
-
-  // set show stats lines
-  void setStatsLinesSlot(bool b);
 
   // push to bar range
   void pushSlot();
@@ -1097,6 +1109,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool        sorted_         { false };            //!< sort by count
   DensityData densityData_;                         //!< density data
   ScatterData scatterData_;                         //!< scatter data
+  bool        statsLines_     { false };            //!< stats lines data
   DotLineData dotLineData_;                         //!< dot line data
   bool        rug_            { false };            //!< show rug
   bool        includeOutlier_ { true };             //!< include outlier values
@@ -1144,19 +1157,24 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
  protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  virtual void addBucketGroup();
+
+  void addOptionsWidgets() override;
+
+  void connectSlots(bool b) override;
+
+  //---
+
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
@@ -1171,6 +1189,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void deltaBucketSlot();
   void numBucketsSlot();
   void bucketStopsSlot();
+  void statsLinesSlot(int);
 
  protected:
   CQChartsDistributionPlot* plot_ { nullptr };
@@ -1180,6 +1199,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
   CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
+  CQChartsBoolParameterEdit* statsCheck_      { nullptr };
 
   QButtonGroup*        bucketRadioGroup_  { nullptr };
   CQIconRadio*         fixedBucketRadio_  { nullptr };

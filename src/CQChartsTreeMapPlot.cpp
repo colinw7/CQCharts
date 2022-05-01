@@ -2458,8 +2458,6 @@ addWidgets()
 
   addColorColumnWidgets();
 
-  //---
-
   addOptionsWidgets();
 }
 
@@ -2483,11 +2481,11 @@ void
 CQChartsTreeMapPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     headerCheck_, SIGNAL(stateChanged(int)), this, SLOT(headerSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     followViewCheck_, SIGNAL(stateChanged(int)), this, SLOT(followViewSlot()));
 
   CQChartsHierPlotCustomControls::connectSlots(b);

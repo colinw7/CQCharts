@@ -96,11 +96,13 @@ addParameters()
    addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
    setTip("Bar value type");
 
-  addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value as percentage");
-  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("Skip empty buckets");
-  addBoolParameter("sorted"   , "Sorted"    , "sorted"   ).setTip("Sort by count");
-  addBoolParameter("dotLines" , "Dot Lines" , "dotLines" ).setTip("Draw bars as lines with dot");
-  addBoolParameter("rug"      , "Rug"       , "rug"      ).setTip("Draw rug points");
+  addBoolParameter("percent"   , "Percent"    , "percent"   ).setTip("Show value as percentage");
+  addBoolParameter("skipEmpty" , "Skip Empty" , "skipEmpty" ).setTip("Skip empty buckets");
+  addBoolParameter("sorted"    , "Sorted"     , "sorted"    ).setTip("Sort by count");
+  addBoolParameter("statsLines", "Stats Lines", "statsLines").
+    setTip("Show statistics lines overlay");
+  addBoolParameter("dotLines"  , "Dot Lines"  , "dotLines" ).setTip("Draw bars as lines with dot");
+  addBoolParameter("rug"       , "Rug"        , "rug"       ).setTip("Draw rug points");
 
   endParameterGroup();
 
@@ -169,9 +171,9 @@ create(View *view, const ModelP &model) const
 CQChartsDistributionPlot::
 CQChartsDistributionPlot(View *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("distribution"), model),
- CQChartsObjStatsLineData<CQChartsDistributionPlot>(this),
- CQChartsObjDotPointData <CQChartsDistributionPlot>(this),
- CQChartsObjRugPointData <CQChartsDistributionPlot>(this)
+ CQChartsObjStatsShapeData<CQChartsDistributionPlot>(this),
+ CQChartsObjDotPointData  <CQChartsDistributionPlot>(this),
+ CQChartsObjRugPointData  <CQChartsDistributionPlot>(this)
 {
 }
 
@@ -196,9 +198,6 @@ init()
   setBucketType(CQBucketer::Type::REAL_AUTO);
   setNumAutoBuckets(15);
 
-  setStatsLines(false);
-  setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
-
   setDotSymbol         (Symbol::circle());
   setDotSymbolSize     (Length::pixel(7));
   setDotSymbolFilled   (true);
@@ -207,6 +206,12 @@ init()
   setRugSymbolSize       (Length::pixel(5));
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(Color::makePalette());
+
+  // stats
+  setStatsLines(false);
+  setStatsStrokeDash(LineDash(LineDash::Lengths({2, 2}), 0));
+  setStatsFillColor(Color::makePalette());
+  setStatsFillAlpha(Alpha(0.3));
 
   //---
 
@@ -642,7 +647,8 @@ addProperties()
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
-  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
+  addFillProperties("statsData/fill"  , "statsFill"  , "Stats lines");
+  addLineProperties("statsData/stroke", "statsStroke", "Stats lines");
 
   addProp("statsData", "includeOutlier", "includeOutlier", "Include outlier points");
 
@@ -910,9 +916,11 @@ setRug(bool b)
 
 void
 CQChartsDistributionPlot::
-setStatsLinesSlot(bool b)
+setStatsLines(bool b)
 {
-  setStatsLines(b);
+  CQChartsUtil::testAndSet(statsLines_, b, [&]() {
+    updateObjs(); emit customDataChanged();
+  } );
 }
 
 //---
@@ -2850,7 +2858,7 @@ addKeyItems(PlotKey *key)
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const RangeValue &xv,
                        const RangeValue &yv, const QString &name) {
     auto *colorItem = new CQChartsDistColorKeyItem(this, ig, iv, xv, yv);
-    auto *textItem  = new CQChartsDistTextKeyItem  (this, name, iv);
+    auto *textItem  = new CQChartsDistTextKeyItem (this, name, ig, iv);
 
     auto *groupItem = new CQChartsGroupKeyItem(this);
 
@@ -3285,10 +3293,10 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Sorted"     , isSorted    (), SLOT(setSorted        (bool)));
-  (void) addCheckedAction("Dot Lines"  , isDotLines  (), SLOT(setDotLines      (bool)));
-  (void) addCheckedAction("Rug"        , isRug       (), SLOT(setRug           (bool)));
-  (void) addCheckedAction("Stats Lines", isStatsLines(), SLOT(setStatsLinesSlot(bool)));
+  (void) addCheckedAction("Sorted"     , isSorted    (), SLOT(setSorted    (bool)));
+  (void) addCheckedAction("Dot Lines"  , isDotLines  (), SLOT(setDotLines  (bool)));
+  (void) addCheckedAction("Rug"        , isRug       (), SLOT(setRug       (bool)));
+  (void) addCheckedAction("Stats Lines", isStatsLines(), SLOT(setStatsLines(bool)));
 
   //---
 
@@ -3351,16 +3359,9 @@ void
 CQChartsDistributionPlot::
 drawStatsLines(PaintDevice *device) const
 {
-  // set pen
-  PenBrush penBrush;
-
-  setStatsLineDataPen(penBrush.pen, ColorInd());
-
-  device->setPen(penBrush.pen);
-
-  //---
-
   const auto &dataRange = this->dataRange();
+
+  bool updateState = device->isInteractive();
 
   int ig = 0;
   int ng = int(groupData_.groupValues.size());
@@ -3391,15 +3392,32 @@ drawStatsLines(PaintDevice *device) const
       if (! barObj->bucket().hasValue())
         continue;
 
+      statData.loutlier    = barObj->mapValue(values->statData.loutlier);
       statData.lowerMedian = barObj->mapValue(values->statData.lowerMedian);
       statData.median      = barObj->mapValue(values->statData.median);
       statData.upperMedian = barObj->mapValue(values->statData.upperMedian);
+      statData.uoutlier    = barObj->mapValue(values->statData.uoutlier);
 
       break;
     }
 
     //---
 
+    // calc pen and brush
+    ColorInd ic(ig, ng);
+
+    PenBrush penBrush;
+
+    setStatsPenBrush(penBrush, ic);
+
+    if (updateState)
+      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::BOX);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
+    // draw lines
     auto drawStatLine = [&](double value) {
       Point p1, p2;
 
@@ -3414,6 +3432,32 @@ drawStatsLines(PaintDevice *device) const
 
       device->drawLine(p1, p2);
     };
+
+    auto fillRect = [&](const BBox &bbox, double f=1.0) {
+      double alpha = CQChartsDrawUtil::brushAlpha(penBrush.brush);
+      CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha*f);
+      device->fillRect(bbox);
+      CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha);
+    };
+
+    //--
+
+    if (isVertical()) {
+      fillRect(BBox(statData.loutlier, dataRange.ymin(),
+                    statData.uoutlier, dataRange.ymax()), 0.3);
+
+      fillRect(BBox(statData.lowerMedian, dataRange.ymin(),
+                    statData.upperMedian, dataRange.ymax()));
+    }
+    else {
+      fillRect(BBox(dataRange.xmin(), statData.loutlier,
+                    dataRange.xmax(), statData.uoutlier), 0.3);
+
+      fillRect(BBox(dataRange.xmin(), statData.lowerMedian,
+                    dataRange.xmax(), statData.upperMedian));
+    }
+
+    //--
 
     drawStatLine(statData.lowerMedian);
     drawStatLine(statData.median);
@@ -4623,7 +4667,7 @@ drawStatsLines(PaintDevice *device) const
   // set pen
   PenBrush penBrush;
 
-  plot_->setStatsLineDataPen(penBrush.pen, ColorInd());
+  plot_->setStatsPenBrush(penBrush, ColorInd());
 
   device->setPen(penBrush.pen);
 
@@ -4947,8 +4991,8 @@ setSetHidden(bool b)
 //------
 
 CQChartsDistTextKeyItem::
-CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &iv) :
- CQChartsTextKeyItem(plot, text, iv)
+CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsTextKeyItem(plot, text, iv), ig_(ig), iv_(iv)
 {
 }
 
@@ -4958,19 +5002,20 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  adjustFillColor(c);
+  //adjustFillColor(c);
 
   return c;
 }
 
-#if 0
 bool
 CQChartsDistTextKeyItem::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(ic_.i);
+  if (ig_.n > 1)
+    return plot_->CQChartsPlot::isSetHidden(ig_.i);
+  else
+    return plot_->CQChartsPlot::isSetHidden(iv_.i);
 }
-#endif
 
 //------
 
@@ -5011,6 +5056,23 @@ void
 CQChartsDistributionPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addBucketGroup();
+
+  addGroupColumnWidgets();
+
+  addOptionsWidgets();
+
+  addColorColumnWidgets();
+
+  addKeyList();
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -5020,14 +5082,13 @@ addWidgets()
 //auto columns = QStringList() << "values" << "name" << "data";
   auto columns = QStringList() << "values" << "data";
 
-  addColumnWidgets(columns, columnsFrame);
+  addNamedColumnWidgets(columns, columnsFrame);
+}
 
-  //---
-
-  addOptionsWidgets();
-
-  //---
-
+void
+CQChartsDistributionPlotCustomControls::
+addBucketGroup()
+{
   // bucket group
   auto bucketFrame = createGroupFrame("Bucket", "bucketFrame");
 
@@ -5086,18 +5147,6 @@ addWidgets()
   addFrameWidget(bucketFrame, "Stops"      , bucketStopsEdit_);
   addFrameWidget(bucketFrame, "Num Unique" , uniqueCount_);
   addFrameWidget(bucketFrame, "Value Range", rangeLabel_);
-
-  //---
-
-  addGroupColumnWidgets();
-
-  //--
-
-  addColorColumnWidgets();
-
-  //---
-
-  addKeyList();
 }
 
 void
@@ -5117,7 +5166,16 @@ addOptionsWidgets()
   addFrameWidget(optionsFrame_, "Plot Type"  , plotTypeCombo_);
   addFrameWidget(optionsFrame_, "Value Type" , valueTypeCombo_);
 
-  //addFrameRowStretch(optionsFrame_);
+  //--
+
+  auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
+  auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 2, 2);
+
+  addFrameWidget(optionsFrame_, optionsFrame1);
+
+  statsCheck_ = createBoolEdit("statsLines", /*choice*/false);
+
+  optionsLayout1->addWidget(statsCheck_, 0, 0);
 }
 
 void
@@ -5143,9 +5201,9 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
-  plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
-  valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
+  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  if (plotTypeCombo_   ) plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
+  if (valueTypeCombo_  ) valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
 
   //---
 
@@ -5155,35 +5213,48 @@ updateWidgets()
   bool isAuto   = (plot_->bucketType() == CQBucketer::Type::REAL_AUTO);
   bool isStops  = (plot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
 
-  if      (! isUnique && isFixed) fixedBucketRadio_ ->setChecked(true);
-  else if (! isUnique && isAuto ) rangeBucketRadio_ ->setChecked(true);
-  else if (! isUnique && isStops) stopsBucketRadio_ ->setChecked(true);
-  else if (isUnique             ) uniqueBucketRadio_->setChecked(true);
+  if (fixedBucketRadio_) {
+    assert(fixedBucketRadio_ && rangeBucketRadio_ && stopsBucketRadio_ && uniqueBucketRadio_);
 
-  fixedBucketRadio_->setEnabled(! isString);
-  rangeBucketRadio_->setEnabled(! isString);
-  stopsBucketRadio_->setEnabled(! isString);
+    if      (! isUnique && isFixed) fixedBucketRadio_ ->setChecked(true);
+    else if (! isUnique && isAuto ) rangeBucketRadio_ ->setChecked(true);
+    else if (! isUnique && isStops) stopsBucketRadio_ ->setChecked(true);
+    else if (isUnique             ) uniqueBucketRadio_->setChecked(true);
 
-  double rmin, rmax;
+    fixedBucketRadio_->setEnabled(! isString);
+    rangeBucketRadio_->setEnabled(! isString);
+    stopsBucketRadio_->setEnabled(! isString);
+  }
 
-  plot_->calcMinMaxBucketValue(rmin, rmax);
+  if (bucketRange_) {
+    assert(bucketRange_ && startBucketEdit_ && deltaBucketEdit_ && numBucketsEdit_ &&
+           bucketStopsEdit_ && uniqueCount_ && rangeLabel_);
 
-  bucketRange_    ->setRangeMinMax(rmin, rmax);
-  startBucketEdit_->setValue(plot_->startBucketValue());
-  deltaBucketEdit_->setValue(plot_->deltaBucketValue());
-  numBucketsEdit_ ->setValue(plot_->numAutoBuckets());
-  bucketStopsEdit_->setText(plot_->bucketStops().toString());
-  uniqueCount_    ->setValue(plot_->numUniqueValues());
-  rangeLabel_     ->setText(QString("%1-%2").arg(plot_->minBucketValue()).
-                                             arg(plot_->maxBucketValue()));
+    double rmin, rmax;
 
-  setFrameWidgetVisible(bucketRange_    , ! isUnique && isAuto);
-  setFrameWidgetVisible(startBucketEdit_, ! isUnique && isFixed);
-  setFrameWidgetVisible(deltaBucketEdit_, ! isUnique && isFixed);
-  setFrameWidgetVisible(numBucketsEdit_ , ! isUnique && isAuto);
-  setFrameWidgetVisible(bucketStopsEdit_, ! isUnique && isStops);
-  setFrameWidgetVisible(uniqueCount_    , isUnique || isString);
-  setFrameWidgetVisible(rangeLabel_     , isUnique || isFixed || isStops);
+    plot_->calcMinMaxBucketValue(rmin, rmax);
+
+    bucketRange_    ->setRangeMinMax(rmin, rmax);
+    startBucketEdit_->setValue(plot_->startBucketValue());
+    deltaBucketEdit_->setValue(plot_->deltaBucketValue());
+    numBucketsEdit_ ->setValue(plot_->numAutoBuckets());
+    bucketStopsEdit_->setText(plot_->bucketStops().toString());
+    uniqueCount_    ->setValue(plot_->numUniqueValues());
+    rangeLabel_     ->setText(QString("%1-%2").arg(plot_->minBucketValue()).
+                                               arg(plot_->maxBucketValue()));
+
+    setFrameWidgetVisible(bucketRange_    , ! isUnique && isAuto);
+    setFrameWidgetVisible(startBucketEdit_, ! isUnique && isFixed);
+    setFrameWidgetVisible(deltaBucketEdit_, ! isUnique && isFixed);
+    setFrameWidgetVisible(numBucketsEdit_ , ! isUnique && isAuto);
+    setFrameWidgetVisible(bucketStopsEdit_, ! isUnique && isStops);
+    setFrameWidgetVisible(uniqueCount_    , isUnique || isString);
+    setFrameWidgetVisible(rangeLabel_     , isUnique || isFixed || isStops);
+  }
+
+  //---
+
+  if (statsCheck_) statsCheck_->setChecked(plot_->isStatsLines());
 
   //---
 
@@ -5198,26 +5269,29 @@ void
 CQChartsDistributionPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bucketRadioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
     this, SLOT(bucketRadioGroupSlot(QAbstractButton *)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bucketRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(bucketRangeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     startBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(startBucketSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     deltaBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(deltaBucketSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     numBucketsEdit_, SIGNAL(valueChanged(int)), this, SLOT(numBucketsSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     bucketStopsEdit_, SIGNAL(editingFinished()), this, SLOT(bucketStopsSlot()));
+
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    statsCheck_, SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot(int)));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);
 }
@@ -5312,6 +5386,13 @@ CQChartsDistributionPlotCustomControls::
 bucketStopsSlot()
 {
   plot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+statsLinesSlot(int state)
+{
+  plot_->setStatsLines(state);
 }
 
 CQChartsColor

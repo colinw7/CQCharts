@@ -613,10 +613,10 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
  protected:
   void connectSlots(bool b) override;
 
- private slots:
+ protected slots:
   void columnsTypeSlot();
 
- private:
+ protected:
   CQChartsConnectionPlot* plot_             { nullptr };
   CQEnumCombo*            columnsTypeCombo_ { nullptr };
 };

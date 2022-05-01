@@ -2616,7 +2616,7 @@ drawSegmentLabel(PaintDevice *device) const
 
   PenBrush lpenBrush;
 
-  plot_->setTextLabelBoxDataPenBrush(lpenBrush, calcColorInd());
+  plot_->setTextLabelPenBrush(lpenBrush, calcColorInd());
 
   textOptions.color = plot_->interpTextLabelTextColor(calcColorInd());
   textOptions.alpha = plot_->textLabelTextAlpha();
@@ -3728,7 +3728,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  adjustFillColor(c);
+  //adjustFillColor(c);
 
   return c;
 }
@@ -3782,27 +3782,26 @@ void
 CQChartsPiePlotCustomControls::
 addWidgets()
 {
-  auto *plotType = this->plotType();
-  assert(plotType);
-
-  // columns group
-  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
-
-  addColumnWidgets(QStringList() << "values" << "label" << "radius" << "keyLabel", columnsFrame);
-
-  //---
+  addColumnWidgets();
 
   addGroupColumnWidgets();
 
-  //---
-
   addOptionsWidgets();
-
-  //---
 
   addColorColumnWidgets();
 
   addKeyList();
+}
+
+void
+CQChartsPiePlotCustomControls::
+addColumnWidgets()
+{
+  // columns group
+  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
+
+  addNamedColumnWidgets(QStringList() <<
+    "values" << "label" << "radius" << "keyLabel", columnsFrame);
 }
 
 void
@@ -3838,18 +3837,18 @@ void
 CQChartsPiePlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     separatedCheck_, SIGNAL(stateChanged(int)), this, SLOT(separatedSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     donutCheck_, SIGNAL(stateChanged(int)), this, SLOT(donutSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     summaryCheck_, SIGNAL(stateChanged(int)), this, SLOT(summarySlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     dumbbellCheck_, SIGNAL(stateChanged(int)), this, SLOT(dumbbellSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     countCheck_, SIGNAL(stateChanged(int)), this, SLOT(countSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);
@@ -3878,14 +3877,14 @@ updateWidgets()
 
   //---
 
-  drawTypeCombo_->setObj(plot_);
+  if (drawTypeCombo_) drawTypeCombo_->setObj(plot_);
 
-  separatedCheck_->setChecked(plot_->isSeparated());
+  if (separatedCheck_) separatedCheck_->setChecked(plot_->isSeparated());
 
-  donutCheck_   ->setChecked(plot_->isDonut   ());
-  summaryCheck_ ->setChecked(plot_->isSummary ());
-  dumbbellCheck_->setChecked(plot_->isDumbbell());
-  countCheck_   ->setChecked(plot_->isCount   ());
+  if (donutCheck_   ) donutCheck_   ->setChecked(plot_->isDonut   ());
+  if (summaryCheck_ ) summaryCheck_ ->setChecked(plot_->isSummary ());
+  if (dumbbellCheck_) dumbbellCheck_->setChecked(plot_->isDumbbell());
+  if (countCheck_   ) countCheck_   ->setChecked(plot_->isCount   ());
 
   CQChartsGroupPlotCustomControls::updateWidgets();
 

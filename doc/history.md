@@ -1397,3 +1397,6 @@
  + improve auto fit
 # 4/11/2022
  + move view settings widgets to separate files and allow to be created as widget annotations
+# 5/1/2022
+ + add filled stats lines
+ + cleanup custom control overrides

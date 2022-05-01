@@ -1,22 +1,32 @@
 #include <CQGLControl.h>
+#include <CQIconButton.h>
 #include <CVector3D.h>
 #include <CGLUtil.h>
 
 #include <QHBoxLayout>
-#include <QToolButton>
 #include <QIcon>
 #include <QPixmap>
 #include <QGLWidget>
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 
+#if 0
 #include <xpm/depth.xpm>
 #include <xpm/cull.xpm>
 #include <xpm/light.xpm>
 #include <xpm/outline.xpm>
 #include <xpm/front.xpm>
 #include <xpm/smooth.xpm>
+#else
+#include <svg/cull3d_svg.h>
+#include <svg/depth3d_svg.h>
+#include <svg/front3d_svg.h>
+#include <svg/light3d_svg.h>
+#include <svg/outline3d_svg.h>
+#include <svg/smooth3d_svg.h>
+#endif
 
+#if 0
 class CQToolButton : public QToolButton {
  public:
   CQToolButton(const char **xpm_data, const char *tip) :
@@ -29,6 +39,7 @@ class CQToolButton : public QToolButton {
     setToolTip(tip);
   }
 };
+#endif
 
 CQGLControl::
 CQGLControl(QGLWidget *glW) :
@@ -213,11 +224,11 @@ handleMouseMotion(QMouseEvent *e)
   if      (mouse_middle_ || (mouse_left_ && mouse_right_)) {
     double s = exp(double(dy)*0.01);
 
-    glTranslatef( refPoint_.x,  refPoint_.y,  refPoint_.z);
+    glTranslatef(float(refPoint_.x), float(refPoint_.y), float(refPoint_.z));
 
-    glScalef(s, s, s);
+    glScalef(float(s), float(s), float(s));
 
-    glTranslatef(-refPoint_.x, -refPoint_.y, -refPoint_.z);
+    glTranslatef(float(-refPoint_.x), float(-refPoint_.y), float(-refPoint_.z));
   }
   // rotate
   else if (mouse_left_) {
@@ -229,7 +240,7 @@ handleMouseMotion(QMouseEvent *e)
 
     glGetIntegerv(GL_VIEWPORT, viewport);
 
-    double angle = CVector3D(ax, ay, az).length()/(double)(viewport[2]+1)*180.0;
+    double angle = CVector3D(ax, ay, az).length()/double(viewport[2]+1)*180.0;
 
     /* Use inverse matrix to determine local axis of rotation */
 
@@ -237,11 +248,11 @@ handleMouseMotion(QMouseEvent *e)
     double by = imatrix_[1]*ax + imatrix_[5]*ay + imatrix_[9] *az;
     double bz = imatrix_[2]*ax + imatrix_[6]*ay + imatrix_[10]*az;
 
-    glTranslatef( refPoint_.x,  refPoint_.y,  refPoint_.z);
+    glTranslatef(float(refPoint_.x), float(refPoint_.y), float(refPoint_.z));
 
-    glRotatef(angle, bx, by, bz);
+    glRotatef(float(angle), float(bx), float(by), float(bz));
 
-    glTranslatef(-refPoint_.x, -refPoint_.y, -refPoint_.z);
+    glTranslatef(float(-refPoint_.x), float(-refPoint_.y), float(-refPoint_.z));
   }
   // move
   else if (mouse_right_) {
@@ -251,7 +262,7 @@ handleMouseMotion(QMouseEvent *e)
 
     glLoadIdentity();
 
-    glTranslatef(px - drag_pos_x_, py - drag_pos_y_, pz - drag_pos_z_);
+    glTranslatef(float(px - drag_pos_x_), float(py - drag_pos_y_), float(pz - drag_pos_z_));
 
     glMultMatrixd(matrix_);
 
@@ -320,15 +331,21 @@ CQGLControlToolBar::
 CQGLControlToolBar(CQGLControl *control) :
  QWidget(nullptr), control_(control)
 {
-  QHBoxLayout *layout = new QHBoxLayout(this);
+  auto *layout = new QHBoxLayout(this);
   layout->setMargin(0), layout->setSpacing(0);
 
-  depthButton_   = new CQToolButton(depth_data  , "Depth Test");
-  cullButton_    = new CQToolButton(cull_data   , "Cull Face");
-  lightButton_   = new CQToolButton(light_data  , "Lighting");
-  outlineButton_ = new CQToolButton(outline_data, "Outline");
-  frontButton_   = new CQToolButton(front_data  , "Front Face Orientation");
-  smoothButton_  = new CQToolButton(smooth_data , "Smooth Shade");
+  auto createButton = [&](const QString &iconName, const QString &tip) {
+    auto *button = new CQIconButton(iconName);
+    button->setToolTip(tip);
+    return button;
+  };
+
+  depthButton_   = createButton("DEPTH3D"  , "Depth Test");
+  cullButton_    = createButton("CULL3D"   , "Cull Face");
+  lightButton_   = createButton("LIGHT3D"  , "Lighting");
+  outlineButton_ = createButton("OUTLINE3D", "Outline");
+  frontButton_   = createButton("FRONT3D"  , "Front Face Orientation");
+  smoothButton_  = createButton("SMOOTH3D" , "Smooth Shade");
 
   connect(depthButton_  , SIGNAL(clicked(bool)), control, SLOT(depthSlot(bool)));
   connect(cullButton_   , SIGNAL(clicked(bool)), control, SLOT(cullSlot(bool)));

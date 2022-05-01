@@ -120,6 +120,10 @@ inline void updateBrushColor(QBrush &brush, const QColor &c) {
   brush.setColor(c2);
 }
 
+inline double brushAlpha(QBrush &brush) {
+  return brush.color().alphaF();
+}
+
 inline void setBrushAlpha(QBrush &brush, double a) {
   auto c = brush.color();
 

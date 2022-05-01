@@ -754,6 +754,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
   using PenData     = CQChartsPenData;
+  using PenBrush    = CQChartsPenBrush;
   using TextOptions = CQChartsTextOptions;
   using ColorInd    = CQChartsUtil::ColorInd;
 
@@ -1130,17 +1131,18 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
 
   void setPlot(CQChartsPlot *plot) override;
 
- protected:
-  void connectSlots(bool b) override;
-
  public slots:
   void updateWidgets() override;
 
  protected:
+  void connectSlots(bool b) override;
+
+  //---
+
   Color getColorValue() override;
   void setColorValue(const Color &c) override;
 
- private:
+ protected:
   CQChartsGraphVizPlot* plot_ { nullptr };
 };
 

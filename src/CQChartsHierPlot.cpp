@@ -169,7 +169,7 @@ addHierColumnWidgets()
 
   static auto columnNames = QStringList() << "name" << "value";
 
-  addColumnWidgets(columnNames, hierFrame);
+  addNamedColumnWidgets(columnNames, hierFrame);
 }
 
 void

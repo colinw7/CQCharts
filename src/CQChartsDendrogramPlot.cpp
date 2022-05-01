@@ -2115,12 +2115,19 @@ void
 CQChartsDendrogramPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "name" << "value" << "color" << "size", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "name" << "value" << "color" << "size", columnsFrame);
 }
 
 void

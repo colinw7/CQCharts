@@ -1713,26 +1713,29 @@ void
 CQChartsParallelPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addOptionsWidgets();
+
+  addColorColumnWidgets("Line Color");
+}
+
+void
+CQChartsParallelPlotCustomControls::
+addColumnWidgets()
+{
   // columns frame
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
   // x and y columns
-  addColumnWidgets(QStringList() << "x" << "y", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "x" << "y", columnsFrame);
 
   // column chooser
   chooser_ = new CQChartsParallelPlotColumnChooser;
 
   addFrameWidget(columnsFrame, chooser_);
-
-  //---
-
-  addOptionsWidgets();
-
-  //---
-
-  addColorColumnWidgets("Line Color");
 }
 
 void
@@ -1757,7 +1760,7 @@ void
 CQChartsParallelPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

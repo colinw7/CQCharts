@@ -524,17 +524,19 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private:
+ protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  void connectSlots(bool b) override;
+
+ protected:
   CQChartsDendrogramPlot* plot_ { nullptr }; //!< plot
 };
 

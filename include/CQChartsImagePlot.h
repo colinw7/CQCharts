@@ -152,6 +152,7 @@ class CQChartsImagePlot : public CQChartsPlot,
   using ImageObj = CQChartsImageObj;
   using Color    = CQChartsColor;
   using PenData  = CQChartsPenData;
+  using PenBrush = CQChartsPenBrush;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
@@ -297,11 +298,11 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- protected:
-  void connectSlots(bool b) override;
-
  public slots:
   void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b) override;
 
  protected slots:
   void cellStyleSlot();

@@ -277,6 +277,8 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   propertiesWidgets_.propertiesSplit->
     setSizes(QList<int>({globalSize, viewSize, plotSize, quickSize}));
+
+  propertiesWidgets_.propertiesSplit->setCurrentIndex(2);
 }
 
 void

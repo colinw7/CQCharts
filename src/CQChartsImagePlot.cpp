@@ -1069,7 +1069,7 @@ void
 CQChartsImagePlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     cellStyleCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(cellStyleSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

@@ -1790,12 +1790,19 @@ void
 CQChartsWheelPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+}
+
+void
+CQChartsWheelPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() <<
+  addNamedColumnWidgets(QStringList() <<
     "x" << "y" << "min" << "max" << "innerBar" << "outerBar" << "outerBubble", columnsFrame);
 }
 

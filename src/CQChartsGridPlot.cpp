@@ -744,15 +744,20 @@ void
 CQChartsGridPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addOptionsWidgets();
+}
+
+void
+CQChartsGridPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
-  addColumnWidgets(QStringList() <<
+  addNamedColumnWidgets(QStringList() <<
     "name" << "label" << "row" << "column" << "values", columnsFrame);
-
-  //---
-
-  addOptionsWidgets();
 }
 
 void
@@ -771,7 +776,7 @@ void
 CQChartsGridPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

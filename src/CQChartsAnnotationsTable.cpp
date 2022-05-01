@@ -652,7 +652,6 @@ removePlotAnnotationsSlot()
   view->updatePlots();
 }
 
-
 CQChartsAnnotation *
 CQChartsPlotAnnotationsControl::
 getSelectedPlotAnnotation() const

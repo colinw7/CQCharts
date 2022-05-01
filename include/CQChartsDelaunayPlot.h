@@ -262,19 +262,21 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  void addOptionsWidgets() override;
+
+  void connectSlots(bool b) override;
+
+ protected slots:
   void delaunaySlot();
   void voronoiSlot();
 

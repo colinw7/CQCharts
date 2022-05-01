@@ -157,6 +157,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   using Angle    = CQChartsAngle;
   using Color    = CQChartsColor;
   using PenData  = CQChartsPenData;
+  using PenBrush = CQChartsPenBrush;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
@@ -301,11 +302,11 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
 
   void setPlot(CQChartsPlot *plot) override;
 
- protected:
-  void connectSlots(bool b) override;
-
  public slots:
   void updateWidgets() override;
+
+ protected:
+  void connectSlots(bool b) override;
 
  protected slots:
   void diagonalTypeSlot();

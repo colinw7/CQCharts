@@ -97,7 +97,6 @@ class CQChartsWindow : public QFrame {
   void setViewSettingsMaxObjects(int n);
 
   //---
-  //---
 
   void updateThemePalettes();
 

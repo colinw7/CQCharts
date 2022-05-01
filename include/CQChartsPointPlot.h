@@ -142,7 +142,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Hull, hull)
 class CQChartsPointPlot : public CQChartsGroupPlot,
  public CQChartsObjBestFitShapeData<CQChartsPointPlot>,
  public CQChartsObjHullShapeData   <CQChartsPointPlot>,
- public CQChartsObjStatsLineData   <CQChartsPointPlot> {
+ public CQChartsObjStatsShapeData  <CQChartsPointPlot> {
   Q_OBJECT
 
   // columns
@@ -192,7 +192,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull, hull)
 
   // stats
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
+  Q_PROPERTY(bool statsLines READ isStatsLines WRITE setStatsLines)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Stats, stats)
 
   // axis rug
   Q_PROPERTY(bool                  xRug     READ isXRug   WRITE setXRug    )
@@ -425,6 +427,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  // stats lines
+  bool isStatsLines() const { return statsLines_; }
+
+  //---
+
   // axis x rug
   bool isXRug() const;
 
@@ -610,9 +617,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void symbolTypeSelected(const CQChartsSymbol &symbol, bool visible);
 
   // overlays
-  void setBestFit       (bool b);
-  void setHull          (bool b);
-  void setStatsLinesSlot(bool b);
+  void setBestFit   (bool b);
+  void setHull      (bool b);
+  void setStatsLines(bool b);
 
   // rug
   void setXRug(bool b);
@@ -674,8 +681,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using SymbolTypeFilter = std::set<Symbol>;
 
   // label data
-  DataLabelP dataLabel_;            //!< data label style
-  bool       adjustText_ { false }; //!< adjust text position
+  DataLabelP dataLabel_;                               //!< data label style
+  Length     dataLabelFontSize_ { Length::pixel(-1) }; //!< data label font size
+  bool       adjustText_        { false };             //!< adjust text position
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data
@@ -693,8 +701,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   SymbolTypeFilter symbolTypeFilter_; //!< symbol type map filter
 
   // plot overlay data
-  BestFitData bestFitData_; //!< best fit data
-  HullData    hullData_;    //!< hull data
+  BestFitData bestFitData_;          //!< best fit data
+  HullData    hullData_;             //!< hull data
+  bool        statsLines_ { false }; //!< stats lines data
 
   // group data
   GroupPoints     groupPoints_;     //!< group fit points

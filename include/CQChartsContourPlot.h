@@ -125,19 +125,19 @@ class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- private:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private slots:
+ protected:
+  void addWidgets() override;
+
+  void addOptionsWidgets() override;
+
+  void connectSlots(bool b) override;
+
+ protected slots:
   void solidSlot();
 
  protected:

@@ -493,19 +493,22 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
  protected:
+  void addWidgets() override;
+
+  void addOptionsWidgets() override;
+
+  virtual void addRunWidgets();
+
+  void connectSlots(bool b) override;
+
+  //---
+
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 

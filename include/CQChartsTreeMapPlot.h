@@ -761,13 +761,14 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
 
   void setPlot(CQChartsPlot *plot) override;
 
- protected:
-  void connectSlots(bool b) override;
-
  public slots:
   void updateWidgets() override;
 
  protected:
+  void connectSlots(bool b) override;
+
+  //---
+
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 

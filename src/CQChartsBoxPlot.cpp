@@ -3952,7 +3952,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  adjustFillColor(c);
+  //adjustFillColor(c);
 
   return c;
 }
@@ -4026,6 +4026,21 @@ void
 CQChartsBoxPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addGroupColumnWidgets();
+
+  addOptionsWidgets();
+
+  addColorColumnWidgets("Point Color");
+
+  addKeyList();
+}
+
+void
+CQChartsBoxPlotCustomControls::
+addColumnWidgets()
+{
   // columns frame
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -4045,28 +4060,12 @@ addWidgets()
     "values" << "name" << "set" <<
     "x" << "min" << "lowerMedian" << "median" << "upperMedian" << "max" << "outliers";
 
-  addColumnWidgets(columnNames, columnsFrame);
+  addNamedColumnWidgets(columnNames, columnsFrame);
 
   // column chooser
   chooser_ = new CQChartsBoxPlotColumnChooser;
 
   addFrameWidget(columnsFrame, chooser_);
-
-  //---
-
-  addGroupColumnWidgets();
-
-  //---
-
-  addOptionsWidgets();
-
-  //---
-
-  addColorColumnWidgets("Point Color");
-
-  //---
-
-  addKeyList();
 }
 
 void
@@ -4112,23 +4111,23 @@ void
 CQChartsBoxPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     pointsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(pointsTypeSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     normalizedCheck_, SIGNAL(stateChanged(int)), this, SLOT(normalizedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     notchedCheck_, SIGNAL(stateChanged(int)), this, SLOT(notchedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     violinCheck_, SIGNAL(stateChanged(int)), this, SLOT(violinSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     errorBarCheck_, SIGNAL(stateChanged(int)), this, SLOT(errorBarSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);

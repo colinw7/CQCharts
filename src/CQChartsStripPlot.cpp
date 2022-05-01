@@ -819,8 +819,6 @@ addWidgets()
 
   addColorColumnWidgets();
 
-  //---
-
   addKeyList();
 }
 

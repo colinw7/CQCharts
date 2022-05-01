@@ -2810,7 +2810,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto c = CQChartsTextKeyItem::interpTextColor(ind);
 
-  adjustFillColor(c);
+  //adjustFillColor(c);
 
   return c;
 }
@@ -2847,14 +2847,34 @@ void
 CQChartsBarChartPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addLabelGroup();
+
+  addGroupColumnWidgets();
+
+  addOptionsWidgets();
+
+  addColorColumnWidgets();
+
+  addKeyList();
+}
+
+void
+CQChartsBarChartPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   // values, name and label columns
-  addColumnWidgets(QStringList() << "values" << "name", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "values" << "name", columnsFrame);
+}
 
-  //---
-
+void
+CQChartsBarChartPlotCustomControls::
+addLabelGroup()
+{
   // label group
   labelFrame_ = createGroupFrame("Bar Label", "labelFrame");
 
@@ -2874,22 +2894,6 @@ addWidgets()
   labelFrame_.groupBox->setCornerWidget(labelCornerFrame);
 
   addFrameWidget(labelFrame_, "Column", labelColumnCombo_);
-
-  //---
-
-  addGroupColumnWidgets();
-
-  //---
-
-  addOptionsWidgets();
-
-  //---
-
-  addColorColumnWidgets();
-
-  //---
-
-  addKeyList();
 }
 
 void
@@ -2915,14 +2919,14 @@ addOptionsWidgets()
 
   //---
 
-  percentCheck_   = createBoolEdit("percent"  , /*choice*/false);
-  dotLinesCheck_  = createBoolEdit("dotLines" , /*choice*/false);
-  skipEmptyCheck_ = createBoolEdit("skipEmpty", /*choice*/false);
-
   auto *optionsFrame1  = CQUtil::makeWidget<QFrame>("optionsFrame1");
   auto *optionsLayout1 = CQUtil::makeLayout<QGridLayout>(optionsFrame1, 2, 2);
 
   addFrameWidget(optionsFrame_, optionsFrame1);
+
+  percentCheck_   = createBoolEdit("percent"  , /*choice*/false);
+  dotLinesCheck_  = createBoolEdit("dotLines" , /*choice*/false);
+  skipEmptyCheck_ = createBoolEdit("skipEmpty", /*choice*/false);
 
   optionsLayout1->addWidget(percentCheck_   , 0, 0);
   optionsLayout1->addWidget(dotLinesCheck_  , 0, 1);
@@ -2935,26 +2939,26 @@ void
 CQChartsBarChartPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     labelCheck_, SIGNAL(stateChanged(int)), this, SLOT(labelVisibleSlot(int)));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     percentCheck_, SIGNAL(stateChanged(int)), this, SLOT(percentSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     skipEmptyCheck_, SIGNAL(stateChanged(int)), this, SLOT(skipEmptySlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     dotLinesCheck_, SIGNAL(stateChanged(int)), this, SLOT(dotLinesSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);
@@ -2983,20 +2987,21 @@ updateWidgets()
 
   //---
 
-  labelColumnCombo_->setModelColumn(plot_->getModelData(), plot_->labelColumn());
+  if (labelColumnCombo_)
+    labelColumnCombo_->setModelColumn(plot_->getModelData(), plot_->labelColumn());
 
-  labelCheck_->setChecked(plot_->isLabelsVisible());
+  if (labelCheck_) labelCheck_->setChecked(plot_->isLabelsVisible());
 
   //---
 
-  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
-  plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
-  valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
+  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  if (plotTypeCombo_   ) plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
+  if (valueTypeCombo_  ) valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
 
-  percentCheck_   ->setChecked(plot_->isPercent());
-  skipEmptyCheck_ ->setChecked(plot_->isSkipEmpty());
-  dotLinesCheck_  ->setChecked(plot_->isDotLines());
-  colorBySetCheck_->setChecked(plot_->isColorBySet());
+  if (percentCheck_   ) percentCheck_   ->setChecked(plot_->isPercent());
+  if (skipEmptyCheck_ ) skipEmptyCheck_ ->setChecked(plot_->isSkipEmpty());
+  if (dotLinesCheck_  ) dotLinesCheck_  ->setChecked(plot_->isDotLines());
+  if (colorBySetCheck_) colorBySetCheck_->setChecked(plot_->isColorBySet());
 
   //---
 

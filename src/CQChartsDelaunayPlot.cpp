@@ -949,6 +949,15 @@ void
 CQChartsDelaunayPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addOptionsWidgets();
+}
+
+void
+CQChartsDelaunayPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -956,11 +965,7 @@ addWidgets()
 
   static auto columnNames = QStringList() << "x" << "y" << "name" << "value";
 
-  addColumnWidgets(columnNames, columnsFrame);
-
-  //---
-
-  addOptionsWidgets();
+  addNamedColumnWidgets(columnNames, columnsFrame);
 }
 
 void
@@ -983,9 +988,9 @@ void
 CQChartsDelaunayPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     delaunayCheck_, SIGNAL(stateChanged(int)), this, SLOT(delaunaySlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     voronoiCheck_, SIGNAL(stateChanged(int)), this, SLOT(voronoiSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

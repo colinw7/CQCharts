@@ -2248,7 +2248,7 @@ addWidgets()
 
   //---
 
-  addColumnWidgets(QStringList() <<
+  addNamedColumnWidgets(QStringList() <<
     "x" << "y" << "z" << "name" << "label" << "color" <<
     "symbolType" << "symbolSize" << "fontSize", columnsFrame);
 

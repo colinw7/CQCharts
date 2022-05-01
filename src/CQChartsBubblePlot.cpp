@@ -1646,6 +1646,17 @@ void
 CQChartsBubblePlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addGroupColumnWidgets();
+
+  addColorColumnWidgets();
+}
+
+void
+CQChartsBubblePlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
@@ -1654,13 +1665,7 @@ addWidgets()
   // values, name and label columns
   static auto columnNames = QStringList() << "name" << "value";
 
-  addColumnWidgets(columnNames, columnsFrame);
-
-  //---
-
-  addGroupColumnWidgets();
-
-  addColorColumnWidgets();
+  addNamedColumnWidgets(columnNames, columnsFrame);
 }
 
 void

@@ -1557,7 +1557,7 @@ addConnectionColumnWidgets()
    "group" << "node" << "connections" << "link" << "path" << "from" << "to" <<
    "value" << "depth" << "name";
 
-  addColumnWidgets(columnNames, connectionsFrame);
+  addNamedColumnWidgets(columnNames, connectionsFrame);
 
   //---
 
@@ -1568,7 +1568,7 @@ void
 CQChartsConnectionPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

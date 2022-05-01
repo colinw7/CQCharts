@@ -2644,23 +2644,9 @@ addWidgets()
 
   addColorColumnWidgets("Point Color");
 
-  //---
-
   addOptionsWidgets();
 
-  //---
-
-  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
-  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 2, 2);
-
-  layout_->addWidget(buttonFrame);
-
-  auto *stepButton = CQUtil::makeLabelWidget<QPushButton>("Step", "step");
-
-  connect(stepButton, SIGNAL(clicked()), this, SLOT(stepSlot()));
-
-  buttonLayout->addWidget(stepButton);
-  buttonLayout->addStretch(1);
+  addRunWidgets();
 }
 
 void
@@ -2677,9 +2663,26 @@ addOptionsWidgets()
 
 void
 CQChartsForceDirectedPlotCustomControls::
+addRunWidgets()
+{
+  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 2, 2);
+
+  layout_->addWidget(buttonFrame);
+
+  auto *stepButton = CQUtil::makeLabelWidget<QPushButton>("Step", "step");
+
+  connect(stepButton, SIGNAL(clicked()), this, SLOT(stepSlot()));
+
+  buttonLayout->addWidget(stepButton);
+  buttonLayout->addStretch(1);
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQChartsWidgetUtil::optConnectDisconnect(b,
     runningCheck_, SIGNAL(stateChanged(int)), this, SLOT(runningSlot(int)));
 
   CQChartsConnectionPlotCustomControls::connectSlots(b);

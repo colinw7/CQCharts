@@ -1057,16 +1057,21 @@ void
 CQChartsHierScatterPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addKeyList();
+}
+
+void
+CQChartsHierScatterPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "x" << "y" << "name" << "group", columnsFrame);
-
-  //---
-
-  addKeyList();
+  addNamedColumnWidgets(QStringList() << "x" << "y" << "name" << "group", columnsFrame);
 }
 
 void

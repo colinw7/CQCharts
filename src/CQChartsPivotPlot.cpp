@@ -2010,20 +2010,30 @@ void
 CQChartsPivotPlotCustomControls::
 addWidgets()
 {
+  addColumnWidgets();
+
+  addOptionsWidgets();
+
+  addKeyList();
+}
+
+void
+CQChartsPivotPlotCustomControls::
+addColumnWidgets()
+{
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
   //---
 
-  addColumnWidgets(QStringList() << "x" << "y" << "value", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "x" << "y" << "value", columnsFrame);
+}
 
-  //---
-
+void
+CQChartsPivotPlotCustomControls::
+addOptionsWidgets()
+{
   // TODO: orientation, plot type
-
-  //---
-
-  addKeyList();
 }
 
 void

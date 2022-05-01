@@ -1851,7 +1851,8 @@ void
 CQChartsSunburstPlotCustomControls::
 addWidgets()
 {
-  addHierColumnWidgets ();
+  addHierColumnWidgets();
+
   addColorColumnWidgets();
 }
 

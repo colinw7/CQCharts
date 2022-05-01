@@ -70,7 +70,7 @@ addLayoutStretch()
 
 void
 CQChartsPlotCustomControls::
-addColumnWidgets(const QStringList &columnNames, FrameData &frameData)
+addNamedColumnWidgets(const QStringList &columnNames, FrameData &frameData)
 {
   auto *plotType = this->plotType();
   assert(plotType);
@@ -194,7 +194,7 @@ addKeyList()
   assert(! keyList_);
 
   // key frame
-  auto keyFrame = createGroupFrame("Key", "keyFrame", "keyGroup");
+  auto keyFrame = createGroupFrame("Key", "keyFrame", QString("keyGroup"));
 
   keyGroup_ = keyFrame.groupBox;
 
@@ -516,7 +516,14 @@ void
 CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
-  frameData.layout->setRowStretch(frameData.row, frameData.col);
+  frameData.layout->setRowStretch(frameData.row, 1);
+}
+
+void
+CQChartsPlotCustomControls::
+addFrameColStretch(FrameData &frameData)
+{
+  frameData.layout->setColumnStretch(frameData.col, 1);
 }
 
 void

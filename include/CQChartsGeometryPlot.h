@@ -364,21 +364,24 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- private:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
 
- private:
+ protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  void connectSlots(bool b) override;
+
+  //---
+
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- private:
+ protected:
   CQChartsGeometryPlot* plot_ { nullptr };
 };
 

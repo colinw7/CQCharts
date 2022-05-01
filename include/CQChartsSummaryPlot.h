@@ -433,17 +433,23 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void addWidgets() override;
-
-  void addOptionsWidgets() override;
-
   void setPlot(CQChartsPlot *plot) override;
-
- protected:
-  void connectSlots(bool b) override;
 
  public slots:
   void updateWidgets() override;
+
+ protected:
+  void addWidgets() override;
+
+  void addColumnWidgets() override;
+
+  virtual void addGroupStatsWidgets();
+
+  void addOptionsWidgets() override;
+
+  virtual void addExpandControls();
+
+  void connectSlots(bool b) override;
 
  protected slots:
   void plotTypeSlot();
