@@ -139,6 +139,7 @@ CQChartsScatterPlot::
 CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("scatter"), model),
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
+ CQChartsObjLineData         <CQChartsScatterPlot>(this),
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
 }
@@ -172,6 +173,8 @@ init()
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color::makePalette());
+
+  setLinesColor(Color::makePalette());
 
   setGridCellFilled (true);
   setGridCellStroked(true);
@@ -456,6 +459,15 @@ setHexCells(bool b)
 
 void
 CQChartsScatterPlot::
+setConnected(bool b)
+{
+  CQChartsUtil::testAndSet(connected_, b, [&]() { updateObjs(); } );
+}
+
+//------
+
+void
+CQChartsScatterPlot::
 setDensityMap(bool b)
 {
   CQChartsUtil::testAndSet(densityMapData_.visible, b, [&]() { updateObjs(); } );
@@ -569,10 +581,17 @@ addProperties()
   //---
 
   // options
-  addProp("options", "plotType", "plotType", "Plot type");
+  addProp("options", "plotType" , "plotType" , "Plot type");
 
   addProp("filter", "minSymbolSize", "", "Min symbol size");
   addProp("filter", "minLabelSize" , "", "Min label size");
+
+  //---
+
+  // connected
+  addProp("connected", "connected", "visible", "Connect points");
+
+  addLineProperties("connected/stroke", "lines", "");
 
   //---
 
@@ -1214,6 +1233,9 @@ createObjs(PlotObjs &objs) const
   //---
 
   // overlays
+  if (isConnected())
+    addConnectedObjects(objs);
+
   if (isBestFit())
     addBestFitObjects(objs);
 
@@ -1282,6 +1304,7 @@ addPointObjects(PlotObjs &objs) const
     }
   }
 
+  // process each group
   for (const auto &groupNameValue : groupNameValues_) {
     if (isInterrupt())
       break;
@@ -1712,6 +1735,68 @@ addHexObjects(PlotObjs &objs) const
   }
 }
 
+//---
+
+void
+CQChartsScatterPlot::
+addConnectedObjects(PlotObjs &objs) const
+{
+  int hasGroups = (numGroups() > 1);
+
+  auto bbox = calcDataRange(/*adjust*/false);
+
+  // one connected line per group (multiple groups) or set (name values)
+  int ng = int(groupInds_.size());
+
+  if (ng > 1) {
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      bool hidden = (hasGroups && isSetHidden(groupInd));
+      if (hidden) continue;
+
+      auto *connectedObj = createConnectedObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+
+      connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+      //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
+
+      objs.push_back(connectedObj);
+
+      ++ig;
+    }
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int is = 0;
+    int ns = int(nameValues.size());
+
+    for (const auto &nameValue : nameValues) {
+      auto *connectedObj =
+        createConnectedObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
+
+      connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+      //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
+
+      objs.push_back(connectedObj);
+
+      ++is;
+    }
+  }
+}
+
+CQChartsScatterConnectedObj *
+CQChartsScatterPlot::
+createConnectedObj(int groupInd, const QString &name, const ColorInd &ig, const ColorInd &is,
+                   const BBox &rect) const
+{
+  return new CQChartsScatterConnectedObj(this, groupInd, name, ig, is, rect);
+}
+
+//---
+
 void
 CQChartsScatterPlot::
 addBestFitObjects(PlotObjs &objs) const
@@ -1760,6 +1845,8 @@ addBestFitObjects(PlotObjs &objs) const
     }
   }
 }
+
+//---
 
 void
 CQChartsScatterPlot::
@@ -4219,6 +4306,117 @@ yColorValue(bool relative) const
     return CMathUtil::map(point().y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
   else
     return point().y;
+}
+
+//------
+
+CQChartsScatterConnectedObj::
+CQChartsScatterConnectedObj(const Plot *plot, int groupInd, const QString &name,
+                            const ColorInd &ig, const ColorInd &is, const BBox &rect) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()),
+ plot_(plot), groupInd_(groupInd), name_(name)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsScatterConnectedObj::
+calcId() const
+{
+  return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(is().i);
+}
+
+QString
+CQChartsScatterConnectedObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  QString groupName;
+
+  if (name_ == "")
+    groupName = plot_->groupIndName(groupInd_);
+  else {
+    ColorInd ind;
+
+    groupName = plot_->singleGroupName(ind);
+
+    if (groupName == "")
+      groupName = name_;
+  }
+
+  tableTip.addBoldLine("Connected");
+  tableTip.addTableRow("Group", groupName);
+
+  return tableTip.str();
+}
+
+void
+CQChartsScatterConnectedObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  CQChartsPlotObj::addProperties(model, path);
+}
+
+void
+CQChartsScatterConnectedObj::
+draw(PaintDevice *device) const
+{
+  using Points = CQChartsScatterPlot::Points;
+
+  Points points;
+
+  if (name_ == "")
+    points = plot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
+  else
+    points = plot_->indPoints(QVariant(name_), /*isGroup*/false);
+
+  //---
+
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  using XPoints = std::map<double, Points>;
+
+  XPoints xPoints;
+
+  for (const auto &p : points)
+    xPoints[p.x].push_back(p);
+
+  Polygon poly;
+
+  for (const auto &xp : xPoints)
+    for (const auto &p : xp.second)
+      poly.addPoint(p);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawPolyline(poly);
+}
+
+void
+CQChartsScatterConnectedObj::
+calcPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic;
+
+  if (name_ != "")
+    ic = is_;
+  else
+    ic = ig_;
+
+  // calc pen and brush
+  plot_->setLineDataPen(penBrush.pen, ic);
+
+  plot_->setBrush(penBrush, BrushData(false));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 //------

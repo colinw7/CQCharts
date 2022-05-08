@@ -1835,6 +1835,29 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
 #endif
 }
 
+const QAbstractItemModel *s_modelContext = nullptr;
+
+void setContext(const QAbstractItemModel *model)
+{
+  s_modelContext = model;
+}
+
+bool stringToColumnProc(const QString &str, CQChartsColumn &column)
+{
+  if (! s_modelContext)
+    return false;
+
+  const QAbstractItemModel *model = nullptr;
+
+  std::swap(model, s_modelContext);
+
+  bool rc = stringToColumn(model, str, column);
+
+  std::swap(model, s_modelContext);
+
+  return rc;
+}
+
 bool stringToColumn(const QAbstractItemModel *model, const QString &str, Column &column) {
   assert(model);
 

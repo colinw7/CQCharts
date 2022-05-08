@@ -205,6 +205,7 @@ CQChartsPlotModelVisitor.cpp \
 CQChartsModelVisitor.cpp \
 \
 CQChartsData.cpp \
+CQChartsArrowData.cpp \
 CQChartsInvalidator.cpp \
 \
 CQChartsLineCap.cpp \
@@ -659,6 +660,7 @@ HEADERS += \
 \
 ../include/CQChartsObjData.h \
 ../include/CQChartsData.h \
+../include/CQChartsArrowData.h \
 ../include/CQChartsInvalidator.h \
 \
 ../include/CQChartsLineCap.h \

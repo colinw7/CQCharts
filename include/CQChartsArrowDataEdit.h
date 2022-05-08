@@ -2,6 +2,7 @@
 #define CQChartsArrowDataEdit_H
 
 #include <CQChartsData.h>
+#include <CQChartsArrowData.h>
 #include <CQChartsLineEditBase.h>
 
 class CQChartsArrowDataEdit;

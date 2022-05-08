@@ -6837,6 +6837,10 @@ setInsideObjects(const Point &w, Objs &objs)
     setInsideObject();
 
     //std::cerr << "  #SizeObjs " << insideData_.numSizeObjs() << "\n";
+
+    //---
+
+    view()->updateTip();
   }
 
   //---

@@ -46,6 +46,8 @@ class CQChartsColumn :
  public:
   using Column = CQChartsColumn;
 
+  using StringToColumnProc = bool (*)(const QString &str, CQChartsColumn &column);
+
  public:
   static void registerMetaType();
 
@@ -74,6 +76,10 @@ class CQChartsColumn :
   static Column makeVHeader() { return Column(Type::VHEADER, -1, "", -1); }
 
   static Column makeGroup() { return Column(Type::GROUP, -1, "", -1); }
+
+  static void setStringToColumnProc(StringToColumnProc proc) {
+    s_stringToColumnProc = proc;
+  }
 
  public:
   CQChartsColumn() = default;
@@ -216,6 +222,8 @@ class CQChartsColumn :
   void updateType();
 
  private:
+  static StringToColumnProc s_stringToColumnProc;
+
   Type  type_   { Type::NONE }; //!< column type
   int   column_ { -1 };         //!< column number for data (-1 unset)
   int   role_   { -1 };         //!< column role for data (-1 unset)
@@ -230,7 +238,7 @@ class CQChartsColumn :
  * \ingroup Charts
  */
 class CQChartsColumns :
-  public CQChartsEqBase<CQChartsColumns>, public CQChartsToStringBase<CQChartsColumns> {
+  public CQChartsComparatorBase<CQChartsColumns>, public CQChartsToStringBase<CQChartsColumns> {
  public:
   using Column  = CQChartsColumn;
   using Columns = std::vector<Column>;
@@ -395,6 +403,14 @@ class CQChartsColumns :
   QString toString() const { return columnsStr(); }
 
   bool fromString(const QString &s) { return setColumnsStr(s); }
+
+  //---
+
+  int cmp(const CQChartsColumns &c) const;
+
+  friend int cmp(const CQChartsColumns &c1, const CQChartsColumns &c2) {
+    return c1.cmp(c2);
+  }
 
  private:
   Column  column_;  //!< single column

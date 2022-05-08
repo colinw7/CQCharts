@@ -214,6 +214,52 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 //---
 
 /*!
+ * \brief Scatter Plot Connected objects
+ * \ingroup Charts
+ */
+class CQChartsScatterConnectedObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using Plot = CQChartsScatterPlot;
+
+ public:
+  CQChartsScatterConnectedObj(const Plot *plot, int groupInd, const QString &name,
+                              const ColorInd &ig, const ColorInd &is, const BBox &rect);
+
+  int groupInd() const { return groupInd_; }
+
+  const QString &name() const { return name_; }
+
+  //---
+
+  QString typeName() const override { return "connected"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  bool drawMouseOver() const override { return false; }
+
+ private:
+  const Plot* plot_     { nullptr }; //!< scatter plot
+  int         groupInd_ { -1 };      //!< plot group index
+  QString     name_;                 //!< plot set name
+};
+
+//---
+
+/*!
  * \brief Scatter Plot Grid Cell object
  * \ingroup Charts
  */
@@ -453,6 +499,7 @@ CQCHARTS_NAMED_SHAPE_DATA(GridCell, gridCell)
  */
 class CQChartsScatterPlot : public CQChartsPointPlot,
  public CQChartsObjPointData        <CQChartsScatterPlot>,
+ public CQChartsObjLineData         <CQChartsScatterPlot>,
  public CQChartsObjGridCellShapeData<CQChartsScatterPlot> {
   Q_OBJECT
 
@@ -463,7 +510,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
 
   // options
-  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
+  Q_PROPERTY(PlotType plotType  READ plotType    WRITE setPlotType )
+  Q_PROPERTY(bool     connected READ isConnected WRITE setConnected)
 
   // density map
   Q_PROPERTY(bool      densityMap         READ isDensityMap       WRITE setDensityMap        )
@@ -473,6 +521,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // symbol data
   CQCHARTS_POINT_DATA_PROPERTIES
+
+  // lines (display, stroke)
+  CQCHARTS_LINE_DATA_PROPERTIES
 
   // grid cells
   Q_PROPERTY(int gridNumX READ gridNumX WRITE setGridNumX)
@@ -584,6 +635,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  // connected
+
+  bool isConnected() const { return connected_; }
+  void setConnected(bool b);
+
+  //---
+
   // plot type
   const PlotType &plotType() const { return plotType_; }
 
@@ -670,12 +728,14 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool createObjs(PlotObjs &obj) const override;
 
-  void addPointObjects  (PlotObjs &objs) const;
-  void addGridObjects   (PlotObjs &objs) const;
-  void addHexObjects    (PlotObjs &objs) const;
-  void addBestFitObjects(PlotObjs &objs) const;
-  void addHullObjects   (PlotObjs &objs) const;
-  void addDensityObjects(PlotObjs &objs) const;
+  void addPointObjects(PlotObjs &objs) const;
+  void addGridObjects (PlotObjs &objs) const;
+  void addHexObjects  (PlotObjs &objs) const;
+
+  void addConnectedObjects(PlotObjs &objs) const;
+  void addBestFitObjects  (PlotObjs &objs) const;
+  void addHullObjects     (PlotObjs &objs) const;
+  void addDensityObjects  (PlotObjs &objs) const;
 
   void addNameValues() const;
 
@@ -702,14 +762,18 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  using PointObj   = CQChartsScatterPointObj;
-  using CellObj    = CQChartsScatterCellObj;
-  using HexObj     = CQChartsScatterHexObj;
-  using DensityObj = CQChartsScatterDensityObj;
+  using PointObj     = CQChartsScatterPointObj;
+  using ConnectedObj = CQChartsScatterConnectedObj;
+  using CellObj      = CQChartsScatterCellObj;
+  using HexObj       = CQChartsScatterHexObj;
+  using DensityObj   = CQChartsScatterDensityObj;
 
   virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
                                    const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
+
+  virtual ConnectedObj *createConnectedObj(int groupInd, const QString &name, const ColorInd &ig,
+                                           const ColorInd &is, const BBox &rect) const;
 
   virtual CellObj *createCellObj(int groupInd, const BBox &rect, const ColorInd &is,
                                  const ColorInd &ig, int ix, int iy, const Points &points,
@@ -902,7 +966,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool uniqueY_ { false }; //!< are y values uniquified (string to int)
 
   // options
-  PlotType plotType_ { PlotType::SYMBOLS }; //!< plot type
+  PlotType plotType_  { PlotType::SYMBOLS }; //!< plot type
+  bool     connected_ { false };             //!< are points connected
 
   // axis density data
   AxisDensity* xAxisDensity_ { nullptr }; //!< x axis whisker density object

@@ -2278,15 +2278,26 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg("Invalid object id '" + objectId + "'");
     }
 
+    CQChartsModelUtil::setContext(plot->model().data());
+
+    CQChartsColumn::setStringToColumnProc(CQChartsModelUtil::stringToColumnProc);
+
     // plot object property
     if (plotObj) {
       if (! CQUtil::setProperty(plotObj, name, value))
-        return errorMsg("Failed to set plot object property '" + name + "' '" + value + "'");
+        rc = errorMsg("Failed to set plot object property '" + name + "' '" + value + "'");
     }
     else {
       if (! plot->setProperty(name, value))
-        return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
+        rc = errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
     }
+
+    CQChartsModelUtil::setContext(nullptr);
+
+    CQChartsColumn::setStringToColumnProc(nullptr);
+
+    if (! rc)
+      return false;
   }
   // set annotation property
   else if (argv.hasParseArg("annotation")) {

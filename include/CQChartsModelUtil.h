@@ -301,6 +301,10 @@ Color modelColor(CQCharts *charts, const QAbstractItemModel *model, int row,
 
 namespace CQChartsModelUtil {
 
+void setContext(const QAbstractItemModel *model);
+
+bool stringToColumnProc(const QString &str, CQChartsColumn &column);
+
 #if 0
 bool isValidModelColumn(const QAbstractItemModel *model, int column);
 #endif

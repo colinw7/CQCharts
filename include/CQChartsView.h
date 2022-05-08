@@ -172,6 +172,7 @@ class CQChartsView : public QFrame,
   // tip
   Q_PROPERTY(bool         floatTip READ isFloatTip WRITE setFloatTip)
   Q_PROPERTY(CQChartsFont tipFont  READ tipFont    WRITE setTipFont )
+  Q_PROPERTY(double       tipDelay READ tipDelay   WRITE setTipDelay)
 
   // separators
   Q_PROPERTY(bool plotSeparators READ isPlotSeparators WRITE setPlotSeparators)
@@ -465,19 +466,24 @@ class CQChartsView : public QFrame,
   //---
 
   // tip
-  bool isFloatTip() const { return isFloatTip_; }
+  bool isFloatTip() const { return tipData_.isFloat; }
   void setFloatTip(bool b);
 
-  const Font &tipFont() const { return tipFont_; }
+  const Font &tipFont() const { return tipData_.font; }
   void setTipFont(const Font &f);
+
+  double tipDelay() const { return tipData_.delay; }
+  void setTipDelay(double d);
 
   //---
 
+  // separators
   bool isPlotSeparators() const { return plotSeparators_; }
   void setPlotSeparators(bool b);
 
   //---
 
+  // hand drawn
   bool isHandDrawn() const { return handDrawn_; }
   void setHandDrawn(bool b);
 
@@ -489,6 +495,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // overview
   int overviewXSize() const { return overviewData_.xsize; }
   void setOverviewXSize(int i);
 
@@ -1033,6 +1040,7 @@ class CQChartsView : public QFrame,
   //---
 
   void updateTip();
+  void updateTip(const QPoint &gpos);
 
   //---
 
@@ -1668,11 +1676,17 @@ class CQChartsView : public QFrame,
   Font   saveFont_;            //!< saved font
 
   // tip
-  bool                  isFloatTip_ { true };  //!< is float tip enabled
-  Font                  tipFont_;              //!< tip font
-  CQChartsViewToolTip*  toolTip_  { nullptr }; //!< mouse tooltip
-  CQChartsViewFloatTip* floatTip_ { nullptr }; //!< float tooltip
+  struct TipData {
+    bool                  isFloat   { true };    //!< is float tip enabled
+    Font                  font;                  //!< tip font
+    double                delay     { 3.0 };     //!< tip delay
+    CQChartsViewToolTip*  toolTip   { nullptr }; //!< mouse tooltip
+    CQChartsViewFloatTip* floatTip  { nullptr }; //!< float tooltip
+  };
 
+  TipData tipData_; //!< tip data
+
+  // separators
   bool plotSeparators_ { false }; //!< show plot separators
 
   // handdrawn data

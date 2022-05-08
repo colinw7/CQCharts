@@ -10,16 +10,16 @@ proc objPressed { view plot id } {
   set type [lindex $strs 0]
 
   if       {"$type" == "point"} {
-    set x [get_charts_property -plot $plot -object $id -name x]
-    set y [get_charts_property -plot $plot -object $id -name y]
+#   set x [get_charts_property -plot $plot -object $id -name x]
+#   set y [get_charts_property -plot $plot -object $id -name y]
 
-    echo "$x $y"
+#   echo "$x $y"
   } elseif {"$type" == "impulse"} {
-    set x  [get_charts_property -plot $plot -object $id -name x ]
-    set y1 [get_charts_property -plot $plot -object $id -name y1]
-    set y2 [get_charts_property -plot $plot -object $id -name y2]
+#   set x  [get_charts_property -plot $plot -object $id -name x ]
+#   set y1 [get_charts_property -plot $plot -object $id -name y1]
+#   set y2 [get_charts_property -plot $plot -object $id -name y2]
 
-    echo "$x $y1 $y2"
+#   echo "$x $y1 $y2"
   }
 }
 
@@ -36,3 +36,5 @@ set_charts_property -plot $plot -name columns.label -value -1
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed
 connect_charts_signal -plot $plot -from selectPress -to selectPress
+
+set_charts_property -plot $plot -name columns.tips -value [list {New York} {San Francisco} {Austin}]

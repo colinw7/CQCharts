@@ -6,6 +6,7 @@
 #include <CQChartsImage.h>
 #include <CQChartsWidget.h>
 #include <CQChartsData.h>
+#include <CQChartsArrowData.h>
 #include <CQChartsOptRect.h>
 #include <CQChartsOptPosition.h>
 #include <CQChartsPolygon.h>
@@ -1493,8 +1494,9 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Q_PROPERTY(CQChartsPath     path  READ path  WRITE setPath )
 
  public:
-  using Position = CQChartsPosition;
-  using Path     = CQChartsPath;
+  using ArrowData = CQChartsArrowData;
+  using Position  = CQChartsPosition;
+  using Path      = CQChartsPath;
 
  public:
   CQChartsArrowAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
@@ -1532,8 +1534,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   CQChartsArrow *arrow() const { return arrow_.get(); }
 
-  const CQChartsArrowData &arrowData() const;
-  void setArrowData(const CQChartsArrowData &data);
+  const ArrowData &arrowData() const;
+  void setArrowData(const ArrowData &data);
 
   //---
 
@@ -1608,12 +1610,14 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
     LINE        = int(CQChartsDrawUtil::EdgeType::LINE)         // line edge
   };
 
+  using ArrowData = CQChartsArrowData;
+
   enum class HeadType {
-    NONE     = int(CQChartsArrowData::HeadType::NONE),
-    ARROW    = int(CQChartsArrowData::HeadType::ARROW),
-    TRIANGLE = int(CQChartsArrowData::HeadType::TRIANGLE),
-    STEALTH  = int(CQChartsArrowData::HeadType::STEALTH),
-    DIAMOND  = int(CQChartsArrowData::HeadType::DIAMOND)
+    NONE     = int(ArrowData::HeadType::NONE),
+    ARROW    = int(ArrowData::HeadType::ARROW),
+    TRIANGLE = int(ArrowData::HeadType::TRIANGLE),
+    STEALTH  = int(ArrowData::HeadType::STEALTH),
+    DIAMOND  = int(ArrowData::HeadType::DIAMOND)
   };
 
   using Position = CQChartsPosition;
@@ -1701,7 +1705,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
 
   void calcPath(QPainterPath &path) const;
 
-  void setArrowData(CQChartsArrowData &arrowData) const;
+  void setArrowData(ArrowData &arrowData) const;
 
   EditHandles *editHandles() const override;
 

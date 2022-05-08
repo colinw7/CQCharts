@@ -4,11 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + trivial key
+ + better fitting
  + better arrow ends for lines (simplify code)
    + move to own directory for testing (painter ?)/#ifdefs
+   + better inside test when line
  + tooltips on view settings
- + all plots custom controls fully overriddable
- + stats line with group color (transparent)
  + annotation view/plot table update (selected ?)
  + model expr edit test
  + bad_scatter.tcl colors key with bad values

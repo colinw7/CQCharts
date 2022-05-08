@@ -8,6 +8,8 @@ CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
 int CQChartsColumn::metaTypeId;
 
+CQChartsColumn::StringToColumnProc CQChartsColumn::s_stringToColumnProc;
+
 void
 CQChartsColumn::
 registerMetaType()
@@ -180,19 +182,33 @@ setValue(const QString &str)
   }
 
   Type    type;
-  int     column;
+  int     icolumn;
   int     role;
   QString expr;
   QString name;
 
-  if (! decodeString(str, type, column, role, expr, name))
-    return false;
+  if (! decodeString(str, type, icolumn, role, expr, name)) {
+    if (s_stringToColumnProc) {
+      CQChartsColumn column;
+
+      if (! s_stringToColumnProc(str, column))
+        return false;
+
+      type    = column.type();
+      icolumn = column.column();
+      role    = column.role();
+      expr    = column.expr();
+      name    = column.name();
+    }
+    else
+      return false;
+  }
 
   delete [] expr_;
   delete [] name_;
 
   type_   = type;
-  column_ = column;
+  column_ = icolumn;
   role_   = role;
   expr_   = nullptr;
   name_   = nullptr;
@@ -571,4 +587,22 @@ registerMetaType()
   metaTypeId = CQUTIL_REGISTER_META(CQChartsColumns);
 
   CQPropertyViewMgrInst->setUserName("CQChartsColumns", "column_list");
+}
+
+int
+CQChartsColumns::
+cmp(const CQChartsColumns &c) const
+{
+  auto i1 =   columns_.size();
+  auto i2 = c.columns_.size();
+
+  if (i1 > i2) return 1;
+  if (i1 < i2) return -1;
+
+  for (size_t i = 0; i < i1; ++i) {
+    int cmp1 = columns_[i].cmp(c.columns_[i]);
+    if (cmp1 != 0) return cmp1;
+  }
+
+  return 0;
 }

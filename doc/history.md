@@ -1400,3 +1400,8 @@
 # 5/1/2022
  + add filled stats lines
  + cleanup custom control overrides
+# 5/8/2022
+ + allow name to column for plot columns from tcl commands
+ + allow connected points in scatter plot
+ + improve no tip columns in bar chart
+ + improve non-float tip update and allow delay to be set

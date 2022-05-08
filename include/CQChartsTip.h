@@ -10,6 +10,10 @@
  */
 class CQChartsTableTip {
  public:
+  using Columns = CQChartsColumns;
+  using Column  = CQChartsColumn;
+
+ public:
   CQChartsTableTip() {
     //str_ += "<b></b>\n";
     //str_ += "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>";
@@ -71,12 +75,26 @@ class CQChartsTableTip {
     return "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>" + str_;
   }
 
-  void addColumn(const CQChartsColumn &c) {
+  void addColumn(const Column &c) {
     columnSet_.insert(c);
   }
 
-  bool hasColumn(const CQChartsColumn &c) const {
+  bool hasColumn(const Column &c) const {
     return (columnSet_.find(c) != columnSet_.end());
+  }
+
+  void addColumns(const Columns &c) {
+    if (c.count() == 1)
+      addColumn(c.column());
+
+    columnsSet_.insert(c);
+  }
+
+  bool hasColumns(const Columns &c) const {
+    if (c.count() == 1 && hasColumn(c.column()))
+      return true;
+
+    return (columnsSet_.find(c) != columnsSet_.end());
   }
 
  private:
@@ -107,11 +125,13 @@ class CQChartsTableTip {
   }
 
  private:
-  using ColumnSet = std::set<CQChartsColumn>;
+  using ColumnsSet = std::set<Columns>;
+  using ColumnSet  = std::set<Column>;
 
-  QString   str_;
-  bool      inTable_ { false };
-  ColumnSet columnSet_;
+  QString    str_;
+  bool       inTable_ { false };
+  ColumnSet  columnSet_;
+  ColumnsSet columnsSet_;
 };
 
 #endif

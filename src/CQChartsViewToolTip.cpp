@@ -48,7 +48,7 @@ hideWidget()
 {
   delete widget_;
 
-  widget_ = 0;
+  widget_ = nullptr;
 }
 
 bool

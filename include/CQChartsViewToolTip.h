@@ -26,6 +26,9 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   bool trackMouse() const override { return true; }
 
+  double hideSecs() const override { return hideSecs_; }
+  void setHideSecs(double d) { hideSecs_ = d; }
+
   bool updateWidget(const QPoint &gpos) override;
 
   bool isHideKey(int key, Qt::KeyboardModifiers mod) const override;
@@ -34,16 +37,18 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   void setFont(const QFont &font);
 
+  bool showTip(const QPoint &gpos);
+
+  bool isVisible() const { return widget_ && widget_->isVisible(); }
+
   QSize sizeHint() const override;
 
  private:
-  bool showTip(const QPoint &gpos);
-
- private:
-  CQChartsView* view_   { nullptr };
-  QLabel*       widget_ { nullptr };
-  QPoint        gpos_;
-  QFont         font_;
+  CQChartsView* view_     { nullptr }; //!< parent view
+  QLabel*       widget_   { nullptr }; //!< tip widget
+  QPoint        gpos_;                 //!< global position
+  QFont         font_;                 //!< font
+  double        hideSecs_ { 3.0 };     //!< hide seconds
 };
 
 //------

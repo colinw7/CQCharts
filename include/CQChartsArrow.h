@@ -4,6 +4,7 @@
 //#define DEBUG_LABELS 1
 
 #include <CQChartsObjData.h>
+#include <CQChartsArrowData.h>
 #include <CQChartsGeom.h>
 #include <QObject>
 
@@ -65,20 +66,21 @@ class CQChartsArrow : public QObject,
   Q_ENUMS(HeadType)
 
  public:
+  using ArrowData = CQChartsArrowData;
+
   enum class HeadType {
-    NONE     = int(CQChartsArrowData::HeadType::NONE),
-    ARROW    = int(CQChartsArrowData::HeadType::ARROW),
-    TRIANGLE = int(CQChartsArrowData::HeadType::TRIANGLE),
-    STEALTH  = int(CQChartsArrowData::HeadType::STEALTH),
-    DIAMOND  = int(CQChartsArrowData::HeadType::DIAMOND),
-    LINE     = int(CQChartsArrowData::HeadType::LINE)
+    NONE     = int(ArrowData::HeadType::NONE),
+    ARROW    = int(ArrowData::HeadType::ARROW),
+    TRIANGLE = int(ArrowData::HeadType::TRIANGLE),
+    STEALTH  = int(ArrowData::HeadType::STEALTH),
+    DIAMOND  = int(ArrowData::HeadType::DIAMOND),
+    LINE     = int(ArrowData::HeadType::LINE)
   };
 
   using View        = CQChartsView;
   using Plot        = CQChartsPlot;
   using Angle       = CQChartsAngle;
   using Length      = CQChartsLength;
-  using ArrowData   = CQChartsArrowData;
   using PenBrush    = CQChartsPenBrush;
   using ColorInd    = CQChartsUtil::ColorInd;
   using Point       = CQChartsGeom::Point;
@@ -255,7 +257,7 @@ class CQChartsArrow : public QObject,
                        bool fhead, bool thead, double lw);
 
   //! alen is multiple of line width
-  static void pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
+  static void pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
                             double lw, double fronLen, double tailLen, QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,

@@ -76,7 +76,7 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
   BestFit *getBestFit() const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
+  const Plot* plot_     { nullptr }; //!< point plot
   int         groupInd_ { -1 };      //!< plot group index
   QString     name_;                 //!< plot set name
 };
@@ -126,7 +126,7 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
   Hull *getHull() const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
+  const Plot* plot_     { nullptr }; //!< point plot
   int         groupInd_ { -1 };      //!< plot group index
   QString     name_;                 //!< plot set name
 };

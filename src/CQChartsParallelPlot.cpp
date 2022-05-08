@@ -1473,7 +1473,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   plot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 void

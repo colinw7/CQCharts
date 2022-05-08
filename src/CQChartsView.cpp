@@ -162,7 +162,7 @@ init()
 
   font_.setFont(QFont());
 
-  tipFont_.decFontSize(4);
+  tipData_.font.decFontSize(4);
 
   //---
 
@@ -170,17 +170,17 @@ init()
 
   //---
 
-  toolTip_  = new CQChartsViewToolTip (this);
-  floatTip_ = new CQChartsViewFloatTip(this);
+  tipData_.toolTip  = new CQChartsViewToolTip (this);
+  tipData_.floatTip = new CQChartsViewFloatTip(this);
 
   if (! isFloatTip())
-    CQToolTip::setToolTip(this, toolTip_);
+    CQToolTip::setToolTip(this, tipData_.toolTip);
 
   {
   auto tipFont = this->tipFont().calcFont(font_.font());
 
-  toolTip_ ->setFont(tipFont);
-  floatTip_->setFont(tipFont);
+  tipData_.toolTip ->setFont(tipFont);
+  tipData_.floatTip->setFont(tipFont);
   }
 
   //---
@@ -253,8 +253,8 @@ term()
   if (! isFloatTip())
     CQToolTip::unsetToolTip(this);
 
-  delete toolTip_;
-  delete floatTip_;
+  delete tipData_.toolTip;
+  delete tipData_.floatTip;
 }
 
 //---
@@ -376,6 +376,7 @@ addProperties()
   // tip
   addStyleProp("tip", "floatTip", "float", "Use floating tip");
   addStyleProp("tip", "tipFont" , "font" , "Tip font");
+  addStyleProp("tip", "tipDelay", "delay", "Tip hide delay");
 
   // plot separators
   addStyleProp("options", "plotSeparators", "", "Show plot separators");
@@ -680,16 +681,16 @@ void
 CQChartsView::
 setFloatTip(bool b)
 {
-  CQChartsUtil::testAndSet(isFloatTip_, b, [&]() {
+  CQChartsUtil::testAndSet(tipData_.isFloat, b, [&]() {
     if (! isFloatTip()) {
-      floatTip_->setEnabled(false);
+      tipData_.floatTip->setEnabled(false);
 
-      CQToolTip::setToolTip(this, toolTip_);
+      CQToolTip::setToolTip(this, tipData_.toolTip);
     }
     else {
       CQToolTip::unsetToolTip(this);
 
-      floatTip_->setEnabled(true);
+      tipData_.floatTip->setEnabled(true);
     }
   } );
 }
@@ -698,11 +699,21 @@ void
 CQChartsView::
 setTipFont(const CQChartsFont &f)
 {
-  CQChartsUtil::testAndSet(tipFont_, f, [&]() {
+  CQChartsUtil::testAndSet(tipData_.font, f, [&]() {
     auto tipFont = this->tipFont().calcFont(font_.font());
 
-    toolTip_ ->setFont(tipFont);
-    floatTip_->setFont(tipFont);
+    tipData_.toolTip ->setFont(tipFont);
+    tipData_.floatTip->setFont(tipFont);
+  } );
+}
+
+void
+CQChartsView::
+setTipDelay(double delay)
+{
+  CQChartsUtil::testAndSet(tipData_.delay, delay, [&]() {
+    tipData_.toolTip ->setHideSecs(tipData_.delay);
+    tipData_.floatTip->setHideSecs(tipData_.delay);
   } );
 }
 
@@ -2733,8 +2744,11 @@ mousePressEvent(QMouseEvent *me)
     if      (mode() == Mode::SELECT) {
       selectMousePress();
 
-      if (floatTip_->isVisible() && floatTip_->isLocked())
-        floatTip_->showTip(me->globalPos());
+      updateTip(me->globalPos());
+#if 0
+      if (tipData_.floatTip->isVisible() && tipData_.floatTip->isLocked())
+        tipData_.floatTip->showTip(me->globalPos());
+#endif
     }
     else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
       zoomMousePress();
@@ -3019,8 +3033,8 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_F1) {
     if (ke->modifiers() & Qt::ControlModifier) {
-      if (floatTip_->isVisible())
-        floatTip_->setLocked(true);
+      if (tipData_.floatTip->isVisible())
+        tipData_.floatTip->setLocked(true);
     }
     else {
       if (mode() == Mode::EDIT)
@@ -3028,8 +3042,8 @@ keyPressEvent(QKeyEvent *ke)
     }
   }
   else if (ke->key() == Qt::Key_Question) {
-    if (floatTip_->isVisible())
-      floatTip_->showQuery(gpos);
+    if (tipData_.floatTip->isVisible())
+      tipData_.floatTip->showQuery(gpos);
   }
 
   //---
@@ -7999,8 +8013,17 @@ void
 CQChartsView::
 updateTip()
 {
-  if (floatTip_->isVisible())
-    floatTip_->updateTip();
+  updateTip(QCursor::pos());
+}
+
+void
+CQChartsView::
+updateTip(const QPoint &gpos)
+{
+  if      (tipData_.toolTip->isVisible())
+    tipData_.toolTip->showTip(gpos);
+  else if (tipData_.floatTip->isVisible())
+    tipData_.floatTip->updateTip();
 }
 
 //---

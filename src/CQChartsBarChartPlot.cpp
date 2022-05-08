@@ -2038,6 +2038,9 @@ calcTipId() const
 
   auto addOptColumnsRow = [&](const CQChartsColumns &columns, const QString &header,
                               const QString &value) {
+    if (columns.isValid() && tableTip.hasColumns(columns))
+      return;
+
     if (! value.length())
       return;
 
@@ -2051,6 +2054,9 @@ calcTipId() const
     }
 
     tableTip.addTableRow(headerStr, value);
+
+    if (columns.isValid())
+      tableTip.addColumns(columns);
   };
 
   //---
