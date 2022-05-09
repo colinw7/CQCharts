@@ -887,9 +887,11 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   for (const auto &valueColumn : valueColumns) {
     ModelIndex valueModelInd(th, data.row, valueColumn, data.parent);
 
+    double defVal = getRowBadValue(data.row);
+
     double r;
 
-    bool ok2 = modelMappedReal(valueModelInd, r, isLogY(), data.row);
+    bool ok2 = modelMappedReal(valueModelInd, r, isLogY(), defVal);
 
     if (! ok2) {
       if (isSkipBad())
@@ -897,7 +899,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
       th->addDataError(valueModelInd, "Invalid value");
 
-      r = data.row;
+      r = defVal;
     }
 
     if (CMathUtil::isNaN(r))

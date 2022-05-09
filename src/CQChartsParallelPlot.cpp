@@ -486,8 +486,10 @@ calcRange() const
 
         //---
 
-        double x = 0;
-        double y = data.row;
+        double defVal = plot_->getRowBadValue(data.row);
+
+        double x = 0.0;
+        double y = defVal;
 
         // TODO: control default value ?
         if (! plot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))

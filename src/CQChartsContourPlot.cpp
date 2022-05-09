@@ -164,7 +164,7 @@ calcRange() const
           double y = plot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
-            y  = col - 1; // use column number of not numeric
+            y  = col - 1; // use column number if not numeric
             ok = true;
           }
 
@@ -180,7 +180,7 @@ calcRange() const
         double x = plot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
-          x  = data.row - 1; // use row number of not numeric
+          x  = data.row - 1; // use row number if not numeric
           ok = true;
         }
 
@@ -279,7 +279,7 @@ createObjs(PlotObjs &) const
           double y = plot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
-            y  = col - 1; // use column number of not numeric
+            y  = col - 1; // use column number if not numeric
             ok = true;
           }
 
@@ -297,7 +297,7 @@ createObjs(PlotObjs &) const
         double x = plot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
-          x  = data.row - 1; // use row number of not numeric
+          x  = data.row - 1; // use row number if not numeric
           ok = true;
         }
 

@@ -237,7 +237,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(QString filterStr        READ filterStr        WRITE setFilterStr       )
   Q_PROPERTY(QString visibleFilterStr READ visibleFilterStr WRITE setVisibleFilterStr)
 
-  Q_PROPERTY(bool skipBad READ isSkipBad WRITE setSkipBad)
+  Q_PROPERTY(bool   skipBad   READ isSkipBad   WRITE setSkipBad)
+  Q_PROPERTY(bool   badUseRow READ isBadUseRow WRITE setBadUseRow)
+  Q_PROPERTY(double badValue  READ badValue    WRITE setBadValue)
 
   // inner margin
   Q_PROPERTY(CQChartsLength innerMarginLeft   READ innerMarginLeft   WRITE setInnerMarginLeft  )
@@ -707,10 +709,21 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // bad data handling
  public:
   //! get/set skip bad
-  virtual bool isSkipBad() const;
-  virtual void setSkipBad(bool b);
+  bool isSkipBad() const { assert(! isComposite()); return badData_.skip; }
+  void setSkipBad(bool b);
+
+  //! get/set bad value uses row number
+  bool isBadUseRow() const { return badData_.useRow; }
+  void setBadUseRow(bool b);
+
+  //! get/set bad value (when not using row number)
+  double badValue() const { return badData_.value; }
+  void setBadValue(double v);
+
+  virtual double getRowBadValue(int row) const;
 
   //---
 
@@ -3531,7 +3544,15 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   EveryData everyData_;                 //!< every data
   QString   filterStr_;                 //!< data filter
   QString   visibleFilterStr_;          //!< visible filter
-  bool      skipBad_          { true }; //!< skip bad values
+
+  // bad value data
+  struct BadData {
+    bool   skip   { true }; //!< skip bad values
+    bool   useRow { true }; //!< bad values default to row number
+    double value  { 0.0 };  //!< vad value (if not use row number)
+  };
+
+  BadData badData_; //!< bad value data
 
   // plot border
   Sides plotBorderSides_ { "tlbr" }; //!< plot border sides

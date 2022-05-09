@@ -355,17 +355,19 @@ calcRange() const
 
       //---
 
+      double defVal = plot_->getRowBadValue(data.row);
+
       // get x, y value
       ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
       ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
       double x, y;
 
-      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
-      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
+      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
+      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
 
-      if (! ok1) x = data.row;
-      if (! ok2) y = data.row;
+      if (! ok1) x = defVal;
+      if (! ok2) y = defVal;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -587,17 +589,19 @@ createObjs(PlotObjs &objs) const
 
         //---
 
+        double defVal = plot_->getRowBadValue(data.row);
+
         // get x, y value
         ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
         ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
 
         double x, y;
 
-        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
-        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
+        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
+        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
 
-        if (! ok1) x = data.row;
-        if (! ok2) y = data.row;
+        if (! ok1) x = defVal;
+        if (! ok2) y = defVal;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
           return State::SKIP;

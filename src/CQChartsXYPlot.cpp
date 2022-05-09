@@ -2219,6 +2219,8 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 {
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
+  double defVal = getRowBadValue(data.row);
+
   //---
 
   // get x value (must be valid)
@@ -2229,7 +2231,7 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   ind = modelIndex(xModelInd);
 
   if (! calcMapXColumn()) {
-    bool ok = modelMappedReal(xModelInd, x, isLogX(), data.row);
+    bool ok = modelMappedReal(xModelInd, x, isLogX(), defVal);
 
     if (! ok) {
       th->addDataError(xModelInd, "Invalid X Value");
@@ -2268,7 +2270,7 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 
     double y1;
 
-    bool ok = modelMappedReal(yModelInd, y1, isLogY(), data.row);
+    bool ok = modelMappedReal(yModelInd, y1, isLogY(), defVal);
 
     if (! ok) {
       y1 = CMathUtil::getNaN();

@@ -350,8 +350,10 @@ calcRange() const
       double x = plot_->modelNumericValue(xInd, ok1);
       double y = plot_->modelNumericValue(yInd, ok2);
 
-      if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
-      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }
+      double defVal = plot_->getRowBadValue(data.row);
+
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = defVal; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = defVal; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -455,8 +457,10 @@ createObjs(PlotObjs &objs) const
       double x = plot_->modelNumericValue(xInd, ok1);
       double y = plot_->modelNumericValue(yInd, ok2);
 
-      if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
-      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }
+      double defVal = plot_->getRowBadValue(data.row);
+
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = defVal; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = defVal; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;

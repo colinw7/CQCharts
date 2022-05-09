@@ -197,8 +197,8 @@ setValue(const QString &str)
       type    = column.type();
       icolumn = column.column();
       role    = column.role();
-      expr    = column.expr();
-      name    = column.name();
+      expr    = (column.expr_ ? column.expr_ : "");
+      name    = (column.name_ ? column.name_ : "");
     }
     else
       return false;

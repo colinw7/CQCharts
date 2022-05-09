@@ -2067,22 +2067,34 @@ setVisibleFilterStr(const QString &s)
 
 //---
 
-bool
-CQChartsPlot::
-isSkipBad() const
-{
-  assert(! isComposite());
-
-  return skipBad_;
-}
-
 void
 CQChartsPlot::
 setSkipBad(bool b)
 {
   assert(! isComposite());
 
-  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(badData_.skip, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPlot::
+setBadUseRow(bool b)
+{
+  CQChartsUtil::testAndSet(badData_.useRow, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPlot::
+setBadValue(double v)
+{
+  CQChartsUtil::testAndSet(badData_.value, v, [&]() { updateRangeAndObjs(); } );
+}
+
+double
+CQChartsPlot::
+getRowBadValue(int row) const
+{
+  return (isBadUseRow() ? double(row) : badValue());
 }
 
 //---
@@ -3730,7 +3742,10 @@ addBaseProperties()
   addProp("filter", "filterStr"       , "expression", "Filter expression", /*hidden*/true);
   addProp("filter", "visibleFilterStr", "visible"   , "Filter visible expression", /*hidden*/true);
 
-  addProp("filter", "skipBad", "skipBad", "Skip bad values");
+  // bad data
+  addProp("filter/bad", "skipBad"  , "skip"  , "Skip bad values");
+  addProp("filter/bad", "badUseRow", "useRow", "Use row number for bad values");
+  addProp("filter/bad", "badValue" , "value" , "Bad value (when not using row number)");
 
   //---
 

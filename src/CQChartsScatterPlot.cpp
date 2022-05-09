@@ -811,11 +811,13 @@ calcRange() const
         double x   { 0.0  }, y   { 0.0  };
         bool   okx { true }, oky { true };
 
+        double defVal = plot_->getRowBadValue(data.row);
+
         //---
 
         if      (plot_->xColumnType() == ColumnType::REAL ||
                  plot_->xColumnType() == ColumnType::INTEGER) {
-          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
+          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
         }
         else if (plot_->xColumnType() == ColumnType::TIME) {
           x = plot_->modelReal(xModelInd, okx);
@@ -828,7 +830,7 @@ calcRange() const
 
         if      (plot_->yColumnType() == ColumnType::REAL ||
                  plot_->yColumnType() == ColumnType::INTEGER) {
-          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
+          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
         }
         else if (plot_->yColumnType() == ColumnType::TIME) {
           y = plot_->modelReal(yModelInd, oky);
@@ -2112,11 +2114,13 @@ addNameValues() const
       double x   { 0.0  }, y   { 0.0  };
       bool   okx { true }, oky { true };
 
+      double defVal = plot_->getRowBadValue(data.row);
+
       //---
 
       if      (plot_->xColumnType() == ColumnType::REAL ||
                plot_->xColumnType() == ColumnType::INTEGER) {
-        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
+        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
       }
       else if (plot_->xColumnType() == ColumnType::TIME) {
         x = plot_->modelReal(xModelInd, okx);
@@ -2129,7 +2133,7 @@ addNameValues() const
 
       if      (plot_->yColumnType() == ColumnType::REAL ||
                plot_->yColumnType() == ColumnType::INTEGER) {
-        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
+        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
       }
       else if (plot_->yColumnType() == ColumnType::TIME) {
         y = plot_->modelReal(yModelInd, oky);
@@ -2584,13 +2588,13 @@ addMenuItems(QMenu *menu)
   auto *overlaysMenu = new QMenu("Overlays", menu);
 
   (void) addMenuCheckedAction(overlaysMenu, "Best Fit",
-                              isBestFit   (), SLOT(setBestFit       (bool)));
+                              isBestFit   (), SLOT(setBestFit   (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Hull",
-                              isHull      (), SLOT(setHull          (bool)));
+                              isHull      (), SLOT(setHull      (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Stats Lines",
-                              isStatsLines(), SLOT(setStatsLinesSlot(bool)));
+                              isStatsLines(), SLOT(setStatsLines(bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Density Map",
-                              isDensityMap(), SLOT(setDensityMap    (bool)));
+                              isDensityMap(), SLOT(setDensityMap(bool)));
 
   menu->addMenu(overlaysMenu);
 

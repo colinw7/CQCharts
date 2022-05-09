@@ -1240,7 +1240,9 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     }
   }
   else {
-    data.x = vdata.row;
+    double defVal = getRowBadValue(vdata.row);
+
+    data.x = defVal;
   }
 
   //---

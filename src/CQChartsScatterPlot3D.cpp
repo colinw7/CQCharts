@@ -521,7 +521,9 @@ calcRange() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog, int &numUnique) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
+          double defVal = plot_->getRowBadValue(data.row);
+
+          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
         else if (columnType == ColumnType::TIME) {
           value = plot_->modelReal(modelInd, ok);
@@ -1008,7 +1010,9 @@ addNameValues() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
+          double defVal = plot_->getRowBadValue(data.row);
+
+          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
         else if (columnType == ColumnType::TIME) {
           value = plot_->modelReal(modelInd, ok);
@@ -1512,7 +1516,9 @@ draw3D()
         //---
 
         auto modelValue = [&](const ModelIndex &modelInd, double &value, bool &ok, bool isLog) {
-          ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
+          double defVal = plot_->getRowBadValue(data.row);
+
+          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         };
 
         modelValue(xModelInd, x, okx, plot_->isLogX());
