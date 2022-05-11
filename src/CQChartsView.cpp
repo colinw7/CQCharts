@@ -377,6 +377,7 @@ addProperties()
   addStyleProp("tip", "floatTip", "float", "Use floating tip");
   addStyleProp("tip", "tipFont" , "font" , "Tip font");
   addStyleProp("tip", "tipDelay", "delay", "Tip hide delay");
+  addStyleProp("tip", "tipAlign", "align", "Tip align");
 
   // plot separators
   addStyleProp("options", "plotSeparators", "", "Show plot separators");
@@ -714,6 +715,16 @@ setTipDelay(double delay)
   CQChartsUtil::testAndSet(tipData_.delay, delay, [&]() {
     tipData_.toolTip ->setHideSecs(tipData_.delay);
     tipData_.floatTip->setHideSecs(tipData_.delay);
+  } );
+}
+
+void
+CQChartsView::
+setTipAlign(const Qt::Alignment &align)
+{
+  CQChartsUtil::testAndSet(tipData_.align, align, [&]() {
+  //tipData_.toolTip ->setAlign(tipData_.align);
+    tipData_.floatTip->setAlign(tipData_.align);
   } );
 }
 

@@ -170,9 +170,10 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
   // tip
-  Q_PROPERTY(bool         floatTip READ isFloatTip WRITE setFloatTip)
-  Q_PROPERTY(CQChartsFont tipFont  READ tipFont    WRITE setTipFont )
-  Q_PROPERTY(double       tipDelay READ tipDelay   WRITE setTipDelay)
+  Q_PROPERTY(bool          floatTip READ isFloatTip WRITE setFloatTip)
+  Q_PROPERTY(CQChartsFont  tipFont  READ tipFont    WRITE setTipFont )
+  Q_PROPERTY(double        tipDelay READ tipDelay   WRITE setTipDelay)
+  Q_PROPERTY(Qt::Alignment tipAlign READ tipAlign   WRITE setTipAlign)
 
   // separators
   Q_PROPERTY(bool plotSeparators READ isPlotSeparators WRITE setPlotSeparators)
@@ -474,6 +475,9 @@ class CQChartsView : public QFrame,
 
   double tipDelay() const { return tipData_.delay; }
   void setTipDelay(double d);
+
+  const Qt::Alignment &tipAlign() const { return tipData_.align; }
+  void setTipAlign(const Qt::Alignment &align);
 
   //---
 
@@ -1680,6 +1684,7 @@ class CQChartsView : public QFrame,
     bool                  isFloat   { true };    //!< is float tip enabled
     Font                  font;                  //!< tip font
     double                delay     { 3.0 };     //!< tip delay
+    Qt::Alignment         align     { Qt::AlignRight | Qt::AlignBottom }; //!< tip align
     CQChartsViewToolTip*  toolTip   { nullptr }; //!< mouse tooltip
     CQChartsViewFloatTip* floatTip  { nullptr }; //!< float tooltip
   };
