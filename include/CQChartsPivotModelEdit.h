@@ -9,6 +9,7 @@ class CQChartsColumnsEdit;
 class CQIntegerSpin;
 
 class QCheckBox;
+class QLineEdit;
 
 class CQChartsPivotModelEdit : public QFrame {
   Q_OBJECT
@@ -36,9 +37,13 @@ class CQChartsPivotModelEdit : public QFrame {
 
   QCheckBox* enabledCheck_ { nullptr }; //!< enabled checkbox
 
-  CQChartsColumnsEdit* hColumnsEdit_ { nullptr };
-  CQChartsColumnsEdit* vColumnsEdit_ { nullptr };
-  CQChartsColumnsEdit* dColumnsEdit_ { nullptr };
+  CQChartsColumnsEdit* hColumnsEdit_   { nullptr };
+  CQChartsColumnsEdit* vColumnsEdit_   { nullptr };
+  CQChartsColumnsEdit* dColumnsEdit_   { nullptr };
+  QLineEdit*           valueTypesEdit_ { nullptr };
+  QCheckBox*           includeTotals_  { nullptr };
+  QLineEdit*           fillValue_      { nullptr };
+  QLineEdit*           separatorEdit_  { nullptr };
 };
 
 #endif

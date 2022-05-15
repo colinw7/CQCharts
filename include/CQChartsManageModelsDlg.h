@@ -17,6 +17,8 @@ class CQChartsManageModelsDlg : public QDialog {
   CQChartsManageModelsDlg(CQCharts *charts);
  ~CQChartsManageModelsDlg();
 
+  void init();
+
   QSize sizeHint() const override;
 
  private slots:

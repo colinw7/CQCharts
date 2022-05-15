@@ -41,17 +41,19 @@ init()
 {
   setObjectName("editModelDlg");
 
-  if (modelData_) {
-    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
-    connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
-  }
-
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
   else
     setWindowTitle("Edit Model");
 
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //---
+
+  if (modelData_) {
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+    connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+  }
 
   //---
 

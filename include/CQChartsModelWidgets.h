@@ -17,8 +17,11 @@ class CQChartsModelWidgets : public QFrame {
 
  public:
   CQChartsModelWidgets(CQCharts *charts, QWidget *parent=nullptr);
+ ~CQChartsModelWidgets();
 
-  CQChartsModelList *modelList() const { return modelList_   ; }
+  void init();
+
+  CQChartsModelList *modelList() const { return modelList_; }
 
   CQChartsModelControl *modelControl() const { return modelControl_; }
 

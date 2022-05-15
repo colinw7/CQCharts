@@ -23,6 +23,7 @@ CQChartsModelProxyControl(QWidget *parent) :
 
   split->setOrientation(Qt::Vertical);
   split->setGrouped(true);
+  split->setState(CQTabSplit::State::TAB);
 
   layout->addWidget(split);
 

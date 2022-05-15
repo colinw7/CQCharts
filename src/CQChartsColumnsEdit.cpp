@@ -657,6 +657,8 @@ void
 CQChartsColumnsEdit::
 widgetsToColumn()
 {
+  auto columns = columns_;
+
   int n = columns_.count();
 
   if (isBasic()) {
@@ -674,7 +676,8 @@ widgetsToColumn()
       columns_.setColumn(int(i), columnEdits_[i]->column());
   }
 
-  emit columnsChanged();
+  if (columns_ != columns)
+    emit columnsChanged();
 }
 
 void

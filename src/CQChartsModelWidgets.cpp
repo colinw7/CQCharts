@@ -11,6 +11,18 @@ CQChartsModelWidgets::
 CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
  QFrame(parent), charts_(charts)
 {
+  init();
+}
+
+CQChartsModelWidgets::
+~CQChartsModelWidgets()
+{
+}
+
+void
+CQChartsModelWidgets::
+init()
+{
   setObjectName("modelWidgets");
 
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
@@ -21,6 +33,7 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 
   split->setOrientation(Qt::Vertical);
   split->setGrouped(true);
+  split->setState(CQTabSplit::State::VSPLIT);
 
   layout->addWidget(split);
 
