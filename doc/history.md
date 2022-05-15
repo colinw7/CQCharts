@@ -1405,3 +1405,5 @@
  + allow connected points in scatter plot
  + improve no tip columns in bar chart
  + improve non-float tip update and allow delay to be set
+# 5/15/2022
+ + add more proxy model support to model data and add edit interface

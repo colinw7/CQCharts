@@ -184,6 +184,9 @@ initColumns()
 
     auto name = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
 
+    if (! name.length())
+      name = QString::number(ic + 1);
+
     columnNames_[ic  ] = name;
     nameColumns_[name] = ic;
 

@@ -60,19 +60,19 @@ setBucketColumn(int i)
   }
 }
 
-const CQBucketer::Type &
+auto
 CQBucketModel::
-bucketType() const
+bucketType() const -> BucketType
 {
-  return bucketer_.type();
+  return static_cast<BucketType>(bucketer_.type());
 }
 
 void
 CQBucketModel::
-setBucketType(const CQBucketer::Type &type)
+setBucketType(const BucketType &type)
 {
   if (type != bucketType()) {
-    bucketer_.setType(type);
+    bucketer_.setType(static_cast<CQBucketer::Type>(type));
 
     bucketValid_ = false;
   }
@@ -100,6 +100,8 @@ double
 CQBucketModel::
 bucketStart() const
 {
+  const_cast<CQBucketModel *>(this)->bucket();
+
   return bucketer_.rstart();
 }
 
@@ -116,6 +118,8 @@ double
 CQBucketModel::
 bucketDelta() const
 {
+  const_cast<CQBucketModel *>(this)->bucket();
+
   return bucketer_.rdelta();
 }
 
@@ -132,6 +136,8 @@ double
 CQBucketModel::
 bucketMin() const
 {
+  const_cast<CQBucketModel *>(this)->bucket();
+
   return bucketer_.rmin();
 }
 
@@ -148,6 +154,8 @@ double
 CQBucketModel::
 bucketMax() const
 {
+  const_cast<CQBucketModel *>(this)->bucket();
+
   return bucketer_.rmax();
 }
 
@@ -164,6 +172,8 @@ int
 CQBucketModel::
 bucketCount() const
 {
+  const_cast<CQBucketModel *>(this)->bucket();
+
   return bucketer_.numAuto();
 }
 
@@ -245,7 +255,7 @@ void
 CQBucketModel::
 bucketSlot()
 {
-  bucketValid_ = true;
+  bucketValid_ = false;
 
   bucket();
 }
@@ -267,9 +277,7 @@ bucket()
 
   // check column valid
   auto *model = this->sourceModel();
-
-  if (! model)
-    return;
+  if (! model) return;
 
   int numColumns = model->columnCount();
 
@@ -288,9 +296,14 @@ bucket()
 
   //---
 
+#if 0
   bucketPos_ = 0;
 //bucketPos_ = numColumns;
-  bucketed_  = true;
+#endif
+
+  //---
+
+  bucketed_ = true;
 }
 
 void
@@ -332,6 +345,22 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
   }
 }
 
+int
+CQBucketModel::
+calcBucketPos() const
+{
+  if (bucketPos_ < 0) {
+    auto *model = this->sourceModel();
+    if (! model) return 0;
+
+    int numColumns = model->columnCount();
+
+    return bucketPos_ + numColumns + 1;
+  }
+
+  return bucketPos_;
+}
+
 void
 CQBucketModel::
 clear()
@@ -347,9 +376,7 @@ CQBucketModel::
 columnCount(const QModelIndex &parent) const
 {
   auto *model = this->sourceModel();
-
-  if (! model)
-    return 0;
+  if (! model) return 0;
 
   if (isMultiColumn())
     return model->columnCount(parent) + 3;
@@ -363,9 +390,10 @@ CQBucketModel::
 rowCount(const QModelIndex &parent) const
 {
   auto *model = this->sourceModel();
+  if (! model) return 0;
 
-  if (! model)
-    return 0;
+  if (! parent.isValid()) // root
+    return model->rowCount(parent);
 
   auto parent1 = mapToSource(parent);
   if (! parent1.isValid()) return 0;
@@ -545,23 +573,31 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
   //---
 
-  if (! isMultiColumn()) {
-    if (role == Qt::DisplayRole) {
-      auto name = model->headerData(bucketColumn(), orientation, role).toString();
+  if (role == Qt::DisplayRole) {
+    QString name;
 
-      return QString("bucket(%1)").arg(name);
-    }
-  }
-  else {
-    if      (section1 == -3) {
-      return "bucket";
-    }
-    else if (section1 == -2) {
-      return "bucket_min";
+    int numColumns = model->columnCount();
+
+    if (bucketColumn() >= 0 && bucketColumn() < numColumns)
+      name = model->headerData(bucketColumn(), orientation, role).toString();
+    else
+      name = "none";
+
+    QString header;
+
+    if (! isMultiColumn()) {
+      header = "bucket";
     }
     else {
-      return "bucket_max";
+      if      (section1 == -3)
+        header = "bucket";
+      else if (section1 == -2)
+        header = "bucket_min";
+      else
+        header = "bucket_max";
     }
+
+    return QString("%1 (%2)").arg(header).arg(name);
   }
 
   //---
@@ -686,7 +722,7 @@ int
 CQBucketModel::
 mapColumn(int c) const
 {
-  int b1 = bucketPos();
+  int b1 = calcBucketPos();
   int nb = (! isMultiColumn() ? 1 : 3);
   int b2 = b1 + nb - 1;
 
@@ -708,10 +744,12 @@ int
 CQBucketModel::
 unmapColumn(int c) const
 {
-  if (c < bucketPos())
+  auto bucketPos = calcBucketPos();
+
+  if (c < bucketPos)
     return c;
 
-  if (c >= bucketPos()) {
+  if (c >= bucketPos) {
     if (isMultiColumn())
       return c + 3;
     else

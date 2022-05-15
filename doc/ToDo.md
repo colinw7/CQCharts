@@ -4,6 +4,19 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + crash on delete last model
+ + add user interface to add one more more proxy models between data and plot model
+   and support user interface (model widgets) to customize
+   + bucket model
+   + collapse model
+   + correlation model
+   + folded model
+   + pivot model
+   + stats model (tcl only ?)
+   + summary model
+   + subset model
+   + transpose model
+ + bucketed scatter plot (bucket x values and show distrib)
  + trivial key
  + better fitting
  + better arrow ends for lines (simplify code)

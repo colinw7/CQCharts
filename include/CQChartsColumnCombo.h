@@ -16,6 +16,7 @@ class CQChartsColumnCombo : public QComboBox {
   Q_PROPERTY(bool           allowNone   READ isAllowNone   WRITE setAllowNone  )
   Q_PROPERTY(CQChartsColumn column      READ getColumn     WRITE setColumn     )
   Q_PROPERTY(bool           numericOnly READ isNumericOnly WRITE setNumericOnly)
+  Q_PROPERTY(bool           proxy       READ isProxy       WRITE setProxy      )
 
  public:
   using ModelData = CQChartsModelData;
@@ -35,6 +36,9 @@ class CQChartsColumnCombo : public QComboBox {
   //! get/set numeric only
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b);
 
   //! get/set model data
   const ModelData *modelData() const { return modelData_; }
@@ -59,6 +63,7 @@ class CQChartsColumnCombo : public QComboBox {
   const ModelData *modelData_   { nullptr };
   bool             allowNone_   { true };
   bool             numericOnly_ { false };
+  bool             proxy_       { true };
 };
 
 #endif

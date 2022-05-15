@@ -142,6 +142,13 @@ CQChartsPlotPropertyEdit.cpp \
 CQChartsInterfaceTheme.cpp \
 CQChartsThemeName.cpp \
 \
+CQChartsBucketModelEdit.cpp \
+CQChartsHierSepModelEdit.cpp \
+CQChartsPivotModelEdit.cpp \
+CQChartsSummaryModelEdit.cpp \
+CQChartsTransposeModelEdit.cpp \
+CQChartsModelProxyControl.cpp \
+\
 CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
@@ -545,6 +552,13 @@ HEADERS += \
 \
 ../include/CQChartsInterfaceTheme.h \
 ../include/CQChartsThemeName.h \
+\
+../include/CQChartsBucketModelEdit.h \
+../include/CQChartsHierSepModelEdit.h \
+../include/CQChartsPivotModelEdit.h \
+../include/CQChartsSummaryModelEdit.h \
+../include/CQChartsTransposeModelEdit.h \
+../include/CQChartsModelProxyControl.h \
 \
 ../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \

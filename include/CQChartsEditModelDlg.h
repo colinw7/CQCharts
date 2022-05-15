@@ -1,7 +1,7 @@
 #ifndef CQChartsEditModelDlg_H
 #define CQChartsEditModelDlg_H
 
-#include <QDialog>
+#include <QFrame>
 
 class CQCharts;
 class CQChartsModelData;
@@ -14,7 +14,7 @@ class QAbstractItemModel;
  * \brief edit model dialog
  * \ingroup Charts
  */
-class CQChartsEditModelDlg : public QDialog {
+class CQChartsEditModelDlg : public QFrame {
   Q_OBJECT
 
  public:

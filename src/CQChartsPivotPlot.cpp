@@ -686,6 +686,9 @@ createObjs(PlotObjs &objs) const
         double value = CQChartsVariant::toReal(var, ok);
         if (! ok) continue;
 
+        if (CMathUtil::isNaN(value))
+          continue;
+
         //---
 
         CQPivotModel::Inds inds;

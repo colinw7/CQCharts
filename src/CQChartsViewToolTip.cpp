@@ -23,7 +23,7 @@ setFont(const QFont &font)
   font_ = font;
 
   if (widget_)
-    widget_->setFont(font);
+    widget_->setFont(font_);
 }
 
 QWidget *

@@ -1,6 +1,7 @@
 #include <CQChartsModelControl.h>
 #include <CQChartsModelExprControl.h>
 #include <CQChartsModelFilterControl.h>
+#include <CQChartsModelProxyControl.h>
 #ifdef CQCHARTS_FOLDED_MODEL
 #include <CQChartsModelFoldControl.h>
 #endif
@@ -57,6 +58,12 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   filterFrame_ = addFilterFrame();
 
   controlTab->addTab(filterFrame_, "Filter");
+
+  //---
+
+  proxyFrame_ = addProxyFrame();
+
+  controlTab->addTab(proxyFrame_, "Proxy");
 
   //---
 
@@ -138,6 +145,17 @@ addFilterFrame()
   return filterFrame;
 }
 
+CQChartsModelProxyControl *
+CQChartsModelControl::
+addProxyFrame()
+{
+  auto *proxyFrame = new CQChartsModelProxyControl(this);
+
+  //filterFrame->setModelData(modelData_);
+
+  return proxyFrame;
+}
+
 #ifdef CQCHARTS_FOLDED_MODEL
 CQChartsModelFoldControl *
 CQChartsModelControl::
@@ -190,6 +208,7 @@ setModelData(CQChartsModelData *modelData)
     columnDataFrame_->setModelData(modelData_);
     exprFrame_      ->setModelData(modelData_);
     filterFrame_    ->setModelData(modelData_);
+    proxyFrame_     ->setModelData(modelData_);
 #ifdef CQCHARTS_FOLDED_MODEL
     foldFrame_      ->setModelData(modelData_);
 #endif

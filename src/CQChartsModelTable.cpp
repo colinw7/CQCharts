@@ -25,9 +25,10 @@ CQChartsModelTableControl(CQCharts *charts) :
   //---
 
   // Model Buttons
-  auto *modelControlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto *modelControlFrame  = CQUtil::makeWidget<QFrame>("modelControlFrame");
+  auto *modelControlLayout = CQUtil::makeLayout<QHBoxLayout>(modelControlFrame, 2, 2);
 
-  layout->addLayout(modelControlLayout);
+  layout->addWidget(modelControlFrame);
 
   //--
 
@@ -48,18 +49,30 @@ CQChartsModelTableControl(CQCharts *charts) :
                                SLOT(editModelSlot()));
   removeButton_ = createButton("Remove", "remove", "Remove Selected Model",
                                SLOT(removeModelSlot()));
-  plotButton_   = createButton("Create Plot...", "plot", "Create Plot from Selected Model",
-                               SLOT(createPlotModelSlot()));
 
   modelControlLayout->addWidget(loadButton);
   modelControlLayout->addWidget(editButton_);
   modelControlLayout->addWidget(removeButton_);
-  modelControlLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
-  modelControlLayout->addWidget(plotButton_);
+  modelControlLayout->addStretch(1);
 
   editButton_  ->setEnabled(false);
   removeButton_->setEnabled(false);
-  plotButton_  ->setEnabled(false);
+
+  //---
+
+  // Extra Buttons
+  auto *extraControlFrame  = CQUtil::makeWidget<QFrame>("extraControlFrame");
+  auto *extraControlLayout = CQUtil::makeLayout<QHBoxLayout>(extraControlFrame, 2, 2);
+
+  layout->addWidget(extraControlFrame);
+
+  plotButton_ = createButton("Create Plot...", "plot", "Create Plot from Selected Model",
+                             SLOT(createPlotModelSlot()));
+
+  extraControlLayout->addWidget(plotButton_);
+  extraControlLayout->addStretch(1);
+
+  plotButton_->setEnabled(false);
 
   //---
 

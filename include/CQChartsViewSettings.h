@@ -150,17 +150,18 @@ class CQChartsViewSettings : public QFrame {
   using PlotPropertiesControl  = CQChartsPlotPropertiesControl;
   using ObjectPropertiesWidget = CQChartsObjectPropertiesWidget;
 
-  using ModelTable           = CQChartsModelTableControl;
-  using ModelDetailsWidget   = CQChartsModelDetailsWidget;
-  using PlotTable            = CQChartsPlotTableControl;
-  using AnnotationsControl   = CQChartsAnnotationsControl;
-  using LayerTableControl    = CQChartsLayerTableControl;
-  using PlotControlFrame     = CQChartsPlotControlFrame;
-  using PlotCustomControls   = CQChartsPlotCustomControls;
-  using SymbolSetsList       = CQChartsSymbolSetsList;
-  using SymbolsList          = CQChartsSymbolsListControl;
-  using ViewQuery            = CQChartsViewQuery;
-  using ViewError            = CQChartsViewError;
+  using ModelTable         = CQChartsModelTableControl;
+  using ModelDetailsWidget = CQChartsModelDetailsWidget;
+
+  using PlotTable          = CQChartsPlotTableControl;
+  using AnnotationsControl = CQChartsAnnotationsControl;
+  using LayerTableControl  = CQChartsLayerTableControl;
+  using PlotControlFrame   = CQChartsPlotControlFrame;
+  using PlotCustomControls = CQChartsPlotCustomControls;
+  using SymbolSetsList     = CQChartsSymbolSetsList;
+  using SymbolsList        = CQChartsSymbolsListControl;
+  using ViewQuery          = CQChartsViewQuery;
+  using ViewError          = CQChartsViewError;
 
   struct PropertiesWidgets {
     CQTabSplit*             propertiesSplit    { nullptr }; //!< properties split

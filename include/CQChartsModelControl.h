@@ -9,6 +9,7 @@
 
 class CQChartsModelExprControl;
 class CQChartsModelFilterControl;
+class CQChartsModelProxyControl;
 #ifdef CQCHARTS_FOLDED_MODEL
 class CQChartsModelFoldControl;
 #endif
@@ -45,6 +46,7 @@ class CQChartsModelControl : public QFrame, public CQChartsWidgetIFace {
  private:
   CQChartsModelExprControl       *addExprFrame();
   CQChartsModelFilterControl     *addFilterFrame();
+  CQChartsModelProxyControl      *addProxyFrame();
 #ifdef CQCHARTS_FOLDED_MODEL
   CQChartsModelFoldControl       *addFoldFrame();
 #endif
@@ -60,6 +62,7 @@ class CQChartsModelControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsModelData*              modelData_       { nullptr };
   CQChartsModelExprControl*       exprFrame_       { nullptr };
   CQChartsModelFilterControl*     filterFrame_     { nullptr };
+  CQChartsModelProxyControl*      proxyFrame_      { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
   CQChartsModelFoldControl*       foldFrame_       { nullptr };
 #endif

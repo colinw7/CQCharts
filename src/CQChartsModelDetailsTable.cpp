@@ -103,7 +103,7 @@ void
 CQChartsModelDetailsTable::
 modelTypeChangedSlot(int modelInd)
 {
-  if (modelData() && modelData()->ind() == modelInd)
+  if (modelData() && modelData()->isInd(modelInd))
     checkedUpdate();
 }
 

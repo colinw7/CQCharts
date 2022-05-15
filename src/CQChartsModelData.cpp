@@ -10,16 +10,18 @@
 #include <CQChartsHtml.h>
 #include <CQChartsWidgetUtil.h>
 
-#include <CQSummaryModel.h>
 #include <CQBucketModel.h>
-#include <CQFoldedModel.h>
 #include <CQCollapseModel.h>
-#include <CQPivotModel.h>
 #include <CQCsvModel.h>
-#include <CQTsvModel.h>
-#include <CQJsonModel.h>
 #include <CQGnuDataModel.h>
 #include <CQHierSepModel.h>
+#include <CQJsonModel.h>
+#include <CQFoldedModel.h>
+#include <CQPivotModel.h>
+#include <CQSummaryModel.h>
+#include <CQTransposeModel.h>
+#include <CQTsvModel.h>
+
 #include <CQModelUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQTclUtil.h>
@@ -111,9 +113,54 @@ CQChartsModelData::
 {
   delete propertyModel_;
   delete details_;
-  delete summaryModelData_;
+
+  delete bucketModelData_   .modelData;
+//delete collapseModelData_ .modelData;
+//delete foldedModelData_   .modelData;
+  delete hierSepModelData_  .modelData;
+  delete pivotModelData_    .modelData;
+//delete subsetModelaData_  .modelData;
+  delete summaryModelData_  .modelData;
+  delete transposeModelData_.modelData;
 
   delete fileWatcher_;
+}
+
+bool
+CQChartsModelData::
+isInd(int ind) const
+{
+  if (ind == this->ind())
+    return true;
+
+  int proxyInd;
+
+  if (bucketModelData_.model) {
+    if (charts_->getModelInd(bucketModelData_.model, proxyInd) && ind == proxyInd)
+      return true;
+  }
+
+  if (hierSepModelData_.model) {
+    if (charts_->getModelInd(hierSepModelData_.model, proxyInd) && ind == proxyInd)
+      return true;
+  }
+
+  if (pivotModelData_.model) {
+    if (charts_->getModelInd(pivotModelData_.model, proxyInd) && ind == proxyInd)
+      return true;
+  }
+
+  if (summaryModelData_.model) {
+    if (charts_->getModelInd(summaryModelData_.model, proxyInd) && ind == proxyInd)
+      return true;
+  }
+
+  if (transposeModelData_.model) {
+    if (charts_->getModelInd(transposeModelData_.model, proxyInd) && ind == proxyInd)
+      return true;
+  }
+
+  return false;
 }
 
 QString
@@ -367,7 +414,7 @@ resetDetails()
 
 CQChartsModelData::ModelP
 CQChartsModelData::
-currentModel() const
+currentModel(bool proxy) const
 {
 #ifdef CQCHARTS_FOLDED_MODEL
   if (! foldedModels_.empty())
@@ -376,6 +423,21 @@ currentModel() const
   if (hierSepModel_)
     return hierSepModel_;
 #endif
+
+  if (proxy && isBucketEnabled() && bucketModelData_.model)
+    return bucketModelData_.modelP;
+
+  if (proxy && isHierSepEnabled() && hierSepModelData_.model)
+    return hierSepModelData_.modelP;
+
+  if (proxy && isPivotEnabled() && pivotModelData_.model)
+    return pivotModelData_.modelP;
+
+  if (proxy && isSummaryEnabled() && summaryModelData_.model)
+    return summaryModelData_.modelP;
+
+  if (proxy && isTransposeEnabled() && transposeModelData_.model)
+    return transposeModelData_.modelP;
 
   return model_;
 }
@@ -756,12 +818,151 @@ foldedModels() const
 
 void
 CQChartsModelData::
-setSummaryEnabled(bool b)
+setBucketEnabled(bool b)
 {
-  if (b != summaryEnabled_) {
-    summaryEnabled_ = b;
+  if (b != bucketModelData_.enabled) {
+    bucketModelData_.enabled = b;
 
     emitDataChanged();
+
+    if (bucketModelData_.model)
+      emit currentModelChanged();
+  }
+}
+
+CQBucketModel *
+CQChartsModelData::
+addBucketModel()
+{
+  if (! bucketModelData_.model) {
+    bucketModelData_.model     = new CQBucketModel(model().data());
+    bucketModelData_.modelP    = ModelP(bucketModelData_.model);
+    bucketModelData_.modelData = new CQChartsModelData(charts_, bucketModelData_.modelP);
+
+    int ind;
+    charts_->assignModelInd(bucketModelData_.model, ind);
+
+    updatePropertyModel();
+  }
+
+  return bucketModelData_.model;
+}
+
+//------
+
+void
+CQChartsModelData::
+setHierSepEnabled(bool b)
+{
+  if (b != hierSepModelData_.enabled) {
+    hierSepModelData_.enabled = b;
+
+    emitDataChanged();
+
+    if (hierSepModelData_.model)
+      emit currentModelChanged();
+  }
+}
+
+CQHierSepModel *
+CQChartsModelData::
+addHierSepModel()
+{
+  if (! hierSepModelData_.model) {
+    hierSepModelData_.model     = new CQHierSepModel(model().data());
+    hierSepModelData_.modelP    = ModelP(hierSepModelData_.model);
+    hierSepModelData_.modelData = new CQChartsModelData(charts_, hierSepModelData_.modelP);
+
+    int ind;
+    charts_->assignModelInd(hierSepModelData_.model, ind);
+
+    updatePropertyModel();
+  }
+
+  return hierSepModelData_.model;
+}
+
+//------
+
+void
+CQChartsModelData::
+setTransposeEnabled(bool b)
+{
+  if (b != transposeModelData_.enabled) {
+    transposeModelData_.enabled = b;
+
+    emitDataChanged();
+
+    if (transposeModelData_.model)
+      emit currentModelChanged();
+  }
+}
+
+CQTransposeModel *
+CQChartsModelData::
+addTransposeModel()
+{
+  if (! transposeModelData_.model) {
+    transposeModelData_.model     = new CQTransposeModel(model().data());
+    transposeModelData_.modelP    = ModelP(transposeModelData_.model);
+    transposeModelData_.modelData = new CQChartsModelData(charts_, transposeModelData_.modelP);
+
+    int ind;
+    charts_->assignModelInd(transposeModelData_.model, ind);
+
+    updatePropertyModel();
+  }
+
+  return transposeModelData_.model;
+}
+
+//------
+
+void
+CQChartsModelData::
+setPivotEnabled(bool b)
+{
+  if (b != pivotModelData_.enabled) {
+    pivotModelData_.enabled = b;
+
+    emitDataChanged();
+
+    if (pivotModelData_.model)
+      emit currentModelChanged();
+  }
+}
+
+CQPivotModel *
+CQChartsModelData::
+addPivotModel()
+{
+  if (! pivotModelData_.model) {
+    pivotModelData_.model     = new CQPivotModel(model().data());
+    pivotModelData_.modelP    = ModelP(pivotModelData_.model);
+    pivotModelData_.modelData = new CQChartsModelData(charts_, pivotModelData_.modelP);
+
+    int ind;
+    charts_->assignModelInd(pivotModelData_.model, ind);
+
+    updatePropertyModel();
+  }
+
+  return pivotModelData_.model;
+}
+
+//------
+
+void
+CQChartsModelData::
+setSummaryEnabled(bool b)
+{
+  if (b != summaryModelData_.enabled) {
+    summaryModelData_.enabled = b;
+
+    emitDataChanged();
+
+    if (summaryModelData_.model)
+      emit currentModelChanged();
   }
 }
 
@@ -769,17 +970,18 @@ CQSummaryModel *
 CQChartsModelData::
 addSummaryModel()
 {
-  if (! summaryModel_) {
-    summaryModel_ = new CQSummaryModel(model().data());
+  if (! summaryModelData_.model) {
+    summaryModelData_.model     = new CQSummaryModel(model().data());
+    summaryModelData_.modelP    = ModelP(summaryModelData_.model);
+    summaryModelData_.modelData = new CQChartsModelData(charts_, summaryModelData_.modelP);
 
-    summaryModelP_ = ModelP(summaryModel_);
-
-    summaryModelData_ = new CQChartsModelData(charts_, summaryModelP_);
+    int ind;
+    charts_->assignModelInd(summaryModelData_.model, ind);
 
     updatePropertyModel();
   }
 
-  return summaryModel_;
+  return summaryModelData_.model;
 }
 
 //------
@@ -969,18 +1171,32 @@ getPropertyNameData(IdModelNames &names) const
   if (modelFilter)
     names["filter"][modelFilter] << "filter" << "type" << "invert";
 
-  auto *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
+  //--
+
+  auto *pivotModel = pivotModelData_.model;
+
+  if (! pivotModel)
+    pivotModel = qobject_cast<CQPivotModel *>(baseModel);
 
   if (pivotModel)
     names["pivot"][pivotModel] << "valueType" << "includeTotals";
 
-  auto *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
+  //--
+
+  // hier sep model
+  auto *hierSepModel = hierSepModelData_.model;
+
+  if (! hierSepModel)
+    hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
 
   if (hierSepModel)
     names["hierSep"][hierSepModel] <<
       NameAlias("foldSeparator", "separator") << "foldColumn" << "propagateValue";
 
-  auto *summaryModel = summaryModel_;
+  //--
+
+  // summary model
+  auto *summaryModel = summaryModelData_.model;
 
   if (! summaryModel)
     summaryModel = qobject_cast<CQSummaryModel *>(model.data());
@@ -989,7 +1205,13 @@ getPropertyNameData(IdModelNames &names) const
     names["summary"][summaryModel] << "mode" << "maxRows" << "sortColumn" << "sortRole" <<
                                       "sortOrder" << "pageSize" << "currentPage";
 
-  auto *bucketModel = qobject_cast<CQBucketModel *>(model.data());
+  //--
+
+  // bucket model
+  auto *bucketModel = bucketModelData_.model;
+
+  if (! bucketModel)
+    bucketModel = qobject_cast<CQBucketModel *>(model.data());
 
   if (bucketModel)
     names["bucket"][bucketModel] << "bucketColumn" << "bucketRole" << "bucketIntegral" <<
@@ -1039,18 +1261,20 @@ getPropertyNameData(IdModelNames &names) const
 
   //---
 
-  // data models
+  // csv model (read only ?)
   auto *csvModel = qobject_cast<CQCsvModel *>(absModel);
 
   if (csvModel)
     names["csv"][csvModel] << "commentHeader" << "firstLineHeader" <<
                               "firstColumnHeader" << "separator";
 
+  // tsv model (read only ?)
   auto *tsvModel = qobject_cast<CQTsvModel *>(absModel);
 
   if (tsvModel)
     names["tsv"][tsvModel] << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
 
+  // gnu model (read only ?)
   auto *gnuModel = qobject_cast<CQGnuDataModel *>(absModel);
 
   if (gnuModel)
@@ -1058,6 +1282,7 @@ getPropertyNameData(IdModelNames &names) const
                               "commentChars" << "missingStr" << "separator" << "parseStrings" <<
                               "setBlankLines" << "subSetBlankLines" << "keepQuotes";
 
+  // jso model
   auto *jsonModel = qobject_cast<CQJsonModel *>(absModel);
 
   if (jsonModel)

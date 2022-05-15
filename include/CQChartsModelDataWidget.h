@@ -23,6 +23,8 @@ class QStackedWidget;
 class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
+  Q_PROPERTY(bool proxy READ isProxy WRITE setProxy)
+
  public:
   using ModelData = CQChartsModelData;
 
@@ -32,6 +34,9 @@ class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
 
   ModelData *modelData() const { return modelData_; }
   void setModelData(ModelData *modelData) override;
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b) { proxy_ = b; }
 
   void reloadModel();
 
@@ -54,6 +59,7 @@ class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
  private:
   CQCharts*  charts_    { nullptr };
   ModelData* modelData_ { nullptr };
+  bool       proxy_     { true };
 
 #ifdef CQCHARTS_MODEL_VIEW
   CQChartsModelView*          view_          { nullptr };

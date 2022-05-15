@@ -17,6 +17,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   Q_PROPERTY(CQChartsColumn column      READ column        WRITE setColumn     )
   Q_PROPERTY(bool           numericOnly READ isNumericOnly WRITE setNumericOnly)
+  Q_PROPERTY(bool           proxy       READ isProxy       WRITE setProxy      )
 
  public:
   using ModelData = CQChartsModelData;
@@ -35,6 +36,9 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -56,6 +60,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
  private:
   CQChartsColumnEdit* dataEdit_    { nullptr };
   bool                numericOnly_ { false };
+  bool                proxy_       { true };
 };
 
 //---

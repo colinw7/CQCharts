@@ -24,11 +24,13 @@
 
 CQChartsEditModelDlg::
 CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
- charts_(charts), modelData_(modelData)
+ QFrame(nullptr), charts_(charts), modelData_(modelData)
 {
   assert(modelData_);
 
   model_ = modelData_->currentModel();
+
+  //setModal(false);
 
   init();
 }
@@ -71,7 +73,7 @@ init()
 
   auto *split = CQUtil::makeWidget<CQTabSplit>("split");
 
-  split->setOrientation(Qt::Vertical);
+  split->setOrientation(Qt::Horizontal);
   split->setGrouped(true);
 
   layout->addWidget(split);
@@ -92,7 +94,11 @@ init()
 
   //---
 
-  // Bottom Buttons
+  split->setSizes(QList<int>({int(INT_MAX*0.7), int(INT_MAX*0.3)}));
+
+  //---
+
+  // bottom buttons
   auto createButton = [&](const QString &label, const QString &name, const QString &tip,
                           const char *slotName) {
     auto *button = CQUtil::makeLabelWidget<QPushButton>(label, name);
@@ -286,5 +292,5 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  return QSize(fm.horizontalAdvance("X")*60, fm.height()*40);
+  return QSize(fm.horizontalAdvance("X")*140, fm.height()*80);
 }

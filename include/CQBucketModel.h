@@ -12,15 +12,28 @@
 class CQBucketModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(int    bucketColumn   READ bucketColumn     WRITE setBucketColumn  )
-  Q_PROPERTY(int    bucketRole     READ bucketRole       WRITE setBucketRole    )
-  Q_PROPERTY(bool   bucketIntegral READ isBucketIntegral WRITE setBucketIntegral)
-  Q_PROPERTY(double bucketStart    READ bucketStart      WRITE setBucketStart   )
-  Q_PROPERTY(double bucketDelta    READ bucketDelta      WRITE setBucketDelta   )
-  Q_PROPERTY(double bucketMin      READ bucketMin        WRITE setBucketMin     )
-  Q_PROPERTY(double bucketMax      READ bucketMax        WRITE setBucketMax     )
-  Q_PROPERTY(int    bucketCount    READ bucketCount      WRITE setBucketCount   )
-  Q_PROPERTY(bool   multiColumn    READ isMultiColumn    WRITE setMultiColumn   )
+  Q_PROPERTY(int        bucketColumn   READ bucketColumn     WRITE setBucketColumn  )
+  Q_PROPERTY(int        bucketRole     READ bucketRole       WRITE setBucketRole    )
+  Q_PROPERTY(BucketType bucketType     READ bucketType       WRITE setBucketType    )
+  Q_PROPERTY(bool       bucketIntegral READ isBucketIntegral WRITE setBucketIntegral)
+  Q_PROPERTY(double     bucketStart    READ bucketStart      WRITE setBucketStart   )
+  Q_PROPERTY(double     bucketDelta    READ bucketDelta      WRITE setBucketDelta   )
+  Q_PROPERTY(double     bucketMin      READ bucketMin        WRITE setBucketMin     )
+  Q_PROPERTY(double     bucketMax      READ bucketMax        WRITE setBucketMax     )
+  Q_PROPERTY(int        bucketCount    READ bucketCount      WRITE setBucketCount   )
+  Q_PROPERTY(bool       multiColumn    READ isMultiColumn    WRITE setMultiColumn   )
+  Q_PROPERTY(int        bucketPos      READ bucketPos        WRITE setBucketPos     )
+
+  Q_ENUMS(BucketType)
+
+ public:
+  enum class BucketType {
+    STRING        = int(CQBucketer::Type::STRING),
+    INTEGER_RANGE = int(CQBucketer::Type::INTEGER_RANGE),
+    REAL_RANGE    = int(CQBucketer::Type::REAL_RANGE),
+    REAL_AUTO     = int(CQBucketer::Type::REAL_AUTO),
+    FIXED_STOPS   = int(CQBucketer::Type::FIXED_STOPS)
+  };
 
  public:
   CQBucketModel(QAbstractItemModel *model, const CQBucketer &bucketer=CQBucketer());
@@ -39,6 +52,8 @@ class CQBucketModel : public QAbstractProxyModel {
   const CQBucketer &bucketer() const { return bucketer_; }
   void setBucketer(const CQBucketer &bucketer);
 
+  //---
+
   //! get/set bucket column
   int bucketColumn() const { return bucketColumn_; }
   void setBucketColumn(int i);
@@ -48,8 +63,8 @@ class CQBucketModel : public QAbstractProxyModel {
   void setBucketRole(int i) { bucketRole_ = i; }
 
   //! get/set bucket type
-  const CQBucketer::Type &bucketType() const;
-  void setBucketType(const CQBucketer::Type &type);
+  BucketType bucketType() const;
+  void setBucketType(const BucketType &type);
 
   //! get/set bucket is integral
   bool isBucketIntegral() const;
@@ -82,6 +97,10 @@ class CQBucketModel : public QAbstractProxyModel {
   //! get/set use multiple columns for bucket columns
   bool isMultiColumn() const { return multiColumn_; }
   void setMultiColumn(bool b) { multiColumn_ = b; }
+
+  //! get/set bucket column pos
+  int bucketPos() const { return bucketPos_; }
+  void setBucketPos(int i) { bucketPos_ = i; }
 
   //---
 
@@ -138,7 +157,7 @@ class CQBucketModel : public QAbstractProxyModel {
   void calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
                    bool &rset, double &rmin, double &rmax) const;
 
-  int bucketPos() const { return bucketPos_; }
+  int calcBucketPos() const;
 
   // clear model
   void clear();
@@ -156,7 +175,7 @@ class CQBucketModel : public QAbstractProxyModel {
   int        bucketColumn_ { 0 };               //!< bucket source model column
   int        bucketRole_   { Qt::DisplayRole }; //!< bucket role
   bool       multiColumn_  { false };           //!< use multiple columns for bucket values
-  int        bucketPos_    { -1 };              //!< bucket proxy model column
+  int        bucketPos_    { 0 };               //!< bucket proxy model column
   CQBucketer bucketer_;                         //!< bucketer
   bool       bucketed_     { false };           //!< is bucketer
   bool       bucketValid_  { false };           //!< is bucketer valid

@@ -246,17 +246,17 @@ reloadModel()
     return;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setModelP(modelData_->currentModel());
+  view_->setModelP(modelData_->currentModel(isProxy()));
 #else
   if (modelData_->details()->isHierarchical()) {
     if (tree_)
-      tree_->setModelP(modelData_->currentModel());
+      tree_->setModelP(modelData_->currentModel(isProxy()));
 
     stack_->setCurrentIndex(0);
   }
   else {
     if (table_)
-      table_->setModelP(modelData_->currentModel());
+      table_->setModelP(modelData_->currentModel(isProxy()));
 
     stack_->setCurrentIndex(1);
   }

@@ -52,8 +52,10 @@ setModelData(CQChartsModelData *modelData)
     if (modelData_)
       connect(modelData_, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
 
+    combo_->setProxy(isProxy());
+
     if (modelData_)
-      combo_->setModel(modelData->model().data());
+      combo_->setModel(modelData->currentModel(isProxy()).data());
   }
 }
 
@@ -76,6 +78,15 @@ CQChartsColumnNumLineEdit::
 setColumnNum(const CQChartsColumnNum &c)
 {
   columnNum_ = c;
+
+  columnToWidgets();
+}
+
+void
+CQChartsColumnNumLineEdit::
+setProxy(bool b)
+{
+  proxy_ = b;
 
   columnToWidgets();
 }

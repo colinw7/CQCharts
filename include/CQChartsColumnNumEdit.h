@@ -16,6 +16,7 @@ class CQChartsColumnNumLineEdit : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColumnNum columnNum READ columnNum WRITE setColumnNum)
+  Q_PROPERTY(bool              proxy     READ isProxy   WRITE setProxy    )
 
  public:
   CQChartsColumnNumLineEdit(QWidget *parent=nullptr);
@@ -26,6 +27,9 @@ class CQChartsColumnNumLineEdit : public QFrame {
 
   const CQChartsColumnNum &columnNum() const;
   void setColumnNum(const CQChartsColumnNum &c);
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b);
 
  signals:
   void columnChanged();
@@ -46,6 +50,7 @@ class CQChartsColumnNumLineEdit : public QFrame {
   CQChartsModelData*   modelData_ { nullptr }; //!< model data
   CQChartsColumnCombo* combo_     { nullptr }; //!< column combo
   bool                 connected_ { false };   //!< is connected
+  bool                 proxy_     { true };    //!< model allows proxy
 };
 
 //---

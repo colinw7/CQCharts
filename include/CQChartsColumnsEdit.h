@@ -19,6 +19,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
   Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
   Q_PROPERTY(bool            basic       READ isBasic       WRITE setBasic      )
+  Q_PROPERTY(bool            proxy       READ isProxy       WRITE setProxy      )
 
  public:
   using ModelData = CQChartsModelData;
@@ -36,6 +37,9 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   bool isBasic() const { return basic_; }
   void setBasic(bool b);
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b);
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
@@ -65,6 +69,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   CQChartsColumnsEdit *dataEdit_    { nullptr };
   ModelData*           modelData_   { nullptr };
   bool                 basic_       { false };
+  bool                 proxy_       { true };
   bool                 numericOnly_ { false };
 };
 
@@ -85,6 +90,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase, public CQChartsWidgetIFace 
   Q_PROPERTY(CQChartsColumns columns     READ columns       WRITE setColumns    )
   Q_PROPERTY(bool            numericOnly READ isNumericOnly WRITE setNumericOnly)
   Q_PROPERTY(bool            basic       READ isBasic       WRITE setBasic      )
+  Q_PROPERTY(bool            proxy       READ isProxy       WRITE setProxy      )
 
  public:
   using ModelData = CQChartsModelData;
@@ -100,6 +106,9 @@ class CQChartsColumnsEdit : public CQChartsEditBase, public CQChartsWidgetIFace 
 
   bool isBasic() const { return basic_; }
   void setBasic(bool b);
+
+  bool isProxy() const { return proxy_; }
+  void setProxy(bool b);
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
@@ -130,6 +139,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase, public CQChartsWidgetIFace 
 
   CQChartsColumns columns_;
   bool            basic_        { false };
+  bool            proxy_        { true };
   bool            numericOnly_  { false };
   ModelData*      modelData_    { nullptr };
   QFrame*         controlFrame_ { nullptr };

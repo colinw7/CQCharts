@@ -15,7 +15,13 @@ class CQCharts;
 #ifdef CQCHARTS_FOLDED_MODEL
 class CQFoldedModel;
 #endif
+
+class CQBucketModel;
+class CQHierSepModel;
+class CQPivotModel;
 class CQSummaryModel;
+class CQTransposeModel;
+
 class CQPropertyViewModel;
 
 class CQFileWatcher;
@@ -74,6 +80,16 @@ class CQChartsModelData : public QObject {
     CONCAT
   };
 
+  using ModelData = CQChartsModelData;
+
+  template<typename T>
+  struct ProxyModelData {
+    bool       enabled   { false };
+    T*         model     { nullptr };
+    ModelData* modelData { nullptr };
+    ModelP     modelP;
+  };
+
  public:
   static QString description();
   static QString typeDescription(const QString &type);
@@ -96,6 +112,8 @@ class CQChartsModelData : public QObject {
   // get (unique) index
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
+
+  bool isInd(int ind) const;
 
   //---
 
@@ -157,7 +175,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  ModelP currentModel() const;
+  ModelP currentModel(bool proxy=true) const;
 
   //---
 
@@ -173,17 +191,63 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  // add/get bucket model
+  CQBucketModel *addBucketModel();
+
+  bool isBucketEnabled() const { return bucketModelData_.enabled; }
+  void setBucketEnabled(bool b);
+
+  CQBucketModel *bucketModel    () const { return bucketModelData_.model; }
+  ModelData     *bucketModelData() const { return bucketModelData_.modelData; }
+  const ModelP  &bucketModelP   () const { return bucketModelData_.modelP; }
+
+  //---
+
+  // add/get hierSep model
+  CQHierSepModel *addHierSepModel();
+
+  bool isHierSepEnabled() const { return hierSepModelData_.enabled; }
+  void setHierSepEnabled(bool b);
+
+  CQHierSepModel *hierSepModel    () const { return hierSepModelData_.model; }
+  ModelData      *hierSepModelData() const { return hierSepModelData_.modelData; }
+  const ModelP   &hierSepModelP   () const { return hierSepModelData_.modelP; }
+
+  //---
+
+  // add/get pivot model
+  CQPivotModel *addPivotModel();
+
+  bool isPivotEnabled() const { return pivotModelData_.enabled; }
+  void setPivotEnabled(bool b);
+
+  CQPivotModel *pivotModel    () const { return pivotModelData_.model; }
+  ModelData    *pivotModelData() const { return pivotModelData_.modelData; }
+  const ModelP &pivotModelP   () const { return pivotModelData_.modelP; }
+
+  //---
+
   // add/get summary model
   CQSummaryModel *addSummaryModel();
 
-  bool isSummaryEnabled() const { return summaryEnabled_; }
+  bool isSummaryEnabled() const { return summaryModelData_.enabled; }
   void setSummaryEnabled(bool b);
 
-  CQSummaryModel *summaryModel() const { return summaryModel_; }
+  CQSummaryModel *summaryModel    () const { return summaryModelData_.model; }
+  ModelData      *summaryModelData() const { return summaryModelData_.modelData; }
+  const ModelP   &summaryModelP   () const { return summaryModelData_.modelP; }
 
-  CQChartsModelData *summaryModelData() const { return summaryModelData_; }
+  //---
 
-  const ModelP &summaryModelP() const { return summaryModelP_; }
+  // add/get transponse model
+  CQTransposeModel *addTransposeModel();
+
+  bool isTransposeEnabled() const { return transposeModelData_.enabled; }
+  void setTransposeEnabled(bool b);
+
+  CQTransposeModel *transposeModel    () const { return transposeModelData_.model; }
+  ModelData        *transposeModelData() const { return transposeModelData_.modelData; }
+  const ModelP     &transposeModelP   () const { return transposeModelData_.modelP; }
 
   //---
 
@@ -251,15 +315,15 @@ class CQChartsModelData : public QObject {
 
   QAbstractItemModel *copy(const CopyData &copyData);
 
-  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &lColumns,
+  QAbstractItemModel *join(ModelData *joinModel, const Columns &lColumns,
                            const Columns &rColumns, JoinType joinType=JoinType::NONE);
-  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinCColumns,
+  QAbstractItemModel *join(ModelData *joinModel, const Columns &joinCColumns,
                            JoinType joinType=JoinType::NONE);
 
-  static QAbstractItemModel *cross(const std::vector<CQChartsModelData *> &models);
-  QAbstractItemModel *cross(CQChartsModelData *joinModel);
+  static QAbstractItemModel *cross(const std::vector<ModelData *> &models);
+  QAbstractItemModel *cross(ModelData *joinModel);
 
-  static QAbstractItemModel *concat(const std::vector<CQChartsModelData *> &models,
+  static QAbstractItemModel *concat(const std::vector<ModelData *> &models,
                                     const QStringList &keys=QStringList(),
                                     Qt::Orientation orient=Qt::Vertical);
 
@@ -318,40 +382,41 @@ class CQChartsModelData : public QObject {
   using ModelPArray = std::vector<ModelP>;
 #endif
 
-  CQCharts*          charts_           { nullptr }; //!< parent charts
-  ModelP             model_;                        //!< model
-  int                ind_              { -1 };      //!< model ind
-  QString            name_;                         //!< model name
-  QString            filename_;                     //!< model file name
-  int                currentColumn_    { -1 };      //!< current column
+  CQCharts* charts_        { nullptr }; //!< parent charts
+  ModelP    model_;                     //!< model
+  int       ind_           { -1 };      //!< model ind
+  QString   name_;                      //!< model name
+  QString   filename_;                  //!< model file name
+  int       currentColumn_ { -1 };      //!< current column
 
   // details
-  ModelDetails*      details_          { nullptr }; //!< model details
+  ModelDetails* details_ { nullptr }; //!< model details
 
   // selection models data
-  SelectionModels    selectionModels_;              //!< selection models
+  SelectionModels selectionModels_; //!< selection models
 
   // folded models data
 #ifdef CQCHARTS_FOLDED_MODEL
-  ModelP             foldProxyModel_;               //!< folded proxy model
-  ModelPArray        foldedModels_;                 //!< folded models
+  ModelP      foldProxyModel_; //!< folded proxy model
+  ModelPArray foldedModels_;   //!< folded models
 #endif
 
   // hier sep model data
-  ModelP             hierSepModel_;                 //!< hier sep model
+  ModelP hierSepModel_; //!< hier sep model
 
-  // summary model data
-  bool               summaryEnabled_   { false };   //!< summary model enabled
-  CQSummaryModel*    summaryModel_     { nullptr }; //!< summary model
-  ModelP             summaryModelP_;                //!< summary model (shared pointer)
-  CQChartsModelData* summaryModelData_ { nullptr }; //!< summary model data
+  // proxt model datas
+  ProxyModelData<CQBucketModel>    bucketModelData_;
+  ProxyModelData<CQHierSepModel>   hierSepModelData_;
+  ProxyModelData<CQPivotModel>     pivotModelData_;
+  ProxyModelData<CQSummaryModel>   summaryModelData_;
+  ProxyModelData<CQTransposeModel> transposeModelData_;
 
   // property model
-  PropertyModel*     propertyModel_    { nullptr }; //!< property model
+  PropertyModel* propertyModel_ { nullptr }; //!< property model
 
-  CQFileWatcher* fileWatcher_ { nullptr };
+  CQFileWatcher* fileWatcher_ { nullptr }; //!< model file watcher
 
-  mutable std::mutex mutex_;                        //!< thread mutex
+  mutable std::mutex mutex_; //!< thread mutex
 };
 
 #endif

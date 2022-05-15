@@ -49,7 +49,7 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsView *view() const { return view_; }
   void setView(CQChartsView *view) override;
 
-  CQChartsPlot *plot() const { return plot_; }
+  CQChartsPlot *plot() const;
   void setPlot(CQChartsPlot *plot) override;
 
  private slots:
@@ -58,10 +58,12 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   void writeAnnotationSlot();
 
  private:
+  using PlotP = QPointer<CQChartsPlot>;
+
   CQTabSplit *split_ { nullptr };
 
   CQChartsView *view_ { nullptr };
-  CQChartsPlot *plot_ { nullptr };
+  PlotP         plot_;
 
   CQChartsViewAnnotationsControl* viewTable_ { nullptr }; //!< view annotations table
   CQChartsPlotAnnotationsControl* plotTable_ { nullptr }; //!< plot annotations table
@@ -117,7 +119,7 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
  public:
   CQChartsPlotAnnotationsControl(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const { return plot_; }
+  CQChartsPlot *plot() const;
   void setPlot(CQChartsPlot *plot) override;
 
  private:
@@ -138,7 +140,9 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   using CreateAnnotationDlg  = CQChartsCreateAnnotationDlg;
   using EditAnnotationDlg    = CQChartsEditAnnotationDlg;
 
-  CQChartsPlot *plot_ { nullptr };
+  using PlotP = QPointer<CQChartsPlot>;
+
+  PlotP plot_;
 
   PlotAnnotationsTable* plotTable_        { nullptr }; //!< plot annotations table
   QPushButton*          plotRaiseButton_  { nullptr }; //!< plot annotation raise button
@@ -206,14 +210,16 @@ class CQChartsPlotAnnotationsTable : public CQChartsAnnotationsTable, public CQC
  public:
   CQChartsPlotAnnotationsTable();
 
-  CQChartsPlot *plot() const { return plot_; }
+  CQChartsPlot *plot() const;
   void setPlot(CQChartsPlot *plot) override;
 
  public slots:
   void updateAnnotations();
 
  private:
-  CQChartsPlot *plot_ { nullptr };
+  using PlotP = QPointer<CQChartsPlot>;
+
+  PlotP plot_;
 };
 
 #endif

@@ -87,6 +87,15 @@ setBasic(bool b)
 
 void
 CQChartsColumnsLineEdit::
+setProxy(bool b)
+{
+  proxy_ = b;
+
+  columnsToWidgets();
+}
+
+void
+CQChartsColumnsLineEdit::
 setNumericOnly(bool b)
 {
   numericOnly_ = b;
@@ -132,8 +141,10 @@ columnsToWidgets()
 
   if (columns().isValid()) {
     if (modelData()) {
+      auto *model = modelData()->currentModel(isProxy()).data();
+
       bool ok;
-      text = CQChartsModelUtil::columnsToString(modelData()->model().data(), columns(), ok);
+      text = CQChartsModelUtil::columnsToString(model, columns(), ok);
     }
     else
       text = columns().toString();
@@ -204,7 +215,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
         CQChartsColumn col;
 
         if (modelData()) {
-          auto *model = modelData()->currentModel().data();
+          auto *model = modelData()->currentModel(isProxy()).data();
 
           if (! CQChartsModelUtil::stringToColumn(model, str, col))
             col = CQChartsColumn();
@@ -222,7 +233,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
       CQChartsColumn col;
 
       if (modelData()) {
-        auto *model = modelData()->currentModel().data();
+        auto *model = modelData()->currentModel(isProxy()).data();
 
         if (! CQChartsModelUtil::stringToColumn(model, str, col))
           col = CQChartsColumn();
@@ -515,14 +526,18 @@ setModelData(CQChartsModelData *modelData)
   if (isBasic()) {
     auto ne = columnCombos_.size();
 
-    for (size_t i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i) {
+      columnCombos_[i]->setProxy(isProxy());
       columnCombos_[i]->setModelData(modelData_);
+    }
   }
   else {
     auto ne = columnEdits_.size();
 
-    for (size_t i = 0; i < ne; ++i)
+    for (size_t i = 0; i < ne; ++i) {
+      columnEdits_[i]->setProxy(isProxy());
       columnEdits_[i]->setModelData(modelData_);
+    }
   }
 
   connectSlots(true);
@@ -558,6 +573,32 @@ CQChartsColumnsEdit::
 setBasic(bool b)
 {
   basic_ = b;
+
+  columnsToWidgets();
+}
+
+void
+CQChartsColumnsEdit::
+setProxy(bool b)
+{
+  proxy_ = b;
+
+  if (isBasic()) {
+    auto ne = columnCombos_.size();
+
+    for (size_t i = 0; i < ne; ++i) {
+      columnCombos_[i]->setProxy(isProxy());
+      columnCombos_[i]->setModelData(modelData_);
+    }
+  }
+  else {
+    auto ne = columnEdits_.size();
+
+    for (size_t i = 0; i < ne; ++i) {
+      columnEdits_[i]->setProxy(isProxy());
+      columnEdits_[i]->setModelData(modelData_);
+    }
+  }
 
   columnsToWidgets();
 }

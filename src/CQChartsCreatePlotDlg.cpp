@@ -8,7 +8,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnEdit.h>
-#include <CQChartsColumnCombo.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetailsWidget.h>
@@ -45,11 +44,13 @@
 
 CQChartsCreatePlotDlg::
 CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
- charts_(charts), modelData_(modelData)
+ QDialog(nullptr), charts_(charts), modelData_(modelData)
 {
   assert(modelData_);
 
   model_ = modelData_->currentModel();
+
+  setModal(false);
 
   init();
 }

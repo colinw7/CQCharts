@@ -82,6 +82,13 @@ setNumericOnly(bool b)
 
 void
 CQChartsColumnLineEdit::
+setProxy(bool b)
+{
+  proxy_ = b;
+}
+
+void
+CQChartsColumnLineEdit::
 updateColumn(const Column &column, bool updateText)
 {
   connectSlots(false);
@@ -109,7 +116,7 @@ textChanged()
   }
   else {
     if (modelData()) {
-      auto *model = modelData()->currentModel().data();
+      auto *model = modelData()->currentModel(isProxy()).data();
 
       if (! CQChartsModelUtil::stringToColumn(model, text, column))
         return;

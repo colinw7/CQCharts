@@ -4386,7 +4386,7 @@ execCmd(CQChartsCmdArgs &argv)
           else
             str += str1;
 
-          ++w;
+          ++c;
         }
 
         std::cout << str.toStdString() << "\n";
@@ -5013,7 +5013,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (typeData) {
         if (typeData->isNumeric()) {
           if (argv.hasParseArg("start") || argv.hasParseArg("delta")) {
-            bucketModel->setBucketType(CQBucketer::Type::REAL_RANGE);
+            bucketModel->setBucketType(CQBucketModel::BucketType::REAL_RANGE);
 
             if (argv.hasParseArg("start"))
               bucketModel->setBucketStart(argv.getParseReal("start"));
@@ -5022,7 +5022,7 @@ execCmd(CQChartsCmdArgs &argv)
               bucketModel->setBucketDelta(argv.getParseReal("delta"));
           }
           else {
-            bucketModel->setBucketType(CQBucketer::Type::REAL_AUTO);
+            bucketModel->setBucketType(CQBucketModel::BucketType::REAL_AUTO);
 
             if (argv.hasParseArg("min"))
               bucketModel->setBucketMin(argv.getParseReal("min"));

@@ -68,7 +68,7 @@ modelTypeChangedSlot(int modelId)
 {
   auto *modelData = getModelData();
 
-  if (modelData && modelData->ind() == modelId) {
+  if (modelData && modelData->isInd(modelId)) {
     //delegate_->clearColumnTypes();
   }
 }

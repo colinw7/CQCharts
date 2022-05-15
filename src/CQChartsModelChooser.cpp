@@ -93,7 +93,7 @@ updateModels()
   int i = 0, ind = -1;
 
   for (const auto &modelData : modelDatas) {
-    if (modelData->ind() == currentInd)
+    if (modelData->isInd(currentInd))
       ind = i;
 
     combo_->addItem(modelData->desc(), QVariant(modelData->ind()));

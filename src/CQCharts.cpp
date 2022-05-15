@@ -1460,7 +1460,7 @@ currentModelData() const
 
   if (currentModelInd_ >= 0 ) {
     for (auto &modelData : modelDatas_) {
-      if (modelData->ind() == currentModelInd_)
+      if (modelData->isInd(currentModelInd_))
         return modelData;
     }
   }
@@ -1587,7 +1587,7 @@ CQCharts::
 getModelDataByInd(int ind) const
 {
   for (auto &modelData : modelDatas_)
-    if (modelData->ind() == ind)
+    if (modelData->isInd(ind))
       return modelData;
 
   return nullptr;

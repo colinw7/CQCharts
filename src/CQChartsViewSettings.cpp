@@ -209,6 +209,8 @@ initControlsFrame(QFrame *controlsFrame)
   (void) CQUtil::makeLayout<QVBoxLayout>(customControlFrame_);
 }
 
+//---
+
 void
 CQChartsViewSettings::
 initPropertiesFrame(QFrame *propertiesFrame)
@@ -281,6 +283,8 @@ initPropertiesFrame(QFrame *propertiesFrame)
   propertiesWidgets_.propertiesSplit->setCurrentIndex(2);
 }
 
+//---
+
 void
 CQChartsViewSettings::
 initModelsFrame(QFrame *modelsFrame)
@@ -319,8 +323,10 @@ initModelsFrame(QFrame *modelsFrame)
 
   //---
 
-  modelsSplit->setSizes(QList<int>({INT_MAX, INT_MAX}));
+  modelsSplit->setSizes(QList<int>({int(INT_MAX*0.6), int(INT_MAX*0.4)}));
 }
+
+//---
 
 void
 CQChartsViewSettings::
@@ -348,6 +354,8 @@ initPlotsFrame(QFrame *plotsFrame)
   plotsWidgets_.plotTable->setView(view);
 }
 
+//---
+
 void
 CQChartsViewSettings::
 initAnnotationsFrame(QFrame *annotationsFrame)
@@ -368,6 +376,8 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   annotationsWidgets_.control->setView(view);
 }
 
+//---
+
 void
 CQChartsViewSettings::
 initObjectsFrame(QFrame *objectsFrame)
@@ -383,6 +393,8 @@ initObjectsFrame(QFrame *objectsFrame)
 
   objectsFrameLayout->addWidget(objectsWidgets_.propertyTree);
 }
+
+//---
 
 void
 CQChartsViewSettings::
@@ -425,6 +437,8 @@ initColorsFrame(QFrame *colorsFrame)
 
   themeWidgets_.interfaceControl->setView(view);
 }
+
+//---
 
 void
 CQChartsViewSettings::
@@ -487,6 +501,8 @@ initSymbolsFrame(QFrame *symbolSetsFrame)
   symbolsSplit->setSizes(QList<int>({size1, size2, size3}));
 }
 
+//---
+
 void
 CQChartsViewSettings::
 initLayersFrame(QFrame *layersFrame)
@@ -506,7 +522,7 @@ initLayersFrame(QFrame *layersFrame)
   layersWidgets_.layerTableControl->setView(view);
 }
 
-//------
+//---
 
 void
 CQChartsViewSettings::
@@ -546,7 +562,7 @@ showQueryTab()
   tab_->setCurrentIndex(tabNum_["Query"]);
 }
 
-//------
+//---
 
 void
 CQChartsViewSettings::

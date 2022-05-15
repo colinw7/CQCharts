@@ -141,6 +141,13 @@ setView(CQChartsView *view)
     connect(view_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 }
 
+CQChartsPlot *
+CQChartsAnnotationsControl::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsAnnotationsControl::
 setPlot(CQChartsPlot *plot)
@@ -501,6 +508,13 @@ CQChartsPlotAnnotationsControl(QWidget *parent) :
   plotControlGroupLayout->addStretch(1);
 }
 
+CQChartsPlot *
+CQChartsPlotAnnotationsControl::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsPlotAnnotationsControl::
 setPlot(CQChartsPlot *plot)
@@ -804,6 +818,13 @@ CQChartsPlotAnnotationsTable::
 CQChartsPlotAnnotationsTable()
 {
   setObjectName("plotAnnotationsTable");
+}
+
+CQChartsPlot *
+CQChartsPlotAnnotationsTable::
+plot() const
+{
+  return plot_.data();
 }
 
 void

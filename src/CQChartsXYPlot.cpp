@@ -16,7 +16,6 @@
 #include <CQChartsHtml.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsColumnCombo.h>
 #include <CQChartsTextPlacer.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQCharts.h>

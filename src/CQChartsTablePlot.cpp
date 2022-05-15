@@ -214,7 +214,7 @@ modelTypeChangedSlot(int modelInd)
 {
   auto *modelData = charts()->getModelData(model_);
 
-  if (modelData && modelData->ind() == modelInd)
+  if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
 }
 

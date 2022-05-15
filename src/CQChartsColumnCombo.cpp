@@ -130,6 +130,15 @@ setNumericOnly(bool b)
 
 void
 CQChartsColumnCombo::
+setProxy(bool b)
+{
+  proxy_ = b;
+
+  updateItems();
+}
+
+void
+CQChartsColumnCombo::
 updateItems()
 {
   if (! modelData_) {
@@ -146,7 +155,7 @@ updateItems()
   if (icolumn < 0 && ! isAllowNone())
     icolumn = modelData_->currentColumn();
 
-  auto *model = modelData_->currentModel().data();
+  auto *model = modelData_->currentModel(isProxy()).data();
 
   int nc = model->columnCount();
 
