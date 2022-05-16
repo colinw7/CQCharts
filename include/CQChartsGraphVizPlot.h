@@ -909,6 +909,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   void initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
                                  double value, Node* &srcNode, Node* &destNode) const;
 
+  void updateSrcDestNames(Node *srcNode, const HierConnectionData &srcHierData,
+                          Node *destNode, const HierConnectionData &destHierData) const;
+
   //---
 
   bool initPathObjs() const;

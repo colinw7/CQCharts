@@ -626,12 +626,32 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
 
   //---
 
+  // get nodes/edges per group
+
+  using Groups     = std::set<int>;
+  using NodeSet    = std::set<Node *>;
   using EdgeSet    = std::set<Edge *>;
+  using GroupNodes = std::map<int, NodeSet>;
   using GroupEdges = std::map<int, EdgeSet>;
+  using NodeGroup  = std::map<Node *, int>;
   using EdgeGroup  = std::map<Edge *, int>;
 
+  Groups     groups;
+  GroupNodes groupNodes;
   GroupEdges groupEdges;
+  NodeGroup  nodeGroup;
   EdgeGroup  edgeGroup;
+
+  for (const auto &node : nodes_) {
+    if (node->group() < 0)
+      continue;
+
+    groupNodes[node->group()].insert(node);
+
+    nodeGroup[node] = node->group();
+
+    groups.insert(node->group());
+  }
 
   for (const auto &edge : edges_) {
     auto *node1 = edge->srcNode ();
@@ -643,6 +663,8 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
     groupEdges[node1->group()].insert(edge);
 
     edgeGroup[edge] = node1->group();
+
+    groups.insert(node1->group());
   }
 
   //---
@@ -709,16 +731,18 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
     nodeSet.insert(node);
   };
 
-  auto printEdge = [&](Edge *edge) {
+  auto printEdge = [&](Edge *edge, bool printNodes) {
     auto *node1 = edge->srcNode ();
     auto *node2 = edge->destNode();
 
-    printNode(node1);
-    printNode(node2);
+    if (printNodes) {
+      printNode(node1);
+      printNode(node2);
+    }
 
     writeGraphViz("\"" + node1->name() + "\" -> \"" + node2->name() + "\"");
 
-     int edgeAttrCount = 0;
+    int edgeAttrCount = 0;
 
     if (weighted) {
       if (edge->hasValue())
@@ -737,6 +761,9 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
     endPrintAttr(edgeAttrCount);
   };
 
+  //---
+
+  // write mode parameters
   if (plotType() == PlotType::FDP) {
     if (fdpK() > 0.0)
       writeGraphViz(" K=" + QString::number(fdpK()) + ";\n");
@@ -748,22 +775,46 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
       writeGraphViz(" start=" + QString::number(fdpStart()) + ";\n");
   }
 
-  for (const auto &ge : groupEdges) {
-    writeGraphViz("subgraph " + QString::number(ge.first) + " {\n");
+  //---
 
-    for (const auto &edge : ge.second) {
-      printEdge(edge);
+  // output groups
+  for (const auto &group : groups) {
+    writeGraphViz("subgraph " + QString::number(group) + " {\n");
+
+    // output grouped nodes
+    auto pn = groupNodes.find(group);
+
+    if (pn != groupNodes.end()) {
+      for (const auto &node : (*pn).second) {
+        printNode(node);
+      }
+    }
+
+    // output grouped edges
+    auto pe = groupEdges.find(group);
+
+    if (pe != groupEdges.end()) {
+      for (const auto &edge : (*pe).second) {
+        printEdge(edge, /*printNodes*/false);
+      }
     }
 
     writeGraphViz("}\n");
   }
 
+  // output non-grouped edges
   for (const auto &edge : edges_) {
     auto p = edgeGroup.find(edge);
 
     if (p == edgeGroup.end())
-      printEdge(edge);
+      printEdge(edge, /*printNodes*/true);
   }
+
+  // output non-connected nodes
+  for (auto *node : nodes_)
+    printNode(node);
+
+  //---
 
   writeGraphViz("}\n");
 
@@ -886,7 +937,8 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
   for (auto &object : dot.objects()) {
     Node *node = nullptr;
 
-    if (columnDataType == ColumnDataType::CONNECTIONS) {
+    if (columnDataType == ColumnDataType::CONNECTIONS ||
+        columnDataType == ColumnDataType::HIER) {
       auto pn = nameNameMap_.find(object->name());
 
       if (pn != nameNameMap_.end())
@@ -1244,15 +1296,7 @@ initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
   initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
                             destHierData.total, srcNode, destNode);
 
-  if (srcNode) {
-    QString srcStr;
-
-    if (! srcHierData.linkStrs.empty())
-      srcStr = srcHierData.linkStrs.back();
-
-    srcNode->setValue(OptReal(destHierData.total));
-    srcNode->setName (srcStr);
-  }
+  updateSrcDestNames(srcNode, srcHierData, destNode, destHierData);
 }
 
 void
@@ -1268,15 +1312,7 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
   initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
                             destHierData.total, srcNode, destNode);
 
-  if (destNode) {
-    QString destStr;
-
-    if (! destHierData.linkStrs.empty())
-      destStr = destHierData.linkStrs.back();
-
-    destNode->setValue(OptReal(destHierData.total));
-    destNode->setName (destStr);
-  }
+  updateSrcDestNames(srcNode, srcHierData, destNode, destHierData);
 }
 
 void
@@ -1310,6 +1346,38 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
 
   if (destNode)
     destNode->setDepth(destDepth);
+}
+
+void
+CQChartsGraphVizPlot::
+updateSrcDestNames(Node *srcNode, const HierConnectionData &srcHierData,
+                   Node *destNode, const HierConnectionData &destHierData) const
+{
+  auto *th = const_cast<CQChartsGraphVizPlot *>(this);
+
+  if (srcNode) {
+    QString srcStr;
+
+    if (! srcHierData.linkStrs.empty())
+      srcStr = srcHierData.linkStrs.back();
+
+    srcNode->setValue(OptReal(srcHierData.total));
+    srcNode->setName (srcStr);
+
+    th->nameNameMap_[srcStr] = srcHierData.parentStr;
+  }
+
+  if (destNode) {
+    QString destStr;
+
+    if (! destHierData.linkStrs.empty())
+      destStr = destHierData.linkStrs.back();
+
+    destNode->setValue(OptReal(destHierData.total));
+    destNode->setName (destStr);
+
+    th->nameNameMap_[destStr] = destHierData.parentStr;
+  }
 }
 
 //---

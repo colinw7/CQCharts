@@ -240,10 +240,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                                      const HierConnectionData &destHierData) const override;
 
-  void initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd,
-                                 double srcTotal,
-                                 const QString &destStr, const ModelIndex &destLinkInd,
-                                 double destTotal, int depth) const;
+  void initHierObjsAddConnection(const HierConnectionData &srcHierData,
+                                 const HierConnectionData &destHierData) const;
 
   //---
 

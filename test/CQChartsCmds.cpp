@@ -127,7 +127,8 @@ addCommands()
     // define charts tcl proc
     addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
 
-    // correlation, bucket, folded, subset, transpose, summary, collapse, pivot, stats
+    // correlation, bucket, folded, subset, transpose, summary, collapse, pivot, stats,
+    // data, fractal
     addCommand("create_charts_correlation_model",
                new CQChartsCreateChartsCorrelationModelCmd(this));
     addCommand("create_charts_bucket_model"     ,

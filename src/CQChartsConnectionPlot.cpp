@@ -1160,13 +1160,11 @@ initFromToObjs() const
       fromToData.toModelInd   = ModelIndex(plot_, data.row, plot_->toColumn  (), data.parent);
 
       // get from/to node names
-      bool ok1;
+      bool ok1, ok2;
       fromToData.fromStr = plot_->modelString(fromToData.fromModelInd, ok1);
-      if (! ok1) return State::SKIP;
+      fromToData.toStr   = plot_->modelString(fromToData.toModelInd  , ok2);
 
-      bool ok2;
-      fromToData.toStr = plot_->modelString(fromToData.toModelInd, ok2);
-      if (! ok2) return State::SKIP;
+      if (! ok1 && ! ok2) return State::SKIP;
 
       //---
 
@@ -1514,9 +1512,19 @@ groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
 
   //---
 
-  // get unique id and count (ig is -1 if not set)
-  groupData.ig = groupDetails->uniqueId(groupVar);
-  groupData.ng = groupDetails->numUnique();
+#if 0
+  if (groupDetails->type() == CQBaseModelType::INTEGER) {
+    bool ok;
+    groupData.ig = int(CQChartsVariant::toInt(groupVar                , ok));
+    groupData.ng = int(CQChartsVariant::toInt(groupDetails->minValue(), ok));
+  }
+  else
+#endif
+  {
+    // get unique id and count (ig is -1 if not set)
+    groupData.ig = groupDetails->uniqueId(groupVar);
+    groupData.ng = groupDetails->numUnique();
+  }
 
   //---
 

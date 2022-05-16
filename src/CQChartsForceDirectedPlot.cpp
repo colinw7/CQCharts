@@ -647,11 +647,7 @@ CQChartsForceDirectedPlot::
 initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
-
-  initHierObjsAddConnection(srcHierData .parentStr, srcHierData .parentLinkInd, srcHierData .total,
-                            destHierData.parentStr, destHierData.parentLinkInd, destHierData.total,
-                            srcDepth);
+  initHierObjsAddConnection(srcHierData, destHierData);
 }
 
 void
@@ -659,19 +655,32 @@ CQChartsForceDirectedPlot::
 initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                               const HierConnectionData &destHierData) const
 {
-  int srcDepth = srcHierData.linkStrs.size();
-
-  initHierObjsAddConnection(srcHierData .parentStr, srcHierData .parentLinkInd, srcHierData .total,
-                            destHierData.parentStr, destHierData.parentLinkInd, destHierData.total,
-                            srcDepth);
+  initHierObjsAddConnection(srcHierData, destHierData);
 }
 
 void
 CQChartsForceDirectedPlot::
-initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, double srcTotal,
-                          const QString &destStr, const ModelIndex &destLinkInd, double destTotal,
-                          int depth) const
+initHierObjsAddConnection(const HierConnectionData &srcHierData,
+                          const HierConnectionData &destHierData) const
 {
+  int depth = srcHierData.linkStrs.size();
+
+  auto        srcStr     = srcHierData.parentStr;
+  const auto &srcLinkInd = srcHierData.parentLinkInd;
+  double      srcTotal   = srcHierData.total;
+
+  auto        destStr     = destHierData.parentStr;
+  const auto &destLinkInd = destHierData.parentLinkInd;
+  double      destTotal   = destHierData.total;
+
+  if (! srcHierData.linkStrs.empty())
+    srcStr = srcHierData.linkStrs.back();
+
+  if (! destHierData.linkStrs.empty())
+    destStr = destHierData.linkStrs.back();
+
+  //---
+
   assert(destTotal > 0.0);
 
   auto srcId  = getStringId(srcStr);
@@ -684,7 +693,7 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
 
   //---
 
-  if (srcLinkInd.isValid()) {
+  if (isSymmetric() && srcLinkInd.isValid()) {
     auto srcLinkIndex  = modelIndex(srcLinkInd);
     auto srcLinkIndex1 = normalizeIndex(srcLinkIndex);
 

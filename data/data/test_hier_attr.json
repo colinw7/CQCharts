@@ -1,0 +1,23 @@
+{
+  "name": "A",
+  "children": [
+    {
+      "name": "B",
+      "children": [
+        {"name": "C", "size": 7 },
+        {"name": "D", "size": 11},
+        {"name": "E", "size": 5 },
+        {"name": "F", "size": 24}
+      ]
+    },
+    {
+      "name": "G",
+      "children": [
+        {"name": "H", "size": 14},
+        {"name": "I", "size": 2 },
+        {"name": "J", "size": 9 },
+        {"name": "K", "size": 16}
+      ]
+    }
+  ]
+}
