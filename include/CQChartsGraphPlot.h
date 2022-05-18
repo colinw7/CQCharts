@@ -454,22 +454,28 @@ class CQChartsGraphGraphObj : public CQChartsPlotObj {
  * \ingroup Charts
  */
 class CQChartsGraphPlot : public CQChartsConnectionPlot,
- public CQChartsObjTextData<CQChartsGraphPlot>,
  public CQChartsObjNodeShapeData <CQChartsGraphPlot>,
+ public CQChartsObjNodeTextData  <CQChartsGraphPlot>,
  public CQChartsObjEdgeShapeData <CQChartsGraphPlot>,
+ public CQChartsObjEdgeTextData  <CQChartsGraphPlot>,
  public CQChartsObjGraphShapeData<CQChartsGraphPlot> {
   Q_OBJECT
 
-  // options
-  Q_PROPERTY(CQChartsLength  nodeXMargin READ nodeXMargin   WRITE setNodeXMargin)
-  Q_PROPERTY(CQChartsLength  nodeYMargin READ nodeYMargin   WRITE setNodeYMargin)
-  Q_PROPERTY(CQChartsLength  nodeWidth   READ nodeWidth     WRITE setNodeWidth  )
-  Q_PROPERTY(CQChartsLength  nodeHeight  READ nodeHeight    WRITE setNodeHeight )
-  Q_PROPERTY(bool            nodeXScaled READ isNodeXScaled WRITE setNodeXScaled)
-  Q_PROPERTY(bool            nodeYScaled READ isNodeYScaled WRITE setNodeYScaled)
-  Q_PROPERTY(NodeShape       nodeShape   READ nodeShape     WRITE setNodeShape  )
-  Q_PROPERTY(EdgeShape       edgeShape   READ edgeShape     WRITE setEdgeShape  )
-  Q_PROPERTY(bool            edgeScaled  READ isEdgeScaled  WRITE setEdgeScaled )
+  // node options
+  Q_PROPERTY(CQChartsLength nodeXMargin    READ nodeXMargin      WRITE setNodeXMargin   )
+  Q_PROPERTY(CQChartsLength nodeYMargin    READ nodeYMargin      WRITE setNodeYMargin   )
+  Q_PROPERTY(CQChartsLength nodeWidth      READ nodeWidth        WRITE setNodeWidth     )
+  Q_PROPERTY(CQChartsLength nodeHeight     READ nodeHeight       WRITE setNodeHeight    )
+  Q_PROPERTY(bool           nodeXScaled    READ isNodeXScaled    WRITE setNodeXScaled   )
+  Q_PROPERTY(bool           nodeYScaled    READ isNodeYScaled    WRITE setNodeYScaled   )
+  Q_PROPERTY(NodeShape      nodeShape      READ nodeShape        WRITE setNodeShape     )
+  Q_PROPERTY(bool           nodeTextInside READ isNodeTextInside WRITE setNodeTextInside)
+
+  // edge options
+  Q_PROPERTY(EdgeShape edgeShape  READ edgeShape    WRITE setEdgeShape )
+  Q_PROPERTY(bool      edgeScaled READ isEdgeScaled WRITE setEdgeScaled)
+
+  // graph options
   Q_PROPERTY(Qt::Orientation orientation READ orientation   WRITE setOrientation)
 
   // coloring
@@ -487,11 +493,14 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES (Node, node)
+
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES (Edge, edge)
+
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph, graph)
 
   // text style
-  CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_ENUMS(Align)
   Q_ENUMS(NodeShape)
@@ -574,6 +583,10 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   //! get/set node shape
   NodeShape nodeShape() const;
   void setNodeShape(const NodeShape &s);
+
+  //! get/set is node text inside
+  bool isNodeTextInside() const { return nodeTextInside_; }
+  void setNodeTextInside(bool b);
 
   //---
 
@@ -803,6 +816,9 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
  protected:
   using GraphMgr  = CQChartsGraphPlotMgr;
   using GraphMgrP = std::unique_ptr<GraphMgr>;
+
+  // node
+  bool nodeTextInside_ { false };
 
   // placement
   Align     align_            { Align::JUSTIFY };  //!< align

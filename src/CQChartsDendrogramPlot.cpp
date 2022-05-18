@@ -149,7 +149,7 @@ CQChartsDendrogramPlot(View *view, const ModelP &model) :
 CQChartsDendrogramPlot::
 ~CQChartsDendrogramPlot()
 {
-  term();
+  CQChartsDendrogramPlot::term();
 }
 
 //---

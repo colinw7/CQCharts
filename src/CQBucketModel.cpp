@@ -324,7 +324,7 @@ calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
     else {
       auto ind = model->index(r, bucketColumn(), parent);
 
-      auto var = model->data(ind, Qt::DisplayRole);
+      auto var = model->data(ind, bucketRole());
 
       bool ok;
 

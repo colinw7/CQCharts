@@ -81,9 +81,10 @@ create(View *view, const ModelP &model) const
 CQChartsGraphPlot::
 CQChartsGraphPlot(View *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("graph"), model),
- CQChartsObjTextData      <CQChartsGraphPlot>(this),
  CQChartsObjNodeShapeData <CQChartsGraphPlot>(this),
+ CQChartsObjNodeTextData  <CQChartsGraphPlot>(this),
  CQChartsObjEdgeShapeData <CQChartsGraphPlot>(this),
+ CQChartsObjEdgeTextData  <CQChartsGraphPlot>(this),
  CQChartsObjGraphShapeData<CQChartsGraphPlot>(this)
 {
   graphMgr_ = std::make_unique<CQChartsGraphPlotMgr>(this);
@@ -334,6 +335,15 @@ setEdgeWidth(const Length &l)
 
 //---
 
+void
+CQChartsGraphPlot::
+setNodeTextInside(bool b)
+{
+  CQChartsUtil::testAndSet(nodeTextInside_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
 const Qt::Orientation &
 CQChartsGraphPlot::
 orientation() const
@@ -573,9 +583,23 @@ addProperties()
   //---
 
   // text
-  addProp("text", "textVisible", "visible", "Text label visible");
+  addProp("node/text", "nodeTextVisible", "visible", "Node text label visible");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+  addTextProperties("node/text", "nodeText", "Node Text",
+                    CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::FORMATTED |
+                    CQChartsTextOptions::ValueType::SCALED |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  addProp("node/text", "nodeTextInside", "inside", "Node text draw inside");
+
+  //--
+
+  addProp("edge/text", "edgeTextVisible", "visible", "Edge Text label visible");
+
+  addTextProperties("edge/text", "edgeText", "Edge Text",
+                    CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::FORMATTED |
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
@@ -2465,7 +2489,7 @@ void
 CQChartsGraphNodeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isTextVisible())
+  if (! plot_->isNodeTextVisible())
     return;
 
   auto prect = plot_->windowToPixel(rect());
@@ -2473,7 +2497,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->nodeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2484,9 +2508,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpTextColor(ic);
+  auto c = plot_->interpNodeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  plot_->setPen(penBrush, PenData(true, c, plot_->nodeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -2501,46 +2525,51 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  double ptw = fm.horizontalAdvance(str);
+  bool textInside = plot_->isNodeTextInside();
 
-  double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
-
-  if (clipLength > 0.0)
-    ptw = std::min(ptw, clipLength);
-
-  double tw = plot_->pixelToWindowWidth(ptw);
+  if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
+      shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
+      shapeType() == ShapeType::DOUBLE_CIRCLE)
+    textInside = true;
 
   //---
 
-  auto range = plot_->getCalcDataRange();
-
-  double xm = (range.isSet() ? range.xmid() : 0.0);
-
-  double tx = (rect().getXMid() < xm - tw ?
-    prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
-  double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
-
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
-
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = plot_->nodeTextOptions(device);
 
   textOptions.angle = Angle();
   textOptions.align = Qt::AlignLeft;
   textOptions.html  = false;
 
-  if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
-      shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
-      shapeType() == ShapeType::DOUBLE_CIRCLE) {
+  if (! textInside) {
+    double ptw = fm.horizontalAdvance(str);
+
+    double clipLength = plot_->lengthPixelWidth(plot()->nodeTextClipLength());
+
+    if (clipLength > 0.0)
+      ptw = std::min(ptw, clipLength);
+
+    double tw = plot_->pixelToWindowWidth(ptw);
+
+    //---
+
+    auto range = plot_->getCalcDataRange();
+
+    double xm = (range.isSet() ? range.xmid() : 0.0);
+
+    double tx = (rect().getXMid() < xm - tw ?
+      prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
+    double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
+
+    auto pt = plot_->pixelToWindow(Point(tx, ty));
+
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
+  }
+  else {
     textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
     if (rect().isValid())
       CQChartsDrawUtil::drawTextInBox(device, rect(), str, textOptions);
-  }
-  else {
-    textOptions.align = Qt::AlignLeft;
-
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }
 }
 
@@ -2884,7 +2913,7 @@ draw(PaintDevice *device) const
             std::swap(y1, y2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     edgeType, angle, angle);
+                                     edgeType, angle, angle.flippedX());
         }
         else {
           // start x range from source node, and end x range from dest node
@@ -2895,7 +2924,7 @@ draw(PaintDevice *device) const
             std::swap(x1, x2);
 
           CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw,
-                                     edgeType, angle, angle);
+                                     edgeType, angle.flippedX(), angle);
         }
       }
       else {
@@ -2913,7 +2942,7 @@ void
 CQChartsGraphEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isTextVisible())
+  if (! plot_->isEdgeTextVisible())
     return;
 
   //---
@@ -2945,7 +2974,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  plot_->setPainterFont(device, plot_->edgeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2956,9 +2985,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpTextColor(ic);
+  auto c = plot_->interpEdgeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  plot_->setPen(penBrush, PenData(true, c, plot_->edgeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -2979,7 +3008,7 @@ drawFg(PaintDevice *device) const
   auto pt = plot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = plot_->edgeTextOptions(device);
 
   textOptions.angle     = Angle();
   textOptions.align     = Qt::AlignLeft;

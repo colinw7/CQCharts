@@ -1996,7 +1996,8 @@ updateSelText()
     auto *snode = dynamic_cast<Node *>(selectedEdge->source().get());
     auto *tnode = dynamic_cast<Node *>(selectedEdge->target().get());
 
-    selText = QString("%1 -> %2").arg(calcNodeLabel(snode)).arg(calcNodeLabel(tnode));
+    if (snode && tnode)
+      selText = QString("%1 -> %2").arg(calcNodeLabel(snode)).arg(calcNodeLabel(tnode));
   }
 
   view()->setSelText(selText);
@@ -2102,8 +2103,8 @@ edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const
   auto *snode = dynamic_cast<Node *>(edge->source().get());
   auto *tnode = dynamic_cast<Node *>(edge->target().get());
 
-  tableTip.addTableRow("From", calcNodeLabel(snode));
-  tableTip.addTableRow("To"  , calcNodeLabel(tnode));
+  if (snode) tableTip.addTableRow("From", calcNodeLabel(snode));
+  if (tnode) tableTip.addTableRow("To"  , calcNodeLabel(tnode));
 }
 
 //---

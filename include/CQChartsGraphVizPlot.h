@@ -695,13 +695,12 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   Q_PROPERTY(int processTimeout READ processTimeout WRITE setProcessTimeout)
 
-  // node/edge shape data
+  // node/edge shape/text data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES (Node, node)
 
-  // node/edge text style
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES (Edge, edge)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(OutputFormat)

@@ -263,8 +263,17 @@ updateRect()
   for (const auto &child : children())
     bbox += child->rect();
 
-  for (const auto &node : nodes())
-    bbox += node->rect().getCenter();
+  double maxSize = 0.0;
+
+  for (const auto &node : nodes()) {
+    const auto &rect = node->rect();
+
+    maxSize = std::max(maxSize, rect.getMaxSize());
+
+    bbox += rect.getCenter();
+  }
+
+  bbox.makeNonZero(maxSize);
 
   rect_ = bbox;
 }
@@ -754,12 +763,14 @@ adjustGraphNodes(const Nodes &nodes) const
 
   //---
 
-  int numPasses = mgr_->adjustIterations();
+  if (mgr_->isAdjustCenters()) {
+    int numPasses = mgr_->adjustIterations();
 
-  for (int pass = 0; pass < numPasses; ++pass) {
-    if (! adjustNodeCenters()) {
-      //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
-      break;
+    for (int pass = 0; pass < numPasses; ++pass) {
+      if (! adjustNodeCenters()) {
+        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
+        break;
+      }
     }
   }
 
@@ -1236,7 +1247,7 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     if (mgr_->isHorizontal())
       dist = bbox_.getYMax() - rect.getYMid();
     else
-      dist = bbox_.getXMin() - rect.getXMid();
+      dist = rect.getXMid() - bbox_.getXMin();
 
     NodePos pos(dist, edge->id());
 

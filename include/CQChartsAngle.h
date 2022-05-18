@@ -119,6 +119,8 @@ class CQChartsAngle :
 
   void flipX() { a_ = 180.0 + a_; }
 
+  Angle flippedX() const { auto a = *this; a.flipX(); return a; }
+
   //---
 
   // operator +, +=
