@@ -745,4 +745,28 @@ struct CQChartsAxisData {
   CQChartsFillData      gridFillData;
 };
 
+//------
+
+enum class CQChartsShapeType {
+  NONE,
+  TRIANGLE,
+  DIAMOND,
+  BOX,
+  POLYGON,
+  CIRCLE,
+  DOUBLE_CIRCLE,
+  DOT_LINE,
+  RECORD,
+  PLAIN_TEXT,
+  RARROW,
+  OVAL,
+  RPROMOTER
+};
+
+struct CQChartsShapeTypeData {
+  CQChartsShapeType shapeType { CQChartsShapeType::NONE }; //!< shape type
+  int               numSides  { -1 };                      //!< number of polygon sides (< 0 unset)
+  double            aspect    { -1.0 };                    //!< aspect (< 0 unset)
+};
+
 #endif

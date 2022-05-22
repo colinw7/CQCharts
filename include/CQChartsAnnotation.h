@@ -732,14 +732,14 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
 
  public:
   enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsAnnotation::ShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsAnnotation::ShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsAnnotation::ShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsAnnotation::ShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsAnnotation::ShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsAnnotation::ShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE),
-    DOT_LINE      = static_cast<int>(CQChartsAnnotation::ShapeType::DOT_LINE)
+    NONE          = static_cast<int>(CQChartsShapeType::NONE),
+    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
+    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
+    BOX           = static_cast<int>(CQChartsShapeType::BOX),
+    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
+    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
+    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
+    DOT_LINE      = static_cast<int>(CQChartsShapeType::DOT_LINE)
   };
 
  public:
@@ -826,14 +826,14 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
 
  public:
   enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsAnnotation::ShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsAnnotation::ShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsAnnotation::ShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsAnnotation::ShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsAnnotation::ShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsAnnotation::ShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE),
-    DOT_LINE      = static_cast<int>(CQChartsAnnotation::ShapeType::DOT_LINE)
+    NONE          = static_cast<int>(CQChartsShapeType::NONE),
+    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
+    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
+    BOX           = static_cast<int>(CQChartsShapeType::BOX),
+    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
+    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
+    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
+    DOT_LINE      = static_cast<int>(CQChartsShapeType::DOT_LINE)
   };
 
  public:
@@ -877,11 +877,11 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
   //---
 
   //! get/set shape
-  const ShapeType &shapeType() const { return shapeType_; }
+  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
   void setShapeType(const ShapeType &s);
 
   //! get/set number of sides
-  int numSides() const { return numSides_; }
+  int numSides() const { return shapeTypeData_.numSides; }
   void setNumSides(int n);
 
   //---
@@ -921,9 +921,9 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
   void init();
 
  protected:
-  Rect      rectangle_;                      //!< rectangle
-  ShapeType shapeType_ { ShapeType::NONE };  //!< shape type
-  int       numSides_  { -1 };               //!< number of sides
+  Rect rectangle_; //!< rectangle
+
+  CQChartsShapeTypeData shapeTypeData_; //!< shape type data
 
   Length lineWidth_  { Length::plot(1.0) }; //!< dot line width
   Symbol symbol_     { Symbol::circle() };  //!< dot symbol

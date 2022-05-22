@@ -195,7 +195,7 @@ CQChartsGraphGraph::
 CQChartsGraphGraph(GraphMgr *mgr, const QString &str) :
  CQChartsGraphNode(mgr, str)
 {
-  shapeType_ = ShapeType::BOX;
+  setShapeType(ShapeType::BOX);
 }
 
 CQChartsGraphGraph::
@@ -638,7 +638,8 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
     //double nodePerpMid = perpPos1 - nodePerpSize/2.0; // placement center
 
     double nodePerpPos1 = perpPos1;
-    double nodePerpPos2 = perpPos1 + nodePerpSize2;
+    double nodePerpPos2 = (mgr_->isHorizontal() ? perpPos1 - nodePerpSize2 :
+                                                  perpPos1 + nodePerpSize2);
 
     //---
 
@@ -1389,6 +1390,7 @@ CQChartsGraphNode::
 CQChartsGraphNode(GraphMgr *mgr, const QString &str) :
  mgr_(mgr), str_(str)
 {
+  setAspect(1.0);
 }
 
 CQChartsGraphNode::
@@ -1562,6 +1564,9 @@ setRect(const BBox &rect)
   assert(rect.isSet());
 
   rect_ = rect;
+
+  if (aspect() > 0)
+    rect_.equalScale(aspect(), /*grow*/false);
 }
 
 CQChartsGraphGraph *

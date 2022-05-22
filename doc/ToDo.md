@@ -4,7 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + crash on delete last model
+ + store data in bucket model for query of summary value (min, max, ...) or all values
  + add user interface to add one more more proxy models between data and plot model
    and support user interface (model widgets) to customize
    + bucket model

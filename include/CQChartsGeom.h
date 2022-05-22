@@ -748,7 +748,7 @@ class BBox :
     return 2*getWidth() + 2*getHeight();
   }
 
-  void equalScale(double targetAspect);
+  void equalScale(double targetAspect, bool grow=true);
 
   Point getMin() const { assert(set_); return pmin_; }
   Point getMax() const { assert(set_); return pmax_; }

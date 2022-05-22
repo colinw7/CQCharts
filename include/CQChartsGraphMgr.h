@@ -324,12 +324,17 @@ class CQChartsGraphNode {
   //--- custom appearance
 
   //! get/set shape
-  const ShapeType &shapeType() const { return shapeType_; }
-  void setShapeType(const ShapeType &s) { shapeType_ = s; }
+  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
+  void setShapeType(const ShapeType &s) {
+    shapeTypeData_.shapeType = static_cast<CQChartsShapeType>(s); }
 
   //! get/set number of sides
-  int numSides() const { return numSides_; }
-  void setNumSides(int n) { numSides_ = n; }
+  int numSides() const { return shapeTypeData_.numSides; }
+  void setNumSides(int n) { shapeTypeData_.numSides = n; }
+
+  //! get/set aspect
+  double aspect() const { return shapeTypeData_.aspect; }
+  void setAspect(double r) { shapeTypeData_.aspect = r; }
 
   //! get/set fill color
   const Color &fillColor() const { return fillData_.color; }
@@ -510,10 +515,10 @@ class CQChartsGraphNode {
   ModelIndex ind_; //!< model index
 
   // appearance
-  ShapeType  shapeType_ { ShapeType::NONE }; //!< shape type
-  int        numSides_  { 4 };               //!< number of polygon sides
-  FillData   fillData_;                      //!< fill data
-  StrokeData strokeData_;                    //!< stroke data
+  CQChartsShapeTypeData shapeTypeData_; //!< shape type data
+
+  FillData   fillData_;   //!< fill data
+  StrokeData strokeData_; //!< stroke data
 
   // connections
   Edges     srcEdges_;                  //!< source edges

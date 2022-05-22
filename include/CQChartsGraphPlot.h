@@ -160,6 +160,7 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
   Q_PROPERTY(int           depth     READ depth     WRITE setDepth    )
   Q_PROPERTY(ShapeType     shapeType READ shapeType WRITE setShapeType)
   Q_PROPERTY(int           numSides  READ numSides  WRITE setNumSides )
+  Q_PROPERTY(double        aspect    READ aspect    WRITE setAspect   )
   Q_PROPERTY(CQChartsColor color     READ fillColor WRITE setFillColor)
 
   Q_ENUMS(ShapeType)
@@ -221,6 +222,10 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
   //! get/set num side
   int numSides() const;
   void setNumSides(int n);
+
+  //! get/set aspect
+  double aspect() const;
+  void setAspect(double r);
 
   //! get/set color
   Color fillColor() const;

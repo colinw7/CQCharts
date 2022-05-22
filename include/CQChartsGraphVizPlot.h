@@ -169,12 +169,13 @@ class CQChartsGraphVizPlotNode {
   //--- custom appearance
 
   //! get/set shape
-  const ShapeType &shapeType() const { return shapeType_; }
-  void setShapeType(const ShapeType &s) { shapeType_ = s; }
+  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
+  void setShapeType(const ShapeType &s) {
+    shapeTypeData_.shapeType = static_cast<CQChartsShapeType>(s); }
 
   //! get/set number of sides
-  int numSides() const { return numSides_; }
-  void setNumSides(int n) { numSides_ = n; }
+  int numSides() const { return shapeTypeData_.numSides; }
+  void setNumSides(int n) { shapeTypeData_.numSides = n; }
 
   //! get/set fill color
   const Color &fillColor() const { return fillData_.color; }
@@ -252,10 +253,10 @@ class CQChartsGraphVizPlotNode {
   BBox rect_; //!< placed rectangle
 
   // appearance
-  ShapeType  shapeType_ { ShapeType::BOX }; //!< shape type
-  int        numSides_  { 4 };              //!< number of polygon sides
-  FillData   fillData_;                     //!< fill data
-  StrokeData strokeData_;                   //!< stroke data
+  CQChartsShapeTypeData shapeTypeData_; //!< shape type data
+
+  FillData   fillData_;   //!< fill data
+  StrokeData strokeData_; //!< stroke data
 
   // connections
   Edges     srcEdges_;         //!< source edges
@@ -423,15 +424,15 @@ class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
 
  public:
   enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsBoxObj::ShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsBoxObj::ShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsBoxObj::ShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsBoxObj::ShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsBoxObj::ShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsBoxObj::ShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE),
-    RECORD        = static_cast<int>(CQChartsBoxObj::ShapeType::RECORD),
-    PLAIN_TEXT    = static_cast<int>(CQChartsBoxObj::ShapeType::PLAIN_TEXT)
+    NONE          = static_cast<int>(CQChartsShapeType::NONE),
+    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
+    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
+    BOX           = static_cast<int>(CQChartsShapeType::BOX),
+    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
+    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
+    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
+    RECORD        = static_cast<int>(CQChartsShapeType::RECORD),
+    PLAIN_TEXT    = static_cast<int>(CQChartsShapeType::PLAIN_TEXT)
   };
 
   using Plot  = CQChartsGraphVizPlot;

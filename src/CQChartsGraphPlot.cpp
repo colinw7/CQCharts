@@ -2197,6 +2197,20 @@ setNumSides(int n)
   node()->setNumSides(n);
 }
 
+double
+CQChartsGraphNodeObj::
+aspect() const
+{
+  return node()->aspect();
+}
+
+void
+CQChartsGraphNodeObj::
+setAspect(double a)
+{
+  node()->setAspect(a);
+}
+
 CQChartsColor
 CQChartsGraphNodeObj::
 fillColor() const
@@ -2302,6 +2316,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "depth"    )->setDesc("Depth");
   model->addProperty(path1, this, "shapeType")->setDesc("Shape type");
   model->addProperty(path1, this, "numSides" )->setDesc("Number of Shape Sides");
+  model->addProperty(path1, this, "aspect"   )->setDesc("Aspect");
   model->addProperty(path1, this, "color"    )->setDesc("Color");
 }
 

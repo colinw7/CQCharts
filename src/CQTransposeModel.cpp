@@ -118,6 +118,7 @@ CQTransposeModel::
 columnCount(const QModelIndex &parent) const
 {
   auto *model = this->sourceModel();
+  if (! model) return 0;
 
   return model->rowCount(mapToSource(parent));
 }
@@ -128,6 +129,7 @@ CQTransposeModel::
 rowCount(const QModelIndex &parent) const
 {
   auto *model = this->sourceModel();
+  if (! model) return 0;
 
   return model->columnCount(mapToSource(parent));
 }
@@ -163,6 +165,7 @@ CQTransposeModel::
 data(const QModelIndex &index, int role) const
 {
   auto *model = this->sourceModel();
+  if (! model) return QVariant();
 
   return model->data(mapToSource(index), role);
 }
@@ -172,6 +175,7 @@ CQTransposeModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
   auto *model = this->sourceModel();
+  if (! model) return false;
 
   return model->setData(mapToSource(index), value, role);
 }
@@ -181,6 +185,7 @@ CQTransposeModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   auto *model = this->sourceModel();
+  if (! model) return QVariant();
 
   auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
@@ -192,6 +197,7 @@ CQTransposeModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
   auto *model = this->sourceModel();
+  if (! model) return false;
 
   auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
@@ -203,6 +209,7 @@ CQTransposeModel::
 flags(const QModelIndex &index) const
 {
   auto *model = this->sourceModel();
+  if (! model) return Qt::ItemFlags();
 
   return model->flags(mapToSource(index));
 }
@@ -233,6 +240,7 @@ mapToSource(const QModelIndex &proxyIndex) const
   int c = proxyIndex.column();
 
   auto *model = this->sourceModel();
+  if (! model) return QModelIndex();
 
   return model->index(c, r);
 }

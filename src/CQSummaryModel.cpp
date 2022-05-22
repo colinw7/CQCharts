@@ -22,9 +22,9 @@ class RandInRange {
 };
 
 inline bool variantReal(const QVariant &var, double &r) {
-  if (var.type() == QVariant::Int     ) { r = var.toInt     (); return true; }
-  if (var.type() == QVariant::LongLong) { r = var.toLongLong(); return true; }
-  if (var.type() == QVariant::Double  ) { r = var.toDouble  (); return true; }
+  if (var.type() == QVariant::Int     ) { r = double(var.toInt     ()); return true; }
+  if (var.type() == QVariant::LongLong) { r = double(var.toLongLong()); return true; }
+  if (var.type() == QVariant::Double  ) { r =        var.toDouble  () ; return true; }
   return false;
 }
 
@@ -244,20 +244,20 @@ initMapping()
     //---
 
     // create mapping
-    rowInds_.resize(maxRows());
+    rowInds_.resize(size_t(maxRows()));
 
     if (! invert) {
-      int i = 0;
+      size_t i = 0;
 
       for (const auto &r : rowSet) {
         rowInds_[i] = r;
-        indRows_[r] = i;
+        indRows_[r] = int(i);
 
         ++i;
       }
     }
     else {
-      int i = 0;
+      size_t i = 0;
 
       for (int r = 0; r < nr; ++r) {
         auto p = rowSet.find(r);
@@ -266,7 +266,7 @@ initMapping()
           continue;
 
         rowInds_[i] = r;
-        indRows_[r] = i;
+        indRows_[r] = int(i);
 
         ++i;
       }
@@ -291,14 +291,14 @@ initMapping()
 
     RowValues rowValues;
 
-    rowValues.resize(nr);
+    rowValues.resize(size_t(nr));
 
     for (int r = 0; r < nr; ++r) {
       auto ind = model->index(r, sortColumn(), QModelIndex());
 
       auto value = model->data(ind, sortRole());
 
-      rowValues[r] = ValueRow(value, r);
+      rowValues[size_t(r)] = ValueRow(value, r);
     }
 
     // sort summary size
@@ -318,19 +318,19 @@ initMapping()
     //---
 
     // create mapping
-    rowInds_.resize(maxRows());
+    rowInds_.resize(size_t(maxRows()));
 
-    int i = 0;
+    size_t i = 0;
 
     for (const auto &rv : rowValues) {
       int r = rv.second;
 
       rowInds_[i] = r;
-      indRows_[r] = i;
+      indRows_[r] = int(i);
 
       ++i;
 
-      if (i >= maxRows())
+      if (i >= size_t(maxRows()))
         break;
     }
 
@@ -395,7 +395,7 @@ rowCount(const QModelIndex &parent) const
   }
   else if (mode() == Mode::ROWS) {
     if (! rowNums().empty()) {
-      return rowNums().size();
+      return int(rowNums().size());
     }
     else {
       int nr = (model ? model->rowCount(parent1) : 0);
@@ -503,6 +503,7 @@ mapFromSource(const QModelIndex &sourceIndex) const
   int c = sourceIndex.column();
 
   auto *model = this->sourceModel();
+  if (! model) return QModelIndex();
 
   if      (mode() == Mode::NORMAL) {
     if (r < 0 || r >= model->rowCount())
@@ -577,17 +578,18 @@ mapToSource(const QModelIndex &proxyIndex) const
       if (r < 0 || r >= int(rowNums().size()))
         return QModelIndex();
 
-      r = rowNums()[r];
+      r = rowNums()[size_t(r)];
     }
   }
   else {
     assert(mapValid_);
 
     if (! mapNone_)
-      r = rowInds_[r];
+      r = rowInds_[size_t(r)];
   }
 
   auto *model = this->sourceModel();
+  if (! model) return QModelIndex();
 
   return model->index(r, c);
 }

@@ -2323,14 +2323,16 @@ void
 CQChartsShapeAnnotation::
 setShapeType(const ShapeType &s)
 {
-  CQChartsUtil::testAndSet(shapeType_, s, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(shapeTypeData_.shapeType, static_cast<CQChartsShapeType>(s), [&]() {
+    emitDataChanged();
+  } );
 }
 
 void
 CQChartsShapeAnnotation::
 setNumSides(int n)
 {
-  CQChartsUtil::testAndSet(numSides_, n, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(shapeTypeData_.numSides, n, [&]() { emitDataChanged(); } );
 }
 
 void

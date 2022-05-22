@@ -88,7 +88,7 @@ BBox(const Range &range) :
 
 void
 BBox::
-equalScale(double targetAspect)
+equalScale(double targetAspect, bool grow)
 {
   auto c = getCenter();
 
@@ -99,10 +99,18 @@ equalScale(double targetAspect)
 
   auto aspectRatio = targetAspect/sourceAspect;
 
-  if (aspectRatio > 1.0)
-    w *= aspectRatio;
-  else
-    h /= aspectRatio;
+  if (grow) {
+    if (aspectRatio > 1.0)
+      w *= aspectRatio;
+    else
+      h /= aspectRatio;
+  }
+  else {
+    if (aspectRatio < 1.0)
+      w *= aspectRatio;
+    else
+      h /= aspectRatio;
+  }
 
   pmin_ = Point(c.x - w/2, c.y - h/2);
   pmax_ = Point(c.x + w/2, c.y + h/2);
