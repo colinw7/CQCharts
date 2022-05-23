@@ -1,0 +1,5 @@
+From,To,Value,Attributes
+A,B,2,"src_value=1,dest_value=3"
+B,C,4,"src_value=2,dest_value=5"
+C,D,6,"src_value=3,dest_value=7"
+D,A,8,"src_value=4,dest_value=9"

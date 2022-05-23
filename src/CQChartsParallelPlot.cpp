@@ -16,7 +16,6 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
-#include <CQTableWidget.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 

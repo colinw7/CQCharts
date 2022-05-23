@@ -176,11 +176,13 @@ void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &
 void drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
                              const CQChartsSides &sides, const Angle &angle=Angle());
 
+void drawTextInCircle(PaintDevice *device, const BBox &rect, const QString &text,
+                      const TextOptions &options);
 void drawTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
-                   const TextOptions &options);
+                   const TextOptions &options, double adjustScale=1.0);
 
 void drawStringsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
-                      const TextOptions &options);
+                      const TextOptions &options, double adjustScale=1.0);
 
 void drawRotatedTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                           const QPen &pen, const TextOptions &options);
@@ -364,7 +366,7 @@ using Point       = CQChartsGeom::Point;
 Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 
 void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                        const TextOptions &options);
+                        const TextOptions &options, double adjustScale=1.0);
 
 void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
                   const QString &text, const TextOptions &options,

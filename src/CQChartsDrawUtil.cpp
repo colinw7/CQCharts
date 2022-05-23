@@ -288,8 +288,15 @@ drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xCorn
 //------
 
 void
+drawTextInCircle(PaintDevice *device, const BBox &rect,
+                 const QString &text, const TextOptions &options)
+{
+  drawTextInBox(device, rect, text, options, 1/sqrt(2.0));
+}
+
+void
 drawTextInBox(PaintDevice *device, const BBox &rect,
-              const QString &text, const TextOptions &options)
+              const QString &text, const TextOptions &options, double adjustScale)
 {
   assert(rect.isValid());
 
@@ -301,7 +308,7 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
   // handle html separately
   if (options.html) {
     if (options.scaled)
-      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options, adjustScale);
     else
       CQChartsDrawPrivate::drawHtmlText(device, rect.getCenter(), rect, text, options);
 
@@ -346,7 +353,7 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 
     //---
 
-    drawStringsInBox(device, rect, strs, options);
+    drawStringsInBox(device, rect, strs, options, adjustScale);
   }
   else {
     if (options.clipped)
@@ -360,8 +367,8 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 }
 
 void
-drawStringsInBox(PaintDevice *device, const BBox &rect,
-                 const QStringList &strs, const TextOptions &options)
+drawStringsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
+                 const TextOptions &options, double adjustScale)
 {
   auto prect = device->windowToPixel(rect);
 
@@ -386,6 +393,10 @@ drawStringsInBox(PaintDevice *device, const BBox &rect,
 
       s = std::min(sx, sy);
     }
+
+    s *= adjustScale;
+
+    //---
 
     // scale font
     updateScaledFontSize(s);
@@ -2048,7 +2059,7 @@ calcHtmlTextSize(const QString &text, const QFont &font, int margin)
 
 void
 drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                   const TextOptions &options)
+                   const TextOptions &options, double adjustScale)
 {
   assert(tbbox.isValid());
 
@@ -2068,6 +2079,8 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
 
     s = std::min(xs, ys);
   }
+
+  s *= adjustScale;
 
   //---
 

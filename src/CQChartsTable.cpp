@@ -28,15 +28,18 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
 
   setSortingEnabled(true);
 
-  horizontalHeader()->setSectionsClickable(true);
-//horizontalHeader()->setHighlightSections(true);
-  horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
+  auto *hheader = this->horizontalHeader();
+  auto *vheader = this->verticalHeader();
 
-  verticalHeader()->setVisible(false);
+  hheader->setSectionsClickable(true);
+//hheader->setHighlightSections(true);
+  hheader->setSortIndicator(0, Qt::AscendingOrder);
+
+  vheader->setVisible(false);
 
   setSelectionBehavior(SelectRows);
 
-  connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickedSlot(int)));
+  connect(hheader, SIGNAL(sectionClicked(int)), this, SLOT(headerClickedSlot(int)));
 
   connect(this, SIGNAL(clicked(const QModelIndex &)),
           this, SLOT(itemClickedSlot(const QModelIndex &)));

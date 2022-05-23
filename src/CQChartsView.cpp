@@ -427,7 +427,8 @@ addProperties()
   addSelectProp("highlight/stroke", "StrokeWidth", "width"  , "stroke width");
   addSelectProp("highlight/stroke", "StrokeDash" , "dash"   , "stroke dash");
 
-  addStyleProp("select", "selectedColor", "selectedColor", "Selected Color");
+  addStyleProp("select", "selectedColor", "selectedColor",
+               "Selected Color (if not stroked/filled)");
 
   // region mode
   addProp("region", "regionMode", "mode", "Region mode", true);
@@ -5515,7 +5516,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
   // fill and stroke
   if      (drawType != DrawType::LINE) {
     // outline box, symbol
-    if       (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+    if      (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
       Alpha  alpha;
 

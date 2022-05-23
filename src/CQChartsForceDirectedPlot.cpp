@@ -211,21 +211,28 @@ void
 CQChartsForceDirectedPlot::
 setNodeShape(const NodeShape &s)
 {
-  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeDrawData_.shape, s, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setNodeScaled(bool b)
 {
-  CQChartsUtil::testAndSet(nodeScaled_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeDrawData_.scaled, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setNodeSize(const Length &s)
 {
-  CQChartsUtil::testAndSet(nodeSize_, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeDrawData_.size, s, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeValueColored(bool b)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.valueColored, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -234,35 +241,42 @@ void
 CQChartsForceDirectedPlot::
 setEdgeShape(const EdgeShape &s)
 {
-  CQChartsUtil::testAndSet(edgeShape_, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.shape, s, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setEdgeScaled(bool b)
 {
-  CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.scaled, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setEdgeArrow(bool b)
 {
-  CQChartsUtil::testAndSet(edgeArrow_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.arrow, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setEdgeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.width, l, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setArrowWidth(double w)
 {
-  CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.arrowWidth, w, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setEdgeValueColored(bool b)
+{
+  CQChartsUtil::testAndSet(edgeDrawData_.valueColored, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -309,9 +323,10 @@ addProperties()
   addProp("options", "rangeSize"   , "", "Range size");
 
   // node
-  addProp("node", "nodeShape" , "shapeType", "Node shape type");
-  addProp("node", "nodeScaled", "scaled"   , "Node scaled by value");
-  addProp("node", "nodeSize"  , "size"     , "Node size (ignore if <= 0)");
+  addProp("node", "nodeShape"       , "shapeType"   , "Node shape type");
+  addProp("node", "nodeScaled"      , "scaled"      , "Node scaled by value");
+  addProp("node", "nodeSize"        , "size"        , "Node size (ignore if <= 0)");
+  addProp("node", "nodeValueColored", "valueColored", "Node colored by value");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -325,11 +340,12 @@ addProperties()
   //---
 
   // edge
-  addProp("edge", "edgeShape" , "shapeType" , "Edge shape type");
-  addProp("edge", "edgeArrow" , "arrow"     , "Edge arrow");
-  addProp("edge", "edgeScaled", "scaled"    , "Edge width scaled by value");
-  addProp("edge", "edgeWidth" , "width"     , "Max edge width");
-  addProp("edge", "arrowWidth", "arrowWidth", "Directed edge arrow width factor");
+  addProp("edge", "edgeShape"       , "shapeType"   , "Edge shape type");
+  addProp("edge", "edgeArrow"       , "arrow"       , "Edge arrow");
+  addProp("edge", "edgeScaled"      , "scaled"      , "Edge width scaled by value");
+  addProp("edge", "edgeWidth"       , "width"       , "Max edge width");
+  addProp("edge", "arrowWidth"      , "arrowWidth"  , "Directed edge arrow width factor");
+  addProp("edge", "edgeValueColored", "valueColored", "Edge colored by value");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -1403,6 +1419,11 @@ processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
     node->setStrokeDash(CQChartsLineDash(valueStr));
   }
 #endif
+  else {
+    auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+    th->addDataError(ModelIndex(), QString("Unhandled name '%1'").arg(name));
+  }
 }
 
 void
@@ -1703,6 +1724,7 @@ void
 CQChartsForceDirectedPlot::
 autoFitUpdate()
 {
+  doAutoFit();
 }
 
 //---
@@ -2258,7 +2280,18 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   // calc pen and brush
   PenBrush penBrush;
 
-  auto fillColor   = interpEdgeFillColor(colorInd);
+  QColor fillColor;
+
+  if (isEdgeValueColored()) {
+    auto value = calcNormalizedEdgeValue(sedge);
+
+    double rvalue = (value.isSet() ? value.real() : 0.0);
+
+    fillColor = interpColor(edgeFillColor(), ColorInd(rvalue));
+  }
+  else
+    fillColor = interpEdgeFillColor(colorInd);
+
   auto strokeColor = interpEdgeStrokeColor(colorInd);
 
   if (sedge->isInside())
@@ -2320,12 +2353,14 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
 
   double edgeWidth = lengthPixelWidth(this->edgeWidth());
 
-  double lw = 0.0;
+  double lw = edgeWidth;
 
-  if (isEdgeScaled() && sedge->value())
-    lw = edgeWidth*edgeScale_*sedge->value().value();
-  else
-    lw = edgeWidth;
+  if (isEdgeScaled() && sedge->value()) {
+    auto value = calcNormalizedEdgeValue(sedge);
+
+    if (value.isSet())
+      lw = edgeWidth*value.real();
+  }
 
   if (lw > 0.5) {
     double lww = pixelToWindowWidth(lw);
@@ -2416,7 +2451,18 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   PenBrush penBrush;
 
   auto pc = interpNodeStrokeColor(colorInd);
-  auto fc = calcNodeFillColor(snode);
+
+  QColor fc;
+
+  if (isNodeValueColored()) {
+    auto value = calcNormalizedNodeValue(snode);
+
+    double rvalue = (value.isSet() ? value.real() : 0.0);
+
+    fc = interpColor(nodeFillColor(), ColorInd(rvalue));
+  }
+  else
+    fc = calcNodeFillColor(snode);
 
   setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
 
@@ -2472,7 +2518,10 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
     textOptions.angle = Angle();
     textOptions.align = Qt::AlignCenter;
 
-    CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
+    if (shape != Node::Shape::BOX)
+      CQChartsDrawUtil::drawTextInCircle(device, ebbox, calcNodeLabel(snode), textOptions);
+    else
+      CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
   }
 
   charts()->resetContrastColor();
@@ -2480,6 +2529,17 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   //---
 
   snode->setBBox(ebbox);
+}
+
+void
+CQChartsForceDirectedPlot::
+postResize()
+{
+  CQChartsPlot::postResize();
+
+  setNeedsAutoFit(true);
+
+  drawObjs();
 }
 
 CQChartsForceDirectedPlot::Node::Shape
@@ -2608,6 +2668,16 @@ calcNodeFillColor(Node *node) const
     fc = interpPaletteColor(colorInd, /*scale*/false);
 
   return fc;
+}
+
+CQChartsForceDirectedPlot::OptReal
+CQChartsForceDirectedPlot::
+calcNormalizedEdgeValue(Edge *edge) const
+{
+  if (edge->value())
+    return OptReal(edgeScale_*edge->value().value());
+  else
+    return OptReal();
 }
 
 //---
