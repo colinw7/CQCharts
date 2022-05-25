@@ -476,10 +476,10 @@ addProperties()
   addProp("probe", "probeNamed"  , "named"  , "Show value name");
   addProp("probe", "probePos"    , "pos"    , "Probe value position");
 
-  // view settings
-  addProp("view_settings", "viewSettingsMajorObjects", "majorObjects", "Show major objects");
-  addProp("view_settings", "viewSettingsMinorObjects", "minorObjects", "Show minor objects");
-  addProp("view_settings", "viewSettingsMaxObjects"  , "maxObjects"  , "Max objects");
+  // view settings objects tab
+  addProp("objects_tab", "viewSettingsMajorObjects", "major", "Show major objects");
+  addProp("objects_tab", "viewSettingsMinorObjects", "minor", "Show minor objects");
+  addProp("objects_tab", "viewSettingsMaxObjects"  , "max"  , "Max objects");
 }
 
 //---
@@ -5364,7 +5364,7 @@ updateObjPenBrushState(const CQChartsObj *obj, PenBrush &penBrush, DrawType draw
 
 void
 CQChartsView::
-updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
+updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
                        PenBrush &penBrush, DrawType drawType) const
 {
   if (isOverlayFade())
@@ -5375,19 +5375,19 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
   if (! isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, penBrush, drawType);
-      updateInsideObjPenBrushState  (ic, penBrush, /*outline*/false, drawType);
+      updateSelectedPenBrushState(colorInd, penBrush, drawType);
+      updateInsidePenBrushState  (colorInd, penBrush, /*outline*/false, drawType);
     }
     // inside
     else if (obj->isInside()) {
-      updateInsideObjPenBrushState(ic, penBrush, /*outline*/true, drawType);
+      updateInsidePenBrushState(colorInd, penBrush, /*outline*/true, drawType);
     }
     // selected
     else if (obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateSelectedPenBrushState(colorInd, penBrush, drawType);
     }
     else {
-      updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateSelectedPenBrushState(colorInd, penBrush, drawType);
     }
   }
   else {
@@ -5395,16 +5395,16 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
     if      (drawLayerType() == CQChartsLayer::Type::MOUSE_OVER ||
              drawLayerType() == CQChartsLayer::Type::MOUSE_OVER_EXTRA) {
       if (obj->isInside())
-        updateInsideObjPenBrushState(ic, penBrush, /*outline*/true, drawType);
+        updateInsidePenBrushState(colorInd, penBrush, /*outline*/true, drawType);
     }
     // selected
     else if (drawLayerType() == CQChartsLayer::Type::SELECTION ||
              drawLayerType() == CQChartsLayer::Type::SELECTION_EXTRA) {
       if (obj->isSelected()) {
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+        updateSelectedPenBrushState(colorInd, penBrush, drawType);
       }
       else {
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+        updateSelectedPenBrushState(colorInd, penBrush, drawType);
       }
     }
   }
@@ -5412,8 +5412,24 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
 
 void
 CQChartsView::
-updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
-                             bool outline, DrawType drawType) const
+updatePenBrushState(const ColorInd &colorInd, PenBrush &penBrush, bool selected, bool inside)
+{
+  if      (inside) {
+    if (selected) {
+      updateSelectedPenBrushState(colorInd, penBrush);
+      updateInsidePenBrushState  (colorInd, penBrush);
+    }
+    else
+      updateInsidePenBrushState(colorInd, penBrush);
+  }
+  else if (selected)
+    updateSelectedPenBrushState(colorInd, penBrush);
+}
+
+void
+CQChartsView::
+updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
+                          bool outline, DrawType drawType) const
 {
   // fill and stroke
   if (drawType != DrawType::LINE) {
@@ -5428,7 +5444,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         charts()->setContrastColor(pc);
 
         if (isInsideStroked())
-          opc = interpInsideStrokeColor(ic);
+          opc = interpInsideStrokeColor(colorInd);
         else
           opc = CQChartsUtil::invColor(pc);
 
@@ -5440,7 +5456,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         charts()->setContrastColor(bc);
 
         if (isInsideStroked())
-          opc = interpInsideStrokeColor(ic);
+          opc = interpInsideStrokeColor(colorInd);
         else
           opc = CQChartsUtil::invColor(bc);
       }
@@ -5461,7 +5477,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
       QColor ibc;
 
       if (isInsideFilled()) {
-        auto ic1 = ic; ic1.c = bc;
+        auto ic1 = colorInd; ic1.c = bc;
 
         ibc = interpInsideFillColor(ic1);
       }
@@ -5497,7 +5513,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
     QColor opc;
 
     if (isInsideStroked())
-      opc = interpInsideStrokeColor(ic);
+      opc = interpInsideStrokeColor(colorInd);
     else
       opc = CQChartsUtil::invColor(pc);
 
@@ -5511,7 +5527,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
 
 void
 CQChartsView::
-updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType drawType) const
+updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawType drawType) const
 {
   // fill and stroke
   if      (drawType != DrawType::LINE) {
@@ -5526,7 +5542,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         charts()->setContrastColor(pc);
 
         if (isSelectedStroked())
-          opc = interpSelectedStrokeColor(ic);
+          opc = interpSelectedStrokeColor(colorInd);
         else
           opc = calcSelectedColor(pc);
 
@@ -5538,7 +5554,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         charts()->setContrastColor(bc);
 
         if (isSelectedStroked())
-          opc = interpSelectedStrokeColor(ic);
+          opc = interpSelectedStrokeColor(colorInd);
         else
           opc = CQChartsUtil::invColor(bc);
       }
@@ -5559,7 +5575,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       QColor ibc;
 
       if (isSelectedFilled())
-        ibc = interpSelectedFillColor(ic);
+        ibc = interpSelectedFillColor(colorInd);
       else
         ibc = calcSelectedColor(bc);
 
@@ -5592,7 +5608,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
     QColor opc;
 
     if (isSelectedStroked())
-      opc = interpSelectedStrokeColor(ic);
+      opc = interpSelectedStrokeColor(colorInd);
     else
       opc = CQChartsUtil::invColor(pc);
 

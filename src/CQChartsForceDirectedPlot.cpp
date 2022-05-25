@@ -2255,6 +2255,9 @@ drawDeviceParts(PaintDevice *device) const
     snode->clearOccupiedSlots();
   }
 
+  insideDrawEdges_.clear();
+  insideDrawNodes_.clear();
+
   //---
 
   // draw edges
@@ -2285,6 +2288,21 @@ drawDeviceParts(PaintDevice *device) const
     auto colorInd = ColorInd(nodeNum++, numNodes);
 
     drawNode(device, node, snode, colorInd);
+  }
+
+  //--
+
+  // draw inside
+  for (const auto &pe : insideDrawEdges_) {
+    CQChartsDrawUtil::setPenBrush(device, pe.second);
+
+    drawEdgeNodes(device, pe.first);
+  }
+
+  for (const auto &pn : insideDrawNodes_) {
+    CQChartsDrawUtil::setPenBrush(device, pn.second);
+
+    drawNodeEdges(device, pn.first);
   }
 
   //---
@@ -2326,6 +2344,8 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   auto brushData = edgeBrushData(fillColor);
 
   setPenBrush(penBrush, penData, brushData);
+
+  view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside());
 
   //---
 
@@ -2457,11 +2477,13 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
     //---
 
     // set text pen
+    PenBrush tpenBrush;
+
     auto c = interpEdgeTextColor(colorInd);
 
-    setPen(penBrush, PenData(true, c, edgeTextAlpha()));
+    setPen(tpenBrush, PenData(true, c, edgeTextAlpha()));
 
-    device->setPen(penBrush.pen);
+    device->setPen(tpenBrush.pen);
 
     //---
 
@@ -2478,20 +2500,8 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   //---
 
   if (sedge->isInside()) {
-    if (isEdgeMouseColoring()) {
-      penData  .setAlpha(Alpha(1.0));
-      brushData.setAlpha(Alpha(1.0));
-
-      setPenBrush(penBrush, penData, brushData);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
-
-      drawEdgeNodes(device, edge);
-
-      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
-    }
+    if (isEdgeMouseColoring())
+      insideDrawEdges_[edge] = penBrush;
   }
 }
 
@@ -2522,16 +2532,7 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
 
   setPenBrush(penBrush, penData, brushData);
 
-  if      (snode->isInside()) {
-    if (snode->isSelected()) {
-      view()->updateSelectedObjPenBrushState(colorInd, penBrush);
-      view()->updateInsideObjPenBrushState  (colorInd, penBrush);
-    }
-    else
-      view()->updateInsideObjPenBrushState(colorInd, penBrush);
-  }
-  else if (snode->isSelected())
-    view()->updateSelectedObjPenBrushState(colorInd, penBrush);
+  view()->updatePenBrushState(colorInd, penBrush, snode->isSelected(), snode->isInside());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2553,8 +2554,7 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   //---
 
   // draw text
-  if (brushData.isVisible())
-    charts()->setContrastColor(fc);
+  charts()->setContrastColor(penBrush.brush.color());
 
   if (isNodeTextVisible()) {
     // set font
@@ -2563,11 +2563,13 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
     //---
 
     // set text pen
+    PenBrush tpenBrush;
+
     auto c = interpNodeTextColor(colorInd);
 
-    setPen(penBrush, PenData(true, c, nodeTextAlpha()));
+    setPen(tpenBrush, PenData(true, c, nodeTextAlpha()));
 
-    device->setPen(penBrush.pen);
+    device->setPen(tpenBrush.pen);
 
     //---
 
@@ -2591,20 +2593,8 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   //---
 
   if (snode->isInside()) {
-    if (isNodeMouseColoring()) {
-      penData  .setAlpha(Alpha(1.0));
-      brushData.setAlpha(Alpha(1.0));
-
-      setPenBrush(penBrush, penData, brushData);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
-
-      drawNodeEdges(device, node);
-
-      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
-    }
+    if (isNodeMouseColoring())
+      insideDrawNodes_[node] = penBrush;
   }
 }
 

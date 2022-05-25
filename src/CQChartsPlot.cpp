@@ -16014,17 +16014,9 @@ updateObjPenBrushState(const Obj *obj, const ColorInd &ic, PenBrush &penBrush,
 
 void
 CQChartsPlot::
-updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, bool outline,
-                             DrawType drawType) const
+updatePenBrushState(const ColorInd &ic, PenBrush &penBrush, bool selected, bool inside)
 {
-  view()->updateInsideObjPenBrushState(ic, penBrush, outline, drawType);
-}
-
-void
-CQChartsPlot::
-updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType drawType) const
-{
-  view()->updateSelectedObjPenBrushState(ic, penBrush, drawType);
+  view()->updatePenBrushState(ic, penBrush, selected, inside);
 }
 
 QColor

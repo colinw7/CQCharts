@@ -2916,15 +2916,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void updateObjPenBrushState(const Obj *obj, PenBrush &penBrush,
                               DrawType drawType=DrawType::BOX) const;
-
   void updateObjPenBrushState(const Obj *obj, const ColorInd &ic,
                               PenBrush &penBrush, DrawType drawType) const;
 
- protected:
-  void updateInsideObjPenBrushState  (const ColorInd &ic, PenBrush &penBrush,
-                                      bool outline, DrawType drawType) const;
-  void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
-                                      DrawType drawType) const;
+  void updatePenBrushState(const ColorInd &ic, PenBrush &penBrush,
+                           bool selected, bool inside);
 
  public:
   QColor insideColor  (const QColor &c) const;

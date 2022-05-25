@@ -83,7 +83,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           edgeValueColored  READ isEdgeValueColored  WRITE setEdgeValueColored )
   Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
 
-
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
@@ -537,6 +536,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   mutable EdgePaths  edgePaths_;
   mutable NodeShapes nodeShapes_;
+
+  //---
+
+  using InsideDrawEdges = std::map<EdgeP, PenBrush>;
+  using InsideDrawNodes = std::map<NodeP, PenBrush>;
+
+  mutable InsideDrawEdges insideDrawEdges_;
+  mutable InsideDrawNodes insideDrawNodes_;
 };
 
 //---
