@@ -73,6 +73,18 @@ class CForceDirected {
   Springy::Edges edges() const { init(); return graph_->edges(); }
   Springy::Nodes nodes() const { init(); return graph_->nodes(); }
 
+  Springy::Edges getEdges(NodeP node) const {
+    init();
+
+    return graph_->getEdges(node);
+  }
+
+  Springy::Edges getEdges(NodeP node1, NodeP node2) const {
+    init();
+
+    return graph_->getEdges(node1, node2);
+  }
+
   void step(double dt) {
     init();
 

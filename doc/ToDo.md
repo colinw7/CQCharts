@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + Force directed
+   + Custom Controls for node/edge scaling (auto size ?)
+   + placement uses node size (min edge length)
+   + overlapping connections (if to and from then adjust angles)
+   + minimum edge length
+   + combine connections (avoid overlaps) if from and/to (non-symmetric)
+   + highlight edge on mouse over (sankey mouse coloring)
+   + keys for colors, size, ...
+   + value label
  + store data in bucket model for query of summary value (min, max, ...) or all values
  + add user interface to add one more more proxy models between data and plot model
    and support user interface (model widgets) to customize
@@ -32,11 +41,6 @@ TODO:
  + formatted + scale with text (needs aspect)
  + format text in rect with scale and zoom
  + unique model object names
- + Force directed
-   + Custom Controls for node/edge scaling (auto size ?)
-   + placement uses node size (min edge length)
-   + overlapping connections (if to and from then adjust angles)
-   + minimum edge length
  + key item data in get_charts_data/set_charts_data
  + arrow on curve needs min start/end length
  + generate annotation dialog

@@ -230,9 +230,23 @@ setNodeSize(const Length &s)
 
 void
 CQChartsForceDirectedPlot::
+setMinNodeSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.minSize, s, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
 setNodeValueColored(bool b)
 {
   CQChartsUtil::testAndSet(nodeDrawData_.valueColored, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeMouseColoring(bool b)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -279,6 +293,13 @@ setEdgeValueColored(bool b)
   CQChartsUtil::testAndSet(edgeDrawData_.valueColored, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsForceDirectedPlot::
+setEdgeMouseColoring(bool b)
+{
+  CQChartsUtil::testAndSet(edgeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -323,10 +344,12 @@ addProperties()
   addProp("options", "rangeSize"   , "", "Range size");
 
   // node
-  addProp("node", "nodeShape"       , "shapeType"   , "Node shape type");
-  addProp("node", "nodeScaled"      , "scaled"      , "Node scaled by value");
-  addProp("node", "nodeSize"        , "size"        , "Node size (ignore if <= 0)");
-  addProp("node", "nodeValueColored", "valueColored", "Node colored by value");
+  addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
+  addProp("node", "nodeScaled"       , "scaled"       , "Node scaled by value");
+  addProp("node", "nodeSize"         , "size"         , "Node size (ignore if <= 0)");
+  addProp("node", "minNodeSize"      , "minSize"      , "Node min size (ignore if <= 0)");
+  addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
+  addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -340,12 +363,13 @@ addProperties()
   //---
 
   // edge
-  addProp("edge", "edgeShape"       , "shapeType"   , "Edge shape type");
-  addProp("edge", "edgeArrow"       , "arrow"       , "Edge arrow");
-  addProp("edge", "edgeScaled"      , "scaled"      , "Edge width scaled by value");
-  addProp("edge", "edgeWidth"       , "width"       , "Max edge width");
-  addProp("edge", "arrowWidth"      , "arrowWidth"  , "Directed edge arrow width factor");
-  addProp("edge", "edgeValueColored", "valueColored", "Edge colored by value");
+  addProp("edge", "edgeShape"        , "shapeType"    , "Edge shape type");
+  addProp("edge", "edgeArrow"        , "arrow"        , "Edge arrow");
+  addProp("edge", "edgeScaled"       , "scaled"       , "Edge width scaled by value");
+  addProp("edge", "edgeWidth"        , "width"        , "Max edge width");
+  addProp("edge", "arrowWidth"       , "arrowWidth"   , "Directed edge arrow width factor");
+  addProp("edge", "edgeValueColored" , "valueColored" , "Edge colored by value");
+  addProp("edge", "edgeMouseColoring", "mouseColoring", "Color edge nodes on mouse over");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -2243,7 +2267,7 @@ drawDeviceParts(PaintDevice *device) const
 
     ColorInd colorInd(edgeNum++, numEdges);
 
-    drawEdge(device, sedge, colorInd);
+    drawEdge(device, edge, sedge, colorInd);
   }
 
   //--
@@ -2275,7 +2299,8 @@ drawDeviceParts(PaintDevice *device) const
 
 void
 CQChartsForceDirectedPlot::
-drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
+drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
+         const ColorInd &colorInd) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -2297,7 +2322,10 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   if (sedge->isInside())
     fillColor = insideColor(fillColor);
 
-  setPenBrush(penBrush, edgePenData(strokeColor), edgeBrushData(fillColor));
+  auto penData   = edgePenData(strokeColor);
+  auto brushData = edgeBrushData(fillColor);
+
+  setPenBrush(penBrush, penData, brushData);
 
   //---
 
@@ -2389,16 +2417,22 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
   //---
 
   // draw path
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
+  QPainterPath edgePath1;
 
   if (isLine)
-    device->drawPath(edgePath);
+    edgePath1 = edgePath;
   else {
     if (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR)
-      device->drawPath(curvePath.simplified());
+      edgePath1 = curvePath.simplified();
     else
-      device->drawPath(curvePath);
+      edgePath1 = curvePath;
   }
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawPath(edgePath1);
+
+  edgePaths_[sedge->id()] = edgePath1;
 
   //---
 
@@ -2440,6 +2474,25 @@ drawEdge(PaintDevice *device, Edge *sedge, const ColorInd &colorInd) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, edgeStr, textOptions);
   }
+
+  //---
+
+  if (sedge->isInside()) {
+    if (isEdgeMouseColoring()) {
+      penData  .setAlpha(Alpha(1.0));
+      brushData.setAlpha(Alpha(1.0));
+
+      setPenBrush(penBrush, penData, brushData);
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+
+      drawEdgeNodes(device, edge);
+
+      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    }
+  }
 }
 
 void
@@ -2464,7 +2517,10 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   else
     fc = calcNodeFillColor(snode);
 
-  setPenBrush(penBrush, nodePenData(pc), nodeBrushData(fc));
+  auto brushData = nodeBrushData(fc);
+  auto penData   = nodePenData(pc);
+
+  setPenBrush(penBrush, penData, brushData);
 
   if      (snode->isInside()) {
     if (snode->isSelected()) {
@@ -2483,20 +2539,22 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
 
   // draw node
   auto shape = calcNodeShape(snode);
-
   auto ebbox = nodeBBox(node, snode);
 
-  if      (shape == Node::Shape::DOUBLE_CIRCLE)
-    CQChartsDrawUtil::drawDoubleEllipse(device, ebbox);
-  else if (shape == Node::Shape::CIRCLE)
-    device->drawEllipse(ebbox);
-  else
-    device->drawRect(ebbox);
+  NodeShapeBBox nodeShape;
+
+  nodeShape.shape = shape;
+  nodeShape.bbox  = ebbox;
+
+  drawNodeShape(device, nodeShape);
+
+  nodeShapes_[snode->id()] = nodeShape;
 
   //---
 
   // draw text
-  charts()->setContrastColor(fc);
+  if (brushData.isVisible())
+    charts()->setContrastColor(fc);
 
   if (isNodeTextVisible()) {
     // set font
@@ -2529,7 +2587,74 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   //---
 
   snode->setBBox(ebbox);
+
+  //---
+
+  if (snode->isInside()) {
+    if (isNodeMouseColoring()) {
+      penData  .setAlpha(Alpha(1.0));
+      brushData.setAlpha(Alpha(1.0));
+
+      setPenBrush(penBrush, penData, brushData);
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+
+      drawNodeEdges(device, node);
+
+      //view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    }
+  }
 }
+
+void
+CQChartsForceDirectedPlot::
+drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const
+{
+  if      (nodeShape.shape == Node::Shape::DOUBLE_CIRCLE)
+    CQChartsDrawUtil::drawDoubleEllipse(device, nodeShape.bbox);
+  else if (nodeShape.shape == Node::Shape::CIRCLE)
+    device->drawEllipse(nodeShape.bbox);
+  else
+    device->drawRect(nodeShape.bbox);
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+drawNodeEdges(PaintDevice *device, const NodeP &node) const
+{
+  if (! forceDirected_)
+    return;
+
+  auto edges = forceDirected_->getEdges(node);
+
+  for (const auto &edge : edges) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    device->drawPath(edgePaths_[sedge->id()]);
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+drawEdgeNodes(PaintDevice *device, const EdgeP &edge) const
+{
+  if (! forceDirected_)
+    return;
+
+  auto *snode1 = dynamic_cast<Node *>(edge->source().get());
+  auto *snode2 = dynamic_cast<Node *>(edge->target().get());
+  assert(snode1 && snode2);
+
+  drawNodeShape(device, nodeShapes_[snode1->id()]);
+  drawNodeShape(device, nodeShapes_[snode2->id()]);
+}
+
+//---
 
 void
 CQChartsForceDirectedPlot::
@@ -2622,7 +2747,10 @@ calcScaledNodeValue(Node *node) const
 
   auto r = value.real();
 
-  return OptReal(lengthPlotWidth(nodeSize())*r);
+  double s1 = lengthPlotWidth(minNodeSize());
+  double s2 = lengthPlotWidth(nodeSize());
+
+  return OptReal((s2 - s1)*r + s1);
 }
 
 QColor

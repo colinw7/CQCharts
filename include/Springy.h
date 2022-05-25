@@ -344,6 +344,22 @@ namespace Springy {
 
     //------
 
+    // find the edges for node
+    Edges getEdges(NodeP node) {
+      Edges edges;
+
+      auto p = adjacency_.find(node->id());
+
+      if (p == adjacency_.end())
+        return edges;
+
+      for (auto pne : (*p).second)
+        for (auto e : pne.second)
+          edges.push_back(e);
+
+      return edges;
+    }
+
     // find the edges from node1 to node2
     Edges getEdges(NodeP node1, NodeP node2) {
       auto p = adjacency_.find(node1->id());
