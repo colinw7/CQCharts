@@ -73,6 +73,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength minNodeSize       READ minNodeSize         WRITE setMinNodeSize      )
   Q_PROPERTY(bool           nodeValueColored  READ isNodeValueColored  WRITE setNodeValueColored )
   Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
+  Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape         READ edgeShape           WRITE setEdgeShape        )
@@ -82,6 +83,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double         arrowWidth        READ arrowWidth          WRITE setArrowWidth       )
   Q_PROPERTY(bool           edgeValueColored  READ isEdgeValueColored  WRITE setEdgeValueColored )
   Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
+  Q_PROPERTY(bool           edgeValueLabel    READ isEdgeValueLabel    WRITE setEdgeValueLabel   )
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -90,6 +92,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   // node/edge text style
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
+
+  // text visible on mouse inside/selected (when text invisible)
+  Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
+  Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   // info
   Q_PROPERTY(int numNodes READ numNodes)
@@ -121,6 +127,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
+
+  struct DrawTextData {
+    CQChartsFont        font;
+    PenBrush            penBrush;
+    CQChartsTextOptions textOptions;
+    Point               point;
+    BBox                bbox;
+    QStringList         strs;
+    NodeShape           shape { NodeShape::NONE };
+  };
 
  private:
   struct Connection;
@@ -198,6 +214,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isNodeMouseColoring() const { return nodeDrawData_.mouseColoring; }
   void setNodeMouseColoring(bool b);
 
+  //! get/set node value label
+  bool isNodeValueLabel() const { return nodeDrawData_.valueLabel; }
+  void setNodeValueLabel(bool b);
   //---
 
   //! get/set edge shape
@@ -227,6 +246,20 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set edge nodes colored on mouse over
   bool isEdgeMouseColoring() const { return edgeDrawData_.mouseColoring; }
   void setEdgeMouseColoring(bool b);
+
+  //! get/set edge value label
+  bool isEdgeValueLabel() const { return edgeDrawData_.valueLabel; }
+  void setEdgeValueLabel(bool b);
+
+  //---
+
+  //! text visible on inside (when text invisible)
+  bool isInsideTextVisible() const { return insideTextVisible_; }
+  void setInsideTextVisible(bool b) { insideTextVisible_ = b; }
+
+  //! text visible on selected (when text invisible)
+  bool isSelectedTextVisible() const { return selectedTextVisible_; }
+  void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
 
   //---
 
@@ -371,6 +404,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void drawNodeEdges(PaintDevice *device, const CForceDirected::NodeP &node) const;
   void drawEdgeNodes(PaintDevice *device, const CForceDirected::EdgeP &edge) const;
 
+  void drawTextData(PaintDevice *device, const DrawTextData &textData) const;
+
   void postResize() override;
 
   //---
@@ -491,6 +526,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     Length    minSize       { Length::plot(0.1) }; //!< min node size
     bool      valueColored  { false };             //!< is node colored by value
     bool      mouseColoring { false };             //!< is node edges colored on mouse over
+    bool      valueLabel    { false };             //!< show value as label
   };
 
   NodeDrawData nodeDrawData_; //!< node draw data
@@ -504,9 +540,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     double    arrowWidth    { 1.0 };               //!< edge arrow size factorr
     bool      valueColored  { false };             //!< is edge colored by value
     bool      mouseColoring { false };             //!< is edge nodes colored on mouse over
+    bool      valueLabel    { false };             //!< show value as label
   };
 
   EdgeDrawData edgeDrawData_; //!< edge draw data
+
+  // mouse inside/selected text visible
+  bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
+  bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
 
   // connection data
   IdConnectionsData idConnections_;          //!< id connections
@@ -528,6 +569,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int    maxNodeDepth_ { 0 };     //!< max node depth
 
   mutable std::mutex createMutex_; //!< create mutex
+
+  //---
+
+  using DrawTextDatas = std::vector<DrawTextData>;
+
+  mutable DrawTextDatas drawTextDatas_;
 
   //---
 

@@ -13,6 +13,7 @@ TODO:
    + highlight edge on mouse over (sankey mouse coloring)
    + keys for colors, size, ...
    + value label
+   + save current placement and reuse
  + store data in bucket model for query of summary value (min, max, ...) or all values
  + add user interface to add one more more proxy models between data and plot model
    and support user interface (model widgets) to customize

@@ -117,6 +117,11 @@ init()
 
   //---
 
+  CQChartsObjNodeTextData<CQChartsForceDirectedPlot>::setNodeReloadObj(false);
+  CQChartsObjEdgeTextData<CQChartsForceDirectedPlot>::setEdgeReloadObj(false);
+
+  //---
+
   NoUpdate noUpdate(this);
 
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
@@ -249,6 +254,13 @@ setNodeMouseColoring(bool b)
   CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsForceDirectedPlot::
+setNodeValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -298,6 +310,13 @@ CQChartsForceDirectedPlot::
 setEdgeMouseColoring(bool b)
 {
   CQChartsUtil::testAndSet(edgeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setEdgeValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(edgeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -350,6 +369,7 @@ addProperties()
   addProp("node", "minNodeSize"      , "minSize"      , "Node min size (ignore if <= 0)");
   addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
   addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
+  addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -370,6 +390,7 @@ addProperties()
   addProp("edge", "arrowWidth"       , "arrowWidth"   , "Directed edge arrow width factor");
   addProp("edge", "edgeValueColored" , "valueColored" , "Edge colored by value");
   addProp("edge", "edgeMouseColoring", "mouseColoring", "Color edge nodes on mouse over");
+  addProp("edge", "edgeValueLabel"   , "valueLabel"   , "Draw edge value as label");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -405,6 +426,12 @@ addProperties()
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // text
+  addProp("text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
+  addProp("text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
 
   //---
 
@@ -2255,6 +2282,8 @@ drawDeviceParts(PaintDevice *device) const
     snode->clearOccupiedSlots();
   }
 
+  drawTextDatas_.clear();
+
   insideDrawEdges_.clear();
   insideDrawNodes_.clear();
 
@@ -2304,6 +2333,12 @@ drawDeviceParts(PaintDevice *device) const
 
     drawNodeEdges(device, pn.first);
   }
+
+  //--
+
+  // draw texts
+  for (const auto &textData : drawTextDatas_)
+    drawTextData(device, textData);
 
   //---
 
@@ -2470,31 +2505,39 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   // draw text
   auto edgeStr = QString::fromStdString(sedge->label());
 
-  if (isEdgeTextVisible() && edgeStr.length()) {
-    // set font
-    setPainterFont(device, edgeTextFont());
+  if (isEdgeTextVisible() ||
+      (sedge->isInside  () && isInsideTextVisible()) ||
+      (sedge->isSelected() && isSelectedTextVisible())) {
+    DrawTextData textData;
 
-    //---
+    // set text
+    if (edgeStr.length())
+      textData.strs << edgeStr;
 
-    // set text pen
-    PenBrush tpenBrush;
+    if (isEdgeValueLabel() && sedge->value())
+      textData.strs << QString("%1").arg(*sedge->value());
 
-    auto c = interpEdgeTextColor(colorInd);
+    if (textData.strs.length()) {
+      // set font
+      textData.font = edgeTextFont();
 
-    setPen(tpenBrush, PenData(true, c, edgeTextAlpha()));
+      // set text pen
+      auto c = interpEdgeTextColor(colorInd);
 
-    device->setPen(tpenBrush.pen);
+      setPen(textData.penBrush, PenData(true, c, edgeTextAlpha()));
 
-    //---
+      // set position
+      textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
 
-    auto pt = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
+      // set text options
+      textData.textOptions = nodeTextOptions(device);
 
-    auto textOptions = nodeTextOptions(device);
+      textData.textOptions.angle = Angle();
+      textData.textOptions.align = Qt::AlignCenter;
 
-    textOptions.angle = Angle();
-    textOptions.align = Qt::AlignCenter;
-
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, edgeStr, textOptions);
+      // data to draw list
+      drawTextDatas_.push_back(textData);
+    }
   }
 
   //---
@@ -2556,32 +2599,41 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   // draw text
   charts()->setContrastColor(penBrush.brush.color());
 
-  if (isNodeTextVisible()) {
-    // set font
-    setPainterFont(device, nodeTextFont());
+  if (isNodeTextVisible() ||
+      (snode->isInside  () && isInsideTextVisible()) ||
+      (snode->isSelected() && isSelectedTextVisible())) {
+    DrawTextData textData;
 
-    //---
+    // set text
+    textData.strs << calcNodeLabel(snode);
+
+    if (isNodeValueLabel()) {
+      auto value = calcNodeValue(snode);
+
+      if (value.isSet())
+        textData.strs << QString("%1").arg(value.real());
+    }
+
+    // set font
+    textData.font = nodeTextFont();
 
     // set text pen
-    PenBrush tpenBrush;
-
     auto c = interpNodeTextColor(colorInd);
 
-    setPen(tpenBrush, PenData(true, c, nodeTextAlpha()));
+    setPen(textData.penBrush, PenData(true, c, nodeTextAlpha()));
 
-    device->setPen(tpenBrush.pen);
+    // set shape and bbox
+    textData.shape = static_cast<CQChartsForceDirectedPlot::NodeShape>(shape);
+    textData.bbox  = ebbox;
 
-    //---
+    // set text options
+    textData.textOptions = nodeTextOptions(device);
 
-    auto textOptions = nodeTextOptions(device);
+    textData.textOptions.angle = Angle();
+    textData.textOptions.align = Qt::AlignCenter;
 
-    textOptions.angle = Angle();
-    textOptions.align = Qt::AlignCenter;
-
-    if (shape != Node::Shape::BOX)
-      CQChartsDrawUtil::drawTextInCircle(device, ebbox, calcNodeLabel(snode), textOptions);
-    else
-      CQChartsDrawUtil::drawTextInBox(device, ebbox, calcNodeLabel(snode), textOptions);
+    // add to draw list
+    drawTextDatas_.push_back(textData);
   }
 
   charts()->resetContrastColor();
@@ -2608,6 +2660,25 @@ drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const
     device->drawEllipse(nodeShape.bbox);
   else
     device->drawRect(nodeShape.bbox);
+}
+
+void
+CQChartsForceDirectedPlot::
+drawTextData(PaintDevice *device, const DrawTextData &textData) const
+{
+  setPainterFont(device, textData.font);
+
+  device->setPen(textData.penBrush.pen);
+
+  if      (textData.shape == NodeShape::NONE)
+    CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, textData.strs,
+                                       textData.textOptions);
+  else if (textData.shape == NodeShape::CIRCLE)
+    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, textData.strs,
+                                          textData.textOptions);
+  else
+    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, textData.strs,
+                                       textData.textOptions);
 }
 
 //---
