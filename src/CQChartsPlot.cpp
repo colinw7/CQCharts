@@ -12825,37 +12825,14 @@ drawBackgroundRects(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundRects");
 
-  auto drawBackgroundRect = [&](const BBox &rect, const BrushData &brushData,
-                                const PenData &penData, const Sides &sides) {
-    if (brushData.isVisible()) {
-      PenBrush penBrush;
-
-      setBrush(penBrush,
-        BrushData(true, brushData.color(), brushData.alpha(), brushData.pattern()));
-
-      device->setBrush(penBrush.brush);
-
-      device->fillRect(rect);
-    }
-
-    if (penData.isVisible()) {
-      PenBrush penBrush;
-
-      setPen(penBrush,
-        PenData(true, penData.color(), penData.alpha(), penData.width(), penData.dash()));
-
-      device->setPen(penBrush.pen);
-
-      drawBackgroundSides(device, rect, sides);
-    }
-  };
-
   if (isPlotFilled() || isPlotStroked())
-    drawBackgroundRect(calcPlotRect(), plotBrushData(ColorInd()), plotPenData(ColorInd()),
+    drawBackgroundRect(device, DrawRegion::PLOT, calcPlotRect(),
+                       plotBrushData(ColorInd()), plotPenData(ColorInd()),
                        plotBorderSides());
 
   if (isFitFilled () || isFitStroked())
-    drawBackgroundRect(fitBBox(), fitBrushData(ColorInd()), fitPenData(ColorInd()),
+    drawBackgroundRect(device, DrawRegion::FIT, fitBBox(),
+                       fitBrushData(ColorInd()), fitPenData(ColorInd()),
                        fitBorderSides());
 
   if (isDataFilled() || isDataStroked()) {
@@ -12866,7 +12843,8 @@ drawBackgroundRects(PaintDevice *device) const
 
     auto drawBBox = (isDataRawRange() ? unequalDataRange_.bbox() : displayRangeBBox());
 
-    drawBackgroundRect(drawBBox, dataBrushData(ColorInd()), dataPenData(ColorInd()),
+    drawBackgroundRect(device, DrawRegion::DATA, drawBBox,
+                       dataBrushData(ColorInd()), dataPenData(ColorInd()),
                        dataBorderSides());
 
     device->restore();
@@ -12875,7 +12853,36 @@ drawBackgroundRects(PaintDevice *device) const
 
 void
 CQChartsPlot::
-drawBackgroundSides(PaintDevice *device, const BBox &bbox, const Sides &sides) const
+drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion, const BBox &rect,
+                   const BrushData &brushData, const PenData &penData, const Sides &sides) const
+{
+  if (brushData.isVisible()) {
+    PenBrush penBrush;
+
+    setBrush(penBrush,
+      BrushData(true, brushData.color(), brushData.alpha(), brushData.pattern()));
+
+    device->setBrush(penBrush.brush);
+
+    device->fillRect(rect);
+  }
+
+  if (penData.isVisible()) {
+    PenBrush penBrush;
+
+    setPen(penBrush,
+      PenData(true, penData.color(), penData.alpha(), penData.width(), penData.dash()));
+
+    device->setPen(penBrush.pen);
+
+    drawBackgroundSides(device, drawRegion, rect, sides);
+  }
+}
+
+void
+CQChartsPlot::
+drawBackgroundSides(PaintDevice *device, const DrawRegion & /*drawRegion*/,
+                    const BBox &bbox, const Sides &sides) const
 {
   if (sides.isAll()) {
     device->setBrush(Qt::NoBrush);

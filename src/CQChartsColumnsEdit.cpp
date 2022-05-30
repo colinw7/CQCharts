@@ -708,32 +708,18 @@ updateEdits()
 {
   connectSlots(false);
 
-  size_t n = size_t(columns_.count());
-
-  size_t ne = 0;
+  auto n = size_t(columns_.count());
 
   if (isBasic()) {
-    ne = columnCombos_.size();
-
-    while (ne < n) {
+    CQChartsUtil::makeArraySize(columnCombos_, n, [&]() {
       auto *combo = new CQChartsColumnCombo;
 
       combo->setModelData(modelData());
 
       qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(combo);
 
-      columnCombos_.push_back(combo);
-
-      ++ne;
-    }
-
-    while (ne > n) {
-      delete columnCombos_.back();
-
-      columnCombos_.pop_back();
-
-      --ne;
-    }
+      return combo;
+    } );
 
     while (! columnEdits_.empty()) {
       delete columnEdits_.back();
@@ -742,27 +728,15 @@ updateEdits()
     }
   }
   else {
-    ne = columnEdits_.size();
-
-    while (ne < n) {
+    CQChartsUtil::makeArraySize(columnEdits_, n, [&]() {
       auto *edit = new CQChartsColumnLineEdit;
 
       edit->setModelData(modelData());
 
       qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
 
-      columnEdits_.push_back(edit);
-
-      ++ne;
-    }
-
-    while (ne > n) {
-      delete columnEdits_.back();
-
-      columnEdits_.pop_back();
-
-      --ne;
-    }
+      return edit;
+    } );
 
     while (! columnCombos_.empty()) {
       delete columnCombos_.back();
@@ -771,7 +745,7 @@ updateEdits()
     }
   }
 
-  countLabel_->setText(QString("%1 Columns").arg(ne));
+  countLabel_->setText(QString("%1 Columns").arg(n));
 
   connectSlots(true);
 }

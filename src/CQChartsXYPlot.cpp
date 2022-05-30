@@ -60,7 +60,7 @@ addParameters()
   addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).setTip("Stack Points");
   addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
   addBoolParameter("fillUnder" , "Fill Under", "fillUnderFilled").setTip("Fill Under Curve");
-  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Point Impulse");
+  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Impulse Line");
 
   addMiscParameters();
 
@@ -209,7 +209,7 @@ CQChartsXYPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("xy"), model),
  CQChartsObjLineData             <CQChartsXYPlot>(this, &xyInvalidator_),
  CQChartsObjPointData            <CQChartsXYPlot>(this, &xyInvalidator_),
- CQChartsObjImpulseLineData      <CQChartsXYPlot>(this, &xyInvalidator_),
+ CQChartsObjImpulseShapeData     <CQChartsXYPlot>(this, &xyInvalidator_),
  CQChartsObjBivariateLineData    <CQChartsXYPlot>(this, &xyInvalidator_),
  CQChartsObjFillUnderFillData    <CQChartsXYPlot>(this, &xyInvalidator_),
  CQChartsObjMovingAverageLineData<CQChartsXYPlot>(this, &xyInvalidator_),
@@ -241,18 +241,19 @@ init()
 
   setSymbol(Symbol::circle());
 
-  setImpulseLines  (false);
-  setBivariateLines(false);
-
-  setLinesColor(Color::makePalette());
-
-  setImpulseLinesColor  (Color::makePalette());
-  setBivariateLinesColor(Color::makePalette());
-
   setLines (true);
   setPoints(false);
 
+  setLinesColor(Color::makePalette());
   setLinesWidth(Length::pixel(3));
+
+  setImpulseVisible(false);
+  setImpulseLines(true);
+  setImpulseStrokeColor(Color::makePalette());
+  setImpulseFillColor(Color::makePalette());
+
+  setBivariateLines(false);
+  setBivariateLinesColor(Color::makePalette());
 
   //---
 
@@ -286,6 +287,10 @@ init()
   //---
 
   addColorMapKey();
+
+  //---
+
+  connect(yAxis(), SIGNAL(includeZeroChanged()), this, SLOT(yAxisIncludeZeroSlot()));
 }
 
 void
@@ -420,6 +425,15 @@ setNamedColumns(const QString &name, const Columns &c)
 
 void
 CQChartsXYPlot::
+yAxisIncludeZeroSlot()
+{
+  updateRangeAndObjs();
+}
+
+//---
+
+void
+CQChartsXYPlot::
 resetBestFit()
 {
   for (const auto &plotObj : plotObjs_) {
@@ -447,6 +461,8 @@ setCumulative(bool b)
   CQChartsUtil::testAndSet(cumulative_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+//---
+
 bool
 CQChartsXYPlot::
 isVectors() const
@@ -467,6 +483,52 @@ setVectors(bool b)
     updateObjs();
   }
 }
+
+//---
+
+bool
+CQChartsXYPlot::
+calcImpulseVisible() const
+{
+  return (! isStacked() && isImpulseVisible());
+}
+
+void
+CQChartsXYPlot::
+setImpulseVisible(bool b)
+{
+  CQChartsUtil::testAndSet(impulseData_.visible, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setImpulseLines(bool b)
+{
+  CQChartsUtil::testAndSet(impulseData_.lines, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setImpulseWidth(const Length &w)
+{
+  CQChartsUtil::testAndSet(impulseData_.width, w, [&]() { updateRangeAndObjs(); } );
+}
+
+double
+CQChartsXYPlot::
+calcImpulsePixelWidth(double b) const
+{
+  double lw;
+
+  if (isImpulseLines())
+    lw = std::max(lengthPixelWidth(impulseStrokeWidth()), 2*b);
+  else
+    lw = std::max(lengthPixelWidth(impulseWidth()), 2*b);
+
+  return lw;
+}
+
+//---
 
 void
 CQChartsXYPlot::
@@ -664,6 +726,12 @@ addProperties()
 
   //---
 
+  addProp("dataGrouping/splitGroups", "splitGroups" , "enabled", "Split data groups enabled");
+  addProp("dataGrouping/splitGroups", "splitSharedY", "sharedY", "Split groups share Y range");
+  addProp("dataGrouping/splitGroups", "splitMargin" , "margin" , "Split x gap size");
+
+  //---
+
   addProp("key", "keyLine", "drawLine", "Draw lines on key");
 
   //---
@@ -695,9 +763,17 @@ addProperties()
   addFillProperties("fillUnder/fill", "fillUnderFill", "Fill under");
 
   // impulse
-  addProp("impulse", "impulseLines", "visible", "Impulse lines visible");
+  addProp("impulse", "impulseVisible", "visible", "Impulse lines visible");
+  addProp("impulse", "impulseLines"  , "lines"  , "Impulse is line");
+  addProp("impulse", "impulseWidth"  , "width"  , "Impulse width (non-line)");
 
-  addLineProperties("impulse/stroke", "impulseLines", "Impulse lines");
+  addProp("impulse/stroke", "impulseStroked", "visible", "Impulse stroke visible");
+
+  addLineProperties("impulse/stroke", "impulseStroke", "Node");
+
+  addProp("impulse/fill", "impulseFilled", "visible", "Impulse fill visible");
+
+  addFillProperties("impulse/fill", "impulseFill", "Node");
 
   //---
 
@@ -814,6 +890,8 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsXYPlot::calcRange");
 
+  //---
+
   NoUpdate noUpdate(this);
 
   auto *th = const_cast<CQChartsXYPlot *>(this);
@@ -858,7 +936,7 @@ calcRange() const
       ModelIndex ind(plot_, data.row, plot_->xColumn(), data.parent);
 
       // init group
-      (void) plot_->rowGroupInd(ind);
+      int groupInd = plot_->rowGroupInd(ind);
 
       //---
 
@@ -876,6 +954,11 @@ calcRange() const
 
       //---
 
+      auto updateRange = [&](double x, double y) {
+        range_               .updateRange(x, y);
+        groupRange_[groupInd].updateRange(x, y);
+      };
+
       if      (plot_->isStacked()) {
         // TODO: support stacked and cumulative
         double sum1 = 0.0;
@@ -885,8 +968,8 @@ calcRange() const
             sum1 += y[i];
         }
 
-        range_.updateRange(x, 0.0);
-        range_.updateRange(x, sum1);
+        updateRange(x, 0.0);
+        updateRange(x, sum1);
       }
       else if (plot_->isCumulative()) {
         if (! plot_->isColumnSeries()) {
@@ -896,7 +979,7 @@ calcRange() const
 
               sum_[i] += y[i];
 
-              range_.updateRange(x, y1);
+              updateRange(x, y1);
             }
           }
         }
@@ -905,13 +988,13 @@ calcRange() const
         if (! plot_->isColumnSeries()) {
           for (size_t i = 0; i < ny; ++i) {
             if (! CMathUtil::isNaN(y[i]))
-              range_.updateRange(x, y[i]);
+              updateRange(x, y[i]);
           }
         }
         else {
           for (size_t i = 0; i < ny; ++i) {
             if (! CMathUtil::isNaN(y[i]))
-              range_.updateRange(sx_[i], y[i]);
+              updateRange(sx_[i], y[i]);
           }
         }
       }
@@ -921,11 +1004,14 @@ calcRange() const
 
     const Range &range() const { return range_; }
 
+    const GroupRange &groupRange() const { return groupRange_; }
+
    private:
     using Reals = std::vector<double>;
 
     const CQChartsXYPlot* plot_ { nullptr };
     Range                 range_;
+    GroupRange            groupRange_;
     Reals                 sum_;
     Reals                 lastSum_;
     std::vector<double>   sx_;
@@ -935,7 +1021,21 @@ calcRange() const
 
   visitModel(visitor);
 
-  auto dataRange = visitor.range();
+  //---
+
+  Range dataRange;
+
+  if (isSplitGroups()) {
+    int ng = numVisibleGroups();
+
+    dataRange = Range(0.0, 0.0, ng, 1.0);
+
+    th->range_      = visitor.range();
+    th->groupRange_ = visitor.groupRange();
+  }
+  else {
+    dataRange = visitor.range();
+  }
 
   //---
 
@@ -964,12 +1064,12 @@ void
 CQChartsXYPlot::
 postCalcRange()
 {
-  initAxes();
+  updateAxes();
 }
 
 void
 CQChartsXYPlot::
-initAxes()
+updateAxes()
 {
   setXValueColumn(xColumn());
   setYValueColumn(yColumns().column());
@@ -984,16 +1084,20 @@ initAxes()
 
   if (! isColumnSeries())
     xAxisColumn = xColumn();
-  else {
+  else
     xAxisColumn = Column::makeHHeader(yColumns().getColumn(0).column());
-  }
 
-  if (isOverlay()) {
-    if (isFirstPlot() || isX1X2())
+  if (! isSplitGroups()) {
+    if (isOverlay()) {
+      if (isFirstPlot() || isX1X2())
+        xAxis()->setColumn(xAxisColumn);
+    }
+    else {
       xAxis()->setColumn(xAxisColumn);
+    }
   }
   else {
-    xAxis()->setColumn(xAxisColumn);
+    xAxis()->setColumn(Column());
   }
 
   //-
@@ -1011,15 +1115,21 @@ initAxes()
     xAxis()->setDefLabel(xname, /*notify*/false);
   }
 
-  if (xColumnType_ == ColumnType::TIME)
-    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
-                          /*notify*/false);
+  if (! isSplitGroups()) {
+    if (xColumnType_ == ColumnType::TIME)
+      xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
+                            /*notify*/false);
 
-  if (calcMapXColumn()) {
+    if (calcMapXColumn()) {
+      xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                            /*notify*/false);
+
+      xAxis()->setMajorIncrement(1);
+    }
+  }
+  else {
     xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
                           /*notify*/false);
-
-    xAxis()->setMajorIncrement(1);
   }
 
   //---
@@ -1068,13 +1178,115 @@ initAxes()
 
   //---
 
+  // set x axis labels
   xAxis()->clearTickLabels();
 
-  if (calcMapXColumn()) {
-    auto *columnDetails = this->columnDetails(xColumn());
+  if (! isSplitGroups()) {
+    if (calcMapXColumn()) {
+      auto *columnDetails = this->columnDetails(xColumn());
 
-    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+        xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+    }
+  }
+
+  //---
+
+  auto numXAxes = size_t(isSplitGroups() ? numVisibleGroups() : 0);
+
+  CQChartsUtil::makeArraySize(xaxes_, numXAxes, [&]() {
+    auto *axis = new CQChartsAxis(this, Qt::Horizontal, 0, 1);
+
+    axis->moveToThread(this->thread());
+
+    axis->setParent(this);
+    axis->setPlot  (this);
+
+    axis->setUpdatesEnabled(false);
+
+    return axis;
+  });
+
+  auto numYAxes = size_t(isSplitGroups() && ! isSplitSharedY() ? numXAxes : 0);
+
+  CQChartsUtil::makeArraySize(yaxes_, numYAxes, [&]() {
+    auto *axis = new CQChartsAxis(this, Qt::Vertical, 0, 1);
+
+    axis->moveToThread(this->thread());
+
+    axis->setParent(this);
+    axis->setPlot  (this);
+
+    axis->setUpdatesEnabled(false);
+
+    return axis;
+  });
+
+  //---
+
+  auto sm = splitMargin();
+
+  for (size_t i = 0; i < xaxes_.size(); ++i) {
+    auto *xaxis = xaxes_[i];
+
+    if (xColumnType_ == ColumnType::TIME)
+      xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
+                          /*notify*/false);
+
+    xaxis->setColumn(xAxisColumn);
+
+    auto groupName = groupIndName(int(i));
+
+    xaxis->setDefLabel(groupName, /*notify*/false);
+
+    //---
+
+    // set range
+    const auto &range = getGroupRange(int(i));
+
+    auto xi = double(i);
+
+    double xmin = (i >            0 ? xi + sm       : xi      );
+    double xmax = (i < numXAxes - 1 ? xi + 1.0 - sm : xi + 1.0);
+
+    xaxis->setRange(xmin, xmax);
+
+    xaxis->setValueRange(range.xmin(), range.xmax());
+  }
+
+  //---
+
+  auto *masterYAxis = yAxis();
+
+  for (size_t i = 0; i < yaxes_.size(); ++i) {
+    auto *yaxis = yaxes_[i];
+
+    //---
+
+    // set range
+    const auto &range = getGroupRange(int(i));
+
+    //yaxis->setIncludeZero(masterYAxis->isIncludeZero());
+
+    yaxis->setRange(0.0, 1.0);
+
+    double ymin = range.ymin();
+
+    if (masterYAxis->isIncludeZero())
+      ymin = std::min(ymin, 0.0);
+
+    yaxis->setValueRange(ymin, range.ymax());
+  }
+
+  //---
+
+  if (isSplitGroups()) {
+    double ymin = range_.ymin();
+
+    if (masterYAxis->isIncludeZero())
+      ymin = std::min(ymin, 0.0);
+
+    yAxis()->setValueRange(ymin, range_.ymax());
   }
 }
 
@@ -1161,9 +1373,9 @@ yColumnName(QString &name, const QString &def, bool tip) const
 
 void
 CQChartsXYPlot::
-setImpulseLinesSlot(bool b)
+setImpulseVisibleSlot(bool b)
 {
-  setImpulseLines(b);
+  setImpulseVisible(b);
 }
 
 void
@@ -1195,6 +1407,29 @@ CQChartsXYPlot::
 setNumMovingAverage(int n)
 {
   CQChartsUtil::testAndSet(movingAverageData_.n, n, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setSplitGroups(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setSplitSharedY(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.sharedY, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setSplitMargin(double r)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.margin, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -1567,7 +1802,12 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         ColorInd is(int(j - 1), int(ny1 - 1));
         ColorInd iv(ip, np);
 
-        auto *lineObj = th->createBiLineObj(groupInd, bbox, x, y1, y2, xind1, is, iv);
+        auto gbbox = adjustGroupBBox(groupInd, bbox);
+
+        auto gp1 = adjustGroupPoint(groupInd, Point(x, y1));
+        auto gp2 = adjustGroupPoint(groupInd, Point(x, y2));
+
+        auto *lineObj = th->createBiLineObj(groupInd, gbbox, gp1, gp2, xind1, is, ig, iv);
 
         objs.push_back(lineObj);
       }
@@ -1749,6 +1989,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
   const auto &dataRange = this->dataRange();
 
+  //---
+
   // convert lines into set polygon and set poly lines (more than one if NaNs)
   int ns = numSets();
 
@@ -1927,9 +2169,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         ColorInd is1(is, ns);
         ColorInd iv1(ip, np);
 
-        BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+        auto gp = adjustGroupPoint(groupInd, p);
 
-        auto *pointObj = th->createPointObj(groupInd, bbox, p, xind1, is1, ig, iv1);
+        BBox gbbox(gp.x - sx, gp.y - sy, gp.x + sx, gp.y + sy);
+
+        auto *pointObj = th->createPointObj(groupInd, gbbox, gp, xind1, is1, ig, iv1);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
@@ -1995,7 +2239,10 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         if (pointNameColumn.isValid() && pointName.length()) {
           BBox bbox(p.x - sw/2, p.y - sh/2, p.x + sw/2, p.y + sh/2);
 
-          auto *labelObj = th->createLabelObj(groupInd, bbox, p.x, p.y, pointName, xind1, is1, iv1);
+          auto gbbox = adjustGroupBBox(groupInd, bbox);
+          auto gp    = adjustGroupPoint(groupInd, p);
+
+          auto *labelObj = th->createLabelObj(groupInd, gbbox, gp, pointName, xind1, is1, iv1);
 
           labelObj->setLabelColumn(pointNameColumn);
 
@@ -2060,16 +2307,21 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // add impulse line (down to or up to zero)
-        if (! isStacked() && isImpulseLines()) {
-          double w = lengthPlotWidth(impulseLinesWidth());
+        if (calcImpulseVisible()) {
+          double w;
+
+          if (isImpulseLines())
+            w = lengthPlotWidth(impulseStrokeWidth());
+          else
+            w = lengthPlotWidth(impulseWidth());
 
           double y1 = 0.0;
 
           if (dataRange.isSet()) {
-            if (dataRange.ymin() <= 0.0 && dataRange.ymax() >= 0.0)
+            y1 = drawRangeYMin(groupInd);
+
+            if (y1 <= 0.0 && drawRangeYMax(groupInd) >= 0.0)
               y1 = 0.0;
-            else
-              y1 = dataRange.ymin();
           }
 
           double ys = std::min(p.y, y1);
@@ -2077,7 +2329,13 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           BBox bbox(p.x - w/2, ys, p.x + w/2, ye);
 
-          auto *impulseObj = th->createImpulseLineObj(groupInd, bbox, p.x, ys, ye, xind1, is1, iv1);
+          auto gbbox = adjustGroupBBox(groupInd, bbox);
+
+          auto gp1 = adjustGroupPoint(groupInd, Point(p.x, ys));
+          auto gp2 = adjustGroupPoint(groupInd, Point(p.x, ye));
+
+          auto *impulseObj = th->createImpulseLineObj(groupInd, gbbox, gp1, gp2,
+                                                      xind1, is1, ig, iv1);
 
           impulseLineObjs.push_back(impulseObj);
         }
@@ -2095,15 +2353,15 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       // if first point then add first point of previous polygon
       if (ip == ip1 && dataRange.isSet()) {
         if (isStacked()) {
-          double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
+          double y1 = (is > 0 ? prevPoly.point(ip).y : drawRangeYMin(groupInd));
 
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-            y1 = dataRange.ymin();
+            y1 = drawRangeYMin(groupInd);
 
           polyShape.addPoint(Point(p.x, y1));
         }
         else {
-          polyShape.addPoint(calcFillUnderPos(p.x, dataRange.ymin()));
+          polyShape.addPoint(calcFillUnderPos(groupInd, p.x, drawRangeYMin(groupInd)));
         }
       }
 
@@ -2112,15 +2370,15 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       // if last point then add last point of previous polygon
       if (ip == ip2 && dataRange.isSet()) {
         if (isStacked()) {
-          double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
+          double y1 = (is > 0 ? prevPoly.point(ip).y : drawRangeYMin(groupInd));
 
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-            y1 = dataRange.ymin();
+            y1 = drawRangeYMin(groupInd);
 
           polyShape.addPoint(Point(p.x, y1));
         }
         else {
-          polyShape.addPoint(calcFillUnderPos(p.x, dataRange.ymin()));
+          polyShape.addPoint(calcFillUnderPos(groupInd, p.x, drawRangeYMin(groupInd)));
         }
       }
     }
@@ -2183,6 +2441,56 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
   return true;
 }
+
+//---
+
+bool
+CQChartsXYPlot::
+isGroupHidden(int groupInd) const
+{
+  return (numSets() <= 1 && isSetHidden(groupInd));
+}
+
+int
+CQChartsXYPlot::
+numVisibleGroups() const
+{
+  int ng = numGroups();
+  int nv = ng;
+
+  for (int i = 0; i < ng; ++i) {
+    if (isGroupHidden(i))
+      --nv;
+  }
+
+  return nv;
+}
+
+int
+CQChartsXYPlot::
+mapVisibleGroup(int groupInd) const
+{
+  int ng = numGroups();
+  int ig = 0;
+
+  for (int i = 0; i < ng; ++i) {
+    bool hidden = isGroupHidden(i);
+
+    if (i == groupInd) {
+      if (hidden)
+        ig = -1;
+
+      break;
+    }
+
+    if (! hidden)
+      ++ig;
+  }
+
+  return ig;
+}
+
+//---
 
 bool
 CQChartsXYPlot::
@@ -2303,18 +2611,22 @@ numSets() const
 
 CQChartsGeom::Point
 CQChartsXYPlot::
-calcFillUnderPos(double x, double y) const
+calcFillUnderPos(int groupInd, double x, double y) const
 {
   const auto &pos = fillUnderPos();
 
   double x1 = x;
   double y1 = y;
 
+  //---
+
   const auto &dataRange = this->dataRange();
+
+  //---
 
   if      (pos.xtype() == FillUnderPos::Type::MIN) {
     if (dataRange.isSet())
-      x1 = dataRange.xmin();
+      x1 = drawRangeXMin(groupInd);
   }
   else if (pos.xtype() == FillUnderPos::Type::MAX) {
     if (dataRange.isSet())
@@ -2325,11 +2637,11 @@ calcFillUnderPos(double x, double y) const
 
   if      (pos.ytype() == FillUnderPos::Type::MIN) {
     if (dataRange.isSet())
-      y1 = dataRange.ymin();
+      y1 = drawRangeYMin(groupInd);
   }
   else if (pos.ytype() == FillUnderPos::Type::MAX) {
     if (dataRange.isSet())
-      y1 = dataRange.ymax();
+      y1 = drawRangeYMax(groupInd);
   }
   else if (pos.ytype() == FillUnderPos::Type::POS)
     y1 = pos.ypos();
@@ -2339,15 +2651,18 @@ calcFillUnderPos(double x, double y) const
 
 CQChartsXYPolylineObj *
 CQChartsXYPlot::
-addPolyLine(const Polygon &polyLine, int groupInd, const ColorInd &is,
+addPolyLine(const Polygon &poly, int groupInd, const ColorInd &is,
             const ColorInd &ig, const QString &name, PlotObjs &pointObjs, PlotObjs &objs) const
 {
-  auto bbox = polyLine.boundingBox();
+  auto bbox = poly.boundingBox();
   if (! bbox.isSet()) return nullptr;
 
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
-  auto *lineObj = th->createPolylineObj(groupInd, bbox, polyLine, name, is, ig);
+  auto gbbox = adjustGroupBBox(groupInd, bbox);
+  auto gpoly = adjustGroupPoly(groupInd, poly);
+
+  auto *lineObj = th->createPolylineObj(groupInd, gbbox, gpoly, name, is, ig);
 
   lineObj->setPointObjs(pointObjs);
 
@@ -2373,9 +2688,233 @@ addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
 
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
-  auto *polyObj = th->createPolygonObj(groupInd, bbox, poly, name, is, ig, under);
+  auto gbbox = adjustGroupBBox(groupInd, bbox);
+  auto gpoly = adjustGroupPoly(groupInd, poly);
+
+  auto *polyObj = th->createPolygonObj(groupInd, gbbox, gpoly, name, is, ig, under);
 
   objs.push_back(polyObj);
+}
+
+//---
+
+CQChartsGeom::Point
+CQChartsXYPlot::
+adjustGroupPoint(int groupInd, const Point &p) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double x = mapGroupX(range, groupInd, p.x);
+    double y = mapGroupY(range, p.y);
+
+    return Point(x, y);
+  }
+
+  return p;
+}
+
+CQChartsGeom::BBox
+CQChartsXYPlot::
+adjustGroupBBox(int groupInd, const BBox &bbox) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double x1 = mapGroupX(range, groupInd, bbox.getXMin());
+    double y1 = mapGroupY(range, bbox.getYMin());
+    double x2 = mapGroupX(range, groupInd, bbox.getXMax());
+    double y2 = mapGroupY(range, bbox.getYMax());
+
+    return BBox(x1, y1, x2, y2);
+  }
+
+  return bbox;
+}
+
+CQChartsGeom::Polygon
+CQChartsXYPlot::
+adjustGroupPoly(int groupInd, const Polygon &poly) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    Polygon gpoly = poly;
+
+    for (int i = 0; i < poly.size(); ++i) {
+      const auto &p = poly.point(i);
+
+      double x = mapGroupX(range, groupInd, p.x);
+      double y = mapGroupY(range, p.y);
+
+      gpoly.setPoint(i, Point(x, y));
+    }
+
+    return gpoly;
+  }
+
+  return poly;
+}
+
+const CQChartsGeom::Range &
+CQChartsXYPlot::
+getGroupRange(int groupInd) const
+{
+  auto pg = groupRange_.find(groupInd);
+  assert(pg != groupRange_.end());
+
+  return (*pg).second;
+}
+
+double
+CQChartsXYPlot::
+mapGroupX(const Range &range, int groupInd, double x) const
+{
+  int ng = numVisibleGroups();
+  int ig = mapVisibleGroup(groupInd);
+
+  auto sm = splitMargin();
+
+  double xmin = (ig >      0 ? ig + sm       : ig    );
+  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
+
+  return CMathUtil::map(x, range.xmin(), range.xmax(), xmin, xmax);
+}
+
+double
+CQChartsXYPlot::
+mapGroupY(const Range &range, double y) const
+{
+  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
+  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
+
+  auto *masterYAxis = yAxis();
+
+  if (masterYAxis->isIncludeZero())
+    ymin = std::min(ymin, 0.0);
+
+  return CMathUtil::map(y, ymin, ymax, 0.0, 1.0);
+}
+
+double
+CQChartsXYPlot::
+unmapGroupX(const Range &range, int groupInd, double x) const
+{
+  int ng = numVisibleGroups();
+  int ig = mapVisibleGroup(groupInd);
+
+  auto sm = splitMargin();
+
+  double xmin = (ig >      0 ? ig + sm       : ig    );
+  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
+
+  return CMathUtil::map(x, xmin, xmax, range.xmin(), range.xmax());
+}
+
+double
+CQChartsXYPlot::
+unmapGroupY(const Range &range, double y) const
+{
+  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
+  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
+
+  auto *masterYAxis = yAxis();
+
+  if (masterYAxis->isIncludeZero())
+    ymin = std::min(ymin, 0.0);
+
+  return CMathUtil::map(y, 0.0, 1.0, ymin, ymax);
+}
+
+double
+CQChartsXYPlot::
+drawRangeXMin(int groupInd, bool adjust) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double xmin = range.xmin();
+
+    if (adjust)
+      xmin = mapGroupX(range, groupInd, xmin);
+
+    return xmin;
+  }
+  else {
+    const auto &dataRange = this->dataRange();
+
+    return dataRange.xmin();
+  }
+}
+
+double
+CQChartsXYPlot::
+drawRangeXMax(int groupInd, bool adjust) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double xmax = range.xmax();
+
+    if (adjust)
+      xmax = mapGroupX(range, groupInd, xmax);
+
+    return xmax;
+  }
+  else {
+    const auto &dataRange = this->dataRange();
+
+    return dataRange.xmax();
+  }
+}
+
+double
+CQChartsXYPlot::
+drawRangeYMin(int groupInd) const
+{
+  if (isSplitGroups()) {
+    double ymin;
+
+    if (! isSplitSharedY()) {
+      const auto &range = getGroupRange(groupInd);
+
+      ymin = range.ymin();
+    }
+    else
+      ymin = range_.ymin();
+
+    auto *masterYAxis = yAxis();
+
+    if (masterYAxis->isIncludeZero())
+      ymin = std::min(ymin, 0.0);
+
+    return ymin;
+  }
+  else {
+    const auto &dataRange = this->dataRange();
+
+    return dataRange.ymin();
+  }
+}
+
+double
+CQChartsXYPlot::
+drawRangeYMax(int groupInd) const
+{
+  if (isSplitGroups()) {
+    if (! isSplitSharedY()) {
+      const auto &range = getGroupRange(groupInd);
+
+      return range.ymax();
+    }
+    else
+      return range_.ymax();
+  }
+  else {
+    const auto &dataRange = this->dataRange();
+
+    return dataRange.ymax();
+  }
 }
 
 //---
@@ -2390,26 +2929,28 @@ createPointObj(int groupInd, const BBox &rect, const Point &p, const QModelIndex
 
 CQChartsXYBiLineObj *
 CQChartsXYPlot::
-createBiLineObj(int groupInd, const BBox &rect, double x, double y1, double y2,
-                const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
+createBiLineObj(int groupInd, const BBox &rect, const Point &p1, const Point &p2,
+                const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                const ColorInd &iv) const
 {
-  return new CQChartsXYBiLineObj(this, groupInd, rect, x, y1, y2, ind, is, iv);
+  return new CQChartsXYBiLineObj(this, groupInd, rect, p1.x, p1.y, p2.y, ind, is, ig, iv);
 }
 
 CQChartsXYLabelObj *
 CQChartsXYPlot::
-createLabelObj(int groupInd, const BBox &rect, double x, double y, const QString &label,
+createLabelObj(int groupInd, const BBox &rect, const Point &p, const QString &label,
                const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsXYLabelObj(this, groupInd, rect, x, y, label, ind, is, iv);
+  return new CQChartsXYLabelObj(this, groupInd, rect, p.x, p.y, label, ind, is, iv);
 }
 
 CQChartsXYImpulseLineObj *
 CQChartsXYPlot::
-createImpulseLineObj(int groupInd, const BBox &rect, double x, double y1, double y2,
-                     const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
+createImpulseLineObj(int groupInd, const BBox &rect, const Point &p1, const Point &p2,
+                     const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                     const ColorInd &iv) const
 {
-  return new CQChartsXYImpulseLineObj(this, groupInd, rect, x, y1, y2, ind, is, iv);
+  return new CQChartsXYImpulseLineObj(this, groupInd, rect, p1.x, p1.y, p2.y, ind, is, ig, iv);
 }
 
 CQChartsXYPolylineObj *
@@ -2555,16 +3096,14 @@ addKeyItems(PlotKey *key)
     }
   }
   else {
+    const auto &dataRange = this->dataRange();
+
     // colored by x axis value
     if      (colorType() == ColorType::X_VALUE) {
-      const auto &dataRange = this->dataRange();
-
       addGradientKeyItem(dataRange.xmin(), dataRange.xmax());
     }
     // colored by y axis value
     else if (colorType() == ColorType::Y_VALUE) {
-      const auto &dataRange = this->dataRange();
-
       addGradientKeyItem(dataRange.ymin(), dataRange.ymax());
     }
     // colored by index
@@ -2732,10 +3271,39 @@ dataFitBBox() const
       bbox += lineObj->fitBBox();
   }
 
+  if (calcImpulseVisible()) {
+    double lw = pixelToWindowWidth(calcImpulsePixelWidth());
+
+    bbox += Point(bbox.getXMin() - lw/2, bbox.getYMin());
+    bbox += Point(bbox.getXMax() + lw/2, bbox.getYMin());
+  }
+
   return bbox;
 }
 
-//------
+//---
+
+QString
+CQChartsXYPlot::
+posStr(const Point &w) const
+{
+  if (isSplitGroups()) {
+    int ng = numVisibleGroups();
+
+    auto groupInd = std::min(std::max(int(w.x), 0), ng - 1);
+
+    const auto &range = getGroupRange(groupInd);
+
+    double x = CMathUtil::map(w.x, groupInd, groupInd + 1, range.xmin(), range.xmax());
+    double y = CMathUtil::map(w.y, 0.0, 1.0, range_.ymin(), range_.ymax());
+
+    return CQChartsPlot::posStr(Point(x, y));
+  }
+
+  return CQChartsPlot::posStr(w);
+}
+
+//---
 
 bool
 CQChartsXYPlot::
@@ -2764,7 +3332,7 @@ addMenuItems(QMenu *menu)
 
   addMenuCheckedAction(menu, "Stacked"   , isStacked        (), SLOT(setStacked(bool)));
   addMenuCheckedAction(menu, "Cumulative", isCumulative     (), SLOT(setCumulative(bool)));
-  addMenuCheckedAction(menu, "Impulse"   , isImpulseLines   (), SLOT(setImpulseLinesSlot(bool)));
+  addMenuCheckedAction(menu, "Impulse"   , isImpulseVisible (), SLOT(setImpulseVisibleSlot(bool)));
   addMenuCheckedAction(menu, "Fill Under", isFillUnderFilled(), SLOT(setFillUnderFilledSlot(bool)));
 
   //---
@@ -2799,6 +3367,131 @@ addMenuItems(QMenu *menu)
     addColorMapKeyItems(menu);
 
   return true;
+}
+
+//---
+
+CQChartsGeom::BBox
+CQChartsXYPlot::
+axesFitBBox() const
+{
+  if (! isSplitGroups()) {
+    return CQChartsPlot::axesFitBBox();
+  }
+  else {
+    BBox bbox;
+
+    for (auto *xaxis : xaxes_)
+      bbox += xaxis->fitBBox();
+
+    if (! isSplitSharedY()) {
+      for (auto *yaxis : yaxes_)
+        bbox += yaxis->fitBBox();
+    }
+    else {
+      if (yAxis() && yAxis()->isVisible())
+        bbox += yAxis()->fitBBox();
+    }
+
+    return bbox;
+  }
+}
+
+//---
+
+bool
+CQChartsXYPlot::
+hasFgAxes() const
+{
+  return true;
+}
+
+void
+CQChartsXYPlot::
+drawFgAxes(PaintDevice *device) const
+{
+  if (! isSplitGroups()) {
+    CQChartsPlot::drawFgAxes(device);
+  }
+  else {
+    //auto *th = const_cast<CQChartsXYPlot *>(this);
+
+    auto *masterXAxis = xAxis();
+
+    for (auto *xaxis : xaxes_) {
+      xaxis->setAxesLineData         (masterXAxis->axesLineData());
+      xaxis->setAxesTickLabelTextData(masterXAxis->axesTickLabelTextData());
+      xaxis->setAxesLabelTextData    (masterXAxis->axesLabelTextData());
+      xaxis->setAxesMajorGridLineData(masterXAxis->axesMajorGridLineData());
+      xaxis->setAxesMinorGridLineData(masterXAxis->axesMinorGridLineData());
+      xaxis->setAxesGridFillData     (masterXAxis->axesGridFillData());
+
+      xaxis->draw(this, device);
+    }
+
+    if (! isSplitSharedY()) {
+      auto *masterYAxis = yAxis();
+
+      int iy = 0;
+
+      auto sm = splitMargin();
+
+      for (auto *yaxis : yaxes_) {
+        auto y = (iy == 0 ? iy : iy + sm);
+
+        yaxis->setPosition(CQChartsOptReal(y));
+
+        yaxis->setAxesLineData         (masterYAxis->axesLineData());
+        yaxis->setAxesTickLabelTextData(masterYAxis->axesTickLabelTextData());
+        yaxis->setAxesLabelTextData    (masterYAxis->axesLabelTextData());
+        yaxis->setAxesMajorGridLineData(masterYAxis->axesMajorGridLineData());
+        yaxis->setAxesMinorGridLineData(masterYAxis->axesMinorGridLineData());
+        yaxis->setAxesGridFillData     (masterYAxis->axesGridFillData());
+
+        yaxis->draw(this, device);
+
+        ++iy;
+      }
+    }
+    else
+      drawFgYAxis(device);
+  }
+}
+
+//------
+
+void
+CQChartsXYPlot::
+drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion, const BBox &rect,
+                   const BrushData &brushData, const PenData &penData, const Sides &sides) const
+{
+  if (! isSplitGroups() || drawRegion != DrawRegion::DATA)
+    return CQChartsPlot::drawBackgroundRect(device, drawRegion, rect, brushData, penData, sides);
+
+  //---
+
+  int ng = numVisibleGroups();
+
+//auto xmin = rect.getXMin();
+  auto ymin = rect.getYMin();
+//auto xmax = rect.getXMax();
+  auto ymax = rect.getYMax();
+
+  for (int i = 0; i < ng; ++i) {
+    //auto pg = groupRange_.find(i);
+    //assert(pg != groupRange_.end());
+
+    //const auto &range = (*pg).second;
+
+    auto sm = splitMargin();
+
+    auto xmin1 = (i == 0      ? i     : i + sm      );
+    auto xmax1 = (i == ng - 1 ? i + 1 : i + 1.0 - sm);
+
+    auto rect1 = BBox(xmin1, ymin, xmax1, ymax);
+
+    CQChartsPlot::drawBackgroundRect(device, drawRegion, rect1, brushData, penData, sides);
+  }
 }
 
 //------
@@ -3146,8 +3839,8 @@ invalidate(bool reload)
 CQChartsXYBiLineObj::
 CQChartsXYBiLineObj(const Plot *plot, int groupInd, const BBox &rect,
                     double x, double y1, double y2, const QModelIndex &ind,
-                    const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
+                    const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv), plot_(plot),
  groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
   setModelInd(ind);
@@ -3171,10 +3864,16 @@ QString
 CQChartsXYBiLineObj::
 calcTipId() const
 {
+  const auto &range = plot()->getGroupRange(groupInd_);
+
+  double x  = plot()->unmapGroupX(range, groupInd_, this->x());
+  double y1 = plot()->unmapGroupY(range, this->y1());
+  double y2 = plot()->unmapGroupY(range, this->y2());
+
   auto name  = plot()->valueName(-1, -1, modelInd().row());
-  auto xstr  = plot()->xStr(x());
-  auto y1str = plot()->yStr(y1());
-  auto y2str = plot()->yStr(y2());
+  auto xstr  = plot()->xStr(x);
+  auto y1str = plot()->yStr(y1);
+  auto y2str = plot()->yStr(y2);
 
   CQChartsTableTip tableTip;
 
@@ -3318,7 +4017,9 @@ void
 CQChartsXYBiLineObj::
 calcPointPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  plot_->setSymbolPenBrush(penBrush, is_);
+  auto ic = (is_.n <= 1 ? ig_.n <= 1 ? iv_ : ig_ : iv_);
+
+  plot_->setSymbolPenBrush(penBrush, ic);
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
@@ -3329,8 +4030,8 @@ calcPointPenBrush(PenBrush &penBrush, bool updateState) const
 CQChartsXYImpulseLineObj::
 CQChartsXYImpulseLineObj(const Plot *plot, int groupInd, const BBox &rect,
                          double x, double y1, double y2, const QModelIndex &ind,
-                         const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
+                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv), plot_(plot),
  groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
   setModelInd(ind);
@@ -3354,12 +4055,35 @@ QString
 CQChartsXYImpulseLineObj::
 calcTipId() const
 {
+  const auto &range = plot()->getGroupRange(groupInd_);
+
+  double x  = plot()->unmapGroupX(range, groupInd_, this->x());
+  double y1 = plot()->unmapGroupY(range, this->y1());
+  double y2 = plot()->unmapGroupY(range, this->y2());
+
   auto name  = plot()->valueName(is_.i, is_.n, modelInd().row());
-  auto xstr  = plot()->xStr(x());
-  auto y1str = plot()->yStr(y1());
-  auto y2str = plot()->yStr(y2());
+  auto xstr  = plot()->xStr(x);
+  auto y1str = plot()->yStr(y1);
+  auto y2str = plot()->yStr(y2);
 
   CQChartsTableTip tableTip;
+
+  //---
+
+  // add group column (TODO: check group column)
+  if (ig_.n > 1) {
+    auto groupColumn = plot_->groupIndColumn();
+
+    if (! tableTip.hasColumn(groupColumn)) {
+      auto groupName = plot()->groupIndName(groupInd_);
+
+      tableTip.addTableRow("Group", groupName);
+
+      tableTip.addColumn(groupColumn);
+    }
+  }
+
+  //---
 
   if (name.length())
     tableTip.addTableRow("Name", name);
@@ -3400,7 +4124,7 @@ inside(const Point &p) const
 
   double b = 2;
 
-  double lw = std::max(plot()->lengthPixelWidth(plot()->impulseLinesWidth()), 2*b);
+  double lw = plot()->calcImpulsePixelWidth(b);
 
   BBox pbbox(p1.x - lw/2, p1.y - b, p2.x + lw/2, p2.y + b);
 
@@ -3437,15 +4161,25 @@ draw(PaintDevice *device) const
   //---
 
   // draw impulse
-  double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
+  double lw = plot()->calcImpulsePixelWidth(0);
 
-  bool isThinLine (lw <= 1.0);
+  bool isThinLine = (lw <= 1.0);
 
   auto p1 = Point(x(), y1());
   auto p2 = Point(x(), y2());
 
-  if (isThinLine) {
-    device->drawLine(p1, p2);
+  if (plot()->isImpulseLines() || isThinLine) {
+    if (isThinLine) {
+      device->drawLine(p1, p2);
+    }
+    else {
+      auto pp1 = plot()->windowToPixel(p1);
+      auto pp2 = plot()->windowToPixel(p2);
+
+      BBox pbbox(pp1.x - lw/2.0, pp1.y, pp1.x + lw/2.0, pp2.y);
+
+      CQChartsDrawUtil::drawRoundedRect(device, plot_->pixelToWindow(pbbox));
+    }
   }
   else {
     auto pp1 = plot()->windowToPixel(p1);
@@ -3461,19 +4195,27 @@ void
 CQChartsXYImpulseLineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto ic = (is_.n > 1 ? is_ : iv_);
+  auto ic = (is_.n <= 1 ? ig_.n <= 1 ? iv_ : ig_ : iv_);
 
-  double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
+  double lw = plot()->calcImpulsePixelWidth(0);
 
   bool isThinLine (lw <= 1.0);
 
-  if (isThinLine) {
-    plot()->setImpulseLineDataPen(penBrush.pen, ic);
+  if (plot()->isImpulseLines() || isThinLine) {
+    if (isThinLine) {
+      plot()->setImpulsePen(penBrush.pen, ic);
+    }
+    else {
+      auto strokeColor = plot()->interpImpulseStrokeColor(ic);
+
+      plot()->setPenBrush(penBrush, PenData(false), plot()->impulseBrushData(strokeColor));
+    }
   }
   else {
-    auto strokeColor = plot()->interpImpulseLinesColor(ic);
+    auto bc = plot_->interpImpulseStrokeColor(ic);
+    auto fc = plot_->interpImpulseFillColor  (ic);
 
-    plot()->setPenBrush(penBrush, PenData(false), plot()->impulseLineDataBrushData(strokeColor));
+    plot()->setPenBrush(penBrush, plot_->impulsePenData(bc), plot_->impulseBrushData(fc));
   }
 
   if (updateState)
@@ -3690,7 +4432,7 @@ calcTipId() const
     auto groupColumn = plot_->groupIndColumn();
 
     if (! tableTip.hasColumn(groupColumn)) {
-      auto groupName = plot()->groupIndName(ig_.i);
+      auto groupName = plot()->groupIndName(groupInd_);
 
       tableTip.addTableRow("Group", groupName);
 
@@ -3717,8 +4459,10 @@ calcTipId() const
   //---
 
   // add x, y columns
+  const auto &range = plot()->getGroupRange(groupInd_);
+
   if (! tableTip.hasColumn(plot()->xColumn())) {
-    double x = point().x;
+    double x = plot()->unmapGroupX(range, groupInd_, point().x);
 
     QString xstr;
 
@@ -3740,7 +4484,7 @@ calcTipId() const
   }
 
   if (! tableTip.hasColumn(plot()->yColumns().getColumn(0))) {
-    double y = point().y;
+    double y = plot()->unmapGroupY(range, point().y);
 
     auto ystr = plot()->yStr(y);
 
@@ -3832,7 +4576,7 @@ draw(PaintDevice *device) const
 
     double sx, sy;
 
-    calcSymbolPixelSize(sx, sy, /*square*/false, /*enforceMinSize*/false);
+    calcSymbolPixelSize(sx, sy, /*square*/true, /*enforceMinSize*/false);
 
     //---
 
@@ -3840,8 +4584,15 @@ draw(PaintDevice *device) const
     auto image = this->calcImage();
 
     if (! image.isValid()) {
-      if (symbol.isValid())
-        plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+      if (symbol.isValid()) {
+        if (plot_->isSplitGroups()) {
+          CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+          CQChartsDrawUtil::drawSymbol(device, symbol, rect(), /*scale*/false);
+        }
+        else
+          plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+      }
     }
     else {
       double aspect = (1.0*image.width())/image.height();
@@ -4434,11 +5185,12 @@ drawStatsLines(PaintDevice *device) const
   //---
 
   // draw lines
-  const auto &dataRange = plot()->dataRange();
+  auto dataXMin = plot()->drawRangeXMin(groupInd_, /*adjust*/true);
+  auto dataXMax = plot()->drawRangeXMax(groupInd_, /*adjust*/true);
 
   auto drawStatLine = [&](double y) {
-    Point p1(dataRange.xmin(), y);
-    Point p2(dataRange.xmax(), y);
+    Point p1(dataXMin, y);
+    Point p2(dataXMax, y);
 
     device->drawLine(p1, p2);
   };
@@ -4452,11 +5204,8 @@ drawStatsLines(PaintDevice *device) const
 
   //--
 
-  fillRect(BBox(dataRange.xmin(), statData_.loutlier,
-                dataRange.xmax(), statData_.uoutlier), 0.3);
-
-  fillRect(BBox(dataRange.xmin(), statData_.lowerMedian,
-                dataRange.xmax(), statData_.upperMedian));
+  fillRect(BBox(dataXMin, statData_.loutlier   , dataXMax, statData_.uoutlier   ), 0.3);
+  fillRect(BBox(dataXMin, statData_.lowerMedian, dataXMax, statData_.upperMedian), 1.0);
 
   //--
 
@@ -4901,7 +5650,7 @@ drawLine(PaintDevice *device, const BBox &rect) const
     device->fillRect(pbbox1);
   }
 
-  if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
+  if (plot()->isLines() || plot()->isBestFit() || plot()->calcImpulseVisible()) {
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
@@ -4926,8 +5675,8 @@ drawLine(PaintDevice *device, const BBox &rect) const
                   plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash()),
         BrushData(false));
     }
-    else {
-      plot()->setImpulseLineDataPen(linePenBrush.pen, ic_);
+    else if (plot()->calcImpulseVisible()) {
+      plot()->setImpulsePen(linePenBrush.pen, ic_);
 
       if (plot()->isSetHidden(ic_.i))
         linePenBrush.pen.setColor(
@@ -5225,7 +5974,7 @@ updateWidgets()
 
   if (fillUnderCheck_) fillUnderCheck_->setChecked(plot_->isFillUnderFilled());
   if (stackedCheck_  ) stackedCheck_  ->setChecked(plot_->isStacked());
-  if (impulseCheck_  ) impulseCheck_  ->setChecked(plot_->isImpulseLines());
+  if (impulseCheck_  ) impulseCheck_  ->setChecked(plot_->isImpulseVisible());
 
   if (bestFitCheck_      ) bestFitCheck_      ->setChecked(plot_->isBestFit());
   if (hullCheck_         ) hullCheck_         ->setChecked(plot_->isHull());
@@ -5275,7 +6024,7 @@ void
 CQChartsXYPlotCustomControls::
 impulseSlot(int state)
 {
-  plot_->setImpulseLines(state);
+  plot_->setImpulseVisible(state);
 }
 
 void

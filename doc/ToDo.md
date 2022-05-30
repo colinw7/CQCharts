@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + XY Plot
+   + Split Groups
+     + x margin (fixed/auto)
  + Force directed
    + Custom Controls for node/edge scaling (auto size ?)
    + placement uses node size (min edge length)

@@ -1407,3 +1407,5 @@
  + improve non-float tip update and allow delay to be set
 # 5/15/2022
  + add more proxy model support to model data and add edit interface
+# 5/30/2022
+ + add split (side by side) support for xy plot groups

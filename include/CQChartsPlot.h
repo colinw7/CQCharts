@@ -344,13 +344,20 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_ENUMS(ColorType)
 
  public:
-  enum ColorType {
+  enum class ColorType {
     AUTO    = int(CQChartsColorType::AUTO),
     SET     = int(CQChartsColorType::SET),
     GROUP   = int(CQChartsColorType::GROUP),
     INDEX   = int(CQChartsColorType::INDEX),
     X_VALUE = int(CQChartsColorType::X_VALUE),
     Y_VALUE = int(CQChartsColorType::Y_VALUE)
+  };
+
+  enum class DrawRegion {
+    PLOT,
+    FIT,
+    DATA,
+    CLIP
   };
 
   using Plot = CQChartsPlot;
@@ -2674,8 +2681,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void drawBackgroundRects(PaintDevice *device) const;
 
-  virtual void drawBackgroundSides(PaintDevice *device, const BBox &bbox,
-                                   const Sides &sides) const;
+  virtual void drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion,
+                                  const BBox &rect, const BrushData &brushData,
+                                  const PenData &penData, const Sides &sides) const;
+
+  virtual void drawBackgroundSides(PaintDevice *device, const DrawRegion &drawRegion,
+                                   const BBox &bbox, const Sides &sides) const;
 
   // draw custom background
   virtual bool hasBackground() const;

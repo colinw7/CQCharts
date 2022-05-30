@@ -510,10 +510,9 @@ void
 CQChartsPolygonEdit::
 updatePointEdits()
 {
-  int n  = numPoints();
-  int ne = int(pointEdits_.size());
+  auto n = size_t(numPoints());
 
-  while (ne < n) {
+  CQChartsUtil::makeArraySize(pointEdits_, n, [&]() {
     auto *edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");
 
     edit->setPlot(plot_);
@@ -522,18 +521,8 @@ updatePointEdits()
 
     qobject_cast<QVBoxLayout *>(pointsFrame_->layout())->addWidget(edit);
 
-    pointEdits_.push_back(edit);
-
-    ++ne;
-  }
-
-  while (ne > n) {
-    delete pointEdits_.back();
-
-    pointEdits_.pop_back();
-
-    --ne;
-  }
+    return edit;
+  } );
 }
 
 int

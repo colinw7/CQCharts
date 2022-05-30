@@ -1566,7 +1566,7 @@ createTableObjData() const
       return State::OK;
     }
 
-    // post hier row
+    // post process hier row
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
       expanded_ = expandStack_.back();
 

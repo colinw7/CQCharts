@@ -2530,7 +2530,7 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
       textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
 
       // set text options
-      textData.textOptions = nodeTextOptions(device);
+      textData.textOptions = edgeTextOptions(device);
 
       textData.textOptions.angle = Angle();
       textData.textOptions.align = Qt::AlignCenter;

@@ -4686,21 +4686,15 @@ updateSeparators()
         return;
       }
 
-      while (int(separators_.size()) < np - 1) {
+      CQChartsUtil::makeArraySize(separators_, size_t(np - 1), [&]() {
         auto *sep = new CQChartsSplitter(this, Qt::Vertical);
 
         sep->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
         sep->setObjectName(QString("splitter.%1").arg(separators_.size() + 1));
 
-        separators_.push_back(sep);
-      }
-
-      while (int(separators_.size()) > np - 1) {
-        delete separators_.back();
-
-        separators_.pop_back();
-      }
+        return sep;
+      } );
 
       separatorsInvalid_ = false;
     }

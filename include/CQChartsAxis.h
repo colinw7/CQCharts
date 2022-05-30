@@ -117,6 +117,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(bool gridMid   READ isGridMid   WRITE setGridMid  )
   Q_PROPERTY(bool gridAbove READ isGridAbove WRITE setGridAbove)
 
+  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
+
+  //---
+
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMajorGrid, axesMajorGrid)
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid, axesMinorGrid)
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid, axesGrid)
@@ -593,6 +597,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   void selectionChanged();
 
   void appearanceChanged();
+
+  void includeZeroChanged();
 
  private:
   void init();

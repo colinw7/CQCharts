@@ -422,6 +422,10 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addStyleProp(gridMajorFillPath, "axesGridFillColor"  , "color"  , "Axis grid fill color");
   addStyleProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
   addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern", "Axis grid fill pattern");
+
+  //---
+
+  addProp(path, "column", "column", "Assiciated column");
 }
 
 //---
@@ -875,7 +879,11 @@ void
 CQChartsAxis::
 setIncludeZero(bool b)
 {
-  CQChartsUtil::testAndSet(includeZero_, b, [&]() { updatePlotRange(); } );
+  CQChartsUtil::testAndSet(includeZero_, b, [&]() {
+    updatePlotRange();
+
+    emit includeZeroChanged();
+  } );
 }
 
 //---

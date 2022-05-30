@@ -114,9 +114,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   enum class EdgeShape {
     NONE        = int(CQChartsEdgeType::NONE),
-    ARC         = int(CQChartsEdgeType::ARC),
+    LINE        = int(CQChartsEdgeType::LINE),
     RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
-    LINE        = int(CQChartsEdgeType::LINE)
+    ARC         = int(CQChartsEdgeType::ARC)
   };
 
   using Length    = CQChartsLength;
@@ -217,6 +217,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set node value label
   bool isNodeValueLabel() const { return nodeDrawData_.valueLabel; }
   void setNodeValueLabel(bool b);
+
   //---
 
   //! get/set edge shape

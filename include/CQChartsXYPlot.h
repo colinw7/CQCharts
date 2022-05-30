@@ -67,7 +67,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
  public:
   CQChartsXYBiLineObj(const Plot *plot, int groupInd, const BBox &rect,
                       double x, double y1, double y2, const QModelIndex &ind,
-                      const ColorInd &is, const ColorInd &iv);
+                      const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   //---
 
@@ -125,9 +125,10 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(double x  READ x  WRITE setX )
-  Q_PROPERTY(double y1 READ y1 WRITE setY1)
-  Q_PROPERTY(double y2 READ y2 WRITE setY2)
+  Q_PROPERTY(bool   line READ isLine WRITE setLine)
+  Q_PROPERTY(double x    READ x      WRITE setX   )
+  Q_PROPERTY(double y1   READ y1     WRITE setY1  )
+  Q_PROPERTY(double y2   READ y2     WRITE setY2  )
 
  public:
   using Plot = CQChartsXYPlot;
@@ -135,11 +136,16 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
  public:
   CQChartsXYImpulseLineObj(const Plot *plot, int groupInd, const BBox &rect,
                            double x, double y1, double y2, const QModelIndex &ind,
-                           const ColorInd &is, const ColorInd &iv);
+                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   //---
 
   const Plot *plot() const { return plot_; }
+
+  //---
+
+  bool isLine() const { return line_; }
+  void setLine(bool b) { line_ = b; }
 
   double x() const { return x_; }
   void setX(double r) { x_ = r; }
@@ -173,6 +179,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
   int         groupInd_ { -1 };      //!< group ind
+  bool        line_     { true };    //!< is line
   double      x_        { 0.0 };     //!< x
   double      y1_       { 0.0 };     //!< start y
   double      y2_       { 0.0 };     //!< end y
@@ -656,7 +663,7 @@ class CQChartsXYInvalidator : public CQChartsInvalidator {
 
 //---
 
-CQCHARTS_NAMED_LINE_DATA(Impulse, impulse)
+CQCHARTS_NAMED_SHAPE_DATA(Impulse, impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate, bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder, fillUnder)
 CQCHARTS_NAMED_LINE_DATA(MovingAverage, movingAverage)
@@ -674,7 +681,7 @@ CQCHARTS_NAMED_LINE_DATA(MovingAverage, movingAverage)
 class CQChartsXYPlot : public CQChartsPointPlot,
  public CQChartsObjLineData             <CQChartsXYPlot>,
  public CQChartsObjPointData            <CQChartsXYPlot>,
- public CQChartsObjImpulseLineData      <CQChartsXYPlot>,
+ public CQChartsObjImpulseShapeData     <CQChartsXYPlot>,
  public CQChartsObjBivariateLineData    <CQChartsXYPlot>,
  public CQChartsObjFillUnderFillData    <CQChartsXYPlot>,
  public CQChartsObjMovingAverageLineData<CQChartsXYPlot> {
@@ -704,7 +711,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool vectors READ isVectors WRITE setVectors)
 
   // impulse line data
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse, impulse)
+  Q_PROPERTY(bool           impulseVisible READ isImpulseVisible WRITE setImpulseVisible)
+  Q_PROPERTY(bool           impulseLines   READ isImpulseLines   WRITE setImpulseLines  )
+  Q_PROPERTY(CQChartsLength impulseWidth   READ impulseWidth     WRITE setImpulseWidth  )
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Impulse, impulse)
 
   // horizon
   Q_PROPERTY(int layers READ layers WRITE setLayers)
@@ -729,6 +740,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(int  numMovingAverage READ numMovingAverage WRITE setNumMovingAverage)
 
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(MovingAverage, movingAverage)
+
+  // split grouping
+  Q_PROPERTY(bool   splitGroups  READ isSplitGroups  WRITE setSplitGroups )
+  Q_PROPERTY(bool   splitSharedY READ isSplitSharedY WRITE setSplitSharedY)
+  Q_PROPERTY(double splitMargin  READ splitMargin    WRITE setSplitMargin )
 
   // key
   Q_PROPERTY(bool keyLine READ isKeyLine WRITE setKeyLine)
@@ -770,6 +786,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using Symbol      = CQChartsSymbol;
   using SymbolType  = CQChartsSymbolType;
   using TextOptions = CQChartsTextOptions;
+  using BrushData   = CQChartsBrushData;
+  using PenData     = CQChartsPenData;
 
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
@@ -869,6 +887,17 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  bool isSplitGroups() const { return splitGroupData_.enabled; }
+  void setSplitGroups(bool b);
+
+  bool isSplitSharedY() const { return splitGroupData_.sharedY; }
+  void setSplitSharedY(bool b);
+
+  double splitMargin() const { return splitGroupData_.margin; }
+  void setSplitMargin(double r);
+
+  //---
+
   // draw line on key
   bool isKeyLine() const { return keyLine_; }
   void setKeyLine(bool b);
@@ -908,6 +937,22 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  // impulse
+  bool calcImpulseVisible() const;
+
+  bool isImpulseVisible() const { return impulseData_.visible; }
+  void setImpulseVisible(bool b);
+
+  bool isImpulseLines() const { return impulseData_.lines; }
+  void setImpulseLines(bool b);
+
+  const Length &impulseWidth() const { return impulseData_.width; }
+  void setImpulseWidth(const Length &l);
+
+  double calcImpulsePixelWidth(double b=2.0) const;
+
+  //---
+
   // get/set number of horizon layers
   int layers() const { return layers_; }
   void setLayers(int i);
@@ -939,6 +984,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  bool isGroupHidden(int groupInd) const;
+
+  int numVisibleGroups() const;
+
+  int mapVisibleGroup(int groupInd) const;
+
+  //---
+
   bool headerSeriesData(std::vector<double> &x) const;
 
   bool rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &yv,
@@ -955,21 +1008,43 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  Point   adjustGroupPoint(int groupInd, const Point   &p   ) const;
+  BBox    adjustGroupBBox (int groupInd, const BBox    &bbox) const;
+  Polygon adjustGroupPoly (int groupInd, const Polygon &poly) const;
+
+  const Range &getGroupRange(int groupInd) const;
+
+  double mapGroupX(const Range &range, int groupInd, double x) const;
+  double mapGroupY(const Range &range, double y) const;
+
+  double unmapGroupX(const Range &range, int groupInd, double x) const;
+  double unmapGroupY(const Range &range, double y) const;
+
+  double drawRangeXMin(int groupInd, bool adjust=false) const;
+  double drawRangeXMax(int groupInd, bool adjust=false) const;
+
+  double drawRangeYMin(int groupInd) const;
+  double drawRangeYMax(int groupInd) const;
+
+  //---
+
   virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
                                    const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
-  virtual BiLineObj *createBiLineObj(int groupInd, const BBox &rect, double x, double y1,
-                                     double y2, const QModelIndex &ind, const ColorInd &is,
-                                     const ColorInd &iv) const;
+  virtual BiLineObj *createBiLineObj(int groupInd, const BBox &rect,
+                                     const Point &p1, const Point &p2,
+                                     const QModelIndex &ind, const ColorInd &is,
+                                     const ColorInd &ig, const ColorInd &iv) const;
 
-  virtual LabelObj *createLabelObj(int groupInd, const BBox &rect, double x, double y,
+  virtual LabelObj *createLabelObj(int groupInd, const BBox &rect, const Point &p,
                                    const QString &label, const QModelIndex &ind,
                                    const ColorInd &is, const ColorInd &iv) const;
 
-  virtual ImpulseLineObj *createImpulseLineObj(int groupInd, const BBox &rect, double x,
-                                               double y1, double y2, const QModelIndex &ind,
-                                               const ColorInd &is, const ColorInd &iv) const;
+  virtual ImpulseLineObj *createImpulseLineObj(int groupInd, const BBox &rect,
+                                               const Point &p1, const Point &p2,
+                                               const QModelIndex &ind, const ColorInd &is,
+                                               const ColorInd &ig, const ColorInd &iv) const;
 
   virtual PolylineObj *createPolylineObj(int groupInd, const BBox &rect, const Polygon &poly,
                                          const QString &name, const ColorInd &is,
@@ -1013,7 +1088,27 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  QString posStr(const Point &w) const override;
+
+  //---
+
   bool addMenuItems(QMenu *menu) override;
+
+  //---
+
+  BBox axesFitBBox() const override;
+
+  bool hasFgAxes() const override;
+
+  void drawFgAxes(PaintDevice *device) const override;
+
+  //---
+
+  void drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion,
+                          const BBox &rect, const BrushData &brushData,
+                          const PenData &penData, const Sides &sides) const override;
+
+  //---
 
   BBox calcExtraFitBBox() const override;
 
@@ -1094,7 +1189,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void setCumulative(bool b);
 
   //! set impulse
-  void setImpulseLinesSlot(bool b);
+  void setImpulseVisibleSlot(bool b);
 
   //! set vectors
   void setVectors(bool b);
@@ -1104,6 +1199,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //! set draw moving average
   void setMovingAverage(bool b);
+
+ private slots:
+  void yAxisIncludeZeroSlot();
 
  private:
   struct IndPoly {
@@ -1117,7 +1215,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using GroupSetIndPoly = std::map<int, SetIndPoly>;
 
  private:
-  void initAxes();
+  void updateAxes();
 
   void createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const;
   bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const;
@@ -1127,7 +1225,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool addLines(int groupInd, const SetIndPoly &setPoly,
                 const ColorInd &ig, PlotObjs &objs) const;
 
-  Point calcFillUnderPos(double x, double y) const;
+  Point calcFillUnderPos(int groupInd, double x, double y) const;
 
   int numSets() const;
 
@@ -1135,8 +1233,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using Arrow  = CQChartsArrow;
-  using ArrowP = std::unique_ptr<CQChartsArrow>;
+  using Arrow      = CQChartsArrow;
+  using ArrowP     = std::unique_ptr<CQChartsArrow>;
+  using GroupRange = std::map<int, Range>;
 
   // columns
   Column  xColumn_;       //!< x column
@@ -1174,6 +1273,15 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   MovingAverageData movingAverageData_; //!< moving average data
 
+  // split groups
+  struct SplitGroupData {
+    bool   enabled { false }; //!< enabled
+    bool   sharedY { true };  //!< shared y
+    double margin  { 0.05 };  //!< margin
+  };
+
+  SplitGroupData splitGroupData_; //!< split group data
+
   // key
   bool keyLine_ { false }; //!< draw line on key
 
@@ -1182,6 +1290,15 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // vector data
   ArrowP arrowObj_; //!< vectors data
+
+  // impulse
+  struct ImpulseData {
+    bool   visible { false };  //!< impulse visible
+    bool   lines   { true };   //!< impulse lines
+    Length width   { "16px" }; //!< impulse width
+  };
+
+  ImpulseData impulseData_;
 
   // horizon layers
   int    layers_     { -1 };  //!< nummber of horizon layers
@@ -1200,7 +1317,17 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   mutable int maxNumPoints_ { 0 };
 
+  // invalidator
   CQChartsXYInvalidator xyInvalidator_;
+
+  // combined and group ranges
+  Range      range_;
+  GroupRange groupRange_;
+
+  using Axes = std::vector<CQChartsAxis *>;
+
+  Axes xaxes_;
+  Axes yaxes_;
 };
 
 //---

@@ -418,6 +418,21 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
   }
 }
 
+template<typename T, typename MAKER>
+void makeArraySize(std::vector<T *> &array, size_t n, MAKER &&maker) {
+  while (array.size() < n) {
+    auto *item = maker();
+
+    array.push_back(item);
+  }
+
+  while (array.size() > n) {
+    delete array.back();
+
+    array.pop_back();
+  }
+}
+
 }
 
 //------

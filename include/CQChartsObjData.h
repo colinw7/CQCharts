@@ -1655,6 +1655,14 @@ class CQChartsObj##UNAME##ShapeData { \
     return PenData(is##UNAME##Stroked(), c, strokeAlpha, strokeWidth, strokeDash); \
   } \
 \
+  void set##UNAME##Pen(QPen &pen, const ColorInd &ind) const { \
+    QColor lc = interp##UNAME##StrokeColor(ind); \
+\
+    PenBrush penBrush; \
+    LNAME##ShapeDataObj_->setPen(penBrush, LNAME##PenData(lc)); \
+    pen = penBrush.pen; \
+  } \
+\
   BrushData LNAME##BrushData(const ColorInd &colorInd) const { \
     return BrushData(is##UNAME##Filled(), interp##UNAME##FillColor(colorInd), \
                      LNAME##FillAlpha(), LNAME##FillPattern()); \
