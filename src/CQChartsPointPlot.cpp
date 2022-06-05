@@ -298,6 +298,15 @@ addStatsProperties()
 
 void
 CQChartsPointPlot::
+addSplitGroupsProperties()
+{
+  addProp("dataGrouping/splitGroups", "splitGroups" , "enabled", "Split data groups enabled");
+  addProp("dataGrouping/splitGroups", "splitSharedY", "sharedY", "Split groups share Y range");
+  addProp("dataGrouping/splitGroups", "splitMargin" , "margin" , "Split x gap size");
+}
+
+void
+CQChartsPointPlot::
 addRugProperties(const QString &path)
 {
   xRug_->addProperties(path + "/rug/x", "X Rug");
@@ -980,6 +989,157 @@ setStatsLines(bool b)
   CQChartsUtil::testAndSet(statsLines_, b, [&]() {
     updateObjs(); emit customDataChanged();
   } );
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setSplitGroups(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setSplitSharedY(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.sharedY, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setSplitMargin(double r)
+{
+  CQChartsUtil::testAndSet(splitGroupData_.margin, r, [&]() { updateRangeAndObjs(); } );
+}
+
+CQChartsGeom::Point
+CQChartsPointPlot::
+adjustGroupPoint(int groupInd, const Point &p) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double x = mapGroupX(range, groupInd, p.x);
+    double y = mapGroupY(range, p.y);
+
+    return Point(x, y);
+  }
+
+  return p;
+}
+
+CQChartsGeom::BBox
+CQChartsPointPlot::
+adjustGroupBBox(int groupInd, const BBox &bbox) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    double x1 = mapGroupX(range, groupInd, bbox.getXMin());
+    double y1 = mapGroupY(range, bbox.getYMin());
+    double x2 = mapGroupX(range, groupInd, bbox.getXMax());
+    double y2 = mapGroupY(range, bbox.getYMax());
+
+    return BBox(x1, y1, x2, y2);
+  }
+
+  return bbox;
+}
+
+CQChartsGeom::Polygon
+CQChartsPointPlot::
+adjustGroupPoly(int groupInd, const Polygon &poly) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    Polygon gpoly = poly;
+
+    for (int i = 0; i < poly.size(); ++i) {
+      const auto &p = poly.point(i);
+
+      double x = mapGroupX(range, groupInd, p.x);
+      double y = mapGroupY(range, p.y);
+
+      gpoly.setPoint(i, Point(x, y));
+    }
+
+    return gpoly;
+  }
+
+  return poly;
+}
+
+const CQChartsGeom::Range &
+CQChartsPointPlot::
+getGroupRange(int groupInd) const
+{
+  auto pg = groupRange_.find(groupInd);
+  assert(pg != groupRange_.end());
+
+  return (*pg).second;
+}
+
+double
+CQChartsPointPlot::
+mapGroupX(const Range &range, int groupInd, double x) const
+{
+  int ng = numVisibleGroups();
+  int ig = mapVisibleGroup(groupInd);
+
+  auto sm = splitMargin();
+
+  double xmin = (ig >      0 ? ig + sm       : ig    );
+  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
+
+  return CMathUtil::map(x, range.xmin(), range.xmax(), xmin, xmax);
+}
+
+double
+CQChartsPointPlot::
+mapGroupY(const Range &range, double y) const
+{
+  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
+  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
+
+  auto *masterYAxis = yAxis();
+
+  if (masterYAxis->isIncludeZero())
+    ymin = std::min(ymin, 0.0);
+
+  return CMathUtil::map(y, ymin, ymax, 0.0, 1.0);
+}
+
+double
+CQChartsPointPlot::
+unmapGroupX(const Range &range, int groupInd, double x) const
+{
+  int ng = numVisibleGroups();
+  int ig = mapVisibleGroup(groupInd);
+
+  auto sm = splitMargin();
+
+  double xmin = (ig >      0 ? ig + sm       : ig    );
+  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
+
+  return CMathUtil::map(x, xmin, xmax, range.xmin(), range.xmax());
+}
+
+double
+CQChartsPointPlot::
+unmapGroupY(const Range &range, double y) const
+{
+  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
+  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
+
+  auto *masterYAxis = yAxis();
+
+  if (masterYAxis->isIncludeZero())
+    ymin = std::min(ymin, 0.0);
+
+  return CMathUtil::map(y, 0.0, 1.0, ymin, ymax);
 }
 
 //---

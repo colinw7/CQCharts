@@ -3,12 +3,18 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsBoxWhisker.h>
+#include <CQChartsRand.h>
+
 #include <CQUtil.h>
+
 #include <cassert>
 
 CQChartsDensity::
 CQChartsDensity()
 {
+  std::random_device rd;
+
+  seed_ = static_cast<long>(rd());
 }
 
 void
@@ -327,13 +333,14 @@ eval(double x) const
 
 void
 CQChartsDensity::
-draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect, bool scaled)
+draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect,
+     const DrawData &drawData)
 {
   constInit();
 
   BBox rect1;
 
-  if (! scaled) {
+  if (! drawData.scaled) {
     if (isHorizontal())
       rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
     else
@@ -347,16 +354,20 @@ draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect, bool scale
   CQChartsWhiskerOpts opts;
   CQChartsSymbolData  symbolData;
 
+  if (drawType() == DrawType::VIOLIN)
+    opts.violin = true;
+
   double mean = avg_;
 
   switch (drawType()) {
     case DrawType::WHISKER:
-      drawWhisker(device, rect1, orientation(), scaled);
+      drawWhisker(device, rect1, orientation(), drawData.scaled);
       break;
     case DrawType::WHISKER_BAR:
-      drawWhiskerBar(device, rect1, orientation(), scaled);
+      drawWhiskerBar(device, rect1, orientation(), drawData.scaled);
       break;
     case DrawType::DISTRIBUTION:
+    case DrawType::VIOLIN:
       drawDistribution(plot, device, rect1, orientation(), opts);
       break;
     case DrawType::CROSS_BAR:
@@ -367,6 +378,9 @@ draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect, bool scale
       break;
     case DrawType::ERROR_BAR:
       drawErrorBar(device, rect1, mean, orientation(), symbolData);
+      break;
+    case DrawType::SCATTER:
+      drawScatter(device, rect1, nx_, seed_, orientation());
       break;
     default:
       break;
@@ -553,19 +567,22 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
 
   Point p1, p2;
 
-  double x0, xn;
+  double x0 { 0.0 }, xn { 0.0 };
+  double y0 { 0.0 }, yn { 0.0 };
 
-  if (opts.fitTail) {
-    x0 = (opoints[0     ].x - xmin1)*vxs;
-    xn = (opoints[no - 1].x - xmin1)*vxs;
-  }
-  else {
-    x0 = (opoints[0     ].x - xmin )*vxs;
-    xn = (opoints[no - 1].x - xmin )*vxs;
-  }
+  if (no > 0) {
+    if (opts.fitTail) {
+      x0 = (opoints[0     ].x - xmin1)*vxs;
+      xn = (opoints[no - 1].x - xmin1)*vxs;
+    }
+    else {
+      x0 = (opoints[0     ].x - xmin )*vxs;
+      xn = (opoints[no - 1].x - xmin )*vxs;
+    }
 
-  double y0 = (opoints[0     ].y - ymin1)*vys;
-  double yn = (opoints[no - 1].y - ymin1)*vys;
+    y0 = (opoints[0     ].y - ymin1)*vys;
+    yn = (opoints[no - 1].y - ymin1)*vys;
+  }
 
   if (orientation != Qt::Horizontal) {
     if (bottomLeft) {
@@ -878,4 +895,61 @@ drawLineRange(PaintDevice *device, const BBox &rect, const Qt::Orientation &orie
     device->drawLine(Point(p1.x, p1.y), Point(p1.x, p2.y)); // vline
   else
     device->drawLine(Point(p1.x, p1.y), Point(p2.x, p1.y)); // hline
+}
+
+void
+CQChartsDensity::
+drawScatter(PaintDevice *device, const BBox &rect, int n,
+            long seed, const Qt::Orientation & /*orientation*/)
+{
+  double scatterFactor = 1.0;
+  double scatterMargin = 0.05;
+
+  // get factored number of points
+  int nf = CMathUtil::clamp(int(n*scatterFactor), 1, n);
+
+  // generate random points in box (0.0->1.0) with margin
+  double m = std::min(std::max(scatterMargin, 0.0), 1.0);
+
+  Points scatterPoints;
+
+  scatterPoints.resize(size_t(nf));
+
+  if (seed >= 0) {
+    CQChartsRand::RealInRange rand(static_cast<unsigned long>(seed), m, 1.0 - m);
+
+    for (int i = 0; i < nf; ++i)
+      scatterPoints[size_t(i)] = Point(rand.gen(), rand.gen());
+  }
+  else {
+    CQChartsRand::RealInRange rand(m, 1.0 - m);
+
+    for (int i = 0; i < nf; ++i)
+      scatterPoints[size_t(i)] = Point(rand.gen(), rand.gen());
+  }
+
+  //---
+
+  auto prect = device->windowToPixel(rect);
+
+  //---
+
+  auto symbol     = CQChartsSymbol::circle();
+  auto symbolSize = Length::pixel(6);
+
+  auto pll = prect.getLL    ();
+  auto pw  = prect.getWidth ();
+  auto ph  = prect.getHeight();
+
+  // points in range (m, 1 - m) where 'm' is margin (< 1)
+  for (const auto &point : scatterPoints) {
+    double px = CMathUtil::map(point.x, 0.0, 1.0, 0.0, pw);
+    double py = CMathUtil::map(point.y, 0.0, 1.0, 0.0, ph);
+
+    Point p(pll.x + px, pll.y + py);
+
+    auto p1 = device->pixelToWindow(p);
+
+    CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
+  }
 }

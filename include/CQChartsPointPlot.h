@@ -196,6 +196,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Stats, stats)
 
+  // split grouping
+  Q_PROPERTY(bool   splitGroups  READ isSplitGroups  WRITE setSplitGroups )
+  Q_PROPERTY(bool   splitSharedY READ isSplitSharedY WRITE setSplitSharedY)
+  Q_PROPERTY(double splitMargin  READ splitMargin    WRITE setSplitMargin )
+
   // axis rug
   Q_PROPERTY(bool                  xRug     READ isXRug   WRITE setXRug    )
   Q_PROPERTY(CQChartsAxisRug::Side xRugSide READ xRugSide WRITE setXRugSide)
@@ -432,6 +437,35 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  // split groups
+  bool isSplitGroups() const { return splitGroupData_.enabled; }
+  void setSplitGroups(bool b);
+
+  bool isSplitSharedY() const { return splitGroupData_.sharedY; }
+  void setSplitSharedY(bool b);
+
+  double splitMargin() const { return splitGroupData_.margin; }
+  void setSplitMargin(double r);
+
+  Point   adjustGroupPoint(int groupInd, const Point   &p   ) const;
+  BBox    adjustGroupBBox (int groupInd, const BBox    &bbox) const;
+  Polygon adjustGroupPoly (int groupInd, const Polygon &poly) const;
+
+  const Range &getGroupRange(int groupInd) const;
+
+  double mapGroupX(const Range &range, int groupInd, double x) const;
+  double mapGroupY(const Range &range, double y) const;
+
+  double unmapGroupX(const Range &range, int groupInd, double x) const;
+  double unmapGroupY(const Range &range, double y) const;
+
+  virtual int numVisibleGroups() const = 0;
+
+  virtual int mapVisibleGroup(int groupInd) const = 0;
+  virtual int unmapVisibleGroup(int groupInd) const = 0;
+
+  //---
+
   // axis x rug
   bool isXRug() const;
 
@@ -482,6 +516,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void addHullProperties   (bool hasLayer);
 
   void addStatsProperties();
+  void addSplitGroupsProperties();
   void addRugProperties(const QString &path);
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
@@ -679,6 +714,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using RugP             = std::unique_ptr<CQChartsAxisRug>;
   using SymbolSizeFilter = std::set<Length>;
   using SymbolTypeFilter = std::set<Symbol>;
+  using GroupRange       = std::map<int, Range>;
 
   // label data
   DataLabelP dataLabel_;                               //!< data label style
@@ -705,6 +741,15 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   HullData    hullData_;             //!< hull data
   bool        statsLines_ { false }; //!< stats lines data
 
+  // split groups
+  struct SplitGroupData {
+    bool   enabled { false }; //!< enabled
+    bool   sharedY { true };  //!< shared y
+    double margin  { 0.05 };  //!< margin
+  };
+
+  SplitGroupData splitGroupData_; //!< split group data
+
   // group data
   GroupPoints     groupPoints_;     //!< group fit points
   GroupStatData   groupStatData_;   //!< group stat data
@@ -720,6 +765,15 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Length minLabelSize_;  //!< min label size
 
   mutable CQChartsTextPlacer *placer_;
+
+  // combined and group ranges
+  Range      range_;
+  GroupRange groupRange_;
+
+  using Axes = std::vector<CQChartsAxis *>;
+
+  Axes xaxes_;
+  Axes yaxes_;
 };
 
 #endif

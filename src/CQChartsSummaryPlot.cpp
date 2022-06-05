@@ -1726,7 +1726,11 @@ drawDensity(PaintDevice *device) const
 
   device->setClipRect(bbox);
 
-  density.draw(plot_, device, bbox, /*scaled*/true);
+  CQChartsDensity::DrawData drawData;
+
+  drawData.scaled = true;
+
+  density.draw(plot_, device, bbox, drawData);
 
   device->restore();
 }

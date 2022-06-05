@@ -595,6 +595,10 @@ addProperties()
 
   //---
 
+  addSplitGroupsProperties();
+
+  //---
+
   // best fit line and deviation fill
   addBestFitProperties(/*hasLayer*/true);
 
@@ -795,6 +799,10 @@ calcRange() const
       hasGroups_ = (plot_->numGroups() > 1);
     }
 
+    bool calcGroupHidden(int groupInd) const {
+      return (hasGroups_ && plot_->isSetHidden(groupInd));
+    }
+
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       if (plot_->isInterrupt())
         return State::TERMINATE;
@@ -805,7 +813,12 @@ calcRange() const
       // init group
       int groupInd = plot_->rowGroupInd(xModelInd);
 
-      bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
+      auto updateRange = [&](double x, double y) {
+        range_               .updateRange(x, y);
+        groupRange_[groupInd].updateRange(x, y);
+      };
+
+      bool hidden = calcGroupHidden(groupInd);
 
       if (! hidden) {
         double x   { 0.0  }, y   { 0.0  };
@@ -853,7 +866,7 @@ calcRange() const
         if (skipBad)
           return State::SKIP;
 
-        range_.updateRange(x, y);
+        updateRange(x, y);
       }
 
       return State::OK;
@@ -884,6 +897,8 @@ calcRange() const
 
     const Range &range() const { return range_; }
 
+    const GroupRange &groupRange() const { return groupRange_; }
+
     bool isUniqueX() const { return numUniqueX_ == numRows(); }
     bool isUniqueY() const { return numUniqueY_ == numRows(); }
 
@@ -891,6 +906,7 @@ calcRange() const
     const CQChartsScatterPlot* plot_       { nullptr };
     int                        hasGroups_  { false };
     Range                      range_;
+    GroupRange                 groupRange_;
     CQChartsModelDetails*      details_    { nullptr };
     int                        numUniqueX_ { 0 };
     int                        numUniqueY_ { 0 };
@@ -900,27 +916,26 @@ calcRange() const
 
   visitModel(visitor);
 
-  auto dataRange = visitor.range();
+  //---
+
+  Range dataRange;
+
+  if (isSplitGroups()) {
+    int ng = numVisibleGroups();
+
+    dataRange = Range(0.0, 0.0, ng, 1.0);
+
+    th->range_      = visitor.range();
+    th->groupRange_ = visitor.groupRange();
+  }
+  else {
+    dataRange = visitor.range();
+  }
 
   //---
 
   th->uniqueX_ = visitor.isUniqueX();
   th->uniqueY_ = visitor.isUniqueY();
-
-  //---
-
-#if 0
-  if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet()) {
-    dataRange = Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
-  }
-#endif
-
-  //---
-
-#if 0
-  if (isInterrupt())
-    return dataRange;
-#endif
 
   //---
 
@@ -940,8 +955,6 @@ calcRange() const
   }
 
   //---
-
-  //dataRange = adjustDataRange(dataRange);
 
   // update data range if unset
   dataRange.makeNonZero();
@@ -968,7 +981,7 @@ void
 CQChartsScatterPlot::
 postCalcRange()
 {
-  initAxes();
+  updateAxes();
 }
 
 void
@@ -987,7 +1000,7 @@ initGridData(const Range &dataRange)
 
 void
 CQChartsScatterPlot::
-initAxes()
+updateAxes()
 {
   setXValueColumn(xColumn());
   setYValueColumn(yColumn());
@@ -998,7 +1011,14 @@ initAxes()
   //---
 
   // set x axis column
-  xAxis()->setColumn(xColumn());
+  Column xAxisColumn = xColumn();
+
+  if (! isSplitGroups()) {
+    xAxis()->setColumn(xAxisColumn);
+  }
+  else {
+    xAxis()->setColumn(Column());
+  }
 
   //---
 
@@ -1009,7 +1029,7 @@ initAxes()
 
   if (isOverlay()) {
     if (isFirstPlot() || isX1X2())
-       xAxis()->setDefLabel(xname, /*notify*/false);
+      xAxis()->setDefLabel(xname, /*notify*/false);
   }
   else {
     xAxis()->setDefLabel(xname, /*notify*/false);
@@ -1017,18 +1037,24 @@ initAxes()
 
   //--
 
-  auto xType = xAxis()->valueType().type();
+  if (! isSplitGroups()) {
+    auto xType = xAxis()->valueType().type();
 
-  if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
-    xType = CQChartsAxisValueType::Type::REAL;
+    if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
+      xType = CQChartsAxisValueType::Type::REAL;
 
-  if (isLogX   ()) xType = CQChartsAxisValueType::Type::LOG;
-  if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
+    if (isLogX   ()) xType = CQChartsAxisValueType::Type::LOG;
+    if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
 
-  if (xColumnType_ == ColumnType::TIME)
-    xType = CQChartsAxisValueType::Type::DATE;
+    if (xColumnType_ == ColumnType::TIME)
+      xType = CQChartsAxisValueType::Type::DATE;
 
-  xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
+  }
+  else {
+    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                          /*notify*/false);
+  }
 
   //---
 
@@ -1073,24 +1099,128 @@ initAxes()
 
   //---
 
+  // set x axis labels
   xAxis()->clearTickLabels();
 
-  if (isUniqueX()) {
-    auto *columnDetails = this->columnDetails(xColumn());
+  if (! isSplitGroups()) {
+    if (isUniqueX()) {
+      auto *columnDetails = this->columnDetails(xColumn());
 
-    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+        xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+    }
   }
 
   //---
 
   yAxis()->clearTickLabels();
 
-  if (isUniqueY()) {
-    auto *columnDetails = this->columnDetails(yColumn());
+  if (! isSplitGroups()) {
+    if (isUniqueY()) {
+      auto *columnDetails = this->columnDetails(yColumn());
 
-    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-      yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+        yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+    }
+  }
+
+  //---
+
+  auto numXAxes = size_t(isSplitGroups() ? numVisibleGroups() : 0);
+
+  CQChartsUtil::makeArraySize(xaxes_, numXAxes, [&]() {
+    auto *axis = new CQChartsAxis(this, Qt::Horizontal, 0, 1);
+
+    axis->moveToThread(this->thread());
+
+    axis->setParent(this);
+    axis->setPlot  (this);
+
+    axis->setUpdatesEnabled(false);
+
+    return axis;
+  });
+
+  auto numYAxes = size_t(isSplitGroups() && ! isSplitSharedY() ? numXAxes : 0);
+
+  CQChartsUtil::makeArraySize(yaxes_, numYAxes, [&]() {
+    auto *axis = new CQChartsAxis(this, Qt::Vertical, 0, 1);
+
+    axis->moveToThread(this->thread());
+
+    axis->setParent(this);
+    axis->setPlot  (this);
+
+    axis->setUpdatesEnabled(false);
+
+    return axis;
+  });
+
+  //---
+
+  auto sm = splitMargin();
+
+  for (size_t i = 0; i < xaxes_.size(); ++i) {
+    auto *xaxis = xaxes_[i];
+
+    int ig = unmapVisibleGroup(int(i));
+
+    //---
+
+    xaxis->setColumn(xAxisColumn);
+
+    auto groupName = groupIndName(ig);
+
+    xaxis->setDefLabel(groupName, /*notify*/false);
+
+    //---
+
+    // set range
+    const auto &range = getGroupRange(ig);
+
+    auto xi = double(i);
+
+    double xmin = (i >            0 ? xi + sm       : xi      );
+    double xmax = (i < numXAxes - 1 ? xi + 1.0 - sm : xi + 1.0);
+
+    xaxis->setRange(xmin, xmax);
+
+    xaxis->setValueRange(range.xmin(), range.xmax());
+  }
+
+  //---
+
+  auto *masterYAxis = yAxis();
+
+  for (size_t i = 0; i < yaxes_.size(); ++i) {
+    auto *yaxis = yaxes_[i];
+
+    int ig = unmapVisibleGroup(int(i));
+
+    //---
+
+    // set range
+    const auto &range = getGroupRange(ig);
+
+    yaxis->setRange(0.0, 1.0);
+
+    double ymin = range.ymin();
+
+    if (masterYAxis->isIncludeZero())
+      ymin = std::min(ymin, 0.0);
+
+    yaxis->setValueRange(ymin, range.ymax());
+  }
+
+  //---
+
+  if (isSplitGroups()) {
+    double ymin = range_.ymin();
+
+    if (masterYAxis->isIncludeZero())
+      ymin = std::min(ymin, 0.0);
+
+    yAxis()->setValueRange(ymin, range_.ymax());
   }
 }
 
@@ -1130,6 +1260,16 @@ yAxisName(QString &name, const QString &def) const
     name = def;
 
   return name.length();
+}
+
+bool
+CQChartsScatterPlot::
+isXAxisVisible() const
+{
+  if (isSplitGroups())
+    return false;
+
+  return CQChartsPlot::isXAxisVisible();
 }
 
 //------
@@ -1306,6 +1446,18 @@ addPointObjects(PlotObjs &objs) const
     }
   }
 
+  //---
+
+  auto calcSetHidden = [&](int setInd) {
+    return (! hasGroups && isSetHidden(setInd));
+  };
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  //---
+
   // process each group
   for (const auto &groupNameValue : groupNameValues_) {
     if (isInterrupt())
@@ -1316,7 +1468,7 @@ addPointObjects(PlotObjs &objs) const
 
     //---
 
-    bool hidden = (hasGroups && isSetHidden(groupInd));
+    bool hidden = calcGroupHidden(groupInd);
 
     if (hidden) { ++ig; continue; }
 
@@ -1339,7 +1491,7 @@ addPointObjects(PlotObjs &objs) const
       if (isInterrupt())
         break;
 
-      bool hidden = (! hasGroups && isSetHidden(is));
+      bool hidden = calcSetHidden(is);
 
       if (hidden) { ++is; continue; }
 
@@ -1389,9 +1541,11 @@ addPointObjects(PlotObjs &objs) const
         auto ig1 = ColorInd(ig, ng);
         auto iv1 = ColorInd(int(iv), int(nv));
 
-        BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+        auto gp = adjustGroupPoint(groupInd, p);
 
-        auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
+        BBox gbbox(gp.x - sx, gp.y - sy, gp.x + sx, gp.y + sy);
+
+        auto *pointObj = createPointObj(groupInd, gbbox, gp, is1, ig1, iv1);
 
         connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
@@ -1405,7 +1559,7 @@ addPointObjects(PlotObjs &objs) const
 
         objs.push_back(pointObj);
 
-        points.push_back(p);
+        points.push_back(gp);
 
         //---
 
@@ -1555,6 +1709,16 @@ addGridObjects(PlotObjs &objs) const
 
   //---
 
+  auto calcSetHidden = [&](int setInd) {
+    return (! hasGroups && isSetHidden(setInd));
+  };
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  //---
+
   int maxN = gridData_.maxN();
 
   int ig = 0;
@@ -1569,7 +1733,7 @@ addGridObjects(PlotObjs &objs) const
 
     //---
 
-    bool hidden = (hasGroups && isSetHidden(groupInd));
+    bool hidden = calcGroupHidden(groupInd);
 
     if (hidden) { ++ig; continue; }
 
@@ -1582,7 +1746,7 @@ addGridObjects(PlotObjs &objs) const
       if (isInterrupt())
         break;
 
-      bool hidden = (! hasGroups && isSetHidden(is));
+      bool hidden = calcSetHidden(is);
 
       if (hidden) { ++is; continue; }
 
@@ -1619,7 +1783,7 @@ addGridObjects(PlotObjs &objs) const
           ColorInd is1(is, ns);
           ColorInd ig1(ig, ng);
 
-          BBox bbox(xmin, ymin, xmax, ymax);
+          BBox bbox(xmin, ymin, xmax, ymax); // already adjusted
 
           auto *cellObj = createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
@@ -1644,6 +1808,16 @@ addHexObjects(PlotObjs &objs) const
 
   //---
 
+  auto calcSetHidden = [&](int setInd) {
+    return (! hasGroups && isSetHidden(setInd));
+  };
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  //---
+
   int maxN = hexMapMaxN_;
 
   int ig = 0;
@@ -1658,7 +1832,7 @@ addHexObjects(PlotObjs &objs) const
 
     //---
 
-    bool hidden = (hasGroups && isSetHidden(groupInd));
+    bool hidden = calcGroupHidden(groupInd);
 
     if (hidden) { ++ig; continue; }
 
@@ -1671,7 +1845,7 @@ addHexObjects(PlotObjs &objs) const
       if (isInterrupt())
         break;
 
-      bool hidden = (! hasGroups && isSetHidden(is));
+      bool hidden = calcSetHidden(is);
 
       if (hidden) { ++is; continue; }
 
@@ -1715,12 +1889,12 @@ addHexObjects(PlotObjs &objs) const
             polygon.addPoint(pw);
           }
 
-          auto bbox = polygon.boundingBox();
-
           //---
 
           ColorInd is1(is, ns);
           ColorInd ig1(ig, ng);
+
+          auto bbox = polygon.boundingBox(); // already adjusted
 
           auto *hexObj = createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
 
@@ -1745,7 +1919,24 @@ addConnectedObjects(PlotObjs &objs) const
 {
   int hasGroups = (numGroups() > 1);
 
-  auto bbox = calcDataRange(/*adjust*/false);
+  //---
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  auto addConnectedObj = [&](int groupInd, const QString &name, const ColorInd &ig,
+                             const ColorInd &is, const BBox &bbox) {
+    auto *connectedObj = createConnectedObj(groupInd, name, ig, is, bbox);
+
+    connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+    //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
+
+    objs.push_back(connectedObj);
+  };
+
+  //---
 
   // one connected line per group (multiple groups) or set (name values)
   int ng = int(groupInds_.size());
@@ -1754,35 +1945,28 @@ addConnectedObjects(PlotObjs &objs) const
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
-      bool hidden = (hasGroups && isSetHidden(groupInd));
+      bool hidden = calcGroupHidden(groupInd);
       if (hidden) continue;
 
-      auto *connectedObj = createConnectedObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+      auto bbox = drawRange(groupInd);
 
-      connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      auto gbbox = adjustGroupBBox(groupInd, bbox);
 
-      //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
-
-      objs.push_back(connectedObj);
+      addConnectedObj(groupInd, "", ColorInd(ig, ng), ColorInd(), gbbox);
 
       ++ig;
     }
   }
   else {
+    auto bbox = calcDataRange(/*adjust*/false);
+
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int is = 0;
     int ns = int(nameValues.size());
 
     for (const auto &nameValue : nameValues) {
-      auto *connectedObj =
-        createConnectedObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
-
-      connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-      //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
-
-      objs.push_back(connectedObj);
+      addConnectedObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
 
       ++is;
     }
@@ -1805,7 +1989,13 @@ addBestFitObjects(PlotObjs &objs) const
 {
   int hasGroups = (numGroups() > 1);
 
-  auto bbox = calcDataRange(/*adjust*/false);
+  //---
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  //---
 
   // one best fit per group (multiple groups) or set (name values)
   int ng = int(groupInds_.size());
@@ -1814,10 +2004,14 @@ addBestFitObjects(PlotObjs &objs) const
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
-      bool hidden = (hasGroups && isSetHidden(groupInd));
+      bool hidden = calcGroupHidden(groupInd);
       if (hidden) continue;
 
-      auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+      auto bbox = drawRange(groupInd);
+
+      auto gbbox = adjustGroupBBox(groupInd, bbox);
+
+      auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), gbbox);
 
       connect(bestFitObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
@@ -1829,6 +2023,8 @@ addBestFitObjects(PlotObjs &objs) const
     }
   }
   else {
+    auto bbox = calcDataRange(/*adjust*/false);
+
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int is = 0;
@@ -1856,7 +2052,24 @@ addHullObjects(PlotObjs &objs) const
 {
   int hasGroups = (numGroups() > 1);
 
-  auto bbox = calcDataRange(/*adjust*/false);
+  //---
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  auto addHullObj = [&](int groupInd, const QString &name, const ColorInd &ig,
+                        const ColorInd &is, const BBox &bbox) {
+    auto *hullObj = createHullObj(groupInd, name, ig, is, bbox);
+
+    connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+    hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
+
+    objs.push_back(hullObj);
+  };
+
+  //---
 
   // one hull per group (multiple groups) or set (name values)
   int ng = int(groupInds_.size());
@@ -1865,21 +2078,21 @@ addHullObjects(PlotObjs &objs) const
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
-      bool hidden = (hasGroups && isSetHidden(groupInd));
+      bool hidden = calcGroupHidden(groupInd);
       if (hidden) continue;
 
-      auto *hullObj = createHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+      auto bbox = drawRange(groupInd);
 
-      connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      auto gbbox = adjustGroupBBox(groupInd, bbox);
 
-      hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
-
-      objs.push_back(hullObj);
+      addHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), gbbox);
 
       ++ig;
     }
   }
   else {
+    auto bbox = calcDataRange(/*adjust*/false);
+
     const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int is = 0;
@@ -1888,13 +2101,7 @@ addHullObjects(PlotObjs &objs) const
     for (const auto &nameValue : nameValues) {
       auto &name = nameValue.first;
 
-      auto *hullObj = createHullObj(-1, name, ColorInd(), ColorInd(is, ns), bbox);
-
-      connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-      hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
-
-      objs.push_back(hullObj);
+      addHullObj(-1, name, ColorInd(), ColorInd(is, ns), bbox);
 
       ++is;
     }
@@ -1909,20 +2116,30 @@ addDensityObjects(PlotObjs &objs) const
 {
   int hasGroups = (numGroups() > 1);
 
-  auto bbox = calcDataRange(/*adjust*/false);
+  //---
+
+  auto calcGroupHidden = [&](int groupInd) {
+    return (hasGroups && isSetHidden(groupInd));
+  };
+
+  //---
 
   // one map per group
   for (const auto &pg : groupNameValues_) {
     int         groupInd   = pg.first;
     const auto &nameValues = pg.second;
 
-    bool hidden = (hasGroups && isSetHidden(groupInd));
+    bool hidden = calcGroupHidden(groupInd);
     if (hidden) continue;
+
+    auto bbox = drawRange(groupInd);
+
+    auto gbbox = adjustGroupBBox(groupInd, bbox);
 
     for (const auto &pn : nameValues) {
       const auto &name = pn.first;
 
-      auto *densityObj = createDensityObj(groupInd, name, bbox);
+      auto *densityObj = createDensityObj(groupInd, name, gbbox);
 
       connect(densityObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
@@ -2024,6 +2241,96 @@ getDensity(int groupInd, const QString &name) const
     return nullptr;
 
   return (*pn).second;
+}
+
+//---
+
+CQChartsGeom::BBox
+CQChartsScatterPlot::
+drawRange(int groupInd) const
+{
+  if (isSplitGroups()) {
+    const auto &range = getGroupRange(groupInd);
+
+    return range.bbox();
+  }
+  else {
+    return calcDataRange(/*adjust*/false);
+  }
+}
+
+//---
+
+#if 0
+bool
+CQChartsScatterPlot::
+calcSetHidden(int setInd) const
+
+  return (! numGroups() && isSetHidden(groupInd));
+}
+#endif
+
+bool
+CQChartsScatterPlot::
+calcGroupHidden(int groupInd) const
+{
+  return (numGroups() && isSetHidden(groupInd));
+}
+
+int
+CQChartsScatterPlot::
+numVisibleGroups() const
+{
+  int ng = numGroups();
+  int nv = ng;
+
+  for (int i = 0; i < ng; ++i) {
+    if (calcGroupHidden(i))
+      --nv;
+  }
+
+  return nv;
+}
+
+int
+CQChartsScatterPlot::
+mapVisibleGroup(int groupInd) const
+{
+  int ng = numGroups();
+  int ig = 0;
+
+  for (int i = 0; i < ng; ++i) {
+    bool hidden = calcGroupHidden(i);
+
+    if (i == groupInd)
+      return (! hidden ? ig : -1);
+
+    if (! hidden)
+      ++ig;
+  }
+
+  return -1;
+}
+
+int
+CQChartsScatterPlot::
+unmapVisibleGroup(int groupInd) const
+{
+  int ng = numGroups();
+  int ig = 0;
+
+  for (int i = 0; i < ng; ++i) {
+    bool hidden = calcGroupHidden(i);
+
+    if (! hidden) {
+      if (groupInd == ig)
+        return i;
+
+      ++ig;
+    }
+  }
+
+  return -1;
 }
 
 //---
@@ -2269,7 +2576,9 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
     auto &cellPointData = (*pn).second;
 
-    cellPointData.addPoint(p);
+    auto gp = adjustGroupPoint(groupInd, p);
+
+    cellPointData.addPoint(gp);
 
     gridData_.setMaxN(std::max(gridData_.maxN(), cellPointData.maxN()));
   }
@@ -2300,7 +2609,9 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
       pn = nameHexData.insert(pn, NameHexData::value_type(name, hexMap));
     }
 
-    auto pv = windowToView(p);
+    auto gp = adjustGroupPoint(groupInd, p);
+
+    auto pv = windowToView(gp);
 
     auto &hexMap = (*pn).second;
 
@@ -2546,6 +2857,28 @@ probe(ProbeData &probeData) const
 
 //---
 
+QString
+CQChartsScatterPlot::
+posStr(const Point &w) const
+{
+  if (isSplitGroups()) {
+    int ng = numVisibleGroups();
+
+    auto groupInd = std::min(std::max(int(w.x), 0), ng - 1);
+
+    const auto &range = getGroupRange(groupInd);
+
+    double x = CMathUtil::map(w.x, groupInd, groupInd + 1, range.xmin(), range.xmax());
+    double y = CMathUtil::map(w.y, 0.0, 1.0, range_.ymin(), range_.ymax());
+
+    return CQChartsPlot::posStr(Point(x, y));
+  }
+
+  return CQChartsPlot::posStr(w);
+}
+
+//---
+
 bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
@@ -2751,6 +3084,210 @@ symbolTypeMapKeyInsideYSlot(bool b)
 
 //------
 
+bool
+CQChartsScatterPlot::
+hasBackground() const
+{
+  if (isStatsLines()) return true;
+
+  if (isXRug()) return true;
+  if (isYRug()) return true;
+
+  if (isXWhisker()) return true;
+  if (isYWhisker()) return true;
+
+  if (isXDensity()) return true;
+  if (isYDensity()) return true;
+
+  return false;
+}
+
+void
+CQChartsScatterPlot::
+execDrawBackground(PaintDevice *device) const
+{
+  CQChartsPlot::execDrawBackground(device);
+
+  // draw stats lines on background
+  if (isStatsLines())
+    drawStatsLines(device);
+
+  //---
+
+  // drawn axis annotatons in inside->outside order
+  xAxisSideHeight_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  xAxisSideHeight_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  yAxisSideWidth_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  yAxisSideWidth_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  //---
+
+  if (isXRug()) drawXRug(device);
+  if (isYRug()) drawYRug(device);
+
+  if (isXWhisker()) drawXWhisker(device);
+  if (isYWhisker()) drawYWhisker(device);
+
+  if (isXDensity()) drawXDensity(device);
+  if (isYDensity()) drawYDensity(device);
+}
+
+bool
+CQChartsScatterPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsScatterPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isColorMapKey())
+    drawColorMapKey(device);
+
+  if (isSymbolSizeMapKey())
+    drawSymbolSizeMapKey(device);
+
+  if (isSymbolTypeMapKey())
+    drawSymbolTypeMapKey(device);
+}
+
+//---
+
+CQChartsGeom::BBox
+CQChartsScatterPlot::
+axesFitBBox() const
+{
+  if (! isSplitGroups()) {
+    return CQChartsPlot::axesFitBBox();
+  }
+  else {
+    BBox bbox;
+
+    for (auto *xaxis : xaxes_)
+      bbox += xaxis->fitBBox();
+
+    if (! isSplitSharedY()) {
+      for (auto *yaxis : yaxes_)
+        bbox += yaxis->fitBBox();
+    }
+    else {
+      if (isYAxisVisible())
+        bbox += yAxis()->fitBBox();
+    }
+
+    return bbox;
+  }
+}
+
+//---
+
+bool
+CQChartsScatterPlot::
+hasFgAxes() const
+{
+  return true;
+}
+
+void
+CQChartsScatterPlot::
+drawFgAxes(PaintDevice *device) const
+{
+  if (! isSplitGroups()) {
+    CQChartsPlot::drawFgAxes(device);
+  }
+  else {
+    //auto *th = const_cast<CQChartsScatterPlot *>(this);
+
+    auto *masterXAxis = xAxis();
+
+    for (auto *xaxis : xaxes_) {
+      xaxis->setAxesLineData         (masterXAxis->axesLineData());
+      xaxis->setAxesTickLabelTextData(masterXAxis->axesTickLabelTextData());
+      xaxis->setAxesLabelTextData    (masterXAxis->axesLabelTextData());
+      xaxis->setAxesMajorGridLineData(masterXAxis->axesMajorGridLineData());
+      xaxis->setAxesMinorGridLineData(masterXAxis->axesMinorGridLineData());
+      xaxis->setAxesGridFillData     (masterXAxis->axesGridFillData());
+
+      xaxis->draw(this, device);
+    }
+
+    if (! isSplitSharedY()) {
+      auto *masterYAxis = yAxis();
+
+      int iy = 0;
+
+      auto sm = splitMargin();
+
+      for (auto *yaxis : yaxes_) {
+        auto y = (iy == 0 ? iy : iy + sm);
+
+        yaxis->setPosition(CQChartsOptReal(y));
+
+        yaxis->setAxesLineData         (masterYAxis->axesLineData());
+        yaxis->setAxesTickLabelTextData(masterYAxis->axesTickLabelTextData());
+        yaxis->setAxesLabelTextData    (masterYAxis->axesLabelTextData());
+        yaxis->setAxesMajorGridLineData(masterYAxis->axesMajorGridLineData());
+        yaxis->setAxesMinorGridLineData(masterYAxis->axesMinorGridLineData());
+        yaxis->setAxesGridFillData     (masterYAxis->axesGridFillData());
+
+        yaxis->draw(this, device);
+
+        ++iy;
+      }
+    }
+    else
+      drawFgYAxis(device);
+  }
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion, const BBox &rect,
+                   const BrushData &brushData, const PenData &penData, const Sides &sides) const
+{
+  if (! isSplitGroups() || drawRegion != DrawRegion::DATA)
+    return CQChartsPlot::drawBackgroundRect(device, drawRegion, rect, brushData, penData, sides);
+
+  //---
+
+  int ng = numVisibleGroups();
+
+//auto xmin = rect.getXMin();
+  auto ymin = rect.getYMin();
+//auto xmax = rect.getXMax();
+  auto ymax = rect.getYMax();
+
+  for (int i = 0; i < ng; ++i) {
+    //auto pg = groupRange_.find(i);
+    //assert(pg != groupRange_.end());
+
+    //const auto &range = (*pg).second;
+
+    auto sm = splitMargin();
+
+    auto xmin1 = (i == 0      ? i     : i + sm      );
+    auto xmax1 = (i == ng - 1 ? i + 1 : i + 1.0 - sm);
+
+    auto rect1 = BBox(xmin1, ymin, xmax1, ymax);
+
+    CQChartsPlot::drawBackgroundRect(device, drawRegion, rect1, brushData, penData, sides);
+  }
+}
+
+//------
+
 CQChartsGeom::BBox
 CQChartsScatterPlot::
 calcExtraFitBBox() const
@@ -2861,85 +3398,6 @@ yAxisWidth(const CQChartsAxisSide::Type &side) const
 }
 
 //------
-
-bool
-CQChartsScatterPlot::
-hasBackground() const
-{
-  if (isStatsLines()) return true;
-
-  if (isXRug()) return true;
-  if (isYRug()) return true;
-
-  if (isXWhisker()) return true;
-  if (isYWhisker()) return true;
-
-  if (isXDensity()) return true;
-  if (isYDensity()) return true;
-
-  return false;
-}
-
-void
-CQChartsScatterPlot::
-execDrawBackground(PaintDevice *device) const
-{
-  CQChartsPlot::execDrawBackground(device);
-
-  // draw stats lines on background
-  if (isStatsLines())
-    drawStatsLines(device);
-
-  //---
-
-  // drawn axis annotatons in inside->outside order
-  xAxisSideHeight_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
-    xAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
-  xAxisSideHeight_[CQChartsAxisSide::Type::TOP_RIGHT] =
-    xAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
-
-  yAxisSideWidth_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
-    yAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
-  yAxisSideWidth_[CQChartsAxisSide::Type::TOP_RIGHT] =
-    yAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
-
-  //---
-
-  if (isXRug()) drawXRug(device);
-  if (isYRug()) drawYRug(device);
-
-  if (isXWhisker()) drawXWhisker(device);
-  if (isYWhisker()) drawYWhisker(device);
-
-  if (isXDensity()) drawXDensity(device);
-  if (isYDensity()) drawYDensity(device);
-}
-
-bool
-CQChartsScatterPlot::
-hasForeground() const
-{
-  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
-    return false;
-
-  return true;
-}
-
-void
-CQChartsScatterPlot::
-execDrawForeground(PaintDevice *device) const
-{
-  if (isColorMapKey())
-    drawColorMapKey(device);
-
-  if (isSymbolSizeMapKey())
-    drawSymbolSizeMapKey(device);
-
-  if (isSymbolTypeMapKey())
-    drawSymbolTypeMapKey(device);
-}
-
-//---
 
 void
 CQChartsScatterPlot::
@@ -4389,8 +4847,11 @@ draw(PaintDevice *device) const
 
   XPoints xPoints;
 
-  for (const auto &p : points)
-    xPoints[p.x].push_back(p);
+  for (const auto &p : points) {
+    auto gp = plot_->adjustGroupPoint(groupInd_, p);
+
+    xPoints[gp.x].push_back(gp);
+  }
 
   Polygon poly;
 

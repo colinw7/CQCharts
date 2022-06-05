@@ -1,6 +1,5 @@
 #include <CQChartsPivotModelEdit.h>
 #include <CQChartsModelData.h>
-#include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnsEdit.h>
 #include <CQChartsWidgetUtil.h>

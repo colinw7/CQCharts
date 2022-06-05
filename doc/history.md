@@ -1409,3 +1409,7 @@
  + add more proxy model support to model data and add edit interface
 # 5/30/2022
  + add split (side by side) support for xy plot groups
+# 6/5/2022
+ + add split (side by side) support for scatter plot groups
+ + Add shape type to distribution and barchart to allow customize draw of associated value set
+ + Improve coloring and keys for barchart

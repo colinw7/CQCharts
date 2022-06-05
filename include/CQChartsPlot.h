@@ -985,6 +985,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual Axis *xAxis() const;
   virtual Axis *yAxis() const;
 
+  virtual bool isXAxisVisible() const;
+  virtual bool isYAxisVisible() const;
+
   virtual Axis *mappedXAxis() const;
   virtual Axis *mappedYAxis() const;
 

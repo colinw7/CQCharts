@@ -6,6 +6,9 @@
 #include <CQChartsColor.h>
 #include <CSafeIndex.h>
 
+class CQChartsBarChartPlot;
+class CQChartsDensity;
+
 //---
 
 /*!
@@ -13,6 +16,9 @@
  * \ingroup Charts
  */
 class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
+ public:
+  using Plot = CQChartsBarChartPlot;
+
  public:
   CQChartsBarChartPlotType();
 
@@ -34,12 +40,10 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  Plot *create(View *view, const ModelP &model) const override;
+  CQChartsPlot *create(View *view, const ModelP &model) const override;
 };
 
 //---
-
-class CQChartsBarChartPlot;
 
 /*!
  * brief values for bar
@@ -176,16 +180,15 @@ class CQChartsBarChartValueSet {
   bool calcSums(double &posSum, double &negSum) const {
     if (values_.empty()) return false;
 
+    std::vector<double> rvalues;
+    getValues(rvalues);
+
     posSum = 0.0;
     negSum = 0.0;
 
-    for (auto &v : values_) {
-      for (auto &vi : v.valueInds()) {
-        double value = vi.value;
-
-        if (value >= 0) posSum += value;
-        else            negSum += value;
-      }
+    for (auto &value : rvalues) {
+      if (value >= 0) posSum += value;
+      else            negSum += value;
     }
 
     return true;
@@ -194,6 +197,9 @@ class CQChartsBarChartValueSet {
   bool calcStats(double &min, double &max, double &mean, double &sum) const {
     if (values_.empty()) return false;
 
+    std::vector<double> rvalues;
+    getValues(rvalues);
+
     min  = 0.0;
     max  = 0.0;
     mean = 0.0;
@@ -201,28 +207,34 @@ class CQChartsBarChartValueSet {
 
     int n = 0;
 
-    for (auto &v : values_) {
-      for (auto &vi : v.valueInds()) {
-        double value = vi.value;
-
-        if (n == 0) {
-          min = value;
-          max = value;
-        }
-        else {
-          min = std::min(min, value);
-          max = std::max(max, value);
-        }
-
-        sum += value;
-
-        ++n;
+    for (auto &value : rvalues) {
+      if (n == 0) {
+        min = value;
+        max = value;
       }
+      else {
+        min = std::min(min, value);
+        max = std::max(max, value);
+      }
+
+      sum += value;
+
+      ++n;
     }
 
     mean = (n > 0 ? sum/n : 0.0);
 
     return true;
+  }
+
+  void getValues(std::vector<double> &rvalues) const {
+    for (auto &v : values_) {
+      for (auto &vi : v.valueInds()) {
+        double value = vi.value;
+
+        rvalues.push_back(value);
+      }
+    }
   }
 
  private:
@@ -247,11 +259,14 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor color READ color    WRITE setColor)
 
  public:
-  using Plot = CQChartsBarChartPlot;
+  using Plot     = CQChartsBarChartPlot;
+  using ValueSet = CQChartsBarChartValueSet;
 
  public:
-  CQChartsBarChartObj(const Plot *plot, const BBox &rect, const ColorInd &iset,
+  CQChartsBarChartObj(const Plot *plot, const BBox &rect, int valueSetInd, const ColorInd &iset,
                       const ColorInd &ival, const ColorInd &isval, const QModelIndex &ind);
+
+ ~CQChartsBarChartObj();
 
   QString typeName() const override { return "bar"; }
 
@@ -295,20 +310,35 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
+  const CQChartsBarChartValue *value() const;
+
+  const ValueSet *valueSet() const;
+
+ private:
+  void drawShape(PaintDevice *device, const BBox &bbox) const;
+
+  void drawRect   (PaintDevice *device, const BBox &bbox,
+                   const CQChartsPenBrush &barPenBrush) const;
+  void drawDotLine(PaintDevice *device, const BBox &bbox,
+                   const CQChartsPenBrush &barPenBrush) const;
+  void drawBox    (PaintDevice *device, const BBox &bbox) const;
+  void drawScatter(PaintDevice *device, const BBox &bbox) const;
+  void drawViolin (PaintDevice *device, const BBox &bbox) const;
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
   QColor calcBarColor() const;
 
-  //---
-
-  const CQChartsBarChartValue *value() const;
-
-  const CQChartsBarChartValueSet *valueSet() const;
-
  private:
-  const Plot*   plot_     { nullptr }; //!< parent plot
-  CQChartsColor color_;                //!< custom color
-  bool          valueSet_ { false };   //!< is value set
+  using DensityP = std::unique_ptr<CQChartsDensity>;
+
+  const Plot*   plot_   { nullptr }; //!< parent plot
+  CQChartsColor color_;              //!< custom color
+
+  bool valueSet_    { false }; //!< is value set
+  int  valueSetInd_ { -1 };    //!< value set ind
+
+  mutable DensityP density_; //!< density data
 };
 
 //---
@@ -399,6 +429,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // options
   Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
+  Q_PROPERTY(ShapeType shapeType READ shapeType WRITE setShapeType)
 
   Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
   Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
@@ -406,13 +437,13 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool sortSets   READ isSortSets   WRITE setSortSets  )
 
   // dot line
-  Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot, dot)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(ValueType)
+  Q_ENUMS(ShapeType)
 
  public:
   enum class PlotType {
@@ -427,6 +458,14 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     MAX,
     MEAN,
     SUM
+  };
+
+  enum class ShapeType {
+    RECT,
+    DOT_LINE,
+    BOX,
+    SCATTER,
+    VIOLIN
   };
 
   using Symbol   = CQChartsSymbol;
@@ -473,6 +512,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool isNormal () const { return (plotType() == PlotType::NORMAL ); }
   bool isStacked() const { return (plotType() == PlotType::STACKED); }
 
+  //---
+
   ValueType valueType() const { return valueType_; }
 
   bool isValueValue() const { return (valueType_ == ValueType::VALUE); }
@@ -481,6 +522,12 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool isValueMax  () const { return (valueType_ == ValueType::MAX  ); }
   bool isValueMean () const { return (valueType_ == ValueType::MEAN ); }
   bool isValueSum  () const { return (valueType_ == ValueType::SUM  ); }
+
+  //---
+
+  ShapeType shapeType() const { return shapeType_; }
+
+  //---
 
   bool isPercent  () const { return percent_  ; }
   bool isSkipEmpty() const { return skipEmpty_; }
@@ -495,8 +542,6 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setSortSets(bool b);
 
   //---
-
-  bool isDotLines() const { return dotLineData_.enabled; }
 
   const Length &dotLineWidth() const { return dotLineData_.width; }
   void setDotLineWidth(const Length &l);
@@ -549,6 +594,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setNormal (bool b);
   void setStacked(bool b);
 
+  //---
+
   // set value type
   void setValueType(ValueType valueType);
 
@@ -559,14 +606,17 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setValueMean (bool b);
   void setValueSum  (bool b);
 
+  //---
+
+  void setShapeType(ShapeType shapeType);
+
+  //---
+
   // set percent
   void setPercent(bool b);
 
   // set skip empty
   void setSkipEmpty(bool b);
-
-  // set dot lines
-  void setDotLines(bool b);
 
  protected:
   void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
@@ -612,9 +662,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  protected:
   void initGroupValueSet() const;
 
-  const ValueSet *groupValueSet(int groupId) const;
+  const ValueSet *groupValueSet(int groupId, int columnInd=-1) const;
 
-  ValueSet *groupValueSetI(int groupId);
+  ValueSet *groupValueSetI(int groupId, int columnInd=-1);
 
   using BarObj = CQChartsBarChartObj;
 
@@ -626,8 +676,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  virtual BarObj *createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig,
-                               const ColorInd &iv, const QModelIndex &ind) const;
+  virtual BarObj *createBarObj(const BBox &rect, int valueSetInd, const ColorInd &is,
+                               const ColorInd &ig, const ColorInd &iv,
+                               const QModelIndex &ind) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -646,6 +697,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // options
   PlotType  plotType_   { PlotType::NORMAL }; //!< plot type
   ValueType valueType_  { ValueType::VALUE }; //!< bar value type
+  ShapeType shapeType_  { ShapeType::RECT };  //!< bar object shape type
   bool      percent_    { false };            //!< percent values
   bool      skipEmpty_  { false };            //!< skip empty groups
   bool      colorBySet_ { false };            //!< color bars by set or value
@@ -700,10 +752,10 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void orientationSlot();
   void plotTypeSlot();
   void valueTypeSlot();
+  void shapeTypeSlot();
 
   void percentSlot();
   void skipEmptySlot();
-  void dotLinesSlot();
   void colorBySetSlot();
 
  protected:
@@ -717,9 +769,9 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
   CQChartsEnumParameterEdit* valueTypeCombo_   { nullptr };
+  CQChartsEnumParameterEdit* shapeTypeCombo_   { nullptr };
   CQChartsBoolParameterEdit* percentCheck_     { nullptr };
   CQChartsBoolParameterEdit* skipEmptyCheck_   { nullptr };
-  CQChartsBoolParameterEdit* dotLinesCheck_    { nullptr };
   CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
 };
 

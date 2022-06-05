@@ -59,6 +59,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
   Q_PROPERTY(double maxBucketValue   READ maxBucketValue     WRITE setMaxBucketValue  )
   Q_PROPERTY(bool   bucketUnderflow  READ isBucketUnderflow  WRITE setBucketUnderflow )
   Q_PROPERTY(bool   bucketOverflow   READ isBucketOverflow   WRITE setBucketOverflow  )
+  Q_PROPERTY(int    bucketMaxExact   READ bucketMaxExact     WRITE setBucketMaxExact  )
 
  public:
   using Bucket    = CQChartsColumnBucket;
@@ -138,6 +139,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
   const CQChartsReals &bucketStops() const { return groupData_.bucketStops; }
   void setBucketStops(const CQChartsReals &r);
 
+  //! get/set max number of unique values for integer exact match
+  int bucketMaxExact() const { return bucketMaxExact_; }
+  void setBucketMaxExact(int i) { bucketMaxExact_ = i; }
+
   //! get/set bucket value type
   CQBucketer::Type bucketType() const;
   void setBucketType(const CQBucketer::Type &type);
@@ -207,10 +212,11 @@ class CQChartsGroupPlot : public CQChartsPlot {
   QStringList pathStrs(const QString &path) const;
 
  private:
-  Column             groupColumn_;             //!< group column
-  GroupData          groupData_;               //!< grouping data
-  Bucket*            groupBucket_ { nullptr }; //!< group column bucket
-  mutable std::mutex mutex_;                   //!< mutex
+  Column             groupColumn_;                //!< group column
+  GroupData          groupData_;                  //!< grouping data
+  Bucket*            groupBucket_    { nullptr }; //!< group column bucket
+  int                bucketMaxExact_ { 20 };      //!< max unique values for exact match
+  mutable std::mutex mutex_;                      //!< mutex
 };
 
 #endif

@@ -152,8 +152,8 @@ using Point       = CQChartsGeom::Point;
 using EdgeType    = CQChartsEdgeType;
 
 void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-                 const Length &lineWidth, bool horizontal,
-                 const Symbol &symbolType, const Length &symbolSize,
+                 const Length &lineWidth, bool horizontal, const Symbol &symbol,
+                 const Length &symbolSize, const PenBrush &symbolPenBrush,
                  const Angle &angle=Angle());
 
 void drawRoundedRect(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,

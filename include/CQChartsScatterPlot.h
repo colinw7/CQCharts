@@ -633,6 +633,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool xAxisName(QString &name, const QString &def="") const override;
   bool yAxisName(QString &name, const QString &def="") const override;
 
+  bool isXAxisVisible() const override;
+
   //---
 
   // connected
@@ -737,7 +739,24 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void addHullObjects     (PlotObjs &objs) const;
   void addDensityObjects  (PlotObjs &objs) const;
 
+  //---
+
   void addNameValues() const;
+
+  //---
+
+  BBox drawRange(int groupInd) const;
+
+  //---
+
+  bool calcGroupHidden(int groupInd) const;
+
+  int numVisibleGroups() const override;
+
+  int mapVisibleGroup(int groupInd) const override;
+  int unmapVisibleGroup(int groupInd) const override;
+
+  //---
 
   QString singleGroupName(ColorInd &ind) const override;
 
@@ -791,10 +810,28 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  QString posStr(const Point &w) const override;
+
+  //---
+
   bool addMenuItems(QMenu *menu) override;
 
   void addSymbolSizeMapKeySubItems(QMenu *keysMenu);
   void addSymbolTypeMapKeySubItems(QMenu *keysMenu);
+
+  //---
+
+  BBox axesFitBBox() const override;
+
+  bool hasFgAxes() const override;
+
+  void drawFgAxes(PaintDevice *device) const override;
+
+  //---
+
+  void drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion,
+                          const BBox &rect, const BrushData &brushData,
+                          const PenData &penData, const Sides &sides) const override;
 
   //---
 
@@ -846,7 +883,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
  private:
   void initGridData(const Range &dataRange);
 
-  void initAxes();
+  void updateAxes();
 
   //---
 

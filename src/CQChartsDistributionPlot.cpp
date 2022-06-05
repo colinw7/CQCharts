@@ -8,7 +8,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsValueSet.h>
-#include <CQCharts.h>
 #include <CQChartsDensity.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
@@ -16,6 +15,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
+#include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -59,10 +59,10 @@ addParameters()
 
   // bucket
   addBoolParameter("bucketed", "Bucketed", "bucketed", true).
-   setTip("Bucket grouped values");
+    setTip("Bucket grouped values");
 
   addBoolParameter("autoBucket", "Auto Bucket", "autoBucket", true).
-   setTip("Automatically determine bucket ranges from data range and number of buckets");
+    setTip("Automatically determine bucket ranges from data range and number of buckets");
 
   addRealParameter("startBucketValue", "Start Value", "startBucketValue", 0.0).
     setRequired().setTip("Start value for manual bucket");
@@ -88,20 +88,27 @@ addParameters()
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("COUNT", static_cast<int>(Plot::ValueType::COUNT)).
-   addNameValue("RANGE", static_cast<int>(Plot::ValueType::RANGE)).
-   addNameValue("MIN"  , static_cast<int>(Plot::ValueType::MIN  )).
-   addNameValue("MAX"  , static_cast<int>(Plot::ValueType::MAX  )).
-   addNameValue("MEAN" , static_cast<int>(Plot::ValueType::MEAN )).
-   addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
-   setTip("Bar value type");
+    addNameValue("COUNT", static_cast<int>(Plot::ValueType::COUNT)).
+    addNameValue("RANGE", static_cast<int>(Plot::ValueType::RANGE)).
+    addNameValue("MIN"  , static_cast<int>(Plot::ValueType::MIN  )).
+    addNameValue("MAX"  , static_cast<int>(Plot::ValueType::MAX  )).
+    addNameValue("MEAN" , static_cast<int>(Plot::ValueType::MEAN )).
+    addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
+    setTip("Bar value type");
+
+  addEnumParameter("shapeType", "Shape Type", "shapeType").
+    addNameValue("RECT"    , static_cast<int>(Plot::ShapeType::RECT    )).
+    addNameValue("DOT_LINE", static_cast<int>(Plot::ShapeType::DOT_LINE)).
+    addNameValue("BOX"     , static_cast<int>(Plot::ShapeType::BOX     )).
+    addNameValue("SCATTER" , static_cast<int>(Plot::ShapeType::SCATTER )).
+    addNameValue("VIOLIN"  , static_cast<int>(Plot::ShapeType::VIOLIN  )).
+    setTip("Bar shape type");
 
   addBoolParameter("percent"   , "Percent"    , "percent"   ).setTip("Show value as percentage");
   addBoolParameter("skipEmpty" , "Skip Empty" , "skipEmpty" ).setTip("Skip empty buckets");
   addBoolParameter("sorted"    , "Sorted"     , "sorted"    ).setTip("Sort by count");
   addBoolParameter("statsLines", "Stats Lines", "statsLines").
     setTip("Show statistics lines overlay");
-  addBoolParameter("dotLines"  , "Dot Lines"  , "dotLines" ).setTip("Draw bars as lines with dot");
   addBoolParameter("rug"       , "Rug"        , "rug"       ).setTip("Draw rug points");
 
   endParameterGroup();
@@ -144,7 +151,7 @@ description() const
      p("Normally the number of values in each bucket is displayed as the height of the bar. "
        "This can be customized to display statistical data for the min, max, mean, range or "
        "sum of values in the bucket. In this case the " + B("Data") + " column can be used "
-       "to provide the values calculate the associated statistical value.").
+       "to provide the values to calculate the associated statistical value.").
     h3("Options").
      p("Enabling the " + B("Horizontal") + " option draws the bars horizontally "
        "or vertically.").
@@ -621,14 +628,13 @@ addProperties()
   // options
   addProp("options", "plotType" , "plotType" , "Plot type");
   addProp("options", "valueType", "valueType", "Bar value type");
+  addProp("options", "shapeType", "shapeType", "Bar shape type");
 
   addProp("options", "percent"      , "", "Show value as percentage");
   addProp("options", "skipEmpty"    , "", "Skip empty buckets");
   addProp("options", "sorted"       , "", "Sort by count");
   addProp("options", "minBarSize"   , "", "Minimum bar size in pixels", true)->
    setMinValue(0.0);
-  addProp("options", "scatterMargin", "", "Scatter bar margin", true)->
-   setMinValue(0.0).setMaxValue(1.0);
 
   addProp("filter", "minValue", "minValue", "Min value");
 
@@ -643,6 +649,8 @@ addProperties()
   addProp("scatter", "scatter"      , "visible", "Draw scatter points");
   addProp("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)")->
     setMinValue(0.0).setMaxValue(1.0);
+  addProp("scatter", "scatterMargin", "margin" , "Scatter bar margin", true)->
+   setMinValue(0.0).setMaxValue(1.0);
 
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
@@ -653,8 +661,7 @@ addProperties()
   addProp("statsData", "includeOutlier", "includeOutlier", "Include outlier points");
 
   // dot lines
-  addProp("dotLines"       , "dotLines"    , "visible", "Draw bars as lines with dot");
-  addProp("dotLines/stroke", "dotLineWidth", "width"  , "Dot line width");
+  addProp("dotLines/stroke", "dotLineWidth", "width", "Dot line width");
 
   addSymbolProperties("dotLines/symbol", "dot", "Dot Line");
 
@@ -785,6 +792,17 @@ setValueSum(bool b)
 
 void
 CQChartsDistributionPlot::
+setShapeType(ShapeType type)
+{
+  CQChartsUtil::testAndSet(shapeType_, type, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
 setMinValue(const OptReal &r)
 {
   CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
@@ -862,14 +880,14 @@ setScatterFactor(double f)
   CQChartsUtil::testAndSet(scatterData_.factor, f, [&]() { updateRangeAndObjs(); } );
 }
 
-//---
-
 void
 CQChartsDistributionPlot::
-setDotLines(bool b)
+setScatterMargin(double m)
 {
-  CQChartsUtil::testAndSet(dotLineData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(scatterData_.margin, m, [&]() { drawObjs(); } );
 }
+
+//---
 
 void
 CQChartsDistributionPlot::
@@ -894,13 +912,6 @@ CQChartsDistributionPlot::
 setMinBarSize(double s)
 {
   CQChartsUtil::testAndSet(minBarSize_, s, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setScatterMargin(double m)
-{
-  CQChartsUtil::testAndSet(scatterMargin_, m, [&]() { drawObjs(); } );
 }
 
 //---
@@ -989,6 +1000,7 @@ calcRange() const
 
   //---
 
+  // bucket values sets
   clearGroupBuckets();
 
   bucketGroupValues();
@@ -997,6 +1009,7 @@ calcRange() const
 
   //---
 
+  // set master bucketer from first group bucketer and values
   int groupInd = 0;
 
   auto p = groupData_.groupBucketer.begin();
@@ -1043,6 +1056,8 @@ calcRange() const
   th->numUnique_ = (values ? values->valueSet->numUnique() : 0);
 
   th->bucketer_.setType(bucketer.type());
+
+  //---
 
   emit th->customDataChanged();
 
@@ -3284,6 +3299,18 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(valueMenu);
 
+#if 0
+  auto *shapeMenu = new QMenu("Shape Type", menu);
+
+  (void) addMenuCheckedAction(shapeMenu, "Rect"    , isRect   (), SLOT(setRect(bool)));
+  (void) addMenuCheckedAction(shapeMenu, "Dot Line", isDotLine(), SLOT(setDotLine(bool)));
+  (void) addMenuCheckedAction(shapeMenu, "Box"     , isBox    (), SLOT(setBox(bool)));
+  (void) addMenuCheckedAction(shapeMenu, "Scatter" , isScatter(), SLOT(setScatter(bool)));
+  (void) addMenuCheckedAction(shapeMenu, "Violin"  , isViolin (), SLOT(setViolin(bool))).
+
+  menu->addMenu(shapeMenu);
+#endif
+
   if (hasGroups())
     (void) addCheckedAction("Percent", isPercent(), SLOT(setPercent(bool)));
 
@@ -3294,7 +3321,6 @@ addMenuItems(QMenu *menu)
   menu->addSeparator();
 
   (void) addCheckedAction("Sorted"     , isSorted    (), SLOT(setSorted    (bool)));
-  (void) addCheckedAction("Dot Lines"  , isDotLines  (), SLOT(setDotLines  (bool)));
   (void) addCheckedAction("Rug"        , isRug       (), SLOT(setRug       (bool)));
   (void) addCheckedAction("Stats Lines", isStatsLines(), SLOT(setStatsLines(bool)));
 
@@ -3612,6 +3638,11 @@ CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd, con
   plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
 }
 
+CQChartsDistributionBarObj::
+~CQChartsDistributionBarObj()
+{
+}
+
 QString
 CQChartsDistributionBarObj::
 calcId() const
@@ -3882,29 +3913,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  CQChartsImage image;
-
-  if (plot_->imageColumn().isValid()) {
-    Plot::VariantInds vinds;
-
-    plot_->getInds(groupInd_, bucket_, vinds);
-
-    for (auto &vind : vinds) {
-      ModelIndex ind = vind.ind;
-
-      ind.setColumn(plot_->imageColumn());
-
-      bool ok;
-
-      auto imageVar = plot_->modelValue(ind, ok);
-      if (! ok) continue;
-
-      image = CQChartsVariant::toImage(imageVar, ok);
-      if (! ok || ! image.isValid()) continue;
-
-      break;
-    }
-  }
+  auto image = getImage();
 
   //---
 
@@ -3912,79 +3921,12 @@ draw(PaintDevice *device) const
   colorData_ = ColorData();
 
   if (getBarColoredRects(colorData_)) {
-    auto pbbox = plot_->windowToPixel(bbox);
-
-    double size = (plot_->isVertical() ? pbbox.getHeight() : pbbox.getWidth());
-
-    if      (plot_->isValueCount()) {
-      double dsize = size/colorData_.nv;
-
-      double pos1 = 0.0, pos2 = 0.0;
-
-      for (auto &p : colorData_.colorSet) {
-        const auto &color = p.first.color;
-        int         n     = colorData_.colorCount[p.second];
-
-        pos1 = pos2;
-        pos2 = pos1 + dsize*n;
-
-        BBox pbbox1;
-
-        if (plot_->isVertical())
-          pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
-                        pbbox.getXMax(), pbbox.getYMax() - pos1);
-        else
-          pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
-                        pbbox.getXMin() + pos2, pbbox.getYMax());
-
-        //---
-
-        auto bbox1 = plot_->pixelToWindow(pbbox1);
-
-        drawRect(device, bbox1, color, useLine);
-
-        barColor_ = color.color();
-      }
-
-      if (colorData_.colorSet.size() != 1)
-        barColor_ = QColor();
-    }
-    else if (plot_->isValueSum()) {
-      double pos1 = 0.0, pos2 = 0.0;
-
-      for (auto &cs : colorData_.colorSizes) {
-        const auto &color = cs.indColor.color;
-        double      dsize = cs.size;
-
-        pos1 = pos2;
-        pos2 = pos1 + size*dsize;
-
-        BBox pbbox1;
-
-        if (plot_->isVertical())
-          pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
-                        pbbox.getXMax(), pbbox.getYMax() - pos1);
-        else
-          pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
-                        pbbox.getXMin() + pos2, pbbox.getYMax());
-
-        //---
-
-        auto bbox1 = plot_->pixelToWindow(pbbox1);
-
-        drawRect(device, bbox1, color, useLine);
-
-        barColor_ = color.color();
-      }
-
-      if (colorData_.colorSizes.size() != 1)
-        barColor_ = QColor();
-    }
+    drawColoredRects(device);
   }
   else {
-    barColor_ = this->barColor();
+    barColor_ = this->calcBarColor();
 
-    drawRect(device, bbox, Color(barColor_), useLine);
+    drawShape(device, bbox, Color(barColor_), useLine);
   }
 
   //---
@@ -3995,6 +3937,130 @@ draw(PaintDevice *device) const
 
     barColor_ = QColor();
   }
+}
+
+void
+CQChartsDistributionBarObj::
+drawColoredRects(PaintDevice *device) const
+{
+  auto bbox  = calcRect();
+  auto pbbox = plot_->windowToPixel(bbox);
+
+  bool useLine = (isLine() || this->isUseLine());
+
+  double size = (plot_->isVertical() ? pbbox.getHeight() : pbbox.getWidth());
+
+  // scale boxes by value count
+  if      (plot_->isValueCount()) {
+    // get size delta
+    double dsize = size/colorData_.nv;
+
+    double pos1 = 0.0, pos2 = 0.0;
+
+    for (auto &p : colorData_.colorSet) {
+      // calc bbox based on count
+      int n = colorData_.colorCount[p.second];
+
+      pos1 = pos2;
+      pos2 = pos1 + dsize*n;
+
+      BBox pbbox1;
+
+      if (plot_->isVertical())
+        pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                      pbbox.getXMax(), pbbox.getYMax() - pos1);
+      else
+        pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                      pbbox.getXMin() + pos2, pbbox.getYMax());
+
+      auto bbox1 = plot_->pixelToWindow(pbbox1);
+
+      //---
+
+      const auto &color = p.first.color;
+
+      drawShape(device, bbox1, color, useLine);
+
+      //---
+
+      // update background color for contrast
+      barColor_ = color.color();
+    }
+
+    if (colorData_.colorSet.size() != 1)
+      barColor_ = QColor();
+  }
+  // scale boxes by value sum
+  else if (plot_->isValueSum()) {
+    double pos1 = 0.0, pos2 = 0.0;
+
+    for (auto &cs : colorData_.colorSizes) {
+      // calc bbox based on sum
+      double dsize = cs.size;
+
+      pos1 = pos2;
+      pos2 = pos1 + size*dsize;
+
+      BBox pbbox1;
+
+      if (plot_->isVertical())
+        pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                      pbbox.getXMax(), pbbox.getYMax() - pos1);
+      else
+        pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                      pbbox.getXMin() + pos2, pbbox.getYMax());
+
+      auto bbox1 = plot_->pixelToWindow(pbbox1);
+
+      //---
+
+      const auto &color = cs.indColor.color;
+
+      drawShape(device, bbox1, color, useLine);
+
+      //---
+
+      // update background color for contrast
+      barColor_ = color.color();
+    }
+
+    if (colorData_.colorSizes.size() != 1)
+      barColor_ = QColor();
+  }
+}
+
+CQChartsImage
+CQChartsDistributionBarObj::
+getImage() const
+{
+  CQChartsImage image;
+
+  // get first image for associated indices in image column
+  // TODO: support global image (fill ?)
+  if (! plot_->imageColumn().isValid())
+    return image;
+
+  Plot::VariantInds vinds;
+
+  plot_->getInds(groupInd_, bucket_, vinds);
+
+  for (auto &vind : vinds) {
+    ModelIndex ind = vind.ind;
+
+    ind.setColumn(plot_->imageColumn());
+
+    bool ok;
+
+    auto imageVar = plot_->modelValue(ind, ok);
+    if (! ok) continue;
+
+    image = CQChartsVariant::toImage(imageVar, ok);
+    if (! ok || ! image.isValid()) continue;
+
+    break;
+  }
+
+  return image;
 }
 
 void
@@ -4105,14 +4171,16 @@ bool
 CQChartsDistributionBarObj::
 getBarColoredRects(ColorData &colorData) const
 {
+  // get data from color column
   if (! plot_->colorColumn().isValid())
     return false;
 
+  // only support count and sum (numeric)
   if (! plot_->isValueCount() && ! plot_->isValueSum())
     return false;
 
   // get normal bar color
-  auto barColor = this->barColor();
+  auto barColor = this->calcBarColor();
   auto bgColor  = plot_->interpThemeColor(ColorInd(0.2));
 
   // get color of individual values
@@ -4258,7 +4326,7 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
+drawShape(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
 {
   // calc pen and brush
   PenBrush barPenBrush;
@@ -4275,100 +4343,147 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
 
   //---
 
-  if (! plot_->isDotLines()) {
-    // draw rect
-    if (! useLine) {
-      CQChartsDrawUtil::drawRoundedRect(device, bbox, plot_->barCornerSize());
-    }
-    else {
-      if (bbox.getWidth() < bbox.getHeight()) { // vertical
-        double xc = bbox.getXMid();
-
-        device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
-      }
-      else {
-        double yc = bbox.getYMid();
-
-        device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
-      }
-    }
+  if      (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::DOT_LINE) {
+    drawDotLine(device, bbox, barPenBrush);
+  }
+  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::BOX) {
+    drawBox(device, bbox);
+  }
+  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::SCATTER) {
+    drawScatter(device, bbox);
+  }
+  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::VIOLIN) {
+    drawViolin(device, bbox);
   }
   else {
-    auto pbbox = plot_->windowToPixel(bbox);
-
-    // draw line
-    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), plot_->isVertical());
-
-    if (plot_->isVertical()) {
-      if (lw < 3.0) {
-        double xc = bbox.getXMid();
-
-        device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
-      }
-      else {
-        double pxc = pbbox.getXMid();
-
-        BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
-
-        auto bbox1 = plot_->pixelToWindow(pbbox1);
-
-        CQChartsDrawUtil::drawRoundedRect(device, bbox1);
-      }
-    }
-    else {
-      if (lw < 3.0) {
-        double yc = bbox.getYMid();
-
-        device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
-      }
-      else {
-        double pyc = pbbox.getYMid();
-
-        BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
-
-        auto bbox1 = plot_->pixelToWindow(pbbox1);
-
-        CQChartsDrawUtil::drawRoundedRect(device, bbox1);
-      }
-    }
-
-    //---
-
-    // get dot symbol and size
-    auto symbol     = plot_->dotSymbol();
-    auto symbolSize = plot_->dotSymbolSize();
-
-    auto ic = (ig_.n > 1 ? ig_ : iv_);
-
-    //---
-
-    // set dot pen and brush
-    PenBrush dotPenBrush;
-
-    plot_->setDotSymbolPenBrush(dotPenBrush, ic);
-
-    //---
-
-    // draw dot
-    Point p;
-
-    if (plot_->isVertical())
-      p = Point(bbox.getXMid(), bbox.getYMax());
-    else
-      p = Point(bbox.getXMax(), bbox.getYMid());
-
-    if (symbol.isValid())
-      CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbol, p, symbolSize, /*scale*/true);
+    drawRect(device, bbox, useLine);
   }
+
+  //---
 
   device->resetColorNames();
 }
 
 void
 CQChartsDistributionBarObj::
+drawRect(PaintDevice *device, const BBox &bbox, bool useLine) const
+{
+  // draw rect
+  if (! useLine) {
+    CQChartsDrawUtil::drawRoundedRect(device, bbox, plot_->barCornerSize());
+  }
+  else {
+    if (bbox.getWidth() < bbox.getHeight()) { // vertical
+      double xc = bbox.getXMid();
+
+      device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
+    }
+    else {
+      double yc = bbox.getYMid();
+
+      device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
+    }
+  }
+}
+
+void
+CQChartsDistributionBarObj::
+drawDotLine(PaintDevice *device, const BBox &bbox, const PenBrush &barPenBrush) const
+{
+  // set dot pen and brush
+  auto ic = (ig_.n > 1 ? ig_ : iv_);
+
+  PenBrush dotPenBrush;
+
+  plot_->setDotSymbolPenBrush(dotPenBrush, ic);
+
+  //---
+
+  CQChartsDrawUtil::drawDotLine(device, barPenBrush, bbox, plot_->dotLineWidth(),
+                                plot_->isHorizontal(), plot_->dotSymbol(),
+                                plot_->dotSymbolSize(), dotPenBrush);
+}
+
+void
+CQChartsDistributionBarObj::
+drawBox(PaintDevice *device, const BBox &bbox) const
+{
+  if (! density_) {
+    density_ = std::make_unique<CQChartsDensity>();
+
+    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+  }
+
+  std::vector<double> xvals;
+
+  plot_->getXVals(groupInd_, bucket_, xvals);
+
+  density_->setXVals(xvals);
+
+  density_->setDrawType(CQChartsDensity::DrawType::WHISKER);
+
+  CQChartsDensity::DrawData drawData;
+
+  drawData.scaled = true;
+
+  density_->draw(plot(), device, bbox, drawData);
+}
+
+void
+CQChartsDistributionBarObj::
+drawScatter(PaintDevice *device, const BBox &bbox) const
+{
+  if (! density_) {
+    density_ = std::make_unique<CQChartsDensity>();
+
+    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+  }
+
+  std::vector<double> xvals;
+
+  plot_->getXVals(groupInd_, bucket_, xvals);
+
+  density_->setXVals(xvals);
+
+  density_->setDrawType(CQChartsDensity::DrawType::SCATTER);
+
+  CQChartsDensity::DrawData drawData;
+
+  drawData.scaled = true;
+
+  density_->draw(plot(), device, bbox, drawData);
+}
+
+void
+CQChartsDistributionBarObj::
+drawViolin(PaintDevice *device, const BBox &bbox) const
+{
+  if (! density_) {
+    density_ = std::make_unique<CQChartsDensity>();
+
+    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+  }
+
+  std::vector<double> xvals;
+
+  plot_->getXVals(groupInd_, bucket_, xvals);
+
+  density_->setXVals(xvals);
+
+  density_->setDrawType(CQChartsDensity::DrawType::VIOLIN);
+
+  CQChartsDensity::DrawData drawData;
+
+  drawData.scaled = true;
+
+  density_->draw(plot(), device, bbox, drawData);
+}
+
+void
+CQChartsDistributionBarObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto barColor = this->barColor();
+  auto barColor = this->calcBarColor();
   bool useLine  = this->isUseLine();
 
   calcBarPenBrush(Color(barColor), useLine, penBrush, updateState);
@@ -4401,7 +4516,7 @@ calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool up
 
 QColor
 CQChartsDistributionBarObj::
-barColor() const
+calcBarColor() const
 {
   auto colorInd = this->calcColorInd();
 
@@ -4414,7 +4529,7 @@ isUseLine() const
 {
   bool useLine = false;
 
-  if (! plot_->isDotLines()) {
+  if (plot_->shapeType() != CQChartsDistributionPlot::ShapeType::DOT_LINE) {
     auto bbox  = calcRect();
     auto pbbox = plot_->windowToPixel(bbox);
 
@@ -5023,14 +5138,13 @@ CQChartsDistributionPlot::Values::
 Values(CQChartsValueSet *valueSet) :
  valueSet(valueSet)
 {
-  densityData = new CQChartsDensity;
+  densityData = std::make_shared<CQChartsDensity>();
 }
 
 CQChartsDistributionPlot::Values::
 ~Values()
 {
   delete valueSet;
-  delete densityData;
 }
 
 //------
@@ -5161,10 +5275,12 @@ addOptionsWidgets()
   orientationCombo_ = createEnumEdit("orientation");
   plotTypeCombo_    = createEnumEdit("plotType");
   valueTypeCombo_   = createEnumEdit("valueType");
+  shapeTypeCombo_   = createEnumEdit("shapeType");
 
   addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
   addFrameWidget(optionsFrame_, "Plot Type"  , plotTypeCombo_);
   addFrameWidget(optionsFrame_, "Value Type" , valueTypeCombo_);
+  addFrameWidget(optionsFrame_, "Shape Type" , shapeTypeCombo_);
 
   //--
 
@@ -5204,6 +5320,7 @@ updateWidgets()
   if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
   if (plotTypeCombo_   ) plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
   if (valueTypeCombo_  ) valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
+  if (shapeTypeCombo_  ) shapeTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->shapeType()));
 
   //---
 
@@ -5275,6 +5392,8 @@ connectSlots(bool b)
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
   CQChartsWidgetUtil::optConnectDisconnect(b,
     valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    shapeTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(shapeTypeSlot()));
 
   CQChartsWidgetUtil::optConnectDisconnect(b,
     bucketRadioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
@@ -5296,6 +5415,8 @@ connectSlots(bool b)
   CQChartsGroupPlotCustomControls::connectSlots(b);
 }
 
+//---
+
 void
 CQChartsDistributionPlotCustomControls::
 orientationSlot()
@@ -5307,16 +5428,24 @@ void
 CQChartsDistributionPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType(static_cast<CQChartsDistributionPlot::PlotType>(
-                      plotTypeCombo_->currentValue()));
+  plot_->setPlotType(
+    static_cast<CQChartsDistributionPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 valueTypeSlot()
 {
-  plot_->setValueType(static_cast<CQChartsDistributionPlot::ValueType>(
-                       valueTypeCombo_->currentValue()));
+  plot_->setValueType(
+    static_cast<CQChartsDistributionPlot::ValueType>(valueTypeCombo_->currentValue()));
+}
+
+void
+CQChartsDistributionPlotCustomControls::
+shapeTypeSlot()
+{
+  plot_->setShapeType(
+    static_cast<CQChartsDistributionPlot::ShapeType>(shapeTypeCombo_->currentValue()));
 }
 
 void

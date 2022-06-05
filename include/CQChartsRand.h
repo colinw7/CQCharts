@@ -35,6 +35,10 @@ class RealInRange {
    eng_(rd_()), rdis_(min, max) {
   }
 
+  RealInRange(unsigned long seed, double min, double max) :
+   eng_(seed), rdis_(min, max) {
+  }
+
   double gen() {
     return rdis_(eng_);
   }

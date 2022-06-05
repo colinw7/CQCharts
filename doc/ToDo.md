@@ -4,6 +4,47 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + hier connection plot ? groups external connections
+ + scatter density use distribution ?
+ + ensure grouping doesn't create too many groups
+ + Standard for split (multiple plots) per group
+   + layout (x, y, grid)
+   + shared x/y (layout dependent)
+   + plots to support
+     + adjacency (probably not)
+     + bar chart (sort of, no overlay, revisit - should match distribution)
+     + box plot (always separate)
+     + bubble plot (circle placement for groups, no separate/grid)
+     + chord plot (probably not)
+     + contour plot (probably not)
+     + correlation plot (probably not)
+     + delaunay plot (probably not)
+     + dendrogram plot (probably not)
+     + distribution plot (side by side and overlay supported)
+     + force directed (probably not)
+     + geometry plot (maybe)
+     + graph plot (maybe)
+     + graph viz plot (maybe)
+     + grid plot (probably not)
+     + hier bubble plot (see bubble plot)
+     + hier scatter plot (see scatter plot)
+     + image plot (probably not)
+     + parallel plot (maybe)
+     + pie plot (separated already supported)
+     + pivot plot (maybe)
+     + radar plot (maybe)
+     + sankey plot (maybe)
+     + scatter 3d plot (see scatter plot)
+     + scatter plot (should match xy plot)
+     + strip plot (maybe)
+     + summary plot (maybe)
+     + sunburst plot (maybe)
+     + table plot (maybe)
+     + treemap plot (maybe)
+       + add group column and treemap per group
+     + wheel plot (custom)
+     + word cloud plot (maybe)
+     + xy (done)
  + XY Plot
    + Split Groups
      + x margin (fixed/auto)

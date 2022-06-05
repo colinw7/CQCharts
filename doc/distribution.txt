@@ -1,0 +1,14 @@
+. visit model to build value sets (per column) and group
+. bucket values sets (common or separate bucketers)
+
+. draw bars from grouped value sets buckets
+
+. values sets can be grouped
+. customize grouping
+
+. data column can be used as alternate for bucket stats (range, ...)
+
+TODO:
+
+. store data column value, as well as value column value, in value set for bucketer
+. add bucket column (for above)

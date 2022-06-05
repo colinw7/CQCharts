@@ -96,6 +96,16 @@ class CQChartsColumnBucket {
 
   int numUnique() const;
 
+  //---
+
+  int numBuckets() const;
+
+  void bucketInds(std::vector<int> &inds);
+
+  QString bucketIndName(int ind, bool hier=false) const;
+
+  //---
+
   int imin() const;
   int imax() const;
 

@@ -1,6 +1,5 @@
 #include <CQChartsSummaryModelEdit.h>
 #include <CQChartsModelData.h>
-#include <CQChartsModelData.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsWidgetUtil.h>
 

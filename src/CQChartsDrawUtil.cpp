@@ -43,8 +43,8 @@ setBrush(QBrush &brush, const BrushData &data)
 
 void
 drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-            const Length &lineWidth, bool horizontal, const Symbol &symbolType,
-            const Length &symbolSize, const Angle &angle)
+            const Length &lineWidth, bool horizontal, const Symbol &symbol,
+            const Length &symbolSize, const PenBrush &symbolPenBrush, const Angle &angle)
 {
   // draw solid line
   double lw = (! horizontal ? device->lengthPixelWidth (lineWidth) :
@@ -53,40 +53,34 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
   auto c = bbox.getCenter();
 
   if (! horizontal) {
-    if (lw < 3 && angle.isZero()) {
+    if (lw < 3.0 && angle.isZero()) {
       setPenBrush(device, penBrush);
 
-      auto p1 = Point(c.x, bbox.getYMin());
-      auto p2 = Point(c.x, bbox.getYMax());
-
-      device->drawLine(p1, p2);
+      device->drawLine(Point(c.x, bbox.getYMin()), Point(c.x, bbox.getYMax()));
     }
     else {
       auto pbbox = device->windowToPixel(bbox);
 
-      double xc = pbbox.getXMid();
+      double pxc = pbbox.getXMid();
 
-      BBox pbbox1(xc - lw/2.0, pbbox.getYMin(), xc + lw/2.0, pbbox.getYMax());
+      BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
 
       drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1),
                       Length(), Sides(Sides::Side::ALL), angle);
     }
   }
   else {
-    if (lw < 3 && angle.isZero()) {
+    if (lw < 3.0 && angle.isZero()) {
       setPenBrush(device, penBrush);
 
-      auto p1 = Point(bbox.getXMin(), c.y);
-      auto p2 = Point(bbox.getXMax(), c.y);
-
-      device->drawLine(p1, p2);
+      device->drawLine(Point(bbox.getXMin(), c.y), Point(bbox.getXMax(), c.y));
     }
     else {
       auto pbbox = device->windowToPixel(bbox);
 
-      double yc = pbbox.getYMid();
+      double pyc = pbbox.getYMid();
 
-      BBox pbbox1(pbbox.getXMid(), yc - lw/2.0, pbbox.getXMax(), yc + lw/2.0);
+      BBox pbbox1(pbbox.getXMid(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
 
       drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1),
                       Length(), Sides(Sides::Side::ALL), angle);
@@ -106,7 +100,8 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
   if (! angle.isZero())
     p = p.rotate(c, angle.radians());
 
-  drawSymbol(device, penBrush, symbolType, p, symbolSize, /*scale*/true);
+  if (symbol.isValid())
+    drawSymbol(device, symbolPenBrush, symbol, p, symbolSize, /*scale*/true);
 }
 
 //---

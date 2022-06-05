@@ -434,7 +434,7 @@ initGroup(CQChartsGroupData &data) const
           if (! data.exactValue) {
             auto *details = columnDetails(data.column);
 
-            if (details && details->numUnique() < 20) // TODO: config
+            if (details && details->numUnique() < bucketMaxExact())
               data.exactValue = true;
           }
         }
@@ -765,19 +765,8 @@ int
 CQChartsGroupPlot::
 numGroups() const
 {
-  if (groupBucket_ && groupBucket_->isValid()) {
-    if (groupBucket_->columnType() == ColumnType::REAL) {
-      double rmin = groupBucket_->rmin();
-      double rmax = groupBucket_->rmax();
-
-      int bucket1 = groupBucket_->bucket(rmin);
-      int bucket2 = groupBucket_->bucket(rmax);
-
-      return (bucket2 - bucket1 + 1);
-    }
-    else
-      return groupBucket_->numUnique();
-  }
+  if (groupBucket() && groupBucket()->isValid())
+    return groupBucket()->numBuckets();
   else
     return 1;
 }
@@ -789,20 +778,7 @@ CQChartsGroupPlot::
 getGroupInds(GroupInds &inds) const
 {
   if (groupBucket_ && groupBucket_->isValid()) {
-    if (groupBucket_->columnType() == ColumnType::REAL) {
-      double rmin = groupBucket_->rmin();
-      double rmax = groupBucket_->rmax();
-
-      int bucket1 = groupBucket_->bucket(rmin);
-      int bucket2 = groupBucket_->bucket(rmax);
-
-      for (int groupInd = bucket1; groupInd <= bucket2; ++groupInd)
-        inds.push_back(groupInd);
-    }
-    else {
-      for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
-        inds.push_back(groupInd);
-    }
+    groupBucket_->bucketInds(inds);
 
     return true;
   }
@@ -824,19 +800,7 @@ groupIndName(int ind, bool hier) const
 
   if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
       groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
-    if      (groupBucket_->isExactValue()) {
-      return groupBucket_->indName(ind);
-    }
-    else if (groupBucket_->columnType() == ColumnType::REAL ||
-             groupBucket_->columnType() == ColumnType::INTEGER) {
-      return groupBucket_->bucketName(ind);
-    }
-    else {
-      if (hier)
-        return groupBucket_->iname(ind);
-      else
-        return groupBucket_->buckets(ind);
-    }
+     return groupBucket_->bucketIndName(ind, hier);
   }
   else {
     return groupBucket_->indName(ind);

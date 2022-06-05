@@ -278,6 +278,98 @@ numUnique() const
     return 0;
 }
 
+//---
+
+int
+CQChartsColumnBucket::
+numBuckets() const
+{
+  if      (columnType() == ColumnType::REAL) {
+    auto rmin = this->rmin();
+    auto rmax = this->rmax();
+
+    int bucket1 = bucket(rmin);
+    int bucket2 = bucket(rmax);
+
+    return (bucket2 - bucket1 + 1);
+  }
+  else if (columnType() == ColumnType::INTEGER) {
+    if (isExactValue())
+      return numUnique();
+
+    auto imin = this->imin();
+    auto imax = this->imax();
+
+    int bucket1 = bucket(imin);
+    int bucket2 = bucket(imax);
+
+    return (bucket2 - bucket1 + 1);
+  }
+  else {
+    if (isExactValue())
+      return numUnique();
+
+    return valueSet_->svals().numBuckets();
+  }
+}
+
+void
+CQChartsColumnBucket::
+bucketInds(std::vector<int> &inds)
+{
+  if      (columnType() == ColumnType::REAL) {
+    double rmin = this->rmin();
+    double rmax = this->rmax();
+
+    int bucket1 = bucket(rmin);
+    int bucket2 = bucket(rmax);
+
+    for (int groupInd = bucket1; groupInd <= bucket2; ++groupInd)
+      inds.push_back(groupInd);
+  }
+  else if (columnType() == ColumnType::INTEGER) {
+    if (isExactValue()) {
+      for (int groupInd = imin(); groupInd <= imax(); ++groupInd)
+        inds.push_back(groupInd);
+    }
+    else {
+      auto imin = this->imin();
+      auto imax = this->imax();
+
+      int bucket1 = bucket(imin);
+      int bucket2 = bucket(imax);
+
+      for (int groupInd = bucket1; groupInd <= bucket2; ++groupInd)
+        inds.push_back(groupInd);
+    }
+  }
+  else {
+    for (int groupInd = imin(); groupInd <= imax(); ++groupInd)
+      inds.push_back(groupInd);
+  }
+}
+
+QString
+CQChartsColumnBucket::
+bucketIndName(int ind, bool hier) const
+{
+  if      (isExactValue()) {
+    return indName(ind);
+  }
+  else if (columnType() == ColumnType::REAL ||
+           columnType() == ColumnType::INTEGER) {
+    return bucketName(ind);
+  }
+  else {
+    if (hier)
+      return iname(ind);
+    else
+      return buckets(ind);
+  }
+}
+
+//---
+
 int
 CQChartsColumnBucket::
 imin() const

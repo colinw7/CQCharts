@@ -1,0 +1,24 @@
+. each column value is bar height
+
+Value
+
+---------+-----------------+------------------+
+         | single column   | multiple columns |
+---------+-----------------+------------------+
+no group | bar per value   | bar per column   |
+         | color per value | color per column |
+---------+-----------------+------------------+
+group    | bar per value   |                  |
+         | color per group |                  |
+---------+-----------------+------------------+
+
+Range, Min, Max, Mean. Sum (Grouped)
+
+---------+-----------------+------------------+
+         | single column   | multiple columns |
+---------+-----------------+------------------+
+no group | single bar      |bar per column    |
+         | single color    |color per column  |
+---------+-----------------+------------------+
+group    | bar per group   |                  |
+---------+-----------------+------------------+

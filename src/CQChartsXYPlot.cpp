@@ -726,9 +726,7 @@ addProperties()
 
   //---
 
-  addProp("dataGrouping/splitGroups", "splitGroups" , "enabled", "Split data groups enabled");
-  addProp("dataGrouping/splitGroups", "splitSharedY", "sharedY", "Split groups share Y range");
-  addProp("dataGrouping/splitGroups", "splitMargin" , "margin" , "Split x gap size");
+  addSplitGroupsProperties();
 
   //---
 
@@ -1100,7 +1098,7 @@ updateAxes()
     xAxis()->setColumn(Column());
   }
 
-  //-
+  //---
 
   // set x axis name and type
   QString xname;
@@ -1229,20 +1227,24 @@ updateAxes()
   for (size_t i = 0; i < xaxes_.size(); ++i) {
     auto *xaxis = xaxes_[i];
 
+    int ig = unmapVisibleGroup(int(i));
+
+    //---
+
     if (xColumnType_ == ColumnType::TIME)
       xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
                           /*notify*/false);
 
     xaxis->setColumn(xAxisColumn);
 
-    auto groupName = groupIndName(int(i));
+    auto groupName = groupIndName(ig);
 
     xaxis->setDefLabel(groupName, /*notify*/false);
 
     //---
 
     // set range
-    const auto &range = getGroupRange(int(i));
+    const auto &range = getGroupRange(ig);
 
     auto xi = double(i);
 
@@ -1261,12 +1263,12 @@ updateAxes()
   for (size_t i = 0; i < yaxes_.size(); ++i) {
     auto *yaxis = yaxes_[i];
 
+    int ig = unmapVisibleGroup(int(i));
+
     //---
 
     // set range
-    const auto &range = getGroupRange(int(i));
-
-    //yaxis->setIncludeZero(masterYAxis->isIncludeZero());
+    const auto &range = getGroupRange(ig);
 
     yaxis->setRange(0.0, 1.0);
 
@@ -1407,29 +1409,6 @@ CQChartsXYPlot::
 setNumMovingAverage(int n)
 {
   CQChartsUtil::testAndSet(movingAverageData_.n, n, [&]() { drawObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setSplitGroups(bool b)
-{
-  CQChartsUtil::testAndSet(splitGroupData_.enabled, b, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setSplitSharedY(bool b)
-{
-  CQChartsUtil::testAndSet(splitGroupData_.sharedY, b, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setSplitMargin(double r)
-{
-  CQChartsUtil::testAndSet(splitGroupData_.margin, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -2446,7 +2425,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
 bool
 CQChartsXYPlot::
-isGroupHidden(int groupInd) const
+calcGroupHidden(int groupInd) const
 {
   return (numSets() <= 1 && isSetHidden(groupInd));
 }
@@ -2459,7 +2438,7 @@ numVisibleGroups() const
   int nv = ng;
 
   for (int i = 0; i < ng; ++i) {
-    if (isGroupHidden(i))
+    if (calcGroupHidden(i))
       --nv;
   }
 
@@ -2474,20 +2453,37 @@ mapVisibleGroup(int groupInd) const
   int ig = 0;
 
   for (int i = 0; i < ng; ++i) {
-    bool hidden = isGroupHidden(i);
+    bool hidden = calcGroupHidden(i);
 
-    if (i == groupInd) {
-      if (hidden)
-        ig = -1;
-
-      break;
-    }
+    if (i == groupInd)
+      return (! hidden ? ig : -1);
 
     if (! hidden)
       ++ig;
   }
 
-  return ig;
+  return -1;
+}
+
+int
+CQChartsXYPlot::
+unmapVisibleGroup(int groupInd) const
+{
+  int ng = numGroups();
+  int ig = 0;
+
+  for (int i = 0; i < ng; ++i) {
+    bool hidden = calcGroupHidden(i);
+
+    if (! hidden) {
+      if (groupInd == ig)
+        return i;
+
+      ++ig;
+    }
+  }
+
+  return -1;
 }
 
 //---
@@ -2697,134 +2693,6 @@ addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
 }
 
 //---
-
-CQChartsGeom::Point
-CQChartsXYPlot::
-adjustGroupPoint(int groupInd, const Point &p) const
-{
-  if (isSplitGroups()) {
-    const auto &range = getGroupRange(groupInd);
-
-    double x = mapGroupX(range, groupInd, p.x);
-    double y = mapGroupY(range, p.y);
-
-    return Point(x, y);
-  }
-
-  return p;
-}
-
-CQChartsGeom::BBox
-CQChartsXYPlot::
-adjustGroupBBox(int groupInd, const BBox &bbox) const
-{
-  if (isSplitGroups()) {
-    const auto &range = getGroupRange(groupInd);
-
-    double x1 = mapGroupX(range, groupInd, bbox.getXMin());
-    double y1 = mapGroupY(range, bbox.getYMin());
-    double x2 = mapGroupX(range, groupInd, bbox.getXMax());
-    double y2 = mapGroupY(range, bbox.getYMax());
-
-    return BBox(x1, y1, x2, y2);
-  }
-
-  return bbox;
-}
-
-CQChartsGeom::Polygon
-CQChartsXYPlot::
-adjustGroupPoly(int groupInd, const Polygon &poly) const
-{
-  if (isSplitGroups()) {
-    const auto &range = getGroupRange(groupInd);
-
-    Polygon gpoly = poly;
-
-    for (int i = 0; i < poly.size(); ++i) {
-      const auto &p = poly.point(i);
-
-      double x = mapGroupX(range, groupInd, p.x);
-      double y = mapGroupY(range, p.y);
-
-      gpoly.setPoint(i, Point(x, y));
-    }
-
-    return gpoly;
-  }
-
-  return poly;
-}
-
-const CQChartsGeom::Range &
-CQChartsXYPlot::
-getGroupRange(int groupInd) const
-{
-  auto pg = groupRange_.find(groupInd);
-  assert(pg != groupRange_.end());
-
-  return (*pg).second;
-}
-
-double
-CQChartsXYPlot::
-mapGroupX(const Range &range, int groupInd, double x) const
-{
-  int ng = numVisibleGroups();
-  int ig = mapVisibleGroup(groupInd);
-
-  auto sm = splitMargin();
-
-  double xmin = (ig >      0 ? ig + sm       : ig    );
-  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
-
-  return CMathUtil::map(x, range.xmin(), range.xmax(), xmin, xmax);
-}
-
-double
-CQChartsXYPlot::
-mapGroupY(const Range &range, double y) const
-{
-  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
-  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
-
-  auto *masterYAxis = yAxis();
-
-  if (masterYAxis->isIncludeZero())
-    ymin = std::min(ymin, 0.0);
-
-  return CMathUtil::map(y, ymin, ymax, 0.0, 1.0);
-}
-
-double
-CQChartsXYPlot::
-unmapGroupX(const Range &range, int groupInd, double x) const
-{
-  int ng = numVisibleGroups();
-  int ig = mapVisibleGroup(groupInd);
-
-  auto sm = splitMargin();
-
-  double xmin = (ig >      0 ? ig + sm       : ig    );
-  double xmax = (ig < ng - 1 ? ig + 1.0 - sm : ig + 1);
-
-  return CMathUtil::map(x, xmin, xmax, range.xmin(), range.xmax());
-}
-
-double
-CQChartsXYPlot::
-unmapGroupY(const Range &range, double y) const
-{
-  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
-  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
-
-  auto *masterYAxis = yAxis();
-
-  if (masterYAxis->isIncludeZero())
-    ymin = std::min(ymin, 0.0);
-
-  return CMathUtil::map(y, 0.0, 1.0, ymin, ymax);
-}
 
 double
 CQChartsXYPlot::
@@ -3389,7 +3257,7 @@ axesFitBBox() const
         bbox += yaxis->fitBBox();
     }
     else {
-      if (yAxis() && yAxis()->isVisible())
+      if (isYAxisVisible())
         bbox += yAxis()->fitBBox();
     }
 

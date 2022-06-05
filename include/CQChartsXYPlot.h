@@ -741,11 +741,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(MovingAverage, movingAverage)
 
-  // split grouping
-  Q_PROPERTY(bool   splitGroups  READ isSplitGroups  WRITE setSplitGroups )
-  Q_PROPERTY(bool   splitSharedY READ isSplitSharedY WRITE setSplitSharedY)
-  Q_PROPERTY(double splitMargin  READ splitMargin    WRITE setSplitMargin )
-
   // key
   Q_PROPERTY(bool keyLine READ isKeyLine WRITE setKeyLine)
 
@@ -887,17 +882,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  bool isSplitGroups() const { return splitGroupData_.enabled; }
-  void setSplitGroups(bool b);
-
-  bool isSplitSharedY() const { return splitGroupData_.sharedY; }
-  void setSplitSharedY(bool b);
-
-  double splitMargin() const { return splitGroupData_.margin; }
-  void setSplitMargin(double r);
-
-  //---
-
   // draw line on key
   bool isKeyLine() const { return keyLine_; }
   void setKeyLine(bool b);
@@ -984,11 +968,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  bool isGroupHidden(int groupInd) const;
+  bool calcGroupHidden(int groupInd) const;
 
-  int numVisibleGroups() const;
+  int numVisibleGroups() const override;
 
-  int mapVisibleGroup(int groupInd) const;
+  int mapVisibleGroup(int groupInd) const override;
+  int unmapVisibleGroup(int groupInd) const override;
 
   //---
 
@@ -1007,18 +992,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
                   const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const;
 
   //---
-
-  Point   adjustGroupPoint(int groupInd, const Point   &p   ) const;
-  BBox    adjustGroupBBox (int groupInd, const BBox    &bbox) const;
-  Polygon adjustGroupPoly (int groupInd, const Polygon &poly) const;
-
-  const Range &getGroupRange(int groupInd) const;
-
-  double mapGroupX(const Range &range, int groupInd, double x) const;
-  double mapGroupY(const Range &range, double y) const;
-
-  double unmapGroupX(const Range &range, int groupInd, double x) const;
-  double unmapGroupY(const Range &range, double y) const;
 
   double drawRangeXMin(int groupInd, bool adjust=false) const;
   double drawRangeXMax(int groupInd, bool adjust=false) const;
@@ -1233,9 +1206,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using Arrow      = CQChartsArrow;
-  using ArrowP     = std::unique_ptr<CQChartsArrow>;
-  using GroupRange = std::map<int, Range>;
+  using Arrow  = CQChartsArrow;
+  using ArrowP = std::unique_ptr<CQChartsArrow>;
 
   // columns
   Column  xColumn_;       //!< x column
@@ -1272,15 +1244,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   };
 
   MovingAverageData movingAverageData_; //!< moving average data
-
-  // split groups
-  struct SplitGroupData {
-    bool   enabled { false }; //!< enabled
-    bool   sharedY { true };  //!< shared y
-    double margin  { 0.05 };  //!< margin
-  };
-
-  SplitGroupData splitGroupData_; //!< split group data
 
   // key
   bool keyLine_ { false }; //!< draw line on key
@@ -1319,15 +1282,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // invalidator
   CQChartsXYInvalidator xyInvalidator_;
-
-  // combined and group ranges
-  Range      range_;
-  GroupRange groupRange_;
-
-  using Axes = std::vector<CQChartsAxis *>;
-
-  Axes xaxes_;
-  Axes yaxes_;
 };
 
 //---

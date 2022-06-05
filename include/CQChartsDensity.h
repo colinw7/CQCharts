@@ -38,7 +38,9 @@ class CQChartsDensity : public QObject {
     DISTRIBUTION,
     CROSS_BAR,
     POINT_RANGE,
-    ERROR_BAR
+    ERROR_BAR,
+    SCATTER,
+    VIOLIN
   };
 
   using Plot        = CQChartsPlot;
@@ -51,6 +53,12 @@ class CQChartsDensity : public QObject {
   using Points      = std::vector<Point>;
   using BBox        = CQChartsGeom::BBox;
   using Polygon     = CQChartsGeom::Polygon;
+
+  struct DrawData {
+    DrawData() { }
+
+    bool scaled { true };
+  };
 
  public:
   CQChartsDensity();
@@ -108,7 +116,8 @@ class CQChartsDensity : public QObject {
 
   //---
 
-  void draw(const Plot *plot, PaintDevice *device, const BBox &rect, bool scaled);
+  void draw(const Plot *plot, PaintDevice *device, const BBox &rect,
+            const DrawData &drawData=DrawData());
 
   BBox bbox(const BBox &rect) const;
 
@@ -145,6 +154,11 @@ class CQChartsDensity : public QObject {
   static void drawLineRange(PaintDevice *device, const BBox &rect,
                             const Qt::Orientation &orientation);
 
+  //---
+
+  static void drawScatter(PaintDevice *device, const BBox &rect, int n,
+                          long seed, const Qt::Orientation &orientation);
+
  private:
   void invalidate();
 
@@ -158,33 +172,35 @@ class CQChartsDensity : public QObject {
   void dataChanged();
 
  public:
-  DrawType        drawType_         { DrawType::WHISKER };
-  Qt::Orientation orientation_      { Qt::Horizontal };
-  XVals           xvals_;
-  Points          opoints_;
-  double          smoothParameter_  { -1.0 };
-  int             numSamples_       { 100 };
-  bool            initialized_      { false };
-  bool            calced_           { false };
-  int             nx_               { 0 };
+  DrawType        drawType_        { DrawType::WHISKER }; //!< draw type
+  Qt::Orientation orientation_     { Qt::Horizontal };    //!< orientation
+  XVals           xvals_;                                 //!< x values
+  int             nx_              { 0 };                 //!< number of x values
+  Points          opoints_;                               //!< distribution points
+  double          smoothParameter_ { -1.0 };              //!< smooth parameter
+  int             numSamples_      { 100 };               //!< number of samples
+  bool            initialized_     { false };             //!< is initialized
+  bool            calced_          { false };             //!< is calculated
+
+  long seed_ { -1 };
 
   // init data
-  XVals           sxvals_;
-  CQStatData      statData_;
-  double          xmin_             { 0.0 };
-  double          xmax_             { 0.0 };
-  double          ymin_             { 0.0 };
-  double          ymax_             { 0.0 };
-  double          avg_              { 0.0 };
-  double          sigma_            { 0.0 };
-  double          defaultBandwidth_ { 0.0 };
+  XVals      sxvals_;                   //!< sorted x values
+  CQStatData statData_;                 //!< state data
+  double     xmin_             { 0.0 }; //!< xmin
+  double     xmax_             { 0.0 }; //!< xmax
+  double     ymin_             { 0.0 }; //!< distribution ymin
+  double     ymax_             { 0.0 }; //!< distribution ymax
+  double     avg_              { 0.0 }; //!< x average
+  double     sigma_            { 0.0 }; //!< x mean square root
+  double     defaultBandwidth_ { 0.0 }; //!< bandwidth of point distribution
 
   // calc data
-  double          xmin1_            { 0.0 };
-  double          xmax1_            { 0.0 };
-  double          ymin1_            { 0.0 };
-  double          ymax1_            { 0.0 };
-  double          area_             { 1.0 };
+  double xmin1_ { 0.0 }; //!< adjusted xmin
+  double xmax1_ { 0.0 }; //!< adjusted xmax
+  double ymin1_ { 0.0 }; //!< adjusted ymin
+  double ymax1_ { 0.0 }; //!< adjusted ymax
+  double area_  { 1.0 }; //!< distrib polygon area
 };
 
 #endif

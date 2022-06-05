@@ -1073,6 +1073,15 @@ buckets(int i) const
   return trie_->indexPattern(i, *spatterns_);
 }
 
+int
+CQChartsSValues::
+numBuckets() const
+{
+  initPatterns(initBuckets_);
+
+  return spatterns_->numPatterns();
+}
+
 void
 CQChartsSValues::
 initPatterns(int numIdeal) const

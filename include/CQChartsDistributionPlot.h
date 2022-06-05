@@ -145,11 +145,13 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_PROPERTY(double  maxValue  READ maxValue )
 
  public:
-  struct IndColor {
-    int           ind { 0 };
-    CQChartsColor color;
+  using Color = CQChartsColor;
 
-    IndColor(int ind, const CQChartsColor &color) :
+  struct IndColor {
+    int   ind { 0 };
+    Color color;
+
+    IndColor(int ind, const Color &color) :
      ind(ind), color(color) {
     }
 
@@ -197,6 +199,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd,
                              const Bucket &bucket, const BarValue &barValue, bool isLine,
                              const ColorInd &ig, const ColorInd &iv);
+
+ ~CQChartsDistributionBarObj();
 
   int groupInd() const { return groupInd_; }
 
@@ -248,9 +252,13 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawColoredRects(PaintDevice *device) const;
+
   void drawFg(PaintDevice *device) const override;
 
   void drawRug(PaintDevice *device) const;
+
+  CQChartsImage getImage() const;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
@@ -267,13 +275,20 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void drawRect(PaintDevice *device, const BBox &pbbox, const CQChartsColor &color,
-                bool useLine) const;
+  void drawShape(PaintDevice *device, const BBox &pbbox, const Color &color,
+                 bool useLine) const;
 
-  void calcBarPenBrush(const CQChartsColor &color, bool useLine, CQChartsPenBrush &barPenBrush,
+  void drawRect   (PaintDevice *device, const BBox &pbbox, bool useLine) const;
+  void drawDotLine(PaintDevice *device, const BBox &pbbox,
+                   const CQChartsPenBrush &barPenBrush) const;
+  void drawBox    (PaintDevice *device, const BBox &pbbox) const;
+  void drawScatter(PaintDevice *device, const BBox &pbbox) const;
+  void drawViolin (PaintDevice *device, const BBox &pbbox) const;
+
+  void calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
                        bool updateState) const;
 
-  QColor barColor() const;
+  QColor calcBarColor() const;
 
   //---
 
@@ -285,15 +300,19 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   double yColorValue(bool relative=true) const override;
 
  private:
-  const Plot*       plot_     { nullptr };
-  int               groupInd_ { -1 };
-  Bucket            bucket_;
-  BarValue          barValue_;
-  double            value1_   { 0.0 };
-  double            value2_   { 1.0 };
-  bool              isLine_   { false };
-  mutable ColorData colorData_;
-  mutable QColor    barColor_;
+  using DensityP = std::unique_ptr<CQChartsDensity>;
+
+  const Plot* plot_     { nullptr }; //!< parent plot
+  int         groupInd_ { -1 };      //!< group ind
+  Bucket      bucket_;               //!< bucket
+  BarValue    barValue_;             //!< bar value
+  double      value1_   { 0.0 };     //!< bucket start value
+  double      value2_   { 1.0 };     //!< bucket end value
+  bool        isLine_   { false };   //!< is drawn as line
+
+  mutable ColorData colorData_; //!< color data
+  mutable QColor    barColor_;  //!< bar color
+  mutable DensityP  density_;   //!< density data
 };
 
 //---
@@ -551,6 +570,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // options
   Q_PROPERTY(PlotType        plotType  READ plotType  WRITE setPlotType )
   Q_PROPERTY(ValueType       valueType READ valueType WRITE setValueType)
+  Q_PROPERTY(ShapeType       shapeType READ shapeType WRITE setShapeType)
   Q_PROPERTY(CQChartsOptReal minValue  READ minValue  WRITE setMinValue )
 
   Q_PROPERTY(bool percent   READ isPercent   WRITE setPercent  )
@@ -581,8 +601,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // scatter margin
   Q_PROPERTY(double scatterMargin READ scatterMargin WRITE setScatterMargin)
 
-  // dot line (bar with dot)
-  Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
+  // dot line data
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot, dot)
@@ -594,6 +613,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   Q_ENUMS(PlotType)
   Q_ENUMS(ValueType)
+  Q_ENUMS(ShapeType)
 
  public:
   enum class PlotType {
@@ -612,6 +632,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     MAX,
     MEAN,
     SUM
+  };
+
+  enum class ShapeType {
+    RECT,
+    DOT_LINE,
+    BOX,
+    SCATTER,
+    VIOLIN
   };
 
   /*!
@@ -737,6 +765,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool isOverlaid  () const { return (plotType() == PlotType::OVERLAY     ); }
   bool isDensity   () const { return (plotType() == PlotType::DENSITY     ); }
 
+  //---
+
   ValueType valueType() const { return valueType_; }
 
   bool isValueCount() const { return (valueType() == ValueType::COUNT); }
@@ -745,6 +775,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool isValueMax  () const { return (valueType() == ValueType::MAX  ); }
   bool isValueMean () const { return (valueType() == ValueType::MEAN ); }
   bool isValueSum  () const { return (valueType() == ValueType::SUM  ); }
+
+  //---
+
+  ShapeType shapeType() const { return shapeType_; }
+
+  //---
 
   bool isPercent  () const { return percent_  ; }
   bool isSkipEmpty() const { return skipEmpty_; }
@@ -781,14 +817,15 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double scatterFactor() const { return scatterData_.factor; }
   void setScatterFactor(double r);
 
+  double scatterMargin() const { return scatterData_.margin; }
+  void setScatterMargin(double m);
+
   //---
 
   // stats lines
   bool isStatsLines() const { return statsLines_; }
 
   //---
-
-  bool isDotLines() const { return dotLineData_.enabled; }
 
   const CQChartsLength &dotLineWidth() const { return dotLineData_.width; }
   void setDotLineWidth(const CQChartsLength &l);
@@ -806,9 +843,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   double minBarSize() const { return minBarSize_; }
   void setMinBarSize(double s);
-
-  double scatterMargin() const { return scatterMargin_; }
-  void setScatterMargin(double m);
 
   //---
 
@@ -954,10 +988,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
    * \ingroup Charts
    */
   struct Values {
+    using DensityP = std::shared_ptr<CQChartsDensity>;
+
     Inds              inds;                      //!< value indices
     CQChartsValueSet* valueSet      { nullptr }; //!< value set
     BucketValues      bucketValues;              //!< values in each bucket
-    CQChartsDensity*  densityData   { nullptr }; //!< density data
+    DensityP          densityData;               //!< density data
     CQStatData        statData;                  //!< stat data
     RMinMax           xValueRange;               //!< x value range
     RMinMax           yValueRange;               //!< y value range
@@ -1015,6 +1051,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void setSideBySide(bool b);
   void setOverlaid  (bool b);
 
+  //---
+
   // set value type
   void setValueType(ValueType valueType);
 
@@ -1024,6 +1062,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void setValueMax  (bool b);
   void setValueMean (bool b);
   void setValueSum  (bool b);
+
+  //---
+
+  void setShapeType(ShapeType shapeType);
+
+  //---
 
   // set percent
   void setPercent(bool b);
@@ -1043,11 +1087,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // stats lines
   void setStatsLines(bool b);
 
-  // set dot lines
-  void setDotLines(bool b);
-
   // set rug
   void setRug(bool b);
+
+  //---
 
   // push to bar range
   void pushSlot();
@@ -1076,16 +1119,18 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
    * \ingroup Charts
    */
   struct ScatterData {
-    double factor { 1.0 }; //!< factor
+    double factor { 1.0 };  //!< factor
+    double margin { 0.05 }; //!< point margin
   };
 
   /*!
    * \brief Dot Line Data
    * \ingroup Charts
+   *
+   * TODO: symbol, ends ...
    */
   struct DotLineData {
-    bool           enabled { false };            //!< shown
-    CQChartsLength width   { Length::pixel(3) }; //!< width
+    CQChartsLength width { Length::pixel(3) }; //!< width
   };
 
   /*!
@@ -1102,6 +1147,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Column      dataColumn_;                          //!< data column
   PlotType    plotType_       { PlotType::NORMAL }; //!< plot type
   ValueType   valueType_      { ValueType::COUNT }; //!< show value count
+  ShapeType   shapeType_      { ShapeType::RECT };  //!< bar object shape type
   OptReal     minValue_;                            //!< min value
   bool        percent_        { false };            //!< percent values
   bool        skipEmpty_      { false };            /*!< skip empty buckets
@@ -1114,8 +1160,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool        rug_            { false };            //!< show rug
   bool        includeOutlier_ { true };             //!< include outlier values
 
-  double minBarSize_    { 3.0 };  //!< min bar size (pixels)
-  double scatterMargin_ { 0.05 }; //!< scatter point margin
+  double minBarSize_ { 3.0 };  //!< min bar size (pixels)
 
   // bucketer data
   CQChartsOptReal underflowBucket_;          //!< underflow bucket threshold
@@ -1182,6 +1227,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void orientationSlot();
   void plotTypeSlot();
   void valueTypeSlot();
+  void shapeTypeSlot();
 
   void bucketRadioGroupSlot(QAbstractButton *);
   void bucketRangeSlot();
@@ -1199,6 +1245,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   CQChartsEnumParameterEdit* orientationCombo_{ nullptr };
   CQChartsEnumParameterEdit* plotTypeCombo_   { nullptr };
   CQChartsEnumParameterEdit* valueTypeCombo_  { nullptr };
+  CQChartsEnumParameterEdit* shapeTypeCombo_  { nullptr };
   CQChartsBoolParameterEdit* statsCheck_      { nullptr };
 
   QButtonGroup*        bucketRadioGroup_  { nullptr };

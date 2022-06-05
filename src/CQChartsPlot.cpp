@@ -2172,6 +2172,20 @@ yAxis() const
   return yAxis_.get();
 }
 
+bool
+CQChartsPlot::
+isXAxisVisible() const
+{
+  return (xAxis_ && xAxis_->isVisible());
+}
+
+bool
+CQChartsPlot::
+isYAxisVisible() const
+{
+  return (yAxis_ && yAxis_->isVisible());
+}
+
 CQChartsAxis *
 CQChartsPlot::
 mappedXAxis() const
@@ -6284,17 +6298,16 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
 {
-  if (! xAxis())
-    return BBox();
-
   BBox xbbox;
 
   if (isOverlay()) {
     processOverlayPlots([&](const Plot *plot) {
-      if (! plot->xAxis()) return;
+      auto *axis = plot->xAxis();
 
-      if (side == CQChartsAxisSide::Type::NONE || plot->xAxis()->side().type() == side) {
-        auto xbbox1 = plot->xAxis()->bbox();
+      if (! axis || ! axis->isVisible()) return;
+
+      if (side == CQChartsAxisSide::Type::NONE || axis->side().type() == side) {
+        auto xbbox1 = axis->bbox();
         if (! xbbox1.isSet()) return;
 
         if (plot != this)
@@ -6305,6 +6318,9 @@ calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
+    if (! isXAxisVisible())
+      return BBox();
+
     if (side == CQChartsAxisSide::Type::NONE || xAxis()->side().type() == side)
       xbbox = xAxis()->bbox();
   }
@@ -6316,17 +6332,16 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
 {
-  if (! yAxis())
-    return BBox();
-
   BBox ybbox;
 
   if (isOverlay()) {
     processOverlayPlots([&](const Plot *plot) {
-      if (! plot->yAxis()) return;
+      auto *axis = plot->yAxis();
 
-      if (side == CQChartsAxisSide::Type::NONE || plot->yAxis()->side().type() == side) {
-        auto ybbox1 = plot->yAxis()->bbox();
+      if (! axis || ! axis->isVisible()) return;
+
+      if (side == CQChartsAxisSide::Type::NONE || axis->side().type() == side) {
+        auto ybbox1 = axis->bbox();
         if (! ybbox1.isSet()) return;
 
         if (plot != this)
@@ -6337,6 +6352,9 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
+    if (! yAxis())
+      return BBox();
+
     if (side == CQChartsAxisSide::Type::NONE || yAxis()->side().type() == side)
       ybbox = yAxis()->bbox();
   }
@@ -8974,10 +8992,10 @@ editObjs(Objs &objs)
   if (title() && title()->isDrawn())
     objs.push_back(title());
 
-  if (xAxis() && xAxis()->isVisible())
+  if (isXAxisVisible())
     objs.push_back(xAxis());
 
-  if (yAxis() && yAxis()->isVisible())
+  if (isYAxisVisible())
     objs.push_back(yAxis());
 }
 
@@ -12993,8 +13011,8 @@ hasBgAxes() const
     return false;
 
   // just axis grid on background
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  bool showXAxis = isXAxisVisible();
+  bool showYAxis = isYAxisVisible();
 
   bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
   bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
@@ -13042,7 +13060,7 @@ bool
 CQChartsPlot::
 drawBgXAxis(PaintDevice *device) const
 {
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showXAxis = isXAxisVisible();
   bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
 
   if (showXGrid) drawXGrid(device);
@@ -13054,7 +13072,7 @@ bool
 CQChartsPlot::
 drawBgYAxis(PaintDevice *device) const
 {
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  bool showYAxis = isYAxisVisible();
   bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   //---
@@ -13407,8 +13425,8 @@ hasFgAxes() const
   if (isOverview())
     return false;
 
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  bool showXAxis = isXAxisVisible();
+  bool showYAxis = isYAxisVisible();
 
   if (! showXAxis && ! showYAxis)
     return false;
@@ -13453,7 +13471,7 @@ bool
 CQChartsPlot::
 drawFgXAxis(PaintDevice *device) const
 {
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showXAxis = isXAxisVisible();
   bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
 
   if (showXGrid) drawXGrid(device);
@@ -13466,7 +13484,7 @@ bool
 CQChartsPlot::
 drawFgYAxis(PaintDevice *device) const
 {
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
+  bool showYAxis = isYAxisVisible();
   bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   if (showYGrid) drawYGrid(device);
@@ -14740,10 +14758,10 @@ axesFitBBox() const
 {
   BBox bbox;
 
-  if (xAxis() && xAxis()->isVisible())
+  if (isXAxisVisible())
     bbox += xAxis()->fitBBox();
 
-  if (yAxis() && yAxis()->isVisible())
+  if (isYAxisVisible())
     bbox += yAxis()->fitBBox();
 
   return bbox;

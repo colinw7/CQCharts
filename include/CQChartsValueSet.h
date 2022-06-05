@@ -475,6 +475,8 @@ class CQChartsSValues {
 
   QString buckets(int i) const;
 
+  int numBuckets() const;
+
  private:
   void initPatterns(int numIdeal) const;
 

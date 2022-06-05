@@ -6,4 +6,4 @@ set plot [create_charts_plot -type distribution -model $model -columns {{values 
 set_charts_property -plot $plot -name bucket.auto  -value 0
 set_charts_property -plot $plot -name bucket.delta -value 5
 
-show_charts_create_plot_dlg -model $model
+#show_charts_create_plot_dlg -model $model

@@ -2525,7 +2525,7 @@ draw(PaintDevice *device)
     //bool horizontal = CMathUtil::realEq(std::abs(angle().degrees()), 90.0);
 
     CQChartsDrawUtil::drawDotLine(device, penBrush, rect, lineWidth(), false,
-                                  symbol(), symbolSize(), angle());
+                                  symbol(), symbolSize(), penBrush, angle());
   }
   else {
     CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides(), angle());
@@ -7719,7 +7719,11 @@ drawBox(PaintDevice *device)
 
   auto bbox = rectangle_.bbox();
 
-  density_->draw(plot(), device, bbox, /*scaled*/true);
+  CQChartsDensity::DrawData drawData;
+
+  drawData.scaled = true;
+
+  density_->draw(plot(), device, bbox, drawData);
 }
 
 // draw bubbles
