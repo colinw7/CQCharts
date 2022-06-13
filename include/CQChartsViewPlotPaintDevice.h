@@ -96,7 +96,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
                        const Angle &angle=Angle()) override;
 
   const QFont &font() const override;
-  void setFont(const QFont &f) override;
+  void setFont(const QFont &f, bool scale=true) override;
 
   void setTransformRotate(const Point &p, double angle) override;
 

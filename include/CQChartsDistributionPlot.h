@@ -284,6 +284,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   void drawBox    (PaintDevice *device, const BBox &pbbox) const;
   void drawScatter(PaintDevice *device, const BBox &pbbox) const;
   void drawViolin (PaintDevice *device, const BBox &pbbox) const;
+  void drawTreeMap(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const;
 
   void calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
                        bool updateState) const;
@@ -639,7 +640,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     DOT_LINE,
     BOX,
     SCATTER,
-    VIOLIN
+    VIOLIN,
+    TREEMAP
   };
 
   /*!

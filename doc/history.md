@@ -1413,3 +1413,7 @@
  + add split (side by side) support for scatter plot groups
  + Add shape type to distribution and barchart to allow customize draw of associated value set
  + Improve coloring and keys for barchart
+# 6/12/2022
+ + improve grid plot color and control
+ + add group column support to tree map and chord plot
+ + fix some issues with zoom font in tree map and radial labels in pie plot

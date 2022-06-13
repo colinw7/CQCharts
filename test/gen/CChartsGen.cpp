@@ -8,17 +8,22 @@
 int
 main(int argc, char **argv)
 {
-  int  n        { 10 };
-  int  seed     { -1 };
-  bool fromTo   { false };
-  int  series   { 0 };
-  bool scatter  { false };
-  bool size     { false };
-  bool header   { false };
-  bool group    { false };
-  bool labels   { false };
-  bool discreet { false };
-  bool stacked  { false };
+  int    n        { 10 };
+  int    seed     { -1 };
+  bool   fromTo   { false };
+  int    series   { 0 };
+  bool   scatter  { false };
+  bool   size     { false };
+  bool   header   { false };
+  bool   group    { false };
+  bool   labels   { false };
+  bool   discreet { false };
+  bool   stacked  { false };
+  bool   values   { false };
+  double rmin     { 1 };
+  double rmax     { 100 };
+  int    imin     { 1 };
+  int    imax     { 100 };
 
   CArgv::visit(argc, argv,
    [&](const std::string &opt, CArgv::State &state) { // opt
@@ -38,6 +43,16 @@ main(int argc, char **argv)
      else if (opt == "series") {
        if (state.hasNext()) {
          series = std::stoi(state.next());
+       }
+     }
+     else if (opt == "rmin") {
+       if (state.hasNext()) {
+         rmin = std::stod(state.next());
+       }
+     }
+     else if (opt == "rmax") {
+       if (state.hasNext()) {
+         rmax = std::stod(state.next());
        }
      }
      else if (opt == "scatter") {
@@ -61,6 +76,9 @@ main(int argc, char **argv)
      else if (opt == "stacked") {
        stacked = true;
      }
+     else if (opt == "values") {
+       values = true;
+     }
      else {
        state.unhandled();
      }
@@ -76,6 +94,7 @@ main(int argc, char **argv)
 
   int ng = std::max(n/5, 2);
 
+  // connections from/to
   if (fromTo) {
     std::cout << "From,To,Value";
 
@@ -105,7 +124,7 @@ main(int argc, char **argv)
 
     if (size) {
       for (const auto &name : names) {
-        int s = CMathRand::randInRange(1, 100);
+        int s = CMathRand::randInRange(imin, imax);
 
         nameSize[name] = s;
       }
@@ -141,7 +160,7 @@ main(int argc, char **argv)
         auto name1 = names[i];
 
         // get number of connections
-        auto nc = CMathRand::randInRange(1, 100);
+        auto nc = CMathRand::randInRange(rmin, rmax);
 
         std::cout << name << "," << name1 << "," << nc;
 
@@ -203,12 +222,13 @@ main(int argc, char **argv)
       }
     }
   }
+  // X and 1 or more Y
   else if (series > 0) {
     if (series == 1) {
       std::cout << "X,Y\n";
 
       for (int i = 0; i < n; ++i) {
-        auto y = CMathRand::randInRange(1, 100);
+        auto y = CMathRand::randInRange(rmin, rmax);
 
         std::cout << (i + 1) << "," << y << "\n";
       }
@@ -232,7 +252,7 @@ main(int argc, char **argv)
         std::cout << (i + 1);
 
         for (int is = 0; is < series; ++is) {
-          auto y = (! stacked ? CMathRand::randInRange(1, 100) :
+          auto y = (! stacked ? CMathRand::randInRange(rmin, rmax) :
                                 CMathRand::randInRange(is*ds, (is + 1)*ds));
 
           std::cout << "," << y;
@@ -245,6 +265,7 @@ main(int argc, char **argv)
       }
     }
   }
+  // x,y
   else if (scatter) {
     using Labels = std::map<int, std::string>;
 
@@ -266,8 +287,8 @@ main(int argc, char **argv)
     std::cout << "\n";
 
     for (int i = 0; i < n; ++i) {
-      auto x = CMathRand::randInRange(1, 100);
-      auto y = CMathRand::randInRange(1, 100);
+      auto x = CMathRand::randInRange(rmin, rmax);
+      auto y = CMathRand::randInRange(rmin, rmax);
 
       std::cout << x << "," << y;
 
@@ -284,12 +305,51 @@ main(int argc, char **argv)
       std::cout << "\n";
     }
   }
+  // values (single column)
+  else if (values) {
+    std::vector<std::string> groups;
+
+    if (group) {
+      groups.resize(size_t(ng));
+
+      for (int i = 0; i < ng; ++i)
+        groups[size_t(i)] = CMathRand::randString();
+    }
+
+    std::cout << "Value";
+
+    if (labels)
+      std::cout << ",Label";
+
+    if (group)
+      std::cout << ",Group";
+
+    std::cout << "\n";
+
+    for (int i = 0; i < n; ++i) {
+      auto v = CMathRand::randInRange(rmin, rmax);
+
+      std::cout << v;
+
+      if (labels)
+        std::cout << "," << CMathRand::randString();
+
+      if (group) {
+        auto ig = CMathRand::randInRange(0, ng - 1);
+
+        std::cout << "," << groups[size_t(ig)];
+      }
+
+      std::cout << "\n";
+    }
+  }
+  // name value
   else {
     std::cout << "Name,Value\n";
 
     for (int i = 0; i < n; ++i) {
       auto name  = CMathRand::randString();
-      auto value = CMathRand::randInRange(1, 100);
+      auto value = CMathRand::randInRange(rmin, rmax);
 
       std::cout << name << ",\"" << value << "\"\n";
     }

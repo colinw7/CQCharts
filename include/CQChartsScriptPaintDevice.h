@@ -54,7 +54,7 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
   void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true,
                        const Angle &angle=Angle()) override;
 
-  void setFont(const QFont &f) override;
+  void setFont(const QFont &f, bool scale=true) override;
 
   void setTransform(const QTransform &t, bool combine=false) override;
 

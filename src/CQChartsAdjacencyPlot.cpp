@@ -782,7 +782,7 @@ initConnectionObjs(PlotObjs &objs) const
       if (connected) {
         BBox bbox(x, y - scale(), x + scale(), y);
 
-        ColorInd ig(node1->group(), maxGroup() + 1);
+        auto ig = groupColorInd(node1->group());
 
         auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
 
@@ -1054,7 +1054,7 @@ createNameNodeObjs(PlotObjs &objs) const
       if (connected) {
         BBox bbox(x, y - scale(), x + scale(), y);
 
-        ColorInd ig(node1->group(), maxGroup() + 1);
+        auto ig = groupColorInd(node1->group());
 
         auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
 
@@ -1213,13 +1213,6 @@ execDrawBackground(PaintDevice *device) const
 
     //---
 
-    // draw text
-    auto tc = interpTextColor(ColorInd());
-
-    setPen(device, PenData(true, tc, textAlpha()));
-
-    //---
-
     twMax_ = 0.0;
 
     // draw row labels
@@ -1254,10 +1247,15 @@ execDrawBackground(PaintDevice *device) const
     for (const auto &pr1 : pr.second) {
       const auto &str = pr1.first;
 
-      BBox bbox1, bbox2;
+      double tw = fm.horizontalAdvance(str) + 4;
 
-      for (const auto &p : pr1.second) {
-        double tw = fm.horizontalAdvance(str) + 4;
+      BBox bbox1, bbox2;
+      int  group = -1;
+
+      for (const auto &gp : pr1.second) {
+        const auto &p = gp.point;
+
+        group = gp.group;
 
         auto p1 = Point(p.x + xts_ - tw - 4, p.y       );
         auto p2 = Point(p.x + xts_         , p.y + pys_);
@@ -1280,7 +1278,7 @@ execDrawBackground(PaintDevice *device) const
 
       //--
 
-      drawRowNodeLabelStr(device, bbox2.getCenter(), str);
+      drawRowNodeLabelStr(device, bbox2.getCenter(), str, group);
     }
   }
 
@@ -1289,8 +1287,13 @@ execDrawBackground(PaintDevice *device) const
       const auto &str = pc1.first;
 
       BBox bbox1, bbox2;
+      int  group = -1;
 
-      for (const auto &p : pc1.second) {
+      for (const auto &gp : pc1.second) {
+        const auto &p = gp.point;
+
+        group = gp.group;
+
         auto p1 = Point(p.x, p.y       );
         auto p2 = Point(p.x, p.y - pys_);
 
@@ -1312,7 +1315,7 @@ execDrawBackground(PaintDevice *device) const
 
       //--
 
-      drawColNodeLabelStr(device, bbox2.getCenter(), str);
+      drawColNodeLabelStr(device, bbox2.getCenter(), str, group);
     }
   }
 
@@ -1388,6 +1391,8 @@ void
 CQChartsAdjacencyPlot::
 drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
 {
+  int group = node->group();
+
   const auto &name = node->name();
 
   if (isHierName()) {
@@ -1397,24 +1402,35 @@ drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
 
     for (int i = 0; i < n; ++i) {
       if (i == n - 1)
-        drawRowNodeLabelStr(device, p, strs[i]);
+        drawRowNodeLabelStr(device, p, strs[i], group);
       else
-        addRowNodeLabelStr(p, strs[i], -i - 1);
+        addRowNodeLabelStr(p, strs[i], -i - 1, group);
     }
   }
   else
-    drawRowNodeLabelStr(device, p, name);
+    drawRowNodeLabelStr(device, p, name, group);
 }
 
 void
 CQChartsAdjacencyPlot::
-drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const
+drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str, int group) const
 {
   QFontMetricsF fm(device->font());
 
   double tw = fm.horizontalAdvance(str) + 4;
 
   twMax_ = std::max(twMax_, tw);
+
+  //---
+
+  // draw text
+  auto tc = interpTextColor(ColorInd());
+
+  PenData penData(true, tc, textAlpha());
+
+  setPen(device, penData);
+
+  //--
 
   Point pt(p.x + xts_ - tw - 2, p.y + pys_ - fm.descent()); // align right
 
@@ -1424,21 +1440,38 @@ drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) con
   textOptions.align = Qt::AlignLeft;
 
   CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str, textOptions, /*centered*/false);
+
+  //--
+
+  auto gc = interpGroupColor(group);
+
+  auto p1 = pixelToWindow(Point(p.x + xts_ - 4, p.y + pys_/2.0 - fm.height()/2.0));
+  auto p2 = pixelToWindow(Point(p.x + xts_    , p.y + pys_/2.0 + fm.height()/2.0));
+
+  PenBrush penBrush;
+
+  setPenBrush(penBrush, PenData(false), BrushData(true, gc, Alpha(1.0)));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawRect(BBox(p1, p2));
 }
 
 void
 CQChartsAdjacencyPlot::
-addRowNodeLabelStr(const Point &p, const QString &str, int depth) const
+addRowNodeLabelStr(const Point &p, const QString &str, int depth, int group) const
 {
   Point p1(p.x + depth*pxs_, p.y);
 
-  rowNodeLabels_[depth][str].push_back(p1);
+  rowNodeLabels_[depth][str].push_back(GroupPoint(group, p1));
 }
 
 void
 CQChartsAdjacencyPlot::
 drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
 {
+  int group = node->group();
+
   const auto &name = node->name();
 
   if (isHierName()) {
@@ -1448,36 +1481,64 @@ drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
 
     for (int i = 0; i < n; ++i) {
       if (i == n - 1)
-        drawColNodeLabelStr(device, p, strs[i]);
+        drawColNodeLabelStr(device, p, strs[i], group);
       else
-        addColNodeLabelStr(p, strs[i], -i - 1);
+        addColNodeLabelStr(p, strs[i], -i - 1, group);
     }
   }
   else
-    drawColNodeLabelStr(device, p, name);
+    drawColNodeLabelStr(device, p, name, group);
 }
 
 void
 CQChartsAdjacencyPlot::
-drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const
+drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str, int group) const
 {
-  Point p1(p.x + pxs_/2.0, p.y - 2);
+  QFontMetricsF fm(device->font());
+
+  //---
+
+  // draw text
+  auto tc = interpTextColor(ColorInd());
+
+  PenData penData(true, tc, textAlpha());
+
+  setPen(device, penData);
+
+  //--
+
+  Point pt(p.x + pxs_/2.0, p.y - 2);
 
   auto textOptions = this->textOptions(device);
 
   textOptions.angle = Angle(90.0);
   textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), str, textOptions, /*centered*/ true);
+  CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str, textOptions, /*centered*/ true);
+
+  //--
+
+  auto gc = interpGroupColor(group);
+
+  auto p1 = pixelToWindow(Point(pt.x - fm.height()/2.0, pt.y - 2));
+  auto p2 = pixelToWindow(Point(pt.x + fm.height()/2.0, pt.y + 2));
+
+  PenBrush penBrush;
+
+  setPenBrush(penBrush, PenData(false), BrushData(true, gc, Alpha(1.0)));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawRect(BBox(p1, p2));
 }
 
 void
 CQChartsAdjacencyPlot::
-addColNodeLabelStr(const Point &p, const QString &str, int depth) const
+addColNodeLabelStr(const Point &p, const QString &str, int depth, int group) const
 {
   auto p1 = Point(p.x, p.y + depth*pys_);
 
-  colNodeLabels_[depth][str].push_back(p1);
+  colNodeLabels_[depth][str].push_back(GroupPoint(group, p1));
 }
 
 //---
@@ -1512,9 +1573,15 @@ QColor
 CQChartsAdjacencyPlot::
 interpGroupColor(int group) const
 {
-  ColorInd ig(group, maxGroup() + 1);
+  return interpFillColor(groupColorInd(group));
+  //return interpPaletteColor(groupColorInd(group));
+}
 
-  return interpPaletteColor(ig);
+CQChartsUtil::ColorInd
+CQChartsAdjacencyPlot::
+groupColorInd(int group) const
+{
+  return ColorInd(group, maxGroup() + 1);
 }
 
 //---
@@ -1664,7 +1731,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
           return plot_->interpColor(indColor, ColorInd());
       }
 
-      return plot_->interpFillColor(ColorInd(srcNode->group(), plot_->maxGroup() + 1));
+      return plot_->interpFillColor(plot_->groupColorInd(srcNode->group()));
     }
     else if (colorType == CQChartsPlot::ColorType::INDEX)
       return plot_->interpFillColor(ColorInd(srcNode->id(), plot_->numNodes()));
@@ -1690,7 +1757,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
              colorType == CQChartsPlot::ColorType::GROUP)
-      return plot_->interpStrokeColor(ColorInd(srcNode->group(), plot_->maxGroup() + 1));
+      return plot_->interpStrokeColor(plot_->groupColorInd(srcNode->group()));
     else if (colorType == CQChartsPlot::ColorType::INDEX)
       return plot_->interpStrokeColor(ColorInd(srcNode->id(), plot_->numNodes()));
     else

@@ -47,6 +47,15 @@ setValueColumn(const Column &c)
   } );
 }
 
+void
+CQChartsHierPlot::
+setGroupColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
+    updateRangeAndObjs(); emit customDataChanged();
+  } );
+}
+
 //---
 
 CQChartsColumn
@@ -54,8 +63,9 @@ CQChartsHierPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
-  if (name == "value") c = this->valueColumn();
-  else                 c = CQChartsPlot::getNamedColumn(name);
+  if      (name == "value") c = this->valueColumn();
+  else if (name == "group") c = this->groupColumn();
+  else                      c = CQChartsPlot::getNamedColumn(name);
 
   return c;
 }
@@ -64,8 +74,9 @@ void
 CQChartsHierPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if (name == "value") this->setValueColumn(c);
-  else                 CQChartsPlot::setNamedColumn(name, c);
+  if      (name == "value") this->setValueColumn(c);
+  else if (name == "group") this->setGroupColumn(c);
+  else                      CQChartsPlot::setNamedColumn(name, c);
 }
 
 CQChartsColumns
@@ -148,6 +159,7 @@ addHierProperties()
 
   addProp("columns", "nameColumns", "name" , "Name columns");
   addProp("columns", "valueColumn", "value", "Data value column");
+  addProp("columns", "groupColumn", "group", "Group column");
 
   addProp("options", "separator", "", "Separator for hierarchical path in name column");
 }
@@ -167,7 +179,7 @@ addHierColumnWidgets()
   // hier group
   auto hierFrame = createGroupFrame("Hier", "hierFrame");
 
-  static auto columnNames = QStringList() << "name" << "value";
+  static auto columnNames = QStringList() << "name" << "value" << "group";
 
   addNamedColumnWidgets(columnNames, hierFrame);
 }

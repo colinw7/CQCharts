@@ -825,6 +825,8 @@ createObjs(PlotObjs &objs) const
 
   this->getGroupInds(groupInds);
 
+  int ng1 = int(groupInds.size()); // assert (ng1 == ng) ?
+
   for (const auto &groupInd : groupInds) {
     auto pg = th->groupDatas_.find(groupInd);
 
@@ -842,7 +844,7 @@ createObjs(PlotObjs &objs) const
     BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
     auto *groupObj =
-      createGroupObj(rect, ColorInd(groupInd, ng), groupData.name, ColorInd(ig, ng));
+      createGroupObj(rect, ColorInd(groupInd, ng), groupData.name, ColorInd(ig, ng1));
 
     groupObj->setColorIndex(ColorInd(groupInd, ng));
 
@@ -942,8 +944,7 @@ createObjs(PlotObjs &objs) const
     int nx, ny;
 
     if (! dumbbell) {
-      ny = CMathRound::RoundNearest(std::sqrt(std::max(ng, 1)));
-      nx = (ng + ny - 1)/std::max(ny, 1);
+      CQChartsUtil::countToSquareGrid(ng, nx, ny);
     }
     else {
       ny = ng;
@@ -2365,9 +2366,9 @@ drawSegment(PaintDevice *device) const
 
     auto str = CQChartsUtil::realToString(r);
 
-    auto pt = Angle::circlePoint(Point(0, 0), (ri + rv)/2.0, textOptions.angle);
+    auto pt = Angle::circlePoint(c, (ri + rv)/2.0, textOptions.angle);
 
-    bool labelRight = (pt.x >= 0.0);
+    bool labelRight = (pt.x >= c.x);
 
     if (plot_->isInvertX())
       labelRight = ! labelRight;
@@ -2620,6 +2621,7 @@ drawSegmentLabel(PaintDevice *device) const
 
   textOptions.color = plot_->interpTextLabelTextColor(calcColorInd());
   textOptions.alpha = plot_->textLabelTextAlpha();
+  textOptions.font  = plot_->textLabelTextFont();
 
   //---
 
@@ -2639,7 +2641,10 @@ drawSegmentLabel(PaintDevice *device) const
 
     BBox drawBBox;
 
-    RotatedTextBoxObj::draw(device, p, label1, label2, plot_->isRotatedText(), lpenBrush,
+    //bool isRadial = plot_->isRotatedText();
+    bool isRadial = false;
+
+    RotatedTextBoxObj::draw(device, p, label1, label2, isRadial, lpenBrush,
                             textOptions1, plot_->textLabelMargin(),
                             plot_->textLabelCornerSize(), plot_->textLabelBorderSides(),
                             drawBBox);

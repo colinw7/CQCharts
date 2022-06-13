@@ -390,6 +390,8 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   bool isRoot(const HierNode *node) const;
 
+  bool hasFalseRoot(HierNode **newRoot) const;
+
   //---
 
   void setTextFontSize(double s);

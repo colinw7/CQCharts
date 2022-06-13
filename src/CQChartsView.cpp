@@ -2539,8 +2539,9 @@ autoPlacePlots()
 
   int np = int(visiblePlots.size());
 
-  int nr = std::max(int(std::sqrt(np)), 1);
-  int nc = (np + nr - 1)/nr;
+  int nc, nr;
+
+  CQChartsUtil::countToSquareGrid(np, nc, nr);
 
   placePlots(visiblePlots, /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
 }
@@ -2628,8 +2629,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
     nr = (np + nc - 1)/nc;
   }
   else {
-    nr = std::max(int(std::sqrt(np)), 1);
-    nc = (np + nr - 1)/nr;
+    CQChartsUtil::countToSquareGrid(np, nc, nr);
   }
 
   double vr = CQChartsView::viewportRange();

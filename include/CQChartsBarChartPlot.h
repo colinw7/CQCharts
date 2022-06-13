@@ -151,7 +151,8 @@ class CQChartsBarChartValue {
  */
 class CQChartsBarChartValueSet {
  public:
-  using Values = std::vector<CQChartsBarChartValue>;
+  using BarValue = CQChartsBarChartValue;
+  using Values   = std::vector<BarValue>;
 
  public:
   CQChartsBarChartValueSet() = default;
@@ -171,11 +172,11 @@ class CQChartsBarChartValueSet {
 
   const Values &values() const { return values_; }
 
-  void addValue(const CQChartsBarChartValue &value) {
+  void addValue(const BarValue &value) {
     values_.push_back(value);
   }
 
-  const CQChartsBarChartValue &value(int i) const { return CUtil::safeIndex(values_, i); }
+  const BarValue &value(int i) const { return CUtil::safeIndex(values_, i); }
 
   bool calcSums(double &posSum, double &negSum) const {
     if (values_.empty()) return false;
@@ -261,10 +262,12 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  public:
   using Plot     = CQChartsBarChartPlot;
   using ValueSet = CQChartsBarChartValueSet;
+  using BarValue = CQChartsBarChartValue;
 
  public:
-  CQChartsBarChartObj(const Plot *plot, const BBox &rect, int valueSetInd, const ColorInd &iset,
-                      const ColorInd &ival, const ColorInd &isval, const QModelIndex &ind);
+  CQChartsBarChartObj(const Plot *plot, const BBox &rect, bool isValueSet, int valueSetInd,
+                      const ColorInd &iset, const ColorInd &ival, const ColorInd &isval,
+                      const QModelIndex &ind);
 
  ~CQChartsBarChartObj();
 
@@ -281,11 +284,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   QString groupStr() const;
   QString nameStr () const;
   QString valueStr() const;
-
-  //---
-
-  bool isValueSet() const { return valueSet_; }
-  void setValueSet(bool b) { valueSet_ = b; }
 
   //---
 
@@ -310,7 +308,10 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  const CQChartsBarChartValue *value() const;
+  bool isValueSet() const { return valueSet_; }
+  int  valueSetInd() const { return valueSetInd_; }
+
+  const BarValue *value() const;
 
   const ValueSet *valueSet() const;
 
@@ -332,8 +333,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  private:
   using DensityP = std::unique_ptr<CQChartsDensity>;
 
-  const Plot*   plot_   { nullptr }; //!< parent plot
-  CQChartsColor color_;              //!< custom color
+  const Plot*   plot_  { nullptr }; //!< parent plot
+  CQChartsColor color_;             //!< custom color
 
   bool valueSet_    { false }; //!< is value set
   int  valueSetInd_ { -1 };    //!< value set ind
@@ -431,10 +432,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
   Q_PROPERTY(ShapeType shapeType READ shapeType WRITE setShapeType)
 
-  Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
-  Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
-  Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
-  Q_PROPERTY(bool sortSets   READ isSortSets   WRITE setSortSets  )
+  Q_PROPERTY(bool percent       READ isPercent       WRITE setPercent      )
+  Q_PROPERTY(bool skipEmpty     READ isSkipEmpty     WRITE setSkipEmpty    )
+  Q_PROPERTY(bool groupByColumn READ isGroupByColumn WRITE setGroupByColumn)
+  Q_PROPERTY(bool colorBySet    READ isColorBySet    WRITE setColorBySet   )
+  Q_PROPERTY(bool sortSets      READ isSortSets      WRITE setSortSets     )
 
   // dot line
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
@@ -468,6 +470,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     VIOLIN
   };
 
+  using BarValue = CQChartsBarChartValue;
   using Symbol   = CQChartsSymbol;
   using Length   = CQChartsLength;
   using Color    = CQChartsColor;
@@ -497,6 +500,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   Columns getNamedColumns(const QString &name) const override;
   void setNamedColumns(const QString &name, const Columns &c) override;
+
+  //---
+
+  Columns calcValueColumns() const;
 
   //---
 
@@ -533,6 +540,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool isSkipEmpty() const { return skipEmpty_; }
 
   //---
+
+  bool isGroupByColumn() const { return groupByColumn_; }
+  void setGroupByColumn(bool b);
 
   // when multiple columns and grouped then color by value in value set (group)
   bool isColorBySet() const { return colorBySet_; }
@@ -622,7 +632,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
 
   void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-                    Range &dataRange, int columnInd) const;
+                    const Column &valueColumn, Range &dataRange, int columnInd) const;
 
   void initRangeAxes() const;
   void initRangeAxesI();
@@ -653,6 +663,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   };
 
  public:
+  int calcNumSets() const;
+
   int numValueSets() const;
 
   const ValueSet &valueSet(int i) const;
@@ -676,8 +688,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  virtual BarObj *createBarObj(const BBox &rect, int valueSetInd, const ColorInd &is,
-                               const ColorInd &ig, const ColorInd &iv,
+  virtual BarObj *createBarObj(const BBox &rect, bool isValueSet, int valueSetInd,
+                               const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                                const QModelIndex &ind) const;
 
  protected:
@@ -695,13 +707,15 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Column labelColumn_; //!< data label column
 
   // options
-  PlotType  plotType_   { PlotType::NORMAL }; //!< plot type
-  ValueType valueType_  { ValueType::VALUE }; //!< bar value type
-  ShapeType shapeType_  { ShapeType::RECT };  //!< bar object shape type
-  bool      percent_    { false };            //!< percent values
-  bool      skipEmpty_  { false };            //!< skip empty groups
-  bool      colorBySet_ { false };            //!< color bars by set or value
-  bool      sortSets_   { true };             //!< sort sets by value
+  PlotType  plotType_  { PlotType::NORMAL }; //!< plot type
+  ValueType valueType_ { ValueType::VALUE }; //!< bar value type
+  ShapeType shapeType_ { ShapeType::RECT };  //!< bar object shape type
+
+  bool percent_       { false }; //!< percent values
+  bool skipEmpty_     { false }; //!< skip empty groups
+  bool groupByColumn_ { false }; //!< group by column when multiple columns
+  bool colorBySet_    { false }; //!< color bars by set or value
+  bool sortSets_      { true };  //!< sort sets by value
 
   DotLineData    dotLineData_;          //!< dot line data
   mutable double barWidth_     { 1.0 }; //!< minimum bar width
@@ -756,6 +770,7 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
 
   void percentSlot();
   void skipEmptySlot();
+  void groupByColumnSlot();
   void colorBySetSlot();
 
  protected:
@@ -764,15 +779,16 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   FrameData optionsFrame_;
 
   FrameData                  labelFrame_;
-  QCheckBox*                 labelCheck_       { nullptr };
-  CQChartsColumnCombo*       labelColumnCombo_ { nullptr };
-  CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
-  CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
-  CQChartsEnumParameterEdit* valueTypeCombo_   { nullptr };
-  CQChartsEnumParameterEdit* shapeTypeCombo_   { nullptr };
-  CQChartsBoolParameterEdit* percentCheck_     { nullptr };
-  CQChartsBoolParameterEdit* skipEmptyCheck_   { nullptr };
-  CQChartsBoolParameterEdit* colorBySetCheck_  { nullptr };
+  QCheckBox*                 labelCheck_         { nullptr };
+  CQChartsColumnCombo*       labelColumnCombo_   { nullptr };
+  CQChartsEnumParameterEdit* orientationCombo_   { nullptr };
+  CQChartsEnumParameterEdit* plotTypeCombo_      { nullptr };
+  CQChartsEnumParameterEdit* valueTypeCombo_     { nullptr };
+  CQChartsEnumParameterEdit* shapeTypeCombo_     { nullptr };
+  CQChartsBoolParameterEdit* percentCheck_       { nullptr };
+  CQChartsBoolParameterEdit* skipEmptyCheck_     { nullptr };
+  CQChartsBoolParameterEdit* groupByColumnCheck_ { nullptr };
+  CQChartsBoolParameterEdit* colorBySetCheck_    { nullptr };
 };
 
 #endif

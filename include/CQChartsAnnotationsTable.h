@@ -25,6 +25,9 @@ class QPushButton;
 
 //---
 
+/*!
+ * \brief annotation table delegate
+ */
 class CQChartsAnnotationDelegate : public QItemDelegate {
  public:
   CQChartsAnnotationDelegate(CQChartsAnnotationsTable *table);
@@ -40,6 +43,9 @@ class CQChartsAnnotationDelegate : public QItemDelegate {
 
 //---
 
+/*!
+ * \brief annotation control widget
+ */
 class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
@@ -71,6 +77,9 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
 
 //---
 
+/*!
+ * \brief view annotation control widget
+ */
 class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
@@ -113,6 +122,9 @@ class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace
 
 //---
 
+/*!
+ * \brief plot annotation control widget
+ */
 class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
@@ -158,6 +170,9 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
 
 //---
 
+/*!
+ * \brief annotations table widget
+ */
 class CQChartsAnnotationsTable : public CQTableWidget {
  public:
   using Annotations = std::vector<CQChartsAnnotation *>;
@@ -186,6 +201,9 @@ class CQChartsAnnotationsTable : public CQTableWidget {
 
 //---
 
+/*!
+ * \brief view annotations table widget
+ */
 class CQChartsViewAnnotationsTable : public CQChartsAnnotationsTable, public CQChartsWidgetIFace {
   Q_OBJECT
 
@@ -204,6 +222,9 @@ class CQChartsViewAnnotationsTable : public CQChartsAnnotationsTable, public CQC
 
 //--
 
+/*!
+ * \brief plot annotations table widget
+ */
 class CQChartsPlotAnnotationsTable : public CQChartsAnnotationsTable, public CQChartsWidgetIFace {
   Q_OBJECT
 

@@ -527,7 +527,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void setMarginWidth(const Length &l);
 
   //! get/set min area
-  const Area &minArea() const { return minArea_; }
+  const Area &minArea() const { return treeData_.minArea; }
   void setMinArea(const Area &a);
 
   //---
@@ -554,22 +554,22 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
-  int colorId() const { return colorId_; }
+  int colorId() const { return colorData_.colorId; }
 
-  int numColorIds() const { return numColorIds_; }
+  int numColorIds() const { return colorData_.numColorIds; }
 
   void initColorIds() {
-    colorId_     = -1;
-    numColorIds_ = 0;
+    colorData_.colorId     = -1;
+    colorData_.numColorIds = 0;
   }
 
   int nextColorId() {
-    ++colorId_;
+    ++colorData_.colorId;
 
-    if (colorId_ >= numColorIds_)
-      numColorIds_ = colorId_ + 1;
+    if (colorData_.colorId >= colorData_.numColorIds)
+      colorData_.numColorIds = colorData_.colorId + 1;
 
-    return colorId_;
+    return colorData_.colorId;
   }
 
   //---
@@ -709,6 +709,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
     int       depth       { -1 };    //!< max depth for header
   };
 
+  struct TreeData {
+    Area minArea; //!< min area
+  };
+
   struct NodeData {
     bool   hierName    { false };            //!< show hierarchical name
     bool   textClipped { true };             //!< is text clipped
@@ -717,21 +721,30 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
     Length marginWidth { Length::pixel(2) }; //!< box margin
   };
 
-  TitleData   titleData_;                      //!< title data
-  NodeData    nodeData_;                       //!< node data
-  bool        colorById_          { true };    //!< color by id
-  HierNode*   root_               { nullptr }; //!< root node
-  HierNode*   firstHier_          { nullptr }; //!< first hier node
-  QString     currentRootName_;                //!< current root name
-  int         colorId_            { -1 };      //!< current color id
-  int         numColorIds_        { 0 };       //!< num used color ids
-  int         maxDepth_           { 1 };       //!< max hier depth
-  int         hierInd_            { 0 };       //!< current hier ind
-  Area        minArea_;                        //!< min area
-  mutable int ig_                 { 0 };       //!< current group index
-  mutable int in_                 { 0 };       //!< current node index
-  double      windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
-  double      windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+  struct ColorData {
+    int colorId     { -1 }; //!< current color id
+    int numColorIds { 0 };  //!< num used color ids
+  };
+
+  TitleData titleData_;          //!< title config data
+  TreeData  treeData_;           //!< tree config data
+  NodeData  nodeData_;           //!< node config data
+  bool      colorById_ { true }; //!< color by id
+
+  // hier data
+  HierNode* root_             { nullptr }; //!< root node
+  HierNode* firstHier_        { nullptr }; //!< first hier node
+  QString   currentRootName_;              //!< current root name (push in)
+
+  // work data
+  ColorData   colorData_;      //!< color index data
+  mutable int hierInd_  { 0 }; //!< current hier ind
+  mutable int maxDepth_ { 1 }; //!< max hier depth
+  mutable int ig_       { 0 }; //!< current group index
+  mutable int in_       { 0 }; //!< current node index
+
+  double windowHeaderHeight_ { 0.01 }; //!< calculated window pixel header height
+  double windowMarginWidth_  { 0.01 }; //!< calculated window pixel margin width
 
   using PathExpanded = std::map<QString, bool>;
 

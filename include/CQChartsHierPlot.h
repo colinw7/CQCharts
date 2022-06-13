@@ -16,6 +16,7 @@ class CQChartsHierPlot : public CQChartsPlot {
   //! columns
   Q_PROPERTY(CQChartsColumns nameColumns READ nameColumns WRITE setNameColumns)
   Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn  groupColumn READ groupColumn WRITE setGroupColumn)
 
   //! hier separator
   Q_PROPERTY(QString separator READ separator WRITE setSeparator)
@@ -41,6 +42,10 @@ class CQChartsHierPlot : public CQChartsPlot {
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
+
+  //! get/set group column
+  const Column &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const Column &c);
 
   //---
 
@@ -85,6 +90,7 @@ class CQChartsHierPlot : public CQChartsPlot {
   // columns
   Columns nameColumns_; //!< multiple name columns
   Column  valueColumn_; //!< value column
+  Column  groupColumn_; //!< group column
 
   ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
 

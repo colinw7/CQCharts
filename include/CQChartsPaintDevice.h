@@ -164,7 +164,7 @@ class CQChartsPaintDevice {
                                const Angle & = Angle()) { assert(false); }
 
   virtual const QFont &font() const = 0;
-  virtual void setFont(const QFont &f) = 0;
+  virtual void setFont(const QFont &f, bool scale=true) = 0;
 
   virtual void setTransformRotate(const Point &p, double angle) = 0;
 

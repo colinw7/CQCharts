@@ -340,7 +340,7 @@ drawImage(const Point &p, const QImage &image)
 
 void
 CQChartsScriptPaintDevice::
-setFont(const QFont &f)
+setFont(const QFont &f, bool /*scale*/)
 {
   if (! data_.hasFont || f.pointSizeF() != data_.font.pointSizeF())
     *os_ << "  " << context() << ".setFont(" << f.pointSizeF() << ");\n";

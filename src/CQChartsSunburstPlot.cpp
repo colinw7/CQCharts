@@ -183,6 +183,29 @@ isRoot(const HierNode *node) const
   }
 }
 
+bool
+CQChartsSunburstPlot::
+hasFalseRoot(HierNode **newRoot) const
+{
+  *newRoot = nullptr;
+
+  auto *root = currentRoot();
+
+  if (! root) {
+    if (roots_.size() != 1)
+      return false;
+
+    root = roots_[0];
+  }
+
+  if (root->name() != "" || root->getChildren().size() != 1)
+    return false;
+
+  *newRoot = root->getChildren()[0];
+
+  return true;
+}
+
 //----
 
 void
@@ -343,8 +366,8 @@ createObjs(PlotObjs &objs) const
   // check columns
   bool columnsValid = true;
 
-  // value column required
-  // name, id, color columns optional
+  // name columns required
+  // value, id, color columns optional
 
   if (! checkColumns(nameColumns(), "Name", /*required*/true))
     columnsValid = false;
@@ -462,6 +485,8 @@ replaceRoots() const
   double ri = std::max(innerRadius(), 0.0);
   double ro = CMathUtil::clamp(outerRadius(), ri, 1.0);
 
+  auto sortType = static_cast<CQChartsSunburstNode::SortType>(this->sortType());
+
   auto a = startAngle();
 
   if (currentRoot()) {
@@ -469,19 +494,28 @@ replaceRoots() const
 
     currentRoot()->setPosition(0.0, a, ri, da);
 
-    currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da,
-                             static_cast<CQChartsSunburstNode::SortType>(sortType()));
+    currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da, sortType);
   }
   else {
-    Angle da(! roots_.empty() ? 360.0/double(roots_.size()) : 0.0);
+    HierNode *newRoot;
 
-    for (auto &root : roots_) {
-      root->setPosition(0.0, a, ri, da);
+    if (hasFalseRoot(&newRoot)) {
+      Angle da(360.0);
 
-      root->packNodes(ri, ro, 0.0, a, da,
-                      static_cast<CQChartsSunburstNode::SortType>(sortType()));
+      newRoot->setPosition(0.0, a, ri, da);
 
-      a += da;
+      newRoot->packNodes(roots_[0], ri, ro, 0.0, a, da, sortType);
+    }
+    else {
+      Angle da(! roots_.empty() ? 360.0/double(roots_.size()) : 0.0);
+
+      for (auto &root : roots_) {
+        root->setPosition(0.0, a, ri, da);
+
+        root->packNodes(ri, ro, 0.0, a, da, sortType);
+
+        a += da;
+      }
     }
   }
 }
@@ -678,6 +712,20 @@ loadFlat(HierNode *root) const
 
       //---
 
+      // add group name at top of hier if specified
+      if (plot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+
+        bool ok;
+
+        auto groupName = plot_->modelString(groupModelInd, ok); // hier ?
+
+        nameStrs.push_front(groupName);
+      }
+
+      //---
+
+      // get size from value column
       double size = 1.0;
 
       QModelIndex valueInd;
@@ -690,14 +738,18 @@ loadFlat(HierNode *root) const
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
 
-        if (size == 0.0)
+        if (size == 0.0) // alow negative ?
           return State::SKIP;
       }
 
       //---
 
+      // create node
       auto *node = plot_->flatAddNode(root_, nameStrs, size, nameInd1, valueInd);
 
+      //---
+
+      // set color from color column
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
@@ -730,6 +782,9 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
 {
   auto *th = const_cast<CQChartsSunburstPlot *>(this);
 
+  //---
+
+  // create parent nodes
   auto *parent = root;
 
   for (int i = 0; i < nameStrs.length() - 1; ++i) {
@@ -780,6 +835,7 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
 
   //---
 
+  // create leaf node
   auto nodeName = nameStrs[nameStrs.length() - 1];
 
   auto *node = childNode(parent, nodeName);
@@ -821,15 +877,19 @@ void
 CQChartsSunburstPlot::
 addExtraNodes(HierNode *hier) const
 {
+  // create child nodes for hier nodes with explicit size (no children ?)
+
   if (hier->size() > 0) {
     auto *node = new Node(this, hier, "");
 
     auto ind1 = unnormalizeIndex(hier->ind());
 
-    Color color;
+    if (colorColumn().isValid()) {
+      Color color;
 
-    if (colorColumnColor(ind1.row(), ind1.parent(), color))
-      node->setColor(color);
+      if (colorColumnColor(ind1.row(), ind1.parent(), color))
+        node->setColor(color);
+    }
 
     node->setSize(hier->size());
     node->setInd (hier->ind());
@@ -1135,13 +1195,20 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
   if (! node->placed())
     return;
 
+  // get if root node (if single root and single child of root then child is also root)
   auto *root = dynamic_cast<RootNode *>(node);
 //auto *hier = dynamic_cast<HierNode *>(node);
 
   bool isRoot = root;
 
-  if (! isRoot && dynamic_cast<RootNode *>(node->parent()))
-    isRoot = (roots_.size() == 1 && roots_[0]->name() == "");
+  if (! isRoot) {
+    auto *parentRoot = dynamic_cast<RootNode *>(node->parent());
+
+    HierNode *newRoot;
+
+    if (parentRoot && hasFalseRoot(&newRoot))
+      isRoot = true;
+  }
 
   //---
 
@@ -1743,7 +1810,7 @@ pointInside(double x, double y)
 {
   if (! placed_) return false;
 
-  double r = std::sqrt(x*x + y*y);
+  double r = std::hypoy(x, y);
 
   if (r < r_ || r > r_ + dr_) return false;
 

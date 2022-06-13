@@ -203,7 +203,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  public:
   CQChartsGeometryPlot(View *view, const ModelP &model);
- ~CQChartsGeometryPlot();
+
+  virtual ~CQChartsGeometryPlot();
 
   //---
 

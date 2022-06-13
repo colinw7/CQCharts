@@ -252,7 +252,7 @@ void
 CQChartsTreeMapPlot::
 setMinArea(const Area &a)
 {
-  CQChartsUtil::testAndSet(minArea_, a, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(treeData_.minArea, a, [&]() { drawObjs(); } );
 }
 
 //----
@@ -620,12 +620,13 @@ initNodes() const
 
   //---
 
-  th->hierInd_ = 0;
+  hierInd_  = 0;
+  maxDepth_ = 0;
 
   th->root_ = createHierNode(nullptr, "<root>", QModelIndex());
 
   root_->setDepth(0);
-  root_->setHierInd(th->hierInd_++);
+  root_->setHierInd(hierInd_++);
 
   //---
 
@@ -812,10 +813,6 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
-  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
-
-  //---
-
   int depth1 = hier->depth() + 1;
 
   auto nameInd1 = normalizeIndex(nameInd);
@@ -824,9 +821,9 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   hier1->setDepth(depth1);
 
-  hier1->setHierInd(th->hierInd_++);
+  hier1->setHierInd(hierInd_++);
 
-  th->maxDepth_ = std::max(maxDepth_, depth1);
+  maxDepth_ = std::max(maxDepth_, depth1);
 
   //---
 
@@ -849,10 +846,6 @@ CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
 hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex &nameInd) const
 {
-  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
-
-  //---
-
   int depth1 = hier->depth() + 1;
 
   auto nameInd1 = normalizeIndex(nameInd);
@@ -863,7 +856,7 @@ hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex 
 
   hier->addNode(node);
 
-  th->maxDepth_ = std::max(maxDepth_, depth1);
+  maxDepth_ = std::max(maxDepth_, depth1);
 
   return node;
 }
@@ -890,6 +883,22 @@ loadFlat() const
                                       plot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
+      //---
+
+      // add group name at top of hier if specified
+      if (plot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+
+        bool ok;
+
+        auto groupName = plot_->modelString(groupModelInd, ok); // hier ?
+
+        nameStrs.push_front(groupName);
+      }
+
+      //---
+
+      // get value name (last name columns name or from id column)
       QString     name;
       QModelIndex nameInd;
 
@@ -914,6 +923,7 @@ loadFlat() const
 
       //---
 
+      // get size from value column
       double size = 1.0;
 
       if (plot_->valueColumn().isValid()) {
@@ -922,14 +932,18 @@ loadFlat() const
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
 
-        if (size == 0.0)
+        if (size == 0.0) // alow negative ?
           return State::SKIP;
       }
 
       //---
 
+      // create node
       auto *node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
 
+      //---
+
+      // set color from color column
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
@@ -958,16 +972,13 @@ CQChartsTreeMapPlot::
 flatAddNode(const QStringList &nameStrs, double size,
             const QModelIndex &nameInd, const QString &name) const
 {
-  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
-
-  //---
-
   int depth = nameStrs.length();
 
-  th->maxDepth_ = std::max(maxDepth_, depth + 1);
+  maxDepth_ = std::max(maxDepth_, depth + 1);
 
   //---
 
+  // create parent nodes
   auto *parent = root();
 
   for (int j = 0; j < nameStrs.length() - 1; ++j) {
@@ -996,7 +1007,7 @@ flatAddNode(const QStringList &nameStrs, double size,
       child->setSize(size1);
 
       child->setDepth(j + 1);
-      child->setHierInd(th->hierInd_++);
+      child->setHierInd(hierInd_++);
 
       //---
 
@@ -1010,6 +1021,7 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   //---
 
+  // create leaf node
   auto nodeName = nameStrs.back();
 
   auto *node = childNode(parent, nodeName);
@@ -1039,6 +1051,8 @@ void
 CQChartsTreeMapPlot::
 addExtraNodes(HierNode *hier) const
 {
+  // create child nodes for hier nodes with explicit size (no children ?)
+
   if (hier->size() > 0) {
     auto *node = createNode(hier, "", hier->size(), hier->ind());
 

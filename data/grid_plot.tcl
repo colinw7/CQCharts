@@ -1,8 +1,8 @@
 # state,code,2020/12/17,2020/12/16,2020/12/15,2020/12/14,2020/12/13,2020/12/12,2020/12/11
 set model [load_charts_model -csv data/grid_covid.csv -first_line_header]
 
-set row_column [process_charts_model -model $model -add -expr {0}]
-set col_column [process_charts_model -model $model -add -expr {0}]
+set row_column [process_charts_model -model $model -add -expr {0} -header Row]
+set col_column [process_charts_model -model $model -add -expr {0} -header Col]
 
 # col,row,code
 set map_model [load_charts_model -csv data/us_grid_map.csv -first_line_header]
@@ -39,7 +39,8 @@ for {set r 0} {$r < $nr} {incr r} {
   set_charts_data -model $model -row $r -column $col_column -name value -value $col
 }
 
-set plot [create_charts_plot -type grid -model $model -columns {{name 0} {label 1} {values {2 3 4 5 6 7 8}}}]
+set plot [create_charts_plot -type grid -model $model \
+  -columns {{name 0} {label 1} {values {2 3 4 5 6 7 8}}}]
 
 set view [get_charts_data -plot $plot -name view]
 

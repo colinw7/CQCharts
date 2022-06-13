@@ -174,7 +174,11 @@ class CQChartsKey : public CQChartsBoxObj,
   struct ScrollData {
     bool        scrolled     { false };   //!< scrolled
     int         hpos         { 0 };       //!< horizontal scroll position
+    int         hmax         { 0 };       //!< max horizontal scroll position
     int         vpos         { 0 };       //!< vertical scroll position
+    int         vmax         { 0 };       //!< max vertical scroll position
+    int         vrows        { 0 };       //!< vertical number of visible rows
+    double      vsum         { 0.0 };     //!< vertical row height sum
     double      pixelBarSize { 13 };      //!< scroll bar pixel size
     OptLength   width;                    //!< fixed width
     OptLength   height;                   //!< fixed height

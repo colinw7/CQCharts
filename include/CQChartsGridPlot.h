@@ -26,6 +26,8 @@ class CQChartsGridPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
@@ -54,7 +56,9 @@ class CQChartsGridCellObj;
  * \brief Grid Plot
  * \ingroup Charts
  */
-class CQChartsGridPlot : public CQChartsPlot {
+class CQChartsGridPlot : public CQChartsPlot,
+ public CQChartsObjShapeData<CQChartsGridPlot>,
+ public CQChartsObjTextData <CQChartsGridPlot> {
   Q_OBJECT
 
   // columns
@@ -66,7 +70,15 @@ class CQChartsGridPlot : public CQChartsPlot {
 
   // options
   Q_PROPERTY(DrawType            drawType    READ drawType    WRITE setDrawType   )
+  Q_PROPERTY(double              cellMargin  READ cellMargin  WRITE setCellMargin )
   Q_PROPERTY(CQChartsPaletteName cellPalette READ cellPalette WRITE setCellPalette)
+  Q_PROPERTY(bool                showValue   READ isShowValue WRITE setShowValue  )
+
+  // shape
+  CQCHARTS_SHAPE_DATA_PROPERTIES
+
+  // text
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_ENUMS(DrawType)
 
@@ -79,6 +91,8 @@ class CQChartsGridPlot : public CQChartsPlot {
 
   using PaletteName = CQChartsPaletteName;
   using RValues     = CQChartsRValues;
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
 
  public:
   CQChartsGridPlot(View *view, const ModelP &model);
@@ -121,8 +135,14 @@ class CQChartsGridPlot : public CQChartsPlot {
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &t);
 
+  double cellMargin() const { return cellMargin_; }
+  void setCellMargin(double r);
+
   const PaletteName &cellPalette() const { return cellPalette_; }
   void setCellPalette(const PaletteName &n);
+
+  bool isShowValue() const { return showValue_; }
+  void setShowValue(bool b);
 
   //---
 
@@ -132,6 +152,8 @@ class CQChartsGridPlot : public CQChartsPlot {
   //---
 
   void addProperties() override;
+
+  //---
 
   Range calcRange() const override;
 
@@ -154,19 +176,21 @@ class CQChartsGridPlot : public CQChartsPlot {
 
  private:
   // columns
-  Column   nameColumn_;   //!< name column
-  Column   labelColumn_;  //!< label column
-  Column   rowColumn_;    //!< row column
-  Column   columnColumn_; //!< column column
-  Columns  valueColumns_; //!< value columns
+  Column  nameColumn_;   //!< name column
+  Column  labelColumn_;  //!< label column
+  Column  rowColumn_;    //!< row column
+  Column  columnColumn_; //!< column column
+  Columns valueColumns_; //!< value columns
 
   // options
   DrawType    drawType_    { DrawType::PIE }; //!< draw type
+  double      cellMargin_  { 0.1 };           //!< cell margin
   PaletteName cellPalette_ { "moreland" };    //!< cell object palette
+  bool        showValue_   { true };          //!< show value in cell
 
   // working data
-  double   minValue_     { 0.0 };           //!< min overall value
-  double   maxValue_     { 0.0 };           //!< max overall value
+  double minValue_ { 0.0 }; //!< min overall value
+  double maxValue_ { 0.0 }; //!< max overall value
 };
 
 //---

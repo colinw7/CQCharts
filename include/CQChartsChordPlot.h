@@ -3,7 +3,6 @@
 
 #include <CQChartsConnectionPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsValueSet.h>
 #include <QModelIndex>
 
 class CQChartsRotatedTextBoxObj;

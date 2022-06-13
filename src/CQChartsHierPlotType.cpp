@@ -21,6 +21,9 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn").setBasic().
    setNumericColumn().setPropPath("columns.value").setTip("Data value column");
 
+  addColumnParameter("group", "Group", "groupColumn").setBasic().
+   setNumericColumn().setPropPath("columns.group").setTip("Group column");
+
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
    setTip("Separator for hierarchical path in name column");
 

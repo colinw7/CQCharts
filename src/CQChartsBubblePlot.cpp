@@ -643,12 +643,18 @@ loadModel() const
       auto *pnode = parentHier(data);
 
       if (! hasName) {
-        name = pnode->hierName();
+        auto hname = pnode->hierName();
 
-        auto names = name.split("/", QString::KeepEmptyParts);
+        auto names = hname.split("/", QString::KeepEmptyParts);
 
-        if (names.size() > 0)
+        if      (names.size() > 1)
           name = names.back();
+        else if (plot_->valueColumn().isValid()) {
+          auto modelInd = ModelIndex(plot_, data.row, plot_->valueColumn(), data.parent);
+
+          bool ok;
+          name = plot_->modelString(modelInd, ok);
+        }
       }
 
       auto *node = plot_->addNode(pnode, name, size, nameInd1);
@@ -735,9 +741,9 @@ loadModel() const
 
       ModelIndex nameModelInd;
 
-      if (plot_->nameColumn().isValid())
+      if      (plot_->nameColumn().isValid())
         nameModelInd = ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
-      else
+      else if (plot_->idColumn().isValid())
         nameModelInd = ModelIndex(plot_, data.row, plot_->idColumn(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
@@ -1287,7 +1293,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
     //---
 
     // scale font
-    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
+    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s), /*scale*/false);
   }
   else {
     for (int i = 0; i < strs.size(); ++i) {
@@ -1318,6 +1324,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.clipLength = 0.0;
+  textOptions.scaled     = false;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

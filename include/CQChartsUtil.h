@@ -9,6 +9,7 @@
 #include <CQChartsNameValues.h>
 #include <CQChartsLineCap.h>
 #include <CQChartsLineJoin.h>
+#include <CMathRound.h>
 #include <CMathUtil.h>
 
 #include <QVariant>
@@ -499,6 +500,11 @@ inline double circleArea(double r) {
 
 inline double ellipseArea(double xr, double yr) {
   return M_PI*xr*yr;
+}
+
+inline void countToSquareGrid(int n, int &nx, int &ny) {
+  ny = CMathRound::RoundNearest(std::sqrt(std::max(n, 1)));
+  nx = (n + ny - 1)/std::max(ny, 1);
 }
 
 }

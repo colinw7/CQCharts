@@ -376,7 +376,7 @@ drawImage(const Point &p, const QImage &image)
 
 void
 CQChartsSVGPaintDevice::
-setFont(const QFont &f)
+setFont(const QFont &f, bool /*scale*/)
 {
   data_.font    = f;
   data_.hasFont = true;

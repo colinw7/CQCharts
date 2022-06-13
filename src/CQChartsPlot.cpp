@@ -2546,7 +2546,7 @@ void
 CQChartsPlot::
 applyEqualScale(Range &dataRange) const
 {
-  if (isEqualScale()) {
+  if (isEqualScale() && dataRange.isValid()) {
     auto aspect = pixelAspect();
 
     dataRange.equalScale(aspect);

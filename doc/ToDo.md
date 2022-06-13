@@ -4,6 +4,13 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + pie chart rotated group text alignment
+ + placement engines
+   + pie use bubble place
+   + use CQFactor place in bubble
+   + tree map for value set
+ + tree map use pixel for area proportions (non equal scaling box)
+ + scroll key bad range
  + hier connection plot ? groups external connections
  + scatter density use distribution ?
  + ensure grouping doesn't create too many groups

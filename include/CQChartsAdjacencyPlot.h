@@ -386,6 +386,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   QColor interpGroupColor(int) const;
 
+  ColorInd groupColorInd(int group) const;
+
   //---
 
   void initFontFactor();
@@ -428,12 +430,14 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   };
 
   void drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const;
-  void drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const;
-  void addRowNodeLabelStr(const Point &p, const QString &str, int depth) const;
+  void drawRowNodeLabelStr(PaintDevice *device, const Point &p,
+                           const QString &str, int group) const;
+  void addRowNodeLabelStr(const Point &p, const QString &str, int depth, int group) const;
 
   void drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const;
-  void drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str) const;
-  void addColNodeLabelStr(const Point &p, const QString &str, int depth) const;
+  void drawColNodeLabelStr(PaintDevice *device, const Point &p,
+                           const QString &str, int group) const;
+  void addColNodeLabelStr(const Point &p, const QString &str, int depth, int group) const;
 
  private:
   using Connections = CQChartsConnectionList::Connections;
@@ -542,9 +546,20 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   mutable double yts_   { 0.0 };
   mutable double twMax_ { 0.0 };
 
-  using Points        = std::vector<Point>;
-  using RowNodeLabels = std::map<int, std::map<QString, Points>>;
-  using ColNodeLabels = std::map<int, std::map<QString, Points>>;
+  struct GroupPoint {
+    int   group { -1 };
+    Point point;
+
+    GroupPoint() { }
+
+    GroupPoint(int group, const Point &point) :
+     group(group), point(point) {
+    }
+  };
+
+  using GroupPoints   = std::vector<GroupPoint>;
+  using RowNodeLabels = std::map<int, std::map<QString, GroupPoints>>;
+  using ColNodeLabels = std::map<int, std::map<QString, GroupPoints>>;
 
   mutable RowNodeLabels rowNodeLabels_;
   mutable ColNodeLabels colNodeLabels_;

@@ -1948,31 +1948,34 @@ draw(PaintDevice *device) const
     //---
 
     // count number of rows in height
-    int    scrollRows   = 0;
+    scrollData_.vrows = 0;
+    scrollData_.vsum  = 0;
+
     double scrollHeight = sh - pmargin_.yb - ppadding_.yb -
                                pmargin_.yt - ppadding_.yt - layoutData_.hbarHeight;
 
     for (int i = 0; i < numRows; ++i) {
-      if (scrollHeight <= 0)
-        break;
+      double rh = rowHeights_[i] + 2*ys_;
 
-      ++scrollRows;
+      if (rh <= scrollHeight) {
+        ++scrollData_.vrows;
 
-      int rh = int(rowHeights_[i] + 2*ys_);
+        scrollHeight -= rh;
+      }
 
-      scrollHeight -= rh;
+      scrollData_.vsum += rh;
     }
 
     //---
 
     // update scroll bar
-    if (scrollData_.vbar->pageStep() != scrollRows)
-      scrollData_.vbar->setPageStep(scrollRows);
+    if (scrollData_.vbar->pageStep() != scrollData_.vrows)
+      scrollData_.vbar->setPageStep(scrollData_.vrows);
 
-    int smax = std::max(numRows - scrollRows, 1);
+    scrollData_.vmax = std::max(numRows - scrollData_.vrows, 1);
 
-    if (scrollData_.vbar->maximum() != smax)
-      scrollData_.vbar->setRange(0, smax);
+    if (scrollData_.vbar->maximum() != scrollData_.vmax)
+      scrollData_.vbar->setRange(0, scrollData_.vmax);
 
     if (scrollData_.vbar->value() != scrollData_.vpos)
       scrollData_.vbar->setValue(scrollData_.vpos);
@@ -2002,10 +2005,10 @@ draw(PaintDevice *device) const
     if (scrollData_.hbar->pageStep() != pageStep)
       scrollData_.hbar->setPageStep(pageStep);
 
-    int smax = std::max(fullWidth - pageStep, 1);
+    scrollData_.hmax = std::max(fullWidth - pageStep, 1);
 
-    if (scrollData_.hbar->maximum() != smax)
-      scrollData_.hbar->setRange(0, smax);
+    if (scrollData_.hbar->maximum() != scrollData_.hmax)
+      scrollData_.hbar->setRange(0, scrollData_.hmax);
 
     if (scrollData_.hbar->value() != scrollData_.hpos)
       scrollData_.hbar->setValue(scrollData_.hpos);

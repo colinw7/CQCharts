@@ -16,6 +16,7 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
+#include <CQChartsPlotDrawUtil.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -102,6 +103,7 @@ addParameters()
     addNameValue("BOX"     , static_cast<int>(Plot::ShapeType::BOX     )).
     addNameValue("SCATTER" , static_cast<int>(Plot::ShapeType::SCATTER )).
     addNameValue("VIOLIN"  , static_cast<int>(Plot::ShapeType::VIOLIN  )).
+    addNameValue("TREEMAP" , static_cast<int>(Plot::ShapeType::TREEMAP )).
     setTip("Bar shape type");
 
   addBoolParameter("percent"   , "Percent"    , "percent"   ).setTip("Show value as percentage");
@@ -4355,6 +4357,9 @@ drawShape(PaintDevice *device, const BBox &bbox, const Color &color, bool useLin
   else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::VIOLIN) {
     drawViolin(device, bbox);
   }
+  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::TREEMAP) {
+    drawTreeMap(device, bbox, barPenBrush);
+  }
   else {
     drawRect(device, bbox, useLine);
   }
@@ -4477,6 +4482,23 @@ drawViolin(PaintDevice *device, const BBox &bbox) const
   drawData.scaled = true;
 
   density_->draw(plot(), device, bbox, drawData);
+}
+
+void
+CQChartsDistributionBarObj::
+drawTreeMap(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
+{
+  std::vector<double> xvals;
+
+  plot_->getXVals(groupInd_, bucket_, xvals);
+
+  CQChartsRValues values;
+
+  for (const auto &r : xvals)
+    values.addValue(r);
+
+  CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device,
+                                    values, bbox, plot_->defaultPalette(), penBrush.pen);
 }
 
 void
