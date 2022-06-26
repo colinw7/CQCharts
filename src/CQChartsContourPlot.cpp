@@ -347,7 +347,7 @@ createObjs(PlotObjs &) const
 
 bool
 CQChartsContourPlot::
-addMenuItems(QMenu *)
+addMenuItems(QMenu *, const Point &)
 {
   return false;
 }

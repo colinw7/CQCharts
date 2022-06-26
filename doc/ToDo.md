@@ -4,8 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + pie chart rotated group text alignment
- + placement engines
+ + Connected Scatter Ignore Hidden
+ + Exponential Axis Scaling (exp)
+ + CQFactor in charts (placement engine N + rect -> placed rects)
+ + role type ? add data in column with custom role and specify type
+ + allow column data from tcl var/proc (already done ?)
+ + double click op
+    + select, click, zoom, pan, query
+    + handle in all modes ?
+ + plot and plot object placement engines
    + pie use bubble place
    + use CQFactor place in bubble
    + tree map for value set
@@ -20,7 +27,7 @@ TODO:
    + plots to support
      + adjacency (probably not)
      + bar chart (sort of, no overlay, revisit - should match distribution)
-     + box plot (always separate)
+     + box plot (always separate - connecting lines)
      + bubble plot (circle placement for groups, no separate/grid)
      + chord plot (probably not)
      + contour plot (probably not)

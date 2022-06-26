@@ -6273,7 +6273,7 @@ showMenu(const Point &p)
   // add Menus for current plot
 
   if (currentPlot) {
-    if (currentPlot->addMenuItems(popupMenu))
+    if (currentPlot->addMenuItems(popupMenu, w))
       popupMenu->addSeparator();
   }
 

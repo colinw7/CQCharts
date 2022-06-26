@@ -439,7 +439,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   double calcHierColor(const Node *hierNode) const;
   double calcHierSize (const Node *hierNode) const;
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   void setOpen(NodeObj *nodeObj, bool open);
 

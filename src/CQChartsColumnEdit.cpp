@@ -411,7 +411,17 @@ CQChartsColumnEdit(QWidget *parent) :
   typeCombo_ = createLabelCombo("type", "Type", "Column Type");
 
   typeCombo_->addItems(QStringList() <<
-    "Column" << "Expression" << "Row Number" << "Vertical Header" << "Group");
+    "Column"            << // DATA, DATA_INDEX
+    "Column Ref"        << // COLUMN_REF
+    "Expression"        << // EXPR
+    "Tcl Data"          << // TCL_DATA
+    "Row Number"        << // ROW
+    "Vertical Header"   << // COLUMN
+    "Cell Value"        << // CELL
+    "Horizontal Header" << // HHEADER
+    "Vertical Header"   << // VHEADER
+    "Group"                // GROUP
+  );
 
   //---
 
@@ -524,14 +534,33 @@ columnToWidgets()
 
       expressionEdit_->setText(column_.expr());
     }
-    else if (column_.type() == Column::Type::ROW) {
+    else if (column_.type() == Column::Type::COLUMN_REF) {
       typeCombo_->setCurrentIndex(2);
+
+      expressionEdit_->setText(column_.refName());
+    }
+    else if (column_.type() == Column::Type::TCL_DATA) {
+      typeCombo_->setCurrentIndex(3);
+
+      expressionEdit_->setText(column_.tclData());
+    }
+    else if (column_.type() == Column::Type::ROW) {
+      typeCombo_->setCurrentIndex(4);
+    }
+    else if (column_.type() == Column::Type::COLUMN) {
+      typeCombo_->setCurrentIndex(5);
+    }
+    else if (column_.type() == Column::Type::CELL) {
+      typeCombo_->setCurrentIndex(6);
+    }
+    else if (column_.type() == Column::Type::HHEADER) {
+      typeCombo_->setCurrentIndex(7);
     }
     else if (column_.type() == Column::Type::VHEADER) {
-      typeCombo_->setCurrentIndex(3);
+      typeCombo_->setCurrentIndex(8);
     }
     else if (column_.type() == Column::Type::GROUP) {
-      typeCombo_->setCurrentIndex(4);
+      typeCombo_->setCurrentIndex(9);
     }
   }
   else {
@@ -552,6 +581,16 @@ widgetsToColumn()
 {
   Column column;
 
+  auto getExprEditStr = [&]() {
+    QString str;
+
+    if (expressionEdit_->text().trimmed().length())
+      str = expressionEdit_->text();
+
+    return str;
+  };
+
+  // DATA, DATA_INDEX
   if      (typeCombo_->currentIndex() == 0) {
     auto icolumn = columnCombo_->getColumn();
 
@@ -567,26 +606,55 @@ widgetsToColumn()
     else
       column = Column::makeData(icolumn.column(), int(role));
   }
+  // EXPR
   else if (typeCombo_->currentIndex() == 1) {
-    QString str;
-
-    if (expressionEdit_->text().trimmed().length())
-      str = expressionEdit_->text();
+    auto str = getExprEditStr();
 
     column = Column::makeExpr(str);
   }
+  // COLUMN_REF
   else if (typeCombo_->currentIndex() == 2) {
+    auto str = getExprEditStr();
+
+    column = Column::makeColumnRef(str);
+  }
+  // TCL_DATA
+  else if (typeCombo_->currentIndex() == 3) {
+    auto str = getExprEditStr();
+
+    column = Column::makeTclData(str);
+  }
+  // ROW
+  else if (typeCombo_->currentIndex() == 4) {
     column = Column::makeRow();
   }
-  else if (typeCombo_->currentIndex() == 3) {
+  // COLUMN
+  else if (typeCombo_->currentIndex() == 5) {
+    column = Column::makeColumn();
+  }
+  // CELL
+  else if (typeCombo_->currentIndex() == 6) {
+    column = Column::makeCell();
+  }
+  // HHEADER
+  else if (typeCombo_->currentIndex() == 7) {
+    column = Column::makeHHeader(-1);
+  }
+  // VHEADER
+  else if (typeCombo_->currentIndex() == 8) {
     column = Column::makeVHeader();
   }
-  else if (typeCombo_->currentIndex() == 4) {
+  // GROUP
+  else if (typeCombo_->currentIndex() == 9) {
     column = Column::makeGroup();
   }
 
+  //---
+
   if (nameEdit_->text().trimmed().length())
     column.setName(nameEdit_->text().trimmed());
+
+  //---
 
   column_ = column;
 
@@ -660,10 +728,27 @@ updateState()
     widgetLabels_[w]->setVisible(visible);
   };
 
+  auto setEditLabel = [&](QWidget *w,  const QString &label) {
+    auto *labelW = qobject_cast<QLabel *>(widgetLabels_[w]);
+    assert(labelW);
+
+    labelW->setText(label);
+  };
+
   setEditVisible(columnCombo_   , typeCombo_->currentIndex() == 0);
   setEditVisible(roleEdit_      , typeCombo_->currentIndex() == 0);
   setEditVisible(indexEdit_     , typeCombo_->currentIndex() == 0);
-  setEditVisible(expressionEdit_, typeCombo_->currentIndex() == 1);
+
+  setEditVisible(expressionEdit_, typeCombo_->currentIndex() == 1 || // EXPR
+                                  typeCombo_->currentIndex() == 2 || // COLUMN_REF
+                                  typeCombo_->currentIndex() == 3);  // TCL DATA
+
+  if      (typeCombo_->currentIndex() == 1)
+    setEditLabel(expressionEdit_, "Expression");
+  else if (typeCombo_->currentIndex() == 2)
+    setEditLabel(expressionEdit_, "Ref Column");
+  else if (typeCombo_->currentIndex() == 3)
+    setEditLabel(expressionEdit_, "Tcl Data");
 }
 
 QSize

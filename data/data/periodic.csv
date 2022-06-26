@@ -111,9 +111,9 @@ AtomicNumber,Element,Symbol,AtomicMass,NumberofNeutrons,NumberofProtons,Numberof
 110,Darmstadtium,Ds,271,161,110,110,7,10,artificial,yes,,yes,,,Transactinide,,,,,,,,,1994,,7,
 111,Roentgenium,Rg,272,161,111,111,7,11,artificial,yes,,yes,,,Transactinide,,,,,,,,,1994,,7,
 112,Copernicium,Cn,285,173,112,112,7,12,artificial,yes,,yes,,,Transactinide,,,,,,,,,1996,,7,
-113,Nihonium,Nh,284,171,113,113,7,13,artificial,yes,,yes,,,,,,,,,,,,2004,,7,3
+113,Nihonium,Nh,284,171,113,113,7,13,artificial,yes,,yes,,,Unknown,,,,,,,,,2004,,7,3
 114,Flerovium,Fl,289,175,114,114,7,14,artificial,yes,,yes,,,Transactinide,,,,,,,,,1999,,7,4
-115,Moscovium,Mc,288,173,115,115,7,15,artificial,yes,,yes,,,,,,,,,,,,2010,,7,5
+115,Moscovium,Mc,288,173,115,115,7,15,artificial,yes,,yes,,,Unknown,,,,,,,,,2010,,7,5
 116,Livermorium,Lv,292,176,116,116,7,16,artificial,yes,,yes,,,Transactinide,,,,,,,,,2000,,7,6
-117,Tennessine,Ts,295,178,117,117,7,17,artificial,yes,,,yes,,,,,,,,,,,2010,,7,7
-118,Oganesson,Og,294,176,118,118,7,18,artificial,yes,,,yes,,Noble Gas,,,,,,,,,2006,,7,8
+117,Tennessine,Ts,295,178,117,117,7,17,artificial,yes,,yes,,,Unknown,,,,,,,,,2010,,7,7
+118,Oganesson,Og,294,176,118,118,7,18,artificial,yes,,yes,,,Noble Gas,,,,,,,,,2006,,7,8

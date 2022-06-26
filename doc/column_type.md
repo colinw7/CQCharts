@@ -32,3 +32,11 @@ be mapped into a palette from numeric values or discrete strings. Usually
 mapping takes place on data that can be used for other parts of the plot
 so it is better to convert the value in the plot rather than the model so
 the original data can still be accessed.
+
+# Data Mapping
+
+All data is accessed through filter model (CQChartsModelFilter).
+
+The filter model uses column type data to get the column adjusted value which is
+stored in CQBaseModelRole::OutputValue or CQBaseModelRole::IntermediateValue roles
+depending on whether display or edit role.

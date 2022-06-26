@@ -1505,7 +1505,7 @@ filterObjs()
 
 bool
 CQChartsGraphPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   (void) addMenuAction(menu, "Fix"  , SLOT(fixSelected()));
   (void) addMenuAction(menu, "Unfix", SLOT(unfixSelected()));

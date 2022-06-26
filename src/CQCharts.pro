@@ -428,6 +428,8 @@ CTclParse.cpp \
 CQGLControl.cpp \
 CGLUtil.cpp \
 CGLTexture.cpp \
+\
+CCircleFactor.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -884,6 +886,8 @@ HEADERS += \
 ../include/CGLUtil.h \
 ../include/CGLTexture.h \
 ../include/Springy.h \
+\
+CCircleFactor.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

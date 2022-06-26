@@ -1900,6 +1900,7 @@ calcType()
     tableDrawType_  = columnType->drawType (nameValues);
     tableDrawStops_ = columnType->drawStops(nameValues);
 
+  //namedValues_ = columnType->namedValues(nameValues);
   //namedColors_ = columnType->namedColors(nameValues);
   //namedImages_ = columnType->namedImages(nameValues);
   }
@@ -2168,6 +2169,26 @@ barchartColor() const
 
   return c;
 }
+
+#if 0
+bool
+CQChartsModelColumnDetails::
+namedValue(const QString &name, QVariant &value) const
+{
+  initType();
+
+  const auto *columnType = this->columnType();
+  if (! columnType) return false;
+
+  const auto &nameValues  = typeData_.nameValues;
+  const auto &namedValues = columnType->namedValues(nameValues);
+
+  if (! namedValues.nameValue(name, value))
+    return false;
+
+  return true;
+}
+#endif
 
 bool
 CQChartsModelColumnDetails::

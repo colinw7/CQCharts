@@ -936,7 +936,7 @@ autoFit()
 
 bool
 CQChartsTablePlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   menu_ = menu;
 

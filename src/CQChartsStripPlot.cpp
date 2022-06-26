@@ -616,7 +616,7 @@ addKeyItems(PlotKey *)
 
 bool
 CQChartsStripPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

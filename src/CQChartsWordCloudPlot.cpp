@@ -371,7 +371,7 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsWordCloudPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

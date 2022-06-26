@@ -112,10 +112,21 @@ void
 CQChartsSunburstPlot::
 resetRoots()
 {
-  for (auto &root : roots_)
+  for (auto &pg : groupSunburstData_) {
+    auto &sunburstData = pg.second;
+
+    for (auto &root : sunburstData.roots)
+      delete root;
+
+    sunburstData.roots.clear();
+  }
+
+  //---
+
+  for (auto &root : sunburstData_.roots)
     delete root;
 
-  roots_.clear();
+  sunburstData_.roots.clear();
 }
 
 //----
@@ -162,19 +173,37 @@ setClipText(bool b)
   CQChartsUtil::testAndSet(clipText_, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsSunburstPlot::
+setSplitGroups(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroups_, b, [&]() { updateObjs(); } );
+}
+
 //---
+
+const CQChartsSunburstPlot::RootNodes &
+CQChartsSunburstPlot::
+roots(const QString &groupName) const
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  return sunburstData.roots;
+}
 
 bool
 CQChartsSunburstPlot::
-isRoot(const HierNode *node) const
+isRoot(const QString &groupName, const HierNode *node) const
 {
-  auto *root = currentRoot();
+  auto *root = currentRoot(groupName);
 
   if (root) {
     return (node == root);
   }
   else {
-    for (const auto &root : roots_) {
+    auto &sunburstData = getSunburstData(groupName);
+
+    for (const auto &root : sunburstData.roots) {
       if (node == root)
         return true;
     }
@@ -185,17 +214,19 @@ isRoot(const HierNode *node) const
 
 bool
 CQChartsSunburstPlot::
-hasFalseRoot(HierNode **newRoot) const
+hasFalseRoot(const QString &groupName, HierNode **newRoot) const
 {
   *newRoot = nullptr;
 
-  auto *root = currentRoot();
+  auto *root = currentRoot(groupName);
 
   if (! root) {
-    if (roots_.size() != 1)
+    auto &sunburstData = getSunburstData(groupName);
+
+    if (sunburstData.roots.size() != 1)
       return false;
 
-    root = roots_[0];
+    root = sunburstData.roots[0];
   }
 
   if (root->name() != "" || root->getChildren().size() != 1)
@@ -245,6 +276,7 @@ addProperties()
   addProp("options", "multiRoot"       , "", "Support multiple roots");
   addProp("options", "followViewExpand", "", "Follow view expand");
   addProp("options", "sortType"        , "", "Sort type");
+  addProp("options", "splitGroups"     , "", "Show grouped data in separated sunbursts");
 
   // coloring
   addProp("coloring", "colorById", "colorById", "Color by id");
@@ -280,17 +312,19 @@ addProperties()
 
 CQChartsSunburstHierNode *
 CQChartsSunburstPlot::
-currentRoot() const
+currentRoot(const QString &groupName) const
 {
-  HierNode *currentRoot = nullptr;
+  auto &sunburstData = getSunburstData(groupName);
 
-  auto names = currentRootName_.split('@', QString::SkipEmptyParts);
+  auto names = sunburstData.currentRootName.split('@', QString::SkipEmptyParts);
 
   if (names.empty())
-    return currentRoot;
+    return nullptr;
+
+  HierNode *currentRoot = nullptr;
 
   for (int i = 0; i < names.size(); ++i) {
-    auto *hier = childHierNode(currentRoot, names[i]);
+    auto *hier = childHierNode(groupName, currentRoot, names[i]);
 
     if (! hier)
       return currentRoot;
@@ -303,19 +337,66 @@ currentRoot() const
 
 void
 CQChartsSunburstPlot::
-setCurrentRoot(HierNode *hier, bool update)
+setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
 {
+  auto &sunburstData = getSunburstData(groupName);
+
   if (hier)
-    currentRootName_ = hier->hierName("@");
+    sunburstData.currentRootName = hier->hierName("@");
   else
-    currentRootName_.clear();
+    sunburstData.currentRootName.clear();
 
   if (update) {
-    replaceRoots();
+    replaceGroups();
 
     updateObjs();
   }
 }
+
+//---
+
+int
+CQChartsSunburstPlot::
+colorId(const QString &groupName) const
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  return sunburstData.colorData.colorId;
+}
+
+int
+CQChartsSunburstPlot::
+numColorIds(const QString &groupName) const
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  return sunburstData.colorData.numColorIds;
+}
+
+void
+CQChartsSunburstPlot::
+initColorIds(const QString &groupName)
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  sunburstData.colorData.reset();
+}
+
+int
+CQChartsSunburstPlot::
+nextColorId(const QString &groupName)
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  ++sunburstData.colorData.colorId;
+
+  if (sunburstData.colorData.colorId >= sunburstData.colorData.numColorIds)
+    sunburstData.colorData.numColorIds = sunburstData.colorData.colorId + 1;
+
+  return sunburstData.colorData.colorId;
+}
+
+//---
 
 CQChartsGeom::Range
 CQChartsSunburstPlot::
@@ -382,49 +463,22 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  if (roots_.empty())
+  if (sunburstData_.roots.empty())
     th->initRoots();
 
   //---
 
-  th->initColorIds();
+  for (const auto &groupName : groupNameSet_)
+    colorGroupNodes(groupName);
 
-  if (currentRoot()) {
-    colorNodes(currentRoot());
-  }
-  else {
-    for (auto &root : roots_)
-      colorNodes(root);
-  }
+  colorGroupNodes("");
 
   //---
 
-  int nr = int(roots_.size());
+  for (const auto &groupName : groupNameSet_)
+    addGroupPlotObjs(groupName, objs);
 
-  bool isUnnamedRoot = (nr == 1 && roots_[0]->name() == "");
-
-  if (currentRoot()) {
-    ColorInd ci(0, 1);
-
-    if (! isUnnamedRoot || roots_[0] != currentRoot())
-      addPlotObj(currentRoot(), objs, ci);
-
-    addPlotObjs(currentRoot(), objs, ci);
-  }
-  else {
-    int ir = 0;
-
-    for (auto &root : roots_) {
-      ColorInd ci(ir, nr);
-
-      if (! isUnnamedRoot)
-        addPlotObj(root, objs, ci);
-
-      addPlotObjs(root, objs, ci);
-
-      ++ir;
-    }
-  }
+  addGroupPlotObjs("", objs);
 
   //---
 
@@ -448,12 +502,50 @@ createObjs(PlotObjs &objs) const
 
 void
 CQChartsSunburstPlot::
+addGroupPlotObjs(const QString &groupName, PlotObjs &objs) const
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  int nr = int(sunburstData.roots.size());
+
+  bool isUnnamedRoot = (nr == 1 && sunburstData.roots[0]->name() == "");
+
+  auto *currentRoot = this->currentRoot(groupName);
+
+  if (currentRoot) {
+    ColorInd ci(0, 1);
+
+    if (! isUnnamedRoot || sunburstData.roots[0] != currentRoot)
+      addPlotObj(currentRoot, objs, ci);
+
+    addPlotObjs(currentRoot, objs, ci);
+  }
+  else {
+    int ir = 0;
+
+    for (auto &root : sunburstData.roots) {
+      ColorInd ci(ir, nr);
+
+      if (! isUnnamedRoot)
+        addPlotObj(root, objs, ci);
+
+      addPlotObjs(root, objs, ci);
+
+      ++ir;
+    }
+  }
+}
+
+void
+CQChartsSunburstPlot::
 initRoots()
 {
   RootNode *root = nullptr;
 
-  if (! isMultiRoot())
-    root = createRootNode();
+  if (! isMultiRoot()) {
+    // group roots created on demand
+    root = createRootNode("");
+  }
 
   if (isHierarchical())
     loadHier(root);
@@ -467,7 +559,18 @@ initRoots()
 
     expandedModelIndices(indSet);
 
-    for (const auto &root : roots_) {
+    //---
+
+    for (auto &pg : groupSunburstData_) {
+      auto &sunburstData = pg.second;
+
+      for (const auto &root : sunburstData.roots) {
+        for (auto &hierNode : root->getChildren())
+          setNodeExpansion(hierNode, indSet);
+      }
+    }
+
+    for (const auto &root : sunburstData_.roots) {
       for (auto &hierNode : root->getChildren())
         setNodeExpansion(hierNode, indSet);
     }
@@ -475,41 +578,84 @@ initRoots()
 
   //---
 
-  replaceRoots();
+  replaceGroups();
 }
 
 void
 CQChartsSunburstPlot::
-replaceRoots() const
+replaceGroups()
 {
-  double ri = std::max(innerRadius(), 0.0);
-  double ro = CMathUtil::clamp(outerRadius(), ri, 1.0);
+  int ng = int(groupNameSet_.size());
+
+  if (isSplitGroups() && ng > 0) {
+    int nx, ny;
+    CQChartsUtil::countToSquareGrid(ng, nx, ny);
+
+    double m  = 0.01;
+    double dx = 2.0/nx - m;
+    double dy = 2.0/ny - m;
+
+    int ig = 0;
+
+    for (const auto &groupName : groupNameSet_) {
+      int ix = ig % nx;
+      int iy = ig / nx;
+
+      double x1 = ix*(dx + m) - 1.0 + m/2.0;
+      double y1 = iy*(dy + m) - 1.0 + m/2.0;
+      double x2 = x1 + dx;
+      double y2 = y1 + dy;
+
+      replaceRoots(groupName, BBox(Point(x1, y1), Point(x2, y2)));
+
+      ++ig;
+    }
+  }
+  else {
+    replaceRoots("", BBox(-1, -1, 1, 1));
+  }
+}
+
+void
+CQChartsSunburstPlot::
+replaceRoots(const QString &groupName, const BBox &rect) const
+{
+  double rs = rect.getWidth()/2.0;
+
+  double ri = std::max(rs*innerRadius(), 0.0);
+  double ro = CMathUtil::clamp(rs*outerRadius(), ri, rs);
 
   auto sortType = static_cast<CQChartsSunburstNode::SortType>(this->sortType());
 
   auto a = startAngle();
 
-  if (currentRoot()) {
+  auto *currentRoot = this->currentRoot(groupName);
+
+  auto &sunburstData = getSunburstData(groupName);
+
+  sunburstData.rect = rect;
+
+  if (currentRoot) {
     Angle da(360.0);
 
-    currentRoot()->setPosition(0.0, a, ri, da);
+    currentRoot->setPosition(0.0, a, ri, da);
 
-    currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da, sortType);
+    currentRoot->packNodes(currentRoot, ri, ro, 0.0, a, da, sortType);
   }
   else {
     HierNode *newRoot;
 
-    if (hasFalseRoot(&newRoot)) {
+    if (hasFalseRoot(groupName, &newRoot)) {
       Angle da(360.0);
 
       newRoot->setPosition(0.0, a, ri, da);
 
-      newRoot->packNodes(roots_[0], ri, ro, 0.0, a, da, sortType);
+      newRoot->packNodes(sunburstData.roots[0], ri, ro, 0.0, a, da, sortType);
     }
     else {
-      Angle da(! roots_.empty() ? 360.0/double(roots_.size()) : 0.0);
+      Angle da(! sunburstData.roots.empty() ? 360.0/double(sunburstData.roots.size()) : 0.0);
 
-      for (auto &root : roots_) {
+      for (auto &root : sunburstData.roots) {
         root->setPosition(0.0, a, ri, da);
 
         root->packNodes(ri, ro, 0.0, a, da, sortType);
@@ -520,30 +666,53 @@ replaceRoots() const
   }
 }
 
+//---
+
 void
 CQChartsSunburstPlot::
-colorNodes(HierNode *hier) const
+colorGroupNodes(const QString &groupName) const
 {
-  if (! hier->hasNodes() && ! hier->hasChildren()) {
-    colorNode(hier);
+  auto *th = const_cast<CQChartsSunburstPlot *>(this);
+
+  th->initColorIds(groupName);
+
+  auto *currentRoot = this->currentRoot(groupName);
+
+  if (currentRoot) {
+    colorNodes(groupName, currentRoot);
   }
   else {
-    for (const auto &node : hier->getNodes())
-      colorNode(node);
+    auto &sunburstData = getSunburstData(groupName);
 
-    for (const auto &child : hier->getChildren())
-      colorNodes(child);
+    for (auto &root : sunburstData.roots)
+      colorNodes(groupName, root);
   }
 }
 
 void
 CQChartsSunburstPlot::
-colorNode(Node *node) const
+colorNodes(const QString &groupName, HierNode *hier) const
+{
+  if (! hier->hasNodes() && ! hier->hasChildren()) {
+    colorNode(groupName, hier);
+  }
+  else {
+    for (const auto &node : hier->getNodes())
+      colorNode(groupName, node);
+
+    for (const auto &child : hier->getChildren())
+      colorNodes(groupName, child);
+  }
+}
+
+void
+CQChartsSunburstPlot::
+colorNode(const QString &groupName, Node *node) const
 {
   if (! node->color().isValid()) {
     auto *th = const_cast<CQChartsSunburstPlot *>(this);
 
-    node->setColorId(th->nextColorId());
+    node->setColorId(th->nextColorId(groupName));
   }
 }
 
@@ -708,44 +877,78 @@ loadFlat(HierNode *root) const
                                       plot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
-      auto nameInd1 = plot_->normalizeIndex(nameInds[0]);
-
       //---
 
       // add group name at top of hier if specified
+      QString groupName;
+
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
 
         bool ok;
 
-        auto groupName = plot_->modelString(groupModelInd, ok); // hier ?
+        groupName = plot_->modelString(groupModelInd, ok); // hier ?
 
-        nameStrs.push_front(groupName);
+        if (groupName == "")
+          groupName = "<none>";
       }
 
       //---
 
-      // get size from value column
-      double size = 1.0;
+      auto nameInd1 = plot_->normalizeIndex(nameInds[0]);
 
+      //---
+
+      // get size from value column
+      double      size = 1.0;
       QModelIndex valueInd;
 
-      if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (! getSize(data, size, valueInd))
+        return State::SKIP;
 
-        valueInd = plot_->modelIndex(valueModelInd);
+      // TODO: min size (see hier bubble plot)
 
-        if (! plot_->getValueSize(valueModelInd, size))
-          return State::SKIP;
+      //---
 
-        if (size == 0.0) // alow negative ?
-          return State::SKIP;
+      auto *root1 = root_;
+
+      if (plot_->isSplitGroups()) {
+        // init root for group if not yet created
+        auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
+        auto pg = plot->groupSunburstData_.find(groupName);
+
+        if (pg == plot->groupSunburstData_.end()) {
+          pg = plot->groupSunburstData_.insert(pg,
+                 GroupSunburstData::value_type(groupName, SunburstData()));
+
+          auto &sunburstData = (*pg).second;
+
+          auto *root = new RootNode(plot, groupName);
+
+          root->setGroupName(groupName);
+
+          sunburstData.roots.push_back(root);
+        }
+
+        //---
+
+        root1 = plot_->rootNode(groupName, groupName);
+
+        if (! root1) {
+          root1 = plot->createRootNode(groupName, groupName);
+
+          root1->setInd(nameInd1);
+        }
       }
 
       //---
 
       // create node
-      auto *node = plot_->flatAddNode(root_, nameStrs, size, nameInd1, valueInd);
+      auto *node = plot_->flatAddNode(groupName, root1, nameStrs, size, nameInd1, valueInd);
+
+      if (groupName != "")
+        groupNameSet_.insert(groupName);
 
       //---
 
@@ -760,26 +963,82 @@ loadFlat(HierNode *root) const
       return State::OK;
     }
 
+    bool getSize(const VisitData &data, double &size, QModelIndex &valueInd) const {
+      size = 1.0;
+
+      if (! plot_->valueColumn().isValid())
+        return true;
+
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+
+      if (! plot_->getValueSize(valueModelInd, size))
+        return false;
+
+      if (size == 0.0) // allow negative ?
+        return false;
+
+      valueInd = plot_->modelIndex(valueModelInd);
+
+      return true;
+    }
+
+    const GroupNameSet &groupNameSet() const { return groupNameSet_; }
+
    private:
-    const Plot* plot_ { nullptr };
-    HierNode*   root_ { nullptr };
+    const Plot*  plot_ { nullptr };
+    HierNode*    root_ { nullptr };
+    GroupNameSet groupNameSet_;
   };
+
+  //---
 
   RowVisitor visitor(this, root);
 
   visitModel(visitor);
 
+  auto *th = const_cast<CQChartsSunburstPlot *>(this);
+
+  if (isSplitGroups())
+    th->groupNameSet_ = visitor.groupNameSet();
+  else
+    th->groupNameSet_.clear();
+
   //---
 
-  for (auto &root : roots_)
+  for (auto &pg : groupSunburstData_) {
+    auto &sunburstData = pg.second;
+
+    for (auto &root : sunburstData.roots)
+      addExtraNodes(root);
+  }
+
+  for (auto &root : sunburstData_.roots)
     addExtraNodes(root);
 }
 
 CQChartsSunburstNode *
 CQChartsSunburstPlot::
-flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
+flatAddNode(const QString &groupName, HierNode *root, const QStringList &nameStrs, double size,
             const QModelIndex &nameInd, const QModelIndex &valueInd) const
 {
+  auto groupName1 = groupName;
+
+  auto nameStrs1 = nameStrs;
+
+  if (! isSplitGroups()) {
+    if (groupName1 != "") {
+      nameStrs1.push_front(groupName1);
+
+      groupName1 = "";
+    }
+  }
+  else {
+    if (groupName1 == "")
+      groupName1 = "<none>";
+  }
+
+  //---
+
   auto *th = const_cast<CQChartsSunburstPlot *>(this);
 
   //---
@@ -787,29 +1046,29 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
   // create parent nodes
   auto *parent = root;
 
-  for (int i = 0; i < nameStrs.length() - 1; ++i) {
+  for (int i = 0; i < nameStrs1.length() - 1; ++i) {
     HierNode *child = nullptr;
 
     if (i == 0 && isMultiRoot()) {
-      auto *root = rootNode(nameStrs[i]);
+      auto *root1 = rootNode(groupName1, nameStrs1[i]);
 
-      if (! root) {
-        root = th->createRootNode(nameStrs[i]);
+      if (! root1) {
+        root1 = th->createRootNode(groupName1, nameStrs1[i]);
 
-        root->setInd(nameInd);
+        root1->setInd(nameInd);
       }
 
-      child = root;
+      child = root1;
     }
     else {
-      child = childHierNode(parent, nameStrs[i]);
+      child = childHierNode(groupName, parent, nameStrs1[i]);
 
       if (! child) {
         // remove any existing leaf node (save size to use in new hier node)
         QModelIndex nameInd1;
         double      size1 = 0.0;
 
-        auto *node = childNode(parent, nameStrs[i]);
+        auto *node = childNode(parent, nameStrs1[i]);
 
         if (node) {
           nameInd1 = node->ind();
@@ -822,11 +1081,11 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
 
         //---
 
-        child = new HierNode(this, parent, nameStrs[i]);
+        child = new HierNode(this, parent, nameStrs1[i]);
 
         child->setSize(size1);
-
         child->setInd(nameInd1);
+        child->setGroupName(groupName1);
       }
     }
 
@@ -836,13 +1095,13 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
   //---
 
   // create leaf node
-  auto nodeName = nameStrs[nameStrs.length() - 1];
+  auto nodeName = nameStrs1[nameStrs1.length() - 1];
 
   auto *node = childNode(parent, nodeName);
 
   if (! node) {
     // use hier node if already created
-    auto *child = childHierNode(parent, nodeName);
+    auto *child = childHierNode(groupName, parent, nodeName);
 
     if (child) {
       child->setSize(size);
@@ -854,6 +1113,7 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
     node = new Node(this, parent, nodeName);
 
     node->setSize(size);
+    node->setGroupName(groupName1);
 
     if (valueInd.isValid()) {
       auto valueInd1 = normalizeIndex(valueInd);
@@ -872,6 +1132,8 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
 
   return node;
 }
+
+//---
 
 void
 CQChartsSunburstPlot::
@@ -894,6 +1156,8 @@ addExtraNodes(HierNode *hier) const
     node->setSize(hier->size());
     node->setInd (hier->ind());
 
+    node->setGroupName(hier->groupName());
+
     node->setFiller(true);
 
     hier->addNode(node);
@@ -905,22 +1169,55 @@ addExtraNodes(HierNode *hier) const
     addExtraNodes(child);
 }
 
+//---
+
+CQChartsGeom::BBox
+CQChartsSunburstPlot::
+getGroupRect(const QString &groupName) const
+{
+  auto &sunburstData = getSunburstData(groupName);
+
+  return sunburstData.rect;
+}
+
+CQChartsSunburstPlot::SunburstData &
+CQChartsSunburstPlot::
+getSunburstData(const QString &groupName) const
+{
+  if (groupName != "") {
+    auto pg = groupSunburstData_.find(groupName);
+    assert(pg != groupSunburstData_.end());
+
+    return const_cast<SunburstData &>((*pg).second);
+  }
+
+  return const_cast<SunburstData &>(sunburstData_);
+}
+
+//---
+
 CQChartsSunburstRootNode *
 CQChartsSunburstPlot::
-createRootNode(const QString &name)
+createRootNode(const QString &groupName, const QString &name)
 {
+  auto &sunburstData = getSunburstData(groupName);
+
   auto *root = new RootNode(this, name);
 
-  roots_.push_back(root);
+  root->setGroupName(groupName);
+
+  sunburstData.roots.push_back(root);
 
   return root;
 }
 
 CQChartsSunburstRootNode *
 CQChartsSunburstPlot::
-rootNode(const QString &name) const
+rootNode(const QString &groupName, const QString &name) const
 {
-  for (const auto &root : roots_)
+  auto &sunburstData = getSunburstData(groupName);
+
+  for (const auto &root : sunburstData.roots)
     if (root->name() == name)
       return root;
 
@@ -929,11 +1226,13 @@ rootNode(const QString &name) const
 
 CQChartsSunburstHierNode *
 CQChartsSunburstPlot::
-childHierNode(HierNode *parent, const QString &name) const
+childHierNode(const QString &groupName, HierNode *parent, const QString &name) const
 {
   if (! parent) {
-    for (const auto &root : roots_) {
-      auto *hier = childHierNode(root, name);
+    auto &sunburstData = getSunburstData(groupName);
+
+    for (const auto &root : sunburstData.roots) {
+      auto *hier = childHierNode(groupName, root, name);
       if (hier) return hier;
     }
 
@@ -1016,7 +1315,12 @@ addPlotObj(Node *node, PlotObjs &objs, const ColorInd &ir) const
   double r1 = node->r();
   double r2 = r1 + node->dr();
 
-  BBox bbox(-r2, -r2, r2, r2);
+  auto rc = getGroupRect(node->groupName()).getCenter();
+
+  double xc = rc.x;
+  double yc = rc.y;
+
+  BBox bbox(xc - r2, yc - r2, xc + r2, yc + r2);
 
   auto *obj = createNodeObj(bbox, node);
 
@@ -1033,11 +1337,25 @@ addPlotObj(Node *node, PlotObjs &objs, const ColorInd &ir) const
 
 bool
 CQChartsSunburstPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &pv)
 {
+  auto pp = viewToWindow(pv);
+
+  PlotObj *plotObj = nullptr;
+
+  (void) objNearestPoint(pp, plotObj);
+
+  auto *nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(plotObj);
+
+  menuGroupName_ = (nodeObj ? nodeObj->node()->groupName() : "");
+
+  //---
+
   PlotObjs objs;
 
   selectedPlotObjs(objs);
+
+  auto *currentRoot = this->currentRoot(menuGroupName_);
 
   menu->addSeparator();
 
@@ -1046,8 +1364,8 @@ addMenuItems(QMenu *menu)
   auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
-  popAction   ->setEnabled(currentRoot() != nullptr);
-  popTopAction->setEnabled(currentRoot() != nullptr);
+  popAction   ->setEnabled(currentRoot != nullptr);
+  popTopAction->setEnabled(currentRoot != nullptr);
 
   //---
 
@@ -1089,7 +1407,7 @@ pushSlot()
       hnode = node->parent();
 
     if (hnode) {
-      setCurrentRoot(hnode, /*update*/true);
+      setCurrentRoot(menuGroupName_, hnode, /*update*/true);
 
       break;
     }
@@ -1100,10 +1418,10 @@ void
 CQChartsSunburstPlot::
 popSlot()
 {
-  auto *root = currentRoot();
+  auto *root = currentRoot(menuGroupName_);
 
   if (root && root->parent()) {
-    setCurrentRoot(root->parent(), /*update*/true);
+    setCurrentRoot(menuGroupName_, root->parent(), /*update*/true);
   }
 }
 
@@ -1111,10 +1429,10 @@ void
 CQChartsSunburstPlot::
 popTopSlot()
 {
-  auto *root = currentRoot();
+  auto *root = currentRoot(menuGroupName_);
 
   if (root) {
-    setCurrentRoot(nullptr, /*update*/true);
+    setCurrentRoot(menuGroupName_, nullptr, /*update*/true);
   }
 }
 
@@ -1169,7 +1487,16 @@ void
 CQChartsSunburstPlot::
 resetNodeExpansion()
 {
-  for (const auto &root : roots_) {
+  for (auto &pg : groupSunburstData_) {
+    auto &sunburstData = pg.second;
+
+    for (const auto &root : sunburstData.roots) {
+      for (auto &hierNode : root->getChildren())
+        resetNodeExpansion(hierNode);
+    }
+  }
+
+  for (const auto &root : sunburstData_.roots) {
     for (auto &hierNode : root->getChildren())
       resetNodeExpansion(hierNode);
   }
@@ -1206,7 +1533,7 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
 
     HierNode *newRoot;
 
-    if (parentRoot && hasFalseRoot(&newRoot))
+    if (parentRoot && hasFalseRoot(node->groupName(), &newRoot))
       isRoot = true;
   }
 
@@ -1220,8 +1547,13 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
 
   //---
 
-  double xc = 0.0;
-  double yc = 0.0;
+  auto rr = getGroupRect(node->groupName());
+
+  auto rs = rr.getWidth()/2.0;
+  auto rc = rr.getCenter();
+
+  double xc = rc.x;
+  double yc = rc.y;
 
   double r1, r2;
 
@@ -1229,7 +1561,7 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
     r1 = 0.0;
 
     if (root)
-      r2 = std::max(innerRadius(), 0.0);
+      r2 = std::max(rs*innerRadius(), 0.0);
     else
       r2 = node->r() + node->dr();
   }
@@ -1293,8 +1625,8 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
       double c2 = a2.cos();
       double s2 = a2.sin();
 
-      Point pw1(r2*c1, r2*s1);
-      Point pw2(r2*c2, r2*s2);
+      Point pw1(xc + r2*c1, yc + r2*s1);
+      Point pw2(xc + r2*c2, yc + r2*s2);
 
       auto pp1 = windowToPixel(pw1);
       auto pp2 = windowToPixel(pw2);
@@ -1347,7 +1679,7 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
 
     Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-    Point pt(tx, ty);
+    Point pt(xc + tx, yc + ty);
 
     auto name = (! node->isFiller() ? node->name() : node->parent()->name());
 
@@ -1359,7 +1691,9 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
     textOptions.angle = ta1;
     textOptions.align = align;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, pt, name, textOptions, /*centered*/true);
+    bool centered = ! isCircle;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, name, textOptions, centered);
 
     //---
 
@@ -1441,26 +1775,28 @@ calcTipId() const
 
   auto name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
 
-  //return QString("%1:%2").arg(name).arg(node_->hierSize());
+  tableTip.addTableRow("Name" , name);
+  tableTip.addTableRow("Value", node_->hierSize());
 
-  tableTip.addTableRow("Name", name);
-  tableTip.addTableRow("Size", node_->hierSize());
+  auto ind1 = plot_->unnormalizeIndex(node_->ind());
 
   if (plot_->colorColumn().isValid()) {
-    auto ind1 = plot_->unnormalizeIndex(node_->ind());
-
-    ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    auto colorStr = plot_->modelString(colorModelInd, ok);
+    auto colorStr = plot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
 
+  plot_->addTipColumn(tableTip, plot_->groupColumn(), ind1);
+
   //---
 
-  plot()->addTipColumns(tableTip, node_->ind());
+  const auto &ind = node_->ind();
+
+  plot()->addTipColumns(tableTip, ind);
 
   //---
 
@@ -1474,7 +1810,7 @@ inside(const Point &p) const
   double r1 = node_->r();
   double r2 = r1 + node_->dr();
 
-  Point c(0, 0);
+  auto c = plot_->getGroupRect(node_->groupName()).getCenter();
 
   double r = p.distanceTo(c);
 
@@ -1546,7 +1882,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd,
+                               plot_->numColorIds(node_->groupName()));
 
   plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
 
@@ -1592,7 +1929,7 @@ bool
 CQChartsSunburstHierNode::
 isHierExpanded() const
 {
-  if (plot_->isRoot(this))
+  if (plot_->isRoot(groupName(), this))
     return true;
 
   if (! isExpanded())
@@ -1787,7 +2124,7 @@ QString
 CQChartsSunburstNode::
 hierName(const QString &separator) const
 {
-  if (parent() && (plot()->isMultiRoot() || parent() != plot()->roots()[0]))
+  if (parent() && (plot()->isMultiRoot() || parent() != plot()->roots(groupName())[0]))
     return parent()->hierName(separator) + separator + name();
   else
     return name();

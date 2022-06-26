@@ -836,7 +836,7 @@ probe(ProbeData &probeData) const
 
 bool
 CQChartsHierScatterPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   auto *popAction   = CQUtil::addAction(menu, "Pop Filter"  , this, SLOT(popCurrentGroup()));
   auto *resetAction = CQUtil::addAction(menu, "Reset Filter", this, SLOT(resetCurrentGroup()));

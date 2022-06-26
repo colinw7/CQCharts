@@ -6,6 +6,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
+#include <CQChartsPlacer.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -107,7 +108,10 @@ void
 CQChartsHierBubblePlot::
 term()
 {
-  delete nodeData_.root;
+  for (auto &pg : groupHierBubbleData_)
+    delete pg.second.root;
+
+  delete hierBubbleData_.root;
 }
 
 //---
@@ -171,6 +175,13 @@ setMinArea(const Area &a)
   CQChartsUtil::testAndSet(minArea_, a, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsHierBubblePlot::
+setSplitGroups(bool b)
+{
+  CQChartsUtil::testAndSet(splitGroups_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -184,6 +195,7 @@ addProperties()
   addProp("options", "sorted"          , "", "Sort values by size");
   addProp("options", "sortReverse"     , "", "Sort values large to small");
   addProp("options", "followViewExpand", "", "Follow view expand");
+  addProp("options", "splitGroups"     , "", "Show grouped data in separated treemaps");
 
   addProp("filter", "minSize", "", "Min size value");
   addProp("filter", "minArea", "", "Min circle area");
@@ -222,11 +234,31 @@ addProperties()
 
 CQChartsHierBubbleHierNode *
 CQChartsHierBubblePlot::
-currentRoot() const
+root(const QString &groupName) const
 {
-  auto *currentRoot = nodeData_.root;
+  auto &hierBubbleData = getHierBubbleData(groupName);
 
-  auto names = currentRootName_.split(calcSeparator(), QString::SkipEmptyParts);
+  return hierBubbleData.root;
+}
+
+CQChartsHierBubbleHierNode *
+CQChartsHierBubblePlot::
+firstHier(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.firstHier;
+}
+
+CQChartsHierBubbleHierNode *
+CQChartsHierBubblePlot::
+currentRoot(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  auto *currentRoot = hierBubbleData.root;
+
+  auto names = hierBubbleData.currentRootName.split(calcSeparator(), QString::SkipEmptyParts);
 
   if (names.empty())
     return currentRoot;
@@ -245,12 +277,14 @@ currentRoot() const
 
 void
 CQChartsHierBubblePlot::
-setCurrentRoot(HierNode *hier, bool update)
+setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
 {
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
   if (hier)
-    currentRootName_ = hier->hierName();
+    hierBubbleData.currentRootName = hier->hierName();
   else
-    currentRootName_.clear();
+    hierBubbleData.currentRootName.clear();
 
   if (update)
     updateCurrentRoot();
@@ -281,6 +315,49 @@ calcRange() const
   dataRange.updateRange( r,  r);
 
   return dataRange;
+}
+
+//------
+
+int
+CQChartsHierBubblePlot::
+colorId(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.colorData.colorId;
+}
+
+int
+CQChartsHierBubblePlot::
+numColorIds(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.colorData.numColorIds;
+}
+
+void
+CQChartsHierBubblePlot::
+initColorIds(const QString &groupName)
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  hierBubbleData.colorData.reset();
+}
+
+int
+CQChartsHierBubblePlot::
+nextColorId(const QString &groupName)
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  ++hierBubbleData.colorData.colorId;
+
+  if (hierBubbleData.colorData.colorId >= hierBubbleData.colorData.numColorIds)
+    hierBubbleData.colorData.numColorIds = hierBubbleData.colorData.colorId + 1;
+
+  return hierBubbleData.colorData.colorId;
 }
 
 //------
@@ -319,7 +396,7 @@ createObjs(PlotObjs &objs) const
 #endif
 
   // init value sets
-//initValueSets();
+  //initValueSets();
 
   //---
 
@@ -342,42 +419,52 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  if (! nodeData_.root)
+  if (! root(""))
     initNodes();
 
   //---
 
-  th->initColorIds();
+  for (const auto &groupName : groupNameSet_)
+    colorGroupNodes(groupName);
 
-  colorNodes(nodeData_.root);
-
-  //---
-
-  initNodeObjs(currentRoot(), nullptr, 0, objs);
+  colorGroupNodes("");
 
   //---
 
-  int ig = 0, in = 0;
+  for (const auto &groupName : groupNameSet_) {
+    auto *currentRoot = this->currentRoot(groupName);
 
-  for (auto &obj : objs) {
-    auto *hierObj = dynamic_cast<HierObj *>(obj);
-    auto *nodeObj = dynamic_cast<NodeObj *>(obj);
-
-    if      (hierObj) { hierObj->setInd(ig); ++ig; }
-    else if (nodeObj) { nodeObj->setInd(in); ++in; }
+    if (currentRoot)
+      initNodeObjs(currentRoot, groupName, nullptr, 0, objs);
   }
 
+  auto *currentRoot = this->currentRoot("");
+
+  if (currentRoot)
+    initNodeObjs(currentRoot, "", nullptr, 0, objs);
+
+  //---
+
   for (auto &obj : objs) {
     auto *hierObj = dynamic_cast<HierObj *>(obj);
     auto *nodeObj = dynamic_cast<NodeObj *>(obj);
 
-    if      (hierObj) {
+    if (hierObj) {
+      auto groupName = hierObj->calcGroupName();
+
+      int ig = groupInd(groupName);
+
       if (hierObj->parent())
         hierObj->setIg(ColorInd(hierObj->parent()->ind(), ig));
 
       hierObj->setIv(ColorInd(hierObj->ind(), ig));
     }
     else if (nodeObj) {
+      auto groupName = nodeObj->calcGroupName();
+
+      int ig = groupInd(groupName);
+      int in = valueInd(groupName);
+
       if (nodeObj->parent())
         nodeObj->setIg(ColorInd(nodeObj->parent()->ind(), ig));
 
@@ -385,21 +472,24 @@ createObjs(PlotObjs &objs) const
     }
   }
 
+  //---
+
   return true;
 }
 
 void
 CQChartsHierBubblePlot::
-initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) const
+initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
+             int depth, PlotObjs &objs) const
 {
   HierObj *hierObj = nullptr;
 
-  if (hier != nodeData_.root) {
+  if (hier != root(groupName)) {
     double r = hier->radius();
 
     BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
 
-    ColorInd is(hier->depth(), maxDepth() + 1);
+    ColorInd is(hier->depth(), maxDepth(groupName) + 1);
 
     hierObj = createHierObj(hier, parentObj, rect, is);
 
@@ -410,9 +500,8 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
   //---
 
-  for (auto &hierNode : hier->getChildren()) {
-    initNodeObjs(hierNode, hierObj, depth + 1, objs);
-  }
+  for (auto &hierNode : hier->getChildren())
+    initNodeObjs(hierNode, groupName, hierObj, depth + 1, objs);
 
   //---
 
@@ -425,7 +514,7 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
 
-    ColorInd is(node->depth(), maxDepth() + 1);
+    ColorInd is(node->depth(), maxDepth(groupName) + 1);
 
     auto *obj = createNodeObj(node, parentObj, rect, is);
 
@@ -439,9 +528,17 @@ void
 CQChartsHierBubblePlot::
 resetNodes()
 {
-  delete nodeData_.root;
+  for (auto &pg : groupHierBubbleData_) {
+    delete pg.second.root;
 
-  nodeData_.root = nullptr;
+    pg.second.reset();
+  }
+
+  groupHierBubbleData_.clear();
+
+  delete hierBubbleData_.root;
+
+  hierBubbleData_.reset();
 }
 
 void
@@ -450,12 +547,14 @@ initNodes() const
 {
   auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
-  th->nodeData_.hierInd = 0;
+  //---
 
-  th->nodeData_.root = new HierNode(this, nullptr, "<root>");
+  th->hierBubbleData_.reset();
 
-  th->nodeData_.root->setDepth(0);
-  th->nodeData_.root->setHierInd(th->nodeData_.hierInd++);
+  th->hierBubbleData_.root = new HierNode(this, nullptr, "<root>");
+
+  th->hierBubbleData_.root->setDepth(0);
+  th->hierBubbleData_.root->setHierInd(nextHierInd(""));
 
   //---
 
@@ -466,10 +565,17 @@ initNodes() const
 
   //---
 
-  th->nodeData_.firstHier = nodeData_.root;
+  for (auto &pg : th->groupHierBubbleData_) {
+    pg.second.firstHier = pg.second.root;
 
-  while (th->nodeData_.firstHier && th->nodeData_.firstHier->getChildren().size() == 1)
-    th->nodeData_.firstHier = th->nodeData_.firstHier->getChildren()[0];
+    while (pg.second.firstHier && pg.second.firstHier->getChildren().size() == 1)
+      pg.second.firstHier = pg.second.firstHier->getChildren()[0];
+  }
+
+  th->hierBubbleData_.firstHier = hierBubbleData_.root;
+
+  while (th->hierBubbleData_.firstHier && th->hierBubbleData_.firstHier->getChildren().size() == 1)
+    th->hierBubbleData_.firstHier = th->hierBubbleData_.firstHier->getChildren()[0];
 
   //---
 
@@ -480,12 +586,81 @@ void
 CQChartsHierBubblePlot::
 replaceNodes() const
 {
-  placeNodes(currentRoot());
+  int ng = int(groupNameSet_.size());
+
+  if (isSplitGroups() && ng > 0) {
+#if 0
+    int nx, ny;
+    CQChartsUtil::countToSquareGrid(ng, nx, ny);
+
+    double m  = 0.01;
+    double dx = 2.0/nx - m;
+    double dy = 2.0/ny - m;
+
+    int ig = 0;
+
+    for (const auto &groupName : groupNameSet_) {
+      int ix = ig % nx;
+      int iy = ig / nx;
+
+      double x1 = ix*(dx + m) - 1.0 + m/2.0;
+      double y1 = iy*(dy + m) - 1.0 + m/2.0;
+      double x2 = x1 + dx;
+      double y2 = y1 + dy;
+
+      auto rect = BBox(x1, y1, x2, y2);
+
+      auto *hier = currentRoot(groupName);
+
+      if (hier)
+        placeNodes(hier, rect);
+
+      auto &hierBubbleData = getHierBubbleData(groupName);
+
+      hierBubbleData.rect = rect;
+
+      ++ig;
+    }
+#else
+    CQChartsGridPlacer placer;
+
+    placer.place(ng);
+
+    size_t ig = 0;
+
+    for (const auto &groupName : groupNameSet_) {
+      const auto &bbox = placer.bbox(ig);
+
+      auto *hier = currentRoot(groupName);
+
+      if (hier)
+        placeNodes(hier, bbox);
+
+      auto &hierBubbleData = getHierBubbleData(groupName);
+
+      hierBubbleData.rect = bbox;
+
+      ++ig;
+    }
+#endif
+  }
+  else {
+    auto rect = BBox(-1, -1, 1, 1);
+
+    auto *hier = currentRoot("");
+
+    if (hier)
+      placeNodes(hier, rect);
+
+    auto &hierBubbleData = getHierBubbleData("");
+
+    hierBubbleData.rect = rect;
+  }
 }
 
 void
 CQChartsHierBubblePlot::
-placeNodes(HierNode *hier) const
+placeNodes(HierNode *hier, const BBox &rect) const
 {
   auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
@@ -507,7 +682,7 @@ placeNodes(HierNode *hier) const
 
   hier->setRadius(1.0);
 
-  transformNodes(hier);
+  transformNodes(hier, rect);
 }
 
 void
@@ -528,53 +703,73 @@ initNodes(HierNode *hier) const
 
 void
 CQChartsHierBubblePlot::
-transformNodes(HierNode *hier) const
+transformNodes(HierNode *hier, const BBox &rect) const
 {
+  auto rs = rect.getWidth()/2.0;
+  auto rc = rect.getCenter();
+
+  auto scale = this->scale()*rs;
+
   for (auto &hierNode : hier->getChildren()) {
-    hierNode->setX((hierNode->x() - offset().x)*scale());
-    hierNode->setY((hierNode->y() - offset().y)*scale());
+    hierNode->setX(rc.x + (hierNode->x() - offset().x)*scale);
+    hierNode->setY(rc.y + (hierNode->y() - offset().y)*scale);
 
-    hierNode->setRadius(hierNode->radius()*scale());
+    hierNode->setRadius(hierNode->radius()*scale);
 
-    transformNodes(hierNode);
+    transformNodes(hierNode, rect);
   }
 
   //---
 
   for (auto &node : hier->getNodes()) {
-    node->setX((node->x() - offset().x)*scale());
-    node->setY((node->y() - offset().y)*scale());
+    node->setX(rc.x + (node->x() - offset().x)*scale);
+    node->setY(rc.y + (node->y() - offset().y)*scale);
 
-    node->setRadius(node->radius()*scale());
+    node->setRadius(node->radius()*scale);
   }
+}
+
+//---
+
+void
+CQChartsHierBubblePlot::
+colorGroupNodes(const QString &groupName) const
+{
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
+
+  th->initColorIds(groupName);
+
+  colorNodes(groupName, root(groupName));
 }
 
 void
 CQChartsHierBubblePlot::
-colorNodes(HierNode *hier) const
+colorNodes(const QString &groupName, HierNode *hier) const
 {
   if (! hier->hasNodes() && ! hier->hasChildren()) {
-    colorNode(hier);
+    colorNode(groupName, hier);
   }
   else {
     for (const auto &node : hier->getNodes())
-      colorNode(node);
+      colorNode(groupName, node);
 
     for (const auto &child : hier->getChildren())
-      colorNodes(child);
+      colorNodes(groupName, child);
   }
 }
 
 void
 CQChartsHierBubblePlot::
-colorNode(CQChartsHierBubbleNode *node) const
+colorNode(const QString &groupName, Node *node) const
 {
   if (! node->color().isValid()) {
     auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
-    node->setColorId(th->nextColorId());
+    node->setColorId(th->nextColorId(groupName));
   }
 }
+
+//---
 
 void
 CQChartsHierBubblePlot::
@@ -599,7 +794,7 @@ loadHier() const
 
       //---
 
-      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = plot_->addHierNode("", parentHier(), name, nameInd);
 
       //---
 
@@ -637,9 +832,9 @@ loadHier() const
 
       //---
 
-      auto *node = plot_->addNode(parentHier(), name, size, nameInd);
+      auto *node = plot_->addNode("", parentHier(), name, size, nameInd);
 
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         Color color;
 
         if (plot_->colorColumnColor(data.row, data.parent, color))
@@ -678,8 +873,6 @@ loadHier() const
     }
 
     bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
       if (! plot_->valueColumn().isValid())
         return true;
 
@@ -701,17 +894,16 @@ loadHier() const
     HierStack   hierStack_;
   };
 
-  RowVisitor visitor(this, nodeData_.root);
+  RowVisitor visitor(this, root(""));
 
   visitModel(visitor);
 }
 
 CQChartsHierBubbleHierNode *
 CQChartsHierBubblePlot::
-addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) const
+addHierNode(const QString &groupName, HierNode *hier, const QString &name,
+            const QModelIndex &nameInd) const
 {
-  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
-
   int depth1 = hier->depth() + 1;
 
   auto nameInd1 = normalizeIndex(nameInd);
@@ -720,19 +912,18 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   hier1->setDepth(depth1);
 
-  hier1->setHierInd(th->nodeData_.hierInd++);
+  hier1->setHierInd(nextHierInd(groupName));
 
-  th->nodeData_.maxDepth = std::max(nodeData_.maxDepth, depth1);
+  updateMaxDepth(groupName, depth1);
 
   return hier1;
 }
 
 CQChartsHierBubbleNode *
 CQChartsHierBubblePlot::
-addNode(HierNode *hier, const QString &name, double size, const QModelIndex &nameInd) const
+addNode(const QString &groupName, HierNode *hier, const QString &name,
+        double size, const QModelIndex &nameInd) const
 {
-  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
-
   int depth1 = hier->depth() + 1;
 
   auto nameInd1 = normalizeIndex(nameInd);
@@ -743,7 +934,7 @@ addNode(HierNode *hier, const QString &name, double size, const QModelIndex &nam
 
   hier->addNode(node);
 
-  th->nodeData_.maxDepth = std::max(nodeData_.maxDepth, depth1);
+  updateMaxDepth(groupName, depth1);
 
   return node;
 }
@@ -764,7 +955,7 @@ loadFlat() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // get names and associated model indices for row
+      // get hier names and associated model indices from name columns
       QStringList   nameStrs;
       QModelIndices nameInds;
 
@@ -774,6 +965,23 @@ loadFlat() const
 
       //---
 
+      // add group name at top of hier if specified
+      QString groupName;
+
+      if (plot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+
+        bool ok;
+
+        groupName = plot_->modelString(groupModelInd, ok); // hier ?
+
+        if (groupName == "")
+          groupName = "<none>";
+      }
+
+      //---
+
+      // get size from value column
       double size = 1.0;
 
       if (! getSize(data, size))
@@ -786,9 +994,16 @@ loadFlat() const
 
       //---
 
-      auto *node = plot_->addNode(nameStrs, size, nameInds[0]);
+      // create node
+      auto *node = plot_->addFlatNode(groupName, nameStrs, size, nameInds[0]);
 
-      if (node) {
+      if (groupName != "")
+        groupNameSet_.insert(groupName);
+
+      //---
+
+      // set color from color column
+      if (node && plot_->colorColumn().isValid()) {
         Color color;
 
         if (plot_->colorColumnColor(data.row, data.parent, color))
@@ -797,6 +1012,8 @@ loadFlat() const
 
       return State::OK;
     }
+
+    const GroupNameSet &groupNameSet() const { return groupNameSet_; }
 
    private:
     bool getSize(const VisitData &data, double &size) const {
@@ -810,15 +1027,18 @@ loadFlat() const
       if (! plot_->getValueSize(valueModelInd, size))
         return false;
 
-      if (size <= 0.0)
+      if (size <= 0.0) // alow negative ?
         return false;
 
       return true;
     }
 
    private:
-    const Plot* plot_ { nullptr };
+    const Plot*  plot_ { nullptr };
+    GroupNameSet groupNameSet_;
   };
+
+  //---
 
   RowVisitor visitor(this);
 
@@ -826,36 +1046,86 @@ loadFlat() const
 
   //---
 
-  addExtraNodes(nodeData_.root);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
+
+  if (isSplitGroups())
+    th->groupNameSet_ = visitor.groupNameSet();
+  else
+    th->groupNameSet_.clear();
+
+  //---
+
+  for (const auto &groupName : groupNameSet_)
+    addExtraNodes(root(groupName));
+
+  addExtraNodes(root(""));
 }
 
 //---
 
 CQChartsHierBubbleNode *
 CQChartsHierBubblePlot::
-addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
+addFlatNode(const QString &groupName, const QStringList &nameStrs, double size,
+            const QModelIndex &nameInd) const
 {
+  auto groupName1 = groupName;
+
+  auto nameStrs1 = nameStrs;
+
+  if (! isSplitGroups()) {
+    if (groupName1 != "") {
+      nameStrs1.push_front(groupName1);
+
+      groupName1 = "";
+    }
+  }
+  else {
+    if (groupName1 == "")
+      groupName1 = "<none>";
+  }
+
+  //---
+
   auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
+  if (groupName1 != "" && isSplitGroups()) {
+    // init root for group if not yet created
+    auto pg = th->groupHierBubbleData_.find(groupName1);
+
+    if (pg == th->groupHierBubbleData_.end()) {
+      pg = th->groupHierBubbleData_.insert(pg,
+             GroupHierBubbleData::value_type(groupName1, HierBubbleData()));
+
+      auto &hierBubbleData = (*pg).second;
+
+      hierBubbleData.root = new HierNode(this, nullptr, groupName1);
+
+      hierBubbleData.root->setDepth(0);
+      hierBubbleData.root->setHierInd(nextHierInd(groupName1));
+      hierBubbleData.root->setGroupName(groupName1);
+    }
+  }
+
   //---
 
-  int depth = nameStrs.length();
+  int depth = nameStrs1.length();
 
-  th->nodeData_.maxDepth = std::max(nodeData_.maxDepth, depth + 1);
+  updateMaxDepth(groupName1, depth + 1);
 
   //---
 
-  auto *parent = nodeData_.root;
+  // create parent nodes
+  auto *parent = root(groupName1);
 
-  for (int i = 0; i < nameStrs.length() - 1; ++i) {
-    auto *child = childHierNode(parent, nameStrs[i]);
+  for (int i = 0; i < nameStrs1.length() - 1; ++i) {
+    auto *child = childHierNode(parent, nameStrs1[i]);
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
       QModelIndex nameInd1;
       double      size1 = 0.0;
 
-      auto *node = childNode(parent, nameStrs[i]);
+      auto *node = childNode(parent, nameStrs1[i]);
 
       if (node) {
         nameInd1 = node->ind();
@@ -868,12 +1138,12 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
       //---
 
-      child = new HierNode(this, parent, nameStrs[i], nameInd1);
+      child = new HierNode(this, parent, nameStrs1[i], nameInd1);
 
       child->setSize(size1);
 
       child->setDepth(depth);
-      child->setHierInd(th->nodeData_.hierInd++);
+      child->setHierInd(nextHierInd(""));
     }
 
     parent = child;
@@ -881,7 +1151,8 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   //---
 
-  auto name = nameStrs[nameStrs.length() - 1];
+  // create leaf node
+  auto name = nameStrs1.back();
 
   auto *node = childNode(parent, name);
 
@@ -908,19 +1179,25 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
   return node;
 }
 
+//---
+
 void
 CQChartsHierBubblePlot::
 addExtraNodes(HierNode *hier) const
 {
+  // create child nodes for hier nodes with explicit size (no children ?)
+
   if (hier->size() > 0) {
     auto *node = new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
 
     auto ind1 = unnormalizeIndex(hier->ind());
 
-    Color color;
+    if (colorColumn().isValid()) {
+      Color color;
 
-    if (colorColumnColor(ind1.row(), ind1.parent(), color))
-      node->setColor(color);
+      if (colorColumnColor(ind1.row(), ind1.parent(), color))
+        node->setColor(color);
+    }
 
     node->setDepth (hier->depth() + 1);
     node->setFiller(true);
@@ -933,6 +1210,89 @@ addExtraNodes(HierNode *hier) const
   for (const auto &child : hier->getChildren())
     addExtraNodes(child);
 }
+
+//---
+
+int
+CQChartsHierBubblePlot::
+nextHierInd(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.hierInd++;
+}
+
+int
+CQChartsHierBubblePlot::
+groupInd(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.ig;
+}
+
+int
+CQChartsHierBubblePlot::
+nextGroupInd(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.ig++;
+}
+
+int
+CQChartsHierBubblePlot::
+valueInd(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.in;
+}
+
+int
+CQChartsHierBubblePlot::
+nextValueInd(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.in++;
+}
+
+int
+CQChartsHierBubblePlot::
+maxDepth(const QString &groupName) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  return hierBubbleData.maxDepth;
+}
+
+void
+CQChartsHierBubblePlot::
+updateMaxDepth(const QString &groupName, int depth) const
+{
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  hierBubbleData.maxDepth = std::max(hierBubbleData.maxDepth, depth);
+}
+
+//---
+
+CQChartsHierBubblePlot::HierBubbleData &
+CQChartsHierBubblePlot::
+getHierBubbleData(const QString &groupName) const
+{
+  if (groupName != "") {
+    auto pg = groupHierBubbleData_.find(groupName);
+    assert(pg != groupHierBubbleData_.end());
+
+    return const_cast<HierBubbleData &>((*pg).second);
+  }
+
+  return const_cast<HierBubbleData &>(hierBubbleData_);
+}
+
+//---
 
 CQChartsHierBubbleHierNode *
 CQChartsHierBubblePlot::
@@ -1017,7 +1377,15 @@ void
 CQChartsHierBubblePlot::
 execDrawForeground(PaintDevice *device) const
 {
-  drawBounds(device, currentRoot());
+  int ng = int(groupNameSet_.size());
+
+  if (isSplitGroups() && ng > 0) {
+    for (const auto &groupName : groupNameSet_)
+      drawBounds(device, groupName, currentRoot(groupName));
+  }
+  else {
+    drawBounds(device, "", currentRoot(""));
+  }
 
   if (isColorMapKey())
     drawColorMapKey(device);
@@ -1025,14 +1393,19 @@ execDrawForeground(PaintDevice *device) const
 
 void
 CQChartsHierBubblePlot::
-drawBounds(PaintDevice *device, HierNode *hier) const
+drawBounds(PaintDevice *device, const QString &groupName, HierNode *hier) const
 {
   if (! hier)
     return;
 
-  double xc = hier->x();
-  double yc = hier->y();
-  double r  = hier->radius();
+  auto &hierBubbleData = getHierBubbleData(groupName);
+
+  auto rs = hierBubbleData.rect.getWidth()/2.0;
+  auto rc = hierBubbleData.rect.getCenter();
+
+  double xc = rc.x + hier->x();
+  double yc = rc.y + hier->y();
+  double r  = hier->radius()*rs;
 
   //---
 
@@ -1059,8 +1432,20 @@ drawBounds(PaintDevice *device, HierNode *hier) const
 
 bool
 CQChartsHierBubblePlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &pv)
 {
+  auto pp = viewToWindow(pv);
+
+  PlotObj *plotObj = nullptr;
+
+  (void) objNearestPoint(pp, plotObj);
+
+  auto *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(plotObj);
+
+  menuGroupName_ = (nodeObj ? nodeObj->calcGroupName() : "");
+
+  //---
+
   PlotObjs objs;
 
   selectedPlotObjs(objs);
@@ -1071,9 +1456,12 @@ addMenuItems(QMenu *menu)
   auto *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
   auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
+  auto *currentRoot = this->currentRoot(menuGroupName_);
+  auto *root        = this->root(menuGroupName_);
+
   pushAction  ->setEnabled(! objs.empty());
-  popAction   ->setEnabled(currentRoot() != nodeData_.root);
-  popTopAction->setEnabled(currentRoot() != nodeData_.root);
+  popAction   ->setEnabled(currentRoot != root);
+  popTopAction->setEnabled(currentRoot != root);
 
   //---
 
@@ -1111,7 +1499,7 @@ pushSlot()
     if (hierObj) {
       auto *hnode = hierObj->hierNode();
 
-      setCurrentRoot(hnode, /*update*/true);
+      setCurrentRoot("", hnode, /*update*/true);
 
       break;
     }
@@ -1124,7 +1512,7 @@ pushSlot()
       auto *hnode = node->parent();
 
       if (hnode) {
-        setCurrentRoot(hnode, /*update*/true);
+        setCurrentRoot("", hnode, /*update*/true);
 
         break;
       }
@@ -1136,10 +1524,10 @@ void
 CQChartsHierBubblePlot::
 popSlot()
 {
-  auto *root = currentRoot();
+  auto *root = currentRoot("");
 
   if (root && root->parent()) {
-    setCurrentRoot(root->parent(), /*update*/true);
+    setCurrentRoot("", root->parent(), /*update*/true);
   }
 }
 
@@ -1147,10 +1535,11 @@ void
 CQChartsHierBubblePlot::
 popTopSlot()
 {
-  auto *root = currentRoot();
+  auto *currentRoot = this->currentRoot(menuGroupName_);
+  auto *root        = this->root(menuGroupName_);
 
-  if (root != nodeData_.root) {
-    setCurrentRoot(nodeData_.root, /*update*/true);
+  if (currentRoot != root) {
+    setCurrentRoot("", root, /*update*/true);
   }
 }
 
@@ -1179,7 +1568,12 @@ modelViewExpansionChanged()
 
   expandedModelIndices(indSet);
 
-  for (auto &hierNode : root()->getChildren())
+  for (const auto &groupName : groupNameSet_) {
+    for (auto &hierNode : root(groupName)->getChildren())
+      setNodeExpansion(hierNode, indSet);
+  }
+
+  for (auto &hierNode : root("")->getChildren())
     setNodeExpansion(hierNode, indSet);
 
   drawObjs();
@@ -1189,7 +1583,10 @@ void
 CQChartsHierBubblePlot::
 setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet)
 {
-  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
+  bool expanded = (indSet.find(hierNode->ind()) != indSet.end());
+
+  if (hierNode->isExpanded() != expanded)
+    hierNode->setExpanded(expanded);
 
   for (auto &hierNode1 : hierNode->getChildren())
     setNodeExpansion(hierNode1, indSet);
@@ -1199,7 +1596,12 @@ void
 CQChartsHierBubblePlot::
 resetNodeExpansion()
 {
-  for (auto &hierNode : root()->getChildren())
+  for (const auto &groupName : groupNameSet_) {
+    for (auto &hierNode : root(groupName)->getChildren())
+      resetNodeExpansion(hierNode);
+  }
+
+  for (auto &hierNode : root("")->getChildren())
     resetNodeExpansion(hierNode);
 }
 
@@ -1271,6 +1673,13 @@ calcTipId() const
 {
   //return QString("%1:%2").arg(hierNode()->hierName()).arg(hierNode()->hierSize());
   return CQChartsHierBubbleNodeObj::calcTipId();
+}
+
+QString
+CQChartsHierBubbleHierObj::
+calcGroupName() const
+{
+  return (hierNode() ? hierNode()->calcGroupName() : "");
 }
 
 bool
@@ -1357,7 +1766,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = hierNode()->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto fc = hierNode()->interpColor(plot_, plot_->fillColor(), colorInd,
+                                    plot_->numColorIds(calcGroupName()));
 
   plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
 
@@ -1398,22 +1808,22 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  //return QString("%1:%2").arg(name).arg(node()->hierSize());
+  tableTip.addTableRow("Name" , node()->hierName());
+  tableTip.addTableRow("Value", node()->hierSize());
 
-  tableTip.addTableRow("Name", node()->hierName());
-  tableTip.addTableRow("Size", node()->hierSize());
+  auto ind1 = plot_->unnormalizeIndex(node()->ind());
 
   if (plot_->colorColumn().isValid()) {
-    auto ind1 = plot_->unnormalizeIndex(node()->ind());
-
-    ModelIndex colorColumnInd(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorInd1(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    auto colorStr = plot_->modelString(colorColumnInd, ok);
+    auto colorStr = plot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
+
+  plot_->addTipColumn(tableTip, plot_->groupColumn(), ind1);
 
   //---
 
@@ -1424,6 +1834,13 @@ calcTipId() const
   //---
 
   return tableTip.str();
+}
+
+QString
+CQChartsHierBubbleNodeObj::
+calcGroupName() const
+{
+  return (node() ? node()->calcGroupName() : "");
 }
 
 bool
@@ -1583,7 +2000,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
     //---
 
     // scale font
-    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
+    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s), /*scale*/false);
   }
   else {
     for (int i = 0; i < strs.size(); ++i) {
@@ -1614,6 +2031,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.clipLength = 0.0;
+  textOptions.scaled     = false;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1693,7 +2111,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node()->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto fc = node()->interpColor(plot_, plot_->fillColor(), colorInd,
+                                plot_->numColorIds(calcGroupName()));
 
   bool isCirclePoint = this->isCirclePoint();
 
@@ -1736,7 +2155,7 @@ bool
 CQChartsHierBubbleHierNode::
 isHierExpanded() const
 {
-  if (plot_->currentRoot() == this)
+  if (plot_->currentRoot(calcGroupName()) == this)
     return true;
 
   if (! isExpanded())
@@ -1880,6 +2299,19 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
   return CQChartsUtil::blendColors(colors);
 }
 
+QString
+CQChartsHierBubbleHierNode::
+calcGroupName() const
+{
+  if (groupName_ != "")
+    return groupName_;
+
+  if (parent())
+    return parent()->calcGroupName();
+
+  return "";
+}
+
 //------
 
 CQChartsHierBubbleNode::
@@ -1906,7 +2338,7 @@ QString
 CQChartsHierBubbleNode::
 hierName() const
 {
-  if (parent() && parent() != plot()->root())
+  if (parent() && parent() != plot()->root(calcGroupName()))
     return parent()->hierName() + "/" + name();
   else
     return name();
@@ -1931,6 +2363,16 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     return plot->interpColor(c, ColorInd(colorId(), n));
   else
     return plot->interpColor(c, colorInd);
+}
+
+QString
+CQChartsHierBubbleNode::
+calcGroupName() const
+{
+  if (parent())
+    return parent()->calcGroupName();
+
+  return "";
 }
 
 //------

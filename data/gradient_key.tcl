@@ -94,7 +94,7 @@ qt_set_property -object $nSpin    -property value -value $n
 
 qt_connect_widget -name $xminSpin -signal "valueChanged(double)" -proc xminSpinChanged
 qt_connect_widget -name $xmaxSpin -signal "valueChanged(double)" -proc xmaxSpinChanged
-qt_connect_widget  -name $nSpin   -signal "valueChanged(int)"    -proc nSpinChanged
+qt_connect_widget -name $nSpin    -signal "valueChanged(int)"    -proc nSpinChanged
 
 qt_add_child_widget -parent $frame -child $xminSpin
 qt_add_child_widget -parent $frame -child $xmaxSpin

@@ -28,12 +28,13 @@ image        Image for Object create from Row
 group        Grouping Value for Grouped Plots
                chord, group, hier_scatter
 
-link         chord, sankey
-node         adjacency, force_directed
-connections  adjacency, force_directed
-namePair     adjacency, force_directed
-count        adjacency, force_directed
-groupId      adjacency, force_directed
+link         from/to edge data
+              connection plots (adjacency, chord, force_directed, graph, graphviz, sankey)
+node         node index (use with connections)
+              connection plots
+connections  list of from/to indices (use with node)
+              connection plots
+count        word cloud
 
 data         distribution
 set          box
@@ -47,7 +48,8 @@ geometry     geometry
 style        geometry
 radius       pie
 keyLabel     pie
-id           plot
+id           custom id for object (for scripting)
+              plot
 tip          plot
 visible      plot
 vectorX      xy

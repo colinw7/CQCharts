@@ -561,7 +561,7 @@ addPointObj(const Point &p, double value, const QModelIndex &xind,
 
 bool
 CQChartsDelaunayPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   CQUtil::addCheckedAction(menu, "Voronoi", isVoronoi(), this, SLOT(setVoronoi(bool)));
 

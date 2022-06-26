@@ -32,6 +32,7 @@ class CQChartsAxis;
 class CQChartsHtmlPaintDevice;
 class CQChartsSymbolSizeMapKey;
 class CQChartsResizeHandle;
+class CQChartsCircleMgr;
 
 class CQPropertyViewItem;
 
@@ -336,6 +337,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual void flip(Qt::Orientation) { }
 
   virtual void moveTo(const Point &p);
+
+  //---
+
+  virtual void animateStep();
 
   //---
 
@@ -2473,7 +2478,8 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
     BUBBLE,
     PIE,
     RADAR,
-    TREEMAP
+    TREEMAP,
+    FACTOR
   };
 
   using Rect        = CQChartsRect;
@@ -2526,6 +2532,10 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
 
   void draw(PaintDevice *device) override;
 
+  void animateStep() override;
+
+  //---
+
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
@@ -2540,6 +2550,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
   void drawPie     (PaintDevice *device, const QPen &pen);
   void drawRadar   (PaintDevice *device);
   void drawTreeMap (PaintDevice *device, const QPen &pen);
+  void drawFactor  (PaintDevice *device);
 
  protected:
   void init();
@@ -2549,6 +2560,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
   using DensityP    = std::unique_ptr<Density>;
   using CirclePack  = CQChartsCirclePack<CQChartsCircleNode>;
   using CirclePackP = std::unique_ptr<CirclePack>;
+  using CircleMgr   = CQChartsCircleMgr;
 
   // options
   Rect        rectangle_;                        //!< rectangle
@@ -2557,8 +2569,9 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
   DrawType    drawType_   { DrawType::DENSITY }; //!< draw type
 
   // data
-  DensityP    density_;    //!< density object
-  CirclePackP circlePack_; //!< curcle pack
+  DensityP    density_;               //!< density object
+  CirclePackP circlePack_;            //!< curcle pack
+  CircleMgr*  circleMgr_ { nullptr }; //!< circle mgr
 };
 
 //---

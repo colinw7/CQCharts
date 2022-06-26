@@ -1,8 +1,11 @@
 #include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
+#include <CQBaseModel.h>
 #include <CQTclUtil.h>
 #include <CQStrParse.h>
+
+#include <cassert>
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
@@ -39,7 +42,7 @@ CQChartsColumn::
 CQChartsColumn(Type type, int column, const QString &s, int role) :
  type_(type), column_(column), role_(role)
 {
-  if (type_ == Type::EXPR || type_ == Type::DATA_INDEX) {
+  if (hasExprPtr()) {
     int len = s.length();
 
     auto len1 = size_t(len + 1);
@@ -56,7 +59,7 @@ CQChartsColumn::
 CQChartsColumn(const CQChartsColumn &rhs) :
  type_(rhs.type_), column_(rhs.column_), role_(rhs.role_)
 {
-  if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef()) {
+  if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef() || rhs.isTclData()) {
     auto len = strlen(rhs.expr_);
 
     auto len1 = size_t(len + 1);
@@ -110,7 +113,7 @@ operator=(const CQChartsColumn &rhs)
     expr_   = nullptr;
     name_   = nullptr;
 
-    if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef()) {
+    if (rhs.hasExpr() || rhs.hasIndex() || rhs.hasRef() || rhs.isTclData()) {
       auto len = strlen(rhs.expr_);
 
       auto len1 = size_t(len + 1);
@@ -213,7 +216,7 @@ setValue(const QString &str)
   expr_   = nullptr;
   name_   = nullptr;
 
-  if (type == Type::EXPR || type == Type::DATA_INDEX || type == Type::COLUMN_REF) {
+  if (hasExprPtr(type)) {
     int len = expr.length();
 
     auto len1 = size_t(len + 1);
@@ -246,8 +249,29 @@ toString() const
     if (role_ >= 0)
       str += QString("@%1").arg(role_);
   }
-  else if (type_ == Type::EXPR)
+  else if (type_ == Type::DATA_INDEX) {
+    str += QString::number(column_);
+
+    if (role_ >= 0)
+      str += QString("@%1").arg(role_);
+
+    str += QString("[%1]").arg(expr_);
+  }
+  else if (type_ == Type::EXPR) {
     str += QString("(%1)").arg(expr_);
+  }
+  else if (type_ == Type::COLUMN_REF) {
+    str += QString("@REF %1").arg(expr_);
+  }
+  else if (type_ == Type::TCL_DATA) {
+    QStringList strs;
+
+    (void) CQTcl::splitList(expr_, strs);
+
+    strs.push_front("@TCL");
+
+    str += CQTcl::mergeList(strs);
+  }
   else if (type_ == Type::ROW) {
     if (role_ > 0)
       str += "@ROW1";
@@ -266,17 +290,6 @@ toString() const
     str += "@VH";
   else if (type_ == Type::GROUP)
     str += "@GROUP";
-  else if (type_ == Type::DATA_INDEX) {
-    str += QString::number(column_);
-
-    if (role_ >= 0)
-      str += QString("@%1").arg(role_);
-
-    str += QString("[%1]").arg(expr_);
-  }
-  else if (type_ == Type::COLUMN_REF) {
-    str += QString("@REF %1").arg(expr_);
-  }
 
   return str;
 }
@@ -486,6 +499,36 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
       return true;
     }
+
+    // Tcl data
+    if (parse.isWord("@TCL")) {
+      parse.skipNonSpace(); parse.skipSpace();
+
+      type = Type::TCL_DATA;
+
+      QStringList strs;
+
+      if (! CQTcl::splitList(parse.getAt(), strs))
+        return false;
+
+      QStringList values;
+
+      if (strs.length() >= 1) {
+        if (! CQTcl::splitList(strs[0], values))
+          return false;
+      }
+
+      CQBaseModelType type = CQBaseModelType::STRING;
+
+      if (strs.length() >= 2)
+        type = CQBaseModel::nameType(strs[1]);
+
+      auto valueStr = CQTcl::mergeList(values);
+
+      expr = CQTcl::mergeList(QStringList() << valueStr << CQBaseModel::typeName(type));
+
+      return true;
+    }
   }
 
   //---
@@ -572,6 +615,58 @@ updateType()
 {
   if (type_ == Type::DATA && column_ < 0)
     type_ = Type::NONE;
+}
+
+CQBaseModelType
+CQChartsColumn::
+getTclType(bool &ok) const
+{
+  assert(type_ == Type::TCL_DATA);
+
+  auto data = tclData();
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(data, strs)) {
+    ok = false; return CQBaseModelType::STRING;
+  }
+
+  assert(strs.length() == 2);
+
+  ok = true;
+
+  return CQBaseModel::nameType(strs[1]);
+}
+
+QVariant
+CQChartsColumn::
+getTclValue(int i, bool &ok) const
+{
+  assert(type_ == Type::TCL_DATA);
+
+  auto data = tclData();
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(data, strs)) {
+    ok = false; return QVariant();
+  }
+
+  assert(strs.length() == 2);
+
+  QStringList values;
+
+  if (! CQTcl::splitList(strs[0], values)) {
+    ok = false; return QVariant();
+  }
+
+  if (i < 0 || i >= values.length()) {
+    ok = false; return QVariant();
+  }
+
+  ok = true;
+
+  return values[i];
 }
 
 //---

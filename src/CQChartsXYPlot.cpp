@@ -3175,7 +3175,7 @@ posStr(const Point &w) const
 
 bool
 CQChartsXYPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   int ns = numSets();
 

@@ -652,7 +652,7 @@ cellBBox(int row, int col) const
 
 bool
 CQChartsSummaryPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   menuObj_ = selectedCellObj();
 

@@ -2117,7 +2117,7 @@ filterObjs()
 
 bool
 CQChartsGraphVizPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   if (canDrawColorMapKey()) {
     menu->addSeparator();

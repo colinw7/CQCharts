@@ -244,9 +244,12 @@ getUserData(const QAbstractItemModel *model, const CQChartsColumn &column,
 
   QVariant var1;
 
-  if (typeCacheData->columnType)
+  if (typeCacheData->columnType) {
     var1 = typeCacheData->columnType->userData(charts_, model, column, var,
                                                typeCacheData->typeData, converted);
+
+    var1 = typeCacheData->columnType->remapNamedValue(charts_, model, column, var1);
+  }
 
   return var1;
 }
@@ -266,9 +269,12 @@ getDisplayData(const QAbstractItemModel *model, const CQChartsColumn &column,
 
   QVariant var1;
 
-  if (typeCacheData->columnType)
+  if (typeCacheData->columnType) {
     var1 = typeCacheData->columnType->userData(charts_, model, column, var,
                                                typeCacheData->typeData, converted);
+
+    var1 = typeCacheData->columnType->remapNamedValue(charts_, model, column, var1);
+  }
 
   if (! var1.isValid())
     return var;
@@ -818,10 +824,12 @@ CQChartsColumnType(Type type) :
   addParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
     setDesc("Table value draw stop values");
 
+  // name to value map
+  addParam("named_values", Type::STRING, "Named Values", "")->
+    setDesc("Named values");
   // name to color map
   addParam("named_colors", Type::STRING, "Named Colors", "")->
     setDesc("Named colors");
-
   // name to image map
   addParam("named_images", Type::STRING, "Named Images", "")->
     setDesc("Named images");
@@ -979,6 +987,64 @@ drawStops(const CQChartsNameValues &nameValues) const
     stops = CQChartsColorStops(stopsStr);
 
   return stops;
+}
+
+QVariant
+CQChartsColumnType::
+remapNamedValue(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+                const QVariant &var) const
+{
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  if (! nameValueMapSet_) {
+    auto *th = const_cast<CQChartsColumnType *>(this);
+
+    auto *columnDetails = this->columnDetails(charts, model, column);
+
+    th->nameValueMapSet_ = true;
+
+    auto nv = namedValues(columnDetails->nameValues());
+
+    th->nameValueMap_ = nv.nameValues();
+  }
+
+  if (nameValueMap_.empty())
+    return var;
+
+  auto pn = nameValueMap_.find(var.toString());
+
+  if (pn != nameValueMap_.end())
+    return (*pn).second;
+
+  return var;
+}
+
+CQChartsNameValues
+CQChartsColumnType::
+namedValues(const CQChartsNameValues &nameValues) const
+{
+  QString namedValuesStr;
+
+  if (! nameValueString(nameValues, "named_values", namedValuesStr))
+    namedValuesStr.clear();
+
+  CQChartsNameValues namedValues;
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(namedValuesStr, strs))
+    return namedValues;
+
+  for (const auto &str : strs) {
+    QStringList strs1;
+
+    if (! CQTcl::splitList(str, strs1) || strs1.length() != 2)
+      continue;
+
+    namedValues.setNameValue(strs1[0], strs1[1]);
+  }
+
+  return namedValues;
 }
 
 CQChartsNameValues

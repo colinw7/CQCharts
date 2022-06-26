@@ -889,7 +889,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  bool addMenuItems(QMenu *) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   //---
 

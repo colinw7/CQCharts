@@ -958,7 +958,7 @@ probe(ProbeData &probeData) const
 
 bool
 CQChartsParallelPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   menu->addSeparator();
 

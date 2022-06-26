@@ -1451,7 +1451,7 @@ filterObjs()
 
 bool
 CQChartsSankeyPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

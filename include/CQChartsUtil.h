@@ -603,6 +603,19 @@ inline int valuesNdp(const std::vector<double> &values) {
 
 namespace CQChartsUtil {
 
+inline QColor interpColor(const QColor &from, const QColor &to, double f) {
+  return QColor::fromRgbF(CMathUtil::lerp(f, from.redF  (), to.redF  ()),
+                          CMathUtil::lerp(f, from.greenF(), to.greenF()),
+                          CMathUtil::lerp(f, from.blueF (), to.blueF ()),
+                          CMathUtil::lerp(f, from.alphaF(), to.alphaF()));
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
 bool encodeUtf(const QString &s, QString &res);
 
 }

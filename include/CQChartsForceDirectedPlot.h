@@ -58,8 +58,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeTextData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
-  // control
-  Q_PROPERTY(bool   running      READ isRunning    WRITE setRunning)
+  // animation
   Q_PROPERTY(int    initSteps    READ initSteps    WRITE setInitSteps)
   Q_PROPERTY(int    animateSteps READ animateSteps WRITE setAnimateSteps)
   Q_PROPERTY(double stepSize     READ stepSize     WRITE setStepSize)
@@ -165,9 +164,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //----
 
-  //! get/set is placement running
-  bool isRunning() const { return running_; }
-  void setRunning(bool b);
+  //! set animating
+  void setAnimating(bool b) override;
 
   //! get/set init steps
   int initSteps() const { return initSteps_; }
@@ -497,7 +495,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -513,7 +511,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using IndStringMap    = std::map<int, QString>;
 
   // animation data
-  bool        running_      { true }; //!< is running
   int         initSteps_    { 500 };  //!< initial steps
   int         animateSteps_ { 10 };   //!< animate steps
   mutable int numSteps_     { 0 };    //!< number of steps

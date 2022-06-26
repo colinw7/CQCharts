@@ -241,6 +241,9 @@ class CQChartsModelColumnDetails {
   const ColorStops &tableDrawStops() const { return tableDrawStops_; }
   void setTableDrawType(const ColorStops &s) { tableDrawStops_ = s; }
 
+//const NameValues &namedValues() const { return namedValues_; }
+//void setNamedValues(const NameValues &s) { namedValues_ = s; }
+
 //const NameValues &namedColors() const { return namedColors_; }
 //void setNamedColors(const NameValues &s) { namedColors_ = s; }
 
@@ -267,6 +270,9 @@ class CQChartsModelColumnDetails {
 
   QColor barchartColor() const;
 
+#if 0
+  bool namedValue(const QString &name, QVariant &value) const;
+#endif
   bool namedColor(const QString &name, Color &color) const;
   bool namedImage(const QString &name, Image &image) const;
 
@@ -324,6 +330,7 @@ class CQChartsModelColumnDetails {
   Color         tableDrawColor_;
   TableDrawType tableDrawType_   { TableDrawType::HEATMAP };
   ColorStops    tableDrawStops_;
+//NameValues    namedValues_;
 //NameValues    namedColors_;
 //NameValues    namedImages_;
 

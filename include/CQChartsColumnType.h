@@ -195,8 +195,13 @@ class CQChartsColumnType {
   Color      drawColor     (const NameValues &nameValues) const;
   DrawType   drawType      (const NameValues &nameValues) const;
   ColorStops drawStops     (const NameValues &nameValues) const;
-  NameValues namedColors   (const NameValues &nameValues) const;
-  NameValues namedImages   (CQCharts *charts, const NameValues &nameValues) const;
+
+  QVariant remapNamedValue(CQCharts *charts, const QAbstractItemModel *model,
+                           const CQChartsColumn &column, const QVariant &var) const;
+
+  NameValues namedValues(const NameValues &nameValues) const;
+  NameValues namedColors(const NameValues &nameValues) const;
+  NameValues namedImages(CQCharts *charts, const NameValues &nameValues) const;
 
   bool nameValueString(const NameValues &nameValues, const QString &name, QString &value) const;
 
@@ -205,6 +210,13 @@ class CQChartsColumnType {
   int    ind_    { -1 };    //!< insertion index
   Params params_;           //!< parameters
   bool   hidden_ { false }; //!< is type hidden
+
+  using NameValueMap = std::map<QString, QVariant>;
+
+  mutable NameValueMap nameValueMap_;
+  mutable bool         nameValueMapSet_ { false };
+
+  mutable std::mutex mutex_; //!< mutex
 };
 
 //---

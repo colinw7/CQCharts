@@ -2881,7 +2881,7 @@ posStr(const Point &w) const
 
 bool
 CQChartsScatterPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   menu->addSeparator();
 

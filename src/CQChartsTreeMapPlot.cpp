@@ -127,7 +127,10 @@ void
 CQChartsTreeMapPlot::
 term()
 {
-  delete root_;
+  for (auto &pg : groupTreeMapData_)
+    delete pg.second.root;
+
+  delete treeMapData_.root;
 }
 
 //---
@@ -255,6 +258,13 @@ setMinArea(const Area &a)
   CQChartsUtil::testAndSet(treeData_.minArea, a, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsTreeMapPlot::
+setSplitGroups(bool b)
+{
+  CQChartsUtil::testAndSet(treeData_.splitGroups, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //----
 
 void
@@ -301,6 +311,7 @@ addProperties()
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
   addProp("options", "followViewExpand", "", "Follow view expand");
+  addProp("options", "splitGroups"     , "", "Show grouped data in separated treemaps");
 
   // filter
   addProp("filter", "minArea", "", "Min box area");
@@ -373,18 +384,38 @@ addProperties()
   addColorMapKeyProperties();
 }
 
-//------
+//---
 
 CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
-currentRoot() const
+root(const QString &groupName) const
 {
-  auto names = currentRootName_.split(calcSeparator(), QString::SkipEmptyParts);
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.root;
+}
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapPlot::
+firstHier(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.firstHier;
+}
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapPlot::
+currentRoot(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  auto names = treeMapData.currentRootName.split(calcSeparator(), QString::SkipEmptyParts);
 
   if (names.empty())
-    return firstHier();
+    return treeMapData.firstHier;
 
-  auto *currentRoot = root();
+  auto *currentRoot = treeMapData.root;
 
   if (! currentRoot)
     return nullptr;
@@ -403,12 +434,14 @@ currentRoot() const
 
 void
 CQChartsTreeMapPlot::
-setCurrentRoot(HierNode *hier, bool update)
+setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
 {
+  auto &treeMapData = getTreeMapData(groupName);
+
   if (hier)
-    currentRootName_ = hier->hierName();
+    treeMapData.currentRootName = hier->hierName();
   else
-    currentRootName_.clear();
+    treeMapData.currentRootName.clear();
 
   if (update)
     updateCurrentRoot();
@@ -423,20 +456,67 @@ updateCurrentRoot()
   updateObjs();
 }
 
+//---
+
 CQChartsGeom::Range
 CQChartsTreeMapPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsTreeMapPlot::calcRange");
 
-  Range dataRange;
-
   double r = 1.0;
+
+  Range dataRange;
 
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
 
   return dataRange;
+}
+
+//------
+
+#if 0
+int
+CQChartsTreeMapPlot::
+colorId(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.colorData.colorId;
+}
+#endif
+
+int
+CQChartsTreeMapPlot::
+numColorIds(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.colorData.numColorIds;
+}
+
+void
+CQChartsTreeMapPlot::
+initColorIds(const QString &groupName)
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  treeMapData.colorData.reset();
+}
+
+int
+CQChartsTreeMapPlot::
+nextColorId(const QString &groupName)
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  ++treeMapData.colorData.colorId;
+
+  if (treeMapData.colorData.colorId >= treeMapData.colorData.numColorIds)
+    treeMapData.colorData.numColorIds = treeMapData.colorData.colorId + 1;
+
+  return treeMapData.colorData.colorId;
 }
 
 //------
@@ -464,6 +544,11 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  // init value sets
+  //initValueSets();
+
+  //---
+
   // check columns
   bool columnsValid = true;
 
@@ -483,29 +568,31 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  // init value sets
-  //initValueSets();
-
-  //---
-
-  if (! root())
+  if (! root(""))
     initNodes();
   else
     replaceNodes();
 
   //---
 
-  th->initColorIds();
+  for (const auto &groupName : groupNameSet_)
+    colorGroupNodes(groupName);
 
-  colorNodes(firstHier());
+  colorGroupNodes("");
 
   //---
 
-  ig_ = 0;
-  in_ = 0;
+  for (const auto &groupName : groupNameSet_) {
+    auto *currentRoot = this->currentRoot(groupName);
 
-  if (currentRoot())
-    initNodeObjs(currentRoot(), nullptr, 0, objs);
+    if (currentRoot)
+      initNodeObjs(currentRoot, groupName, nullptr, 0, objs);
+  }
+
+  auto *currentRoot = this->currentRoot("");
+
+  if (currentRoot)
+    initNodeObjs(currentRoot, "", nullptr, 0, objs);
 
   //---
 
@@ -514,16 +601,25 @@ createObjs(PlotObjs &objs) const
     auto *nodeObj = dynamic_cast<NodeObj *>(obj);
 
     if      (hierObj) {
-      if (hierObj->parent())
-        hierObj->setIg(ColorInd(hierObj->parent()->ind(), ig_));
+      auto groupName = hierObj->calcGroupName();
 
-      hierObj->setIv(ColorInd(hierObj->ind(), ig_));
+      int ig = groupInd(groupName);
+
+      if (hierObj->parent())
+        hierObj->setIg(ColorInd(hierObj->parent()->ind(), ig));
+
+      hierObj->setIv(ColorInd(hierObj->ind(), ig));
     }
     else if (nodeObj) {
-      if (nodeObj->parent())
-        nodeObj->setIg(ColorInd(nodeObj->parent()->ind(), ig_));
+      auto groupName = nodeObj->calcGroupName();
 
-      nodeObj->setIv(ColorInd(nodeObj->ind(), in_));
+      int ig = groupInd(groupName);
+      int in = valueInd(groupName);
+
+      if (nodeObj->parent())
+        nodeObj->setIg(ColorInd(nodeObj->parent()->ind(), ig));
+
+      nodeObj->setIv(ColorInd(nodeObj->ind(), in));
     }
   }
 
@@ -536,33 +632,32 @@ createObjs(PlotObjs &objs) const
 
 void
 CQChartsTreeMapPlot::
-initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) const
+initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
+             int depth, PlotObjs &objs) const
 {
   HierObj *hierObj = nullptr;
 
-  if (hier != root()) {
+  if (hier != root(groupName)) {
     BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
-    ColorInd is(hier->depth(), maxDepth() + 1);
+    ColorInd is(hier->depth(), maxDepth(groupName) + 1);
 
     hierObj = createHierObj(hier, parentObj, rect, is);
 
     connect(hierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
-    hierObj->setInd(ig_);
+    hierObj->setInd(nextGroupInd(groupName));
 
     if (parentObj)
       parentObj->addChild(hierObj);
 
     objs.push_back(hierObj);
-
-    ++ig_;
   }
 
   //---
 
   for (auto &hierNode : hier->getChildren())
-    initNodeObjs(hierNode, hierObj, depth + 1, objs);
+    initNodeObjs(hierNode, groupName, hierObj, depth + 1, objs);
 
   //---
 
@@ -583,13 +678,13 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     BBox rect(node->x(), node->y(), node->x() + node->w(), node->y() + node->h());
 
-    ColorInd is(node->depth(), maxDepth() + 1);
+    ColorInd is(node->depth(), maxDepth(groupName) + 1);
 
     auto *obj = createNodeObj(node, hierObj, rect, is);
 
     connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
-    obj->setInd(in_);
+    obj->setInd(nextValueInd(groupName));
 
     if (parentObj)
       parentObj->addChild(obj);
@@ -597,8 +692,6 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
     objs.push_back(obj);
 
     ++i;
-
-    ++in_;
   }
 }
 
@@ -606,10 +699,17 @@ void
 CQChartsTreeMapPlot::
 resetNodes()
 {
-  delete root_;
+  for (auto &pg : groupTreeMapData_) {
+    delete pg.second.root;
 
-  root_      = nullptr;
-  firstHier_ = nullptr;
+    pg.second.reset();
+  }
+
+  groupTreeMapData_.clear();
+
+  delete treeMapData_.root;
+
+  treeMapData_.reset();
 }
 
 void
@@ -620,13 +720,14 @@ initNodes() const
 
   //---
 
-  hierInd_  = 0;
-  maxDepth_ = 0;
+  th->treeMapData_.reset();
 
-  th->root_ = createHierNode(nullptr, "<root>", QModelIndex());
+  th->treeMapData_.maxDepth = 0;
 
-  root_->setDepth(0);
-  root_->setHierInd(hierInd_++);
+  th->treeMapData_.root = createHierNode(nullptr, "<root>", QModelIndex());
+
+  th->treeMapData_.root->setDepth(0);
+  th->treeMapData_.root->setHierInd(nextHierInd(""));
 
   //---
 
@@ -637,10 +738,17 @@ initNodes() const
 
   //---
 
-  th->firstHier_ = root();
+  for (auto &pg : th->groupTreeMapData_) {
+    pg.second.firstHier = pg.second.root;
 
-  while (firstHier_ && firstHier_->numChildren() == 1)
-    th->firstHier_ = firstHier_->childAt(0);
+    while (pg.second.firstHier && pg.second.firstHier->numChildren() == 1)
+      pg.second.firstHier = pg.second.firstHier->childAt(0);
+  }
+
+  th->treeMapData_.firstHier = th->treeMapData_.root;
+
+  while (th->treeMapData_.firstHier && th->treeMapData_.firstHier->numChildren() == 1)
+    th->treeMapData_.firstHier = th->treeMapData_.firstHier->childAt(0);
 
   //---
 
@@ -657,45 +765,91 @@ replaceNodes() const
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
   th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
-  auto *hier = currentRoot();
+  int ng = int(groupNameSet_.size());
 
-  if (hier)
-    placeNodes(hier);
+  if (isSplitGroups() && ng > 0) {
+    int nx, ny;
+    CQChartsUtil::countToSquareGrid(ng, nx, ny);
+
+    double m  = 0.01;
+    double dx = 2.0/nx - m;
+    double dy = 2.0/ny - m;
+
+    int ig = 0;
+
+    for (const auto &groupName : groupNameSet_) {
+      int ix = ig % nx;
+      int iy = ig / nx;
+
+      double x1 = ix*(dx + m) - 1.0 + m/2.0;
+      double y1 = iy*(dy + m) - 1.0 + m/2.0;
+      double x2 = x1 + dx;
+      double y2 = y1 + dy;
+
+      auto *hier = currentRoot(groupName);
+
+      if (hier)
+        placeNodes(hier, x1, y1, x2, y2);
+
+      ++ig;
+    }
+  }
+  else {
+    auto *hier = currentRoot("");
+
+    if (hier)
+      placeNodes(hier, -1, -1, 1, 1);
+  }
 }
 
 void
 CQChartsTreeMapPlot::
-placeNodes(HierNode *hier) const
+placeNodes(HierNode *hier, double x1, double y1, double x2, double y2) const
 {
-  hier->setPosition(-1, -1, 2, 2);
+  hier->setPosition(x1, y1, x2 - x1, y2 - y1); // x, y, w, h
+}
+
+//---
+
+void
+CQChartsTreeMapPlot::
+colorGroupNodes(const QString &groupName) const
+{
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  th->initColorIds(groupName);
+
+  colorNodes(groupName, firstHier(groupName));
 }
 
 void
 CQChartsTreeMapPlot::
-colorNodes(HierNode *hier) const
+colorNodes(const QString &groupName, HierNode *hier) const
 {
   if (! hier->hasNodes() && ! hier->hasChildren()) {
-    colorNode(hier);
+    colorNode(groupName, hier);
   }
   else {
     for (const auto &node : hier->getNodes())
-      colorNode(node);
+      colorNode(groupName, node);
 
     for (const auto &child : hier->getChildren())
-      colorNodes(child);
+      colorNodes(groupName, child);
   }
 }
 
 void
 CQChartsTreeMapPlot::
-colorNode(Node *node) const
+colorNode(const QString &groupName, Node *node) const
 {
   if (! node->color().isValid()) {
     auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
-    node->setColorId(th->nextColorId());
+    node->setColorId(th->nextColorId(groupName));
   }
 }
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -719,7 +873,7 @@ loadHier() const
 
       //---
 
-      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = plot_->addHierNode("", parentHier(), name, nameInd);
 
       //---
 
@@ -745,6 +899,7 @@ loadHier() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get name and associated model index for row
       QString     name;
       QModelIndex nameInd;
 
@@ -754,19 +909,12 @@ loadHier() const
 
       double size = 1.0;
 
-      if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
-
-        if (! plot_->getValueSize(valueModelInd, size))
-          return State::SKIP;
-
-        if (size == 0.0)
-          return State::SKIP;
-      }
+      if (! getSize(data, size))
+        return State::SKIP;
 
       //---
 
-      auto *node = plot_->hierAddNode(parentHier(), name, size, nameInd);
+      auto *node = plot_->hierAddNode("", parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
         Color color;
@@ -797,6 +945,21 @@ loadHier() const
       return ok;
     }
 
+    bool getSize(const VisitData &data, double &size) {
+      if (! plot_->valueColumn().isValid())
+        return false;
+
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+
+      if (! plot_->getValueSize(valueModelInd, size))
+        return false;
+
+      if (size == 0.0)
+        return false;
+
+      return true;
+    }
+
    private:
     using HierStack = std::vector<HierNode *>;
 
@@ -804,14 +967,15 @@ loadHier() const
     HierStack   hierStack_;
   };
 
-  RowVisitor visitor(this, root());
+  RowVisitor visitor(this, root(""));
 
   visitModel(visitor);
 }
 
 CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
-addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) const
+addHierNode(const QString &groupName, HierNode *hier, const QString &name,
+            const QModelIndex &nameInd) const
 {
   int depth1 = hier->depth() + 1;
 
@@ -821,9 +985,9 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   hier1->setDepth(depth1);
 
-  hier1->setHierInd(hierInd_++);
+  hier1->setHierInd(nextHierInd(groupName));
 
-  maxDepth_ = std::max(maxDepth_, depth1);
+  updateMaxDepth(groupName, depth1);
 
   //---
 
@@ -844,7 +1008,8 @@ removeHierNode(HierNode *hier)
 
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
-hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex &nameInd) const
+hierAddNode(const QString &groupName, HierNode *hier, const QString &name,
+            double size, const QModelIndex &nameInd) const
 {
   int depth1 = hier->depth() + 1;
 
@@ -856,10 +1021,12 @@ hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex 
 
   hier->addNode(node);
 
-  maxDepth_ = std::max(maxDepth_, depth1);
+  updateMaxDepth(groupName, depth1);
 
   return node;
 }
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -875,7 +1042,7 @@ loadFlat() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // get hier names from name columns
+      // get hier names and associated model indices from name columns
       QStringList   nameStrs;
       QModelIndices nameInds;
 
@@ -886,14 +1053,14 @@ loadFlat() const
       //---
 
       // add group name at top of hier if specified
+      QString groupName;
+
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
 
         bool ok;
 
-        auto groupName = plot_->modelString(groupModelInd, ok); // hier ?
-
-        nameStrs.push_front(groupName);
+        groupName = plot_->modelString(groupModelInd, ok); // hier ?
       }
 
       //---
@@ -926,20 +1093,18 @@ loadFlat() const
       // get size from value column
       double size = 1.0;
 
-      if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (! getSize(data, size))
+        return State::SKIP;
 
-        if (! plot_->getValueSize(valueModelInd, size))
-          return State::SKIP;
-
-        if (size == 0.0) // alow negative ?
-          return State::SKIP;
-      }
+      // TODO: min size (see hier bubble plot)
 
       //---
 
       // create node
-      auto *node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
+      auto *node = plot_->flatAddNode(groupName, nameStrs, size, nameInd1, name);
+
+      if (groupName != "")
+        groupNameSet_.insert(groupName);
 
       //---
 
@@ -954,9 +1119,32 @@ loadFlat() const
       return State::OK;
     }
 
+    const GroupNameSet &groupNameSet() const { return groupNameSet_; }
+
    private:
-    const Plot* plot_ { nullptr };
+    bool getSize(const VisitData &data, double &size) const {
+      size = 1.0;
+
+      if (! plot_->valueColumn().isValid())
+        return true;
+
+      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+
+      if (! plot_->getValueSize(valueModelInd, size))
+        return false;
+
+      if (size <= 0.0) // allow negative ?
+        return false;
+
+      return true;
+    }
+
+   private:
+    const Plot*  plot_ { nullptr };
+    GroupNameSet groupNameSet_;
   };
+
+  //---
 
   RowVisitor visitor(this);
 
@@ -964,32 +1152,84 @@ loadFlat() const
 
   //---
 
-  addExtraNodes(root());
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  if (isSplitGroups())
+    th->groupNameSet_ = visitor.groupNameSet();
+  else
+    th->groupNameSet_.clear();
+
+  //---
+
+  for (const auto &groupName : groupNameSet_)
+    addExtraNodes(root(groupName));
+
+  addExtraNodes(root(""));
 }
+
+//---
 
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
-flatAddNode(const QStringList &nameStrs, double size,
+flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
             const QModelIndex &nameInd, const QString &name) const
 {
-  int depth = nameStrs.length();
+  auto groupName1 = groupName;
 
-  maxDepth_ = std::max(maxDepth_, depth + 1);
+  auto nameStrs1 = nameStrs;
+
+  if (groupName1 != "") {
+    if (! isSplitGroups()) {
+      nameStrs1.push_front(groupName1);
+
+      groupName1 = "";
+    }
+  }
+
+  //---
+
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  if (groupName1 != "" && isSplitGroups()) {
+    // init root for group if not yet created
+    auto pg = th->groupTreeMapData_.find(groupName1);
+
+    if (pg == th->groupTreeMapData_.end()) {
+      pg = th->groupTreeMapData_.insert(pg,
+             GroupTreeMapData::value_type(groupName1, TreeMapData()));
+
+      auto &treeMapData = (*pg).second;
+
+      treeMapData.maxDepth = 0;
+
+      treeMapData.root = createHierNode(nullptr, groupName1, QModelIndex());
+
+      treeMapData.root->setDepth(0);
+      treeMapData.root->setHierInd(nextHierInd(groupName1));
+      treeMapData.root->setGroupName(groupName1);
+    }
+  }
+
+  //---
+
+  int depth = nameStrs1.length();
+
+  updateMaxDepth(groupName1, depth + 1);
 
   //---
 
   // create parent nodes
-  auto *parent = root();
+  auto *parent = root(groupName1);
 
-  for (int j = 0; j < nameStrs.length() - 1; ++j) {
-    auto *child = childHierNode(parent, nameStrs[j]);
+  for (int j = 0; j < nameStrs1.length() - 1; ++j) {
+    auto *child = childHierNode(parent, nameStrs1[j]);
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
       auto   nameInd1 = nameInd;
       double size1    = 0.0;
 
-      auto *node = childNode(parent, nameStrs[j]);
+      auto *node = childNode(parent, nameStrs1[j]);
 
       if (node) {
         nameInd1 = node->ind();
@@ -1002,12 +1242,12 @@ flatAddNode(const QStringList &nameStrs, double size,
 
       //---
 
-      child = createHierNode(parent, nameStrs[j], nameInd1);
+      child = createHierNode(parent, nameStrs1[j], nameInd1);
 
       child->setSize(size1);
 
       child->setDepth(j + 1);
-      child->setHierInd(hierInd_++);
+      child->setHierInd(nextHierInd(groupName1));
 
       //---
 
@@ -1022,7 +1262,7 @@ flatAddNode(const QStringList &nameStrs, double size,
   //---
 
   // create leaf node
-  auto nodeName = nameStrs.back();
+  auto nodeName = nameStrs1.back();
 
   auto *node = childNode(parent, nodeName);
 
@@ -1046,6 +1286,8 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   return node;
 }
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -1077,6 +1319,89 @@ addExtraNodes(HierNode *hier) const
     addExtraNodes(child);
 }
 
+//---
+
+int
+CQChartsTreeMapPlot::
+nextHierInd(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.hierInd++;
+}
+
+int
+CQChartsTreeMapPlot::
+groupInd(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.ig;
+}
+
+int
+CQChartsTreeMapPlot::
+nextGroupInd(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.ig++;
+}
+
+int
+CQChartsTreeMapPlot::
+valueInd(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.in;
+}
+
+int
+CQChartsTreeMapPlot::
+nextValueInd(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.in++;
+}
+
+int
+CQChartsTreeMapPlot::
+maxDepth(const QString &groupName) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  return treeMapData.maxDepth;
+}
+
+void
+CQChartsTreeMapPlot::
+updateMaxDepth(const QString &groupName, int depth) const
+{
+  auto &treeMapData = getTreeMapData(groupName);
+
+  treeMapData.maxDepth = std::max(treeMapData.maxDepth, depth);
+}
+
+//---
+
+CQChartsTreeMapPlot::TreeMapData &
+CQChartsTreeMapPlot::
+getTreeMapData(const QString &groupName) const
+{
+  if (groupName != "") {
+    auto pg = groupTreeMapData_.find(groupName);
+    assert(pg != groupTreeMapData_.end());
+
+    return const_cast<TreeMapData &>((*pg).second);
+  }
+
+  return const_cast<TreeMapData &>(treeMapData_);
+}
+
+//---
+
 CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 childHierNode(HierNode *parent, const QString &name) const
@@ -1099,6 +1424,8 @@ childNode(HierNode *parent, const QString &name) const
   return nullptr;
 }
 
+//---
+
 bool
 CQChartsTreeMapPlot::
 getValueSize(const ModelIndex &ind, double &size) const
@@ -1115,8 +1442,10 @@ getValueSize(const ModelIndex &ind, double &size) const
 
   bool ok = true;
 
-  if (valueColumnType() == ColumnType::REAL || valueColumnType() == ColumnType::INTEGER)
+  if      (valueColumnType() == ColumnType::REAL || valueColumnType() == ColumnType::INTEGER)
     size = modelReal(ind, ok);
+//else if (valueColumnType() == ColumnType::STRING)
+//  size = 1.0; // TODO: error
   else
     ok = false;
 
@@ -1133,8 +1462,20 @@ getValueSize(const ModelIndex &ind, double &size) const
 
 bool
 CQChartsTreeMapPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &pv)
 {
+  auto pp = viewToWindow(pv);
+
+  PlotObj *plotObj = nullptr;
+
+  (void) objNearestPoint(pp, plotObj);
+
+  auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(plotObj);
+
+  menuGroupName_ = (nodeObj ? nodeObj->calcGroupName() : "");
+
+  //---
+
   PlotObjs objs;
 
   menuPlotObjs(objs);
@@ -1145,9 +1486,12 @@ addMenuItems(QMenu *menu)
   auto *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
   auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
+  auto *currentRoot = this->currentRoot(menuGroupName_);
+  auto *firstHier   = this->firstHier  (menuGroupName_);
+
   pushAction  ->setEnabled(! objs.empty());
-  popAction   ->setEnabled(currentRoot() != firstHier());
-  popTopAction->setEnabled(currentRoot() != firstHier());
+  popAction   ->setEnabled(currentRoot != firstHier);
+  popTopAction->setEnabled(currentRoot != firstHier);
 
   //---
 
@@ -1171,6 +1515,8 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
+//---
+
 void
 CQChartsTreeMapPlot::
 pushSlot()
@@ -1186,7 +1532,7 @@ pushSlot()
     if (hierObj) {
       auto *hnode = hierObj->hierNode();
 
-      setCurrentRoot(hnode, /*update*/true);
+      setCurrentRoot(menuGroupName_, hnode, /*update*/true);
 
       break;
     }
@@ -1199,7 +1545,7 @@ pushSlot()
       auto *hnode = node->parent();
 
       if (hnode) {
-        setCurrentRoot(hnode, /*update*/true);
+        setCurrentRoot(menuGroupName_, hnode, /*update*/true);
 
         break;
       }
@@ -1211,10 +1557,10 @@ void
 CQChartsTreeMapPlot::
 popSlot()
 {
-  auto *root = currentRoot();
+  auto *root = currentRoot(menuGroupName_);
 
   if (root && root->parent()) {
-    setCurrentRoot(root->parent(), /*update*/true);
+    setCurrentRoot(menuGroupName_, root->parent(), /*update*/true);
   }
 }
 
@@ -1222,10 +1568,11 @@ void
 CQChartsTreeMapPlot::
 popTopSlot()
 {
-  auto *root = currentRoot();
+  auto *root      = currentRoot(menuGroupName_);
+  auto *firstHier = this->firstHier(menuGroupName_);
 
-  if (root != firstHier()) {
-    setCurrentRoot(firstHier(), /*update*/true);
+  if (root != firstHier) {
+    setCurrentRoot(menuGroupName_, firstHier, /*update*/true);
   }
 }
 
@@ -1315,7 +1662,7 @@ postResize()
   updateObjs();
 }
 
-//------
+//----
 
 void
 CQChartsTreeMapPlot::
@@ -1343,7 +1690,12 @@ modelViewExpansionChanged()
 
   expandedModelIndices(indSet);
 
-  for (auto &hierNode : root()->getChildren())
+  for (const auto &groupName : groupNameSet_) {
+    for (auto &hierNode : root(groupName)->getChildren())
+      setNodeExpansion(hierNode, indSet);
+  }
+
+  for (auto &hierNode : root("")->getChildren())
     setNodeExpansion(hierNode, indSet);
 
   drawObjs();
@@ -1366,7 +1718,12 @@ void
 CQChartsTreeMapPlot::
 resetNodeExpansion(bool expanded)
 {
-  for (auto &hierNode : root()->getChildren())
+  for (const auto &groupName : groupNameSet_) {
+    for (auto &hierNode : root(groupName)->getChildren())
+      resetNodeExpansion(hierNode, expanded);
+  }
+
+  for (auto &hierNode : root("")->getChildren())
     resetNodeExpansion(hierNode, expanded);
 }
 
@@ -1501,6 +1858,13 @@ calcTipId() const
   return CQChartsTreeMapNodeObj::calcTipId();
 }
 
+QString
+CQChartsTreeMapHierObj::
+calcGroupName() const
+{
+  return (hierNode() ? hierNode()->calcGroupName() : "");
+}
+
 bool
 CQChartsTreeMapHierObj::
 inside(const Point &p) const
@@ -1533,6 +1897,13 @@ isSelectable() const
   return true;
 }
 
+bool
+CQChartsTreeMapHierObj::
+isClickable() const
+{
+  return true;
+}
+
 void
 CQChartsTreeMapHierObj::
 getObjSelectIndices(Indices &inds) const
@@ -1553,7 +1924,7 @@ selectDoubleClick(const Point &, SelMod)
     plot->drawObjs();
   }
   else {
-    hierNode()->setExpanded(true);
+    hierNode()->setExpanded(! hierNode()->isExpanded());
 
     plot->drawObjs();
   }
@@ -1694,6 +2065,9 @@ void
 CQChartsTreeMapHierObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
+  if (numColorIds_ < 0)
+    numColorIds_ = plot_->numColorIds(calcGroupName());
+
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpHeaderStrokeColor(colorInd);
@@ -1701,7 +2075,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (isChildSelected())
     bc.setAlphaF(1.0);
 
-  auto hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, numColorIds_);
 
   QColor fc;
 
@@ -1767,11 +2141,11 @@ calcTipId() const
     tableTip.addTableRow("Name", (node_->isFiller() ?
       node_->parent()->hierName() : node_->hierName()));
 
-  tableTip.addTableRow("Size", node_->hierSize());
+  auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
+
+  tableTip.addTableRow("Value", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
-
     ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
@@ -1781,13 +2155,24 @@ calcTipId() const
     tableTip.addTableRow("Color", colorStr);
   }
 
+  plot_->addTipColumn(tableTip, plot_->groupColumn(), ind1);
+
   //---
 
-  plot()->addTipColumns(tableTip, node_->ind());
+  const auto &ind = node_->ind();
+
+  plot()->addTipColumns(tableTip, ind);
 
   //---
 
   return tableTip.str();
+}
+
+QString
+CQChartsTreeMapNodeObj::
+calcGroupName() const
+{
+  return (node() ? node()->calcGroupName() : "");
 }
 
 bool
@@ -2014,10 +2399,13 @@ void
 CQChartsTreeMapNodeObj::
 calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 {
+  if (numColorIds_ < 0)
+    numColorIds_ = plot_->numColorIds(calcGroupName());
+
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, numColorIds_);
 
   if (isNodePoint) {
     if      (plot_->isFilled())
@@ -2119,7 +2507,9 @@ bool
 CQChartsTreeMapHierNode::
 isHierExpanded() const
 {
-  if (plot_->currentRoot() == this)
+  auto groupName = calcGroupName();
+
+  if (plot_->currentRoot(groupName) == this)
     return true;
 
   if (! isExpanded())
@@ -2375,6 +2765,19 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
   return CQChartsUtil::blendColors(colors);
 }
 
+QString
+CQChartsTreeMapHierNode::
+calcGroupName() const
+{
+  if (groupName_ != "")
+    return groupName_;
+
+  if (parent())
+    return parent()->calcGroupName();
+
+  return "";
+}
+
 //------
 
 CQChartsTreeMapNode::
@@ -2388,14 +2791,16 @@ QString
 CQChartsTreeMapNode::
 hierName(QChar sep) const
 {
-  QString hname;
+  if (hierName_ == "" || sep != hierNameSep_) {
+    auto groupName = calcGroupName();
 
-  if (parent() && parent() != plot_->root())
-    hname = parent()->hierName(sep) + sep + name();
-  else
-    hname = name();
+    if (parent() && parent() != plot_->root(groupName))
+      hierName_ = parent()->hierName(sep) + sep + name();
+    else
+      hierName_ = name();
+  }
 
-  return hname;
+  return hierName_;
 }
 
 void
@@ -2437,12 +2842,27 @@ QColor
 CQChartsTreeMapNode::
 interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
-  if      (color().isValid())
+  if (color().isValid())
     return plot->interpColor(color(), ColorInd());
-  else if (colorId() >= 0 && plot_->isColorById())
-    return plot->interpColor(c, ColorInd(colorId(), n));
-  else
-    return plot->interpColor(c, colorInd);
+
+  if (plot_->isColorById()) {
+    auto colorId = this->colorId();
+
+    if (colorId >= 0)
+      return plot->interpColor(c, ColorInd(colorId, n));
+  }
+
+  return plot->interpColor(c, colorInd);
+}
+
+QString
+CQChartsTreeMapNode::
+calcGroupName() const
+{
+  if (parent())
+    return parent()->calcGroupName();
+
+  return "";
 }
 
 //------

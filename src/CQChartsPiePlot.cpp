@@ -1794,7 +1794,7 @@ postResize()
 
 bool
 CQChartsPiePlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   auto addCheckAction = [&](const QString &name, bool checked, const char *slotName) {
     return CQUtil::addCheckedAction(menu, name, checked, this, slotName);

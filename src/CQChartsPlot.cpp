@@ -412,6 +412,34 @@ connectDisconnectModel(bool isConnect)
 
 void
 CQChartsPlot::
+setAnimating(bool b)
+{
+  if (b != animateData_.running) {
+    animateData_.running = b;
+
+    if (! isAnimating())
+      stopAnimateTimer();
+    else
+      startAnimateTimer();
+  }
+}
+
+void
+CQChartsPlot::
+setAnimTick(int i)
+{
+  if (i != animateData_.tickLen) {
+    animateData_.tickLen = i;
+
+    if (isAnimating()) {
+      stopAnimateTimer();
+      startAnimateTimer();
+    }
+  }
+}
+
+void
+CQChartsPlot::
 startAnimateTimer()
 {
   if (! animateData_.timer) {
@@ -422,7 +450,7 @@ startAnimateTimer()
     connect(animateData_.timer, SIGNAL(timeout()), this, SLOT(animateSlot()));
   }
 
-  animateData_.timer->start(animateData_.tickLen);
+  animateData_.timer->start(animTick());
 }
 
 void
@@ -446,6 +474,14 @@ animateSlot()
   interruptRange();
 
   animateStep();
+}
+
+void
+CQChartsPlot::
+animateStep()
+{
+  for (auto &annotation : annotations())
+   annotation->animateStep();
 }
 
 //---
@@ -3645,6 +3681,10 @@ addBaseProperties()
   if (type()->allowXLog()) addProp("log", "logX", "x", "Use log x axis");
   if (type()->allowYLog()) addProp("log", "logY", "y", "Use log y axis");
 #endif
+
+  // animation
+  addProp("animation", "animating", "running", "Is Animation Running");
+  addProp("animation", "animTick" , "tick"   , "Animation tick (ms)");
 
   // debug
   addProp("debug", "showBoxes"        , "", "Show object bounding boxes"         , /*hidden*/true);
@@ -7775,7 +7815,7 @@ objectsSelectDoubleClick(const Point &w, SelMod selMod)
   // get selectable objects and annotations at point
   Objs objs;
 
-  groupedObjsAtPoint(w, objs, Constraints::SELECTABLE);
+  groupedObjsAtPoint(w, objs, Constraints::CLICKABLE);
 
   // use first object for select
   Obj *selectObj = nullptr;
@@ -11572,6 +11612,9 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
+    if ((iconstraints & static_cast<int>(Constraints::CLICKABLE)) && ! plotObj->isClickable())
+      continue;
+
     if (clipRect_.isSet() && ! plotObj->rectIntersect(clipRect_, /*inside*/false))
       continue;
 
@@ -11619,6 +11662,9 @@ annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
       continue;
 
     if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
+      continue;
+
+    if ((iconstraints & static_cast<int>(Constraints::CLICKABLE)) && ! annotation->isClickable())
       continue;
 
     if (clipRect_.isSet() && ! annotation->intersects(clipRect_, /*inside*/false))

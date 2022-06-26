@@ -879,7 +879,7 @@ alignForPosition(double x, double y) const
 
 bool
 CQChartsRadarPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

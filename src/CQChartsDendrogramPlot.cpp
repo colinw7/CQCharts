@@ -1435,7 +1435,7 @@ setOpen(NodeObj *nodeObj, bool open)
 
 bool
 CQChartsDendrogramPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   menu->addSeparator();
 

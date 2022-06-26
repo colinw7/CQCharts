@@ -42,6 +42,8 @@
 #include <CQChartsDataFrame.h>
 #endif
 
+#include <CQChartsMetaObj.h>
+
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
@@ -171,6 +173,9 @@ addCommands()
     // get/set charts data
     addCommand("get_charts_data", new CQChartsGetChartsDataCmd(this));
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
+
+    // print variant
+    addCommand("print_charts_variant", new CQChartsPrintChartsVariantCmd(this));
 
     // execute charts slot
     addCommand("execute_charts_slot", new CQChartsExecuteChartsSlotCmd(this));
@@ -7838,6 +7843,51 @@ execCmd(CQChartsCmdArgs &argv)
 //------
 
 void
+CQChartsPrintChartsVariantCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-type" , ArgType::String, "variant type");
+  addArg(argv, "-value", ArgType::String, "variant string");
+}
+
+QStringList
+CQChartsPrintChartsVariantCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsPrintChartsVariantCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsPrintChartsVariantCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto type  = argv.getParseStr("type");
+  auto value = argv.getParseStr("value");
+
+  CQChartsMetaObj metaObj;
+
+  if (! CQUtil::setProperty(&metaObj, type, value))
+    return false;
+
+  metaObj.printType(std::cout, type);
+
+  return true;
+}
+
+//------
+
+void
 CQChartsExecuteChartsSlotCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
@@ -12722,8 +12772,10 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
 
       CQChartsColumn column;
 
-      if (! CQChartsModelUtil::stringToColumn(model.data(), (*p).second, column)) {
-        (void) errorMsg("Bad column name '" + (*p).second + "'");
+      const auto &value = (*p).second;
+
+      if (! CQChartsModelUtil::stringToColumn(model.data(), value, column)) {
+        (void) errorMsg("Bad column name '" + value + "'");
         continue;
       }
 
@@ -12762,7 +12814,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       if (p == nameValueData.parameters.end())
         continue;
 
-      auto value = (*p).second;
+      const auto &value = (*p).second;
 
       QVariant var;
 

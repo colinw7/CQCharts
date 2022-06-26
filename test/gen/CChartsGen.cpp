@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cmath>
 #include <cassert>
 
 int
@@ -19,6 +20,8 @@ main(int argc, char **argv)
   bool   labels   { false };
   bool   discreet { false };
   bool   stacked  { false };
+  bool   hier     { false };
+  int    depth    { 2 };
   bool   values   { false };
   double rmin     { 1 };
   double rmax     { 100 };
@@ -75,6 +78,14 @@ main(int argc, char **argv)
      }
      else if (opt == "stacked") {
        stacked = true;
+     }
+     else if (opt == "hier") {
+       hier = true;
+     }
+     else if (opt == "depth") {
+       if (state.hasNext()) {
+         depth = std::stoi(state.next());
+       }
      }
      else if (opt == "values") {
        values = true;
@@ -333,6 +344,87 @@ main(int argc, char **argv)
 
       if (labels)
         std::cout << "," << CMathRand::randString();
+
+      if (group) {
+        auto ig = CMathRand::randInRange(0, ng - 1);
+
+        std::cout << "," << groups[size_t(ig)];
+      }
+
+      std::cout << "\n";
+    }
+  }
+  // hier
+  else if (hier) {
+    std::vector<std::string> groups;
+
+    if (group) {
+      groups.resize(size_t(ng));
+
+      for (int i = 0; i < ng; ++i)
+        groups[size_t(i)] = CMathRand::randString();
+    }
+
+    //---
+
+    using NameSet   = std::set<std::string>;
+    using NameArray = std::vector<std::string>;
+
+    struct NameData {
+      NameSet   nameSet;
+      NameArray nameArray;
+    };
+
+    using NameSetArray = std::vector<NameData>;
+    using DepthSize    = std::vector<int>;
+
+    NameSetArray nameSetArray;
+    DepthSize    depthSize;
+
+    nameSetArray.resize(size_t(depth));
+    depthSize   .resize(size_t(depth));
+
+    int nd = int(std::pow(2, depth));
+
+    for (int i = 0; i < depth; ++i) {
+      depthSize[size_t(depth - i - 1)] = CMathRand::randInRange(nd/2, nd);
+
+      nd /= 2;
+    }
+
+    for (int i = 0; i < depth; ++i) {
+      for (int j = 0; j < depthSize[size_t(i)]; ++j) {
+        auto str = CMathRand::randString();
+
+        nameSetArray[size_t(i)].nameSet.insert(str);
+      }
+    }
+
+    for (int i = 0; i < depth; ++i) {
+      for (const auto &name : nameSetArray[size_t(i)].nameSet)
+        nameSetArray[size_t(i)].nameArray.push_back(name);
+    }
+
+    std::cout << "Name,Value";
+
+    if (group)
+      std::cout << ",Group";
+
+    std::cout << "\n";
+
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < depth; ++j) {
+        int i1 = CMathRand::randInRange(0, int(nameSetArray[size_t(j)].nameArray.size() - 1));
+
+        if (j > 0)
+          std::cout << "/";
+
+        std::cout << nameSetArray[size_t(j)].nameArray[size_t(i1)];
+      }
+
+      auto value = CMathRand::randInRange(rmin, rmax);
+
+      std::cout << "," << value;
 
       if (group) {
         auto ig = CMathRand::randInRange(0, ng - 1);

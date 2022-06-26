@@ -202,7 +202,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   //---
 

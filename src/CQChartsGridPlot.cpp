@@ -563,7 +563,7 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsGridPlot::
-addMenuItems(QMenu *)
+addMenuItems(QMenu *, const Point &)
 {
   return true;
 }

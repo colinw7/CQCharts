@@ -1322,7 +1322,7 @@ setOverlayAxisLabels()
 
 bool
 CQChartsCompositePlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &p)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -1333,7 +1333,7 @@ addMenuItems(QMenu *menu)
 
     auto *plotMenu = new QMenu(plot->id(), menu);
 
-    if (plot->addMenuItems(plotMenu))
+    if (plot->addMenuItems(plotMenu, p))
       menu->addMenu(plotMenu);
     else
       delete plotMenu;

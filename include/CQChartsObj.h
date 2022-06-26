@@ -36,6 +36,7 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(bool               inside     READ isInside     WRITE setInside    )
   Q_PROPERTY(bool               selectable READ isSelectable WRITE setSelectable)
   Q_PROPERTY(bool               editable   READ isEditable   WRITE setEditable  )
+  Q_PROPERTY(bool               clickable  READ isClickable  WRITE setClickable )
   Q_PROPERTY(int                priority   READ priority     WRITE setPriority  )
 
  public:
@@ -118,6 +119,10 @@ class CQChartsObj : public QObject {
   virtual bool isEditable() const { return editable_; }
   virtual void setEditable(bool b) { editable_ = b; }
 
+  //! get/set is clickable
+  virtual bool isClickable() const { return clickable_; }
+  virtual void setClickable(bool b) { clickable_ = b; }
+
   //---
 
   //! get/set priority
@@ -154,9 +159,10 @@ class CQChartsObj : public QObject {
   bool               visible_              { true };    //!< is visible
   bool               selected_             { false };   //!< is selected
   bool               inside_               { false };   //!< is mouse inside
-  bool               editable_             { false };   //!< is editable
   bool               selectable_           { true };    //!< is selectable
-  bool               notificationsEnabled_ { true };    //!< is selectable
+  bool               editable_             { false };   //!< is editable
+  bool               clickable_            { false };   //!< is clickable
+  bool               notificationsEnabled_ { true };    //!< is notifications enabled
   int                priority_             { 0 };       //!< priority
   mutable std::mutex mutex_;                            //!< mutex for calc id/tip
 };

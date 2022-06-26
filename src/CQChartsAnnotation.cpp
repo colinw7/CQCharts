@@ -34,6 +34,7 @@
 #include <CQUtil.h>
 #include <CQWinWidget.h>
 #include <CMathRound.h>
+#include <CCircleFactor.h>
 
 const QStringList &
 CQChartsAnnotation::
@@ -912,6 +913,14 @@ moveTo(const Point &p)
     bbox = BBox(p.x - 0.5, p.y - 0.5, p.x + 0.5, p.y + 0.5);
 
   setEditBBox(bbox, CQChartsResizeSide::NONE);
+}
+
+//---
+
+void
+CQChartsAnnotation::
+animateStep()
+{
 }
 
 //---
@@ -7084,11 +7093,13 @@ drawBestFit(PaintDevice *device)
   auto p1 = device->windowToPixel(Point(bbox.getXMin(), bbox.getYMin()));
   auto p2 = device->windowToPixel(Point(bbox.getXMax(), bbox.getYMax()));
 
-  double dx = (p2.x - p1.x)/100.0;
+  int np = 100; // TODO: config
+
+  double dx = (p2.x - p1.x)/double(np);
 
   Polygon fitPoly;
 
-  for (int i = 0; i <= 100; ++i) {
+  for (int i = 0; i <= np; ++i) {
     double px = p1.x + i*dx;
 
     auto p = device->pixelToWindow(Point(px, 0.0));
@@ -7430,6 +7441,220 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
+class CQChartsCircleMgr : public CCircleFactor::CircleMgr {
+ public:
+  using PaintDevice = CQChartsPaintDevice;
+  using Color       = CQChartsColor;
+  using ColorInd    = CQChartsUtil::ColorInd;
+  using BBox        = CQChartsGeom::BBox;
+  using Size        = CQChartsGeom::Size;
+  using Point       = CQChartsGeom::Point;
+
+ public:
+  CQChartsCircleMgr(CQChartsValueSetAnnotation *annotation) :
+   annotation_(annotation) {
+  }
+
+  void place() {
+    oldCircles_ = circles_;
+    oldInd_     = 0;
+
+    circles_.clear();
+
+    setCenter(CCircleFactor::Point(0.0, 0.0));
+
+    calc();
+
+    generate(1, 1);
+
+    addFadeOut();
+
+    animateCount_ = 0;
+  }
+
+  void addDrawCircle(double xc, double yc, double size, double f) override {
+    QColor c;
+
+#if 0
+    double s = 0.6;
+    double v = 0.6;
+
+    c.setHsv(int(f*360.0), int(s*255.0), int(v*255.0));
+#else
+    auto color = Color::makePalette();
+
+    color.setPaletteName(annotation_->calcPaletteName());
+
+    c = annotation_->plot()->interpColor(color, ColorInd(f));
+#endif
+
+    circles_.emplace_back(xc, yc, size, c);
+
+    auto &circle = circles_.back();
+
+    if (oldInd_ < int(oldCircles_.size())) {
+      // update exiting old to existing circle
+      auto &oldCircle = oldCircles_[size_t(oldInd_)];
+
+      circle.oldData = oldCircle.data;
+
+      ++oldInd_;
+    }
+    else {
+      // add new circle at center
+      circle.oldData.xc   = 0.0;
+      circle.oldData.yc   = 0.0;
+      circle.oldData.size = size;
+      circle.oldData.c    = QColor(0, 0, 0, 0);
+    }
+  }
+
+  void addFadeOut() {
+    // fade out deleted circles
+    auto n1 = int(oldCircles_.size());
+    auto n2 = int(circles_   .size());
+
+    int nfade = n1 - n2;
+
+    for (int i = 0; i < nfade; ++i) {
+      Circle circle;
+
+      circle.oldData = circles_[size_t(n2 + i)].data;
+
+      // set target to center (TODO: target size)
+      circle.data.xc   = 0.0;
+      circle.data.xc   = 0.0;
+      circle.data.size = 0.1;
+      circle.data.c    = QColor(0, 0, 0, 0);
+
+      circles_.push_back(circle);
+    }
+  }
+
+  void resetFade() {
+    for (auto &circle : circles_) {
+      circle.oldData.xc   = 0.0;
+      circle.oldData.yc   = 0.0;
+      circle.oldData.size = 0.0;
+      circle.oldData.c    = circle.data.c;
+    }
+  }
+
+  void draw(PaintDevice *device, const BBox &bbox, const CQChartsRValues &values) {
+    double dx = bbox.getCenter().x;
+    double dy = bbox.getCenter().y;
+    double s  = std::min(bbox.getWidth(), bbox.getHeight());
+
+    auto rmin = values.min();
+    auto rmax = values.max();
+
+    int iv = 0;
+
+    for (const auto &circle : circles_) {
+      const CircleData *data = nullptr;
+
+      if (circle.oldData.size > 0.0)
+        data = &circle.oldData;
+      else
+        data = &circle.data;
+
+      double s1 = s*CMathUtil::map(values.value(iv).value_or(rmin),
+                                   rmin, rmax, 0.1, 1.0); // TODO: config map min
+
+      double xc1   = s*data->xc + dx;
+      double yc1   = s*data->yc + dy;
+      double size1 = s1*data->size;
+
+      BBox cbbox(xc1 - size1/2.0, yc1 - size1/2.0, xc1 + size1/2.0, yc1 + size1/2.0);
+
+      device->setPen(QPen(Qt::transparent));
+      device->setBrush(data->c);
+
+      device->drawEllipse(cbbox);
+
+      ++iv;
+    }
+  }
+
+  void animateStep() {
+    ++animateCount_;
+
+    if (animateCount_ >= animateIters_) {
+      animateReset();
+      return;
+    }
+
+    //---
+
+    double f = (animateIters_ > animateCount_ ? 1.0/(animateIters_ - animateCount_) : 0.0);
+
+    for (auto &circle : circles_) {
+      if (circle.oldData.size > 0.0) {
+        auto bbox    = circle.data   .bbox();
+        auto oldBBox = circle.oldData.bbox();
+
+        circle.oldData.setBBox(BBox::interp(oldBBox, bbox, f));
+
+        circle.oldData.c = CQChartsUtil::interpColor(circle.oldData.c, circle.data.c, f);
+      }
+    }
+  }
+
+  void animateReset() {
+    for (auto &circle : circles_) {
+      circle.oldData.xc   = 0.0;
+      circle.oldData.yc   = 0.0;
+      circle.oldData.size = 0.0;
+    }
+  }
+
+ private:
+  struct CircleData {
+    double xc   { 0.0 };
+    double yc   { 0.0 };
+    double size { 1.0 };
+    QColor c;
+
+    CircleData() { }
+
+    CircleData(double xc, double yc, double size, const QColor &c) :
+     xc(xc), yc(yc), size(size), c(c) {
+    }
+
+    BBox bbox() const {
+      return BBox(xc - size/2.0, yc - size/2.0, xc + size/2.0, yc + size/2.0);
+    }
+
+    void setBBox(const BBox &bbox) {
+      xc   = bbox.getXMid();
+      yc   = bbox.getYMid();
+      size = std::min(bbox.getWidth(), bbox.getHeight());
+    }
+  };
+
+  struct Circle {
+    CircleData data;
+    CircleData oldData;
+
+    Circle() { }
+
+    Circle(double xc, double yc, double size, const QColor &c) :
+     data(xc, yc, size, c) {
+    }
+  };
+
+  using Circles = std::vector<Circle>;
+
+  CQChartsValueSetAnnotation *annotation_ { nullptr };
+  Circles                     circles_;
+  Circles                     oldCircles_;
+  int                         oldInd_ { 0 };
+  int                         animateCount_ { 0 };
+  int                         animateIters_ { 50 }; // TODO: config
+};
+
+//------
+
 CQChartsValueSetAnnotation::
 CQChartsValueSetAnnotation(View *view, const Rect &rectangle, const Reals &reals) :
  CQChartsShapeAnnotationBase(view, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
@@ -7447,6 +7672,7 @@ CQChartsValueSetAnnotation(Plot *plot, const Rect &rectangle, const Reals &reals
 CQChartsValueSetAnnotation::
 ~CQChartsValueSetAnnotation()
 {
+  delete circleMgr_;
 }
 
 //---
@@ -7655,6 +7881,8 @@ draw(PaintDevice *device)
     drawRadar(device);
   else if (drawType() == DrawType::TREEMAP)
     drawTreeMap(device, penBrush.pen);
+  else if (drawType() == DrawType::FACTOR)
+    drawFactor(device);
 
   //---
 
@@ -7829,6 +8057,43 @@ drawTreeMap(PaintDevice *device, const QPen &pen)
 
   CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device,
                                     values, bbox, calcPalette(), pen);
+}
+
+// draw factor
+void
+CQChartsValueSetAnnotation::
+drawFactor(PaintDevice *device)
+{
+  if (! circleMgr_)
+    circleMgr_ = new CQChartsCircleMgr(this);
+
+  int n = int(reals_.reals().size());
+
+  if (n != circleMgr_->factor()) {
+    circleMgr_->setFactor(n);
+
+    circleMgr_->place();
+  }
+
+  CQChartsRValues values;
+
+  for (const auto &r : reals_.reals())
+    values.addValue(r);
+
+  circleMgr_->draw(device, rectangle_.bbox(), values);
+}
+
+void
+CQChartsValueSetAnnotation::
+animateStep()
+{
+  if (drawType() == DrawType::FACTOR) {
+    assert(circleMgr_);
+
+    circleMgr_->animateStep();
+
+    plot()->drawObjs();
+  }
 }
 
 void
@@ -8349,19 +8614,33 @@ positionToTopLeft(double w, double h, double &x, double &y) const
 {
   auto p = positionToParent(objRef(), positionValue());
 
+  //--
+
+  // get inner padding
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
+
+  // get outer margin
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
+
+  //--
+
   if      (align() & Qt::AlignLeft)
-    x = p.x;
+    x = p.x + xlm + xlp;
   else if (align() & Qt::AlignHCenter)
     x = p.x - w/2;
   else
-    x = p.x - w;
+    x = p.x - w - xrp - xrm;
 
   if      (align() & Qt::AlignBottom)
-    y = p.y - h;
+    y = p.y - h - ybm - ybp;
   else if (align() & Qt::AlignVCenter)
     y = p.y - h/2;
   else
-    y = p.y;
+    y = p.y + ytp + ytm;
 }
 
 //---
@@ -8521,8 +8800,8 @@ positionToBBox()
     h -= xlp + xlm + xrp + xrm;
   }
 
-  Point ll(x     - xlp - xlm, y     - ybp - ybm);
-  Point ur(x + w + xrp + xrm, y + h + ytp + ytm);
+  Point ll(x     - xlp - xlm, y - h - ybp - ybm);
+  Point ur(x + w + xrp + xrm, y     + ytp + ytm);
 
   setAnnotationBBox(BBox(ll, ur));
 }

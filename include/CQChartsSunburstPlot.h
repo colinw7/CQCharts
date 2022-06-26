@@ -161,6 +161,9 @@ class CQChartsSunburstNode {
   NodeObj *obj() const { return obj_; }
   void setObj(NodeObj *obj) { obj_ = obj; }
 
+  const QString &groupName() const { return groupName_; }
+  void setGroupName(const QString &s) { groupName_ = s; }
+
   //---
 
   //bool pointInside(double x, double y);
@@ -184,6 +187,7 @@ class CQChartsSunburstNode {
   bool        filler_  { false };   //!< is filler
   bool        placed_  { false };   //!< is place
   NodeObj*    obj_     { nullptr }; //!< associated object
+  QString     groupName_;           //!< group name
 };
 
 //---
@@ -309,11 +313,12 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
-  Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
-  Q_PROPERTY(CQChartsAngle startAngle  READ startAngle  WRITE setStartAngle )
-  Q_PROPERTY(bool          multiRoot   READ isMultiRoot WRITE setMultiRoot  )
-  Q_PROPERTY(SortType      sortType    READ sortType    WRITE setSortType   )
+  Q_PROPERTY(double        innerRadius READ innerRadius   WRITE setInnerRadius)
+  Q_PROPERTY(double        outerRadius READ outerRadius   WRITE setOuterRadius)
+  Q_PROPERTY(CQChartsAngle startAngle  READ startAngle    WRITE setStartAngle )
+  Q_PROPERTY(bool          multiRoot   READ isMultiRoot   WRITE setMultiRoot  )
+  Q_PROPERTY(SortType      sortType    READ sortType      WRITE setSortType   )
+  Q_PROPERTY(bool          splitGroups READ isSplitGroups WRITE setSplitGroups)
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -360,37 +365,49 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
+  //! get/set inner radius
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r);
 
+  //! get/set outer radius
   double outerRadius() const { return outerRadius_; }
   void setOuterRadius(double r);
 
+  //! get/set start angle
   const Angle &startAngle() const { return startAngle_; }
   void setStartAngle(const Angle &a);
 
   //---
 
+  //! get/set multi root
   bool isMultiRoot() const { return multiRoot_; }
   void setMultiRoot(bool b);
 
   //---
 
+  //! get/set sort type
   const SortType &sortType() const { return sortType_; }
   void setSortType(const SortType &t);
 
   //---
 
+  //! get/set clip text
   bool isClipText() const { return clipText_; }
   void setClipText(bool b);
 
   //---
 
-  const RootNodes &roots() const { return roots_; }
+  //! get/set split groups
+  bool isSplitGroups() const { return splitGroups_; }
+  void setSplitGroups(bool b);
 
-  bool isRoot(const HierNode *node) const;
+  //---
 
-  bool hasFalseRoot(HierNode **newRoot) const;
+  const RootNodes &roots(const QString &groupName) const;
+
+  bool isRoot(const QString &groupName, const HierNode *node) const;
+
+  bool hasFalseRoot(const QString &groupName, HierNode **newRoot) const;
 
   //---
 
@@ -398,28 +415,18 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  HierNode *currentRoot() const;
-  void setCurrentRoot(HierNode *r, bool update=true);
+  HierNode *currentRoot(const QString &groupName) const;
+  void setCurrentRoot(const QString &groupName, HierNode *r, bool update=true);
 
   //---
 
-  int colorId() const { return colorId_; }
+  int colorId(const QString &groupName) const;
 
-  int numColorIds() const { return numColorIds_; }
+  int numColorIds(const QString &groupName) const;
 
-  void initColorIds() {
-    colorId_     = -1;
-    numColorIds_ = 0;
-  }
+  void initColorIds(const QString &groupName);
 
-  int nextColorId() {
-    ++colorId_;
-
-    if (colorId_ >= numColorIds_)
-      numColorIds_ = colorId_ + 1;
-
-    return colorId_;
-  }
+  int nextColorId(const QString &groupName);
 
   //---
 
@@ -453,22 +460,34 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   //---
 
   virtual NodeObj *createNodeObj(const BBox &rect, Node *node) const;
 
+  //--
+
+  BBox getGroupRect(const QString &groupName) const;
+
  private:
+  void addGroupPlotObjs(const QString &groupName, PlotObjs &objs) const;
+
   void resetRoots();
 
   void initRoots();
 
-  void replaceRoots() const;
+  void replaceGroups();
 
-  void colorNodes(HierNode *hier) const;
+  void replaceRoots(const QString &groupName, const BBox &rect) const;
 
-  void colorNode(Node *node) const;
+  //---
+
+  void colorGroupNodes(const QString &groupName) const;
+
+  void colorNodes(const QString &groupName, HierNode *hier) const;
+
+  void colorNode(const QString &groupName, Node *node) const;
 
   //---
 
@@ -481,18 +500,18 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   void loadFlat(HierNode *hier) const;
 
-  Node *flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
-                    const QModelIndex &nameInd, const QModelIndex &valueInd) const;
+  Node *flatAddNode(const QString &groupName, HierNode *root, const QStringList &nameStrs,
+                    double size, const QModelIndex &nameInd, const QModelIndex &valueInd) const;
 
   void addExtraNodes(HierNode *hier) const;
 
   //---
 
-  RootNode *createRootNode(const QString &name="");
+  RootNode *createRootNode(const QString &groupName, const QString &name="");
 
-  RootNode *rootNode(const QString &name) const;
+  RootNode *rootNode(const QString &groupName, const QString &name) const;
 
-  HierNode *childHierNode(HierNode *parent, const QString &name) const;
+  HierNode *childHierNode(const QString &groupName, HierNode *parent, const QString &name) const;
 
   Node *childNode(HierNode *parent, const QString &name) const;
 
@@ -529,17 +548,45 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  double    innerRadius_      { 0.5 };            //!< inner radius
-  double    outerRadius_      { 1.0 };            //!< outer radius
-  Angle     startAngle_       { -90 };            //!< start angle
-  bool      multiRoot_        { false };          //!< has multiple roots
-  SortType  sortType_         { SortType::NAME }; //!< sort type
-  bool      clipText_         { true };           //!< clip text
-  RootNodes roots_;                               //!< root nodes
-  QString   currentRootName_;                     //!< current root name
-  int       colorId_          { -1 };             //!< current color id
-  int       numColorIds_      { 0 };              //!< num used color ids
-  bool      colorById_        { true };           //!< color by id
+  struct ColorData {
+    int colorId     { -1 };   //!< current color id
+    int numColorIds { 0 };    //!< num used color ids
+
+    void reset() {
+      colorId     = -1;
+      numColorIds = 0;
+    }
+  };
+
+  struct SunburstData {
+    RootNodes roots;           //!< root nodes
+    QString   currentRootName; //!< current root name
+    ColorData colorData;       //!< color data
+    BBox      rect;            //!< rect
+  };
+
+  using GroupSunburstData = std::map<QString, SunburstData>;
+  using GroupNameSet      = std::set<QString>;
+
+ private:
+  SunburstData &getSunburstData(const QString &groupName) const;
+
+ private:
+  double    innerRadius_ { 0.5 };            //!< inner radius
+  double    outerRadius_ { 1.0 };            //!< outer radius
+  Angle     startAngle_  { -90 };            //!< start angle
+  bool      multiRoot_   { false };          //!< has multiple roots
+  SortType  sortType_    { SortType::NAME }; //!< sort type
+  bool      clipText_    { true };           //!< clip text
+  bool      colorById_   { true };           //!< color by id
+  bool      splitGroups_ { false };          //!< is split groups
+
+  GroupSunburstData groupSunburstData_; //!< grouped sunburst data
+  SunburstData      sunburstData_;      //!< sunburst data
+
+  GroupNameSet groupNameSet_; //!< group name set
+
+  mutable QString menuGroupName_; //!< group name for object at menu invocation
 };
 
 //---

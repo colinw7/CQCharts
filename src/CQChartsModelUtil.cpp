@@ -238,11 +238,30 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
   else if (column.isRow()) {
     return setRetType(ModelType::INTEGER);
   }
+  else if (column.isColumn()) {
+    return setRetType(ModelType::INTEGER);
+  }
+  else if (column.isCell()) {
+    // TODO: better type
+    return setRetType(ModelType::STRING);
+  }
   else if (column.isGroup()) {
+    // TODO: better type
     return setRetType(ModelType::INTEGER);
   }
   else if (column.hasExpr()) {
     // TODO: for custom expression should determine expression result type (if possible)
+    return setRetType(ModelType::STRING);
+  }
+  else if (column.isTclData()) {
+    bool ok;
+    (void) setRetType(column.getTclType(ok));
+    return ok;
+  }
+  else if (column.isHHeader()) {
+    return setRetType(ModelType::STRING);
+  }
+  else if (column.isVHeader()) {
     return setRetType(ModelType::STRING);
   }
   else {
@@ -1339,8 +1358,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const Column &column, const QModelIndex &parent,
                     int role, bool &ok) {
   if (! column.isValid()) {
-    ok = false;
-    return QVariant();
+    ok = false; return QVariant();
   }
 
   if      (column.type() == Column::Type::DATA) {
@@ -1372,34 +1390,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     return ivar;
   }
-  else if (column.isRow()) {
-    ok = true;
-
-    return row + column.rowOffset();
-  }
-  else if (column.isColumn()) {
-    ok = true;
-
-    return column.columnCol();
-  }
-  else if (column.isCell()) {
-    ok = true;
-
-    auto ind = model->index(row, column.cellCol(), parent);
-
-    return modelValue(model, ind, role, ok);
-  }
-  else if (column.isVHeader()) {
-    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
-
-    return var;
-  }
-  else if (column.isGroup()) {
-    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical,
-                                             CQBaseModelRole::Group, ok);
-
-    return var;
-  }
+  // expression value
   else if (column.type() == Column::Type::EXPR) {
     bool showError = false;
 
@@ -1423,11 +1414,63 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     return var;
   }
+  // column ref
+  else if (column.hasRef()) {
+    ok = false; return QVariant();
+  }
+  // tcl data
+  else if (column.isTclData()) {
+    return column.getTclValue(row, ok);
+  }
+  // row number (+ optional offset)
+  else if (column.isRow()) {
+    ok = true;
+
+    return row + column.rowOffset();
+  }
+  // column number
+  else if (column.isColumn()) {
+    ok = true;
+
+    return column.columnCol();
+  }
+  // cell value
+  else if (column.isCell()) {
+    ok = true;
+
+    if (column.cellCol() >= 0) {
+      auto ind = model->index(row, column.cellCol(), parent);
+
+      return modelValue(model, ind, role, ok);
+    }
+    else {
+      ok = false; return QVariant();
+    }
+  }
+  // horizontal header value
+  else if (column.isHHeader()) {
+    int icolumn = column.column();
+
+    auto var = CQModelUtil::modelHeaderValue(model, icolumn, Qt::Horizontal, role, ok);
+
+    return var;
+  }
+  // vertical header value
+  else if (column.isVHeader()) {
+    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
+
+    return var;
+  }
+  // group role value
+  else if (column.isGroup()) {
+    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical,
+                                             CQBaseModelRole::Group, ok);
+
+    return var;
+  }
   else {
     assert(false);
-
-    ok = false;
-    return QVariant();
+    ok = false; return QVariant();
   }
 }
 

@@ -1057,7 +1057,7 @@ addKeyItems(PlotKey *key)
 
 bool
 CQChartsPivotPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);

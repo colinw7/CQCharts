@@ -433,7 +433,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   void addKeyItems(PlotKey *key) override;
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   void postObjTree() override;
 

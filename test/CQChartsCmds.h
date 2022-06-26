@@ -276,6 +276,8 @@ CQCHARTS_DEF_CMD(SetChartsProperty)
 CQCHARTS_DEF_CMD(GetChartsData)
 CQCHARTS_DEF_CMD(SetChartsData)
 
+CQCHARTS_DEF_CMD(PrintChartsVariant)
+
 //---
 
 CQCHARTS_DEF_CMD(ExecuteChartsSlot)

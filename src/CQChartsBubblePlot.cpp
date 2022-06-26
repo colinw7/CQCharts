@@ -943,7 +943,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
 
 bool
 CQChartsBubblePlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

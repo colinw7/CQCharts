@@ -201,8 +201,8 @@ class Point :
 
   //------
 
-  static Point interp(const Point &p1, const Point &p2, double d=0.5) {
-     return Point(p1.x + d*(p2.x - p1.x), p1.y + d*(p2.y - p1.y));
+  static Point interp(const Point &from, const Point &to, double f=0.5) {
+    return Point(CMathUtil::lerp(f, from.x, to.x), CMathUtil::lerp(f, from.y, to.y));
   }
 
   //---
@@ -348,6 +348,13 @@ class Size :
   double optHeight(double defHeight=0.0) const {
     if (! set_) return defHeight;
     return size_.height();
+  }
+
+  //---
+
+  static Size interp(const Size &from, const Size &to, double f=0.5) {
+    return Size(CMathUtil::lerp(f, from.width (), to.width ()),
+                CMathUtil::lerp(f, from.height(), to.height()));
   }
 
   //---
@@ -1066,6 +1073,17 @@ class BBox :
     if (pmin_.y > pmax_.y) { std::swap(pmin_.y, pmax_.y); changed = true; }
 
     return ! changed;
+  }
+
+  //---
+
+  static BBox interp(const BBox &from, const BBox &to, double f=0.5) {
+    auto c = Point::interp(from.getCenter(), to.getCenter(), f);
+
+    auto s = Size::interp(from.size(), to.size(), f);
+
+    return BBox(c.x - s.width()/2.0, c.y - s.height()/2.0,
+                c.x + s.width()/2.0, c.y + s.height()/2.0);
   }
 
   //---

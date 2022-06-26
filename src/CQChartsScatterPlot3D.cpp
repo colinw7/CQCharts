@@ -1260,7 +1260,7 @@ probe(ProbeData &probeData) const
 
 bool
 CQChartsScatterPlot3D::
-addMenuItems(QMenu *)
+addMenuItems(QMenu *, const Point &)
 {
   return true;
 }

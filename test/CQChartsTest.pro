@@ -51,6 +51,7 @@ CQChartsInput.h \
 CQChartsNameValueData.h \
 CQChartsReadLine.h \
 CQChartsTest.h \
+CQChartsMetaObj.h \
 \
 CQTclCmd.h \
 \

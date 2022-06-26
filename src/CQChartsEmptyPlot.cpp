@@ -114,7 +114,7 @@ createObjs(PlotObjs &) const
 
 bool
 CQChartsEmptyPlot::
-addMenuItems(QMenu *)
+addMenuItems(QMenu *, const Point &)
 {
   return true;
 }

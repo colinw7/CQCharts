@@ -1098,7 +1098,7 @@ findNode(const QString &str) const
 
 bool
 CQChartsAdjacencyPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

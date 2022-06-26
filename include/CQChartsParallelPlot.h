@@ -284,7 +284,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool probe(ProbeData &probeData) const override;
 
-  bool addMenuItems(QMenu *menu) override;
+  bool addMenuItems(QMenu *menu, const Point &p) override;
 
   //---
 

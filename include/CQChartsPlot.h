@@ -324,6 +324,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 //Q_PROPERTY(bool logX        READ isLogX        WRITE setLogX       )
 //Q_PROPERTY(bool logY        READ isLogY        WRITE setLogY       )
 
+  // animation
+  Q_PROPERTY(bool animating READ isAnimating WRITE setAnimating)
+  Q_PROPERTY(int  animTick  READ animTick    WRITE setAnimTick )
+
   // fit
   Q_PROPERTY(bool autoFit READ isAutoFit WRITE setAutoFit)
 
@@ -430,7 +434,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   enum class Constraints {
     NONE       = 0,
     SELECTABLE = (1<<0),
-    EDITABLE   = (1<<1)
+    EDITABLE   = (1<<1),
+    CLICKABLE  = (1<<2)
   };
 
   //---
@@ -1185,12 +1190,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   // animation
+  virtual bool isAnimating() const { return animateData_.running; }
+  virtual void setAnimating(bool b);
+
+  int animTick() const { return animateData_.tickLen; }
+  void setAnimTick(int i);
+
   void startAnimateTimer();
   void stopAnimateTimer ();
 
   virtual bool isAnimated() const { return false; }
 
-  virtual void animateStep() { }
+  virtual void animateStep();
 
   //---
 
@@ -2358,7 +2369,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  virtual bool addMenuItems(QMenu *) { return false; }
+  virtual bool addMenuItems(QMenu *, const Point &) { return false; }
 
   void addRootMenuItems(QMenu *menu);
 
@@ -3470,6 +3481,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief animation data
   struct AnimateData {
+    bool   running { false };
     TimerP timer;
     int    tickLen { 30 };
   };

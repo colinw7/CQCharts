@@ -744,7 +744,7 @@ probe(ProbeData &probeData) const
 
 bool
 CQChartsGeometryPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   bool added = false;
 

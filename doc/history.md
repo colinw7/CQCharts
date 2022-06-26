@@ -1417,3 +1417,10 @@
  + improve grid plot color and control
  + add group column support to tree map and chord plot
  + fix some issues with zoom font in tree map and radial labels in pie plot
+# 6/19/2022
+ + add split group support to tree map and sunburst plot
+# 6/26/2022
+ + add factor placement for value set
+ + add column tcl data
+ + support animation in all plots and annotations
+ + add split groups to hier bubble plot

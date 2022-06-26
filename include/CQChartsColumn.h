@@ -3,6 +3,7 @@
 
 #include <CQChartsTmpl.h>
 #include <CQUtilMeta.h>
+#include <CQBaseModelTypes.h>
 #include <CSafeIndex.h>
 
 #include <QString>
@@ -34,13 +35,14 @@ class CQChartsColumn :
     DATA,       // model row data
     DATA_INDEX, // model row data sub value (e.g. time sub value)
     EXPR,       // expression
-    COLUMN_REF, // renference column
+    COLUMN_REF, // reference column (by plot column name)
+    TCL_DATA,   // tcl data
     ROW,        // model row number
     COLUMN,     // model column number
     CELL,       // model cell data
     HHEADER,    // model horizontal header data
     VHEADER,    // model vertical header data
-    GROUP       // model row group id
+    GROUP       // model row group id (from group role)
   };
 
  public:
@@ -70,12 +72,22 @@ class CQChartsColumn :
     return Column(Type::EXPR, -1, expr, -1);
   }
 
+  static Column makeColumnRef(const QString &str) { return Column(Type::COLUMN_REF, -1, str, -1); }
+
+  static Column makeTclData(const QString &str) { return Column(Type::TCL_DATA, -1, str, -1); }
+
   static Column makeRow() { return Column(Type::ROW, -1, "", -1); }
+
+  static Column makeColumn() { return Column(Type::COLUMN, -1, "", -1); }
+
+  static Column makeCell() { return Column(Type::CELL, -1, "", -1); }
 
   static Column makeHHeader(int c) { return Column(Type::HHEADER, c, "", -1); }
   static Column makeVHeader() { return Column(Type::VHEADER, -1, "", -1); }
 
   static Column makeGroup() { return Column(Type::GROUP, -1, "", -1); }
+
+  //---
 
   static void setStringToColumnProc(StringToColumnProc proc) {
     s_stringToColumnProc = proc;
@@ -143,6 +155,12 @@ class CQChartsColumn :
 
   //--
 
+  bool isTclData() const { return (type_ == Type::TCL_DATA && expr_); }
+
+  QString tclData() const { return QString(isTclData() ? expr_ : ""); }
+
+  //--
+
   bool isRow() const { return (type_ == Type::ROW); }
 
   int rowOffset() const { return (role_ > 0 ? role_ : 0); }
@@ -172,6 +190,7 @@ class CQChartsColumn :
 
   //--
 
+  // header name for column e.g. expression
   bool hasName() const { return name_ && strlen(name_); }
 
   QString name() const { return QString(hasName() ? name_ : ""); }
@@ -215,7 +234,20 @@ class CQChartsColumn :
     name_   = nullptr;
   }
 
+  //---
+
+  CQBaseModelType getTclType(bool &ok) const;
+
+  QVariant getTclValue(int i, bool &ok) const;
+
  private:
+  bool hasExprPtr() const { return hasExprPtr(type_); }
+
+  static bool hasExprPtr(const Type &type) {
+    return (type == Type::EXPR || type == Type::DATA_INDEX ||
+            type == Type::COLUMN_REF || type == Type::TCL_DATA);
+  }
+
   bool decodeString(const QString &str, Type &type, int &column, int &role,
                     QString &expr, QString &name);
 
@@ -411,6 +443,8 @@ class CQChartsColumns :
   friend int cmp(const CQChartsColumns &c1, const CQChartsColumns &c2) {
     return c1.cmp(c2);
   }
+
+  //---
 
  private:
   Column  column_;  //!< single column

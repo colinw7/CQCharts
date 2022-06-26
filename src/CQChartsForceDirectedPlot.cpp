@@ -163,6 +163,8 @@ init()
   setOuterMargin(PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0)));
 
   setEqualScale(true);
+
+  setAnimating(true);
 }
 
 void
@@ -175,15 +177,10 @@ term()
 
 void
 CQChartsForceDirectedPlot::
-setRunning(bool b)
+setAnimating(bool b)
 {
-  if (b != running_) {
-    running_ = b;
-
-    if (! isRunning())
-      stopAnimateTimer();
-    else
-      startAnimateTimer();
+  if (b != isAnimating()) {
+    CQChartsPlot::setAnimating(b);
 
     emit customDataChanged();
   }
@@ -355,12 +352,11 @@ addProperties()
   //---
 
   // animation data
-  addProp("options", "running"     , "", "Is running");
-  addProp("options", "initSteps"   , "", "Initial steps");
-  addProp("options", "animateSteps", "", "Animate steps");
-  addProp("options", "numSteps"    , "", "Number of steps");
-  addProp("options", "stepSize"    , "", "Step size");
-  addProp("options", "rangeSize"   , "", "Range size");
+  addProp("animation", "initSteps"   , "", "Initial steps");
+  addProp("animation", "animateSteps", "", "Animate steps");
+  addProp("animation", "numSteps"    , "", "Number of steps");
+  addProp("animation", "stepSize"    , "", "Step size");
+  addProp("animation", "rangeSize"   , "", "Range size");
 
   // node
   addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
@@ -1568,7 +1564,7 @@ filterObjs()
 
 bool
 CQChartsForceDirectedPlot::
-addMenuItems(QMenu *menu)
+addMenuItems(QMenu *menu, const Point &)
 {
   if (canDrawColorMapKey()) {
     menu->addSeparator();
@@ -1688,7 +1684,7 @@ void
 CQChartsForceDirectedPlot::
 postUpdateObjs()
 {
-  if (isRunning())
+  if (isAnimating())
     startAnimateTimer();
 }
 
@@ -1700,7 +1696,7 @@ animateStep()
 
   //---
 
-  if (pressed_ || ! isRunning())
+  if (pressed_ || ! isAnimating())
     return;
 
   //---
@@ -1801,7 +1797,7 @@ handleSelectMove(const Point &p, Constraints, bool)
 {
   setCurrentNode(p);
 
-  if (! running_)
+  if (! isAnimating())
     updateInside(p);
 
   return true;
@@ -1852,7 +1848,7 @@ handleEditMove(const Point &, const Point &p, bool)
 
     //---
 
-    if (! running_)
+    if (! isAnimating())
       updateInside(p);
   }
 
@@ -2083,7 +2079,7 @@ CQChartsForceDirectedPlot::
 keyPress(int key, int modifier)
 {
   if (key == Qt::Key_S)
-    setRunning(! isRunning());
+    setAnimating(! isAnimating());
   else {
     return CQChartsPlot::keyPress(key, modifier);
   }
@@ -2097,7 +2093,7 @@ bool
 CQChartsForceDirectedPlot::
 plotTipText(const Point &p, QString &tip, bool /*single*/) const
 {
-  if (! isRunning()) {
+  if (! isAnimating()) {
     CQChartsTableTip tableTip;
 
 #if 0
@@ -2980,7 +2976,7 @@ updateWidgets()
 
   //---
 
-  runningCheck_->setChecked(plot_->isRunning());
+  runningCheck_->setChecked(plot_->isAnimating());
 
   CQChartsConnectionPlotCustomControls::updateWidgets();
 
@@ -2994,7 +2990,7 @@ CQChartsForceDirectedPlotCustomControls::
 runningSlot(int state)
 {
   if (plot_)
-    plot_->setRunning(state);
+    plot_->setAnimating(state);
 }
 
 void
