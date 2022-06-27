@@ -1118,11 +1118,11 @@ bucketGroupValues() const
       if      (type == CQChartsValueSet::Type::INTEGER) {
         bucketer.setType(bucketRealType());
 
-        int imin = values->valueSet->imin();
-        int imax = values->valueSet->imax();
+        long imin = values->valueSet->ivals().min();
+        long imax = values->valueSet->ivals().max();
 
-        if (underflowBucket().isSet()) imin = std::max(int(underflowBucket().real()), imin);
-        if (overflowBucket ().isSet()) imax = std::min(int(overflowBucket ().real()), imax);
+        if (underflowBucket().isSet()) imin = std::max(long(underflowBucket().real()), imin);
+        if (overflowBucket ().isSet()) imax = std::min(long(overflowBucket ().real()), imax);
 
         if (iv == 0) {
           bucketer.setIntegral(true);
@@ -1181,11 +1181,11 @@ bucketGroupValues() const
         bucketer.setType(bucketRealType());
         bucketer.setIntegral(true);
 
-        int imin = values->valueSet->imin();
-        int imax = values->valueSet->imax();
+        long imin = values->valueSet->ivals().min();
+        long imax = values->valueSet->ivals().max();
 
-        if (underflowBucket().isSet()) imin = std::max(int(underflowBucket().real()), imin);
-        if (overflowBucket ().isSet()) imax = std::min(int(overflowBucket ().real()), imax);
+        if (underflowBucket().isSet()) imin = std::max(long(underflowBucket().real()), imin);
+        if (overflowBucket ().isSet()) imax = std::min(long(overflowBucket ().real()), imax);
 
         bucketer.setIMin(imin);
         bucketer.setIMax(imax);
@@ -3060,8 +3060,8 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
       return QString::number(value1);
     else if (type == BucketValueType::ALL) {
       if (bucketer.isIntegral() && ! CMathUtil::isInf(value1) && ! CMathUtil::isInf(value2)) {
-        int ivalue1 = CMathRound::RoundNearest(value1);
-        int ivalue2 = CMathRound::RoundNearest(value2);
+        long ivalue1 = CMathRound::RoundNearest(value1);
+        long ivalue2 = CMathRound::RoundNearest(value2);
 
         if (ivalue1 != ivalue2)
           return CQBucketer::bucketName(ivalue1, ivalue2, CQBucketer::NameFormat::BRACKETED);
@@ -3069,28 +3069,28 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
           return QString::number(ivalue1);
       }
       else {
-        if (values->valueSet->type() == CQChartsValueSet::Type::TIME) {
-          auto *columnDetails = this->columnDetails(valueColumns().column());
+        class Formatter : public CQBucketer::Formatter {
+         public:
+          Formatter(const CQChartsDistributionPlot *plot, const CQChartsColumn &column) :
+           plot_(plot), column_(column) {
+          }
 
-          class Formatter : public CQBucketer::Formatter {
-           public:
-            Formatter(CQChartsModelColumnDetails *details) :
-             details_(details) {
-            }
+          QString formatReal(double r) const override {
+            QString str;
 
-            QString formatReal(double r) const override {
-              return details_->dataName(r).toString();
-            }
+            if (plot_->formatColumnValue(column_, r, str))
+              return str;
 
-           private:
-            CQChartsModelColumnDetails *details_ { nullptr };
-          };
+            return CQChartsUtil::formatReal(r);
+          }
 
-          return CQBucketer::bucketName(value1, value2, Formatter(columnDetails),
-                                        CQBucketer::NameFormat::BRACKETED);
-        }
-        else
-          return CQBucketer::bucketName(value1, value2, CQBucketer::NameFormat::BRACKETED);
+         private:
+          const CQChartsDistributionPlot *plot_ { nullptr };
+          CQChartsColumn                  column_;
+        };
+
+        return CQBucketer::bucketName(value1, value2, Formatter(this, valueColumns().column()),
+                                      CQBucketer::NameFormat::BRACKETED);
       }
     }
     else if (type == BucketValueType::START)

@@ -4,6 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + monthly_sales.tcl . cleanup, unique months, label contrast when outside
+ + distribution plot, format_scale support
+ + distribution plot, large numbers, range gaps
+ + Plot context menu with hidden plots
  + Connected Scatter Ignore Hidden
  + Exponential Axis Scaling (exp)
  + CQFactor in charts (placement engine N + rect -> placed rects)

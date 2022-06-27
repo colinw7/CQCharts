@@ -1011,16 +1011,16 @@ bucketRange(int i, QVariant &vmin, QVariant &vmax) const
 
     bucketer_->bucketValues(i, rmin, rmax);
 
-    vmin = rmin;
-    vmax = rmax;
+    vmin = CQChartsVariant::fromReal(rmin);
+    vmax = CQChartsVariant::fromReal(rmax);
   }
   else {
-    int imin = 0, imax = 0;
+    long imin = 0, imax = 0;
 
     bucketer_->bucketIValues(i, imin, imax);
 
-    vmin = imin;
-    vmax = imax;
+    vmin = CQChartsVariant::fromInt(imin);
+    vmax = CQChartsVariant::fromInt(imax);
   }
 }
 

@@ -47,6 +47,7 @@ class CQBucketer {
     virtual ~Formatter() { }
 
     virtual QString formatInt(int i) const { return QString::number(i); }
+    virtual QString formatInt(long i) const { return QString::number(i); }
     virtual QString formatReal(double r) const { return QString::number(r); }
   };
 
@@ -77,12 +78,12 @@ class CQBucketer {
   void setRDelta(double r) { rdelta_ = r; }
 
   //! get/set integer start point (of range or one of the buckets)
-  int istart() const { return int(rstart()); }
-  void setIStart(int i) { rstart_ = i; }
+  long istart() const { return long(rstart()); }
+  void setIStart(long i) { rstart_ = double(i); }
 
   //! get/set integer bucket delta size
-  int idelta() const { return int(rdelta_); }
-  void setIDelta(int i) { rdelta_ = i; }
+  long idelta() const { return long(rdelta_); }
+  void setIDelta(long i) { rdelta_ = double(i); }
 
   //---
 
@@ -113,12 +114,12 @@ class CQBucketer {
   void setRMax(double r) { if (r != rmax_) { rmax_ = r; needsCalc_ = true; } }
 
   //! get/set integer minimum
-  int imin() const { return int(rmin_); }
-  void setIMin(int i) { if (i != rmin_) { rmin_ = i; needsCalc_ = true; } }
+  long imin() const { return long(rmin_); }
+  void setIMin(long i) { if (i != long(rmin_)) { rmin_ = double(i); needsCalc_ = true; } }
 
   //! get/set integer maximum
-  int imax() const { return int(rmax_); }
-  void setIMax(int i) { if (i != rmax_) { rmax_ = i; needsCalc_ = true; } }
+  long imax() const { return long(rmax_); }
+  void setIMax(long i) { if (i != long(rmax_)) { rmax_ = double(i); needsCalc_ = true; } }
 
   //! get/set number of automatic buckets
   int numAuto() const { return numAuto_; }
@@ -150,7 +151,7 @@ class CQBucketer {
   //! get start/end value for bucket
   bool bucketValues(int bucket, double &min, double &max) const;
 
-  bool bucketIValues(int bucket, int &min, int &max) const;
+  bool bucketIValues(int bucket, long &min, long &max) const;
   bool bucketRValues(int bucket, double &min, double &max) const;
 
   bool autoBucketValues(int bucket, double &min, double &max) const;
@@ -175,8 +176,8 @@ class CQBucketer {
   QString bucketName(int bucket, const Formatter &formatter,
                      NameFormat format=NameFormat::DASH) const;
 
-  static QString bucketName(int imin, int imax, NameFormat format=NameFormat::DASH);
-  static QString bucketName(int imin, int imax, const Formatter &formatter,
+  static QString bucketName(long imin, long imax, NameFormat format=NameFormat::DASH);
+  static QString bucketName(long imin, long imax, const Formatter &formatter,
                             NameFormat format=NameFormat::DASH);
 
   static QString bucketName(double rmin, double rmax, NameFormat format=NameFormat::DASH);
@@ -205,7 +206,7 @@ class CQBucketer {
 
  private:
   double calcRStart() const;
-  int    calcIStart() const;
+  long   calcIStart() const;
 
  private:
   using StringInd = std::map<QString, int>;

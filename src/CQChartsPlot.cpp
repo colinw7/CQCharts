@@ -14819,7 +14819,7 @@ keyFitBBox() const
 {
   BBox bbox;
 
-  if (isKeyVisibleAndNonEmpty()) {
+  if (isKeyVisibleAndNonEmpty() && key()->hasBBox()) {
     auto bbox1 = key()->bbox();
 
     if (bbox1.isSet()) {

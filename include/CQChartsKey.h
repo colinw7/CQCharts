@@ -379,6 +379,8 @@ class CQChartsPlotKey : public CQChartsKey {
   //---
 
   //! get/set bbox
+  bool hasBBox() const { return wbboxValid_; }
+
   const BBox &bbox() const override { assert(wbboxValid_); return wbbox_; }
   void setBBox(const BBox &b) { wbboxValid_ = true; wbbox_ = b; }
 

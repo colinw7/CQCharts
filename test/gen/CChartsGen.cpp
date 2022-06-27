@@ -1,5 +1,6 @@
 #include <CArgv.h>
 #include <CMathRand.h>
+#include <CStrUtil.h>
 #include <vector>
 #include <map>
 #include <set>
@@ -23,80 +24,75 @@ main(int argc, char **argv)
   bool   hier     { false };
   int    depth    { 2 };
   bool   values   { false };
-  double rmin     { 1 };
-  double rmax     { 100 };
-  int    imin     { 1 };
-  int    imax     { 100 };
+  long   imin     { -1 };
+  long   imax     { -1 };
+  double rmin     { -1 };
+  double rmax     { -1 };
 
   CArgv::visit(argc, argv,
    [&](const std::string &opt, CArgv::State &state) { // opt
-     if      (opt == "n") {
-       if (state.hasNext()) {
-         n = std::stoi(state.next());
-       }
-     }
-     else if (opt == "s") {
-       if (state.hasNext()) {
-         seed = std::stoi(state.next());
-       }
-     }
-     else if (opt == "from_to") {
-       fromTo = true;
-     }
-     else if (opt == "series") {
-       if (state.hasNext()) {
-         series = std::stoi(state.next());
-       }
-     }
-     else if (opt == "rmin") {
-       if (state.hasNext()) {
-         rmin = std::stod(state.next());
-       }
-     }
-     else if (opt == "rmax") {
-       if (state.hasNext()) {
-         rmax = std::stod(state.next());
-       }
-     }
-     else if (opt == "scatter") {
-       scatter = true;
-     }
-     else if (opt == "size") {
-       size = true;
-     }
-     else if (opt == "header") {
-       header = true;
-     }
-     else if (opt == "group") {
-       group = true;
-     }
-     else if (opt == "labels") {
-       labels = true;
-     }
-     else if (opt == "discreet") {
-       discreet = true;
-     }
-     else if (opt == "stacked") {
-       stacked = true;
-     }
-     else if (opt == "hier") {
-       hier = true;
-     }
-     else if (opt == "depth") {
-       if (state.hasNext()) {
-         depth = std::stoi(state.next());
-       }
-     }
-     else if (opt == "values") {
-       values = true;
-     }
-     else {
-       state.unhandled();
-     }
+     if      (opt == "n"       ) { if (state.hasNext()) n = std::stoi(state.next()); }
+     else if (opt == "s"       ) { if (state.hasNext()) seed = std::stoi(state.next()); }
+     else if (opt == "from_to" ) { fromTo = true; }
+     else if (opt == "series"  ) { if (state.hasNext()) series = std::stoi(state.next()); }
+     else if (opt == "imin"    ) { if (state.hasNext()) imin = std::stol(state.next()); }
+     else if (opt == "imax"    ) { if (state.hasNext()) imax = std::stol(state.next()); }
+     else if (opt == "rmin"    ) { if (state.hasNext()) rmin = std::stod(state.next()); }
+     else if (opt == "rmax"    ) { if (state.hasNext()) rmax = std::stod(state.next()); }
+     else if (opt == "scatter" ) { scatter = true; }
+     else if (opt == "size"    ) { size = true; }
+     else if (opt == "header"  ) { header = true; }
+     else if (opt == "group"   ) { group = true; }
+     else if (opt == "labels"  ) { labels = true; }
+     else if (opt == "discreet") { discreet = true; }
+     else if (opt == "stacked" ) { stacked = true; }
+     else if (opt == "hier"    ) { hier = true; }
+     else if (opt == "depth"   ) { if (state.hasNext()) depth = std::stoi(state.next()); }
+     else if (opt == "values"  ) { values = true; }
+     else                        { state.unhandled(); }
    },
    [&](const std::string &, CArgv::State &state) { // arg
      state.unhandled();
+   },
+   [&]() { // help
+     std::cerr <<
+      "CChartsGen"
+      " -n <n>"
+      " -s <seed>"
+      " -from_to"
+      " -series <series>"
+      " -imin <integer>"
+      " -imax <integer>"
+      " -rmin <real>"
+      " -rmax <real>"
+      " -scatter"
+      " -size"
+      " -header"
+      " -group"
+      " -labels"
+      " -discreet"
+      " -stacked"
+      " -hier"
+      " -depth <depth>"
+      " -values"
+      "\n";
+      exit(0);
    });
+
+  bool irange = false;
+
+  if (imin > 0 && imax > imin)
+    irange = true;
+
+  if (imin < 0 && imax < 0) {
+    imin = 0;
+    imax = 100;
+  }
+
+  if (rmin < 0 && rmax < 0) {
+    rmin = 0;
+    rmax = 100;
+  }
 
   if (seed < 0)
     CMathRand::timeSeedRand();
@@ -135,7 +131,7 @@ main(int argc, char **argv)
 
     if (size) {
       for (const auto &name : names) {
-        int s = CMathRand::randInRange(imin, imax);
+        int s = int(CMathRand::randInRange(imin, imax));
 
         nameSize[name] = s;
       }
@@ -441,9 +437,17 @@ main(int argc, char **argv)
 
     for (int i = 0; i < n; ++i) {
       auto name  = CMathRand::randString();
-      auto value = CMathRand::randInRange(rmin, rmax);
 
-      std::cout << name << ",\"" << value << "\"\n";
+      if (irange) {
+        auto value = CMathRand::randInRange(imin, imax);
+
+        std::cout << name << ",\"" << CStrUtil::toString(value) << "\"\n";
+      }
+      else {
+        auto value = CMathRand::randInRange(rmin, rmax);
+
+        std::cout << name << ",\"" << CStrUtil::toString(value) << "\"\n";
+      }
     }
   }
 
