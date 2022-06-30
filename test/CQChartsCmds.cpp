@@ -6227,7 +6227,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
     else if (hasView) {
       static auto names = QStringList() <<
        "plots" << "annotations" << "selected_objects" << "view_width" << "view_height" <<
-       "pixel_width" << "pixel_height" << "pixel_position" << "properties";
+       "pixel_width" << "pixel_height" << "pixel_position" << "properties" <<
+       "script_select_proc" << "mouse_press" << "mouse_modifier" << "view_path";
       return names;
     }
     else if (hasType) {
@@ -6841,6 +6842,10 @@ execCmd(CQChartsCmdArgs &argv)
       else                                     res = "none";
 
       return cmdBase_->setCmdRc(res);
+    }
+    // get view path
+    else if (name == "view_path") {
+      return cmdBase_->setCmdRc(CQUtil::fullName(view));
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["view"] = "";

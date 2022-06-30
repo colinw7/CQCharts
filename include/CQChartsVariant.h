@@ -59,6 +59,10 @@ inline bool isInt(const QVariant &var) {
 
 long toInt(const QVariant &var, bool &ok);
 
+inline QVariant fromInt(int i) {
+  return CQModelUtil::intVariant(i);
+}
+
 inline QVariant fromInt(long i) {
   return CQModelUtil::intVariant(i);
 }

@@ -1464,6 +1464,24 @@ symbolChanged()
 
 void
 CQChartsCmdBaseSlot::
+toggled(bool b)
+{
+  auto args = QString("{%1}").arg(b);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+stateChanged(int i)
+{
+  auto args = QString("{%1}").arg(i);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
 timerSlot()
 {
   execProc();

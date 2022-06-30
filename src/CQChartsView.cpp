@@ -2560,6 +2560,8 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
   //---
 
   // only place base plots (non-overlay)
+
+  // get set of base plots
   PlotSet basePlotSet;
 
   for (const auto &plot : plots) {
@@ -2568,15 +2570,21 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
     basePlotSet.insert(plot1);
   }
 
+#if 0
   Plots basePlots;
 
   for (const auto &basePlot : basePlotSet)
     basePlots.push_back(basePlot);
+#endif
 
+  // add plots (only one per unique base plot)
   Plots plots1;
 
   for (const auto &plot : plots) {
     auto *plot1 = this->basePlot(plot);
+
+    if (! plot1->isVisible())
+      continue;
 
     if (basePlotSet.find(plot1) != basePlotSet.end()) {
       plots1.push_back(plot1);
@@ -5968,6 +5976,12 @@ showMenu(const Point &p)
     auto *plotsGroup = createActionGroup(plotsMenu);
 
     for (const auto &plot : allPlots) {
+      // skip invisible plots
+      if (! plot->isVisible())
+        continue;
+
+      //---
+
       int ind = getIndForPlot(plot);
 
       auto *plotAction =

@@ -3061,6 +3061,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  const QColor &plotBgColor() const { return plotBgColor_; }
+
+  //---
+
   void update();
 
   //---
@@ -3799,6 +3803,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // annotations
   Annotations annotations_;      //!< extra annotations
   Annotations pressAnnotations_; //!< press annotations
+
+  //---
+
+  QColor plotBgColor_; //!< background fill color
 
   //---
 

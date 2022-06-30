@@ -12889,6 +12889,10 @@ drawBackgroundRects(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundRects");
 
+  auto *th = const_cast<Plot *>(this);
+
+  th->plotBgColor_ = QColor();
+
   if (isPlotFilled() || isPlotStroked())
     drawBackgroundRect(device, DrawRegion::PLOT, calcPlotRect(),
                        plotBrushData(ColorInd()), plotPenData(ColorInd()),
@@ -12929,6 +12933,12 @@ drawBackgroundRect(PaintDevice *device, const DrawRegion &drawRegion, const BBox
     device->setBrush(penBrush.brush);
 
     device->fillRect(rect);
+
+    //---
+
+    auto *th = const_cast<Plot *>(this);
+
+    th->plotBgColor_ = brushData.color();
   }
 
   if (penData.isVisible()) {

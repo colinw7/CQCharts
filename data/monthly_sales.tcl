@@ -34,6 +34,7 @@ puts [lindex [lindex $colors 2] 1]
 
 set_charts_property -view $view -name inside.highlight.mode -value OUTLINE
 
+# === bar chart ===
 set_charts_property -plot $plot1 -name margins.bar                -value 8px
 #set_charts_property -plot $plot1 -name fill.color                 -value {palette 0 s}
 set_charts_property -plot $plot1 -name coloring.colorBySet        -value 1
@@ -61,10 +62,14 @@ set_charts_property -plot $plot1 -name key.stroke.visible         -value 0
 set_charts_property -plot $plot1 -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
 #set_charts_property -plot $plot1 -name title.text.color           -value {interface 1}
 
+set_charts_property -plot $plot1 -name options.sortSets          -value 0
+set_charts_property -plot $plot1 -name dataGrouping.bucket.exact -value 1
+
 ###---
 
 set plot2 [create_charts_plot -type xy -columns {{x @R} {y 2}} -title "Expected Sales"]
 
+# === xy fill under ===
 set_charts_property -plot $plot2 -name points.symbol.symbol         -value circle
 set_charts_property -plot $plot2 -name points.symbol.size           -value 6px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible   -value 1
@@ -77,6 +82,7 @@ set_charts_property -plot $plot2 -name lines.stroke.color -value {palette 1 s}
 
 ###---
 
+# === xy rounded line ===
 set plot3 [create_charts_plot -type xy -columns {{x @R} {y 3}} -title "Profit"]
 
 set_charts_property -plot $plot3 -name fillUnder.visible    -value 1

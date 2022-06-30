@@ -2671,6 +2671,9 @@ drawFg(PaintDevice *device) const
 
     plot_->charts()->setContrastColor(barPenBrush.brush.color());
   }
+  else {
+    plot_->charts()->setContrastColor(plot_->plotBgColor());
+  }
 
   //---
 

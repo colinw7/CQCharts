@@ -264,11 +264,11 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
     bucketRValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = CMathRound::RoundNearest(rmin);
-      int imax = CMathRound::RoundNearest(rmax);
+      long imin = CMathRound::RoundNearest(rmin);
+      long imax = CMathRound::RoundNearest(rmax);
 
-      min = imin;
-      max = imax;
+      min = QVariant(static_cast<qlonglong>(imin));
+      max = QVariant(static_cast<qlonglong>(imax));
     }
     else {
       min = rmin;
@@ -281,11 +281,11 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
     autoBucketValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = CMathRound::RoundNearest(rmin);
-      int imax = CMathRound::RoundNearest(rmax);
+      long imin = CMathRound::RoundNearest(rmin);
+      long imax = CMathRound::RoundNearest(rmax);
 
-      min = imin;
-      max = imax;
+      min = QVariant(static_cast<qlonglong>(imin));
+      max = QVariant(static_cast<qlonglong>(imax));
     }
     else {
       min = rmin;
@@ -339,14 +339,17 @@ bucketName(int bucket, const Formatter &formatter, NameFormat format) const
     return bucketName(rmin, rmax, formatter, format);
   }
   else if (type() == Type::REAL_AUTO) {
-    double rstart = this->calcMin();
-    double rend   = this->calcMax();
+    if (bucket < 0 && isUnderflow()) {
+      double rstart = this->calcMin();
 
-    if (bucket < 0 && isUnderflow())
       return bucketName(CMathUtil::getNaN(), rstart, formatter, format);
+    }
 
-    if (bucket == INT_MAX && isOverflow())
+    if (bucket == INT_MAX && isOverflow()) {
+      double rend = this->calcMax();
+
       return bucketName(rend, CMathUtil::getNaN(), formatter, format);
+    }
 
     double rmin = 0.0, rmax = 0.0;
 
@@ -505,7 +508,7 @@ intBucket(long i) const
   if      (i == istart)
     return 0;
   else if (idelta > 0)
-    n = int((i - long(istart))/long(idelta));
+    n = int((i - istart)/idelta);
 
   return n;
 }

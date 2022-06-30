@@ -4,9 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + monthly_sales.tcl . cleanup, unique months, label contrast when outside
- + distribution plot, format_scale support
- + distribution plot, large numbers, range gaps
+ + allow force real bucket in distribution plot
+ + format_scale for integers or only reals ?
  + Plot context menu with hidden plots
  + Connected Scatter Ignore Hidden
  + Exponential Axis Scaling (exp)

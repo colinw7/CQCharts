@@ -171,6 +171,12 @@ class CQChartsCmdBaseSlot : public QObject {
   void returnPressed();
   void editingFinished();
 
+  // radio button
+  void toggled(bool b);
+
+  // check box
+  void stateChanged(int i);
+
   // combo box
   void currentIndexChanged(const QString &s);
 

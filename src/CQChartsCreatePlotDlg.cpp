@@ -2513,6 +2513,7 @@ applyPlot(Plot *plot, bool preview)
       bool ok;
       auto defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
+      // Note: enum must be integer
       int i = int(defValue);
 
       if (parseParameterEnumEdit(parameter, plotData, i)) {
