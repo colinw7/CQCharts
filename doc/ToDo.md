@@ -6,7 +6,6 @@ Abstract Painter/Javascript
 TODO:
  + allow force real bucket in distribution plot
  + format_scale for integers or only reals ?
- + Plot context menu with hidden plots
  + Connected Scatter Ignore Hidden
  + Exponential Axis Scaling (exp)
  + CQFactor in charts (placement engine N + rect -> placed rects)

@@ -46,8 +46,8 @@ drawSlider(QPainter *painter)
 
   double ym = height()/2.0;
 
-  int yb = ym + fm.height()/2.0 + 1;
-  int yt = ym - fm.height()/2.0 - 1;
+  int yb = int(ym + fm.height()/2.0 + 1);
+  int yt = int(ym - fm.height()/2.0 - 1);
 
   auto bg0 = palette().color(QPalette::Background);
   auto bg1 = palette().color(QPalette::Highlight);
@@ -62,8 +62,8 @@ drawSlider(QPainter *painter)
 
   painter->drawRoundedRect(QRect(xs1_, yt, xs2_ - xs1_ + 1, yb - yt + 1), 3, 3);
 
-  auto xs3 = valueToPixel(getSliderMin());
-  auto xs4 = valueToPixel(getSliderMax());
+  auto xs3 = int(valueToPixel(getSliderMin()));
+  auto xs4 = int(valueToPixel(getSliderMax()));
 
   if (lgSet_) {
     bg3.setAlphaF(0.3);
@@ -231,10 +231,10 @@ QColor
 CQRangeSlider::
 blendColors(const QColor &c1, const QColor &c2, double f)
 {
-  auto iclamp = [](int val, int low, int high) {
+  auto iclamp = [](double val, int low, int high) {
     if (val < low ) return low;
     if (val > high) return high;
-    return val;
+    return int(val);
   };
 
   double f1 = 1.0 - f;

@@ -185,7 +185,7 @@ posToPixel(double pos) const
 
   double pixel = margin_ + (len > 0 ? pixelSize*pos/len : 0);
 
-  return pixel;
+  return int(pixel);
 }
 
 double

@@ -17,10 +17,10 @@ fillRect(QPainter *painter, const QRectF &rect)
 {
   QPainterPath path;
 
-  int x = rect.left();
-  int y = rect.top();
-  int w = rect.width();
-  int h = rect.height();
+  int x = int(rect.left());
+  int y = int(rect.top());
+  int w = int(rect.width());
+  int h = int(rect.height());
 
   path.moveTo(x    , y    );
   path.lineTo(x + w, y    );

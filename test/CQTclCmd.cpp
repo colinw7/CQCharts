@@ -1,5 +1,6 @@
 #include <CQTclCmd.h>
 #include <CQTclUtil.h>
+#include <cassert>
 
 namespace CQTclCmd {
 
@@ -182,7 +183,7 @@ CmdGroup(int ind, Type type) :
 
 CmdArgs::
 CmdArgs(const QString &cmdName, const Args &argv) :
- cmdName_(cmdName), argv_(argv), argc_(argv_.size())
+ cmdName_(cmdName), argv_(argv), argc_(int(argv_.size()))
 {
 }
 
@@ -190,7 +191,7 @@ CmdGroup &
 CmdArgs::
 startCmdGroup(CmdGroup::Type type)
 {
-  int ind = cmdGroups_.size() + 1;
+  int ind = int(cmdGroups_.size() + 1);
 
   cmdGroups_.emplace_back(ind, type);
 
@@ -212,7 +213,7 @@ CmdArg &
 CmdArgs::
 addCmdArg(const QString &name, int type, const QString &argDesc, const QString &desc)
 {
-  int ind = cmdArgs_.size() + 1;
+  int ind = int(cmdArgs_.size() + 1);
 
   cmdArgs_.emplace_back(ind, name, type, argDesc, desc);
 
@@ -245,7 +246,7 @@ getArg()
 {
   assert(i_ < argc_);
 
-  lastArg_ = Arg(argv_[i_++]);
+  lastArg_ = Arg(argv_[size_t(i_++)]);
 
   return lastArg_;
 }
@@ -258,7 +259,7 @@ getOptValue(QStringList &strs)
 {
   if (eof()) return false;
 
-  strs = toStringList(argv_[i_++]);
+  strs = toStringList(argv_[size_t(i_++)]);
 
   return true;
 }
@@ -269,7 +270,7 @@ getOptValue(QString &str)
 {
   if (eof()) return false;
 
-  str = toString(argv_[i_++]);
+  str = toString(argv_[size_t(i_++)]);
 
   return true;
 }
@@ -813,7 +814,9 @@ void
 CmdArgs::
 helpGroup(int groupInd, bool showHidden) const
 {
-  const CmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
+  assert(groupInd > 0);
+
+  const CmdGroup &cmdGroup = cmdGroups_[size_t(groupInd - 1)];
 
   if (! cmdGroup.isRequired())
     std::cerr << "[";
@@ -982,14 +985,15 @@ Cmd(Mgr *mgr, const QString &name) :
   auto *qtcl = mgr->qtcl();
 
   cmdId_ = qtcl->createObjCommand(name_,
-    (CQTcl::ObjCmdProc) &Cmd::commandProc, (CQTcl::ObjCmdData) this);
+    reinterpret_cast<CQTcl::ObjCmdProc>(&Cmd::commandProc),
+    static_cast<CQTcl::ObjCmdData>(this));
 }
 
 int
 Cmd::
 commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 {
-  auto *command = (Cmd *) clientData;
+  auto *command = static_cast<Cmd *>(clientData);
 
   return command->exec(objc, objv);
 }

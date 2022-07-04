@@ -92,7 +92,7 @@ data(const QModelIndex &index, int role) const
     if (index.row() < 0 || index.row() >= int(points_.size()))
       return QVariant();
 
-    const auto &p = points_[index.row()];
+    const auto &p = points_[size_t(index.row())];
 
     if      (index.column() == 0)
       return p.x;

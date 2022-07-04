@@ -185,11 +185,11 @@ CQDoubleRangeSlider::
 deltaValue(double r, int inc) const
 {
   if (sliderDelta() < 1.0) {
-    int n = -std::round(std::log10(sliderDelta()));
+    int n = -int(std::round(std::log10(sliderDelta())));
 
     double scale = std::pow(10, n);
 
-    int v = std::round(r*scale) + inc;
+    int v = int(std::round(r*scale) + inc);
 
     return v/scale;
   }
@@ -269,14 +269,14 @@ drawRangeLabels(QPainter *painter)
   auto minStr = realToString(rangeMin());
   auto maxStr = realToString(rangeMax());
 
-  int twMin = tfm.width(minStr);
-  int twMax = tfm.width(maxStr);
+  int twMin = int(tfm.width(minStr));
+  int twMax = int(tfm.width(maxStr));
 
   painter->setPen  (palette().color(QPalette::WindowText));
   painter->setBrush(Qt::NoBrush);
 
-  drawText(painter, xs1_        , ym, minStr);
-  drawText(painter, xs2_ - twMax, ym, maxStr);
+  drawText(painter, xs1_        , int(ym), minStr);
+  drawText(painter, xs2_ - twMax, int(ym), maxStr);
 
   //---
 
@@ -304,39 +304,39 @@ drawSliderLabels(QPainter *painter)
   auto sminStr = realToString(sliderMin());
   auto smaxStr = realToString(sliderMax());
 
-  int twsMin = tfm.width(sminStr);
-  int twsMax = tfm.width(smaxStr);
+  int twsMin = int(tfm.width(sminStr));
+  int twsMax = int(tfm.width(smaxStr));
 
   painter->setPen  (palette().color(QPalette::HighlightedText));
   painter->setBrush(Qt::NoBrush);
 
 //int xm = (xs1_ + xs2_)/2;
 
-  int tl1 = xs3 - twsMin - bs/2.0 - 2;
+  int tl1 = int(xs3 - twsMin - bs/2.0 - 2);
 
   if (tl1 < xs1_)
-    tl1 = xs3 + bs/2.0 + 2;
+    tl1 = int(xs3 + bs/2.0 + 2);
 
   int tl2 = tl1 + twsMin;
 
   int tle = std::max(tl2, int(xs3 + bs/2.0 + 1));
 
-  int tr1 = xs4 + bs/2.0 + 2;
+  int tr1 = int(xs4 + bs/2.0 + 2);
 
   if (tr1 + twsMax > xs2_)
-    tr1 = xs4 - twsMax - bs/2.0 - 2;
+    tr1 = int(xs4 - twsMax - bs/2.0 - 2);
 
 //int tr2 = tr1 + twsMax;
 
   int trs = std::min(tr1, int(xs4 - bs/2.0 - 1));
 
   if (tr1 >= tle)
-    drawText(painter, tr1, ym, smaxStr);
+    drawText(painter, tr1, int(ym), smaxStr);
   else
     trs = 9999;
 
   if (tl2 <= trs && tl2 < int(xs4 - bs/2.0 - 1))
-    drawText(painter, tl1, ym, sminStr);
+    drawText(painter, tl1, int(ym), sminStr);
 }
 
 void
@@ -346,7 +346,7 @@ drawText(QPainter *painter, int x, int y, const QString &text)
   QFontMetricsF tfm(textFont());
 
   if (lgSet_) {
-    int w = tfm.width(text);
+    int w = int(tfm.width(text));
 
     int xm = x + w/2;
 
@@ -358,7 +358,7 @@ drawText(QPainter *painter, int x, int y, const QString &text)
     painter->setPen(c);
   }
 
-  int dy = (tfm.ascent() - tfm.descent())/2;
+  int dy = int((tfm.ascent() - tfm.descent())/2.0);
 
   painter->drawText(x, y + dy, text);
 };

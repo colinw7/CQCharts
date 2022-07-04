@@ -234,10 +234,10 @@ paintEvent(QPaintEvent *)
   // draw lines (bottom to top)
   y -= charHeight_;
 
-  int numLines = lines_.size();
+  int numLines = int(lines_.size());
 
   for (int i = numLines - 1; i >= 0; --i) {
-    const auto &line = lines_[i];
+    const auto &line = lines_[size_t(i)];
 
     drawLine(&painter, line, y);
 
@@ -357,14 +357,14 @@ void
 CommandWidget::
 drawSelectedChars(QPainter *painter, int lineNum1, int charNum1, int lineNum2, int charNum2)
 {
-  int numLines = lines_.size();
+  int numLines = int(lines_.size());
 
   painter->setPen(bgColor_);
 
   for (int i = lineNum1; i <= lineNum2; ++i) {
     if (i < 0 || i >= numLines) continue;
 
-    const auto &line = lines_[i];
+    const auto &line = lines_[size_t(i)];
 
     int ty = line->y();
     int tx = line->x();
@@ -478,13 +478,13 @@ void
 CommandWidget::
 pixelToText(const QPoint &p, int &lineNum, int &charNum)
 {
-  int numLines = lines_.size();
+  int numLines = int(lines_.size());
 
   lineNum = -1;
   charNum = -1;
 
   for (int i = 0; i < numLines; ++i) {
-    const auto &line = lines_[i];
+    const auto &line = lines_[size_t(i)];
 
     int y2 = line->y(); // bottom
     int y1 = y2 - charHeight_ + 1;
@@ -686,14 +686,14 @@ selectedText() const
   if (lineNum1 == lineNum2 && charNum1 == charNum2)
     return "";
 
-  int numLines = lines_.size();
+  int numLines = int(lines_.size());
 
   QString str;
 
   for (int i = lineNum1; i <= lineNum2; ++i) {
     if (i < 0 || i >= numLines) continue;
 
-    const auto &line = lines_[i];
+    const auto &line = lines_[size_t(i)];
 
     const auto &text = line->text();
 

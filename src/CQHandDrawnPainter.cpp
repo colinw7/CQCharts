@@ -311,7 +311,7 @@ circlePath(const QPointF &center, double r) const
 {
   dampen_ = 1.0;
 
-  int n = 8;
+  uint n = 8;
 
   if (r < 16) {
     n       = 4;
@@ -326,7 +326,7 @@ circlePath(const QPointF &center, double r) const
 
   double a = 0.0;
 
-  for (int i = 0; i < n; ++i) {
+  for (uint i = 0; i < n; ++i) {
     double c = std::cos(a);
     double s = std::sin(a);
 
@@ -344,7 +344,7 @@ circlePath(const QPointF &center, double r) const
 
   a = 0.0;
 
-  for (int i = 0; i < n; ++i) {
+  for (uint i = 0; i < n; ++i) {
     double c = std::cos(a);
     double s = std::sin(a);
 
@@ -361,8 +361,8 @@ circlePath(const QPointF &center, double r) const
 
   path.moveTo(points[0]);
 
-  for (int i = 0; i < n; ++i) {
-    int i1 = i + 1; if (i1 >= n) i1 = 0;
+  for (uint i = 0; i < n; ++i) {
+    uint i1 = i + 1; if (i1 >= n) i1 = 0;
 
     path.cubicTo(points2[i], points1[i1], points[i1]);
   }

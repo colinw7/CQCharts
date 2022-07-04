@@ -232,9 +232,9 @@ paintEvent(QPaintEvent *)
   //---
 
   auto drawText = [&](int x, const QString &text) {
-    int dy = (tfm.ascent() - tfm.descent())/2;
+    int dy = int((tfm.ascent() - tfm.descent())/2.0);
 
-    painter.drawText(x, ym + dy, text);
+    painter.drawText(x, int(ym + dy), text);
   };
 
   //---
@@ -248,8 +248,8 @@ paintEvent(QPaintEvent *)
     auto minStr = timeToString(rangeMin());
     auto maxStr = timeToString(rangeMax());
 
-    int twMin = tfm.width(minStr);
-    int twMax = tfm.width(maxStr);
+    int twMin = int(tfm.width(minStr));
+    int twMax = int(tfm.width(maxStr));
 
     painter.setPen  (palette().color(QPalette::WindowText));
     painter.setBrush(Qt::NoBrush);
@@ -281,27 +281,27 @@ paintEvent(QPaintEvent *)
     auto sminStr = timeToString(sliderMin());
     auto smaxStr = timeToString(sliderMax());
 
-    int twsMin = tfm.width(sminStr);
-    int twsMax = tfm.width(smaxStr);
+    int twsMin = int(tfm.width(sminStr));
+    int twsMax = int(tfm.width(smaxStr));
 
     painter.setPen  (palette().color(QPalette::HighlightedText));
     painter.setBrush(Qt::NoBrush);
 
   //int xm = (xs1_ + xs2_)/2;
 
-    int tl1 = xs3 - twsMin - bs;
+    int tl1 = int(xs3 - twsMin - bs);
 
     if (tl1 < xs1_)
-      tl1 = xs3 + bs/2.0 + 2;
+      tl1 = int(xs3 + bs/2.0 + 2);
 
     int tl2 = tl1 + twsMin;
 
     int tle = std::max(tl2, int(xs3 + bs/2.0 + 1));
 
-    int tr1 = xs4 + bs/2.0 + 2;
+    int tr1 = int(xs4 + bs/2.0 + 2);
 
     if (tr1 + twsMax > xs2_)
-      tr1 = xs4 - twsMax - bs/2.0 - 2;
+      tr1 = int(xs4 - twsMax - bs/2.0 - 2);
 
   //int tr2 = tr1 + twsMax;
 
@@ -323,7 +323,7 @@ timeToString(double r) const
 {
   static char buffer[512];
 
-  time_t t(r);
+  auto t = static_cast<time_t>(r);
 
   struct tm *tm1 = localtime(&t);
   if (! tm1) return "<no_time>";
@@ -342,7 +342,7 @@ stringToTime(const QString &str, double &t) const
   char *p = strptime(str.toLatin1().constData(), formatStr_.toLatin1().constData(), &tm1);
   if (! p) return false;
 
-  t = mktime(&tm1);
+  t = static_cast<double>(mktime(&tm1));
 
   return true;
 }

@@ -183,7 +183,7 @@ void
 CQIntRangeSlider::
 pixelToSliderValue(int px, int &ind, bool force)
 {
-  auto x = pixelToValue(px);
+  auto x = int(pixelToValue(px));
 
   double dx1 = std::abs(sliderMin() - x);
   double dx2 = std::abs(sliderMax() - x);
@@ -200,7 +200,7 @@ void
 CQIntRangeSlider::
 pixelSetSliderValue(int px, int ind, bool force)
 {
-  auto x = pixelToValue(px);
+  auto x = int(pixelToValue(px));
 
   if (ind == 0)
     setSliderMin(clampValue(x), force);
@@ -250,9 +250,9 @@ drawRangeLabels(QPainter *painter)
   //---
 
   auto drawText = [&](int x, const QString &text) {
-    int dy = (tfm.ascent() - tfm.descent())/2;
+    int dy = int((tfm.ascent() - tfm.descent())/2.0);
 
-    painter->drawText(x, ym + dy, text);
+    painter->drawText(x, int(ym + dy), text);
   };
 
   //---
@@ -260,8 +260,8 @@ drawRangeLabels(QPainter *painter)
   auto minStr = intToString(rangeMin());
   auto maxStr = intToString(rangeMax());
 
-  int twMin = tfm.width(minStr);
-  int twMax = tfm.width(maxStr);
+  int twMin = int(tfm.width(minStr));
+  int twMax = int(tfm.width(maxStr));
 
   painter->setPen  (palette().color(QPalette::WindowText));
   painter->setBrush(Qt::NoBrush);
@@ -288,9 +288,9 @@ drawSliderLabels(QPainter *painter)
   //---
 
   auto drawText = [&](int x, const QString &text) {
-    int dy = (tfm.ascent() - tfm.descent())/2;
+    int dy = int((tfm.ascent() - tfm.descent())/2.0);
 
-    painter->drawText(x, ym + dy, text);
+    painter->drawText(x, int(ym + dy), text);
   };
 
   //---
@@ -303,27 +303,27 @@ drawSliderLabels(QPainter *painter)
   auto sminStr = intToString(sliderMin());
   auto smaxStr = intToString(sliderMax());
 
-  int twsMin = tfm.width(sminStr);
-  int twsMax = tfm.width(smaxStr);
+  int twsMin = int(tfm.width(sminStr));
+  int twsMax = int(tfm.width(smaxStr));
 
   painter->setPen  (palette().color(QPalette::HighlightedText));
   painter->setBrush(Qt::NoBrush);
 
 //int xm = (xs1_ + xs2_)/2;
 
-  int tl1 = xs3 - twsMin - bs/2.0 - 2;
+  int tl1 = int(xs3 - twsMin - bs/2.0 - 2);
 
   if (tl1 < xs1_)
-    tl1 = xs3 + bs/2.0 + 2;
+    tl1 = int(xs3 + bs/2.0 + 2);
 
   int tl2 = tl1 + twsMin;
 
   int tle = std::max(tl2, int(xs3 + bs/2.0 + 1));
 
-  int tr1 = xs4 + bs/2.0 + 2;
+  int tr1 = int(xs4 + bs/2.0 + 2);
 
   if (tr1 + twsMax > xs2_)
-    tr1 = xs4 - twsMax - bs/2.0 - 2;
+    tr1 = int(xs4 - twsMax - bs/2.0 - 2);
 
 //int tr2 = tr1 + twsMax;
 
