@@ -72,15 +72,15 @@ CQChartsValueSet::
 hasInd(int i) const
 {
   if      (type() == Type::INTEGER)
-    return (i >= 0 && i < ivals_.size());
+    return (i >= 0 && i < int(ivals_.size()));
   else if (type() == Type::REAL)
-    return (i >= 0 && i < rvals_.size());
+    return (i >= 0 && i < int(rvals_.size()));
   else if (type() == Type::STRING)
-    return (i >= 0 && i < svals_.size());
+    return (i >= 0 && i < int(svals_.size()));
   else if (type() == Type::COLOR)
-    return (i >= 0 && i < cvals_.size());
+    return (i >= 0 && i < int(cvals_.size()));
   else if (type() == Type::TIME)
-    return (i >= 0 && i < tvals_.size());
+    return (i >= 0 && i < int(tvals_.size()));
   else
     return false;
 }
@@ -129,7 +129,7 @@ iset(const QVariant &value) const
   return 0;
 }
 
-int
+uint
 CQChartsValueSet::
 numUnique() const
 {
@@ -169,8 +169,8 @@ double
 CQChartsValueSet::
 imap(const QVariant &value) const
 {
-  int i = iset(value);
-  int n = numUnique();
+  int  i = iset(value);
+  uint n = numUnique();
 
   if (n == 0)
     return 0.0;
@@ -335,7 +335,7 @@ snum() const
   init();
 
   if (type() == Type::STRING)
-    return svals_.numUnique();
+    return int(svals_.numUnique());
   else
     return -1;
 }
@@ -590,30 +590,30 @@ CQChartsValueSet::
 reals(std::vector<double> &reals) const
 {
   if      (ivals_.isValid()) {
-    int n = ivals_.size();
+    uint n = ivals_.size();
 
-    for (int i = 0; i < n; ++i) {
-      auto ival = ivals_.value(i);
+    for (uint i = 0; i < n; ++i) {
+      auto ival = ivals_.value(int(i));
       if (! ival) continue;
 
       reals.push_back(double(*ival));
     }
   }
   else if (rvals_.isValid()) {
-    int n = rvals_.size();
+    uint n = rvals_.size();
 
-    for (int i = 0; i < n; ++i) {
-      auto rval = rvals_.value(i);
+    for (uint i = 0; i < n; ++i) {
+      auto rval = rvals_.value(int(i));
       if (! rval) continue;
 
       reals.push_back(*rval);
     }
   }
   else if (svals_.isValid()) {
-    int n = svals_.size();
+    uint n = svals_.size();
 
-    for (int i = 0; i < n; ++i) {
-      auto sval = svals_.value(i);
+    for (uint i = 0; i < n; ++i) {
+      auto sval = svals_.value(int(i));
       if (! sval) continue;
 
       bool ok;

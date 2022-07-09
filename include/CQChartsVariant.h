@@ -357,4 +357,17 @@ QVariant fromAngle(const CQChartsAngle &a);
 
 }
 
+//---
+
+namespace CQChartsVariant {
+
+//! compare variants
+struct VariantCmp {
+  bool operator()(const QVariant &lhs, const QVariant &rhs) const {
+    return cmp(lhs, rhs) < 0;
+  }
+};
+
+}
+
 #endif

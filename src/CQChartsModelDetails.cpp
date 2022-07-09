@@ -739,24 +739,18 @@ numUnique() const
     return details_->numRows();
   }
 
-  if      (type() == CQBaseModelType::INTEGER) {
-    return valueSet->ivals().numUnique();
-  }
-  else if (type() == CQBaseModelType::REAL) {
-    return valueSet->rvals().numUnique();
-  }
-  else if (type() == CQBaseModelType::STRING) {
-    return valueSet->svals().numUnique();
-  }
-  else if (type() == CQBaseModelType::TIME) {
-    return valueSet->tvals().numUnique();
-  }
-  else if (type() == CQBaseModelType::COLOR) {
-    return valueSet->cvals().numUnique();
-  }
-  else {
+  if      (type() == CQBaseModelType::INTEGER)
+    return int(valueSet->ivals().numUnique());
+  else if (type() == CQBaseModelType::REAL)
+    return int(valueSet->rvals().numUnique());
+  else if (type() == CQBaseModelType::STRING)
+    return int(valueSet->svals().numUnique());
+  else if (type() == CQBaseModelType::TIME)
+    return int(valueSet->tvals().numUnique());
+  else if (type() == CQBaseModelType::COLOR)
+    return int(valueSet->cvals().numUnique());
+  else
     return 0;
-  }
 }
 
 QVariantList
@@ -1243,24 +1237,26 @@ map(const QVariant &var) const
 
 //---
 
-int
+uint
 CQChartsModelColumnDetails::
 valueCount() const
 {
+  auto *valueSet = this->calcValueSet();
+
   if      (type() == CQBaseModelType::INTEGER) {
-    return valueSet_->ivals().size();
+    return uint(valueSet->ivals().size());
   }
   else if (type() == CQBaseModelType::REAL) {
-    return valueSet_->rvals().size();
+    return uint(valueSet->rvals().size());
   }
   else if (type() == CQBaseModelType::STRING) {
-    return valueSet_->svals().size();
+    return uint(valueSet->svals().size());
   }
   else if (type() == CQBaseModelType::TIME) {
-    return valueSet_->tvals().size();
+    return uint(valueSet->tvals().size());
   }
   else if (type() == CQBaseModelType::COLOR) {
-    return valueSet_->cvals().size();
+    return uint(valueSet->cvals().size());
   }
 
   return 0;
@@ -1268,30 +1264,34 @@ valueCount() const
 
 QVariant
 CQChartsModelColumnDetails::
-value(int i) const
+value(uint i) const
 {
+  auto *valueSet = this->calcValueSet();
+
+  int ii = int(i);
+
   if      (type() == CQBaseModelType::INTEGER) {
-    const auto &value = valueSet_->ivals().value(i);
+    const auto &value = valueSet->ivals().value(ii);
 
     return (value ? CQChartsVariant::fromInt(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::REAL) {
-    const auto &value = valueSet_->rvals().value(i);
+    const auto &value = valueSet->rvals().value(ii);
 
     return (value ? CQChartsVariant::fromReal(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::STRING) {
-    const auto &value = valueSet_->svals().value(i);
+    const auto &value = valueSet->svals().value(ii);
 
     return (value ? CQChartsVariant::fromString(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
-    const auto &value = valueSet_->tvals().value(i);
+    const auto &value = valueSet->tvals().value(ii);
 
     return (value ? CQChartsVariant::fromReal(value.value()) : QVariant());
   }
   else if (type() == CQBaseModelType::COLOR) {
-    const auto &value = valueSet_->cvals().value(i);
+    const auto &value = valueSet->cvals().value(ii);
 
     return CQChartsVariant::fromColor(value);
   }

@@ -931,9 +931,6 @@ draw(PaintDevice *device) const
 
   calcPenBrush(penBrush, updateState);
 
-  if (isFiltered())
-    return;
-
   //---
 
   // draw polygon

@@ -3628,8 +3628,10 @@ addBaseProperties()
 
   addProp("columns", "visibleColumn", "visible", "Visible column");
 
-  if (type()->supportsColorColumn())
-    addProp("columns", "colorColumn", "color", "Color column");
+  if (type()->supportsColorColumn()) {
+    addProp("columns", "colorColumn"     , "color"     , "Color column");
+    addProp("columns", "colorLabelColumn", "colorLabel", "Color label column");
+  }
 
   if (type()->supportsAlphaColumn())
     addProp("columns", "alphaColumn", "alpha", "Alpha column");
@@ -4602,31 +4604,52 @@ void
 CQChartsPlot::
 updateColorMapKey() const
 {
-  bool         isReal     = false;
-  bool         isIntegral = false;
-  bool         isColor    = false;
-  bool         isMapped   = false;
-  int          numUnique  = 0;
+  bool isReal     = false;
+  bool isIntegral = false;
+  bool isColor    = false;
+  bool isMapped   = false;
+
+  int          numUnique = 0;
   QVariantList uniqueValues;
   QVariantList uniqueCounts;
 
   auto *columnDetails = this->columnDetails(colorColumn());
 
   if (columnDetails) {
+    isMapped = colorColumnData_.mapped;
+
     if      (columnDetails->type() == CQBaseModelType::REAL)
       isReal = true;
     else if (columnDetails->type() == CQBaseModelType::INTEGER)
       isIntegral = true;
     else if (columnDetails->type() == CQBaseModelType::COLOR)
       isColor = true;
-    else if (columnDetails->type() == CQBaseModelType::STRING)
-      isMapped = colorColumnData_.mapped;
 
-    if (! isReal && ! isColor) {
+    if (! isReal) {
       numUnique    = columnDetails->numUnique();
       uniqueValues = columnDetails->uniqueValues();
       uniqueCounts = columnDetails->uniqueCounts();
     }
+  }
+
+  //---
+
+  QVariantList uniqueLabels;
+
+  if (isColor) {
+    auto *columnDetails1 = this->columnDetails(colorLabelColumn());
+
+    using ColorNameMap = std::map<QVariant, QVariant, CQChartsVariant::VariantCmp>;
+
+    ColorNameMap colorNameMap;
+
+    uint n = std::min(columnDetails->valueCount(), columnDetails1->valueCount());
+
+    for (uint i = 0; i < n; ++i)
+      colorNameMap[columnDetails->value(i)] = columnDetails1->value(i);
+
+    for (const auto &p : colorNameMap)
+      uniqueLabels.push_back(p.second);
   }
 
   //---
@@ -4680,6 +4703,7 @@ updateColorMapKey() const
   colorMapKey_->setNumUnique   (numUnique);
   colorMapKey_->setUniqueValues(uniqueValues);
   colorMapKey_->setUniqueCounts(uniqueCounts);
+  colorMapKey_->setUniqueLabels(uniqueLabels);
 }
 
 void
@@ -9369,12 +9393,13 @@ CQChartsPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
-  if      (name == "id"     ) c = this->idColumn();
-  else if (name == "visible") c = this->visibleColumn();
-  else if (name == "image"  ) c = this->imageColumn();
-  else if (name == "color"  ) c = this->colorColumn();
-  else if (name == "alpha"  ) c = this->alphaColumn();
-  else if (name == "font"   ) c = this->fontColumn();
+  if      (name == "id"         ) c = this->idColumn();
+  else if (name == "visible"    ) c = this->visibleColumn();
+  else if (name == "image"      ) c = this->imageColumn();
+  else if (name == "color"      ) c = this->colorColumn();
+  else if (name == "color_label") c = this->colorLabelColumn();
+  else if (name == "alpha"      ) c = this->alphaColumn();
+  else if (name == "font"       ) c = this->fontColumn();
 //else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 
   return c;
@@ -9384,13 +9409,14 @@ void
 CQChartsPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if      (name == "id"        ) this->setIdColumn(c);
-  else if (name == "tip_header") this->tipHeaderColumn();
-  else if (name == "visible"   ) this->setVisibleColumn(c);
-  else if (name == "image"     ) this->setImageColumn(c);
-  else if (name == "color"     ) this->setColorColumn(c);
-  else if (name == "alpha"     ) this->setAlphaColumn(c);
-  else if (name == "font"      ) this->setFontColumn(c);
+  if      (name == "id"         ) this->setIdColumn(c);
+  else if (name == "tip_header" ) this->tipHeaderColumn();
+  else if (name == "visible"    ) this->setVisibleColumn(c);
+  else if (name == "image"      ) this->setImageColumn(c);
+  else if (name == "color"      ) this->setColorColumn(c);
+  else if (name == "color_label") this->setColorLabelColumn(c);
+  else if (name == "alpha"      ) this->setAlphaColumn(c);
+  else if (name == "font"       ) this->setFontColumn(c);
   else CQCHARTS_QASSERT(false, "Invalid column name: " + name);
 }
 
@@ -9425,6 +9451,15 @@ setColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
     colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+  } );
+}
+
+void
+CQChartsPlot::
+setColorLabelColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(colorLabelColumn_, c, [&]() {
+    updateObjs(); emit colorDetailsChanged();
   } );
 }
 
@@ -13342,6 +13377,9 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible())
+      continue;
+
+    if (plotObj->isFiltered())
       continue;
 
     // skip unselected objects on selection layer

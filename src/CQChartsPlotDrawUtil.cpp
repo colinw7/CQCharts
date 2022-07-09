@@ -18,7 +18,7 @@ void
 drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
         const PaletteName &paletteName, const QPen &pen)
 {
-  int nv = values.size();
+  uint nv = values.size();
   if (! nv) return;
 
   double sum = values.sum();
@@ -34,13 +34,13 @@ drawPie(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
   auto c = bbox.getCenter();
   auto r = std::min(bbox.getWidth(), bbox.getHeight())/2.0;
 
-  for (int i = 0; i < nv; ++i) {
-    double da1 = da*values.value(i).value();
+  for (uint i = 0; i < nv; ++i) {
+    double da1 = da*values.value(int(i)).value();
 
     PenBrush penBrush;
 
     plot->setPenBrush(penBrush,
-      PenData(false), BrushData(true, plot->interpColor(color, ColorInd(i, nv))));
+      PenData(false), BrushData(true, plot->interpColor(color, ColorInd(int(i), int(nv)))));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -56,7 +56,7 @@ void
 drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &bbox,
             const PaletteName &paletteName, const QPen &pen)
 {
-  int nv = values.size();
+  uint nv = values.size();
   if (! nv) return;
 
   double sum = values.sum();
@@ -64,8 +64,8 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
 
   CQChartsTreeMapPlace place(bbox);
 
-  for (int i = 0; i < nv; ++i)
-    place.addValue(values.value(i).value());
+  for (uint i = 0; i < nv; ++i)
+    place.addValue(values.value(int(i)).value());
 
   place.placeValues();
 
@@ -79,7 +79,7 @@ drawTreeMap(Plot *plot, PaintDevice *device, const Values &values, const BBox &b
     PenBrush penBrush;
 
     plot->setPenBrush(penBrush,
-      PenData(false), BrushData(true, plot->interpColor(color, ColorInd(iarea.i, nv))));
+      PenData(false), BrushData(true, plot->interpColor(color, ColorInd(iarea.i, int(nv)))));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

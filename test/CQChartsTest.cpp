@@ -27,9 +27,11 @@
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
 
+#include <CConfig.h>
+
 #include <QTextStream>
 
-#include <mcheck.h>
+//#include <mcheck.h>
 
 namespace {
 
@@ -92,6 +94,8 @@ main(int argc, char **argv)
 {
   //mtrace();
 
+  CConfig config("CQCharts");
+
   //---
 
   CQMsgHandler::install();
@@ -108,6 +112,9 @@ main(int argc, char **argv)
 
   // parse arguments into main data
   MainData mainData;
+
+  // init from config
+  (void) config.getValue("dark", &mainData.dark);
 
   mainData.viewWidth  = CQChartsView::defSizeHint().width ();
   mainData.viewHeight = CQChartsView::defSizeHint().height();

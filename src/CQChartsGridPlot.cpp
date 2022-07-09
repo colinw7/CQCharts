@@ -665,7 +665,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  int nv = values_.size();
+  uint nv = values_.size();
   if (! nv) return; // optional values ?
 
   //---
@@ -768,14 +768,14 @@ draw(PaintDevice *device) const
     double tx = rect().getXMax() + xm;
     double ty = rect().getYMax();
 
-    int i  = 0;
-    int nv = values_.size();
+    int  i  = 0;
+    uint nv = values_.size();
 
     double bw = plot()->pixelToWindowWidth (16);
     double bh = plot()->pixelToWindowHeight(16);
 
     for (auto &v : values_.values()) {
-      plot_->setBrush(penBrush, BrushData(true, plot_->interpColor(color, ColorInd(i, nv))));
+      plot_->setBrush(penBrush, BrushData(true, plot_->interpColor(color, ColorInd(i, int(nv)))));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -843,7 +843,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   bool useValueColor = false;
 
-  int nv = values_.size();
+  uint nv = values_.size();
 
   if (nv > 1) {
     double f = CMathUtil::map(values_.max(0.0), plot_->minValue(), plot_->maxValue(), 0.0, 1.0);

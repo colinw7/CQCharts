@@ -811,6 +811,46 @@ drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 //---
 
 void
+drawSelectedOutline(PaintDevice *device, const BBox &rect)
+{
+  auto ps = std::min(device->windowToPixelWidth (rect.getWidth ()),
+                     device->windowToPixelHeight(rect.getHeight()));
+
+  auto pm = std::min(ps/3.0, 4.0);
+  auto pw = std::min(ps/2.0, 8.0);
+
+  auto mx = device->pixelToWindowWidth (pm);
+  auto my = device->pixelToWindowHeight(pm);
+
+  auto wx = device->pixelToWindowWidth (pw);
+  auto wy = device->pixelToWindowHeight(pw);
+
+  auto dx = mx + wx;
+  auto dy = my + wy;
+
+  auto rect1 = rect.expanded(-dx, -dy, dx, dy);
+
+  QPainterPath path;
+
+  ellipsePath(path, rect1);
+
+  device->save();
+
+  auto brush = device->brush();
+
+  auto pen = QPen(brush.color(), pw);
+
+  device->setPen(pen);
+  device->setBrush(Qt::NoBrush);
+
+  device->drawPath(path);
+
+  device->restore();
+}
+
+//---
+
+void
 drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
            const Point &c, const Length &size, bool scale)
 {
@@ -1845,8 +1885,10 @@ selfCurvePath(QPainterPath &path, const BBox &bbox,
 void
 cornerHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
-  double sx = device->pixelToWindowWidth (16);
-  double sy = device->pixelToWindowHeight(16);
+  double w = 16;
+
+  double sx = device->pixelToWindowWidth (w);
+  double sy = device->pixelToWindowHeight(w);
 
   path.addEllipse(p.x - sx/2, p.y - sy/2, sx, sy);
 }
@@ -1854,10 +1896,13 @@ cornerHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 void
 resizeHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
-  double msx1 = device->pixelToWindowWidth (12);
-  double msy1 = device->pixelToWindowHeight(12);
-  double msx2 = device->pixelToWindowWidth (4);
-  double msy2 = device->pixelToWindowHeight(4);
+  double w1 = 12;
+  double w2 = 4;
+
+  double msx1 = device->pixelToWindowWidth (w1);
+  double msy1 = device->pixelToWindowHeight(w1);
+  double msx2 = device->pixelToWindowWidth (w2);
+  double msy2 = device->pixelToWindowHeight(w2);
 
   path.moveTo(p.x - msx1, p.y       );
   path.lineTo(p.x - msx2, p.y + msy2);

@@ -23,6 +23,9 @@ class CQChartsMapKey : public CQChartsBoxObj,
   // discreet
   Q_PROPERTY(bool itemCount READ isItemCount WRITE setItemCount)
 
+  // palette
+  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+
   // hidden color
   Q_PROPERTY(CQChartsColor hiddenColor READ hiddenColor WRITE setHiddenColor)
   Q_PROPERTY(CQChartsAlpha hiddenAlpha READ hiddenAlpha WRITE setHiddenAlpha)
@@ -48,6 +51,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
   using Angle         = CQChartsAngle;
+  using PaletteName   = CQChartsPaletteName;
   using ClickMod      = CQChartsClickMod;
   using ColorInd      = CQChartsUtil::ColorInd;
   using BBox          = CQChartsGeom::BBox;
@@ -141,19 +145,46 @@ class CQChartsMapKey : public CQChartsBoxObj,
   int numUnique() const { return numUnique_; }
   void setNumUnique(int i) { numUnique_ = i; }
 
+  //---
+
   //! get/set unique values
   const QVariantList &uniqueValues() const { return uniqueValues_; }
   void setUniqueValues(const QVariantList &v) { uniqueValues_ = v; }
 
+  QVariant uniqueValue(int i) const {
+    if (i < 0 || i >= uniqueValues_.length()) return QVariant();
+    return uniqueValues_[i];
+  }
+
   //! get/set unique counts
   const QVariantList &uniqueCounts() const { return uniqueCounts_; }
   void setUniqueCounts(const QVariantList &v) { uniqueCounts_ = v; }
+
+  QVariant uniqueCount(int i) const {
+    if (i < 0 || i >= uniqueCounts_.length()) return QVariant();
+    return uniqueCounts_[i];
+  }
+
+  //! get/set unique labels
+  const QVariantList &uniqueLabels() const { return uniqueLabels_; }
+  void setUniqueLabels(const QVariantList &v) { uniqueLabels_ = v; }
+
+  QVariant uniqueLabel(int i) const {
+    if (i < 0 || i >= uniqueLabels_.length()) return QVariant();
+    return uniqueLabels_[i];
+  }
 
   //---
 
   //! get/set bbox
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
+
+  //---
+
+  //! get/set color palette name
+  const PaletteName &paletteName() const { return paletteName_; }
+  void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
 
   //---
 
@@ -182,6 +213,8 @@ class CQChartsMapKey : public CQChartsBoxObj,
   QFont calcDrawFont(const Font &textFont) const;
 
   void setDrawPainterFont(PaintDevice *device, const Font &textFont);
+
+  CQColorsPalette *colorsPalette() const;
 
   //---
 
@@ -258,6 +291,10 @@ class CQChartsMapKey : public CQChartsBoxObj,
   int           numUnique_ { -1 }; //!< num unique
   QVariantList  uniqueValues_;     //!< unique values
   QVariantList  uniqueCounts_;     //!< unique value counts
+  QVariantList  uniqueLabels_;     //!< unique value labels
+
+  // palette
+  PaletteName paletteName_; //!< custom palette
 
   // hidden data
   Color hiddenColor_;          //!< color for hidden item
@@ -290,17 +327,15 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   Q_PROPERTY(double              dataMax      READ dataMax      WRITE setDataMax     )
   Q_PROPERTY(double              mapMin       READ mapMin       WRITE setMapMin      )
   Q_PROPERTY(double              mapMax       READ mapMax       WRITE setMapMax      )
-  Q_PROPERTY(CQChartsPaletteName paletteName  READ paletteName  WRITE setPaletteName )
   Q_PROPERTY(CQChartsLength      cornerRadius READ cornerRadius WRITE setCornerRadius)
 
  public:
-  using ColorData   = CQChartsColorColumnData;
-  using PenBrush    = CQChartsPenBrush;
-  using BrushData   = CQChartsBrushData;
-  using PenData     = CQChartsPenData;
-  using PaletteName = CQChartsPaletteName;
-  using Length      = CQChartsLength;
-  using ColorInd    = CQChartsUtil::ColorInd;
+  using ColorData = CQChartsColorColumnData;
+  using PenBrush  = CQChartsPenBrush;
+  using BrushData = CQChartsBrushData;
+  using PenData   = CQChartsPenData;
+  using Length    = CQChartsLength;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
   using BBox    = CQChartsGeom::BBox;
   using Point   = CQChartsGeom::Point;
@@ -332,12 +367,6 @@ class CQChartsColorMapKey : public CQChartsMapKey {
 
   double mapMax() const { return colorData_.map_max; }
   void setMapMax(double r) { colorData_.map_max = r; invalidate(); }
-
-  //---
-
-  //! get/set color palette name
-  const PaletteName &paletteName() const { return paletteName_; }
-  void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
 
   //---
 
@@ -375,11 +404,17 @@ class CQChartsColorMapKey : public CQChartsMapKey {
  private:
   void invalidate() override;
 
+  //! draw header
   void drawHeader(PaintDevice *device);
 
+  //! draw
   void drawContiguous(PaintDevice *device);
   void drawDiscreet  (PaintDevice *device, DrawType drawType);
 
+  //! get unique value color
+  QColor uniqueValueColor(int i, int n, const QString &name, double mapMin, double mapMax) const;
+
+  //! calc size
   QSize calcContiguousSize() const;
   QSize calcDiscreetSize() const;
 
@@ -405,8 +440,6 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   using TypeItemBoxes = std::map<DrawType, ItemBoxes>;
 
   ColorData colorData_;
-
-  PaletteName paletteName_; //!< custom palette
 
   Length cornerSize_ { Length::pixel(2) };
 
@@ -438,12 +471,11 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   Q_PROPERTY(double mapMax  READ mapMax  WRITE setMapMax )
 
   // contiguous circles
-  Q_PROPERTY(double              scale       READ scale       WRITE setScale      )
-  Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
-  Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
-  Q_PROPERTY(CQChartsAlpha       alpha       READ alpha       WRITE setAlpha      )
-  Q_PROPERTY(Qt::Alignment       textAlign   READ textAlign   WRITE setTextAlign  )
-  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+  Q_PROPERTY(double        scale     READ scale     WRITE setScale    )
+  Q_PROPERTY(bool          stacked   READ isStacked WRITE setStacked  )
+  Q_PROPERTY(int           rows      READ rows      WRITE setRows     )
+  Q_PROPERTY(CQChartsAlpha alpha     READ alpha     WRITE setAlpha    )
+  Q_PROPERTY(Qt::Alignment textAlign READ textAlign WRITE setTextAlign)
 
   // discreet text
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Size, size)
@@ -454,7 +486,6 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   using PenBrush       = CQChartsPenBrush;
   using BrushData      = CQChartsBrushData;
   using PenData        = CQChartsPenData;
-  using PaletteName    = CQChartsPaletteName;
   using Length         = CQChartsLength;
   using Angle          = CQChartsAngle;
   using SymbolSizeData = CQChartsSymbolSizeData;
@@ -508,9 +539,6 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
 
   const Qt::Alignment &textAlign() const { return textAlign_; }
   void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; invalidate(); }
-
-  const PaletteName &paletteName() const { return paletteName_; }
-  void setPaletteName(const PaletteName &n) { paletteName_ = n; invalidate(); }
 
   const RMinMax &paletteMinMax() const { return paletteMinMax_; }
   void setPaletteMinMax(const RMinMax &r) { paletteMinMax_ = r; invalidate(); }
@@ -602,8 +630,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   Alpha         alpha_     { 0.6 };                               //!< background alpha
   Qt::Alignment textAlign_ { Qt::AlignRight | Qt::AlignVCenter }; //!< text align
 
-  PaletteName paletteName_;                //!< custom palette
-  RMinMax     paletteMinMax_ { 0.0, 1.0 }; //!< custom palette range
+  RMinMax paletteMinMax_ { 0.0, 1.0 }; //!< custom palette range
 
   mutable BBox   psbbox_;
   mutable BBox   sbbox_;

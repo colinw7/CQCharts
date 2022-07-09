@@ -72,7 +72,7 @@ class CQChartsRValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return int(values_.size()); }
+  uint size() const { return uint(values_.size()); }
 
   const OptValues &values() const { return values_; }
 
@@ -130,7 +130,7 @@ class CQChartsRValues {
   int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
-  int numUnique() const { return int(valset_.size()); }
+  uint numUnique() const { return uint(valset_.size()); }
 
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
@@ -236,7 +236,7 @@ class CQChartsIValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return int(values_.size()); }
+  uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
   const OptInt &value(int i) const { return CUtil::safeIndex(values_, i); }
@@ -288,7 +288,7 @@ class CQChartsIValues {
   int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
-  int numUnique() const { return int(valset_.size()); }
+  uint numUnique() const { return uint(valset_.size()); }
 
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
@@ -387,7 +387,7 @@ class CQChartsSValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return int(values_.size()); }
+  uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
   const OptString &value(int i) const { return CUtil::safeIndex(values_, i); }
@@ -431,7 +431,7 @@ class CQChartsSValues {
   int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
-  int numUnique() const { return int(valset_.size()); }
+  uint numUnique() const { return uint(valset_.size()); }
 
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
@@ -463,7 +463,7 @@ class CQChartsSValues {
     int i = id(s);
 
     // map string set index using 1 -> number of unique values
-    int n = numUnique();
+    uint n = numUnique();
 
     if (! n)
       return mapMin;
@@ -527,7 +527,7 @@ class CQChartsCValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return int(values_.size()); }
+  uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
   const Color &value(int i) const { return CUtil::safeIndex(values_, i); }
@@ -571,7 +571,7 @@ class CQChartsCValues {
   int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
-  int numUnique() const { return int(valset_.size()); }
+  uint numUnique() const { return uint(valset_.size()); }
 
   QVariant uniqueValue() const {
     if (valset_.size() != 1) return QVariant();
@@ -600,7 +600,7 @@ class CQChartsCValues {
     int i = id(c);
 
     // map color set index using 1 -> number of unique values
-    int n = numUnique();
+    uint n = numUnique();
 
     if (! n)
       return mapMin;
@@ -678,7 +678,7 @@ class CQChartsValueSet : public QObject {
 
   void addValue(const QVariant &value);
 
-  int numValues() const { return int(values_.size()); }
+  uint numValues() const { return uint(values_.size()); }
 
   const QVariant &value(int i) const { return CUtil::safeIndex(values_, i); }
 
@@ -732,7 +732,7 @@ class CQChartsValueSet : public QObject {
   int iset(const QVariant &value) const;
 
   // number of unique values
-  int numUnique() const;
+  uint numUnique() const;
 
   // single unique value
   QVariant uniqueValue() const;

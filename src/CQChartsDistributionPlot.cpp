@@ -490,7 +490,7 @@ setBucketStops(const CQChartsReals &r)
   } );
 }
 
-int
+uint
 CQChartsDistributionPlot::
 numUniqueValues() const
 {
@@ -2808,16 +2808,16 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
 
     std::vector<double> xvals;
 
-    for (int i = 0; i < ivals.size(); ++i)
-      vals.push_back(double(*ivals.value(i)));
+    for (uint i = 0; i < ivals.size(); ++i)
+      vals.push_back(double(*ivals.value(int(i))));
   }
   else if (values->valueSet->type() == ColumnType::REAL) {
     const auto &rvals = values->valueSet->rvals();
 
     statData = rvals.statData();
 
-    for (int i = 0; i < rvals.size(); ++i)
-      vals.push_back(*rvals.value(i));
+    for (uint i = 0; i < rvals.size(); ++i)
+      vals.push_back(*rvals.value(int(i)));
   }
   else {
     return false;

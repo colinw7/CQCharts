@@ -1435,7 +1435,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       QString groupStr;
 
       int ig = groupValues.iset(groupVar);
-      int ng = groupValues.numUnique();
+      int ng = int(groupValues.numUnique());
 
       tableConnectionData.setGroup   (GroupData(groupVar, ig, ng));
       tableConnectionData.setGroupInd(groupInd1);

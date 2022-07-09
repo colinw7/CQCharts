@@ -219,6 +219,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool symbolTypeMapKey READ isSymbolTypeMapKey WRITE setSymbolTypeMapKey)
 
   // options
+  Q_PROPERTY(bool outlineSelected READ isOutlineSelected WRITE setOutlineSelected)
+
   Q_PROPERTY(CQChartsLength minSymbolSize READ minSymbolSize WRITE setMinSymbolSize)
   Q_PROPERTY(CQChartsLength minLabelSize  READ minLabelSize  WRITE setMinLabelSize )
 
@@ -543,6 +545,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get/set outline selected points
+  bool isOutlineSelected() const { return outlineSelected_; }
+  void setOutlineSelected(bool b) { outlineSelected_ = b; }
+
+  //---
+
   //! get/set min symbol size
   const Length &minSymbolSize() const { return minSymbolSize_; }
   void setMinSymbolSize(const Length &l);
@@ -761,6 +769,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   RugP yRug_; //!< y rug
 
   // options
+  bool outlineSelected_ { true }; //!< outline selected point
+
   Length minSymbolSize_; //!< min symbol size
   Length minLabelSize_;  //!< min label size
 

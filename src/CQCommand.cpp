@@ -195,12 +195,17 @@ paintEvent(QPaintEvent *)
   //---
 
   // draw prompt
-  promptY_     = y;
-  promptWidth_ = prompt().length()*charWidth_;
+  promptY_ = y;
 
-  drawPrompt(&painter, nullptr, y);
+  if (isShowPrompt()) {
+    promptWidth_ = prompt().length()*charWidth_;
 
-  x += promptWidth_;
+    drawPrompt(&painter, nullptr, y);
+
+    x += promptWidth_;
+  }
+  else
+    promptWidth_ = 0;
 
   //---
 
@@ -301,8 +306,10 @@ drawLine(QPainter *painter, Line *line, int y)
   if (y + charHeight_ < 0)
     return;
 
-  if (line->type() == LineType::COMMAND)
-    drawPrompt(painter, line, y);
+  if (line->type() == LineType::COMMAND) {
+    if (isShowPrompt())
+      drawPrompt(painter, line, y);
+  }
 
   if      (line->type() == LineType::OUTPUT)
     painter->setPen(outputColor_);

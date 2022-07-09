@@ -429,6 +429,8 @@ addProperties()
 
   addStyleProp("select", "selectedColor", "selectedColor",
                "Selected Color (if not stroked/filled)");
+  addStyleProp("select", "selectedAlpha", "selectedAlpha",
+               "Selected Alpha (if not stroked/filled)");
 
   // region mode
   addProp("region", "regionMode", "mode", "Region mode", true);
@@ -454,6 +456,7 @@ addProperties()
   addInsideProp("highlight/stroke", "StrokeDash" , "dash"   , "stroke dash");
 
   addStyleProp("inside", "insideColor", "insideColor", "Inside Color");
+  addStyleProp("inside", "insideAlpha", "insideAlpha", "Inside Alpha");
 
   // fade
   addStyleProp("fade", "overlayFade"     , "enabled", "Fade non-overlay");
@@ -5488,7 +5491,7 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
 
       Alpha alpha;
 
-      if (isBufferLayers()) {
+      if (isBufferLayers() && isInsideFilled()) {
         if (isInsideBlend())
           alpha = Alpha(insideFillAlpha().value()*bc.alphaF());
         else
@@ -5561,8 +5564,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
           opc = CQChartsUtil::invColor(bc);
       }
 
-      setPen(penBrush,
-        PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+      setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
 
       setBrush(penBrush, BrushData(false));
 
@@ -5583,7 +5585,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       Alpha alpha;
 
-      if (isBufferLayers()) {
+      if (isBufferLayers() && isSelectedFilled()) {
         if (isInsideBlend())
           alpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
         else
@@ -5636,9 +5638,9 @@ calcInsideColor(const QColor &c) const
     charts()->resetContrastColor();
   }
   else
-    c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
+    c1 = c;
 
-  return c1;
+  return CQChartsUtil::blendColors(c1, CQChartsUtil::bwColor(c1), insideAlpha());
 }
 
 QColor
@@ -5655,9 +5657,9 @@ calcSelectedColor(const QColor &c) const
     charts()->resetContrastColor();
   }
   else
-    c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
+    c1 = c;
 
-  return c1;
+  return CQChartsUtil::blendColors(c1, CQChartsUtil::bwColor(c1), selectedAlpha());
 }
 
 //------

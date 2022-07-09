@@ -217,6 +217,10 @@ void drawSimpleText(PaintDevice *device, const Point &pos, const QString &text);
 
 //---
 
+void drawSelectedOutline(PaintDevice *device, const BBox &rect);
+
+//---
+
 void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
                 const Point &c, const Length &size, bool scale=false);
 void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,

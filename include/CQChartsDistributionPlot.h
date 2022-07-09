@@ -741,7 +741,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   const CQChartsReals &bucketStops() const { return bucketStops_; }
   void setBucketStops(const CQChartsReals &r);
 
-  int numUniqueValues() const;
+  uint numUniqueValues() const;
 
   bool isExactBucketValue() const { return exactValue_; }
   void setExactBucketValue(bool b);
@@ -1169,7 +1169,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQChartsOptReal overflowBucket_;           //!< overflow bucket threshold
   CQBucketer      bucketer_;                 //!< shared bucketer
   bool            bucketed_       { true };  //!< is bucketed
-  int             numUnique_      { 0 };     //!< num unique values
+  uint            numUnique_      { 0 };     //!< num unique values
   CQChartsReals   bucketStops_;              //!< explicit bucket stops
   bool            exactValue_     { false }; //!< force bucket of exact values
 

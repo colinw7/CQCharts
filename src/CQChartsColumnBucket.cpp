@@ -264,7 +264,7 @@ iname(int ind) const
     return "";
 }
 
-int
+uint
 CQChartsColumnBucket::
 numUnique() const
 {
@@ -295,7 +295,7 @@ numBuckets() const
   }
   else if (columnType() == ColumnType::INTEGER) {
     if (isExactValue())
-      return numUnique();
+      return int(numUnique());
 
     auto imin = this->imin();
     auto imax = this->imax();
@@ -307,7 +307,7 @@ numBuckets() const
   }
   else {
     if (isExactValue())
-      return numUnique();
+      return int(numUnique());
 
     return valueSet_->svals().numBuckets();
   }

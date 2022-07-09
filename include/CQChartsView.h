@@ -145,7 +145,9 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsAlpha overlayFadeAlpha READ overlayFadeAlpha WRITE setOverlayFadeAlpha)
 
   Q_PROPERTY(CQChartsColor insideColor   READ insideColor   WRITE setInsideColor  )
+  Q_PROPERTY(CQChartsAlpha insideAlpha   READ insideAlpha   WRITE setInsideAlpha  )
   Q_PROPERTY(CQChartsColor selectedColor READ selectedColor WRITE setSelectedColor)
+  Q_PROPERTY(CQChartsAlpha selectedAlpha READ selectedAlpha WRITE setSelectedAlpha)
 
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
@@ -896,10 +898,16 @@ class CQChartsView : public QFrame,
   Color insideColor() const { return insideColor_; }
   void setInsideColor(const Color &c) { insideColor_ = c; }
 
+  const Alpha &insideAlpha() const { return insideAlpha_; }
+  void setInsideAlpha(const Alpha &a) { insideAlpha_ = a; }
+
   QColor calcSelectedColor(const QColor &c) const;
 
   Color selectedColor() const { return selectedColor_; }
   void setSelectedColor(const Color &c) { selectedColor_ = c; }
+
+  const Alpha &selectedAlpha() const { return selectedAlpha_; }
+  void setSelectedAlpha(const Alpha &a) { selectedAlpha_ = a; }
 
   //---
 
@@ -1772,7 +1780,10 @@ class CQChartsView : public QFrame,
   RegionMgrP regionMgr_; //!< region widget manager
 
   Color insideColor_;
+  Alpha insideAlpha_ { 0.8 };
+
   Color selectedColor_;
+  Alpha selectedAlpha_ { 0.6 };
 
   //---
 

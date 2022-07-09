@@ -953,7 +953,7 @@ calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
 
   int n = details->numRows();
 
-  for (int i = 0; i < n; ++i) {
+  for (uint i = 0; i < uint(n); ++i) {
     auto value = details->value(i);
 
     int bucket = details->bucket(value);
@@ -1256,7 +1256,7 @@ drawScatter(PaintDevice *device) const
 
   poly_ = Polygon();
 
-  for (int i = 0; i < nx; ++i) {
+  for (uint i = 0; i < uint(nx); ++i) {
     double x = 0.0, y = 0.0;
 
     if (details1->isNumeric()) {
@@ -1517,7 +1517,7 @@ drawBoxPlot(PaintDevice *device) const
 
     CQChartsBoxWhisker whisker;
 
-    for (int i = 0; i < n; ++i) {
+    for (uint i = 0; i < uint(n); ++i) {
       bool ok;
       double r = CQChartsVariant::toReal(details->value(i), ok);
       if (! ok) continue;
@@ -1700,7 +1700,7 @@ drawDensity(PaintDevice *device) const
 
   int n = details->numRows();
 
-  for (int i = 0; i < n; ++i) {
+  for (uint i = 0; i < uint(n); ++i) {
     auto value = details->value(i);
 
     bool ok;
@@ -1810,7 +1810,7 @@ initGroupedValues()
     auto *details2 = plot_->columnDetails(column2);
     if (! details1 || ! details2) return;
 
-    for (int ir = 0; ir < nr; ++ir) {
+    for (uint ir = 0; ir < uint(nr); ++ir) {
       auto var = groupDetails->value(ir);
 
       int ig = groupDetails->uniqueId(var);
@@ -1848,7 +1848,7 @@ initGroupedValues()
     auto *details = plot_->columnDetails(column);
     if (! details) return;
 
-    for (int ir = 0; ir < nr; ++ir) {
+    for (uint ir = 0; ir < uint(nr); ++ir) {
       auto var = groupDetails->value(ir);
 
       int ig = groupDetails->uniqueId(var);

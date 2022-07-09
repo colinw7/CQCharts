@@ -474,11 +474,15 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   auto c = charts()->interpColor(color, CQChartsUtil::ColorInd());
 
+  painter->save();
+
   painter->setBrush(QBrush(c));
   painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
 //painter->fillRect(rect, QBrush(c));
   painter->drawRect(rect);
+
+  painter->restore();
 
   int x = rect.right() + 2;
 //int y = rect.top() + fm.ascent();
@@ -506,6 +510,8 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
   painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
   if (symbol.isValid()) {
+    painter->save();
+
     painter->setBrush(Qt::NoBrush);
 
     CQChartsPixelPaintDevice device(painter);
@@ -513,6 +519,8 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
     auto symbolSize = CQChartsLength::pixel(rect.height()/2.0);
 
     CQChartsDrawUtil::drawSymbol(&device, symbol, CQChartsGeom::Point(rect.center()), symbolSize);
+
+    painter->restore();
   }
 
   QFontMetrics fm(painter->font());
@@ -543,6 +551,8 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
   painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
   if (image.isValid()) {
+    painter->save();
+
     image.resolve(charts());
 
     painter->setBrush(Qt::NoBrush);
@@ -552,6 +562,8 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
     CQChartsGeom::BBox pbbox(option.rect);
 
     device.drawImageInRect(device.pixelToWindow(pbbox), image, /*stretch*/false);
+
+    painter->restore();
   }
 }
 

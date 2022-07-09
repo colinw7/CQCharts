@@ -36,6 +36,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
+#include <QApplication>
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -170,6 +171,10 @@ init()
   //---
 
   setSymbol(Symbol::circle());
+
+  QFontMetrics fm(qApp->font());
+  setSymbolSize(Length::pixel(fm.height()/3.0));
+
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color::makePalette());
@@ -333,7 +338,7 @@ columnValueToString(const Column &column, const QVariant &var) const
   if (column == yColumn() && CQChartsVariant::isReal(var))
     return yStr(CQChartsVariant::toReal(var, ok));
 
-  return var.toString();
+  return CQChartsVariant::toString(var, ok);
 }
 
 //---
@@ -581,6 +586,8 @@ addProperties()
   //---
 
   // options
+  addProp("points", "outlineSelected", "outlineSelected", "Outline selected point");
+
   addProp("options", "plotType" , "plotType" , "Plot type");
 
   addProp("filter", "minSymbolSize", "", "Min symbol size");
@@ -1106,8 +1113,10 @@ updateAxes()
     if (isUniqueX()) {
       auto *columnDetails = this->columnDetails(xColumn());
 
-      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-        xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i) {
+        bool ok;
+        xAxis()->setTickLabel(i, CQChartsVariant::toString(columnDetails->uniqueValue(i), ok));
+      }
     }
   }
 
@@ -1119,8 +1128,10 @@ updateAxes()
     if (isUniqueY()) {
       auto *columnDetails = this->columnDetails(yColumn());
 
-      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
-        yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+      for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i) {
+        bool ok;
+        yAxis()->setTickLabel(i, CQChartsVariant::toString(columnDetails->uniqueValue(i), ok));
+      }
     }
   }
 
@@ -1284,12 +1295,8 @@ dataFitBBox() const
     if (! plotObj->isVisible())
       continue;
 
-    auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
-
-    if (pointObj) {
-      if (pointObj->isFiltered())
-        continue;
-    }
+    if (plotObj->isFiltered())
+      continue;
 
     bbox += plotObj->rect();
   }
@@ -4374,7 +4381,9 @@ calcTipId() const
     if (plot()->isUniqueX()) {
       auto *columnDetails = plot()->columnDetails(plot()->xColumn());
 
-      xstr = (columnDetails ? columnDetails->uniqueValue(int(x)).toString() : plot()->xStr(x));
+      bool ok;
+      xstr = (columnDetails ?
+        CQChartsVariant::toString(columnDetails->uniqueValue(int(x)), ok) : plot()->xStr(x));
     }
     else
       xstr = plot()->xStr(x);
@@ -4392,7 +4401,9 @@ calcTipId() const
     if (plot()->isUniqueY()) {
       auto *columnDetails = plot()->columnDetails(plot()->yColumn());
 
-      ystr = (columnDetails ? columnDetails->uniqueValue(int(y)).toString() : plot()->yStr(y));
+      bool ok;
+      ystr = (columnDetails ?
+        CQChartsVariant::toString(columnDetails->uniqueValue(int(y)), ok) : plot()->yStr(y));
     }
     else
       ystr = plot()->yStr(y);
@@ -4478,9 +4489,7 @@ void
 CQChartsScatterPointObj::
 draw(PaintDevice *device) const
 {
-  if (isFiltered())
-    return;
-
+  // skip if too small
   if (this->isMinSymbolSize())
     return;
 
@@ -4528,10 +4537,13 @@ draw(PaintDevice *device) const
 
     auto ps = plot_->windowToPixel(point());
 
-    BBox pbbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+    auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
     device->drawImageInRect(plot()->pixelToWindow(pbbox), image);
   }
+
+  if (isSelected() && plot()->isOutlineSelected())
+    CQChartsDrawUtil::drawSelectedOutline(device, rect());
 
   device->resetColorNames();
 

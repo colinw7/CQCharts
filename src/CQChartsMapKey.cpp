@@ -3,6 +3,7 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsPixelPaintDevice.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -427,6 +428,16 @@ setDrawPainterFont(PaintDevice *device, const Font &textFont)
     setPainterFont(device, textFont);
 }
 
+CQColorsPalette *
+CQChartsMapKey::
+colorsPalette() const
+{
+  if (paletteName().isValid())
+    return paletteName().palette();
+  else
+    return view()->themePalette();
+}
+
 //---
 
 bool
@@ -587,10 +598,17 @@ QString
 CQChartsMapKey::
 uniqueValueName(int i, QString &itemLabel) const
 {
-  auto name = uniqueValues()[i].toString();
+  bool ok;
+  auto name = CQChartsVariant::toString(uniqueLabel(i), ok);
 
-  if (isItemCount())
-    itemLabel = QString("%1 (%2)").arg(name).arg(uniqueCounts()[i].toString());
+  if (! ok)
+    name = CQChartsVariant::toString(uniqueValue(i), ok);
+
+  if (isItemCount()) {
+    auto countStr = CQChartsVariant::toString(uniqueCount(i), ok);
+
+    itemLabel = QString("%1 (%2)").arg(name).arg(countStr);
+  }
   else
     itemLabel = name;
 
@@ -803,14 +821,7 @@ drawContiguous(PaintDevice *device)
 
   QLinearGradient lg(gbbox.getXMid(), gbbox.getYMax(), gbbox.getXMid(), gbbox.getYMin());
 
-  CQColorsPalette *colorsPalette = nullptr;
-
-  if (paletteName().isValid())
-    colorsPalette = paletteName().palette();
-  else
-    colorsPalette = view()->themePalette();
-
-  colorsPalette->setLinearGradient(lg, 1.0, mapMin(), mapMax());
+  colorsPalette()->setLinearGradient(lg, 1.0, mapMin(), mapMax());
 
   QBrush brush(lg);
 
@@ -892,12 +903,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
   //---
 
-  CQColorsPalette *colorsPalette = nullptr;
-
-  if (paletteName().isValid())
-    colorsPalette = paletteName().palette();
-  else
-    colorsPalette = view()->themePalette();
+  auto *colorsPalette = this->colorsPalette();
 
   double bx = pbbox_.getXMin() + bm;
   double by = pbbox_.getYMin() + bm;
@@ -923,16 +929,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
     //---
 
-    Color  color;
-    QColor c;
-
-    if (! colorData_.colorMap.valueToColor(name, color)) {
-      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
-
-      c = colorsPalette->getColor(r);
-    }
-    else
-      c = color.color();
+    auto c = uniqueValueColor(i, n, name, mapMin, mapMax);
 
     //---
 
@@ -1032,6 +1029,35 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
 
     drawTextLabel(Point(tx, ty + (i + 0.5)*bs + df), itemLabel);
   }
+}
+
+QColor
+CQChartsColorMapKey::
+uniqueValueColor(int i, int n, const QString &name, double mapMin, double mapMax) const
+{
+  QColor c;
+  Color  color;
+
+  if (CQChartsVariant::isColor(uniqueValue(i))) {
+    bool ok;
+
+    color = CQChartsVariant::toColor(uniqueValue(i), ok);
+
+    c = color.color();
+  }
+  else {
+    if (! colorData_.colorMap.valueToColor(name, color)) {
+      auto *colorsPalette = this->colorsPalette();
+
+      double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
+
+      c = colorsPalette->getColor(r);
+    }
+    else
+      c = color.color();
+  }
+
+  return c;
 }
 
 QSize

@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + scatter connect object with name column (don't want single value grouping)
  + allow force real bucket in distribution plot
  + format_scale for integers or only reals ?
  + Connected Scatter Ignore Hidden

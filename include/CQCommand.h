@@ -54,8 +54,9 @@ class ScrollArea : public CQScrollArea {
 class CommandWidget : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QString prompt   READ prompt   WRITE setPrompt  )
-  Q_PROPERTY(int     minLines READ minLines WRITE setMinLines)
+  Q_PROPERTY(QString prompt     READ prompt       WRITE setPrompt    )
+  Q_PROPERTY(int     minLines   READ minLines     WRITE setMinLines  )
+  Q_PROPERTY(bool    showPrompt READ isShowPrompt WRITE setShowPrompt)
 
  public:
   enum class CompleteMode {
@@ -179,6 +180,9 @@ class CommandWidget : public QFrame {
   const QString &prompt() const { return prompt_; }
   void setPrompt(const QString &s) { prompt_ = s; }
 
+  bool isShowPrompt() const { return showPrompt_; }
+  void setShowPrompt(bool b) { showPrompt_ = b; }
+
   int minLines() const { return minLines_; }
   void setMinLines(int i) { minLines_ = i; }
 
@@ -262,7 +266,10 @@ class CommandWidget : public QFrame {
 
   ScrollArea* area_         { nullptr };
   LineList    lines_;
-  QString     prompt_;
+
+  QString prompt_;
+  bool    showPrompt_ { true };
+
   QStringList commands_;
   int         commandNum_   { -1 };
   int         minLines_     { 5 };

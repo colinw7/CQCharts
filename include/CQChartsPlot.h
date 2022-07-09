@@ -176,19 +176,21 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // . tipHeaderColumn/tipColumns/noTipColumns used for object tooltips for data in extra rows
   // . visibleColumn used for individual row hide in model traversal
   // . colorColumn and alphaColumn used for custom color for data on row
+  // . colorLanelColumn used for custom color label on key
   // . fontColumn used for custom font for data on row
   // . imageColumn used for custom image for data on row
   // . controlColumns used for controls for filters on data in specified column
-  Q_PROPERTY(CQChartsColumn  idColumn        READ idColumn        WRITE setIdColumn       )
-  Q_PROPERTY(CQChartsColumn  tipHeaderColumn READ tipHeaderColumn WRITE setTipHeaderColumn)
-  Q_PROPERTY(CQChartsColumns tipColumns      READ tipColumns      WRITE setTipColumns     )
-  Q_PROPERTY(CQChartsColumns noTipColumns    READ noTipColumns    WRITE setNoTipColumns   )
-  Q_PROPERTY(CQChartsColumn  visibleColumn   READ visibleColumn   WRITE setVisibleColumn  )
-  Q_PROPERTY(CQChartsColumn  colorColumn     READ colorColumn     WRITE setColorColumn    )
-  Q_PROPERTY(CQChartsColumn  alphaColumn     READ alphaColumn     WRITE setAlphaColumn    )
-  Q_PROPERTY(CQChartsColumn  fontColumn      READ fontColumn      WRITE setFontColumn     )
-  Q_PROPERTY(CQChartsColumn  imageColumn     READ imageColumn     WRITE setImageColumn    )
-  Q_PROPERTY(CQChartsColumns controlColumns  READ controlColumns  WRITE setControlColumns )
+  Q_PROPERTY(CQChartsColumn  idColumn         READ idColumn         WRITE setIdColumn        )
+  Q_PROPERTY(CQChartsColumn  tipHeaderColumn  READ tipHeaderColumn  WRITE setTipHeaderColumn )
+  Q_PROPERTY(CQChartsColumns tipColumns       READ tipColumns       WRITE setTipColumns      )
+  Q_PROPERTY(CQChartsColumns noTipColumns     READ noTipColumns     WRITE setNoTipColumns    )
+  Q_PROPERTY(CQChartsColumn  visibleColumn    READ visibleColumn    WRITE setVisibleColumn   )
+  Q_PROPERTY(CQChartsColumn  colorColumn      READ colorColumn      WRITE setColorColumn     )
+  Q_PROPERTY(CQChartsColumn  colorLabelColumn READ colorLabelColumn WRITE setColorLabelColumn)
+  Q_PROPERTY(CQChartsColumn  alphaColumn      READ alphaColumn      WRITE setAlphaColumn     )
+  Q_PROPERTY(CQChartsColumn  fontColumn       READ fontColumn       WRITE setFontColumn      )
+  Q_PROPERTY(CQChartsColumn  imageColumn      READ imageColumn      WRITE setImageColumn     )
+  Q_PROPERTY(CQChartsColumns controlColumns   READ controlColumns   WRITE setControlColumns  )
 
   // color map (for color column)
   Q_PROPERTY(ColorType           colorType       READ colorType       WRITE setColorType      )
@@ -2025,6 +2027,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &colorColumn() const { return colorColumnData_.column; };
   virtual void setColorColumn(const Column &c);
 
+  const Column &colorLabelColumn() const { return colorLabelColumn_; };
+  virtual void setColorLabelColumn(const Column &c);
+
   const Column &alphaColumn() const { return alphaColumnData_.column; };
   void setAlphaColumn(const Column &c);
 
@@ -3632,16 +3637,17 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   ColumnValueFilter columnValueFilter_; //!< per column value filter
 
   // columns
-  Column  xValueColumn_;    //!< x axis value column
-  Column  yValueColumn_;    //!< y axis value column
-  Column  idColumn_;        //!< unique data id column (signalled)
-  Column  tipHeaderColumn_; //!< tip header column
-  Columns tipColumns_;      //!< tip columns
-  Columns noTipColumns_;    //!< no tip columns
-  Column  visibleColumn_;   //!< visible column
-  Column  fontColumn_;      //!< font column
-  Column  imageColumn_;     //!< image column
-  Columns controlColumns_;  //!< control columns
+  Column  xValueColumn_;     //!< x axis value column
+  Column  yValueColumn_;     //!< y axis value column
+  Column  idColumn_;         //!< unique data id column (signalled)
+  Column  tipHeaderColumn_;  //!< tip header column
+  Columns tipColumns_;       //!< tip columns
+  Columns noTipColumns_;     //!< no tip columns
+  Column  visibleColumn_;    //!< visible column
+  Column  colorLabelColumn_; //!< color label column
+  Column  fontColumn_;       //!< font column
+  Column  imageColumn_;      //!< image column
+  Columns controlColumns_;   //!< control columns
 
   // color data
   ColorColumnData    colorColumnData_; //!< color column data

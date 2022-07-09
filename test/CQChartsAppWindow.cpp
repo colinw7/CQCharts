@@ -132,5 +132,5 @@ QSize
 CQChartsAppWindow::
 sizeHint() const
 {
-  return QSize(1024, 1024);
+  return QSize(1600, 1200);
 }

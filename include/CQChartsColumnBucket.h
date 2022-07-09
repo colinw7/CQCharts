@@ -94,7 +94,7 @@ class CQChartsColumnBucket {
 
   QVariant bucketValue(int ind) const;
 
-  int numUnique() const;
+  uint numUnique() const;
 
   //---
 
