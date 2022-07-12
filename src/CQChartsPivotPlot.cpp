@@ -86,7 +86,7 @@ CQChartsPivotPlot(View *view, const ModelP &model) :
 CQChartsPivotPlot::
 ~CQChartsPivotPlot()
 {
-  term();
+  CQChartsPivotPlot::term();
 }
 
 //---

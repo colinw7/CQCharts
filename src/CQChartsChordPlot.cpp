@@ -97,7 +97,7 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 CQChartsChordPlot::
 ~CQChartsChordPlot()
 {
-  term();
+  CQChartsChordPlot::term();
 }
 
 //---

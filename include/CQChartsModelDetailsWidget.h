@@ -43,7 +43,7 @@ class CQChartsModelDetailsWidget : public QFrame, public CQChartsWidgetIFace {
 
   void invalidate();
 
- private slots:
+ private Q_SLOTS:
   void invalidateSlot();
   void flipSlot(int state);
   void updateSlot();

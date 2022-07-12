@@ -13,10 +13,10 @@ class CQChartsDocument : public QTextBrowser {
  public:
   CQChartsDocument(QWidget *parent=nullptr);
 
- signals:
+ Q_SIGNALS:
   void linkClicked(const QString &name);
 
- private slots:
+ private Q_SLOTS:
   void anchorSlot(const QUrl &url);
 };
 

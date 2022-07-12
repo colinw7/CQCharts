@@ -85,7 +85,7 @@ class CQChartsHelpDlg : public QDialog {
 
   void setHtml(const QString &text);
 
- private slots:
+ private Q_SLOTS:
   void prevSlot();
   void nextSlot();
 

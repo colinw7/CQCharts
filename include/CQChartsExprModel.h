@@ -319,7 +319,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
  protected:
   CQChartsModelData *getModelData() const;
 
- protected slots:
+ protected Q_SLOTS:
   void dataChangedSlot(const QModelIndex &from, const QModelIndex &to);
 
  protected:

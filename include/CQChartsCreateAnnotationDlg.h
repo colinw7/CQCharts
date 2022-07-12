@@ -271,7 +271,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool setErrorMsg(const QString &msg);
   void clearErrorMsg();
 
- private slots:
+ private Q_SLOTS:
   void typeSlot(int ind);
 
   void ellipseCenterSlot(bool);

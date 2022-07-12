@@ -237,7 +237,7 @@ CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model) :
 CQChartsConnectionPlot::
 ~CQChartsConnectionPlot()
 {
-  term();
+  CQChartsConnectionPlot::term();
 }
 
 //---

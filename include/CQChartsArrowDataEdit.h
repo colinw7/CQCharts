@@ -29,10 +29,10 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void arrowDataChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -81,7 +81,7 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
 
   CQChartsLengthEdit *lengthEdit() const { return lengthEdit_; }
 
- signals:
+ Q_SIGNALS:
   void arrowDataChanged();
 
  private:
@@ -89,7 +89,7 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
 
   void dataToWidgets();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

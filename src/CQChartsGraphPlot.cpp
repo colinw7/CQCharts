@@ -95,7 +95,7 @@ CQChartsGraphPlot(View *view, const ModelP &model) :
 CQChartsGraphPlot::
 ~CQChartsGraphPlot()
 {
-  term();
+  CQChartsGraphPlot::term();
 }
 
 //---

@@ -42,12 +42,12 @@ class CQChartsGeomPointEdit : public QFrame {
  private:
   void init(const Point &value);
 
- private slots:
+ private Q_SLOTS:
   void editingFinishedI();
 
   void regionSlot(const CQChartsGeom::Point &p);
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
   void regionChanged();

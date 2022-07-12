@@ -22,13 +22,13 @@ class CQChartsUnitsEdit : public QComboBox {
 
   QSize sizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void unitsChanged();
 
  private:
   void updateTip();
 
- private slots:
+ private Q_SLOTS:
   void indexChanged();
 
  private:

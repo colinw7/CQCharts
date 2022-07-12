@@ -649,7 +649,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
  public:
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
- public slots:
+ public Q_SLOTS:
   void setPointLabels(bool b);
 
   // symbol keys
@@ -668,10 +668,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void setXRug(bool b);
   void setYRug(bool b);
 
- protected slots:
+ protected Q_SLOTS:
   void dataLabelChanged();
 
- signals:
+ Q_SIGNALS:
   // emitted when symbol size details changed (symbol size column, symbol size range)
   void symbolSizeDetailsChanged();
 

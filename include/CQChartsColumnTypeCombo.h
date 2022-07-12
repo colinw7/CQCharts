@@ -22,13 +22,13 @@ class CQChartsColumnTypeCombo : public QComboBox {
   const CQChartsColumnType *columnType() const;
   void setColumnType(const CQChartsColumnType *type);
 
- signals:
+ Q_SIGNALS:
   void typeChanged();
 
  private:
   void init();
 
- private slots:
+ private Q_SLOTS:
   void indexChangedSlot(int);
 
  private:

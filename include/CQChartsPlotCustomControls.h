@@ -136,13 +136,13 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   void updateColorKeyVisible();
 
- signals:
+ Q_SIGNALS:
   void numericOnlyChanged();
 
- public slots:
+ public Q_SLOTS:
   virtual void updateWidgets();
 
- protected slots:
+ protected Q_SLOTS:
   void colorGroupChanged();
 
   void plotDrawnSlot();
@@ -239,7 +239,7 @@ class CQChartsPlotCustomKey : public QFrame {
  private:
   void addItems(const CQChartsKeyItem *item, int &row);
 
- private slots:
+ private Q_SLOTS:
   void boolClickSlot(int row, int column, bool b);
 
  private:
@@ -292,7 +292,7 @@ class CQChartsPlotColumnChooser : public QFrame {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void columnClickSlot(int row, int column, bool b);
 
  private:

@@ -24,7 +24,7 @@ class CQChartsLayerTableControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsPlot *plot() const { return plot_; }
   void setPlot(CQChartsPlot *plot);
 
- private slots:
+ private Q_SLOTS:
   void viewLayerImageSlot();
   void plotLayerImageSlot();
 
@@ -52,7 +52,7 @@ class CQChartsViewLayerTable : public CQTableWidget, public CQChartsWidgetIFace 
 
   void updateLayers(CQChartsView *view);
 
- private slots:
+ private Q_SLOTS:
   void selectionChangeSlot();
   void clickedSlot(int row, int column);
 
@@ -79,7 +79,7 @@ class CQChartsPlotLayerTable : public CQTableWidget, public CQChartsWidgetIFace 
 
   bool getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &active);
 
- private slots:
+ private Q_SLOTS:
   void selectionChangeSlot();
   void clickedSlot(int row, int column);
 

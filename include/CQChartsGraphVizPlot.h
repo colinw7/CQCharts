@@ -1134,7 +1134,7 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

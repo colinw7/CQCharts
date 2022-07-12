@@ -22,10 +22,10 @@ class CQChartsAngleEdit : public CQAngleSpinBox {
   const Angle &angle() const { return angle_; }
   void setAngle(const Angle &angle);
 
- signals:
+ Q_SIGNALS:
   void angleChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
 
  private:

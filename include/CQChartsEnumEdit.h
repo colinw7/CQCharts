@@ -36,10 +36,10 @@ class CQChartsEnumEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   void enumChanged();
 
- protected slots:
+ protected Q_SLOTS:
   void comboChanged();
 
  protected:

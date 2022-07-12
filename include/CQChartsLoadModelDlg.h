@@ -66,10 +66,10 @@ class CQChartsLoadModelDlg : public QDialog {
 
   QSize sizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void modelLoaded(int);
 
- private slots:
+ private Q_SLOTS:
   void previewFileSlot();
   void typeSlot();
   void updatePreviewSlot();

@@ -210,7 +210,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   bool isAdvanced() const { return advanced_; }
 
- private slots:
+ private Q_SLOTS:
   void comboSlot(const QString &desc);
 
   void advancedSlot(int);

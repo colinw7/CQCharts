@@ -808,7 +808,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   void printStats();
 
- protected slots:
+ protected Q_SLOTS:
   void fixSelected();
   void unfixSelected();
 
@@ -882,7 +882,7 @@ class CQChartsGraphPlotCustomControls : public CQChartsConnectionPlotCustomContr
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

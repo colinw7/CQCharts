@@ -373,10 +373,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
- public slots:
+ public Q_SLOTS:
   void zoomFull(bool notify=true) override;
 
- private slots:
+ private Q_SLOTS:
   void currentPlotSlot();
 
  private:

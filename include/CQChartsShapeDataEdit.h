@@ -25,10 +25,10 @@ class CQChartsShapeDataLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void shapeDataChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -78,7 +78,7 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
 
   void setPreview(bool b);
 
- signals:
+ Q_SIGNALS:
   void shapeDataChanged();
 
  private:
@@ -86,7 +86,7 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

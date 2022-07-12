@@ -24,10 +24,10 @@ class CQChartsFillUnderSideEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   void fillUnderSideChanged();
 
- private slots:
+ private Q_SLOTS:
   void comboChanged();
 
  private:
@@ -102,10 +102,10 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void fillUnderPosChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -144,10 +144,10 @@ class CQChartsFillUnderPosEdit : public CQChartsEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect);
 
- signals:
+ Q_SIGNALS:
   void fillUnderPosChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToFillUnderPos();
 
  private:

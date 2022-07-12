@@ -17,7 +17,7 @@ class CQChartsEditKeyDlg : public QDialog {
  public:
   CQChartsEditKeyDlg(QWidget *parent, CQChartsKey *key);
 
- private slots:
+ private Q_SLOTS:
   void okSlot();
   bool applySlot();
   void cancelSlot();
@@ -56,7 +56,7 @@ class CQChartsKeyEdit : public QFrame {
 
   void applyData();
 
- signals:
+ Q_SIGNALS:
   void keyChanged();
 
  private:
@@ -64,7 +64,7 @@ class CQChartsKeyEdit : public QFrame {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

@@ -607,7 +607,7 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -624,7 +624,7 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void runningSlot(int);
   void stepSlot();
 

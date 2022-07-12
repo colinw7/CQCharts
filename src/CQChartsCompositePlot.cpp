@@ -74,7 +74,7 @@ CQChartsCompositePlot(View *view, const ModelP &model) :
 CQChartsCompositePlot::
 ~CQChartsCompositePlot()
 {
-  term();
+  CQChartsCompositePlot::term();
 }
 
 //---

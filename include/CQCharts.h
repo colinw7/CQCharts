@@ -401,7 +401,7 @@ class CQCharts : public QObject {
 
   void errorMsg(const QString &msg) const;
 
- signals:
+ Q_SIGNALS:
   void modelDataAdded(int);
   void modelDataRemoved(int);
   void modelDataChanged();
@@ -424,7 +424,7 @@ class CQCharts : public QObject {
   void themeChanged();
   void interfaceThemeChanged();
 
- private slots:
+ private Q_SLOTS:
   void propertyItemChanged(QObject *, const QString &);
 
   void exitSlot();

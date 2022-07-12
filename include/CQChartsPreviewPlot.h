@@ -36,10 +36,10 @@ class CQChartsPreviewPlot : public QFrame {
 
   Plot *plot() const { return plot_; }
 
- signals:
+ Q_SIGNALS:
   void enableStateChanged();
 
- private slots:
+ private Q_SLOTS:
   void enabledSlot();
   void fitSlot();
 

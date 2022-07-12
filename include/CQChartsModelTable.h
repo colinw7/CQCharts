@@ -25,7 +25,7 @@ class CQChartsModelTableControl : public QFrame, public CQChartsWidgetIFace {
  private:
   void updateState();
 
- private slots:
+ private Q_SLOTS:
   void modelsSelectionChangeSlot();
 
   void loadModelSlot();
@@ -59,7 +59,7 @@ class CQChartsModelTable : public CQTableWidget, public CQChartsWidgetIFace {
 
   QSize sizeHint() const override;
 
- protected slots:
+ protected Q_SLOTS:
   void updateModels();
 
  private:

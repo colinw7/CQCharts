@@ -60,14 +60,14 @@ class CQChartsTable : public CQTableView {
 
   CQChartsModelData *getModelData();
 
- signals:
+ Q_SIGNALS:
   void columnClicked(int);
 
   void filterChanged();
 
   void selectionHasChanged();
 
- private slots:
+ private Q_SLOTS:
   void modelTypeChangedSlot(int);
 
   void headerClickedSlot(int section);

@@ -27,7 +27,7 @@ class CQChartsPaletteControl : public QFrame, public CQChartsWidgetIFace {
 
   void updateView();
 
- private slots:
+ private Q_SLOTS:
   void palettesComboSlot(int);
 
   void resetSlot();

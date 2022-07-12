@@ -47,10 +47,10 @@ class CQChartsModelColumnDataControl : public QFrame, public CQChartsWidgetIFace
 
   void init();
 
- private slots:
+ private Q_SLOTS:
   void setColumnData(int column);
 
- private slots:
+ private Q_SLOTS:
   void columnNumChanged();
 
   void typeChangedSlot();

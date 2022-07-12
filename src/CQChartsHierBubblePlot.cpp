@@ -62,7 +62,7 @@ CQChartsHierBubblePlot(View *view, const ModelP &model) :
 CQChartsHierBubblePlot::
 ~CQChartsHierBubblePlot()
 {
-  term();
+  CQChartsHierBubblePlot::term();
 }
 
 //---

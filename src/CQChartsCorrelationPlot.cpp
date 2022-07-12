@@ -96,7 +96,7 @@ CQChartsCorrelationPlot(View *view, const ModelP &model) :
 CQChartsCorrelationPlot::
 ~CQChartsCorrelationPlot()
 {
-  term();
+  CQChartsCorrelationPlot::term();
 }
 
 //---

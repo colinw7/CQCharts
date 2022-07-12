@@ -539,7 +539,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   bool getValueSize(const ModelIndex &ind, double &size) const;
 
- public slots:
+ public Q_SLOTS:
   void pushSlot();
   void popSlot();
   void popTopSlot();
@@ -607,7 +607,7 @@ class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

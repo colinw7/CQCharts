@@ -74,15 +74,15 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsPlot *currentPlot(bool remap=true) const;
 
- signals:
+ Q_SIGNALS:
   void objectsPropertyItemChanged(QObject *obj, const QString &path);
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
- public slots:
+ public Q_SLOTS:
   void updatePlotObjects();
 
- private slots:
+ private Q_SLOTS:
   void updateModels();
   void updateModelsData();
 

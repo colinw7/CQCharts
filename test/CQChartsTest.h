@@ -82,7 +82,7 @@ class CQChartsTest : public QObject {
 
   void errorMsg(const QString &msg);
 
- private slots:
+ private Q_SLOTS:
   void plotObjPressedSlot(CQChartsPlotObj *obj);
 
   void windowCreated(CQChartsWindow *window);

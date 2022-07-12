@@ -102,7 +102,7 @@ CQChartsForceDirectedPlot(View *view, const ModelP &model) :
 CQChartsForceDirectedPlot::
 ~CQChartsForceDirectedPlot()
 {
-  term();
+  CQChartsForceDirectedPlot::term();
 }
 
 //---

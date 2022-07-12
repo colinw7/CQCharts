@@ -232,7 +232,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   BBox calcExtraFitBBox() const override;
 
- public slots:
+ public Q_SLOTS:
   void setRectStyle   (bool b);
   void setBalloonStyle(bool b);
 
@@ -298,13 +298,13 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void cellStyleSlot();
 
  protected:

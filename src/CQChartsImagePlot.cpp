@@ -85,7 +85,7 @@ CQChartsImagePlot(View *view, const ModelP &model) :
 CQChartsImagePlot::
 ~CQChartsImagePlot()
 {
-  term();
+  CQChartsImagePlot::term();
 }
 
 //---

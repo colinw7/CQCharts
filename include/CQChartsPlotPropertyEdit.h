@@ -32,7 +32,7 @@ class CQChartsPlotPropertyEditGroup : public QFrame, public CQChartsWidgetIFace 
 
   QSize sizeHint() const override;
 
- public slots:
+ public Q_SLOTS:
   void addSlot(const QString &data); // [<label>] <property>
 
  private:
@@ -80,7 +80,7 @@ class CQChartsPlotPropertyEdit : public QFrame, public CQChartsWidgetIFace {
 
   void setWidgetPlot(QWidget *widget);
 
- private slots:
+ private Q_SLOTS:
   void updateValue();
 
  private:

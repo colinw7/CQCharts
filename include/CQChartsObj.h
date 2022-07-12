@@ -145,7 +145,7 @@ class CQChartsObj : public QObject {
   //! TODO: signal ?
   virtual void dataInvalidate() { }
 
- signals:
+ Q_SIGNALS:
   //! emitted when object id changed
   void idChanged();
 

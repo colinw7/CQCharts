@@ -26,7 +26,7 @@ class CQChartsBucketModelEdit : public QFrame {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void enabledSlot();
   void columnSlot();
   void typeSlot(int);

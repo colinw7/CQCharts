@@ -40,7 +40,7 @@ class CQChartsViewStatus : public QFrame {
 
   QSize sizeHint() const override;
 
- public slots:
+ public Q_SLOTS:
   void toggleViewErrors();
 
  private:
@@ -68,7 +68,7 @@ class CQChartsViewStatusStatus : public QLabel {
 
   void contextMenuEvent(QContextMenuEvent *e) override;
 
- private slots:
+ private Q_SLOTS:
   void activateSlot(bool);
 
  private:
@@ -94,7 +94,7 @@ class CQChartsViewStatusPos : public QLabel {
 
   void contextMenuEvent(QContextMenuEvent *e) override;
 
- private slots:
+ private Q_SLOTS:
   void activateSlot(bool);
   void posTextTypeAction(QAction *action);
 
@@ -121,7 +121,7 @@ class CQChartsViewStatusSel : public QLabel {
 
   void contextMenuEvent(QContextMenuEvent *e) override;
 
- private slots:
+ private Q_SLOTS:
   void activateSlot(bool);
 
  private:

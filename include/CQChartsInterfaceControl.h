@@ -24,7 +24,7 @@ class CQChartsInterfaceControl : public QFrame, public CQChartsWidgetIFace {
  private:
   void updateView();
 
- private slots:
+ private Q_SLOTS:
   void colorsChangedSlot();
 
  private:

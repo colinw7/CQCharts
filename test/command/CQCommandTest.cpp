@@ -4,9 +4,6 @@
 #include <CQUtil.h>
 #include <QVBoxLayout>
 
-//#define USE_CEIL 1
-#define USE_PYTHON 1
-
 #if defined(USE_CEIL)
 #include <CCeilL.h>
 #endif
@@ -69,6 +66,11 @@ CQCommandTest()
           this, SLOT(executeCommand(const QString &)));
 
   layout->addWidget(command_);
+
+#if defined(USE_PYTHON)
+  pyMain_ = PyImport_AddModule("__main__");
+  pyDict_ = PyModule_GetDict(pyMain_);
+#endif
 }
 
 CQCommandTest::
@@ -92,16 +94,43 @@ executeCommand(const QString &str)
 #elif defined(USE_PYTHON)
   COSExec::grabOutput(true, true);
 
+#if 1
+  static std::string lastRes;
+
+  auto *ret = PyRun_String(str.toLatin1().constData(), Py_file_input, pyDict_, pyDict_);
+  PyRun_SimpleString("\n");
+
+  if (ret) { // success
+    auto* repr    = PyObject_Repr(ret);
+    auto *reprStr = (repr ? PyUnicode_AsEncodedString(repr, "utf-8", "~E~") : nullptr);
+
+    if (reprStr) {
+      auto *reprChars = PyBytes_AS_STRING(reprStr);
+
+      lastRes = reprChars;
+
+      //std::cerr << reprChars << "\n";
+
+      Py_XDECREF(reprStr);
+    }
+
+    Py_XDECREF(repr);
+  }
+  else {
+    PyErr_Print();
+  }
+#else
   if (PyRun_SimpleString(str.toLatin1().constData()) == 0) {
   }
+#endif
 
   std::string ostr;
 
   COSExec::readGrabbedOutput(ostr);
 
-  COSExec::ungrabOutput();
-
   instance_->command_->outputText(ostr.c_str());
+
+  //COSExec::ungrabOutput();
 #else
   std::cerr << str.toStdString() << "\n";
 #endif

@@ -132,13 +132,13 @@ class CQChartsWindow : public QFrame {
  private:
   Plot *objectPlot(QObject *obj) const;
 
- signals:
+ Q_SIGNALS:
   void interfacePaletteChanged();
   void themePalettesChanged();
 
   void expansionChanged();
 
- private slots:
+ private Q_SLOTS:
   void rangeScrollSlot();
 
   void filterAndSlot(bool b);

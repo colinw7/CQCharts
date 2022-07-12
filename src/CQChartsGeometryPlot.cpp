@@ -159,7 +159,7 @@ CQChartsGeometryPlot(View *view, const ModelP &model) :
 CQChartsGeometryPlot::
 ~CQChartsGeometryPlot()
 {
-  term();
+  CQChartsGeometryPlot::term();
 }
 
 //---

@@ -22,10 +22,10 @@ class CQChartsAlphaEdit : public CQComboSlider {
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &alpha);
 
- signals:
+ Q_SIGNALS:
   void alphaChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
 
  private:

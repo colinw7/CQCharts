@@ -23,13 +23,13 @@ class CQChartsModelChooser : public QFrame, public CQChartsWidgetIFace {
 
   int currentModelInd() const;
 
- signals:
+ Q_SIGNALS:
   void currentModelChanged();
 
  private:
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void setCurrentModel(int ind);
 
   void updateModels();

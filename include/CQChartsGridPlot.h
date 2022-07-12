@@ -250,7 +250,7 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -262,7 +262,7 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
 
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void drawTypeSlot();
 
  protected:

@@ -157,7 +157,7 @@ class CQChartsCmdBaseSlot : public QObject {
 
   const QString &proc() const { return procName_; }
 
- public slots:
+ public Q_SLOTS:
   // button
   void clicked();
   void clicked(bool);

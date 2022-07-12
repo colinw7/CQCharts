@@ -480,7 +480,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
                                  const QString &name, double value, double hnorm,
                                  double vnorm, bool valid) const;
 
- protected slots:
+ protected Q_SLOTS:
   void setHorizontal(bool b);
 
   void setPlotTypeSlot (bool b);
@@ -521,7 +521,7 @@ class CQChartsPivotPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

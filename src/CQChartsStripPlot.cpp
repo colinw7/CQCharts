@@ -106,7 +106,7 @@ CQChartsStripPlot(View *view, const ModelP &model) :
 CQChartsStripPlot::
 ~CQChartsStripPlot()
 {
-  term();
+  CQChartsStripPlot::term();
 }
 
 //---

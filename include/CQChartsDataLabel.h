@@ -162,7 +162,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void write(std::ostream &os, const QString &varName) const;
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
  private:

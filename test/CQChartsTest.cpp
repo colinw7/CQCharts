@@ -1166,7 +1166,7 @@ loop()
 {
   int rlTimeout = 10;
 
-  auto readLine = new CQChartsReadLine(this);
+  auto *readLine = new CQChartsReadLine(this);
 
   readLine->enableTimeoutHook(rlTimeout);
 

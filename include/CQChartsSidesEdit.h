@@ -24,7 +24,7 @@ class CQChartsSidesEdit : public QFrame {
 
   QSize sizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void sidesChanged();
 
  private:

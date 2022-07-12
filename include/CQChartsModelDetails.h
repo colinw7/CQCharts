@@ -62,10 +62,10 @@ class CQChartsModelDetails : public QObject {
 
   QAbstractItemModel *model() const;
 
- signals:
+ Q_SIGNALS:
   void detailsReset();
 
- private slots:
+ private Q_SLOTS:
   void modelTypeChangedSlot(int modelInd);
 
  private:

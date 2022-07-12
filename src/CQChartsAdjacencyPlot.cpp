@@ -108,7 +108,7 @@ CQChartsAdjacencyPlot(View *view, const ModelP &model) :
 CQChartsAdjacencyPlot::
 ~CQChartsAdjacencyPlot()
 {
-  term();
+  CQChartsAdjacencyPlot::term();
 }
 
 //---

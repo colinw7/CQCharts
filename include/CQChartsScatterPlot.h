@@ -937,7 +937,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void calcDensityMapImpl(int groupInd);
 
- public slots:
+ public Q_SLOTS:
   // set plot type
   void setPlotType(PlotType plotType);
 
@@ -958,7 +958,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setYDensity(bool b);
   void setYWhisker(bool b);
 
- protected slots:
+ protected Q_SLOTS:
   void symbolSizeMapKeyPositionSlot(QAction *);
   void symbolSizeMapKeyInsideXSlot(bool);
   void symbolSizeMapKeyInsideYSlot(bool);
@@ -1071,7 +1071,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -1091,7 +1091,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void bestFitSlot();
   void convexHullSlot();
   void statsLinesSlot();

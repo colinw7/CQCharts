@@ -275,7 +275,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   virtual CellObj *createCellObj(const BBox &bbox, int row, int col) const;
 
- public slots:
+ public Q_SLOTS:
   void setXLabels(bool b);
   void setYLabels(bool b);
 
@@ -283,7 +283,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   void updatePlotsSlot();
 
- private slots:
+ private Q_SLOTS:
   void modelTypeChangedSlot(int modelId);
 
   void diagonalTypeSlot(bool);
@@ -435,7 +435,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -451,7 +451,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void plotTypeSlot();
 
   void diagonalTypeSlot();

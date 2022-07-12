@@ -42,12 +42,12 @@ class CQChartsGeomBBoxEdit : public QFrame {
  private:
   void init(const BBox &value);
 
- private slots:
+ private Q_SLOTS:
   void editingFinishedI();
 
   void regionSlot(const CQChartsGeom::BBox &bbox);
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
   void regionChanged();

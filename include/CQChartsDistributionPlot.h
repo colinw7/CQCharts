@@ -1043,7 +1043,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
- public slots:
+ public Q_SLOTS:
   // set plot type
   void setPlotType(PlotType plotType);
 
@@ -1206,7 +1206,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -1225,7 +1225,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void orientationSlot();
   void plotTypeSlot();
   void valueTypeSlot();

@@ -24,7 +24,7 @@ class CQChartsHierSepModelEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void enabledSlot();
 
   void updateModelFromWidgets();

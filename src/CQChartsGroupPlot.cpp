@@ -71,7 +71,7 @@ CQChartsGroupPlot(View *view, PlotType *plotType, const ModelP &model) :
 CQChartsGroupPlot::
 ~CQChartsGroupPlot()
 {
-  term();
+  CQChartsGroupPlot::term();
 }
 
 //---
@@ -80,6 +80,7 @@ void
 CQChartsGroupPlot::
 init()
 {
+  CQChartsPlot::init();
 }
 
 void

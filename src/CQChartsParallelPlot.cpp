@@ -126,7 +126,7 @@ CQChartsParallelPlot(View *view, const ModelP &model) :
 CQChartsParallelPlot::
 ~CQChartsParallelPlot()
 {
-  term();
+  CQChartsParallelPlot::term();
 }
 
 //---

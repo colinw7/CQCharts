@@ -25,10 +25,10 @@ class CQChartsSymbolTypeEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   void symbolChanged();
 
- private slots:
+ private Q_SLOTS:
   void comboChanged();
 
  private:

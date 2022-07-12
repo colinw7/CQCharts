@@ -84,7 +84,7 @@ CQChartsHierScatterPlot(View *view, const ModelP &model) :
 CQChartsHierScatterPlot::
 ~CQChartsHierScatterPlot()
 {
-  term();
+  CQChartsHierScatterPlot::term();
 }
 
 //---

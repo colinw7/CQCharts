@@ -25,10 +25,10 @@ class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void symbolChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -76,10 +76,10 @@ class CQChartsSymbolEdit : public CQChartsEditBase {
   QSize sizeHint() const override;
   QSize minimumSizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void symbolChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToSymbol();
 
   void updateState();

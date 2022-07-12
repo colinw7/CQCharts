@@ -127,7 +127,7 @@ class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -137,7 +137,7 @@ class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
 
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void solidSlot();
 
  protected:

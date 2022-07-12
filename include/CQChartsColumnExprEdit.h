@@ -29,13 +29,13 @@ class CQChartsColumnExprEdit : public CQChartsLineEdit {
 
   const QString &subExpr() const { return subExpr_; }
 
- signals:
+ Q_SIGNALS:
   void exprChanged();
 
  private:
   void updateTip();
 
- private slots:
+ private Q_SLOTS:
   void updateSlot();
 
  private:

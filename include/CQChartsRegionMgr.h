@@ -32,13 +32,13 @@ class CQChartsRegionButton : public CQIconButton {
 
   void hideEvent(QHideEvent *) override;
 
- signals:
+ Q_SIGNALS:
   void rectRegionSet (const CQChartsGeom::BBox  &bbox);
   void pointRegionSet(const CQChartsGeom::Point &p);
 
   void hidden();
 
- private slots:
+ private Q_SLOTS:
   void rectRegionSetSlot (const CQChartsGeom::BBox  &bbox);
   void pointRegionSetSlot(const CQChartsGeom::Point &p);
 
@@ -66,7 +66,7 @@ class CQChartsRegionMgr : public QObject {
 
   void activateEdit(QWidget *w);
 
- private slots:
+ private Q_SLOTS:
   void buttonHideSlot();
 
   void regionSlot(bool);

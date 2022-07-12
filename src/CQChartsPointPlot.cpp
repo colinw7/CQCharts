@@ -69,7 +69,7 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
 CQChartsPointPlot::
 ~CQChartsPointPlot()
 {
-  term();
+  CQChartsPointPlot::term();
 }
 
 //---

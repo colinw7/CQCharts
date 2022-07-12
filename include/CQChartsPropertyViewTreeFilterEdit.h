@@ -16,7 +16,7 @@ class CQChartsPropertyViewTreeFilterEdit : public QFrame {
  public:
   CQChartsPropertyViewTreeFilterEdit(CQChartsPropertyViewTree *tree);
 
- private slots:
+ private Q_SLOTS:
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);
 

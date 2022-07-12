@@ -168,7 +168,7 @@ class CQChartsDensity : public QObject {
   void constInit() const;
   void init();
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
  public:

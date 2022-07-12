@@ -340,7 +340,7 @@ class CQChartsModelData : public QObject {
 
   static QVariant modelIndData(QAbstractItemModel *model, const QModelIndex &ind);
 
- private slots:
+ private Q_SLOTS:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
 
   void modelLayoutChangedSlot();
@@ -355,7 +355,7 @@ class CQChartsModelData : public QObject {
 
   void fileChangedSlot(const QString &);
 
- signals:
+ Q_SIGNALS:
   // data changed
   void dataChanged();
 

@@ -371,7 +371,7 @@ class CQChartsArrow : public QObject,
 
   static double pointLineDistance(const Point &p, const Point &p1, const Point &p2);
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
  private:

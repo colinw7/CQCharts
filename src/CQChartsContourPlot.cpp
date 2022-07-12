@@ -69,7 +69,7 @@ CQChartsContourPlot(View *view, const ModelP &model) :
 CQChartsContourPlot::
 ~CQChartsContourPlot()
 {
-  term();
+  CQChartsContourPlot::term();
 }
 
 //---

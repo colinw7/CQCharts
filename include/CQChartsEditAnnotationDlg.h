@@ -247,7 +247,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   bool setErrorMsg(const QString &msg);
   void clearErrorMsg();
 
- private slots:
+ private Q_SLOTS:
   void ellipseCenterSlot(bool);
   void textPositionSlot (bool);
   void imagePositionSlot(bool);

@@ -724,7 +724,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   virtual NodeObj *createNodeObj(Node *node, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
 
- public slots:
+ public Q_SLOTS:
   void pushSlot();
   void popSlot();
   void popTopSlot();
@@ -847,7 +847,7 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -858,7 +858,7 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void headerSlot();
   void valueSlot();
   void followViewSlot();

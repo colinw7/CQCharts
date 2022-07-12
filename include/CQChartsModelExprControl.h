@@ -65,7 +65,7 @@ class CQChartsModelExprControl : public QFrame, public CQChartsWidgetIFace  {
 
   void init();
 
- private slots:
+ private Q_SLOTS:
   void modeSlot();
   void exprSlot();
   void columnSlot();

@@ -21,7 +21,7 @@ class CQChartsManageModelsDlg : public QDialog {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void loadSlot();
   void writeSlot();
   void plotSlot();

@@ -607,13 +607,13 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addConnectionColumnWidgets();
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void columnsTypeSlot();
 
  protected:

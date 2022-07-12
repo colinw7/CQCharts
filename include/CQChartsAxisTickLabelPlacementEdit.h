@@ -35,7 +35,7 @@ class CQChartsAxisTickLabelPlacementEdit : public CQChartsEnumEdit {
 
   void connect(QObject *obj, const char *method) override;
 
- signals:
+ Q_SIGNALS:
   void axisTickLabelPlacementChanged();
 
  private:

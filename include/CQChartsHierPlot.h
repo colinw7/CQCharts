@@ -117,7 +117,7 @@ class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addHierColumnWidgets();
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

@@ -19,7 +19,7 @@ class CQChartsReadLine : public CReadLine {
   }
 
  private:
-  CQChartsTest *test_;
+  CQChartsTest *test_ { nullptr };
 };
 
 #endif

@@ -500,7 +500,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
 
- private slots:
+ private Q_SLOTS:
   void hscrollSlot(int);
   void vscrollSlot(int);
 

@@ -131,7 +131,7 @@ CQChartsSummaryPlot(View *view, const ModelP &model) :
 CQChartsSummaryPlot::
 ~CQChartsSummaryPlot()
 {
-  term();
+  CQChartsSummaryPlot::term();
 }
 
 //---

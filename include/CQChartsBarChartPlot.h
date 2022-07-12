@@ -596,7 +596,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   double getPanX(bool is_shift) const override;
   double getPanY(bool is_shift) const override;
 
- public slots:
+ public Q_SLOTS:
   // set plot type
   void setPlotType(PlotType plotType);
 
@@ -740,7 +740,7 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -759,7 +759,7 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void labelColumnSlot();
   void labelVisibleSlot(int);
 

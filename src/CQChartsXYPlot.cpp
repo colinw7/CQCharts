@@ -220,7 +220,7 @@ CQChartsXYPlot(View *view, const ModelP &model) :
 CQChartsXYPlot::
 ~CQChartsXYPlot()
 {
-  term();
+  CQChartsXYPlot::term();
 }
 
 //---

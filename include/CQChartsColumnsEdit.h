@@ -46,10 +46,10 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void columnsChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -115,10 +115,10 @@ class CQChartsColumnsEdit : public CQChartsEditBase, public CQChartsWidgetIFace 
 
   QSize sizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void columnsChanged();
 
- private slots:
+ private Q_SLOTS:
   void resetModelData();
 
   void addSlot();

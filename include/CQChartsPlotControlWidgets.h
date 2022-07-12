@@ -60,10 +60,10 @@ class CQChartsPlotControlFrame : public QFrame, public CQChartsWidgetIFace {
 
   CQChartsPlotControlIFace *iface(int i) const;
 
- public slots:
+ public Q_SLOTS:
   void setPlotControls();
 
- private slots:
+ private Q_SLOTS:
   void controlsChanged();
 
  private:
@@ -141,7 +141,7 @@ class CQChartsPlotRealControl : public CQChartsPlotControlIFace {
 
   QString filterStr(const QString &) const override;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:
@@ -173,7 +173,7 @@ class CQChartsPlotIntControl : public CQChartsPlotControlIFace {
 
   QString filterStr(const QString &) const override;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:
@@ -205,7 +205,7 @@ class CQChartsPlotTimeControl : public CQChartsPlotControlIFace {
 
   QString filterStr(const QString &) const override;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:
@@ -237,7 +237,7 @@ class CQChartsPlotValueControl : public CQChartsPlotControlIFace {
 
   QString filterStr(const QString &cmpStr) const override;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:

@@ -28,10 +28,10 @@ class CQChartsImageEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   void imageChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
 
   void fileSlot();

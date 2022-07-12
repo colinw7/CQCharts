@@ -39,12 +39,12 @@ class CQChartsLineDashEdit : public QFrame {
  private:
   void updateState();
 
- private slots:
+ private Q_SLOTS:
   void dashChangedSlot();
   void menuItemActivated(QAction *);
   void comboItemChanged();
 
- signals:
+ Q_SIGNALS:
   void valueChanged(const CQChartsLineDash &dash);
 
  private:

@@ -1243,21 +1243,16 @@ valueCount() const
 {
   auto *valueSet = this->calcValueSet();
 
-  if      (type() == CQBaseModelType::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER)
     return uint(valueSet->ivals().size());
-  }
-  else if (type() == CQBaseModelType::REAL) {
+  else if (type() == CQBaseModelType::REAL)
     return uint(valueSet->rvals().size());
-  }
-  else if (type() == CQBaseModelType::STRING) {
+  else if (type() == CQBaseModelType::STRING)
     return uint(valueSet->svals().size());
-  }
-  else if (type() == CQBaseModelType::TIME) {
+  else if (type() == CQBaseModelType::TIME)
     return uint(valueSet->tvals().size());
-  }
-  else if (type() == CQBaseModelType::COLOR) {
+  else if (type() == CQBaseModelType::COLOR)
     return uint(valueSet->cvals().size());
-  }
 
   return 0;
 }

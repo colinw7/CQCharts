@@ -45,10 +45,10 @@ class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
  private:
   void init();
 
- signals:
+ Q_SIGNALS:
   void filterTextChanged(const QString &);
 
- private slots:
+ private Q_SLOTS:
   void reloadModelSlot();
 
   void filterSlot();

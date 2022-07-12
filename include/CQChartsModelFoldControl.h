@@ -32,7 +32,7 @@ class CQChartsModelFoldControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData) override;
 
- private slots:
+ private Q_SLOTS:
   void applySlot();
 
   void clearSlot();

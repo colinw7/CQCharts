@@ -35,10 +35,10 @@ class CQChartsAppWindow : public CQAppWindow {
 
   QSize sizeHint() const;
 
- public slots:
+ public Q_SLOTS:
   void closeSlot();
 
- private slots:
+ private Q_SLOTS:
   void loadModelSlot();
 
   void modelLoadedSlot(int);

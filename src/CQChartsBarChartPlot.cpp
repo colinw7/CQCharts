@@ -154,7 +154,7 @@ CQChartsBarChartPlot(View *view, const ModelP &model) :
 CQChartsBarChartPlot::
 ~CQChartsBarChartPlot()
 {
-  term();
+  CQChartsBarChartPlot::term();
 }
 
 //---

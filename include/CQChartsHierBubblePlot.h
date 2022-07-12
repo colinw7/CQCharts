@@ -666,7 +666,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   virtual NodeObj *createNodeObj(Node *node, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
 
- public slots:
+ public Q_SLOTS:
   void pushSlot();
   void popSlot();
   void popTopSlot();
@@ -766,7 +766,7 @@ class CQChartsHierBubblePlotCustomControls : public CQChartsHierPlotCustomContro
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

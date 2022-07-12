@@ -33,11 +33,11 @@ class CQChartsSymbolSetEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   //! emitted when symbol set changed
   void setChanged(const QString &);
 
- private slots:
+ private Q_SLOTS:
   void comboChanged();
 
  private:

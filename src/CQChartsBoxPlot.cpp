@@ -200,7 +200,7 @@ CQChartsBoxPlot(View *view, const ModelP &model) :
 CQChartsBoxPlot::
 ~CQChartsBoxPlot()
 {
-  term();
+  CQChartsBoxPlot::term();
 }
 
 //---

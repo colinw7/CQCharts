@@ -15,7 +15,7 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
 CQChartsBarPlot::
 ~CQChartsBarPlot()
 {
-  term();
+  CQChartsBarPlot::term();
 }
 
 //---

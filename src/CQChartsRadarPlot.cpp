@@ -113,7 +113,7 @@ CQChartsRadarPlot(View *view, const ModelP &model) :
 CQChartsRadarPlot::
 ~CQChartsRadarPlot()
 {
-  term();
+  CQChartsRadarPlot::term();
 }
 
 //---

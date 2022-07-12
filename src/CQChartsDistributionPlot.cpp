@@ -189,7 +189,7 @@ CQChartsDistributionPlot(View *view, const ModelP &model) :
 CQChartsDistributionPlot::
 ~CQChartsDistributionPlot()
 {
-  term();
+  CQChartsDistributionPlot::term();
 }
 
 //---

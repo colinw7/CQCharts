@@ -29,10 +29,10 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
  protected:
   void connectSlots(bool b) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
- protected slots:
+ protected Q_SLOTS:
   void groupColumnSlot();
 
   void bucketRadioGroupSlot(QAbstractButton *);

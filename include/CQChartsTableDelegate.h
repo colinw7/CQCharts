@@ -74,7 +74,7 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void clearColumnTypes();
 
- private slots:
+ private Q_SLOTS:
   void updateBoolean();
 
  private:

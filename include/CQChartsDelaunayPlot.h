@@ -212,7 +212,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void execDrawBackground(PaintDevice *device) const override;
   void execDrawForeground(PaintDevice *device) const override;
 
- public slots:
+ public Q_SLOTS:
   void setDelaunay(bool b);
   void setVoronoi(bool b);
 
@@ -264,7 +264,7 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -276,7 +276,7 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
 
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void delaunaySlot();
   void voronoiSlot();
 

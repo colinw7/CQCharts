@@ -134,7 +134,7 @@ CQChartsPiePlot(View *view, const ModelP &model) :
 CQChartsPiePlot::
 ~CQChartsPiePlot()
 {
-  term();
+  CQChartsPiePlot::term();
 }
 
 //---

@@ -29,10 +29,10 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void polygonChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -87,10 +87,10 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
 
   void calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const;
 
- signals:
+ Q_SIGNALS:
   void polygonChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToPolygon();
 
   void updatePointEdits();

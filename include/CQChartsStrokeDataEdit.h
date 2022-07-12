@@ -34,10 +34,10 @@ class CQChartsStrokeDataLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void strokeDataChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -84,7 +84,7 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
 
   void setPreview(bool b);
 
- signals:
+ Q_SIGNALS:
   void strokeDataChanged();
 
  private:
@@ -92,7 +92,7 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

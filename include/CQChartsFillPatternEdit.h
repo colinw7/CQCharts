@@ -30,10 +30,10 @@ class CQChartsFillPatternLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void fillPatternChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -83,10 +83,10 @@ class CQChartsFillPatternEdit : public CQChartsEditBase {
   QSize sizeHint() const override;
   QSize minimumSizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void fillPatternChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToFillPattern();
 
   void updateState();

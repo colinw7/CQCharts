@@ -84,7 +84,7 @@ class CQChartsViewExpander : public QFrame {
 
   int maxSize() const;
 
- private slots:
+ private Q_SLOTS:
   void leftSlot();
   void rightSlot();
   void topSlot();

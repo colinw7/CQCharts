@@ -25,10 +25,10 @@ class CQChartsLengthEdit : public QFrame {
   const CQChartsLength &length() const;
   void setLength(const CQChartsLength &pos);
 
- signals:
+ Q_SIGNALS:
   void lengthChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
   void unitsChanged();
 

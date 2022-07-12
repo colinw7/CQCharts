@@ -148,7 +148,7 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
 CQChartsScatterPlot::
 ~CQChartsScatterPlot()
 {
-  term();
+  CQChartsScatterPlot::term();
 }
 
 //---

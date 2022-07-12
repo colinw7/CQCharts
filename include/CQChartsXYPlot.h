@@ -1145,7 +1145,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
                    const TextOptions &textOptions, const Point &targetPoint,
                    bool centered) const;
 
- public slots:
+ public Q_SLOTS:
   //! set points visible
   void setPointsSlot(bool b);
 
@@ -1173,7 +1173,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //! set draw moving average
   void setMovingAverage(bool b);
 
- private slots:
+ private Q_SLOTS:
   void yAxisIncludeZeroSlot();
 
  private:
@@ -1302,7 +1302,7 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -1314,7 +1314,7 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void pointsSlot(int);
   void linesSlot(int);
   void fillUnderSlot(int);

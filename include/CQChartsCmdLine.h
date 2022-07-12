@@ -76,7 +76,7 @@ class CQChartsCmdLine : public QFrame {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void executeCommand(const QString &);
 
  private:

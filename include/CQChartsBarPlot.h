@@ -99,11 +99,11 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
- public slots:
+ public Q_SLOTS:
   // set horizontal
   virtual void setHorizontal(bool b);
 
- protected slots:
+ protected Q_SLOTS:
   void dataLabelChanged();
 
  protected:

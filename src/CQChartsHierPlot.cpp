@@ -19,6 +19,7 @@ void
 CQChartsHierPlot::
 init()
 {
+  CQChartsPlot::init();
 }
 
 void

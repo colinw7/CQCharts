@@ -27,7 +27,7 @@ class CQChartsCmdsSlot : public QObject {
   QString getTclCmd() const;
   QString getTclIdCmd(const QString &id) const;
 
- public slots:
+ public Q_SLOTS:
   void objIdPressed         (const QString &);
   void annotationIdPressed  (const QString &);
   void plotObjsAdded        ();

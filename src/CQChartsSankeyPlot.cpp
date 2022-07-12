@@ -114,7 +114,7 @@ CQChartsSankeyPlot(View *view, const ModelP &model) :
 CQChartsSankeyPlot::
 ~CQChartsSankeyPlot()
 {
-  term();
+  CQChartsSankeyPlot::term();
 }
 
 //---

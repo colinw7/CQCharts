@@ -110,7 +110,7 @@ class CQChartsEditHandles : public QObject {
 
   void draw(PaintDevice *device) const;
 
- signals:
+ Q_SIGNALS:
   void extraHandleMoved(const QVariant &data, double dx, double dy);
 
  private:

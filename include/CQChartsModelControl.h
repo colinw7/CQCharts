@@ -39,7 +39,7 @@ class CQChartsModelControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData) override;
 
- public slots:
+ public Q_SLOTS:
   void updateCurrentModel();
   void filterTextSlot(const QString &);
 

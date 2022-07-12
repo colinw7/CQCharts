@@ -416,7 +416,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
                                    const ColorInd &is, const ColorInd &ig,
                                    const ColorInd &iv) const;
 
- protected slots:
+ protected Q_SLOTS:
   void dataLabelChanged();
 
   void colorChanged();
@@ -500,7 +500,7 @@ class CQChartsScatterPlot3DCustomControls : public CQChartsPlotCustomControls {
  protected:
   void connectSlots(bool b) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  private:

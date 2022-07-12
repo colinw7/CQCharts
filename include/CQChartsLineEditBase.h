@@ -62,7 +62,7 @@ class CQChartsLineEditBase : public QFrame {
 
   QColor interpColor(const CQChartsColor &color) const;
 
- protected slots:
+ protected Q_SLOTS:
   void menuButtonSlot();
 
   void showMenuSlot();

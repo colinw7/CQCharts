@@ -73,11 +73,11 @@ class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
   void showColumn(int column);
   void hideColumn(int column);
 
- signals:
+ Q_SIGNALS:
   void filterChanged();
   void columnClicked(int);
 
- private slots:
+ private Q_SLOTS:
   void columnClickedSlot(int);
 
  private:

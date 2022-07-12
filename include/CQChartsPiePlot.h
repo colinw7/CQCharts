@@ -798,7 +798,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind,
                                const ColorInd &ig) const;
 
- public slots:
+ public Q_SLOTS:
   void setDonut     (bool b);
   void setTreeMap   (bool b);
   void setWaffle    (bool b);
@@ -925,7 +925,7 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -942,7 +942,7 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void drawTypeSlot ();
   void separatedSlot();
   void donutSlot    ();

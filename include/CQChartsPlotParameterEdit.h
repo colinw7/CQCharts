@@ -35,7 +35,7 @@ class CQChartsColumnParameterEdit : public QFrame {
   bool isNumericOnly() const;
   void setNumericOnly(bool b);
 
- signals:
+ Q_SIGNALS:
   void columnChanged();
 
  private:
@@ -89,7 +89,7 @@ class CQChartsRealParameterEdit : public QFrame {
 
   double value() const;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:
@@ -111,7 +111,7 @@ class CQChartsIntParameterEdit : public QFrame {
 
   int value() const;
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  private:
@@ -158,7 +158,7 @@ class CQChartsBoolParameterEdit : public QFrame {
  private:
   const PlotParameter* parameter_ { nullptr };
 
- signals:
+ Q_SIGNALS:
   void stateChanged(int);
 
  private:

@@ -29,7 +29,7 @@ class CQChartsModelFilterControl : public QFrame, public CQChartsWidgetIFace {
 
   void setFilterText(const QString &text);
 
- private slots:
+ private Q_SLOTS:
   void applySlot();
 
  private:

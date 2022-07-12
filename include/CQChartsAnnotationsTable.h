@@ -58,7 +58,7 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsPlot *plot() const;
   void setPlot(CQChartsPlot *plot) override;
 
- private slots:
+ private Q_SLOTS:
   void updateAnnotations();
 
   void writeAnnotationSlot();
@@ -92,7 +92,7 @@ class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace
  private:
   CQChartsAnnotation *getSelectedViewAnnotation() const;
 
- private slots:
+ private Q_SLOTS:
   void updateViewAnnotations();
 
   void viewAnnotationSelectionChangeSlot();
@@ -137,7 +137,7 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
  private:
   CQChartsAnnotation *getSelectedPlotAnnotation() const;
 
- private slots:
+ private Q_SLOTS:
   void updatePlotAnnotations();
 
   void plotAnnotationSelectionChangeSlot();
@@ -213,7 +213,7 @@ class CQChartsViewAnnotationsTable : public CQChartsAnnotationsTable, public CQC
   CQChartsView *view() const { return view_; }
   void setView(CQChartsView *view) override;
 
- public slots:
+ public Q_SLOTS:
   void updateAnnotations();
 
  private:
@@ -234,7 +234,7 @@ class CQChartsPlotAnnotationsTable : public CQChartsAnnotationsTable, public CQC
   CQChartsPlot *plot() const;
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateAnnotations();
 
  private:

@@ -20,10 +20,10 @@ class CQChartsSymbolSetsList : public QListWidget, public CQChartsWidgetIFace {
   const QString &name() const { return name_; }
   void setName(const QString &name);
 
- private slots:
+ private Q_SLOTS:
   void rowChanged(int row);
 
- signals:
+ Q_SIGNALS:
   void nameChanged(const QString &name);
 
  private:

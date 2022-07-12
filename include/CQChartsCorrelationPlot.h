@@ -240,13 +240,13 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   virtual CellObj *createCellObj(const BBox &rect, int row, int col, double value,
                                  const QModelIndex &ind) const;
 
- public slots:
+ public Q_SLOTS:
   void setCellLabels(bool b);
 
   void setXLabels(bool b);
   void setYLabels(bool b);
 
- private slots:
+ private Q_SLOTS:
   void diagonalTypeSlot(bool);
   void upperDiagonalTypeSlot(bool);
   void lowerDiagonalTypeSlot(bool);
@@ -302,13 +302,13 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
   void connectSlots(bool b) override;
 
- protected slots:
+ protected Q_SLOTS:
   void diagonalTypeSlot();
   void upperDiagonalTypeSlot();
   void lowerDiagonalTypeSlot();

@@ -17,7 +17,7 @@ class CQChartsEditTitleDlg : public QDialog {
  public:
   CQChartsEditTitleDlg(QWidget *parent, CQChartsTitle *title);
 
- private slots:
+ private Q_SLOTS:
   void okSlot();
   bool applySlot();
   void cancelSlot();
@@ -52,7 +52,7 @@ class CQChartsTitleEdit : public QFrame {
 
   void applyData();
 
- signals:
+ Q_SIGNALS:
   void titleChanged();
 
  private:
@@ -60,7 +60,7 @@ class CQChartsTitleEdit : public QFrame {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

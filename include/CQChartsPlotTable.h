@@ -28,7 +28,7 @@ class CQChartsPlotTableControl : public QFrame, public CQChartsWidgetIFace {
   View *view() const { return view_; }
   void setView(View *view) override;
 
- private slots:
+ private Q_SLOTS:
   void updatePlots();
 
   void plotsSelectionChangeSlot();

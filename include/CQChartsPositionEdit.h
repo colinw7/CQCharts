@@ -38,12 +38,12 @@ class CQChartsPositionEdit : public QFrame {
 
   void setRegion(const Point &p);
 
- signals:
+ Q_SIGNALS:
   void positionChanged();
 
   void regionChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
   void unitsChanged();
 

@@ -33,10 +33,10 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
 
   void keyPressEvent(QKeyEvent *e) override;
 
- signals:
+ Q_SIGNALS:
   void filterStateChanged(bool show, bool focus);
 
- private slots:
+ private Q_SLOTS:
   void editSlot();
 
   void showHideFilterSlot(bool b);

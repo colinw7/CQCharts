@@ -28,10 +28,10 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void colorChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -85,10 +85,10 @@ class CQChartsColorEdit : public CQChartsEditBase {
   QSize sizeHint() const override;
   QSize minimumSizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   void colorChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToColor();
 
   void indPalSlot(int ind);

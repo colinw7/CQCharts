@@ -79,7 +79,7 @@ CQChartsGraphVizPlot(View *view, const ModelP &model) :
 CQChartsGraphVizPlot::
 ~CQChartsGraphVizPlot()
 {
-  term();
+  CQChartsGraphVizPlot::term();
 }
 
 //---

@@ -590,7 +590,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
 
- signals:
+ Q_SIGNALS:
   void ticksChanged();
   void tickPlacementChanged();
 

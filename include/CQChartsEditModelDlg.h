@@ -31,7 +31,7 @@ class CQChartsEditModelDlg : public QFrame {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void currentModelChangedSlot();
 
   void writeSlot();

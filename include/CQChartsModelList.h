@@ -27,10 +27,10 @@ class CQChartsModelList : public QFrame {
 
   CQChartsModelData *currentModelData() const;
 
- signals:
+ Q_SIGNALS:
   void filterTextChanged(const QString &);
 
- private slots:
+ private Q_SLOTS:
   void updateCurrentModel();
 
   void addModelData(int ind);
@@ -43,7 +43,7 @@ class CQChartsModelList : public QFrame {
   CQChartsModelDataWidget *currentModelDataWidget() const;
   CQChartsModelDataWidget *modelDataWidget(int ind) const;
 
- private slots:
+ private Q_SLOTS:
   void currentTabChanged(int);
   void closeTabSlot(int);
 

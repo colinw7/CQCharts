@@ -118,7 +118,7 @@ CQChartsDelaunayPlot(View *view, const ModelP &model) :
 CQChartsDelaunayPlot::
 ~CQChartsDelaunayPlot()
 {
-  term();
+  CQChartsDelaunayPlot::term();
 }
 
 //---

@@ -2313,7 +2313,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   QStringList getSlotNames() const;
 
- public slots:
+ public Q_SLOTS:
   // color map key
   void setColorMapKey(bool b);
 
@@ -3123,10 +3123,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void collapseRoot();
 
- public slots:
+ public Q_SLOTS:
   void colorSelected(const QColor &c, bool visible);
 
- protected slots:
+ protected Q_SLOTS:
   void animateSlot();
 
   void threadTimerSlot();
@@ -3150,7 +3150,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void collapseRootSlot();
 
- signals:
+ Q_SIGNALS:
   // model data changed
   void modelChanged();
 

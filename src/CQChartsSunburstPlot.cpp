@@ -62,7 +62,7 @@ CQChartsSunburstPlot(View *view, const ModelP &model) :
 CQChartsSunburstPlot::
 ~CQChartsSunburstPlot()
 {
-  term();
+  CQChartsSunburstPlot::term();
 }
 
 //---

@@ -418,7 +418,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   QSize calcContiguousSize() const;
   QSize calcDiscreetSize() const;
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
   void itemSelected(const QColor &color, bool visible);
@@ -592,7 +592,7 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   QSize calcContiguousSize() const;
   QSize calcDiscreetSize() const;
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
   void itemSelected(const CQChartsLength &size, bool visible);
@@ -749,7 +749,7 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
  private:
   void invalidate() override;
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
 
   void itemSelected(const CQChartsSymbol &symbol, bool visible);
@@ -817,7 +817,7 @@ class CQChartsMapKeyFrame : public QFrame {
 
   void contextMenuEvent(QContextMenuEvent *e) override;
 
- private slots:
+ private Q_SLOTS:
   void showKeySlot(bool b);
 
  private:

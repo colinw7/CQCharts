@@ -304,7 +304,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   virtual GeometryObj *createGeometryObj(const BBox &rect, const Polygons &polygons,
                                          const QModelIndex &ind, const ColorInd &iv) const;
 
- public slots:
+ public Q_SLOTS:
   void setValueStyle(const ValueStyle &style);
 
  private:
@@ -367,7 +367,7 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

@@ -320,7 +320,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
                                    const QModelIndex &ind, const ColorInd &is,
                                    const ColorInd &iv) const;
 
- public slots:
+ public Q_SLOTS:
   // set horizontal
   void setHorizontal(bool b);
 
@@ -378,7 +378,7 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -395,7 +395,7 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void orientationSlot();
 
  protected:

@@ -43,10 +43,10 @@ class CQChartsSymbolsList : public QListWidget, public CQChartsWidgetIFace {
 
   bool selectedSymbol(Symbol &symbol) const;
 
- public slots:
+ public Q_SLOTS:
   void setSetNameSlot(const QString &s);
 
- signals:
+ Q_SIGNALS:
   void setNameChanged(const QString &name);
   void symbolChanged();
 
@@ -55,7 +55,7 @@ class CQChartsSymbolsList : public QListWidget, public CQChartsWidgetIFace {
 
   void setCurrentSymbol();
 
- private slots:
+ private Q_SLOTS:
   void selectionChangeSlot();
 
  private:
@@ -88,14 +88,14 @@ class CQChartsSymbolsListControl : public QFrame, public CQChartsWidgetIFace {
   const Symbol &symbol() const;
   void setSymbol(const Symbol &s);
 
- public slots:
+ public Q_SLOTS:
   void setSetNameSlot(const QString &s);
 
- signals:
+ Q_SIGNALS:
   void setNameChanged(const QString &name);
   void symbolChanged();
 
- private slots:
+ private Q_SLOTS:
   void symbolUpSlot();
   void symbolDownSlot();
 

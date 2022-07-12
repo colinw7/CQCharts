@@ -20,7 +20,7 @@ class CQChartsFilterEdit : public QFrame {
   void setFilterDetails(const QString &str);
   void setSearchDetails(const QString &str);
 
- private slots:
+ private Q_SLOTS:
   void comboSlot(int);
 
   void andSlot();
@@ -29,7 +29,7 @@ class CQChartsFilterEdit : public QFrame {
 
   void escapeSlot();
 
- signals:
+ Q_SIGNALS:
   void filterAnd(bool);
 
   void replaceFilter(const QString &text);
@@ -67,7 +67,7 @@ class CQChartsFilterEditEdit : public CQChartsLineEdit {
 
   void keyPressEvent(QKeyEvent *e) override;
 
- signals:
+ Q_SIGNALS:
    void escapePressed();
 };
 

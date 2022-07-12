@@ -28,10 +28,10 @@ class CQChartsViewPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
- signals:
+ Q_SIGNALS:
   void propertyItemSelected(QObject *obj, const QString &path);
 
- private slots:
+ private Q_SLOTS:
   void filterStateSlot(bool show, bool focus);
 
  private:
@@ -56,7 +56,7 @@ class CQChartsViewPropertiesControl : public QFrame, public CQChartsWidgetIFace 
 
   CQChartsViewPropertiesWidget *propertiesWidget() const { return propertiesWidget_; }
 
- private slots:
+ private Q_SLOTS:
   void editKeySlot();
   void writeSlot();
 

@@ -394,14 +394,14 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! initialize state when first resized to explicit rectangle in edit
   virtual void initRectangle();
 
- signals:
+ Q_SIGNALS:
   //! emitted when data changed
   void dataChanged();
 
   //! emitted when annotation pressed
   void pressed(const QString &id);
 
- protected slots:
+ protected Q_SLOTS:
   void emitDataChanged();
 
   void invalidateSlot() { invalidate(); }
@@ -1065,7 +1065,7 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
- protected slots:
+ protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
  protected:
@@ -1135,7 +1135,7 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
- protected slots:
+ protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
  protected:
@@ -1430,7 +1430,7 @@ class CQChartsPathAnnotation : public CQChartsShapeAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
- protected slots:
+ protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
  protected:
@@ -1567,7 +1567,7 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
- protected slots:
+ protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
  protected:
@@ -2222,7 +2222,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
  protected:
   void init();
 
- protected slots:
+ protected Q_SLOTS:
   void updateLocationSlot();
 
  protected:
@@ -2779,7 +2779,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void positionToBBox();
 
- protected slots:
+ protected Q_SLOTS:
   void updateWinGeometry();
 
  protected:
@@ -2853,7 +2853,7 @@ class CQChartsSymbolSizeMapKeyAnnotation : public CQChartsAnnotation {
  protected:
   void init();
 
- protected slots:
+ protected Q_SLOTS:
   void updateLocationSlot();
 
  protected:

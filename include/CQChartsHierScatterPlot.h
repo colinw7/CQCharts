@@ -384,7 +384,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   virtual PointObj *createPointObj(const BBox &rect, const Point &p, const ColorInd &iv) const;
 
- public slots:
+ public Q_SLOTS:
   void popCurrentGroup();
 
   void resetCurrentGroup();
@@ -427,7 +427,7 @@ class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls 
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

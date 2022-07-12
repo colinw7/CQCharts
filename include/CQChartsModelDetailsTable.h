@@ -51,7 +51,7 @@ class CQChartsModelDetailsTable : public QFrame, public CQChartsWidgetIFace {
 
   void contextMenuEvent(QContextMenuEvent *e) override;
 
- private slots:
+ private Q_SLOTS:
   void modelChangedSlot();
   void modelTypeChangedSlot(int);
 

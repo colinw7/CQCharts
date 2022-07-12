@@ -17,7 +17,7 @@ class CQChartsOptEdit : public QFrame {
 
   void setPlaceholderText(const QString &text);
 
- signals:
+ Q_SIGNALS:
   void valueChanged();
 
  protected:
@@ -35,7 +35,7 @@ class CQChartsOptEdit : public QFrame {
 
   void valueToWidgets();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
 
  private:

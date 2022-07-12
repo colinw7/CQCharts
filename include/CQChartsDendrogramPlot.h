@@ -455,7 +455,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void expandModelIndex(const QModelIndex &ind, bool b);
 
- private slots:
+ private Q_SLOTS:
   void expandSlot();
   void expandAllSlot();
   void collapseAllSlot();
@@ -526,7 +526,7 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

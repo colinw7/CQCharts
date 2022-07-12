@@ -25,10 +25,10 @@ class CQChartsFontLineEdit : public CQChartsLineEditBase {
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
- signals:
+ Q_SIGNALS:
   void fontChanged();
 
- private slots:
+ private Q_SLOTS:
   void menuEditChanged();
 
  private:
@@ -70,10 +70,10 @@ class CQChartsFontEdit : public CQChartsEditBase {
 
   void setNoFocus();
 
- signals:
+ Q_SIGNALS:
   void fontChanged();
 
- private slots:
+ private Q_SLOTS:
   void widgetsToFont();
 
   void updateState();

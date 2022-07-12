@@ -1173,7 +1173,7 @@ class CQChartsView : public QFrame,
 
   QSize sizeHint() const override;
 
- signals:
+ Q_SIGNALS:
   // emitted when user asks to show table
   //void showTable(bool b);
 
@@ -1253,7 +1253,7 @@ class CQChartsView : public QFrame,
 
   void keyEventPress(const QString &);
 
- public slots:
+ public Q_SLOTS:
   void propertyItemChanged(QObject *, const QString &);
 
   void updateNoData();
@@ -1410,7 +1410,7 @@ class CQChartsView : public QFrame,
 
   QStringList getSlotNames() const;
 
- private slots:
+ private Q_SLOTS:
   void hbarScrollSlot(int pos);
   void vbarScrollSlot(int pos);
 

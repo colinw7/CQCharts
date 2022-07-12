@@ -38,12 +38,12 @@ class CQChartsRectEdit : public QFrame {
 
   void setRegion(const BBox &bbox);
 
- signals:
+ Q_SIGNALS:
   void rectChanged();
 
   void regionChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
   void unitsChanged();
 

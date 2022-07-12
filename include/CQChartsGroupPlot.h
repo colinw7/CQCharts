@@ -192,7 +192,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   bool adjustedGroupColor(int ig, int ng, Color &color) const;
 
- signals:
+ Q_SIGNALS:
   void groupCustomDataChanged();
 
  private:

@@ -37,7 +37,7 @@ class CQChartsColumnControlGroup : public QFrame {
 
   bool isKeyVisible() const;
 
- private slots:
+ private Q_SLOTS:
   void keyCheckSlot();
 
 //void controlButtonClicked(QAbstractButton *button);
@@ -48,7 +48,7 @@ class CQChartsColumnControlGroup : public QFrame {
 
   void setCurrentIndex(int ind);
 
- signals:
+ Q_SIGNALS:
   void groupChanged();
 
   void showKey(bool b);

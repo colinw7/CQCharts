@@ -21,10 +21,10 @@ class CQChartsMarginEdit : public QFrame {
   const CQChartsMargin &margin() const { return margin_; }
   void setMargin(const CQChartsMargin &margin);
 
- signals:
+ Q_SIGNALS:
   void marginChanged();
 
- private slots:
+ private Q_SLOTS:
   void editChanged();
 
  private:

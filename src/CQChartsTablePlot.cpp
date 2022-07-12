@@ -95,7 +95,7 @@ CQChartsTablePlot(View *view, const ModelP &model) :
 CQChartsTablePlot::
 ~CQChartsTablePlot()
 {
-  term();
+  CQChartsTablePlot::term();
 }
 
 //---

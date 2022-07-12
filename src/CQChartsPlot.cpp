@@ -76,13 +76,12 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model)
 {
-  init();
 }
 
 CQChartsPlot::
 ~CQChartsPlot()
 {
-  term();
+  CQChartsPlot::term();
 }
 
 //---
@@ -94,6 +93,8 @@ init()
   NoUpdate noUpdate(this);
 
   //---
+
+  assert(! propertyModel_);
 
   propertyModel_ = std::make_unique<CQPropertyViewModel>();
 
@@ -10546,7 +10547,8 @@ QString
 CQChartsPlot::
 columnValueToString(const Column &, const QVariant &var) const
 {
-  return var.toString();
+  bool ok;
+  return CQChartsVariant::toString(var, ok);
 }
 
 bool
@@ -16971,7 +16973,6 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
     str = columnStr(idColumn(), r);
   else {
     bool ok;
-
     str = CQChartsVariant::toString(var, ok);
   }
 

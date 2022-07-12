@@ -374,7 +374,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   virtual RowObj    *createRowObj   (const RowObjData &rowObjData) const;
   virtual CellObj   *createCellObj  (const CellObjData &cellObjData) const;
 
- private slots:
+ private Q_SLOTS:
   void modelTypeChangedSlot(int modelId);
 
   void hscrollSlot(int);
@@ -614,7 +614,7 @@ class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:

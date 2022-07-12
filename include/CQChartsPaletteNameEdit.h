@@ -33,11 +33,11 @@ class CQChartsPaletteNameEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- signals:
+ Q_SIGNALS:
   //! emitted when palette name changed
   void nameChanged();
 
- private slots:
+ private Q_SLOTS:
   void comboChanged();
 
  private:

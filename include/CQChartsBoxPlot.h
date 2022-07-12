@@ -855,7 +855,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   bool isValueColumnVisible(int ic) const;
   void setValueColumnVisible(int ic, bool visible);
 
- public slots:
+ public Q_SLOTS:
   // set horizontal
   void setHorizontal(bool b);
 
@@ -1010,7 +1010,7 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void setPlot(CQChartsPlot *plot) override;
 
- public slots:
+ public Q_SLOTS:
   void updateWidgets() override;
 
  protected:
@@ -1027,7 +1027,7 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
- protected slots:
+ protected Q_SLOTS:
   void columnsTypeSlot();
 
   void orientationSlot();

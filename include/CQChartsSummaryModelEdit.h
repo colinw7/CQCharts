@@ -27,7 +27,7 @@ class CQChartsSummaryModelEdit : public QFrame {
  private:
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void enabledSlot();
   void typeSlot();
 

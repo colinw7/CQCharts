@@ -31,10 +31,10 @@ class CQChartsColumnNumLineEdit : public QFrame {
   bool isProxy() const { return proxy_; }
   void setProxy(bool b);
 
- signals:
+ Q_SIGNALS:
   void columnChanged();
 
- private slots:
+ private Q_SLOTS:
   void resetModelData();
 
   void columnComboChanged();

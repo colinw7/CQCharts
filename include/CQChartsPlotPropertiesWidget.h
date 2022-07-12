@@ -34,10 +34,10 @@ class CQChartsPlotPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
- signals:
+ Q_SIGNALS:
   void propertyItemSelected(QObject *obj, const QString &path);
 
- private slots:
+ private Q_SLOTS:
   void filterStateSlot(bool show, bool focus);
 
  private:
@@ -73,10 +73,10 @@ class CQChartsPlotPropertiesControl : public QFrame, public CQChartsWidgetIFace 
 
   CQChartsPlot *getCurrentPlot() const;
 
- signals:
+ Q_SIGNALS:
   void propertyItemSelected(QObject *obj, const QString &path);
 
- private slots:
+ private Q_SLOTS:
   void tabChangedSlot();
 
   void editTitleSlot();

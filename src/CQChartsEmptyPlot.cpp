@@ -51,7 +51,7 @@ CQChartsEmptyPlot(View *view, const ModelP &model) :
 CQChartsEmptyPlot::
 ~CQChartsEmptyPlot()
 {
-  term();
+  CQChartsEmptyPlot::term();
 }
 
 //---

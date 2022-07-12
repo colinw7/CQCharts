@@ -339,7 +339,7 @@ class CQChartsPlotObj : public CQChartsObj,
 
   virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
- signals:
+ Q_SIGNALS:
   void dataChanged();
   void layerChanged();
 

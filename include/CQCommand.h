@@ -38,7 +38,7 @@ class ScrollArea : public CQScrollArea {
 
   void updateContents() override;
 
- public slots:
+ public Q_SLOTS:
   void updateScroll();
 
  signals:
@@ -254,7 +254,7 @@ class CommandWidget : public QFrame {
 
   void scrollEnd();
 
- private slots:
+ private Q_SLOTS:
   void copySlot();
   void pasteSlot();
 

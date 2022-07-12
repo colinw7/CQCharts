@@ -18,7 +18,7 @@ class CQChartsEditAxisDlg : public QDialog {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void okSlot();
   bool applySlot();
   void cancelSlot();
@@ -58,7 +58,7 @@ class CQChartsAxisEdit : public QFrame {
 
   void applyData();
 
- signals:
+ Q_SIGNALS:
   void axisChanged();
 
  private:
@@ -66,7 +66,7 @@ class CQChartsAxisEdit : public QFrame {
 
   void connectSlots(bool b);
 
- private slots:
+ private Q_SLOTS:
   void widgetsToData();
 
  private:

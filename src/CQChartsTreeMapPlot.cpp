@@ -75,7 +75,7 @@ CQChartsTreeMapPlot(View *view, const ModelP &model) :
 CQChartsTreeMapPlot::
 ~CQChartsTreeMapPlot()
 {
-  term();
+  CQChartsTreeMapPlot::term();
 }
 
 //---

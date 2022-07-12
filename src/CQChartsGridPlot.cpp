@@ -100,7 +100,7 @@ CQChartsGridPlot(View *view, const ModelP &model) :
 CQChartsGridPlot::
 ~CQChartsGridPlot()
 {
-  term();
+  CQChartsGridPlot::term();
 }
 
 //---

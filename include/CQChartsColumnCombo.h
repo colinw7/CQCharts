@@ -47,11 +47,11 @@ class CQChartsColumnCombo : public QComboBox {
   //! convenience routine to set model and column
   void setModelColumn(ModelData *modelData, const Column &column);
 
- signals:
+ Q_SIGNALS:
   //! emitted when column changed
   void columnChanged();
 
- private slots:
+ private Q_SLOTS:
   void resetModelData();
 
   void updateItems();
