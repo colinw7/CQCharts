@@ -2069,9 +2069,9 @@ draw(PaintDevice *device) const
     else
       plot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
 
-    Point p1 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py1));
-    Point p2 = plot_->pixelToWindow(Point(px1, py1 + pSortHeight));
-    Point p3 = plot_->pixelToWindow(Point(px2, py1 + pSortHeight));
+    auto p1 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py1));
+    auto p2 = plot_->pixelToWindow(Point(px1, py1 + pSortHeight));
+    auto p3 = plot_->pixelToWindow(Point(px2, py1 + pSortHeight));
 
     Polygon poly1; poly1.addPoint(p1); poly1.addPoint(p2); poly1.addPoint(p3);
 
@@ -2083,9 +2083,9 @@ draw(PaintDevice *device) const
     else
       plot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
 
-    Point p4 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py2));
-    Point p5 = plot_->pixelToWindow(Point(px1, py2 - pSortHeight));
-    Point p6 = plot_->pixelToWindow(Point(px2, py2 - pSortHeight));
+    auto p4 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py2));
+    auto p5 = plot_->pixelToWindow(Point(px1, py2 - pSortHeight));
+    auto p6 = plot_->pixelToWindow(Point(px2, py2 - pSortHeight));
 
     Polygon poly2; poly2.addPoint(p4); poly2.addPoint(p5); poly2.addPoint(p6);
 

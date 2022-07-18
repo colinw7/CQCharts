@@ -28,17 +28,23 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   void setPlot(CQChartsPlot *plot) override;
 
+  //! get/set is model data
   ModelData *modelData() const;
   void setModelData(ModelData *model);
 
+  //! get/set is column
   const Column &column() const;
   void setColumn(const Column &c);
 
+  //! get/set is numeric only
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
 
+  //! get/set is proxy
   bool isProxy() const { return proxy_; }
   void setProxy(bool b);
+
+  void setNoFocus();
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -49,6 +55,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   void menuEditChanged();
 
  private:
+  void updateMenu() override;
+
   void textChanged() override;
 
   void updateColumn(const Column &c, bool updateText);
@@ -86,13 +94,20 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
+  //! get/set model data
   ModelData *modelData() const { return modelData_; }
   void setModelData(ModelData *model);
 
-  const Column &column() const;
+  //! get/set column
+  const Column &column() const { return column_; }
   void setColumn(const Column &c);
 
+  void updateMenu();
+
+  void setNoFocus();
+
   QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
 
  Q_SIGNALS:
   void columnChanged();
@@ -103,6 +118,8 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   void widgetsToColumn();
 
   void updateState();
+
+  void typeSlot();
 
   void widgetsToColumnSlot();
 
@@ -116,8 +133,11 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  ModelData*           modelData_      { nullptr }; //!< model data
-  Column               column_;                     //!< column
+  CQChartsColumnLineEdit *lineEdit_ { nullptr };
+
+  ModelData* modelData_ { nullptr }; //!< model data
+  Column     column_;                //!< column
+
   CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
   QComboBox*           typeCombo_      { nullptr }; //!< type combo
   CQChartsColumnCombo* columnCombo_    { nullptr }; //!< column combo

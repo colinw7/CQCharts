@@ -4,12 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + scatter connect object with name column (don't want single value grouping)
+ + halo for select in more plots (use shape)
+ + scatter connect object doesn't work with name column (don't want single value grouping)
  + allow force real bucket in distribution plot
  + format_scale for integers or only reals ?
- + Connected Scatter Ignore Hidden
+ + Connected scatter ignore hidden ?
  + Exponential Axis Scaling (exp)
- + CQFactor in charts (placement engine N + rect -> placed rects)
  + role type ? add data in column with custom role and specify type
  + allow column data from tcl var/proc (already done ?)
  + double click op

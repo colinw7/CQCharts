@@ -3632,32 +3632,25 @@ CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj) :
   setClickable(true);
 }
 
-#if 0
-bool
-CQChartsPieColorKeyItem::
-selectPress(const Point &, SelData &)
-{
-  auto *plot = qobject_cast<PiePlot *>(plot_);
-
-  auto is = setIndex();
-
-  plot->setSetHidden(is.i, ! plot->isSetHidden(is.i));
-
-  return true;
-}
-#endif
-
 void
 CQChartsPieColorKeyItem::
 doSelect(SelMod)
 {
   auto *plot = qobject_cast<PiePlot *>(plot_);
 
-  auto is = setIndex();
+  auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   CQChartsPlot::PlotObjs objs;
 
-  plot->getGroupObjs(is.i, objs);
+  if (group) {
+    auto is = setIndex();
+
+    plot->getGroupObjs(is.i, objs);
+  }
+  else
+    objs.push_back(obj);
+
   if (objs.empty()) return;
 
   //---

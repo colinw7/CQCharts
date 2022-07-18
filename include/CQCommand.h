@@ -17,14 +17,19 @@ class CompletionList;
 enum class LineType {
   NONE,
   COMMAND,
-  OUTPUT
+  OUTPUT,
+  COMMAND_CONT
 };
+
+//---
 
 class ScrollArea : public CQScrollArea {
   Q_OBJECT
 
  public:
-  ScrollArea(QWidget *parent=NULL);
+  ScrollArea(QWidget *parent=nullptr);
+
+  virtual ~ScrollArea() { }
 
   void init();
 
@@ -100,6 +105,8 @@ class CommandWidget : public QFrame {
 
     const Parts &parts() const { return parts_; }
 
+    int numLines() const { return 1; }
+
    private:
     QString  text_;
     LineType type_ { LineType::NONE };
@@ -120,7 +127,9 @@ class CommandWidget : public QFrame {
 
     int getPos() const { return pos_; }
 
-    void clear() { setText(""); }
+    void clear() { setText(""); numLines_ = 1; }
+
+    void addNewLine() { insert("\n"); ++numLines_; }
 
     void cursorStart() { pos_ = 0; }
     void cursorEnd  () { pos_ = text_.length(); }
@@ -164,9 +173,12 @@ class CommandWidget : public QFrame {
       }
     }
 
+    int numLines() const { return numLines_; }
+
    private:
     QString text_;
     int     pos_ { 0 };
+    int     numLines_ { 1 };
   };
 
  public:
@@ -210,6 +222,8 @@ class CommandWidget : public QFrame {
 
   virtual QColor posColor(int /*pos*/) const { return QColor(); }
 
+  virtual bool isCompleteLine(const QString &str) const;
+
   virtual bool complete(const QString & /*text*/, int /*pos*/,
                         QString & /*newText*/, CompleteMode /*completeMode*/) const {
     return false;
@@ -238,7 +252,7 @@ class CommandWidget : public QFrame {
   void drawSelectedChars(QPainter *painter, int lineNum1, int charNum1,
                          int lineNum2, int charNum2);
 
-  void drawPosText(QPainter *painter, int &x, int y, const QString &text, int &pos);
+  void drawPosText(QPainter *painter, int &x, int &y, const QString &text, int &pos);
 
   void drawText(QPainter *painter, int x, int y, const QString &text);
 
@@ -289,27 +303,31 @@ class CommandWidget : public QFrame {
   int         indMargin_    { 0 };
   int         xo_           { 0 };
   int         yo_           { 0 };
+
 #if 0
   /* light */
-  QColor      bgColor_      { 255, 255, 255 };
-  QColor      indColor_     { 0, 0, 0 };
-  QColor      commandColor_ { 80, 100, 80 };
-  QColor      outputColor_  { 50, 50, 240 };
-  QColor      promptColor_  { 0, 0, 0 };
-  QColor      cursorColor_  { 0, 255, 0 };
+  QColor bgColor_      { 255, 255, 255 };
+  QColor indColor_     { 0, 0, 0 };
+  QColor commandColor_ { 80, 100, 80 };
+  QColor outputColor_  { 50, 50, 240 };
+  QColor promptColor_  { 0, 0, 0 };
+  QColor cursorColor_  { 0, 255, 0 };
 #else
   /* dark */
-  QColor      bgColor_      { 40, 40, 40 };
-  QColor      indColor_     { 240, 255, 255 };
-  QColor      commandColor_ { 200, 255, 200 };
-  QColor      outputColor_  { 240, 240, 240 };
-  QColor      promptColor_  { 240, 240, 240 };
-  QColor      cursorColor_  { 255, 255, 0 };
+  QColor bgColor_      { 40, 40, 40 };
+  QColor indColor_     { 240, 255, 255 };
+  QColor commandColor_ { 200, 255, 200 };
+  QColor outputColor_  { 240, 240, 240 };
+  QColor promptColor_  { 240, 240, 240 };
+  QColor cursorColor_  { 255, 255, 0 };
 #endif
+
   CompletionList *completionList_ { nullptr };
   QEventLoop*     eventLoop_      { nullptr };
   QString         completionItem_;
 };
+
+//---
 
 class CompletionList : public QListWidget {
   Q_OBJECT

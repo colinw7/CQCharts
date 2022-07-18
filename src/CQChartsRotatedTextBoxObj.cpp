@@ -22,7 +22,7 @@ CQChartsRotatedTextBoxObj::
 draw(PaintDevice *device, const Point &center, const QString &text1, const QString &text2,
      double angle, Qt::Alignment align, bool isRadial) const
 {
-  TextOptions textOptions = this->textOptions();
+  auto textOptions = this->textOptions();
 
   textOptions.color = interpTextColor(ColorInd());
   textOptions.font  = textFont();
@@ -279,7 +279,7 @@ drawConnectedRadialText(PaintDevice *device, const Point &center, double ro, dou
 {
   Angle la = ta;
 
-  TextOptions textOptions = this->textOptions();
+  auto textOptions = this->textOptions();
 
   textOptions.color = interpTextColor(ColorInd());
   textOptions.font  = textFont();
@@ -446,7 +446,7 @@ drawCalcConnectedRadialText(View *view, Plot *plot, PaintDevice *device, const P
   // draw text
   Point pt1(pt.x + dx, pt.y);
 
-  TextOptions textOptions1 = textOptions;
+  auto textOptions1 = textOptions;
 
   textOptions1.align = align;
 

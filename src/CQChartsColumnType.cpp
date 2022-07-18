@@ -457,12 +457,13 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   auto var2 = CQChartsModelUtil::modelHeaderValue(model, column, brole, ok2);
 
-  if (! ok2 || ! var2.isValid())
-    return false;
+  if (ok2 && var2.isValid()) {
+    typeData.baseType = variantToModelType(var2, ok2);
 
-  typeData.baseType = variantToModelType(var2, ok2);
-
-  if (! ok2)
+    if (! ok2)
+      typeData.baseType = typeData.type;
+  }
+  else
     typeData.baseType = typeData.type;
 
   //---

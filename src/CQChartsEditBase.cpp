@@ -4,6 +4,8 @@
 #include <CQChartsColor.h>
 #include <CQCharts.h>
 
+#include <CQWidgetUtil.h>
+
 #include <QLabel>
 #include <QGridLayout>
 #include <QPainter>
@@ -31,6 +33,31 @@ drawCenteredText(QPainter *painter, const QString &text)
   int fd = fm.descent();
 
   painter->drawText(rect().left() + 2, rect().center().y() + (fa - fd)/2, text);
+}
+
+void
+CQChartsEditBase::
+fixLabelWidth()
+{
+  auto labels = this->findChildren<QLabel *>();
+
+  std::vector<QLabel *> visibleLabels;
+
+  for (auto *label : labels) {
+    if (label->isVisible())
+      visibleLabels.push_back(label);
+  }
+
+  for (auto *label : visibleLabels)
+    CQWidgetUtil::resetWidgetMinMaxWidth(label);
+
+  int labelWidth = 0;
+
+  for (auto *label : visibleLabels)
+    labelWidth = std::max(labelWidth, label->sizeHint().width());
+
+  for (auto *label : visibleLabels)
+    CQWidgetUtil::setWidgetFixedWidth(label, labelWidth);
 }
 
 //------

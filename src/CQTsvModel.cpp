@@ -33,8 +33,8 @@ load(const QString &filename)
   //---
 
   // get header data and rows from tsv
-  const CTsv::Fields &header = tsv.header();
-  const CTsv::Data   &data   = tsv.data();
+  const auto &header = tsv.header();
+  const auto &data   = tsv.data();
 
   //---
 

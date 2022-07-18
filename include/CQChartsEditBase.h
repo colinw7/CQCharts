@@ -29,6 +29,8 @@ class CQChartsEditBase : public QFrame {
 
   void drawCenteredText(QPainter *painter, const QString &text);
 
+  void fixLabelWidth();
+
  protected:
   CQChartsPlot* plot_ { nullptr };
   CQChartsView* view_ { nullptr };

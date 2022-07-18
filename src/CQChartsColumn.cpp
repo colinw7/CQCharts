@@ -627,7 +627,7 @@ getTclType(bool &ok) const
 
   QStringList strs;
 
-  if (! CQTcl::splitList(data, strs)) {
+  if (data == "" || ! CQTcl::splitList(data, strs)) {
     ok = false; return CQBaseModelType::STRING;
   }
 
@@ -648,7 +648,7 @@ getTclValue(int i, bool &ok) const
 
   QStringList strs;
 
-  if (! CQTcl::splitList(data, strs)) {
+  if (data == "" || ! CQTcl::splitList(data, strs)) {
     ok = false; return QVariant();
   }
 

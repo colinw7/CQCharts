@@ -666,6 +666,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
 
   virtual ColorInd calcColorInd() const { return colorIndex(); }
 
+  //! return index of the set associated with the key item
   virtual ColorInd setIndex() const { return calcColorInd(); }
 
   //---
@@ -719,8 +720,8 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   //---
 
   // implement select interface
-  bool selectPress(const Point &, SelData &) override;
-  bool selectMove (const Point &) override;
+  bool selectPress(const Point &w, SelData &selData) override;
+  bool selectMove (const Point &w) override;
 
   //---
 
@@ -822,8 +823,8 @@ class CQChartsGroupKeyItem : public CQChartsKeyItem {
   //---
 
   // implement select interface
-  bool selectPress(const Point &, SelData &selData) override;
-  bool selectMove (const Point &) override;
+  bool selectPress(const Point &w, SelData &selData) override;
+  bool selectMove (const Point &w) override;
 
   //---
 

@@ -124,7 +124,15 @@ void
 CommandWidget::
 updateSize()
 {
-  int numLines = std::max(int(lines_.size()) + 1, minLines());
+  int numLines = 0;
+
+  for (auto *line : lines_) {
+    numLines += line->numLines();
+  }
+
+  numLines += entry_.numLines();
+
+  numLines = std::max(numLines, minLines());
 
   QFontMetrics fm(font());
 
@@ -195,6 +203,8 @@ paintEvent(QPaintEvent *)
   //---
 
   // draw prompt
+  y -= (entry_.numLines() - 1)*charHeight_;
+
   promptY_ = y;
 
   if (isShowPrompt()) {
@@ -237,7 +247,7 @@ paintEvent(QPaintEvent *)
   //---
 
   // draw lines (bottom to top)
-  y -= charHeight_;
+  y -= entry_.numLines()*charHeight_;
 
   int numLines = int(lines_.size());
 
@@ -313,7 +323,7 @@ drawLine(QPainter *painter, Line *line, int y)
 
   if      (line->type() == LineType::OUTPUT)
     painter->setPen(outputColor_);
-  else if (line->type() == LineType::COMMAND)
+  else if (line->type() == LineType::COMMAND || line->type() == LineType::COMMAND_CONT)
     painter->setPen(commandColor_);
   else
     painter->setPen(Qt::red);
@@ -405,7 +415,7 @@ drawSelectedChars(QPainter *painter, int lineNum1, int charNum1, int lineNum2, i
 
 void
 CommandWidget::
-drawPosText(QPainter *painter, int &x, int y, const QString &text, int &pos)
+drawPosText(QPainter *painter, int &x, int &y, const QString &text, int &pos)
 {
   auto c = painter->pen().color();
 
@@ -420,9 +430,15 @@ drawPosText(QPainter *painter, int &x, int y, const QString &text, int &pos)
       c1 = c2;
     }
 
-    painter->drawText(x, y - charDescent_, text[i]);
+    if (text[i] == '\n') {
+      y += charHeight_;
+      x  = 0;
+    }
+    else {
+      painter->drawText(x, y - charDescent_, text[i]);
 
-    x += charWidth_;
+      x += charWidth_;
+    }
 
     ++pos;
   }
@@ -545,19 +561,26 @@ keyPressEvent(QKeyEvent *event)
   if (key == Qt::Key_Return || key == Qt::Key_Enter) {
     auto str = getText(); // copy as entry is cleared
 
-    outputTypeText(str + "\n", LineType::COMMAND, ++lastInd_);
+    if (isCompleteLine(str)) {
+      outputTypeText(str + "\n", LineType::COMMAND, ++lastInd_);
 
-    entry_.clear();
+      entry_.clear();
 
-    emit executeCommand(str);
+      emit executeCommand(str);
 
-    emit scrollEnd();
+      emit scrollEnd();
 
-    commands_.push_back(str);
+      commands_.push_back(str);
 
-    commandNum_ = -1;
+      commandNum_ = -1;
 
-    textChanged();
+      textChanged();
+    }
+    else {
+      entry_.addNewLine();
+
+      textChanged();
+    }
   }
   else if (key == Qt::Key_Left) {
     entry_.cursorLeft();
@@ -807,12 +830,14 @@ outputTypeText(const QString &str, const LineType &type, int ind)
 
   auto pos = buffer.indexOf('\n');
 
+  auto type1 = type;
+
   while (pos != -1) {
     auto lhs = buffer.mid(0, pos);
 
-    auto *line = new Line(lhs, type, ind);
+    auto *line = new Line(lhs, type1, ind);
 
-    if (type == CQCommand::LineType::OUTPUT)
+    if (type1 == CQCommand::LineType::OUTPUT)
       line->initParts();
 
     lines_.push_back(line);
@@ -820,9 +845,24 @@ outputTypeText(const QString &str, const LineType &type, int ind)
     buffer = buffer.mid(pos + 1);
 
     pos = buffer.indexOf('\n');
+
+    if (type1 == LineType::COMMAND)
+      type1 = LineType::COMMAND_CONT;
   }
 
   updateSize();
+}
+
+bool
+CommandWidget::
+isCompleteLine(const QString &str) const
+{
+  auto len = str.length();
+
+  if (len && str[len - 1] == '\\')
+    return false;
+
+  return true;
 }
 
 QString

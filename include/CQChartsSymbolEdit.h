@@ -13,13 +13,19 @@ class CQChartsSymbolEdit;
 class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
+  Q_PROPERTY(CQChartsSymbol symbol READ symbol  WRITE setSymbol)
+  Q_PROPERTY(bool           basic  READ isBasic WRITE setBasic )
 
  public:
   CQChartsSymbolLineEdit(QWidget *parent=nullptr);
 
+  //! get/set symbol
   const CQChartsSymbol &symbol() const;
   void setSymbol(const CQChartsSymbol &c);
+
+  //! get/set basic edit state
+  bool isBasic() const { return basic_; }
+  void setBasic(bool b);
 
   void setNoFocus();
 
@@ -32,6 +38,8 @@ class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
   void menuEditChanged();
 
  private:
+  void updateMenu() override;
+
   void textChanged() override;
 
   void updateSymbol(const CQChartsSymbol &c, bool updateText);
@@ -42,6 +50,7 @@ class CQChartsSymbolLineEdit : public CQChartsLineEditBase {
 
  private:
   CQChartsSymbolEdit* dataEdit_ { nullptr }; //!< symbol data edit
+  bool                basic_    { false };   //!< is basic
 };
 
 //---
@@ -63,13 +72,21 @@ class QLabel;
 class CQChartsSymbolEdit : public CQChartsEditBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
+  Q_PROPERTY(CQChartsSymbol symbol READ symbol  WRITE setSymbol)
+  Q_PROPERTY(bool           basic  READ isBasic WRITE setBasic )
 
  public:
-  CQChartsSymbolEdit(QWidget *parent=nullptr);
+  CQChartsSymbolEdit(QWidget *parent);
 
+  //! get/set symbol
   const CQChartsSymbol &symbol() const { return symbol_; }
   void setSymbol(const CQChartsSymbol &c);
+
+  //! get/set basic edit state
+  bool isBasic() const { return basic_; }
+  void setBasic(bool b);
+
+  void updateMenu();
 
   void setNoFocus();
 
@@ -80,6 +97,8 @@ class CQChartsSymbolEdit : public CQChartsEditBase {
   void symbolChanged();
 
  private Q_SLOTS:
+  void typeSlot();
+
   void widgetsToSymbol();
 
   void updateState();
@@ -87,22 +106,36 @@ class CQChartsSymbolEdit : public CQChartsEditBase {
  private:
   void symbolToWidgets();
 
+  void updateWidgets();
+
   void connectSlots(bool b);
 
  private:
-  CQChartsSymbol          symbol_;                   //!< symbol
-  QComboBox*              typeCombo_    { nullptr }; //!< type combo
-  QStackedWidget*         stack_        { nullptr }; //!< per type widget stack
-  CQChartsSymbolTypeEdit* typeEdit_     { nullptr }; //!< type edit
-  QLineEdit*              charEdit_     { nullptr }; //!< char edit
-  QLineEdit*              charNameEdit_ { nullptr }; //!< char name edit
-  QComboBox*              pathCombo_    { nullptr }; //!< path name combo
-  QLineEdit*              pathSrcEdit_  { nullptr }; //!< path src edit
-  QComboBox*              svgCombo_     { nullptr }; //!< svg name combo
-  QLineEdit*              svgSrcEdit_   { nullptr }; //!< svg src edit
-  CQCheckBox*             filledCheck_  { nullptr }; //!< filled check
-  CQCheckBox*             strokedCheck_ { nullptr }; //!< stroke check
-  bool                    connected_    { false };   //!< is connected
+  using StackFrames = std::vector<QFrame *>;
+
+  CQChartsSymbolLineEdit *lineEdit_ { nullptr };
+
+  CQChartsSymbol symbol_;          //!< symbol
+  bool           basic_ { false }; //!< is basic
+
+  QFrame*                 basicFrame_        { nullptr }; //!< basic frame
+  CQChartsSymbolTypeEdit* basicTypeEdit_     { nullptr }; //!< basic type edit
+  CQCheckBox*             basicFilledCheck_  { nullptr }; //!< basic filled check
+  CQCheckBox*             basicStrokedCheck_ { nullptr }; //!< basic stroke check
+
+  QFrame*                 normalFrame_   { nullptr }; //!< normal frame
+  QComboBox*              typeCombo_     { nullptr }; //!< type combo
+  StackFrames             stackFrames_;               //!< per type widget stack
+  CQChartsSymbolTypeEdit* typeEdit_      { nullptr }; //!< type edit
+  QLineEdit*              charEdit_      { nullptr }; //!< char edit
+  QLineEdit*              charNameEdit_  { nullptr }; //!< char name edit
+  QComboBox*              pathCombo_     { nullptr }; //!< path name combo
+  QLineEdit*              pathSrcEdit_   { nullptr }; //!< path src edit
+  QComboBox*              svgCombo_      { nullptr }; //!< svg name combo
+  QLineEdit*              svgSrcEdit_    { nullptr }; //!< svg src edit
+  CQCheckBox*             filledCheck_   { nullptr }; //!< filled check
+  CQCheckBox*             strokedCheck_  { nullptr }; //!< stroke check
+  bool                    connected_     { false };   //!< is connected
 };
 
 //------

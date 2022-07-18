@@ -4714,8 +4714,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     sa = fa;
   }
   else if (! symbol.isStroked()) {
-    filled  = false;
-    stroked = true;
+    filled  = true;
+    stroked = false;
   }
 
   //---

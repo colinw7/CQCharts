@@ -210,7 +210,7 @@ draw(PaintDevice *device, const TextOptions &textOptions, bool showBoxes)
 
     auto p1 = device->pixelToWindow(data.p);
 
-    TextOptions options = textOptions;
+    auto options = textOptions;
 
     options.angle = data.angle;
     options.align = data.align;

@@ -74,6 +74,8 @@ addSymbolSizeWidgets()
   symbolTypeSetEdit_     = CQUtil::makeWidget<CQChartsSymbolSetEdit>("symbolSetEdit");
   symbolTypeMappingEdit_ = CQUtil::makeWidget<QLineEdit>("symbolTypeMappingEdit");
 
+  symbolTypeEdit_->setBasic(true);
+
   symbolTypeSetEdit_->setCharts(charts_);
 
   addFrameWidget(symbolTypeControlGroupData.fixedFrame , "Symbol" , symbolTypeEdit_);

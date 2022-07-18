@@ -4637,7 +4637,7 @@ updateColorMapKey() const
 
   QVariantList uniqueLabels;
 
-  if (isColor) {
+  if (isColor && colorLabelColumn().isValid()) {
     auto *columnDetails1 = this->columnDetails(colorLabelColumn());
 
     using ColorNameMap = std::map<QVariant, QVariant, CQChartsVariant::VariantCmp>;
@@ -4646,11 +4646,22 @@ updateColorMapKey() const
 
     uint n = std::min(columnDetails->valueCount(), columnDetails1->valueCount());
 
-    for (uint i = 0; i < n; ++i)
-      colorNameMap[columnDetails->value(i)] = columnDetails1->value(i);
+    bool unique = true;
 
-    for (const auto &p : colorNameMap)
-      uniqueLabels.push_back(p.second);
+    for (uint i = 0; i < n; ++i) {
+      const auto &value  = columnDetails ->value(i);
+      const auto &value1 = columnDetails1->value(i);
+
+      auto pc = colorNameMap.find(value);
+      if (pc != colorNameMap.end()) unique = false;
+
+      colorNameMap[value] = value1;
+    }
+
+    if (unique) {
+      for (const auto &p : colorNameMap)
+        uniqueLabels.push_back(p.second);
+    }
   }
 
   //---

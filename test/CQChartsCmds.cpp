@@ -3260,7 +3260,8 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsCmds::Plots plots;
 
-  cmds()->getPlotsByName(view, plotNames, plots);
+  if (! cmds()->getPlotsByName(view, plotNames, plots))
+    return errorMsg("Failed to get named plots for view");
 
   //---
 
@@ -3369,6 +3370,13 @@ bool
 CQChartsPlaceChartsPlotsCmd::
 execCmd(CQChartsCmdArgs &argv)
 {
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
   CQPerfTrace trace("CQChartsPlaceChartsPlotsCmd::exec");
 
   addArgs(argv);
@@ -3398,7 +3406,8 @@ execCmd(CQChartsCmdArgs &argv)
 
   CQChartsCmds::Plots plots;
 
-  cmds()->getPlotsByName(view, plotNames, plots);
+  if (! cmds()->getPlotsByName(view, plotNames, plots))
+    return errorMsg("Failed to get named plots for view");
 
   //---
 
@@ -13106,7 +13115,7 @@ getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots) const
     else {
       auto *plot = getPlotByName(view, plotName.toString());
 
-      if (plot)
+      if (plot && plot->view() == view)
         plots.push_back(plot);
       else
         rc = false;

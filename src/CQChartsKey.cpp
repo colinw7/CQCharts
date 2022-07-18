@@ -1558,7 +1558,7 @@ contains(const Point &p) const
   if (! isOverlayVisible() || isEmpty())
     return false;
 
-  if (! bbox().isValid())
+  if (! hasBBox())
     return false;
 
   return bbox().inside(p);

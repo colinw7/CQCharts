@@ -26,13 +26,17 @@ CQChartsColumnLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = dataEdit_ = new CQChartsColumnEdit;
+  menuEdit_ = dataEdit_ = new CQChartsColumnEdit(this);
+
+  setNoFocus();
 
   menu_->setWidget(dataEdit_);
 
   //---
 
   connectSlots(true);
+
+  columnToWidgets();
 }
 
 void
@@ -89,6 +93,13 @@ setProxy(bool b)
 
 void
 CQChartsColumnLineEdit::
+setNoFocus()
+{
+  dataEdit_->setNoFocus();
+}
+
+void
+CQChartsColumnLineEdit::
 updateColumn(const Column &column, bool updateText)
 {
   connectSlots(false);
@@ -107,14 +118,12 @@ void
 CQChartsColumnLineEdit::
 textChanged()
 {
+  // update column from widget (text)
   Column column;
 
   auto text = edit_->text();
 
-  if (text.trimmed() == "") {
-    column = Column();
-  }
-  else {
+  if (text.trimmed() != "") {
     if (modelData()) {
       auto *model = modelData()->currentModel(isProxy()).data();
 
@@ -126,13 +135,14 @@ textChanged()
     }
   }
 
-  updateColumn(column, /*updateText*/ false);
+  updateColumn(column, /*updateText*/false);
 }
 
 void
 CQChartsColumnLineEdit::
 columnToWidgets()
 {
+  // update widget from current symbol
   connectSlots(false);
 
   QString text;
@@ -181,6 +191,17 @@ drawPreview(QPainter *painter, const QRect &)
   auto str = (column().isValid() ? column().toString() : "<none>");
 
   drawCenteredText(painter, str);
+}
+
+void
+CQChartsColumnLineEdit::
+updateMenu()
+{
+  // update menu width
+  CQChartsLineEditBase::updateMenu();
+
+  // update menu height
+  dataEdit_->updateMenu();
 }
 
 //------
@@ -353,6 +374,10 @@ CQChartsColumnEdit(QWidget *parent) :
 {
   setObjectName("columnEdit");
 
+  lineEdit_ = qobject_cast<CQChartsColumnLineEdit *>(parent);
+
+  //---
+
   auto *layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
 
   //---
@@ -449,10 +474,6 @@ CQChartsColumnEdit(QWidget *parent) :
 
   connectSlots(true);
 
-  widgetHeight_ = CQChartsColumnEdit::minimumSizeHint().height();
-
-  setFixedHeight(widgetHeight_);
-
   updateState();
 }
 
@@ -480,13 +501,6 @@ CQChartsColumnEdit::
 resetModelData()
 {
   modelData_ = nullptr;
-}
-
-const CQChartsColumn &
-CQChartsColumnEdit::
-column() const
-{
-  return column_;
 }
 
 void
@@ -591,7 +605,9 @@ widgetsToColumn()
   };
 
   // DATA, DATA_INDEX
-  if      (typeCombo_->currentIndex() == 0) {
+  int typeInd = typeCombo_->currentIndex();
+
+  if      (typeInd == 0) {
     auto icolumn = columnCombo_->getColumn();
 
     bool ok;
@@ -607,45 +623,45 @@ widgetsToColumn()
       column = Column::makeData(icolumn.column(), int(role));
   }
   // EXPR
-  else if (typeCombo_->currentIndex() == 1) {
+  else if (typeInd == 1) {
     auto str = getExprEditStr();
 
     column = Column::makeExpr(str);
   }
   // COLUMN_REF
-  else if (typeCombo_->currentIndex() == 2) {
+  else if (typeInd == 2) {
     auto str = getExprEditStr();
 
     column = Column::makeColumnRef(str);
   }
   // TCL_DATA
-  else if (typeCombo_->currentIndex() == 3) {
+  else if (typeInd == 3) {
     auto str = getExprEditStr();
 
     column = Column::makeTclData(str);
   }
   // ROW
-  else if (typeCombo_->currentIndex() == 4) {
+  else if (typeInd == 4) {
     column = Column::makeRow();
   }
   // COLUMN
-  else if (typeCombo_->currentIndex() == 5) {
+  else if (typeInd == 5) {
     column = Column::makeColumn();
   }
   // CELL
-  else if (typeCombo_->currentIndex() == 6) {
+  else if (typeInd == 6) {
     column = Column::makeCell();
   }
   // HHEADER
-  else if (typeCombo_->currentIndex() == 7) {
+  else if (typeInd == 7) {
     column = Column::makeHHeader(-1);
   }
   // VHEADER
-  else if (typeCombo_->currentIndex() == 8) {
+  else if (typeInd == 8) {
     column = Column::makeVHeader();
   }
   // GROUP
-  else if (typeCombo_->currentIndex() == 9) {
+  else if (typeInd == 9) {
     column = Column::makeGroup();
   }
 
@@ -667,6 +683,24 @@ widgetsToColumn()
 
 void
 CQChartsColumnEdit::
+updateMenu()
+{
+  if (lineEdit_)
+    lineEdit_->updateMenuEditHeight();
+}
+
+void
+CQChartsColumnEdit::
+setNoFocus()
+{
+  nameEdit_      ->setFocusPolicy(Qt::NoFocus);
+  roleEdit_      ->setFocusPolicy(Qt::NoFocus);
+  indexEdit_     ->setFocusPolicy(Qt::NoFocus);
+  expressionEdit_->setFocusPolicy(Qt::NoFocus);
+}
+
+void
+CQChartsColumnEdit::
 connectSlots(bool b)
 {
   assert(b != connected_);
@@ -680,7 +714,7 @@ connectSlots(bool b)
   };
 
   connectDisconnect(b, typeCombo_, SIGNAL(currentIndexChanged(int)),
-                    SLOT(widgetsToColumnSlot()));
+                    SLOT(typeSlot()));
 
   connectDisconnect(b, nameEdit_, SIGNAL(textChanged(const QString &)),
                     SLOT(widgetsToColumnSlot()));
@@ -698,13 +732,21 @@ connectSlots(bool b)
 
 void
 CQChartsColumnEdit::
+typeSlot()
+{
+  widgetsToColumnSlot();
+
+  if (lineEdit_)
+    lineEdit_->updateMenuEditHeight();
+}
+
+void
+CQChartsColumnEdit::
 widgetsToColumnSlot()
 {
   connectSlots(false);
 
   widgetsToColumn();
-
-  updateState();
 
   connectSlots(true);
 
@@ -735,19 +777,21 @@ updateState()
     labelW->setText(label);
   };
 
-  setEditVisible(columnCombo_   , typeCombo_->currentIndex() == 0);
-  setEditVisible(roleEdit_      , typeCombo_->currentIndex() == 0);
-  setEditVisible(indexEdit_     , typeCombo_->currentIndex() == 0);
+  int typeInd = typeCombo_->currentIndex();
 
-  setEditVisible(expressionEdit_, typeCombo_->currentIndex() == 1 || // EXPR
-                                  typeCombo_->currentIndex() == 2 || // COLUMN_REF
-                                  typeCombo_->currentIndex() == 3);  // TCL DATA
+  setEditVisible(columnCombo_   , typeInd == 0);
+  setEditVisible(roleEdit_      , typeInd == 0);
+  setEditVisible(indexEdit_     , typeInd == 0);
 
-  if      (typeCombo_->currentIndex() == 1)
+  setEditVisible(expressionEdit_, typeInd == 1 || // EXPR
+                                  typeInd == 2 || // COLUMN_REF
+                                  typeInd == 3);  // TCL DATA
+
+  if      (typeInd == 1)
     setEditLabel(expressionEdit_, "Expression");
-  else if (typeCombo_->currentIndex() == 2)
+  else if (typeInd == 2)
     setEditLabel(expressionEdit_, "Ref Column");
-  else if (typeCombo_->currentIndex() == 3)
+  else if (typeInd == 3)
     setEditLabel(expressionEdit_, "Tcl Data");
 }
 
@@ -758,4 +802,30 @@ sizeHint() const
   int w = width();
 
   return QSize(w, widgetHeight_);
+}
+
+QSize
+CQChartsColumnEdit::
+minimumSizeHint() const
+{
+  QFontMetrics fm(font());
+
+  int eh = fm.height() + 8;
+
+  int typeInd = typeCombo_->currentIndex();
+
+  int n = 1;
+
+  if      (typeInd == 0) n = 5;
+  else if (typeInd == 1) n = 3;
+  else if (typeInd == 2) n = 3;
+  else if (typeInd == 3) n = 3;
+  else if (typeInd == 4) n = 2;
+  else if (typeInd == 5) n = 2;
+  else if (typeInd == 6) n = 2;
+  else if (typeInd == 7) n = 2;
+  else if (typeInd == 8) n = 2;
+  else if (typeInd == 9) n = 2;
+
+  return QSize(0, eh*n);
 }

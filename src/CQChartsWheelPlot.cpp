@@ -661,8 +661,8 @@ createObjs(PlotObjs &objs) const
       auto w = 0.1;
       auto h = 0.1;
 
-      PointData pointData1 = pointData;
-      PointData pointData2 = pointData;
+      auto pointData1 = pointData;
+      auto pointData2 = pointData;
 
       pointData1.point = Point(pointData.point.x, ymin_);
       pointData2.point = Point(pointData.point.x, ymax_);
@@ -687,7 +687,7 @@ createObjs(PlotObjs &objs) const
       auto w = 0.1;
       auto h = 0.1;
 
-      PointData pointData1 = pointData;
+      auto pointData1 = pointData;
 
       pointData1.point = Point(pointData.point.x, ymax_);
 
@@ -709,7 +709,7 @@ createObjs(PlotObjs &objs) const
       auto w = 0.1;
       auto h = 0.1;
 
-      PointData pointData1 = pointData;
+      auto pointData1 = pointData;
 
       pointData1.point = Point(pointData.point.x, ymax_);
 

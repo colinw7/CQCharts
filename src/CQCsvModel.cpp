@@ -53,8 +53,8 @@ load(const QString &filename)
   //---
 
   // get header data and rows from csv
-  const CCsv::Fields &header = csv.header();
-  const CCsv::Data   &data   = csv.data();
+  const auto &header = csv.header();
+  const auto &data   = csv.data();
 
   //---
 

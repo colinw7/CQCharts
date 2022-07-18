@@ -7,6 +7,7 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <CQWidgetMenu.h>
+#include <CQWidgetUtil.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
@@ -167,11 +168,60 @@ void
 CQChartsLineEditBase::
 updateMenu()
 {
-  int w = std::max(menu_->sizeHint().width(), this->width());
+  updateMenuWidth();
+}
+
+void
+CQChartsLineEditBase::
+updateMenuWidth()
+{
+  // update menu width to match line edit width
+  CQWidgetUtil::resetWidgetMinMaxWidth(menu_);
+
+  int w1 = this->width();
+  int w2 = menu_->sizeHint().width();
+
+  int w = std::max(w1, w2);
 
   menu_->setFixedWidth(w);
 
   menu_->updateAreaSize();
+}
+
+void
+CQChartsLineEditBase::
+updateMenuEditHeight()
+{
+  assert(menuEdit_);
+
+  // update menu height to match edit widget
+  int h = menuEdit_->minimumSizeHint().height();
+
+  CQWidgetUtil::setWidgetFixedHeight(menuEdit_, h);
+
+  int x = menuEdit_->x();
+  int y = menuEdit_->y();
+
+  auto *pw = menuEdit_->parentWidget();
+
+  while (pw) {
+    CQWidgetUtil::setWidgetFixedHeight(pw, h);
+
+    if (pw->layout())
+      pw->layout()->invalidate();
+
+    auto *wm = qobject_cast<CQWidgetMenu *>(pw);
+
+    if (wm)
+      break;
+
+    x += pw->x();
+    y += pw->y();
+
+    pw = pw->parentWidget();
+  }
+
+  menuEdit_->layout()->invalidate();
 }
 
 void

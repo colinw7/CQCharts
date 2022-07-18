@@ -9,6 +9,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQCheckBox.h>
+#include <CQWidgetUtil.h>
 
 #include <QStackedWidget>
 #include <QComboBox>
@@ -27,9 +28,9 @@ CQChartsSymbolLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = dataEdit_ = new CQChartsSymbolEdit;
+  menuEdit_ = dataEdit_ = new CQChartsSymbolEdit(this);
 
-  dataEdit_->setNoFocus();
+  setNoFocus();
 
   menu_->setWidget(dataEdit_);
 
@@ -51,7 +52,16 @@ void
 CQChartsSymbolLineEdit::
 setSymbol(const CQChartsSymbol &symbol)
 {
-  updateSymbol(symbol, /*updateText*/ true);
+  updateSymbol(symbol, /*updateText*/true);
+}
+
+void
+CQChartsSymbolLineEdit::
+setBasic(bool b)
+{
+  basic_ = b;
+
+  dataEdit_->setBasic(basic_);
 }
 
 void
@@ -81,10 +91,13 @@ void
 CQChartsSymbolLineEdit::
 textChanged()
 {
+  // update symbol from widget (text)
   CQChartsSymbol symbol;
 
-  if (edit_->text().trimmed() != "") {
-    symbol = CQChartsSymbol(edit_->text());
+  auto text = edit_->text();
+
+  if (text.trimmed() != "") {
+    symbol = CQChartsSymbol(text);
 
     if (! symbol.isValid()) {
       symbolToWidgets();
@@ -99,12 +112,15 @@ void
 CQChartsSymbolLineEdit::
 symbolToWidgets()
 {
+  // update widget from current symbol
   connectSlots(false);
 
+  QString text;
+
   if (symbol().isValid())
-    edit_->setText(symbol().toString());
-  else
-    edit_->setText("");
+    text = symbol().toString();
+
+  edit_->setText(text);
 
   auto tip = QString("%1 (%2)").arg(symbol().toString());
 
@@ -139,6 +155,17 @@ drawPreview(QPainter *painter, const QRect & /*rect*/)
   auto str = (symbol().isValid() ? symbol().toString() : "<none>");
 
   drawCenteredText(painter, str);
+}
+
+void
+CQChartsSymbolLineEdit::
+updateMenu()
+{
+  // update menu width
+  CQChartsLineEditBase::updateMenu();
+
+  // update menu height
+  dataEdit_->updateMenu();
 }
 
 //------
@@ -264,6 +291,20 @@ CQChartsSymbolEdit(QWidget *parent) :
 {
   setObjectName("symbolEdit");
 
+  lineEdit_ = qobject_cast<CQChartsSymbolLineEdit *>(parent);
+
+  //---
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //---
+
+  basicFrame_  = CQUtil::makeWidget<QFrame>("basicFrame");
+  normalFrame_ = CQUtil::makeWidget<QFrame>("normalFrame");
+
+  layout->addWidget(basicFrame_);
+  layout->addWidget(normalFrame_);
+
   //---
 
   auto addGridLabelWidget = [&](QGridLayout *grid, const QString &label, QWidget *edit, int &r) {
@@ -280,13 +321,34 @@ CQChartsSymbolEdit(QWidget *parent) :
     grid->setColumnStretch(2, 1);
   };
 
-  //---
+  //------
 
-  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
-  int   row    = 0;
+  auto *basicLayout = CQUtil::makeLayout<QGridLayout>(basicFrame_, 2, 2);
+  int   basicRow    = 0;
 
-  auto addLabelWidget = [&](const QString &label, QWidget *edit) {
-    addGridLabelWidget(layout, label, edit, row);
+  auto addBasicLabelWidget = [&](const QString &label, QWidget *edit) {
+    addGridLabelWidget(basicLayout, label, edit, basicRow);
+  };
+
+  basicTypeEdit_ = CQUtil::makeWidget<CQChartsSymbolTypeEdit>(this, "basicTypeEdit");
+
+  addGridLabelWidget(basicLayout, "Symbol", basicTypeEdit_, basicRow);
+
+  basicFilledCheck_  = CQUtil::makeWidget<CQCheckBox>("basicFilledCheck");
+  basicStrokedCheck_ = CQUtil::makeWidget<CQCheckBox>("basicStrokedCheck");
+
+  addBasicLabelWidget("Filled" , basicFilledCheck_ );
+  addBasicLabelWidget("Stroked", basicStrokedCheck_);
+
+  addLayoutStretch(basicLayout, basicRow);
+
+  //------
+
+  auto *normalLayout = CQUtil::makeLayout<QGridLayout>(normalFrame_, 2, 2);
+  int   normalRow    = 0;
+
+  auto addNormalLabelWidget = [&](const QString &label, QWidget *edit) {
+    addGridLabelWidget(normalLayout, label, edit, normalRow);
   };
 
   //---
@@ -297,26 +359,30 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   typeCombo_->setToolTip("Symbol value type");
 
-  addLabelWidget("Type", typeCombo_);
+  addNormalLabelWidget("Type", typeCombo_);
 
   //---
 
-  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
+  auto *stack = CQUtil::makeWidget<QFrame>("stack");
 
-  layout->addWidget(stack_, row, 0, 1, 2); ++row;
+  auto *stackLayout = CQUtil::makeLayout<QVBoxLayout>(stack, 0, 0);
+
+  normalLayout->addWidget(stack, normalRow, 0, 1, 2); ++normalRow;
 
   //---
 
   auto *noneFrame = CQUtil::makeWidget<QFrame>("noneFrame");
 
-  stack_->addWidget(noneFrame);
+  stackLayout->addWidget(noneFrame);
+  stackFrames_.push_back(noneFrame);
 
   //---
 
   auto *typeFrame  = CQUtil::makeWidget<QFrame>("typeFrame");
   auto *typeLayout = CQUtil::makeLayout<QGridLayout>(typeFrame);
 
-  stack_->addWidget(typeFrame);
+  stackLayout->addWidget(typeFrame);
+  stackFrames_.push_back(typeFrame);
 
   int typeRow = 0;
 
@@ -331,7 +397,8 @@ CQChartsSymbolEdit(QWidget *parent) :
   auto *charFrame  = CQUtil::makeWidget<QFrame>("charFrame");
   auto *charLayout = CQUtil::makeLayout<QGridLayout>(charFrame);
 
-  stack_->addWidget(charFrame);
+  stackLayout->addWidget(charFrame);
+  stackFrames_.push_back(charFrame);
 
   int charRow = 0;
 
@@ -348,7 +415,8 @@ CQChartsSymbolEdit(QWidget *parent) :
   auto *pathFrame  = CQUtil::makeWidget<QFrame>("pathFrame");
   auto *pathLayout = CQUtil::makeLayout<QGridLayout>(pathFrame);
 
-  stack_->addWidget(pathFrame);
+  stackLayout->addWidget(pathFrame);
+  stackFrames_.push_back(pathFrame);
 
   int pathRow = 0;
 
@@ -367,7 +435,8 @@ CQChartsSymbolEdit(QWidget *parent) :
   auto *svgFrame  = CQUtil::makeWidget<QFrame>("svgFrame");
   auto *svgLayout = CQUtil::makeLayout<QGridLayout>(svgFrame);
 
-  stack_->addWidget(svgFrame);
+  stackLayout->addWidget(svgFrame);
+  stackFrames_.push_back(svgFrame);
 
   int svgRow = 0;
 
@@ -386,18 +455,16 @@ CQChartsSymbolEdit(QWidget *parent) :
   filledCheck_  = CQUtil::makeWidget<CQCheckBox>("filledCheck");
   strokedCheck_ = CQUtil::makeWidget<CQCheckBox>("strokedCheck");
 
-  addLabelWidget("Filled" , filledCheck_ );
-  addLabelWidget("Stroked", strokedCheck_);
+  addNormalLabelWidget("Filled" , filledCheck_ );
+  addNormalLabelWidget("Stroked", strokedCheck_);
 
   //---
 
-  addLayoutStretch(layout, row);
+  addLayoutStretch(normalLayout, normalRow);
 
   //---
 
   connectSlots(true);
-
-  setFixedHeight(CQChartsSymbolEdit::minimumSizeHint().height());
 
   updateState();
 }
@@ -417,45 +484,11 @@ setSymbol(const CQChartsSymbol &symbol)
 
 void
 CQChartsSymbolEdit::
-setNoFocus()
+setBasic(bool b)
 {
-//symbolEdit_->setNoFocus();
+  basic_ = b;
 
-  typeEdit_    ->setFocusPolicy(Qt::NoFocus);
-//charEdit_    ->setFocusPolicy(Qt::NoFocus);
-//charNameEdit_->setFocusPolicy(Qt::NoFocus);
-  pathCombo_   ->setFocusPolicy(Qt::NoFocus);
-//pathSrcEdit_ ->setFocusPolicy(Qt::NoFocus);
-  svgCombo_    ->setFocusPolicy(Qt::NoFocus);
-//svgSrcEdit_  ->setFocusPolicy(Qt::NoFocus);
-  filledCheck_ ->setFocusPolicy(Qt::NoFocus);
-  strokedCheck_->setFocusPolicy(Qt::NoFocus);
-}
-
-void
-CQChartsSymbolEdit::
-connectSlots(bool b)
-{
-  assert(b != connected_);
-
-  connected_ = b;
-
-  //---
-
-  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
-  };
-
-  connectDisconnect(typeCombo_   , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToSymbol()));
-  connectDisconnect(typeEdit_    , SIGNAL(symbolChanged()), SLOT(widgetsToSymbol()));
-  connectDisconnect(charEdit_    , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
-  connectDisconnect(charNameEdit_, SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
-  connectDisconnect(pathCombo_   , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToSymbol()));
-  connectDisconnect(pathSrcEdit_ , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
-  connectDisconnect(svgCombo_    , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToSymbol()));
-  connectDisconnect(svgSrcEdit_  , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
-  connectDisconnect(filledCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
-  connectDisconnect(strokedCheck_, SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
+  updateWidgets();
 }
 
 void
@@ -486,7 +519,8 @@ symbolToWidgets()
     else {
       typeCombo_->setCurrentIndex(1);
 
-      typeEdit_->setSymbolType(symbol_.symbolType());
+      basicTypeEdit_->setSymbolType(symbol_.symbolType());
+      typeEdit_     ->setSymbolType(symbol_.symbolType());
     }
   }
   else {
@@ -496,7 +530,15 @@ symbolToWidgets()
   filledCheck_ ->setChecked(symbol_.isFilled ());
   strokedCheck_->setChecked(symbol_.isStroked());
 
-  stack_->setCurrentIndex(typeCombo_->currentIndex());
+  basicFilledCheck_ ->setChecked(symbol_.isFilled ());
+  basicStrokedCheck_->setChecked(symbol_.isStroked());
+
+  //--
+
+  for (int i = 0; i < int(stackFrames_.size()); ++i)
+    stackFrames_[uint(i)]->setVisible(i == typeCombo_->currentIndex());
+
+  //--
 
   connectSlots(true);
 }
@@ -507,14 +549,18 @@ widgetsToSymbol()
 {
   connectSlots(false);
 
-  int typeInd = typeCombo_->currentIndex();
+  int typeInd = (isBasic() ? 1 : typeCombo_->currentIndex());
 
-  stack_->setCurrentIndex(typeInd);
+  for (int i = 0; i < int(stackFrames_.size()); ++i)
+    stackFrames_[uint(i)]->setVisible(i == typeInd);
 
   CQChartsSymbol symbol;
 
   if      (typeInd == 1) {
-    symbol = CQChartsSymbol(typeEdit_->symbolType());
+    if (isBasic())
+      symbol = CQChartsSymbol(basicTypeEdit_->symbolType());
+    else
+      symbol = CQChartsSymbol(typeEdit_->symbolType());
   }
   else if (typeInd == 2) {
     auto text = charEdit_->text();
@@ -557,8 +603,17 @@ widgetsToSymbol()
   if (! filledCheck_->isChecked() && ! strokedCheck_->isChecked())
     filledCheck_->setChecked(true);
 
-  symbol.setFilled (filledCheck_ ->isChecked());
-  symbol.setStroked(strokedCheck_->isChecked());
+  if (! basicFilledCheck_->isChecked() && ! basicStrokedCheck_->isChecked())
+    basicFilledCheck_->setChecked(true);
+
+  if (isBasic()) {
+    symbol.setFilled (basicFilledCheck_ ->isChecked());
+    symbol.setStroked(basicStrokedCheck_->isChecked());
+  }
+  else {
+    symbol.setFilled (filledCheck_ ->isChecked());
+    symbol.setStroked(strokedCheck_->isChecked());
+  }
 
   symbol_ = symbol;
 
@@ -575,6 +630,93 @@ widgetsToSymbol()
 
 void
 CQChartsSymbolEdit::
+updateWidgets()
+{
+  widgetsToSymbol();
+}
+
+void
+CQChartsSymbolEdit::
+updateMenu()
+{
+  basicFrame_ ->setVisible(  isBasic());
+  normalFrame_->setVisible(! isBasic());
+
+  //---
+
+  fixLabelWidth();
+
+  //---
+
+  if (lineEdit_)
+    lineEdit_->updateMenuEditHeight();
+}
+
+void
+CQChartsSymbolEdit::
+setNoFocus()
+{
+//symbolEdit_->setNoFocus();
+
+  basicTypeEdit_    ->setFocusPolicy(Qt::NoFocus);
+  basicFilledCheck_ ->setFocusPolicy(Qt::NoFocus);
+  basicStrokedCheck_->setFocusPolicy(Qt::NoFocus);
+
+  typeEdit_    ->setFocusPolicy(Qt::NoFocus);
+//charEdit_    ->setFocusPolicy(Qt::NoFocus);
+//charNameEdit_->setFocusPolicy(Qt::NoFocus);
+  pathCombo_   ->setFocusPolicy(Qt::NoFocus);
+//pathSrcEdit_ ->setFocusPolicy(Qt::NoFocus);
+  svgCombo_    ->setFocusPolicy(Qt::NoFocus);
+//svgSrcEdit_  ->setFocusPolicy(Qt::NoFocus);
+  filledCheck_ ->setFocusPolicy(Qt::NoFocus);
+  strokedCheck_->setFocusPolicy(Qt::NoFocus);
+}
+
+void
+CQChartsSymbolEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
+  };
+
+  connectDisconnect(basicTypeEdit_    , SIGNAL(symbolChanged()), SLOT(widgetsToSymbol()));
+  connectDisconnect(basicFilledCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
+  connectDisconnect(basicStrokedCheck_, SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
+
+  connectDisconnect(typeCombo_   , SIGNAL(currentIndexChanged(int)), SLOT(typeSlot()));
+  connectDisconnect(typeEdit_    , SIGNAL(symbolChanged()), SLOT(widgetsToSymbol()));
+  connectDisconnect(charEdit_    , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
+  connectDisconnect(charNameEdit_, SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
+  connectDisconnect(pathCombo_   , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToSymbol()));
+  connectDisconnect(pathSrcEdit_ , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
+  connectDisconnect(svgCombo_    , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToSymbol()));
+  connectDisconnect(svgSrcEdit_  , SIGNAL(editingFinished()), SLOT(widgetsToSymbol()));
+  connectDisconnect(filledCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
+  connectDisconnect(strokedCheck_, SIGNAL(stateChanged(int)), SLOT(widgetsToSymbol()));
+}
+
+void
+CQChartsSymbolEdit::
+typeSlot()
+{
+  fixLabelWidth();
+
+  widgetsToSymbol();
+
+  if (lineEdit_)
+    lineEdit_->updateMenuEditHeight();
+}
+
+void
+CQChartsSymbolEdit::
 updateState()
 {
 }
@@ -583,7 +725,13 @@ QSize
 CQChartsSymbolEdit::
 sizeHint() const
 {
-  auto s1 = CQChartsEditBase::sizeHint();
+  QSize s1;
+
+  if (isBasic())
+    s1 = basicFrame_->sizeHint();
+  else
+    s1 = normalFrame_->sizeHint();
+
   auto s2 = minimumSizeHint();
 
   return QSize(s1.width(), s2.height());
@@ -595,7 +743,19 @@ minimumSizeHint() const
 {
   QFontMetrics fm(font());
 
-  int eh = fm.height() + 4;
+  int eh = fm.height() + 8;
 
-  return QSize(0, eh*8);
+  if (isBasic())
+    return QSize(0, eh*3);
+  else {
+    int typeInd = typeCombo_->currentIndex();
+
+    int n;
+
+    if      (typeInd == 0) n = 3;
+    else if (typeInd == 1) n = 4;
+    else                   n = 5;
+
+    return QSize(0, eh*n);
+  }
 }

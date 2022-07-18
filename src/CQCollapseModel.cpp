@@ -76,7 +76,7 @@ columnTypes() const
   QStringList strs;
 
   for (int i = 0; i < nc; ++i) {
-    const ColumnConfig &columnConfig = th->getColumnConfig(i);
+    const auto &columnConfig = th->getColumnConfig(i);
 
     strs << CQBaseModel::typeName(columnConfig.type);
   }
@@ -101,7 +101,7 @@ collapseOps() const
   QStringList strs;
 
   for (int i = 0; i < nc; ++i) {
-    const ColumnConfig &columnConfig = th->getColumnConfig(i);
+    const auto &columnConfig = th->getColumnConfig(i);
 
     if      (columnConfig.collapseOp == CollapseOp::UNIQUE) strs << "unique";
     else if (columnConfig.collapseOp == CollapseOp::SUM   ) strs << "sum";
@@ -123,7 +123,7 @@ void
 CQCollapseModel::
 setColumnType(int column, CQBaseModelType type)
 {
-  ColumnConfig &columnConfig = getColumnConfig(column);
+  auto &columnConfig = getColumnConfig(column);
 
   columnConfig.type = type;
 
@@ -138,7 +138,7 @@ void
 CQCollapseModel::
 setColumnCollapseOp(int column, CollapseOp op)
 {
-  ColumnConfig &columnConfig = getColumnConfig(column);
+  auto &columnConfig = getColumnConfig(column);
 
   columnConfig.collapseOp = op;
 
@@ -286,7 +286,7 @@ data(const QModelIndex &index, int role) const
 
     auto *th = const_cast<CQCollapseModel *>(this);
 
-    ColumnConfig &columnConfig = th->getColumnConfig(c);
+    auto &columnConfig = th->getColumnConfig(c);
 
     return variantData.displayValue(columnConfig);
   }
@@ -342,7 +342,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
         role == static_cast<int>(CQBaseModelRole::BaseType)) {
       auto *th = const_cast<CQCollapseModel *>(this);
 
-      ColumnConfig &columnConfig = th->getColumnConfig(section);
+      auto &columnConfig = th->getColumnConfig(section);
 
       if      (role == static_cast<int>(CQBaseModelRole::Type)) {
         return static_cast<int>(columnConfig.type);
@@ -466,14 +466,14 @@ getVariantData(int r, int c, int role) const
   if (pr == th->rowDataMap_.end())
     pr = th->rowDataMap_.insert(pr, RowDataMap::value_type(r, ColumnDataMap()));
 
-  ColumnDataMap &columnDataMap = (*pr).second;
+  auto &columnDataMap = (*pr).second;
 
   auto pc = columnDataMap.find(c);
 
   if (pc == columnDataMap.end())
     pc = columnDataMap.insert(pc, ColumnDataMap::value_type(c, ColumnData()));
 
-  ColumnData &columnData = (*pc).second;
+  auto &columnData = (*pc).second;
 
   auto pd = columnData.roleDataMap.find(role);
 
