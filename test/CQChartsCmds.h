@@ -48,7 +48,7 @@ class CQChartsCmds : public QObject {
   using Columns = std::vector<CQChartsColumn>;
 
  private:
-  using OptReal = boost::optional<double>;
+  using OptReal = std::optional<double>;
 
  public:
   CQChartsCmds(CQCharts *charts);

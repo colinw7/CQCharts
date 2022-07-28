@@ -8,7 +8,7 @@
 
 #include <tcl.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 #include <vector>
 #include <set>
@@ -164,9 +164,9 @@ class CmdGroup {
 class CmdArgs {
  public:
   using Args    = std::vector<QVariant>;
-  using OptReal = boost::optional<double>;
-  using OptInt  = boost::optional<int>;
-  using OptBool = boost::optional<bool>;
+  using OptReal = std::optional<double>;
+  using OptInt  = std::optional<int>;
+  using OptBool = std::optional<bool>;
 
   /*!
    * \brief command argument

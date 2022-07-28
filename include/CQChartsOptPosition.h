@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional position
@@ -24,7 +24,7 @@ class CQChartsOptPosition :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptPosition, metaTypeId)
 
  public:
-  using OptPosition = boost::optional<CQChartsPosition>;
+  using OptPosition = std::optional<CQChartsPosition>;
 
   CQChartsOptPosition() { }
 

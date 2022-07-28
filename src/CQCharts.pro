@@ -7,7 +7,7 @@ QT += widgets svg xml opengl
 DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
--std=c++14 \
+-std=c++17 \
 -DCQCHARTS_FOLDED_MODEL \
 -DCQCHARTS_MODEL_VIEW \
 -DCQCHARTS_FLOAT_TIP \
@@ -16,7 +16,7 @@ QMAKE_CXXFLAGS += \
 MOC_DIR = .moc
 
 CONFIG += staticlib
-CONFIG += c++14
+CONFIG += c++17
 
 SOURCES += \
 CQCharts.cpp \

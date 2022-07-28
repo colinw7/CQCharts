@@ -1,7 +1,7 @@
 #ifndef CQChartsMainArgs_H
 #define CQChartsMainArgs_H
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Charts Main Arguments
@@ -9,9 +9,9 @@
  */
 class CQChartsMainArgs {
  public:
-  using OptReal   = boost::optional<double>;
-  using OptInt    = boost::optional<int>;
-  using OptString = boost::optional<QString>;
+  using OptReal   = std::optional<double>;
+  using OptInt    = std::optional<int>;
+  using OptString = std::optional<QString>;
 
  public:
   CQChartsMainArgs(int &argc, char **argv) :

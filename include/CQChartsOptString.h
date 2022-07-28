@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional string
@@ -24,7 +24,7 @@ class CQChartsOptString :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptString, metaTypeId)
 
  public:
-  using OptString = boost::optional<QString>;
+  using OptString = std::optional<QString>;
 
   CQChartsOptString() { }
 

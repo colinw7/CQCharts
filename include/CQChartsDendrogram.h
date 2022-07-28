@@ -5,7 +5,7 @@
 #include <QString>
 #include <vector>
 #include <algorithm>
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Dendrogram plot data
@@ -20,7 +20,7 @@ class CQChartsDendrogram {
 
   //---
 
-  using OptReal = boost::optional<double>;
+  using OptReal = std::optional<double>;
 
   struct Child {
     Node*   node { nullptr };

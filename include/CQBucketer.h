@@ -4,7 +4,7 @@
 #include <QVariant>
 #include <cmath>
 #include <set>
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief bucketer for model
@@ -28,7 +28,7 @@ class CQBucketer {
     FIXED_STOPS
   };
 
-  using OptReal = boost::optional<double>;
+  using OptReal = std::optional<double>;
 
   // format for string describing range.
   enum class NameFormat {

@@ -7,7 +7,7 @@
 #include <QVariant>
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional real
@@ -25,7 +25,7 @@ class CQChartsOptReal :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptReal, metaTypeId)
 
  public:
-  using OptReal = boost::optional<double>;
+  using OptReal = std::optional<double>;
 
   CQChartsOptReal() { }
 

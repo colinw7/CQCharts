@@ -35,7 +35,7 @@
 
 #include <set>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 class CQCharts;
 class CQChartsView;
@@ -506,7 +506,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using DisplayRange = CQChartsDisplayRange;
   using ValueSet     = CQChartsValueSet;
   using OptReal      = CQChartsOptReal;
-  using OptBool      = boost::optional<bool>;
+  using OptBool      = std::optional<bool>;
   using PenBrush     = CQChartsPenBrush;
   using Sides        = CQChartsSides;
   using PlotMargin   = CQChartsPlotMargin;

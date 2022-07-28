@@ -291,7 +291,7 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  using OptPoint = boost::optional<Point>;
+  using OptPoint = std::optional<Point>;
 
   struct ExtraData {
     Symbol   symbol;     //!< symbol

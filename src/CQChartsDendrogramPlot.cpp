@@ -4,9 +4,11 @@
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
 #include <CQChartsTip.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1855,9 +1857,12 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
 
   QFontMetricsF fm(font);
 
-//double dy = (fm.ascent() - fm.descent())/2.0;
-  double dy = 0.0;
-  double dx = fm.horizontalAdvance(name);
+  double ta = fm.ascent();
+  double td = fm.descent();
+  double tw = fm.horizontalAdvance(name);
+
+//double dy = (ta - td)/2.0;
+//double dy = 0.0;
 
   BBox pbbox = plot()->windowToPixel(rect1);
 
@@ -1879,15 +1884,28 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
 
       if (plot()->orientation() == Qt::Horizontal) {
         if (is_hier)
-          pp = Point(pbbox.getXMin() - dx - tm, pbbox.getYMid() + dy); // align right
+          pp = Point(pbbox.getXMin() - tw - tm, pbbox.getYMid()); // align right
         else
-          pp = Point(pbbox.getXMax()      + tm, pbbox.getYMid() + dy); // align left
+          pp = Point(pbbox.getXMax()      + tm, pbbox.getYMid()); // align left
       }
       else {
-        if (is_hier)
-          pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMin() - tm + dy); // align top
-        else
-          pp = Point(pbbox.getXMid() - dx/2.0, pbbox.getYMax() + tm + dy); // align bottom
+        if (plot()->isRotatedText()) {
+          angle = Angle(90);
+          align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+          if (is_hier)
+            pp = Point(pbbox.getXMid(), pbbox.getYMin() - tw/2.0 - tm);
+          else
+            pp = Point(pbbox.getXMid(), pbbox.getYMax() + tw/2.0 + tm);
+
+          centered = true;
+        }
+        else {
+          if (is_hier)
+            pp = Point(pbbox.getXMid() - tw/2.0, pbbox.getYMin() - tm - td); // align top
+          else
+            pp = Point(pbbox.getXMid() - tw/2.0, pbbox.getYMax() + tm + ta); // align bottom
+        }
       }
     }
   }
@@ -1906,7 +1924,7 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
       double dx1 = 0.0;
 
       if (plot()->isRotatedText()) {
-        dx1 = plot()->pixelToWindowWidth (dx/2.0);
+        dx1 = plot()->pixelToWindowWidth (tw/2.0);
       //dy1 = plot()->pixelToWindowHeight(dy);
       }
       else {
@@ -2020,12 +2038,15 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
   }
 
   if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
-    auto angle = Angle::fromOrientation(plot()->orientation());
+    auto angle1 = Angle::fromOrientation(plot()->orientation());
+    auto angle2 = angle1.flippedX();
 
     if (edgeFilled)
-      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC, angle);
+      CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC,
+                                     angle1, angle2);
     else
-      CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC, angle);
+      CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC,
+                                      angle1, angle2);
   }
   else {
     if (edgeFilled)
@@ -2116,6 +2137,8 @@ CQChartsDendrogramPlotCustomControls::
 addWidgets()
 {
   addColumnWidgets();
+
+  addOptionsWidgets();
 }
 
 void
@@ -2132,9 +2155,14 @@ addColumnWidgets()
 
 void
 CQChartsDendrogramPlotCustomControls::
-connectSlots(bool b)
+addOptionsWidgets()
 {
-  CQChartsPlotCustomControls::connectSlots(b);
+  // options group
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame");
+
+  orientationCombo_ = createEnumEdit("orientation");
+
+  addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
 }
 
 void
@@ -2158,5 +2186,27 @@ updateWidgets()
 
   //---
 
+  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+
+  //---
+
   connectSlots(true);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+
+
+  CQChartsWidgetUtil::optConnectDisconnect(b,
+    orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
+orientationSlot()
+{
+  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }

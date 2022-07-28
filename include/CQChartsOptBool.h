@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional boolean
@@ -24,7 +24,7 @@ class CQChartsOptBool :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptBool, metaTypeId)
 
  public:
-  using OptBool = boost::optional<bool>;
+  using OptBool = std::optional<bool>;
 
   CQChartsOptBool() { }
 

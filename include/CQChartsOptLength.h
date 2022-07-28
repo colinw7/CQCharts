@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional length
@@ -25,7 +25,7 @@ class CQChartsOptLength :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptLength, metaTypeId)
 
  public:
-  using OptLength = boost::optional<CQChartsLength>;
+  using OptLength = std::optional<CQChartsLength>;
 
   CQChartsOptLength() { }
 

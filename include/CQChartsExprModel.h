@@ -6,7 +6,7 @@
 #include <CSafeIndex.h>
 
 #include <QAbstractProxyModel>
-#include <boost/optional.hpp>
+#include <optional>
 #include <set>
 #include <vector>
 #include <future>
@@ -200,8 +200,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  private:
   using ModelTypeData = CQChartsModelTypeData;
-  using OptInt        = boost::optional<int>;
-  using OptReal       = boost::optional<double>;
+  using OptInt        = std::optional<int>;
+  using OptReal       = std::optional<double>;
   using VariantMap    = std::map<int, QVariant>;
   using Args          = std::vector<QString>;
 

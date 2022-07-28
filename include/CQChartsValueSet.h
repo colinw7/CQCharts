@@ -12,7 +12,7 @@
 #include <set>
 #include <map>
 #include <future>
-#include <boost/optional.hpp>
+#include <optional>
 
 class CQChartsPlot;
 class CQTrie;
@@ -26,7 +26,7 @@ class CQTriePatterns;
  */
 class CQChartsRValues {
  public:
-  using OptReal     = boost::optional<double>;
+  using OptReal     = std::optional<double>;
   using OptValues   = std::vector<OptReal>;
   using Values      = std::vector<double>;
   using Counts      = std::vector<int>;
@@ -212,7 +212,7 @@ class CQChartsRValues {
  */
 class CQChartsIValues {
  public:
-  using OptInt      = boost::optional<long>;
+  using OptInt      = std::optional<int>;
   using Values      = std::vector<long>;
   using Counts      = std::vector<int>;
   using ValueCount  = std::pair<long, int>;
@@ -371,7 +371,7 @@ class CQChartsIValues {
  */
 class CQChartsSValues {
  public:
-  using OptString   = boost::optional<QString>;
+  using OptString   = std::optional<QString>;
   using Values      = std::vector<QString>;
   using Counts      = std::vector<int>;
   using ValueCount  = std::pair<QString, int>;
@@ -639,9 +639,9 @@ class CQChartsValueSet : public QObject {
  public:
   using Plot      = CQChartsPlot;
   using Type      = CQBaseModelType;
-  using OptInt    = boost::optional<long>;
-  using OptReal   = boost::optional<double>;
-  using OptString = boost::optional<QString>;
+  using OptInt    = std::optional<int>;
+  using OptReal   = std::optional<double>;
+  using OptString = std::optional<QString>;
 
  public:
   CQChartsValueSet(const Plot *plot=nullptr);

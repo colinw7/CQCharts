@@ -12,7 +12,7 @@
 #include <QSharedPointer>
 #include <map>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 class CQCharts;
 class CQChartsModelWidgets;

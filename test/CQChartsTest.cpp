@@ -45,8 +45,8 @@ void errorMsg(const QString &msg) {
 
 struct MainData {
   using InitDatas  = std::vector<CQChartsInitData>;
-  using OptString  = boost::optional<QString>;
-  using OptReal    = boost::optional<double>;
+  using OptString  = std::optional<QString>;
+  using OptReal    = std::optional<double>;
   using NameValues = std::map<QString, QString>;
 
   bool             dark         { false };
@@ -650,14 +650,14 @@ parseArgs(int argc, char **argv, MainData &mainData)
         mainData.initDatas.push_back(mainData.initData);
 
         if (! mainData.overlay) {
-          mainData.xmin1 = boost::make_optional(false, 0.0);
-          mainData.xmax1 = boost::make_optional(false, 0.0);
-          mainData.xmin2 = boost::make_optional(false, 0.0);
-          mainData.xmax2 = boost::make_optional(false, 0.0);
-          mainData.ymin1 = boost::make_optional(false, 0.0);
-          mainData.ymax1 = boost::make_optional(false, 0.0);
-          mainData.ymin2 = boost::make_optional(false, 0.0);
-          mainData.ymax2 = boost::make_optional(false, 0.0);
+          mainData.xmin1 = std::optional<double>();
+          mainData.xmax1 = std::optional<double>();
+          mainData.xmin2 = std::optional<double>();
+          mainData.xmax2 = std::optional<double>();
+          mainData.ymin1 = std::optional<double>();
+          mainData.ymax1 = std::optional<double>();
+          mainData.ymin2 = std::optional<double>();
+          mainData.ymax2 = std::optional<double>();
         }
 
         mainData.initData = CQChartsInitData();

@@ -5,7 +5,7 @@
 #include <CQChartsInputData.h>
 #include <CQChartsNameValueData.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Charts Initialization Data
@@ -13,7 +13,7 @@
  */
 struct CQChartsInitData {
   using FileNames = std::vector<QString>;
-  using OptReal   = boost::optional<double>;
+  using OptReal   = std::optional<double>;
 
   FileNames             filenames;
   CQChartsFileType      fileType        { CQChartsFileType::NONE };

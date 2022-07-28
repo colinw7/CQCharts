@@ -1,7 +1,7 @@
 #ifndef Springy_H
 #define Springy_H
 
-#include <boost/optional.hpp>
+#include <optional>
 
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@
 #include <cassert>
 
 namespace Springy {
-  using OptReal = boost::optional<double>;
+  using OptReal = std::optional<double>;
 
   class Node;
   using NodeP = std::shared_ptr<Node>;

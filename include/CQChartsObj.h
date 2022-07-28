@@ -5,7 +5,7 @@
 #include <CQChartsUtil.h>
 #include <QObject>
 #include <future>
-#include <boost/optional.hpp>
+#include <optional>
 
 class CQCharts;
 class CQChartsPaintDevice;
@@ -150,7 +150,7 @@ class CQChartsObj : public QObject {
   void idChanged();
 
  protected:
-  using OptString = boost::optional<QString>;
+  using OptString = std::optional<QString>;
 
   CQCharts*          charts_               { nullptr }; //!< charts
   OptString          id_;                               //!< id

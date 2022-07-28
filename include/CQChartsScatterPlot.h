@@ -71,7 +71,7 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   using Color   = CQChartsColor;
   using Font    = CQChartsFont;
   using Units   = CQChartsUnits::Type;
-  using OptBool = boost::optional<bool>;
+  using OptBool = std::optional<bool>;
 
  public:
   CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect,

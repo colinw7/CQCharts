@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 /*!
  * \brief Optional rectangle
@@ -24,7 +24,7 @@ class CQChartsOptRect :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptRect, metaTypeId)
 
  public:
-  using OptRect = boost::optional<CQChartsRect>;
+  using OptRect = std::optional<CQChartsRect>;
 
   CQChartsOptRect() { }
 

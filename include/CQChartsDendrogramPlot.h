@@ -529,8 +529,12 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
  public Q_SLOTS:
   void updateWidgets() override;
 
+  void orientationSlot();
+
  protected:
   void addWidgets() override;
+
+  void addOptionsWidgets() override;
 
   void addColumnWidgets() override;
 
@@ -538,6 +542,10 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
 
  protected:
   CQChartsDendrogramPlot* plot_ { nullptr }; //!< plot
+
+  FrameData optionsFrame_;
+
+  CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
 };
 
 #endif

@@ -7,7 +7,7 @@
 #include <CQChartsGeom.h>
 #include <CSafeIndex.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 #include <string>
 
 //---
@@ -81,7 +81,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   using Angle    = CQChartsAngle;
   using Color    = CQChartsColor;
   using Column   = CQChartsColumn;
-  using OptReal  = boost::optional<double>;
+  using OptReal  = std::optional<double>;
 
  public:
   CQChartsPieObj(const PiePlot *plot, const BBox &rect, const QModelIndex &ind,

@@ -7,10 +7,12 @@ QT += widgets svg xml opengl
 DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
--std=c++14 \
+-std=c++17 \
 -DCQCHARTS_FOLDED_MODEL \
 
 MOC_DIR = .moc
+
+CONFIG += c++17
 
 SOURCES += \
 CQAppWindow.cpp \

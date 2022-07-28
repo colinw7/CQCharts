@@ -3,7 +3,7 @@
 
 #include <CQDataModel.h>
 #include <QStringList>
-#include <boost/optional.hpp>
+#include <optional>
 
 class CQGnuDataModel : public CQDataModel {
   Q_OBJECT
@@ -46,7 +46,7 @@ class CQGnuDataModel : public CQDataModel {
 
   //---
 
-  QString commentChars() const { return commentChars_.get_value_or("#"); }
+  QString commentChars() const { return commentChars_.value_or("#"); }
   void setCommentChars(const QString &chars) { commentChars_ = chars; }
 
   const QString &missingStr() const { return missingStr_; }
@@ -91,7 +91,7 @@ class CQGnuDataModel : public CQDataModel {
   using LineString   = std::map<int,QString>;
   using SubSetString = std::map<int,LineString>;
   using SetString    = std::map<int,SubSetString>;
-  using OptString    = boost::optional<QString>;
+  using OptString    = std::optional<QString>;
 
   bool        commentHeader_     { true };  //!< use comment line for header
   bool        firstLineHeader_   { false }; //!< use first line for horizontal header
