@@ -29,6 +29,8 @@ class TestCmdWidget : public CQCommand::CommandWidget {
 
   bool isCompleteLine(const QString &str) const override {
 #if defined(USE_PYTHON)
+
+#if defined(MY_PARSER)
     auto len = size_t(str.length());
 
     if (len && str[int(len - 1)] == '\\')
@@ -213,7 +215,169 @@ class TestCmdWidget : public CQCommand::CommandWidget {
 
     return true;
 #else
+    auto *src = Py_CompileString(str.toLatin1().constData(), "<stdin>", Py_single_input);
+
+    // compiled ok
+    if (src) {
+      Py_XDECREF(src);
+
+      // check indent ...
+      auto str1 = str;
+
+      auto len = size_t(str1.length());
+
+      if (len > 0 && str1[int(len)] != '\n') {
+        str1 += '\n'; ++len;
+      }
+
+      using Indents = std::vector<size_t>;
+
+      Indents indents;
+
+      // single zero is pushed on the stack (should never be popped)
+      indents.push_back(0);
+
+      size_t i = 0;
+
+      size_t lastIndent = 0;
+
+      while (i < len) {
+        // calculate indent of next line
+        size_t indent = 0;
+
+        while (i < len && str1[int(i)] != '\n' && str1[int(i)].isSpace()) {
+          if (str1[int(i)] == '\t')
+            indent += 8 - (indent % 8);
+          else
+            ++indent;
+
+          ++i;
+        }
+
+        // if new indent ...
+        if (indent != lastIndent) {
+          // push on stack if larger and update last indent
+          if (indent > lastIndent) {
+            indents.push_back(indent);
+
+            lastIndent = indent;
+          }
+          else {
+            // pop off all larger indents (indent should be found)
+            bool found = false;
+
+            while (! indents.empty()) {
+              if (indents.back() > indent)
+                indents.pop_back();
+              else {
+                found = (indents.back() == indent);
+                break;
+              }
+            }
+
+            // update last indent
+            if (! indents.empty())
+              lastIndent = indents.back();
+            else
+              lastIndent = 0;
+
+            // if not found should be an error so mark complete
+            if (! found)
+              return true;
+          }
+        }
+
+        // skip rest of line
+        while (i < len && str1[int(i)] != '\n')
+          ++i;
+
+        if (i < len && str1[int(i)] == '\n')
+          ++i;
+      }
+
+      // if indent greater than zero we are not complete
+      if (lastIndent == 0)
+        return true;
+
+      return false;
+    }
+
+    // check syntax error
+    if (PyErr_ExceptionMatches(PyExc_SyntaxError)) {
+      PyObject *exc, *val, *trb;
+
+      PyErr_Fetch(&exc, &val, &trb); // clears exception
+
+      char     *msg;
+      PyObject *obj;
+
+      if (PyArg_ParseTuple(val, "sO", &msg, &obj)) {
+        bool isComplete = true;
+
+        QString qmsg(msg);
+
+        if ((qmsg.indexOf("unexpected EOF") >= 0) ||
+            (qmsg.indexOf("EOF while scanning") >= 0))
+          isComplete = false;
+
+        Py_XDECREF(exc);
+        Py_XDECREF(val);
+        Py_XDECREF(trb);
+
+        return isComplete;
+      }
+
+      PyErr_Restore(exc, val, trb);
+
+      return true;
+    }
+    else { // some non-syntax error
+      return true;
+    }
+#endif
+#else
     return CQCommand::CommandWidget::isCompleteLine(str);
+#endif
+  }
+
+  int getNextLineIndent(const QString &str) const override {
+#if defined(USE_PYTHON)
+    int len = str.length();
+
+    while (len > 0 && str[len - 1].isSpace())
+      --len;
+
+    int indent = 0;
+
+    auto i = len - 1;
+
+    // indent by 2 if start of block
+    if (len > 0 && str[i] == ':') {
+      --i;
+
+      indent = 2;
+    }
+
+    // indent to match last line indent
+    while (i > 0 && str[i] != '\n')
+      --i;
+
+    if (i > 0 && str[i] == '\n') {
+      ++i;
+
+      while (i < len && str[i].isSpace()) {
+        if (str[i] == '\n')
+          indent += 8 - (indent % 8);
+        else
+          ++indent;
+
+        ++i;
+      }
+    }
+
+    return indent;
+#else
+    return 0;
 #endif
   }
 };

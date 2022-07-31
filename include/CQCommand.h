@@ -224,6 +224,8 @@ class CommandWidget : public QFrame {
 
   virtual bool isCompleteLine(const QString &str) const;
 
+  virtual int getNextLineIndent(const QString &) const { return 0; }
+
   virtual bool complete(const QString & /*text*/, int /*pos*/,
                         QString & /*newText*/, CompleteMode /*completeMode*/) const {
     return false;

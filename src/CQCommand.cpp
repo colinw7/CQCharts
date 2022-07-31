@@ -579,6 +579,11 @@ keyPressEvent(QKeyEvent *event)
     else {
       entry_.addNewLine();
 
+      int n = getNextLineIndent(str);
+
+      for (int i = 0; i < n; ++i)
+        entry_.insert(" ");
+
       textChanged();
     }
   }
