@@ -84,6 +84,9 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   //---
 
+  int ind() const { return ind_; }
+  void setInd(int i) { ind_ = i; }
+
   const QString &name() const { return name_; }
 
   double value() const { return value_; }
@@ -176,6 +179,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Children        children_;               //!< children
   Node*           node_       { nullptr }; //!< associated node
   QString         name_;                   //!< name
+  int             ind_        { 0 };       //!< unique index
   double          value_      { 0.0 };     //!< value
   double          childTotal_ { 0.0 };     //!< value
   bool            isRoot_     { false };   //!< is root
@@ -367,6 +371,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
                     const ModelIndex &modelInd, const OptReal &colorValue,
                     OptReal &sizeValue, Edges &edges) const;
 
+  void clearPlotObjects() override;
+
   bool createObjs(PlotObjs &objs) const override;
 
   //---
@@ -503,6 +509,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
     NodeObj *rootNodeObj { nullptr }; //!< root node obj
 
     NodeObjs nodeObjs;
+
+    int nodeInd { 0 };
   };
 
   mutable CacheData cacheData_;

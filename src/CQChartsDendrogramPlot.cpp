@@ -1053,6 +1053,15 @@ calcExtraFitBBox() const
 
 //------
 
+void
+CQChartsDendrogramPlot::
+clearPlotObjects()
+{
+  CQChartsPlot::clearPlotObjects();
+
+  cacheData_.nodeObjs.clear();
+}
+
 bool
 CQChartsDendrogramPlot::
 createObjs(PlotObjs &objs) const
@@ -1081,6 +1090,8 @@ createObjs(PlotObjs &objs) const
   auto *root = rootNode();
 
   //---
+
+  cacheData_.nodeInd = 1;
 
   if (root) {
     cacheData_.rootNodeObj = addNodeObj(root, objs, /*hier*/true);
@@ -1212,6 +1223,8 @@ addNodeObj(Node *node, PlotObjs &objs, bool isHier) const
   BBox rect = getBBox(node);
 
   auto *obj = createNodeObj(node, rect);
+
+  obj->setInd(cacheData_.nodeInd++);
 
   connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
@@ -1588,7 +1601,7 @@ QString
 CQChartsDendrogramNodeObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(name());
+  return QString("%1:%2").arg(typeName()).arg(ind());
 }
 
 QString
@@ -2198,7 +2211,6 @@ CQChartsDendrogramPlotCustomControls::
 connectSlots(bool b)
 {
   CQChartsPlotCustomControls::connectSlots(b);
-
 
   CQChartsWidgetUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
