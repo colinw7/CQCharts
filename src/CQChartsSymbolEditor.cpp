@@ -100,6 +100,8 @@ paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
 
+  painter.fillRect(rect(), QColor(255, 255, 255));
+
   drawGrid(&painter);
 
   drawSymbol(&painter);
