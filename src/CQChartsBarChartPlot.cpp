@@ -497,7 +497,7 @@ calcRange() const
 
   //---
 
-  Range dataRange;
+  RangeData rangeData;
 
   //---
 
@@ -518,15 +518,15 @@ calcRange() const
   if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
   if (! columnsValid)
-    return dataRange;
+    return rangeData.dataRange;
 
   //---
 
   auto updateRange = [&](double x, double y) {
     if (isVertical())
-      dataRange.updateRange(x, y);
+      rangeData.dataRange.updateRange(x, y);
     else
-      dataRange.updateRange(y, x);
+      rangeData.dataRange.updateRange(y, x);
   };
 
   //---
@@ -555,25 +555,43 @@ calcRange() const
 
   //---
 
+  if (valueColumns.count() == 1) {
+    auto valueColumn = valueColumns.column();
+
+    const auto *columnDetails = this->columnDetails(valueColumn);
+
+    if (columnDetails) {
+      bool ok;
+
+      double r1 = CQChartsVariant::toReal(columnDetails->minValue(), ok);
+      if (ok) rangeData.minValue = OptReal(r1);
+
+      double r2 = CQChartsVariant::toReal(columnDetails->maxValue(), ok);
+      if (ok) rangeData.maxValue = OptReal(r2);
+    }
+  }
+
+  //---
+
   // process model data
   class BarChartVisitor : public ModelVisitor {
    public:
-    BarChartVisitor(const CQChartsBarChartPlot *plot, Range &dataRange) :
-     plot_(plot), dataRange_(dataRange) {
+    BarChartVisitor(const CQChartsBarChartPlot *plot, RangeData &rangeData) :
+     plot_(plot), rangeData_(rangeData) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data, dataRange_);
+      plot_->addRow(data, rangeData_);
 
       return State::OK;
     }
 
    private:
     const CQChartsBarChartPlot* plot_ { nullptr };
-    Range&                      dataRange_;
+    RangeData&                  rangeData_;
   };
 
-  BarChartVisitor barChartVisitor(this, dataRange);
+  BarChartVisitor barChartVisitor(this, rangeData);
 
   visitModel(barChartVisitor);
 
@@ -617,7 +635,7 @@ calcRange() const
     // per group then single bar
     if (ns == 1) {
       if (! isValueValue()) {
-        dataRange = Range();
+        rangeData.dataRange = Range();
 
         updateRange(-0.5, 0);
 
@@ -654,12 +672,12 @@ calcRange() const
 
     //---
 
-    double ymin = (isVertical() ? dataRange.ymin() : dataRange.xmin());
+    double ymin = (isVertical() ? rangeData.dataRange.ymin() : rangeData.dataRange.xmin());
 
     updateRange(numVisible - 0.5, ymin);
 
     if (nv == 0) {
-      double xmin = (isVertical() ? dataRange.xmin() : dataRange.ymin());
+      double xmin = (isVertical() ? rangeData.dataRange.xmin() : rangeData.dataRange.ymin());
 
       updateRange(xmin, 1.0);
     }
@@ -668,11 +686,11 @@ calcRange() const
     updateRange(0.5, 1.0);
   }
 
-  dataRange.makeNonZero();
+  rangeData.dataRange.makeNonZero();
 
   //---
 
-  return dataRange;
+  return rangeData.dataRange;
 }
 
 void
@@ -761,7 +779,7 @@ initRangeAxesI()
 
 void
 CQChartsBarChartPlot::
-addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
+addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const
 {
   auto valueColumns = calcValueColumns();
 
@@ -772,7 +790,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
     for (const auto &column : valueColumns) {
       Columns columns { column };
 
-      addRowColumn(data, columns, column, dataRange, ic);
+      addRowColumn(data, columns, column, rangeData, ic);
 
       ++ic;
     }
@@ -785,7 +803,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
       for (const auto &column : valueColumns) {
         Columns columns { column };
 
-        addRowColumn(data, columns, column, dataRange, ic);
+        addRowColumn(data, columns, column, rangeData, ic);
 
         ++ic;
       }
@@ -795,7 +813,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
       int ng = numGroups();
 
       if (ng > 1) {
-        addRowColumn(data, valueColumns, Column(), dataRange, -1);
+        addRowColumn(data, valueColumns, Column(), rangeData, -1);
       }
       else {
         int ic = 0;
@@ -803,7 +821,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
         for (const auto &column : valueColumns) {
           Columns columns { column };
 
-          addRowColumn(data, columns, Column(), dataRange, ic);
+          addRowColumn(data, columns, Column(), rangeData, ic);
 
           ++ic;
         }
@@ -815,7 +833,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
 void
 CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-             const Column &valueColumn, Range &dataRange, int columnInd) const
+             const Column &valueColumn, RangeData &rangeData, int columnInd) const
 {
   auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
@@ -836,9 +854,9 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   auto updateRange = [&](double x, double y) {
     if (isVertical())
-      dataRange.updateRange(x, y);
+      rangeData.dataRange.updateRange(x, y);
     else
-      dataRange.updateRange(y, x);
+      rangeData.dataRange.updateRange(y, x);
   };
 
   //---
@@ -944,8 +962,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   //---
 
   // get value set for group
-  auto *valueSet = const_cast<CQChartsBarChartValueSet *>(
-                     groupValueSet(groupInd, (useColumnInd ? columnInd : -1)));
+  auto *valueSet =
+    const_cast<ValueSet *>(groupValueSet(groupInd, (useColumnInd ? columnInd : -1)));
 
   //---
 
@@ -958,7 +976,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   for (const auto &valueColumn : valueColumns) {
     ModelIndex valueModelInd(th, data.row, valueColumn, data.parent);
 
-    double defVal = getRowBadValue(data.row);
+    // get bad value for row
+    auto defVal = getRowBadValue(data.row);
 
     double r;
 
@@ -1084,11 +1103,17 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   //---
 
+  valueSet->setMinValue(rangeData.minValue);
+  valueSet->setMaxValue(rangeData.maxValue);
+
+  //---
+
   // calc pos/neg sums
   double posSum = 0.0, negSum = 0.0;
 
-  if (isPercent() || isStacked())
+  if (isPercent() || isStacked()) {
     valueSet->calcSums(posSum, negSum);
+  }
 
   // scale for percent
   double scale = 1.0;

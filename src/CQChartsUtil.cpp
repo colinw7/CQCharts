@@ -290,8 +290,12 @@ bool intersectLines(double x11, double y11, double x21, double y21,
 
 namespace CQChartsUtil {
 
+int grayValue(const QColor &c) {
+  return qGray(c.red(), c.green(), c.blue());
+}
+
 QColor grayColor(const QColor &c) {
-  int g = qGray(c.red(), c.green(), c.blue());
+  int g = grayValue(c);
 
   return QColor(g, g, g);
 }

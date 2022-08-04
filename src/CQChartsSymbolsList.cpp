@@ -36,10 +36,17 @@ class CQChartsSymbolsItemDelegate : public QItemDelegate {
 
       CQChartsPixelPaintDevice device(painter);
 
-      painter->setPen(Qt::black);
+      auto bg = list_->palette().window().color();
+      auto fg = CQChartsUtil::bwColor(bg);
 
-      if (symbol.isFilled())
-        painter->setBrush(Qt::green);
+      painter->setPen(fg);
+
+      if (symbol.isFilled()) {
+        if (CQChartsUtil::grayValue(fg) < 128) // black
+          painter->setBrush(QColor(100, 200, 100)); // Qt::green;
+        else
+          painter->setBrush(QColor(100, 100, 160));
+      }
       else
         painter->setBrush(Qt::NoBrush);
 

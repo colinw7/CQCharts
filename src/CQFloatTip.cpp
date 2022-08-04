@@ -15,8 +15,8 @@
 
 #include <iostream>
 
-#include <svg/lock_svg.h>
-#include <svg/query_svg.h>
+#include <svg/float_lock_svg.h>
+#include <svg/float_query_svg.h>
 
 CQFloatTip::
 CQFloatTip(QWidget *widget) :
@@ -70,13 +70,14 @@ init()
 
   //---
 
-  lockButton_ = new CQIconButton; lockButton_->setIcon("LOCK");
+  lockButton_ = new CQIconButton; lockButton_->setIcon("FLOAT_LOCK");
 
   lockButton_->setObjectName("lock");
   //lockButton_->setMargin(2);
   //lockButton_->setIconSize(QSize(is, is));
   lockButton_->setSize(CQIconButton::Size::SMALL);
   lockButton_->setFocusPolicy(Qt::NoFocus);
+  lockButton_->setToolTip("Lock tip so stays displayed");
 
   lockButton_->setCheckable(true);
   lockButton_->setChecked  (false);
@@ -87,13 +88,14 @@ init()
 
   //---
 
-  queryButton_ = new CQIconButton; queryButton_->setIcon("QUERY");
+  queryButton_ = new CQIconButton; queryButton_->setIcon("FLOAT_QUERY");
 
   queryButton_->setObjectName("query");
   //queryButton_->setMargin(2);
   //queryButton_->setIconSize(QSize(is, is));
   queryButton_->setSize(CQIconButton::Size::SMALL);
   queryButton_->setFocusPolicy(Qt::NoFocus);
+  queryButton_->setToolTip("Query current tip");
 
   connect(queryButton_, SIGNAL(clicked(bool)), this, SLOT(querySlot()));
 

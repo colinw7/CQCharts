@@ -3578,9 +3578,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // bad value data
   struct BadData {
-    bool   skip   { true }; //!< skip bad values
-    bool   useRow { true }; //!< bad values default to row number
-    double value  { 0.0 };  //!< vad value (if not use row number)
+    bool   skip   { true };  //!< skip bad values
+    bool   useRow { false }; //!< bad values default to row number
+    double value  { 0.0 };   //!< vad value (if not use row number)
   };
 
   BadData badData_; //!< bad value data

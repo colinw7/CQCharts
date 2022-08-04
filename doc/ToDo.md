@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + custom percent max (from column ?)
  + halo for select in more plots (use shape)
  + scatter connect object doesn't work with name column (don't want single value grouping)
  + allow force real bucket in distribution plot

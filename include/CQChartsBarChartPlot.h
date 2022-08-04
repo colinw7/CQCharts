@@ -152,6 +152,7 @@ class CQChartsBarChartValue {
 class CQChartsBarChartValueSet {
  public:
   using BarValue = CQChartsBarChartValue;
+  using OptReal  = CQChartsOptReal;
   using Values   = std::vector<BarValue>;
 
  public:
@@ -179,13 +180,18 @@ class CQChartsBarChartValueSet {
   const BarValue &value(int i) const { return CUtil::safeIndex(values_, i); }
 
   bool calcSums(double &posSum, double &negSum) const {
+    posSum = 0.0;
+    negSum = 0.0;
+
+    if (maxValue_.isSet()) {
+      posSum = maxValue_.real();
+      return true;
+    }
+
     if (values_.empty()) return false;
 
     std::vector<double> rvalues;
     getValues(rvalues);
-
-    posSum = 0.0;
-    negSum = 0.0;
 
     for (auto &value : rvalues) {
       if (value >= 0) posSum += value;
@@ -238,11 +244,19 @@ class CQChartsBarChartValueSet {
     }
   }
 
+  const OptReal &minValue() const { return minValue_; }
+  void setMinValue(const OptReal &r) { minValue_ = r; }
+
+  const OptReal &maxValue() const { return maxValue_; }
+  void setMaxValue(const OptReal &r) { maxValue_ = r; }
+
  private:
   QString name_;            //!< group name
   int     ind_      { 0 };  //!< index
   int     groupInd_ { -1 }; //!< group ind
   Values  values_;          //!< value bars
+  OptReal minValue_;
+  OptReal maxValue_;
 };
 
 //------
@@ -629,10 +643,16 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setSkipEmpty(bool b);
 
  protected:
-  void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
+  struct RangeData {
+    OptReal minValue;
+    OptReal maxValue;
+    Range   dataRange;
+  };
+
+  void addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const;
 
   void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-                    const Column &valueColumn, Range &dataRange, int columnInd) const;
+                    const Column &valueColumn, RangeData &rangeData, int columnInd) const;
 
   void initRangeAxes() const;
   void initRangeAxesI();

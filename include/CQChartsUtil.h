@@ -161,6 +161,8 @@ inline Qt::Orientation lineOrient(const Point &p1, const Point &p2) {
 
 namespace CQChartsUtil {
 
+int grayValue(const QColor &c);
+
 QColor grayColor(const QColor &c);
 
 QColor bwColor(const QColor &c);
