@@ -70,7 +70,7 @@ class CUnixFile {
     while ((c = fgetc(fp_)) != EOF) {
       if (c == '\n') break;
 
-      line += uchar(c);
+      line += char(c);
     }
 
     return true;
