@@ -136,7 +136,7 @@ updateSize()
 
   QFontMetrics fm(font());
 
-  charWidth_  = fm.width("X");
+  charWidth_  = fm.horizontalAdvance("X");
   charHeight_ = fm.height();
 
   int maxLen = 0;
@@ -177,7 +177,7 @@ paintEvent(QPaintEvent *)
 
   QFontMetrics fm(font());
 
-  charWidth_   = fm.width("X");
+  charWidth_   = fm.horizontalAdvance("X");
   charHeight_  = fm.height();
   charAscent_  = fm.ascent();
   charDescent_ = fm.descent();

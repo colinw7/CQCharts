@@ -141,8 +141,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   struct Connection;
   struct ConnectionsData;
 
-  using Node = CQChartsSpringyNode;
-  using Edge = CQChartsSpringyEdge;
+  using Node = CQChartsForceDirectedNode;
+  using Edge = CQChartsForceDirectedEdge;
 
   struct NodeShapeBBox {
     Node::Shape shape;

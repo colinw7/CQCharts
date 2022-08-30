@@ -95,7 +95,7 @@ setValue(const QString &s)
 
   //---
 
-  auto strs = s.trimmed().split(',', QString::SkipEmptyParts);
+  auto strs = s.trimmed().split(',', Qt::SkipEmptyParts);
 
   for (int i = 0; i < strs.length(); ++i) {
     if (i == 0) {

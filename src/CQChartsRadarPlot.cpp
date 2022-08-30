@@ -862,7 +862,7 @@ Qt::Alignment
 CQChartsRadarPlot::
 alignForPosition(double x, double y) const
 {
-  Qt::Alignment align = 0;
+  Qt::Alignment align;
 
   if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
   else if (x > 0)                align |= Qt::AlignLeft;

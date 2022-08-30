@@ -1,6 +1,7 @@
 #include <CQFillTexture.h>
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QPen>
 #include <QBrush>
 

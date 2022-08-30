@@ -316,7 +316,7 @@ currentRoot(const QString &groupName) const
 {
   auto &sunburstData = getSunburstData(groupName);
 
-  auto names = sunburstData.currentRootName.split('@', QString::SkipEmptyParts);
+  auto names = sunburstData.currentRootName.split('@', Qt::SkipEmptyParts);
 
   if (names.empty())
     return nullptr;

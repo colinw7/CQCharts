@@ -858,7 +858,7 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
     (*p).second.setNameInd(nameInd);
 
     if (isHierName()) {
-      auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+      auto strs = name.split(calcSeparator(), Qt::SkipEmptyParts);
 
       if (strs.size() > 1) {
         strs.pop_back();
@@ -1597,7 +1597,7 @@ drawFg(PaintDevice *device) const
   if (hierObj()) {
     lr = (ri + ro)/2.0;
 
-    auto strs = name.split(plot_->calcSeparator(), QString::SkipEmptyParts);
+    auto strs = name.split(plot_->calcSeparator(), Qt::SkipEmptyParts);
 
     if (strs.size() > 1)
       name = strs[strs.size() - 1];
@@ -2271,7 +2271,7 @@ drawFg(PaintDevice *device) const
 
   auto name = this->name();
 
-  auto strs = name.split(plot_->calcSeparator(), QString::SkipEmptyParts);
+  auto strs = name.split(plot_->calcSeparator(), Qt::SkipEmptyParts);
 
   if (strs.size() > 1)
     name = strs[strs.size() - 1];

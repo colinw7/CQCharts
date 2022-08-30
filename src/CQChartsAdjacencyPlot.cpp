@@ -1396,7 +1396,7 @@ drawRowNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
   const auto &name = node->name();
 
   if (isHierName()) {
-    auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+    auto strs = name.split(calcSeparator(), Qt::SkipEmptyParts);
 
     int n = strs.length();
 
@@ -1475,7 +1475,7 @@ drawColNodeLabel(PaintDevice *device, const Point &p, AdjacencyNode *node) const
   const auto &name = node->name();
 
   if (isHierName()) {
-    auto strs = name.split(calcSeparator(), QString::SkipEmptyParts);
+    auto strs = name.split(calcSeparator(), Qt::SkipEmptyParts);
 
     int n = strs.length();
 

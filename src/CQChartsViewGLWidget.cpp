@@ -12,10 +12,10 @@ struct CRGBAToFV {
   float fvalues[4];
 
   CRGBAToFV(const CRGBA &rgba) {
-    fvalues[0] = float(rgba.getRed  ());
-    fvalues[1] = float(rgba.getGreen());
-    fvalues[2] = float(rgba.getBlue ());
-    fvalues[3] = float(rgba.getAlpha());
+    fvalues[0] = rgba.getRedF  ();
+    fvalues[1] = rgba.getGreenF();
+    fvalues[2] = rgba.getBlueF ();
+    fvalues[3] = rgba.getAlphaF();
   }
 };
 

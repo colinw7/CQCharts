@@ -67,6 +67,7 @@ TODO:
    + Split Groups
      + x margin (fixed/auto)
  + Force directed
+   + slot animate time over time
    + Custom Controls for node/edge scaling (auto size ?)
    + placement uses node size (min edge length)
    + overlapping connections (if to and from then adjust angles)

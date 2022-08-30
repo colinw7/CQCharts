@@ -21,10 +21,11 @@
 #include <CQPerfMonitor.h>
 
 #include <CQGLControl.h>
-#include <GL/glut.h>
 
 #include <QMenu>
 #include <QGLWidget>
+
+#include <GL/glut.h>
 
 CQChartsScatterPlot3DType::
 CQChartsScatterPlot3DType()

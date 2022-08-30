@@ -16593,7 +16593,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
     if (ok) {
       if (separator.length())
-        nameStrs = name.split(separator, QString::SkipEmptyParts);
+        nameStrs = name.split(separator, Qt::SkipEmptyParts);
       else
         nameStrs << name;
     }

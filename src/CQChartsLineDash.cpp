@@ -296,7 +296,7 @@ fromString(const QString &str)
         f /= 10.0;
       }
 
-      num += f;
+      num += dec;
     }
 
     while (pos < len && str[pos].isSpace()) ++pos;

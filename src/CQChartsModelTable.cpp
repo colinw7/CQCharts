@@ -297,7 +297,7 @@ sizeHint() const
   int tw = 0;
 
   for (const auto &name : headerNames_)
-    tw += fm.width(name) + 4;
+    tw += fm.horizontalAdvance(name) + 4;
 
   int rh = fm.height() + 4;
   int th = (nr + 1)*rh;

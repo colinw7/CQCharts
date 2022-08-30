@@ -196,7 +196,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
 
     if (str.left(1) != "(") {
       // support column numeric range <n>-<m>
-      auto strs1 = str.split("-", QString::SkipEmptyParts);
+      auto strs1 = str.split("-", Qt::SkipEmptyParts);
 
       if (strs1.size() == 2) {
         bool ok1, ok2;

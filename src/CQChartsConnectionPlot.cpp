@@ -1104,7 +1104,7 @@ initPathObjs() const
       auto pathStrs = plot_->modelString(pathData.pathModelInd, ok);
       if (! ok) return State::SKIP;
 
-      pathData.pathStrs = pathStrs.split(separator_, QString::SkipEmptyParts);
+      pathData.pathStrs = pathStrs.split(separator_, Qt::SkipEmptyParts);
 
       //---
 

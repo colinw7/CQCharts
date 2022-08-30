@@ -44,7 +44,7 @@ bool processFileLines(const QString &filename, IS_COMPLETE isComplete, PROCESS_L
 
 template<typename IS_COMPLETE>
 QStringList stringToLines(const QString &str, IS_COMPLETE isComplete) {
-  QStringList lines = str.split('\n', QString::SkipEmptyParts);
+  QStringList lines = str.split('\n', Qt::SkipEmptyParts);
 
   QStringList lines1;
 

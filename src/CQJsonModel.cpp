@@ -782,7 +782,7 @@ CQJsonModel::
 flags(const QModelIndex &index) const
 {
   if (! index.isValid())
-    return 0;
+    return Qt::ItemFlags();
 
   Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 

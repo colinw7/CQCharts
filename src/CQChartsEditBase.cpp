@@ -88,8 +88,6 @@ QColor
 CQChartsEditPreview::
 interpColor(CQChartsPlot *plot, CQChartsView *view, const CQChartsColor &color)
 {
-  QColor c;
-
   if      (plot)
     return plot->interpColor(color, CQChartsUtil::ColorInd());
   else if (view)

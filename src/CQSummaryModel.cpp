@@ -486,7 +486,7 @@ CQSummaryModel::
 flags(const QModelIndex &index) const
 {
   auto *model = this->sourceModel();
-  if (! model) return 0;
+  if (! model) return Qt::ItemFlags();
 
   return model->flags(mapToSource(index));
 }

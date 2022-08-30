@@ -269,8 +269,8 @@ drawRangeLabels(QPainter *painter)
   auto minStr = realToString(rangeMin());
   auto maxStr = realToString(rangeMax());
 
-  int twMin = int(tfm.width(minStr));
-  int twMax = int(tfm.width(maxStr));
+  int twMin = int(tfm.horizontalAdvance(minStr));
+  int twMax = int(tfm.horizontalAdvance(maxStr));
 
   painter->setPen  (palette().color(QPalette::WindowText));
   painter->setBrush(Qt::NoBrush);
@@ -304,8 +304,8 @@ drawSliderLabels(QPainter *painter)
   auto sminStr = realToString(sliderMin());
   auto smaxStr = realToString(sliderMax());
 
-  int twsMin = int(tfm.width(sminStr));
-  int twsMax = int(tfm.width(smaxStr));
+  int twsMin = int(tfm.horizontalAdvance(sminStr));
+  int twsMax = int(tfm.horizontalAdvance(smaxStr));
 
   painter->setPen  (palette().color(QPalette::HighlightedText));
   painter->setBrush(Qt::NoBrush);
@@ -346,7 +346,7 @@ drawText(QPainter *painter, int x, int y, const QString &text)
   QFontMetricsF tfm(textFont());
 
   if (lgSet_) {
-    int w = int(tfm.width(text));
+    int w = int(tfm.horizontalAdvance(text));
 
     int xm = x + w/2;
 
@@ -403,7 +403,7 @@ sizeHint() const
 
   int w = 2*b;
 
-  int labelWidth = fm.width("XXX.XXX");
+  int labelWidth = fm.horizontalAdvance("XXX.XXX");
 
   if (showRangeLabels() || showSliderLabels()) {
     if (showRangeLabels())

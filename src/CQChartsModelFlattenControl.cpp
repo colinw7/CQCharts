@@ -125,10 +125,10 @@ applySlot()
 
   //---
 
-  auto opStrs = opColumnsEdit_->text().split(" ", QString::SkipEmptyParts);
+  auto opStrs = opColumnsEdit_->text().split(" ", Qt::SkipEmptyParts);
 
   for (const auto &s : opStrs) {
-    auto parts = s.split(":", QString::SkipEmptyParts);
+    auto parts = s.split(":", Qt::SkipEmptyParts);
 
     if (parts.size() != 2)
       continue;

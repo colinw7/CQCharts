@@ -49,7 +49,7 @@ drawSlider(QPainter *painter)
   int yb = int(ym + fm.height()/2.0 + 1);
   int yt = int(ym - fm.height()/2.0 - 1);
 
-  auto bg0 = palette().color(QPalette::Background);
+  auto bg0 = palette().color(QPalette::Window);
   auto bg1 = palette().color(QPalette::Highlight);
   auto fg0 = palette().color(QPalette::Text);
   auto fg1 = blendColors(bg0, fg0, 0.3);

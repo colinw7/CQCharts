@@ -410,7 +410,7 @@ currentRoot(const QString &groupName) const
 {
   auto &treeMapData = getTreeMapData(groupName);
 
-  auto names = treeMapData.currentRootName.split(calcSeparator(), QString::SkipEmptyParts);
+  auto names = treeMapData.currentRootName.split(calcSeparator(), Qt::SkipEmptyParts);
 
   if (names.empty())
     return treeMapData.firstHier;
@@ -2683,6 +2683,8 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
       return;
 
     assert(nodes1.size() > 0 && nodes2.size() > 0);
+
+    assert(size2); // ?
 
     double f = size1/size12;
 

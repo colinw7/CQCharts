@@ -1,0 +1,4 @@
+From,To,Value,Attributes,Group
+A,B,1,"src_color=red,dest_color=green",1
+B,C,2,"src_color=green,dest_color=green",2
+C,A,3,"src_color=blue,dest_color=red",3

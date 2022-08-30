@@ -391,10 +391,10 @@ flags(const QModelIndex &index) const
   int nc = columnCount();
 
   if (c < 0 || c >= nc)
-    return 0;
+    return Qt::ItemFlags();
 
   if (r < 0 || r >= nr)
-    return 0;
+    return Qt::ItemFlags();
 
   //---
 

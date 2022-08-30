@@ -102,9 +102,9 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
     QStringList commaStrs, tabStrs, spaceStrs;
 
-    if (commaPos >= 0) commaStrs = line.split(',' , QString::KeepEmptyParts);
-    if (tabPos   >= 0) tabStrs   = line.split('\t', QString::KeepEmptyParts);
-    if (spacePos >= 0) spaceStrs = line.split(' ' , QString::SkipEmptyParts);
+    if (commaPos >= 0) commaStrs = line.split(',' , Qt::KeepEmptyParts);
+    if (tabPos   >= 0) tabStrs   = line.split('\t', Qt::KeepEmptyParts);
+    if (spacePos >= 0) spaceStrs = line.split(' ' , Qt::SkipEmptyParts);
 
     int nc = commaStrs.length();
     int nt = tabStrs  .length();

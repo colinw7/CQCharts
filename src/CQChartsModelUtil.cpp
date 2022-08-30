@@ -442,7 +442,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
   bool rc = true;
 
   // split into multiple column type definitions
-  auto fstrs = columnTypes.split(";", QString::KeepEmptyParts);
+  auto fstrs = columnTypes.split(";", Qt::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
     auto typeStr = fstrs[i].trimmed();
@@ -2300,7 +2300,7 @@ bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter
   if (! filter1.length())
     return false;
 
-  auto strs = filter1.split(':', QString::KeepEmptyParts);
+  auto strs = filter1.split(':', Qt::KeepEmptyParts);
 
   if (strs.size() != 2)
     return false;
@@ -2322,7 +2322,7 @@ bool decodeModelFilterStrs(const QAbstractItemModel *model, const QString &filte
   if (! filter.length())
     return false;
 
-  auto strs = filter.split(' ', QString::SkipEmptyParts);
+  auto strs = filter.split(' ', Qt::SkipEmptyParts);
 
   for (auto &str : strs) {
     QString filter;

@@ -801,7 +801,7 @@ postDraw(PaintDevice *device)
   if (isAutoAlign()) {
     double angle = CMathUtil::Rad2Deg(pointAngle(pt1, pt2));
 
-    textOptions.align = 0;
+    textOptions.align = Qt::Alignment();
 
     if (! isVertical()) {
       if      (angle < -90.0) {

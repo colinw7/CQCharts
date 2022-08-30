@@ -717,7 +717,7 @@ pathStrs(const QString &path) const
 {
   QStringList paths;
 
-  auto strs = path.split("/", QString::KeepEmptyParts);
+  auto strs = path.split("/", Qt::KeepEmptyParts);
   assert(strs.length() > 0);
 
   QString path1;

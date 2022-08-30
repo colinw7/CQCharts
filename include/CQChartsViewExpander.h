@@ -105,7 +105,7 @@ class CQChartsViewExpander : public QFrame {
   int             b_           { 0 };
   int             r_           { 0 };
   int             t_           { 0 };
-  Qt::WindowFlags windowFlags_ { 0 };
+  Qt::WindowFlags windowFlags_;
   QTimer*         detachTimer_ { nullptr };
   bool            expanded_    { false };
   bool            pressed_     { false };

@@ -644,7 +644,7 @@ execCmd(CQChartsCmdArgs &argv)
     n = argv.getParseInt("n");
 
   for (int i = 0; i < n; ++i) {
-    qApp->flush();
+    //qApp->flush();
 
     qApp->processEvents();
   }

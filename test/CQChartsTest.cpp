@@ -306,7 +306,7 @@ main(int argc, char **argv)
     int n = 100;
 
     for (int i = 0; i < n; ++i) {
-      qApp->flush();
+      //qApp->flush();
 
       qApp->processEvents();
     }
@@ -425,7 +425,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString columnsStr;
 
         if (args.parseOpt(columnsStr)) {
-          auto strs = columnsStr.split(",", QString::SkipEmptyParts);
+          auto strs = columnsStr.split(",", Qt::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -468,7 +468,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString boolStr;
 
         if (args.parseOpt(boolStr)) {
-          auto strs = boolStr.split(",", QString::SkipEmptyParts);
+          auto strs = boolStr.split(",", Qt::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -503,7 +503,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString stringStr;
 
         if (args.parseOpt(stringStr)) {
-          auto strs = stringStr.split(",", QString::SkipEmptyParts);
+          auto strs = stringStr.split(",", Qt::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -530,7 +530,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
         QString realStr;
 
         if (args.parseOpt(realStr)) {
-          auto strs = realStr.split(",", QString::SkipEmptyParts);
+          auto strs = realStr.split(",", Qt::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
             const auto &nameValue = strs[j];
@@ -886,7 +886,7 @@ initPlot(const CQChartsInitData &initData)
   if (initData.process.length()) {
     ModelP model = modelData->currentModel();
 
-    auto strs = initData.process.split(";", QString::SkipEmptyParts);
+    auto strs = initData.process.split(";", Qt::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i) {
       CQChartsExprModel::Function function;
@@ -903,7 +903,7 @@ initPlot(const CQChartsInitData &initData)
   if (initData.processAdd.length()) {
     ModelP model = modelData->currentModel();
 
-    auto strs = initData.processAdd.split(";", QString::SkipEmptyParts);
+    auto strs = initData.processAdd.split(";", Qt::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
       CQChartsModelUtil::processAddExpression(model.data(), strs[i]);

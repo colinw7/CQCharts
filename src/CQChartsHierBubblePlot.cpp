@@ -258,7 +258,7 @@ currentRoot(const QString &groupName) const
 
   auto *currentRoot = hierBubbleData.root;
 
-  auto names = hierBubbleData.currentRootName.split(calcSeparator(), QString::SkipEmptyParts);
+  auto names = hierBubbleData.currentRootName.split(calcSeparator(), Qt::SkipEmptyParts);
 
   if (names.empty())
     return currentRoot;

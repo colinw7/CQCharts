@@ -627,6 +627,9 @@ addIdConnections() const
     if (connectionsData.shapeType != NodeShape::NONE)
       snode->setShape(static_cast<Node::Shape>(connectionsData.shapeType));
 
+    if (connectionsData.fillColor.isValid())
+      snode->setFillColor(connectionsData.fillColor);
+
     th->nodes_          [id         ] = node;
     th->connectionNodes_[snode->id()] = id;
   }
@@ -676,6 +679,9 @@ addIdConnections() const
 
       if (connection.shapeType != EdgeShape::NONE)
         sedge->setShape(static_cast<Edge::Shape>(connection.shapeType));
+
+      if (connection.fillColor.isValid())
+        sedge->setFillColor(connection.fillColor);
     }
   }
 
@@ -2363,8 +2369,12 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
 
     fillColor = interpColor(edgeFillColor(), ColorInd(rvalue));
   }
-  else
-    fillColor = interpEdgeFillColor(colorInd);
+  else {
+    if (sedge->fillColor().isValid())
+      fillColor = interpColor(sedge->fillColor(), colorInd);
+    else
+      fillColor = interpEdgeFillColor(colorInd);
+  }
 
   auto strokeColor = interpEdgeStrokeColor(colorInd);
 
@@ -2817,7 +2827,7 @@ calcNodeFillColor(Node *node) const
   ColorInd colorInd;
 
   if      (colorType() == ColorType::GROUP)
-    colorInd = ColorInd(node->group(), maxGroup_);
+    colorInd = ColorInd(node->group(), maxGroup_ + 1);
   else if (colorType() == ColorType::INDEX)
     colorInd = ColorInd(node->id(), int(nodes_.size()));
   else {
@@ -2830,6 +2840,9 @@ calcNodeFillColor(Node *node) const
   //---
 
   if (colorType() == ColorType::AUTO) {
+    if (node->fillColor().isValid())
+      return interpColor(node->fillColor(), colorInd);
+
     if (node->ind().isValid() && colorColumn().isValid()) {
       Color color;
 

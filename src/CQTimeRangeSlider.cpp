@@ -248,8 +248,8 @@ paintEvent(QPaintEvent *)
     auto minStr = timeToString(rangeMin());
     auto maxStr = timeToString(rangeMax());
 
-    int twMin = int(tfm.width(minStr));
-    int twMax = int(tfm.width(maxStr));
+    int twMin = int(tfm.horizontalAdvance(minStr));
+    int twMax = int(tfm.horizontalAdvance(maxStr));
 
     painter.setPen  (palette().color(QPalette::WindowText));
     painter.setBrush(Qt::NoBrush);
@@ -281,8 +281,8 @@ paintEvent(QPaintEvent *)
     auto sminStr = timeToString(sliderMin());
     auto smaxStr = timeToString(sliderMax());
 
-    int twsMin = int(tfm.width(sminStr));
-    int twsMax = int(tfm.width(smaxStr));
+    int twsMin = int(tfm.horizontalAdvance(sminStr));
+    int twsMax = int(tfm.horizontalAdvance(smaxStr));
 
     painter.setPen  (palette().color(QPalette::HighlightedText));
     painter.setBrush(Qt::NoBrush);
@@ -377,7 +377,7 @@ sizeHint() const
 
   int w = 2*b;
 
-  int labelWidth = fm.width("XXX.XXX");
+  int labelWidth = fm.horizontalAdvance("XXX.XXX");
 
   if (showRangeLabels() || showSliderLabels()) {
     if (showRangeLabels())

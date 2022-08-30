@@ -246,7 +246,7 @@ createConnections()
 
     // hier path (nodes separated by /)
     if      (data_.connectionType == CQHierConnectionType::HIER) {
-      auto strs = str.split(separator(), QString::KeepEmptyParts);
+      auto strs = str.split(separator(), Qt::KeepEmptyParts);
       if (strs.size() != 2) continue;
 
       Node *srcNode  = parentNode->findChild(strs[0], /*create*/true);
@@ -425,7 +425,7 @@ foldNode()
 
     auto str = model->data(ind, Qt::DisplayRole).toString();
 
-    auto strs = str.split(separator(), QString::KeepEmptyParts);
+    auto strs = str.split(separator(), Qt::KeepEmptyParts);
 
     Node *node = nullptr;
 

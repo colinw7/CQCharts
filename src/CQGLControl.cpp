@@ -1,3 +1,5 @@
+#include <QOpenGLWidget>
+
 #include <CQGLControl.h>
 #include <CQIconButton.h>
 #include <CVector3D.h>
@@ -7,7 +9,6 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QGLWidget>
-#include <QOpenGLWidget>
 #include <QMouseEvent>
 
 #if 0
@@ -189,9 +190,9 @@ handleMousePress(QMouseEvent *e)
   mouse_x_ = e->pos().x();
   mouse_y_ = e->pos().y();
 
-  if      (e->button() == Qt::LeftButton ) mouse_left_   = true;
-  else if (e->button() == Qt::MidButton  ) mouse_middle_ = true;
-  else if (e->button() == Qt::RightButton) mouse_right_  = true;
+  if      (e->button() == Qt::LeftButton  ) mouse_left_   = true;
+  else if (e->button() == Qt::MiddleButton) mouse_middle_ = true;
+  else if (e->button() == Qt::RightButton ) mouse_right_  = true;
 
   getMousePos(mouse_x_, mouse_y_, &drag_pos_x_, &drag_pos_y_, &drag_pos_z_);
 }
@@ -203,9 +204,9 @@ handleMouseRelease(QMouseEvent *e)
   mouse_x_ = e->pos().x();
   mouse_y_ = e->pos().y();
 
-  if      (e->button() == Qt::LeftButton ) mouse_left_   = false;
-  else if (e->button() == Qt::MidButton  ) mouse_middle_ = false;
-  else if (e->button() == Qt::RightButton) mouse_right_  = false;
+  if      (e->button() == Qt::LeftButton  ) mouse_left_   = false;
+  else if (e->button() == Qt::MiddleButton) mouse_middle_ = false;
+  else if (e->button() == Qt::RightButton ) mouse_right_  = false;
 
   getMousePos(mouse_x_, mouse_y_, &drag_pos_x_, &drag_pos_y_, &drag_pos_z_);
 }
@@ -336,6 +337,7 @@ CQGLControlToolBar(CQGLControl *control) :
 
   auto createButton = [&](const QString &iconName, const QString &tip) {
     auto *button = new CQIconButton(iconName);
+    button->setCheckable(true);
     button->setToolTip(tip);
     return button;
   };

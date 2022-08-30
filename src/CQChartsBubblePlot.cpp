@@ -645,7 +645,7 @@ loadModel() const
       if (! hasName) {
         auto hname = pnode->hierName();
 
-        auto names = hname.split("/", QString::KeepEmptyParts);
+        auto names = hname.split("/", Qt::KeepEmptyParts);
 
         if      (names.size() > 1)
           name = names.back();
@@ -817,7 +817,7 @@ groupHierNode(HierNode *parent, int groupInd) const
 
   auto name1 = name;
 
-  auto names = name.split("/", QString::KeepEmptyParts);
+  auto names = name.split("/", Qt::KeepEmptyParts);
 
   if (names.size() > 0)
     name1 = names.back();

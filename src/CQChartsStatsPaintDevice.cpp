@@ -1,4 +1,5 @@
 #include <CQChartsStatsPaintDevice.h>
+#include <QPainterPath>
 
 CQChartsStatsPaintDevice::TypeCount CQChartsStatsPaintDevice::s_typeCount;
 

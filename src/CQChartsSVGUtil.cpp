@@ -95,7 +95,7 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
         auto value = atts.value(i);
 
         if (name == "viewBox") {
-          auto strs = QString(value).split(" ", QString::SkipEmptyParts);
+          auto strs = QString(value).split(" ", Qt::SkipEmptyParts);
 
           if (strs.size() == 4) {
             bool ok { false }, ok1 { true };
@@ -199,7 +199,7 @@ svgFileToPaths(const QString &filename, Paths &paths, Styles &styles, BBox &bbox
     const auto &optValue = option1->getValue();
 
     if (optName == "viewBox") {
-      auto strs = QString::fromStdString(optValue).split(" ", QString::SkipEmptyParts);
+      auto strs = QString::fromStdString(optValue).split(" ", Qt::SkipEmptyParts);
 
       if (strs.size() == 4) {
         bool ok { false }, ok1 { true };

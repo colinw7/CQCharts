@@ -199,8 +199,8 @@ updateMenuEditHeight()
 
   CQWidgetUtil::setWidgetFixedHeight(menuEdit_, h);
 
-  int x = menuEdit_->x();
-  int y = menuEdit_->y();
+  //int x = menuEdit_->x();
+  //int y = menuEdit_->y();
 
   auto *pw = menuEdit_->parentWidget();
 
@@ -215,8 +215,8 @@ updateMenuEditHeight()
     if (wm)
       break;
 
-    x += pw->x();
-    y += pw->y();
+    //x += pw->x();
+    //y += pw->y();
 
     pw = pw->parentWidget();
   }
@@ -333,8 +333,6 @@ QColor
 CQChartsLineEditBase::
 interpColor(const CQChartsColor &color) const
 {
-  QColor c;
-
   if      (plot())
     return plot()->interpColor(color, CQChartsUtil::ColorInd());
   else if (view())

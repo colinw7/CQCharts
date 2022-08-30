@@ -1223,6 +1223,8 @@ initDrawData() const
 
   //---
 
+  assert(x); // ?
+
   createTableObjData();
 }
 
@@ -2381,8 +2383,6 @@ draw(PaintDevice *device) const
 
   QColor fg;
   bool   fgSet = false;
-
-  CQChartsColor textColor;
 
   if (cellObjData_.fgColor.isValid()) {
     fg    = plot_->interpColor(cellObjData_.bgColor, ColorInd());

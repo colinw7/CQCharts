@@ -54,7 +54,7 @@ void
 CQChartsPlotPropertyEditGroup::
 addSlot(const QString &s)
 {
-  auto strs = s.split(" ", QString::SkipEmptyParts);
+  auto strs = s.split(" ", Qt::SkipEmptyParts);
 
   if (strs.size() == 0)
     return;

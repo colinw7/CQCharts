@@ -546,10 +546,10 @@ foldModel(const FoldData &foldData)
 
     FoldDatas foldDatas;
 
-    auto columnStrs = foldData.columnsStr.split(",", QString::SkipEmptyParts);
+    auto columnStrs = foldData.columnsStr.split(",", Qt::SkipEmptyParts);
 
     for (int i = 0; i < columnStrs.length(); ++i) {
-      auto columnSubStrs = columnStrs[i].split(":", QString::SkipEmptyParts);
+      auto columnSubStrs = columnStrs[i].split(":", Qt::SkipEmptyParts);
 
       if (columnSubStrs.length() == 0)
         continue;

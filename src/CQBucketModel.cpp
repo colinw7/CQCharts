@@ -650,7 +650,7 @@ flags(const QModelIndex &index) const
   auto *model = this->sourceModel();
 
   if (! model)
-    return 0;
+    return Qt::ItemFlags();
 
   //---
 
