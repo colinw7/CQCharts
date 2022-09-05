@@ -164,7 +164,7 @@ void
 CQRangeScroll::
 emitWindowChanged()
 {
-  emit windowChanged();
+  Q_EMIT windowChanged();
 }
 
 int
@@ -412,7 +412,7 @@ mouseMoveEvent(QMouseEvent *e)
     else
       pos = scroll_->pixelToPos(mousePos_.y());
 
-    emit valueChanged(pos);
+    Q_EMIT valueChanged(pos);
   }
 }
 

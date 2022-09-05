@@ -21,14 +21,14 @@ void
 CQChartsDensity::
 setDrawType(const DrawType &t)
 {
-  CQChartsUtil::testAndSet(drawType_, t, [&]() { emit dataChanged(); } );
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { Q_EMIT dataChanged(); } );
 }
 
 void
 CQChartsDensity::
 setOrientation(const Qt::Orientation &o)
 {
-  CQChartsUtil::testAndSet(orientation_, o, [&]() { emit dataChanged(); } );
+  CQChartsUtil::testAndSet(orientation_, o, [&]() { Q_EMIT dataChanged(); } );
 }
 
 void
@@ -59,7 +59,7 @@ invalidate()
   initialized_ = false;
   calced_      = false;
 
-  emit dataChanged();
+  Q_EMIT dataChanged();
 }
 
 void

@@ -161,6 +161,8 @@ class CQChartsColumnType {
 
   const Params &params() const { return params_; }
 
+  QStringList paramNames() const;
+
   bool hasParam(const QString &name) const;
 
   const ColumnTypeParam *getParam(const QString &name) const;
@@ -180,6 +182,12 @@ class CQChartsColumnType {
   // data min/max value
   virtual QVariant minValue(const NameValues &) const { return QVariant(); }
   virtual QVariant maxValue(const NameValues &) const { return QVariant(); }
+
+  // get value sum
+  virtual QVariant sumValue(const NameValues &) const { return QVariant(); }
+
+  // get bad value
+  virtual QVariant badValue(const NameValues &) const { return QVariant(); }
 
   // index value (TODO: assert if index invalid or not supported ?)
   virtual QVariant indexVar(const QVariant &var, const QString &) const { return var; }
@@ -303,8 +311,15 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   QVariant minValue(const NameValues &nameValues) const override;
   QVariant maxValue(const NameValues &nameValues) const override;
 
+  // get value sum
+  QVariant sumValue(const NameValues &nameValues) const override;
+
+  // get bad value
+  QVariant badValue(const NameValues &nameValues) const override;
+
   bool rmin(const NameValues &nameValues, double &r) const;
   bool rmax(const NameValues &nameValues, double &r) const;
+  bool rsum(const NameValues &nameValues, double &r) const;
 
   QString getIFormat(const NameValues &nameValues) const;
   QString getOFormat(const NameValues &nameValues) const;
@@ -346,8 +361,12 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   QVariant minValue(const NameValues &nameValues) const override;
   QVariant maxValue(const NameValues &nameValues) const override;
 
+  // get value sum
+  QVariant sumValue(const NameValues &nameValues) const override;
+
   bool imin(const NameValues &nameValues, long &i) const;
   bool imax(const NameValues &nameValues, long &i) const;
+  bool isum(const NameValues &nameValues, long &i) const;
 
   QString getIFormat(const NameValues &nameValues) const;
   QString getOFormat(const NameValues &nameValues) const;

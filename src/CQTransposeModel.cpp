@@ -339,7 +339,7 @@ void
 CQTransposeModel::
 dataChangedSlot(const QModelIndex &topLeft, const QModelIndex &bottomRight)
 {
-  emit dataChanged(mapFromSource(topLeft), mapFromSource(bottomRight));
+  Q_EMIT dataChanged(mapFromSource(topLeft), mapFromSource(bottomRight));
 }
 
 void
@@ -348,7 +348,7 @@ headerDataChangedSlot(Qt::Orientation orientation, int first, int last)
 {
   auto orientation1 = (orientation == Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
 
-  emit headerDataChanged(orientation1, first, last);
+  Q_EMIT headerDataChanged(orientation1, first, last);
 }
 
 void

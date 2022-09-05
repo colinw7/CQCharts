@@ -321,7 +321,7 @@ setModel(const ModelP &model)
 
   updateRangeAndObjs();
 
-  emit modelChanged();
+  Q_EMIT modelChanged();
 }
 
 void
@@ -2129,9 +2129,24 @@ setBadValue(double v)
 
 double
 CQChartsPlot::
-getRowBadValue(int row) const
+getModelBadValue(const Column &column, int row) const
 {
-  return (isBadUseRow() ? double(row) : badValue());
+  if (isBadUseRow())
+    return double(row);
+
+  auto *details = columnDetails(column);
+
+  if ( details) {
+    auto badValue = details->badValue();
+
+    if (badValue.isValid()) {
+      bool ok;
+      auto r = CQChartsVariant::toReal(badValue, ok);
+      if (ok) return r;
+    }
+  }
+
+  return this->badValue();
 }
 
 //---
@@ -2521,7 +2536,7 @@ setControlsKey(bool b)
 {
   controlsKey_ = b;
 
-  emit customDataChanged();
+  Q_EMIT customDataChanged();
 }
 
 //---
@@ -2744,7 +2759,7 @@ setViewBBox(const BBox &bbox)
 
   updateMargins();
 
-  emit viewBoxChanged();
+  Q_EMIT viewBoxChanged();
 }
 
 void
@@ -3000,7 +3015,7 @@ void
 CQChartsPlot::
 emitTitleChanged()
 {
-  emit titleChanged();
+  Q_EMIT titleChanged();
 }
 
 //---
@@ -3030,7 +3045,7 @@ setOverlay(bool b, bool notify)
   connectData_.overlay = b;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 void
@@ -3078,7 +3093,7 @@ setX1X2(bool b, bool notify)
   connectData_.x1x2 = b;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 bool
@@ -3106,7 +3121,7 @@ setY1Y2(bool b, bool notify)
   connectData_.y1y2 = b;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 bool
@@ -3134,7 +3149,7 @@ setTabbed(bool b, bool notify)
   connectData_.tabbed = b;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 //---
@@ -3162,8 +3177,8 @@ setCurrent(bool b, bool notify)
   connectData_.current = b;
 
   if (notify) {
-    emit currentPlotChanged(this);
-    emit currentPlotIdChanged(id());
+    Q_EMIT currentPlotChanged(this);
+    Q_EMIT currentPlotIdChanged(id());
   }
 }
 
@@ -3176,7 +3191,7 @@ setNextPlot(Plot *plot, bool notify)
   connectData_.next = plot;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 void
@@ -3188,7 +3203,7 @@ setPrevPlot(Plot *plot, bool notify)
   connectData_.prev = plot;
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 CQChartsPlot *
@@ -3323,7 +3338,7 @@ resetConnectData(bool notify)
   connectData_.reset();
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 //---
@@ -6192,7 +6207,7 @@ applyDataRange(bool propagate)
 
   updateKeyPosition(/*force*/true);
 
-  emit rangeChanged();
+  Q_EMIT rangeChanged();
 }
 
 void
@@ -6548,7 +6563,7 @@ initPlotObjs()
   //---
 
   if (changed)
-    emit plotObjsAdded();
+    Q_EMIT plotObjsAdded();
 }
 
 bool
@@ -6595,7 +6610,7 @@ initObjs()
 
   //---
 
-  emit customDataChanged();
+  Q_EMIT customDataChanged();
 
   return true;
 }
@@ -7155,7 +7170,7 @@ clearErrors()
 
   errorData_.clear();
 
-  emit errorsCleared();
+  Q_EMIT errorsCleared();
 }
 
 bool
@@ -7187,7 +7202,7 @@ addError(const QString &msg)
     // TODO: add to log
     //charts()->errorMsg(msg);
 
-    emit errorAdded();
+    Q_EMIT errorAdded();
   }
 
   return false;
@@ -7210,7 +7225,7 @@ addColumnError(const Column &c, const QString &msg)
     // TODO: add to log
     //charts()->errorMsg(msg);
 
-    emit errorAdded();
+    Q_EMIT errorAdded();
   }
 
   return false;
@@ -7233,7 +7248,7 @@ addDataError(const ModelIndex &ind, const QString &msg)
     // TODO: add to log
     //charts()->errorMsg(msg);
 
-    emit errorAdded();
+    Q_EMIT errorAdded();
   }
 
   return false;
@@ -7326,7 +7341,7 @@ selectMousePress(const Point &p, SelMod selMod)
   if (handleSelectPress(w, selMod))
     return true;
 
-  emit selectPressSignal(w);
+  Q_EMIT selectPressSignal(w);
 
   return false;
 }
@@ -7416,8 +7431,8 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       bool handled = item->selectPress(w, selData);
 
       if (handled) {
-        emit keyItemPressed  (item);
-        emit keyItemIdPressed(item->id());
+        Q_EMIT keyItemPressed  (item);
+        Q_EMIT keyItemIdPressed(item->id());
 
         return true;
       }
@@ -7431,8 +7446,8 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
       bool handled = group->selectPress(w, selData);
 
       if (handled) {
-        emit keyItemPressed  (group);
-        emit keyItemIdPressed(group->id());
+        Q_EMIT keyItemPressed  (group);
+        Q_EMIT keyItemIdPressed(group->id());
 
         return true;
       }
@@ -7443,8 +7458,8 @@ keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
     bool handled = key->selectPress(w, selData);
 
     if (handled) {
-      emit keyPressed  (key);
-      emit keyIdPressed(key->id());
+      Q_EMIT keyPressed  (key);
+      Q_EMIT keyIdPressed(key->id());
 
       return true;
     }
@@ -7468,7 +7483,7 @@ mapKeySelectPress(const Point &w, SelMod selMod)
       bool handled = mapKey->selectPress(w, selData);
 
       if (handled) {
-        emit mapKeyPressed(mapKey);
+        Q_EMIT mapKeyPressed(mapKey);
         return true;
       }
     }
@@ -7486,8 +7501,8 @@ titleSelectPress(CQChartsTitle *title, const Point &w, SelMod selMod)
     CQChartsSelectableIFace::SelData selData(selMod);
 
     if (title->selectPress(w, selData)) {
-      emit titlePressed  (title);
-      emit titleIdPressed(title->id());
+      Q_EMIT titlePressed  (title);
+      Q_EMIT titleIdPressed(title->id());
 
       return true;
     }
@@ -7522,8 +7537,8 @@ annotationsSelectPress(const Point &w, SelMod selMod)
 
     drawForeground();
 
-    emit annotationPressed  (annotation);
-    emit annotationIdPressed(annotation->id());
+    Q_EMIT annotationPressed  (annotation);
+    Q_EMIT annotationIdPressed(annotation->id());
 
     return true;
   }
@@ -7612,8 +7627,8 @@ objectsSelectPress(const Point &w, SelMod selMod)
       CQChartsSelectableIFace::SelData selData(selMod);
 
       if (selectPlotObj->selectPress(w, selData)) {
-        emit objPressed  (selectPlotObj);
-        emit objIdPressed(selectPlotObj->id());
+        Q_EMIT objPressed  (selectPlotObj);
+        Q_EMIT objIdPressed(selectPlotObj->id());
       }
     }
     else if (selectAnnotation) {
@@ -7625,8 +7640,8 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
         drawForeground();
 
-        emit annotationPressed  (selectAnnotation);
-        emit annotationIdPressed(selectAnnotation->id());
+        Q_EMIT annotationPressed  (selectAnnotation);
+        Q_EMIT annotationIdPressed(selectAnnotation->id());
       }
     }
 
@@ -7807,7 +7822,7 @@ selectMouseDoubleClick(const Point &p, SelMod selMod)
   if (handleSelectDoubleClick(w, selMod))
     return true;
 
-  emit selectDoubleClickSignal(w);
+  Q_EMIT selectDoubleClickSignal(w);
 
   return false;
 }
@@ -7868,16 +7883,16 @@ objectsSelectDoubleClick(const Point &w, SelMod selMod)
     if (selectPlotObj) {
       selectPlotObj->selectDoubleClick(w, selMod);
 
-      emit objDoubleClicked  (selectPlotObj);
-      emit objIdDoubleClicked(selectPlotObj->id());
+      Q_EMIT objDoubleClicked  (selectPlotObj);
+      Q_EMIT objIdDoubleClicked(selectPlotObj->id());
     }
     else if (selectAnnotation) {
       selectAnnotation->selectDoubleClick(w, selMod);
 
       drawForeground();
 
-      emit annotationDoubleClicked  (selectAnnotation);
-      emit annotationIdDoubleClicked(selectAnnotation->id());
+      Q_EMIT annotationDoubleClicked  (selectAnnotation);
+      Q_EMIT annotationIdDoubleClicked(selectAnnotation->id());
     }
 
     // potential crash if signals cause objects to be deleted (defer !!!)
@@ -9249,7 +9264,7 @@ endSelection()
 {
   view()->endSelection();
 
-  emit selectionChanged();
+  Q_EMIT selectionChanged();
 }
 
 void
@@ -9394,7 +9409,7 @@ setControlColumns(const Columns &c)
   CQChartsUtil::testAndSet(controlColumns_, c, [&]() {
     updateRangeAndObjs();
 
-    emit controlColumnsChanged();
+    Q_EMIT controlColumnsChanged();
   } );
 }
 
@@ -9462,7 +9477,7 @@ CQChartsPlot::
 setColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9471,7 +9486,7 @@ CQChartsPlot::
 setColorLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorLabelColumn_, c, [&]() {
-    updateObjs(); emit colorDetailsChanged();
+    updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9482,7 +9497,7 @@ setColorType(const ColorType &t)
   auto t1 = static_cast<CQChartsColorType>(t);
 
   CQChartsUtil::testAndSet(colorColumnData_.colorType, t1, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9491,7 +9506,7 @@ CQChartsPlot::
 setColorMapped(bool b)
 {
   CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9500,7 +9515,7 @@ CQChartsPlot::
 setColorMapMin(double r)
 {
   CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9509,7 +9524,7 @@ CQChartsPlot::
 setColorMapMax(double r)
 {
   CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9518,7 +9533,7 @@ CQChartsPlot::
 setColorMapPalette(const PaletteName &name)
 {
   CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9527,7 +9542,7 @@ CQChartsPlot::
 setColorXStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9536,7 +9551,7 @@ CQChartsPlot::
 setColorYStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() {
-    colorColumnData_.valid = false; updateObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -9545,7 +9560,7 @@ CQChartsPlot::
 setColorMap(const CQChartsColorMap &colorMap)
 {
   CQChartsUtil::testAndSet(colorColumnData_.colorMap, colorMap, [&]() {
-    colorColumnData_.valid = false; updateRangeAndObjs(); emit colorDetailsChanged();
+    colorColumnData_.valid = false; updateRangeAndObjs(); Q_EMIT colorDetailsChanged();
   } );
 }
 
@@ -10901,7 +10916,7 @@ panLeft(double f)
   }
 #endif
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -10939,7 +10954,7 @@ panRight(double f)
   }
 */
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -10977,7 +10992,7 @@ panUp(double f)
   }
 */
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11015,7 +11030,7 @@ panDown(double f)
   }
 #endif
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11035,7 +11050,7 @@ pan(double dx, double dy)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 //---
@@ -11055,7 +11070,7 @@ zoomIn(double f)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11073,7 +11088,7 @@ zoomOut(double f)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11130,7 +11145,7 @@ zoomTo(const BBox &bbox)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11183,7 +11198,7 @@ unzoomTo(const BBox &bbox)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 bool
@@ -11234,7 +11249,7 @@ zoomFull1(bool notify)
   applyDataRangeAndDraw();
 
   if (notify)
-    emit zoomPanChanged();
+    Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11284,7 +11299,7 @@ centerAt(const Point &c)
 
   applyDataRangeAndDraw();
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 }
 
 void
@@ -11976,7 +11991,7 @@ drawPlotParts(QPainter *painter) const
 
   auto *th = const_cast<Plot *>(this);
 
-  emit th->plotDrawn();
+  Q_EMIT th->plotDrawn();
 }
 
 void
@@ -12176,7 +12191,7 @@ drawThread()
   // mark thread done
   updateData_.drawThread->end();
 
-  emit plotDrawn();
+  Q_EMIT plotDrawn();
 }
 
 void
@@ -14766,7 +14781,7 @@ autoFitOne()
   autoFitUpdate();
 #endif
 
-  emit zoomPanChanged();
+  Q_EMIT zoomPanChanged();
 
   inAutoFit_ = false;
 }
@@ -15281,8 +15296,8 @@ addAnnotationI(Annotation *annotation)
 
   annotation->addProperties(propertyModel(), "annotations");
 
-//emit annotationAdded(annotation->id());
-  emit annotationsChanged();
+//Q_EMIT annotationAdded(annotation->id());
+  Q_EMIT annotationsChanged();
 
   return annotation;
 }
@@ -15338,7 +15353,7 @@ raiseAnnotation(Annotation *annotation)
 
   drawObjs();
 
-  emit annotationsReordered();
+  Q_EMIT annotationsReordered();
 }
 
 void
@@ -15356,7 +15371,7 @@ lowerAnnotation(Annotation *annotation)
 
   drawObjs();
 
-  emit annotationsReordered();
+  Q_EMIT annotationsReordered();
 }
 
 int
@@ -15399,7 +15414,7 @@ removeAnnotation(Annotation *annotation)
 
   annotations_.pop_back();
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 void
@@ -15413,7 +15428,7 @@ removeAllAnnotations()
 
   propertyModel()->removeProperties("annotations");
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 void
@@ -15428,7 +15443,7 @@ updateAnnotationSlot()
   else
     drawObjs();
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 //------
@@ -15759,7 +15774,7 @@ setLayersChanged(bool update)
     this->update();
   }
 
-  emit layersChanged();
+  Q_EMIT layersChanged();
 }
 
 CQChartsBuffer *

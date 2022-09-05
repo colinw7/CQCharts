@@ -140,7 +140,7 @@ CQChartsTreeMapPlot::
 setTitles(bool b)
 {
   CQChartsUtil::testAndSet(titleData_.visible, b, [&]() {
-    updateCurrentRoot(); emit customDataChanged();
+    updateCurrentRoot(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -240,7 +240,7 @@ CQChartsTreeMapPlot::
 setValueLabel(bool b)
 {
   CQChartsUtil::testAndSet(nodeData_.valueLabel, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 

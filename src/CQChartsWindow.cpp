@@ -553,7 +553,7 @@ void
 CQChartsWindow::
 updateThemePalettes()
 {
-  emit themePalettesChanged();
+  Q_EMIT themePalettesChanged();
 }
 
 void
@@ -686,7 +686,7 @@ void
 CQChartsWindow::
 expansionChangeSlot()
 {
-  emit expansionChanged();
+  Q_EMIT expansionChanged();
 }
 
 bool

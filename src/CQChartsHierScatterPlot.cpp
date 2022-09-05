@@ -139,7 +139,7 @@ CQChartsHierScatterPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -148,7 +148,7 @@ CQChartsHierScatterPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    resetAxes(); updateRangeAndObjs(); emit customDataChanged();
+    resetAxes(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -157,7 +157,7 @@ CQChartsHierScatterPlot::
 setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() {
-    resetAxes(); updateRangeAndObjs(); emit customDataChanged();
+    resetAxes(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -166,7 +166,7 @@ CQChartsHierScatterPlot::
 setGroupColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
-    initGroupValueSets(); updateRangeAndObjs(); emit customDataChanged();
+    initGroupValueSets(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -355,7 +355,8 @@ calcRange() const
 
       //---
 
-      double defVal = plot_->getRowBadValue(data.row);
+      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
+      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
 
       // get x, y value
       ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
@@ -363,11 +364,11 @@ calcRange() const
 
       double x, y;
 
-      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
-      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
+      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
+      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
 
-      if (! ok1) x = defVal;
-      if (! ok2) y = defVal;
+      if (! ok1) x = xDefVal;
+      if (! ok2) y = yDefVal;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -589,7 +590,8 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        double defVal = plot_->getRowBadValue(data.row);
+        double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
+        double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
 
         // get x, y value
         ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
@@ -597,11 +599,11 @@ createObjs(PlotObjs &objs) const
 
         double x, y;
 
-        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
-        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
+        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
+        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
 
-        if (! ok1) x = defVal;
-        if (! ok2) y = defVal;
+        if (! ok1) x = xDefVal;
+        if (! ok2) y = yDefVal;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
           return State::SKIP;

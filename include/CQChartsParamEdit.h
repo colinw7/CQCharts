@@ -9,6 +9,7 @@ class CQChartsColorLineEdit;
 class CQChartsLineEdit;
 class CQIntegerSpin;
 class CQCheckBox;
+class CQIconButton;
 
 class QComboBox;
 class QHBoxLayout;
@@ -18,6 +19,8 @@ class QHBoxLayout;
  * \ingroup Charts
  */
 class CQChartsParamEdit : public QFrame {
+  Q_OBJECT
+
  public:
   CQChartsParamEdit(QWidget *parent=nullptr);
 
@@ -45,14 +48,20 @@ class CQChartsParamEdit : public QFrame {
 
   void reset();
 
+ private Q_SLOTS:
+  void clearSlot();
+
  private:
-  CQBaseModelType        type_   { CQBaseModelType::NONE };
-  QHBoxLayout*           layout_ { nullptr };
-  CQChartsLineEdit*      edit_   { nullptr };
-  CQIntegerSpin*         ispin_  { nullptr };
-  CQCheckBox*            check_  { nullptr };
-  QComboBox*             combo_  { nullptr };
-  CQChartsColorLineEdit* color_  { nullptr };
+  CQBaseModelType        type_        { CQBaseModelType::NONE };
+  QHBoxLayout*           layout_      { nullptr };
+  QFrame*                editFrame_   { nullptr };
+  QHBoxLayout*           editLayout_  { nullptr };
+  CQChartsLineEdit*      edit_        { nullptr };
+  CQIntegerSpin*         ispin_       { nullptr };
+  CQCheckBox*            check_       { nullptr };
+  QComboBox*             combo_       { nullptr };
+  CQChartsColorLineEdit* color_       { nullptr };
+  CQIconButton*          clearButton_ { nullptr };
 };
 
 #endif

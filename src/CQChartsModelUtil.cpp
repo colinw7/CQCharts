@@ -2248,7 +2248,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
     else if (parse.isChar('#')) {
       parse.skipChar();
 
-      // #{name} get column number for name
+      // #{<name>} get column number for name
       if (parse.isChar('{')) {
         int pos = parse.getPos();
 

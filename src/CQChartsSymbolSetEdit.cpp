@@ -97,7 +97,7 @@ comboChanged()
 
   connectSlots(true);
 
-  emit setChanged(symbolSetName_);
+  Q_EMIT setChanged(symbolSetName_);
 }
 
 //------

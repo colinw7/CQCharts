@@ -65,7 +65,7 @@ updateStrokeData(const CQChartsStrokeData &strokeData, bool updateText)
   if (updateText)
     strokeDataToWidgets();
 
-  emit strokeDataChanged();
+  Q_EMIT strokeDataChanged();
 }
 
 void
@@ -104,7 +104,7 @@ menuEditChanged()
 {
   strokeDataToWidgets();
 
-  emit strokeDataChanged();
+  Q_EMIT strokeDataChanged();
 }
 
 void
@@ -369,7 +369,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit strokeDataChanged();
+  Q_EMIT strokeDataChanged();
 }
 
 //------

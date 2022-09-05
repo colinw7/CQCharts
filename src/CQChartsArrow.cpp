@@ -50,21 +50,21 @@ void
 CQChartsArrow::
 setVisible(bool b)
 {
-  visible_ = b; emit dataChanged();
+  visible_ = b; Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setFrom(const Point &v)
 {
-  from_ = v; emit dataChanged();
+  from_ = v; Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setTo(const Point &v)
 {
-  to_ = v; emit dataChanged();
+  to_ = v; Q_EMIT dataChanged();
 }
 
 #if 0
@@ -72,7 +72,7 @@ void
 CQChartsArrow::
 setRelative(bool b)
 {
-  data_.setRelative(b); emit dataChanged();
+  data_.setRelative(b); Q_EMIT dataChanged();
 }
 #endif
 
@@ -82,7 +82,7 @@ void
 CQChartsArrow::
 setLineWidth(const Length &l)
 {
-  data_.setLineWidth(l); emit dataChanged();
+  data_.setLineWidth(l); Q_EMIT dataChanged();
 }
 
 //---
@@ -103,7 +103,7 @@ setFrontVisible(bool b)
         data_.setFHeadType(ArrowData::HeadType::NONE);
     }
 
-    emit dataChanged();
+    Q_EMIT dataChanged();
   }
 }
 
@@ -111,35 +111,35 @@ void
 CQChartsArrow::
 setFrontType(const HeadType &type)
 {
-  data_.setFHeadType(static_cast<ArrowData::HeadType>(type)); emit dataChanged();
+  data_.setFHeadType(static_cast<ArrowData::HeadType>(type)); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setFrontAngle(const Angle &a)
 {
-  data_.setFrontAngle(a); emit dataChanged();
+  data_.setFrontAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setFrontBackAngle(const Angle &a)
 {
-  data_.setFrontBackAngle(a); emit dataChanged();
+  data_.setFrontBackAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setFrontLength(const Length &l)
 {
-  data_.setFrontLength(l); emit dataChanged();
+  data_.setFrontLength(l); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setFrontLineEnds(bool b)
 {
-  data_.setFrontLineEnds(b); emit dataChanged();
+  data_.setFrontLineEnds(b); Q_EMIT dataChanged();
 }
 
 //---
@@ -160,7 +160,7 @@ setTailVisible(bool b)
         data_.setFHeadType(ArrowData::HeadType::NONE);
     }
 
-    emit dataChanged();
+    Q_EMIT dataChanged();
   }
 }
 
@@ -168,35 +168,35 @@ void
 CQChartsArrow::
 setTailType(const HeadType &type)
 {
-  data_.setTHeadType(static_cast<ArrowData::HeadType>(type)); emit dataChanged();
+  data_.setTHeadType(static_cast<ArrowData::HeadType>(type)); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setTailAngle(const Angle &a)
 {
-  data_.setTailAngle(a); emit dataChanged();
+  data_.setTailAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setTailBackAngle(const Angle &a)
 {
-  data_.setTailBackAngle(a); emit dataChanged();
+  data_.setTailBackAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setTailLength(const Length &l)
 {
-  data_.setTailLength(l); emit dataChanged();
+  data_.setTailLength(l); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setTailLineEnds(bool b)
 {
-  data_.setTailLineEnds(b); emit dataChanged();
+  data_.setTailLineEnds(b); Q_EMIT dataChanged();
 }
 
 //---
@@ -205,28 +205,28 @@ void
 CQChartsArrow::
 setAngle(const Angle &a)
 {
-  data_.setAngle(a); emit dataChanged();
+  data_.setAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setBackAngle(const Angle &a)
 {
-  data_.setBackAngle(a); emit dataChanged();
+  data_.setBackAngle(a); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setLength(const Length &l)
 {
-  data_.setLength(l); emit dataChanged();
+  data_.setLength(l); Q_EMIT dataChanged();
 }
 
 void
 CQChartsArrow::
 setLineEnds(bool b)
 {
-  data_.setLineEnds(b); emit dataChanged();
+  data_.setLineEnds(b); Q_EMIT dataChanged();
 }
 
 //---
@@ -235,7 +235,7 @@ void
 CQChartsArrow::
 setRectilinear(bool b)
 {
-  rectilinear_ = b; emit dataChanged();
+  rectilinear_ = b; Q_EMIT dataChanged();
 }
 
 //---
@@ -244,7 +244,7 @@ void
 CQChartsArrow::
 setData(const ArrowData &data)
 {
-  data_ = data; emit dataChanged();
+  data_ = data; Q_EMIT dataChanged();
 }
 
 //---

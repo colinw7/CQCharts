@@ -737,7 +737,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double badValue() const { return badData_.value; }
   void setBadValue(double v);
 
-  virtual double getRowBadValue(int row) const;
+  virtual double getModelBadValue(const Column &column, int row) const;
 
   //---
 

@@ -39,7 +39,7 @@ setDrawLayer(const DrawLayer &l)
 {
   drawLayer_ = l;
 
-  emit layerChanged();
+  Q_EMIT layerChanged();
 }
 
 CQChartsEditHandles *

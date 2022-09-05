@@ -27,6 +27,6 @@ anchorSlot(const QUrl &url)
   if (str.startsWith(chartsPrefix)) {
     auto str1 = str.mid(chartsPrefix.length());
 
-    emit linkClicked(str1);
+    Q_EMIT linkClicked(str1);
   }
 }

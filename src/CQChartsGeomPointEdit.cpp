@@ -102,7 +102,7 @@ editingFinishedI()
   if (disableSignals_) return;
 
   if (widgetToPoint())
-    emit valueChanged();
+    Q_EMIT valueChanged();
 }
 
 void
@@ -125,8 +125,8 @@ setRegion(const CQChartsGeom::Point &p)
 {
   setValue(p);
 
-  emit valueChanged();
-  emit regionChanged();
+  Q_EMIT valueChanged();
+  Q_EMIT regionChanged();
 }
 
 void

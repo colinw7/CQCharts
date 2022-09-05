@@ -97,7 +97,7 @@ CQChartsGroupPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit groupCustomDataChanged();
+    resetSetHidden(); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   } );
 }
 
@@ -108,7 +108,7 @@ CQChartsGroupPlot::
 setRowGrouping(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.rowGrouping, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged();
+    updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   } );
 }
 
@@ -117,7 +117,7 @@ CQChartsGroupPlot::
 setUsePath(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.usePath, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged();
+    updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   } );
 }
 
@@ -126,7 +126,7 @@ CQChartsGroupPlot::
 setUseRow(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.useRow, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged();
+    updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   } );
 }
 
@@ -137,7 +137,7 @@ CQChartsGroupPlot::
 setExactBucketValue(bool b)
 {
   CQChartsUtil::testAndSet(groupData_.exactValue, b, [&]() {
-    updateRangeAndObjs(); emit groupCustomDataChanged();
+    updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   } );
 }
 
@@ -153,7 +153,7 @@ CQChartsGroupPlot::
 setStartBucketValue(double r)
 {
   if (r != groupData_.bucketer.rstart()) {
-    groupData_.bucketer.setRStart(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setRStart(r); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -162,7 +162,7 @@ CQChartsGroupPlot::
 setDeltaBucketValue(double r)
 {
   if (r != groupData_.bucketer.rdelta()) {
-    groupData_.bucketer.setRDelta(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setRDelta(r); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -171,7 +171,7 @@ CQChartsGroupPlot::
 setNumAutoBuckets(int i)
 {
   if (i != groupData_.bucketer.numAuto()) {
-    groupData_.bucketer.setNumAuto(i); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setNumAuto(i); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -180,7 +180,7 @@ CQChartsGroupPlot::
 setMinBucketValue(double r)
 {
   if (r != groupData_.bucketer.rmin()) {
-    groupData_.bucketer.setRMin(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setRMin(r); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -189,7 +189,7 @@ CQChartsGroupPlot::
 setMaxBucketValue(double r)
 {
   if (r != groupData_.bucketer.rmax()) {
-    groupData_.bucketer.setRMax(r); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setRMax(r); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -198,7 +198,7 @@ CQChartsGroupPlot::
 setBucketUnderflow(bool b)
 {
   if (b != groupData_.bucketer.isUnderflow()) {
-    groupData_.bucketer.setUnderflow(b); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setUnderflow(b); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -207,7 +207,7 @@ CQChartsGroupPlot::
 setBucketOverflow(bool b)
 {
   if (b != groupData_.bucketer.isOverflow()) {
-    groupData_.bucketer.setOverflow(b); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setOverflow(b); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -223,7 +223,7 @@ setBucketStops(const CQChartsReals &r)
     for (const auto &r1 : groupData_.bucketStops.reals())
       rstops.insert(r1);
 
-    groupData_.bucketer.setRStops(rstops); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setRStops(rstops); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 
@@ -239,7 +239,7 @@ CQChartsGroupPlot::
 setBucketType(const CQBucketer::Type &type)
 {
   if (type != groupData_.bucketer.type()) {
-    groupData_.bucketer.setType(type); updateRangeAndObjs(); emit groupCustomDataChanged();
+    groupData_.bucketer.setType(type); updateRangeAndObjs(); Q_EMIT groupCustomDataChanged();
   }
 }
 

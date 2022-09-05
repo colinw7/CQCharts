@@ -572,6 +572,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  double defaultSize() const { return defaultSize_; }
+
+
+  //---
+
   void addProperties() override;
 
   Range calcRange() const override;
@@ -656,6 +661,21 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   };
 
  private:
+  using ModelInds      = std::vector<ModelIndex>;
+  using GroupModelInds = std::map<int, ModelInds>;
+
+  bool visitRow(const ModelVisitor::VisitData &data, GroupModelInds &groupInds) const;
+
+  void termVisit(GroupModelInds &groupInds) const;
+
+  HierNode *parentVisitHier(const ModelVisitor::VisitData &data) const;
+
+  bool getVisitName(const ModelVisitor::VisitData &data, QString &name, QModelIndex &nameInd) const;
+
+  bool getVisitSize(const ModelVisitor::VisitData &data, GroupModelInds &groupInds,
+                    double &size) const;
+
+ private:
   struct SortData {
     bool enabled { false };
     bool reverse { false };
@@ -678,6 +698,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   PlaceData placeData_;            //!< place data
   ColorData colorData_;            //!< color data
   bool      colorById_  { true };  //!< color by id
+
+  double defaultSize_ { 1.0 }; //!< default node size
 
   GroupHierNodes groupHierNodes_; //!< hier group nodes
 

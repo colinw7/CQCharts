@@ -461,7 +461,7 @@ widgetsToData()
   data_.minorGridLineData = minorGridLineDataEdit_->data();
   data_.gridFillData      = gridFillDataEdit_->data();
 
-  emit axisChanged();
+  Q_EMIT axisChanged();
 }
 
 void

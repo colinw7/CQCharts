@@ -46,13 +46,25 @@ updateTip()
   tip += "Use: $header for column row value\n"
          "Use: <header> = <expression> to assign header with expression\n";
 
+  tip += "Variables:\n";
+  tip += "  @<N>      : Value of column N\n";
+  tip += "  @#<N>     : Stringify Value of column N\n";
+  tip += "  @#<N>     : Stringify Value of column N\n";
+  tip += "  @c        : column number\n";
+  tip += "  @r        : row number\n";
+  tip += "  @nc       : column count\n";
+  tip += "  @nr       : row count\n";
+  tip += "  @v        : cell value\n";
+  tip += "  @{<name>} : named column value\n";
+  tip += "  #{<name>} : column number for name\n";
+
   tip += "Functions: ";
 
   QStringList fnNames;
 
   if (modelData_) {
-    auto *absModel  = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
-    auto *exprModel = CQChartsModelUtil::getExprModel(absModel);
+  //auto *absModel  = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
+    auto *exprModel = CQChartsModelUtil::getExprModel(modelData_->currentModel().data());
 
     if (exprModel) {
       auto exprFnNames = exprModel->fnNames();
@@ -110,5 +122,5 @@ updateSlot()
     }
   }
 
-  emit exprChanged();
+  Q_EMIT exprChanged();
 }

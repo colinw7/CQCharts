@@ -105,7 +105,7 @@ CQChartsContourPlot::
 setSolid(bool b)
 {
   CQChartsUtil::testAndSet(solid_, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 

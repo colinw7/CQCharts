@@ -9,6 +9,8 @@
 #include <QHeaderView>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QFileDialog>
+#include <QDir>
 
 CQChartsModelTableControl::
 CQChartsModelTableControl(CQCharts *charts) :
@@ -45,16 +47,20 @@ CQChartsModelTableControl(CQCharts *charts) :
 
   auto *loadButton = createButton("Load...", "load", "Load Model", SLOT(loadModelSlot()));
 
+  saveButton_   = createButton("Save...", "save", "Save Model to CSV",
+                               SLOT(saveModelSlot()));
   editButton_   = createButton("Edit...", "edit", "Edit Selected Model",
                                SLOT(editModelSlot()));
   removeButton_ = createButton("Remove", "remove", "Remove Selected Model",
                                SLOT(removeModelSlot()));
 
   modelControlLayout->addWidget(loadButton);
+  modelControlLayout->addWidget(saveButton_);
   modelControlLayout->addWidget(editButton_);
   modelControlLayout->addWidget(removeButton_);
   modelControlLayout->addStretch(1);
 
+  saveButton_  ->setEnabled(false);
   editButton_  ->setEnabled(false);
   removeButton_->setEnabled(false);
 
@@ -115,6 +121,7 @@ updateState()
 {
   long ind = modelTable_->selectedModel();
 
+  saveButton_  ->setEnabled(ind >= 0);
   editButton_  ->setEnabled(ind >= 0);
   removeButton_->setEnabled(ind >= 0);
   plotButton_  ->setEnabled(ind >= 0);
@@ -132,15 +139,27 @@ loadModelSlot()
 
 void
 CQChartsModelTableControl::
+saveModelSlot()
+{
+  auto *modelData = modelTable_->selectedModelData();
+  if (! modelData) return;
+
+  auto dir = QDir::current().dirName() + "/model.csv";
+
+  auto filename = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
+  if (! filename.length()) return; // cancelled
+
+  modelData->writeCSV(filename);
+}
+
+void
+CQChartsModelTableControl::
 editModelSlot()
 {
   if (! charts_)
     return;
 
-  long ind = modelTable_->selectedModel();
-  if (ind < 0) return;
-
-  auto *modelData = charts_->getModelDataByInd(int(ind));
+  auto *modelData = modelTable_->selectedModelData();
   if (! modelData) return;
 
   charts_->editModelDlg(modelData);
@@ -153,10 +172,7 @@ removeModelSlot()
   if (! charts_)
     return;
 
-  long ind = modelTable_->selectedModel();
-  if (ind < 0) return;
-
-  auto *modelData = charts_->getModelDataByInd(int(ind));
+  auto *modelData = modelTable_->selectedModelData();
   if (! modelData) return;
 
   charts_->removeModelData(modelData);
@@ -169,10 +185,7 @@ createPlotModelSlot()
   if (! charts_)
     return;
 
-  long ind = modelTable_->selectedModel();
-  if (ind < 0) return;
-
-  auto *modelData = charts_->getModelDataByInd(int(ind));
+  auto *modelData = modelTable_->selectedModelData();
   if (! modelData) return;
 
   auto *createPlotDlg = charts_->createPlotDlg(modelData);
@@ -261,6 +274,18 @@ updateModels()
 
     ++i;
   }
+}
+
+CQChartsModelData *
+CQChartsModelTable::
+selectedModelData() const
+{
+  long ind = selectedModel();
+  if (ind < 0) return nullptr;
+
+  auto *modelData = charts_->getModelDataByInd(int(ind));
+
+  return modelData;
 }
 
 int

@@ -241,18 +241,18 @@ writeProperties(std::ostream &os, const QString &varName) const
 
   os << "\n";
 
-  for (const auto &nv : nameValues) {
-    if (nv.first == "id")
+  for (const auto & [name, value ] : nameValues) {
+    if (name == "id")
       continue;
 
     QString str;
 
-    if (! CQChartsVariant::toString(nv.second, str))
+    if (! CQChartsVariant::toString(value, str))
       str.clear();
 
     os << "set_charts_property -annotation $" << varName.toStdString();
 
-    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+    os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
 }
 
@@ -363,7 +363,7 @@ CQChartsAnnotation::
 emitDataChanged()
 {
   if (! isDisableSignals())
-    emit dataChanged();
+    Q_EMIT dataChanged();
 }
 
 //---
@@ -668,10 +668,7 @@ setProperties(const QString &properties)
 
   CQChartsNameValues nameValues(properties);
 
-  for (const auto &nv : nameValues.nameValues()) {
-    const auto &name  = nv.first;
-    const auto &value = nv.second;
-
+  for (const auto & [name, value] : nameValues.nameValues()) {
     if (! setProperty(name, value))
       rc = false;
   }
@@ -816,7 +813,7 @@ selectPress(const Point &, SelData &)
   if (isCheckable())
     setChecked(! isChecked());
 
-  emit pressed(id());
+  Q_EMIT pressed(id());
 
   return id().length();
 }
@@ -5167,15 +5164,15 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
   os << "\n";
 
-  for (const auto &nv : nameValues) {
+  for (const auto & [name, value] : nameValues) {
     QString str;
 
-    if (! CQChartsVariant::toString(nv.second, str))
+    if (! CQChartsVariant::toString(value, str))
       str.clear();
 
     os << "set_charts_property -annotation $" << varName.toStdString();
 
-    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+    os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
 }
 
@@ -6667,7 +6664,7 @@ CQChartsKeyAnnotation::
 selectPress(const Point &w, SelData &selData)
 {
   if (key_->selectPress(w, selData)) {
-    emit pressed(QString("%1:%2").arg(id()).arg(key_->id()));
+    Q_EMIT pressed(QString("%1:%2").arg(id()).arg(key_->id()));
     return true;
   }
 
@@ -6681,7 +6678,7 @@ selectPress(const Point &w, SelData &selData)
 
       if (handled) {
         selData.select = false;
-        emit pressed(QString("%1:%2:%3").arg(id()).arg(key_->id()).arg(item->id()));
+        Q_EMIT pressed(QString("%1:%2:%3").arg(id()).arg(key_->id()).arg(item->id()));
         return true;
       }
     }

@@ -408,7 +408,8 @@ paramApplySlot()
   auto nameValues = typeData.nameValues;
 
   for (const auto &paramEdit : paramEdits_) {
-    auto name = paramEdit.label->text();
+    //auto name = paramEdit.label->text();
+    auto name = paramEdit.label->property("paramName").toString();
 
     const auto *param = columnType->getParam(name);
 
@@ -448,10 +449,8 @@ paramApplySlot()
         assert(false);
     }
 
-    if (value != "")
+    if (value != "" || nameValues.hasNameValue(name))
       nameValues.setNameValue(name, value);
-    else
-      nameValues.removeName(name);
   }
 
   if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),
@@ -590,7 +589,9 @@ setColumnData(int icolumn)
       // update widget to parameter name and type
       auto &paramEdit = paramEdits_[size_t(paramInd)];
 
-      paramEdit.label->setText(param->name());
+    //paramEdit.label->setText(param->name());
+      paramEdit.label->setText(param->tip());
+      paramEdit.label->setProperty("paramName", param->name());
 
       QVariant var;
 
@@ -623,7 +624,7 @@ setColumnData(int icolumn)
 
       paramEdit.label->setObjectName(param->name() + "_label");
       paramEdit.edit ->setObjectName(param->name() + "_edit" );
-      paramEdit.edit ->setToolTip(param->tip());
+      paramEdit.edit ->setToolTip(QString("%1 (%2)").arg(param->tip()).arg(param->name()));
 
       //---
 

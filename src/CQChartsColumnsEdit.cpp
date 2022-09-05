@@ -116,7 +116,7 @@ updateColumns(const CQChartsColumns &columns, bool updateText)
   if (updateText)
     columnsToWidgets();
 
-  emit columnsChanged();
+  Q_EMIT columnsChanged();
 }
 
 void
@@ -167,7 +167,7 @@ menuEditChanged()
 
   columnsToWidgets();
 
-  emit columnsChanged();
+  Q_EMIT columnsChanged();
 }
 
 void
@@ -565,7 +565,7 @@ setColumns(const CQChartsColumns &columns)
 
   columnsToWidgets();
 
-  emit columnsChanged();
+  Q_EMIT columnsChanged();
 }
 
 void
@@ -677,7 +677,7 @@ widgetsToColumn()
   }
 
   if (columns_ != columns)
-    emit columnsChanged();
+    Q_EMIT columnsChanged();
 }
 
 void
@@ -688,7 +688,7 @@ addSlot()
 
   columnsToWidgets();
 
-  emit columnsChanged();
+  Q_EMIT columnsChanged();
 }
 
 void
@@ -699,7 +699,7 @@ removeSlot()
 
   columnsToWidgets();
 
-  emit columnsChanged();
+  Q_EMIT columnsChanged();
 }
 
 void

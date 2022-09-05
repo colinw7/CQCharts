@@ -82,7 +82,7 @@ setRegion(const CQChartsGeom::BBox &bbox)
   else if (view_)
     setRect(CQChartsRect::view(bbox));
 
-  emit regionChanged();
+  Q_EMIT regionChanged();
 }
 
 void
@@ -99,7 +99,7 @@ editChanged()
 
   rect_ = rect;
 
-  emit rectChanged();
+  Q_EMIT rectChanged();
 }
 
 void
@@ -116,7 +116,7 @@ unitsChanged()
 
   rect_ = rect;
 
-  emit rectChanged();
+  Q_EMIT rectChanged();
 }
 
 void

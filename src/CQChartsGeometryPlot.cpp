@@ -208,7 +208,7 @@ CQChartsGeometryPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -217,7 +217,7 @@ CQChartsGeometryPlot::
 setGeometryColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(geometryColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -226,7 +226,7 @@ CQChartsGeometryPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -235,7 +235,7 @@ CQChartsGeometryPlot::
 setStyleColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(styleColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

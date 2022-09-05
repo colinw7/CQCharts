@@ -159,7 +159,7 @@ CQChartsCorrelationPlot::
 setDiagonalType(const DiagonalType &t)
 {
   CQChartsUtil::testAndSet(diagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -168,7 +168,7 @@ CQChartsCorrelationPlot::
 setLowerDiagonalType(const OffDiagonalType &t)
 {
   CQChartsUtil::testAndSet(lowerDiagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -177,7 +177,7 @@ CQChartsCorrelationPlot::
 setUpperDiagonalType(const OffDiagonalType &t)
 {
   CQChartsUtil::testAndSet(upperDiagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 

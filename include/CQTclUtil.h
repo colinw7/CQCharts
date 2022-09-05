@@ -15,8 +15,6 @@ namespace CQTclUtil {
 
 using Vars = std::vector<QVariant>;
 
-//---
-
 inline int eval(Tcl_Interp *interp, const QString &str) {
   return Tcl_EvalEx(interp, str.toLatin1().constData(), -1, 0);
 }
@@ -43,20 +41,20 @@ inline bool splitList(const QString &str, QStringList &strs) {
 }
 
 inline QString mergeList(const QStringList &strs) {
-  int argc = strs.size();
+  auto argc = size_t(strs.size());
 
   std::vector<char *> argv;
 
   argv.resize(argc);
 
-  for (int i = 0; i < argc; ++i)
-    argv[i] = strdup(strs[i].toLatin1().constData());
+  for (size_t i = 0; i < argc; ++i)
+    argv[i] = strdup(strs[int(i)].toLatin1().constData());
 
-  char *res = Tcl_Merge(argc, &argv[0]);
+  char *res = Tcl_Merge(int(argc), &argv[0]);
 
   QString str(res);
 
-  for (int i = 0; i < argc; ++i)
+  for (size_t i = 0; i < argc; ++i)
     free(argv[i]);
 
   Tcl_Free(res);
@@ -84,15 +82,19 @@ inline bool stringToModelIndex(const QString &str, int &row, int &col) {
 //---
 
 inline bool isSupportedVariant(const QVariant &var) {
-  if (var.type() == QVariant::Double || var.type() == QVariant::Int ||
-      var.type() == QVariant::Bool || var.type() == QVariant::String ||
-      var.type() == QVariant::PointF || var.type() == QVariant::RectF ||
-      var.type() == QVariant::PolygonF || var.type() == QVariant::ModelIndex ||
+  if (var.type() == QVariant::String || var.type() == QVariant::Double ||
+      var.type() == QVariant::Int || var.type() == QVariant::LongLong ||
+      var.type() == QVariant::Bool ||
+      var.type() == QVariant::Point || var.type() == QVariant::PointF ||
+      var.type() == QVariant::Size || var.type() == QVariant::SizeF ||
+      var.type() == QVariant::Rect || var.type() == QVariant::RectF ||
+      var.type() == QVariant::PolygonF ||
+      var.type() == QVariant::ModelIndex ||
       var.type() == QVariant::StringList)
     return true;
 
   if (var.type() == QVariant::List) {
-    QVariantList vars = var.value<QVariantList>();
+    auto vars = var.value<QVariantList>();
 
     int nv = vars.length();
 
@@ -107,22 +109,31 @@ inline bool isSupportedVariant(const QVariant &var) {
 }
 
 inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
-  if      (var.type() == QVariant::Double) {
+  if      (var.type() == QVariant::String) {
+    auto str = var.toString();
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::Double) {
     return Tcl_NewDoubleObj(var.value<double>());
   }
   else if (var.type() == QVariant::Int) {
     return Tcl_NewIntObj(var.value<int>());
   }
+  else if (var.type() == QVariant::LongLong) {
+    return Tcl_NewIntObj(int(var.toLongLong()));
+  }
   else if (var.type() == QVariant::Bool) {
     return Tcl_NewBooleanObj(var.value<bool>());
   }
-  else if (var.type() == QVariant::String) {
-    QString str = var.toString();
+  else if (var.type() == QVariant::PointF ||
+           var.type() == QVariant::PointF) {
+    QPointF p;
 
-    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
-  }
-  else if (var.type() == QVariant::PointF) {
-    const QPointF &p = var.value<QPointF>();
+    if (var.type() == QVariant::Point)
+      p = QPointF(var.value<QPoint>());
+    else
+      p = var.value<QPointF>();
 
     auto *obj = Tcl_NewListObj(0, nullptr);
 
@@ -134,8 +145,14 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
 
     return obj;
   }
-  else if (var.type() == QVariant::RectF) {
-    const QRectF &r = var.value<QRectF>();
+  else if (var.type() == QVariant::Rect ||
+           var.type() == QVariant::RectF) {
+    QRectF r;
+
+    if (var.type() == QVariant::Rect)
+      r = QRectF(var.value<QRect>());
+    else
+      r = var.value<QRectF>();
 
     auto *obj = Tcl_NewListObj(0, nullptr);
 
@@ -152,12 +169,12 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     return obj;
   }
   else if (var.type() == QVariant::PolygonF) {
-    const QPolygonF &p = var.value<QPolygonF>();
+    const auto &p = var.value<QPolygonF>();
 
     auto *obj = Tcl_NewListObj(0, nullptr);
 
     for (int i = 0; i < p.length(); ++i) {
-      const QPointF &p1 = p[i];
+      const auto &p1 = p[i];
 
       auto *xObj = Tcl_NewDoubleObj(p1.x());
       auto *yObj = Tcl_NewDoubleObj(p1.y());
@@ -169,11 +186,12 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     return obj;
   }
   else if (var.type() == QVariant::ModelIndex) {
-    QModelIndex ind = var.value<QModelIndex>();
+    auto ind = var.value<QModelIndex>();
 
     int row = ind.row   ();
     int col = ind.column();
 
+    // TODO: parent
     auto *obj = Tcl_NewListObj(0, nullptr);
 
     auto *robj = Tcl_NewIntObj(row);
@@ -185,7 +203,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     return obj;
   }
   else if (var.type() == QVariant::StringList) {
-    QStringList strs = var.value<QStringList>();
+    auto strs = var.value<QStringList>();
 
     auto *obj = Tcl_NewListObj(0, nullptr);
 
@@ -200,7 +218,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     return obj;
   }
   else if (var.type() == QVariant::List) {
-    QVariantList vars = var.value<QVariantList>();
+    auto vars = var.value<QVariantList>();
 
     auto *obj = Tcl_NewListObj(0, nullptr);
 
@@ -293,7 +311,7 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
 
     char *str = Tcl_GetStringFromObj(obj1, &len);
 
-    std::string cstr(str, len);
+    std::string cstr(str, size_t(len));
 
     var = QVariant(QString(cstr.c_str()));
   }
@@ -309,7 +327,7 @@ inline QString variantListToString(const QVariantList &vars) {
   auto *obj = Tcl_NewListObj(0, nullptr);
 
   for (int i = 0; i < vars.length(); ++i) {
-    const QVariant &var = vars[i];
+    const auto &var = vars[i];
 
     auto *obj1 = variantToObj(nullptr, var);
 
@@ -431,7 +449,13 @@ inline double toReal(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Double)
     return var.value<double>();
 
-  QString str = var.toString();
+  if (var.type() == QVariant::Int)
+    return var.value<int>();
+
+  if (var.type() == QVariant::LongLong)
+    return double(var.value<qlonglong>());
+
+  auto str = var.toString();
 
   return str.toDouble(&ok);
 }
@@ -444,14 +468,17 @@ inline long toInt(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Int)
     return var.value<int>();
 
+  if (var.type() == QVariant::LongLong)
+    return var.value<qlonglong>();
+
   if (var.type() == QVariant::Double) {
     double r = var.value<double>();
 
 //  if (isInteger(r))
-    return int(r);
+    return long(r);
   }
 
-  QString str = var.toString();
+  auto str = var.toString();
 
   if (! ok)
     return 0;
@@ -473,6 +500,13 @@ class CQTcl : public QObject, public CTcl {
   using ObjCmdProc = Tcl_ObjCmdProc *;
   using ObjCmdData = ClientData;
   using Traces     = std::set<QString>;
+
+  struct EvalData {
+    bool     showError  { false };
+    bool     showResult { false };
+    QVariant res;
+    QString  errMsg;
+  };
 
  public:
   CQTcl() { }
@@ -518,38 +552,72 @@ class CQTcl : public QObject, public CTcl {
                            0, nullptr);
   }
 
+  //---
+
   bool evalExpr(const QString &expr, QVariant &res, bool showError=false) {
-    return eval("expr {" + expr + "}", res, showError);
+    EvalData evalData;
+
+    evalData.showError = showError;
+
+    auto rc = evalExpr(expr, evalData);
+
+    res = res;
+
+    return rc;
   }
 
   int evalExpr(const QString &expr, bool showError=false) {
-    return eval("expr {" + expr + "}", showError);
+    EvalData evalData;
+
+    evalData.showError = showError;
+
+    return evalExpr(expr, evalData);
   }
 
-  bool eval(const QString &cmd, QVariant &res, bool showError=false) {
-    int rc = eval(cmd, showError);
+  int evalExpr(const QString &expr, EvalData &evalData) {
+    return eval("expr {" + expr + "}", evalData);
+  }
 
-    if (rc != TCL_OK)
-      return false;
+  //---
+
+  bool eval(const QString &cmd, QVariant &res, bool showError=false) {
+    EvalData evalData;
+
+    evalData.showError = showError;
+
+    auto rc = eval(cmd, evalData);
 
     res = getResult();
 
-    return true;
+    return rc;
   }
 
   int eval(const QString &cmd, bool showError=false, bool showResult=false) {
+    EvalData evalData;
+
+    evalData.showError  = showError;
+    evalData.showResult = showResult;
+
+    auto rc = eval(cmd, evalData);
+
+    return rc;
+  }
+
+  int eval(const QString &cmd, EvalData &evalData) {
     int rc = CQTclUtil::eval(interp(), cmd);
 
     if (rc != TCL_OK) {
-      if (showError)
-        std::cerr << errorInfo(rc).toStdString() << std::endl;
+      evalData.errMsg = errorInfo(rc);
+
+      if (evalData.showError)
+        std::cerr << evalData.errMsg.toStdString() << std::endl;
     }
 
-    if (showResult) {
-      auto res = getResult();
+    if (evalData.showResult) {
+      evalData.res = getResult();
 
-      if (res.isValid()) {
-        auto resStr = resToString(res);
+      if (evalData.res.isValid()) {
+        auto resStr = resToString(evalData.res);
 
         if (resStr.length())
           std::cout << resStr.toStdString() << "\n";
@@ -571,7 +639,7 @@ class CQTcl : public QObject, public CTcl {
       QStringList strs;
 
       for (int i = 0; i < vars.length(); ++i) {
-        QString str = resToString(vars[i]);
+        auto str = resToString(vars[i]);
 
         strs.push_back(str);
       }
@@ -589,10 +657,10 @@ class CQTcl : public QObject, public CTcl {
       strs = res.value<QStringList>();
     }
     else if (res.type() == QVariant::List) {
-      QList<QVariant> vars = res.toList();
+      auto vars = res.toList();
 
       for (int i = 0; i < vars.length(); ++i) {
-        QString str = resToString(vars[i]);
+        auto str = resToString(vars[i]);
 
         strs.push_back(str);
       }

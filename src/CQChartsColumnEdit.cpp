@@ -111,7 +111,7 @@ updateColumn(const Column &column, bool updateText)
   if (updateText)
     columnToWidgets();
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }
 
 void
@@ -171,7 +171,7 @@ menuEditChanged()
 {
   columnToWidgets();
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }
 
 void
@@ -513,7 +513,7 @@ setColumn(const Column &column)
 
   updateState();
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }
 
 void
@@ -678,7 +678,7 @@ widgetsToColumn()
 
   updateState();
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }
 
 void
@@ -750,7 +750,7 @@ widgetsToColumnSlot()
 
   connectSlots(true);
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }
 
 void

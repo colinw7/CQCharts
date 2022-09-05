@@ -216,7 +216,7 @@ widgetsToData()
   data_.insidePlot = insideEdit_->isChecked();
   data_.textData   = textEdit_->data();
 
-  emit titleChanged();
+  Q_EMIT titleChanged();
 }
 
 void

@@ -52,5 +52,5 @@ rowChanged(int row)
 
   name_ = item->text();
 
-  emit nameChanged(name_);
+  Q_EMIT nameChanged(name_);
 }

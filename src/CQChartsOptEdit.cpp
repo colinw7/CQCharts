@@ -52,7 +52,7 @@ editChanged()
   else
     resetValue();
 
-  emit valueChanged();
+  Q_EMIT valueChanged();
 }
 
 void

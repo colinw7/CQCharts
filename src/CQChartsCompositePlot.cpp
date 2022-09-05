@@ -1579,8 +1579,8 @@ setCurrentPlot(CQChartsPlot *currentPlot)
 
     updateRange();
 
-    emit currentPlotChanged(currentPlot_);
-    emit currentPlotIdChanged(currentPlot_ ? currentPlot_->id() : "");
+    Q_EMIT currentPlotChanged(currentPlot_);
+    Q_EMIT currentPlotIdChanged(currentPlot_ ? currentPlot_->id() : "");
   }
 }
 

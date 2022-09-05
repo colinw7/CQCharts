@@ -65,7 +65,7 @@ comboChanged()
 
   connectSlots(true);
 
-  emit enumChanged();
+  Q_EMIT enumChanged();
 }
 
 //------

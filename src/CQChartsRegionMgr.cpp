@@ -140,7 +140,7 @@ rectRegionSetSlot(const CQChartsGeom::BBox &bbox)
 {
   setRect(bbox);
 
-  emit rectRegionSet(bbox);
+  Q_EMIT rectRegionSet(bbox);
 }
 
 void
@@ -149,12 +149,12 @@ pointRegionSetSlot(const CQChartsGeom::Point &p)
 {
   setPoint(p);
 
-  emit pointRegionSet(p);
+  Q_EMIT pointRegionSet(p);
 }
 
 void
 CQChartsRegionButton::
 hideEvent(QHideEvent *)
 {
-   emit hidden();
+   Q_EMIT hidden();
 }

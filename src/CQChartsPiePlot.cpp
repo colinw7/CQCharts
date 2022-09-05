@@ -193,7 +193,7 @@ CQChartsPiePlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
 }
 
 void
@@ -201,7 +201,7 @@ CQChartsPiePlot::
 setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
 }
 
 //---
@@ -211,7 +211,7 @@ CQChartsPiePlot::
 setRadiusColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(radiusColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
 }
 
 void
@@ -219,7 +219,7 @@ CQChartsPiePlot::
 setKeyLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
 }
 
 //---
@@ -273,7 +273,7 @@ CQChartsPiePlot::
 setDrawType(const DrawType &drawType)
 {
   CQChartsUtil::testAndSet(drawType_, drawType, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -345,7 +345,7 @@ CQChartsPiePlot::
 setDonut(bool b)
 {
   CQChartsUtil::testAndSet(donut_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 bool
@@ -368,7 +368,7 @@ CQChartsPiePlot::
 setSummary(bool b)
 {
   CQChartsUtil::testAndSet(summary_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -378,7 +378,7 @@ CQChartsPiePlot::
 setDumbbell(bool b)
 {
   CQChartsUtil::testAndSet(dumbbell_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 bool
@@ -396,7 +396,7 @@ CQChartsPiePlot::
 setDumbbellPie(bool b)
 {
   CQChartsUtil::testAndSet(dumbbellPie_, b, [&]() {
-   updateRangeAndObjs(); emit customDataChanged(); } );
+   updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -406,7 +406,7 @@ CQChartsPiePlot::
 setCount(bool b)
 {
   CQChartsUtil::testAndSet(count_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -416,7 +416,7 @@ CQChartsPiePlot::
 setDonutTitle(bool b)
 {
   CQChartsUtil::testAndSet(donutTitle_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -1010,8 +1010,10 @@ createObjs(PlotObjs &objs) const
 
       double dataTotal { 0.0 };
 
-      if (maxValue() > 0.0)
-        dataTotal = maxValue(); // assume max is sum e.g. values are percent
+      auto valueSum = calcValueSum();
+
+      if (valueSum > 0.0)
+        dataTotal = valueSum;
 
       for (const auto &obj : groupObj->objs()) {
         auto v = obj->value();
@@ -1044,8 +1046,10 @@ createObjs(PlotObjs &objs) const
 
       double dataTotal = groupObj->dataTotal();
 
-      if (maxValue() > 0.0)
-        dataTotal = maxValue(); // assume max is sum e.g. values are percent
+      auto valueSum = calcValueSum();
+
+      if (valueSum > 0.0)
+        dataTotal = valueSum;
 
       int    nsum = 0;
       double err  = 0.0;
@@ -1122,7 +1126,9 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get value label (used for unique values in group)
-  auto label = calcIndLabel(modelIndex(ind));
+  QString labelName;
+
+  auto label = calcIndLabel(modelIndex(ind), labelName);
 
   //---
 
@@ -1249,20 +1255,30 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
 QString
 CQChartsPiePlot::
-calcIndLabel(const QModelIndex &ind) const
+calcIndLabel(const QModelIndex &ind, QString &labelName) const
 {
+  QString label;
+
+  if (! labelColumn().isValid()) {
+    label     = QString::number(ind.row());
+    labelName = "Row";
+
+    return label;
+  }
+
   auto *th = const_cast<CQChartsPiePlot *>(this);
 
   // get value label (used for unique values in group)
   ModelIndex lind(th, ind.row(), labelColumn(), ind.parent());
 
   bool ok;
-
-  QString label;
+  labelName = modelHHeaderString(lind.column(), ok);
 
   if (numGroups() > 1) {
-    if (valueColumns().count() > 1 && ! isGroupHeaders())
-      label = modelHHeaderString(lind.column(), ok);
+    if (valueColumns().count() > 1 && ! isGroupHeaders()) {
+      labelName = "Name";
+      label     = labelName;
+    }
     else
       label = modelString(lind, ok);
   }
@@ -1270,8 +1286,10 @@ calcIndLabel(const QModelIndex &ind) const
     label = modelString(lind, ok);
   }
 
-  if (! label.length())
-    label = QString::number(ind.row());
+  if (! label.length()) {
+    label     = QString::number(ind.row());
+    labelName = "Row";
+  }
 
   return label;
 }
@@ -1386,7 +1404,9 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   //---
 
   // get value label (used for unique values in group)
-  auto label = calcIndLabel(modelIndex(ind));
+  QString labelName;
+
+  auto label = calcIndLabel(modelIndex(ind), labelName);
 
   //---
 
@@ -1582,8 +1602,10 @@ adjustObjAngles() const
 
       double dataTotal = groupObj->dataTotal();
 
-      if (maxValue() > 0.0)
-        dataTotal = maxValue();
+      auto valueSum = calcValueSum();
+
+      if (valueSum > 0.0)
+        dataTotal = valueSum;
 
       // count visible
       int numObjs = 0;
@@ -1823,6 +1845,7 @@ double
 CQChartsPiePlot::
 calcMinValue() const
 {
+  // TODO: use column details ?
   return values_.min();
 }
 
@@ -1830,7 +1853,24 @@ double
 CQChartsPiePlot::
 calcMaxValue() const
 {
+  // TODO: use column details ?
   return values_.max();
+}
+
+double
+CQChartsPiePlot::
+calcValueSum() const
+{
+  if (valueColumns().count() == 1) {
+    const auto *columnDetails = this->columnDetails(valueColumns().column());
+
+    bool ok;
+    double sum = CQChartsVariant::toReal(columnDetails->sumValue(), ok);
+    if (ok) return sum;
+  }
+
+  // assume max is sum e.g. values are percent
+  return maxValue();
 }
 
 //---
@@ -1982,15 +2022,15 @@ calcTipId() const
   //---
 
   // get tip values
-  QString groupName, label, valueStr;
+  QString groupName, labelName, label, valueStr;
 
-  calcTipData(groupName, label, valueStr);
+  calcTipData(groupName, labelName, label, valueStr);
 
   // add tip values
   if (groupName.length())
     addColumnRowValue(plot_->groupColumn(), groupName);
 
-  addColumnRowValue(plot_->labelColumn(), "Name" , label);
+  addColumnRowValue(plot_->labelColumn(), labelName, label);
 
   if (plot_->valueColumns().count() == 1)
     addColumnRowValue(plot_->valueColumns().column(), "Value", valueStr);
@@ -2016,7 +2056,7 @@ calcTipId() const
 
 void
 CQChartsPieObj::
-calcTipData(QString &groupName, QString &label, QString &valueStr) const
+calcTipData(QString &groupName, QString &labelName, QString &label, QString &valueStr) const
 {
   // get group name
   bool hasGroup = (plot_->numGroups() > 1 && groupObj());
@@ -2027,7 +2067,7 @@ calcTipData(QString &groupName, QString &label, QString &valueStr) const
   // get label
   auto ind = plot_->unnormalizeIndex(modelInd());
 
-  label = plot_->calcIndLabel(ind);
+  label = plot_->calcIndLabel(ind, labelName);
 
   // get value string
   valueStr = this->valueStr();
@@ -2800,9 +2840,9 @@ CQChartsPieObj::
 getDrawLabels(QStringList &labels) const
 {
   // get tip values
-  QString groupName, label, valueStr;
+  QString groupName, labelName, label, valueStr;
 
-  calcTipData(groupName, label, valueStr);
+  calcTipData(groupName, labelName, label, valueStr);
 
   if (label.trimmed().length())
     labels.push_back(label);
@@ -3323,8 +3363,10 @@ drawDumbbell(PaintDevice *device) const
   double vmin = plot_->calcMinValue();
   double vmax = plot_->calcMaxValue();
 
-  if (plot_->maxValue() > 0.0)
-    vmax = plot_->maxValue();
+  auto valueSum = plot_->calcValueSum();
+
+  if (valueSum > 0.0)
+    vmax = valueSum;
 
   plot_->setPainterFont(device, plot_->groupTextFont());
 

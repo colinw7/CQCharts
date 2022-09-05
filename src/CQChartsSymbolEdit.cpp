@@ -84,7 +84,7 @@ updateSymbol(const CQChartsSymbol &symbol, bool updateText)
   if (updateText)
     symbolToWidgets();
 
-  emit symbolChanged();
+  Q_EMIT symbolChanged();
 }
 
 void
@@ -135,7 +135,7 @@ menuEditChanged()
 {
   symbolToWidgets();
 
-  emit symbolChanged();
+  Q_EMIT symbolChanged();
 }
 
 void
@@ -479,7 +479,7 @@ setSymbol(const CQChartsSymbol &symbol)
 
   updateState();
 
-  emit symbolChanged();
+  Q_EMIT symbolChanged();
 }
 
 void
@@ -625,7 +625,7 @@ widgetsToSymbol()
 
   connectSlots(true);
 
-  emit symbolChanged();
+  Q_EMIT symbolChanged();
 }
 
 void

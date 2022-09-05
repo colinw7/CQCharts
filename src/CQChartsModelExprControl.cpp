@@ -256,8 +256,8 @@ setColumn(const CQChartsColumn &column)
   columnNumEdit_->setColumn(column_);
 
   if (modelData_) {
-    auto *absModel  = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
-    auto *exprModel = CQChartsModelUtil::getExprModel(absModel);
+  //auto *baseModel = CQChartsModelUtil::getBaseModel(modelData_->currentModel().data());
+    auto *exprModel = CQChartsModelUtil::getExprModel(modelData_->currentModel().data());
 
     QString header, expr;
     bool    columnSet = false;
@@ -331,6 +331,8 @@ applySlot()
     return;
   }
 
+  //---
+
   auto *charts = modelData_->charts();
 
   auto model = modelData_->currentModel();
@@ -364,8 +366,13 @@ applySlot()
 #endif
 
   // set current column (for change notify)
-  if (function == CQChartsExprModel::Function::ASSIGN)
+  if (function == CQChartsExprModel::Function::ASSIGN) {
+    disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
+
     modelData_->setCurrentColumn(column_.column());
+
+    connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
+  }
 
   //---
 
@@ -375,11 +382,15 @@ applySlot()
   expr_ = exprEdit_->expr();
 
   if (expr_.length()) {
+    disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
+
     // process expression and return new column
     icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column_, expr_);
 
     if (function == CQChartsExprModel::Function::ADD && icolumn1 >= 0)
       modelData_->setCurrentColumn(icolumn1);
+
+    connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(modelColumnSlot(int)));
   }
 
   //---

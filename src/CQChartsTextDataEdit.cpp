@@ -77,7 +77,7 @@ updateTextData(const CQChartsTextData &textData, bool updateText)
   if (updateText)
     textDataToWidgets();
 
-  emit textDataChanged();
+  Q_EMIT textDataChanged();
 }
 
 void
@@ -116,7 +116,7 @@ menuEditChanged()
 {
   textDataToWidgets();
 
-  emit textDataChanged();
+  Q_EMIT textDataChanged();
 }
 
 void
@@ -494,7 +494,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit textDataChanged();
+  Q_EMIT textDataChanged();
 }
 
 //------

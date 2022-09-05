@@ -155,14 +155,14 @@ setColumnStack(bool b)
     keyCheck_->setEnabled(b);
   }
 
-  emit groupChanged();
+  Q_EMIT groupChanged();
 }
 
 void
 CQChartsColumnControlGroup::
 keyCheckSlot()
 {
-  emit showKey(isKeyVisible());
+  Q_EMIT showKey(isKeyVisible());
 }
 
 bool

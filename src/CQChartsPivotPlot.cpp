@@ -148,7 +148,7 @@ CQChartsPivotPlot::
 setXColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(xColumns_, c, [&]() {
-    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+    updatePivot(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -157,7 +157,7 @@ CQChartsPivotPlot::
 setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() {
-    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+    updatePivot(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -166,7 +166,7 @@ CQChartsPivotPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    updatePivot(); updateRangeAndObjs(); emit customDataChanged();
+    updatePivot(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

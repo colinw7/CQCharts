@@ -39,7 +39,7 @@ editChanged()
   if (alpha.isValid()) {
     alpha_ = alpha;
 
-    emit alphaChanged();
+    Q_EMIT alphaChanged();
   }
 }
 

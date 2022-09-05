@@ -52,7 +52,7 @@ editChanged()
   if (margin.isValid()) {
     margin_ = margin;
 
-    emit marginChanged();
+    Q_EMIT marginChanged();
   }
 }
 

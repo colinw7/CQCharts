@@ -166,6 +166,8 @@ class CQChartsModelColumnDetails {
   QVariant sumValue   (bool useNaN=true) const;
   QVariant stdDevValue(bool useNaN=true) const;
 
+  QVariant badValue() const;
+
   QVariant dataName(const QVariant &v) const;
 
   int numRows() const;
@@ -226,20 +228,27 @@ class CQChartsModelColumnDetails {
 
   //---
 
+  // cached column type data
+
+  // get cahced "preferred_width" column type value
   int preferredWidth() const { return preferredWidth_; }
-  void setPreferredWidth(int w) { preferredWidth_ = w; }
+  //void setPreferredWidth(int w) { preferredWidth_ = w; }
 
+  // get cached "null_value" column type value
   const QString &nullValue() const { return nullValue_; }
-  void setNullValue(const QString &v) { nullValue_ = v; }
+  //void setNullValue(const QString &v) { nullValue_ = v; }
 
+  // get cached "draw_color" column type value
   const Color &tableDrawColor() const { return tableDrawColor_; }
-  void setTableDrawColor(const Color &c) { tableDrawColor_ = c; }
+  //void setTableDrawColor(const Color &c) { tableDrawColor_ = c; }
 
+  // get cached "draw_type" column type value
   const TableDrawType &tableDrawType() const { return tableDrawType_; }
-  void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
+  //void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
 
+  // get cached "draw_stops" column type value
   const ColorStops &tableDrawStops() const { return tableDrawStops_; }
-  void setTableDrawType(const ColorStops &s) { tableDrawStops_ = s; }
+  //void setTableDrawType(const ColorStops &s) { tableDrawStops_ = s; }
 
 //const NameValues &namedValues() const { return namedValues_; }
 //void setNamedValues(const NameValues &s) { namedValues_ = s; }
@@ -263,6 +272,9 @@ class CQChartsModelColumnDetails {
   void initBucketer() const;
 
   const CQChartsColumnType *columnType() const;
+
+  template<typename T>
+  const T *columnTypeT() const { return dynamic_cast<const T *>(columnType()); }
 
   //---
 
@@ -317,6 +329,8 @@ class CQChartsModelColumnDetails {
   bool        initialized_ { false };   //!< is data set
   QVariant    minValue_;                //!< min value (as variant)
   QVariant    maxValue_;                //!< max value (as variant)
+  QVariant    sumValue_;                //!< value sum (as variant)
+  QVariant    badValue_;                //!< bad value (as variant)
   int         numRows_     { 0 };       //!< number of rows
   bool        monotonic_   { true };    //!< values are monotonic
   bool        increasing_  { true };    //!< values are increasing

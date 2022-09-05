@@ -844,7 +844,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   modelInd_ = modelData->ind();
   modelId_  = modelData->id();
 
-  emit modelLoaded(modelInd_);
+  Q_EMIT modelLoaded(modelInd_);
 
   return true;
 }

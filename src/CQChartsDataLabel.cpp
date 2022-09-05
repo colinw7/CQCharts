@@ -624,7 +624,7 @@ CQChartsDataLabel::
 textBoxObjInvalidate()
 {
   if (isSendSignal())
-    emit dataChanged();
+    Q_EMIT dataChanged();
   else
     CQChartsTextBoxObj::textBoxObjInvalidate();
 }

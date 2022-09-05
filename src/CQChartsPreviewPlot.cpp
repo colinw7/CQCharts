@@ -102,7 +102,7 @@ void
 CQChartsPreviewPlot::
 enabledSlot()
 {
-  emit enableStateChanged();
+  Q_EMIT enableStateChanged();
 }
 
 void

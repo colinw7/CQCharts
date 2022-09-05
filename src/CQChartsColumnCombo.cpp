@@ -198,5 +198,5 @@ updateItems()
 
   //---
 
-  emit columnChanged();
+  Q_EMIT columnChanged();
 }

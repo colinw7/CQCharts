@@ -70,7 +70,7 @@ comboChanged()
 
   connectSlots(true);
 
-  emit fillUnderSideChanged();
+  Q_EMIT fillUnderSideChanged();
 }
 
 //------
@@ -227,7 +227,7 @@ updateFillUnderPos(const CQChartsFillUnderPos &fillUnderPos, bool updateText)
   if (updateText)
     fillUnderPosToWidgets();
 
-  emit fillUnderPosChanged();
+  Q_EMIT fillUnderPosChanged();
 }
 
 void
@@ -266,7 +266,7 @@ menuEditChanged()
 {
   fillUnderPosToWidgets();
 
-  emit fillUnderPosChanged();
+  Q_EMIT fillUnderPosChanged();
 }
 
 void
@@ -488,7 +488,7 @@ setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos)
 
   fillUnderPosToWidgets();
 
-  emit fillUnderPosChanged();
+  Q_EMIT fillUnderPosChanged();
 }
 
 void
@@ -569,7 +569,7 @@ widgetsToFillUnderPos()
 
   //---
 
-  emit fillUnderPosChanged();
+  Q_EMIT fillUnderPosChanged();
 }
 
 void

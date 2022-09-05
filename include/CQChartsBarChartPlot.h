@@ -183,8 +183,8 @@ class CQChartsBarChartValueSet {
     posSum = 0.0;
     negSum = 0.0;
 
-    if (maxValue_.isSet()) {
-      posSum = maxValue_.real();
+    if (sumValue_.isSet()) {
+      posSum = sumValue_.real();
       return true;
     }
 
@@ -250,13 +250,17 @@ class CQChartsBarChartValueSet {
   const OptReal &maxValue() const { return maxValue_; }
   void setMaxValue(const OptReal &r) { maxValue_ = r; }
 
+  const OptReal &sumValue() const { return sumValue_; }
+  void setSumValue(const OptReal &r) { sumValue_ = r; }
+
  private:
   QString name_;            //!< group name
   int     ind_      { 0 };  //!< index
   int     groupInd_ { -1 }; //!< group ind
   Values  values_;          //!< value bars
-  OptReal minValue_;
-  OptReal maxValue_;
+  OptReal minValue_;        //!< custom min value
+  OptReal maxValue_;        //!< custom max value
+  OptReal sumValue_;        //!< custom value sum
 };
 
 //------
@@ -646,6 +650,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   struct RangeData {
     OptReal minValue;
     OptReal maxValue;
+    OptReal sumValue;
     Range   dataRange;
   };
 

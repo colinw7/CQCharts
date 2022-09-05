@@ -34,7 +34,7 @@ setId(const QString &s)
 
   dataInvalidate();
 
-  emit idChanged();
+  Q_EMIT idChanged();
 }
 
 const QString &

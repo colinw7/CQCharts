@@ -283,7 +283,7 @@ setNumericOnly(bool b)
 
     updateNumericOnly();
 
-    emit numericOnlyChanged();
+    Q_EMIT numericOnlyChanged();
 
     connectSlots(true);
   }

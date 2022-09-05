@@ -127,9 +127,9 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
  * \brief Spring Graph Customization
  * \ingroup Charts
  */
-class CQChartsSpringyGraph : public Springy::Graph {
+class CQChartsForceDirectedGraph : public Springy::Graph {
  public:
-  explicit CQChartsSpringyGraph() :
+  explicit CQChartsForceDirectedGraph() :
    Springy::Graph() {
   }
 
@@ -151,7 +151,7 @@ class CQChartsForceDirected : public CForceDirected {
   }
 
   Springy::GraphP makeGraph() const override {
-    return Springy::GraphP(new CQChartsSpringyGraph);
+    return Springy::GraphP(new CQChartsForceDirectedGraph);
   }
 };
 

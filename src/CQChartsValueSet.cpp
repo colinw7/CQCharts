@@ -979,11 +979,11 @@ calc()
 
 bool
 CQChartsIValues::
-isOutlier(int v) const
+isOutlier(long v) const
 {
   initCalc();
 
-  return statData_.isOutlier(v);
+  return statData_.isOutlier(static_cast<int>(v));
 }
 
 //------

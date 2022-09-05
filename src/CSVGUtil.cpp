@@ -967,13 +967,13 @@ arcToBeziers(double x1, double y1, double x2, double y2, double phi,
     double s = std::sin(a);
     double c = std::cos(a);
 
-    double x1 = p.x - center.x;
-    double y1 = p.y - center.y;
+    double xx1 = p.x - center.x;
+    double yy1 = p.y - center.y;
 
-    double x2 = x1*c - y1*s;
-    double y2 = x1*s + y1*c;
+    double xx2 = xx1*c - yy1*s;
+    double yy2 = xx1*s + yy1*c;
 
-    return CPoint2D(x2 + center.x, y2 + center.y);
+    return CPoint2D(xx2 + center.x, yy2 + center.y);
   };
 
   auto rotateBezier = [&](const C3Bezier2D &bezier, const CPoint2D &c, double a) {

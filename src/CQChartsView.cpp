@@ -581,7 +581,7 @@ setScrolled(bool b, bool update)
       updateScroll();
   }
 
-  emit scrollDataChanged();
+  Q_EMIT scrollDataChanged();
 }
 
 //---
@@ -1085,7 +1085,7 @@ setCurrentPlotInd(int ind)
 
   //---
 
-  emit currentPlotChanged();
+  Q_EMIT currentPlotChanged();
 }
 
 void
@@ -1202,7 +1202,7 @@ setMode(const Mode &mode)
 
     clearRulerSlot();
 
-    emit modeChanged();
+    Q_EMIT modeChanged();
   } );
 }
 
@@ -1224,7 +1224,7 @@ void
 CQChartsView::
 setSelectMode(const SelectMode &selectMode)
 {
-  CQChartsUtil::testAndSet(selectData_.mode, selectMode, [&]() { emit selectModeChanged(); } );
+  CQChartsUtil::testAndSet(selectData_.mode, selectMode, [&]() { Q_EMIT selectModeChanged(); } );
 }
 
 void
@@ -1294,7 +1294,7 @@ endSelection()
   --selectData_.selectDepth;
 
   if (selectData_.selectDepth == 0) {
-    emit selectionChanged();
+    Q_EMIT selectionChanged();
 
     updateSelText();
   }
@@ -1306,7 +1306,7 @@ void
 CQChartsView::
 setRegionMode(const RegionMode &regionMode)
 {
-  CQChartsUtil::testAndSet(regionData_.mode, regionMode, [&]() { emit regionModeChanged(); } );
+  CQChartsUtil::testAndSet(regionData_.mode, regionMode, [&]() { Q_EMIT regionModeChanged(); } );
 }
 
 //---
@@ -1748,7 +1748,7 @@ addAnnotationI(Annotation *annotation)
 
   //---
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 
   return annotation;
 }
@@ -1792,7 +1792,7 @@ raiseAnnotation(Annotation *annotation)
 
   doUpdate();
 
-  emit annotationsReordered();
+  Q_EMIT annotationsReordered();
 }
 
 void
@@ -1810,7 +1810,7 @@ lowerAnnotation(Annotation *annotation)
 
   doUpdate();
 
-  emit annotationsReordered();
+  Q_EMIT annotationsReordered();
 }
 
 int
@@ -1857,7 +1857,7 @@ removeAnnotation(Annotation *annotation)
 
   //---
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 void
@@ -1877,7 +1877,7 @@ removeAllAnnotations()
 
   //---
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 void
@@ -1886,7 +1886,7 @@ updateAnnotationSlot()
 {
   updateSlot();
 
-  emit annotationsChanged();
+  Q_EMIT annotationsChanged();
 }
 
 //---
@@ -1951,9 +1951,9 @@ addPlot(Plot *plot, const BBox &bbox)
 
   //---
 
-  emit plotAdded(plot);
-  emit plotAdded(plot->id());
-  emit plotsChanged();
+  Q_EMIT plotAdded(plot);
+  Q_EMIT plotAdded(plot->id());
+  Q_EMIT plotsChanged();
 }
 
 void
@@ -1971,7 +1971,7 @@ raisePlot(Plot *plot)
 
   doUpdate();
 
-  emit plotsReordered();
+  Q_EMIT plotsReordered();
 }
 
 void
@@ -1989,7 +1989,7 @@ lowerPlot(Plot *plot)
 
   doUpdate();
 
-  emit plotsReordered();
+  Q_EMIT plotsReordered();
 }
 
 int
@@ -2061,8 +2061,8 @@ removePlot(Plot *plot)
 
   //---
 
-  emit plotRemoved(id);
-  emit plotsChanged();
+  Q_EMIT plotRemoved(id);
+  Q_EMIT plotsChanged();
 }
 
 void
@@ -2087,8 +2087,8 @@ removeAllPlots()
 
   //---
 
-  emit allPlotsRemoved();
-  emit plotsChanged();
+  Q_EMIT allPlotsRemoved();
+  Q_EMIT plotsChanged();
 }
 
 //---
@@ -2100,7 +2100,7 @@ plotModelChanged()
   auto *plot = qobject_cast<Plot *>(sender());
 
   if (plot == currentPlot(/*remap*/false))
-    emit currentPlotChanged();
+    Q_EMIT currentPlotChanged();
 }
 
 void
@@ -2110,9 +2110,9 @@ plotConnectDataChangedSlot()
   auto *plot = qobject_cast<Plot *>(sender());
 
   if (plot)
-    emit plotConnectDataChanged(plot->id());
+    Q_EMIT plotConnectDataChanged(plot->id());
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 //---
@@ -2134,7 +2134,7 @@ resetGrouping()
 
   resetPlotGrouping();
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 void
@@ -2184,7 +2184,7 @@ resetConnections(const Plots &plots, bool notify)
     plot->resetConnectData(/*notify*/false);
 
   if (notify)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 #if 0
@@ -2241,7 +2241,7 @@ initOverlay(const Plots &plots, bool reset)
 
   initOverlayPlot(rootPlot);
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 void
@@ -2409,7 +2409,7 @@ initX1X2(const Plots &plots, bool overlay, bool reset)
 
   //---
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 void
@@ -2483,7 +2483,7 @@ initY1Y2(const Plots &plots, bool overlay, bool reset)
 
   //---
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 void
@@ -2524,7 +2524,7 @@ initTabbed(const Plots &plots, bool reset)
     plot->setCurrent(i == 0);
   }
 
-  emit connectDataChanged();
+  Q_EMIT connectDataChanged();
 }
 
 //------
@@ -2682,7 +2682,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
   }
 
   if (reset)
-    emit connectDataChanged();
+    Q_EMIT connectDataChanged();
 }
 
 //------
@@ -3085,7 +3085,7 @@ keyPressEvent(QKeyEvent *ke)
 
   //---
 
-  emit keyEventPress(ke->text());
+  Q_EMIT keyEventPress(ke->text());
 }
 
 //------
@@ -3722,8 +3722,8 @@ selectPointPress()
     bool handled = key()->selectPress(w, selData);
 
     if (handled) {
-      emit keyPressed  (key());
-      emit keyIdPressed(key()->id());
+      Q_EMIT keyPressed  (key());
+      Q_EMIT keyIdPressed(key()->id());
 
       return;
     }
@@ -3752,8 +3752,8 @@ selectPointPress()
 
     doUpdate();
 
-    emit annotationPressed  (selAnnotation);
-    emit annotationIdPressed(selAnnotation->id());
+    Q_EMIT annotationPressed  (selAnnotation);
+    Q_EMIT annotationIdPressed(selAnnotation->id());
 
     return;
   }
@@ -4011,16 +4011,16 @@ regionMouseRelease()
 
     BBox r(p.x - w/2.0, p.y - h/2.0, p.x + w/2.0, p.y + h/2.0);
 
-    emit regionPointRelease(p);
-    emit regionRectRelease (r);
+    Q_EMIT regionPointRelease(p);
+    Q_EMIT regionRectRelease (r);
   }
   else if (regionMode() == RegionMode::RECT) {
     endRegionBand();
 
     auto r = pixelToWindow(probeData_.regionBand.bbox());
 
-    emit regionPointRelease(r.getCenter());
-    emit regionRectRelease (r);
+    Q_EMIT regionPointRelease(r.getCenter());
+    Q_EMIT regionRectRelease (r);
   }
 }
 
@@ -4336,7 +4336,7 @@ void
 CQChartsView::
 showQuery(const QString &text)
 {
-  emit showQueryText(text);
+  Q_EMIT showQueryText(text);
 }
 
 //------
@@ -6911,7 +6911,7 @@ updateTheme()
 
   updateAll();
 
-  emit themePalettesChanged();
+  Q_EMIT themePalettesChanged();
 }
 
 bool
@@ -8070,21 +8070,21 @@ void
 CQChartsView::
 setStatusText(const QString &text)
 {
-  emit statusTextChanged(text);
+  Q_EMIT statusTextChanged(text);
 }
 
 void
 CQChartsView::
 setPosText(const QString &text)
 {
-  emit posTextChanged(text);
+  Q_EMIT posTextChanged(text);
 }
 
 void
 CQChartsView::
 setSelText(const QString &text)
 {
-  emit selTextChanged(text);
+  Q_EMIT selTextChanged(text);
 }
 
 //------
@@ -8127,7 +8127,7 @@ updateScroll()
 
   updatePlots();
 
-  emit scrollDataChanged();
+  Q_EMIT scrollDataChanged();
 }
 
 //------

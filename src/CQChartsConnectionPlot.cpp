@@ -262,7 +262,7 @@ CQChartsConnectionPlot::
 setNodeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nodeColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -271,7 +271,7 @@ CQChartsConnectionPlot::
 setConnectionsColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -280,7 +280,7 @@ CQChartsConnectionPlot::
 setLinkColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(linkColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -289,7 +289,7 @@ CQChartsConnectionPlot::
 setPathColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(pathColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -298,7 +298,7 @@ CQChartsConnectionPlot::
 setFromColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fromColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -307,7 +307,7 @@ CQChartsConnectionPlot::
 setToColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(toColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -316,7 +316,7 @@ CQChartsConnectionPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -325,7 +325,7 @@ CQChartsConnectionPlot::
 setDepthColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(depthColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -334,7 +334,7 @@ CQChartsConnectionPlot::
 setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -363,7 +363,7 @@ CQChartsConnectionPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

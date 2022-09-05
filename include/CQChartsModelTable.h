@@ -29,6 +29,7 @@ class CQChartsModelTableControl : public QFrame, public CQChartsWidgetIFace {
   void modelsSelectionChangeSlot();
 
   void loadModelSlot();
+  void saveModelSlot();
   void editModelSlot();
   void removeModelSlot();
   void createPlotModelSlot();
@@ -38,6 +39,7 @@ class CQChartsModelTableControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsView*       view_       { nullptr };
   CQChartsModelTable* modelTable_ { nullptr };
 
+  QPushButton *saveButton_   { nullptr };
   QPushButton *editButton_   { nullptr };
   QPushButton *removeButton_ { nullptr };
   QPushButton *plotButton_   { nullptr };
@@ -55,6 +57,7 @@ class CQChartsModelTable : public CQTableWidget, public CQChartsWidgetIFace {
 
   void setCharts(CQCharts *charts) override;
 
+  CQChartsModelData *selectedModelData() const;
   int selectedModel() const;
 
   QSize sizeHint() const override;

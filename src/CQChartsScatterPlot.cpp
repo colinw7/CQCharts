@@ -270,7 +270,7 @@ CQChartsScatterPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -278,7 +278,7 @@ CQChartsScatterPlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -288,7 +288,7 @@ CQChartsScatterPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -296,7 +296,7 @@ CQChartsScatterPlot::
 setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -374,7 +374,7 @@ CQChartsScatterPlot::
 setPlotType(PlotType type)
 {
   CQChartsUtil::testAndSet(plotType_, type, [&]() {
-    updateRangeAndObjs(); updateProperties(); emit customDataChanged();
+    updateRangeAndObjs(); updateProperties(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -831,13 +831,14 @@ calcRange() const
         double x   { 0.0  }, y   { 0.0  };
         bool   okx { true }, oky { true };
 
-        double defVal = plot_->getRowBadValue(data.row);
+        double xDefVal = plot_->getModelBadValue(xModelInd.column(), data.row);
+        double yDefVal = plot_->getModelBadValue(yModelInd.column(), data.row);
 
         //---
 
         if      (plot_->xColumnType() == ColumnType::REAL ||
                  plot_->xColumnType() == ColumnType::INTEGER) {
-          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
+          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
         }
         else if (plot_->xColumnType() == ColumnType::TIME) {
           x = plot_->modelReal(xModelInd, okx);
@@ -850,7 +851,7 @@ calcRange() const
 
         if      (plot_->yColumnType() == ColumnType::REAL ||
                  plot_->yColumnType() == ColumnType::INTEGER) {
-          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
+          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
         }
         else if (plot_->yColumnType() == ColumnType::TIME) {
           y = plot_->modelReal(yModelInd, oky);
@@ -2428,13 +2429,14 @@ addNameValues() const
       double x   { 0.0  }, y   { 0.0  };
       bool   okx { true }, oky { true };
 
-      double defVal = plot_->getRowBadValue(data.row);
+      double xDefVal = plot_->getModelBadValue(xModelInd.column(), data.row);
+      double yDefVal = plot_->getModelBadValue(yModelInd.column(), data.row);
 
       //---
 
       if      (plot_->xColumnType() == ColumnType::REAL ||
                plot_->xColumnType() == ColumnType::INTEGER) {
-        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), defVal);
+        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
       }
       else if (plot_->xColumnType() == ColumnType::TIME) {
         x = plot_->modelReal(xModelInd, okx);
@@ -2447,7 +2449,7 @@ addNameValues() const
 
       if      (plot_->yColumnType() == ColumnType::REAL ||
                plot_->yColumnType() == ColumnType::INTEGER) {
-        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), defVal);
+        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
       }
       else if (plot_->yColumnType() == ColumnType::TIME) {
         y = plot_->modelReal(yModelInd, oky);

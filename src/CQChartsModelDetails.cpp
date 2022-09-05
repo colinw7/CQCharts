@@ -131,7 +131,7 @@ reset()
 {
   resetValues();
 
-  emit detailsReset();
+  Q_EMIT detailsReset();
 }
 
 void
@@ -422,6 +422,8 @@ getNamedValue(const QString &name) const
     return this->meanValue();
   else if (name == "sum")
     return this->sumValue();
+  else if (name == "bad_value")
+    return this->badValue();
   else if (name == "stdev"   || name == "stddev" ||
            name == "std_dev" || name == "standard_deviation")
     return this->stdDevValue();
@@ -582,6 +584,18 @@ QVariant
 CQChartsModelColumnDetails::
 sumValue(bool useNaN) const
 {
+#if 1
+  initCache();
+
+  if (type() == CQBaseModelType::INTEGER ||
+      type() == CQBaseModelType::REAL ||
+      type() == CQBaseModelType::TIME) {
+    return sumValue_;
+  }
+  else {
+    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
+  }
+#else
   auto *valueSet = this->calcValueSet();
 
   if      (type() == CQBaseModelType::INTEGER) {
@@ -601,6 +615,16 @@ sumValue(bool useNaN) const
   }
 
   return QVariant();
+#endif
+}
+
+QVariant
+CQChartsModelColumnDetails::
+badValue() const
+{
+  initCache();
+
+  return badValue_;
 }
 
 QVariant
@@ -919,29 +943,29 @@ uniqueId(const QVariant &var) const
   //--
 
   if      (type() == CQBaseModelType::INTEGER) {
-    long i = CQChartsVariant::toInt(var, ok);
+    auto i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet->ivals().id(static_cast<int>(i));
+      return valueSet->ivals().id(i);
   }
   else if (type() == CQBaseModelType::REAL) {
-    double r = CQChartsVariant::toReal(var, ok);
+    auto r = CQChartsVariant::toReal(var, ok);
 
     if (ok)
       return valueSet->rvals().id(r);
   }
   else if (type() == CQBaseModelType::STRING) {
-    return valueSet->svals().id(var.toString());
+    auto s = CQChartsVariant::toString(var, ok);
+
+    return valueSet->svals().id(s);
   }
   else if (type() == CQBaseModelType::TIME) {
-    double r = CQChartsVariant::toReal(var, ok);
+    auto r = CQChartsVariant::toReal(var, ok);
 
     if (ok)
       return valueSet->tvals().id(r);
   }
   else if (type() == CQBaseModelType::COLOR) {
-    bool ok;
-
     auto color = CQChartsVariant::toColor(var, ok);
 
     if (ok)
@@ -1179,7 +1203,7 @@ isOutlier(const QVariant &value) const
   if      (type() == CQBaseModelType::INTEGER) {
     long i = CQChartsVariant::toInt(value, ok);
 
-    return (ok && valueSet->ivals().isOutlier(static_cast<int>(i)));
+    return (ok && valueSet->ivals().isOutlier(i));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(value, ok);
@@ -1421,9 +1445,13 @@ calcCache()
       if (columnType) {
         min_ = columnType->minValue(details->nameValues()); // type custom min value
         max_ = columnType->maxValue(details->nameValues()); // type custom max value
+        sum_ = columnType->sumValue(details->nameValues()); // type custom value sum
+
+        badValue_ = columnType->badValue(details->nameValues()); // type custom bad value
 
         visitMin_ = ! min_.isValid();
         visitMax_ = ! max_.isValid();
+        visitSum_ = ! sum_.isValid();
       }
 
       monotonicSet_ = false;
@@ -1444,7 +1472,7 @@ calcCache()
       if      (details_->type() == CQBaseModelType::INTEGER) {
         long i = (ok ? CQChartsVariant::toInt(var, ok) : 0);
 
-        if (ok && ! details_->checkRow(static_cast<int>(i)))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromInt(i)))
           return State::SKIP;
 
         details_->addInt(i, ok);
@@ -1455,7 +1483,7 @@ calcCache()
       else if (details_->type() == CQBaseModelType::REAL) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
-        if (ok && ! details_->checkRow(r))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
           return State::SKIP;
 
         details_->addReal(r, ok);
@@ -1469,7 +1497,7 @@ calcCache()
         if (ok)
           ok = CQChartsVariant::toString(var, s);
 
-        if (ok && ! details_->checkRow(s))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromString(s)))
           return State::SKIP;
 
         details_->addString(s);
@@ -1479,7 +1507,7 @@ calcCache()
       else if (details_->type() == CQBaseModelType::TIME) {
         double t = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
-        if (ok && ! details_->checkRow(t))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromReal(t)))
           return State::SKIP;
 
         details_->addTime(t, ok);
@@ -1504,7 +1532,7 @@ calcCache()
       else if (details_->type() == CQBaseModelType::SYMBOL_SIZE) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
-        if (ok && ! details_->checkRow(r))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
           return State::SKIP;
 
         details_->addReal(r, ok);
@@ -1515,7 +1543,7 @@ calcCache()
       else if (details_->type() == CQBaseModelType::FONT_SIZE) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
-        if (ok && ! details_->checkRow(r))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
           return State::SKIP;
 
         details_->addReal(r, ok);
@@ -1529,7 +1557,7 @@ calcCache()
         if (ok)
           ok = CQChartsVariant::toString(var, s);
 
-        if (ok && ! details_->checkRow(s))
+        if (ok && ! details_->checkRow(CQChartsVariant::fromString(s)))
           return State::SKIP;
 
         details_->addString(s);
@@ -1561,6 +1589,17 @@ calcCache()
         imax = (! ok1 ? i : std::max(imax, i));
 
         max_ = CQChartsVariant::fromInt(imax);
+      }
+
+      // if no type defined sum, update value sum
+      if (visitSum_) {
+        bool ok1;
+
+        long isum = CQChartsVariant::toInt(sum_, ok1);
+
+        isum = (! ok1 ? i : isum + i);
+
+        sum_ = CQChartsVariant::fromInt(isum);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
@@ -1614,6 +1653,17 @@ calcCache()
         rmax = (! ok1 ? r : std::max(rmax, r));
 
         max_ = CQChartsVariant::fromReal(rmax);
+      }
+
+      // if no type defined sum, update value sum
+      if (visitSum_) {
+        bool ok1;
+
+        double rsum = CQChartsVariant::toReal(sum_, ok1);
+
+        rsum = (! ok1 ? r : rsum + r);
+
+        sum_ = CQChartsVariant::fromReal(rsum);
       }
 
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
@@ -1730,6 +1780,9 @@ calcCache()
 
     QVariant minValue() const { return min_; }
     QVariant maxValue() const { return max_; }
+    QVariant sumValue() const { return sum_; }
+
+    QVariant badValue() const { return badValue_; }
 
     bool isMonotonic () const { return monotonicSet_ && monotonic_; }
     bool isIncreasing() const { return increasing_; }
@@ -1739,8 +1792,11 @@ calcCache()
     CQCharts*                   charts_       { nullptr };
     QVariant                    min_;
     QVariant                    max_;
+    QVariant                    sum_;
+    QVariant                    badValue_;
     bool                        visitMin_     { true };
     bool                        visitMax_     { true };
+    bool                        visitSum_     { true };
     QVariant                    lastValue1_;
     QVariant                    lastValue2_;
     bool                        monotonicSet_ { false };
@@ -1763,6 +1819,8 @@ calcCache()
 
   minValue_   = detailVisitor.minValue();
   maxValue_   = detailVisitor.maxValue();
+  sumValue_   = detailVisitor.sumValue();
+  badValue_   = detailVisitor.badValue();
   numRows_    = detailVisitor.numRows();
   monotonic_  = detailVisitor.isMonotonic();
   increasing_ = detailVisitor.isIncreasing();

@@ -67,7 +67,7 @@ updateBoxData(const CQChartsBoxData &boxData, bool updateText)
   if (updateText)
     boxDataToWidgets();
 
-  emit boxDataChanged();
+  Q_EMIT boxDataChanged();
 }
 
 void
@@ -106,7 +106,7 @@ menuEditChanged()
 {
   boxDataToWidgets();
 
-  emit boxDataChanged();
+  Q_EMIT boxDataChanged();
 }
 
 void
@@ -369,7 +369,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit boxDataChanged();
+  Q_EMIT boxDataChanged();
 }
 
 //------

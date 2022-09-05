@@ -303,7 +303,7 @@ setCurrentColumn(int i)
 {
   currentColumn_ = i;
 
-  emit currentColumnChanged(i);
+  Q_EMIT currentColumnChanged(i);
 }
 
 void
@@ -316,6 +316,10 @@ connectModel(bool b)
   CQChartsWidgetUtil::connectDisconnect(b,
     model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
     this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
+    this, SLOT(modelHeaderDataChangedSlot(Qt::Orientation, int, int)));
+
   CQChartsWidgetUtil::connectDisconnect(b,
     model().data(), SIGNAL(layoutChanged()), this, SLOT(modelLayoutChangedSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
@@ -347,6 +351,13 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 
   resetDetails();
 
+  emitModelChanged();
+}
+
+void
+CQChartsModelData::
+modelHeaderDataChangedSlot(Qt::Orientation /*orient*/, int /*start*/, int /*end*/)
+{
   emitModelChanged();
 }
 
@@ -448,21 +459,21 @@ void
 CQChartsModelData::
 emitDeleted()
 {
-  emit deleted();
+  Q_EMIT deleted();
 }
 
 void
 CQChartsModelData::
 emitModelChanged()
 {
-  emit modelChanged();
+  Q_EMIT modelChanged();
 }
 
 void
 CQChartsModelData::
 emitDataChanged()
 {
-  emit dataChanged();
+  Q_EMIT dataChanged();
 }
 
 //---
@@ -525,7 +536,7 @@ selectionSlot()
   auto *sm = qobject_cast<QItemSelectionModel *>(sender());
   assert(sm);
 
-  emit selectionChanged(sm);
+  Q_EMIT selectionChanged(sm);
 }
 
 //---
@@ -716,7 +727,7 @@ foldModel(const FoldData &foldData)
 
     updatePropertyModel();
 
-    emit currentModelChanged();
+    Q_EMIT currentModelChanged();
   }
   else if (foldData.foldType == FoldData::FoldType::SEPARATOR) {
     CQChartsColumn column;
@@ -752,7 +763,7 @@ foldModel(const FoldData &foldData)
 
     updatePropertyModel();
 
-    emit currentModelChanged();
+    Q_EMIT currentModelChanged();
   }
 
   return true;
@@ -779,7 +790,7 @@ foldClear(bool notify)
 
     updatePropertyModel();
 
-    emit currentModelChanged();
+    Q_EMIT currentModelChanged();
   }
 }
 
@@ -826,7 +837,7 @@ setBucketEnabled(bool b)
     emitDataChanged();
 
     if (bucketModelData_.model)
-      emit currentModelChanged();
+      Q_EMIT currentModelChanged();
   }
 }
 
@@ -860,7 +871,7 @@ setHierSepEnabled(bool b)
     emitDataChanged();
 
     if (hierSepModelData_.model)
-      emit currentModelChanged();
+      Q_EMIT currentModelChanged();
   }
 }
 
@@ -894,7 +905,7 @@ setTransposeEnabled(bool b)
     emitDataChanged();
 
     if (transposeModelData_.model)
-      emit currentModelChanged();
+      Q_EMIT currentModelChanged();
   }
 }
 
@@ -928,7 +939,7 @@ setPivotEnabled(bool b)
     emitDataChanged();
 
     if (pivotModelData_.model)
-      emit currentModelChanged();
+      Q_EMIT currentModelChanged();
   }
 }
 
@@ -962,7 +973,7 @@ setSummaryEnabled(bool b)
     emitDataChanged();
 
     if (summaryModelData_.model)
-      emit currentModelChanged();
+      Q_EMIT currentModelChanged();
   }
 }
 
@@ -1620,47 +1631,76 @@ writeCSV(std::ostream &fs) const
 
     auto header = CQChartsModelUtil::columnToString(model, c, ok);
 
-    auto writeMetaColumnData = [&](const QString &name, const QString &value) {
-      fs << "#  column," << header.toStdString() << "," <<
-            name.toStdString() << "," << value.toStdString() << "\n";
+    QStringList writtenNames;
+
+    auto writeMetaColumnData = [&](const QString &name, const QString &value, bool write) {
+      writtenNames << name;
+
+      if (write)
+        fs << "#  column," << header.toStdString() << "," <<
+              name.toStdString() << "," << value.toStdString() << "\n";
     };
 
     auto writeMetaColumnNameValue = [&](const QString &name) {
       QString value;
 
-      if (! columnDetails->columnNameValue(name, value))
-        return;
+      bool write = columnDetails->columnNameValue(name, value);
 
-      writeMetaColumnData(name, value);
+      writeMetaColumnData(name, value, write);
     };
 
-    auto type     = columnDetails->type();
+    //---
+
     auto typeName = columnDetails->typeName();
 
-    writeMetaColumnData("type", typeName);
+    writeMetaColumnData("type", typeName, true);
+
+    //--
 
     const auto &nullValue = columnDetails->nullValue();
 
-    if (nullValue.length())
-      writeMetaColumnData("null_value", nullValue);
+    writeMetaColumnData("null_value", nullValue, nullValue.length());
 
-    writeMetaColumnData("key", "1");
+    //--
+
+    writeMetaColumnData("key", "1", columnDetails->isKey());
+
+    //--
+
+    writeMetaColumnNameValue("preferred_width");
+
+    writeMetaColumnNameValue("named_values");
+    writeMetaColumnNameValue("named_colors");
+    writeMetaColumnNameValue("named_images");
+
+    //--
 
     const auto &drawColor = columnDetails->tableDrawColor();
 
-    auto tableDrawType  = columnDetails->tableDrawType();
-    auto tableDrawStops = columnDetails->tableDrawStops();
+    writeMetaColumnData("draw_color", drawColor.toString(), drawColor.isValid());
 
-    if (drawColor.isValid())
-      writeMetaColumnData("draw_color", drawColor.toString());
+    //--
+
+    auto tableDrawType = columnDetails->tableDrawType();
+
+    QString drawTypeStr;
 
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP)
-      writeMetaColumnData("draw_type", "heatmap");
+      drawTypeStr = "heatmap";
     else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART)
-      writeMetaColumnData("draw_type", "barchart");
+      drawTypeStr = "barchart";
 
-    if (tableDrawStops.isValid())
-      writeMetaColumnData("draw_stops", tableDrawStops.toString());
+    writeMetaColumnData("draw_type", drawTypeStr, drawTypeStr.length());
+
+    //--
+
+    auto tableDrawStops = columnDetails->tableDrawStops();
+
+    writeMetaColumnData("draw_stops", tableDrawStops.toString(), tableDrawStops.isValid());
+
+    //--
+
+    auto type = columnDetails->type();
 
     if      (type == CQBaseModelType::REAL) {
       writeMetaColumnNameValue("format");
@@ -1669,6 +1709,8 @@ writeCSV(std::ostream &fs) const
       writeMetaColumnNameValue("format_scale");
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("sum");
+      writeMetaColumnNameValue("bad_value");
     }
     else if (type == CQBaseModelType::INTEGER) {
       writeMetaColumnNameValue("format");
@@ -1676,6 +1718,7 @@ writeCSV(std::ostream &fs) const
       writeMetaColumnNameValue("oformat");
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("sum");
     }
     else if (type == CQBaseModelType::TIME) {
       writeMetaColumnNameValue("format");
@@ -1683,7 +1726,8 @@ writeCSV(std::ostream &fs) const
       writeMetaColumnNameValue("oformat");
     }
     else if (type == CQBaseModelType::COLOR) {
-      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("palette");
+      writeMetaColumnNameValue("mapped");
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
     }
@@ -1705,6 +1749,13 @@ writeCSV(std::ostream &fs) const
       writeMetaColumnNameValue("max");
       writeMetaColumnNameValue("size_min");
       writeMetaColumnNameValue("size_max");
+    }
+
+    auto *columnType = columnDetails->columnType();
+
+    for (const auto &param : columnType->paramNames()) {
+      if (writtenNames.indexOf(param) < 0)
+        std::cerr << "Parameter '" << param.toStdString() << "' not written\n";
     }
   }
 
@@ -1754,8 +1805,7 @@ writeCSV(std::ostream &fs) const
           double r = CQChartsVariant::toReal(var, ok);
 
           if (ok) {
-            const auto *timeType =
-              dynamic_cast<const CQChartsColumnTimeType *>(columnDetails->columnType());
+            const auto *timeType = columnDetails->columnTypeT<CQChartsColumnTimeType>();
             assert(timeType);
 
             auto fmt = timeType->getIFormat(columnDetails->nameValues());
@@ -1890,7 +1940,7 @@ replaceNullValues(const CQChartsColumn &column, const QVariant &newValue)
 
 QAbstractItemModel *
 CQChartsModelData::
-copy(const CopyData &copyData)
+copy(CopyData &copyData)
 {
   auto *model = this->model().data();
   if (! model) return nullptr;
@@ -1918,8 +1968,6 @@ copy(const CopyData &copyData)
   int nr1 = 0;
 
   if (expr) {
-    bool showError = copyData.debug;
-
     // set column name variables
     for (int ic = 0; ic < nc; ++ic) {
       CQChartsColumn c(ic);
@@ -1956,9 +2004,19 @@ copy(const CopyData &copyData)
 
       QVariant value;
 
-      if (expr->evaluateExpression(copyData.filter, value, showError)) {
+      CQChartsExprTcl::ErrorData errorData;
+
+      errorData.showError = copyData.debug;
+
+      if (expr->evaluateExpression(copyData.filter, value, errorData)) {
         bool ok;
         visible = CQChartsVariant::toBool(value, ok);
+      }
+      else {
+        ++copyData.numErrors;
+
+        for (const auto &msg : errorData.messages)
+          copyData.rowErrors[r].push_back(msg);
       }
 
       rowVisible[r] = visible;

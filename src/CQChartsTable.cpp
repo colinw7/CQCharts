@@ -251,7 +251,7 @@ addReplaceFilter(const QString &filter, bool add)
     proxyModel->setFilterWildcard(filter1);
   }
 
-  emit filterChanged();
+  Q_EMIT filterChanged();
 }
 
 QString
@@ -443,7 +443,7 @@ void
 CQChartsTable::
 headerClickedSlot(int section)
 {
-  emit columnClicked(section);
+  Q_EMIT columnClicked(section);
 }
 
 void
@@ -462,7 +462,7 @@ selectionSlot()
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
 
-  emit selectionHasChanged();
+  Q_EMIT selectionHasChanged();
 }
 
 void

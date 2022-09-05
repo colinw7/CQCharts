@@ -711,10 +711,7 @@ initConnectionObjs(PlotObjs &objs) const
 
   //---
 
-  for (const auto &idConnections : idConnectionsData) {
-    int         id          = idConnections.first;
-    const auto &connections = idConnections.second;
-
+  for (const auto & [id, connections] : idConnectionsData) {
     auto &node = th->nodes_[id];
 
     for (const auto &connection : connections.connections) {

@@ -81,7 +81,7 @@ setRegion(const CQChartsGeom::Point &p)
 {
   setPosition(CQChartsPosition::plot(p));
 
-  emit regionChanged();
+  Q_EMIT regionChanged();
 }
 
 void
@@ -98,7 +98,7 @@ editChanged()
 
   position_ = position;
 
-  emit positionChanged();
+  Q_EMIT positionChanged();
 }
 
 void
@@ -115,7 +115,7 @@ unitsChanged()
 
   position_ = position;
 
-  emit positionChanged();
+  Q_EMIT positionChanged();
 }
 
 void

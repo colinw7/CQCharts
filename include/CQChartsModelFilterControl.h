@@ -29,6 +29,9 @@ class CQChartsModelFilterControl : public QFrame, public CQChartsWidgetIFace {
 
   void setFilterText(const QString &text);
 
+ Q_SIGNALS:
+  void filterApplied(const QString &modelId);
+
  private Q_SLOTS:
   void applySlot();
 

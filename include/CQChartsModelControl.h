@@ -41,7 +41,9 @@ class CQChartsModelControl : public QFrame, public CQChartsWidgetIFace {
 
  public Q_SLOTS:
   void updateCurrentModel();
+
   void filterTextSlot(const QString &);
+  void filterSlot(const QString &);
 
  private:
   CQChartsModelExprControl       *addExprFrame();

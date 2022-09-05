@@ -1186,7 +1186,7 @@ void
 CQChartsColorMapKey::
 invalidate()
 {
-  emit dataChanged();
+  Q_EMIT dataChanged();
 }
 
 QString
@@ -1247,7 +1247,7 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   for (size_t i = 0; i < ni; ++i) {
     if (oldItemVisible[i] != newItemVisible[i]) {
-      emit itemSelected(itemBoxes[i].color, newItemVisible[i]);
+      Q_EMIT itemSelected(itemBoxes[i].color, newItemVisible[i]);
       changed = true;
     }
   }
@@ -2241,7 +2241,7 @@ void
 CQChartsSymbolSizeMapKey::
 invalidate()
 {
-  emit dataChanged();
+  Q_EMIT dataChanged();
 }
 
 QString
@@ -2295,7 +2295,7 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   for (size_t i = 0; i < ni; ++i) {
     if (oldItemVisible[i] != newItemVisible[i]) {
-      emit itemSelected(itemBoxes[i].size, newItemVisible[i]);
+      Q_EMIT itemSelected(itemBoxes[i].size, newItemVisible[i]);
       changed = true;
     }
   }
@@ -2751,7 +2751,7 @@ void
 CQChartsSymbolTypeMapKey::
 invalidate()
 {
-  emit dataChanged();
+  Q_EMIT dataChanged();
 }
 
 QString
@@ -2812,7 +2812,7 @@ selectPressType(const Point &p, ClickMod clickMod, DrawType drawType)
 
   for (size_t i = 0; i < ni; ++i) {
     if (oldItemVisible[i] != newItemVisible[i]) {
-      emit itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
+      Q_EMIT itemSelected(itemBoxes[i].symbol, newItemVisible[i]);
       changed = true;
     }
   }

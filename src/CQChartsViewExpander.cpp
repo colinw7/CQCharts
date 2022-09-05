@@ -205,7 +205,7 @@ mousePressEvent(QMouseEvent *me)
       if (handleRect.contains(me->pos())) {
         setExpanded(! isExpanded());
 
-        //emit updateParentGeometry();
+        //Q_EMIT updateParentGeometry();
 
         return;
       }

@@ -120,7 +120,7 @@ QString formatVar(const QVariant &var, const QString &fmt) {
 
 QString formatReal(double r, const QString &fmt) {
 #ifdef ALLOW_NAN
-  if (COS::is_nan(real))
+  if (CMathUtil::isNaN(real))
     return "NaN";
 #endif
 

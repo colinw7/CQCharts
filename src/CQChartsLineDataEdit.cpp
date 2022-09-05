@@ -65,7 +65,7 @@ updateLineData(const CQChartsLineData &lineData, bool updateText)
   if (updateText)
     lineDataToWidgets();
 
-  emit lineDataChanged();
+  Q_EMIT lineDataChanged();
 }
 
 void
@@ -104,7 +104,7 @@ menuEditChanged()
 {
   lineDataToWidgets();
 
-  emit lineDataChanged();
+  Q_EMIT lineDataChanged();
 }
 
 void
@@ -344,7 +344,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit lineDataChanged();
+  Q_EMIT lineDataChanged();
 }
 
 //------

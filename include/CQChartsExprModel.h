@@ -321,6 +321,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  protected Q_SLOTS:
   void dataChangedSlot(const QModelIndex &from, const QModelIndex &to);
+  void headerDataChangedSlot(Qt::Orientation orient, int first, int last);
 
  protected:
   using ExtraColumns = std::vector<ExtraColumn *>;

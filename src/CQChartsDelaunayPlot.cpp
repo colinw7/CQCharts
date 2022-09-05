@@ -170,7 +170,7 @@ CQChartsDelaunayPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -179,7 +179,7 @@ CQChartsDelaunayPlot::
 setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -188,7 +188,7 @@ CQChartsDelaunayPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -197,7 +197,7 @@ CQChartsDelaunayPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -235,7 +235,7 @@ CQChartsDelaunayPlot::
 setDelaunay(bool b)
 {
   CQChartsUtil::testAndSet(delaunay_, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -244,7 +244,7 @@ CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
   CQChartsUtil::testAndSet(voronoi_, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -350,10 +350,11 @@ calcRange() const
       double x = plot_->modelNumericValue(xInd, ok1);
       double y = plot_->modelNumericValue(yInd, ok2);
 
-      double defVal = plot_->getRowBadValue(data.row);
+      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
+      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
 
-      if (! ok1) { addDataError(xInd, "Bad X Value"); x = defVal; }
-      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = defVal; }
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = xDefVal; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = yDefVal; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -457,10 +458,11 @@ createObjs(PlotObjs &objs) const
       double x = plot_->modelNumericValue(xInd, ok1);
       double y = plot_->modelNumericValue(yInd, ok2);
 
-      double defVal = plot_->getRowBadValue(data.row);
+      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
+      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
 
-      if (! ok1) { addDataError(xInd, "Bad X Value"); x = defVal; }
-      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = defVal; }
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = xDefVal; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = yDefVal; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;

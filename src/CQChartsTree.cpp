@@ -176,14 +176,14 @@ setFilter(const QString &filter)
 
   proxyModel->setFilterWildcard(filter1);
 
-  emit filterChanged();
+  Q_EMIT filterChanged();
 }
 
 void
 CQChartsTree::
 headerClickedSlot(int section)
 {
-  emit columnClicked(section);
+  Q_EMIT columnClicked(section);
 }
 
 void
@@ -202,7 +202,7 @@ selectionSlot()
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
 
-  emit selectionHasChanged();
+  Q_EMIT selectionHasChanged();
 }
 
 void

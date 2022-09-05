@@ -77,7 +77,7 @@ comboChanged()
 
   connectSlots(true);
 
-  emit symbolChanged();
+  Q_EMIT symbolChanged();
 }
 
 //------

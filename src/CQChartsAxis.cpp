@@ -215,7 +215,7 @@ void
 CQChartsAxis::
 emitSelectionChanged()
 {
-  emit selectionChanged();
+  Q_EMIT selectionChanged();
 }
 
 void
@@ -867,7 +867,7 @@ CQChartsAxis::
 setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p)
 {
   CQChartsUtil::testAndSet(tickLabelPlacement_, p, [&]() {
-    emit tickPlacementChanged();
+    Q_EMIT tickPlacementChanged();
 
     redraw();
   } );
@@ -882,7 +882,7 @@ setIncludeZero(bool b)
   CQChartsUtil::testAndSet(includeZero_, b, [&]() {
     updatePlotRange();
 
-    emit includeZeroChanged();
+    Q_EMIT includeZeroChanged();
   } );
 }
 
@@ -973,7 +973,7 @@ calc()
 //std::cerr << "calcStart    : " << calcStart()     << "\n";
 //std::cerr << "calcEnd      : " << calcEnd()       << "\n";
 
-  emit ticksChanged();
+  Q_EMIT ticksChanged();
 }
 
 double
@@ -1110,7 +1110,7 @@ redraw(bool wait)
     }
   }
 
-  emit appearanceChanged();
+  Q_EMIT appearanceChanged();
 }
 
 void

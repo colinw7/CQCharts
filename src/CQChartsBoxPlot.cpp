@@ -268,7 +268,7 @@ setValueColumns(const Columns &c)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -277,7 +277,7 @@ CQChartsBoxPlot::
 setSetColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(setColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -285,7 +285,7 @@ CQChartsBoxPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -295,7 +295,7 @@ CQChartsBoxPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -303,7 +303,7 @@ CQChartsBoxPlot::
 setMinColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(minColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -311,7 +311,7 @@ CQChartsBoxPlot::
 setLowerMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -319,7 +319,7 @@ CQChartsBoxPlot::
 setMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(medianColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -327,7 +327,7 @@ CQChartsBoxPlot::
 setUpperMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -335,7 +335,7 @@ CQChartsBoxPlot::
 setMaxColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(maxColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -343,7 +343,7 @@ CQChartsBoxPlot::
 setOutliersColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outliersColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -432,7 +432,7 @@ CQChartsBoxPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); emit customDataChanged();
+    resetSetHidden(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -597,7 +597,7 @@ setOrientation(const Qt::Orientation &orient)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -608,7 +608,7 @@ CQChartsBoxPlot::
 setNormalized(bool b)
 {
   CQChartsUtil::testAndSet(normalized_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -618,7 +618,7 @@ CQChartsBoxPlot::
 setNotched(bool b)
 {
   CQChartsUtil::testAndSet(notched_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -646,7 +646,7 @@ setPointsType(const PointsType &pointsType)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   }
 }
 
@@ -657,7 +657,7 @@ CQChartsBoxPlot::
 setViolin(bool b)
 {
   CQChartsUtil::testAndSet(violin_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -681,7 +681,7 @@ CQChartsBoxPlot::
 setErrorBar(bool b)
 {
   CQChartsUtil::testAndSet(errorBar_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -1240,7 +1240,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     }
   }
   else {
-    double defVal = getRowBadValue(vdata.row);
+    double defVal = getModelBadValue(Column(), vdata.row);
 
     data.x = defVal;
   }
@@ -2304,7 +2304,7 @@ setValueColumnVisible(int ic, bool visible)
 
   updateRangeAndObjs();
 
-  emit customDataChanged();
+  Q_EMIT customDataChanged();
 }
 
 //---

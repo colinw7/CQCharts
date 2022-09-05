@@ -78,7 +78,7 @@ editChanged()
 
   connectSlots(true);
 
-  emit imageChanged();
+  Q_EMIT imageChanged();
 }
 
 void
@@ -100,7 +100,7 @@ fileSlot()
 
   connectSlots(true);
 
-  emit imageChanged();
+  Q_EMIT imageChanged();
 }
 
 //------

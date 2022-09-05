@@ -140,7 +140,7 @@ CQChartsBubblePlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -149,7 +149,7 @@ CQChartsBubblePlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -618,185 +618,228 @@ loadModel() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // get name and associated model index for row
-      QString     name;
-      QModelIndex nameInd;
-
-      bool hasName = getName(data, name, nameInd);
-
-      //---
-
-      double size = 1.0;
-
-      if (! getSize(data, size))
+      if (! plot_->visitRow(data, groupInds_))
         return State::SKIP;
-
-      if (plot_->minSize().isSet()) {
-        if (size < plot_->minSize().real())
-          return State::SKIP;
-      }
-
-      //---
-
-      auto nameInd1 = plot_->normalizeIndex(nameInd);
-
-      auto *pnode = parentHier(data);
-
-      if (! hasName) {
-        auto hname = pnode->hierName();
-
-        auto names = hname.split("/", Qt::KeepEmptyParts);
-
-        if      (names.size() > 1)
-          name = names.back();
-        else if (plot_->valueColumn().isValid()) {
-          auto modelInd = ModelIndex(plot_, data.row, plot_->valueColumn(), data.parent);
-
-          bool ok;
-          name = plot_->modelString(modelInd, ok);
-        }
-      }
-
-      auto *node = plot_->addNode(pnode, name, size, nameInd1);
-
-      if (node) {
-        Color color;
-
-        if (plot_->colorColumnColor(data.row, data.parent, color))
-          node->setColor(color);
-      }
 
       return State::OK;
     }
 
     void termVisit() override {
-      for (const auto &pg : groupInds_) {
-        int         groupInd  = pg.first;
-        const auto &modelInds = pg.second;
-
-        auto size = modelInds.size();
-        if (! size) continue;
-
-        if (plot_->minSize().isSet()) {
-          if (double(size) < plot_->minSize().real())
-            continue;
-        }
-
-        VisitData data;
-
-        data.row    = modelInds[0].row();
-        data.parent = modelInds[0].parent();
-
-        QString     name;
-        QModelIndex nameInd;
-
-        (void) getName(data, name, nameInd);
-
-        auto nameInd1 = plot_->normalizeIndex(nameInd);
-
-        auto groupName = plot_->groupIndName(groupInd, /*hier*/false);
-
-        auto *pnode = parentHier(data);
-        auto *node  = plot_->addNode(pnode, groupName, double(size), nameInd1);
-
-        for (const auto &ind : modelInds) {
-          ModelIndex nameModelInd;
-
-          if (plot_->nameColumn().isValid())
-            nameModelInd = ModelIndex(plot_, ind.row(), plot_->nameColumn(), ind.parent());
-          else
-            nameModelInd = ModelIndex(plot_, ind.row(), plot_->idColumn(), ind.parent());
-
-          auto modelNameInd  = plot_->modelIndex(nameModelInd);
-          auto modelNameInd1 = plot_->normalizeIndex(modelNameInd);
-
-          node->addInd(modelNameInd1);
-        }
-      }
+      plot_->termVisit(groupInds_);
     }
 
    private:
-    HierNode *parentHier(const VisitData &data) const {
-      if (plot_->valueColumn().isGroup())
-        return plot_->currentRoot();
-
-      ModelIndex ind(plot_, data.row, plot_->valueColumn(), data.parent);
-
-      std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
-
-      auto *hierNode = plot_->currentRoot();
-
-      for (std::size_t i = 0; i < groupInds.size(); ++i) {
-        int groupInd = groupInds[i];
-
-        hierNode = plot_->groupHierNode(hierNode, groupInd);
-      }
-
-      return hierNode;
-    }
-
-    bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      if (! plot_->nameColumn().isValid() && ! plot_->idColumn().isValid())
-        return false;
-
-      ModelIndex nameModelInd;
-
-      if      (plot_->nameColumn().isValid())
-        nameModelInd = ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
-      else if (plot_->idColumn().isValid())
-        nameModelInd = ModelIndex(plot_, data.row, plot_->idColumn(), data.parent);
-
-      nameInd = plot_->modelIndex(nameModelInd);
-
-      bool ok;
-      name = plot_->modelString(nameModelInd, ok);
-
-      return ok;
-    }
-
-    bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
-      if (! plot_->valueColumn().isValid())
-        return true;
-
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
-
-      if (plot_->valueColumn().isGroup()) {
-        int groupInd = plot_->rowGroupInd(valueModelInd);
-
-        groupInds_[groupInd].push_back(std::move(valueModelInd));
-
-        return false;
-      }
-
-      bool ok = true;
-
-      if      (plot_->valueColumnType() == ColumnType::REAL ||
-               plot_->valueColumnType() == ColumnType::INTEGER)
-        size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::STRING)
-        size = 1.0; // TODO: error
-      else
-        ok = false;
-
-      if (ok && size <= 0.0)
-        ok = false;
-
-      return ok;
-    }
-
-   private:
-    using ModelInds = std::vector<ModelIndex>;
-    using GroupInds = std::map<int, ModelInds>;
-
-    const Plot*       plot_ { nullptr };
-    mutable GroupInds groupInds_;
+    const Plot*            plot_ { nullptr };
+    mutable GroupModelInds groupInds_;
   };
 
   RowVisitor visitor(this);
 
   visitModel(visitor);
+}
+
+bool
+CQChartsBubblePlot::
+visitRow(const ModelVisitor::VisitData &data, GroupModelInds &groupInds) const
+{
+  // get name and associated model index for row (name column or id column)
+  QString     name;
+  QModelIndex nameInd;
+
+  bool hasName = getVisitName(data, name, nameInd);
+
+  auto nameInd1 = this->normalizeIndex(nameInd);
+
+  //---
+
+  // get node size
+  double size = 1.0;
+
+  if (! getVisitSize(data, groupInds, size))
+    return false;
+
+  // apply min size filter (TODO: generic filter)
+  if (this->minSize().isSet()) {
+    if (size < this->minSize().real())
+      return false;
+  }
+
+  //---
+
+  // create child node with name, size and model index
+  auto *pnode = parentVisitHier(data);
+
+  if (! hasName) {
+    auto hname = pnode->hierName();
+
+    auto names = hname.split("/", Qt::KeepEmptyParts);
+
+    if      (names.size() > 1)
+      name = names.back();
+    else if (this->valueColumn().isValid()) {
+      auto modelInd = ModelIndex(this, data.row, this->valueColumn(), data.parent);
+
+      bool ok;
+      name = this->modelString(modelInd, ok);
+    }
+  }
+
+  auto *node = this->addNode(pnode, name, size, nameInd1);
+
+  //---
+
+  // set node color
+  if (node) {
+    Color color;
+
+    if (this->colorColumnColor(data.row, data.parent, color))
+      node->setColor(color);
+  }
+
+  return true;
+}
+
+void
+CQChartsBubblePlot::
+termVisit(GroupModelInds &groupInds) const
+{
+  // process bubble groups
+  for (const auto & [groupInd, modelInds] : groupInds) {
+    // get groups model inds count
+    auto size = modelInds.size();
+    if (! size) continue;
+
+    // apply min size filter (TODO: generic filter)
+    if (this->minSize().isSet()) {
+      if (double(size) < this->minSize().real())
+        continue;
+    }
+
+    //---
+
+    // use first index for node name index
+    ModelVisitor::VisitData data;
+
+    data.row    = modelInds[0].row();
+    data.parent = modelInds[0].parent();
+
+    QString     name;
+    QModelIndex nameInd;
+
+    (void) getVisitName(data, name, nameInd);
+
+    auto nameInd1 = this->normalizeIndex(nameInd);
+
+    //---
+
+    // grup group name
+    auto groupName = this->groupIndName(groupInd, /*hier*/false);
+
+    auto *pnode = parentVisitHier(data);
+    auto *node  = this->addNode(pnode, groupName, double(size), nameInd1);
+
+    Column nameColumn1;
+
+    if      (this->nameColumn().isValid())
+      nameColumn1 = this->nameColumn();
+    else if (this->idColumn().isValid())
+      nameColumn1 = this->idColumn();
+
+    for (const auto &ind : modelInds) {
+      ModelIndex nameModelInd;
+
+      if (nameColumn1.isValid())
+        nameModelInd = ModelIndex(this, ind.row(), nameColumn1, ind.parent());
+
+      auto modelNameInd  = this->modelIndex(nameModelInd);
+      auto modelNameInd1 = this->normalizeIndex(modelNameInd);
+
+      node->addInd(modelNameInd1);
+    }
+  }
+}
+
+CQChartsBubbleHierNode *
+CQChartsBubblePlot::
+parentVisitHier(const ModelVisitor::VisitData &data) const
+{
+  if (this->valueColumn().isGroup())
+    return this->currentRoot();
+
+  ModelIndex ind(this, data.row, this->valueColumn(), data.parent);
+
+  std::vector<int> groupInds = this->rowHierGroupInds(ind);
+
+  auto *hierNode = this->currentRoot();
+
+  for (std::size_t i = 0; i < groupInds.size(); ++i) {
+    int groupInd = groupInds[i];
+
+    hierNode = this->groupHierNode(hierNode, groupInd);
+  }
+
+  return hierNode;
+}
+
+bool
+CQChartsBubblePlot::
+getVisitName(const ModelVisitor::VisitData &data, QString &name, QModelIndex &nameInd) const
+{
+  Column nameColumn1;
+
+  if      (this->nameColumn().isValid())
+    nameColumn1 = this->nameColumn();
+  else if (this->idColumn().isValid())
+    nameColumn1 = this->idColumn();
+  else
+    return false;
+
+  auto nameModelInd = ModelIndex(this, data.row, nameColumn1, data.parent);
+
+  nameInd = this->modelIndex(nameModelInd);
+
+  bool ok;
+  name = this->modelString(nameModelInd, ok);
+
+  return ok;
+}
+
+bool
+CQChartsBubblePlot::
+getVisitSize(const ModelVisitor::VisitData &data, GroupModelInds &groupInds, double &size) const
+{
+  // use default if no size
+  size = this->defaultSize();
+
+  if (! this->valueColumn().isValid())
+    return true;
+
+  //---
+
+  ModelIndex valueModelInd(this, data.row, this->valueColumn(), data.parent);
+
+  if (this->valueColumn().isGroup()) {
+    int groupInd = this->rowGroupInd(valueModelInd);
+
+    groupInds[groupInd].push_back(std::move(valueModelInd));
+
+    return false;
+  }
+
+  bool ok = true;
+
+  if      (this->valueColumnType() == ColumnType::REAL ||
+           this->valueColumnType() == ColumnType::INTEGER)
+    size = this->modelReal(valueModelInd, ok);
+  else if (this->valueColumnType() == ColumnType::STRING)
+    size = this->defaultSize(); // TODO: error
+  else
+    ok = false;
+
+  if (ok && size <= 0.0)
+    ok = false;
+
+  return ok;
 }
 
 CQChartsBubbleHierNode *

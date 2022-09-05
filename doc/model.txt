@@ -64,3 +64,15 @@ Indices
   Unnormalized are mapped to proxy model (sort/filter model)
 
   Selection Indices are normalized (for safer compare ?)
+
+#---
+
+Model Data
+  + base data is cell data
+  + custom cell data by role (rarely used ?)
+  + header data is data for whole column
+  + header data by role allows custom value for whole column (min, max, sum, format, ...)
+
+ToDo:
+  + Import/export with full role data save/load
+  + bad value per column

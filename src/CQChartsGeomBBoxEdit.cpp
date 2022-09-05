@@ -101,7 +101,7 @@ editingFinishedI()
   if (disableSignals_) return;
 
   if (widgetToBBox())
-    emit valueChanged();
+    Q_EMIT valueChanged();
 }
 
 void
@@ -124,8 +124,8 @@ setRegion(const CQChartsGeom::BBox &bbox)
 {
   setValue(bbox);
 
-  emit valueChanged();
-  emit regionChanged();
+  Q_EMIT valueChanged();
+  Q_EMIT regionChanged();
 }
 
 void

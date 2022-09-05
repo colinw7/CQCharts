@@ -171,7 +171,7 @@ CQChartsWheelPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -180,7 +180,7 @@ CQChartsWheelPlot::
 setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -189,7 +189,7 @@ CQChartsWheelPlot::
 setMinColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(minColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -198,7 +198,7 @@ CQChartsWheelPlot::
 setMaxColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(maxColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -207,7 +207,7 @@ CQChartsWheelPlot::
 setInnerBarColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(innerBarColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -216,7 +216,7 @@ CQChartsWheelPlot::
 setOuterBarColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outerBarColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -225,7 +225,7 @@ CQChartsWheelPlot::
 setOuterBubbleColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outerBubbleColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

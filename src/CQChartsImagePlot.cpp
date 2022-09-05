@@ -230,7 +230,7 @@ CQChartsImagePlot::
 setCellStyle(const CellStyle &cellStyle)
 {
   CQChartsUtil::testAndSet(cellStyle_, cellStyle, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 

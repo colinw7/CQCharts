@@ -205,7 +205,7 @@ setModel(const ModelP &model)
 
   updateRangeAndObjs();
 
-  emit modelChanged();
+  Q_EMIT modelChanged();
 }
 
 void
@@ -245,7 +245,7 @@ CQChartsTablePlot::
 setColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(columns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

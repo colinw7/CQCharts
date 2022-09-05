@@ -872,6 +872,18 @@ addParam(const QString &name, Type type, const QString &tip, const QVariant &def
   return param;
 }
 
+QStringList
+CQChartsColumnType::
+paramNames() const
+{
+  QStringList names;
+
+  for (const auto &param : params_)
+    names << param->name();
+
+  return names;
+}
+
 bool
 CQChartsColumnType::
 hasParam(const QString &name) const
@@ -1202,8 +1214,8 @@ CQChartsColumnRealType::
 CQChartsColumnRealType() :
  CQChartsColumnType(Type::REAL)
 {
-  addParam("format", Type::STRING, "Output Format", "")->
-    setDesc("Format string for output value display");
+  addParam("format", Type::STRING, "Input/Output Format", "")->
+    setDesc("Format string for input value conversion and output value display");
   addParam("iformat", Type::STRING, "Input Format", "")->
     setDesc("Format string for input value conversion");
   addParam("oformat", Type::STRING, "Output Format", "")->
@@ -1215,6 +1227,12 @@ CQChartsColumnRealType() :
     setDesc("Override min value for column");
   addParam("max", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Max), "Max Value", 1.0)->
     setDesc("Override max value for column");
+  addParam("sum", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Sum), "Value Sum", 1.0)->
+    setDesc("Override value sum for column");
+
+  addParam("bad_value", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::BadValue),
+           "Bad Value", CMathUtil::getNaN())->
+    setDesc("Override bad value for column");
 }
 
 QString
@@ -1318,6 +1336,30 @@ maxValue(const CQChartsNameValues &nameValues) const
   return CQChartsVariant::fromReal(r);
 }
 
+QVariant
+CQChartsColumnRealType::
+sumValue(const CQChartsNameValues &nameValues) const
+{
+  double r;
+
+  if (! rsum(nameValues, r))
+    return QVariant();
+
+  return CQChartsVariant::fromReal(r);
+}
+
+QVariant
+CQChartsColumnRealType::
+badValue(const CQChartsNameValues &nameValues) const
+{
+  double r;
+
+  if (CQChartsColumnUtil::nameValueReal(nameValues, "bad_value", r))
+    return CQChartsVariant::fromReal(r);
+
+  return QVariant();
+}
+
 bool
 CQChartsColumnRealType::
 rmin(const CQChartsNameValues &nameValues, double &r) const
@@ -1333,6 +1375,16 @@ CQChartsColumnRealType::
 rmax(const CQChartsNameValues &nameValues, double &r) const
 {
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", r))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsColumnRealType::
+rsum(const CQChartsNameValues &nameValues, double &r) const
+{
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "sum", r))
     return false;
 
   return true;
@@ -1374,8 +1426,8 @@ CQChartsColumnIntegerType::
 CQChartsColumnIntegerType() :
  CQChartsColumnType(Type::INTEGER)
 {
-  addParam("format", Type::INTEGER, "Output Format", "")->
-    setDesc("Format string for output value display");
+  addParam("format", Type::STRING, "Input/Output Format", "")->
+    setDesc("Format string for input value conversion and output value display");
   addParam("iformat", Type::STRING, "Input Format", "")->
     setDesc("Format string for input value conversion");
   addParam("oformat", Type::STRING, "Output Format", "")->
@@ -1385,6 +1437,8 @@ CQChartsColumnIntegerType() :
     setDesc("Override min value for column");
   addParam("max", Type::INTEGER, CQModelUtil::roleCast(CQBaseModelRole::Max), "Max Value", 100)->
     setDesc("Override max value for column");
+  addParam("sum", Type::INTEGER, CQModelUtil::roleCast(CQBaseModelRole::Sum), "Value Sum", 100)->
+    setDesc("Override value sum for column");
 }
 
 QString
@@ -1490,6 +1544,18 @@ maxValue(const CQChartsNameValues &nameValues) const
   return CQChartsVariant::fromInt(i);
 }
 
+QVariant
+CQChartsColumnIntegerType::
+sumValue(const CQChartsNameValues &nameValues) const
+{
+  long i;
+
+  if (! isum(nameValues, i))
+    return QVariant();
+
+  return CQChartsVariant::fromInt(i);
+}
+
 bool
 CQChartsColumnIntegerType::
 imin(const CQChartsNameValues &nameValues, long &i) const
@@ -1505,6 +1571,16 @@ CQChartsColumnIntegerType::
 imax(const CQChartsNameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", i))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsColumnIntegerType::
+isum(const CQChartsNameValues &nameValues, long &i) const
+{
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "sum", i))
     return false;
 
   return true;

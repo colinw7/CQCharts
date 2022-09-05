@@ -63,7 +63,7 @@ updateShapeData(const CQChartsShapeData &shapeData, bool updateText)
   if (updateText)
     shapeDataToWidgets();
 
-  emit shapeDataChanged();
+  Q_EMIT shapeDataChanged();
 }
 
 void
@@ -102,7 +102,7 @@ menuEditChanged()
 {
   shapeDataToWidgets();
 
-  emit shapeDataChanged();
+  Q_EMIT shapeDataChanged();
 }
 
 void
@@ -371,7 +371,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit shapeDataChanged();
+  Q_EMIT shapeDataChanged();
 }
 
 //------

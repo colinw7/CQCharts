@@ -249,7 +249,7 @@ CQChartsDendrogramPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    cacheData_.needsReload = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -258,7 +258,7 @@ CQChartsDendrogramPlot::
 setLinkColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(linkColumn_, c, [&]() {
-    cacheData_.needsReload = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -267,7 +267,7 @@ CQChartsDendrogramPlot::
 setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
-    cacheData_.needsReload = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -276,7 +276,7 @@ CQChartsDendrogramPlot::
 setColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
-    cacheData_.needsReload = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -285,7 +285,7 @@ CQChartsDendrogramPlot::
 setSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(sizeColumn_, c, [&]() {
-    cacheData_.needsReload = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -323,7 +323,7 @@ CQChartsDendrogramPlot::
 setFollowViewExpand(bool b)
 {
   CQChartsUtil::testAndSet(followViewExpand_, b, [&]() {
-    cacheData_.needsPlace = true; updateRangeAndObjs(); emit customDataChanged();
+    cacheData_.needsPlace = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 

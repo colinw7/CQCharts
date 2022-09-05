@@ -69,7 +69,7 @@ editChanged()
 
   length_ = length;
 
-  emit lengthChanged();
+  Q_EMIT lengthChanged();
 }
 
 void
@@ -87,7 +87,7 @@ unitsChanged()
 
   length_ = length;
 
-  emit lengthChanged();
+  Q_EMIT lengthChanged();
 }
 
 void

@@ -36,6 +36,8 @@ CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemMo
 
   connect(model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(dataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  connect(model, SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
+          this, SLOT(headerDataChangedSlot(Qt::Orientation, int, int)));
 }
 
 CQChartsExprModel::
@@ -371,7 +373,7 @@ assignColumn(const QString &header, int column, const QString &expr)
   auto index1 = index(0      , column, QModelIndex());
   auto index2 = index(nr_ - 1, column, QModelIndex());
 
-  emit dataChanged(index1, index2);
+  Q_EMIT dataChanged(index1, index2);
 
   return (numErrors == 0);
 }
@@ -426,7 +428,7 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   auto index1 = index(0      , column, QModelIndex());
   auto index2 = index(nr_ - 1, column, QModelIndex());
 
-  emit dataChanged(index1, index2);
+  Q_EMIT dataChanged(index1, index2);
 
   return true;
 }
@@ -1041,7 +1043,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
     extraColumn.variantMap[index.row()] = value;
 
-    emit dataChanged(index, index);
+    Q_EMIT dataChanged(index, index);
 
     return true;
   }
@@ -2419,5 +2421,12 @@ void
 CQChartsExprModel::
 dataChangedSlot(const QModelIndex &from, const QModelIndex &to)
 {
-  emit dataChanged(mapFromSource(from), mapFromSource(to));
+  Q_EMIT dataChanged(mapFromSource(from), mapFromSource(to));
+}
+
+void
+CQChartsExprModel::
+headerDataChangedSlot(Qt::Orientation orient, int first, int last)
+{
+  Q_EMIT headerDataChanged(orient, first, last);
 }

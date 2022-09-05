@@ -64,7 +64,7 @@ updateArrowData(const CQChartsArrowData &arrowData, bool updateText)
   if (updateText)
     arrowDataToWidgets();
 
-  emit arrowDataChanged();
+  Q_EMIT arrowDataChanged();
 }
 
 void
@@ -103,7 +103,7 @@ menuEditChanged()
 {
   arrowDataToWidgets();
 
-  emit arrowDataChanged();
+  Q_EMIT arrowDataChanged();
 }
 
 void
@@ -369,7 +369,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit arrowDataChanged();
+  Q_EMIT arrowDataChanged();
 }
 
 //------

@@ -306,7 +306,7 @@ CQChartsXYPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -314,7 +314,7 @@ CQChartsXYPlot::
 setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -322,7 +322,7 @@ CQChartsXYPlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -451,7 +451,7 @@ CQChartsXYPlot::
 setStacked(bool b)
 {
   CQChartsUtil::testAndSet(stacked_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -1401,7 +1401,7 @@ CQChartsXYPlot::
 setMovingAverage(bool b)
 {
   CQChartsUtil::testAndSet(movingAverageData_.displayed, b, [&]() {
-    drawObjs(); emit customDataChanged(); } );
+    drawObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -2522,8 +2522,6 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 {
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
-  double defVal = getRowBadValue(data.row);
-
   //---
 
   // get x value (must be valid)
@@ -2531,10 +2529,12 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 
   ModelIndex xModelInd(th, data.row, xColumn(), data.parent);
 
+  double xDefVal = getModelBadValue(xColumn(), data.row);
+
   ind = modelIndex(xModelInd);
 
   if (! calcMapXColumn()) {
-    bool ok = modelMappedReal(xModelInd, x, isLogX(), defVal);
+    bool ok = modelMappedReal(xModelInd, x, isLogX(), xDefVal);
 
     if (! ok) {
       th->addDataError(xModelInd, "Invalid X Value");
@@ -2569,11 +2569,13 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   for (int i = 0; i < nc; ++i) {
     auto yColumn = yColumns().getColumn(i);
 
+    double yDefVal = getModelBadValue(yColumn, data.row);
+
     ModelIndex yModelInd(th, data.row, yColumn, data.parent);
 
     double y1;
 
-    bool ok = modelMappedReal(yModelInd, y1, isLogY(), defVal);
+    bool ok = modelMappedReal(yModelInd, y1, isLogY(), yDefVal);
 
     if (! ok) {
       y1 = CMathUtil::getNaN();
@@ -3699,7 +3701,7 @@ invalidate(bool reload)
   auto *plot = dynamic_cast<CQChartsXYPlot *>(obj_);
   assert(plot);
 
-  emit plot->customDataChanged();
+  Q_EMIT plot->customDataChanged();
 }
 
 //------

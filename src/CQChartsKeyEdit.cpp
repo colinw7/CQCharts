@@ -476,7 +476,7 @@ widgetsToData()
 
   data_.textBoxData = textBoxEdit_->data();
 
-  emit keyChanged();
+  Q_EMIT keyChanged();
 }
 
 void

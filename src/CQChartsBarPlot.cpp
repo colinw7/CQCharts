@@ -69,7 +69,7 @@ CQChartsBarPlot::
 setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -86,7 +86,7 @@ setOrientation(const Qt::Orientation &orientation)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 

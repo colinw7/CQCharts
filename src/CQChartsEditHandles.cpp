@@ -168,7 +168,7 @@ updateBBox(double dx, double dy)
     bbox_.setUR(bbox_.getUR() + Point(dx, dy));
   }
   else if (dragSide() == ResizeSide::EXTRA) {
-    emit extraHandleMoved(dragData(), dx, dy);
+    Q_EMIT extraHandleMoved(dragData(), dx, dy);
   }
   else {
     assert(false);

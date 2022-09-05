@@ -83,7 +83,7 @@ updateFillPattern(const CQChartsFillPattern &fillPattern, bool updateText)
   if (updateText)
     fillPatternToWidgets();
 
-  emit fillPatternChanged();
+  Q_EMIT fillPatternChanged();
 }
 
 void
@@ -122,7 +122,7 @@ menuEditChanged()
 {
   fillPatternToWidgets();
 
-  emit fillPatternChanged();
+  Q_EMIT fillPatternChanged();
 }
 
 void
@@ -447,7 +447,7 @@ setFillPattern(const CQChartsFillPattern &fillPattern)
 
   updateState();
 
-  emit fillPatternChanged();
+  Q_EMIT fillPatternChanged();
 }
 
 void
@@ -556,7 +556,7 @@ widgetsToFillPattern()
 
   updateState();
 
-  emit fillPatternChanged();
+  Q_EMIT fillPatternChanged();
 }
 
 void

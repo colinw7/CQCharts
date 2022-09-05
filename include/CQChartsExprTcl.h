@@ -26,6 +26,12 @@
  */
 class CQChartsExprTcl : public CQTcl {
  public:
+  struct ErrorData {
+    bool        showError { false };
+    QStringList messages;
+  };
+
+ public:
   using Values = std::vector<QVariant>;
 
  public:
@@ -74,6 +80,7 @@ class CQChartsExprTcl : public CQTcl {
   void defineProc(const QString &name, const QString &args, const QString &body);
 
   bool evaluateExpression(const QString &expr, QVariant &value, bool showError=false) const;
+  bool evaluateExpression(const QString &expr, QVariant &value, ErrorData &errorData) const;
 
   int errorCount() const { return errorCount_; }
 

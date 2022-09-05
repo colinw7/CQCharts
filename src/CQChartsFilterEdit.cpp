@@ -107,7 +107,7 @@ andSlot()
 {
   bool b = andOrSwitch_->isChecked();
 
-  emit filterAnd(b);
+  Q_EMIT filterAnd(b);
 }
 
 void
@@ -123,9 +123,9 @@ acceptSlot()
       filterDetails_.clear();
 
       if (addReplaceSwitch_->isChecked())
-        emit replaceFilter(filterText_);
+        Q_EMIT replaceFilter(filterText_);
       else
-        emit addFilter(filterText_);
+        Q_EMIT addFilter(filterText_);
     }
   }
   else {
@@ -133,9 +133,9 @@ acceptSlot()
       searchText_ = text;
 
       if (addReplaceSwitch_->isChecked())
-        emit replaceSearch(searchText_);
+        Q_EMIT replaceSearch(searchText_);
       else
-        emit addSearch(searchText_);
+        Q_EMIT addSearch(searchText_);
     }
   }
 }
@@ -144,7 +144,7 @@ void
 CQChartsFilterEdit::
 escapeSlot()
 {
-  emit escapePressed();
+  Q_EMIT escapePressed();
 }
 
 //------
@@ -163,7 +163,7 @@ CQChartsFilterEditEdit::
 keyPressEvent(QKeyEvent *e)
 {
   if (e->key() == Qt::Key_Escape) {
-    emit escapePressed();
+    Q_EMIT escapePressed();
     return;
   }
 

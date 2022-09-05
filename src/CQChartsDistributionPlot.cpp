@@ -261,7 +261,7 @@ CQChartsDistributionPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -270,7 +270,7 @@ CQChartsDistributionPlot::
 setDataColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(dataColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -353,7 +353,7 @@ setStartBucketValue(double r)
   if (r != startBucketValue()) {
     bucketer_.setRStart(r);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -371,7 +371,7 @@ setDeltaBucketValue(double r)
   if (r != deltaBucketValue()) {
     bucketer_.setRDelta(r);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -389,7 +389,7 @@ setMinBucketValue(double r)
   if (r != minBucketValue()) {
     bucketer_.setRMin(r);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -407,7 +407,7 @@ setMaxBucketValue(double r)
   if (r != maxBucketValue()) {
     bucketer_.setRMax(r);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -439,7 +439,7 @@ setNumAutoBuckets(int n)
   if (n != numAutoBuckets()) {
     bucketer_.setNumAuto(n);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -450,7 +450,7 @@ setExactBucketValue(bool b)
   if (b != exactValue_) {
     exactValue_ = b;
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -461,7 +461,7 @@ CQChartsDistributionPlot::
 setUnderflowBucket(const CQChartsOptReal &r)
 {
   CQChartsUtil::testAndSet(underflowBucket_, r, [&]() {
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -470,7 +470,7 @@ CQChartsDistributionPlot::
 setOverflowBucket(const CQChartsOptReal &r)
 {
   CQChartsUtil::testAndSet(overflowBucket_, r, [&]() {
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -486,7 +486,7 @@ setBucketStops(const CQChartsReals &r)
 
     bucketer_.setRStops(rstops);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -515,7 +515,7 @@ setBucketType(const CQBucketer::Type &type)
 
     bucketer_.setType(type);
 
-    updateGroupBucketers(); updateRangeAndObjs(); emit customDataChanged();
+    updateGroupBucketers(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -689,7 +689,7 @@ CQChartsDistributionPlot::
 setPlotType(PlotType type)
 {
   CQChartsUtil::testAndSet(plotType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -744,7 +744,7 @@ CQChartsDistributionPlot::
 setValueType(ValueType type)
 {
   CQChartsUtil::testAndSet(valueType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -797,7 +797,7 @@ CQChartsDistributionPlot::
 setShapeType(ShapeType type)
 {
   CQChartsUtil::testAndSet(shapeType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -932,7 +932,7 @@ CQChartsDistributionPlot::
 setStatsLines(bool b)
 {
   CQChartsUtil::testAndSet(statsLines_, b, [&]() {
-    updateObjs(); emit customDataChanged();
+    updateObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -1061,7 +1061,7 @@ calcRange() const
 
   //---
 
-  emit th->customDataChanged();
+  Q_EMIT th->customDataChanged();
 
   //--
 

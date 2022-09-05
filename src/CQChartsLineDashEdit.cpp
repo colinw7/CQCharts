@@ -233,7 +233,7 @@ dashChangedSlot()
   if (dash.fromString(str)) {
     dash_ = dash;
 
-    emit valueChanged(dash_);
+    Q_EMIT valueChanged(dash_);
   }
 }
 
@@ -258,7 +258,7 @@ comboItemChanged()
 
   dash_ = CQChartsLineDash::fromVariant(var);
 
-  emit valueChanged(dash_);
+  Q_EMIT valueChanged(dash_);
 }
 
 void

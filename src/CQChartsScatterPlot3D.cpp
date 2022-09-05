@@ -187,7 +187,7 @@ CQChartsScatterPlot3D::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -196,7 +196,7 @@ CQChartsScatterPlot3D::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -207,7 +207,7 @@ CQChartsScatterPlot3D::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -216,7 +216,7 @@ CQChartsScatterPlot3D::
 setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -225,7 +225,7 @@ CQChartsScatterPlot3D::
 setZColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(zColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -243,7 +243,7 @@ CQChartsScatterPlot3D::
 setSymbolTypeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
-    updateObjs(); emit customDataChanged();
+    updateObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -259,7 +259,7 @@ CQChartsScatterPlot3D::
 setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -275,7 +275,7 @@ CQChartsScatterPlot3D::
 setFontSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -522,7 +522,7 @@ calcRange() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog, int &numUnique) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          double defVal = plot_->getRowBadValue(data.row);
+          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
 
           ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
@@ -1011,7 +1011,7 @@ addNameValues() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          double defVal = plot_->getRowBadValue(data.row);
+          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
 
           ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
@@ -1517,7 +1517,7 @@ draw3D()
         //---
 
         auto modelValue = [&](const ModelIndex &modelInd, double &value, bool &ok, bool isLog) {
-          double defVal = plot_->getRowBadValue(data.row);
+          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
 
           ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
         };

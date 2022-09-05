@@ -76,7 +76,7 @@ updateFont(const CQChartsFont &font, bool updateText)
   if (updateText)
     fontToWidgets();
 
-  emit fontChanged();
+  Q_EMIT fontChanged();
 }
 
 void
@@ -115,7 +115,7 @@ menuEditChanged()
 {
   fontToWidgets();
 
-  emit fontChanged();
+  Q_EMIT fontChanged();
 }
 
 void
@@ -415,7 +415,7 @@ setFont(const CQChartsFont &font)
 
   updateState();
 
-  emit fontChanged();
+  Q_EMIT fontChanged();
 }
 
 void
@@ -524,7 +524,7 @@ widgetsToFont()
 
   updateState();
 
-  emit fontChanged();
+  Q_EMIT fontChanged();
 }
 
 void

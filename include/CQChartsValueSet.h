@@ -324,7 +324,7 @@ class CQChartsIValues {
 
   const Indices &outliers() const { initCalc(); return outliers_; }
 
-  bool isOutlier(int v) const;
+  bool isOutlier(long v) const;
 
   double svalue(int i) const { return double(CUtil::safeIndex(svalues_, i)); }
 

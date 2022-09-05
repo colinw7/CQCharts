@@ -313,6 +313,9 @@
 #include <svg/bucket_unique_light_svg.h>
 #include <svg/bucket_unique_dark_svg.h>
 
+#include <svg/clear_button_light_svg.h>
+#include <svg/clear_button_dark_svg.h>
+
 QString
 CQCharts::
 description()
@@ -1170,7 +1173,7 @@ void
 CQCharts::
 setPlotTheme(const CQChartsThemeName &themeName)
 {
-  CQChartsUtil::testAndSet(plotTheme_, themeName, [&]() { emit themeChanged(); } );
+  CQChartsUtil::testAndSet(plotTheme_, themeName, [&]() { Q_EMIT themeChanged(); } );
 }
 
 bool
@@ -1186,7 +1189,7 @@ setDark(bool b)
 {
   interfaceTheme()->setDark(b);
 
-  emit interfaceThemeChanged();
+  Q_EMIT interfaceThemeChanged();
 }
 
 //---
@@ -1448,7 +1451,7 @@ setCurrentModelInd(int ind)
 {
   currentModelInd_ = ind;
 
-  emit currentModelChanged(currentModelInd_);
+  Q_EMIT currentModelChanged(currentModelInd_);
 }
 
 CQChartsModelData *
@@ -1492,8 +1495,8 @@ addModelData(ModelP &model)
 
   ind = modelData->ind();
 
-  emit modelDataAdded(ind);
-  emit modelDataChanged();
+  Q_EMIT modelDataAdded(ind);
+  Q_EMIT modelDataChanged();
 
   return ind;
 }
@@ -1536,8 +1539,8 @@ removeModelData(CQChartsModelData *modelData)
 
   delete modelData;
 
-  emit modelDataRemoved(ind);
-  emit modelDataChanged();
+  Q_EMIT modelDataRemoved(ind);
+  Q_EMIT modelDataChanged();
 
   return true;
 }
@@ -1666,7 +1669,7 @@ addView(CQChartsView *view)
 
   views_[id] = view;
 
-  emit viewAdded(view);
+  Q_EMIT viewAdded(view);
 }
 
 CQChartsView *
@@ -1727,7 +1730,7 @@ void
 CQCharts::
 removeView(CQChartsView *view)
 {
-  emit viewRemoved(view);
+  Q_EMIT viewRemoved(view);
 
   views_.erase(view->id());
 }
@@ -1740,7 +1743,7 @@ createWindow(CQChartsView *view)
 {
   auto *window = CQChartsWindowMgrInst->createWindow(view);
 
-  emit windowCreated(window);
+  Q_EMIT windowCreated(window);
 
   return window;
 }
@@ -1749,7 +1752,7 @@ void
 CQCharts::
 deleteWindow(CQChartsWindow *window)
 {
-  emit windowRemoved(window);
+  Q_EMIT windowRemoved(window);
 
   CQChartsWindowMgrInst->removeWindow(window);
 }
@@ -1820,7 +1823,7 @@ void
 CQCharts::
 emitModelTypeChanged(int modelId)
 {
-  emit modelTypeChanged(modelId);
+  Q_EMIT modelTypeChanged(modelId);
 }
 
 //---

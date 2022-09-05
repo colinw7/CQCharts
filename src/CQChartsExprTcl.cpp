@@ -107,9 +107,22 @@ bool
 CQChartsExprTcl::
 evaluateExpression(const QString &expr, QVariant &value, bool showError) const
 {
+  ErrorData errorData;
+
+  errorData.showError = showError;
+
+  return evaluateExpression(expr, value, errorData);
+}
+
+bool
+CQChartsExprTcl::
+evaluateExpression(const QString &expr, QVariant &value, ErrorData &errorData) const
+{
   auto *th = const_cast<CQChartsExprTcl *>(this);
 
-  int rc = th->evalExpr(expr, showError);
+  CQTcl::EvalData evalData;
+
+  int rc = th->evalExpr(expr, evalData);
 
   if (rc != TCL_OK) {
     if (isDomainError(rc)) {
@@ -122,8 +135,10 @@ evaluateExpression(const QString &expr, QVariant &value, bool showError) const
       return true;
     }
 
-    if (showError)
-      std::cerr << errorInfo(rc).toStdString() << std::endl;
+    if (errorData.showError)
+      std::cerr << evalData.errMsg.toStdString() << std::endl;
+
+    errorData.messages.push_back(evalData.errMsg);
 
     incErrorCount();
 

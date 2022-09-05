@@ -6224,7 +6224,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
         "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
         "title" << "expr_model" << "data_model" << "base_model" <<
-        "name" << "ind" << "find" /* << "property.<name>" */ << "name";
+        "name" << "ind" << "find" /* << "property.<name>" */ << "read_only";
 
       auto detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
 
@@ -6744,6 +6744,16 @@ execCmd(CQChartsCmdArgs &argv)
                CQChartsModelUtil::MatchType::EXACT_SINGLE, rows);
 
       return cmdBase_->setCmdRc(rows);
+    }
+    else if (name == "read_only") {
+      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      if (! dataModel)
+        return errorMsg(QString("Invalid model type"));
+
+      auto b = dataModel->isReadOnly();
+
+      return cmdBase_->setCmdRc(b);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["model"] = "";
@@ -7618,10 +7628,21 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg("Failed to set model property '" + name1 + "' '" + value + "'");
     }
 #endif
+    else if (name == "read_only") {
+      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      if (! dataModel)
+        return errorMsg(QString("Invalid model type"));
+
+      bool ok;
+      bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
+
+      dataModel->setReadOnly(b);
+    }
     else if (name == "?") {
       static auto names = QStringList() <<
        "value" << "column_type" << "meta" << "name" <<
-       "process_expression" /* << "property.<name>" */;
+       "process_expression" /* << "property.<name>" */ << "read_only";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -7671,7 +7692,6 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "updates_enabled") {
       bool ok;
-
       bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
       plot->setUpdatesEnabled(b);
@@ -7687,7 +7707,6 @@ execCmd(CQChartsCmdArgs &argv)
       if (id < 0) return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
 
       bool ok;
-
       bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
       plot->setSetHidden(id, b);
@@ -12866,7 +12885,6 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       }
       else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN) {
         bool ok;
-
         bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
         if (! ok) {

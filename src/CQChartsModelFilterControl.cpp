@@ -64,7 +64,17 @@ CQChartsModelFilterControl(QWidget *parent) :
 
   //---
 
-  gridLayout->setRowStretch(row, 1); ++row;
+  //gridLayout->setRowStretch(row, 1); ++row;
+
+  //--
+
+  auto *helpLabel = CQUtil::makeWidget<QLabel>("helpLabel");
+
+  helpLabel->setText("Create new filter filtered by specified tcl expression");
+
+  layout->addWidget(helpLabel);
+
+  layout->addStretch(1);
 
   //--
 
@@ -111,9 +121,14 @@ applySlot()
 
   auto *filterModel = modelData_->copy(copyData);
 
+  if (copyData.numErrors > 0)
+    std::cerr << "Copy failed\n";
+
   //---
 
   ModelP dataModelP(filterModel);
 
-  (void) charts->initModelData(dataModelP);
+  auto *modelData = charts->initModelData(dataModelP);
+
+  Q_EMIT filterApplied(modelData->id());
 }

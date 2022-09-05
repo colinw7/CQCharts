@@ -142,6 +142,9 @@ addFilterFrame()
 
   //filterFrame->setModelData(modelData_);
 
+  connect(filterFrame, SIGNAL(filterApplied(const QString &)),
+          this, SLOT(filterSlot(const QString &)));
+
   return filterFrame;
 }
 
@@ -194,6 +197,16 @@ CQChartsModelControl::
 filterTextSlot(const QString &text)
 {
   filterFrame_->setFilterText(text);
+}
+
+void
+CQChartsModelControl::
+filterSlot(const QString &id)
+{
+  auto *modelData = charts_->getModelDataById(id);
+
+  if (modelData)
+    charts_->editModelDlg(modelData);
 }
 
 void

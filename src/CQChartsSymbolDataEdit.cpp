@@ -66,7 +66,7 @@ updateSymbolData(const CQChartsSymbolData &symbolData, bool updateText)
   if (updateText)
     symbolDataToWidgets();
 
-  emit symbolDataChanged();
+  Q_EMIT symbolDataChanged();
 }
 
 void
@@ -105,7 +105,7 @@ menuEditChanged()
 {
   symbolDataToWidgets();
 
-  emit symbolDataChanged();
+  Q_EMIT symbolDataChanged();
 }
 
 void
@@ -400,7 +400,7 @@ widgetsToData()
 
   preview_->update();
 
-  emit symbolDataChanged();
+  Q_EMIT symbolDataChanged();
 }
 
 //------

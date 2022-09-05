@@ -180,7 +180,7 @@ CQChartsParallelPlot::
 setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -195,7 +195,7 @@ setYColumns(const Columns &c)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -255,7 +255,7 @@ CQChartsParallelPlot::
 setOrientation(const Qt::Orientation &orientation)
 {
   CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -485,7 +485,7 @@ calcRange() const
 
         //---
 
-        double defVal = plot_->getRowBadValue(data.row);
+        double defVal = plot_->getModelBadValue(yColumn, data.row);
 
         double x = 0.0;
         double y = defVal;
@@ -1229,7 +1229,7 @@ setYColumnVisible(int ic, bool visible)
 
   updateRangeAndObjs();
 
-  emit customDataChanged();
+  Q_EMIT customDataChanged();
 }
 
 //---

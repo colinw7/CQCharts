@@ -192,7 +192,7 @@ CQChartsBarChartPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -201,7 +201,7 @@ CQChartsBarChartPlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -323,7 +323,7 @@ setLabelsVisible(bool b)
   if (b != isLabelsVisible()) {
     dataLabel()->setVisible(b);
 
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   }
 }
 
@@ -341,7 +341,7 @@ CQChartsBarChartPlot::
 setPlotType(PlotType type)
 {
   CQChartsUtil::testAndSet(plotType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -366,7 +366,7 @@ CQChartsBarChartPlot::
 setPercent(bool b)
 {
   CQChartsUtil::testAndSet(percent_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -375,7 +375,7 @@ CQChartsBarChartPlot::
 setSkipEmpty(bool b)
 {
   CQChartsUtil::testAndSet(skipEmpty_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -386,7 +386,7 @@ CQChartsBarChartPlot::
 setValueType(ValueType type)
 {
   CQChartsUtil::testAndSet(valueType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -439,7 +439,7 @@ CQChartsBarChartPlot::
 setShapeType(ShapeType type)
 {
   CQChartsUtil::testAndSet(shapeType_, type, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -450,7 +450,7 @@ CQChartsBarChartPlot::
 setGroupByColumn(bool b)
 {
   CQChartsUtil::testAndSet(groupByColumn_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   });
 }
 
@@ -459,7 +459,7 @@ CQChartsBarChartPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); updateRangeAndObjs(); emit customDataChanged();
+    resetSetHidden(); updateRangeAndObjs(); Q_EMIT customDataChanged();
   });
 }
 
@@ -468,7 +468,7 @@ CQChartsBarChartPlot::
 setSortSets(bool b)
 {
   CQChartsUtil::testAndSet(sortSets_, b, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   });
 }
 
@@ -568,6 +568,9 @@ calcRange() const
 
       double r2 = CQChartsVariant::toReal(columnDetails->maxValue(), ok);
       if (ok) rangeData.maxValue = OptReal(r2);
+
+      double sum = CQChartsVariant::toReal(columnDetails->sumValue(), ok);
+      if (ok) rangeData.sumValue = OptReal(sum);
     }
   }
 
@@ -977,7 +980,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
     ModelIndex valueModelInd(th, data.row, valueColumn, data.parent);
 
     // get bad value for row
-    auto defVal = getRowBadValue(data.row);
+    auto defVal = getModelBadValue(valueColumn, data.row);
 
     double r;
 
@@ -1105,6 +1108,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   valueSet->setMinValue(rangeData.minValue);
   valueSet->setMaxValue(rangeData.maxValue);
+  valueSet->setSumValue(rangeData.sumValue);
 
   //---
 
@@ -3014,8 +3018,8 @@ tipText(const Point &, QString &tip) const
 
         double value1 = valueInds[0].value;
 
-        if (value >= 0) posSum += value1;
-        else            negSum += value1;
+        if (value1 >= 0) posSum += value1;
+        else             negSum += value1;
       }
     }
   }
@@ -3354,8 +3358,7 @@ void
 CQChartsBarChartPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType(
-    static_cast<CQChartsBarChartPlot::PlotType>(plotTypeCombo_->currentValue()));
+  plot_->setPlotType(static_cast<CQChartsBarChartPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void

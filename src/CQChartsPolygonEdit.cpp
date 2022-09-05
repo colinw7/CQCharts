@@ -74,7 +74,7 @@ updatePolygon(const CQChartsPolygon &polygon, bool updateText)
   if (updateText)
     polygonToWidgets();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void
@@ -115,7 +115,7 @@ menuEditChanged()
 
   polygonToWidgets();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void
@@ -449,7 +449,7 @@ unitsChanged()
 {
   widgetsToPolygon();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void
@@ -464,7 +464,7 @@ addSlot()
 
   updateState();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void
@@ -479,7 +479,7 @@ removeSlot()
 
   updateState();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void
@@ -490,7 +490,7 @@ pointSlot()
 
   updateState();
 
-  emit polygonChanged();
+  Q_EMIT polygonChanged();
 }
 
 void

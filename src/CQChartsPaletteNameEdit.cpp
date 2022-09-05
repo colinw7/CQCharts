@@ -99,7 +99,7 @@ comboChanged()
 
   connectSlots(true);
 
-  emit nameChanged();
+  Q_EMIT nameChanged();
 }
 
 //------

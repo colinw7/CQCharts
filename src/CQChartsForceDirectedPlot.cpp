@@ -182,7 +182,7 @@ setAnimating(bool b)
   if (b != isAnimating()) {
     CQChartsPlot::setAnimating(b);
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   }
 }
 
@@ -1962,9 +1962,9 @@ selectAt(const Point &p)
   //---
 
   if      (selectedNode)
-    emit objIdPressed(selectedNode->stringId());
+    Q_EMIT objIdPressed(selectedNode->stringId());
   else if (selectedEdge)
-    emit objIdPressed(selectedEdge->stringId());
+    Q_EMIT objIdPressed(selectedEdge->stringId());
 
   return true;
 }

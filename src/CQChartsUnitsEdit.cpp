@@ -62,7 +62,7 @@ indexChanged()
 
   updateTip();
 
-  emit unitsChanged();
+  Q_EMIT unitsChanged();
 }
 
 void

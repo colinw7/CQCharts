@@ -108,7 +108,7 @@ columnClickedSlot(int column)
   if (modelData)
     modelData->setCurrentColumn(column);
 
-  emit columnClicked(column);
+  Q_EMIT columnClicked(column);
 }
 
 void

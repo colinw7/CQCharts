@@ -40,7 +40,7 @@ setSides(const CQChartsSides &sides)
 
   update();
 
-  emit sidesChanged();
+  Q_EMIT sidesChanged();
 }
 
 void

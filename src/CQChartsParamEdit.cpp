@@ -5,6 +5,7 @@
 
 #include <CQIntegerSpin.h>
 #include <CQCheckBox.h>
+#include <CQIconButton.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
@@ -15,6 +16,19 @@ CQChartsParamEdit(QWidget *parent) :
  QFrame(parent)
 {
   layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+
+  editFrame_  = CQUtil::makeWidget<QFrame>("editFrame");
+  editLayout_ = CQUtil::makeLayout<QHBoxLayout>(editFrame_, 0, 0);
+
+  layout_->addWidget(editFrame_);
+
+  clearButton_ = CQUtil::makeWidget<CQIconButton>("clearButton");
+
+  clearButton_->setIcon("CLEAR_BUTTON");
+
+  connect(clearButton_, SIGNAL(clicked()), this, SLOT(clearSlot()));
+
+  layout_->addWidget(clearButton_);
 }
 
 void
@@ -26,7 +40,7 @@ setString(const QString &str)
 
     edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-    layout_->addWidget(edit_);
+    editLayout_->addWidget(edit_);
   }
 
   edit_->setText(str);
@@ -43,7 +57,7 @@ setBool(bool b)
 
     check_ = CQUtil::makeWidget<CQCheckBox>("edit");
 
-    layout_->addWidget(check_);
+    editLayout_->addWidget(check_);
   }
 
   check_->setChecked(b);
@@ -60,7 +74,7 @@ setInteger(int i)
 
     ispin_ = CQUtil::makeWidget<CQIntegerSpin>("edit");
 
-    layout_->addWidget(ispin_);
+    editLayout_->addWidget(ispin_);
   }
 
   ispin_->setValue(i);
@@ -77,7 +91,7 @@ setEnum(const QString &str, const QStringList &values)
 
     combo_ = CQUtil::makeWidget<QComboBox>("edit");
 
-    layout_->addWidget(combo_);
+    editLayout_->addWidget(combo_);
   }
 
   // make optional
@@ -105,7 +119,7 @@ setColor(const QString &str)
 
     color_ = CQUtil::makeWidget<CQChartsColorLineEdit>("edit");
 
-    layout_->addWidget(color_);
+    editLayout_->addWidget(color_);
   }
 
   CQChartsColor c(str);
@@ -175,4 +189,11 @@ reset()
   check_ = nullptr;
   combo_ = nullptr;
   color_ = nullptr;
+}
+
+void
+CQChartsParamEdit::
+clearSlot()
+{
+  setString("");
 }

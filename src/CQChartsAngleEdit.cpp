@@ -36,7 +36,7 @@ editChanged()
   if (angle.isValid()) {
     angle_ = angle;
 
-    emit angleChanged();
+    Q_EMIT angleChanged();
   }
 }
 

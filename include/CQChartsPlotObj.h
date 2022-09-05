@@ -244,7 +244,7 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
-  void dataInvalidate() override { emit dataChanged(); }
+  void dataInvalidate() override { Q_EMIT dataChanged(); }
 
   //---
 

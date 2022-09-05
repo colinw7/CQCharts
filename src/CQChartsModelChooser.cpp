@@ -72,7 +72,7 @@ setCurrentModel(int ind)
 
   charts_->setCurrentModelInd(int(modelInd));
 
-  emit currentModelChanged();
+  Q_EMIT currentModelChanged();
 }
 
 void

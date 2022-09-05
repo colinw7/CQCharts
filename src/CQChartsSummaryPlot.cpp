@@ -217,7 +217,7 @@ setPlotType(const PlotType &t, bool update)
   CQChartsUtil::testAndSet(plotType_, t, [&]() {
     if (update) updatePlots();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -226,7 +226,7 @@ CQChartsSummaryPlot::
 setExpanded(bool b)
 {
   CQChartsUtil::testAndSet(expanded_, b, [&]() {
-    updatePlots(); emit customDataChanged();
+    updatePlots(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -314,7 +314,7 @@ CQChartsSummaryPlot::
 setDiagonalType(const DiagonalType &t)
 {
   CQChartsUtil::testAndSet(diagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -323,7 +323,7 @@ CQChartsSummaryPlot::
 setLowerDiagonalType(const OffDiagonalType &t)
 {
   CQChartsUtil::testAndSet(lowerDiagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -332,7 +332,7 @@ CQChartsSummaryPlot::
 setUpperDiagonalType(const OffDiagonalType &t)
 {
   CQChartsUtil::testAndSet(upperDiagonalType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -343,7 +343,7 @@ CQChartsSummaryPlot::
 setSymbolSize(const Length &l)
 {
   CQChartsUtil::testAndSet(symbolSize_, l, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -354,7 +354,7 @@ CQChartsSummaryPlot::
 setBestFit(bool b)
 {
   CQChartsUtil::testAndSet(bestFit_, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -363,7 +363,7 @@ CQChartsSummaryPlot::
 setDensity(bool b)
 {
   CQChartsUtil::testAndSet(density_, b, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -392,7 +392,7 @@ setColumns(const Columns &c)
 
     updateRangeAndObjs();
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -407,7 +407,7 @@ setGroupColumn(const Column &c)
       scatterPlot_->setGroupColumn(groupColumn());
     }
 
-    emit customDataChanged();
+    Q_EMIT customDataChanged();
   } );
 }
 
@@ -418,7 +418,7 @@ CQChartsSummaryPlot::
 setBorder(const Length &l)
 {
   CQChartsUtil::testAndSet(border_, l, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -919,7 +919,7 @@ setColumnVisible(int ic, bool visible)
 
   updateRangeAndObjs();
 
-  emit customDataChanged();
+  Q_EMIT customDataChanged();
 }
 
 //------

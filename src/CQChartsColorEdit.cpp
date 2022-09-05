@@ -78,7 +78,7 @@ updateColor(const Color &color, bool updateText)
   if (updateText)
     colorToWidgets();
 
-  emit colorChanged();
+  Q_EMIT colorChanged();
 }
 
 void
@@ -123,7 +123,7 @@ menuEditChanged()
 {
   colorToWidgets();
 
-  emit colorChanged();
+  Q_EMIT colorChanged();
 }
 
 void
@@ -488,7 +488,7 @@ setColor(const Color &color)
 
   updateState();
 
-  emit colorChanged();
+  Q_EMIT colorChanged();
 }
 
 void
@@ -792,7 +792,7 @@ widgetsToColor()
 
   updateState();
 
-  emit colorChanged();
+  Q_EMIT colorChanged();
 }
 
 void

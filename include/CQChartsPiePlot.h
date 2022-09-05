@@ -106,7 +106,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void calcTipData(QString &groupName, QString &label, QString &valueStr) const;
+  void calcTipData(QString &groupName, QString &labelName,
+                   QString &label, QString &valueStr) const;
 
   QString valueStr() const;
 
@@ -762,12 +763,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  QString calcIndLabel(const QModelIndex &ind) const;
+  QString calcIndLabel(const QModelIndex &ind, QString &labelName) const;
 
   //---
 
   double calcMinValue() const;
   double calcMaxValue() const;
+
+  double calcValueSum() const;
 
   //---
 

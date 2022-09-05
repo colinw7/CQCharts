@@ -185,7 +185,7 @@ setFilterDisplayed(bool show, bool focus)
 {
   filterDisplayed_ = show;
 
-  emit filterStateChanged(filterDisplayed_, focus);
+  Q_EMIT filterStateChanged(filterDisplayed_, focus);
 }
 
 void

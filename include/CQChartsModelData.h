@@ -308,12 +308,16 @@ class CQChartsModelData : public QObject {
 
   //! copy model data
   struct CopyData {
-    QString filter;
-    int     nr    { -1 };
-    bool    debug { false };
+    using RowErrors = std::map<int, QStringList>;
+
+    QString   filter;
+    int       nr        { -1 };
+    bool      debug     { false };
+    int       numErrors { 0 };
+    RowErrors rowErrors;
   };
 
-  QAbstractItemModel *copy(const CopyData &copyData);
+  QAbstractItemModel *copy(CopyData &copyData);
 
   QAbstractItemModel *join(ModelData *joinModel, const Columns &lColumns,
                            const Columns &rColumns, JoinType joinType=JoinType::NONE);
@@ -342,6 +346,7 @@ class CQChartsModelData : public QObject {
 
  private Q_SLOTS:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
+  void modelHeaderDataChangedSlot(Qt::Orientation, int, int);
 
   void modelLayoutChangedSlot();
   void modelResetSlot();

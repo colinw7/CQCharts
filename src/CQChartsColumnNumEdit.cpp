@@ -107,7 +107,7 @@ columnComboChanged()
   if (columnNum != columnNum_) {
     columnNum_ = columnNum;
 
-    emit columnChanged();
+    Q_EMIT columnChanged();
   }
 }
 

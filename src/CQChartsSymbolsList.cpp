@@ -246,7 +246,7 @@ setSymbol(const Symbol &symbol)
 
     setCurrentSymbol();
 
-    emit symbolChanged();
+    Q_EMIT symbolChanged();
   }
 }
 
@@ -259,7 +259,7 @@ setSetName(const QString &name)
 
     updateItems();
 
-    emit setNameChanged(setName_);
+    Q_EMIT setNameChanged(setName_);
   }
 }
 

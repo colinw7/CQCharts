@@ -52,7 +52,7 @@ void
 CQChartsColumnTypeCombo::
 indexChangedSlot(int)
 {
-  emit typeChanged();
+  Q_EMIT typeChanged();
 }
 
 const CQChartsColumnType *

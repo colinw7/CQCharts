@@ -146,7 +146,7 @@ CQChartsGridPlot::
 setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -155,7 +155,7 @@ CQChartsGridPlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -164,7 +164,7 @@ CQChartsGridPlot::
 setRowColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(rowColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -173,7 +173,7 @@ CQChartsGridPlot::
 setColumnColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(columnColumn_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -182,7 +182,7 @@ CQChartsGridPlot::
 setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
-    updateRangeAndObjs(); emit customDataChanged();
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
 
@@ -239,7 +239,7 @@ CQChartsGridPlot::
 setDrawType(const DrawType &t)
 {
   CQChartsUtil::testAndSet(drawType_, t, [&]() {
-    drawObjs(); emit customDataChanged();
+    drawObjs(); Q_EMIT customDataChanged();
   } );
 }
 
