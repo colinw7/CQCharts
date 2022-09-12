@@ -1121,6 +1121,14 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
     return value;
   }
+  else if (role == CQModelUtil::roleCast(CQBaseModelRole::Sum)) {
+    QVariant value;
+
+    if (! extraColumn.typeData.nameValues.nameValue("sum", value))
+      return QVariant();
+
+    return value;
+  }
   else if (role == CQModelUtil::roleCast(CQBaseModelRole::Sorted)) {
     QVariant value;
 
@@ -1197,6 +1205,11 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   }
   else if (role == CQModelUtil::roleCast(CQBaseModelRole::Max)) {
     extraColumn.typeData.nameValues.setNameValue("max", value);
+
+    return true;
+  }
+  else if (role == CQModelUtil::roleCast(CQBaseModelRole::Sum)) {
+    extraColumn.typeData.nameValues.setNameValue("sum", value);
 
     return true;
   }

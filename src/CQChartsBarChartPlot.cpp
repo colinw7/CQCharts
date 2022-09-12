@@ -1513,6 +1513,29 @@ createObjs(PlotObjs &objs) const
 
     objs.push_back(barObj);
 
+    //---
+
+    if      (isValueValue()) {
+      if (minInd.value >= 0) {
+        lastPosValue = lastPosValue + scale*minInd.value;
+      }
+      else {
+        lastNegValue = lastNegValue + scale*minInd.value;
+      }
+    }
+    else if (isValueRange()) {
+      lastPosValue = scale*(maxInd.value - minInd.value);
+    }
+    else if (isValueMin()) {
+      lastPosValue = scale*minInd.value;
+    }
+    else if (isValueMax()) {
+      lastPosValue = scale*maxInd.value;
+    }
+    else if (isValueMean()) {
+      lastPosValue = scale*mean;
+    }
+
     return true;
   };
 
@@ -1578,7 +1601,7 @@ createObjs(PlotObjs &objs) const
     if (! isValueValue() && (ns == 1 || isGroupByColumn())) {
       if (! addValueSetBarObj(valueSet, iv)) {
         if (isSkipEmpty())
-          continue; // no inc box
+          continue; // no inc bx
       }
     }
     else {

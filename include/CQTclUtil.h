@@ -496,14 +496,13 @@ class CQTcl : public QObject, public CTcl {
   Q_OBJECT
 
  public:
-  using Vars       = std::vector<QVariant>;
-  using ObjCmdProc = Tcl_ObjCmdProc *;
-  using ObjCmdData = ClientData;
-  using Traces     = std::set<QString>;
+  using Vars   = std::vector<QVariant>;
+  using Traces = std::set<QString>;
 
   struct EvalData {
     bool     showError  { false };
     bool     showResult { false };
+    int      rc { 0 };
     QVariant res;
     QString  errMsg;
   };
@@ -561,12 +560,12 @@ class CQTcl : public QObject, public CTcl {
 
     auto rc = evalExpr(expr, evalData);
 
-    res = res;
+    res = evalData.res;
 
     return rc;
   }
 
-  int evalExpr(const QString &expr, bool showError=false) {
+  bool evalExpr(const QString &expr, bool showError=false) {
     EvalData evalData;
 
     evalData.showError = showError;
@@ -574,7 +573,7 @@ class CQTcl : public QObject, public CTcl {
     return evalExpr(expr, evalData);
   }
 
-  int evalExpr(const QString &expr, EvalData &evalData) {
+  bool evalExpr(const QString &expr, EvalData &evalData) {
     return eval("expr {" + expr + "}", evalData);
   }
 
@@ -587,44 +586,42 @@ class CQTcl : public QObject, public CTcl {
 
     auto rc = eval(cmd, evalData);
 
-    res = getResult();
+    res = evalData.res;
 
     return rc;
   }
 
-  int eval(const QString &cmd, bool showError=false, bool showResult=false) {
+  bool eval(const QString &cmd, bool showError=false, bool showResult=false) {
     EvalData evalData;
 
     evalData.showError  = showError;
     evalData.showResult = showResult;
 
-    auto rc = eval(cmd, evalData);
-
-    return rc;
+    return eval(cmd, evalData);
   }
 
-  int eval(const QString &cmd, EvalData &evalData) {
-    int rc = CQTclUtil::eval(interp(), cmd);
+  bool eval(const QString &cmd, EvalData &evalData) {
+    bool res = true;
 
-    if (rc != TCL_OK) {
-      evalData.errMsg = errorInfo(rc);
+    evalData.rc = CQTclUtil::eval(interp(), cmd);
+
+    if (evalData.rc != TCL_OK) {
+      evalData.errMsg = errorInfo(evalData.rc);
 
       if (evalData.showError)
-        std::cerr << evalData.errMsg.toStdString() << std::endl;
+        outputError(evalData.errMsg);
+
+      res = false;
     }
+
+    evalData.res = getResult();
 
     if (evalData.showResult) {
-      evalData.res = getResult();
-
-      if (evalData.res.isValid()) {
-        auto resStr = resToString(evalData.res);
-
-        if (resStr.length())
-          std::cout << resStr.toStdString() << "\n";
-      }
+      if (evalData.res.isValid())
+        outputResult(evalData.res);
     }
 
-    return rc;
+    return res;
   }
 
   QString resToString(const QVariant &res) {
@@ -691,7 +688,7 @@ class CQTcl : public QObject, public CTcl {
 
     if (! data) {
       Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
-        &CQTcl::traceProc, static_cast<ClientData>(this));
+                   &CQTcl::traceProc, static_cast<ClientData>(this));
 
       traces_.insert(name);
     }
@@ -701,7 +698,7 @@ class CQTcl : public QObject, public CTcl {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
     Tcl_UntraceVar(interp(), name.toLatin1().constData(), flags,
-      &CQTcl::traceProc, static_cast<ClientData>(this));
+                   &CQTcl::traceProc, static_cast<ClientData>(this));
 
     traces_.erase(name);
   }
@@ -715,6 +712,17 @@ class CQTcl : public QObject, public CTcl {
     if (flags & TCL_TRACE_WRITES) std::cerr << " write";
   //if (flags & TCL_TRACE_UNSETS) std::cerr << " unset";
     std::cerr << ") " << name << "\n";
+  }
+
+  virtual void outputError(const QString &msg) {
+    std::cerr << msg.toStdString() << std::endl;
+  }
+
+  virtual void outputResult(const QVariant &res) {
+    auto resStr = resToString(res);
+
+    if (resStr.length())
+      std::cout << resStr.toStdString() << "\n";
   }
 
   bool isSupportedVariant(const QVariant &var) {
@@ -759,7 +767,7 @@ class CQTcl : public QObject, public CTcl {
 
     th->handleTrace(name1, flags);
 
-    return 0;
+    return nullptr;
   }
 
  private:

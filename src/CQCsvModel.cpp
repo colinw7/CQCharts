@@ -241,6 +241,30 @@ load(const QString &filename)
             setColumnMax(icolumn, max);
           }
         }
+        else if (type == "sum") {
+          auto columnType = this->columnType(icolumn);
+
+          if      (columnType == CQBaseModelType::INTEGER) {
+            bool ok;
+
+            int sum = QString(value.c_str()).toInt(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid integer column sum '" << value << "'\n";
+
+            setColumnSum(icolumn, sum);
+          }
+          else if (columnType == CQBaseModelType::REAL) {
+            bool ok;
+
+            double sum = QString(value.c_str()).toDouble(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid real column sum '" << value << "'\n";
+
+            setColumnSum(icolumn, sum);
+          }
+        }
         else if (type == "title") {
           setColumnTitle(icolumn, value.c_str());
         }

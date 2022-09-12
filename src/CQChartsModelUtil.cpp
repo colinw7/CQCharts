@@ -94,7 +94,7 @@ QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent) {
 ModelType
 calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, int maxRows)
 {
-  CQPerfTrace trace("CQChartsUtil::calcColumnType");
+  CQPerfTrace trace("CQChartsModelUtil::calcColumnType");
 
   // determine column type from values
   // TODO: cache (in plot ?), max visited values
@@ -104,6 +104,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
    public:
     ColumnTypeVisitor(int column) :
      column_(column) {
+      nr_ = model_->rowCount(QModelIndex());
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
@@ -120,8 +121,10 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 
         auto str = modelString(model, ind, ok);
 
-        if (! str.length())
+        if (! str.length()) {
+          ++numEmpty_;
           return State::SKIP;
+        }
 
         isInt_ = false;
       }
@@ -137,8 +140,10 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 
         auto str = modelString(model, ind, ok);
 
-        if (! str.length())
+        if (! str.length()) {
+          ++numEmpty_;
           return State::SKIP;
+        }
 
         isReal_ = false;
       }
@@ -148,15 +153,20 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
     }
 
     ModelType columnType() {
+      if (numEmpty_ == nr_ || (nr_ > maxRows_ && numEmpty_ == maxRows_))
+        return ModelType::STRING;
+
       if      (isInt_ ) return ModelType::INTEGER;
       else if (isReal_) return ModelType::REAL;
       else              return ModelType::STRING;
     }
 
    private:
-    int  column_ { -1 };   // column to check
-    bool isInt_  { true }; // could be integeral
-    bool isReal_ { true }; // could be real
+    int  column_   { -1 };   //!< column to check
+    bool isInt_    { true }; //!< could be integeral
+    bool isReal_   { true }; //!< could be real
+    int  nr_       { 0 };    //!< number of rows
+    int  numEmpty_ { 0 };    //!< number of empty values
   };
 
   // determine column value type by looking at model values
@@ -174,7 +184,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 //  . column can be model column, header or custom expression
 bool
 columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
-                CQChartsModelTypeData &columnTypeData, bool init) {
+                ModelTypeData &columnTypeData, bool init) {
   assert(model);
 
   if (! column.isValid())
@@ -199,7 +209,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const Column 
     // use defined column type if available
     auto *columnTypeMgr = charts->columnTypeMgr();
 
-    if (columnTypeMgr->getModelColumnType(model, Column(icolumn), columnTypeData)) {
+    if (columnTypeMgr->getModelColumnType(model, column, columnTypeData)) {
       if (column.hasIndex()) {
         const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
@@ -285,7 +295,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
   if (! typeData)
     return false;
 #else
-  CQChartsModelTypeData columnTypeData;
+  ModelTypeData columnTypeData;
 
   if (! columnValueType(charts, model, column, columnTypeData))
     return false;
@@ -307,7 +317,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
 bool
 formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const QVariant &value, QString &str) {
-  CQChartsModelTypeData typeData;
+  ModelTypeData typeData;
 
   if (! columnValueType(charts, model, column, typeData))
     return false;
@@ -318,7 +328,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const Colum
     auto columnType = columnTypeMgr->getType(typeData.headerType);
     if (! columnType) return false;
 
-    CQChartsModelTypeData headerTypeData;
+    ModelTypeData headerTypeData;
 
     headerTypeData.type       = typeData.headerType;
     headerTypeData.baseType   = headerTypeData.type;
@@ -336,8 +346,8 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const Colum
 
 bool
 formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
-                      const Column &column, const CQChartsColumnType *columnType,
-                      const CQChartsModelTypeData &typeData, const QVariant &value, QString &str) {
+                      const Column &column, const ColumnType *columnType,
+                      const ModelTypeData &typeData, const QVariant &value, QString &str) {
   bool converted;
 
   auto var = columnType->dataName(charts, model, column, value, typeData, converted);
@@ -389,7 +399,7 @@ columnHeaderUserData(CQCharts *charts, const QAbstractItemModel *model, int sect
 bool
 columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
               const Column &column, QString &typeStr) {
-  CQChartsModelTypeData columnTypeData;
+  ModelTypeData columnTypeData;
 
   if (! columnValueType(charts, model, column, columnTypeData))
     return false;
@@ -406,7 +416,7 @@ columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
 bool
 columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
               const Column &column, QString &typeStr) {
-  CQChartsModelTypeData columnTypeData;
+  ModelTypeData columnTypeData;
 
   if (! columnValueType(charts, model, column, columnTypeData))
     return false;
@@ -500,7 +510,7 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
 
     Column column1;
 
-    if (! stringToColumn(model, columnStr, column1))
+    if (! stringToColumn(model, columnStr, column1)) {
       charts->errorMsg("Bad column name '" + columnStr + "'");
       return false;
     }
@@ -532,7 +542,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const Column &colu
   auto *columnTypeMgr = charts->columnTypeMgr();
 
   // decode to type name and name values
-  CQChartsNameValues nameValues;
+  NameValues nameValues;
 
   const auto *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
@@ -631,7 +641,7 @@ bool
 setColumnTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &column,
                   const QString &typeName, const QString &typeStr, const QStringList &strs,
                   QString &errorMsg) {
-  CQChartsNameValues nameValues;
+  NameValues nameValues;
 
   for (int i = 0; i < strs.length(); ++i) {
     QStringList strs1;
@@ -1086,10 +1096,10 @@ getDataModel(QAbstractItemModel *model)
       return dataModel;
   }
 
-  auto *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(model);
 
-  if (sortModel) {
-    auto *dataModel = dynamic_cast<CQDataModel *>(sortModel->sourceModel());
+  if (proxyModel) {
+    auto *dataModel = dynamic_cast<CQDataModel *>(proxyModel->sourceModel());
 
     if (dataModel)
       return dataModel;
@@ -1228,8 +1238,7 @@ QVariant modelHeaderValue(const QAbstractItemModel *model, const Column &column,
   return modelHeaderValueI(model, column, Qt::Horizontal, role, ok);
 }
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const Column &column,
-                          bool &ok) {
+QVariant modelHeaderValue(const QAbstractItemModel *model, const Column &column, bool &ok) {
   return modelHeaderValueI(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
@@ -1374,7 +1383,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     auto var = modelValue(model, ind, role, ok);
     if (! ok) return QVariant();
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
     // use just column number so don't get type of index value
     if (! columnValueType(charts, model, Column(icolumn), columnTypeData)) {
@@ -2625,7 +2634,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
     Column srcColumn (src);
     Column destColumn(dest);
 
-    CQChartsModelTypeData columnTypeData;
+    ModelTypeData columnTypeData;
 
     if (! CQChartsModelUtil::columnValueType(charts, model, srcColumn, columnTypeData))
       return;

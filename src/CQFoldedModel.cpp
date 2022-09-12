@@ -633,6 +633,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
       role == static_cast<int>(CQBaseModelRole::TypeValues) ||
       role == static_cast<int>(CQBaseModelRole::Min) ||
       role == static_cast<int>(CQBaseModelRole::Max) ||
+      role == static_cast<int>(CQBaseModelRole::Sum) ||
       role == static_cast<int>(CQBaseModelRole::Sorted) ||
       role == static_cast<int>(CQBaseModelRole::SortOrder)) {
     // get node data

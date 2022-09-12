@@ -3,6 +3,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQModelUtil.h>
@@ -745,7 +746,16 @@ setModelGroupInd(const ModelIndex &ind, int groupInd)
 
   int role = CQModelUtil::roleCast(CQBaseModelRole::Group);
 
+  auto *modelData = this->getModelData();
+
+  // disable model notification change for internal data
+  if (modelData)
+    modelData->connectModel(false);
+
   model->setHeaderData(ind.row(), Qt::Vertical, var, role);
+
+  if (modelData)
+    modelData->connectModel(true);
 }
 
 bool

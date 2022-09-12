@@ -122,10 +122,8 @@ evaluateExpression(const QString &expr, QVariant &value, ErrorData &errorData) c
 
   CQTcl::EvalData evalData;
 
-  int rc = th->evalExpr(expr, evalData);
-
-  if (rc != TCL_OK) {
-    if (isDomainError(rc)) {
+  if (! th->evalExpr(expr, evalData)) {
+    if (isDomainError(evalData.rc)) {
       double x = CMathUtil::getNaN();
 
       value = CQChartsVariant::fromReal(x);

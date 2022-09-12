@@ -206,6 +206,14 @@ class CTcl {
   using StringList = std::vector<std::string>;
   using Traces     = std::set<std::string>;
 
+  struct EvalData {
+    bool        showError  { false };
+    bool        showResult { false };
+    int         rc { 0 };
+    std::string res;
+    std::string errMsg;
+  };
+
  public:
   CTcl() {
     interp_ = Tcl_CreateInterp();
@@ -217,6 +225,8 @@ class CTcl {
 
   Tcl_Interp *interp() const { return interp_; }
 
+  //---
+
   bool init() {
     if (Tcl_Init(interp()) == TCL_ERROR)
       return false;
@@ -224,6 +234,9 @@ class CTcl {
     return true;
   }
 
+  //---
+
+  // set/get variable
   void createVar(const std::string &name, const std::string &value) {
     CTclUtil::createVar(interp(), name, value);
   }
@@ -244,6 +257,9 @@ class CTcl {
     return CTclUtil::getVar(interp(), name);
   }
 
+  //---
+
+  // create command
   Tcl_Command createExprCommand(const std::string &name, ObjCmdProc proc, ObjCmdData data) {
     auto mathName = "tcl::mathfunc::" + name;
 
@@ -258,45 +274,85 @@ class CTcl {
 
   const StringList &commandNames() const { return commandNames_; }
 
+  //---
+
+  // create alias
   int createAlias(const std::string &newName, const std::string &oldName) {
     return Tcl_CreateAlias(interp(), newName.c_str(), interp(), oldName.c_str(), 0, nullptr);
   }
 
+  //---
+
+  // evaluate expression
   bool evalExpr(const std::string &expr, std::string &res, bool showError=false) {
-    return eval("expr {" + expr + "}", res, showError);
-  }
+    EvalData evalData;
 
-  int evalExpr(const std::string &expr, bool showError=false) {
-    return eval("expr {" + expr + "}", showError);
-  }
+    evalData.showError = showError;
 
-  bool eval(const std::string &cmd, std::string &res, bool showError=false) {
-    int rc = eval(cmd, showError);
+    auto rc = evalExpr(expr, evalData);
 
-    if (rc != TCL_OK)
-      return false;
-
-    res = getResult();
-
-    return true;
-  }
-
-  int eval(const std::string &str, bool showError=false, bool showResult=false) {
-    int rc = CTclUtil::eval(interp(), str.c_str());
-
-    if (rc != TCL_OK) {
-      if (showError)
-        outputError(errorInfo(rc));
-    }
-
-    if (showResult) {
-      auto res = getResult();
-
-      if (res.size())
-        std::cout << res.c_str() << "\n";
-    }
+    res = evalData.res;
 
     return rc;
+  }
+
+  bool evalExpr(const std::string &expr, bool showError=false) {
+    EvalData evalData;
+
+    evalData.showError = showError;
+
+    return evalExpr(expr, evalData);
+  }
+
+  bool evalExpr(const std::string &expr, EvalData &evalData) {
+    return eval("expr {" + expr + "}", evalData);
+  }
+
+  //---
+
+  bool eval(const std::string &cmd, std::string &res, bool showError=false) {
+    EvalData evalData;
+
+    evalData.showError = showError;
+
+    auto rc = eval(cmd, evalData);
+
+    res = evalData.res;
+
+    return rc;
+  }
+
+  bool eval(const std::string &cmd, bool showError=false, bool showResult=false) {
+    EvalData evalData;
+
+    evalData.showError  = showError;
+    evalData.showResult = showResult;
+
+    return eval(cmd, evalData);
+  }
+
+  bool eval(const std::string &cmd, EvalData &evalData) {
+    bool res = true;
+
+    evalData.rc = CTclUtil::eval(interp(), cmd.c_str());
+
+    if (evalData.rc != TCL_OK) {
+      evalData.errMsg = errorInfo(evalData.rc);
+
+      if (evalData.showError)
+        outputError(evalData.errMsg);
+
+      res = false;
+    }
+
+    evalData.res = getResult();
+
+    if (evalData.showResult) {
+      if (evalData.res.size())
+        outputResult(evalData.res);
+    }
+
+    return res;
   }
 
   static bool splitList(const std::string &str, StringList &strs) {
@@ -314,7 +370,8 @@ class CTcl {
       Tcl_VarTraceInfo(interp(), name.c_str(), flags, &CTcl::traceProc, 0);
 
     if (! data) {
-      Tcl_TraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, static_cast<ClientData>(this));
+      Tcl_TraceVar(interp(), name.c_str(), flags,
+                   &CTcl::traceProc, static_cast<ClientData>(this));
 
       traces_.insert(name);
     }
@@ -323,7 +380,8 @@ class CTcl {
   void untraceVar(const std::string &name) {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
-    Tcl_UntraceVar(interp(), name.c_str(), flags, &CTcl::traceProc, static_cast<ClientData>(this));
+    Tcl_UntraceVar(interp(), name.c_str(), flags,
+                   &CTcl::traceProc, static_cast<ClientData>(this));
 
     traces_.erase(name);
   }
@@ -341,6 +399,10 @@ class CTcl {
 
   virtual void outputError(const std::string &msg) {
     std::cerr << msg << "\n";
+  }
+
+  virtual void outputResult(const std::string &res) {
+    std::cout << res.c_str() << "\n";
   }
 
   void processEvents() {
@@ -399,7 +461,8 @@ class CTcl {
 
  private:
   Tcl_Command createObjCommandI(const std::string &name, ObjCmdProc proc, ObjCmdData data) {
-    return Tcl_CreateObjCommand(interp(), const_cast<char *>(name.c_str()), proc, data, nullptr);
+    return Tcl_CreateObjCommand(interp(), const_cast<char *>(name.c_str()),
+                                proc, data, nullptr);
   }
 
  private:

@@ -185,6 +185,11 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  void startUpdate();
+  void endUpdate();
+
+  //---
+
   void emitDeleted();
   void emitModelChanged();
   void emitDataChanged();
@@ -337,10 +342,12 @@ class CQChartsModelData : public QObject {
 
   bool copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const;
 
- private:
-  void updatePropertyModel();
+  //---
 
   void connectModel(bool b);
+
+ private:
+  void updatePropertyModel();
 
   static QVariant modelIndData(QAbstractItemModel *model, const QModelIndex &ind);
 
@@ -409,7 +416,7 @@ class CQChartsModelData : public QObject {
   // hier sep model data
   ModelP hierSepModel_; //!< hier sep model
 
-  // proxt model datas
+  // proxy model datas
   ProxyModelData<CQBucketModel>    bucketModelData_;
   ProxyModelData<CQHierSepModel>   hierSepModelData_;
   ProxyModelData<CQPivotModel>     pivotModelData_;
@@ -420,6 +427,11 @@ class CQChartsModelData : public QObject {
   PropertyModel* propertyModel_ { nullptr }; //!< property model
 
   CQFileWatcher* fileWatcher_ { nullptr }; //!< model file watcher
+
+  bool updating_ { false };
+
+  bool modelChanged_ { false };
+  bool dataChanged_  { false };
 
   mutable std::mutex mutex_; //!< thread mutex
 };

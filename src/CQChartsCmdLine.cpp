@@ -405,7 +405,7 @@ completeArg(CQChartsCmdWidget *widget, const QString &command, const QString &op
       QString("complete -command {%1} -option {%2} -value {%3} -name_values %4 -exact_space").
               arg(command).arg(option).arg(arg).arg(QString::fromStdString(nameValues));
 
-    qtcl_->eval(cmd, res);
+    (void) qtcl_->eval(cmd, res);
 
     matchStr = res.toString();
   }
@@ -465,11 +465,11 @@ executeCommand(const QString &line)
 
   bool log = true;
 
-  int rc = qtcl_->eval(line, /*showError*/true, /*showResult*/log);
+  bool rc = qtcl_->eval(line, /*showError*/true, /*showResult*/log);
 
   std::cout << std::flush;
 
-  if (rc != TCL_OK)
+  if (! rc)
     std::cerr << "Invalid line: '" << line.toStdString() + "'\n";
 
   std::string str;

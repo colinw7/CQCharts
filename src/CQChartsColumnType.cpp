@@ -540,6 +540,12 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   bool changed = false;
 
+  auto *modelData = charts_->getModelData(model);
+
+  modelData->startUpdate();
+
+  //---
+
   // store role in model or cache if not supported
   int role = CQModelUtil::roleCast(CQBaseModelRole::Type);
 
@@ -609,9 +615,9 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
-  if (changed) {
-    auto *modelData = charts_->getModelData(model);
+  modelData->endUpdate();
 
+  if (changed) {
     if (modelData)
       charts_->emitModelTypeChanged(modelData->ind());
   }
@@ -625,6 +631,12 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
                    Type type, const CQChartsNameValues &nameValues)
 {
   bool changed = false;
+
+  auto *modelData = charts_->getModelData(model);
+
+  modelData->startUpdate();
+
+  //---
 
   // store role in model or cache if not supported
   int role = CQModelUtil::roleCast(CQBaseModelRole::HeaderType);
@@ -690,9 +702,9 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
-  if (changed) {
-    auto *modelData = charts_->getModelData(model);
+  modelData->endUpdate();
 
+  if (changed) {
     if (modelData)
       charts_->emitModelTypeChanged(modelData->ind());
   }

@@ -358,6 +358,8 @@ void
 CQChartsModelData::
 modelHeaderDataChangedSlot(Qt::Orientation /*orient*/, int /*start*/, int /*end*/)
 {
+  resetDetails();
+
   emitModelChanged();
 }
 
@@ -457,6 +459,29 @@ currentModel(bool proxy) const
 
 void
 CQChartsModelData::
+startUpdate()
+{
+  updating_ = true;
+
+  modelChanged_ = false;
+  dataChanged_  = false;
+}
+
+void
+CQChartsModelData::
+endUpdate()
+{
+  updating_ = false;
+
+  if (modelChanged_)
+    emitModelChanged();
+
+  if (dataChanged_)
+    emitDataChanged();
+}
+
+void
+CQChartsModelData::
 emitDeleted()
 {
   Q_EMIT deleted();
@@ -466,14 +491,20 @@ void
 CQChartsModelData::
 emitModelChanged()
 {
-  Q_EMIT modelChanged();
+  if (updating_)
+    modelChanged_ = true;
+  else
+    Q_EMIT modelChanged();
 }
 
 void
 CQChartsModelData::
 emitDataChanged()
 {
-  Q_EMIT dataChanged();
+  if (updating_)
+    dataChanged_ = true;
+  else
+    Q_EMIT dataChanged();
 }
 
 //---

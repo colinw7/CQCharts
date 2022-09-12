@@ -53,9 +53,9 @@ struct CQChartsPlotSymbol {
 
   using Lines = std::vector<Line>;
 
-  SymbolType::Type type { SymbolType::Type::NONE };
-  Lines            lines;
-  Lines            fillLines;
+  SymbolType::Type type { SymbolType::Type::NONE }; //<! symbol type
+  Lines            lines;                           //<! symbol stroke lines
+  Lines            fillLines;                       //<! symbol fill lines
 
   CQChartsPlotSymbol(SymbolType::Type type, std::initializer_list<Line> lines,
                      std::initializer_list<Line> fillLines) :
