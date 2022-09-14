@@ -6511,13 +6511,16 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(vars);
     }
-    // column named value
+    // column details named value
     else if (name.left(8) == "details.") {
       auto name1 = name.mid(8);
 
-      if (CQChartsModelColumnDetails::isNamedValue(name1)) {
-        const auto *details = modelData->details();
+      const auto *details = modelData->details();
 
+      // TODO: is_outlier, data_name
+
+      if (CQChartsModelColumnDetails::isNamedValue(name1)) {
+        // specified column
         if (argv.hasParseArg("column")) {
           if (! column.isValid() || column.column() >= details->numColumns())
             return errorMsg("Invalid column specified");
@@ -6526,6 +6529,7 @@ execCmd(CQChartsCmdArgs &argv)
 
           return cmdBase_->setCmdRc(columnDetails->getNamedValue(name1));
         }
+        // all columns
         else {
           int nc = details->numColumns();
 
@@ -6538,6 +6542,38 @@ execCmd(CQChartsCmdArgs &argv)
           }
 
           return cmdBase_->setCmdRc(vars);
+        }
+      }
+      else if (name1 == "parameter") {
+        if (! argv.hasParseArg("column"))
+          return errorMsg("No columns specified");
+
+        if (! argv.hasParseArg("data"))
+          return errorMsg("No data specified");
+
+        auto data = argv.getParseStr("data");
+
+        auto *columnDetails = details->columnDetails(column);
+
+        const auto *columnType = columnDetails->columnType();
+        if (! columnType) return errorMsg("No type for column");
+
+        if (data == "?") {
+          auto names = columnType->paramNames();
+
+          return cmdBase_->setCmdRc(names);
+        }
+        else {
+          auto *param = columnType->getParam(data);
+          if (! param) return errorMsg("No parameter for '" + data + "'");
+
+          QVariant var;
+
+          if (columnType->getNameValueVariant(columnDetails->nameValues(), data,
+                                              param->type(), var))
+            return cmdBase_->setCmdRc(var);
+          else
+            return errorMsg("Invalid parameter value for '" + data + "'");
         }
       }
       else if (name1 == "correlation") {
@@ -6557,8 +6593,6 @@ execCmd(CQChartsCmdArgs &argv)
         if (! column1.isValid())
           return errorMsg("Invalid data column specified");
 
-        const auto *details = modelData->details();
-
         double c = details->correlation(column, column1);
 
         return cmdBase_->setCmdRc(c);
@@ -6569,8 +6603,6 @@ execCmd(CQChartsCmdArgs &argv)
 
         if (! argv.hasParseArg("data"))
           return errorMsg("No data specified");
-
-        const auto *details = modelData->details();
 
         if (! column.isValid() || column.column() >= details->numColumns())
           return errorMsg("Invalid column specified");
@@ -7638,6 +7670,52 @@ execCmd(CQChartsCmdArgs &argv)
       bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
       dataModel->setReadOnly(b);
+    }
+    // column details named value
+    else if (name.left(8) == "details.") {
+      auto name1 = name.mid(8);
+
+      if (name1 == "parameter") {
+        if (! argv.hasParseArg("column"))
+          return errorMsg("No columns specified");
+
+        if (! argv.hasParseArg("data"))
+          return errorMsg("No data specified");
+
+        auto data = argv.getParseStr("data");
+
+        auto *details = modelData->details();
+
+        auto *columnDetails = details->columnDetails(column);
+
+        const auto *columnType = columnDetails->columnType();
+        if (! columnType) return errorMsg("No type for column");
+
+        if (data == "?") {
+          auto names = columnType->paramNames();
+
+          return cmdBase_->setCmdRc(names);
+        }
+        else {
+          auto *param = columnType->getParam(data);
+          if (! param) return errorMsg("No parameter for '" + data + "'");
+
+          QVariant var;
+
+          auto nameValues = columnDetails->nameValues();
+
+          if (! columnType->setNameValueVariant(nameValues, data, param->type(), value))
+            return errorMsg("Invalid parameter value for '" + data + "'");
+
+          auto *columnTypeMgr = charts->columnTypeMgr();
+
+          if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),
+                                                  nameValues))
+            return errorMsg("Failed to set column type data for '" + data + "'");
+        }
+      }
+      else
+        return errorMsg(QString("Invalid column details name '%1'").arg(name));
     }
     else if (name == "?") {
       static auto names = QStringList() <<

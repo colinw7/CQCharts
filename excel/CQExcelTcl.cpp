@@ -9,16 +9,20 @@ Tcl(Model *model) :
 {
   setObjectName("excelTcl");
 
-  createExprCommand("sum"    , (CQTcl::ObjCmdProc) &Tcl::sumCmd    , this);
-  createExprCommand("average", (CQTcl::ObjCmdProc) &Tcl::averageCmd, this);
-  createExprCommand("min"    , (CQTcl::ObjCmdProc) &Tcl::minCmd    , this);
-  createExprCommand("max"    , (CQTcl::ObjCmdProc) &Tcl::maxCmd    , this);
-  createExprCommand("cell"   , (CQTcl::ObjCmdProc) &Tcl::cellCmd   , this);
-  createExprCommand("column" , (CQTcl::ObjCmdProc) &Tcl::columnCmd , this);
-  createExprCommand("row"    , (CQTcl::ObjCmdProc) &Tcl::rowCmd    , this);
-  createExprCommand("eval"   , (CQTcl::ObjCmdProc) &Tcl::evalCmd   , this);
-  createExprCommand("concat" , (CQTcl::ObjCmdProc) &Tcl::concatCmd , this);
-  createExprCommand("sumup"  , (CQTcl::ObjCmdProc) &Tcl::sumUpCmd  , this);
+  createExprCommand("sum"    , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::sumCmd    ), this);
+  createExprCommand("average", reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::averageCmd), this);
+  createExprCommand("min"    , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::minCmd    ), this);
+  createExprCommand("max"    , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::maxCmd    ), this);
+  createExprCommand("cell"   , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::cellCmd   ), this);
+  createExprCommand("column" , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::columnCmd ), this);
+  createExprCommand("row"    , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::rowCmd    ), this);
+  createExprCommand("eval"   , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::evalCmd   ), this);
+  createExprCommand("concat" , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::concatCmd ), this);
+  createExprCommand("sumup"  , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::sumUpCmd  ), this);
+  createExprCommand("color"  , reinterpret_cast<CQTcl::ObjCmdProc>(&Tcl::colorCmd  ), this);
+
+  traceVar("row");
+  traceVar("column");
 }
 
 int
@@ -133,9 +137,7 @@ evalCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 
   QVariant res;
 
-  int rc = tcl->evalExpr(values[0].toString(), res);
-
-  if (rc != TCL_OK)
+  if (! tcl->evalExpr(values[0].toString(), res))
     return TCL_ERROR;
 
   tcl->setResult(res);
@@ -206,6 +208,31 @@ sumUpCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   return TCL_OK;
 }
 
+int
+Tcl::
+colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
+{
+  auto *tcl = static_cast<Tcl *>(clientData);
+
+  QVariantList values;
+
+  tcl->argValues(objc, objv, values);
+
+  QString res;
+
+  if (values.size() != 3)
+    return TCL_ERROR;
+
+  bool ok;
+  auto r = values[0].toDouble(&ok);
+  auto g = values[1].toDouble(&ok);
+  auto b = values[2].toDouble(&ok);
+
+  tcl->setResult(QVariant(QColor(r, g, b)));
+
+  return TCL_OK;
+}
+
 bool
 Tcl::
 processCmd(const QString &name, int objc, const Tcl_Obj **objv)
@@ -260,7 +287,7 @@ processCmd(const QString &name, int objc, const Tcl_Obj **objv)
         res += r;
 
       if (name == "average")
-        res /= rvalues.size();
+        res /= double(rvalues.size());
     }
     else if (name == "min") {
       res = rvalues[0];
@@ -296,11 +323,15 @@ argValues(int objc, const Tcl_Obj **objv, QVariantList &values) const
 
 void
 Tcl::
-handleTrace(const char *name, int flags)
+handleRead(const char *name)
 {
-  if (flags & TCL_TRACE_READS) {
-    auto *model = this->model();
+  auto *model = this->model();
 
+  if      (strcmp(name, "row") == 0)
+    createVar(name, row());
+  else if (strcmp(name, "column") == 0)
+    createVar(name, column());
+  else {
     int row, col;
 
     if      (model->decodeCellName(QString(name), row, col)) {

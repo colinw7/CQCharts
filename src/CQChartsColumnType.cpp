@@ -63,6 +63,52 @@ bool nameValueBool(const CQChartsNameValues &nameValues, const QString &name, bo
   return nameValues.nameValueBool(name, value, ok) && ok;
 }
 
+bool nameValueVariant(const CQChartsNameValues &nameValues, const QString &name,
+                      CQBaseModelType type, QVariant &var) {
+  if      (type == CQBaseModelType::BOOLEAN) {
+    bool b;
+
+    if (! nameValueBool(nameValues, name, b))
+      return false;
+
+    var = CQChartsVariant::fromBool(b);
+  }
+  else if (type == CQBaseModelType::STRING) {
+    QString str;
+
+    if (! nameValueString(nameValues, name, str))
+      return false;
+
+    var = CQChartsVariant::fromString(str);
+  }
+  else if (type == CQBaseModelType::INTEGER) {
+    long i;
+
+    if (! nameValueInteger(nameValues, name, i))
+      return false;
+
+    var = CQChartsVariant::fromInt(i);
+  }
+  else if (type == CQBaseModelType::REAL) {
+    double r;
+
+    if (! nameValueReal(nameValues, name, r))
+      return false;
+
+    var = CQChartsVariant::fromReal(r);
+  }
+  else {
+    QString str;
+
+    if (! nameValueString(nameValues, name, str))
+      return false;
+
+    var = CQChartsVariant::fromString(str);
+  }
+
+  return true;
+}
+
 long varInteger(const QVariant &var, long def) {
   bool ok = false;
 
@@ -176,7 +222,7 @@ addType(Type type, CQChartsColumnType *data)
 #if 0
 const CQChartsColumnType *
 CQChartsColumnTypeMgr::
-decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
+decodeTypeData(const QString &typeStr, NameValues &nameValues) const
 {
   QString baseTypeName;
 
@@ -191,7 +237,7 @@ decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnTypeMgr::
-encodeTypeData(Type type, const CQChartsNameValues &nameValues) const
+encodeTypeData(Type type, const NameValues &nameValues) const
 {
   auto lstr = CQBaseModel::typeName(type);
   auto rstr = nameValues.toString();
@@ -479,7 +525,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
     CQChartsVariant::toString(var3, str3);
 
-    typeData.nameValues = CQChartsNameValues(str3);
+    typeData.nameValues = NameValues(str3);
   }
 
   //---
@@ -527,7 +573,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
     CQChartsVariant::toString(var5, str5);
 
-    typeData.headerNameValues = CQChartsNameValues(str5);
+    typeData.headerNameValues = NameValues(str5);
   }
 
   return true;
@@ -536,7 +582,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 bool
 CQChartsColumnTypeMgr::
 setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                   Type type, const CQChartsNameValues &nameValues)
+                   Type type, const NameValues &nameValues)
 {
   bool changed = false;
 
@@ -579,7 +625,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   // store parameter values in model (by parameter role)
   int vrole = CQModelUtil::roleCast(CQBaseModelRole::TypeValues);
 
-  CQChartsNameValues nameValues1;
+  NameValues nameValues1;
 
   const auto *columnType = getType(type);
 
@@ -628,7 +674,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 bool
 CQChartsColumnTypeMgr::
 setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
-                   Type type, const CQChartsNameValues &nameValues)
+                   Type type, const NameValues &nameValues)
 {
   bool changed = false;
 
@@ -672,7 +718,7 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
   int vrole  = CQModelUtil::roleCast(CQBaseModelRole::TypeValues);
   int hvrole = CQModelUtil::roleCast(CQBaseModelRole::HeaderTypeValues);
 
-  CQChartsNameValues nameValues1;
+  NameValues nameValues1;
 
   const auto *columnType = getType(type);
 
@@ -933,7 +979,7 @@ columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsC
 
 int
 CQChartsColumnType::
-preferredWidth(const CQChartsNameValues &nameValues) const
+preferredWidth(const NameValues &nameValues) const
 {
   QString str;
 
@@ -949,7 +995,7 @@ preferredWidth(const CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnType::
-nullValue(const CQChartsNameValues &nameValues) const
+nullValue(const NameValues &nameValues) const
 {
   QString nullStr;
 
@@ -961,7 +1007,7 @@ nullValue(const CQChartsNameValues &nameValues) const
 
 CQChartsColor
 CQChartsColumnType::
-drawColor(const CQChartsNameValues &nameValues) const
+drawColor(const NameValues &nameValues) const
 {
   QString colorName;
 
@@ -978,7 +1024,7 @@ drawColor(const CQChartsNameValues &nameValues) const
 
 CQChartsColumnType::DrawType
 CQChartsColumnType::
-drawType(const CQChartsNameValues &nameValues) const
+drawType(const NameValues &nameValues) const
 {
   QString typeName;
 
@@ -999,7 +1045,7 @@ drawType(const CQChartsNameValues &nameValues) const
 
 CQChartsColorStops
 CQChartsColumnType::
-drawStops(const CQChartsNameValues &nameValues) const
+drawStops(const NameValues &nameValues) const
 {
   QString stopsStr;
 
@@ -1046,14 +1092,14 @@ remapNamedValue(CQCharts *charts, const QAbstractItemModel *model, const CQChart
 
 CQChartsNameValues
 CQChartsColumnType::
-namedValues(const CQChartsNameValues &nameValues) const
+namedValues(const NameValues &nameValues) const
 {
   QString namedValuesStr;
 
   if (! nameValueString(nameValues, "named_values", namedValuesStr))
     namedValuesStr.clear();
 
-  CQChartsNameValues namedValues;
+  NameValues namedValues;
 
   QStringList strs;
 
@@ -1074,14 +1120,14 @@ namedValues(const CQChartsNameValues &nameValues) const
 
 CQChartsNameValues
 CQChartsColumnType::
-namedColors(const CQChartsNameValues &nameValues) const
+namedColors(const NameValues &nameValues) const
 {
   QString namedColorsStr;
 
   if (! nameValueString(nameValues, "named_colors", namedColorsStr))
     namedColorsStr.clear();
 
-  CQChartsNameValues namedColors;
+  NameValues namedColors;
 
   QStringList strs;
 
@@ -1102,14 +1148,14 @@ namedColors(const CQChartsNameValues &nameValues) const
 
 CQChartsNameValues
 CQChartsColumnType::
-namedImages(CQCharts *, const CQChartsNameValues &nameValues) const
+namedImages(CQCharts *, const NameValues &nameValues) const
 {
   QString namedImagesStr;
 
   if (! nameValueString(nameValues, "named_images", namedImagesStr))
     namedImagesStr.clear();
 
-  CQChartsNameValues namedImages;
+  NameValues namedImages;
 
   QStringList strs;
 
@@ -1132,7 +1178,33 @@ namedImages(CQCharts *, const CQChartsNameValues &nameValues) const
 
 bool
 CQChartsColumnType::
-nameValueString(const CQChartsNameValues &nameValues, const QString &name, QString &value) const
+getNameValueVariant(const NameValues &nameValues, const QString &name,
+                    Type type, QVariant &value) const
+{
+  // TODO: check name is valid and has correct type ?
+
+  // fails if name is not present in name values
+  if (! CQChartsColumnUtil::nameValueVariant(nameValues, name, type, value))
+    value = QVariant();
+
+  return true;
+}
+
+bool
+CQChartsColumnType::
+setNameValueVariant(NameValues &nameValues, const QString &name,
+                    Type /*type*/, const QVariant &value) const
+{
+  // TODO: check name is valid and has correct type ?
+
+  nameValues.setNameValue(name, value);
+
+  return true;
+}
+
+bool
+CQChartsColumnType::
+nameValueString(const NameValues &nameValues, const QString &name, QString &value) const
 {
   return CQChartsColumnUtil::nameValueString(nameValues, name, value);
 }
@@ -1326,7 +1398,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 QVariant
 CQChartsColumnRealType::
-minValue(const CQChartsNameValues &nameValues) const
+minValue(const NameValues &nameValues) const
 {
   double r;
 
@@ -1338,7 +1410,7 @@ minValue(const CQChartsNameValues &nameValues) const
 
 QVariant
 CQChartsColumnRealType::
-maxValue(const CQChartsNameValues &nameValues) const
+maxValue(const NameValues &nameValues) const
 {
   double r;
 
@@ -1350,7 +1422,7 @@ maxValue(const CQChartsNameValues &nameValues) const
 
 QVariant
 CQChartsColumnRealType::
-sumValue(const CQChartsNameValues &nameValues) const
+sumValue(const NameValues &nameValues) const
 {
   double r;
 
@@ -1362,7 +1434,7 @@ sumValue(const CQChartsNameValues &nameValues) const
 
 QVariant
 CQChartsColumnRealType::
-badValue(const CQChartsNameValues &nameValues) const
+badValue(const NameValues &nameValues) const
 {
   double r;
 
@@ -1374,7 +1446,7 @@ badValue(const CQChartsNameValues &nameValues) const
 
 bool
 CQChartsColumnRealType::
-rmin(const CQChartsNameValues &nameValues, double &r) const
+rmin(const NameValues &nameValues, double &r) const
 {
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", r))
     return false;
@@ -1384,7 +1456,7 @@ rmin(const CQChartsNameValues &nameValues, double &r) const
 
 bool
 CQChartsColumnRealType::
-rmax(const CQChartsNameValues &nameValues, double &r) const
+rmax(const NameValues &nameValues, double &r) const
 {
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", r))
     return false;
@@ -1394,7 +1466,7 @@ rmax(const CQChartsNameValues &nameValues, double &r) const
 
 bool
 CQChartsColumnRealType::
-rsum(const CQChartsNameValues &nameValues, double &r) const
+rsum(const NameValues &nameValues, double &r) const
 {
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "sum", r))
     return false;
@@ -1404,7 +1476,7 @@ rsum(const CQChartsNameValues &nameValues, double &r) const
 
 QString
 CQChartsColumnRealType::
-getIFormat(const CQChartsNameValues &nameValues) const
+getIFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -1419,7 +1491,7 @@ getIFormat(const CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnRealType::
-getOFormat(const CQChartsNameValues &nameValues) const
+getOFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -1534,7 +1606,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 QVariant
 CQChartsColumnIntegerType::
-minValue(const CQChartsNameValues &nameValues) const
+minValue(const NameValues &nameValues) const
 {
   long i;
 
@@ -1546,7 +1618,7 @@ minValue(const CQChartsNameValues &nameValues) const
 
 QVariant
 CQChartsColumnIntegerType::
-maxValue(const CQChartsNameValues &nameValues) const
+maxValue(const NameValues &nameValues) const
 {
   long i;
 
@@ -1558,7 +1630,7 @@ maxValue(const CQChartsNameValues &nameValues) const
 
 QVariant
 CQChartsColumnIntegerType::
-sumValue(const CQChartsNameValues &nameValues) const
+sumValue(const NameValues &nameValues) const
 {
   long i;
 
@@ -1570,7 +1642,7 @@ sumValue(const CQChartsNameValues &nameValues) const
 
 bool
 CQChartsColumnIntegerType::
-imin(const CQChartsNameValues &nameValues, long &i) const
+imin(const NameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", i))
     return false;
@@ -1580,7 +1652,7 @@ imin(const CQChartsNameValues &nameValues, long &i) const
 
 bool
 CQChartsColumnIntegerType::
-imax(const CQChartsNameValues &nameValues, long &i) const
+imax(const NameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", i))
     return false;
@@ -1590,7 +1662,7 @@ imax(const CQChartsNameValues &nameValues, long &i) const
 
 bool
 CQChartsColumnIntegerType::
-isum(const CQChartsNameValues &nameValues, long &i) const
+isum(const NameValues &nameValues, long &i) const
 {
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "sum", i))
     return false;
@@ -1600,7 +1672,7 @@ isum(const CQChartsNameValues &nameValues, long &i) const
 
 QString
 CQChartsColumnIntegerType::
-getIFormat(const CQChartsNameValues &nameValues) const
+getIFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -1615,7 +1687,7 @@ getIFormat(const CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnIntegerType::
-getOFormat(const CQChartsNameValues &nameValues) const
+getOFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -1708,7 +1780,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 QString
 CQChartsColumnTimeType::
-getIFormat(const CQChartsNameValues &nameValues) const
+getIFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -1723,7 +1795,7 @@ getIFormat(const CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnTimeType::
-getOFormat(const CQChartsNameValues &nameValues) const
+getOFormat(const NameValues &nameValues) const
 {
   QString format;
 
@@ -2385,7 +2457,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnColorType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-           const CQChartsNameValues &nameValues, bool &mapped,
+           const NameValues &nameValues, bool &mapped,
            double &map_min, double &map_max, PaletteName &paletteName) const
 {
   if (! CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped))
@@ -2632,7 +2704,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnSymbolTypeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-           const CQChartsNameValues &nameValues, bool &mapped, long &map_min, long &map_max,
+           const NameValues &nameValues, bool &mapped, long &map_min, long &map_max,
            long &data_min, long &data_max) const
 {
   mapped   = false;
@@ -2763,7 +2835,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnSymbolSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-           const CQChartsNameValues &nameValues, bool &mapped, double &map_min, double &map_max,
+           const NameValues &nameValues, bool &mapped, double &map_min, double &map_max,
            double &data_min, double &data_max) const
 {
   mapped   = false;
@@ -2894,7 +2966,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnFontSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-           const CQChartsNameValues &nameValues, bool &mapped, double &map_min, double &map_max,
+           const NameValues &nameValues, bool &mapped, double &map_min, double &map_max,
            double &data_min, double &data_max) const
 {
   mapped   = false;

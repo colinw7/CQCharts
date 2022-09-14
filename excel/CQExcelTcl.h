@@ -20,7 +20,7 @@ class Tcl : public CQTcl {
   void setColumn(int i) { column_ = i; }
 
  private:
-  void handleTrace(const char *name, int flags) override;
+  void handleRead(const char *name) override;
 
  private:
   static int sumCmd    (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
@@ -33,6 +33,7 @@ class Tcl : public CQTcl {
   static int evalCmd   (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
   static int concatCmd (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
   static int sumUpCmd  (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
+  static int colorCmd  (ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
   bool processCmd(const QString &name, int objc, const Tcl_Obj **objv);
 

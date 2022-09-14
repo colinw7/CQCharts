@@ -1338,9 +1338,7 @@ void
 CQChartsCmdBase::
 parseLine(const QString &line, bool log)
 {
-  int rc = qtcl()->eval(line, /*showError*/true, /*showResult*/log);
-
-  if (rc != TCL_OK)
+  if (! qtcl()->eval(line, /*showError*/true, /*showResult*/log))
     errorMsg("Invalid line: '" + line + "'");
 }
 
@@ -1498,5 +1496,5 @@ execProc(const QString &args)
   if (args != "")
    cmd += " " + args;
 
-  base_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  (void) base_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 }

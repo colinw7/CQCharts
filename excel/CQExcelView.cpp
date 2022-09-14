@@ -1,6 +1,7 @@
 #include <CQExcelView.h>
 #include <CQExcelFrame.h>
 #include <CQExcelModel.h>
+#include <CQExcelDelegate.h>
 
 #include <CQUtil.h>
 
@@ -24,6 +25,10 @@ View(Frame *frame, int nr, int nc) :
   proxy_->setSourceModel(excelModel());
 
   CQModelView::setModel(proxy_);
+
+  auto *delegate = new CQExcelDelegate(this);
+
+  setItemDelegate(delegate);
 
   auto *sm = selectionModel();
 
@@ -69,7 +74,7 @@ void
 View::
 selectionSlot()
 {
-  emit currentSelectionChanged();
+  Q_EMIT currentSelectionChanged();
 }
 
 QModelIndexList
@@ -162,7 +167,7 @@ setCurrentIndex(const QModelIndex &ind)
 {
   currentIndex_ = ind;
 
-  emit currentIndexChanged();
+  Q_EMIT currentIndexChanged();
 }
 
 void

@@ -661,7 +661,7 @@ dataName(const QVariant &v) const
   auto *charts = details_->charts();
   if (! charts) return QVariant();
 
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
   if (! columnType) return v;
 
   auto *model = details_->model();
@@ -1929,7 +1929,7 @@ calcType()
 
   //---
 
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
 
   if (columnType) {
     typeName_ = columnType->name();
@@ -2121,7 +2121,7 @@ bool
 CQChartsModelColumnDetails::
 columnNameValue(const QString &name, QString &value) const
 {
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
   if (! columnType) return false;
 
   if (! columnType->nameValueString(nameValues(), name, value))
@@ -2133,6 +2133,15 @@ columnNameValue(const QString &name, QString &value) const
 const CQChartsColumnType *
 CQChartsModelColumnDetails::
 columnType() const
+{
+  initCache();
+
+  return columnTypeI();
+}
+
+const CQChartsColumnType *
+CQChartsModelColumnDetails::
+columnTypeI() const
 {
   auto *charts = details_->charts();
   if (! charts) return nullptr;
@@ -2230,7 +2239,7 @@ namedValue(const QString &name, QVariant &value) const
 {
   initType();
 
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
   if (! columnType) return false;
 
   const auto &nameValues  = typeData_.nameValues;
@@ -2249,7 +2258,7 @@ namedColor(const QString &name, Color &color) const
 {
   initType();
 
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
   if (! columnType) return false;
 
   const auto &nameValues  = typeData_.nameValues;
@@ -2275,7 +2284,7 @@ namedImage(const QString &name, CQChartsImage &image) const
 {
   initType();
 
-  const auto *columnType = this->columnType();
+  const auto *columnType = this->columnTypeI();
   if (! columnType) return false;
 
   auto *charts = details_->charts();

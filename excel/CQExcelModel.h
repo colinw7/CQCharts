@@ -32,7 +32,8 @@ class Model : public CQDataModel {
         strs << "fill.color=" + brush.color().name();
 
       if (fontSet)
-        strs << "font=" + font.rawName();
+        //strs << "font=" + font.rawName();
+        strs << "font=" + font.toString();
 
       return strs.join(";");
     }

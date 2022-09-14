@@ -386,16 +386,32 @@ class CTcl {
     traces_.erase(name);
   }
 
-  virtual void handleTrace(const char *name, int flags) {
+  void handleTrace(const char *name, int flags) {
     // ignore unset called on trace destruction
     if (flags & TCL_TRACE_UNSETS) return;
 
-    std::cerr << "CTcl::handleTrace (";
-    if (flags & TCL_TRACE_READS ) std::cerr << " read" ;
-    if (flags & TCL_TRACE_WRITES) std::cerr << " write";
-  //if (flags & TCL_TRACE_UNSETS) std::cerr << " unset";
-    std::cerr << ") " << name << "\n";
+    bool handled = false;
+
+    if (flags & TCL_TRACE_READS ) { handleRead (name); handled = true; }
+    if (flags & TCL_TRACE_WRITES) { handleWrite(name); handled = true; }
+  //if (flags & TCL_TRACE_UNSETS) { handleUnset(name); handled = true; }
+
+    assert(handled);
   }
+
+  virtual void handleRead(const char *name) {
+    std::cerr << "CTcl::handleRead " << name << "\n";
+  }
+
+  virtual void handleWrite(const char *name) {
+    std::cerr << "CTcl::handleWrite " << name << "\n";
+  }
+
+#if 0
+  virtual void handleUnset(const char *name) {
+    std::cerr << "CTcl::handleUnset " << name << "\n";
+  }
+#endif
 
   virtual void outputError(const std::string &msg) {
     std::cerr << msg << "\n";

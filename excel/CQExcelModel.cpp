@@ -113,6 +113,14 @@ data(const QModelIndex &index, int role) const
 
     return CQDataModel::data(index, Qt::DisplayRole);
   }
+  else if (role == int(Qt::ToolTipRole)) {
+    auto str = CQDataModel::data(index, Qt::DisplayRole).toString();
+
+    if (hasCellExpression(index))
+      str += " {" + cellExpression(index) + "}";
+
+    return QVariant(str);
+  }
 
   return CQDataModel::data(index, role);
 }

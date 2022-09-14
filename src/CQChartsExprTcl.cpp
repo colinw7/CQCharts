@@ -68,10 +68,9 @@ encodeColumnName(const QString &name)
 
 void
 CQChartsExprTcl::
-handleTrace(const char *name, int flags)
+handleRead(const char *name)
 {
-  if (flags & TCL_TRACE_READS)
-    setVar(name, row(), column());
+  setVar(name, row(), column());
 }
 
 void

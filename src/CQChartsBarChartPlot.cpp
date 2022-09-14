@@ -775,6 +775,9 @@ initRangeAxesI()
     bool ok;
 
     yname = modelHHeaderString(valueColumns.column(), ok);
+
+    if (isPercent())
+      yname += " (%)";
   }
 
   yAxis->setDefLabel(yname);

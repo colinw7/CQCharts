@@ -71,7 +71,7 @@ class CQChartsExprTcl : public CQTcl {
 
   void resetColumns();
 
-  void handleTrace(const char *name, int flags) override;
+  void handleRead(const char *name) override;
 
   void initVars();
 

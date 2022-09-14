@@ -104,6 +104,9 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
    public:
     ColumnTypeVisitor(int column) :
      column_(column) {
+    }
+
+    void initVisit() override {
       nr_ = model_->rowCount(QModelIndex());
     }
 
@@ -121,7 +124,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 
         auto str = modelString(model, ind, ok);
 
-        if (! str.length()) {
+        if (! str.length()) { // empty
           ++numEmpty_;
           return State::SKIP;
         }
@@ -140,7 +143,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 
         auto str = modelString(model, ind, ok);
 
-        if (! str.length()) {
+        if (! str.length()) { // empty
           ++numEmpty_;
           return State::SKIP;
         }
@@ -163,7 +166,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 
    private:
     int  column_   { -1 };   //!< column to check
-    bool isInt_    { true }; //!< could be integeral
+    bool isInt_    { true }; //!< could be integral
     bool isReal_   { true }; //!< could be real
     int  nr_       { 0 };    //!< number of rows
     int  numEmpty_ { 0 };    //!< number of empty values
@@ -355,7 +358,8 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
   if (! var.isValid())
     return false;
 
-  CQChartsVariant::toString(var, str);
+  if (! CQChartsVariant::toString(var, str))
+    return false;
 
   return true;
 }
@@ -721,16 +725,16 @@ setHeaderTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
   QString errorMsg;
 
   // { type         {name value} ...}
-  // {{header type} {name value} ...}
+  // {{column type} {name value} ...}
   QStringList strs;
 
   if (! CQTcl::splitList(typeStr, strs)) {
-    errorMsg = QString("Invalid header type string '%1'").arg(typeStr);
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
     return false;
   }
 
   if (strs.length() < 1) {
-    errorMsg = QString("Invalid header type string '%1'").arg(typeStr);
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
     return false;
   }
 
@@ -745,12 +749,12 @@ setHeaderTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
 
   if (CQTcl::splitList(strs[0], strs1) && strs1.length() > 1) {
     if (strs1.length() != 2) {
-      errorMsg = QString("Invalid header type string '%1'").arg(strs[0]);
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[0]);
       return false;
     }
 
     if (! CQChartsModelUtil::stringToColumn(model, strs1[0], column)) {
-      errorMsg = QString("Invalid header string '%1'").arg(strs1[0]);
+      errorMsg = QString("Invalid column string '%1'").arg(strs1[0]);
       return false;
     }
 
@@ -774,12 +778,12 @@ setHeaderTypeStr(CQCharts *charts, QAbstractItemModel *model, const Column &colu
   QStringList strs;
 
   if (! CQTcl::splitList(typeStr, strs)) {
-    errorMsg = QString("Invalid header type string '%1'").arg(typeStr);
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
     return false;
   }
 
   if (strs.length() < 1) {
-    errorMsg = QString("Invalid header type string '%1'").arg(typeStr);
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
     return false;
   }
 
@@ -802,12 +806,12 @@ setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &col
     QStringList strs1;
 
     if (! CQTcl::splitList(strs[i], strs1)) {
-      errorMsg = QString("Invalid header type string '%1'").arg(strs[i]);
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[i]);
       return false;
     }
 
     if (strs1.length() != 2) {
-      errorMsg = QString("Invalid header type string '%1'").arg(strs[i]);
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[i]);
       return false;
     }
 
@@ -819,7 +823,7 @@ setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &col
   const auto *typeData = columnTypeMgr->getType(CQBaseModel::nameType(typeName));
 
   if (! typeData) {
-    errorMsg = QString("Invalid header type '%1'").arg(typeName);
+    errorMsg = QString("Invalid column type '%1'").arg(typeName);
     return false;
   }
 
@@ -827,7 +831,7 @@ setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &col
   auto columnType = typeData->type();
 
   if (! columnTypeMgr->setModelHeaderType(model, column, columnType, nameValues)) {
-    errorMsg = QString("Failed to set header type '%1'").arg(typeStr);
+    errorMsg = QString("Failed to set column type '%1'").arg(typeStr);
     return false;
   }
 
@@ -993,7 +997,6 @@ getExprModel(const QAbstractItemModel *model)
 CQChartsExprModel *
 getExprModel(QAbstractItemModel *model)
 {
-//std::cerr << (model ? model->objectName().toStdString() : "null") << "\n";
   auto *exprModel = qobject_cast<CQChartsExprModel *>(model);
 
   if (exprModel)
@@ -1003,7 +1006,6 @@ getExprModel(QAbstractItemModel *model)
   if (! sortModel) return nullptr;
 
   auto *sourceModel = sortModel->sourceModel();
-//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
 
   exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
 
@@ -1016,7 +1018,6 @@ getExprModel(QAbstractItemModel *model)
     return nullptr;
 
   sourceModel = proxyModel->sourceModel();
-//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
 
   return getExprModel(sourceModel);
 
@@ -1030,7 +1031,6 @@ getExprModel(QAbstractItemModel *model)
   if (! sortModel) return nullptr;
 
   sourceModel = sortModel->sourceModel();
-//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
 
   exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
 
@@ -1099,7 +1099,7 @@ getDataModel(QAbstractItemModel *model)
   auto *proxyModel = qobject_cast<QAbstractProxyModel *>(model);
 
   if (proxyModel) {
-    auto *dataModel = dynamic_cast<CQDataModel *>(proxyModel->sourceModel());
+    auto *dataModel = getDataModel(proxyModel->sourceModel());
 
     if (dataModel)
       return dataModel;

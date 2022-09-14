@@ -211,6 +211,11 @@ class CQChartsColumnType {
   NameValues namedColors(const NameValues &nameValues) const;
   NameValues namedImages(CQCharts *charts, const NameValues &nameValues) const;
 
+  bool getNameValueVariant(const NameValues &nameValues, const QString &name,
+                           Type type, QVariant &value) const;
+  bool setNameValueVariant(NameValues &nameValues, const QString &name,
+                           Type type, const QVariant &value) const;
+
   bool nameValueString(const NameValues &nameValues, const QString &name, QString &value) const;
 
  protected:

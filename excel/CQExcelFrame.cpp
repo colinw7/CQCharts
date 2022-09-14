@@ -125,7 +125,7 @@ loadCsv(const QString &filename, const LoadOptions &options)
 
   // expand horizontal header to max number of columns
   for (const auto &fields : data) {
-    int numFields = fields.size();
+    int numFields = int(fields.size());
 
     if (options.first_column_header)
       --numFields;
@@ -179,7 +179,7 @@ loadCsv(const QString &filename, const LoadOptions &options)
   //---
 
   // expand vertical header to number of rows
-  int numRows = cdata.size();
+  int numRows = int(cdata.size());
 
   while (int(vheader.size()) < numRows)
     vheader.push_back("");
@@ -195,20 +195,20 @@ loadCsv(const QString &filename, const LoadOptions &options)
     for (int ic = 0; ic < numColumns; ++ic) {
       auto ind = model->index(ir, ic, QModelIndex());
 
-      const auto &row = cdata[ir];
-      int nc = row.size();
+      const auto &row = cdata[size_t(ir)];
+      int nc = int(row.size());
       if (ic >= nc) continue;
 
-      model->setData(ind, row[ic], Qt::DisplayRole);
+      model->setData(ind, row[size_t(ic)], Qt::DisplayRole);
     }
   }
 
   for (int ic = 0; ic < numColumns; ++ic)
-    model->setHeaderData(ic, Qt::Horizontal, hheader[ic], Qt::DisplayRole);
+    model->setHeaderData(ic, Qt::Horizontal, hheader[size_t(ic)], Qt::DisplayRole);
 
   if (! vheader.empty()) {
     for (int ir = 0; ir < numRows; ++ir)
-      model->setHeaderData(ir, Qt::Vertical, vheader[ir], Qt::DisplayRole);
+      model->setHeaderData(ir, Qt::Vertical, vheader[size_t(ir)], Qt::DisplayRole);
   }
 
   model->endResetModel();
@@ -220,7 +220,7 @@ loadCsv(const QString &filename, const LoadOptions &options)
 
   if (! meta.empty()) {
     for (const auto &fields : meta) {
-      int numFields = fields.size();
+      int numFields = int(fields.size());
 
       // handle column data:
       //   column <column_name> <value_type> <value>

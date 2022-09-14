@@ -310,6 +310,8 @@ class CQChartsModelColumnDetails {
 
   bool columnColor(const QVariant &var, Color &color) const;
 
+  const CQChartsColumnType *columnTypeI() const;
+
  private:
   CQChartsModelColumnDetails(const CQChartsModelColumnDetails &) = delete;
   CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
