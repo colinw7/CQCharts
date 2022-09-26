@@ -1,5 +1,6 @@
 #include <CQExcelModel.h>
 #include <CQExcelTcl.h>
+#include <CQModelUtil.h>
 
 #include <cassert>
 
@@ -85,6 +86,9 @@ QVariant
 Model::
 data(const QModelIndex &index, int role) const
 {
+  if (! index.isValid())
+    return QVariant();
+
   assert(index.model() == this);
 
   if      (role == Qt::BackgroundRole || role == Qt::ForegroundRole || role == Qt::FontRole) {
@@ -129,6 +133,9 @@ bool
 Model::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
+  if (! index.isValid())
+    return false;
+
   assert(index.model() == this);
 
   bool rc = true;
@@ -178,7 +185,40 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   return rc;
 }
 
-//---
+//------
+
+const CQBaseModel::RoleDatas &
+Model::
+roleDatas() const
+{
+  static RoleDatas s_roleDatas;
+
+  //---
+
+  for (const auto &roleData : CQDataModel::roleDatas())
+    s_roleDatas.push_back(roleData);
+
+  //---
+
+  using Standard = CQBaseModel::Standard;
+  using Writable = CQBaseModel::Writable;
+
+  auto addRole = [&](const QString &name, int role, const QVariant::Type &type,
+                     const Writable &writable=Writable()) {
+    s_roleDatas.emplace_back(name, role, type, Standard(), writable);
+  };
+
+  using CQModelUtil::roleCast;
+
+  //---
+
+  addRole("style" , roleCast(CQBaseModelRole::Style), QVariant::String, Writable(true));
+  addRole("export", roleCast(CQBaseModelRole::Export), QVariant::Invalid, Writable());
+
+  return s_roleDatas;
+}
+
+//------
 
 bool
 Model::
@@ -285,16 +325,18 @@ hasCellStyle(const QModelIndex &ind) const
   return (p != cellStyle_.end());
 }
 
-const Model::Style &
+Model::Style
 Model::
 cellStyle(const QModelIndex &ind) const
 {
   assert(ind.model() == this);
 
   auto p = cellStyle_.find(ind);
-  assert(p != cellStyle_.end());
 
-  return (*p).second;
+  if (p != cellStyle_.end())
+    return (*p).second;
+
+  return Style();
 }
 
 void

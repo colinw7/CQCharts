@@ -597,7 +597,7 @@ addIdConnections() const
 
     int id = idConnections.first;
 
-    const auto &name  = connectionsData.name;
+    const auto &name = connectionsData.name;
 
     int group = connectionsData.group;
 
@@ -682,6 +682,8 @@ addIdConnections() const
 
       if (connection.fillColor.isValid())
         sedge->setFillColor(connection.fillColor);
+
+      sedge->setInd(connection.ind);
     }
   }
 
@@ -1040,14 +1042,14 @@ addFromToValue(const FromToData &fromToData) const
     //---
 
     // add model indices ?
+    auto fromModelIndex  = modelIndex(fromToData.fromModelInd);
+    auto fromModelIndex1 = normalizeIndex(fromModelIndex);
+
 #if 0
     auto addModelInd = [&](const ModelIndex &modelInd) {
       if (modelInd.isValid())
         connection->addModelInd(modelInd);
     };
-
-    auto fromModelIndex  = modelIndex(fromToData.fromModelInd);
-    auto fromModelIndex1 = normalizeIndex(fromModelIndex);
 
     connection->setModelInd(fromModelIndex1);
 
@@ -1061,6 +1063,8 @@ addFromToValue(const FromToData &fromToData) const
     connection->setNamedColumn("Value", fromToData.valueModelInd .column());
     connection->setNamedColumn("Depth", fromToData.depthModelInd .column());
 #endif
+
+    connection->ind = fromModelIndex1;
 
     //---
 
@@ -2142,10 +2146,10 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
   if (pc != connectionNodes_.end()) {
     auto &connectionsData = getConnections((*pc).second);
 
-    if (connectionsData.name.length())
-      tableTip.addTableRow("Label", connectionsData.name);
-    else
-      tableTip.addTableRow("Label", calcNodeLabel(node));
+    auto label = (connectionsData.name.length() ? connectionsData.name : calcNodeLabel(node));
+
+    if (label.length())
+      tableTip.addTableRow("Label", label);
 
     if (connectionsData.group >= 0)
       tableTip.addTableRow("Group", connectionsData.group);
@@ -2162,6 +2166,8 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
 
   if (value.isSet())
     tableTip.addTableRow("Value", value.real());
+
+  addTipColumns(tableTip, node->ind());
 }
 
 void
@@ -2180,6 +2186,8 @@ edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const
 
   if (snode) tableTip.addTableRow("From", calcNodeLabel(snode));
   if (tnode) tableTip.addTableRow("To"  , calcNodeLabel(tnode));
+
+  addTipColumns(tableTip, edge->ind());
 }
 
 //---

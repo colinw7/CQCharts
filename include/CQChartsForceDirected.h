@@ -99,6 +99,9 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   const Point &endPoint() const { return endPoint_; }
   void setEndPoint(const Point &p) { endPoint_ = p; }
 
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
+
   const QPainterPath &edgePath() const { return edgePath_; }
   void setEdgePath(const QPainterPath &p) { edgePath_ = p; }
 
@@ -117,6 +120,7 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   bool         isLine_   { true };
   Point        startPoint_;
   Point        endPoint_;
+  QModelIndex  ind_;
   QPainterPath edgePath_;
   QPainterPath curvePath_;
   bool         selected_ { false };

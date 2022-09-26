@@ -91,7 +91,7 @@ class Model : public CQDataModel {
 
   bool hasCellStyle(const QModelIndex &ind) const;
 
-  const Style &cellStyle(const QModelIndex &ind) const;
+  Style cellStyle(const QModelIndex &ind) const;
 
   void setCellStyle(const QModelIndex &ind, const Style &style);
 
@@ -103,9 +103,15 @@ class Model : public CQDataModel {
 
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
+  //---
+
   QVariant data(const QModelIndex &index, int role) const override;
 
   bool setData(const QModelIndex &index, const QVariant &value, int role=Qt::DisplayRole) override;
+
+  //---
+
+  const RoleDatas &roleDatas() const override;
 
   //---
 

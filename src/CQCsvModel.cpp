@@ -285,7 +285,7 @@ load(const QString &filename)
         auto value   = QString::fromStdString(fields[3]);
 
         // get role
-        int role = CQModelUtil::nameToRole(roleStr);
+        int role = CQModelUtil::nameToRole(this, roleStr);
 
         if (role < 0) {
           std::cerr << "Invalid role '" << fields[2] << "'\n";

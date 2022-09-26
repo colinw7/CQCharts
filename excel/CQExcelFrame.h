@@ -4,6 +4,9 @@
 #include <QFrame>
 #include <QModelIndex>
 
+class CQTabSplit;
+class CQModelDbg;
+
 class QLabel;
 class QLineEdit;
 
@@ -39,7 +42,7 @@ class Frame : public QFrame {
 
   QSize sizeHint() const override;
 
- private slots:
+ private Q_SLOTS:
   void functionSlot();
 
   void loadSlot();
@@ -49,10 +52,15 @@ class Frame : public QFrame {
 
   void selectionSlot();
 
+  void updateViewState();
+
  private:
-  View*      view_         { nullptr };
-  QLabel*    nameLabel_    { nullptr };
-  QLineEdit* functionEdit_ { nullptr };
+  CQTabSplit* split_        { nullptr };
+  View*       view_         { nullptr };
+  CQModelDbg* dbg_          { nullptr };
+  QLabel*     nameLabel_    { nullptr };
+  QLineEdit*  functionEdit_ { nullptr };
+  QLabel*     sizeLabel_    { nullptr };
 };
 
 }

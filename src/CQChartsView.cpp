@@ -43,6 +43,7 @@
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
 #include <CQBaseModel.h>
+#include <CQWidgetUtil.h>
 
 #include <CQPerfMonitor.h>
 #include <CQGLControl.h>
@@ -3108,15 +3109,17 @@ wheelEvent(QWheelEvent *e)
   if (! plot) return;
 
   // scroll vertical
+  auto delta = CQWidgetUtil::wheelDelta(e);
+
   if      (e->modifiers() & Qt::ShiftModifier) {
-    plot->wheelVScroll(e->delta());
+    plot->wheelVScroll(delta);
   }
   // scroll horizontal
   else if (e->modifiers() & Qt::ControlModifier) {
-    plot->wheelHScroll(e->delta());
+    plot->wheelHScroll(delta);
   }
   else {
-    plot->wheelZoom(pp, e->delta());
+    plot->wheelZoom(pp, delta);
   }
 
   doUpdate();

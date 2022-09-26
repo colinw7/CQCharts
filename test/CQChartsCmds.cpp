@@ -4157,6 +4157,7 @@ CQChartsWriteChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
   addArg(argv, "-model"    , ArgType::String , "model_id");
+  addArg(argv, "-file"     , ArgType::String , "file name");
   addArg(argv, "-header"   , ArgType::SBool  , "show header");
   addArg(argv, "-index"    , ArgType::SBool  , "show index");
   addArg(argv, "-columns"  , ArgType::String , "columns to output");
@@ -4275,11 +4276,30 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
+  // set output stream
+  auto filename = argv.getParseStr("file", "");
+
+  std::ofstream fos;
+  std::ostream* os = nullptr;
+
+  if (filename != "") {
+    fos.open(filename.toLatin1().constData(), std::ios_base::out);
+
+    if (fos.fail())
+      return errorMsg("Failed to open '" + filename + "'");
+
+    os = &fos;
+  }
+  else
+    os = &std::cout;
+
+  //------
+
   class OutputRows {
    public:
-    OutputRows(int nc, int maxWidth=-1, const QString &sep="|",
+    OutputRows(std::ostream *os, int nc, int maxWidth=-1, const QString &sep="|",
                bool index=false, bool formatted=false) :
-     nc_(nc), maxWidth_(maxWidth), sep_(sep), index_(index), formatted_(formatted) {
+     os_(os), nc_(nc), maxWidth_(maxWidth), sep_(sep), index_(index), formatted_(formatted) {
     }
 
     void setHeader(const QStringList &strs) {
@@ -4354,11 +4374,11 @@ execCmd(CQChartsCmdArgs &argv)
         }
 
         if (formatted_) {
-          std::cout << QString(maxDepth_, ' ').toStdString();
-          std::cout << " " << str.toStdString() << "\n";
+          *os_ << QString(maxDepth_, ' ').toStdString();
+          *os_ << " " << str.toStdString() << "\n";
         }
         else
-          std::cout << str.toStdString() << "\n";
+          *os_ << str.toStdString() << "\n";
       }
 
       int r = 0;
@@ -4368,9 +4388,9 @@ execCmd(CQChartsCmdArgs &argv)
           int d1 = row.depth;
           int d2 = maxDepth_ - d1;
 
-          std::cout << QString(d1, '.').toStdString();
-          std::cout << QString(d2, ' ').toStdString();
-          std::cout << " ";
+          *os_ << QString(d1, '.').toStdString();
+          *os_ << QString(d2, ' ').toStdString();
+          *os_ << " ";
         }
 
         //---
@@ -4404,7 +4424,7 @@ execCmd(CQChartsCmdArgs &argv)
           ++c;
         }
 
-        std::cout << str.toStdString() << "\n";
+        *os_ << str.toStdString() << "\n";
 
         ++r;
       }
@@ -4424,15 +4444,16 @@ execCmd(CQChartsCmdArgs &argv)
 
     using Rows = std::vector<Row>;
 
-    int          nc_        { 0 };
-    int          maxWidth_  { -1 };
-    ColumnWidths columnWidths_;
-    Rows         rows_;
-    QStringList  header_;
-    int          maxDepth_  { 0 };
-    QString      sep_;
-    bool         index_     { false };
-    bool         formatted_ { false };
+    std::ostream* os_        { nullptr };
+    int           nc_        { 0 };
+    int           maxWidth_  { -1 };
+    ColumnWidths  columnWidths_;
+    Rows          rows_;
+    QStringList   header_;
+    int           maxDepth_  { 0 };
+    QString       sep_;
+    bool          index_     { false };
+    bool          formatted_ { false };
   };
 
   //---
@@ -4447,7 +4468,7 @@ execCmd(CQChartsCmdArgs &argv)
   else
     nc = int(columns.size());
 
-  OutputRows output(nc, maxWidth, sep, index, formatted);
+  OutputRows output(os, nc, maxWidth, sep, index, formatted);
 
   //---
 
@@ -4536,7 +4557,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  fflush(stdout); std::cout << std::flush;
+  *os << std::flush;
 
   outputColumns();
 
@@ -4544,7 +4565,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   output.write(header);
 
-  fflush(stdout); std::cout << std::flush;
+  *os << std::flush;
 
   return true;
 }
@@ -5236,7 +5257,7 @@ CQChartsCreateChartsSummaryModelCmd::
 getArgValues(const QString &arg, const NameValueMap &)
 {
   if      (arg == "model"    ) return cmds()->modelArgValues();
-  else if (arg == "sort_role") return cmds()->roleArgValues();
+  else if (arg == "sort_role") return cmds()->roleArgValues(nullptr);
 
   return QStringList();
 }
@@ -5295,7 +5316,7 @@ execCmd(CQChartsCmdArgs &argv)
     if (roleName == "?")
       return cmdBase_->setCmdRc(getArgValues("sort_role"));
 
-    int sortRole = CQChartsModelUtil::nameToRole(roleName);
+    int sortRole = CQChartsModelUtil::nameToRole(model, roleName);
 
     if (sortRole < 0)
       return errorMsg("Invalid sort role");
@@ -6072,10 +6093,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto toName   = argv.getParseStr ("to", "csv");
-  auto filename = argv.getParseStr ("file", "");
-  bool hheader  = argv.getParseBool("hheader", true);
-  bool vheader  = argv.getParseBool("vheader", false);
+  auto toName  = argv.getParseStr ("to", "csv");
+  bool hheader = argv.getParseBool("hheader", true);
+  bool vheader = argv.getParseBool("vheader", false);
 
   //---
 
@@ -6087,23 +6107,31 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  std::ofstream fos; bool isFile = false;
+  // set output stream
+  auto filename = argv.getParseStr("file", "");
 
-  if (filename.length()) {
-    fos.open(filename.toLatin1().constData());
+  std::ofstream fos;
+  std::ostream* os = nullptr;
+
+  if (filename != "") {
+    fos.open(filename.toLatin1().constData(), std::ios_base::out);
 
     if (fos.fail())
       return errorMsg("Failed to open '" + filename + "'");
 
-    isFile = true;
+    os = &fos;
   }
+  else
+    os = &std::cout;
+
+  //---
 
   if      (toName.toLower() == "csv")
-    modelData->exportModel(isFile ? fos : std::cout, CQBaseModelDataType::CSV, hheader, vheader);
+    modelData->exportModel(*os, CQBaseModelDataType::CSV, hheader, vheader);
   else if (toName.toLower() == "tsv")
-    modelData->exportModel(isFile ? fos : std::cout, CQBaseModelDataType::TSV, hheader, vheader);
+    modelData->exportModel(*os, CQBaseModelDataType::TSV, hheader, vheader);
   else if (toName.toLower() == "json")
-    modelData->exportModel(isFile ? fos : std::cout, CQBaseModelDataType::JSON, hheader, vheader);
+    modelData->exportModel(*os, CQBaseModelDataType::JSON, hheader, vheader);
   else if (toName.toLower() == "?")
     return cmdBase_->setCmdRc(getArgValues("to"));
   else
@@ -6211,7 +6239,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
   else if (arg == "plot"      ) return cmds()->plotArgValues(nullptr);
   else if (arg == "type"      ) return cmds()->plotTypeArgValues();
   else if (arg == "annotation") return cmds()->annotationArgValues(nullptr, nullptr);
-  else if (arg == "role"      ) return cmds()->roleArgValues();
+  else if (arg == "role"      ) return cmds()->roleArgValues(nullptr);
   else if (arg == "name"      ) {
     bool hasModel      = (nameValues.find("model"     ) != nameValues.end());
     bool hasView       = (nameValues.find("view"      ) != nameValues.end());
@@ -6301,22 +6329,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto roleName = argv.getParseStr("role");
-
-  int role = -1;
-
-  if (roleName != "") {
-    if (roleName == "?")
-      return cmdBase_->setCmdRc(getArgValues("role"));
-
-    role = CQChartsModelUtil::nameToRole(roleName);
-
-    if (role < 0)
-      return errorMsg("Invalid role");
-  }
-
-  //---
-
   auto *charts = this->charts();
 
   // model data
@@ -6328,6 +6340,22 @@ execCmd(CQChartsCmdArgs &argv)
     if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
     auto model = modelData->currentModel();
+
+    //---
+
+    auto roleName = argv.getParseStr("role");
+
+    int role = -1;
+
+    if (roleName != "") {
+      if (roleName == "?")
+        return cmdBase_->setCmdRc(getArgValues("role"));
+
+      role = CQChartsModelUtil::nameToRole(model.data(), roleName);
+
+      if (role < 0)
+        return errorMsg("Invalid role");
+    }
 
     //---
 
@@ -6980,6 +7008,24 @@ execCmd(CQChartsCmdArgs &argv)
     auto *plot = cmds()->getPlotByName(view, plotName);
     if (! plot) return false;
 
+    //---
+
+    auto roleName = argv.getParseStr("role");
+
+    int role = -1;
+
+    if (roleName != "") {
+      if (roleName == "?")
+        return cmdBase_->setCmdRc(getArgValues("role"));
+
+      role = CQChartsModelUtil::nameToRole(plot->model().data(), roleName);
+
+      if (role < 0)
+        return errorMsg("Invalid role");
+    }
+
+    //---
+
     auto row = argv.getParseRow("row", plot);
 
     //---
@@ -7393,7 +7439,7 @@ execCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(strs);
     }
     else if (name == "role_names") {
-      return cmdBase_->setCmdRc(cmds()->roleArgValues());
+      return cmdBase_->setCmdRc(cmds()->roleArgValues(nullptr));
     }
     else if (name == "path_list") {
       auto strs = charts->pathList();
@@ -7466,7 +7512,7 @@ getArgValues(const QString &arg, const NameValueMap &)
   else if (arg == "plot"      ) return cmds()->plotArgValues(nullptr);
   else if (arg == "type"      ) return cmds()->plotTypeArgValues();
   else if (arg == "annotation") return cmds()->annotationArgValues(nullptr, nullptr);
-  else if (arg == "role"      ) return cmds()->roleArgValues();
+  else if (arg == "role"      ) return cmds()->roleArgValues(nullptr);
 
   return QStringList();
 }
@@ -7502,22 +7548,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto roleName = argv.getParseStr("role");
-
-  int role = -1;
-
-  if (roleName != "") {
-    if (roleName == "?")
-      return cmdBase_->setCmdRc(cmds()->roleArgValues());
-
-    role = CQChartsModelUtil::nameToRole(roleName);
-
-    if (role < 0)
-      return errorMsg("Invalid role");
-  }
-
-  //---
-
   auto *charts = this->charts();
 
   // model data
@@ -7529,6 +7559,22 @@ execCmd(CQChartsCmdArgs &argv)
     if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
     auto model = modelData->currentModel();
+
+    //---
+
+    auto roleName = argv.getParseStr("role");
+
+    int role = -1;
+
+    if (roleName != "") {
+      if (roleName == "?")
+        return cmdBase_->setCmdRc(cmds()->roleArgValues(model.data()));
+
+      role = CQChartsModelUtil::nameToRole(model.data(), roleName);
+
+      if (role < 0)
+        return errorMsg("Invalid role");
+    }
 
     //---
 
@@ -12125,18 +12171,22 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto filename = argv.getParseStr("file");
+  // set output stream
+  auto filename = argv.getParseStr("file", "");
 
-  std::ofstream fos; bool isFile = false;
+  std::ofstream fos;
+  std::ostream* os = nullptr;
 
-  if (filename.length()) {
-    fos.open(filename.toLatin1().constData());
+  if (filename != "") {
+    fos.open(filename.toLatin1().constData(), std::ios_base::out);
 
     if (fos.fail())
       return errorMsg("Failed to open '" + filename + "'");
 
-    isFile = true;
+    os = &fos;
   }
+  else
+    os = &std::cout;
 
   //---
 
@@ -12144,13 +12194,13 @@ execCmd(CQChartsCmdArgs &argv)
 
   if      (plot) {
     if      (type == "") {
-      plot->write(isFile ? fos : std::cout);
+      plot->write(*os);
     }
     else if (type == "annotations") {
       const auto &annotations = plot->annotations();
 
       for (const auto &annotation : annotations)
-        annotation->write(isFile ? fos : std::cout);
+        annotation->write(*os);
     }
     else if (type == "?") {
       static auto names = QStringList() << "" << "annotations";
@@ -12166,13 +12216,13 @@ execCmd(CQChartsCmdArgs &argv)
       view->getPlots(plots);
 
       for (const auto &plot : plots)
-        plot->write(isFile ? fos : std::cout);
+        plot->write(*os);
     }
     else if (type == "annotations") {
       const auto &annotations = view->annotations();
 
       for (const auto &annotation : annotations)
-        annotation->write(isFile ? fos : std::cout);
+        annotation->write(*os);
     }
     else if (type == "?") {
       static auto names = QStringList() << "plots" << "annotations";
@@ -13637,9 +13687,9 @@ annotationArgValues(CQChartsView *view, CQChartsPlot *plot) const
 
 QStringList
 CQChartsCmds::
-roleArgValues() const
+roleArgValues(QAbstractItemModel *model) const
 {
-  return CQChartsModelUtil::roleNames();
+  return CQChartsModelUtil::roleNames(model);
 }
 
 bool

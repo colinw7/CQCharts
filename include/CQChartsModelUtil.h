@@ -442,9 +442,9 @@ bool findRows(QAbstractItemModel *model, const Column &column,
 
 namespace CQChartsModelUtil {
 
-const QStringList &roleNames();
+const QStringList &roleNames(QAbstractItemModel *model);
 
-int nameToRole(const QString &name);
+int nameToRole(QAbstractItemModel *model, const QString &name);
 
 }
 

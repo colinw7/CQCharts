@@ -10,6 +10,9 @@ namespace CQExcel {
 class Frame;
 class Model;
 
+/*!
+ * \brief Model View for Excel Grid
+ */
 class View : public CQModelView {
   Q_OBJECT
 
@@ -35,18 +38,22 @@ class View : public CQModelView {
 
   void getIndexDetails(const QModelIndex &ind, QString &cellName, QString &functionText);
 
- signals:
+ Q_SIGNALS:
   void currentIndexChanged();
 
   void currentSelectionChanged();
 
- private slots:
+ private Q_SLOTS:
+  void updateCurrentIndex();
+
   void selectionSlot();
 
   void viewClickSlot(const QModelIndex &ind);
 
   void addRowSlot();
   void addColumnSlot();
+
+  void setCurrentlot();
 
   void copySlot();
   void pasteSlot();

@@ -106,7 +106,7 @@ class CQChartsCmds : public QObject {
   QStringList plotArgValues(CQChartsView *view) const;
   QStringList plotTypeArgValues() const;
   QStringList annotationArgValues(CQChartsView *view, CQChartsPlot *plot) const;
-  QStringList roleArgValues() const;
+  QStringList roleArgValues(QAbstractItemModel *model) const;
 
   //---
 

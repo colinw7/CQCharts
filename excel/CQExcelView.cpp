@@ -18,13 +18,15 @@ View(Frame *frame, int nr, int nc) :
   setObjectName("excelView");
 
   model_ = new Model(this, nr_, nc_);
-
   proxy_ = new QSortFilterProxyModel;
 
   proxy_->setObjectName("proxy");
   proxy_->setSourceModel(excelModel());
 
   CQModelView::setModel(proxy_);
+
+  connect(model_, SIGNAL(currentIndexChanged(const QModelIndex &)),
+          this, SLOT(updateCurrentIndex()));
 
   auto *delegate = new CQExcelDelegate(this);
 
@@ -43,6 +45,10 @@ void
 View::
 setExcelModel(QAbstractItemModel *model)
 {
+  if (model_)
+    disconnect(model_, SIGNAL(currentIndexChanged(const QModelIndex &)),
+               this, SLOT(updateCurrentIndex()));
+
   delete model_;
   delete proxy_;
 
@@ -68,6 +74,18 @@ setExcelModel(QAbstractItemModel *model)
   }
 
   CQModelView::setModel(proxy_);
+
+  if (model_)
+    connect(model_, SIGNAL(currentIndexChanged(const QModelIndex &)),
+            this, SLOT(updateCurrentIndex()));
+}
+
+void
+View::
+updateCurrentIndex()
+{
+  viewport()->update();
+  update();
 }
 
 void
@@ -132,8 +150,33 @@ getSelectionDetails(QString &cellName)
     else
       cellName = cellName1;
   }
-  else
-    cellName = "";
+  // multiple rows and columns
+  else {
+    int row1 = -1;
+    int col1 = -1;
+    int row2 = -1;
+    int col2 = -1;
+
+    for (const auto &pr : indicesData.rowCols) {
+      int row = pr.first;
+
+      if (row1 < 0 || row < row1) row1 = row;
+      if (row2 < 0 || row > row2) row2 = row;
+
+      for (const auto &col : pr.second) {
+        if (col1 < 0 || col < col1) col1 = col;
+        if (col2 < 0 || col > col2) col2 = col;
+      }
+
+      auto cellName1 = model->cellName(row1, col1);
+      auto cellName2 = model->cellName(row2, col2);
+
+      if (cellName1 != cellName2)
+        cellName = QString("%1:%2").arg(cellName1).arg(cellName2);
+      else
+        cellName = cellName1;
+    }
+  }
 }
 
 void
@@ -211,6 +254,8 @@ addMenuActions(QMenu *menu)
   addAction(menu, "Add Row"   , SLOT(addRowSlot()));
   addAction(menu, "Add Column", SLOT(addColumnSlot()));
 
+  addAction(menu, "Set Current", SLOT(setCurrentlot()));
+
   addAction(menu, "Copy" , SLOT(copySlot()));
   addAction(menu, "Paste", SLOT(pasteSlot()));
 
@@ -247,6 +292,15 @@ addColumnSlot()
   auto *model = this->excelModel();
 
   model->addColumn();
+}
+
+void
+View::
+setCurrentlot()
+{
+  auto *model = this->excelModel();
+
+  model->setCurrentIndex(currentIndex());
 }
 
 void

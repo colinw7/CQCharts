@@ -6,14 +6,17 @@
 #endif
 #include <CQCsvModel.h>
 #include <CQModelUtil.h>
-#include <CQUtil.h>
+#include <CQTabSplit.h>
+#include <CQModelDbg.h>
 #include <CQIconButton.h>
+#include <CQUtil.h>
 
 #include <QLabel>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QAbstractProxyModel>
 #include <QFileDialog>
+#include <QList>
 
 #include <svg/load_svg.h>
 #include <svg/save_svg.h>
@@ -33,6 +36,7 @@ Frame(QWidget *parent) :
 
   //--
 
+  // toolbar
   auto *toolbarFrame  = CQUtil::makeWidget<QFrame>("toolbarFrame");
   auto *toolbarLayout = CQUtil::makeLayout<QHBoxLayout>(toolbarFrame, 0, 2);
 
@@ -60,12 +64,45 @@ Frame(QWidget *parent) :
 
   //--
 
+  split_ = CQUtil::makeWidget<CQTabSplit>("split");
+
+  layout->addWidget(split_);
+
+  //--
+
+  // model view
   view_ = new View(this);
 
   connect(view_, SIGNAL(currentIndexChanged()), this, SLOT(currentIndexSlot()));
   connect(view_, SIGNAL(currentSelectionChanged()), this, SLOT(selectionSlot()));
 
-  layout->addWidget(view_);
+  split_->addWidget(view_, "View");
+
+  connect(view_, SIGNAL(stateChanged()), this, SLOT(updateViewState()));
+
+  //--
+
+  dbg_ = CQUtil::makeWidget<CQModelDbg>("dbg");
+
+  split_->addWidget(dbg_, "Debug");
+
+  dbg_->setModel(view_->excelModel());
+
+  //--
+
+  split_->setSizes(QList<int>({int(INT_MAX*0.7), int(INT_MAX*0.3)}));
+
+  //--
+
+  auto *statusFrame  = CQUtil::makeWidget<QFrame>("statusFrame");
+  auto *statusLayout = CQUtil::makeLayout<QHBoxLayout>(statusFrame, 0, 2);
+
+  sizeLabel_ = CQUtil::makeWidget<QLabel>("sizeLabel");
+
+  statusLayout->addWidget(sizeLabel_);
+  statusLayout->addStretch(1);
+
+  layout->addWidget(statusFrame);
 }
 
 bool
@@ -239,7 +276,7 @@ loadCsv(const QString &filename, const LoadOptions &options)
         auto value   = QString::fromStdString(fields[3]);
 
         // get role
-        int role = CQModelUtil::nameToRole(roleStr);
+        int role = CQModelUtil::nameToRole(model, roleStr);
 
         if (role < 0) {
           std::cerr << "Invalid role '" << fields[2] << "'\n";
@@ -302,6 +339,10 @@ setModel(QAbstractItemModel *model)
   assert(excelModel);
 
   view_->setExcelModel(model);
+
+  //---
+
+  dbg_->setModel(excelModel);
 }
 
 void
@@ -419,11 +460,20 @@ selectionSlot()
   nameLabel()->setText(cellName);
 }
 
+void
+Frame::
+updateViewState()
+{
+  auto *model = view()->model();
+
+  sizeLabel_->setText(QString("%1 x %2").arg(model->columnCount()).arg(model->rowCount()));
+}
+
 QSize
 Frame::
 sizeHint() const
 {
-  return QSize(1024, 1024);
+  return QSize(2048, 1536);
 }
 
 }

@@ -1,9 +1,10 @@
 #define QT_KEYPAD_NAVIGATION 1
 
 #include <CQExcelDelegate.h>
-#include <CQBaseModelTypes.h>
+#include <CQBaseModel.h>
 
 #include <QAbstractItemView>
+#include <QAbstractProxyModel>
 #include <QLineEdit>
 #include <QLayout>
 #include <QPainter>
@@ -30,6 +31,28 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
   if (! drawType(painter, option, index))
     QItemDelegate::paint(painter, option, index);
+
+  const auto *proxyModel = qobject_cast<const QAbstractProxyModel *>(index.model());
+
+  const CQBaseModel *baseModel;
+  QModelIndex        baseIndex;
+
+  if (proxyModel) {
+    baseModel = qobject_cast<const CQBaseModel *>(proxyModel->sourceModel());
+    baseIndex = proxyModel->mapToSource(index);
+  }
+  else {
+    baseModel = qobject_cast<const CQBaseModel *>(index.model());
+    baseIndex = index;
+  }
+
+  if (baseModel && baseIndex == baseModel->currentIndex()) {
+    QPen pen(Qt::red);
+
+    painter->setPen(pen);
+
+    painter->drawRect(option.rect);
+  }
 }
 
 bool

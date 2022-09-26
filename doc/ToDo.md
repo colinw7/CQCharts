@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + write model with iformat/oformat (e.g. time) should keep original format
  + custom percent max (from column ?)
  + halo for select in more plots (use shape)
  + scatter connect object doesn't work with name column (don't want single value grouping)
@@ -67,6 +68,9 @@ TODO:
    + Split Groups
      + x margin (fixed/auto)
  + Force directed
+   + custom tooltip for node/edge
+   + no split undirected (symmetric true)
+   + auto stop on stable (auto start on move)
    + slot animate time over time
    + Custom Controls for node/edge scaling (auto size ?)
    + placement uses node size (min edge length)
