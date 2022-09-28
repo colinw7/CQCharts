@@ -3098,7 +3098,7 @@ wheelEvent(QWheelEvent *e)
   if (isPreview())
     return;
 
-  Point pp(e->pos());
+  Point pp(e->position());
 
   auto w = pixelToWindow(pp);
 
