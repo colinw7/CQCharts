@@ -14,6 +14,7 @@
 #include <CQColorsPalette.h>
 
 #include <QCheckBox>
+#include <QApplication>
 
 CQChartsTableDelegate::
 CQChartsTableDelegate(Table *table) :
@@ -466,11 +467,22 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 {
   QItemDelegate::drawBackground(painter, option, index);
 
-  auto rect = option.rect;
+  //---
 
-  rect.setWidth(option.rect.height());
+  int margin = qApp->style()->pixelMetric(QStyle::PM_HeaderMargin);
 
-  rect.adjust(0, 1, -3, -2);
+  //---
+
+  // draw color swatch
+  auto colorRect = option.rect;
+
+  int s = colorRect.height();
+
+  colorRect.setWidth(s);
+
+  colorRect.adjust(0, 1, -3, -2);
+
+  colorRect.setLeft(colorRect.left() + margin);
 
   auto c = charts()->interpColor(color, CQChartsUtil::ColorInd());
 
@@ -479,13 +491,14 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
   painter->setBrush(QBrush(c));
   painter->setPen(QColor(Qt::black)); // TODO: contrast border
 
-//painter->fillRect(rect, QBrush(c));
-  painter->drawRect(rect);
+  painter->drawRect(colorRect);
 
   painter->restore();
 
-  int x = rect.right() + 2;
-//int y = rect.top() + fm.ascent();
+  //---
+
+  // draw label
+  int x = colorRect.right() + margin;
 
   QRect rect1;
 
@@ -585,6 +598,55 @@ drawString(QPainter *painter, const QStyleOptionViewItem &option, const QString 
   QItemDelegate::drawBackground(painter, option, index);
 
   QItemDelegate::drawDisplay(painter, option, option.rect, str);
+}
+
+//---
+
+QSize
+CQChartsTableDelegate::
+sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  QSize size;
+
+  if (! typeSizeHint(option, index, size)) {
+    size = QItemDelegate::sizeHint(option, index);
+
+    size.setHeight(size.height() + 2);
+  }
+
+  return size;
+}
+
+bool
+CQChartsTableDelegate::
+typeSizeHint(const QStyleOptionViewItem &option, const QModelIndex &index, QSize &size) const
+{
+  ColumnData columnData;
+
+  getColumnData(index, columnData);
+
+  QString nullStr;
+
+  if (columnData.details)
+    nullStr = columnData.details->nullValue();
+
+  //---
+
+  auto type = (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
+
+  if (type == CQBaseModelType::COLOR) {
+    auto size1 = QItemDelegate::sizeHint(option, index);
+
+    int margin = qApp->style()->pixelMetric(QStyle::PM_HeaderMargin);
+
+    int s = option.rect.height();
+
+    size = QSize(size1.width() + margin + s, size1.height());
+
+    return true;
+  }
+
+  return false;
 }
 
 void

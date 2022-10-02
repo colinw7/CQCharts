@@ -276,7 +276,7 @@ CQHandDrawnPainter::
 drawCircle(const QPointF &center, double r)
 {
   drawCircle1(center, r);
-  drawCircle1(center, r);
+  drawCircle1(center, r); // dup
 }
 
 void
@@ -284,7 +284,7 @@ CQHandDrawnPainter::
 fillCircle(const QPointF &center, double r)
 {
   fillCircle1(center, r);
-  fillCircle1(center, r);
+  fillCircle1(center, r); // dup
 }
 
 void
@@ -381,7 +381,7 @@ drawLine(const QPointF &p1, const QPointF &p2)
   dampen_ = 0.4 + 0.6*l/maxSize_;
 
   drawLine1(p1, p2);
-  drawLine1(p1, p2);
+  drawLine1(p1, p2); // dup
 }
 
 void

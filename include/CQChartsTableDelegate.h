@@ -45,6 +45,8 @@ class CQChartsTableDelegate : public QItemDelegate {
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &index) const override;
 
+  QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
   QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &item,
                         const QModelIndex &index) const override;
 
@@ -85,6 +87,9 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   bool drawType(QPainter *painter, const QStyleOptionViewItem &option,
                 const QModelIndex &index) const;
+
+  bool typeSizeHint(const QStyleOptionViewItem &option,
+                    const QModelIndex &index, QSize &size) const;
 
   CQCharts *charts() const;
 

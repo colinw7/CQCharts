@@ -476,7 +476,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   auto *charts = this->charts();
 
-  if (filename[0] == '@') {
+  if (filename != "" && filename[0] == '@') {
 #if 1
     QTemporaryFile tempFile(QDir::tempPath() + "/XXXXXX.tcl");
 
