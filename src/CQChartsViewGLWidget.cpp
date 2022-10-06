@@ -3,6 +3,7 @@
 #include <CQChartsPlot.h>
 
 #include <CQGLControl.h>
+#include <CRGBA.h>
 
 #include <QMouseEvent>
 

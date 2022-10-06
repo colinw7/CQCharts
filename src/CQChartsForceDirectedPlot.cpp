@@ -325,6 +325,20 @@ setRangeSize(double r)
   CQChartsUtil::testAndSet(rangeSize_, r, [&]() { updateRange(); } );
 }
 
+void
+CQChartsForceDirectedPlot::
+setMinDelta(double d)
+{
+  minDelta_ = d;
+}
+
+void
+CQChartsForceDirectedPlot::
+setMaxSteps(int n)
+{
+  maxSteps_ = n;
+}
+
 //---
 
 int
@@ -357,6 +371,8 @@ addProperties()
   addProp("animation", "numSteps"    , "", "Number of steps");
   addProp("animation", "stepSize"    , "", "Step size");
   addProp("animation", "rangeSize"   , "", "Range size");
+  addProp("animation", "minDelta"    , "", "Min delta change");
+  addProp("animation", "maxSteps"    , "", "Max animation steps");
 
   // node
   addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
@@ -366,6 +382,7 @@ addProperties()
   addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
   addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
   addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
+  addProp("node", "nodeTipNameLabel" , "tipNameLabel" , "Label for node name tip");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -546,7 +563,7 @@ CQChartsForceDirectedPlot::
 execInitSteps()
 {
   while (numSteps_ < initSteps()) {
-    forceDirected_->step(stepSize());
+    (void) forceDirected_->step(stepSize());
 
     ++numSteps_;
   }
@@ -1103,6 +1120,17 @@ CQChartsForceDirectedPlot::
 initLinkConnectionObjs() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::initLinkConnectionObjs");
+
+  //---
+
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->edgeValueName_ = "";
+
+  if (valueColumn().isValid()) {
+    bool ok;
+    th->edgeValueName_ = modelHHeaderString(valueColumn(), ok);
+  }
 
   //---
 
@@ -1727,11 +1755,19 @@ void
 CQChartsForceDirectedPlot::
 execAnimateStep()
 {
+  double delta = 0.0;
+
   for (int i = 0; i < animateSteps(); ++i) {
-    forceDirected_->step(stepSize());
+    delta = forceDirected_->step(stepSize());
 
     ++numSteps_;
   }
+
+  if (minDelta() > 0.0 && delta < minDelta())
+    setAnimating(false);
+
+  if (maxSteps() > 0 && numSteps_ > maxSteps())
+    setAnimating(false);
 
   doAutoFit();
 
@@ -2141,7 +2177,7 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
 {
   auto pc = connectionNodes_.find(node->id());
 
-  tableTip.addTableRow("Id", node->id());
+  //tableTip.addTableRow("Id", node->id());
 
   if (pc != connectionNodes_.end()) {
     auto &connectionsData = getConnections((*pc).second);
@@ -2149,18 +2185,20 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
     auto label = (connectionsData.name.length() ? connectionsData.name : calcNodeLabel(node));
 
     if (label.length())
-      tableTip.addTableRow("Label", label);
+      tableTip.addTableRow(nodeTipNameLabel() != "" ? nodeTipNameLabel() : "Label", label);
 
-    if (connectionsData.group >= 0)
+    if (groupColumn().isValid() && connectionsData.group >= 0)
       tableTip.addTableRow("Group", connectionsData.group);
 
     if (connectionsData.total.isSet())
       tableTip.addTableRow("Total", connectionsData.total.real());
 
+    // out connections
     tableTip.addTableRow("Connections", connectionsData.connections.size());
   }
-  else
+  else {
     tableTip.addTableRow("Label", calcNodeLabel(node));
+  }
 
   auto value = calcNodeValue(node);
 
@@ -2176,10 +2214,11 @@ edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const
 {
   auto edgeStr = QString::fromStdString(edge->label());
 
-  tableTip.addTableRow("Label", edgeStr);
+  if (edgeStr.length())
+    tableTip.addTableRow("Label", edgeStr);
 
   if (edge->value())
-    tableTip.addTableRow("Value", edge->value().value());
+    tableTip.addTableRow(edgeValueName_ != "" ? edgeValueName_ : "Value", edge->value().value());
 
   auto *snode = dynamic_cast<Node *>(edge->source().get());
   auto *tnode = dynamic_cast<Node *>(edge->target().get());

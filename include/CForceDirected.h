@@ -85,10 +85,10 @@ class CForceDirected {
     return graph_->getEdges(node1, node2);
   }
 
-  void step(double dt) {
+  double step(double dt) {
     init();
 
-    layout_->step(dt);
+    return layout_->step(dt);
   }
 
   SpringP spring(EdgeP edge, bool &isTemp) {

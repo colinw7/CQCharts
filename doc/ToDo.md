@@ -21,7 +21,6 @@ TODO:
    + pie use bubble place
    + use CQFactor place in bubble
    + tree map for value set
- + tree map use pixel for area proportions (non equal scaling box)
  + scroll key bad range
  + hier connection plot ? groups external connections
  + scatter density use distribution ?
@@ -68,6 +67,8 @@ TODO:
    + Split Groups
      + x margin (fixed/auto)
  + Force directed
+   + custom tooltips
+   + max iterations, min delta, auto stop
    + custom tooltip for node/edge
    + no split undirected (symmetric true)
    + auto stop on stable (auto start on move)
@@ -1049,6 +1050,8 @@ Table Plot
  + Cell/Cross/None mouse over highlight
 
 Tree map
+ + Separate hier roots for value coloring (different colors) - group column
+ + tree map use pixel for area proportions (non equal scaling box)
  + Don't draw below tolerance to only show large (outliers)
  + Rotate text if text aspect > box aspect
  + Filter to visible (keep placement, don't show) 

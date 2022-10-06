@@ -64,6 +64,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double stepSize     READ stepSize     WRITE setStepSize)
   Q_PROPERTY(double rangeSize    READ rangeSize    WRITE setRangeSize)
   Q_PROPERTY(int    numSteps     READ numSteps)
+  Q_PROPERTY(double minDelta     READ minDelta     WRITE setMinDelta)
+  Q_PROPERTY(int    maxSteps     READ maxSteps     WRITE setMaxSteps)
 
   // node data
   Q_PROPERTY(NodeShape      nodeShape         READ nodeShape           WRITE setNodeShape        )
@@ -73,6 +75,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           nodeValueColored  READ isNodeValueColored  WRITE setNodeValueColored )
   Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
   Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
+  Q_PROPERTY(QString        nodeTipNameLabel  READ nodeTipNameLabel    WRITE setNodeTipNameLabel )
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape         READ edgeShape           WRITE setEdgeShape        )
@@ -186,6 +189,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double rangeSize() const { return rangeSize_; }
   void setRangeSize(double r);
 
+  //! get/set min delta
+  double minDelta() const { return minDelta_; }
+  void setMinDelta(double r);
+
+  //! get/set min delta
+  int maxSteps() const { return maxSteps_; }
+  void setMaxSteps(int n);
+
   //----
 
   //! get/set node shape
@@ -215,6 +226,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set node value label
   bool isNodeValueLabel() const { return nodeDrawData_.valueLabel; }
   void setNodeValueLabel(bool b);
+
+  //! get/set node tip label
+  const QString &nodeTipNameLabel() const { return nodeDrawData_.tipNameLabel; }
+  void setNodeTipNameLabel(const QString &s) { nodeDrawData_.tipNameLabel = s; }
 
   //---
 
@@ -525,6 +540,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     bool      valueColored  { false };             //!< is node colored by value
     bool      mouseColoring { false };             //!< is node edges colored on mouse over
     bool      valueLabel    { false };             //!< show value as label
+    QString   tipNameLabel;                        //!< tip label for node name
   };
 
   NodeDrawData nodeDrawData_; //!< node draw data
@@ -559,12 +575,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   ForceDirectedP forceDirected_; //!< force directed class
 
+  // tip data
+  QString edgeValueName_;
+
   // state
   bool   pressed_      { false }; //!< is pressed
   double rangeSize_    { 20.0 };  //!< range size
   double nodeMass_     { 1.0 };   //!< node mass
   double edgeScale_    { 1.0 };   //!< edge scale
   int    maxNodeDepth_ { 0 };     //!< max node depth
+  double minDelta_     { 0.01 };  //!< min delta
+  int    maxSteps_     { -1 };    //!< max steps
 
   mutable std::mutex createMutex_; //!< create mutex
 

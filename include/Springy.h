@@ -1,8 +1,9 @@
 #ifndef Springy_H
 #define Springy_H
 
-#include <optional>
+#include <CGenRand.h>
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <map>
@@ -65,7 +66,9 @@ namespace Springy {
 
    private:
     static double randDouble() {
-      return (1.0*rand())/RAND_MAX;
+      static CGenRand::RealInRange rand(0.0, 1.0);
+
+      return rand.gen();
     }
 
    private:
@@ -619,14 +622,19 @@ namespace Springy {
       }
     }
 
-    void updatePosition(double timestep) {
+    void updatePosition(double timestep, double &delta) {
       for (auto node : graph_->nodes()) {
         auto point = this->nodePoint(node);
 
         // Same question as above; along with updateVelocity, is this all of
         // your integration code?
-        if (! node->isFixed())
-          point->setP(point->p().add(point->v().multiply(timestep)));
+        if (! node->isFixed()) {
+          auto pd = point->v().multiply(timestep);
+
+          point->setP(point->p().add(pd));
+
+          delta += std::abs(pd.x()) + std::abs(pd.y());
+        }
       }
     }
 
@@ -645,12 +653,16 @@ namespace Springy {
       return energy;
     }
 
-    void step(double t) {
+    double step(double t) {
       applyCoulombsLaw();
       applyHookesLaw();
       attractToCentre();
       updateVelocity(t);
-      updatePosition(t);
+
+      double delta = 0.0;
+      updatePosition(t, delta);
+
+      return delta;
     }
 
     // Find the nearest point to a particular position

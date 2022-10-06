@@ -9,7 +9,8 @@
 #include <CXML.h>
 #include <CXMLToken.h>
 #else
-#include <QXmlReader>
+#include <QXmlStreamReader>
+#include <QFile>
 #endif
 
 namespace {
@@ -67,7 +68,7 @@ void processXmlTag(CXMLTag *tag, PathDatas &pathDatas) {
 }
 
 #ifndef CXML_PARSER
-class CQChartsSVGParserHandler : public QXmlContentHandler {
+class CQChartsSVGParserHandler {
  public:
   using BBox = CQChartsGeom::BBox;
 
@@ -76,23 +77,52 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
     bbox_(bbox), pathDatas_(pathDatas) {
   }
 
-  // called at document start
-  bool startDocument() override { return true; }
-  // called at document end
-  bool endDocument  () override { return true; }
+  bool parse(QXmlStreamReader &xml) {
+    while (! xml.atEnd()) {
+      xml.readNext();
 
-  // called for CDATA
-  bool characters(const QString & /*ch*/) override {
-    return true;
+      switch (xml.tokenType()) {
+        case QXmlStreamReader::StartDocument: {
+          break;
+        }
+        case QXmlStreamReader::EndDocument: {
+          break;
+        }
+        case QXmlStreamReader::StartElement: {
+          if (! startElement(xml.qualifiedName().toString(), xml.attributes()))
+            return false;
+
+          break;
+        }
+        case QXmlStreamReader::EndElement: {
+         if (! endElement(xml.qualifiedName().toString()))
+            return false;
+
+          break;
+        }
+        case QXmlStreamReader::Comment: {
+          break;
+        }
+        case QXmlStreamReader::Characters: {
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    return xml.hasError();
   }
 
-  // called at start of xml element
-  bool startElement(const QString & /*namespaceURI*/, const QString & /*localName*/,
-                    const QString &qName, const QXmlAttributes &atts) override {
+ private:
+  bool startElement(const QString &qName, const QXmlStreamAttributes &attributes) {
+    // save bounding box
     if      (qName == "svg") {
-      for (int i = 0; i < atts.length(); ++i) {
-        auto name  = atts.qName(i);
-        auto value = atts.value(i);
+      for (int i = 0; i < attributes.length(); ++i) {
+        auto &attr = attributes[i];
+
+        auto name  = attr.qualifiedName();
+        auto value = attr.value().toString();
 
         if (name == "viewBox") {
           auto strs = QString(value).split(" ", Qt::SkipEmptyParts);
@@ -110,12 +140,15 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
         }
       }
     }
+    // save path
     else if (qName == "path") {
       PathData pathData;
 
-      for (int i = 0; i < atts.length(); ++i) {
-        auto name  = atts.qName(i);
-        auto value = atts.value(i);
+      for (int i = 0; i < attributes.length(); ++i) {
+        auto &attr = attributes[i];
+
+        auto name  = attr.qualifiedName();
+        auto value = attr.value().toString();
 
         if      (name == "d")
           pathData.d = value;
@@ -130,43 +163,7 @@ class CQChartsSVGParserHandler : public QXmlContentHandler {
     return true;
   }
 
-  // called at end of xml element
-  bool endElement(const QString & /*namespaceURI*/, const QString & /*localName*/,
-                  const QString & /*qName*/) override {
-    return true;
-  }
-
-  // start prefix-URI namespace mapping
-  bool startPrefixMapping(const QString & /*prefix*/, const QString & /*uri*/) override {
-    return true;
-  }
-
-  // end prefix-URI namespace mapping
-  bool endPrefixMapping(const QString & /*prefix*/) override {
-    return true;
-  }
-
-  // error message string
-  QString errorString() const override {
-    return "";
-  }
-
-  // called for ignored whitespace
-  bool ignorableWhitespace(const QString & /*ch*/) override {
-    return true;
-  }
-
-  // processing instruction parsed
-  bool processingInstruction(const QString & /*target*/, const QString & /*data*/) override {
-    return true;
-  }
-
-  // document when start parsing
-  void setDocumentLocator(QXmlLocator * /*locator*/) override {
-  }
-
-  // called for skipped entity
-  bool skippedEntity(const QString & /*name*/) override {
+  bool endElement(const QString &) {
     return true;
   }
 
@@ -216,19 +213,16 @@ svgFileToPaths(const QString &filename, Paths &paths, Styles &styles, BBox &bbox
 
   processXmlTag(tag, pathDatas);
 #else
-  QXmlSimpleReader reader;
+  QFile file(filename);
 
-  reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+  if (! file.open(QIODevice::ReadOnly))
+    return false;
 
   CQChartsSVGParserHandler handler(bbox, pathDatas);
 
-  reader.setContentHandler(&handler);
+  QXmlStreamReader xml(&file);
 
-  QFile file(filename);
-
-  QXmlInputSource input(&file);
-
-  reader.parse(&input, false);
+  handler.parse(xml);
 #endif
 
   for (const auto &pathData : pathDatas) {
