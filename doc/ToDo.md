@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + treemap group with empty group name
  + write model with iformat/oformat (e.g. time) should keep original format
  + custom percent max (from column ?)
  + halo for select in more plots (use shape)

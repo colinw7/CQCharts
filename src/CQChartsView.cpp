@@ -2738,6 +2738,19 @@ interpColor(const CQChartsColor &c, const ColorInd &ind) const
   return charts()->interpColor(c, ind);
 }
 
+QColor
+CQChartsView::
+interpColor(const CQChartsColor &c, int ig, int ng, const ColorInd &ind) const
+{
+  if (defaultPalette_ != "") {
+    auto c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+
+    return charts()->interpColor(c1, ig, ng, ind);
+  }
+
+  return charts()->interpColor(c, ig, ng, ind);
+}
+
 //------
 
 void

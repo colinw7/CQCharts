@@ -16231,6 +16231,18 @@ interpInterfaceColor(double r) const
 
 QColor
 CQChartsPlot::
+interpColor(const Color &c, int ig, int ng, const ColorInd &ind) const
+{
+  auto c1 = c;
+
+  if (defaultPalette_.isValid())
+    c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
+
+  return view()->interpColor(c1, ig, ng, ind);
+}
+
+QColor
+CQChartsPlot::
 interpColor(const Color &c, const ColorInd &ind) const
 {
   auto c1 = c;

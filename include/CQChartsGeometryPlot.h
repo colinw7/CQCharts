@@ -232,6 +232,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set color by value
   bool isColorByValue() const { return valueStyle_ == ValueStyle::COLOR; }
   void setColorByValue(bool b);
 

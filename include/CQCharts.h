@@ -185,6 +185,7 @@ class CQCharts : public QObject {
 
  public:
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
+  QColor interpColor(const CQChartsColor &c, int ig, int ng, const ColorInd &ind) const;
 
  private:
   QColor interpColorValueI(const CQChartsColor &c, int ig, int ng,

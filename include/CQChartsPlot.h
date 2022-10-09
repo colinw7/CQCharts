@@ -2974,6 +2974,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QColor interpInterfaceColor(double r) const;
 
  public:
+  virtual QColor interpColor(const Color &c, int ig, int ng, const ColorInd &ind) const;
   virtual QColor interpColor(const Color &c, const ColorInd &ind) const;
 
   //---

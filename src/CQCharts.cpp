@@ -1040,6 +1040,13 @@ interpColor(const Color &c, const ColorInd &ind) const
 
 QColor
 CQCharts::
+interpColor(const Color &c, int ig, int ng, const ColorInd &ind) const
+{
+  return interpColorValueI(c, ig, ng, ind.value(), ind.c);
+}
+
+QColor
+CQCharts::
 interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic) const
 {
   if (! c.isValid())
@@ -1249,12 +1256,20 @@ interpPaletteColorValue(int ig, int ng, double r, bool scale, bool invert) const
 
 QColor
 CQCharts::
-interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r,
+interpIndPaletteColorValue(int ind, int ig, int ng, double r,
                            bool scale, bool invert) const
 {
   // if ind unset then use default palette number
-  if (ind < 0)
-    ind = 0;
+  if (ind < 0) {
+    if (ng > 1) {
+      uint np = theme()->numPalettes();
+
+      //ind = CMathUtil::map(ig, 0, ng - 1, 0, int(np));
+      ind = (ig % np);
+    }
+    else
+      ind = 0;
+  }
 
   auto *palette = this->themePalette(ind);
 

@@ -98,11 +98,15 @@ class CQChartsTreeMapNode {
   virtual double h() const { return h_; }
   virtual void setH(double r) { h_ = r; }
 
+  //---
+
   virtual int colorId() const { return colorId_; }
   virtual void setColorId(int id) { colorId_ = id; }
 
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
+
+  //---
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -163,8 +167,10 @@ class CQChartsTreeMapNode {
   bool        filler_  { false };   //!< is filler
   bool        placed_  { false };   //!< is placed
 
-  mutable QString hierName_;
-  mutable QChar   hierNameSep_;
+  mutable QString hierName_;    //!< hier name
+  mutable QChar   hierNameSep_; //!< hier name separator
+  mutable int     ig_ { -1 };   //!< group ind
+  mutable int     ng_ { -1 };   //!< num groups
 };
 
 //---
@@ -451,13 +457,14 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(double            titleMargin      READ titleMargin        WRITE setTitleMargin     )
   Q_PROPERTY(int               titleDepth       READ titleDepth         WRITE setTitleDepth      )
 
-  // color
-  Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
+  // coloring
+  Q_PROPERTY(NodeColorType nodeColorType READ nodeColorType WRITE setNodeColorType)
+  Q_PROPERTY(HierColorType hierColorType READ hierColorType WRITE setHierColorType)
 
   // header shape (stroke, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header, header)
 
-  // header font, color
+  // header (font, color, ...)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
   // node options
@@ -472,14 +479,34 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  // glonal options
+  // global options
+  Q_PROPERTY(bool         hierSelect  READ isHierSelect  WRITE setHierSelect )
   Q_PROPERTY(bool         hierName    READ isHierName    WRITE setHierName   )
   Q_PROPERTY(int          numSkipHier READ numSkipHier   WRITE setNumSkipHier)
   Q_PROPERTY(bool         textClipped READ isTextClipped WRITE setTextClipped)
   Q_PROPERTY(CQChartsArea minArea     READ minArea       WRITE setMinArea    )
-  Q_PROPERTY(bool         splitGroups READ isSplitGroups WRITE setSplitGroups)
+
+  // grouping
+  Q_PROPERTY(bool splitGroups  READ isSplitGroups  WRITE setSplitGroups )
+  Q_PROPERTY(bool groupPalette READ isGroupPalette WRITE setGroupPalette)
+
+  Q_ENUMS(NodeColorType)
+  Q_ENUMS(HierColorType)
 
  public:
+  enum class NodeColorType {
+    ID,
+    PARENT_VALUE,
+    GLOBAL_VALUE
+  };
+
+  enum class HierColorType {
+    ID,
+    BLEND,
+    PARENT_VALUE,
+    GLOBAL_VALUE
+  };
+
   using Node     = CQChartsTreeMapNode;
   using Nodes    = std::vector<Node*>;
   using HierNode = CQChartsTreeMapHierNode;
@@ -540,6 +567,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
+  //! get/set hier node selectable
+  bool isHierSelect() const { return hierSelect_; }
+  void setHierSelect(bool b) { hierSelect_ = b; }
+
+  //---
+
   //! get/set node hierarchical name
   bool isHierName() const { return nodeData_.hierName; }
   void setHierName(bool b);
@@ -564,9 +597,15 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   const Area &minArea() const { return treeData_.minArea; }
   void setMinArea(const Area &a);
 
+  //---
+
   //! get/set split groups
   bool isSplitGroups() const { return treeData_.splitGroups; }
   void setSplitGroups(bool b);
+
+  //! get/set group palette
+  bool isGroupPalette() const { return treeData_.groupPalette; }
+  void setGroupPalette(bool b);
 
   //---
 
@@ -576,9 +615,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
-  //! get/set is color by id
-  bool isColorById() const { return colorById_; }
-  void setColorById(bool b);
+  //! get/set node color type
+  const NodeColorType &nodeColorType() const { return nodeColorType_; }
+  void setNodeColorType(const NodeColorType &type);
+
+  //! get/set hier color type
+  const HierColorType &hierColorType() const { return hierColorType_; }
+  void setHierColorType(const HierColorType &type);
 
   //------
 
@@ -635,6 +678,18 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void setPathExpanded(const QString &path, bool expanded);
 
   void resetPathExpanded();
+
+  //---
+
+  int numGroups() const override;
+  int groupNum(const QString &groupName) const;
+
+  //---
+
+  bool hasValueRange() const { return hasValueRange_; }
+
+  double minValue() const { return minValue_; }
+  double maxValue() const { return maxValue_; }
 
  protected:
   void initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
@@ -724,6 +779,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   virtual NodeObj *createNodeObj(Node *node, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
 
+  //---
+
  public Q_SLOTS:
   void pushSlot();
   void popSlot();
@@ -752,8 +809,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   };
 
   struct TreeData {
-    Area minArea;               //!< min area
-    bool splitGroups { false }; //!< split groups
+    Area minArea;                //!< min area
+    bool splitGroups  { false }; //!< split groups
+    bool groupPalette { false }; //!< use separate palette per group
   };
 
   struct NodeData {
@@ -806,10 +864,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   TreeMapData &getTreeMapData(const QString &groupName) const;
 
  private:
-  TitleData titleData_;          //!< title config data
-  TreeData  treeData_;           //!< tree config data
-  NodeData  nodeData_;           //!< node config data
-  bool      colorById_ { true }; //!< color by id
+  TitleData     titleData_;                              //!< title config data
+  TreeData      treeData_;                               //!< tree config data
+  NodeData      nodeData_;                               //!< node config data
+  bool          hierSelect_    { false };                //!< allow select hier node
+  NodeColorType nodeColorType_ { NodeColorType::ID };    //!< node color type
+  HierColorType hierColorType_ { HierColorType::BLEND }; //!< hier node color type
 
   GroupTreeMapData groupTreeMapData_; //!< grouped tree map data
   TreeMapData      treeMapData_;      //!< tree map data
@@ -822,6 +882,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   PathExpanded pathExpanded_;
 
   mutable QString menuGroupName_; //!< group name for object at menu invocation
+
+  mutable bool   hasValueRange_ { false };
+  mutable double minValue_      { 0.0 };
+  mutable double maxValue_      { 1.0 };
 };
 
 //---

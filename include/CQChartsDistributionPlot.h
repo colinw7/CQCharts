@@ -1132,7 +1132,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
    * TODO: symbol, ends ...
    */
   struct DotLineData {
-    CQChartsLength width { Length::pixel(3) }; //!< width
+    Length width { Length::pixel(3) }; //!< width
   };
 
   /*!

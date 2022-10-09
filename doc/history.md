@@ -1424,3 +1424,5 @@
  + add column tcl data
  + support animation in all plots and annotations
  + add split groups to hier bubble plot
+# 10/9/2022
+ + improve color control in tree map

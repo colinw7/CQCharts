@@ -7,6 +7,9 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -46,9 +49,12 @@ description() const
        B("Value") + " column.").
      p("If the name columns is a hierarchical path then the separator can be specified width "
        "the " + B("Separator") + " option (default '/').").
+    h3("Options").
+     p("The " + B("valueLabel") + " option determines if box label includes the value").
     h3("Limitations").
      p("This plot does not support a user specified range, axes, logarithm scales, "
        "or probing.").
+     p("The plot does not support an X/Y axis or Key.").
     h3("Example").
      p(IMG("images/treemap.png"));
 }
@@ -265,13 +271,27 @@ setSplitGroups(bool b)
   CQChartsUtil::testAndSet(treeData_.splitGroups, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsTreeMapPlot::
+setGroupPalette(bool b)
+{
+  CQChartsUtil::testAndSet(treeData_.groupPalette, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //----
 
 void
 CQChartsTreeMapPlot::
-setColorById(bool b)
+setNodeColorType(const NodeColorType &type)
 {
-  CQChartsUtil::testAndSet(colorById_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeColorType_, type, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setHierColorType(const HierColorType &type)
+{
+  CQChartsUtil::testAndSet(hierColorType_, type, [&]() { drawObjs(); } );
 }
 
 //----
@@ -311,7 +331,11 @@ addProperties()
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
   addProp("options", "followViewExpand", "", "Follow view expand");
-  addProp("options", "splitGroups"     , "", "Show grouped data in separated treemaps");
+  addProp("options", "hierSelect"      , "", "Allow hier select");
+
+  // grouping
+  addProp("grouping", "splitGroups" , "", "Show grouped data in separate treemaps");
+  addProp("grouping", "groupPalette", "", "Use separate palette per group");
 
   // filter
   addProp("filter", "minArea", "", "Min box area");
@@ -320,7 +344,8 @@ addProperties()
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
 
   // coloring
-  addProp("coloring", "colorById", "colorById", "Color by id");
+  addProp("coloring", "nodeColorType", "nodeColorType", "Node Color type");
+  addProp("coloring", "hierColorType", "hierColorType", "Hier Node Color type");
 
   //---
 
@@ -337,7 +362,7 @@ addProperties()
   addProp("header", "titleMargin"  , "margin"   ,
           "Hierarchical group header margin in pixels")->setMinValue(0.0);
   addProp("header", "titleDepth"   , "depth"   ,
-          "Maximum depth to show header")->setMinValue(-1);
+          "Maximum depth to show header (-1 is unset)")->setMinValue(-1);
 
   // header/fill
   addProp("header/fill", "headerFilled", "visible", "Header fill visible");
@@ -568,6 +593,20 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  auto *modelData     = getModelData();
+  auto *details       = (modelData ? modelData->details() : nullptr);
+  auto *columnDetails = (details ? details->columnDetails(valueColumn()) : nullptr);
+
+  bool ok1 = false, ok2 = false;
+  if (columnDetails) {
+    th->minValue_ = CQChartsVariant::toReal(columnDetails->minValue(), ok1);
+    th->maxValue_ = CQChartsVariant::toReal(columnDetails->maxValue(), ok2);
+  }
+
+  th->hasValueRange_ = (ok1 && ok2);
+
+  //---
+
   if (! root(""))
     initNodes();
   else
@@ -637,7 +676,12 @@ initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
 {
   HierObj *hierObj = nullptr;
 
-  if (hier != root(groupName)) {
+  bool isSplitGroup = false;
+
+  if (isSplitGroups() && groupName != "")
+    isSplitGroup = true;
+
+  if (isSplitGroup || hier != root(groupName)) {
     BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
     ColorInd is(hier->depth(), maxDepth(groupName) + 1);
@@ -765,7 +809,7 @@ replaceNodes() const
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
   th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
-  int ng = int(groupNameSet_.size());
+  int ng = numGroups();
 
   if (isSplitGroups() && ng > 0) {
     int nx, ny;
@@ -1061,6 +1105,9 @@ loadFlat() const
         bool ok;
 
         groupName = plot_->modelString(groupModelInd, ok); // hier ?
+
+        if (groupName == "")
+          groupName = " ";
       }
 
       //---
@@ -1123,8 +1170,6 @@ loadFlat() const
 
    private:
     bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
       if (! plot_->valueColumn().isValid())
         return true;
 
@@ -1526,31 +1571,32 @@ pushSlot()
   menuPlotObjs(objs);
   if (objs.empty()) return;
 
+  // get hier node with max depth
+  HierNode *hnode = nullptr;
+
   for (const auto &obj : objs) {
-    auto *hierObj = dynamic_cast<HierObj *>(obj);
+    auto *hierObj1 = dynamic_cast<HierObj *>(obj);
 
-    if (hierObj) {
-      auto *hnode = hierObj->hierNode();
+    HierNode *hnode1 = nullptr;
 
-      setCurrentRoot(menuGroupName_, hnode, /*update*/true);
+    if (hierObj1)
+      hnode1 = hierObj1->hierNode();
+    else {
+      auto *nodeObj1 = dynamic_cast<NodeObj *>(obj);
 
-      break;
-    }
+      if (nodeObj1) {
+        auto *node1 = nodeObj1->node();
 
-    auto *nodeObj = dynamic_cast<NodeObj *>(obj);
-
-    if (nodeObj) {
-      auto *node = nodeObj->node();
-
-      auto *hnode = node->parent();
-
-      if (hnode) {
-        setCurrentRoot(menuGroupName_, hnode, /*update*/true);
-
-        break;
+        hnode1 = node1->parent();
       }
     }
+
+    if (! hnode || hnode1->depth() > hnode->depth())
+      hnode = hnode1;
   }
+
+  if (hnode)
+    setCurrentRoot(menuGroupName_, hnode, /*update*/true);
 }
 
 void
@@ -1740,6 +1786,31 @@ resetNodeExpansion(HierNode *hierNode, bool expanded)
 
 //---
 
+int
+CQChartsTreeMapPlot::
+numGroups() const
+{
+  return int(groupNameSet_.size());
+}
+
+int
+CQChartsTreeMapPlot::
+groupNum(const QString &groupName) const
+{
+  int i = 0;
+
+  for (const auto &groupName1 : groupNameSet_) {
+    if (groupName == groupName1)
+      return i;
+
+    ++i;
+  }
+
+  return -1;
+}
+
+//---
+
 bool
 CQChartsTreeMapPlot::
 isPathExpanded(const QString &path) const
@@ -1892,7 +1963,7 @@ isSelectable() const
     return false;
 
   if (hier_->isHierExpanded())
-    return false;
+    return plot_->isHierSelect();
 
   return true;
 }
@@ -2080,9 +2151,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor fc;
 
   if (hierNode()->isExpanded()) {
-    auto c = plot_->interpHeaderFillColor(colorInd);
+    if (plot_->hierColorType() != Plot::HierColorType::PARENT_VALUE &&
+        plot_->hierColorType() != Plot::HierColorType::GLOBAL_VALUE) {
+      auto c = plot_->interpHeaderFillColor(colorInd);
 
-    fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
+      fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
+    }
+    else
+      fc = hierColor;
   }
   else
     fc = hierColor;
@@ -2338,12 +2414,16 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
   //---
 
   // check if text visible
-  QFontMetricsF fm(device->font());
+  bool visible = true;
 
-  double minTextWidth  = fm.horizontalAdvance("X") + 4;
-  double minTextHeight = fm.height() + 4;
+  if (plot_->isTextClipped()) {
+    QFontMetricsF fm(device->font());
 
-  bool visible = (bbox.getWidth() >= minTextWidth && bbox.getHeight() >= minTextHeight);
+    double minTextWidth  = fm.horizontalAdvance("X") + 4;
+    double minTextHeight = fm.height() + 4;
+
+    visible = (bbox.getWidth() >= minTextWidth && bbox.getHeight() >= minTextHeight);
+  }
 
   //---
 
@@ -2407,12 +2487,14 @@ calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) co
   auto bc = plot_->interpStrokeColor(colorInd);
   auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, numColorIds_);
 
+  // is node single pixel point
   if (isNodePoint) {
     if      (plot_->isFilled())
       plot_->setPenBrush(penBrush, PenData(true, fc, plot_->fillAlpha()), plot_->brushData(fc));
     else if (plot_->isStroked())
       plot_->setPenBrush(penBrush, plot_->penData(bc), BrushData(true, bc, plot_->strokeAlpha()));
   }
+  // is normal node
   else {
     plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
   }
@@ -2589,7 +2671,12 @@ packNodes(double x, double y, double w, double h)
       showTitle_ = false;
   }
 
-  if (! parent())
+  bool isSplitGroup = false;
+
+  if (plot()->isSplitGroups() && groupName() != "")
+    isSplitGroup = true;
+
+  if (! isSplitGroup && ! parent())
     showTitle_ = false;
 
   if (plot()->titleDepth() > 0 && depth() > plot()->titleDepth())
@@ -2751,20 +2838,55 @@ QColor
 CQChartsTreeMapHierNode::
 interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
-  using Colors = std::vector<QColor>;
+  if (plot->hierColorType() == Plot::HierColorType::BLEND) {
+    // color is blended from child
+    using Colors = std::vector<QColor>;
 
-  Colors colors;
+    Colors colors;
 
-  for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, c, colorInd, n));
+    for (auto &child : children_)
+      colors.push_back(child->interpColor(plot, c, colorInd, n));
 
-  for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, c, colorInd, n));
+    for (auto &node : nodes_)
+      colors.push_back(node->interpColor(plot, c, colorInd, n));
 
-  if (colors.empty())
-    return plot->interpColor(c, colorInd);
+    if (! colors.empty())
+      return CQChartsUtil::blendColors(colors);
+  }
 
-  return CQChartsUtil::blendColors(colors);
+  //---
+
+  ColorInd colorInd1 = colorInd;
+
+  if      (plot->hierColorType() == Plot::HierColorType::PARENT_VALUE) {
+    if (parent())
+      colorInd1 = ColorInd(hierSize()/parent()->hierSize());
+  }
+  else if (plot->hierColorType() == Plot::HierColorType::GLOBAL_VALUE) {
+    auto groupName = calcGroupName();
+
+    auto *root = plot_->root(groupName);
+
+    colorInd1 = ColorInd(CMathUtil::norm(hierSize(), 0.0, root->hierSize()));
+  }
+
+  //----
+
+  // color by group palette index
+  if (plot->isSplitGroups() && plot->isGroupPalette()) {
+    if (ng_ < 0) {
+      auto groupName = calcGroupName();
+
+      ig_ = plot_->groupNum(groupName);
+      ng_ = plot_->numGroups();
+    }
+
+    //---
+
+    return plot->interpColor(c, ig_, ng_, colorInd1);
+  }
+  else
+    return plot->interpColor(c, colorInd1);
 }
 
 QString
@@ -2844,17 +2966,36 @@ QColor
 CQChartsTreeMapNode::
 interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
-  if (color().isValid())
-    return plot->interpColor(color(), ColorInd());
+  Color    color1    = c;
+  ColorInd colorInd1 = colorInd;
 
-  if (plot_->isColorById()) {
-    auto colorId = this->colorId();
-
-    if (colorId >= 0)
-      return plot->interpColor(c, ColorInd(colorId, n));
+  if      (color().isValid())
+    color1 = color();
+  else if (plot_->nodeColorType() == Plot::NodeColorType::ID)
+    colorInd1 = ColorInd(colorId(), n);
+  else if (plot_->nodeColorType() == Plot::NodeColorType::PARENT_VALUE)
+    colorInd1 = ColorInd(size()/parent()->hierSize());
+  else if (plot_->nodeColorType() == Plot::NodeColorType::GLOBAL_VALUE) {
+    if (plot->hasValueRange())
+      colorInd1 = ColorInd(CMathUtil::norm(size(), plot->minValue(), plot->maxValue()));
+    else
+      colorInd1 = ColorInd(1.0);
   }
 
-  return plot->interpColor(c, colorInd);
+  if (plot->isSplitGroups() && plot->isGroupPalette()) {
+    if (ng_ < 0) {
+      auto groupName = calcGroupName();
+
+      ig_ = plot_->groupNum(groupName);
+      ng_ = plot_->numGroups();
+    }
+
+    //---
+
+    return plot->interpColor(color1, ig_, ng_, colorInd1);
+  }
+  else
+    return plot->interpColor(color1, colorInd1);
 }
 
 QString

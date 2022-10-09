@@ -5820,15 +5820,9 @@ void
 CQChartsXYPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  CQChartsWidgetUtil::optDisconnect(plot_, SIGNAL(customDataChanged()),
-                                    this, SLOT(updateWidgets()));
-
   plot_ = dynamic_cast<CQChartsXYPlot *>(plot);
 
   CQChartsPointPlotCustomControls::setPlot(plot);
-
-  CQChartsWidgetUtil::optConnect(plot_, SIGNAL(customDataChanged()),
-                                 this, SLOT(updateWidgets()));
 }
 
 void
