@@ -121,7 +121,7 @@ class CQChartsTreeMapNode {
 
   virtual double hierSize() const { return size(); }
 
-  virtual QString hierName(QChar sep='/') const;
+  virtual QString hierName(const QString &sep="/") const;
 
   virtual void setPosition(double x, double y, double w, double h);
 

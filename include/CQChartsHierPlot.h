@@ -69,7 +69,7 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //---
 
-  //! get/set folow view expand
+  //! get/set follow view expand
   bool isFollowViewExpand() const { return followViewExpand_; }
   void setFollowViewExpand(bool b);
 

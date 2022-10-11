@@ -1027,7 +1027,7 @@ loadFlat() const
       if (! plot_->getValueSize(valueModelInd, size))
         return false;
 
-      if (size <= 0.0) // alow negative ?
+      if (size <= 0.0) // allow negative ?
         return false;
 
       return true;

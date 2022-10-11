@@ -464,7 +464,7 @@ setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
   auto &treeMapData = getTreeMapData(groupName);
 
   if (hier)
-    treeMapData.currentRootName = hier->hierName();
+    treeMapData.currentRootName = hier->hierName(calcSeparator());
   else
     treeMapData.currentRootName.clear();
 
@@ -1035,7 +1035,7 @@ addHierNode(const QString &groupName, HierNode *hier, const QString &name,
 
   //---
 
-  bool expanded = isPathExpanded(hier1->hierName());
+  bool expanded = isPathExpanded(hier1->hierName(calcSeparator()));
 
   hier1->setExpanded(expanded);
 
@@ -1296,7 +1296,7 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
 
       //---
 
-      bool expanded = isPathExpanded(child->hierName());
+      bool expanded = isPathExpanded(child->hierName(calcSeparator()));
 
       child->setExpanded(expanded);
     }
@@ -1591,8 +1591,10 @@ pushSlot()
       }
     }
 
-    if (! hnode || hnode1->depth() > hnode->depth())
-      hnode = hnode1;
+    if (hnode1) {
+      if (! hnode || hnode1->depth() > hnode->depth())
+        hnode = hnode1;
+    }
   }
 
   if (hnode)
@@ -1925,7 +1927,8 @@ QString
 CQChartsTreeMapHierObj::
 calcTipId() const
 {
-  //return QString("%1:%2").arg(hier_->hierName()).arg(hier_->hierSize());
+  // auto sep = plot_->calcSeparator();
+  //return QString("%1:%2").arg(hier_->hierName(sep)).arg(hier_->hierSize());
   return CQChartsTreeMapNodeObj::calcTipId();
 }
 
@@ -2055,7 +2058,9 @@ CQChartsTreeMapHierObj::
 drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 {
   // get label (name)
-  auto name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
+  auto sep = plot_->calcSeparator();
+
+  auto name = (plot_->isTitleHierName() ? hier_->hierName(sep) : hier_->name());
 
   //---
 
@@ -2091,10 +2096,9 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
   // check if text visible (font dependent)
   auto pbbox = plot_->windowToPixel(bbox);
 
-  //bool visible = plot_->isTextVisible();
   bool visible = true;
 
-  if (visible) {
+  if (plot_->isTitleTextClipped()) {
     QFontMetricsF fm(device->font());
 
     double minTextWidth  = fm.horizontalAdvance("X") + 4;
@@ -2210,16 +2214,26 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
+  auto sep = plot_->calcSeparator();
+
   if (plot_->idColumn().isValid())
     tableTip.addTableRow("Name", (node_->isFiller() ?
       node_->parent()->name() : node_->name()));
   else
     tableTip.addTableRow("Name", (node_->isFiller() ?
-      node_->parent()->hierName() : node_->hierName()));
+      node_->parent()->hierName(sep) : node_->hierName(sep)));
 
   auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
 
-  tableTip.addTableRow("Value", node_->hierSize());
+  QString valueName;
+
+  if (plot_->valueColumn().isValid())
+    valueName = plot_->columnHeaderName(plot_->valueColumn(), /*tip*/true);
+
+  if (valueName == "")
+    valueName = "Value";
+
+  tableTip.addTableRow(valueName, node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
     ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
@@ -2297,13 +2311,13 @@ draw(PaintDevice *device) const
 
   bool isNodePoint = this->isNodePoint();
 
-  BBox  bbox;
+  BBox  pbbox;
   Point point;
 
   if (isNodePoint)
     point = Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
   else
-    bbox = BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
+    pbbox = BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
 
   //---
 
@@ -2324,7 +2338,7 @@ draw(PaintDevice *device) const
   if (isNodePoint)
     device->drawPoint(plot_->pixelToWindow(point));
   else
-    device->drawRect(plot_->pixelToWindow(bbox));
+    device->drawRect(plot_->pixelToWindow(pbbox));
 
   device->resetColorNames();
 
@@ -2336,12 +2350,12 @@ draw(PaintDevice *device) const
   //---
 
   if (plot_->isTextVisible())
-    drawText(device, bbox, updateState);
+    drawText(device, pbbox, updateState);
 }
 
 void
 CQChartsTreeMapNodeObj::
-drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
+drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -2349,7 +2363,7 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
   QString name;
 
   if (plot_->isHierName()) {
-    QChar sep = '/';
+    auto sep = plot_->calcSeparator();
 
     name = (! node_->isFiller() ? node_->hierName(sep) : node_->parent()->hierName(sep));
 
@@ -2413,7 +2427,7 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 
   //---
 
-  // check if text visible
+  // check if text visible (font dependent)
   bool visible = true;
 
   if (plot_->isTextClipped()) {
@@ -2422,7 +2436,7 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
     double minTextWidth  = fm.horizontalAdvance("X") + 4;
     double minTextHeight = fm.height() + 4;
 
-    visible = (bbox.getWidth() >= minTextWidth && bbox.getHeight() >= minTextHeight);
+    visible = (pbbox.getWidth() >= minTextWidth && pbbox.getHeight() >= minTextHeight);
   }
 
   //---
@@ -2438,7 +2452,7 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 
     device->setPen(tPenBrush.pen);
 
-    auto ibbox = bbox.adjusted(3, 3, -3, -3);
+    auto ibbox = pbbox.adjusted(3, 3, -3, -3);
 
     auto bbox1 = plot_->pixelToWindow(ibbox);
 
@@ -2582,7 +2596,9 @@ setExpanded(bool b)
 {
   expanded_ = b;
 
-  const_cast<Plot *>(plot_)->setPathExpanded(hierName(), expanded_);
+  auto sep = plot_->calcSeparator();
+
+  const_cast<Plot *>(plot_)->setPathExpanded(hierName(sep), expanded_);
 }
 
 bool
@@ -2913,7 +2929,7 @@ CQChartsTreeMapNode(const Plot *plot, HierNode *parent, const QString &name, dou
 
 QString
 CQChartsTreeMapNode::
-hierName(QChar sep) const
+hierName(const QString &sep) const
 {
   if (hierName_ == "" || sep != hierNameSep_) {
     auto groupName = calcGroupName();
