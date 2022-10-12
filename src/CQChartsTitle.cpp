@@ -501,6 +501,9 @@ draw(PaintDevice *device)
     x = position_.x; // bottom
     y = position_.y; // top
 
+    if (! size_.isSet())
+      return;
+
     w = size_.width ();
     h = size_.height();
 

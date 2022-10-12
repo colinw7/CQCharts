@@ -126,7 +126,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   virtual double hierSize() const { return size(); }
 
   //! get hier name
-  virtual QString hierName() const;
+  virtual QString hierName(const QString &sep) const;
 
   //! reset placement position
   virtual void resetPosition() {
@@ -169,6 +169,11 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   int         depth_   { 0 };       //!< node depth
   bool        filler_  { false };   //!< is filler
   bool        placed_  { false };   //!< is placed
+
+//mutable QString hierName_;    //!< hier name
+//mutable QChar   hierNameSep_; //!< hier name separator
+  mutable int     ig_ { -1 };   //!< group ind
+  mutable int     ng_ { -1 };   //!< num groups
 };
 
 //---
@@ -327,7 +332,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
-  QString hierName() const { return node()->hierName(); }
+  QString hierName(const QString &sep="/") const { return node()->hierName(sep); }
   double  hierSize() const { return node()->hierSize(); }
 
   //---
@@ -376,6 +381,8 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   Node*       node_    { nullptr }; //!< associated node
   HierObj*    hierObj_ { nullptr }; //!< parent hier obj
   int         ind_     { 0 };       //!< ind
+
+  mutable int numColorIds_ { -1 }; //!< associated group's number of color ids
 };
 
 //---
@@ -443,39 +450,67 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
  *   + \image html hierbubbleplot.png
  */
 class CQChartsHierBubblePlot : public CQChartsHierPlot,
- public CQChartsObjShapeData<CQChartsHierBubblePlot>,
- public CQChartsObjTextData <CQChartsHierBubblePlot> {
+ public CQChartsObjHierShapeData<CQChartsHierBubblePlot>,
+ public CQChartsObjShapeData    <CQChartsHierBubblePlot>,
+ public CQChartsObjTextData     <CQChartsHierBubblePlot> {
   Q_OBJECT
 
-  // options
+  // coloring
+  Q_PROPERTY(NodeColorType nodeColorType READ nodeColorType WRITE setNodeColorType)
+  Q_PROPERTY(HierColorType hierColorType READ hierColorType WRITE setHierColorType)
+
+  // hier node shape (stroke, fill)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hier, hier)
+
+  // node options
   Q_PROPERTY(bool valueLabel  READ isValueLabel  WRITE setValueLabel )
   Q_PROPERTY(bool sorted      READ isSorted      WRITE setSorted     )
   Q_PROPERTY(bool sortReverse READ isSortReverse WRITE setSortReverse)
 
-  Q_PROPERTY(CQChartsOptReal minSize     READ minSize       WRITE setMinSize)
-  Q_PROPERTY(CQChartsArea    minArea     READ minArea       WRITE setMinArea)
-  Q_PROPERTY(bool            splitGroups READ isSplitGroups WRITE setSplitGroups)
-
-  // color
-  Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
-
-  // shape
+  // node shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  // text
+  // node text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  // global options
+  Q_PROPERTY(CQChartsOptReal minSize     READ minSize       WRITE setMinSize)
+  Q_PROPERTY(CQChartsArea    minArea     READ minArea       WRITE setMinArea)
+
+  // grouping
+  Q_PROPERTY(bool splitGroups  READ isSplitGroups  WRITE setSplitGroups )
+  Q_PROPERTY(bool groupPalette READ isGroupPalette WRITE setGroupPalette)
+
+  Q_ENUMS(NodeColorType)
+  Q_ENUMS(HierColorType)
+
  public:
+  enum class NodeColorType {
+    ID,
+    PARENT_VALUE,
+    GLOBAL_VALUE
+  };
+
+  enum class HierColorType {
+    ID,
+    BLEND,
+    PARENT_VALUE,
+    GLOBAL_VALUE
+  };
+
   using Node      = CQChartsHierBubbleNode;
   using Pack      = CQChartsCirclePack<Node>;
   using Nodes     = std::vector<Node*>;
   using HierNode  = CQChartsHierBubbleHierNode;
   using HierObj   = CQChartsHierBubbleHierObj;
   using NodeObj   = CQChartsHierBubbleNodeObj;
+
   using Length    = CQChartsLength;
   using Area      = CQChartsArea;
   using Color     = CQChartsColor;
+  using Alpha     = CQChartsAlpha;
   using PenData   = CQChartsPenData;
+  using PenBrush  = CQChartsPenBrush;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
 
@@ -514,9 +549,15 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   const Area &minArea() const { return minArea_; }
   void setMinArea(const Area &a);
 
-    //! get/set split groups
+  //---
+
+  //! get/set split groups
   bool isSplitGroups() const { return splitGroups_; }
   void setSplitGroups(bool b);
+
+  //! get/set group palette
+  bool isGroupPalette() const { return groupPalette_; }
+  void setGroupPalette(bool b);
 
   //---
 
@@ -554,9 +595,13 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
-  //! get/set is color by id
-  bool isColorById() const { return colorById_; }
-  void setColorById(bool b);
+  //! get/set node color type
+  const NodeColorType &nodeColorType() const { return nodeColorType_; }
+  void setNodeColorType(const NodeColorType &type);
+
+  //! get/set hier color type
+  const HierColorType &hierColorType() const { return hierColorType_; }
+  void setHierColorType(const HierColorType &type);
 
   //---
 
@@ -581,6 +626,18 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   //---
 
   bool addMenuItems(QMenu *menu, const Point &p) override;
+
+  //---
+
+  int numGroups() const override;
+  int groupNum(const QString &groupName) const;
+
+  //---
+
+  bool hasValueRange() const { return hasValueRange_; }
+
+  double minValue() const { return minValue_; }
+  double maxValue() const { return maxValue_; }
 
  protected:
   void initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
@@ -732,20 +789,26 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   bool     valueLabel_ { false }; //!< draw value with name
   SortData sortData_;             //!< sort data
 
-  OptReal minSize_;               //!< min size
-  Area    minArea_;               //!< min area
-  bool    splitGroups_ { false }; //!< split groups
-
-  bool colorById_  { true };  //!< color by id
+  OptReal minSize_;                //!< min size
+  Area    minArea_;                //!< min area
+  bool    splitGroups_  { false }; //!< split groups
+  bool    groupPalette_ { false }; //!< use separate palette per group
 
   PlaceData placeData_; //!< place data
 
-  HierBubbleData      hierBubbleData_;      //!< hier bubble data
+  NodeColorType nodeColorType_ { NodeColorType::ID };    //!< node color type
+  HierColorType hierColorType_ { HierColorType::BLEND }; //!< hier node color type
+
   GroupHierBubbleData groupHierBubbleData_; //!< grouped hier bubble data
+  HierBubbleData      hierBubbleData_;      //!< hier bubble data
 
   GroupNameSet groupNameSet_; //!< group name set
 
   mutable QString menuGroupName_; //!< group name for object at menu invocation
+
+  mutable bool   hasValueRange_ { false };
+  mutable double minValue_      { 0.0 };
+  mutable double maxValue_      { 1.0 };
 };
 
 //---

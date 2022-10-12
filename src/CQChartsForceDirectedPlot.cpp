@@ -2194,7 +2194,7 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
       tableTip.addTableRow("Total", connectionsData.total.real());
 
     // out connections
-    tableTip.addTableRow("Connections", connectionsData.connections.size());
+    tableTip.addTableRow("Outputs", connectionsData.connections.size());
   }
   else {
     tableTip.addTableRow("Label", calcNodeLabel(node));

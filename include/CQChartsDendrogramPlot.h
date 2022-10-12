@@ -194,7 +194,6 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_TEXT_DATA(Hier, hier)
 CQCHARTS_NAMED_TEXT_DATA(Leaf, leaf)
 
 /*!

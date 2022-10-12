@@ -424,9 +424,11 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox, bool updateState) const;
+  void drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  void calcHeaderPenBrush(PenBrush &penBrush, bool updateState) const;
 
  private:
   HierNode* hier_ { nullptr }; //!< associated tree hier
@@ -434,13 +436,12 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Header, header)
-
 /*!
  * \brief Tree Map Plot
  * \ingroup Charts
  */
 class CQChartsTreeMapPlot : public CQChartsHierPlot,
+ public CQChartsObjHierShapeData  <CQChartsTreeMapPlot>,
  public CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>,
  public CQChartsObjHeaderTextData <CQChartsTreeMapPlot>,
  public CQChartsObjShapeData      <CQChartsTreeMapPlot>,
@@ -461,22 +462,26 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(NodeColorType nodeColorType READ nodeColorType WRITE setNodeColorType)
   Q_PROPERTY(HierColorType hierColorType READ hierColorType WRITE setHierColorType)
 
-  // header shape (stroke, fill)
+  // hier node shape (stroke, fill)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hier, hier)
+
+  // hier header shape (stroke, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header, header)
 
-  // header (font, color, ...)
+  // hier header (font, color, ...)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
   // node options
-  Q_PROPERTY(bool valueLabel  READ isValueLabel  WRITE setValueLabel )
+  Q_PROPERTY(bool         valueLabel   READ isValueLabel WRITE setValueLabel)
+  Q_PROPERTY(ValueCombine valueCombine READ valueCombine WRITE setValueCombine)
 
   // box margin
   Q_PROPERTY(CQChartsLength marginWidth READ marginWidth WRITE setMarginWidth)
 
-  // shape
+  // node shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  // text
+  // node text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   // global options
@@ -490,10 +495,18 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool splitGroups  READ isSplitGroups  WRITE setSplitGroups )
   Q_PROPERTY(bool groupPalette READ isGroupPalette WRITE setGroupPalette)
 
+  Q_ENUMS(ValueCombine)
   Q_ENUMS(NodeColorType)
   Q_ENUMS(HierColorType)
 
  public:
+  enum class ValueCombine {
+    SKIP,
+    REPLACE,
+    WARN,
+    SUM
+  };
+
   enum class NodeColorType {
     ID,
     PARENT_VALUE,
@@ -584,6 +597,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //! get/set node text clipped
   bool isTextClipped() const { return nodeData_.textClipped; }
   void setTextClipped(bool b);
+
+  //! get/set value combine policy
+  const ValueCombine &valueCombine() const { return nodeData_.valueCombine; }
+  void setValueCombine(const ValueCombine &combine);
 
   //! get/set value label
   bool isValueLabel() const { return nodeData_.valueLabel; }
@@ -815,11 +832,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   };
 
   struct NodeData {
-    bool   hierName    { false };            //!< show hierarchical name
-    bool   textClipped { true };             //!< is text clipped
-    int    numSkipHier { 0 };                //!< number of levels of hier name to skip
-    bool   valueLabel  { false };            //!< draw value with name
-    Length marginWidth { Length::pixel(2) }; //!< box margin
+    bool         hierName     { false };              //!< show hierarchical name
+    bool         textClipped  { true };               //!< is text clipped
+    int          numSkipHier  { 0 };                  //!< number of levels of hier name to skip
+    bool         valueLabel   { false };              //!< draw value with name
+    ValueCombine valueCombine { ValueCombine::SKIP }; //!< value combine policy
+    Length       marginWidth  { Length::pixel(2) };   //!< box margin
   };
 
   struct ColorData {
@@ -864,10 +882,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   TreeMapData &getTreeMapData(const QString &groupName) const;
 
  private:
-  TitleData     titleData_;                              //!< title config data
-  TreeData      treeData_;                               //!< tree config data
-  NodeData      nodeData_;                               //!< node config data
-  bool          hierSelect_    { false };                //!< allow select hier node
+  TitleData titleData_;            //!< title config data
+  TreeData  treeData_;             //!< tree config data
+  NodeData  nodeData_;             //!< node config data
+  bool      hierSelect_ { false }; //!< allow select hier node
+
   NodeColorType nodeColorType_ { NodeColorType::ID };    //!< node color type
   HierColorType hierColorType_ { HierColorType::BLEND }; //!< hier node color type
 

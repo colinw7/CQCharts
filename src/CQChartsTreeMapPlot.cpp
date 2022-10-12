@@ -71,6 +71,7 @@ create(View *view, const ModelP &model) const
 CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(View *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("treemap"), model),
+ CQChartsObjHierShapeData  <CQChartsTreeMapPlot>(this),
  CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>(this),
  CQChartsObjHeaderTextData <CQChartsTreeMapPlot>(this),
  CQChartsObjShapeData      <CQChartsTreeMapPlot>(this),
@@ -96,27 +97,44 @@ init()
 
   NoUpdate noUpdate(this);
 
-  setHeaderFillColor(Color::makeInterfaceValue(0.4));
-  setHeaderTextColor(Color::makeInterfaceValue(1.0));
+  //---
 
+  // hier node style
+  setHierFillColor(Color::makeInterfaceValue(0.4));
+
+  setHierStroked(true);
+  setHierStrokeAlpha(Alpha(0.5));
+
+  setHierFilled(true);
+
+  //---
+
+  // hier header style
+  setHeaderFilled(true);
+  setHeaderStroked(false);
+
+  setHeaderFillColor(Color::makeInterfaceValue(0.2));
+  setHeaderStrokeColor(Color::makeInterfaceValue(1.0));
+
+  setHeaderTextColor(Color::makeInterfaceValue(1.0));
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
-  setHeaderStroked(true);
-  setHeaderStrokeAlpha(Alpha(0.5));
+  //---
 
-  setHeaderFilled(true);
+  // node style
+  setFilled (true);
+  setStroked(true);
 
   setFillColor(Color::makePalette());
   setTextColor(Color::makeContrast());
-
-  setFilled (true);
-  setStroked(true);
 
   setTextFontSize(14.0);
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   setTextScaled(true);
   setTextFormatted(true);
+
+  //---
 
   setOuterMargin(PlotMargin::pixel(4, 4, 4, 4));
 
@@ -252,6 +270,13 @@ setValueLabel(bool b)
 
 void
 CQChartsTreeMapPlot::
+setValueCombine(const ValueCombine &combine)
+{
+  CQChartsUtil::testAndSet(nodeData_.valueCombine, combine, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
 setMarginWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(nodeData_.marginWidth, l, [&]() { updateCurrentRoot(); } );
@@ -263,6 +288,8 @@ setMinArea(const Area &a)
 {
   CQChartsUtil::testAndSet(treeData_.minArea, a, [&]() { drawObjs(); } );
 }
+
+//----
 
 void
 CQChartsTreeMapPlot::
@@ -330,6 +357,7 @@ addProperties()
 
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
+  addProp("options", "valueCombine"    , "", "How duplicate path values are handled");
   addProp("options", "followViewExpand", "", "Follow view expand");
   addProp("options", "hierSelect"      , "", "Allow hier select");
 
@@ -344,8 +372,8 @@ addProperties()
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
 
   // coloring
-  addProp("coloring", "nodeColorType", "nodeColorType", "Node Color type");
-  addProp("coloring", "hierColorType", "hierColorType", "Hier Node Color type");
+  addProp("coloring", "nodeColorType", "nodeColorType", "Node color type");
+  addProp("coloring", "hierColorType", "hierColorType", "Hier node color type");
 
   //---
 
@@ -364,41 +392,54 @@ addProperties()
   addProp("header", "titleDepth"   , "depth"   ,
           "Maximum depth to show header (-1 is unset)")->setMinValue(-1);
 
-  // header/fill
-  addProp("header/fill", "headerFilled", "visible", "Header fill visible");
-
-  addFillProperties("header/fill", "headerFill", "Header");
-
-  // header/stroke
-  addProp("header/stroke", "headerStroked", "visible", "Header stroke visible");
-
-  addLineProperties("header/stroke", "headerStroke", "Header");
-
+  // header text
   addProp("header/text", "titleHierName"   , "hierName", "Show hierarchical name on title");
   addProp("header/text", "titleTextClipped", "clipped" , "Clip text to header");
 
   addTextProperties("header/text", "headerText", "Header", CQChartsTextOptions::ValueType::ALL);
 
+  // header fill
+  addProp("header/fill", "headerFilled", "visible", "Header fill visible");
+
+  addFillProperties("header/fill", "headerFill", "Header");
+
+  // header stroke
+  addProp("header/stroke", "headerStroked", "visible", "Header stroke visible");
+
+  addLineProperties("header/stroke", "headerStroke", "Header");
+
   //---
 
-  // fill
-  addProp("fill", "filled", "visible", "Fill visible");
+  // hier node fill
+  addProp("hier/fill", "hierFilled", "visible", "Hier node fill visible");
 
-  addFillProperties("fill", "fill", "");
+  addFillProperties("hier/fill", "hierFill", "Hier node");
 
-  // stroke
-  addProp("stroke", "stroked", "visible", "Stroke visible");
+  // hier node stroke
+  addProp("hier/stroke", "hierStroked", "visible", "Hier node stroke visible");
 
-  addLineProperties("stroke", "stroke", "");
+  addLineProperties("hier/stroke", "hierStroke", "Hier node");
 
-  // text
-  addProp("text", "textVisible", "visible", "Text visible");
+  //---
 
-  addProp("text", "hierName"   , "hierName"   , "Show hierarchical name in box");
-  addProp("text", "numSkipHier", "numSkipHier", "Number of hierarchical name levels to skip");
-  addProp("text", "textClipped", "clipped"    , "Clip text to box");
+  // node fill
+  addProp("node/fill", "filled", "visible", "Node Fill visible");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::ALL);
+  addFillProperties("node/fill", "fill", "");
+
+  // node stroke
+  addProp("node/stroke", "stroked", "visible", "Node Stroke visible");
+
+  addLineProperties("node/stroke", "stroke", "");
+
+  // node text
+  addProp("node/text", "textVisible", "visible", "Node Text visible");
+
+  addProp("node/text", "hierName"   , "hierName"   , "Show hierarchical name in box");
+  addProp("node/text", "numSkipHier", "numSkipHier", "Number of hierarchical name levels to skip");
+  addProp("node/text", "textClipped", "clipped"    , "Clip text to box");
+
+  addTextProperties("node/text", "text", "", CQChartsTextOptions::ValueType::ALL);
 
   //---
 
@@ -1328,6 +1369,18 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
 
     parent->addNode(node);
   }
+  else {
+    // node already exists so we may have accidental duplicate or value to combine
+    if      (valueCombine() == ValueCombine::REPLACE)
+      node->setSize(size);
+    else if (valueCombine() == ValueCombine::SUM)
+      node->setSize(node->size() + size);
+    else if (valueCombine() == ValueCombine::WARN) {
+      ModelIndex modelInd(this, nameInd.row(), valueColumn(), nameInd.parent());
+      auto sep = calcSeparator();
+      (void) th->addDataError(modelInd, "Duplicate node value for '" + nameStrs1.join(sep) + "'");
+    }
+  }
 
   return node;
 }
@@ -2029,7 +2082,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  // calc header stroke and brush
+  // calc hier node stroke and brush
   PenBrush penBrush;
 
   bool updateState = device->isInteractive();
@@ -2050,12 +2103,12 @@ draw(PaintDevice *device) const
   //---
 
   if (hier_->isShowTitle())
-    drawText(device, bbox, updateState);
+    drawHeader(device, bbox, updateState);
 }
 
 void
 CQChartsTreeMapHierObj::
-drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
+drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
 {
   // get label (name)
   auto sep = plot_->calcSeparator();
@@ -2066,9 +2119,7 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, updateState);
-
-  plot_->charts()->setContrastColor(penBrush.brush.color());
+  calcHeaderPenBrush(penBrush, updateState);
 
   //---
 
@@ -2109,8 +2160,36 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 
   //---
 
-  // draw label
   if (visible) {
+    // get header bbox
+    double m = plot_->titleMargin(); // margin in pixels
+
+    double hh = plot_->calcTitleHeight(); // title height in pixels
+
+    BBox pbbox1(pbbox.getXMin(), pbbox.getYMin(),
+                pbbox.getXMax(), pbbox.getYMin() + hh);
+    BBox pbbox2(pbbox.getXMin() + m, pbbox.getYMin(),
+                pbbox.getXMax() - m, pbbox.getYMin() + hh);
+
+    auto bbox1 = plot_->pixelToWindow(pbbox1);
+    auto bbox2 = plot_->pixelToWindow(pbbox2);
+
+    //---
+
+    // draw header rectangle
+    device->setColorNames();
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->drawRect(bbox1);
+
+    device->resetColorNames();
+
+    //---
+
+    // draw header label
+    plot_->charts()->setContrastColor(penBrush.brush.color());
+
     auto textOptions = plot_->headerTextOptions(device);
 
     textOptions.clipped = plot_->isTitleTextClipped();
@@ -2119,19 +2198,12 @@ drawText(PaintDevice *device, const BBox &bbox, bool updateState) const
 
     device->setPen(tPenBrush.pen);
 
-    double m = plot_->titleMargin(); // margin in pixels
+    CQChartsDrawUtil::drawTextInBox(device, bbox2, name, textOptions);
 
-    double hh = plot_->calcTitleHeight(); // title height in pixels
-
-    BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
-                pbbox.getXMax() - m, pbbox.getYMin() + hh);
-
-    CQChartsDrawUtil::drawTextInBox(device, plot_->pixelToWindow(pbbox1), name, textOptions);
+    plot_->charts()->resetContrastColor();
   }
 
   //---
-
-  plot_->charts()->resetContrastColor();
 
   device->restore();
 }
@@ -2143,21 +2215,22 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (numColorIds_ < 0)
     numColorIds_ = plot_->numColorIds(calcGroupName());
 
+  // calc stroke and brush
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpHeaderStrokeColor(colorInd);
+  auto bc = plot_->interpHierStrokeColor(colorInd);
 
   if (isChildSelected())
     bc.setAlphaF(1.0);
 
-  auto hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, numColorIds_);
+  auto hierColor = hier_->interpColor(plot_, plot_->hierFillColor(), colorInd, numColorIds_);
 
   QColor fc;
 
   if (hierNode()->isExpanded()) {
     if (plot_->hierColorType() != Plot::HierColorType::PARENT_VALUE &&
         plot_->hierColorType() != Plot::HierColorType::GLOBAL_VALUE) {
-      auto c = plot_->interpHeaderFillColor(colorInd);
+      auto c = plot_->interpHierFillColor(colorInd);
 
       fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
     }
@@ -2166,6 +2239,21 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
   else
     fc = hierColor;
+
+  plot_->setPenBrush(penBrush, plot_->hierPenData(bc), plot_->hierBrushData(fc));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsTreeMapHierObj::
+calcHeaderPenBrush(PenBrush &penBrush, bool updateState) const
+{
+  auto colorInd = calcColorInd();
+
+  auto bc = plot_->interpHeaderStrokeColor(colorInd);
+  auto fc = plot_->interpHeaderFillColor(colorInd);
 
   plot_->setPenBrush(penBrush, plot_->headerPenData(bc), plot_->headerBrushData(fc));
 

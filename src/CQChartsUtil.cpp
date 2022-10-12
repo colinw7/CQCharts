@@ -578,7 +578,17 @@ void findStringPunctSplits(const QString &str, std::vector<int> &splits) {
       continue;
     }
 
-    if (i > 0 && str[i].isPunct()) {
+    bool split = false;
+
+    if (i > 0 && i < len - 1 && str[i].isPunct()) {
+      split = true;
+
+      // don't split at '.' in number
+      if (str[i] == '.' && str[i - 1].isNumber() && str[i + 1].isNumber())
+        split = false;
+    }
+
+    if (split) {
       // keep consecutive punctuation together (::, ..., etc)
       while (i < len - 1 && str[i + 1].isPunct())
         ++i;
