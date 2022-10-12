@@ -54,6 +54,12 @@ class CQChartsForceDirectedNode : public Springy::Node {
   void clearOccupiedSlots() { occupiedSlots_.clear(); }
   void addOccupiedSlot(int slot) { occupiedSlots_.insert(slot); }
 
+  int numInEdges() const { return numInEdges_; }
+  void addInEdge() { ++numInEdges_; }
+
+  int numOutEdges() const { return numOutEdges_; }
+  void addOutEdge() { ++numOutEdges_; }
+
  private:
   int         group_    { -1 };
   Shape       shape_    { Shape::NONE };
@@ -64,6 +70,9 @@ class CQChartsForceDirectedNode : public Springy::Node {
   bool        selected_ { false };
   bool        inside_   { false };
   Slots       occupiedSlots_;
+
+  int numInEdges_  { 0 };
+  int numOutEdges_ { 0 };
 };
 
 /*!

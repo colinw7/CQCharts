@@ -17,6 +17,7 @@ MOC_DIR = .moc
 
 CONFIG += staticlib
 CONFIG += c++17
+CONFIG += silent
 
 SOURCES += \
 CQCharts.cpp \

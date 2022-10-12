@@ -581,6 +581,7 @@ addIdConnections() const
 
   //---
 
+  // calc max group and max edge value for all connections
   th->maxGroup_     = 0;
   th->maxEdgeValue_ = 0.0;
 
@@ -600,8 +601,11 @@ addIdConnections() const
   if (th->maxGroup_ <= 0)
     th->maxGroup_ = 1;
 
+  th->edgeScale_ = (maxEdgeValue() > 0.0 ? 1.0/maxEdgeValue() : 1.0);
+
   //---
 
+  // update nodes for edges
   th->nodes_          .clear();
   th->connectionNodes_.clear();
 
@@ -612,15 +616,12 @@ addIdConnections() const
 
     //if (connectionsData.connections.empty()) continue;
 
-    int id = idConnections.first;
+    // get source node details
+    int         id    = idConnections.first;
+    const auto &name  = connectionsData.name;
+    int         group = std::max(connectionsData.group, 0);
 
-    const auto &name = connectionsData.name;
-
-    int group = connectionsData.group;
-
-    if (group < 0)
-      group = 0;
-
+    // get source node (add if needed)
     auto node = forceDirected_->newNode();
 
     auto *snode = dynamic_cast<Node *>(node.get());
@@ -631,6 +632,8 @@ addIdConnections() const
 
     //auto id = QString("%1:%2").arg(name).arg(group);
 
+    // update node values
+    // TODO: check consistent if duplicate ?
     if (name.length())
       snode->setLabel(name.toStdString());
 
@@ -651,10 +654,9 @@ addIdConnections() const
     th->connectionNodes_[snode->id()] = id;
   }
 
-  th->edgeScale_ = (maxEdgeValue() > 0.0 ? 1.0/maxEdgeValue() : 1.0);
-
   //---
 
+  // create node edges
   for (const auto &idConnections : idConnections_) {
     const auto &connectionsData = idConnections.second;
 
@@ -663,34 +665,45 @@ addIdConnections() const
     if (connectionsData.connections.empty())
       continue;
 
+    // get source node
     int id = idConnections.first;
 
     auto pn = nodes_.find(id);
     assert(pn != nodes_.end());
 
-    auto node = (*pn).second;
-    assert(node);
+    auto srcNode = (*pn).second;
+    assert(srcNode);
 
     for (const auto &connection : connectionsData.connections) {
+      // get dest node
       auto pn1 = nodes_.find(connection.destNode);
       if (pn1 == nodes_.end()) continue;
 
-      auto node1 = (*pn1).second;
-      assert(node1);
+      auto dstNode = (*pn1).second;
+      assert(dstNode);
 
+      //---
+
+      // get edge
+      auto edge = forceDirected_->newEdge(srcNode, dstNode);
+
+      auto *sedge = dynamic_cast<Edge *>(edge.get());
+      assert(sedge);
+
+      //---
+
+      // set edge value
       double value = 0.0;
 
       if (connection.value.isSet())
         value = connection.value.real();
 
-      auto edge = forceDirected_->newEdge(node, node1);
-
-      auto *sedge = dynamic_cast<Edge *>(edge.get());
-      assert(sedge);
-
       sedge->setLength(value > 0.0 ? 1.0/value : 1.0);
       sedge->setValue(value);
 
+      //---
+
+      // set edge attributes (label, shape, fill color)
       if (connection.label.length())
         sedge->setLabel(connection.label.toStdString());
 
@@ -700,7 +713,20 @@ addIdConnections() const
       if (connection.fillColor.isValid())
         sedge->setFillColor(connection.fillColor);
 
+      //---
+
       sedge->setInd(connection.ind);
+
+      //---
+
+      // update in/out edge count
+      auto *srcNode1 = dynamic_cast<Node *>(srcNode.get());
+      assert(srcNode1);
+      auto *dstNode1 = dynamic_cast<Node *>(dstNode.get());
+      assert(dstNode1);
+
+      srcNode1->addOutEdge();
+      dstNode1->addInEdge();
     }
   }
 
@@ -2193,8 +2219,10 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
     if (connectionsData.total.isSet())
       tableTip.addTableRow("Total", connectionsData.total.real());
 
-    // out connections
-    tableTip.addTableRow("Outputs", connectionsData.connections.size());
+    // connections
+    //tableTip.addTableRow("Outputs", connectionsData.connections.size());
+    tableTip.addTableRow("Inputs" , node->numInEdges ());
+    tableTip.addTableRow("Outputs", node->numOutEdges());
   }
   else {
     tableTip.addTableRow("Label", calcNodeLabel(node));

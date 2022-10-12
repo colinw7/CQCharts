@@ -13,6 +13,7 @@ QMAKE_CXXFLAGS += \
 MOC_DIR = .moc
 
 CONFIG += c++17
+CONFIG += silent
 
 SOURCES += \
 CQAppWindow.cpp \
