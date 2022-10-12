@@ -476,7 +476,9 @@ currentRoot(const QString &groupName) const
 {
   auto &treeMapData = getTreeMapData(groupName);
 
-  auto names = treeMapData.currentRootName.split(calcSeparator(), Qt::SkipEmptyParts);
+  auto sep = calcSeparator();
+
+  auto names = treeMapData.currentRootName.split(sep, Qt::SkipEmptyParts);
 
   if (names.empty())
     return treeMapData.firstHier;
@@ -504,8 +506,11 @@ setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
 {
   auto &treeMapData = getTreeMapData(groupName);
 
-  if (hier)
-    treeMapData.currentRootName = hier->hierName(calcSeparator());
+  if (hier) {
+    auto sep = calcSeparator();
+
+    treeMapData.currentRootName = hier->hierName(sep);
+  }
   else
     treeMapData.currentRootName.clear();
 
@@ -1076,7 +1081,9 @@ addHierNode(const QString &groupName, HierNode *hier, const QString &name,
 
   //---
 
-  bool expanded = isPathExpanded(hier1->hierName(calcSeparator()));
+  auto sep = calcSeparator();
+
+  bool expanded = isPathExpanded(hier1->hierName(sep));
 
   hier1->setExpanded(expanded);
 
@@ -1131,8 +1138,10 @@ loadFlat() const
       QStringList   nameStrs;
       QModelIndices nameInds;
 
+      auto sep = plot_->calcSeparator();
+
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
-                                      plot_->calcSeparator(), nameStrs, nameInds))
+                                      sep, nameStrs, nameInds))
         return State::SKIP;
 
       //---
@@ -1337,7 +1346,9 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
 
       //---
 
-      bool expanded = isPathExpanded(child->hierName(calcSeparator()));
+      auto sep = calcSeparator();
+
+      bool expanded = isPathExpanded(child->hierName(sep));
 
       child->setExpanded(expanded);
     }
