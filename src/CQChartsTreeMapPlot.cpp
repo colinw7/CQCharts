@@ -508,7 +508,7 @@ setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
   auto sep = calcSeparator();
 
   treeData_.currentGroupName =
-    (! hier->parent() && hier != treeMapData_.root ? hier->hierName(sep) : "");
+    (hier && ! hier->parent() && hier != treeMapData_.root ? hier->hierName(sep) : "");
 
   auto &treeMapData = getTreeMapData(groupName);
 
@@ -1144,6 +1144,18 @@ loadFlat() const
    public:
     RowVisitor(const Plot *plot) :
      plot_(plot) {
+      groupColumn_ = plot_->groupColumn();
+
+      if (groupColumn_.isValid()) {
+        for (const auto &c : plot_->nameColumns())
+          if (c != groupColumn_)
+            nameColumns_.addColumn(c);
+
+        if (nameColumns_.count() == 0)
+          nameColumns_ = plot_->nameColumns();
+      }
+      else
+        nameColumns_ = plot_->nameColumns();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1153,7 +1165,7 @@ loadFlat() const
 
       auto sep = plot_->calcSeparator();
 
-      if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
+      if (! plot_->getHierColumnNames(data.parent, data.row, nameColumns_,
                                       sep, nameStrs, nameInds))
         return State::SKIP;
 
@@ -1162,8 +1174,8 @@ loadFlat() const
       // add group name at top of hier if specified
       QString groupName;
 
-      if (plot_->groupColumn().isValid()) {
-        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+      if (groupColumn_.isValid()) {
+        ModelIndex groupModelInd(plot_, data.row, groupColumn_, data.parent);
 
         bool ok;
 
@@ -1249,6 +1261,8 @@ loadFlat() const
 
    private:
     const Plot*  plot_ { nullptr };
+    Column       groupColumn_;
+    Columns      nameColumns_;
     GroupNameSet groupNameSet_;
   };
 
@@ -1650,9 +1664,7 @@ pushSlot()
   PlotObjs objs;
 
   menuPlotObjs(objs);
-
-  if (objs.empty())
-    return;
+  if (objs.empty()) return;
 
   //---
 
@@ -2043,6 +2055,11 @@ bool
 CQChartsTreeMapHierObj::
 inside(const Point &p) const
 {
+  if (! hier_->isHierVisible())
+    return false;
+
+  //---
+
   auto *pnode = hier_->parent();
 
   if (pnode && ! pnode->isHierExpanded())
@@ -2060,10 +2077,17 @@ bool
 CQChartsTreeMapHierObj::
 isSelectable() const
 {
+  if (! hier_->isHierVisible())
+    return false;
+
+  //---
+
   auto *pnode = hier_->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return false;
+
+  //---
 
   if (hier_->isHierExpanded())
     return plot_->isHierSelect();
@@ -2110,7 +2134,7 @@ void
 CQChartsTreeMapHierObj::
 draw(PaintDevice *device) const
 {
-  if (! hier_->isVisible())
+  if (! hier_->isHierVisible())
     return;
 
   //---
@@ -2411,6 +2435,9 @@ inside(const Point &p) const
 {
   auto *pnode = node()->parent();
 
+  if (pnode && ! pnode->isHierVisible())
+    return false;
+
   if (pnode && ! pnode->isHierExpanded())
     return false;
 
@@ -2437,6 +2464,9 @@ CQChartsTreeMapNodeObj::
 draw(PaintDevice *device) const
 {
   auto *pnode = node()->parent();
+
+  if (pnode && ! pnode->isHierVisible())
+    return;
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -2739,6 +2769,19 @@ setExpanded(bool b)
   auto sep = plot_->calcSeparator();
 
   const_cast<Plot *>(plot_)->setPathExpanded(hierName(sep), expanded_);
+}
+
+bool
+CQChartsTreeMapHierNode::
+isHierVisible() const
+{
+  if (! isVisible())
+    return false;
+
+  if (parent() && ! parent()->isHierVisible())
+    return false;
+
+  return true;
 }
 
 bool

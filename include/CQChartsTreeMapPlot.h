@@ -232,6 +232,8 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  bool isHierVisible() const;
+
   //---
 
   //! get/set expanded
