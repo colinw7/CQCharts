@@ -295,7 +295,8 @@ void
 CQChartsTreeMapPlot::
 setSplitGroups(bool b)
 {
-  CQChartsUtil::testAndSet(treeData_.splitGroups, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(treeData_.splitGroups, b, [&]() {
+    menuGroupName_ = ""; popTop(/*update*/false); updateRangeAndObjs(); } );
 }
 
 void
@@ -504,11 +505,14 @@ void
 CQChartsTreeMapPlot::
 setCurrentRoot(const QString &groupName, HierNode *hier, bool update)
 {
+  auto sep = calcSeparator();
+
+  treeData_.currentGroupName =
+    (! hier->parent() && hier != treeMapData_.root ? hier->hierName(sep) : "");
+
   auto &treeMapData = getTreeMapData(groupName);
 
   if (hier) {
-    auto sep = calcSeparator();
-
     treeMapData.currentRootName = hier->hierName(sep);
   }
   else
@@ -858,8 +862,10 @@ replaceNodes() const
   int ng = numGroups();
 
   if (isSplitGroups() && ng > 0) {
-    int nx, ny;
-    CQChartsUtil::countToSquareGrid(ng, nx, ny);
+    int nx = 1, ny = 1;
+
+    if (treeData_.currentGroupName == "")
+      CQChartsUtil::countToSquareGrid(ng, nx, ny);
 
     double m  = 0.01;
     double dx = 2.0/nx - m;
@@ -868,6 +874,16 @@ replaceNodes() const
     int ig = 0;
 
     for (const auto &groupName : groupNameSet_) {
+      bool visible = (treeData_.currentGroupName == "" || groupName == treeData_.currentGroupName);
+
+      auto *hier = currentRoot(groupName);
+      assert(hier);
+
+      hier->setVisible(visible);
+
+      if (! visible)
+        continue;
+
       int ix = ig % nx;
       int iy = ig / nx;
 
@@ -876,10 +892,7 @@ replaceNodes() const
       double x2 = x1 + dx;
       double y2 = y1 + dy;
 
-      auto *hier = currentRoot(groupName);
-
-      if (hier)
-        placeNodes(hier, x1, y1, x2, y2);
+      placeNodes(hier, x1, y1, x2, y2);
 
       ++ig;
     }
@@ -973,16 +986,16 @@ loadHier() const
     }
 
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
-      auto *node = hierStack_.back();
+      auto *hier = hierStack_.back();
 
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
 
-      if (node->hierSize() == 0) {
+      if (hier->hierSize() == 0) {
         auto *plot = const_cast<Plot *>(plot_);
 
-        plot->removeHierNode(node);
+        plot->removeHierNode(hier);
       }
 
       return State::OK;
@@ -1589,6 +1602,10 @@ addMenuItems(QMenu *menu, const Point &pv)
 
   menuPlotObjs(objs);
 
+  int ng = numGroups();
+
+  //---
+
   menu->addSeparator();
 
   auto *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
@@ -1598,9 +1615,9 @@ addMenuItems(QMenu *menu, const Point &pv)
   auto *currentRoot = this->currentRoot(menuGroupName_);
   auto *firstHier   = this->firstHier  (menuGroupName_);
 
-  pushAction  ->setEnabled(! objs.empty());
-  popAction   ->setEnabled(currentRoot != firstHier);
-  popTopAction->setEnabled(currentRoot != firstHier);
+  pushAction  ->setEnabled(ng > 1 || ! objs.empty());
+  popAction   ->setEnabled(currentRoot != firstHier || treeData_.currentGroupName != "");
+  popTopAction->setEnabled(currentRoot != firstHier || treeData_.currentGroupName != "");
 
   //---
 
@@ -1633,7 +1650,11 @@ pushSlot()
   PlotObjs objs;
 
   menuPlotObjs(objs);
-  if (objs.empty()) return;
+
+  if (objs.empty())
+    return;
+
+  //---
 
   // get hier node with max depth
   HierNode *hnode = nullptr;
@@ -1669,22 +1690,37 @@ void
 CQChartsTreeMapPlot::
 popSlot()
 {
+  treeData_.currentGroupName = "";
+
   auto *root = currentRoot(menuGroupName_);
 
-  if (root && root->parent()) {
+  if (root && root->parent())
     setCurrentRoot(menuGroupName_, root->parent(), /*update*/true);
-  }
+  else
+    updateObjs();
 }
 
 void
 CQChartsTreeMapPlot::
 popTopSlot()
 {
+  popTop(/*update*/true);
+}
+
+void
+CQChartsTreeMapPlot::
+popTop(bool update)
+{
+  treeData_.currentGroupName = "";
+
   auto *root      = currentRoot(menuGroupName_);
   auto *firstHier = this->firstHier(menuGroupName_);
 
-  if (root != firstHier) {
-    setCurrentRoot(menuGroupName_, firstHier, /*update*/true);
+  if (root != firstHier)
+    setCurrentRoot(menuGroupName_, firstHier, update);
+  else {
+    if (update)
+      updateObjs();
   }
 }
 
@@ -2074,6 +2110,11 @@ void
 CQChartsTreeMapHierObj::
 draw(PaintDevice *device) const
 {
+  if (! hier_->isVisible())
+    return;
+
+  //---
+
   auto *pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())

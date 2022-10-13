@@ -121,7 +121,7 @@ class CQChartsTreeMapNode {
 
   virtual double hierSize() const { return size(); }
 
-  virtual QString hierName(const QString &sep="/") const;
+  virtual QString hierName(const QString &sep) const;
 
   virtual void setPosition(double x, double y, double w, double h);
 
@@ -228,6 +228,12 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   //---
 
+  //! get/set is visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; }
+
+  //---
+
   //! get/set expanded
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b);
@@ -283,6 +289,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   Children children_;            //!< child hier nodes
   int      hierInd_   { -1 };    //!< hier index
   bool     showTitle_ { false }; //!< show title
+  bool     visible_   { true };  //!< is visible
   bool     expanded_  { true };  //!< is expanded
 };
 
@@ -806,6 +813,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void expandSlot();
   void collapseSlot();
 
+ private:
+  void popTop(bool update);
+
   void updateCurrentRoot();
 
   void menuPlotObjs(PlotObjs &objs) const;
@@ -826,9 +836,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   };
 
   struct TreeData {
-    Area minArea;                //!< min area
-    bool splitGroups  { false }; //!< split groups
-    bool groupPalette { false }; //!< use separate palette per group
+    Area    minArea;                //!< min area
+    bool    splitGroups  { false }; //!< split groups
+    bool    groupPalette { false }; //!< use separate palette per group
+    QString currentGroupName;       //!< current group name
   };
 
   struct NodeData {
