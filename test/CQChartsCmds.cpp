@@ -3208,6 +3208,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-overlay"  , ArgType::Boolean, "overlay (shared x and/or y range)");
   addArg(argv, "-tabbed"   , ArgType::Boolean, "tabbed (one shown at a time)");
   addArg(argv, "-composite", ArgType::Boolean, "create composite plot");
+  addArg(argv, "-force"    , ArgType::Boolean, "allow place plot on different view");
 }
 
 QStringList
@@ -3247,6 +3248,7 @@ execCmd(CQChartsCmdArgs &argv)
   bool overlay   = argv.getParseBool("overlay");
   bool tabbed    = argv.getParseBool("tabbed");
   bool composite = argv.getParseBool("composite");
+  bool force     = argv.getParseBool("force");
 
   const auto &plotNames = argv.getParseArgs();
 
@@ -3258,10 +3260,20 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsCmds::Plots plots;
+  CQChartsCmds::Plots plots, extraPlots;
 
-  if (! cmds()->getPlotsByName(view, plotNames, plots))
+  if (! cmds()->getPlotsByName(view, plotNames, plots, extraPlots, ! force))
     return errorMsg("Failed to get named plots for view");
+
+  //---
+
+  if (force) {
+    for (auto *plot : extraPlots) {
+      view->movePlot(plot);
+
+      plots.push_back(plot);
+    }
+  }
 
   //---
 
@@ -3355,6 +3367,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-horizontal", ArgType::Boolean, "place horizontal");
   addArg(argv, "-rows"      , ArgType::Integer, "place using n rows");
   addArg(argv, "-columns"   , ArgType::Integer, "place using n columns");
+  addArg(argv, "-force"     , ArgType::Boolean, "allow place plot on different view");
 }
 
 QStringList
@@ -3393,6 +3406,7 @@ execCmd(CQChartsCmdArgs &argv)
   bool horizontal = argv.getParseBool("horizontal");
   int  rows       = argv.getParseInt ("rows"   , -1); // number of rows
   int  columns    = argv.getParseInt ("columns", -1); // number of columns
+  bool force      = argv.getParseBool("force");
 
   const auto &plotNames = argv.getParseArgs();
 
@@ -3404,10 +3418,20 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsCmds::Plots plots;
+  CQChartsCmds::Plots plots, extraPlots;
 
-  if (! cmds()->getPlotsByName(view, plotNames, plots))
+  if (! cmds()->getPlotsByName(view, plotNames, plots, extraPlots, ! force))
     return errorMsg("Failed to get named plots for view");
+
+  //---
+
+  if (force) {
+    for (auto *plot : extraPlots) {
+      view->movePlot(plot);
+
+      plots.push_back(plot);
+    }
+  }
 
   //---
 
@@ -13242,7 +13266,8 @@ getViewByName(const QString &viewName) const
 
 bool
 CQChartsCmds::
-getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots) const
+getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots,
+               Plots &extraPlots, bool checkView) const
 {
   bool rc = true;
 
@@ -13255,14 +13280,22 @@ getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots) const
       for (int i = 0; i < listVars.length(); ++i)
         plotNames1.push_back(listVars[i]);
 
-      if (! getPlotsByName(view, plotNames1, plots))
+      if (! getPlotsByName(view, plotNames1, plots, extraPlots, checkView))
         rc = false;
     }
     else {
       auto *plot = getPlotByName(view, plotName.toString());
 
-      if (plot && plot->view() == view)
-        plots.push_back(plot);
+      if (plot) {
+        if (plot->view() != view) {
+          if (! checkView)
+            extraPlots.push_back(plot);
+          else
+            rc = false;
+        }
+        else
+          plots.push_back(plot);
+      }
       else
         rc = false;
     }

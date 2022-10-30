@@ -8805,6 +8805,13 @@ positionToBBox()
 
 void
 CQChartsWidgetAnnotation::
+parentViewChanged()
+{
+  widget_.setParent(view());
+}
+
+void
+CQChartsWidgetAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
   if (rectangle().isSet()) {

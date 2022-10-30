@@ -37,6 +37,13 @@ setId(const QString &s)
   Q_EMIT idChanged();
 }
 
+void
+CQChartsObj::
+resetId()
+{
+  id_ = OptString();
+}
+
 const QString &
 CQChartsObj::
 tipId() const

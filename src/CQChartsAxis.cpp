@@ -425,7 +425,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  addProp(path, "column", "column", "Assiciated column");
+  addProp(path, "column", "column", "Associated column");
 }
 
 //---
@@ -2155,7 +2155,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
@@ -2268,7 +2268,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
@@ -2411,7 +2411,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
@@ -2522,7 +2522,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         options.clipLength = clipLength;
         options.clipElide  = clipElide;
 
-        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;

@@ -132,6 +132,9 @@ while ($#argv > 0)
   else if ("$1" == "-meta_edit") then
     setenv CQ_CHARTS_META_EDIT 1
     shift
+  else if ("$1" == "-tabbed") then
+    setenv CQCHARTS_TAB_WINDOW 1
+    shift
   else if ("$1" =~ -[D]*) then
     set opts = ($opts $1)
     shift

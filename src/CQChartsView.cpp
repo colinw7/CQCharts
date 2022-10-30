@@ -36,6 +36,7 @@
 
 #include <CQChartsDocument.h>
 #include <CQChartsRegionMgr.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -1918,17 +1919,7 @@ addPlot(Plot *plot, const BBox &bbox)
 
   plot->postInit();
 
-  connect(plot, SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
-
-  connect(plot, SIGNAL(viewBoxChanged()), this, SLOT(plotViewBoxChanged()));
-
-  connect(plot, SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
-
-  connect(plot, SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
-  connect(plot, SIGNAL(errorAdded()), this, SIGNAL(updateErrors()));
-
-  connect(plot, SIGNAL(currentPlotIdChanged(const QString &)),
-          this, SIGNAL(currentPlotChanged()));
+  connectPlot(plot, true);
 
   //---
 
@@ -1955,6 +1946,28 @@ addPlot(Plot *plot, const BBox &bbox)
   Q_EMIT plotAdded(plot);
   Q_EMIT plotAdded(plot->id());
   Q_EMIT plotsChanged();
+}
+
+void
+CQChartsView::
+connectPlot(Plot *plot, bool connect)
+{
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
+
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(viewBoxChanged()), this, SLOT(plotViewBoxChanged()));
+
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
+
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(errorAdded()), this, SIGNAL(updateErrors()));
+
+  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+    SIGNAL(currentPlotIdChanged(const QString &)), this, SIGNAL(currentPlotChanged()));
 }
 
 void
@@ -2007,9 +2020,11 @@ plotPos(Plot *plot) const
   return -1;
 }
 
-void
+//---
+
+bool
 CQChartsView::
-removePlot(Plot *plot)
+removePlot(Plot *plot, bool keep)
 {
   assert(plot);
 
@@ -2029,30 +2044,43 @@ removePlot(Plot *plot)
 
   // skip if no match found
   if (! found)
-    return;
+    return false;
 
   //---
 
-  // remove plot
+  // remove plot properties
   auto id = plot->id();
 
   propertyModel()->removeProperties(id, plot);
 
+  // update view plots
   std::swap(plots1, plots_);
 
+  // reset mouse data
   if (mousePlot() == plot)
     mouseData_.reset();
 
-  delete plot;
+  // delete plot (if needed)
+  if (! keep)
+    delete plot;
+  else {
+    connectPlot(plot, false);
+
+    if (plot->key())
+      plot->key()->removeScrollBars();
+  }
 
   //---
 
+  // update current plot
   if (isCurrent) {
     if (plots().empty())
       setCurrentPlot(nullptr);
     else
       setCurrentPlot(plots_[0]);
   }
+
+  //---
 
   separatorsInvalid_ = true;
 
@@ -2064,6 +2092,8 @@ removePlot(Plot *plot)
 
   Q_EMIT plotRemoved(id);
   Q_EMIT plotsChanged();
+
+  return true;
 }
 
 void
@@ -2090,6 +2120,27 @@ removeAllPlots()
 
   Q_EMIT allPlotsRemoved();
   Q_EMIT plotsChanged();
+}
+
+//---
+
+void
+CQChartsView::
+movePlot(Plot *plot)
+{
+  auto *oldView = plot->view();
+
+  assert(oldView != this);
+
+  oldView->removePlot(plot, /*keep*/true);
+
+  plot->setView(this);
+
+  plot->resetId();
+
+  addPlot(plot);
+
+  plot->emitParentViewChanged();
 }
 
 //---

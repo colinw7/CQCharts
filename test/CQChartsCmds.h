@@ -134,7 +134,8 @@ class CQChartsCmds : public QObject {
 
   CQChartsView *getViewByName(const QString &viewName) const;
 
-  bool getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plot) const;
+  bool getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plot,
+                      Plots &extraPlots, bool checkView=true) const;
 
   CQChartsPlot *getOptPlotByName(CQChartsView *view, const QString &name) const;
 

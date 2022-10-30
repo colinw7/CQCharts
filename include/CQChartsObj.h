@@ -63,6 +63,8 @@ class CQChartsObj : public QObject {
   const QString &id() const;
   void setId(const QString &s);
 
+  void resetId();
+
   //! calculate unique id of object (on demand) : must be non-empty
   virtual QString calcId() const { return ""; }
 

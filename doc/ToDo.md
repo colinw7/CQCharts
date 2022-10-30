@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + axis fit stability with large labels (use clip length if fixed ?)
+ + tabbed views
+ + move plot updates widget annotations
  + treemap group with empty group name
  + write model with iformat/oformat (e.g. time) should keep original format
  + custom percent max (from column ?)

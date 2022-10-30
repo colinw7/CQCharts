@@ -193,9 +193,9 @@ struct CQChartsTreeMapNodeCmp {
 class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
  public:
   using Plot     = CQChartsTreeMapPlot;
+  using HierNode = CQChartsTreeMapHierNode;
   using Node     = CQChartsTreeMapNode;
   using Nodes    = std::vector<Node*>;
-  using HierNode = CQChartsTreeMapHierNode;
   using Children = std::vector<HierNode*>;
 
  public:
@@ -244,40 +244,50 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   //---
 
+  //! get hierarchical size
   double hierSize() const override;
 
   //---
 
+  //! get has child nodes
   bool hasNodes() const { return ! nodes_.empty(); }
 
+  //! get child nodes
   const Nodes &getNodes() const { return nodes_; }
 
   //---
+
+  //! has child hier nodes
+  bool hasChildren() const { return ! children_.empty(); }
+
+  //! get child hier nodes
+  const Children &getChildren() const { return children_; }
+
+  int numChildren() const { return int(children_.size()); }
+
+  HierNode *childAt(int i) { return CUtil::safeIndex(children_, i); }
 
   void addChild(HierNode *child);
 
   void removeChild(HierNode *child);
 
-  bool hasChildren() const { return ! children_.empty(); }
-
-  int numChildren() const { return int(children_.size()); }
-
-  const Children &getChildren() const { return children_; }
-
-  HierNode *childAt(int i) { return CUtil::safeIndex(children_, i); }
-
   //---
 
+  //! pack child nodes
   void packNodes(double x, double y, double w, double h);
 
   void packSubNodes(double x, double y, double w, double h, const Nodes &nodes);
 
-  void setPosition(double x, double y, double w, double h) override;
-
+  //! add child node
   void addNode(Node *node);
 
+  //! remove child node
   void removeNode(Node *node);
 
+  //! set node position
+  void setPosition(double x, double y, double w, double h) override;
+
+  //! interp color
   QColor interpColor(const Plot *plot, const Color &c,
                      const ColorInd &colorInd, int n) const override;
 
@@ -375,7 +385,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   const Plot* plot_    { nullptr }; //!< parent plot
   Node*       node_    { nullptr }; //!< associated tree node
-  HierObj*    hierObj_ { nullptr }; //!< parent hierarchical objects
+  HierObj*    hierObj_ { nullptr }; //!< parent hierarchical object
   Children    children_;            //!< child objects
   int         i_       { 0 };       //!< node index
 

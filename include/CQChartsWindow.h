@@ -5,6 +5,7 @@
 #include <QFrame>
 #include <QModelIndex>
 
+class CQChartsTabWindow;
 class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
@@ -15,8 +16,10 @@ class CQChartsModelViewHolder;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
 class CQChartsWindowRangeScroll;
+
 class CQTabSplit;
 class QStackedWidget;
+class QSplitter;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
 
@@ -37,6 +40,8 @@ class CQChartsWindowMgr {
 
  ~CQChartsWindowMgr();
 
+  CQChartsTabWindow *getTabWindow();
+
   Window *getWindowForView(View *view) const;
 
  private:
@@ -45,7 +50,36 @@ class CQChartsWindowMgr {
  private:
   using Windows = std::vector<Window *>;
 
-  Windows windows_;
+  CQChartsTabWindow *tabWindow_ { nullptr };
+  Windows            windows_;
+};
+
+//---
+
+class CQChartsTabWindow : public QFrame {
+  Q_OBJECT
+
+ public:
+  using Window = CQChartsWindow;
+
+ public:
+  CQChartsTabWindow();
+
+  void addWindow(CQChartsWindow *window);
+
+  QSize sizeHint() const override;
+
+ private:
+  void setCurrentWindow(Window *window);
+
+ private Q_SLOTS:
+  void currentIndexSlot(int);
+
+ private:
+  QSplitter*  split_         { nullptr };
+  CQTabSplit* windowsSplit_  { nullptr };
+  QFrame*     settingsArea_  { nullptr };
+  Window*     currentWindow_ { nullptr };
 };
 
 //---
@@ -58,14 +92,17 @@ class CQChartsWindow : public QFrame {
   Q_OBJECT
 
  public:
-  using View = CQChartsView;
-  using Plot = CQChartsPlot;
+  using View         = CQChartsView;
+  using Plot         = CQChartsPlot;
+  using ViewSettings = CQChartsViewSettings;
 
  public:
   CQChartsWindow(View *view);
  ~CQChartsWindow();
 
   View *view() const { return view_; }
+
+  ViewSettings *viewSettings() { return settings_; }
 
   //---
 
@@ -167,7 +204,6 @@ class CQChartsWindow : public QFrame {
 
  private:
   using RangeScroll     = CQChartsWindowRangeScroll;
-  using ViewSettings    = CQChartsViewSettings;
   using FilterEdit      = CQChartsFilterEdit;
   using ModelViewHolder = CQChartsModelViewHolder;
   using ToolBar         = CQChartsViewToolBar;

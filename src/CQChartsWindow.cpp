@@ -14,6 +14,7 @@
 #include <CQPixmapCache.h>
 #include <CQTabSplit.h>
 #include <CQUtil.h>
+#include <CQChartsEnv.h>
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -43,6 +44,18 @@ CQChartsWindowMgr::
     delete window;
 }
 
+CQChartsTabWindow *
+CQChartsWindowMgr::
+getTabWindow()
+{
+  if (! tabWindow_)
+    tabWindow_ = new CQChartsTabWindow;
+
+  tabWindow_->show();
+
+  return tabWindow_;
+}
+
 CQChartsWindow *
 CQChartsWindowMgr::
 createWindow(View *view)
@@ -50,6 +63,18 @@ createWindow(View *view)
   auto *window = new CQChartsWindow(view);
 
   windows_.push_back(window);
+
+  int n = windows_.size();
+
+  window->setObjectName(QString("window.%1").arg(n));
+
+  //---
+
+  if (CQChartsEnv::getBool("CQCHARTS_TAB_WINDOW")) {
+    auto *tabWindow = getTabWindow();
+
+    tabWindow->addWindow(window);
+  }
 
   return window;
 }
@@ -87,6 +112,101 @@ getWindowForView(View *view) const
       return window;
 
   return nullptr;
+}
+
+//------
+
+CQChartsTabWindow::
+CQChartsTabWindow() :
+ QFrame(nullptr)
+{
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //---
+
+  // view area
+  split_ = CQUtil::makeWidget<QSplitter>("split");
+
+  split_->setOrientation(Qt::Horizontal);
+
+  layout->addWidget(split_);
+
+  //---
+
+  // windows area
+  windowsSplit_ = CQUtil::makeWidget<CQTabSplit>("split");
+
+  windowsSplit_->setState(CQTabSplit::State::TAB);
+
+  split_->addWidget(windowsSplit_);
+
+  connect(windowsSplit_, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexSlot(int)));
+
+  //---
+
+  // setting area
+  settingsArea_ = CQUtil::makeWidget<QFrame>("settingsArea");
+
+  split_->addWidget(settingsArea_);
+
+  //---
+
+  int i1 = int(INT_MAX*0.8);
+  int i2 = INT_MAX - i1;
+
+  split_->setSizes(QList<int>({i1, i2}));
+}
+
+void
+CQChartsTabWindow::
+addWindow(Window *window)
+{
+  setCurrentWindow(window);
+
+  windowsSplit_->addWidget(window, window->objectName());
+}
+
+void
+CQChartsTabWindow::
+currentIndexSlot(int i)
+{
+  auto *window = qobject_cast<Window *>(i >= 0 ? windowsSplit_->widget(i) : nullptr);
+
+  setCurrentWindow(window);
+}
+
+void
+CQChartsTabWindow::
+setCurrentWindow(Window *window)
+{
+  if (currentWindow_)
+    currentWindow_->viewSettings()->setVisible(false);
+
+  currentWindow_ = window;
+
+  if (currentWindow_) {
+    delete settingsArea_->layout();
+
+    auto *layout = CQUtil::makeLayout<QVBoxLayout>(settingsArea_, 0, 0);
+
+    layout->addWidget(currentWindow_->viewSettings());
+
+    currentWindow_->viewSettings()->setVisible(true);
+  }
+}
+
+//---
+
+QSize
+CQChartsTabWindow::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  int w = fm.horizontalAdvance("X")*200;
+  int h = fm.height()*80;
+
+  return QSize(w, h);
 }
 
 //------

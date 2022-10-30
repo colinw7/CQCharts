@@ -5,7 +5,8 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <cmath>
+//#include <cmath>
+#include <algorithm>
 #include <sys/types.h>
 
 /*!
@@ -628,8 +629,8 @@ class CQChartsQuadTree {
     uint n = dataList_.size();
 
     if (bl_tree_)
-      n = std::min(std::min(bl_tree_->minElements(), br_tree_->minElements()),
-                   std::min(tl_tree_->minElements(), tr_tree_->minElements()));
+      n = std::min({ bl_tree_->minElements(), br_tree_->minElements(),
+                     tl_tree_->minElements(), tr_tree_->minElements() });
 
     return n;
   }
@@ -638,8 +639,8 @@ class CQChartsQuadTree {
     uint n = dataList_.size();
 
     if (bl_tree_)
-      n = std::max(std::max(bl_tree_->maxElements(), br_tree_->maxElements()),
-                   std::max(tl_tree_->maxElements(), tr_tree_->maxElements()));
+      n = std::max({ bl_tree_->maxElements(), br_tree_->maxElements(),
+                     tl_tree_->maxElements(), tr_tree_->maxElements() });
 
     return n;
   }
@@ -656,7 +657,7 @@ class CQChartsQuadTree {
       uint nb = tl_tree_->maxBorder();
       uint nt = tr_tree_->maxBorder();
 
-      return std::max(nd, std::max(nl, std::max(nr, std::max(nb, nt))));
+      return std::max({ nd, nl, nr, nb, nt });
     }
     else
       return 0;

@@ -101,12 +101,50 @@ setSelected(bool b)
   } );
 }
 
+//---
+
 void
 CQChartsKey::
-hideScrollBars()
+addScrollBars(View *view) const
 {
-  scrollData_.hbar->hide();
-  scrollData_.vbar->hide();
+  if (! scrollData_.hbar) {
+    auto *th = const_cast<CQChartsKey *>(this);
+
+    // create scroll bar
+    th->scrollData_.hbar = new QScrollBar(Qt::Horizontal, view);
+    th->scrollData_.hbar->setObjectName("keyHBar");
+
+    th->scrollData_.vbar = new QScrollBar(Qt::Vertical  , view);
+    th->scrollData_.vbar->setObjectName("keyVBar");
+
+    hideScrollBars();
+
+    connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hscrollSlot(int)));
+    connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
+  }
+}
+
+void
+CQChartsKey::
+removeScrollBars()
+{
+  if (scrollData_.hbar) {
+    delete scrollData_.hbar;
+    delete scrollData_.vbar;
+
+    scrollData_.hbar = nullptr;
+    scrollData_.vbar = nullptr;
+  }
+}
+
+void
+CQChartsKey::
+hideScrollBars() const
+{
+  if (scrollData_.hbar) {
+    scrollData_.hbar->hide();
+    scrollData_.vbar->hide();
+  }
 }
 
 //---
@@ -775,18 +813,6 @@ CQChartsPlotKey(Plot *plot) :
 
   //---
 
-  // create scroll bar
-  scrollData_.hbar = new QScrollBar(Qt::Horizontal, plot->view());
-  scrollData_.hbar->setObjectName("keyHBar");
-
-  scrollData_.vbar = new QScrollBar(Qt::Vertical  , plot->view());
-  scrollData_.vbar->setObjectName("keyVBar");
-
-  hideScrollBars();
-
-  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hscrollSlot(int)));
-  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
-
   scrollData_.pixelBarSize = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
 
   //---
@@ -798,8 +824,7 @@ CQChartsPlotKey(Plot *plot) :
 CQChartsPlotKey::
 ~CQChartsPlotKey()
 {
-  delete scrollData_.hbar;
-  delete scrollData_.vbar;
+  removeScrollBars();
 
   for (auto &item : items_)
     delete item;
@@ -1943,6 +1968,10 @@ draw(PaintDevice *device) const
     hsph = scrollData_.pixelBarSize;
 
   if (layoutData_.vscrolled) {
+    addScrollBars(plot()->view());
+
+    //---
+
     scrollData_.vbar->show();
 
     scrollData_.vbar->move(int(p2.x - scrollData_.pixelBarSize - 1), int(p1.y + phh));
@@ -1994,6 +2023,10 @@ draw(PaintDevice *device) const
   //---
 
   if (layoutData_.hscrolled) {
+    addScrollBars(plot()->view());
+
+    //---
+
     scrollData_.hbar->show();
 
     scrollData_.hbar->move(int(p1.x + 1), int(p2.y - scrollData_.pixelBarSize - 1));

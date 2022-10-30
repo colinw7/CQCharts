@@ -232,6 +232,14 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 
   //---
 
+  //! get/set is visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; }
+
+  bool isHierVisible() const;
+
+  //---
+
   //! get/set is expanded
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b) { expanded_ = b; }
@@ -266,6 +274,8 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
   //! get child hier nodes
   const Children &getChildren() const { return children_; }
 
+  void addChild(HierNode *child);
+
   //---
 
   //! pack child nodes
@@ -294,6 +304,7 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
   Pack     pack_;              //!< circle pack
   Children children_;          //!< child hier nodes
   int      hierInd_  { -1 };   //!< hier index
+  bool     visible_  { true }; //!< is visible
   bool     expanded_ { true }; //!< is expanded
 };
 
@@ -308,6 +319,7 @@ class CQChartsHierBubbleHierObj;
 class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(int     ind  READ ind WRITE setInd)
   Q_PROPERTY(QString name READ hierName)
   Q_PROPERTY(double  size READ hierSize)
 
@@ -315,27 +327,13 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   using Plot    = CQChartsHierBubblePlot;
   using Node    = CQChartsHierBubbleNode;
   using HierObj = CQChartsHierBubbleHierObj;
+  using NodeObj = CQChartsHierBubbleNodeObj;
   using Angle   = CQChartsAngle;
   using Units   = CQChartsUnits::Type;
 
  public:
   CQChartsHierBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
                             const BBox &rect, const ColorInd &is);
-
-  QString typeName() const override { return "bubble"; }
-
-  //---
-
-  bool isCircle() const override { return true; }
-
-  double radius() const override { return node_->radius(); }
-
-  //---
-
-  QString hierName(const QString &sep="/") const { return node()->hierName(sep); }
-  double  hierSize() const { return node()->hierSize(); }
-
-  //---
 
   Node *node() const { return node_; }
 
@@ -344,6 +342,17 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   //! get/set index
   int ind() const { return ind_; }
   void setInd(int ind) { ind_ = ind; }
+
+  QString hierName(const QString &sep="/") const { return node()->hierName(sep); }
+  double  hierSize() const { return node()->hierSize(); }
+
+  //---
+
+  QString typeName() const override { return "bubble"; }
+
+  bool isCircle() const override { return true; }
+
+  double radius() const override { return node_->radius(); }
 
   QString calcId() const override;
 
@@ -354,6 +363,8 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   virtual QString calcGroupName() const;
 
   //---
+
+  void addChild(NodeObj *child) { children_.push_back(child); }
 
   bool inside(const Point &p) const override;
 
@@ -368,18 +379,25 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
+
+  //---
+
   bool isMinArea() const;
 
   bool isCirclePoint() const;
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
+  bool isChildSelected() const;
 
  protected:
+  using Children = std::vector<NodeObj *>;
+
   const Plot* plot_    { nullptr }; //!< parent plot
   Node*       node_    { nullptr }; //!< associated node
   HierObj*    hierObj_ { nullptr }; //!< parent hier obj
+  Children    children_;            //!< child objects
   int         ind_     { 0 };       //!< ind
 
   mutable int numColorIds_ { -1 }; //!< associated group's number of color ids
@@ -423,6 +441,8 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
   bool inside(const Point &p) const override;
 
+  bool isSelectable() const override;
+
   void getObjSelectIndices(Indices &inds) const override;
 
   //---
@@ -463,9 +483,10 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hier, hier)
 
   // node options
-  Q_PROPERTY(bool valueLabel  READ isValueLabel  WRITE setValueLabel )
-  Q_PROPERTY(bool sorted      READ isSorted      WRITE setSorted     )
-  Q_PROPERTY(bool sortReverse READ isSortReverse WRITE setSortReverse)
+  Q_PROPERTY(bool         valueLabel   READ isValueLabel  WRITE setValueLabel  )
+  Q_PROPERTY(ValueCombine valueCombine READ valueCombine  WRITE setValueCombine)
+  Q_PROPERTY(bool         sorted       READ isSorted      WRITE setSorted      )
+  Q_PROPERTY(bool         sortReverse  READ isSortReverse WRITE setSortReverse )
 
   // node shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
@@ -481,10 +502,18 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   Q_PROPERTY(bool splitGroups  READ isSplitGroups  WRITE setSplitGroups )
   Q_PROPERTY(bool groupPalette READ isGroupPalette WRITE setGroupPalette)
 
+  Q_ENUMS(ValueCombine)
   Q_ENUMS(NodeColorType)
   Q_ENUMS(HierColorType)
 
  public:
+  enum class ValueCombine {
+    SKIP,
+    REPLACE,
+    WARN,
+    SUM
+  };
+
   enum class NodeColorType {
     ID,
     PARENT_VALUE,
@@ -524,6 +553,10 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   void term() override;
 
   //---
+
+  //! get/set value combine policy
+  const ValueCombine &valueCombine() const { return valueCombine_; }
+  void setValueCombine(const ValueCombine &combine);
 
   //! get/set is value label
   bool isValueLabel() const { return valueLabel_; }
@@ -666,13 +699,13 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   HierNode *addHierNode(const QString &groupName, HierNode *parent, const QString &name,
                         const QModelIndex &nameInd) const;
 
-  Node *addNode(const QString &groupName, HierNode *parent, const QString &name,
-                double size, const QModelIndex &nameInd) const;
+  Node *hierAddNode(const QString &groupName, HierNode *parent, const QString &name,
+                    double size, const QModelIndex &nameInd) const;
 
   void loadFlat() const;
 
-  Node *addFlatNode(const QString &groupName, const QStringList &nameStrs,
-                    double size, const QModelIndex &nameInd) const;
+  Node *flatAddNode(const QString &groupName, const QStringList &nameStrs,
+                    double size, const QModelIndex &nameInd, const QString &name) const;
 
   void addExtraNodes(HierNode *hier) const;
 
@@ -718,6 +751,12 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
+  virtual HierNode *createHierNode(HierNode *parent, const QString &name,
+                                   const QModelIndex &nameInd) const;
+
+  virtual Node *createNode(HierNode *parent, const QString &name,
+                           double size, const QModelIndex &nameInd) const;
+
   virtual HierObj *createHierObj(HierNode *hier, HierObj *hierObj,
                                  const BBox &rect, const ColorInd &is) const;
   virtual NodeObj *createNodeObj(Node *node, HierObj *hierObj,
@@ -727,6 +766,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   void pushSlot();
   void popSlot();
   void popTopSlot();
+
+ private:
+  void popTop(bool update);
 
   void updateCurrentRoot();
 
@@ -786,8 +828,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   HierBubbleData &getHierBubbleData(const QString &groupName) const;
 
  private:
-  bool     valueLabel_ { false }; //!< draw value with name
-  SortData sortData_;             //!< sort data
+  ValueCombine valueCombine_ { ValueCombine::SKIP }; //!< value combine policy
+  bool         valueLabel_   { false };              //!< draw value with name
+  SortData     sortData_;                            //!< sort data
 
   OptReal minSize_;                //!< min size
   Area    minArea_;                //!< min area

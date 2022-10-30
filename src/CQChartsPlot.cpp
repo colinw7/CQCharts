@@ -234,12 +234,33 @@ term()
 
 //---
 
+void
+CQChartsPlot::
+setView(View *view)
+{
+  assert(view != view_);
+
+  view_ = view;
+}
+
 QString
 CQChartsPlot::
 viewId() const
 {
   return view()->id();
 }
+
+void
+CQChartsPlot::
+emitParentViewChanged()
+{
+  for (auto &annotation : annotations())
+    annotation->parentViewChanged();
+
+  Q_EMIT parentViewChanged();
+}
+
+//---
 
 QString
 CQChartsPlot::
@@ -482,7 +503,7 @@ CQChartsPlot::
 animateStep()
 {
   for (auto &annotation : annotations())
-   annotation->animateStep();
+    annotation->animateStep();
 }
 
 //---

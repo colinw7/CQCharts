@@ -525,6 +525,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using SymbolSizeData  = CQChartsSymbolSizeData;
   using FontSizeData    = CQChartsFontSizeData;
 
+  friend CQChartsView;
+
  public:
   CQChartsPlot(View *view, PlotType *type, const ModelP &model);
 
@@ -537,11 +539,21 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ public:
   View *view() const { return view_; }
 
-  PlotType *type() const { return type_; }
+ protected:
+  void setView(View *view);
 
+ public:
   QString viewId() const;
+
+  void emitParentViewChanged();
+
+  //---
+
+ public:
+  PlotType *type() const { return type_; }
 
   QString typeStr() const;
 
@@ -3236,6 +3248,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // emitted when custom data changed
   void customDataChanged();
+
+  // emitted when parent view changed
+  void parentViewChanged();
 
  protected:
   //! \brief RAII class to enable/disable no update state

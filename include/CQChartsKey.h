@@ -68,7 +68,12 @@ class CQChartsKey : public CQChartsBoxObj,
 
   void setSelected(bool b) override;
 
-  void hideScrollBars();
+  //---
+
+  void addScrollBars(View *view) const;
+  void removeScrollBars();
+
+  void hideScrollBars() const;
 
   //---
 

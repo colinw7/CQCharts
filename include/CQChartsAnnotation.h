@@ -394,6 +394,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! initialize state when first resized to explicit rectangle in edit
   virtual void initRectangle();
 
+  //! called when parent view changed
+  virtual void parentViewChanged() { }
+
  Q_SIGNALS:
   //! emitted when data changed
   void dataChanged();
@@ -2767,6 +2770,8 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   //---
 
   void initRectangle() override;
+
+  void parentViewChanged() override;
 
  protected:
   void init();

@@ -100,12 +100,12 @@ init()
   //---
 
   // hier node style
-  setHierFillColor(Color::makeInterfaceValue(0.4));
-
+  setHierFilled(true);
   setHierStroked(true);
+
+  setHierFillColor(Color::makeInterfaceValue(0.4));
   setHierStrokeAlpha(Alpha(0.5));
 
-  setHierFilled(true);
 
   //---
 
@@ -281,6 +281,8 @@ setMarginWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(nodeData_.marginWidth, l, [&]() { updateCurrentRoot(); } );
 }
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -636,7 +638,8 @@ createObjs(PlotObjs &objs) const
   if (! checkNumericColumn(valueColumn(), "Value", th->valueColumnType_))
     columnsValid = false;
 
-  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+  if (! checkColumn(colorColumn(), "Color"))
+    columnsValid = false;
 
   if (! columnsValid)
     return false;
@@ -755,16 +758,6 @@ initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
 
   //---
 
-  int n = 0;
-
-  for (auto &node : hier->getNodes()) {
-    if (! node->placed()) continue;
-
-    ++n;
-  }
-
-  int i = 0;
-
   for (auto &node : hier->getNodes()) {
     if (! node->placed()) continue;
 
@@ -784,8 +777,6 @@ initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
       parentObj->addChild(obj);
 
     objs.push_back(obj);
-
-    ++i;
   }
 }
 
@@ -969,6 +960,7 @@ loadHier() const
     }
 
     State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
+      // get name and associated model index for row
       QString     name;
       QModelIndex nameInd;
 
@@ -1037,11 +1029,11 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      bool ok;
+
       ModelIndex nameModelInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
-
-      bool ok;
 
       name = plot_->modelString(nameModelInd, ok);
 
@@ -1182,7 +1174,7 @@ loadFlat() const
         groupName = plot_->modelString(groupModelInd, ok); // hier ?
 
         if (groupName == "")
-          groupName = " ";
+          groupName = "<none>";
       }
 
       //---
@@ -1306,6 +1298,10 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
 
       groupName1 = "";
     }
+  }
+  else {
+    if (groupName1 == "")
+      groupName1 = "<none>";
   }
 
   //---
@@ -2666,6 +2662,7 @@ calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) co
   if (numColorIds_ < 0)
     numColorIds_ = plot_->numColorIds(calcGroupName());
 
+  // calc stroke and brush
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);

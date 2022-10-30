@@ -637,9 +637,11 @@ class CQChartsView : public QFrame,
   void raisePlot(Plot *plot);
   void lowerPlot(Plot *plot);
 
-  void removePlot(Plot *plot);
+  bool removePlot(Plot *plot, bool keep=false);
 
   void removeAllPlots();
+
+  void movePlot(Plot *plot);
 
   //---
 
@@ -1420,6 +1422,8 @@ class CQChartsView : public QFrame,
   void updateAnnotationSlot();
 
  private:
+  void connectPlot(Plot *plot, bool connect);
+
   void addProperties();
 
   void selectMousePress();
