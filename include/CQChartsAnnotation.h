@@ -2715,6 +2715,15 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   //---
 
+ public:
+  void setVisible(bool b) override;
+
+ private:
+  void updateVisible();
+
+  //---
+
+ public:
   //! get/set position
   const OptPosition &position() const { return position_; }
   void setPosition(const OptPosition &p);

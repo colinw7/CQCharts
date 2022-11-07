@@ -8365,6 +8365,27 @@ init()
 
 //---
 
+void
+CQChartsWidgetAnnotation::
+setVisible(bool b)
+{
+  CQChartsAnnotation::setVisible(b);
+
+  updateVisible();
+}
+
+void
+CQChartsWidgetAnnotation::
+updateVisible()
+{
+  if (winWidget_)
+    winWidget_->setVisible(isVisible());
+
+  widget_.setVisible(isVisible());
+}
+
+//---
+
 CQChartsPosition
 CQChartsWidgetAnnotation::
 positionValue() const
@@ -8681,10 +8702,7 @@ void
 CQChartsWidgetAnnotation::
 draw(PaintDevice *)
 {
-  if (! winWidget_)
-    widget_.setVisible(isVisible());
-  else
-    winWidget_->setVisible(isVisible());
+  updateVisible();
 
   //---
 

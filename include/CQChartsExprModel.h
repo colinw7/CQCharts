@@ -200,7 +200,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  private:
   using ModelTypeData = CQChartsModelTypeData;
-  using OptInt        = std::optional<int>;
+  using OptInt        = std::optional<long>;
   using OptReal       = std::optional<double>;
   using VariantMap    = std::map<int, QVariant>;
   using Args          = std::vector<QString>;

@@ -212,7 +212,7 @@ class CQChartsRValues {
  */
 class CQChartsIValues {
  public:
-  using OptInt      = std::optional<int>;
+  using OptInt      = std::optional<long>;
   using Values      = std::vector<long>;
   using Counts      = std::vector<int>;
   using ValueCount  = std::pair<long, int>;
@@ -639,7 +639,7 @@ class CQChartsValueSet : public QObject {
  public:
   using Plot      = CQChartsPlot;
   using Type      = CQBaseModelType;
-  using OptInt    = std::optional<int>;
+  using OptInt    = std::optional<long>;
   using OptReal   = std::optional<double>;
   using OptString = std::optional<QString>;
 

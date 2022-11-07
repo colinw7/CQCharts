@@ -832,6 +832,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void menuPlotObjs(PlotObjs &objs) const;
 
+  void saveSelection();
+  void restoreSelection(const PlotObjs &objs);
+
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 
@@ -905,6 +908,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   TreeMapData &getTreeMapData(const QString &groupName) const;
 
  private:
+  using SelectionInds = std::set<QModelIndex>;
+
   TitleData titleData_;            //!< title config data
   TreeData  treeData_;             //!< tree config data
   NodeData  nodeData_;             //!< node config data
@@ -928,6 +933,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   mutable bool   hasValueRange_ { false };
   mutable double minValue_      { 0.0 };
   mutable double maxValue_      { 1.0 };
+
+  SelectionInds selInds_;
 };
 
 //---

@@ -24,7 +24,7 @@ class CQChartsOptInt :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsOptInt, metaTypeId)
 
  public:
-  using OptInt = std::optional<int>;
+  using OptInt = std::optional<long>;
 
   CQChartsOptInt() { }
 
@@ -32,7 +32,7 @@ class CQChartsOptInt :
    value_(value) {
   }
 
-  explicit CQChartsOptInt(int i) :
+  explicit CQChartsOptInt(long i) :
    value_(i) {
   }
 
@@ -47,10 +47,10 @@ class CQChartsOptInt :
 
   //---
 
-  int integer() const { return value_.value(); }
-  void setInteger(int i) { value_ = i; }
+  long integer() const { return value_.value(); }
+  void setInteger(long i) { value_ = i; }
 
-  int integerOr(int def) const { return value_.value_or(def); }
+  long integerOr(long def) const { return value_.value_or(def); }
 
   //---
 
@@ -72,7 +72,7 @@ class CQChartsOptInt :
       long i = CQChartsUtil::toInt(s, ok);
       if (! ok) return false;
 
-      value_ = static_cast<int>(i);
+      value_ = static_cast<long>(i);
     }
 
     return true;

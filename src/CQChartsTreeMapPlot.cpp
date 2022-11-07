@@ -717,6 +717,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  th->restoreSelection(objs);
+
   th->modelViewExpansionChanged();
 
   return true;
@@ -1522,12 +1524,13 @@ CQChartsTreeMapPlot::TreeMapData &
 CQChartsTreeMapPlot::
 getTreeMapData(const QString &groupName) const
 {
-  if (groupName != "") {
-    auto pg = groupTreeMapData_.find(groupName);
-    assert(pg != groupTreeMapData_.end());
+  auto pg = groupTreeMapData_.find(groupName);
 
+  if (pg != groupTreeMapData_.end())
     return const_cast<TreeMapData &>((*pg).second);
-  }
+
+  if (groupName != "" && groupName != "<none>")
+    assert(false);
 
   return const_cast<TreeMapData &>(treeMapData_);
 }
@@ -1690,8 +1693,12 @@ pushSlot()
     }
   }
 
-  if (hnode)
-    setCurrentRoot(menuGroupName_, hnode, /*update*/true);
+  if (! hnode)
+    return;
+
+  saveSelection();
+
+  setCurrentRoot(menuGroupName_, hnode, /*update*/true);
 }
 
 void
@@ -1701,6 +1708,8 @@ popSlot()
   treeData_.currentGroupName = "";
 
   auto *root = currentRoot(menuGroupName_);
+
+  saveSelection();
 
   if (root && root->parent())
     setCurrentRoot(menuGroupName_, root->parent(), /*update*/true);
@@ -1723,6 +1732,8 @@ popTop(bool update)
 
   auto *root      = currentRoot(menuGroupName_);
   auto *firstHier = this->firstHier(menuGroupName_);
+
+  saveSelection();
 
   if (root != firstHier)
     setCurrentRoot(menuGroupName_, firstHier, update);
@@ -1802,6 +1813,43 @@ menuPlotObjs(PlotObjs &objs) const
     auto w = pixelToWindow(Point(pos));
 
     plotObjsAtPoint(w, objs, Constraints::SELECTABLE);
+  }
+}
+
+void
+CQChartsTreeMapPlot::
+saveSelection()
+{
+  PlotObjs objs;
+
+  selectedPlotObjs(objs);
+
+  selInds_.clear();
+
+  for (const auto &obj : objs) {
+    auto ind = obj->modelInd();
+
+    selInds_.insert(ind);
+  }
+}
+
+void
+CQChartsTreeMapPlot::
+restoreSelection(const PlotObjs &objs)
+{
+  if (! selInds_.empty()) {
+    startSelection();
+
+    for (const auto &obj : objs) {
+      auto ind = obj->modelInd();
+
+      if (selInds_.find(ind) != selInds_.end())
+        obj->setSelected(true);
+    }
+
+    endSelection();
+
+    selInds_.clear();
   }
 }
 
