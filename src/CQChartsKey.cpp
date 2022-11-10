@@ -1375,10 +1375,10 @@ doLayout()
     auto font = view()->plotFont(plot(), headerTextFont());
 
     // get text size
-    auto tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
+    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
 
-    layoutData_.headerWidth  = drawPlot->pixelToWindowWidth (tsize.width ()) + 2*xs_;
-    layoutData_.headerHeight = drawPlot->pixelToWindowHeight(tsize.height()) + 2*ys_;
+    layoutData_.headerWidth  = drawPlot->pixelToWindowWidth (ptsize.width ()) + 2*xs_;
+    layoutData_.headerHeight = drawPlot->pixelToWindowHeight(ptsize.height()) + 2*ys_;
   }
 
   //---
@@ -1420,6 +1420,8 @@ doLayout()
     w += cell.width;
   }
 
+  w = std::max(w, layoutData_.headerWidth);
+
   w += pmargin_.xl + ppadding_.xl + pmargin_.xr + ppadding_.xr;
 
   for (int r = 0; r < numRows; ++r) {
@@ -1429,8 +1431,6 @@ doLayout()
   }
 
   h += pmargin_.yb + ppadding_.yb + pmargin_.yt + ppadding_.yt + layoutData_.headerHeight;
-
-  w = std::max(w, layoutData_.headerWidth);
 
   layoutData_.fullSize = Size(w, h);
 
@@ -2129,7 +2129,9 @@ draw(PaintDevice *device) const
   //double xlm = drawPlot->lengthPlotWidth (margin().left  ());
   //double xrm = drawPlot->lengthPlotWidth (margin().right ());
     double ytm = drawPlot->lengthPlotHeight(margin().top   ());
-    double ybm = drawPlot->lengthPlotHeight(margin().bottom());
+  //double ybm = drawPlot->lengthPlotHeight(margin().bottom());
+
+    double pytm = drawPlot->windowToPixelHeight(ytm);
 
     // get internal padding
   //double xlp = drawPlot->lengthPlotWidth (padding().left  ());
@@ -2140,12 +2142,12 @@ draw(PaintDevice *device) const
     //---
 
     // calc text rect
-    auto tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
+    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
 
     double tw = pw;
-    double th = tsize.height() + ybm + ytm;
+    double th = ptsize.height() + 2*spacing();
 
-    BBox trect(p.x, p.y, p.x + tw, p.y + th);
+    BBox trect(p.x, p.y + pytm, p.x + tw, p.y + pytm + th);
 
     //---
 

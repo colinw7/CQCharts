@@ -76,6 +76,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
   Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
   Q_PROPERTY(QString        nodeTipNameLabel  READ nodeTipNameLabel    WRITE setNodeTipNameLabel )
+  Q_PROPERTY(QString        nodeTipValueLabel READ nodeTipValueLabel   WRITE setNodeTipValueLabel)
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape         READ edgeShape           WRITE setEdgeShape        )
@@ -227,9 +228,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isNodeValueLabel() const { return nodeDrawData_.valueLabel; }
   void setNodeValueLabel(bool b);
 
-  //! get/set node tip label
+  //! get/set node tip name label
   const QString &nodeTipNameLabel() const { return nodeDrawData_.tipNameLabel; }
   void setNodeTipNameLabel(const QString &s) { nodeDrawData_.tipNameLabel = s; }
+
+  //! get/set node tip value label
+  const QString &nodeTipValueLabel() const { return nodeDrawData_.tipValueLabel; }
+  void setNodeTipValueLabel(const QString &s) { nodeDrawData_.tipValueLabel = s; }
 
   //---
 
@@ -541,6 +546,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     bool      mouseColoring { false };             //!< is node edges colored on mouse over
     bool      valueLabel    { false };             //!< show value as label
     QString   tipNameLabel;                        //!< tip label for node name
+    QString   tipValueLabel;                       //!< tip label for node value
   };
 
   NodeDrawData nodeDrawData_; //!< node draw data

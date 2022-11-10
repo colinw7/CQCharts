@@ -4544,8 +4544,10 @@ draw(PaintDevice *device) const
     device->drawImageInRect(plot()->pixelToWindow(pbbox), image);
   }
 
-  if (isSelected() && plot()->isOutlineSelected())
-    CQChartsDrawUtil::drawSelectedOutline(device, rect());
+  if (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION) {
+    if (isSelected() && plot()->isOutlineSelected())
+      CQChartsDrawUtil::drawSelectedOutline(device, rect());
+  }
 
   device->resetColorNames();
 

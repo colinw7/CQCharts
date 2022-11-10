@@ -17,3 +17,6 @@ set_charts_property -plot $plot -name edge.valueColored -value {true}
 
 set_charts_property -plot $plot -name node.scaled -value {false}
 set_charts_property -plot $plot -name node.valueColored -value {true}
+
+set_charts_property -plot $plot -name node.tipNameLabel  -value {My Name}
+set_charts_property -plot $plot -name node.tipValueLabel -value {My Value}

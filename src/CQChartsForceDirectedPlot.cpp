@@ -383,6 +383,7 @@ addProperties()
   addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
   addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
   addProp("node", "nodeTipNameLabel" , "tipNameLabel" , "Label for node name tip");
+  addProp("node", "nodeTipValueLabel", "tipValueLabel", "Label for node value tip");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -2210,8 +2211,11 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
 
     auto label = (connectionsData.name.length() ? connectionsData.name : calcNodeLabel(node));
 
-    if (label.length())
-      tableTip.addTableRow(nodeTipNameLabel() != "" ? nodeTipNameLabel() : "Label", label);
+    if (label.length()) {
+      auto nameLabel = (nodeTipNameLabel() != "" ? nodeTipNameLabel() : "Label");
+
+      tableTip.addTableRow(nameLabel, label);
+    }
 
     if (groupColumn().isValid() && connectionsData.group >= 0)
       tableTip.addTableRow("Group", connectionsData.group);
@@ -2230,8 +2234,11 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
 
   auto value = calcNodeValue(node);
 
-  if (value.isSet())
-    tableTip.addTableRow("Value", value.real());
+  if (value.isSet()) {
+    auto valueLabel = (nodeTipValueLabel() != "" ? nodeTipValueLabel() : "Value");
+
+    tableTip.addTableRow(valueLabel, value.real());
+  }
 
   addTipColumns(tableTip, node->ind());
 }
